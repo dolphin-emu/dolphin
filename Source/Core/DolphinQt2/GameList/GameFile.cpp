@@ -161,18 +161,17 @@ bool GameFile::TryLoadVolume()
 
   m_game_id = QString::fromStdString(volume->GetGameID());
   std::string maker_id = volume->GetMakerID();
-  if (std::optional<u64> title_id = volume->GetTitleID())
-    m_title_id = *title_id;
+  m_title_id = volume->GetTitleID().value_or(0);
   m_maker = QString::fromStdString(DiscIO::GetCompanyFromID(maker_id));
   m_maker_id = QString::fromStdString(maker_id);
-  m_revision = volume->GetRevision();
+  m_revision = volume->GetRevision().value_or(0);
   m_internal_name = QString::fromStdString(volume->GetInternalName());
   m_short_names = ConvertLanguageMap(volume->GetShortNames());
   m_long_names = ConvertLanguageMap(volume->GetLongNames());
   m_short_makers = ConvertLanguageMap(volume->GetShortMakers());
   m_long_makers = ConvertLanguageMap(volume->GetLongMakers());
   m_descriptions = ConvertLanguageMap(volume->GetDescriptions());
-  m_disc_number = volume->GetDiscNumber();
+  m_disc_number = volume->GetDiscNumber().value_or(0);
   m_platform = volume->GetVolumeType();
   m_region = volume->GetRegion();
   m_country = volume->GetCountry();
@@ -218,9 +217,9 @@ QString GameFile::GetBannerString(const QMap<DiscIO::Language, QString>& m) cons
   bool wii = m_platform != DiscIO::Platform::GAMECUBE_DISC;
   DiscIO::Language current_lang;
   if (wii)
-    current_lang = Settings().GetWiiSystemLanguage();
+    current_lang = Settings::Instance().GetWiiSystemLanguage();
   else
-    current_lang = Settings().GetGCSystemLanguage();
+    current_lang = Settings::Instance().GetGCSystemLanguage();
 
   if (m.contains(current_lang))
     return m[current_lang];

@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -61,20 +62,14 @@ std::string CVolumeGC::GetGameID(const Partition& partition) const
 
 Region CVolumeGC::GetRegion() const
 {
-  u8 country_code;
-  if (!ReadSwapped(3, &country_code, PARTITION_NONE))
-    return Region::UNKNOWN_REGION;
-
-  return RegionSwitchGC(country_code);
+  const std::optional<u8> country_code = ReadSwapped<u8>(3, PARTITION_NONE);
+  return country_code ? RegionSwitchGC(*country_code) : Region::UNKNOWN_REGION;
 }
 
 Country CVolumeGC::GetCountry(const Partition& partition) const
 {
-  u8 country_code;
-  if (!ReadSwapped(3, &country_code, partition))
-    return Country::COUNTRY_UNKNOWN;
-
-  return CountrySwitch(country_code);
+  const std::optional<u8> country_code = ReadSwapped<u8>(3, partition);
+  return country_code ? CountrySwitch(*country_code) : Country::COUNTRY_UNKNOWN;
 }
 
 std::string CVolumeGC::GetMakerID(const Partition& partition) const
@@ -86,13 +81,10 @@ std::string CVolumeGC::GetMakerID(const Partition& partition) const
   return DecodeString(makerID);
 }
 
-u16 CVolumeGC::GetRevision(const Partition& partition) const
+std::optional<u16> CVolumeGC::GetRevision(const Partition& partition) const
 {
-  u8 revision;
-  if (!ReadSwapped(7, &revision, partition))
-    return 0;
-
-  return revision;
+  std::optional<u8> revision = ReadSwapped<u8>(7, partition);
+  return revision ? *revision : std::optional<u16>();
 }
 
 std::string CVolumeGC::GetInternalName(const Partition& partition) const
@@ -166,11 +158,9 @@ u64 CVolumeGC::GetRawSize() const
   return m_pReader->GetRawSize();
 }
 
-u8 CVolumeGC::GetDiscNumber(const Partition& partition) const
+std::optional<u8> CVolumeGC::GetDiscNumber(const Partition& partition) const
 {
-  u8 disc_number = 0;
-  ReadSwapped(6, &disc_number, partition);
-  return disc_number;
+  return ReadSwapped<u8>(6, partition);
 }
 
 Platform CVolumeGC::GetVolumeType() const

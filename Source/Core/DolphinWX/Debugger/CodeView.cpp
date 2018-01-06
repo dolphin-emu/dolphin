@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 #include <wx/brush.h>
 #include <wx/clipbrd.h>
 #include <wx/colour.h>
@@ -26,6 +27,8 @@
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Debugger/AssemblerEntryDialog.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Globals.h"
@@ -41,6 +44,7 @@ enum
   IDM_COPYCODE,
   IDM_INSERTBLR,
   IDM_INSERTNOP,
+  IDM_ASSEMBLE,
   IDM_RUNTOHERE,
   IDM_JITRESULTS,
   IDM_FOLLOWBRANCH,
@@ -301,6 +305,28 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
     Refresh();
     break;
 
+  case IDM_ASSEMBLE:
+  {
+    if (!PowerPC::HostIsInstructionRAMAddress(m_selection))
+      break;
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(m_selection);
+    if (!read_result.valid)
+      break;
+    AssemblerEntryDialog dialog(m_selection, this, _("Enter instruction code:"),
+                                wxGetTextFromUserPromptStr,
+                                wxString::Format(wxT("%#08x"), read_result.hex));
+    if (dialog.ShowModal() == wxID_OK)
+    {
+      unsigned long code;
+      if (dialog.GetValue().ToULong(&code, 0) && code <= std::numeric_limits<u32>::max())
+      {
+        m_debugger->InsertBLR(m_selection, code);
+        Refresh();
+      }
+    }
+    break;
+  }
+
   case IDM_JITRESULTS:
   {
     // Propagate back to the parent window and tell it
@@ -424,6 +450,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
   menu.Append(IDM_JITRESULTS, _("PPC vs x86"))->Enable(Core::IsRunning());
   menu.Append(IDM_INSERTBLR, _("&Insert blr"))->Enable(Core::IsRunning());
   menu.Append(IDM_INSERTNOP, _("Insert &nop"))->Enable(Core::IsRunning());
+  menu.Append(IDM_ASSEMBLE, _("Re&place Instruction"))->Enable(Core::IsRunning());
   // menu.Append(IDM_PATCHALERT, _("Patch alert"))->Enable(Core::IsRunning());
   PopupMenu(&menu);
   event.Skip();

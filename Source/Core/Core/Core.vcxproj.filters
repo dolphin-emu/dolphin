@@ -293,6 +293,9 @@
     <ClCompile Include="HLE\HLE_OS.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
+    <ClCompile Include="HLE\HLE_VarArgs.cpp">
+      <Filter>HLE</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\BreakPoints.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
@@ -959,6 +962,9 @@
       <Filter>HLE</Filter>
     </ClInclude>
     <ClInclude Include="HLE\HLE_OS.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="HLE\HLE_VarArgs.h">
       <Filter>HLE</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h">

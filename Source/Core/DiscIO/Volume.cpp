@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -93,26 +94,25 @@ std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename)
     return nullptr;
 
   // Check for Wii
-  u32 wii_magic = 0;
-  reader->ReadSwapped(0x18, &wii_magic);
-  u32 wii_container_magic = 0;
-  reader->ReadSwapped(0x60, &wii_container_magic);
-  if (wii_magic == 0x5D1C9EA3 && wii_container_magic != 0)
+  const std::optional<u32> wii_magic = reader->ReadSwapped<u32>(0x18);
+  if (wii_magic == u32(0x5D1C9EA3))
+  {
+    const std::optional<u32> wii_container_magic = reader->ReadSwapped<u32>(0x60);
+    if (wii_container_magic == u32(0))
+      return std::make_unique<CVolumeWiiCrypted>(std::move(reader));
+
     return std::make_unique<CVolumeGC>(std::move(reader));
-  if (wii_magic == 0x5D1C9EA3 && wii_container_magic == 0)
-    return std::make_unique<CVolumeWiiCrypted>(std::move(reader));
+  }
 
   // Check for WAD
   // 0x206962 for boot2 wads
-  u32 wad_magic = 0;
-  reader->ReadSwapped(0x02, &wad_magic);
-  if (wad_magic == 0x00204973 || wad_magic == 0x00206962)
+  const std::optional<u32> wad_magic = reader->ReadSwapped<u32>(0x02);
+  if (wad_magic == u32(0x00204973) || wad_magic == u32(0x00206962))
     return std::make_unique<CVolumeWAD>(std::move(reader));
 
   // Check for GC
-  u32 gc_magic = 0;
-  reader->ReadSwapped(0x1C, &gc_magic);
-  if (gc_magic == 0xC2339F3D)
+  const std::optional<u32> gc_magic = reader->ReadSwapped<u32>(0x1C);
+  if (gc_magic == u32(0xC2339F3D))
     return std::make_unique<CVolumeGC>(std::move(reader));
 
   // No known magic words found

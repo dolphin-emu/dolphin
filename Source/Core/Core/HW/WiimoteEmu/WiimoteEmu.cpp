@@ -274,7 +274,10 @@ Wiimote::Wiimote(const unsigned int index)
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& named_button : named_buttons)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button));
+  {
+    const std::string& ui_name = (named_button == "Home") ? "HOME" : named_button;
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button, ui_name));
+  }
 
   // ir
   // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes

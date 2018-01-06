@@ -17,8 +17,20 @@ static QString GetSettingsPath()
   return QString::fromStdString(File::GetUserPath(D_CONFIG_IDX)) + QStringLiteral("/UI.ini");
 }
 
-Settings::Settings(QObject* parent) : QSettings(GetSettingsPath(), QSettings::IniFormat, parent)
+Settings::Settings() : QSettings(GetSettingsPath(), QSettings::IniFormat)
 {
+}
+
+Settings& Settings::Instance()
+{
+  static Settings settings;
+  return settings;
+}
+
+void Settings::SetThemeName(const QString& theme_name)
+{
+  SConfig::GetInstance().theme_name = theme_name.toStdString();
+  emit ThemeChanged();
 }
 
 QString Settings::GetThemeDir() const
@@ -65,16 +77,32 @@ QStringList Settings::GetPaths() const
   return value(QStringLiteral("GameList/Paths")).toStringList();
 }
 
+void Settings::AddPath(const QString& path)
+{
+  QStringList game_folders = Settings::Instance().GetPaths();
+  if (!game_folders.contains(path))
+  {
+    game_folders << path;
+    Settings::Instance().SetPaths(game_folders);
+    emit PathAdded(path);
+  }
+}
+
 void Settings::SetPaths(const QStringList& paths)
 {
   setValue(QStringLiteral("GameList/Paths"), paths);
 }
 
-void Settings::RemovePath(int i)
+void Settings::RemovePath(const QString& path)
 {
   QStringList paths = GetPaths();
+  int i = paths.indexOf(path);
+  if (i < 0)
+    return;
+
   paths.removeAt(i);
   SetPaths(paths);
+  emit PathRemoved(path);
 }
 
 QString Settings::GetDefaultGame() const
@@ -199,6 +227,17 @@ bool Settings::GetFullScreen() const
 QSize Settings::GetRenderWindowSize() const
 {
   return value(QStringLiteral("Graphics/RenderWindowSize"), QSize(640, 480)).toSize();
+}
+
+void Settings::SetHideCursor(bool hide_cursor)
+{
+  SConfig::GetInstance().bHideCursor = hide_cursor;
+  emit HideCursorChanged();
+}
+
+bool Settings::GetHideCursor() const
+{
+  return SConfig::GetInstance().bHideCursor;
 }
 
 bool& Settings::BannerVisible() const

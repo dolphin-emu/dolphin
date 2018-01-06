@@ -6,6 +6,7 @@
 
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
+#include "DolphinQt2/Settings.h"
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
@@ -17,6 +18,15 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen);
   connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle);
   emit HandleChanged((void*)winId());
+
+  connect(&Settings::Instance(), &Settings::HideCursorChanged, this,
+          &RenderWidget::OnHideCursorChanged);
+  OnHideCursorChanged();
+}
+
+void RenderWidget::OnHideCursorChanged()
+{
+  setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
 }
 
 bool RenderWidget::event(QEvent* event)

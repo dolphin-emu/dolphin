@@ -16,6 +16,7 @@
 
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -46,13 +47,12 @@ public:
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
   template <typename T>
-  bool ReadSwapped(u64 offset, T* buffer)
+  std::optional<T> ReadSwapped(u64 offset)
   {
     T temp;
     if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp)))
-      return false;
-    *buffer = Common::FromBigEndian(temp);
-    return true;
+      return {};
+    return Common::FromBigEndian(temp);
   }
 
 protected:

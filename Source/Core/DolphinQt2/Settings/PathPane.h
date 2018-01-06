@@ -4,30 +4,24 @@
 
 #pragma once
 
-#include <QDialog>
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QListWidget>
+#include <QWidget>
 
-class PathDialog final : public QDialog
+class QGridLayout;
+class QGroupBox;
+class QLineEdit;
+class QListWidget;
+
+class PathPane final : public QWidget
 {
-  Q_OBJECT
 public:
-  explicit PathDialog(QWidget* parent = nullptr);
+  explicit PathPane(QWidget* parent = nullptr);
 
-public slots:
+private:
   void Browse();
   void BrowseDefaultGame();
   void BrowseDVDRoot();
   void BrowseApploader();
   void BrowseWiiNAND();
-
-signals:
-  void PathAdded(QString path);
-  void PathRemoved(QString path);
-
-private:
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
   void RemovePath();

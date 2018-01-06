@@ -145,7 +145,7 @@ static void DrawButton(const std::vector<unsigned int>& bitmasks, unsigned int b
   gc->DrawRectangle(n * 12, (row == 0) ? 0 : (row * 11), 14, 12);
 
   // text
-  const std::string name = g->control_group->controls[(row * 8) + n]->name;
+  const std::string name = g->control_group->controls[(row * 8) + n]->ui_name;
   // Matrix transformation needs to be disabled so we don't draw scaled/zoomed text.
   wxGraphicsMatrix old_matrix = gc->GetTransform();
   gc->SetTransform(null_matrix);
@@ -405,7 +405,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
       // text
       // We don't want the text to be scaled/zoomed
       gc->SetTransform(null_matrix);
-      gc->DrawText(StrToWxStr(g->control_group->controls[n]->name), 3 * g->m_scale,
+      gc->DrawText(StrToWxStr(g->control_group->controls[n]->ui_name), 3 * g->m_scale,
                    (n * 12 + 1) * g->m_scale);
       gc->SetTransform(scale_matrix);
     }
@@ -443,9 +443,9 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
       // text
       // We don't want the text to be scaled/zoomed
       gc->SetTransform(null_matrix);
-      gc->DrawText(StrToWxStr(g->control_group->controls[n + trigger_count]->name), 3 * g->m_scale,
-                   (n * 12 + 1) * g->m_scale);
-      gc->DrawText(StrToWxStr(std::string(1, g->control_group->controls[n]->name[0])),
+      gc->DrawText(StrToWxStr(g->control_group->controls[n + trigger_count]->ui_name),
+                   3 * g->m_scale, (n * 12 + 1) * g->m_scale);
+      gc->DrawText(StrToWxStr(std::string(1, g->control_group->controls[n]->ui_name[0])),
                    (64 + 3) * g->m_scale, (n * 12 + 1) * g->m_scale);
       gc->SetTransform(scale_matrix);
     }

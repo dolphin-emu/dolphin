@@ -4,6 +4,7 @@
 
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/Settings.h"
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
@@ -13,6 +14,13 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
   connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
   connect(this, &GameListModel::DirectoryAdded, &m_tracker, &GameTracker::AddDirectory);
   connect(this, &GameListModel::DirectoryRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+
+  connect(&Settings::Instance(), &Settings::ThemeChanged, [this] {
+    // Tell the view to repaint. The signal 'dataChanged' also seems like it would work here, but
+    // unfortunately it won't cause a repaint until the view is focused.
+    emit layoutAboutToBeChanged();
+    emit layoutChanged();
+  });
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const

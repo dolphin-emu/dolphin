@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -46,8 +47,8 @@ public:
   virtual bool ExportApploader(const std::string& _rExportFolder) const = 0;
   virtual bool ExportDOL(const std::string& _rExportFolder) const = 0;
   virtual std::string GetFileName(u64 _Address) = 0;
-  virtual u64 GetBootDOLOffset() const = 0;
-  virtual u32 GetBootDOLSize(u64 dol_offset) const = 0;
+  virtual std::optional<u64> GetBootDOLOffset() const = 0;
+  virtual std::optional<u32> GetBootDOLSize(u64 dol_offset) const = 0;
 
   virtual const Partition GetPartition() const { return m_partition; }
 protected:

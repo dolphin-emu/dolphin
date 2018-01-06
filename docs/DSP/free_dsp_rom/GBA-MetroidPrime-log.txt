@@ -1,0 +1,1264 @@
+dsp dmem write 0010 = 0000
+dsp dmem write 0011 = 0000
+dsp dmem write 0012 = 0000
+dsp dmem write 0013 = 0000
+dsp dmem write 0014 = 0000
+dsp dmem write 0015 = 0000
+dsp dmem write 0016 = 0000
+dsp dmem write 0017 = 0000
+dsp dmem write 0018 = 0000
+dsp dmem write 0019 = 0000
+dsp dmem write 001a = 0000
+dsp dmem write 001b = 0000
+dsp dmem write 001c = 0000
+dsp dmem write 001d = 0000
+dsp dmem write 001e = 0000
+dsp dmem write 001f = 0000
+dsp dmem write 0020 = 0000
+dsp dmem write 0021 = 0000
+dsp dmem write 0022 = 0000
+dsp dmem write 0023 = 0000
+dsp dmem write 0024 = 0000
+dsp dmem write 0025 = 0000
+dsp dmem write 0026 = 0000
+dsp dmem write 0027 = 0000
+dsp dmem write 0028 = 0000
+dsp dmem write 0029 = 0000
+dsp dmem write 002a = 0000
+dsp dmem write 002b = 0000
+dsp dmem write 002c = 0000
+dsp dmem write 002d = 0000
+dsp dmem write 002e = 0000
+dsp dmem write 002f = 0000
+0093 : Coefficient Read @ 1456
+dsp dmem read 1456 = 102f
+009e : Coefficient Read @ 15f6
+dsp dmem read 15f6 = 7f65
+00a1 : Coefficient Read @ 1766
+dsp dmem read 1766 = 0273
+call at 00a5 -> 88e5
+STARTED 00a4 -> 88e5
+== Registers ==
+AR0:   0000     AR1:   0030     AR2:   001f     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0073     AX0.L: a0e0     AX1.H: 0000     AX1.L: 1000
+AC0.H: 007f     AC0.M: 6500     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0073     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3960
+dsp dmem read 001f = 0000
+dsp dmem read 0020 = 0000
+dsp dmem write 001f = 6573
+dsp dmem write 0020 = 0000
+STOPPED: 00a6
+== Registers ==
+AR0:   0000     AR1:   002f     AR2:   0020     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0073     AX0.L: a0e0     AX1.H: 0000     AX1.L: 1000
+AC0.H: 007f     AC0.M: 6573     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3950
+dsp dmem read 0000 = dec5
+call at 00ad -> 8809
+STARTED 00ac -> 8809
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0020     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 00de     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00de     AC0.L: c500
+AC1.H: 0000     AC1.M: c500     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3960
+dsp dmem write 0020 = 0000
+dsp dmem write 0020 = c5de
+STOPPED: 00ae
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0021     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 00de     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00de     AC0.L: c500
+AC1.H: 0000     AC1.M: c5de     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3978
+call at 00af -> 8723
+STARTED 00ae -> 8723
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0021     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 00de     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00de     AC0.L: c500
+AC1.H: 0000     AC1.M: c5de     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3978
+dsp dmem write 0021 = a0ad
+STOPPED: 00b0
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   0020     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 00de     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 00de     AC0.L: c500
+AC1.H: 0000     AC1.M: a0ad     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3958
+00b4 : Coefficient Read @ 166c
+dsp dmem read 166c = 06f2
+00b9 : Coefficient Read @ 1231
+dsp dmem read 1231 = 64fc
+call at 00be -> 88e5
+STARTED 00bd -> 88e5
+== Registers ==
+AR0:   0001     AR1:   002f     AR2:   001e     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0064     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 6f00     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0064     AC1.L: fc00
+PROD: 001000fffff00000
+SR: 3960
+dsp dmem read 001e = 0000
+dsp dmem read 001f = 6573
+dsp dmem write 001e = 6f64
+dsp dmem write 001f = 6573
+STOPPED: 00bf
+== Registers ==
+AR0:   0001     AR1:   002e     AR2:   001f     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0064     AX0.L: 0000     AX1.H: 6573     AX1.L: 1000
+AC0.H: 0000     AC0.M: 6f64     AC0.L: 6573
+AC1.H: 0000     AC1.M: 0000     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3940
+dsp dmem read 0001 = 628b
+call at 00c6 -> 8809
+STARTED 00c5 -> 8809
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   001f     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0062     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0062     AC0.L: 8b00
+AC1.H: 0000     AC1.M: 8b00     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3960
+dsp dmem write 001f = 6573
+dsp dmem write 001f = 8b62
+STOPPED: 00c7
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0020     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0062     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0062     AC0.L: 8b00
+AC1.H: 0000     AC1.M: 8b62     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3958
+call at 00c8 -> 8723
+STARTED 00c7 -> 8723
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0020     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0062     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0062     AC0.L: 8b00
+AC1.H: 0000     AC1.M: 8b62     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3958
+dsp dmem write 0020 = e406
+STOPPED: 00c9
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   001f     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0000     IX3:   0000
+AX0.H: 0062     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0062     AC0.L: 8b00
+AC1.H: 0000     AC1.M: e406     AC1.L: 6573
+PROD: 001000fffff00000
+SR: 3978
+dsp dmem read 0005 = 0002
+00f9 : Coefficient Read @ 1285
+dsp dmem read 1285 = 5aff
+dsp dmem read 0003 = 0002
+call at 0101 -> 8809
+STARTED 0100 -> 8809
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0010     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0020     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: fff0     AC0.M: 0020     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0002     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3978
+dsp dmem write 0010 = 0000
+dsp dmem write 0011 = 0022
+STOPPED: 0102
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0012     AR3:   0ca2
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0020     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: fff0     AC0.M: 0020     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0022     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3960
+dsp dmem write 0013 = 0020
+dsp dmem write 0014 = 0000
+dsp dmem read 0007 = c628
+010c : Coefficient Read @ 11b8
+dsp dmem read 11b8 = 007f
+call at 0110 -> 81f4
+STARTED 010f -> 81f4
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0012     AR3:   0013
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 6f64     AX1.L: 1000
+AC0.H: fff0     AC0.M: 0070     AC0.L: 0000
+AC1.H: 0000     AC1.M: c628     AC1.L: 0000
+PROD: 001000fffff00000
+SR: 3970
+dsp dmem write 0013 = 0000
+dsp dmem write 0014 = c628
+STOPPED: 0111
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0012     AR3:   0015
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 0070     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: c628
+PROD: 0000000000070000
+SR: 3964
+call at 0113 -> 8458
+STARTED 0112 -> 8458
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0012     AR3:   0015
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 0070     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: c628     AC1.L: 0000
+PROD: 0000000000070000
+SR: 3970
+dsp dmem write 0015 = 0000
+dsp dmem write 0016 = c62f
+STOPPED: 0114
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0012     AR3:   0017
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0070     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: c62f
+PROD: 0000000000070000
+SR: 3964
+dsp dmem read 0006 = 0000
+011b : Coefficient Read @ 165b
+dsp dmem read 165b = 0000
+call at 011c -> 88e5
+STARTED 011b -> 88e5
+== Registers ==
+AR0:   0002     AR1:   002f     AR2:   0015     AR3:   0017
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0000     AC1.M: 0000     AC1.L: c62f
+PROD: 0000000000070000
+SR: 7964
+dsp dmem read 0015 = 0000
+dsp dmem read 0016 = c62f
+dsp dmem write 0015 = 0000
+dsp dmem write 0016 = c62f
+STOPPED: 011d
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0016     AR3:   0017
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: c62f
+AC1.H: 0000     AC1.M: 0000     AC1.L: c62f
+PROD: 0000000000070000
+SR: 7960
+dsp dmem write 0016 = 0000
+dsp dmem write 0017 = c628
+0125 : Coefficient Read @ 1723
+dsp dmem read 1723 = ffe0
+0128 : Coefficient Read @ 166b
+dsp dmem read 166b = 0000
+call at 0129 -> 88e5
+STARTED 0128 -> 88e5
+== Registers ==
+AR0:   0002     AR1:   002e     AR2:   0016     AR3:   0017
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: ffff     AC0.M: ffff     AC0.L: fe00
+AC1.H: 0000     AC1.M: 0000     AC1.L: c62f
+PROD: 0000000000070000
+SR: 7968
+dsp dmem read 0016 = 0000
+dsp dmem read 0017 = c628
+dsp dmem write 0016 = 0000
+dsp dmem write 0017 = c428
+STOPPED: 012a
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   71a0     IX2:   0001     IX3:   0000
+AX0.H: 0000     AX0.L: 6573     AX1.H: 0000     AX1.L: 1000
+AC0.H: 0000     AC0.M: 0000     AC0.L: c428
+AC1.H: 0000     AC1.M: 0000     AC1.L: c628
+PROD: 0000000000070000
+SR: 7961
+0132 : Coefficient Read @ 1491
+dsp dmem read 1491 = 6a0f
+0137 : Coefficient Read @ 1468
+dsp dmem read 1468 = f808
+0139 : Coefficient Read @ 11fc
+dsp dmem read 11fc = 0003
+013d : Coefficient Read @ 11b8
+dsp dmem read 11b8 = 007f
+dsp dmem read 0012 = 0000
+dsp dmem write 0012 = 3105
+dsp dmem read 0011 = 0022
+dsp dmem write 0011 = 0022
+dsp dmem read 0011 = 0022
+dsp dmem read 0012 = 3105
+dsp dmem read 0012 = 3105
+dsp dmem read 0011 = 0022
+dsp dmem read 0012 = 3105
+017a : Coefficient Read @ 15f1
+dsp dmem read 15f1 = 0200
+0194 : Coefficient Read @ 10ca
+dsp dmem read 10ca = 3461
+0198 : Coefficient Read @ 1043
+dsp dmem read 1043 = 0076
+dsp dmem write 0022 = b9d5
+019f : Coefficient Read @ 1259
+dsp dmem read 1259 = 6143
+01a1 : Coefficient Read @ 16fe
+dsp dmem read 16fe = 0008
+dsp dmem write 0023 = d0ce
+dsp dmem read 0008 = 8056
+dsp dmem read 0009 = a100
+call at 01b2 -> 808b
+STARTED 01b1 -> 808b
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 1b4c     AC0.M: d0ce     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3978
+dsp dmem write ffce = 8056
+dsp dmem write ffcf = a100
+dsp dmem write ffc9 = 0001
+dsp dmem write ffcd = 0020
+dsp dmem write ffcb = 0008
+dsp dmem read ffc9 = 0001
+STOPPED: 01b3
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3964
+call at 0044 -> 807e
+STARTED 0043 -> 807e
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 0000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3964
+dsp dmem read fffc = 5cd1
+STOPPED: 0045
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 5cd1     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3964
+dsp dmem write fffc = dcd1
+dsp dmem write fffd = 0003
+dsp dmem write fffb = 0001
+call at 004d -> 8078
+STARTED 004c -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 5cd1     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 7964
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = cdd1
+STOPPED: 004e
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: ffff     AC0.M: cdd1     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 7964
+dsp dmem read ffff = 0001
+call at 0060 -> 8078
+STARTED 005f -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 0001     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read fffe = 4dd1
+dsp dmem read fffe = 8000
+STOPPED: 0061
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read ffff = 0000
+call at 0063 -> 8078
+STARTED 0062 -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 8000
+STOPPED: 0064
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read ffff = 0000
+call at 0066 -> 8078
+STARTED 0065 -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 8000
+STOPPED: 0067
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read ffff = 0000
+call at 0069 -> 8078
+STARTED 0068 -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 803f
+STOPPED: 006a
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   803f     IX1:   b185     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 803f     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3965
+dsp dmem read ffff = 4a80
+call at 0070 -> 8078
+STARTED 006f -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 003f     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read fffe = 003f
+dsp dmem read fffe = 003f
+dsp dmem read fffe = 8000
+STOPPED: 0071
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   3f80     IX3:   0000
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read ffff = 19e0
+call at 0074 -> 8078
+STARTED 0073 -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   3f80     IX3:   19e0
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 8000
+STOPPED: 0075
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   3f80     IX3:   19e0
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read ffff = 0000
+call at 0078 -> 8078
+STARTED 0077 -> 8078
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 8000
+STOPPED: 0079
+== Registers ==
+AR0:   0002     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read ffff = 0030
+call at 007c -> 8078
+STARTED 007b -> 8078
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 8056
+STOPPED: 007d
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 8056     AX0.L: a100     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8056     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read ffff = 7900
+call at 0082 -> 8078
+STARTED 0081 -> 8078
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 0056     AX0.L: 7900     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 0056     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 0056
+dsp dmem read fffe = 8000
+STOPPED: 0083
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 0056     AX0.L: 7900     AX1.H: 0020     AX1.L: 0008
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read ffff = 2000
+call at 0085 -> 8078
+STARTED 0084 -> 8078
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 0056     AX0.L: 7900     AX1.H: 0020     AX1.L: 2000
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 0000
+dsp dmem read fffe = 8000
+STOPPED: 0086
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 0056     AX0.L: 7900     AX1.H: 0020     AX1.L: 2000
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 3960
+dsp dmem read ffff = 0000
+STARTED 0089 -> 80b5
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 0056     AX0.L: 7900     AX1.H: 0000     AX1.L: 2000
+AC0.H: 0000     AC0.M: 8000     AC0.L: 0000
+AC1.H: 0034     AC1.M: b185     AC1.L: 0008
+PROD: 0000000000070000
+SR: 2160
+dsp dmem write ffce = 0056
+dsp dmem write ffcf = 7900
+dsp dmem write ffc9 = 0000
+dsp dmem write ffcd = 0000
+dsp dmem write ffcb = 2000
+dsp dmem read ffc9 = 0000
+dsp dmem write ffce = 003f
+dsp dmem write ffcf = 4a80
+dsp dmem write ffc9 = 0002
+dsp dmem write ffcd = 0000
+dsp dmem write ffcb = 19e0
+Core/HW/DSPLLE/DSPHost.cpp:70 N[DSPLLE]: g_dsp.iram_crc: 4e8a8b21
+Core/HW/DSPLLE/DSPSymbols.cpp:84 E[DSPLLE]: Bah! ReadAnnotatedAssembly couldn't find the file ../../docs/DSP/DSP_UC_AX_4E8A8B21.txt
+Core/DSP/DSPHWInterface.cpp:247 N[DSPLLE]: *** Copy new UCode from 0x003f4a80 to 0x0000 (crc: 4e8a8b21)
+STOPPED: 0030
+== Registers ==
+AR0:   0030     AR1:   002d     AR2:   0017     AR3:   0017
+IX0:   003f     IX1:   4a80     IX2:   0000     IX3:   19e0
+AX0.H: 0056     AX0.L: 7900     AX1.H: 0000     AX1.L: 2000
+AC0.H: 0000     AC0.M: 0002     AC0.L: 0000
+AC1.H: 0000     AC1.M: 19e0     AC1.L: 0000
+PROD: 0000000000070000
+SR: 2160

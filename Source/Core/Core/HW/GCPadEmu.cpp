@@ -39,7 +39,7 @@ static const u16 trigger_bitmasks[] = {
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,
                                     PAD_BUTTON_RIGHT};
 
-static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", _trans("Start")};
+static const char* const named_buttons[] = {"A", "B", "X", "Y", "Z", "Start"};
 
 static const char* const named_triggers[] = {
     // i18n: The left trigger button (labeled L on real controllers)
@@ -56,7 +56,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (unsigned int i = 0; i < sizeof(named_buttons) / sizeof(*named_buttons); ++i)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_buttons[i]));
+  {
+    // i18n: The START/PAUSE button on GameCube controllers
+    const std::string& ui_name = (named_buttons[i] == "Start") ? _trans("START") : named_buttons[i];
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_buttons[i], ui_name));
+  }
 
   // sticks
   groups.emplace_back(m_main_stick = new ControllerEmu::AnalogStick(

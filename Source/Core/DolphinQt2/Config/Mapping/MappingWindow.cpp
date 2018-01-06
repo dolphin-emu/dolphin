@@ -126,8 +126,9 @@ void MappingWindow::ConnectWidgets()
 
 void MappingWindow::OnDeleteProfilePressed()
 {
+  auto& settings = Settings::Instance();
   const QString profile_name = m_profiles_combo->currentText();
-  if (!Settings().GetProfiles(m_config).contains(profile_name))
+  if (!settings.GetProfiles(m_config).contains(profile_name))
   {
     QMessageBox error;
     error.setIcon(QMessageBox::Critical);
@@ -153,7 +154,7 @@ void MappingWindow::OnDeleteProfilePressed()
 
   QMessageBox result(this);
 
-  std::string profile_path = Settings().GetProfileINIPath(m_config, profile_name).toStdString();
+  std::string profile_path = settings.GetProfileINIPath(m_config, profile_name).toStdString();
 
   File::CreateFullPath(profile_path);
 
@@ -170,7 +171,8 @@ void MappingWindow::OnLoadProfilePressed()
   if (profile_name.isEmpty())
     return;
 
-  std::string profile_path = Settings().GetProfileINIPath(m_config, profile_name).toStdString();
+  std::string profile_path =
+      Settings::Instance().GetProfileINIPath(m_config, profile_name).toStdString();
 
   File::CreateFullPath(profile_path);
 
@@ -192,7 +194,8 @@ void MappingWindow::OnSaveProfilePressed()
   if (profile_name.isEmpty())
     return;
 
-  std::string profile_path = Settings().GetProfileINIPath(m_config, profile_name).toStdString();
+  std::string profile_path =
+      Settings::Instance().GetProfileINIPath(m_config, profile_name).toStdString();
 
   File::CreateFullPath(profile_path);
 
@@ -297,7 +300,7 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
     m_controller = m_config->GetController(GetPort());
 
     m_profiles_combo->addItem(QStringLiteral(""));
-    for (const auto& item : Settings().GetProfiles(m_config))
+    for (const auto& item : Settings::Instance().GetProfiles(m_config))
       m_profiles_combo->addItem(item);
   }
 

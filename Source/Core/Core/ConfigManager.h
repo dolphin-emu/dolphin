@@ -5,6 +5,7 @@
 #pragma once
 
 #include <limits>
+#include <optional>
 #include <set>
 #include <string>
 #include <utility>
@@ -138,7 +139,7 @@ struct SConfig : NonCopyable
 
   // Interface settings
   bool bConfirmStop = false;
-  bool bHideCursor = false, bAutoHideCursor = false;
+  bool bHideCursor = false;
   bool bUsePanicHandlers = true;
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;
@@ -261,11 +262,12 @@ struct SConfig : NonCopyable
   IniFile LoadLocalGameIni() const;
   IniFile LoadGameIni() const;
 
-  static IniFile LoadDefaultGameIni(const std::string& id, u16 revision);
-  static IniFile LoadLocalGameIni(const std::string& id, u16 revision);
-  static IniFile LoadGameIni(const std::string& id, u16 revision);
+  static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
+  static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
+  static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
-  static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
+  static std::vector<std::string> GetGameIniFilenames(const std::string& id,
+                                                      std::optional<u16> revision);
 
   std::string m_NANDPath;
   std::string m_DumpPath;

@@ -1116,16 +1116,16 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
   for (const auto& control : group->controls)
   {
     wxStaticText* const label =
-        new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->name)));
+        new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->ui_name)));
 
     ControlButton* const control_button =
-        new ControlButton(parent, control->control_ref.get(), control->name, 80);
+        new ControlButton(parent, control->control_ref.get(), control->ui_name, 80);
     control_button->SetFont(small_font);
 
     control_buttons.push_back(control_button);
     if (std::find(exclude_groups.begin(), exclude_groups.end(), control_group->name) ==
             exclude_groups.end() &&
-        std::find(exclude_buttons.begin(), exclude_buttons.end(), control->name) ==
+        std::find(exclude_buttons.begin(), exclude_buttons.end(), control->ui_name) ==
             exclude_buttons.end())
       eventsink->control_buttons.push_back(control_button);
 

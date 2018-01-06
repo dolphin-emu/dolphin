@@ -39,10 +39,10 @@ enum partype_t
   P_REG19 = P_REG | 0x1900,
   P_REGM19 = P_REG | 0x1910,  // used in multiply instructions
   P_REG1A = P_REG | 0x1a80,
-  P_REG1C = P_REG | 0x1c00,
   // P_ACC       = P_REG | 0x1c10, // used for global accum (gcdsptool's value)
-  P_ACCL = P_REG | 0x1c00,  // used for low part of accum
-  P_ACCM = P_REG | 0x1e00,  // used for mid part of accum
+  P_ACCL = P_REG | 0x1c00,   // used for low part of accum
+  P_REG1C = P_REG | 0x1c10,  // gcdsptool calls this P_ACCLM
+  P_ACCM = P_REG | 0x1e00,   // used for mid part of accum
   // The following are not in gcdsptool
   P_ACCM_D = P_REG | 0x1e80,
   P_ACC = P_REG | 0x2000,  // used for full accum.

@@ -22,6 +22,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   setIconSize(ICON_SIZE);
 
   MakeActions();
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
   UpdateIcons();
 
   EmulationStopped();
@@ -83,9 +84,6 @@ void ToolBar::MakeActions()
 
   addSeparator();
 
-  m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
-  widgetForAction(m_paths_action)->setMinimumWidth(button_width);
-
   m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
@@ -97,7 +95,6 @@ void ToolBar::MakeActions()
 void ToolBar::UpdateIcons()
 {
   m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
-  m_paths_action->setIcon(Resources::GetScaledThemeIcon("browse"));
   m_play_action->setIcon(Resources::GetScaledThemeIcon("play"));
   m_pause_action->setIcon(Resources::GetScaledThemeIcon("pause"));
   m_stop_action->setIcon(Resources::GetScaledThemeIcon("stop"));

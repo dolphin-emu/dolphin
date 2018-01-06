@@ -1,4 +1,10 @@
+// Copyright 2017 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
+#include "DSPTestText.h"
+
+const char s_dsp_test_text[8434] = R"(
 DSCR:	equ 0xffc9	; DSP DMA Control Reg
 DSBL:	equ 0xffcb	; DSP DMA Block Length
 DSPA:	equ 0xffcd	; DSP DMA DMEM Address
@@ -76,7 +82,7 @@ MEM_LO:			equ		0x0f7F
 	jmp		irq5
 	jmp		irq6
 	jmp		irq7
-	
+
 ; Main code at 0x10
 	CW		0x1302
 	CW		0x1303
@@ -86,11 +92,11 @@ MEM_LO:			equ		0x0f7F
 
 	s40
 	lri		$r12, #0x00ff
-	
+
 main:
 
 	cw		0x8900
-	cw		0x8100	
+	cw		0x8100
 
 ; get address of memory dump and copy it
 
@@ -177,8 +183,8 @@ main:
 	nop
 
 
-	
-	
+
+
 		cw 0x8600
 
 		call	send_back
@@ -188,223 +194,223 @@ main:
 
 ;	call dump_memory
 ;	call	send_back
-	
-	
-; 0x041e
-;	
 
-    cw 0x00de 
-    cw 0x03f1 
+
+; 0x041e
+;
+
+    cw 0x00de
+    cw 0x03f1
     call	send_back
-    
-    cw 0x0200 
-    cw 0x0a60 
+
+    cw 0x0200
+    cw 0x0a60
     call	send_back
-    
-    cw 0x1c7e 
+
+    cw 0x1c7e
     call	send_back
-    
-    cw 0x8100 
+
+    cw 0x8100
     call	send_back
-    
-    cw 0x8900 
+
+    cw 0x8900
     call	send_back
-    
-    cw 0x009f    
-    cw 0x00a0 
+
+    cw 0x009f
+    cw 0x00a0
     call	send_back
-    
-    cw 0x00de 
-    cw 0x03f1 
+
+    cw 0x00de
+    cw 0x03f1
     call	send_back
-    
-    cw 0x5d00 
+
+    cw 0x5d00
     call	send_back
-    
-    cw 0x0e50 
+
+    cw 0x0e50
     call	send_back
-    
-    cw 0x0750 
+
+    cw 0x0750
     call	send_back
-    
-    cw 0x0270 
+
+    cw 0x0270
     call	send_back
-    
-    cw 0x5d00 
+
+    cw 0x5d00
     call	send_back
-    
-    cw 0x00da    
-    cw 0x03f2 
+
+    cw 0x00da
+    cw 0x03f2
     call	send_back
-        
-    cw 0x8600 
+
+    cw 0x8600
     call	send_back
-     
-    JNS g_0c4d
-;		cw 0x0290 
-;   cw 0x0c4d 
+
+    JGE g_0c4d
+;		cw 0x0290
+;   cw 0x0c4d
 ;   call	send_back    JX0
-    
-    cw 0x00de 
-    cw 0x03f3 
+
+    cw 0x00de
+    cw 0x03f3
     call	send_back
-    
-    cw 0x5c00 
+
+    cw 0x5c00
     call	send_back
- 
- 		JLE g_0c38  
-;   cw 0x0293 
+
+ 		JLE g_0c38
+;   cw 0x0293
 ;   cw 0x0c38 				JX3
 ;		call	send_back
-    
+
     JMP g_0c52
-    
-;    cw 0x029f 
-;    cw 0x0c52 
-;		call	send_back    
+
+;    cw 0x029f
+;    cw 0x0c52
+;		call	send_back
 
 g_0c38:
-    cw 0x00db 
-    cw 0x03f7 
+    cw 0x00db
+    cw 0x03f7
     call	send_back
-        
-    cw 0x009e 
-    cw 0x8000 
+
+    cw 0x009e
+    cw 0x8000
     call	send_back
-    
-    cw 0x4600 
+
+    cw 0x4600
     call	send_back
-    
+
     JMP g_0c44
-;    cw 0x029f 
-;		 cw 0x0c44 
+;    cw 0x029f
+;		 cw 0x0c44
 ;    call	send_back
-    
-g_0c3f:    
-    cw 0x00db 
-    cw 0x03f7 
+
+g_0c3f:
+    cw 0x00db
+    cw 0x03f7
     call	send_back
-    
-    cw 0x009e 
-    cw 0x8000 
+
+    cw 0x009e
+    cw 0x8000
     call	send_back
-    
-    cw 0x5600 
+
+    cw 0x5600
     call	send_back
-    
-g_0c44:    
-    cw 0x00fe    
-    cw 0x03f5 
+
+g_0c44:
+    cw 0x00fe
+    cw 0x03f5
     call	send_back
-    
-    cw 0x1fda 
+
+    cw 0x1fda
     call	send_back
-    
-    cw 0x7c00 
+
+    cw 0x7c00
     call	send_back
-    
-    cw 0x1f5e 
+
+    cw 0x1f5e
     call	send_back
-    
-    cw 0x00fe 
-    cw 0x03f2 
+
+    cw 0x00fe
+    cw 0x03f2
     call	send_back
- 
- 	JMP g_0c52   
-;    cw 0x029f 
-;    cw 0x0c52 
+
+ 	JMP g_0c52
+;    cw 0x029f
+;    cw 0x0c52
 ;    call	send_back
 
 g_0c4d:
-    
-    cw 0x00de 
-    cw 0x03f4 
+
+    cw 0x00de
+    cw 0x03f4
     call	send_back
-    
-    cw 0x5d00 
+
+    cw 0x5d00
     call	send_back
- 
- 	JLE g_0c3f   
-;    cw 0x0293 
-;    cw 0x0c3f 
+
+ 	JLE g_0c3f
+;    cw 0x0293
+;    cw 0x0c3f
 ;    call	send_back
-    
-g_0c52:    
-    cw 0x8900 
+
+g_0c52:
+    cw 0x8900
     call	send_back
-    
-    cw 0x00dd     
-    cw 0x03f5 
+
+    cw 0x00dd
+    cw 0x03f5
     call	send_back
-        
-    cw 0x1501 
+
+    cw 0x1501
     call	send_back
-    
-    cw 0x8100 
+
+    cw 0x8100
     call	send_back
-    
-    cw 0x00dc 
-    cw 0x03f6 
+
+    cw 0x00dc
+    cw 0x03f6
     call	send_back
-    
-    cw 0x008b 
-    cw 0x009f 
+
+    cw 0x008b
+    cw 0x009f
     call	send_back
-    
-    cw 0x0080 
-    cw 0x0a00 
+
+    cw 0x0080
+    cw 0x0a00
     call	send_back
-    
-    cw 0x0900 
+
+    cw 0x0900
     call	send_back
-    
+
     BLOOPI #0x50, g_0c65
-;    cw 0x1150 
-;    cw 0x0c65 
+;    cw 0x1150
+;    cw 0x0c65
 ;		call	send_back
 
 
-    cw 0x1878 
+    cw 0x1878
     call	send_back
-    
-    cw 0x4c00 
+
+    cw 0x4c00
     call	send_back
-    
-    cw 0x1cfe 
+
+    cw 0x1cfe
     call	send_back
-    
-    cw 0x001f 
+
+    cw 0x001f
     call	send_back
-    
-    cw 0x1fd9 
+
+    cw 0x1fd9
     call	send_back
 g_0c65:
-    cw 0x1b18 
+    cw 0x1b18
     call	send_back
-    
-    cw 0x009f     
-    cw 0x0a60 
+
+    cw 0x009f
+    cw 0x0a60
     call	send_back
-    
-    cw 0x1fc3 
+
+    cw 0x1fc3
     call	send_back
-    
-    cw 0x5c00 
+
+    cw 0x5c00
     call	send_back
-    
-    cw 0x00fe 
-    cw 0x03f1 
+
+    cw 0x00fe
+    cw 0x03f1
     call	send_back
-    
-    cw 0x00fc 
-    cw 0x03f6 
+
+    cw 0x00fc
+    cw 0x03f6
     call	send_back
-    
-    cw 0x008b 
-    cw 0xffff 
+
+    cw 0x008b
+    cw 0xffff
     call	send_back
-    
-	
+
+
 
 ende:
 
@@ -415,9 +421,9 @@ ende:
 	nop
 	nop
 	nop
-	
-	
-	
+
+
+
 dead_loop:
 	jmp		dead_loop
 
@@ -445,7 +451,7 @@ wait_for_cpu_mbox:
 	andcf	$acl1, #0x8000
 	jlnz	wait_for_cpu_mbox
 	ret
-	
+
 irq0:
 	lri		$acl0, #0x0000
 	jmp		irq
@@ -455,7 +461,7 @@ irq1:
 irq2:
 	lri		$acl0, #0x0002
 	jmp		irq
-	
+
 irq3:
 	lri		$acl0, #0x0003
 	jmp		irq
@@ -477,7 +483,7 @@ irq5:
 	nop
 	nop
 	rti
-	
+
 	lri		$acl0, #0x0005
 	jmp		irq
 irq6:
@@ -486,20 +492,20 @@ irq6:
 irq7:
 	lri		$acl0, #0x0007
 	jmp		irq
-		
+
 irq:
 	lrs		$ACL1, @DMBH
 	andcf	$acl1, #0x8000
 	jlz		irq
 	si		@DMBH, #0x8BAD
 	sr		@DMBL, $r0b
-;sr		@DMBL, $acl0	
+;sr		@DMBL, $acl0
 	si		@DIRQ, #0x0001
 	halt
-	
-	
-	
-	
+
+
+
+
 send_back:
 
 	; store registers to reg table
@@ -536,7 +542,7 @@ send_back:
 	srri	@$r00, $r1d
 	srri	@$r00, $r1e
 	srri	@$r00, $r1f
-	
+
 
 	lri		$r18, #0x0000
 	lri		$r19, #1		;(DSP_CR_IMEM | DSP_CR_TO_CPU)
@@ -545,7 +551,7 @@ send_back:
 	lr		$r1e, @MEM_LO
 
 	lri		$r01, #8+8
-	
+
 	bloop	$r01, dma_copy
 	call	do_dma
 	addi	$r1e, #0x200
@@ -555,19 +561,19 @@ send_back:
 	nop
 dma_copy:
 	nop
-	
+
 	call	wait_for_dsp_mbox
 	si		@DMBH, #0x8888
 	si		@DMBL, #0xfeeb
 	si		@DIRQ, #0x0001
-	
-; wait for answer before we execute the next op	
+
+; wait for answer before we execute the next op
 	call	wait_for_cpu_mbox
 	lrs		$ACL0, @CMBL
 	andi	$acl1, #0x7fff
 
-	
-	
+
+
 	lri		$r00, #REGS_BASE+1
 	lrri	$r01, @$r00
 	lrri	$r02, @$r00
@@ -601,39 +607,40 @@ dma_copy:
 	lrri	$r1e, @$r00
 	lrri	$r1f, @$r00
 	lr		$r00, @REGS_BASE
-	
-	ret	
-	
-send_back_16:
-			
-	cw		0x8e00
-	call	send_back	
-	cw		0x8f00
-	
+
 	ret
-	
-	
+
+send_back_16:
+
+	cw		0x8e00
+	call	send_back
+	cw		0x8f00
+
+	ret
+
+
 dump_memory:
 
 	lri		$r02, #0x0000
 	lri		$acl0, #0x1000
-	
-	lri		$r01, #0x1000		
-	bloop	$r01, _fill_loop2			
-	
+
+	lri		$r01, #0x1000
+	bloop	$r01, _fill_loop2
+
 	mrr $r03, $acl0
 	cw 0x80f0
-	
+
 	mrr $r1f, $r00
 	mrr $r00, $r02
 	srri	@$r00, $r1b
 	mrr $r02, $r00
 	mrr $r00, $r1f
-	
-	addis	$acc0, #0x1
-	
+
+	addis	$AC0.M, #0x1
+
 _fill_loop2:
 	nop
-	
 
-ret 
+
+ret
+)";

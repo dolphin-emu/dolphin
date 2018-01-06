@@ -68,7 +68,7 @@
       <AdditionalDependencies Condition="'$(Platform)'=='Win32' And Exists('$(ExternalsDir)openvr/lib/win32/openvr_api.lib')">openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;$(ProjectDir)\QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -91,7 +91,6 @@
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
     <QtMoc Include="Config\InfoWidget.h" />
-    <QtMoc Include="Config\PathDialog.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="GameList\GameFile.h" />
@@ -104,6 +103,7 @@
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
+    <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
@@ -128,8 +128,8 @@
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)PathDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
@@ -149,7 +149,6 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
-    <ClCompile Include="Config\PathDialog.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
@@ -162,12 +161,14 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
+    <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="ToolBar.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->

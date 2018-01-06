@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QVector>
 
+#include "Common/NonCopyable.h"
 #include "Core/HW/SI/SI.h"
 
 namespace DiscIO
@@ -17,14 +18,15 @@ enum class Language;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
-class Settings final : public QSettings
+class Settings final : public QSettings, NonCopyable
 {
   Q_OBJECT
 
 public:
-  explicit Settings(QObject* parent = nullptr);
+  static Settings& Instance();
 
   // UI
+  void SetThemeName(const QString& theme_name);
   QString GetThemeDir() const;
   QString GetResourcesDir() const;
   QString GetProfilesDir() const;
@@ -36,8 +38,9 @@ public:
   QString GetLastGame() const;
   void SetLastGame(const QString& path);
   QStringList GetPaths() const;
+  void AddPath(const QString& path);
   void SetPaths(const QStringList& paths);
-  void RemovePath(int i);
+  void RemovePath(const QString& path);
   QString GetDefaultGame() const;
   void SetDefaultGame(const QString& path);
   QString GetDVDRoot() const;
@@ -71,6 +74,8 @@ public:
   bool GetRenderToMain() const;
   bool GetFullScreen() const;
   QSize GetRenderWindowSize() const;
+  void SetHideCursor(bool hide_cursor);
+  bool GetHideCursor() const;
 
   // Columns
   bool& BannerVisible() const;
@@ -107,4 +112,13 @@ public:
   void SetGCAdapterSimulatingDKBongos(int port, bool enabled);
 
   void Save();
+
+signals:
+  void ThemeChanged();
+  void PathAdded(const QString&);
+  void PathRemoved(const QString&);
+  void HideCursorChanged();
+
+public:
+  Settings();
 };

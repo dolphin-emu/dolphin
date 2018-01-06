@@ -75,6 +75,7 @@
     <!--Lump all of the tests (and supporting code) into one binary-->
     <ClCompile Include="*.cpp" />
     <ClCompile Include="*\*.cpp" />
+    <ClCompile Include="*\*\*.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

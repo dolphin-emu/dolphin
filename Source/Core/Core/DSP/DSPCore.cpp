@@ -41,7 +41,7 @@ static bool VerifyRoms()
     u32 hash_drom;  // dsp_coef.bin
   };
 
-  static const std::array<DspRomHashes, 4> known_roms = {
+  static const std::array<DspRomHashes, 5> known_roms = {
       {// Official Nintendo ROM
        {0x66f334fe, 0xf3b93527},
 
@@ -53,7 +53,10 @@ static bool VerifyRoms()
        {0xd9907f71, 0xb019c2fb},
 
        // above with improved resampling coefficients
-       {0xd9907f71, 0xdb6880c1}}};
+       {0xd9907f71, 0xdb6880c1},
+
+       // above with support for GBA ucode
+       {0x3aa4a793, 0xa4a575f5}}};
 
   u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
   u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);

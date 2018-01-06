@@ -52,6 +52,9 @@
     <ClCompile Include="Cheats\GeckoCodeDiag.cpp">
       <Filter>GUI\Cheats</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger\AssemblerEntryDialog.cpp">
+      <Filter>GUI\Debugger</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\BreakpointDlg.cpp">
       <Filter>GUI\Debugger</Filter>
     </ClCompile>
@@ -284,6 +287,9 @@
     </ClInclude>
     <ClInclude Include="Cheats\GeckoCodeDiag.h">
       <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\AssemblerEntryDialog.h">
+      <Filter>GUI\Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\BreakpointDlg.h">
       <Filter>GUI\Debugger</Filter>
