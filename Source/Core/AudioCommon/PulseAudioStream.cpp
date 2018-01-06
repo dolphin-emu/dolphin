@@ -4,7 +4,6 @@
 
 #include <cstring>
 
-#include "AudioCommon/DPL2Decoder.h"
 #include "AudioCommon/PulseAudioStream.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -29,9 +28,6 @@ bool PulseAudio::Start()
 
   m_run_thread.Set();
   m_thread = std::thread(&PulseAudio::SoundLoop, this);
-
-  // Initialize DPL2 parameters
-  DPL2Reset();
 
   return true;
 }
@@ -194,23 +190,12 @@ void PulseAudio::WriteCallback(pa_stream* s, size_t length)
   }
   else
   {
-    // get a floating point mix
-    s16 s16buffer_stereo[frames * 2];
-    m_mixer->Mix(s16buffer_stereo, frames);  // implicitly mixes to 16-bit stereo
-
-    float floatbuffer_stereo[frames * 2];
-    // s16 to float
-    for (int i = 0; i < frames * 2; ++i)
-    {
-      floatbuffer_stereo[i] = s16buffer_stereo[i] / float(1 << 15);
-    }
-
     if (m_channels == 5)  // Extract dpl2/5.0 Surround
     {
       float floatbuffer_6chan[frames * 6];
-      // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-      DPL2Decode(floatbuffer_stereo, frames, floatbuffer_6chan);
+      m_mixer->MixSurround(floatbuffer_6chan, frames);
 
+      // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
       // Discard the subwoofer channel - DPL2Decode generates a pretty
       // good 5.0 but not a good 5.1 output.
       const int dpl2_to_5chan[] = {0, 1, 2, 4, 5};

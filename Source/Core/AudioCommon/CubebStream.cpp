@@ -21,29 +21,9 @@ long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void
   auto* self = static_cast<CubebStream*>(user_data);
 
   if (self->m_stereo)
-  {
     self->m_mixer->Mix(static_cast<short*>(output_buffer), num_frames);
-  }
   else
-  {
-    size_t required_capacity = num_frames * 2;
-    if (required_capacity > self->m_short_buffer.capacity() ||
-        required_capacity > self->m_floatstereo_buffer.capacity())
-    {
-      INFO_LOG(AUDIO, "Expanding conversion buffers size: %li frames", num_frames);
-      self->m_short_buffer.reserve(required_capacity);
-      self->m_floatstereo_buffer.reserve(required_capacity);
-    }
-
-    self->m_mixer->Mix(self->m_short_buffer.data(), num_frames);
-
-    // s16 to float
-    for (size_t i = 0; i < static_cast<size_t>(num_frames) * 2; ++i)
-      self->m_floatstereo_buffer[i] = self->m_short_buffer[i] / static_cast<float>(1 << 15);
-
-    // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-    DPL2Decode(self->m_floatstereo_buffer.data(), num_frames, static_cast<float*>(output_buffer));
-  }
+    self->m_mixer->MixSurround(static_cast<float*>(output_buffer), num_frames);
 
   return num_frames;
 }
