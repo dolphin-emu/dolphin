@@ -181,13 +181,12 @@ Partition CVolumeWiiCrypted::GetGamePartition() const
   return m_game_partition;
 }
 
-bool CVolumeWiiCrypted::GetTitleID(u64* buffer, const Partition& partition) const
+std::optional<u64> CVolumeWiiCrypted::GetTitleID(const Partition& partition) const
 {
   const IOS::ES::TicketReader& ticket = GetTicket(partition);
   if (!ticket.IsValid())
-    return false;
-  *buffer = ticket.GetTitleId();
-  return true;
+    return {};
+  return ticket.GetTitleId();
 }
 
 const IOS::ES::TicketReader& CVolumeWiiCrypted::GetTicket(const Partition& partition) const
@@ -289,21 +288,11 @@ std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
   *width = 0;
   *height = 0;
 
-  u64 title_id;
-  if (!GetTitleID(&title_id, GetGamePartition()))
+  const std::optional<u64> title_id = GetTitleID(GetGamePartition());
+  if (!title_id)
     return std::vector<u32>();
 
-  return GetWiiBanner(width, height, title_id);
-}
-
-u64 CVolumeWiiCrypted::GetFSTSize(const Partition& partition) const
-{
-  u32 size;
-
-  if (!Read(0x428, 0x4, (u8*)&size, partition))
-    return 0;
-
-  return (u64)Common::swap32(size) << 2;
+  return GetWiiBanner(width, height, *title_id);
 }
 
 std::string CVolumeWiiCrypted::GetApploaderDate(const Partition& partition) const

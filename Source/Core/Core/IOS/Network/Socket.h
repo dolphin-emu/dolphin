@@ -187,11 +187,13 @@ class WiiSocket
 
 private:
   s32 fd;
+  s32 wii_fd;
   bool nonBlock;
   std::list<sockop> pending_sockops;
 
   friend class WiiSockMan;
   void SetFd(s32 s);
+  void SetWiiFd(s32 s);
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
@@ -221,7 +223,8 @@ public:
   static void Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen = -1);
   // NON-BLOCKING FUNCTIONS
   s32 NewSocket(s32 af, s32 type, s32 protocol);
-  void AddSocket(s32 fd);
+  s32 AddSocket(s32 fd, bool is_rw);
+  s32 GetHostSocket(s32 wii_fd) const;
   s32 DeleteSocket(s32 s);
   s32 GetLastNetError() const { return errno_last; }
   void SetLastNetError(s32 error) { errno_last = error; }

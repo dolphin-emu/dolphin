@@ -1,4 +1,5 @@
 find_package(Qt5Widgets REQUIRED)
+set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

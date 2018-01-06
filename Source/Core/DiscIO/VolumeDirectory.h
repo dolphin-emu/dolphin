@@ -54,8 +54,6 @@ public:
   std::vector<u32> GetBanner(int* width, int* height) const override;
   void SetName(const std::string&);
 
-  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override;
-
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
   Platform GetVolumeType() const override;
 

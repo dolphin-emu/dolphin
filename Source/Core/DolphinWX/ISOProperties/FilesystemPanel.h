@@ -39,9 +39,7 @@ private:
   void CreateGUI();
   void BindEvents();
 
-  void PopulateFileSystemTree();
-  void PopulateFileSystemTreeGC();
-  void PopulateFileSystemTreeWii() const;
+  bool PopulateFileSystemTree();
 
   void OnRightClickTree(wxTreeEvent&);
   void OnExtractFile(wxCommandEvent&);
@@ -50,17 +48,8 @@ private:
   void OnCheckPartitionIntegrity(wxCommandEvent&);
 
   void ExtractAllFiles(const wxString& output_folder);
-  void ExtractAllFilesGC(const wxString& output_folder);
-  void ExtractAllFilesWii(const wxString& output_folder);
-
   void ExtractSingleFile(const wxString& output_file_path) const;
-  void ExtractSingleFileGC(const wxString& file_path, const wxString& output_file_path) const;
-  void ExtractSingleFileWii(wxString file_path, const wxString& output_file_path) const;
-
   void ExtractSingleDirectory(const wxString& output_folder);
-  void ExtractSingleDirectoryGC(const wxString& directory_path, const wxString& output_folder);
-  void ExtractSingleDirectoryWii(wxString directory_path, const wxString& output_folder);
-
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
                           DiscIO::IFileSystem* filesystem);
 
@@ -72,4 +61,5 @@ private:
   const std::unique_ptr<DiscIO::IVolume>& m_opened_iso;
 
   std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
+  bool m_has_partitions;
 };

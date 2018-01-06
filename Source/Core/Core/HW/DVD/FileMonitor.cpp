@@ -71,10 +71,11 @@ void Log(u64 offset, const DiscIO::Partition& partition)
   // If the volume or partition changed, load the filesystem of the new partition
   if (s_new_volume || s_partition != partition)
   {
-    // Wii discs don't have PARTITION_NONE filesystems, so let's not waste time trying to read one
+    // Discs with partitions don't have PARTITION_NONE filesystems,
+    // so let's not waste time trying to read one
     const bool reading_from_partition = partition != DiscIO::PARTITION_NONE;
-    const bool is_wii_disc = s_volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
-    if (reading_from_partition != is_wii_disc)
+    const bool disc_has_partitions = !s_volume->GetPartitions().empty();
+    if (reading_from_partition != disc_has_partitions)
       return;
 
     s_new_volume = false;

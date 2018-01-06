@@ -233,12 +233,6 @@ void CVolumeDirectory::SetName(const std::string& name)
   m_disk_header[length + 0x20] = 0;
 }
 
-u64 CVolumeDirectory::GetFSTSize(const Partition& partition) const
-{
-  // Not implemented
-  return 0;
-}
-
 std::string CVolumeDirectory::GetApploaderDate(const Partition& partition) const
 {
   // Not implemented

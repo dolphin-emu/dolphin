@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -33,7 +34,7 @@ public:
   ~CVolumeWAD();
   bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
-  bool GetTitleID(u64* buffer, const Partition& partition = PARTITION_NONE) const override;
+  std::optional<u64> GetTitleID(const Partition& partition = PARTITION_NONE) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
@@ -44,7 +45,6 @@ public:
   }
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
-  u64 GetFSTSize(const Partition& partition = PARTITION_NONE) const override { return 0; }
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override
   {
     return "";

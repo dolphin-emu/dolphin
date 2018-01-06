@@ -108,7 +108,8 @@ GameListItem::GameListItem(const std::string& _rFileName, const Core::TitleDatab
       m_VolumeSize = volume->GetSize();
 
       m_game_id = volume->GetGameID();
-      volume->GetTitleID(&m_title_id);
+      if (std::optional<u64> title_id = volume->GetTitleID())
+        m_title_id = *title_id;
       m_disc_number = volume->GetDiscNumber();
       m_Revision = volume->GetRevision();
 
