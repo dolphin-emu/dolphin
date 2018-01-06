@@ -25,6 +25,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -535,6 +536,19 @@ static void EmuThread()
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
+  Common::ScopeGuard flag_guard{[] {
+    s_is_booting.Clear();
+    s_is_started = false;
+    s_is_stopping = false;
+
+    if (s_on_stopped_callback)
+      s_on_stopped_callback();
+
+    INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
+  }};
+
+  // Prevent the UI from getting stuck whenever an error occurs.
+  Common::ScopeGuard stop_message_guard{[] { Host_Message(WM_USER_STOP); }};
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -548,8 +562,16 @@ static void EmuThread()
   DeclareAsCPUThread();
 
   Movie::Init();
+  Common::ScopeGuard movie_guard{Movie::Shutdown};
 
   HW::Init();
+  Common::ScopeGuard hw_guard{[] {
+    // We must set up this flag before executing HW::Shutdown()
+    s_hardware_initialized = false;
+    INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+    HW::Shutdown();
+    INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+  }};
 
 // Initialize backend, and optionally VR thread for asynchronous timewarp rendering
 #ifdef OCULUSSDK042
@@ -557,9 +579,7 @@ static void EmuThread()
   {
     if (!g_video_backend->Initialize(nullptr))
     {
-      s_is_booting.Clear();
       PanicAlert("Failed to initialize video backend!");
-      Host_Message(WM_USER_STOP);
       return;
     }
     g_Config.bAsynchronousTimewarp = true;
@@ -576,7 +596,6 @@ static void EmuThread()
     {
       PanicAlert("Failed to initialize video backend in VR Thread!");
       s_vr_thread.join();
-      Host_Message(WM_USER_STOP);
       return;
     }
   }
@@ -593,6 +612,17 @@ static void EmuThread()
     g_Config.bAsynchronousTimewarp = false;
     g_ActiveConfig.bAsynchronousTimewarp = g_Config.bAsynchronousTimewarp;
   }
+  Common::ScopeGuard video_guard{[] {
+// Oculus Rift VR thread
+#ifdef OCULUSSDK042
+  if (g_Config.bAsynchronousTimewarp)
+  {
+    s_stop_vr_thread = true;
+    s_vr_thread.join();
+  }
+#endif
+  g_video_backend->Shutdown();
+ }};
 
   OSD::AddMessage("Dolphin " + g_video_backend->GetName() + " Video Backend.", 5000);
 
@@ -603,11 +633,7 @@ static void EmuThread()
 
   if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
   {
-    s_is_booting.Clear();
-    HW::Shutdown();
-    g_video_backend->Shutdown();
     PanicAlert("Failed to initialize DSP emulation!");
-    Host_Message(WM_USER_STOP);
     return;
   }
 
@@ -638,7 +664,18 @@ static void EmuThread()
       Wiimote::LoadConfig();
   }
 
+  Common::ScopeGuard controller_guard{[init_controllers] {
+    if (!init_controllers)
+      return;
+
+    Wiimote::Shutdown();
+    Keyboard::Shutdown();
+    Pad::Shutdown();
+    g_controller_interface.Shutdown();
+  }};
+
   AudioCommon::InitSoundStream();
+  Common::ScopeGuard audio_guard{AudioCommon::ShutdownSoundStream};
 
   // The hardware is initialized.
   s_hardware_initialized = true;
@@ -759,31 +796,6 @@ static void EmuThread()
     g_video_backend->Video_Cleanup();
   }
 
-  // We must set up this flag before executing HW::Shutdown()
-  s_hardware_initialized = false;
-  INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
-  HW::Shutdown();
-  INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-
-  if (init_controllers)
-  {
-    Wiimote::Shutdown();
-    Keyboard::Shutdown();
-    Pad::Shutdown();
-    VRTracker::Shutdown();
-    g_controller_interface.Shutdown();
-    init_controllers = false;
-  }
-
-// Oculus Rift VR thread
-#ifdef OCULUSSDK042
-  if (g_Config.bAsynchronousTimewarp)
-  {
-    s_stop_vr_thread = true;
-    s_vr_thread.join();
-  }
-#endif
-  g_video_backend->Shutdown();
 
   AudioCommon::ShutdownSoundStream();
 
@@ -794,15 +806,10 @@ static void EmuThread()
 
   BootManager::RestoreConfig();
 
-  INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
-  Movie::Shutdown();
   PatchEngine::Shutdown();
   HLE::Clear();
-
-  s_is_stopping = false;
-
-  if (s_on_stopped_callback)
-    s_on_stopped_callback();
+  // If we shut down normally, the stop message does not need to be triggered.
+  stop_message_guard.Dismiss();
 }
 
 // Set or get the running state

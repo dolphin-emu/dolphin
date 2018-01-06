@@ -156,8 +156,12 @@ public:
   void FromDevice(const Device* const dev);
   void FromString(const std::string& str);
   std::string ToString() const;
+
   bool operator==(const DeviceQualifier& devq) const;
-  bool operator==(const Device* const dev) const;
+  bool operator!=(const DeviceQualifier& devq) const;
+
+  bool operator==(const Device* dev) const;
+  bool operator!=(const Device* dev) const;
 
   std::string source;
   int cid;
