@@ -24,6 +24,9 @@ enum class ParameterType : bool
 
 std::string GetStringVA(u32 str_reg = 3,
                         ParameterType parameter_type = ParameterType::ParameterList);
+void HLE_GeneralDebugPrint(ParameterType parameter_type);
+void HLE_LogDPrint(ParameterType parameter_type);
+void HLE_LogFPrint(ParameterType parameter_type);
 
 void HLE_OSPanic()
 {

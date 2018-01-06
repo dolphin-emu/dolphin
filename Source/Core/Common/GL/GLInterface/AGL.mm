@@ -5,31 +5,54 @@
 #include "Common/GL/GLInterface/AGL.h"
 #include "Common/Logging/Log.h"
 
+static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
+{
+  NSWindow* window = [view window];
+  NSSize size = [view frame].size;
+
+  float scale = [window backingScaleFactor];
+  size.width *= scale;
+  size.height *= scale;
+
+  if (*width == size.width && *height == size.height)
+    return false;
+
+  *width = size.width;
+  *height = size.height;
+
+  return true;
+}
+
+static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* width, u32* height)
+{
+  // Enable high-resolution display support.
+  [view setWantsBestResolutionOpenGLSurface:YES];
+
+  NSWindow* window = [view window];
+  if (window == nil)
+  {
+    ERROR_LOG(VIDEO, "failed to get NSWindow");
+    return false;
+  }
+
+  (void)UpdateCachedDimensions(view, width, height);
+
+  [window makeFirstResponder:view];
+  [context setView:view];
+  [window makeKeyAndOrderFront:nil];
+
+  return true;
+}
+
 void cInterfaceAGL::Swap()
 {
-  [cocoaCtx flushBuffer];
+  [m_context flushBuffer];
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceAGL::Create(void* window_handle, bool core)
 {
-  cocoaWin = reinterpret_cast<NSView*>(window_handle);
-  NSSize size = [cocoaWin frame].size;
-
-  // Enable high-resolution display support.
-  [cocoaWin setWantsBestResolutionOpenGLSurface:YES];
-
-  NSWindow* window = [cocoaWin window];
-
-  float scale = [window backingScaleFactor];
-  size.width *= scale;
-  size.height *= scale;
-
-  // Control window size and picture scaling
-  s_backbuffer_width = size.width;
-  s_backbuffer_height = size.height;
-
   NSOpenGLPixelFormatAttribute attr[] = {NSOpenGLPFADoubleBuffer, NSOpenGLPFAOpenGLProfile,
                                          core ? NSOpenGLProfileVersion3_2Core :
                                                 NSOpenGLProfileVersionLegacy,
@@ -41,30 +64,24 @@ bool cInterfaceAGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  cocoaCtx = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
+  m_context = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
   [fmt release];
-  if (cocoaCtx == nil)
+  if (m_context == nil)
   {
     ERROR_LOG(VIDEO, "failed to create context");
     return false;
   }
 
-  if (cocoaWin == nil)
-  {
-    ERROR_LOG(VIDEO, "failed to create window");
-    return false;
-  }
+  if (!window_handle)
+    return true;
 
-  [window makeFirstResponder:cocoaWin];
-  [cocoaCtx setView:cocoaWin];
-  [window makeKeyAndOrderFront:nil];
-
-  return true;
+  m_view = static_cast<NSView*>(window_handle);
+  return AttachContextToView(m_context, m_view, &s_backbuffer_width, &s_backbuffer_height);
 }
 
 bool cInterfaceAGL::MakeCurrent()
 {
-  [cocoaCtx makeCurrentContext];
+  [m_context makeCurrentContext];
   return true;
 }
 
@@ -77,30 +94,21 @@ bool cInterfaceAGL::ClearCurrent()
 // Close backend
 void cInterfaceAGL::Shutdown()
 {
-  [cocoaCtx clearDrawable];
-  [cocoaCtx release];
-  cocoaCtx = nil;
+  [m_context clearDrawable];
+  [m_context release];
+  m_context = nil;
 }
 
 void cInterfaceAGL::Update()
 {
-  NSWindow* window = [cocoaWin window];
-  NSSize size = [cocoaWin frame].size;
-
-  float scale = [window backingScaleFactor];
-  size.width *= scale;
-  size.height *= scale;
-
-  if (s_backbuffer_width == size.width && s_backbuffer_height == size.height)
+  if (!m_view)
     return;
 
-  s_backbuffer_width = size.width;
-  s_backbuffer_height = size.height;
-
-  [cocoaCtx update];
+  if (UpdateCachedDimensions(m_view, &s_backbuffer_width, &s_backbuffer_height))
+    [m_context update];
 }
 
 void cInterfaceAGL::SwapInterval(int interval)
 {
-  [cocoaCtx setValues:(GLint*)&interval forParameter:NSOpenGLCPSwapInterval];
+  [m_context setValues:static_cast<GLint*>(&interval) forParameter:NSOpenGLCPSwapInterval];
 }
