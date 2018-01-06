@@ -89,8 +89,12 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <!--Enable latest C++ standard-->
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <!--Enable Standard Conformance-->
+      <AdditionalOptions Condition="'$(VisualStudioVersion)' == '15.0'">/permissive- %(AdditionalOptions)</AdditionalOptions>
       <!--Enforce some behaviors as standards-conformant when they don't default as such-->
-      <AdditionalOptions>/Zc:inline /Zc:rvalueCast /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:inline /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -120,8 +124,6 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!--This option is not supported in debug mode (for VS2013)-->
-      <AdditionalOptions>/Zc:strictStrings %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--Link Base-->
     <Link>
