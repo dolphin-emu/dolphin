@@ -41,6 +41,8 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!--TODO fix up ffmpeg garbage-->
+      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '12.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '14.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2015;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '15.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2017;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -63,9 +65,6 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinWX.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
@@ -314,6 +313,8 @@
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)Data\readme.txt" />
+    <ExternalDlls Include="$(ExternalsDir)OpenAL\lib\*.dll" />
     <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\lib\*.dll;$(ExternalsDir)openvr\bin\win64\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />

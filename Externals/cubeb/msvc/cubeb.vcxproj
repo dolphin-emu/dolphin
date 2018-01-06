@@ -36,8 +36,8 @@
   </ImportGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>../include;../src;../msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS;WIN32;USE_WASAPI;USE_WINMM;OUTSIDE_SPEEX;FLOATING_POINT;RANDOM_PREFIX=speex;EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\include;..\src;..\msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;USE_WASAPI;USE_WINMM;OUTSIDE_SPEEX;FLOATING_POINT;RANDOM_PREFIX=speex;EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">

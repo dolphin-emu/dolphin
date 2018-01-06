@@ -37,20 +37,6 @@
     <Import Project="..\..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib />
-    <Lib />
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Lib />
-    <Lib />
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="CommandBufferManager.cpp" />

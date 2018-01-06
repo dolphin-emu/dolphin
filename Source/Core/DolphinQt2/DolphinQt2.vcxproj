@@ -54,9 +54,8 @@
       <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\lib;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(VisualStudioVersion)' != '12.0'">avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Windows</SubSystem>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NODEFAULTLIB:libcmt</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NODEFAULTLIB:libcmt</AdditionalOptions>
+      <!--TODO fix up ffmpeg garbage-->
+      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies Condition="Exists('$(ExternalsDir)OSVR/lib/osvrClientKit.lib')">osvrClientKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And (Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64d.lib') Or Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2015/libovr64d.lib'))">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And (Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2013/libovr.lib') Or Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2015/libovr.lib'))">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -71,13 +70,6 @@
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Settings;$(ProjectDir)\Config;$(ProjectDir)\Config\Mapping;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      </AdditionalIncludeDirectories>
-    </ResourceCompile>
-    <ResourceCompile>
-      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ExternalsDir)/gettext</AdditionalIncludeDirectories>
-    </ResourceCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
@@ -256,7 +248,9 @@
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
-    <DataTxtFiles Include="$(DolphinRootDir)Data\*.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)Data\readme.txt" />
+    <ExternalDlls Include="$(ExternalsDir)OpenAL\lib\*.dll" />
     <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\lib\*.dll;$(ExternalsDir)openvr\bin\win64\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
@@ -265,7 +259,7 @@
     <ClInclude Include="Resources.h" />
   </ItemGroup>
   <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
-  <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="'$(I_AM_BUILDACUS)'==''">
+  <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)').Ticks)" />
     <Copy SourceFiles="@(DataTxtFiles)" DestinationFolder="$(BinaryOutputDir)" Condition="!Exists('$(BinaryOutputDir)%(Filename)%(DataTxtFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataTxtFiles.Extension)').Ticks)" />
