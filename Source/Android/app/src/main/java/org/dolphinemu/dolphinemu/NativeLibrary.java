@@ -6,6 +6,11 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -401,18 +406,81 @@ public final class NativeLibrary
 		CacheClassesAndMethods();
 	}
 
-	public static void displayAlertMsg(final String alert)
+	private static boolean alertResult = false;
+	public static boolean displayAlertMsg(final String caption, final String text, final boolean yesNo)
 	{
-		Log.error("[NativeLibrary] Alert: " + alert);
+		Log.error("[NativeLibrary] Alert: " + text);
 		final EmulationActivity emulationActivity = sEmulationActivity.get();
-		if (emulationActivity != null)
+		boolean result = false;
+		if (emulationActivity == null)
 		{
-			emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show());
+			Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic alert.");
 		}
 		else
 		{
-			Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic toast.");
+			// Create object used for waiting.
+			final Object lock = new Object();
+			AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
+				.setTitle(caption)
+				.setMessage(text);
+
+			// If not yes/no dialog just have one button that dismisses modal,
+			// otherwise have a yes and no button that sets alertResult accordingly.
+			if (!yesNo)
+			{
+				builder
+					.setCancelable(false)
+					.setPositiveButton("OK", (dialog, whichButton) ->
+					{
+						dialog.dismiss();
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					});
+			}
+			else
+			{
+				alertResult = false;
+
+				builder
+					.setPositiveButton("Yes", (dialog, whichButton) ->
+					{
+						alertResult = true;
+						dialog.dismiss();
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					})
+					.setNegativeButton("No", (dialog, whichButton) ->
+					{
+						alertResult = false;
+						dialog.dismiss();
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					});
+			}
+
+			// Show the AlertDialog on the main thread.
+			emulationActivity.runOnUiThread(() -> builder.show());
+
+			// Wait for the lock to notify that it is complete.
+			synchronized (lock)
+			{
+				try
+				{
+					lock.wait();
+				}
+				catch (Exception e) { }
+			}
+
+			if (yesNo)
+				result = alertResult;
 		}
+		return result;
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)

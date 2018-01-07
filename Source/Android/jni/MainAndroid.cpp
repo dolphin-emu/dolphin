@@ -161,12 +161,14 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, MsgType
   g_java_vm->AttachCurrentThread(&env, NULL);
 
   // Execute the Java method.
-  env->CallStaticVoidMethod(s_jni_class, s_jni_method_alert, env->NewStringUTF(text));
+  jboolean result =
+      env->CallStaticBooleanMethod(s_jni_class, s_jni_method_alert, env->NewStringUTF(caption),
+                                   env->NewStringUTF(text), yes_no ? JNI_TRUE : JNI_FALSE);
 
   // Must be called before the current thread exits; might as well do it here.
   g_java_vm->DetachCurrentThread();
 
-  return false;
+  return result != JNI_FALSE;
 }
 
 #define DVD_BANNER_WIDTH 96
@@ -767,8 +769,8 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv* env,
 
   // Method signature taken from javap -s
   // Source/Android/app/build/intermediates/classes/arm/debug/org/dolphinemu/dolphinemu/NativeLibrary.class
-  s_jni_method_alert =
-      env->GetStaticMethodID(s_jni_class, "displayAlertMsg", "(Ljava/lang/String;)V");
+  s_jni_method_alert = env->GetStaticMethodID(s_jni_class, "displayAlertMsg",
+                                              "(Ljava/lang/String;Ljava/lang/String;Z)Z");
 }
 
 // Surface Handling
