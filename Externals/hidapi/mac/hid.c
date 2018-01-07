@@ -773,8 +773,10 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 	IOReturn res;
 
 	/* Return if the device has been disconnected. */
-	if (dev->disconnected)
+	if (dev->disconnected) {
+		errno = ENODEV;
 		return -1;
+	}
 
 	if (data[0] == 0x0) {
 		/* Not using numbered Reports.
@@ -797,9 +799,14 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 
 		if (res == kIOReturnSuccess) {
 			return length;
-		}
-		else
+		} else if (res == (IOReturn)0xe0005000) {
+		  /* Kernel.framework's IOUSBHostFamily.h defines this error as kUSBHostReturnPipeStalled */
+			errno = EPIPE;
 			return -1;
+		} else {
+			errno = EBUSY;
+			return -1;
+		}
 	}
 
 	return -1;
