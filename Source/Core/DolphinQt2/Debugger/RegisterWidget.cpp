@@ -236,6 +236,9 @@ void RegisterWidget::PopulateTable()
                          PowerPC::ppcState.spr[SPR_DBAT0L + i * 2];
                 },
                 nullptr);
+    // Graphics quantization registers
+    AddRegister(i + 16, 7, RegisterType::gqr, "GQR" + std::to_string(i),
+                [i] { return PowerPC::ppcState.spr[SPR_GQR0 + i]; }, nullptr);
   }
 
   for (int i = 0; i < 16; i++)
@@ -247,59 +250,71 @@ void RegisterWidget::PopulateTable()
   }
 
   // Special registers
+  // TB
+  AddRegister(16, 5, RegisterType::tb, "TB",
+              [] {
+                return static_cast<u64>(PowerPC::ppcState.spr[SPR_TU]) << 32 |
+                       PowerPC::ppcState.spr[SPR_TL];
+              },
+              nullptr);
+
   // PC
-  AddRegister(16, 5, RegisterType::pc, "PC", [] { return PowerPC::ppcState.pc; },
+  AddRegister(17, 5, RegisterType::pc, "PC", [] { return PowerPC::ppcState.pc; },
               [](u64 value) { PowerPC::ppcState.pc = value; });
 
   // LR
-  AddRegister(17, 5, RegisterType::fpscr, "LR", [] { return PowerPC::ppcState.spr[SPR_LR]; },
+  AddRegister(18, 5, RegisterType::lr, "LR", [] { return PowerPC::ppcState.spr[SPR_LR]; },
               [](u64 value) { PowerPC::ppcState.spr[SPR_LR] = value; });
 
   // CTR
-  AddRegister(18, 5, RegisterType::fpscr, "FPSCR", [] { return PowerPC::ppcState.spr[SPR_CTR]; },
+  AddRegister(19, 5, RegisterType::ctr, "CTR", [] { return PowerPC::ppcState.spr[SPR_CTR]; },
               [](u64 value) { PowerPC::ppcState.spr[SPR_CTR] = value; });
 
   // CR
-  AddRegister(19, 5, RegisterType::cr, "CR", [] { return GetCR(); },
+  AddRegister(20, 5, RegisterType::cr, "CR", [] { return GetCR(); },
               [](u64 value) { SetCR(value); });
 
+  // XER
+  AddRegister(21, 5, RegisterType::xer, "XER", [] { return GetXER().Hex; },
+              [](u64 value) { SetXER(UReg_XER(value)); });
+
   // FPSCR
-  AddRegister(20, 5, RegisterType::fpscr, "FPSCR", [] { return PowerPC::ppcState.fpscr; },
+  AddRegister(22, 5, RegisterType::fpscr, "FPSCR", [] { return PowerPC::ppcState.fpscr; },
               [](u64 value) { PowerPC::ppcState.fpscr = value; });
 
   // MSR
-  AddRegister(21, 5, RegisterType::msr, "MSR", [] { return PowerPC::ppcState.msr; },
+  AddRegister(23, 5, RegisterType::msr, "MSR", [] { return PowerPC::ppcState.msr; },
               [](u64 value) { PowerPC::ppcState.msr = value; });
 
   // SRR 0-1
-  AddRegister(22, 5, RegisterType::srr, "SRR0", [] { return PowerPC::ppcState.spr[SPR_SRR0]; },
+  AddRegister(24, 5, RegisterType::srr, "SRR0", [] { return PowerPC::ppcState.spr[SPR_SRR0]; },
               [](u64 value) { PowerPC::ppcState.spr[SPR_SRR0] = value; });
-  AddRegister(23, 5, RegisterType::srr, "SRR1", [] { return PowerPC::ppcState.spr[SPR_SRR1]; },
+  AddRegister(25, 5, RegisterType::srr, "SRR1", [] { return PowerPC::ppcState.spr[SPR_SRR1]; },
               [](u64 value) { PowerPC::ppcState.spr[SPR_SRR1] = value; });
 
   // Exceptions
-  AddRegister(24, 5, RegisterType::exceptions, "Exceptions",
+  AddRegister(26, 5, RegisterType::exceptions, "Exceptions",
               [] { return PowerPC::ppcState.Exceptions; },
               [](u64 value) { PowerPC::ppcState.Exceptions = value; });
 
   // Int Mask
-  AddRegister(25, 5, RegisterType::int_mask, "Int Mask",
+  AddRegister(27, 5, RegisterType::int_mask, "Int Mask",
               [] { return ProcessorInterface::GetMask(); }, nullptr);
 
   // Int Cause
-  AddRegister(26, 5, RegisterType::int_cause, "Int Cause",
+  AddRegister(28, 5, RegisterType::int_cause, "Int Cause",
               [] { return ProcessorInterface::GetCause(); }, nullptr);
 
   // DSISR
-  AddRegister(27, 5, RegisterType::dsisr, "DSISR", [] { return PowerPC::ppcState.spr[SPR_DSISR]; },
+  AddRegister(29, 5, RegisterType::dsisr, "DSISR", [] { return PowerPC::ppcState.spr[SPR_DSISR]; },
               [](u64 value) { PowerPC::ppcState.spr[SPR_DSISR] = value; });
   // DAR
-  AddRegister(28, 5, RegisterType::dar, "DAR", [] { return PowerPC::ppcState.spr[SPR_DAR]; },
+  AddRegister(30, 5, RegisterType::dar, "DAR", [] { return PowerPC::ppcState.spr[SPR_DAR]; },
               [](u64 value) { PowerPC::ppcState.spr[SPR_DAR] = value; });
 
   // Hash Mask
   AddRegister(
-      29, 5, RegisterType::pt_hashmask, "Hash Mask",
+      31, 5, RegisterType::pt_hashmask, "Hash Mask",
       [] { return (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base; },
       nullptr);
 

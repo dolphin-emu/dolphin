@@ -16,14 +16,17 @@ enum class RegisterType
   fpr,         // General purpose registers, float (f0-f31)
   ibat,        // Instruction BATs (IBAT0-IBAT7)
   dbat,        // Data BATs (DBAT0-DBAT7)
+  tb,          // Time base register
   pc,          // Program counter
   lr,          // Link register
   ctr,         // Decremented and incremented by branch and count instructions
   cr,          // Condition register
+  xer,         // Integer exception register
   fpscr,       // Floating point status and control register
   msr,         // Machine state register
   srr,         // Machine status save/restore register (SRR0 - SRR1)
   sr,          // Segment register (SR0 - SR15)
+  gqr,         // Graphics quantization registers (GQR0 - GQR7)
   exceptions,  // Keeps track of currently triggered exceptions
   int_mask,    // ???
   int_cause,   // ???
