@@ -57,6 +57,8 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "test.h"
+
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
@@ -226,6 +228,8 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 
 void DolphinApp::AfterInit()
 {
+  //std::thread netcorethread(Test::CommandTest);
+  Test::CommandTest();
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
