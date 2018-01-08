@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.os.Environment;
 import android.support.annotation.NonNull;
 
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
@@ -9,6 +8,7 @@ import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.StringSetting;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivityView;
 
 import java.io.BufferedReader;
@@ -393,8 +393,7 @@ public final class SettingsFile
 	@NonNull
 	private static File getSettingsFile(String fileName)
 	{
-		String storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-		return new File(storagePath + "/dolphin-emu/Config/" + fileName + ".ini");
+		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
 	}
 
 	private static SettingSection sectionFromLine(String line)
