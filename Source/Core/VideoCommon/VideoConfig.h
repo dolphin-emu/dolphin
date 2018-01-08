@@ -24,7 +24,7 @@
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
-enum class AspectMode
+enum class AspectMode : int
 {
   Auto,
   AnalogWide,
@@ -32,7 +32,7 @@ enum class AspectMode
   Stretch,
 };
 
-enum class StereoMode
+enum class StereoMode : int
 {
   Off,
   SBS,
