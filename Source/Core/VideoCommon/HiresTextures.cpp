@@ -101,42 +101,45 @@ void HiresTexture::Update()
 
   const std::string code = game_id + "_";
 
-  for (auto& rFilename : filenames)
+  if (filenames.size() > 0ul)
   {
-    std::string FileName;
-    SplitPath(rFilename, nullptr, &FileName, nullptr);
-
-    if (FileName.substr(0, code.length()) == code)
+    for (auto& rFilename : filenames)
     {
-      s_textureMap[FileName] = rFilename;
-      s_check_native_format = true;
-    }
+      std::string FileName;
+      SplitPath(rFilename, nullptr, &FileName, nullptr);
 
-    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
-    {
-      s_textureMap[FileName] = rFilename;
-      s_check_new_format = true;
-    }
-  }
-
-  if (g_ActiveConfig.bCacheHiresTextures)
-  {
-    // remove cached but deleted textures
-    auto iter = s_textureCache.begin();
-    while (iter != s_textureCache.end())
-    {
-      if (s_textureMap.find(iter->first) == s_textureMap.end())
+      if (FileName.substr(0, code.length()) == code)
       {
-        iter = s_textureCache.erase(iter);
+        s_textureMap[FileName] = rFilename;
+        s_check_native_format = true;
       }
-      else
+
+      if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
       {
-        iter++;
+        s_textureMap[FileName] = rFilename;
+        s_check_new_format = true;
       }
     }
 
-    s_textureCacheAbortLoading.Clear();
-    s_prefetcher = std::thread(Prefetch);
+    if (g_ActiveConfig.bCacheHiresTextures)
+    {
+      // remove cached but deleted textures
+      auto iter = s_textureCache.begin();
+      while (iter != s_textureCache.end())
+      {
+        if (s_textureMap.find(iter->first) == s_textureMap.end())
+        {
+          iter = s_textureCache.erase(iter);
+        }
+        else
+        {
+          iter++;
+        }
+      }
+
+      s_textureCacheAbortLoading.Clear();
+      s_prefetcher = std::thread(Prefetch);
+    }
   }
 }
 
@@ -464,7 +467,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   if (first_mip.width * height != first_mip.height * width)
   {
     ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
-                     "from the native size %ux%u.",
+              "from the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
   }
 
@@ -472,7 +475,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
   {
     ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
-                     "upscaling factor based on the native size %ux%u.",
+              "upscaling factor based on the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
   }
 
@@ -543,13 +546,28 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
 
 std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
 {
-  const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+  const std::string regionfree_id = game_id.substr(0, 3);
+  const std::string regionspec_dir = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+  const std::string regionfree_dir = File::GetUserPath(D_HIRESTEXTURES_IDX) + regionfree_id;
 
   // If there's no directory with the region-specific ID, look for a 3-character region-free one
-  if (!File::Exists(texture_directory))
-    return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+  if (!File::Exists(regionspec_dir))
+  {
+    INFO_LOG(VIDEO, "Custom textures directory '%s' does not exist, attempting region-free version",
+             game_id.c_str());
 
-  return texture_directory;
+    if (File::Exists(regionfree_dir))
+    {
+      return regionfree_dir;
+    }
+    else
+    {
+      WARN_LOG(VIDEO, "Missing: Custom textures directory '%s' does not exist.",
+               regionfree_id.c_str());
+    }
+  }
+
+  return regionspec_dir;
 }
 
 HiresTexture::~HiresTexture()
