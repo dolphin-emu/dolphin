@@ -718,9 +718,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     return nullptr;
   }
 
-  // If we are recording a FifoLog, keep track of what memory we read.
-  // FifiRecorder does it's own memory modification tracking independant of the texture hashing
-  // below.
+  // If we are recording a FifoLog, keep track of what memory we read. FifoRecorder does
+  // its own memory modification tracking independent of the texture hashing below.
   if (g_bRecordFifoData && !from_tmem)
     FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size,
                                           MemoryUpdate::TEXTURE_MAP);
@@ -1088,7 +1087,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     }
   }
 
-  entry->has_arbitrary_mips = arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
+  entry->has_arbitrary_mips = hires_tex ? hires_tex->HasArbitraryMipmaps() :
+                                          arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
 
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
   {
