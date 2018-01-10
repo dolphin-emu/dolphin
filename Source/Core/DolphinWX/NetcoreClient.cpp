@@ -4,7 +4,7 @@
 
 #include "stdafx.h"
 #include "Core/State.h"
-#include "test.h"
+#include "NetcoreClient.h"
 
 #include <string>  
 #include <iostream>  
@@ -27,23 +27,51 @@ Trace::AutoFlush = true;
 Trace::WriteLine(filename);
 */
 
-public ref class Test2
+int main() {}
+
+public ref class NetcoreClient
 {
 private:
-  static int const test = 1;
 public:
   static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
-  void NewTest();
+  void Initialize();
+  void LoadState(String^ filename);
+  void NetcoreClient::SaveState(String^ filename, bool wait);
 };
 
-
-int main(array<System::String ^> ^args)
+//Create our NetcoreClient
+void NetcoreClientInitializer::Initialize()
 {
-  return 0;
+  NetcoreClient^ client = gcnew NetcoreClient;
+  client->Initialize();
+}
+
+//Initialize it 
+void NetcoreClient::Initialize() {
+  gcnew RTCV::NetCore::NetCoreSpec();
+  TestClient::TestClient::SetSpec(spec);
+  TestClient::TestClient::StartClient();
+
+  //Hook into MessageReceived so we can respond to commands
+  spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &NetcoreClient::OnMessageReceived);
 }
 
 
+/* IMPLEMENT YOUR COMMANDS HERE */
+void NetcoreClient::LoadState(String^ filename) {
+
+  std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
+  State::LoadAs(converted_filename);
+}
+void NetcoreClient::SaveState(String^ filename, bool wait) {
+
+  std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
+  State::SaveAs(converted_filename, wait);
+}
+
+
+/*ENUMS FOR THE SWITCH STATEMENT*/
 enum COMMANDS {
   LOADSTATE,
   SAVESTATE,
@@ -56,24 +84,14 @@ COMMANDS CheckCommand(String^ inString) {
   return UNKNOWN;
 }
 
-
-void LoadState(String^ filename) {
-
-  std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
-  State::LoadAs(converted_filename);
-}
-
-void SaveState(String^ filename, bool wait) {
-
-  std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
-  State::SaveAs(converted_filename, wait);
-}
-
-
-void Test2::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
+/* THIS IS WHERE YOU HANDLE ANY RECEIVED MESSAGES */
+void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 {
   NetCoreMessage ^ message = e->message;
-  NetCoreSimpleMessage ^ simpleMessage = (NetCoreSimpleMessage^)message;
+
+  //Can't define this unless it's used to keep consistent with Dolphin's warnings as errors
+  //NetCoreSimpleMessage ^ simpleMessage = (NetCoreSimpleMessage^)message;
+
   NetCoreAdvancedMessage ^ advancedMessage = (NetCoreAdvancedMessage^)message;
 
   switch (CheckCommand(message->Type)) {
@@ -88,22 +106,4 @@ void Test2::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
     default:
       break;
   }
-
 }
-
-void Test2::NewTest() {
-  gcnew RTCV::NetCore::NetCoreSpec();
-  TestClient::TestClient::SetSpec(spec);
-  TestClient::TestClient::StartClient();
-
-  spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &Test2::OnMessageReceived);
-
-}
-
-
-void Test::CommandTest()
-{
-  Test2^ a = gcnew Test2;
-  a->NewTest();
-}
- 

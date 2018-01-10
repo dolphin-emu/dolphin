@@ -51,7 +51,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\test.cpp">
+    <ClCompile Include="NetcoreClient.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
       <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExceptionHandling>
       <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
@@ -157,7 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\resource2.h" />
-    <ClInclude Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinWX\test.h" />
+    <ClInclude Include="NetcoreClient.h" />
     <ClInclude Include="Cheats\ActionReplayCodesPanel.h" />
     <ClInclude Include="Cheats\ARCodeAddEdit.h" />
     <ClInclude Include="Config\AddUSBDeviceDiag.h" />

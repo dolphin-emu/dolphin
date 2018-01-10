@@ -57,7 +57,7 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
-#include "test.h"
+#include "NetcoreClient.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
@@ -229,7 +229,8 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 void DolphinApp::AfterInit()
 {
   //std::thread netcorethread(Test::CommandTest);
-  Test::CommandTest();
+  NetcoreClientInitializer::Initialize();
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
