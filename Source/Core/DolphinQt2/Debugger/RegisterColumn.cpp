@@ -96,13 +96,13 @@ void RegisterColumn::Update()
   switch (m_display)
   {
   case RegisterDisplay::Hex:
-    text = QStringLiteral("%1").arg(m_value,
-                                    (m_type == RegisterType::ibat || m_type == RegisterType::dbat ||
-                                             m_type == RegisterType::fpr ?
-                                         sizeof(u64) :
-                                         sizeof(u32)) *
-                                        2,
-                                    16, QLatin1Char('0'));
+    text = QStringLiteral("%1").arg(
+        m_value, (m_type == RegisterType::ibat || m_type == RegisterType::dbat ||
+                          m_type == RegisterType::fpr || m_type == RegisterType::tb ?
+                      sizeof(u64) :
+                      sizeof(u32)) *
+                     2,
+        16, QLatin1Char('0'));
     break;
   case RegisterDisplay::SInt32:
     text = QString::number(static_cast<qint32>(m_value));
