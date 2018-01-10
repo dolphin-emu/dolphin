@@ -1,38 +1,31 @@
 // ConsoleApplication1.cpp : main project file.
 
+#using <system.dll>
+
 #include "stdafx.h"
 #include "Core/State.h"
 #include "test.h"
-#include "Core/PatchEngine.h"
 
+#include <string>  
+#include <iostream>  
+
+#include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#include <msclr/marshal_cppstd.h>
 
 using namespace cli;
 using namespace System;
 using namespace System::Threading;
+using namespace System::Diagnostics;
 using namespace RTCV;
 using namespace RTCV::NetCore;
 
 /*
-
-public ref class Loop
-{
-public:
-  void LoopTest()
-  {
-    while (1) {
-      int command = TestClient::TestClient::test;
-
-      if (command == 1) {
-        State::Load(2);
-        TestClient::TestClient::test = 0;
-      }
-      Thread::Sleep(5000);
-    }
-  }
-};*/
-
-
+Trace::Listeners->Add(gcnew TextWriterTraceListener(Console::Out));
+Trace::AutoFlush = true;
+Trace::WriteLine(filename);
+*/
 
 public ref class Test2
 {
@@ -41,52 +34,76 @@ private:
 public:
   static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
-   void NewTest();
+  void NewTest();
 };
-
-
 
 
 int main(array<System::String ^> ^args)
 {
   return 0;
-  
+}
+
+
+enum COMMANDS {
+  LOADSTATE,
+  SAVESTATE,
+  UNKNOWN
+};
+
+COMMANDS CheckCommand(String^ inString) {
+  if (inString == "LOADSTATE") return LOADSTATE;
+  if (inString == "SAVESTATE") return SAVESTATE;
+  return UNKNOWN;
+}
+
+
+void LoadState(String^ filename) {
+
+  std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
+  State::LoadAs(converted_filename);
+}
+
+void SaveState(String^ filename, bool wait) {
+
+  std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
+  State::SaveAs(converted_filename, wait);
 }
 
 
 void Test2::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 {
-  
-  if (TestClient::TestClient::test == 1) {
-    PowerPC::HostWrite_U32(1073741824, 2147483648);
+  NetCoreMessage ^ message = e->message;
+  NetCoreSimpleMessage ^ simpleMessage = (NetCoreSimpleMessage^)message;
+  NetCoreAdvancedMessage ^ advancedMessage = (NetCoreAdvancedMessage^)message;
 
+  switch (CheckCommand(message->Type)) {
+    case LOADSTATE:
+      LoadState((advancedMessage->objectValue)->ToString());
+      break;
+
+    case SAVESTATE:
+      SaveState((advancedMessage->objectValue)->ToString(), 0);
+      break;
+
+    default:
+      break;
   }
+
 }
+
+void Test2::NewTest() {
+  gcnew RTCV::NetCore::NetCoreSpec();
+  TestClient::TestClient::SetSpec(spec);
+  TestClient::TestClient::StartClient();
+
+  spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &Test2::OnMessageReceived);
+
+}
+
 
 void Test::CommandTest()
 {
   Test2^ a = gcnew Test2;
   a->NewTest();
- // Test2::NewTest();
 }
  
-
-void Test2::NewTest(){
-  gcnew RTCV::NetCore::NetCoreSpec();
-  TestClient::TestClient::SetSpec(spec);
-
-  TestClient::TestClient::StartClient();
-  /*
-  Loop^ loop1 = gcnew Loop();
-  Thread^ thread1 = gcnew Thread(gcnew ThreadStart(loop1, &Loop::LoopTest));
-  thread1->Start();
-  */
-
-  spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &Test2::OnMessageReceived);
-
-  
-  //Thread thread = gcnew Thread(gcnew ThreadStart(WorkThreadFunction));
-
-  // spec->OnMessageReceived += gcnew EventHandler<NetCoreEventArgs^>(OnMessageReceived);
-
-}
