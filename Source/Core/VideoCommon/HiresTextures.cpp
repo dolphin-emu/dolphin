@@ -102,29 +102,29 @@ void HiresTexture::Update()
       ".jpg"  // Why not? Could be useful for large photo-like textures
   };
 
-  std::vector<std::string> filenames =
+  const std::vector<std::string> texture_paths =
       Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
 
   const std::string code = game_id + "_";
 
-  for (auto& rFilename : filenames)
+  for (auto& path : texture_paths)
   {
-    std::string FileName;
-    SplitPath(rFilename, nullptr, &FileName, nullptr);
+    std::string filename;
+    SplitPath(path, nullptr, &filename, nullptr);
 
-    if (FileName.substr(0, code.length()) == code)
+    if (filename.substr(0, code.length()) == code)
     {
-      s_textureMap[FileName] = {rFilename, false};
+      s_textureMap[filename] = {path, false};
       s_check_native_format = true;
     }
 
-    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
+    if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
     {
-      const size_t arb_index = FileName.rfind("_arb");
+      const size_t arb_index = filename.rfind("_arb");
       const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
       if (has_arbitrary_mipmaps)
-        FileName.erase(arb_index, 4);
-      s_textureMap[FileName] = {rFilename, has_arbitrary_mipmaps};
+        filename.erase(arb_index, 4);
+      s_textureMap[filename] = {path, has_arbitrary_mipmaps};
       s_check_new_format = true;
     }
   }
