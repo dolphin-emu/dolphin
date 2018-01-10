@@ -1,6 +1,4 @@
-// ConsoleApplication1.cpp : main project file.
-
-#using <system.dll>
+//A basic test implementation of Netcore for IPC in Dolphin
 
 #include "stdafx.h"
 #include "Core/State.h"
@@ -16,10 +14,14 @@
 
 using namespace cli;
 using namespace System;
-using namespace System::Threading;
-using namespace System::Diagnostics;
 using namespace RTCV;
-using namespace RTCV::NetCore;
+using namespace RTCV::NetCore; 
+
+#ifdef DEBUG
+  #using <system.dll>
+  using namespace System::Diagnostics;
+#endif
+
 
 /*
 Trace::Listeners->Add(gcnew TextWriterTraceListener(Console::Out));
@@ -29,9 +31,10 @@ Trace::WriteLine(filename);
 
 int main() {}
 
+
+//Define this in here as it's managed and doesn't want to work in NetcoreClient.h
 public ref class NetcoreClient
 {
-private:
 public:
   static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
@@ -39,6 +42,8 @@ public:
   void LoadState(String^ filename);
   void NetcoreClient::SaveState(String^ filename, bool wait);
 };
+
+
 
 //Create our NetcoreClient
 void NetcoreClientInitializer::Initialize()
@@ -89,7 +94,7 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 {
   NetCoreMessage ^ message = e->message;
 
-  //Can't define this unless it's used to keep consistent with Dolphin's warnings as errors
+  //Can't define this unless it's used as Dolphin treats warnings as errors.
   //NetCoreSimpleMessage ^ simpleMessage = (NetCoreSimpleMessage^)message;
 
   NetCoreAdvancedMessage ^ advancedMessage = (NetCoreAdvancedMessage^)message;
