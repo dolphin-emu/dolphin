@@ -164,7 +164,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
   INFO_LOG(VIDEO, "EFB size: %ux%ux%u", efb_width, efb_height, efb_layers);
 
   // Update the static variable in the base class. Why does this even exist?
-  FramebufferManagerBase::m_EFBLayers = g_ActiveConfig.iMultisamples;
+  FramebufferManagerBase::m_EFBLayers = efb_layers;
 
   // Allocate EFB render targets
   m_efb_color_texture =
