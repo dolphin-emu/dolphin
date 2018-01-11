@@ -318,17 +318,15 @@ void FramebufferManager::DestroyEFBFramebuffer()
   m_efb_resolve_depth_texture.reset();
 }
 
-void FramebufferManager::ResizeEFBTextures()
+void FramebufferManager::RecreateEFBFramebuffer()
 {
   DestroyEFBFramebuffer();
-  if (!CreateEFBFramebuffer())
-    PanicAlert("Failed to create EFB textures");
-}
 
-void FramebufferManager::RecreateRenderPass()
-{
   if (!CreateEFBRenderPasses())
     PanicAlert("Failed to create EFB render pass");
+
+  if (!CreateEFBFramebuffer())
+    PanicAlert("Failed to create EFB textures");
 }
 
 void FramebufferManager::RecompileShaders()

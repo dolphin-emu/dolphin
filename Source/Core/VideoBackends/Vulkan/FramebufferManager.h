@@ -45,10 +45,9 @@ public:
   VkSampleCountFlagBits GetEFBSamples() const;
   MultisamplingState GetEFBMultisamplingState() const;
 
-  void ResizeEFBTextures();
+  void RecreateEFBFramebuffer();
 
   // Recompile shaders, use when MSAA mode changes.
-  void RecreateRenderPass();
   void RecompileShaders();
 
   // Reinterpret pixel format of EFB color texture.
