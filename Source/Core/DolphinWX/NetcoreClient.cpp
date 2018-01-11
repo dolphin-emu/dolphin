@@ -19,7 +19,7 @@
 using namespace cli;
 using namespace System;
 using namespace RTCV;
-using namespace RTCV::NetCore; 
+using namespace RTCV::NetCore;
 
 #using <system.dll>
 using namespace System::Diagnostics;
@@ -34,6 +34,15 @@ Trace::WriteLine(filename);
 int main() {}
 
 
+public ref class MemoryDomain
+{
+public:
+  int size;
+  int offset = 0;
+  String ^ name;
+};
+
+
 //Define this in here as it's managed and doesn't want to work in NetcoreClient.h
 public ref class NetcoreClient
 {
@@ -43,11 +52,10 @@ public:
   static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
   void Initialize();
-
   void LoadState(String^ filename);
   void NetcoreClient::SaveState(String^ filename, bool wait);
-  void NetcoreClient::PokeByte(long address, Byte value, String ^ domain);
-  void NetcoreClient::PeekByte(long address, String ^ domain);
+  void NetcoreClient::PokeByte(long address, Byte value, MemoryDomain ^ domain);
+  void NetcoreClient::PeekByte(long address, MemoryDomain ^ domain);
 };
 
 
@@ -100,22 +108,31 @@ void NetcoreClient::SaveState(String^ filename, bool wait) {
 
 
 //THE INTERNAL FUNCTIONS TAKE VALUE, ADDRESS NOT ADDRESS,VALUE
-void NetcoreClient::PokeByte(long address, Byte value, String ^ domain) {
 
-  if (domain == "ARAM")
-   DSP::WriteARAM(Convert::ToByte(value), Convert::ToUInt32(address));
-  else
+void NetcoreClient::PokeByte(long address, Byte value, MemoryDomain ^ domain) {
+
+  if (domain->name == "SRAM" && (address + domain->offset) < domain->size)
     Memory::Write_U8(Convert::ToByte(value), Convert::ToUInt32(address));
+
+  else if (domain->name == "EXRAM" && (address + domain->offset) < domain->size)
+    Memory::Write_U8(Convert::ToByte(value), Convert::ToUInt32(address));
+
+  else if (domain->name == "ARAM" && (address + domain->offset) < domain->size)
+    DSP::WriteARAM(Convert::ToByte(value), Convert::ToUInt32(address));
 
 }
 
-void NetcoreClient::PeekByte(long address, String ^ domain) {
+void NetcoreClient::PeekByte(long address, MemoryDomain ^ domain) {
 
 
-  if(domain == "ARAM")
-    TestClient::TestClient::connector->SendMessage("PEEKBYTE", DSP::ReadARAM(Convert::ToUInt32(address)));
-  else
+  if (domain->name == "SRAM" && (address + domain->offset) < domain->size)
     TestClient::TestClient::connector->SendMessage("PEEKBYTE", Memory::Read_U8(Convert::ToUInt32(address)));
+
+  else if (domain->name == "EXRAM" && (address + domain->offset) < domain->size)
+    TestClient::TestClient::connector->SendMessage("PEEKBYTE", Memory::Read_U8(Convert::ToUInt32(address)));
+
+  else if (domain->name == "ARAM" && (address + domain->offset) < domain->size)
+    TestClient::TestClient::connector->SendMessage("PEEKBYTE", DSP::ReadARAM(Convert::ToUInt32(address)));
 
 }
 
@@ -152,55 +169,70 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
   NetCoreAdvancedMessage ^ advancedMessage = (NetCoreAdvancedMessage^)message;
 
   switch (CheckCommand(message->Type)) {
-    case LOADSTATE:
-      LoadState((advancedMessage->objectValue)->ToString());
-      break;
+  case LOADSTATE:
+    LoadState((advancedMessage->objectValue)->ToString());
+    break;
 
-    case SAVESTATE:
-      SaveState((advancedMessage->objectValue)->ToString(), 0);
-      break;
+  case SAVESTATE:
+    SaveState((advancedMessage->objectValue)->ToString(), 0);
+    break;
 
-    case POKEBYTE: {
+  case POKEBYTE: {
 
-      Trace::WriteLine("1");
 
-      //It appears I have to copy like this because I can't seem to cast it 
-      array<Object^> ^ test = (array<Object^>^)advancedMessage->objectValue;
+    //It appears I have to copy like this because I can't seem to cast it 
+    array<Object^> ^ test = (array<Object^>^)advancedMessage->objectValue;
 
-      long address = Convert::ToInt64(test[0]);
-      Byte value = Convert::ToByte(test[1]);
-      String^ domain = "NULL";
+    long address = Convert::ToInt64(test[0]);
+    Byte value = Convert::ToByte(test[1]);
+    MemoryDomain ^ domain;
 
-      //Hardcode this logic for now.
-      if (address <= 25165824)
-        domain = "SRAM";
-      else if (SConfig::GetInstance().bWii)
-        domain = "EXRAM";
-      else
-        domain = "ARAM";
-
-      PokeByte(address, value, domain);
-      
-
+    //Hardcode this logic for now.
+    if (address <= 25165824) {
+      domain->name = "SRAM";
+      domain->size = 25165824;
     }
-    case PEEKBYTE: {
-      long address = Convert::ToInt64(advancedMessage->objectValue);
-      String^ domain = "NULL";
 
-      //Hardcode this logic for now.
-      if (address <= 25165824)
-        domain = "SRAM";
-      else if (SConfig::GetInstance().bWii)
-        domain = "EXRAM";
-      else
-        domain = "ARAM";
-
-      PeekByte(address, domain);
-
+    else if (SConfig::GetInstance().bWii) {
+      domain->name = "EXRAM";
+      domain->offset = 25165825;
+      domain->size = 67108864;
     }
-      break;
+    else {
+      domain->name = "ARAM";
+      domain->size = 16777216;
+    }
 
-    default:
-      break;
+    PokeByte(address, value, domain);
+
+  }
+  case PEEKBYTE: {
+    long address = Convert::ToInt64(advancedMessage->objectValue);
+    MemoryDomain ^ domain;
+
+    //Hardcode this logic for now.
+    if (address <= 25165824) {
+      domain->name = "SRAM";
+      domain->size = 25165824;
+    }
+
+    else if (SConfig::GetInstance().bWii) {
+      domain->name = "EXRAM";
+      domain->offset = 25165825;
+      domain->size = 67108864;
+    }
+    else {
+      domain->name = "ARAM";
+      domain->size = 16777216;
+    }
+
+
+    PeekByte(address, domain);
+
+  }
+   break;
+
+  default:
+    break;
   }
 }
