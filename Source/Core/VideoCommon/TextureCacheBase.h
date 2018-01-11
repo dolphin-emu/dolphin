@@ -219,6 +219,8 @@ public:
     u32 GetNumLevels() const { return texture->GetConfig().levels; }
     u32 GetNumLayers() const { return texture->GetConfig().layers; }
     AbstractTextureFormat GetFormat() const { return texture->GetConfig().format; }
+
+    void FlushEFBCopy();
   };
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor

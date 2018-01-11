@@ -7,6 +7,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <thread>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -28,7 +29,7 @@ public:
       SWAP_EVENT,
       BBOX_READ,
       PERF_QUERY,
-      EFB_COPY,
+      FLUSH_EFB_COPY,
     } type;
     u64 time;
 
@@ -68,11 +69,12 @@ public:
 
       struct
       {
-      } efb_copy;
+        void* entry;
+      } flush_efb_copy;
     };
   };
 
-  AsyncRequests();
+  AsyncRequests() = default;
 
   void PullEvents()
   {
@@ -80,10 +82,12 @@ public:
       PullEventsInternal();
   }
   void PushEvent(const Event& event, bool blocking = false);
-  void SetEnable(bool enable);
-  void SetPassthrough(bool enable);
+
+  // Must be called from the video thread at startup.
+  void UpdateVideoThreadId();
 
   static AsyncRequests* GetInstance() { return &s_singleton; }
+
 private:
   void PullEventsInternal();
   void HandleEvent(const Event& e);
@@ -96,8 +100,7 @@ private:
   std::condition_variable m_cond;
 
   bool m_wake_me_up_again;
-  bool m_enable;
-  bool m_passthrough;
 
   std::vector<EfbPokeData> m_merged_efb_pokes;
+  std::thread::id m_video_thread_id;
 };

@@ -45,6 +45,10 @@ public:
   // Assumes that the level of src texture and this texture have the same dimensions.
   void CopyToTexture(AbstractTexture* dst, u32 dst_layer = 0, u32 dst_level = 0);
 
+  // Transitions the texture to a state where it can be accessed. This may involve command
+  // buffer submission, or mapping the object into the process address space.
+  bool PrepareForAccess();
+
   // Maps the texture into the CPU address space, enabling it to read the contents.
   // The Map call may not perform synchronization. If the contents of the staging texture
   // has been updated by a CopyFromTexture call, you must call Flush() first.
@@ -73,8 +77,6 @@ public:
   void WriteTexel(u32 x, u32 y, const void* in_ptr);
 
 protected:
-  bool PrepareForAccess();
-
   const StagingTextureType m_type;
   const TextureConfig m_config;
   const size_t m_texel_size;

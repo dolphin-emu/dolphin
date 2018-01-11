@@ -70,6 +70,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -321,6 +322,7 @@ static void CPUSetInitialExecutionState()
 static void CpuThread(const std::optional<std::string>& savestate_path, bool delete_savestate)
 {
   DeclareAsCPUThread();
+  AsyncRequests::GetInstance()->UpdateVideoThreadId();
 
   const SConfig& _CoreParameter = SConfig::GetInstance();
 
@@ -387,6 +389,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
                              bool delete_savestate)
 {
   DeclareAsCPUThread();
+  AsyncRequests::GetInstance()->UpdateVideoThreadId();
   const SConfig& _CoreParameter = SConfig::GetInstance();
 
   if (_CoreParameter.bCPUThread)

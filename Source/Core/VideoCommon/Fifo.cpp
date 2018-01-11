@@ -292,8 +292,7 @@ void ResetVideoBuffer()
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void RunGpuLoop()
 {
-  AsyncRequests::GetInstance()->SetEnable(true);
-  AsyncRequests::GetInstance()->SetPassthrough(false);
+  AsyncRequests::GetInstance()->UpdateVideoThreadId();
 
   s_gpu_mainloop.Run(
       [] {
@@ -390,9 +389,6 @@ void RunGpuLoop()
         }
       },
       100);
-
-  AsyncRequests::GetInstance()->SetEnable(false);
-  AsyncRequests::GetInstance()->SetPassthrough(true);
 }
 
 void FlushGpu()

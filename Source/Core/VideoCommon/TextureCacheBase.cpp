@@ -25,6 +25,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/AbstractStagingTexture.h"
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
@@ -1825,10 +1826,17 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
           Memory::CreateLock(dstAddr, covered_range, Memory::LockType::Read, entry,
                              [](Memory::Lock::SharedPtr& lock, Memory::LockAccessType access_type) {
                                TCacheEntry* entry = reinterpret_cast<TCacheEntry*>(lock->userdata);
+
+                               // The lock is removed when the fault handler executes. If we don't
+                               // clear the lock here, we'll remove an already-removed lock.
                                _assert_(entry->memory_lock && entry->pending_efb_copy);
                                entry->memory_lock.reset();
-                               Memory::FlushOverlappingLocks(lock.get(), access_type);
-                               g_texture_cache->FlushEFBCopy(entry);
+
+                               // Actually read back to guest memory, on the video thread.
+                               AsyncRequests::Event ev = {};
+                               ev.type = AsyncRequests::Event::FLUSH_EFB_COPY;
+                               ev.flush_efb_copy.entry = entry;
+                               AsyncRequests::GetInstance()->PushEvent(ev, true);
                              });
     }
 
@@ -2201,4 +2209,12 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
     }
     return temp_hash;
   }
+}
+
+void TextureCacheBase::TCacheEntry::FlushEFBCopy()
+{
+  // Remove any locks which overlap with this copy. Otherwise, we
+  // waste time by faulting and flushing the lock during the readback.
+  Memory::FlushLocksInPhysicalRange(addr, size_in_bytes, Memory::LockAccessType::Write);
+  g_texture_cache->FlushEFBCopy(this);
 }
