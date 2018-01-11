@@ -1281,7 +1281,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       void main()
       {
         uvec2 uv = gl_GlobalInvocationID.xy;
-        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2));
+        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2u));
         vec4 yuyv = texelFetch(s_input_buffer, buffer_pos);
 
         float y = mix(yuyv.r, yuyv.b, (uv.x & 1u) == 1u);
