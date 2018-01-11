@@ -621,6 +621,9 @@ bool FramebufferManager::PopulateColorReadbackTexture()
 
   if (GetEFBWidth() != EFB_WIDTH || GetEFBHeight() != EFB_HEIGHT)
   {
+    // Transition EFB to shader read before drawing.
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -631,10 +634,6 @@ bool FramebufferManager::PopulateColorReadbackTexture()
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_color_copy_framebuffer, rect);
-
-    // Transition EFB to shader read before drawing.
-    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
     draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
     draw.DrawWithoutVertexBuffer(4);
@@ -697,6 +696,9 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
   }
   if (GetEFBWidth() != EFB_WIDTH || GetEFBHeight() != EFB_HEIGHT)
   {
+    // Transition EFB to shader read before drawing.
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
@@ -707,10 +709,6 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_depth_copy_framebuffer, rect);
-
-    // Transition EFB to shader read before drawing.
-    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
     draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
     draw.DrawWithoutVertexBuffer(4);
