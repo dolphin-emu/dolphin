@@ -10,7 +10,7 @@ namespace RTCV.NetCore
         public NetCoreSpec spec = null;
 
         internal UDPLink udp = null;
-        internal TCPLink tcp = null;
+        internal volatile TCPLink tcp = null;
         internal MessageHub hub = null;
         internal ReturnWatch watch = null;
 

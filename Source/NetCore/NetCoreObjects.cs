@@ -118,15 +118,34 @@ namespace RTCV.NetCore
 
     }
 
-    public static class ConsoleEx
+    public class ConsoleEx
     {
+        public static ConsoleEx singularity
+        {
+            get
+            {
+                if (_singularity == null)
+                    _singularity = new ConsoleEx();
+                return _singularity;
+            }
+        }
+        static ConsoleEx _singularity = null;
+
+        public event EventHandler<NetCoreEventArgs> ConsoleWritten;
+        public virtual void OnConsoleWritten(NetCoreEventArgs e) => ConsoleWritten?.Invoke(this, e);
+
         public static void WriteLine(string message)
         {
+
             bool ShowBoops = false; // for debugging purposes, put this to true in order to see BOOP commands in the console
-            if(!ShowBoops && message.Contains("{BOOP}"))
+            if (!ShowBoops && message.Contains("{BOOP}"))
                 return;
 
-            Console.WriteLine("[" + DateTime.Now.ToString("hh:mm:ss.ffff") + "] " + message);
+            string consoleLine = "[" + DateTime.Now.ToString("hh:mm:ss.ffff") + "] " + message;
+
+            ConsoleEx.singularity.OnConsoleWritten(new NetCoreEventArgs() { message = new NetCoreSimpleMessage(consoleLine) });
+
+            Console.WriteLine(consoleLine);
         }
     }
 }

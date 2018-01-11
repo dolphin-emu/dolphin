@@ -44,7 +44,8 @@ namespace RTCV.NetCore
             //Jams the current thread until the value is returned or the KillReturnWatch flag is set to true
 
             ConsoleEx.WriteLine("GetValue:Awaiting -> " + type.ToString());
-            spec.OnSyncedMessageStart(null);
+            //spec.OnSyncedMessageStart(null);
+            spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SYNCEDMESSAGESTART}"));
 
             attemptsAtReading = 0;
 
@@ -62,7 +63,8 @@ namespace RTCV.NetCore
                     attemptsAtReading = 0;
 
                     ConsoleEx.WriteLine("GetValue:Killed -> " + type.ToString());
-                    spec.OnSyncedMessageEnd(null);
+                    //spec.OnSyncedMessageEnd(null);
+                    spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SYNCEDMESSAGEEND}"));
                     return null;
                 }
 
@@ -75,7 +77,8 @@ namespace RTCV.NetCore
             SyncReturns.Remove(WatchedGuid);
 
             ConsoleEx.WriteLine("GetValue:Returned -> " + type.ToString());
-            spec.OnSyncedMessageEnd(null);
+            //spec.OnSyncedMessageEnd(null);
+            spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SYNCEDMESSAGEEND}"));
             return ret;
         }
 

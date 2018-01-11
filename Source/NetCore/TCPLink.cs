@@ -321,12 +321,14 @@ namespace RTCV.NetCore
                 if (stayConnected)
                 {
                     ConsoleEx.WriteLine($"TCP Client Connection Lost");
-                    spec.OnClientConnectionLost(null);
+                    //spec.OnClientConnectionLost(null);
+                    spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_CLIENTCONNECTIONLOST}"));
                 }
                 else
                 {
                     ConsoleEx.WriteLine($"TCP Client Disconnected");
-                    spec.OnClientDisconnected(null);
+                    //spec.OnClientDisconnected(null);
+                    spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_CLIENTDISCONNECTED}"));
                 }
             }
             else if (spec.Side == NetworkSide.SERVER && (status == NetworkStatus.CONNECTED || status == NetworkStatus.LISTENING))
@@ -334,12 +336,14 @@ namespace RTCV.NetCore
                 if (stayConnected)
                 {
                     ConsoleEx.WriteLine($"TCP Server Connection Lost");
-                    spec.OnServerConnectionLost(null);
+                    //spec.OnServerConnectionLost(null);
+                    spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SERVERCONNECTIONLOST}"));
                 }
                 else
                 {
                     ConsoleEx.WriteLine($"TCP Server Disconnected");
-                    spec.OnServerDisconnected(null);
+                    //spec.OnServerDisconnected(null);
+                    spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SERVERDISCONNECTED}"));
                 }
             }
 
@@ -407,7 +411,8 @@ namespace RTCV.NetCore
 
                 status = NetworkStatus.DISCONNECTED;
                 ConsoleEx.WriteLine($"Connecting Failed");
-                spec.OnClientConnectingFailed(null);
+                spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_CLIENTCONNECTINGFAILED}"));
+                //spec.OnClientConnectingFailed(null);
 
                 return false;
             }
@@ -445,7 +450,8 @@ namespace RTCV.NetCore
             {
                 status = NetworkStatus.CONNECTING;
                 ConsoleEx.WriteLine($"TCP Client connecting to {IP}:{Port}");
-                spec.OnClientConnecting(null);
+                spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_CLIENTCONNECTING}"));
+                //spec.OnClientConnecting(null);
 
                 if (!StartClient())
                     return;
@@ -456,7 +462,8 @@ namespace RTCV.NetCore
                 expectingSomeone = false;
                 status = NetworkStatus.LISTENING;
                 ConsoleEx.WriteLine($"TCP Server listening on Port {Port}");
-                spec.OnServerListening(null);
+                //spec.OnServerListening(null);
+                spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SERVERLISTENING}"));
 
                 if (!StartServer())
                     return;
@@ -523,7 +530,8 @@ namespace RTCV.NetCore
                     {
                         //Server receives {HI} after client has established connection
                         ConsoleEx.WriteLine($"TCP Server Connected");
-                        spec.OnServerConnected(null);
+                        //spec.OnServerConnected(null);
+                        spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_SERVERCONNECTED}"));
 
                         SendMessage(new NetCoreAdvancedMessage("{HI}"));
                     }
@@ -531,7 +539,8 @@ namespace RTCV.NetCore
                     {
                         //Client always sends the first {HI} but will wait for the Server to reply with one
                         ConsoleEx.WriteLine($"TCP Client Connected to {IP}:{Port}");
-                        spec.OnClientConnected(null);
+                        //spec.OnClientConnected(null);
+                        spec.Connector.hub.QueueMessage(new NetCoreAdvancedMessage("{EVENT_CLIENTCONNECTED}"));
                     }
 
                     
@@ -548,6 +557,53 @@ namespace RTCV.NetCore
                                 // or is jammed waiting for a return, these will still go through
                     BoopMonitoringCounter = DefaultBoopMonitoringCounter;
                     break;
+
+                
+                //THREADSAFE EVENT FIRING
+                case "{EVENT_CLIENTCONNECTING}":
+                    spec.OnClientConnecting(null);
+                    break;
+
+                case "{EVENT_CLIENTCONNECTINGFAILED}":
+                    spec.OnClientConnectingFailed(null);
+                    break;
+
+                case "{EVENT_CLIENTCONNECTED}":
+                    spec.OnClientConnected(null);
+                    break;
+
+                case "{EVENT_CLIENTDISCONNECTED}":
+                    spec.OnClientDisconnected(null);
+                    break;
+
+                case "{EVENT_CLIENTCONNECTIONLOST}":
+                    spec.OnClientConnectionLost(null);
+                    break;
+
+                case "{EVENT_SERVERLISTENING}":
+                    spec.OnServerListening(null);
+                    break;
+
+                case "{EVENT_SERVERCONNECTED}":
+                    spec.OnServerConnected(null);
+                    break;
+
+                case "{EVENT_SERVERDISCONNECTED}":
+                    spec.OnServerDisconnected(null);
+                    break;
+
+                case "{EVENT_SERVERCONNECTIONLOST}":
+                    spec.OnServerConnectionLost(null);
+                    break;
+
+                case "{EVENT_SYNCEDMESSAGESTART}":
+                    spec.OnSyncedMessageStart(null);
+                    break;
+
+                case "{EVENT_SYNCEDMESSAGEEND}":
+                    spec.OnSyncedMessageEnd(null);
+                    break;
+
 
                 default:
                     //If message wasn't procesed, just return false
