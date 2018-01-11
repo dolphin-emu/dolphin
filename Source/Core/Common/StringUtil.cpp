@@ -29,6 +29,7 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
+#include <codecvt>
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
@@ -564,7 +565,8 @@ std::string UTF8ToSHIFTJIS(const std::string& input)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-  return CodeToUTF8("UTF-16LE", input);
+  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+  return converter.to_bytes(input);
 }
 
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
