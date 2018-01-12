@@ -545,9 +545,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Handle host window resizes.
   CheckForSurfaceChange();
 
-  if (CalculateTargetSize())
-    ResizeEFBTextures();
-
   // Update the window size based on the frame that was just rendered.
   // Due to depending on guest state, we need to call this every frame.
   SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
@@ -724,9 +721,8 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
+  const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  const AspectMode old_aspect_mode = g_ActiveConfig.aspect_mode;
-  const int old_efb_scale = g_ActiveConfig.iEFBScale;
   const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
 
   // Copy g_Config to g_ActiveConfig.
@@ -735,21 +731,17 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
 
   // Determine which (if any) settings have changed.
+  const bool multisamples_changed = old_multisamples != g_ActiveConfig.iMultisamples;
   const bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   const bool force_texture_filtering_changed =
       old_force_filtering != g_ActiveConfig.bForceFiltering;
-  const bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
-  const bool aspect_changed = old_aspect_mode != g_ActiveConfig.aspect_mode;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
 
-  // Handle settings that can cause the target rectangle to change.
-  if (efb_scale_changed || aspect_changed)
-  {
-    if (CalculateTargetSize())
-      ResizeEFBTextures();
-  }
+  // Handle settings that can cause the EFB framebuffer to change.
+  if (CalculateTargetSize() || multisamples_changed)
+    RecreateEFBFramebuffer();
 
   // MSAA samples changed, we need to recreate the EFB render pass.
   // If the stereoscopy mode changed, we need to recreate the buffers as well.
@@ -757,10 +749,7 @@ void Renderer::CheckForConfigChanges()
   // Changing stereoscopy from off<->on also requires shaders to be recompiled.
   if (CheckForHostConfigChanges())
   {
-    g_command_buffer_mgr->WaitForGPUIdle();
-    FramebufferManager::GetInstance()->RecreateRenderPass();
-    FramebufferManager::GetInstance()->ResizeEFBTextures();
-    BindEFBToStateTracker();
+    RecreateEFBFramebuffer();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
     g_shader_cache->ReloadShaderAndPipelineCaches();
@@ -798,7 +787,7 @@ void Renderer::OnSwapChainResized()
   m_backbuffer_height = m_swap_chain->GetHeight();
   UpdateDrawRectangle();
   if (CalculateTargetSize())
-    ResizeEFBTextures();
+    RecreateEFBFramebuffer();
 }
 
 void Renderer::BindEFBToStateTracker()
@@ -816,11 +805,11 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBMultisamplingState());
 }
 
-void Renderer::ResizeEFBTextures()
+void Renderer::RecreateEFBFramebuffer()
 {
   // Ensure the GPU is finished with the current EFB textures.
   g_command_buffer_mgr->WaitForGPUIdle();
-  FramebufferManager::GetInstance()->ResizeEFBTextures();
+  FramebufferManager::GetInstance()->RecreateEFBFramebuffer();
   BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.

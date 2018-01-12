@@ -45,10 +45,9 @@ public:
   VkSampleCountFlagBits GetEFBSamples() const;
   MultisamplingState GetEFBMultisamplingState() const;
 
-  void ResizeEFBTextures();
+  void RecreateEFBFramebuffer();
 
   // Recompile shaders, use when MSAA mode changes.
-  void RecreateRenderPass();
   void RecompileShaders();
 
   // Reinterpret pixel format of EFB color texture.
@@ -82,8 +81,7 @@ private:
     u32 color;
   };
 
-  bool CreateEFBRenderPass();
-  void DestroyEFBRenderPass();
+  bool CreateEFBRenderPasses();
   bool CreateEFBFramebuffer();
   void DestroyEFBFramebuffer();
 
@@ -91,7 +89,6 @@ private:
   void DestroyConversionShaders();
 
   bool CreateReadbackRenderPasses();
-  void DestroyReadbackRenderPasses();
   bool CompileReadbackShaders();
   void DestroyReadbackShaders();
   bool CreateReadbackTextures();

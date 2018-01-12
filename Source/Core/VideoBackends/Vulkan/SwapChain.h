@@ -68,7 +68,6 @@ private:
   void DestroySwapChain();
 
   bool CreateRenderPass();
-  void DestroyRenderPass();
 
   bool SetupSwapChainImages();
   void DestroySwapChainImages();

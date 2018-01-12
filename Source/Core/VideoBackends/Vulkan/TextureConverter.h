@@ -35,8 +35,8 @@ public:
 
   // Applies palette to dst_entry, using indices from src_entry.
   void ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
-                      TextureCache::TCacheEntry* src_entry, VkRenderPass render_pass,
-                      const void* palette, TLUTFormat palette_format);
+                      TextureCache::TCacheEntry* src_entry, const void* palette,
+                      TLUTFormat palette_format);
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
@@ -76,7 +76,6 @@ private:
   VkShaderModule CompileEncodingShader(const EFBCopyParams& params);
   VkShaderModule GetEncodingShader(const EFBCopyParams& params);
 
-  bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
   bool CreateDecodingTexture();
 
@@ -109,7 +108,6 @@ private:
   std::map<EFBCopyParams, VkShaderModule> m_encoding_shaders;
   std::unique_ptr<AbstractTexture> m_encoding_render_texture;
   std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
-  VkRenderPass m_encoding_render_pass = VK_NULL_HANDLE;
 
   // Texture decoding - GX format in memory->RGBA8
   struct TextureDecodingPipeline
