@@ -283,6 +283,7 @@ bool CFrame::InitControllers()
     Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     HotkeyManagerEmu::Initialize();
 
+
     return true;
   }
   return false;
@@ -760,6 +761,7 @@ void CFrame::UninhibitScreensaver()
 
 void CFrame::UpdateTitle(const wxString& str)
 {
+
   const wxString revision_string = StrToWxStr(Common::scm_rev_str);
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
   {

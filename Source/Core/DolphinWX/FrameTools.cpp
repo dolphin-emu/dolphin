@@ -97,6 +97,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+
+#include "NetcoreClient.h"
+
+
 class InputConfig;
 class wxFrame;
 
@@ -715,6 +719,9 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     m_render_parent = new wxPanel(m_render_frame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
     m_render_frame->Show();
+
+    //NARRYSMOD_HIJACK
+    NetcoreClientInitializer::isWii();
   }
 
 #if defined(__APPLE__)

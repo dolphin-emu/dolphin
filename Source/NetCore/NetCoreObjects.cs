@@ -132,7 +132,7 @@ namespace RTCV.NetCore
         public static void WriteLine(string message)
         {
 
-            bool ShowBoops = false; // for debugging purposes, put this to true in order to see BOOP commands in the console
+            bool ShowBoops = true; // for debugging purposes, put this to true in order to see BOOP commands in the console
             if (!ShowBoops && message.Contains("{BOOP}"))
                 return;
 
@@ -140,7 +140,8 @@ namespace RTCV.NetCore
 
             ConsoleEx.singularity.OnConsoleWritten(new NetCoreEventArgs() { message = new NetCoreSimpleMessage(consoleLine) });
 
-            Console.WriteLine(consoleLine);
-        }
+      System.Diagnostics.Debug.WriteLine(consoleLine);
+      Console.WriteLine(consoleLine);
+    }
     }
 }

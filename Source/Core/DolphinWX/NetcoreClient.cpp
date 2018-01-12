@@ -51,8 +51,6 @@ public:
 //Define this in here as it's managed and doesn't want to work in NetcoreClient.h
 public ref class NetcoreClient
 {
-private:
-  bool isWii;
 public:
   static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
@@ -73,6 +71,15 @@ void NetcoreClientInitializer::Initialize()
 {
   NetcoreClient^ client = gcnew NetcoreClient;
   client->Initialize();
+}
+
+void NetcoreClientInitializer::isWii()
+{
+  if (SConfig::GetInstance().bWii)
+    DolphinClient::DolphinClient::connector->SendSyncedMessage("WII");
+  else
+    DolphinClient::DolphinClient::connector->SendSyncedMessage("GAMECUBE");
+   
 }
 
 //Initialize it 
