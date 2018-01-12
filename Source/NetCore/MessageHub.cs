@@ -16,12 +16,11 @@ namespace RTCV.NetCore
         private LinkedList<NetCoreMessage> MessagePool = new LinkedList<NetCoreMessage>();
         
 
-        private volatile NetCoreAdvancedMessage returnAdvancedMessage = null;
-
         internal MessageHub(NetCoreSpec _spec)
         {
             spec = _spec;
             hubTimer = new Timer();
+            hubTimer.SynchronizingObject = spec.syncObject;
             hubTimer.Interval = spec.messageReadTimerDelay;
             hubTimer.Elapsed += CheckMessages;
             hubTimer.Start();
@@ -46,12 +45,12 @@ namespace RTCV.NetCore
                     if (spec.Connector.tcp == null || spec.Connector.tcp.ProcessAdvancedMessage(message))
                         continue;   //If this message was processed internally, don't send further
 
-                var ea = new NetCoreEventArgs();
-                ea.message = message;
+                var args = new NetCoreEventArgs();
+                args.message = message;
 
                 try
                 {
-                    spec.OnMessageReceived(ea); //Send message to Client Implementation
+                    spec.OnMessageReceived(args); //Send message to Client Implementation
                 }
                 catch (Exception ex)
                 {
@@ -64,18 +63,18 @@ namespace RTCV.NetCore
                 if (message is NetCoreAdvancedMessage)
                 {
                     // Create return Message if a synced request was issued but no Return Advanced Message was set
-                    if (returnAdvancedMessage == null && (message as NetCoreAdvancedMessage).requestGuid != null)
-                        returnAdvancedMessage = new NetCoreAdvancedMessage("{RETURNVALUE}");
+                    if (args._returnMessage == null && (message as NetCoreAdvancedMessage).requestGuid != null)
+                        args._returnMessage = new NetCoreAdvancedMessage("{RETURNVALUE}");
 
                     //send command back or return value if from bizhawk to bizhawk
-                    if (returnAdvancedMessage != null)
+                    if (args._returnMessage != null)
                     {
-                        returnAdvancedMessage.ReturnedFrom = message.Type;
-                        returnAdvancedMessage.requestGuid = (message as NetCoreAdvancedMessage).requestGuid;
-                        SendMessage(returnAdvancedMessage);
+                        (args._returnMessage as NetCoreAdvancedMessage).ReturnedFrom = message.Type;
+                        (args._returnMessage as NetCoreAdvancedMessage).requestGuid = (message as NetCoreAdvancedMessage).requestGuid;
+                        SendMessage(args._returnMessage);
                     }
 
-                    returnAdvancedMessage = null;
+                    //returnAdvancedMessage = null;
                 }
             }
         }
@@ -110,16 +109,6 @@ namespace RTCV.NetCore
             return null;
         }
 
-        public void ReturnValue(object _objectValue = null)
-        {
-            var message = new NetCoreAdvancedMessage("{RETURNVALUE}") { objectValue = _objectValue };
-
-            if (spec.Connector.hub.returnAdvancedMessage != null)
-                ConsoleEx.WriteLine($"ReturnValue was already set but was overriden with another value");
-
-            spec.Connector.hub.returnAdvancedMessage = message;
-        }
-
         internal void Kill()
         {
             if (hubTimer != null)
@@ -131,7 +120,19 @@ namespace RTCV.NetCore
 
     public class NetCoreEventArgs : EventArgs
     {
-        public NetCoreMessage message = null;
+        public NetCoreMessage message { get; set; } = null;
+        public NetCoreMessage returnMessage {get { return _returnMessage; }}
+        internal NetCoreMessage _returnMessage = null;
+
+        public void setReturnValue(object _objectValue)
+        {
+            var message = new NetCoreAdvancedMessage("{RETURNVALUE}") { objectValue = _objectValue };
+
+            if (returnMessage != null)
+                ConsoleEx.WriteLine($"ReturnValue was already set but was overriden with another value");
+
+            _returnMessage = message;
+        }
     }
     
 }

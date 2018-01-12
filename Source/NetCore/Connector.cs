@@ -65,8 +65,6 @@ namespace RTCV.NetCore
             return hub?.SendMessage(message, synced);
         }
 
-        public void ReturnValue(object value) => hub.ReturnValue(value);
-
         public void Stop()
         {
             //We just stop TCP gracefully because it's kind of useless to stop UDP.

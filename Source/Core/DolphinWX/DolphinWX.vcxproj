@@ -310,7 +310,7 @@
     <ProjectReference Include="..\..\NetCore\NetCore.csproj">
       <Project>{7e106aec-5614-4206-9e4d-25759c90e8ae}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\TestClient\TestClient.csproj">
+    <ProjectReference Include="..\..\TestClient\DolphinClient.csproj">
       <Project>{f2c09915-f793-438a-be79-e411ffe05843}</Project>
     </ProjectReference>
   </ItemGroup>

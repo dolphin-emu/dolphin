@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -68,6 +69,8 @@ namespace RTCV.NetCore
 
         public int messageReadTimerDelay = 10; //represents how often the messages are read (ms) (15ms = ~66fps)
 
+        public ISynchronizeInvoke syncObject = null;
+
         #region Events
 
         public event EventHandler<NetCoreEventArgs> MessageReceived;
@@ -107,14 +110,6 @@ namespace RTCV.NetCore
         internal virtual void OnSyncedMessageEnd(EventArgs e) => SyncedMessageEnd?.Invoke(this, e);
 
         #endregion
-
-    }
-
-    public class NetCorePromise
-    {
-        bool HasSavestates = false;
-        string SavestateFolder = "";
-
 
     }
 

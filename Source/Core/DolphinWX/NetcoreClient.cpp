@@ -78,8 +78,8 @@ void NetcoreClientInitializer::Initialize()
 //Initialize it 
 void NetcoreClient::Initialize() {
   gcnew RTCV::NetCore::NetCoreSpec();
-  TestClient::TestClient::SetSpec(spec);
-  TestClient::TestClient::StartClient();
+  DolphinClient::DolphinClient::SetSpec(spec);
+  DolphinClient::DolphinClient::StartClient();
 
   //Hook into MessageReceived so we can respond to commands
   spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &NetcoreClient::OnMessageReceived);
@@ -251,13 +251,13 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
   {
     if (Core::GetState() == Core::State::Running) {
       Trace::WriteLine("Entering PEEKBYTE");
+      
 
       long address = Convert::ToInt64(advancedMessage->objectValue);
       MemoryDomain ^ domain = gcnew MemoryDomain;
 
       domain = GetDomain(address, 1, domain);
-
-      TestClient::TestClient::connector->ReturnValue(PeekByte(address, domain));
+      e->setReturnValue(PeekByte(address, domain));
       Trace::WriteLine("Exiting PEEKBYTE");
     }
     break;
@@ -292,7 +292,7 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
       MemoryDomain ^ domain = gcnew MemoryDomain;
       domain = GetDomain(address, range, domain);
 
-      TestClient::TestClient::connector->ReturnValue(PeekBytes(address, range, domain));
+      e->setReturnValue(PeekBytes(address, range, domain));
       Trace::WriteLine("Exiting PEEKBYTES");
     }
     break;

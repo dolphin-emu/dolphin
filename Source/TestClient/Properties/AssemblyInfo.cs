@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TestClient")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("NetCore TestClient")]
+[assembly: AssemblyDescription("Test Client for NetCore Library")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("TestClient")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("Redscientist Media")]
+[assembly: AssemblyProduct("NetCore")]
+[assembly: AssemblyCopyright("Redscientist Media")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
