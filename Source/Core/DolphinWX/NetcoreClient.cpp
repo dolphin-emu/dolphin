@@ -122,8 +122,8 @@ void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain) 
     Memory::Write_U8((Convert::ToByte(value)), Convert::ToUInt32(address));
   else if (domain->name == "EXRAM" && (address - domain->offset) < domain->size)
     Memory::Write_U8(Convert::ToByte(value), Convert::ToUInt32(address));
-  else if (domain->name == "ARAM" && (address - domain->offset) < domain->size)
-    DSP::WriteARAM(Convert::ToByte(value), Convert::ToUInt32(address));
+  else if (domain->name == "ARAM" && (address - domain->size - domain->offset) < domain->size)
+    DSP::WriteARAM(Convert::ToByte(value), Convert::ToUInt32(address - SRAM_SIZE));
 }
 
 Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain) {
@@ -134,8 +134,8 @@ Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain) {
   else if (domain->name == "EXRAM" && (address - domain->offset) < domain->size)
     return Memory::Read_U8(Convert::ToUInt32(address));
 
-  else if (domain->name == "ARAM" && (address - domain->offset) < domain->size)
-    return DSP::ReadARAM(Convert::ToUInt32(address));
+  else if (domain->name == "ARAM" && (address - domain->size - domain->offset) < domain->size)
+    return DSP::ReadARAM(Convert::ToUInt32(address - SRAM_SIZE));
 
   return -1;
 }
@@ -169,13 +169,12 @@ MemoryDomain^ NetcoreClient::GetDomain(long address, int range, MemoryDomain ^ d
   }
   else if (SConfig::GetInstance().bWii) {
     domain->name = "EXRAM";
-    domain->offset = SRAM_SIZE + 1;
+    domain->offset = SRAM_SIZE;
     domain->size = EXRAM_SIZE;
   }
   else {
     domain->name = "ARAM";
     domain->size = ARAM_SIZE;
-    address = address - SRAM_SIZE;
   }
   return domain;
 }
@@ -210,7 +209,7 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 
   NetCoreMessage ^ message = e->message;
 
-  //Can't define this unless it's used as Dolphin treats warnings as errors.
+  //Can't define this unless it's used as SLN is set to treat warnings as errors.
   //NetCoreSimpleMessage ^ simpleMessage = (NetCoreSimpleMessage^)message;
 
   NetCoreAdvancedMessage ^ advancedMessage = (NetCoreAdvancedMessage^)message;
@@ -234,13 +233,11 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
     if (Core::GetState() == Core::State::Running) {
 
       Trace::WriteLine("Entering POKEBYTE");
-          //It appears I have to copy like this because I can't seem to cast it 
-      array<Object^> ^ test = (array<Object^>^)advancedMessage->objectValue;
 
-      long address = Convert::ToInt64(test[0]);
-      Byte value = Convert::ToByte(test[1]);
+      long address = Convert::ToInt64(((array<Object^>^)advancedMessage->objectValue)[0]);
+      Byte value = Convert::ToByte(((array<Object^>^)advancedMessage->objectValue)[1]);
+
       MemoryDomain ^ domain = gcnew MemoryDomain;
-
       domain = GetDomain(address,1,domain);
 
       PokeByte(address, value, domain);
@@ -254,6 +251,7 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
   {
     if (Core::GetState() == Core::State::Running) {
       Trace::WriteLine("Entering PEEKBYTE");
+
       long address = Convert::ToInt64(advancedMessage->objectValue);
       MemoryDomain ^ domain = gcnew MemoryDomain;
 
@@ -268,12 +266,10 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 
     if (Core::GetState() == Core::State::Running) {
       Trace::WriteLine("Entering POKEBYTES");
-      //It appears I have to copy like this because I can't seem to cast it 
-      array<Object^> ^ test = (array<Object^>^)advancedMessage->objectValue;
 
-      long address = Convert::ToInt64(test[0]);
-      int range = Convert::ToInt32(test[1]);
-      array<Byte>^ value = (array<Byte>^)test[2];
+      long address = Convert::ToInt64(((array<Object^>^)advancedMessage->objectValue)[0]);
+      int range = Convert::ToInt32(((array<Object^>^)advancedMessage->objectValue)[1]);
+      array<Byte>^ value = (array<Byte>^)((array<Object^>^)advancedMessage->objectValue)[2];
 
       MemoryDomain ^ domain = gcnew MemoryDomain;
       domain = GetDomain(address, range, domain);
@@ -290,10 +286,8 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
     if (Core::GetState() == Core::State::Running) {
       Trace::WriteLine("Entering PEEKBYTES");
 
-      array<Object^> ^ messageObject = (array<Object^>^)advancedMessage->objectValue;
-
-      long address = Convert::ToInt64(messageObject[0]);
-      int range = Convert::ToByte(messageObject[1]);
+      long address = Convert::ToInt64(((array<Object^>^)advancedMessage->objectValue)[0]);
+      int range = Convert::ToByte(((array<Object^>^)advancedMessage->objectValue)[1]);
 
       MemoryDomain ^ domain = gcnew MemoryDomain;
       domain = GetDomain(address, range, domain);
