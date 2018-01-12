@@ -1922,6 +1922,8 @@ void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
   // This should be safe because we'll catch any writes before the game can modify it.
   u64 hash = entry->CalculateHash();
   entry->SetHashes(hash, hash);
+  if (USE_HASHLESS_NON_COPIES)
+    LockEntry(entry);
 }
 
 void TextureCacheBase::DiscardEFBCopy(TCacheEntry* entry)
