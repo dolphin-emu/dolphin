@@ -43,7 +43,7 @@ namespace RTCV.NetCore
                 }
 
                 if (message is NetCoreAdvancedMessage || (message.Type.Length > 0 && message.Type[0] == '{'))
-                    if (spec.Connector.tcp.ProcessAdvancedMessage(message))
+                    if (spec.Connector.tcp == null || spec.Connector.tcp.ProcessAdvancedMessage(message))
                         continue;   //If this message was processed internally, don't send further
 
                 var ea = new NetCoreEventArgs();
