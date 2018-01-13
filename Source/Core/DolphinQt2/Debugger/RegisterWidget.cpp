@@ -323,7 +323,7 @@ void RegisterWidget::PopulateTable()
 }
 
 void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
-                                 std::function<u32()> get_reg, std::function<void(u32)> set_reg)
+                                 std::function<u64()> get_reg, std::function<void(u64)> set_reg)
 {
   auto* value = new RegisterColumn(type, get_reg, set_reg);
 
