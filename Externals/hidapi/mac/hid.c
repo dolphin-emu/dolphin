@@ -217,6 +217,11 @@ static int32_t get_location_id(IOHIDDeviceRef device)
 	return get_int_property(device, CFSTR(kIOHIDLocationIDKey));
 }
 
+static int32_t get_unique_id(IOHIDDeviceRef device)
+{
+	return get_int_property(device, CFSTR(kIOHIDUniqueIDKey));
+}
+
 static int32_t get_max_report_length(IOHIDDeviceRef device)
 {
 	return get_int_property(device, CFSTR(kIOHIDMaxInputReportSizeKey));
@@ -337,6 +342,7 @@ static int make_path(IOHIDDeviceRef device, char *buf, size_t len)
 	unsigned short vid, pid;
 	char transport[32];
 	int32_t location;
+	int32_t unique_id;
 
 	buf[0] = '\0';
 
@@ -347,12 +353,17 @@ static int make_path(IOHIDDeviceRef device, char *buf, size_t len)
 	if (!res)
 		return -1;
 
-	location = get_location_id(device);
-	vid = get_vendor_id(device);
-	pid = get_product_id(device);
+	unique_id = get_unique_id(device);
+	if (unique_id != 0) {
+		res = snprintf(buf, len, "id_%x", unique_id);
+	} else {
+		location = get_location_id(device);
+		vid = get_vendor_id(device);
+		pid = get_product_id(device);
 
-	res = snprintf(buf, len, "%s_%04hx_%04hx_%x",
-                       transport, vid, pid, location);
+		res = snprintf(buf, len, "%s_%04hx_%04hx_%x",
+	                       transport, vid, pid, location);
+	}
 
 
 	buf[len-1] = '\0';
@@ -762,8 +773,10 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 	IOReturn res;
 
 	/* Return if the device has been disconnected. */
-	if (dev->disconnected)
+	if (dev->disconnected) {
+		errno = ENODEV;
 		return -1;
+	}
 
 	if (data[0] == 0x0) {
 		/* Not using numbered Reports.
@@ -786,9 +799,14 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
 
 		if (res == kIOReturnSuccess) {
 			return length;
-		}
-		else
+		} else if (res == (IOReturn)0xe0005000) {
+		  /* Kernel.framework's IOUSBHostFamily.h defines this error as kUSBHostReturnPipeStalled */
+			errno = EPIPE;
 			return -1;
+		} else {
+			errno = EBUSY;
+			return -1;
+		}
 	}
 
 	return -1;
