@@ -13,7 +13,7 @@
 enum class RegisterType
 {
   gpr,         // General purpose registers, int (r0-r31)
-  fpr,         // General purpose registers, float (f0-f31)
+  fpr,         // Floating point registers, double (f0-f31)
   ibat,        // Instruction BATs (IBAT0-IBAT7)
   dbat,        // Data BATs (DBAT0-DBAT7)
   tb,          // Time base register
@@ -40,7 +40,8 @@ enum class RegisterDisplay
   Hex,
   SInt32,
   UInt32,
-  Float
+  Float,
+  Double
 };
 
 constexpr int DATA_TYPE = Qt::UserRole;
