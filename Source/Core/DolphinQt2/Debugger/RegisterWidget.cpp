@@ -131,8 +131,9 @@ void RegisterWidget::ShowContextMenu()
       auto* view_int = menu->addAction(tr("Signed Integer"));
       auto* view_uint = menu->addAction(tr("Unsigned Integer"));
       auto* view_float = menu->addAction(tr("Float"));
+      auto* view_double = menu->addAction(tr("Double"));
 
-      for (auto* action : {view_hex, view_int, view_uint, view_float})
+      for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
       {
         action->setCheckable(true);
         action->setVisible(false);
@@ -153,6 +154,9 @@ void RegisterWidget::ShowContextMenu()
       case RegisterDisplay::Float:
         view_float->setChecked(true);
         break;
+      case RegisterDisplay::Double:
+        view_double->setChecked(true);
+        break;
       }
 
       switch (type)
@@ -165,7 +169,7 @@ void RegisterWidget::ShowContextMenu()
         break;
       case RegisterType::fpr:
         view_hex->setVisible(true);
-        view_float->setVisible(true);
+        view_double->setVisible(true);
         break;
       default:
         break;
@@ -195,6 +199,12 @@ void RegisterWidget::ShowContextMenu()
         m_updating = false;
       });
 
+      connect(view_double, &QAction::triggered, [this, item] {
+        m_updating = true;
+        item->SetDisplay(RegisterDisplay::Double);
+        m_updating = false;
+      });
+
       menu->addSeparator();
     }
   }
@@ -212,7 +222,7 @@ void RegisterWidget::PopulateTable()
     AddRegister(i, 0, RegisterType::gpr, "r" + std::to_string(i), [i] { return GPR(i); },
                 [i](u64 value) { GPR(i) = value; });
 
-    // General purpose registers (float)
+    // Floating point registers (double)
     AddRegister(i, 2, RegisterType::fpr, "f" + std::to_string(i), [i] { return riPS0(i); },
                 [i](u64 value) { riPS0(i) = value; });
 
@@ -323,7 +333,7 @@ void RegisterWidget::PopulateTable()
 }
 
 void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
-                                 std::function<u32()> get_reg, std::function<void(u32)> set_reg)
+                                 std::function<u64()> get_reg, std::function<void(u64)> set_reg)
 {
   auto* value = new RegisterColumn(type, get_reg, set_reg);
 

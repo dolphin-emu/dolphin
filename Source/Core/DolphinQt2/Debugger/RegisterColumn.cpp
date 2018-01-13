@@ -74,6 +74,12 @@ void RegisterColumn::SetValue()
     std::memcpy(&value, &f, sizeof(u32));
     break;
   }
+  case RegisterDisplay::Double:
+  {
+    double f = text().toDouble(&valid);
+    std::memcpy(&value, &f, sizeof(u64));
+    break;
+  }
   }
 
   if (!valid)
@@ -114,6 +120,13 @@ void RegisterColumn::Update()
   {
     float tmp;
     std::memcpy(&tmp, &m_value, sizeof(float));
+    text = QString::number(tmp);
+    break;
+  }
+  case RegisterDisplay::Double:
+  {
+    double tmp;
+    std::memcpy(&tmp, &m_value, sizeof(double));
     text = QString::number(tmp);
     break;
   }
