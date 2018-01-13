@@ -1430,8 +1430,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   }
 #endif
 
-  // Update the render window position and the backbuffer size
-  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
   GLInterface->Update();
 
   // Was the size changed since the last frame?

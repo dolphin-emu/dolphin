@@ -523,10 +523,6 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  // Scale the window size by the EFB scale.
-  if (g_ActiveConfig.iEFBScale != EFB_SCALE_AUTO_INTEGRAL)
-    std::tie(width, height) = CalculateTargetScale(width, height);
-
   std::tie(width, height) = CalculateOutputDimensions(width, height);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
@@ -643,17 +639,22 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
+      const TextureConfig& texture_config = xfb_entry->texture->GetConfig();
       m_last_xfb_texture = xfb_entry->texture.get();
       m_last_xfb_id = xfb_entry->id;
       m_last_xfb_ticks = ticks;
 
-      auto xfb_rect = xfb_entry->texture->GetConfig().GetRect();
+      auto xfb_rect = texture_config.GetRect();
       xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
 
       m_last_xfb_region = xfb_rect;
 
       // TODO: merge more generic parts into VideoCommon
       g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+
+      // Update the window size based on the frame that was just rendered.
+      // Due to depending on guest state, we need to call this every frame.
+      SetWindowSize(texture_config.width, texture_config.height);
 
       m_fps_counter.Update();
 
