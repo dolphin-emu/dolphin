@@ -109,7 +109,7 @@ resumegame:
 	lfd	f2,152(r1)		# loads f2
 	lfd	f3,160(r1)		# loads f3
 
-	mfmsr	r25
+	mtmsr	r25
 
 	lwz	r0,172(r1)
 	mtlr	r0			# restores lr
