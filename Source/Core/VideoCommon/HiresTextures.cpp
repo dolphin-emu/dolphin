@@ -37,11 +37,16 @@ static std::unordered_map<std::string, std::string> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static std::mutex s_textureCacheAquireMutex;  // for high priority access
-static Common::Flag s_textureCacheAbortLoading;
+static Common::Flag s_textureCacheAbortPrefetching;
 static bool s_check_native_format;
 static bool s_check_new_format;
 
 static std::thread s_prefetcher;
+
+constexpr double BYTES_IN_MEGABYTES = (1024.0 * 1024.0);
+constexpr double MILISEC_IN_SECONDS = 1000.0;
+
+static u32 counter_textures_mips_amount;
 
 static const std::string s_format_prefix = "tex1_";
 
@@ -61,7 +66,7 @@ void HiresTexture::Shutdown()
 {
   if (s_prefetcher.joinable())
   {
-    s_textureCacheAbortLoading.Set();
+    s_textureCacheAbortPrefetching.Set();
     s_prefetcher.join();
   }
 
@@ -73,7 +78,7 @@ void HiresTexture::Update()
 {
   if (s_prefetcher.joinable())
   {
-    s_textureCacheAbortLoading.Set();
+    s_textureCacheAbortPrefetching.Set();
     s_prefetcher.join();
   }
 
@@ -101,6 +106,8 @@ void HiresTexture::Update()
 
   const std::string code = game_id + "_";
 
+  counter_textures_mips_amount = 0;
+
   for (auto& rFilename : filenames)
   {
     std::string FileName;
@@ -117,6 +124,8 @@ void HiresTexture::Update()
       s_textureMap[FileName] = rFilename;
       s_check_new_format = true;
     }
+
+    counter_textures_mips_amount++;
   }
 
   if (g_ActiveConfig.bCacheHiresTextures)
@@ -135,7 +144,7 @@ void HiresTexture::Update()
       }
     }
 
-    s_textureCacheAbortLoading.Clear();
+    s_textureCacheAbortPrefetching.Clear();
     s_prefetcher = std::thread(Prefetch);
   }
 }
@@ -144,16 +153,48 @@ void HiresTexture::Prefetch()
 {
   Common::SetCurrentThreadName("Prefetcher");
 
-  size_t size_sum = 0;
-  size_t sys_mem = Common::MemPhysical();
-  size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
-  // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
-  size_t max_mem =
-      (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
-  u32 starttime = Common::Timer::GetTimeMs();
-  for (const auto& entry : s_textureMap)
+  double prefetch_start_time_total = 0;
+  double prefetch_stop_time_total = 0;
+  constexpr double CULLED_PERCENT_DEFAULT = 20.0;  // don't fill this % of total RAM by default
+  constexpr double CULLED_PERCENT_LOW_BOUND = 5.0;
+  constexpr double CULLED_PERCENT_HIGH_BOUND = 95.0;
+
+  // Overridable by HiresTexPrefetchCulledPercent INI setting
+  double culled_percent = CULLED_PERCENT_DEFAULT;
+
+  if (Config::Get(Config::GFX_HIRESTEX_PREFETCH_CULLED_PERCENT) != CULLED_PERCENT_DEFAULT)
   {
-    const std::string& base_filename = entry.first;
+    if (Config::Get(Config::GFX_HIRESTEX_PREFETCH_CULLED_PERCENT) < CULLED_PERCENT_LOW_BOUND)
+    {
+      culled_percent = CULLED_PERCENT_LOW_BOUND;
+      WARN_LOG(VIDEO, "Prefetcher: Mem limit cull percentage exceeds the minimum of %.2f %%. "
+                      "Raising the percentage to the lower bound.",
+               CULLED_PERCENT_LOW_BOUND);
+    }
+    else if (Config::Get(Config::GFX_HIRESTEX_PREFETCH_CULLED_PERCENT) > CULLED_PERCENT_HIGH_BOUND)
+    {
+      culled_percent = CULLED_PERCENT_HIGH_BOUND;
+      WARN_LOG(VIDEO, "Prefetcher: Mem limit cull percentage exceeds the maximum of %.2f %%. "
+                      "Lowering the percentage to the upper bound.",
+               CULLED_PERCENT_HIGH_BOUND);
+    }
+    else
+    {
+      culled_percent = Config::Get(Config::GFX_HIRESTEX_PREFETCH_CULLED_PERCENT);
+    }
+  }
+
+  double prefetched_size_sum = 0;  // total mem size incl. non-native decompressed textures
+  const double absolute_max_mem = Common::MemPhysical();  // excl. HW reserved mem
+  const double culled_amount = (absolute_max_mem * culled_percent) / 100.0;
+  const double delegated_max_mem = absolute_max_mem - culled_amount;
+
+  // Start Prefetching
+  prefetch_start_time_total = Common::Timer::GetTimeMs();
+
+  for (const auto& curr_tex : s_textureMap)
+  {
+    const std::string& base_filename = curr_tex.first;
 
     if (base_filename.find("_mip") == std::string::npos)
     {
@@ -184,34 +225,52 @@ void HiresTexture::Prefetch()
       }
       if (iter != s_textureCache.end())
       {
-        for (const Level& l : iter->second->m_levels)
+        for (const Level& level : iter->second->m_levels)
         {
-          size_sum += l.data_size;
+          prefetched_size_sum += level.data_size;
+          // a texture without mipmaps is considered to have 1 mip level
         }
       }
     }
 
-    if (s_textureCacheAbortLoading.IsSet())
+    if (s_textureCacheAbortPrefetching.IsSet())
     {
       return;
     }
 
-    if (size_sum > max_mem)
+    // Stops prefetching to avoid getting out of RAM completely, crash prone
+    // Currently no way to know how much RAM is used by OS and other applications
+    if (prefetched_size_sum >= delegated_max_mem)
     {
       Config::SetCurrent(Config::GFX_HIRES_TEXTURES, false);
 
-      OSD::AddMessage(
-          StringFromFormat(
-              "Custom Textures prefetching after %.1f MB aborted, not enough RAM available",
-              size_sum / (1024.0 * 1024.0)),
-          10000);
+      WARN_LOG(VIDEO, "Prefetcher: Warning, custom textures prefetching aborted after %.3f MB."
+                      " Maximum delegated memory limit of %.3f breached.",
+               prefetched_size_sum / BYTES_IN_MEGABYTES, delegated_max_mem / BYTES_IN_MEGABYTES);
+      OSD::AddMessage(StringFromFormat("Custom Textures prefetching after aborted %.1f MB, not "
+                                       "enough delegated RAM available.",
+                                       prefetched_size_sum / BYTES_IN_MEGABYTES),
+                      20000);
       return;
     }
-  }
-  u32 stoptime = Common::Timer::GetTimeMs();
-  OSD::AddMessage(StringFromFormat("Custom Textures loaded, %.1f MB in %.1f s",
-                                   size_sum / (1024.0 * 1024.0), (stoptime - starttime) / 1000.0),
-                  10000);
+
+  }  // End Prefetching
+  prefetch_stop_time_total = Common::Timer::GetTimeMs();
+
+  const double pref_sum_total_mb = prefetched_size_sum / BYTES_IN_MEGABYTES;
+  const double pref_time_total_sec =
+      (prefetch_stop_time_total - prefetch_start_time_total) / MILISEC_IN_SECONDS;
+
+  std::string pref_final_osd_msg =
+      StringFromFormat("Prefetcher: Custom textures loaded, %.1f MB in %.1f seconds.",
+                       pref_sum_total_mb, pref_time_total_sec);
+
+  std::string pref_final_log_msg =
+      StringFromFormat("Prefetcher: Total of %u custom textures loaded, %.2f MB in %.2f seconds.",
+                       counter_textures_mips_amount, pref_sum_total_mb, pref_time_total_sec);
+
+  OSD::AddMessage(pref_final_osd_msg, 20000);
+  INFO_LOG(VIDEO, "%s", pref_final_log_msg.c_str());
 }
 
 std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
