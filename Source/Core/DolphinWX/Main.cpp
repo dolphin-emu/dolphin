@@ -229,6 +229,7 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 void DolphinApp::AfterInit()
 {
   //std::thread netcorethread(Test::CommandTest);
+  //NARRYSMOD_HIJACK
   NetcoreClientInitializer::Initialize();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

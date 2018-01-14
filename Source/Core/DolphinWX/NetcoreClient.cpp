@@ -55,12 +55,21 @@ public:
   static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
   void Initialize();
-  void LoadState(String^ filename);
+
+  void NetcoreClient::LoadState(String^ filename);
   void NetcoreClient::SaveState(String^ filename, bool wait);
-  void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain);
+
   Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain);
-  void NetcoreClient::PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain);
+  void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain);
+
   array<Byte>^ NetcoreClient::PeekBytes(long address, int range, MemoryDomain ^ domain);
+  void NetcoreClient::PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain);
+
+
+  array<Byte>^ NetcoreClient::PeekAddresses(array<long>^ addresses);
+  void NetcoreClient::PokeAddresses(array<long>^ addresses, array<Byte>^ values);
+
+
   MemoryDomain^ NetcoreClient::GetDomain(long address, int range, MemoryDomain ^ domain);
 };
 
@@ -168,6 +177,31 @@ array<Byte>^ NetcoreClient::PeekBytes(long address, int range, MemoryDomain ^ do
 }
 
 
+
+array<Byte>^ NetcoreClient::PeekAddresses(array<long>^ addresses) {
+
+  MemoryDomain ^ domain = gcnew MemoryDomain;
+  array<Byte>^ bytes = gcnew array<Byte>(sizeof(addresses));
+
+  for (int i = 0; i < sizeof(addresses); i++) {
+    domain = GetDomain(addresses[i], 1, domain);
+    bytes[i] = PeekByte(addresses[i], domain);
+  }
+    
+  return bytes;
+}
+
+void NetcoreClient::PokeAddresses(array<long>^ addresses, array<Byte>^ values) {
+
+  MemoryDomain ^ domain = gcnew MemoryDomain;
+  for (int i = 0; i < sizeof(addresses); i++) {
+    domain = GetDomain(addresses[i], 1, domain);
+    PokeByte(addresses[i], values[i], domain);
+  }
+    
+}
+
+
 MemoryDomain^ NetcoreClient::GetDomain(long address, int range, MemoryDomain ^ domain) {
   //Hardcode this logic for now.
   if (address + range <= SRAM_SIZE) {
@@ -194,6 +228,8 @@ enum COMMANDS {
   PEEKBYTE,
   POKEBYTES,
   PEEKBYTES,
+  POKEADDRESSES,
+  PEEKADDRESSES,
   UNKNOWN
 };
 
@@ -204,6 +240,8 @@ COMMANDS CheckCommand(String^ inString) {
   if (inString == "PEEKBYTE") return PEEKBYTE;
   if (inString == "POKEBYTES") return POKEBYTES;
   if (inString == "PEEKBYTES") return PEEKBYTES;
+  if (inString == "POKEADDRESSES") return POKEADDRESSES;
+  if (inString == "PEEKADDRESSES") return PEEKADDRESSES;
   return UNKNOWN;
 }
 
@@ -265,7 +303,7 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 
       domain = GetDomain(address, 1, domain);
       e->setReturnValue(PeekByte(address, domain));
-      Trace::WriteLine("Exiting PEEKBYTE");
+       Trace::WriteLine("Exiting PEEKBYTE");
     }
     break;
   }
@@ -301,6 +339,35 @@ void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 
       e->setReturnValue(PeekBytes(address, range, domain));
       Trace::WriteLine("Exiting PEEKBYTES");
+    }
+    break;
+  }
+
+  case POKEADDRESSES: {
+
+    if (Core::GetState() == Core::State::Running) {
+      Trace::WriteLine("Entering POKEADDRESSES");
+
+      array<long>^ addresses = (array<long>^)((array<Object^>^)advancedMessage->objectValue)[0];
+      array<Byte>^ values = (array<Byte>^)((array<Object^>^)advancedMessage->objectValue)[1];
+
+
+      PokeAddresses(addresses, values);
+      Trace::WriteLine("Exiting POKEADDRESSES");
+    }
+    break;
+  }
+
+  case PEEKADDRESSES:
+  {
+
+    if (Core::GetState() == Core::State::Running) {
+      Trace::WriteLine("Entering PEEKADDRESSES");
+
+      array<long>^ addresses = (array<long>^)((array<Object^>^)advancedMessage->objectValue)[0];
+      
+      e->setReturnValue(PeekAddresses(addresses));
+      Trace::WriteLine("Exiting PEEKADDRESSES");
     }
     break;
   }
