@@ -34,6 +34,10 @@ static bool s_cpu_core_base_is_injected = false;
 Interpreter* const s_interpreter = Interpreter::getInstance();
 static CoreMode s_mode = CoreMode::Interpreter;
 
+constexpr u64 NO_BREAKPOINT = 0x100000000ULL;
+
+static u64 s_breakpoint_addr = NO_BREAKPOINT;
+
 Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
@@ -546,14 +550,50 @@ void CheckExternalExceptions()
   }
 }
 
-void CheckBreakPoints()
+static bool TriggerBreakPoint(const TBreakPoint& breakpoint)
 {
-  if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+  if (s_breakpoint_addr == breakpoint.address)
   {
-    CPU::Break();
-    if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-      PowerPC::breakpoints.Remove(PC);
+    if (breakpoint.is_temporary)
+      PowerPC::breakpoints.Remove(breakpoint.address);
+
+    s_breakpoint_addr = NO_BREAKPOINT;
+    return false;
   }
+
+  if (breakpoint.log_on_hit)
+  {
+    INFO_LOG(POWERPC, "Hit Breakpoint - PC: %08x", PC);
+  }
+  if (!breakpoint.break_on_hit)
+    return false;
+
+  s_breakpoint_addr = breakpoint.address;
+  CPU::Break();
+  return true;
+}
+
+void SyncBreakPoint()
+{
+  const TBreakPoint* bp = breakpoints.GetBreakPointAt(PC);
+  if (bp == nullptr)
+  {
+    s_breakpoint_addr = NO_BREAKPOINT;
+    return;
+  }
+  s_breakpoint_addr = bp->address;
+}
+
+// The boolean is implicitly cast to u32 to make it 32 bits wide 0 or 1 for use in JIT
+u32 CheckBreakPoints()
+{
+  const TBreakPoint* bp = breakpoints.GetBreakPointAt(PC);
+  if (bp == nullptr)
+  {
+    s_breakpoint_addr = NO_BREAKPOINT;
+    return false;
+  }
+  return TriggerBreakPoint(*bp);
 }
 
 }  // namespace

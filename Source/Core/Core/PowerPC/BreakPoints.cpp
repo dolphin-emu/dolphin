@@ -30,6 +30,15 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
   });
 }
 
+const TBreakPoint* BreakPoints::GetBreakPointAt(u32 address) const
+{
+  auto bp = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                         [address](const auto& bp) { return bp.address == address; });
+  if (bp == m_breakpoints.end())
+    return nullptr;
+  return &*bp;
+}
+
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
   TBreakPointsStr bp_strings;
@@ -38,7 +47,8 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
     if (!bp.is_temporary)
     {
       std::stringstream ss;
-      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "");
+      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
+         << (bp.break_on_hit ? "b" : "") << (bp.log_on_hit ? "l" : "");
       bp_strings.push_back(ss.str());
     }
   }
@@ -55,6 +65,8 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     ss << std::hex << bp_string;
     ss >> bp.address;
     bp.is_enabled = bp_string.find('n') != bp_string.npos;
+    bp.break_on_hit = bp_string.find('b') != bp_string.npos;
+    bp.log_on_hit = bp_string.find('l') != bp_string.npos;
     bp.is_temporary = false;
     Add(bp);
   }
@@ -67,6 +79,8 @@ void BreakPoints::Add(const TBreakPoint& bp)
     m_breakpoints.push_back(bp);
     if (g_jit)
       g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
+    if (bp.address == PC)
+      PowerPC::SyncBreakPoint();
   }
 }
 
@@ -83,6 +97,8 @@ void BreakPoints::Add(u32 address, bool temp)
 
     if (g_jit)
       g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
+    if (bp.address == PC)
+      PowerPC::SyncBreakPoint();
   }
 }
 
@@ -95,6 +111,8 @@ void BreakPoints::Remove(u32 address)
       m_breakpoints.erase(i);
       if (g_jit)
         g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
+      if (address == PC)
+        PowerPC::SyncBreakPoint();
       return;
     }
   }
@@ -102,19 +120,24 @@ void BreakPoints::Remove(u32 address)
 
 void BreakPoints::Clear()
 {
+  bool pc_affected = false;
   if (g_jit)
   {
     for (const TBreakPoint& bp : m_breakpoints)
     {
       g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
+      if (bp.address == PC)
+        pc_affected = true;
     }
   }
-
   m_breakpoints.clear();
+  if (pc_affected)
+    PowerPC::SyncBreakPoint();
 }
 
 void BreakPoints::ClearAllTemporary()
 {
+  bool pc_affected = false;
   auto bp = m_breakpoints.begin();
   while (bp != m_breakpoints.end())
   {
@@ -122,6 +145,8 @@ void BreakPoints::ClearAllTemporary()
     {
       if (g_jit)
         g_jit->GetBlockCache()->InvalidateICache(bp->address, 4, true);
+      if (bp->address == PC)
+        pc_affected = true;
       bp = m_breakpoints.erase(bp);
     }
     else
@@ -129,6 +154,8 @@ void BreakPoints::ClearAllTemporary()
       ++bp;
     }
   }
+  if (pc_affected)
+    PowerPC::SyncBreakPoint();
 }
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const

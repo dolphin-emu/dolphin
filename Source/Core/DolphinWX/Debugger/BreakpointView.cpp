@@ -55,6 +55,13 @@ void CBreakPointView::Repopulate()
       std::string address = StringFromFormat("%08x", rBP.address);
       SetItem(item, 3, StrToWxStr(address));
 
+      std::string mode;
+      if (rBP.log_on_hit)
+        mode += 'l';
+      if (rBP.break_on_hit)
+        mode += 'b';
+      SetItem(item, 4, StrToWxStr(mode));
+
       SetItemData(item, rBP.address);
     }
   }
@@ -79,6 +86,10 @@ void CBreakPointView::Repopulate()
     SetItem(item, 3, StrToWxStr(address_range_str));
 
     std::string mode;
+    if (rMemCheck.log_on_hit)
+      mode += 'l';
+    if (rMemCheck.break_on_hit)
+      mode += 'b';
     if (rMemCheck.is_break_on_read)
       mode += 'r';
     if (rMemCheck.is_break_on_write)
