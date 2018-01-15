@@ -33,7 +33,13 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
-static std::unordered_map<std::string, std::string> s_textureMap;
+struct DiskTexture
+{
+  std::string path;
+  bool has_arbitrary_mipmaps;
+};
+
+static std::unordered_map<std::string, DiskTexture> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static std::mutex s_textureCacheAquireMutex;  // for high priority access
@@ -96,25 +102,29 @@ void HiresTexture::Update()
       ".jpg"  // Why not? Could be useful for large photo-like textures
   };
 
-  std::vector<std::string> filenames =
+  const std::vector<std::string> texture_paths =
       Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
 
   const std::string code = game_id + "_";
 
-  for (auto& rFilename : filenames)
+  for (auto& path : texture_paths)
   {
-    std::string FileName;
-    SplitPath(rFilename, nullptr, &FileName, nullptr);
+    std::string filename;
+    SplitPath(path, nullptr, &filename, nullptr);
 
-    if (FileName.substr(0, code.length()) == code)
+    if (filename.substr(0, code.length()) == code)
     {
-      s_textureMap[FileName] = rFilename;
+      s_textureMap[filename] = {path, false};
       s_check_native_format = true;
     }
 
-    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
+    if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
     {
-      s_textureMap[FileName] = rFilename;
+      const size_t arb_index = filename.rfind("_arb");
+      const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
+      if (has_arbitrary_mipmaps)
+        filename.erase(arb_index, 4);
+      s_textureMap[filename] = {path, has_arbitrary_mipmaps};
       s_check_new_format = true;
     }
   }
@@ -309,14 +319,14 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
         // new texture
         if (s_textureMap.find(newname) == s_textureMap.end())
         {
-          std::string src = s_textureMap[oldname];
+          std::string src = s_textureMap[oldname].path;
           size_t postfix = src.find_last_of('.');
           std::string dst = src.substr(0, postfix - oldname.length()) + newname +
                             src.substr(postfix, src.length() - postfix);
           if (File::Rename(src, dst))
           {
             s_textureMap.erase(oldname);
-            s_textureMap[newname] = dst;
+            s_textureMap[newname] = {dst, false};
             s_check_new_format = true;
             OSD::AddMessage(StringFromFormat("Rename custom texture %s to %s", oldname.c_str(),
                                              newname.c_str()),
@@ -332,13 +342,13 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
         {
           // dst fail already exist, compare content
           std::string a, b;
-          File::ReadFileToString(s_textureMap[oldname], a);
-          File::ReadFileToString(s_textureMap[newname], b);
+          File::ReadFileToString(s_textureMap[oldname].path, a);
+          File::ReadFileToString(s_textureMap[newname].path, b);
 
           if (a == b && a != "")
           {
             // equal, so remove
-            if (File::Delete(s_textureMap[oldname]))
+            if (File::Delete(s_textureMap[oldname].path))
             {
               s_textureMap.erase(oldname);
               OSD::AddMessage(
@@ -422,8 +432,9 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   // If this fails, it's fine, we'll just load level0 again using SOIL.
   // Can't use make_unique due to private constructor.
   std::unique_ptr<HiresTexture> ret = std::unique_ptr<HiresTexture>(new HiresTexture());
-  const std::string& first_mip_filename = filename_iter->second;
-  LoadDDSTexture(ret.get(), first_mip_filename);
+  const DiskTexture& first_mip_file = filename_iter->second;
+  ret->m_has_arbitrary_mipmaps = first_mip_file.has_arbitrary_mipmaps;
+  LoadDDSTexture(ret.get(), first_mip_file.path);
 
   // Load remaining mip levels, or from the start if it's not a DDS texture.
   for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; mip_level++)
@@ -439,10 +450,10 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     // Try loading DDS textures first, that way we maintain compression of DXT formats.
     // TODO: Reduce the number of open() calls here. We could use one fd.
     Level level;
-    if (!LoadDDSTexture(level, filename_iter->second))
+    if (!LoadDDSTexture(level, filename_iter->second.path))
     {
       File::IOFile file;
-      file.Open(filename_iter->second, "rb");
+      file.Open(filename_iter->second.path, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
       if (!LoadTexture(level, buffer))
@@ -465,7 +476,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   {
     ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
                      "from the native size %ux%u.",
-              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+              first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
@@ -473,7 +484,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   {
     ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
                      "upscaling factor based on the native size %ux%u.",
-              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+              first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 
   // Verify that each mip level is the correct size (divide by 2 each time).
@@ -492,14 +503,14 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
       ERROR_LOG(VIDEO,
                 "Invalid custom texture size %dx%d for texture %s. Mipmap level %u must be %dx%d.",
-                level.width, level.height, first_mip_filename.c_str(), mip_level, current_mip_width,
-                current_mip_height);
+                level.width, level.height, first_mip_file.path.c_str(), mip_level,
+                current_mip_width, current_mip_height);
     }
     else
     {
       // It is invalid to have more than a single 1x1 mipmap.
       ERROR_LOG(VIDEO, "Custom texture %s has too many 1x1 mipmaps. Skipping extra levels.",
-                first_mip_filename.c_str());
+                first_mip_file.path.c_str());
     }
 
     // Drop this mip level and any others after it.
@@ -512,7 +523,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
                   [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
   {
     ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
-              first_mip_filename.c_str());
+              first_mip_file.path.c_str());
 
     return nullptr;
   }
@@ -559,4 +570,9 @@ HiresTexture::~HiresTexture()
 AbstractTextureFormat HiresTexture::GetFormat() const
 {
   return m_levels.at(0).format;
+}
+
+bool HiresTexture::HasArbitraryMipmaps() const
+{
+  return m_has_arbitrary_mipmaps;
 }
