@@ -130,6 +130,8 @@ bool AVIDump::CreateVideoFile()
   if (s_dump_path.empty())
     return false;
 
+  File::CreateFullPath(s_dump_path);
+
   AVOutputFormat* output_format = av_guess_format(s_format.c_str(), s_dump_path.c_str(), nullptr);
   if (!output_format)
   {
