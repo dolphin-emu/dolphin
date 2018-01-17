@@ -100,16 +100,16 @@ static std::string GetDumpPath(const std::string& format)
   if (!g_Config.sDumpPath.empty())
     return g_Config.sDumpPath;
 
-  std::string s_dump_path = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" +
-                            std::to_string(s_file_index) + "." + format;
+  const std::string dump_path = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" +
+                                std::to_string(s_file_index) + "." + format;
 
   // Ask to delete file
-  if (File::Exists(s_dump_path))
+  if (File::Exists(dump_path))
   {
     if (SConfig::GetInstance().m_DumpFramesSilent ||
-        AskYesNoT("Delete the existing file '%s'?", s_dump_path.c_str()))
+        AskYesNoT("Delete the existing file '%s'?", dump_path.c_str()))
     {
-      File::Delete(s_dump_path);
+      File::Delete(dump_path);
     }
     else
     {
@@ -118,29 +118,29 @@ static std::string GetDumpPath(const std::string& format)
     }
   }
 
-  return s_dump_path;
+  return dump_path;
 }
 
 bool AVIDump::CreateVideoFile()
 {
-  const std::string& s_format = g_Config.sDumpFormat;
+  const std::string& format = g_Config.sDumpFormat;
 
-  std::string s_dump_path = GetDumpPath(s_format);
+  const std::string dump_path = GetDumpPath(format);
 
-  if (s_dump_path.empty())
+  if (dump_path.empty())
     return false;
 
-  File::CreateFullPath(s_dump_path);
+  File::CreateFullPath(dump_path);
 
-  AVOutputFormat* output_format = av_guess_format(s_format.c_str(), s_dump_path.c_str(), nullptr);
+  AVOutputFormat* output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
   if (!output_format)
   {
-    ERROR_LOG(VIDEO, "Invalid format %s", s_format.c_str());
+    ERROR_LOG(VIDEO, "Invalid format %s", format.c_str());
     return false;
   }
 
-  if (avformat_alloc_output_context2(&s_format_context, output_format, nullptr,
-                                     s_dump_path.c_str()) < 0)
+  if (avformat_alloc_output_context2(&s_format_context, output_format, nullptr, dump_path.c_str()) <
+      0)
   {
     ERROR_LOG(VIDEO, "Could not allocate output context");
     return false;
