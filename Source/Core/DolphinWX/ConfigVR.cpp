@@ -332,7 +332,7 @@ void CConfigVR::CreateGUIControls()
   // A small type font
   wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
-  wxNotebook* Notebook = new wxNotebook(this, wxID_ANY);
+  Notebook = new wxNotebook(this, wxID_ANY);
 
   // -- VR --
   {
@@ -342,7 +342,6 @@ void CConfigVR::CreateGUIControls()
 
     // - vr
     wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 10);
-    wxFlexGridSizer* const szr_options = new wxFlexGridSizer(4, 5, 10);
 
     // Scale
     {
@@ -592,7 +591,7 @@ void CConfigVR::CreateGUIControls()
                                  vconfig.iExtraVideoLoops);
 
       wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
-      wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+      // wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
       szr_opcode->Add(spacer1, 1, 0, 0);
       // szr_opcode->Add(spacer2, 1, 0, 0);
       SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(

@@ -1958,7 +1958,7 @@ TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top,
 TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, float zfar)
 {
   TMetroidLayer result;
-  int h = Round100(hfov);
+  // int h = Round100(hfov);
   int v = Round100(vfov);
   int n = Round100(znear);
   int f = Round100(zfar);
@@ -2016,7 +2016,7 @@ TMetroidLayer GetNESLayer2D(int layer, float left, float right, float top, float
   int r = Round100(right);
   int t = Round100(top);
   int b = Round100(bottom);
-  int n = Round100(znear);
+  // int n = Round100(znear);
   int f = Round100(zfar);
   if (l == 0 && t == 0 && r == 51200 && (b == -22800 || b == -23200))
   {

@@ -26,8 +26,7 @@ private:
 
 public:
   StreamingVoiceContext2_7(IXAudio2* pXAudio2, CMixer* pMixer, Common::Event& pSyncEvent);
-
-  ~StreamingVoiceContext2_7();
+  virtual ~StreamingVoiceContext2_7();
 
   void Stop();
   void Play();

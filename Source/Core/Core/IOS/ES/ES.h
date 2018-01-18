@@ -94,7 +94,7 @@ public:
     TitleExportContext title_export;
     bool active = false;
     // We use this to associate an IPC fd with an ES context.
-    u32 ipc_fd = -1;
+    s32 ipc_fd = -1;
   };
 
   // Title management
@@ -277,7 +277,7 @@ private:
   IPCCommandResult DIGetTMDSize(const IOCtlVRequest& request);
   IPCCommandResult DIGetTMD(const IOCtlVRequest& request);
 
-  ContextArray::iterator FindActiveContext(u32 fd);
+  ContextArray::iterator FindActiveContext(s32 fd);
   ContextArray::iterator FindInactiveContext();
 
   bool LaunchIOS(u64 ios_title_id);

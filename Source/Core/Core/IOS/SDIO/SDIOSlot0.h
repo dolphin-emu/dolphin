@@ -128,7 +128,7 @@ private:
 
   IPCCommandResult SendCommand(const IOCtlVRequest& request);
 
-  u32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
+  s32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
                      u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 

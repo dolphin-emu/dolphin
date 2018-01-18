@@ -395,7 +395,7 @@ void RunGpuLoop()
                 DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
 
             Common::AtomicStore(fifo.CPReadPointer, readPtr);
-            Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
+            Common::AtomicAdd(fifo.CPReadWriteDistance, static_cast<u32>(-32));
             if ((write_ptr - s_video_buffer_read_ptr) == 0)
               Common::AtomicStore(fifo.SafeCPReadPointer, fifo.CPReadPointer);
 

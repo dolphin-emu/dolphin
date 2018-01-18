@@ -49,7 +49,7 @@ struct TextureBuffer
   GLuint fboId;
   ovrSizei texSize;
 
-  TextureBuffer(ovrHmd hmd, bool rendertarget, bool displayableOnHmd, OVR::Sizei size,
+  TextureBuffer(ovrHmd hmd0, bool rendertarget, bool displayableOnHmd, OVR::Sizei size,
                 int mipLevels, unsigned char* data, int sampleCount)
   {
 // OVR_ASSERT(sampleCount <= 1); // The code doesn't currently handle MSAA textures.
@@ -64,7 +64,7 @@ struct TextureBuffer
     if (displayableOnHmd)
     {
       // This texture isn't necessarily going to be a rendertarget, but it usually is.
-      // OVR_ASSERT(hmd); // No HMD? A little odd.
+      // OVR_ASSERT(hmd0); // No HMD? A little odd.
       // OVR_ASSERT(sampleCount == 1); // ovrHmd_CreateSwapTextureSetD3D11 doesn't support MSAA.
 
       int length = 0;
@@ -82,8 +82,8 @@ struct TextureBuffer
       desc.BindFlags = 0;
       desc.StaticImage = ovrFalse;
 
-      res = ovr_CreateTextureSwapChainGL(hmd, &desc, &TextureChain);
-      ovr_GetTextureSwapChainLength(hmd, TextureChain, &length);
+      res = ovr_CreateTextureSwapChainGL(hmd0, &desc, &TextureChain);
+      ovr_GetTextureSwapChainLength(hmd0, TextureChain, &length);
       if (!OVR_SUCCESS(res))
       {
         ovrErrorInfo e;
@@ -94,17 +94,17 @@ struct TextureBuffer
         return;
       }
 #elif OVR_MAJOR_VERSION >= 7
-      ovr_CreateSwapTextureSetGL(hmd, GL_SRGB8_ALPHA8, size.w, size.h, &TextureSet);
+      ovr_CreateSwapTextureSetGL(hmd0, GL_SRGB8_ALPHA8, size.w, size.h, &TextureSet);
       length = TextureSet->TextureCount;
 #else
-      ovrHmd_CreateSwapTextureSetGL(hmd, GL_RGBA, size.w, size.h, &TextureSet);
+      ovrHmd_CreateSwapTextureSetGL(hmd0, GL_RGBA, size.w, size.h, &TextureSet);
       length = TextureSet->TextureCount;
 #endif
       for (int i = 0; i < length; ++i)
       {
 #if OVR_PRODUCT_VERSION >= 1
         GLuint chainTexId;
-        ovr_GetTextureSwapChainBufferGL(hmd, TextureChain, i, &chainTexId);
+        ovr_GetTextureSwapChainBufferGL(hmd0, TextureChain, i, &chainTexId);
         glBindTexture(GL_TEXTURE_2D, chainTexId);
 #else
         ovrGLTexture* tex = (ovrGLTexture*)&TextureSet->Textures[i];
@@ -848,7 +848,8 @@ void VR_PresentHMDFrame()
       ld.RenderPose[eye] = g_eye_poses[eye];
     }
     ovrLayerHeader* layers = &ld.Header;
-    ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
+    // ovrResult result = 
+	ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
 
     if (g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE &&
       g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
@@ -998,7 +999,8 @@ void VR_DrawTimewarpFrame()
       ld.RenderPose[eye] = g_eye_poses[eye];
     }
     ovrLayerHeader* layers = &ld.Header;
-    ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
+    // ovrResult result = 
+	ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
 #endif
   }
 #endif

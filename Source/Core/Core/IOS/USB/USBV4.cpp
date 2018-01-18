@@ -49,7 +49,7 @@ struct HIDRequest
 };
 #pragma pack(pop)
 
-V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessage(ios, ioctl, -1)
+V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessage(ios, ioctl, 0)
 {
   HIDRequest hid_request;
   Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
@@ -65,7 +65,7 @@ V4CtrlMessage::V4CtrlMessage(Kernel& ios, const IOCtlRequest& ioctl) : CtrlMessa
 // (US for the language and replacing non-ASCII characters with '?'),
 // we can simply submit it as a usual control request.
 V4GetUSStringMessage::V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioctl)
-    : CtrlMessage(ios, ioctl, -1)
+    : CtrlMessage(ios, ioctl, 0)
 {
   HIDRequest hid_request;
   Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));
@@ -87,7 +87,7 @@ void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
   TransferCommand::OnTransferComplete(return_value);
 }
 
-V4IntrMessage::V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl) : IntrMessage(ios, ioctl, -1)
+V4IntrMessage::V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl) : IntrMessage(ios, ioctl, 0)
 {
   HIDRequest hid_request;
   Memory::CopyFromEmu(&hid_request, ioctl.buffer_in, sizeof(hid_request));

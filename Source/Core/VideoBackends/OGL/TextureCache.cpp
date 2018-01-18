@@ -370,9 +370,9 @@ TextureCache::TextureCache()
 {
   CompileShaders();
 
-  s_ActiveTexture = -1;
+  s_ActiveTexture = UINT32_MAX;
   for (auto& gtex : s_Textures)
-    gtex = -1;
+    gtex = UINT32_MAX;
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
@@ -525,8 +525,8 @@ bool TextureCache::CompileShaders()
 
   s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
   s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
-  s_ColorCbufid = -1;
-  s_DepthCbufid = -1;
+  s_ColorCbufid = UINT32_MAX;
+  s_DepthCbufid = UINT32_MAX;
 
   s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorCopyProgram.glprogid, "copy_position");
   s_ColorMatrixPositionUniform =

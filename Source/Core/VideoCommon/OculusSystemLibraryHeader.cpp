@@ -3,6 +3,9 @@
 
 #include "OculusSystemLibraryHeader.h"
 
+#pragma warning(push)
+#pragma warning(disable: 4706)
+
 static PFUNC_CHAR ovr_InitializeRenderingShim_Real;
 static PFUNC_CHAR_INT ovr_InitializeRenderingShimVersion_Real;
 static PFUNC_INIT ovr_Initialize_Real;
@@ -198,3 +201,5 @@ void ovr_Shutdown()
     ovr_Shutdown_Real();
   FreeOculusDLL();
 }
+
+#pragma warning(pop)

@@ -539,7 +539,7 @@ void BluetoothReal::LoadLinkKeys()
     std::reverse(address.begin(), address.end());
 
     const std::string& key_string = pair.substr(index + 1);
-    linkkey_t key;
+    linkkey_t key{};
     size_t pos = 0;
     for (size_t i = 0; i < key_string.length(); i = i + 2)
     {

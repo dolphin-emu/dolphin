@@ -736,8 +736,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
     code[i].opinfo = opinfo;
     code[i].address = address;
     code[i].inst = inst;
-    code[i].branchTo = -1;
-    code[i].branchToIndex = -1;
+    code[i].branchTo = UINT32_MAX;
+    code[i].branchToIndex = UINT32_MAX;
     code[i].skip = false;
     block->m_stats->numCycles += opinfo->numCycles;
     block->m_physical_addresses.insert(result.physical_address);

@@ -84,7 +84,7 @@ struct VideoConfig final
   bool bShaderCache;
 
   // Enhancements
-  int iMultisamples;
+  u32 iMultisamples;
   bool bSSAA;
   int iEFBScale;
   bool bForceFiltering;
@@ -300,7 +300,7 @@ struct VideoConfig final
     APIType api_type;
 
     std::vector<std::string> Adapters;  // for D3D
-    std::vector<int> AAModes;
+    std::vector<u32> AAModes;
 
     // TODO: merge AdapterName and Adapters array
     std::string AdapterName;  // for OpenGL

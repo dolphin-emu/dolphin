@@ -328,7 +328,7 @@ void ES::DoState(PointerWrap& p)
   }
 }
 
-ES::ContextArray::iterator ES::FindActiveContext(u32 fd)
+ES::ContextArray::iterator ES::FindActiveContext(s32 fd)
 {
   return std::find_if(m_contexts.begin(), m_contexts.end(),
                       [fd](const auto& context) { return context.ipc_fd == fd && context.active; });

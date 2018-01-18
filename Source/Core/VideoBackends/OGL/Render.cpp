@@ -76,7 +76,7 @@ static GLuint g_man_texture = 0;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
-static int s_last_multisamples = 1;
+static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
@@ -533,7 +533,7 @@ Renderer::Renderer()
       {
         // GLES 3.1 can't support stereo rendering and MSAA
         OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
-        Config::SetCurrent(Config::GFX_MSAA, 1);
+        Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
       }
     }
     else
@@ -1540,39 +1540,39 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
               (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
         }
 
-        TargetRectangle sourceRc;
-        sourceRc.left = xfbSource->sourceRc.left;
-        sourceRc.right = xfbSource->sourceRc.right;
-        sourceRc.top = xfbSource->sourceRc.top;
-        sourceRc.bottom = xfbSource->sourceRc.bottom;
+        TargetRectangle sourceRc2;
+        sourceRc2.left = xfbSource->sourceRc.left;
+        sourceRc2.right = xfbSource->sourceRc.right;
+        sourceRc2.top = xfbSource->sourceRc.top;
+        sourceRc2.bottom = xfbSource->sourceRc.bottom;
 
-        sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+        sourceRc2.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
         VR_RenderToEyebuffer(0);
         if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
         {
-          post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth,
+          post_processor->BlitFromTexture(sourceRc2, drawRc, xfbSource->texture, xfbSource->texWidth,
                                           xfbSource->texHeight, 0);
           if (g_has_two_hmds)
           {
             VR_RenderToEyebuffer(0, 1);
-            post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
+            post_processor->BlitFromTexture(sourceRc2, drawRc, xfbSource->texture,
                                             xfbSource->texWidth, xfbSource->texHeight, 0);
           }
 
           VR_RenderToEyebuffer(1);
-          post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth,
+          post_processor->BlitFromTexture(sourceRc2, drawRc, xfbSource->texture, xfbSource->texWidth,
                                           xfbSource->texHeight, 1);
           if (g_has_two_hmds)
           {
             VR_RenderToEyebuffer(1, 1);
-            post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
+            post_processor->BlitFromTexture(sourceRc2, drawRc, xfbSource->texture,
                                             xfbSource->texWidth, xfbSource->texHeight, 1);
           }
         }
         else
         {
-          post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth,
+          post_processor->BlitFromTexture(sourceRc2, drawRc, xfbSource->texture, xfbSource->texWidth,
                                           xfbSource->texHeight, 0);
         }
       }

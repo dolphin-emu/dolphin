@@ -936,7 +936,7 @@ void CFrame::DoStop()
     // Save VR game-specific settings
     if (g_has_hmd && g_Config.VRSettingsModified())
     {
-      Core::State state = Core::GetState();
+      // state = Core::GetState();
       Core::SetState(Core::State::Paused);
       wxMessageDialog m_StopDlg(
           this, _("Do you want to save these VR settings for this game?") +
@@ -1136,7 +1136,8 @@ void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnConfigVR(wxCommandEvent& WXUNUSED(event))
 {
-  InputConfig* const pad_plugin = Pad::GetConfig();
+  // InputConfig* const pad_plugin =
+  Pad::GetConfig();
   bool was_init = false;
   if (g_controller_interface.IsInit())  // check if game is running
   {

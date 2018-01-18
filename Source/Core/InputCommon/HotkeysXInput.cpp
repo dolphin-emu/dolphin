@@ -192,7 +192,7 @@ void Update()
 
 void OnXInputPoll(u32* XInput_State, u32* DInput_State_Extra, bool DInput)
 {
-  float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
+  // float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
 }
 
 u32 GetBinaryfromXInputIniStr(std::string ini_setting)

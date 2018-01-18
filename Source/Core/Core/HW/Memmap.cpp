@@ -101,7 +101,7 @@ struct PhysicalMemoryRegion
   u8** out_pointer;
   u32 physical_address;
   u32 size;
-  enum
+  enum : u32
   {
     ALWAYS = 0,
     FAKE_VMEM = 1,

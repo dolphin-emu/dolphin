@@ -202,7 +202,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
       // If we're using reg+reg mode and b is an immediate, pretend we're using constant offset mode
       bool use_constant_offset = inst.OPCD != 31 || gpr.R(b).IsImm();
 
-      s32 offset;
+      s32 offset = 0;
       if (use_constant_offset)
         offset = inst.OPCD == 31 ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
       // Depending on whether we have an immediate and/or update, find the optimum way to calculate

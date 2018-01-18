@@ -367,7 +367,7 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
         sf::Packet spac;
         spac << (MessageId)NP_MSG_DISABLE_GAME;
         // this thread doesn't need players lock
-        SendToClients(spac, -1);
+        SendToClients(spac, static_cast<PlayerId>(-1));
         break;
       }
     }

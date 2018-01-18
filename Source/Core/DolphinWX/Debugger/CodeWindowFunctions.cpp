@@ -146,11 +146,12 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
       File::CreateFullPath(filename);
       Profiler::WriteProfileResults(filename);
 
-      wxFileType* filetype = nullptr;
-      if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt")))
+      wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("txt");
+      if (!filetype)
       {
         // From extension failed, trying with MIME type now
-        if (!(filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain")))
+        filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType("text/plain");
+        if (!filetype)
           // MIME type failed, aborting mission
           break;
       }

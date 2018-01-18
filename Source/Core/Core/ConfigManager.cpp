@@ -447,8 +447,8 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("DisableScreenSaver", bDisableScreenSaver);
   display->Set("ForceNTSCJ", bForceNTSCJ);
 
-  IniFile::Section* vr = ini.GetOrCreateSection("VR");
 #ifdef OCULUSSDK042
+  IniFile::Section* vr = ini.GetOrCreateSection("VR");
   vr->Set("AsynchronousTimewarp", bAsynchronousTimewarp);
 #endif
 }
@@ -839,8 +839,8 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
     display->Get("ForceNTSCJ", &bForceNTSCJ, false);
   }
 
-  IniFile::Section* vr = ini.GetOrCreateSection("VR");
 #ifdef OCULUSSDK042
+  IniFile::Section* vr = ini.GetOrCreateSection("VR");
   vr->Get("AsynchronousTimewarp", &bAsynchronousTimewarp, false);
 #else
   bAsynchronousTimewarp = false;

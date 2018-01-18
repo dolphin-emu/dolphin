@@ -338,8 +338,6 @@ bool InitOpenVR()
   }
   else
   {
-    std::string m_strDriver;
-    std::string m_strDisplay;
     m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd,
       vr::Prop_TrackingSystemName_String);
     g_openvr_is_vive = (m_strDriver == "lighthouse");
@@ -543,14 +541,18 @@ bool InitOculusHMD()
 #else
       g_hmd_device_name = nullptr;
 #endif
-      const char* p;
-      if (g_hmd_device_name && (p = strstr(g_hmd_device_name, "\\Monitor")))
+      
+      if (g_hmd_device_name)
       {
-        size_t n = p - g_hmd_device_name;
-        if (n >= MAX_PATH)
-          n = MAX_PATH - 1;
-        g_hmd_device_name = strncpy(hmd_device_name, g_hmd_device_name, n);
-        hmd_device_name[n] = '\0';
+		const char* p = strstr(g_hmd_device_name, "\\Monitor");
+        if (p)
+        {
+          size_t n = p - g_hmd_device_name;
+          if (n >= MAX_PATH)
+            n = MAX_PATH - 1;
+          g_hmd_device_name = strncpy(hmd_device_name, g_hmd_device_name, n);
+          hmd_device_name[n] = '\0';
+        }
       }
 #endif
       NOTICE_LOG(VR, "Oculus Rift head tracker started.");
@@ -570,7 +572,6 @@ bool InitOculusVR()
 
 #if OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 7
   ovr_Initialize(nullptr);
-  ovrGraphicsLuid luid;
   if (ovr_Create(&hmd, &luid) != ovrSuccess)
     hmd = nullptr;
 #ifdef _WIN32
@@ -979,7 +980,7 @@ void UpdateOpenVRHeadTracking()
     ProcessVREvent(event);
   }
 
-  float fSecondsUntilPhotons = 0.0f;
+  // float fSecondsUntilPhotons = 0.0f;
   // m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons,
   // m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
   m_iValidPoseCount = 0;
@@ -1026,12 +1027,12 @@ void UpdateVuzixHeadTracking()
     float x = 0;
     float y = 0;
     float z = 0;
-    Matrix33 m, yp, ya, p, r;
-    Matrix33::RotateY(ya, DEGREES_TO_RADIANS(yaw));
-    Matrix33::RotateX(p, DEGREES_TO_RADIANS(pitch));
-    Matrix33::Multiply(p, ya, yp);
-    Matrix33::RotateZ(r, DEGREES_TO_RADIANS(roll));
-    Matrix33::Multiply(r, yp, m);
+    Matrix33 m, yp, yawm, pitchm, rollm;
+    Matrix33::RotateY(yawm, DEGREES_TO_RADIANS(yaw));
+    Matrix33::RotateX(pitchm, DEGREES_TO_RADIANS(pitch));
+    Matrix33::Multiply(pitchm, yawm, yp);
+    Matrix33::RotateZ(rollm, DEGREES_TO_RADIANS(roll));
+    Matrix33::Multiply(rollm, yp, m);
     Matrix44::LoadMatrix33(g_head_tracking_matrix, m);
     g_head_tracking_position[0] = -x;
     g_head_tracking_position[1] = -y;
@@ -1219,14 +1220,14 @@ std::wstring VR_GetAudioDeviceId()
   {
     // this is a standard GUID, but the windows GUID include file system is insane, so just define
     // it here
-    const GUID DEVINTERFACE_AUDIO_RENDER = {
+    const GUID DEVINTERFACE_AUDIO_RENDER_ = {
         0xe6327cad, 0xdcec, 0x4949, {0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2}};
     GUID rift_guid;
     ovr_GetAudioDeviceOutGuid(&rift_guid);
     wchar_t guid_wstr[40];
     StringFromGUID2(rift_guid, guid_wstr, 40);
     NOTICE_LOG(VR, "Rift Audio GUID: '%S'", guid_wstr);
-    HDEVINFO const device_info = SetupDiGetClassDevs(&DEVINTERFACE_AUDIO_RENDER, 0, 0,
+    HDEVINFO const device_info = SetupDiGetClassDevs(&DEVINTERFACE_AUDIO_RENDER_, 0, 0,
                                                      DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
 
     SP_DEVICE_INTERFACE_DATA device_data = {};
@@ -1234,7 +1235,7 @@ std::wstring VR_GetAudioDeviceId()
     PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = nullptr;
 
     for (int index = 0; SetupDiEnumDeviceInterfaces(
-             device_info, nullptr, &DEVINTERFACE_AUDIO_RENDER, index, &device_data);
+             device_info, nullptr, &DEVINTERFACE_AUDIO_RENDER_, index, &device_data);
          ++index)
     {
       // Get the size of the data block required
@@ -1809,9 +1810,9 @@ bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz)
       // NOTICE_LOG(VR, "invalid!");
       return false;
     }
-    float lx = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[0][3];
-    float ly = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[1][3];
-    float lz = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[2][3];
+    // float lx = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[0][3];
+    // float ly = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[1][3];
+    // float lz = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[2][3];
     Matrix33 m;
     for (int r = 0; r < 3; r++)
       for (int c = 0; c < 3; c++)
@@ -2253,8 +2254,9 @@ bool VR_PairViveControllers()
     SendInput(2, input, sizeof(INPUT));
   }
   return true;
-#endif
+#else
   return false;
+#endif
 }
 
 void OpcodeReplayBuffer()

@@ -1101,7 +1101,8 @@ void VertexShaderManager::SetProjectionConstants()
   // Split WidthHack and HeightHack into left and right versions for telescopes
   float fLeftWidthHack = fWidthHack, fRightWidthHack = fWidthHack;
   float fLeftHeightHack = fHeightHack, fRightHeightHack = fHeightHack;
-  bool bHideLeft = bHide, bHideRight = bHide, bTelescopeHUD = false, bNoForward = false;
+  bool bHideLeft = bHide, bHideRight = bHide, bNoForward = false;
+  // bool bTelescopeHUD = false;
   if (iTelescopeHack < 0 && g_ActiveConfig.iTelescopeEye &&
       vr_widest_3d_VFOV <= g_ActiveConfig.fTelescopeMaxFOV && vr_widest_3d_VFOV > 1 &&
       (g_ActiveConfig.fTelescopeMaxFOV <= g_ActiveConfig.fMinFOV ||

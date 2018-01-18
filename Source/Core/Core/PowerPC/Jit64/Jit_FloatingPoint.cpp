@@ -486,7 +486,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   // bool ordered = !!(inst.SUBOP10 & 32);
   int a = inst.FA;
   int b = inst.FB;
-  int crf = inst.CRFD;
+  u32 crf = inst.CRFD;
   int output[4] = {CR_SO, CR_EQ, CR_GT, CR_LT};
 
   // Merge neighboring fcmp and cror (the primary use of cror).

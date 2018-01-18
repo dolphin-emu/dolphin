@@ -1179,6 +1179,7 @@ void KillDolphinAndRestart()
   }
   else if (ARBruteForcer::ch_bruteforce)
   {
+	szCmdline = nullptr;
     PanicAlert("Right now the bruteforcer can only be restarted automatically if -bruteforce 1 or "
                "0 is used.\nBrute forcing caused a bad instruction.  Restart Dolphin and this "
                "function will be skipped.");

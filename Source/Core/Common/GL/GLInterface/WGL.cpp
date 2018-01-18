@@ -256,8 +256,8 @@ bool cInterfaceWGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  int pixel_format;
-  if (!(pixel_format = ChoosePixelFormat(m_dc, &pfd)))
+  int pixel_format = ChoosePixelFormat(m_dc, &pfd);
+  if (!pixel_format)
   {
     PanicAlert("(2) Can't find a suitable PixelFormat.");
     return false;
@@ -269,7 +269,8 @@ bool cInterfaceWGL::Create(void* window_handle, bool core)
     return false;
   }
 
-  if (!(m_rc = wglCreateContext(m_dc)))
+  m_rc = wglCreateContext(m_dc);
+  if (!m_rc)
   {
     PanicAlert("(4) Can't create an OpenGL rendering context.");
     return false;
@@ -384,13 +385,15 @@ bool cInterfaceWGL::CreateOffscreen()
 
   int PixelFormat;  // Holds The Results After Searching For A Match
 
-  if (!(hOffscreenDC = GetDC(m_offscreen_window_handle)))
+  hOffscreenDC = GetDC(m_offscreen_window_handle);
+  if (!hOffscreenDC)
   {
     PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
     return false;
   }
 
-  if (!(PixelFormat = ChoosePixelFormat(hOffscreenDC, &pfd)))
+  PixelFormat = ChoosePixelFormat(hOffscreenDC, &pfd);
+  if (!PixelFormat)
   {
     PanicAlert("(2) Can't find a suitable PixelFormat.");
     return false;
@@ -402,7 +405,8 @@ bool cInterfaceWGL::CreateOffscreen()
     return false;
   }
 
-  if (!(hOffscreenRC = wglCreateContext(hOffscreenDC)))
+  hOffscreenRC = wglCreateContext(hOffscreenDC);
+  if (!hOffscreenRC)
   {
     PanicAlert("(4) Can't create an OpenGL rendering context.");
     return false;

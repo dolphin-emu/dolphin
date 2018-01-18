@@ -1680,7 +1680,8 @@ void CFrame::ParseHotkeys()
 		float rightthumbpos[3] = { 0, 0, 0 };
 		Matrix33 rightrot;
 
-		bool has_right_controller = VR_GetRightControllerPos(rightpos, rightthumbpos, &rightrot);
+		// bool has_right_controller = 
+		VR_GetRightControllerPos(rightpos, rightthumbpos, &rightrot);
 		if (!lockGripWorld){
 			lockGripWorld = true;						
 		}else{			
@@ -1701,7 +1702,8 @@ void CFrame::ParseHotkeys()
 		float leftthumbpos[3] = { 0, 0, 0 };
 		Matrix33 leftrot;
 
-		bool has_right_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+		// bool has_right_controller = 
+		VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
 		
 		if (!lockGrabHud){
 			lockGrabHud = true;
@@ -1734,8 +1736,10 @@ void CFrame::ParseHotkeys()
 		float leftpos[3] = { 0, 0, 0 };
 		float leftthumbpos[3] = { 0, 0, 0 };
 		Matrix33 leftrot;
-		bool has_right_controller = VR_GetRightControllerPos(rightpos, rightthumbpos, &rightrot);
-		bool has_left_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+		// bool has_right_controller =
+		VR_GetRightControllerPos(rightpos, rightthumbpos, &rightrot);
+		// bool has_left_controller =
+		VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
 
 		if (!lockResizeWorld){
 			lockResizeWorld = true;

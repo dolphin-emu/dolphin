@@ -86,7 +86,7 @@
       higher declaration can be contained to just the XAudio2/XInput related code.
       -->
       <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
@@ -105,13 +105,36 @@
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <!--
-      4996 is for GetVersionEx being marked as depreciated - which is idiotic and there's
-        not much else we can do since many externals use it. The bad part is that there doesn't
-        seem to be a way to only ignore the specific instance we don't care about...
-      4351 squashes a warning telling us the compiler is behaving as expected (instead of old,
-        broken behavior).
+      4996  is for GetVersionEx being marked as deprecated - which is idiotic and there's not much
+                else we can do since many externals use it. The bad part is that there doesn't
+                seem to be a way to only ignore the specific instance we don't care about...
+      4351  new behavior: elements of array 'array' will be default initialized
       -->
       <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
+      <!-- Warnings one may want to ignore when using Level4.
+      4201  nonstandard extension used : nameless struct/union
+      4127  conditional expression is constant
+      4100  'identifier' : unreferenced formal parameter
+      4244  'conversion' conversion from 'type1' to 'type2', possible loss of data
+                Level4 warns if type1==int and there is narrowing
+      4121  'symbol' : alignment of a member was sensitive to packing
+      4324  Padding was added at the end of a structure because you specified a __declspec(align) value.
+      4714  function 'function' marked as __forceinline not inlined
+      -->
+      <DisableSpecificWarnings>4201;4127;4100;4244;4121;4324;4714;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <!-- Level4 warnings which should eventually be enabled
+      4245  'conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
+                Currently jits use some annoying code patterns which makes this common
+      -->
+      <DisableSpecificWarnings>4245;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <!-- Enable some off-by-default warnings
+      4263  Non-virtual member function hides base class virtual function
+      4265  Class has virtual functions, but destructor is not virtual
+      4946  Reinterpret cast between related types
+      -->
+      <!-- Externals are currently not compatible with this. Can still uncomment locally.
+      <AdditionalOptions>/we4263 /we4265 /we4946 %(AdditionalOptions)</AdditionalOptions>
+      -->
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
