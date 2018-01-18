@@ -132,9 +132,7 @@
       4265  Class has virtual functions, but destructor is not virtual
       4946  Reinterpret cast between related types
       -->
-      <!-- Externals are currently not compatible with this. Can still uncomment locally.
-      <AdditionalOptions>/we4263 /we4265 /we4946 %(AdditionalOptions)</AdditionalOptions>
-      -->
+      <AdditionalOptions>/w44263 /w44265 /w44946 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
