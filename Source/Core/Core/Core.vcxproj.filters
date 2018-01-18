@@ -784,9 +784,6 @@
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp">
       <Filter>IOS\Network\KD</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\NCD\Config.cpp">
-      <Filter>IOS\Network\NCD</Filter>
-    </ClCompile>
     <ClCompile Include="IOS\Network\NCD\Manage.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
@@ -864,6 +861,9 @@
     </ClCompile>
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\GraphicsSettings.cpp" />
+    <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1410,9 +1410,6 @@
     <ClInclude Include="IOS\Network\KD\NWC24Config.h">
       <Filter>IOS\Network\KD</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\Network\NCD\Config.h">
-      <Filter>IOS\Network\NCD</Filter>
-    </ClInclude>
     <ClInclude Include="IOS\Network\NCD\Manage.h">
       <Filter>IOS\Network\NCD</Filter>
     </ClInclude>
@@ -1504,6 +1501,9 @@
     <ClInclude Include="Config\GraphicsSettings.h" />
     <ClInclude Include="ConfigLoaders\IsSettingSaveable.h">
       <Filter>ConfigLoader</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h">
+      <Filter>IOS\Network\NCD</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

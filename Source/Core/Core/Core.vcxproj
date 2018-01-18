@@ -37,16 +37,6 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <ObjectFileName>$(IntDir)/%(RelativeDir)/</ObjectFileName>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ActionReplay.cpp" />
     <ClCompile Include="Analytics.cpp" />
@@ -217,7 +207,7 @@
     <ClCompile Include="IOS\Network\KD\NetKDRequest.cpp" />
     <ClCompile Include="IOS\Network\KD\NetKDTime.cpp" />
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp" />
-    <ClCompile Include="IOS\Network\NCD\Config.cpp" />
+    <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp" />
     <ClCompile Include="IOS\Network\NCD\Manage.cpp" />
     <ClCompile Include="IOS\Network\WD\Command.cpp" />
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
@@ -467,7 +457,7 @@
     <ClInclude Include="IOS\Network\KD\NetKDRequest.h" />
     <ClInclude Include="IOS\Network\KD\NetKDTime.h" />
     <ClInclude Include="IOS\Network\KD\NWC24Config.h" />
-    <ClInclude Include="IOS\Network\NCD\Config.h" />
+    <ClInclude Include="IOS\Network\NCD\WiiNetConfig.h" />
     <ClInclude Include="IOS\Network\NCD\Manage.h" />
     <ClInclude Include="IOS\Network\WD\Command.h" />
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h" />

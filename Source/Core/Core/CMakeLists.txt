@@ -176,7 +176,7 @@ set(SRCS
   IOS/Network/KD/NetKDRequest.cpp
   IOS/Network/KD/NetKDTime.cpp
   IOS/Network/KD/NWC24Config.cpp
-  IOS/Network/NCD/Config.cpp
+  IOS/Network/NCD/WiiNetConfig.cpp
   IOS/Network/NCD/Manage.cpp
   IOS/Network/WD/Command.cpp
   IOS/SDIO/SDIOSlot0.cpp

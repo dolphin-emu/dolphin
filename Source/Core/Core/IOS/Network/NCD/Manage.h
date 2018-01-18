@@ -8,7 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/Network/NCD/Config.h"
+#include "Core/IOS/Network/NCD/WiiNetConfig.h"
 
 namespace IOS
 {

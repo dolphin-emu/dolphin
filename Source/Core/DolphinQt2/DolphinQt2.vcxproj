@@ -43,9 +43,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros">
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '12.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -54,8 +51,6 @@
       <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\lib;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(VisualStudioVersion)' != '12.0'">avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <!--TODO fix up ffmpeg garbage-->
-      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies Condition="Exists('$(ExternalsDir)OSVR/lib/osvrClientKit.lib')">osvrClientKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And (Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2013/libovr64d.lib') Or Exists('$(ExternalsDir)LibOVR/Lib/x64/VS2015/libovr64d.lib'))">libovr64d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64' And (Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2013/libovr.lib') Or Exists('$(ExternalsDir)LibOVR/Lib/Windows/x64/Debug/VS2015/libovr.lib'))">libovr.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -74,14 +69,6 @@
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-  <!--QRC and UI files are handled automatically-->
-  <ItemGroup>
-    <QtResource Include="*.qrc" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtUi Include="*.ui" />
-    <QtUi Include="GameList\*.ui" />
-  </ItemGroup>
   <!--MOC files need to be listed. Perhaps scan for Q_OBJECT in the future? (like automoc)-->
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
@@ -184,11 +171,9 @@
     <ClCompile Include="ToolBar.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
-  <!--
   <ItemGroup>
-    <ClInclude Include="Main.h" />
+    <ClInclude Include="Resources.h" />
   </ItemGroup>
-  -->
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
@@ -268,10 +253,6 @@
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Resources.h" />
-  </ItemGroup>
-  <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
   <Target Name="AfterBuild" Inputs="@(AllInputFiles)" Outputs="@(AllInputFiles -> '$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(Extension)')">
     <Message Text="Copying Data directory..." Importance="High" />
     <Copy SourceFiles="@(DataSysFiles)" DestinationFolder="$(BinaryOutputDir)%(RecursiveDir)" Condition="!Exists('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(BinaryOutputDir)%(RecursiveDir)%(Filename)%(DataSysFiles.Extension)').Ticks)" />
