@@ -76,6 +76,8 @@ ElfReader::ElfReader(const std::string& filename) : BootExecutableReader(filenam
   Initialize(m_bytes.data());
 }
 
+ElfReader::~ElfReader() = default;
+
 void ElfReader::Initialize(u8* ptr)
 {
   base = (char*)ptr;

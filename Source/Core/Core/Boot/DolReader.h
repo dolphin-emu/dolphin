@@ -13,8 +13,8 @@
 class DolReader final : public BootExecutableReader
 {
 public:
-  DolReader(const std::string& filename);
-  DolReader(const std::vector<u8>& buffer);
+  explicit DolReader(const std::string& filename);
+  explicit DolReader(const std::vector<u8>& buffer);
   ~DolReader();
 
   bool IsValid() const override { return m_is_valid; }

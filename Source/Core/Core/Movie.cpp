@@ -7,10 +7,12 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <iomanip>
 #include <iterator>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
+#include <sstream>
 #include <thread>
 #include <utility>
 #include <variant>
@@ -191,13 +193,13 @@ std::string GetInputDisplay()
 // NOTE: GPU Thread
 std::string GetRTCDisplay()
 {
-  time_t current_time =
-      ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH);
-  tm* gm_time = gmtime(&current_time);
-  char buffer[256];
-  strftime(buffer, sizeof(buffer), "Date/Time: %c\n", gm_time);
+  using ExpansionInterface::CEXIIPL;
+
+  const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  const tm* const gm_time = gmtime(&current_time);
+
   std::stringstream format_time;
-  format_time << buffer;
+  format_time << std::put_time(gm_time, "Date/Time: %c\n");
   return format_time.str();
 }
 
