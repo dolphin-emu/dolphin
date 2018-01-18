@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <cstdarg>
 #include <iterator>
 #include <mutex>
 #include <string>

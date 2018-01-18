@@ -5,6 +5,7 @@
 #include "Core/IOS/USB/USB_KBD.h"
 
 #include <cstring>
+#include <queue>
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

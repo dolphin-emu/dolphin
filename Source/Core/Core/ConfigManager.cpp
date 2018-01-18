@@ -6,6 +6,7 @@
 #include <climits>
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <variant>
 
 #include "AudioCommon/AudioCommon.h"

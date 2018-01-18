@@ -11,6 +11,7 @@
 #include "Core/Boot/Boot.h"
 
 #include <algorithm>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_set>

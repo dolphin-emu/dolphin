@@ -3,9 +3,15 @@
 // Refer to the license.txt file included.
 
 #include "Core/NetPlayServer.h"
+
+#include <algorithm>
 #include <memory>
+#include <mutex>
 #include <string>
+#include <thread>
+#include <unordered_set>
 #include <vector>
+
 #include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"

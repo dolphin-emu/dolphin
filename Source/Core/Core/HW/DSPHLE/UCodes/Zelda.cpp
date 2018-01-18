@@ -5,6 +5,7 @@
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
 #include <array>
+#include <map>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"

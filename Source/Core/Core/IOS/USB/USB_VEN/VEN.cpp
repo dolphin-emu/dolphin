@@ -4,7 +4,11 @@
 
 #include "Core/IOS/USB/USB_VEN/VEN.h"
 
+#include <cstddef>
 #include <cstring>
+#include <memory>
+#include <mutex>
+#include <string>
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"

@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <fstream>
 #include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "Core/TitleDatabase.h"

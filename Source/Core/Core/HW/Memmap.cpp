@@ -7,6 +7,7 @@
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 // may be redirected here (for example to Read_U32()).
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 

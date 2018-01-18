@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <string>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"

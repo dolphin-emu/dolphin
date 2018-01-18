@@ -5,10 +5,12 @@
 #include "Core/IOS/ES/Formats.h"
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <locale>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
