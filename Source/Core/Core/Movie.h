@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 
+struct BootParameters;
+
 struct GCPadStatus;
 class PointerWrap;
 struct wiimote_key;
@@ -110,7 +112,7 @@ static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 
 void FrameUpdate();
 void InputUpdate();
-void Init();
+void Init(const BootParameters& boot);
 
 void SetPolledDevice();
 
@@ -175,8 +177,6 @@ bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures&
 void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
-void CheckMD5();
-void GetMD5();
 void Shutdown();
 void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
 void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf,

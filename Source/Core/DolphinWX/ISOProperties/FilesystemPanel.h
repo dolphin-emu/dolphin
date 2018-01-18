@@ -14,15 +14,15 @@ class wxTreeEvent;
 
 namespace DiscIO
 {
-class IFileSystem;
-class IVolume;
+class FileSystem;
+class Volume;
 }
 
 class FilesystemPanel final : public wxPanel
 {
 public:
   explicit FilesystemPanel(wxWindow* parent, wxWindowID id,
-                           const std::unique_ptr<DiscIO::IVolume>& opened_iso);
+                           const std::unique_ptr<DiscIO::Volume>& opened_iso);
   ~FilesystemPanel();
 
 private:
@@ -51,15 +51,15 @@ private:
   void ExtractSingleFile(const wxString& output_file_path) const;
   void ExtractSingleDirectory(const wxString& output_folder);
   void ExtractDirectories(const std::string& full_path, const std::string& output_folder,
-                          DiscIO::IFileSystem* filesystem);
+                          DiscIO::FileSystem* filesystem);
 
   wxString BuildFilePathFromSelection() const;
   wxString BuildDirectoryPathFromSelection() const;
 
   wxTreeCtrl* m_tree_ctrl;
 
-  const std::unique_ptr<DiscIO::IVolume>& m_opened_iso;
+  const std::unique_ptr<DiscIO::Volume>& m_opened_iso;
 
-  std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
+  std::unique_ptr<DiscIO::FileSystem> m_filesystem;
   bool m_has_partitions;
 };

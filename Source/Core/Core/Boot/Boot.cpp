@@ -10,13 +10,16 @@
 
 #include "Core/Boot/Boot.h"
 
+#include <algorithm>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <zlib.h>
 
 #include "Common/Align.h"
+#include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -25,10 +28,12 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ARBruteForcer.h"
-#include "Core/Boot/Boot_DOL.h"
+#include "Core/Boot/DolReader.h"
+#include "Core/Boot/ElfReader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -47,17 +52,87 @@
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 
+BootParameters::BootParameters(Parameters&& parameters_) : parameters(std::move(parameters_))
+{
+}
+
+std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::string& path)
+{
+  const bool is_drive = cdio_is_cdrom(path);
+  // Check if the file exist, we may have gotten it from a --elf command line
+  // that gave an incorrect file name
+  if (!is_drive && !File::Exists(path))
+  {
+    PanicAlertT("The specified file \"%s\" does not exist", path.c_str());
+    return {};
+  }
+
+  std::string extension;
+  SplitPath(path, nullptr, nullptr, &extension);
+  std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+  static const std::unordered_set<std::string> disc_image_extensions = {
+      {".gcm", ".iso", ".tgc", ".wbfs", ".ciso", ".gcz"}};
+  if (disc_image_extensions.find(extension) != disc_image_extensions.end() || is_drive)
+  {
+    auto volume = DiscIO::CreateVolumeFromFilename(path);
+    if (!volume)
+    {
+      if (is_drive)
+      {
+        PanicAlertT("Could not read \"%s\". "
+                    "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                    "Please note that Dolphin cannot play games directly from the original "
+                    "GameCube and Wii discs.",
+                    path.c_str());
+      }
+      else
+      {
+        PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.", path.c_str());
+      }
+      return {};
+    }
+    return std::make_unique<BootParameters>(Disc{path, std::move(volume)});
+  }
+
+  if (extension == ".elf")
+    return std::make_unique<BootParameters>(Executable{path, std::make_unique<ElfReader>(path)});
+
+  if (extension == ".dol")
+    return std::make_unique<BootParameters>(Executable{path, std::make_unique<DolReader>(path)});
+
+  if (extension == ".dff")
+    return std::make_unique<BootParameters>(DFF{path});
+
+  if (DiscIO::NANDContentManager::Access().GetNANDLoader(path).IsValid())
+    return std::make_unique<BootParameters>(NAND{path});
+
+  PanicAlertT("Could not recognize file %s", path.c_str());
+  return {};
+}
+
+BootParameters::IPL::IPL(DiscIO::Region region_) : region(region_)
+{
+  const std::string directory = SConfig::GetInstance().GetDirectoryForRegion(region);
+  path = SConfig::GetInstance().GetBootROMPath(directory);
+}
+
+BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
+{
+  disc = std::move(disc_);
+}
+
 // Inserts a disc into the emulated disc drive and returns a pointer to it.
 // The returned pointer must only be used while we are still booting,
 // because DVDThread can do whatever it wants to the disc after that.
-static const DiscIO::IVolume* SetDisc(std::unique_ptr<DiscIO::IVolume> volume)
+static const DiscIO::Volume* SetDisc(std::unique_ptr<DiscIO::Volume> volume)
 {
-  const DiscIO::IVolume* pointer = volume.get();
+  const DiscIO::Volume* pointer = volume.get();
   DVDInterface::SetDisc(std::move(volume));
   return pointer;
 }
 
-bool CBoot::DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+bool CBoot::DVDRead(const DiscIO::Volume& volume, u64 dvd_offset, u32 output_address, u32 length,
                     const DiscIO::Partition& partition)
 {
   std::vector<u8> buffer(length);
@@ -67,7 +142,7 @@ bool CBoot::DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_ad
   return true;
 }
 
-void CBoot::Load_FST(bool is_wii, const DiscIO::IVolume* volume)
+void CBoot::Load_FST(bool is_wii, const DiscIO::Volume* volume)
 {
   if (!volume)
     return;
@@ -110,57 +185,20 @@ void CBoot::UpdateDebugger_MapLoaded()
   Host_NotifyMapLoaded();
 }
 
-bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file,
-                        std::string* title_id)
+// Get map file paths for the active title.
+bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
 {
-  std::string title_id_str;
-  size_t name_begin_index;
-
-  SConfig& _StartupPara = SConfig::GetInstance();
-  switch (_StartupPara.m_BootType)
-  {
-  case SConfig::BOOT_WII_NAND:
-  {
-    const DiscIO::CNANDContentLoader& Loader =
-        DiscIO::CNANDContentManager::Access().GetNANDLoader(_StartupPara.m_strFilename);
-    if (Loader.IsValid())
-    {
-      u64 TitleID = Loader.GetTMD().GetTitleId();
-      title_id_str = StringFromFormat("%08X_%08X", (u32)(TitleID >> 32) & 0xFFFFFFFF,
-                                      (u32)TitleID & 0xFFFFFFFF);
-    }
-    break;
-  }
-
-  case SConfig::BOOT_ELF:
-  case SConfig::BOOT_DOL:
-    // Strip the .elf/.dol file extension and directories before the name
-    name_begin_index = _StartupPara.m_strFilename.find_last_of("/") + 1;
-    if ((_StartupPara.m_strFilename.find_last_of("\\") + 1) > name_begin_index)
-    {
-      name_begin_index = _StartupPara.m_strFilename.find_last_of("\\") + 1;
-    }
-    title_id_str = _StartupPara.m_strFilename.substr(
-        name_begin_index, _StartupPara.m_strFilename.size() - 4 - name_begin_index);
-    break;
-
-  default:
-    title_id_str = _StartupPara.GetGameID();
-    break;
-  }
+  const std::string& game_id = SConfig::GetInstance().m_debugger_game_id;
 
   if (writable_map_file)
-    *writable_map_file = File::GetUserPath(D_MAPS_IDX) + title_id_str + ".map";
-
-  if (title_id)
-    *title_id = title_id_str;
+    *writable_map_file = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
 
   bool found = false;
   static const std::string maps_directories[] = {File::GetUserPath(D_MAPS_IDX),
                                                  File::GetSysDirectory() + MAPS_DIR DIR_SEP};
   for (size_t i = 0; !found && i < ArraySize(maps_directories); ++i)
   {
-    std::string path = maps_directories[i] + title_id_str + ".map";
+    std::string path = maps_directories[i] + game_id + ".map";
     if (File::Exists(path))
     {
       found = true;
@@ -278,209 +316,179 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   return true;
 }
 
-// Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
-bool CBoot::BootUp()
+static const DiscIO::Volume* SetDefaultDisc()
 {
-  SConfig& _StartupPara = SConfig::GetInstance();
+  const SConfig& config = SConfig::GetInstance();
+  // load default image or create virtual drive from directory
+  if (!config.m_strDVDRoot.empty())
+    return SetDisc(DiscIO::CreateVolumeFromDirectory(config.m_strDVDRoot, config.bWii));
+  if (!config.m_strDefaultISO.empty())
+    return SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
+  return nullptr;
+}
 
-  if (_StartupPara.m_BootType == SConfig::BOOT_BS2)
-    NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strBootROM.c_str());
-  else
-    NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
+// Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
+bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
+{
+  SConfig& config = SConfig::GetInstance();
 
   g_symbolDB.Clear();
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  VideoInterface::Preset(DiscIO::IsNTSC(_StartupPara.m_region) ||
-                         (_StartupPara.bWii && _StartupPara.bPAL60));
+  VideoInterface::Preset(DiscIO::IsNTSC(config.m_region) || (config.bWii && config.bPAL60));
 
-  switch (_StartupPara.m_BootType)
+  struct BootTitle
   {
-  case SConfig::BOOT_ISO:
-  {
-    const DiscIO::IVolume* volume =
-        SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
-
-    if (!volume)
-      return false;
-
-    if ((volume->GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
+    BootTitle() : config(SConfig::GetInstance()) {}
+    bool operator()(BootParameters::Disc& disc) const
     {
-      PanicAlertT("Warning - starting ISO in wrong console mode!");
-    }
+      NOTICE_LOG(BOOT, "Booting from disc: %s", disc.path.c_str());
+      const DiscIO::Volume* volume = SetDisc(std::move(disc.volume));
 
-    std::string game_id = volume->GetGameID();
+      if (!volume)
+        return false;
 
-    if (ARBruteForcer::ch_bruteforce)
-      ARBruteForcer::ParseMapFile(game_id);
+      if (!EmulatedBS2(config.bWii, volume))
+        return false;
 
-    //if (game_id.size() >= 4)
-    //  VideoInterface::SetRegionReg(game_id.at(3));
-
-    _StartupPara.bWii = volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
-
-    // We HLE the bootrom if requested or if LLEing it fails
-    if (_StartupPara.bHLE_BS2 || !Load_BS2(_StartupPara.m_strBootROM))
-      EmulatedBS2(_StartupPara.bWii, volume);
-
-    PatchEngine::LoadPatches();
-    HideObjectEngine::LoadHideObjects();
-    HideObjectEngine::ApplyFrameHideObjects();
-
-    // Scan for common HLE functions
-    if (_StartupPara.bSkipIdle && _StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
-    {
-      PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
-      SignatureDB db(SignatureDB::HandlerType::DSY);
-      if (db.Load(File::GetSysDirectory() + TOTALDB))
-      {
-        db.Apply(&g_symbolDB);
+      // Try to load the symbol map if there is one, and then scan it for
+      // and eventually replace code
+      if (LoadMapFromFilename())
         HLE::PatchFunctions();
-        db.Clear();
+
+      return true;
+    }
+
+    bool operator()(const BootParameters::Executable& executable) const
+    {
+      NOTICE_LOG(BOOT, "Booting from executable: %s", executable.path.c_str());
+
+      if (!executable.reader->IsValid())
+        return false;
+
+      const DiscIO::Volume* volume = nullptr;
+      // VolumeDirectory only works with DOLs.
+      if (StringEndsWith(executable.path, ".dol"))
+      {
+        if (!config.m_strDVDRoot.empty())
+        {
+          NOTICE_LOG(BOOT, "Setting DVDRoot %s", config.m_strDVDRoot.c_str());
+          volume = SetDisc(DiscIO::CreateVolumeFromDirectory(
+              config.m_strDVDRoot, config.bWii, config.m_strApploader, executable.path));
+        }
+        else if (!config.m_strDefaultISO.empty())
+        {
+          NOTICE_LOG(BOOT, "Loading default ISO %s", config.m_strDefaultISO.c_str());
+          volume = SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
+        }
       }
+      else
+      {
+        volume = SetDefaultDisc();
+      }
+
+      if (!executable.reader->LoadIntoMemory())
+      {
+        PanicAlertT("Failed to load the executable to memory.");
+        return false;
+      }
+
+      // Poor man's bootup
+      if (config.bWii)
+      {
+        HID4.SBE = 1;
+        SetupMSR();
+        SetupBAT(config.bWii);
+        // Because there is no TMD to get the requested system (IOS) version from,
+        // we default to IOS58, which is the version used by the Homebrew Channel.
+        SetupWiiMemory(volume, 0x000000010000003a);
+      }
+      else
+      {
+        EmulatedBS2_GC(volume, true);
+      }
+
+      Load_FST(config.bWii, volume);
+      PC = executable.reader->GetEntryPoint();
+
+      if (executable.reader->LoadSymbols() || LoadMapFromFilename())
+      {
+        UpdateDebugger_MapLoaded();
+        HLE::PatchFunctions();
+      }
+      return true;
     }
 
-    // Try to load the symbol map if there is one, and then scan it for
-    // and eventually replace code
-    if (LoadMapFromFilename())
-      HLE::PatchFunctions();
-
-    break;
-  }
-
-  case SConfig::BOOT_DOL:
-  {
-    CDolLoader dolLoader(_StartupPara.m_strFilename);
-    if (!dolLoader.IsValid())
-      return false;
-
-    // Check if we have gotten a Wii file or not
-    bool dolWii = dolLoader.IsWii();
-    if (dolWii != _StartupPara.bWii)
+    bool operator()(const BootParameters::NAND& nand) const
     {
-      PanicAlertT("Warning - starting DOL in wrong console mode!");
+      NOTICE_LOG(BOOT, "Booting from NAND: %s", nand.content_path.c_str());
+      SetDefaultDisc();
+      return Boot_WiiWAD(nand.content_path);
     }
 
-    const DiscIO::IVolume* volume = nullptr;
-    if (!_StartupPara.m_strDVDRoot.empty())
+    bool operator()(const BootParameters::IPL& ipl) const
     {
-      NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      volume = SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
-                                                         _StartupPara.m_strApploader,
-                                                         _StartupPara.m_strFilename));
+      NOTICE_LOG(BOOT, "Booting GC IPL: %s", ipl.path.c_str());
+      if (!File::Exists(ipl.path))
+      {
+        if (ipl.disc)
+          PanicAlertT("Cannot start the game, because the GC IPL could not be found.");
+        else
+          PanicAlertT("Cannot find the GC IPL.");
+        return false;
+      }
+
+      if (!Load_BS2(ipl.path))
+        return false;
+
+      if (ipl.disc)
+      {
+        NOTICE_LOG(BOOT, "Inserting disc: %s", ipl.disc->path.c_str());
+        SetDisc(DiscIO::CreateVolumeFromFilename(ipl.disc->path));
+      }
+
+      if (LoadMapFromFilename())
+        HLE::PatchFunctions();
+
+      return true;
     }
-    else if (!_StartupPara.m_strDefaultISO.empty())
+
+    bool operator()(const BootParameters::DFF& dff) const
     {
-      NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      volume = SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
+      NOTICE_LOG(BOOT, "Booting DFF: %s", dff.dff_path.c_str());
+      return FifoPlayer::GetInstance().Open(dff.dff_path);
     }
 
-    // Poor man's bootup
-    if (dolWii)
-    {
-      HID4.SBE = 1;
-      SetupMSR();
-      SetupBAT(dolWii);
+  private:
+    const SConfig& config;
+  };
 
-      // Because there is no TMD to get the requested system (IOS) version from,
-      // we default to IOS58, which is the version used by the Homebrew Channel.
-      SetupWiiMemory(volume, 0x000000010000003a);
-    }
-    else
-    {
-      EmulatedBS2_GC(volume, true);
-    }
-
-    Load_FST(dolWii, volume);
-    dolLoader.Load();
-    PC = dolLoader.GetEntryPoint();
-
-    if (LoadMapFromFilename())
-      HLE::PatchFunctions();
-
-    break;
-  }
-
-  case SConfig::BOOT_ELF:
-  {
-    const DiscIO::IVolume* volume = nullptr;
-
-    // load image or create virtual drive from directory
-    if (!_StartupPara.m_strDVDRoot.empty())
-    {
-      NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      volume =
-          SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii));
-    }
-    else if (!_StartupPara.m_strDefaultISO.empty())
-    {
-      NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      volume = SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
-    }
-
-    // Poor man's bootup
-    if (_StartupPara.bWii)
-    {
-      // Because there is no TMD to get the requested system (IOS) version from,
-      // we default to IOS58, which is the version used by the Homebrew Channel.
-      SetupWiiMemory(volume, 0x000000010000003a);
-    }
-    else
-    {
-      EmulatedBS2_GC(volume, true);
-    }
-
-    Load_FST(_StartupPara.bWii, volume);
-    if (!Boot_ELF(_StartupPara.m_strFilename))
-      return false;
-
-    // Note: Boot_ELF calls HLE::PatchFunctions()
-
-    UpdateDebugger_MapLoaded();
-    Dolphin_Debugger::AddAutoBreakpoints();
-    break;
-  }
-
-  case SConfig::BOOT_WII_NAND:
-    Boot_WiiWAD(_StartupPara.m_strFilename);
-
-    PatchEngine::LoadPatches();
-
-    // Not bootstrapped yet, can't translate memory addresses. Thus, prevents Symbol Map usage.
-    // if (LoadMapFromFilename())
-    //   HLE::PatchFunctions();
-
-    // load default image or create virtual drive from directory
-    if (!_StartupPara.m_strDVDRoot.empty())
-      SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true));
-    else if (!_StartupPara.m_strDefaultISO.empty())
-      SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
-
-    break;
-
-  // Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
-  case SConfig::BOOT_BS2:
-  {
-    if (!Load_BS2(_StartupPara.m_strBootROM))
-      return false;
-
-    if (LoadMapFromFilename())
-      HLE::PatchFunctions();
-
-    break;
-  }
-
-  case SConfig::BOOT_DFF:
-    // do nothing
-    break;
-
-  default:
-  {
-    PanicAlertT("Tried to load an unknown file type.");
+  if (!std::visit(BootTitle(), boot->parameters))
     return false;
-  }
-  }
 
+  std::string game_id = SConfig::GetInstance().m_debugger_game_id;
+
+  if (ARBruteForcer::ch_bruteforce)
+	  ARBruteForcer::ParseMapFile(game_id);
+
+  //if (game_id.size() >= 4)
+  //  VideoInterface::SetRegionReg(game_id.at(3));
+  PatchEngine::LoadPatches();
   HLE::PatchFixedFunctions();
+  HideObjectEngine::LoadHideObjects();
+  HideObjectEngine::ApplyFrameHideObjects();
   return true;
 }
+
+BootExecutableReader::BootExecutableReader(const std::string& file_name)
+{
+  m_bytes.resize(File::GetSize(file_name));
+  File::IOFile file{file_name, "rb"};
+  file.ReadBytes(m_bytes.data(), m_bytes.size());
+}
+
+BootExecutableReader::BootExecutableReader(const std::vector<u8>& bytes) : m_bytes(bytes)
+{
+}
+
+BootExecutableReader::~BootExecutableReader() = default;

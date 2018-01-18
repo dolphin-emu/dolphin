@@ -18,7 +18,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/Boot/Boot_DOL.h"
+#include "Core/Boot/DolReader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -273,7 +273,7 @@ u16 Kernel::GetGidForPPC() const
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
-bool Kernel::BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
+bool Kernel::BootstrapPPC(const DiscIO::NANDContentLoader& content_loader)
 {
   if (!content_loader.IsValid())
     return false;
@@ -282,14 +282,15 @@ bool Kernel::BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
   if (!content)
     return false;
 
-  const auto dol_loader = std::make_unique<CDolLoader>(content->m_Data->Get());
+  const auto dol_loader = std::make_unique<DolReader>(content->m_Data->Get());
   if (!dol_loader->IsValid())
     return false;
 
   if (!SetupMemory(m_title_id, MemorySetupType::Full))
     return false;
 
-  dol_loader->Load();
+  if (!dol_loader->LoadIntoMemory())
+    return false;
 
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much

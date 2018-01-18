@@ -30,13 +30,13 @@ enum class Language;
 enum class Region;
 enum class Platform;
 
-class CVolumeDirectory : public IVolume
+class VolumeDirectory : public Volume
 {
 public:
-  CVolumeDirectory(const std::string& directory, bool is_wii, const std::string& apploader = "",
-                   const std::string& dol = "");
+  VolumeDirectory(const std::string& directory, bool is_wii, const std::string& apploader = "",
+                  const std::string& dol = "");
 
-  ~CVolumeDirectory();
+  ~VolumeDirectory();
 
   static bool IsValidDirectory(const std::string& directory);
 

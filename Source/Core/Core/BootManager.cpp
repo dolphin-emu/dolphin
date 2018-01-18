@@ -31,6 +31,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/Config/Config.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
@@ -223,25 +224,23 @@ void ConfigCache::RestoreConfig(SConfig* config)
 static ConfigCache config_cache;
 
 // Boot the ISO or file
-bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
+bool BootCore(std::unique_ptr<BootParameters> boot)
 {
+  if (!boot)
+    return false;
+
   SConfig& StartUp = SConfig::GetInstance();
 
-  StartUp.m_BootType = SConfig::BOOT_ISO;
-  StartUp.m_strFilename = filename;
-  StartUp.m_LastFilename = filename;
-  StartUp.SaveSettings();
   StartUp.bRunCompareClient = false;
   StartUp.bRunCompareServer = false;
 
   config_cache.SaveConfig(StartUp);
 
-  // If for example the ISO file is bad we return here
-  if (!StartUp.AutoSetup(type))
+  if (!StartUp.SetPathsAndGameMetadata(*boot))
     return false;
 
   // Load game specific settings
-  if (type == SConfig::BOOT_DEFAULT)
+  if (!std::holds_alternative<BootParameters::IPL>(boot->parameters))
   {
     std::string game_id = SConfig::GetInstance().GetGameID();
     u16 revision = SConfig::GetInstance().GetRevision();
@@ -442,15 +441,14 @@ bool BootCore(const std::string& filename, SConfig::EBootBS2 type)
   if (StartUp.bWii)
     StartUp.SaveSettingsToSysconf();
 
-  // Run the game
-  // Init the core
-  if (!Core::Init())
+  const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
+                        std::holds_alternative<BootParameters::Disc>(boot->parameters);
+  if (load_ipl)
   {
-    PanicAlertT("Couldn't init the core.\nCheck your configuration.");
-    return false;
+    return Core::Init(std::make_unique<BootParameters>(BootParameters::IPL{
+        StartUp.m_region, std::move(std::get<BootParameters::Disc>(boot->parameters))}));
   }
-
-  return true;
+  return Core::Init(std::move(boot));
 }
 
 void Stop()

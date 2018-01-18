@@ -17,18 +17,18 @@
 
 namespace DiscIO
 {
-class IBlobReader;
+class BlobReader;
 enum class BlobType;
 enum class Country;
 enum class Language;
 enum class Region;
 enum class Platform;
 
-class CVolumeGC : public IVolume
+class VolumeGC : public Volume
 {
 public:
-  CVolumeGC(std::unique_ptr<IBlobReader> reader);
-  ~CVolumeGC();
+  VolumeGC(std::unique_ptr<BlobReader> reader);
+  ~VolumeGC();
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer,
             const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
@@ -93,7 +93,7 @@ private:
   mutable int m_image_height = 0;
   mutable int m_image_width = 0;
 
-  std::unique_ptr<IBlobReader> m_pReader;
+  std::unique_ptr<BlobReader> m_pReader;
 };
 
 }  // namespace

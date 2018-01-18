@@ -36,10 +36,10 @@ enum class BlobType
   TGC
 };
 
-class IBlobReader
+class BlobReader
 {
 public:
-  virtual ~IBlobReader() {}
+  virtual ~BlobReader() {}
   virtual BlobType GetBlobType() const = 0;
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;
@@ -56,13 +56,13 @@ public:
   }
 
 protected:
-  IBlobReader() {}
+  BlobReader() {}
 };
 
 // Provides caching and byte-operation-to-block-operations facilities.
 // Used for compressed blob and direct drive reading.
 // NOTE: GetDataSize() is expected to be evenly divisible by the sector size.
-class SectorReader : public IBlobReader
+class SectorReader : public BlobReader
 {
 public:
   virtual ~SectorReader() = 0;
@@ -151,8 +151,8 @@ private:
 	std::array<Cache, CACHE_LINES> m_cache;
 };
 
-// Factory function - examines the path to choose the right type of IBlobReader, and returns one.
-std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename);
+// Factory function - examines the path to choose the right type of BlobReader, and returns one.
+std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename);
 
 typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 

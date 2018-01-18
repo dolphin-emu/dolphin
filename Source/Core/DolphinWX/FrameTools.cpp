@@ -31,6 +31,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ARBruteForcer.h"
+#include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -57,6 +58,7 @@
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/State.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/VolumeWad.h"
@@ -330,7 +332,9 @@ void CFrame::BootGame(const std::string& filename)
   }
   if (!bootfile.empty())
   {
-    StartGame(bootfile);
+	StartUp.m_LastFilename = bootfile;
+	StartUp.SaveSettings();
+	StartGame(BootParameters::GenerateFromFile(bootfile));
   }
 }
 
@@ -655,7 +659,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
 }
 
 // Prepare the GUI to start the game.
-void CFrame::StartGame(const std::string& filename, SConfig::EBootBS2 type)
+void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
 {
   if (m_is_game_loading)
     return;
@@ -777,7 +781,7 @@ void CFrame::StartGame(const std::string& filename, SConfig::EBootBS2 type)
 
   SetDebuggerStartupParameters();
 
-  if (!BootManager::BootCore(filename, type))
+  if (!BootManager::BootCore(std::move(boot)))
   {
     DoFullscreen(false);
 
@@ -794,7 +798,7 @@ void CFrame::StartGame(const std::string& filename, SConfig::EBootBS2 type)
   {
     InhibitScreensaver();
     SConfig& StartUp = SConfig::GetInstance();
-    VR_SetGame(StartUp.bWii, StartUp.m_BootType == SConfig::BOOT_WII_NAND, StartUp.GetGameID());
+    VR_SetGame(StartUp.bWii, StartUp.m_is_nand, StartUp.GetGameID());
 
     // We need this specifically to support setting the focus properly when using
     // the 'render to main window' feature on Windows
@@ -1296,17 +1300,17 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLoadGameCubeIPLJAP(wxCommandEvent&)
 {
-  StartGame("", SConfig::BOOT_BS2_JAP);
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{DiscIO::Region::NTSC_J}));
 }
 
 void CFrame::OnLoadGameCubeIPLUSA(wxCommandEvent&)
 {
-  StartGame("", SConfig::BOOT_BS2_USA);
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{DiscIO::Region::NTSC_U}));
 }
 
 void CFrame::OnLoadGameCubeIPLEUR(wxCommandEvent&)
 {
-  StartGame("", SConfig::BOOT_BS2_EUR);
+  StartGame(std::make_unique<BootParameters>(BootParameters::IPL{DiscIO::Region::PAL}));
 }
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))
@@ -1553,7 +1557,7 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
   {
     NOTICE_LOG(VR, "running");
     std::string existing_map_file, writable_map_file, title_id_str;
-    bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file, &title_id_str);
+    bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
     if (!map_exists)
     {
       NOTICE_LOG(VR, "map doesn't exist, creating");
@@ -1783,7 +1787,7 @@ void CFrame::UpdateGUI()
   GetMenuBar()
       ->FindItem(IDM_LOAD_GC_IPL_EUR)
       ->Enable(!Initialized && File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)));
-  if (DiscIO::CNANDContentManager::Access()
+  if (DiscIO::NANDContentManager::Access()
           .GetNANDLoader(TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT)
           .IsValid())
     GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);

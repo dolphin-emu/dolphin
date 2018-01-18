@@ -4,6 +4,10 @@
 
 #pragma once
 
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(__MWERKS__)
+#pragma warning(push)
+#pragma warning(disable: 4067)
+#endif
 #if __has_include_next(<variant>)
 #include_next <variant>
 #else
@@ -220,9 +224,9 @@ namespace std {
 #define MPARK_CONFIG_HPP
 
 // MSVC 2015 Update 3.
-#if __cplusplus < 201103L && (!defined(_MSC_VER) || _MSC_FULL_VER < 190024215)
-#error "MPark.Variant requires C++11 support."
-#endif
+//#if __cplusplus < 201103L && (!defined(_MSC_VER) || _MSC_FULL_VER < 190024215)
+//#error "MPark.Variant requires C++11 support."
+//#endif
 
 #ifndef __has_builtin
 #define __has_builtin(x) 0
@@ -232,7 +236,7 @@ namespace std {
 #define __has_feature(x) 0
 #endif
 
-#if __has_builtin(__builtin_addressof) || __GNUC__ >= 7 || defined(_MSC_VER)
+#if __has_builtin(__builtin_addressof) || __GNUC__ >= 7 || (defined(_MSC_VER) && _MSC_FULL_VER >= 190024215)
 #define MPARK_BUILTIN_ADDRESSOF
 #endif
 
@@ -2353,4 +2357,7 @@ using mpark::variant_size;
 using mpark::variant_alternative;
 using mpark::variant_alternative_t;
 }  // namespace std
+#endif
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && !defined(__MWERKS__)
+#pragma warning(pop)
 #endif

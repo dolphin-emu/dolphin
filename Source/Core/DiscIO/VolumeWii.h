@@ -19,18 +19,18 @@
 
 namespace DiscIO
 {
-class IBlobReader;
+class BlobReader;
 enum class BlobType;
 enum class Country;
 enum class Language;
 enum class Region;
 enum class Platform;
 
-class CVolumeWiiCrypted : public IVolume
+class VolumeWii : public Volume
 {
 public:
-  CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader);
-  ~CVolumeWiiCrypted();
+  VolumeWii(std::unique_ptr<BlobReader> reader);
+  ~VolumeWii();
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const override;
   std::vector<Partition> GetPartitions() const override;
   Partition GetGamePartition() const override;
@@ -63,7 +63,7 @@ public:
   static constexpr unsigned int BLOCK_TOTAL_SIZE = BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
 
 private:
-  std::unique_ptr<IBlobReader> m_pReader;
+  std::unique_ptr<BlobReader> m_pReader;
   std::map<Partition, std::unique_ptr<mbedtls_aes_context>> m_partition_keys;
   std::map<Partition, IOS::ES::TicketReader> m_partition_tickets;
   std::map<Partition, IOS::ES::TMDReader> m_partition_tmds;

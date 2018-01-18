@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -27,6 +28,8 @@
 #ifdef __APPLE__
 #include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
+
+struct BootParameters;
 
 // Class declarations
 class CGameListCtrl;
@@ -184,7 +187,7 @@ private:
   void InitializeTASDialogs();
   void InitializeCoreCallbacks();
 
-  void StartGame(const std::string& filename, SConfig::EBootBS2 type = SConfig::BOOT_DEFAULT);
+  void StartGame(std::unique_ptr<BootParameters> boot);
   void SetDebuggerStartupParameters() const;
 
   // Utility

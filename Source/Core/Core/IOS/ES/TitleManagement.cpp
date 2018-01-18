@@ -375,8 +375,8 @@ ReturnCode ES::DeleteTitle(u64 title_id)
     ERROR_LOG(IOS_ES, "DeleteTitle: Failed to delete title directory: %s", title_dir.c_str());
     return FS_EACCESS;
   }
-  // XXX: ugly, but until we drop CNANDContentManager everywhere, this is going to be needed.
-  DiscIO::CNANDContentManager::Access().ClearCache();
+  // XXX: ugly, but until we drop NANDContentManager everywhere, this is going to be needed.
+  DiscIO::NANDContentManager::Access().ClearCache();
 
   return IPC_SUCCESS;
 }

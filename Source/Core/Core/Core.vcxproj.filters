@@ -182,13 +182,10 @@
     <ClCompile Include="Boot\Boot_BS2Emu.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
-    <ClCompile Include="Boot\Boot_DOL.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
-    <ClCompile Include="Boot\Boot_ELF.cpp">
-      <Filter>Boot</Filter>
-    </ClCompile>
     <ClCompile Include="Boot\Boot_WiiWAD.cpp">
+      <Filter>Boot</Filter>
+    </ClCompile>
+    <ClCompile Include="Boot\DolReader.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
     <ClCompile Include="Boot\ElfReader.cpp">
@@ -894,7 +891,7 @@
     <ClInclude Include="Boot\Boot.h">
       <Filter>Boot</Filter>
     </ClInclude>
-    <ClInclude Include="Boot\Boot_DOL.h">
+    <ClInclude Include="Boot\DolReader.h">
       <Filter>Boot</Filter>
     </ClInclude>
     <ClInclude Include="Boot\ElfReader.h">

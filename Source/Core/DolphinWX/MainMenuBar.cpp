@@ -609,7 +609,7 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
 {
   auto* const item = FindItem(IDM_LOAD_WII_MENU);
 
-  const auto& sys_menu_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(
+  const auto& sys_menu_loader = DiscIO::NANDContentManager::Access().GetNANDLoader(
       TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT);
 
   if (sys_menu_loader.IsValid())

@@ -15,7 +15,7 @@
 namespace DiscIO
 {
 // file info of an FST entry
-struct SFileInfo
+struct FileInfo
 {
   u64 m_NameOffset = 0u;
   u64 m_Offset = 0u;
@@ -23,23 +23,23 @@ struct SFileInfo
   std::string m_FullPath;
 
   bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0; }
-  SFileInfo(u64 name_offset, u64 offset, u64 filesize)
+  FileInfo(u64 name_offset, u64 offset, u64 filesize)
       : m_NameOffset(name_offset), m_Offset(offset), m_FileSize(filesize)
   {
   }
 
-  SFileInfo(SFileInfo const&) = default;
-  SFileInfo() = default;
+  FileInfo(FileInfo const&) = default;
+  FileInfo() = default;
 };
 
-class IFileSystem
+class FileSystem
 {
 public:
-  IFileSystem(const IVolume* _rVolume, const Partition& partition);
+  FileSystem(const Volume* _rVolume, const Partition& partition);
 
-  virtual ~IFileSystem();
+  virtual ~FileSystem();
   virtual bool IsValid() const = 0;
-  virtual const std::vector<SFileInfo>& GetFileList() = 0;
+  virtual const std::vector<FileInfo>& GetFileList() = 0;
   virtual u64 GetFileSize(const std::string& _rFullPath) = 0;
   virtual u64 ReadFile(const std::string& _rFullPath, u8* _pBuffer, u64 _MaxBufferSize,
                        u64 _OffsetInFile = 0) = 0;
@@ -52,10 +52,10 @@ public:
 
   virtual const Partition GetPartition() const { return m_partition; }
 protected:
-  const IVolume* const m_rVolume;
+  const Volume* const m_rVolume;
   const Partition m_partition;
 };
 
-std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume, const Partition& partition);
+std::unique_ptr<FileSystem> CreateFileSystem(const Volume* volume, const Partition& partition);
 
 }  // namespace

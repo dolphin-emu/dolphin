@@ -92,7 +92,7 @@ u32 ARMBinary::GetElfSize() const
 static std::vector<u8> GetMIOSBinary()
 {
   const auto& loader =
-      DiscIO::CNANDContentManager::Access().GetNANDLoader(MIOS_TITLE_ID, Common::FROM_SESSION_ROOT);
+      DiscIO::NANDContentManager::Access().GetNANDLoader(MIOS_TITLE_ID, Common::FROM_SESSION_ROOT);
   if (!loader.IsValid())
     return {};
 
@@ -134,8 +134,7 @@ bool Load()
     return false;
   }
 
-  std::vector<u8> elf_bytes = mios.GetElf();
-  ElfReader elf{elf_bytes.data()};
+  ElfReader elf{mios.GetElf()};
   if (!elf.LoadIntoMemory(true))
   {
     PanicAlertT("Failed to load MIOS ELF into memory.");
@@ -168,7 +167,7 @@ bool Load()
 
   Memory::Write_U32(0x00000000, ADDRESS_INIT_SEMAPHORE);
   NOTICE_LOG(IOS, "IPL ready.");
-  SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
+  SConfig::GetInstance().m_is_mios = true;
   DVDInterface::UpdateRunningGameMetadata();
   return true;
 }

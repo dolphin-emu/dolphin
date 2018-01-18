@@ -120,7 +120,8 @@ enum class GuitarGroup
   Frets,
   Strum,
   Whammy,
-  Stick
+  Stick,
+  SliderBar
 };
 
 enum class DrumsGroup
