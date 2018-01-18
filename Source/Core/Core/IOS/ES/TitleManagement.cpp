@@ -20,7 +20,6 @@
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/ES/NandUtils.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 
@@ -96,7 +95,7 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   if (!context.title_import.tmd.IsValid())
     return ES_EINVAL;
 
-  if (!IOS::ES::InitImport(context.title_import.tmd.GetTitleId()))
+  if (!InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
 
   return IPC_SUCCESS;
@@ -115,15 +114,6 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
   return GetDefaultReply(ImportTmd(context, tmd));
 }
 
-static void CleanUpStaleImport(const u64 title_id)
-{
-  const auto import_tmd = IOS::ES::FindImportTMD(title_id);
-  if (!import_tmd.IsValid())
-    File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
-  else
-    IOS::ES::FinishImport(import_tmd);
-}
-
 ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes)
 {
   INFO_LOG(IOS_ES, "ImportTitleInit");
@@ -135,9 +125,9 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   }
 
   // Finish a previous import (if it exists).
-  CleanUpStaleImport(context.title_import.tmd.GetTitleId());
+  FinishStaleImport(context.title_import.tmd.GetTitleId());
 
-  if (!IOS::ES::InitImport(context.title_import.tmd.GetTitleId()))
+  if (!InitImport(context.title_import.tmd.GetTitleId()))
     return ES_EIO;
 
   // TODO: check and use the other vectors.
@@ -340,7 +330,7 @@ ReturnCode ES::ImportTitleCancel(Context& context)
   if (!context.title_import.tmd.IsValid())
     return ES_EINVAL;
 
-  CleanUpStaleImport(context.title_import.tmd.GetTitleId());
+  FinishStaleImport(context.title_import.tmd.GetTitleId());
 
   INFO_LOG(IOS_ES, "ImportTitleCancel: title %016" PRIx64, context.title_import.tmd.GetTitleId());
   context.title_import.tmd.SetBytes({});
@@ -467,7 +457,7 @@ ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
 
-  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  const auto tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return FS_ENOENT;
 
@@ -501,7 +491,7 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   if (context.title_export.valid)
     return ES_EINVAL;
 
-  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  const auto tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return FS_ENOENT;
 
@@ -686,12 +676,12 @@ ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
     return ES_EINVAL;
 
   // Check whether the shared content is used by a system title.
-  const std::vector<u64> titles = IOS::ES::GetInstalledTitles();
-  const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&sha1](u64 id) {
+  const std::vector<u64> titles = GetInstalledTitles();
+  const bool is_used_by_system_title = std::any_of(titles.begin(), titles.end(), [&](u64 id) {
     if (!IOS::ES::IsTitleType(id, IOS::ES::TitleType::System))
       return false;
 
-    const auto tmd = IOS::ES::FindInstalledTMD(id);
+    const auto tmd = FindInstalledTMD(id);
     if (!tmd.IsValid())
       return true;
 

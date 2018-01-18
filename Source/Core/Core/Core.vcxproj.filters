@@ -1391,9 +1391,6 @@
     <ClInclude Include="IOS\ES\ES.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\ES\NandUtils.h">
-      <Filter>IOS\ES</Filter>
-    </ClInclude>
     <ClInclude Include="IOS\FS\FileIO.h">
       <Filter>IOS\FS</Filter>
     </ClInclude>

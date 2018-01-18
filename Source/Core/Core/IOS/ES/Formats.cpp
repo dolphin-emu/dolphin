@@ -154,6 +154,11 @@ u64 TMDReader::GetTitleId() const
   return Common::swap64(m_bytes.data() + offsetof(TMDHeader, title_id));
 }
 
+u32 TMDReader::GetTitleFlags() const
+{
+  return Common::swap32(m_bytes.data() + offsetof(TMDHeader, title_flags));
+}
+
 u16 TMDReader::GetTitleVersion() const
 {
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, title_version));

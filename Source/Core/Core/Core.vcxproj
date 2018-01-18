@@ -445,7 +445,6 @@
     <ClInclude Include="IOS\DI\DI.h" />
     <ClInclude Include="IOS\ES\ES.h" />
     <ClInclude Include="IOS\ES\Formats.h" />
-    <ClInclude Include="IOS\ES\NandUtils.h" />
     <ClInclude Include="IOS\FS\FileIO.h" />
     <ClInclude Include="IOS\FS\FS.h" />
     <ClInclude Include="IOS\Network\ICMPLin.h" />

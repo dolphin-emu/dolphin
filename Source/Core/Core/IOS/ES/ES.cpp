@@ -19,7 +19,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/ES/NandUtils.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -34,26 +33,6 @@ static TitleContext s_title_context;
 
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
 static u64 s_title_to_launch;
-
-static void FinishAllStaleImports()
-{
-  const std::vector<u64> titles = IOS::ES::GetTitleImports();
-  for (const u64& title_id : titles)
-  {
-    const IOS::ES::TMDReader tmd = IOS::ES::FindImportTMD(title_id);
-    if (!tmd.IsValid())
-    {
-      File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
-      continue;
-    }
-
-    FinishImport(tmd);
-  }
-
-  const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
-  File::DeleteDirRecursively(import_dir);
-  File::CreateDir(import_dir);
-}
 
 ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -193,7 +172,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
     return GetDefaultReply(ret);
   }
 
-  const auto tmd = IOS::ES::FindInstalledTMD(title_id);
+  const auto tmd = FindInstalledTMD(title_id);
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
@@ -514,11 +493,12 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GET_TICKET_FROM_VIEW:
     return GetTicketFromView(request);
 
+  case IOCTL_ES_SET_UP_STREAM_KEY:
+    return SetUpStreamKey(*context, request);
   case IOCTL_ES_DELETE_STREAM_KEY:
     return DeleteStreamKey(request);
 
   case IOCTL_ES_VERIFYSIGN:
-  case IOCTL_ES_UNKNOWN_3C:
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
@@ -646,6 +626,118 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   return IPC_SUCCESS;
 }
 
+constexpr u32 FIRST_PPC_UID = 0x1000;
+
+ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
+                                         const IOS::ES::TMDReader& tmd) const
+{
+  const u32 title_flags = tmd.GetTitleFlags();
+  // Only allow using this function with some titles (WFS titles).
+  // The following is the exact check from IOS. Unfortunately, other than knowing that the
+  // title type is what IOS checks, we don't know much about the constants used here.
+  constexpr u32 WFS_AND_0x4_FLAG = IOS::ES::TITLE_TYPE_0x4 | IOS::ES::TITLE_TYPE_WFS_MAYBE;
+  if ((!(title_flags & IOS::ES::TITLE_TYPE_0x4) && ~(title_flags >> 5) & 1) ||
+      (title_flags & WFS_AND_0x4_FLAG) == WFS_AND_0x4_FLAG)
+  {
+    return ES_EINVAL;
+  }
+
+  // This function can only be used by specific UIDs, depending on the title type.
+  // It cannot be used at all internally, unless the request comes from the WFS process.
+  // It can only be used from the PPC for some title types.
+  // Note: PID 0x19 is used by the WFS modules.
+  if (uid < FIRST_PPC_UID && uid != PID_UNKNOWN)
+    return ES_EINVAL;
+
+  // If the title type is of this specific type, then this function is limited to WFS.
+  if (title_flags & IOS::ES::TITLE_TYPE_WFS_MAYBE && uid != PID_UNKNOWN)
+    return ES_EINVAL;
+
+  const u64 view_title_id = Common::swap64(ticket_view + offsetof(IOS::ES::TicketView, title_id));
+  if (view_title_id != tmd.GetTitleId())
+    return ES_EINVAL;
+
+  // More permission checks.
+  const u32 permitted_title_mask =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
+  const u32 permitted_title_id =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
+  if ((uid == PID_UNKNOWN && (~permitted_title_mask & 0x13) != permitted_title_id) ||
+      !IsActiveTitlePermittedByTicket(ticket_view))
+  {
+    return ES_EACCES;
+  }
+
+  return IPC_SUCCESS;
+}
+
+ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
+                              u32* handle)
+{
+  ReturnCode ret = CheckStreamKeyPermissions(uid, ticket_view, tmd);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  // TODO (for the future): signature checks.
+
+  // Find a signed ticket from the view.
+  const u64 ticket_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, ticket_id)]);
+  const u64 title_id = Common::swap64(&ticket_view[offsetof(IOS::ES::TicketView, title_id)]);
+  const IOS::ES::TicketReader installed_ticket = DiscIO::FindSignedTicket(title_id);
+  // Unlike the other "get ticket from view" function, this returns a FS error, not ES_NO_TICKET.
+  if (!installed_ticket.IsValid())
+    return FS_ENOENT;
+  const std::vector<u8> ticket_bytes = installed_ticket.GetRawTicket(ticket_id);
+  if (ticket_bytes.empty())
+    return ES_NO_TICKET;
+
+  // Create the handle and return it.
+  std::array<u8, 16> iv{};
+  std::memcpy(iv.data(), &title_id, sizeof(title_id));
+  ret = m_ios.GetIOSC().CreateObject(handle, IOSC::ObjectType::TYPE_SECRET_KEY,
+                                     IOSC::ObjectSubType::SUBTYPE_AES128, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  const u32 owner_uid = uid >= FIRST_PPC_UID ? PID_PPCBOOT : uid;
+  ret = m_ios.GetIOSC().SetOwnership(*handle, 1 << owner_uid, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
+  if (index > 1)
+    return ES_INVALID_TICKET;
+
+  auto common_key_handle = index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY;
+  return m_ios.GetIOSC().ImportSecretKey(*handle, common_key_handle, iv.data(),
+                                         &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)],
+                                         PID_ES);
+}
+
+IPCCommandResult ES::SetUpStreamKey(const Context& context, const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(2, 1) ||
+      request.in_vectors[0].size != sizeof(IOS::ES::TicketView) ||
+      !IOS::ES::IsValidTMDSize(request.in_vectors[1].size) ||
+      request.io_vectors[0].size != sizeof(u32))
+  {
+    return GetDefaultReply(ES_EINVAL);
+  }
+
+  std::vector<u8> tmd_bytes(request.in_vectors[1].size);
+  Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[1].address, tmd_bytes.size());
+  const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+
+  if (!tmd.IsValid())
+    return GetDefaultReply(ES_EINVAL);
+
+  u32 handle;
+  const ReturnCode ret =
+      SetUpStreamKey(context.uid, Memory::GetPointer(request.in_vectors[0].address), tmd, &handle);
+  Memory::Write_U32(handle, request.io_vectors[0].address);
+  return GetDefaultReply(ret);
+}
+
 IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != sizeof(u32))
@@ -653,6 +745,19 @@ IPCCommandResult ES::DeleteStreamKey(const IOCtlVRequest& request)
 
   const u32 handle = Memory::Read_U32(request.in_vectors[0].address);
   return GetDefaultReply(m_ios.GetIOSC().DeleteObject(handle, PID_ES));
+}
+
+bool ES::IsActiveTitlePermittedByTicket(const u8* ticket_view) const
+{
+  if (!GetTitleContext().active)
+    return false;
+
+  const u32 title_identifier = static_cast<u32>(GetTitleContext().tmd.GetTitleId());
+  const u32 permitted_title_mask =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_mask));
+  const u32 permitted_title_id =
+      Common::swap32(ticket_view + offsetof(IOS::ES::TicketView, permitted_title_id));
+  return title_identifier && (title_identifier & ~permitted_title_mask) == permitted_title_id;
 }
 }  // namespace Device
 }  // namespace HLE
