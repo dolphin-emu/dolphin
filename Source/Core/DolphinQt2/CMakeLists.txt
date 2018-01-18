@@ -9,6 +9,7 @@ set(CMAKE_AUTOMOC ON)
 
 set(SRCS
   AboutDialog.cpp
+  HotkeyScheduler.cpp
   Host.cpp
   InDevelopmentWarning.cpp
   Main.cpp
@@ -24,6 +25,12 @@ set(SRCS
   Config/Mapping/GCKeyboardEmu.cpp
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiU.cpp
+  Config/Mapping/Hotkey3D.cpp
+  Config/Mapping/HotkeyGeneral.cpp
+  Config/Mapping/HotkeyGraphics.cpp
+  Config/Mapping/HotkeyStates.cpp
+  Config/Mapping/HotkeyTAS.cpp
+  Config/Mapping/HotkeyWii.cpp
   Config/Mapping/MappingBool.cpp
   Config/Mapping/MappingButton.cpp
   Config/Mapping/MappingNumeric.cpp
@@ -41,6 +48,7 @@ set(SRCS
   GameList/ListProxyModel.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/FocusEventFilter.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp
