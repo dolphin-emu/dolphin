@@ -12,6 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ARBruteForcer.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -22,6 +23,8 @@
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
+static bool s_has_registered_callback = false;
+
 // VR settings need to be saved manually, with a prompt if settings are changed. This detects when
 // they have changed.
 VideoConfig g_SavedConfig;
@@ -147,49 +150,55 @@ VideoConfig::VideoConfig()
   fHudDespPosition1 = 0;
   fHudDespPosition2 = 0;
   Matrix33::LoadIdentity(matrixHudrot);
+
+  iSelectedLayer = -2;
+  iFlashState = 0;
 }
 
-void VideoConfig::Load(const std::string& ini_file)
+void VideoConfig::Refresh()
 {
-  IniFile iniFile;
-  iniFile.Load(ini_file);
+  INFO_LOG(CORE, "VideoConfig::Refresh();");
+  if (!s_has_registered_callback)
+  {
+    Config::AddConfigChangedCallback([]() { g_Config.Refresh(); });
+    s_has_registered_callback = true;
+  }
 
-  IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
   if (ARBruteForcer::ch_bruteforce)
     bVSync = false;
   else
-    hardware->Get("VSync", &bVSync, false);
-  hardware->Get("Adapter", &iAdapter, 0);
+    bVSync = Config::Get(Config::GFX_VSYNC);
+  iAdapter = Config::Get(Config::GFX_ADAPTER);
 
-  IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
-  settings->Get("wideScreenHack", &bWidescreenHack, false);
-  settings->Get("AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
-  settings->Get("Crop", &bCrop, false);
-  settings->Get("UseXFB", &bUseXFB, false);
-  settings->Get("UseRealXFB", &bUseRealXFB, false);
-  settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 128);
-  settings->Get("ShowFPS", &bShowFPS, false);
-  settings->Get("ShowNetPlayPing", &bShowNetPlayPing, false);
-  settings->Get("ShowNetPlayMessages", &bShowNetPlayMessages, false);
-  settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
-  settings->Get("OverlayStats", &bOverlayStats, false);
-  settings->Get("OverlayProjStats", &bOverlayProjStats, false);
-  settings->Get("DumpTextures", &bDumpTextures, false);
-  settings->Get("HiresTextures", &bHiresTextures, false);
-  settings->Get("ConvertHiresTextures", &bConvertHiresTextures, false);
-  settings->Get("CacheHiresTextures", &bCacheHiresTextures, false);
-  settings->Get("DumpEFBTarget", &bDumpEFBTarget, false);
-  settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, false);
-  settings->Get("FreeLook", &bFreeLook, false);
-  settings->Get("UseFFV1", &bUseFFV1, false);
-  settings->Get("DumpFormat", &sDumpFormat, "avi");
-  settings->Get("DumpCodec", &sDumpCodec, "");
-  settings->Get("DumpPath", &sDumpPath, "");
-  settings->Get("BitrateKbps", &iBitrateKbps, 2500);
-  settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, false);
-  settings->Get("EnableGPUTextureDecoding", &bEnableGPUTextureDecoding, false);
-  settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
-  settings->Get("FastDepthCalc", &bFastDepthCalc, true);
+  bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
+  iAspectRatio = Config::Get(Config::GFX_ASPECT_RATIO);
+  bCrop = Config::Get(Config::GFX_CROP);
+  bUseXFB = Config::Get(Config::GFX_USE_XFB);
+  bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
+  iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
+  bShowNetPlayPing = Config::Get(Config::GFX_SHOW_NETPLAY_PING);
+  bShowNetPlayMessages = Config::Get(Config::GFX_SHOW_NETPLAY_MESSAGES);
+  bLogRenderTimeToFile = Config::Get(Config::GFX_LOG_RENDER_TIME_TO_FILE);
+  bOverlayStats = Config::Get(Config::GFX_OVERLAY_STATS);
+  bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
+  bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
+  bHiresTextures = Config::Get(Config::GFX_HIRES_TEXTURES);
+  bConvertHiresTextures = Config::Get(Config::GFX_CONVERT_HIRES_TEXTURES);
+  bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
+  bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
+  bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
+  bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
+  bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
+  sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
+  sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
+  sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
+  iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
+  bInternalResolutionFrameDumps = Config::Get(Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
+  bEnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  bEnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
+  bFastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
+
   if (ARBruteForcer::ch_bruteforce)
   {
     iMultisamples = 0;
@@ -198,61 +207,203 @@ void VideoConfig::Load(const std::string& ini_file)
   }
   else
   {
-    settings->Get("MSAA", &iMultisamples, 0);
-    settings->Get("SSAA", &bSSAA, false);
-    settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X);  // native
+    iMultisamples = Config::Get(Config::GFX_MSAA);
+    bSSAA = Config::Get(Config::GFX_SSAA);
+    iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
   }
-  settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, false);
-  settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, false);
-  settings->Get("WireFrame", &bWireFrame, false);
-  settings->Get("DisableFog", &bDisableFog, false);
-  settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
-  settings->Get("EnableValidationLayer", &bEnableValidationLayer, false);
-  settings->Get("BackendMultithreading", &bBackendMultithreading, true);
-  settings->Get("CommandBufferExecuteInterval", &iCommandBufferExecuteInterval, 100);
-  settings->Get("ShaderCache", &bShaderCache, true);
 
-  settings->Get("SWZComploc", &bZComploc, true);
-  settings->Get("SWZFreeze", &bZFreeze, true);
-  settings->Get("SWDumpObjects", &bDumpObjects, false);
-  settings->Get("SWDumpTevStages", &bDumpTevStages, false);
-  settings->Get("SWDumpTevTexFetches", &bDumpTevTextureFetches, false);
-  settings->Get("SWDrawStart", &drawStart, 0);
-  settings->Get("SWDrawEnd", &drawEnd, 100000);
+  bTexFmtOverlayEnable = Config::Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
+  bTexFmtOverlayCenter = Config::Get(Config::GFX_TEXFMT_OVERLAY_CENTER);
+  bWireFrame = Config::Get(Config::GFX_ENABLE_WIREFRAME);
+  bDisableFog = Config::Get(Config::GFX_DISABLE_FOG);
+  bBorderlessFullscreen = Config::Get(Config::GFX_BORDERLESS_FULLSCREEN);
+  bEnableValidationLayer = Config::Get(Config::GFX_ENABLE_VALIDATION_LAYER);
+  bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
+  iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
+  bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
 
-  IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
-  enhancements->Get("ForceFiltering", &bForceFiltering, false);
-  enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
-  enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
-  enhancements->Get("ForceTrueColor", &bForceTrueColor, true);
+  bZComploc = Config::Get(Config::GFX_SW_ZCOMPLOC);
+  bZFreeze = Config::Get(Config::GFX_SW_ZFREEZE);
+  bDumpObjects = Config::Get(Config::GFX_SW_DUMP_OBJECTS);
+  bDumpTevStages = Config::Get(Config::GFX_SW_DUMP_TEV_STAGES);
+  bDumpTevTextureFetches = Config::Get(Config::GFX_SW_DUMP_TEV_TEX_FETCHES);
+  drawStart = Config::Get(Config::GFX_SW_DRAW_START);
+  drawEnd = Config::Get(Config::GFX_SW_DRAW_END);
+
+  bForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
+  iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   if ((g_has_rift || g_has_openvr) && backend_info.bSupportsGeometryShaders)
     iStereoMode = STEREO_OCULUS;
 
-  IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
-  stereoscopy->Get("StereoMode", &iStereoMode, 0);
-  stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
-  stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
-  stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
+  iStereoMode = Config::Get(Config::GFX_STEREO_MODE);
+  iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
+  iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
+  bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
+  iStereoConvergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
+  bStereoEFBMonoDepth = Config::Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
+  iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
 
-  IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
-  hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
-  hacks->Get("BBoxEnable", &bBBoxEnable, false);
-  hacks->Get("BBoxPreferStencilImplementation", &bBBoxPreferStencilImplementation, false);
-  hacks->Get("ForceProgressive", &bForceProgressive, true);
-  hacks->Get("EFBCopyEnable", &bEFBCopyEnable, true);
-  hacks->Get("EFBCopyClearDisable", &bEFBCopyClearDisable, false);
-  hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
-  hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
-  hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
-  hacks->Get("VertexRounding", &bVertexRounding, false);
+  bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  bBBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
+  bBBoxPreferStencilImplementation =
+      Config::Get(Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION);
+  bForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+  bEFBCopyEnable = Config::Get(Config::GFX_HACK_EFB_COPY_ENABLE);
+  bEFBCopyClearDisable = Config::Get(Config::GFX_HACK_EFB_COPY_CLEAR_DISABLE);
+  bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_ENABLED);
+  bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
 
-  // hacks which are disabled by default
-  iPhackvalue[0] = 0;
-  bPerfQueriesEnable = false;
+  iPhackvalue[0] = Config::Get(Config::GFX_PROJECTION_HACK);
+  iPhackvalue[1] = Config::Get(Config::GFX_PROJECTION_HACK_SZNEAR);
+  iPhackvalue[2] = Config::Get(Config::GFX_PROJECTION_HACK_SZFAR);
+  sPhackvalue[0] = Config::Get(Config::GFX_PROJECTION_HACK_ZNEAR);
+  sPhackvalue[1] = Config::Get(Config::GFX_PROJECTION_HACK_ZFAR);
+  bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+  bDisable3D = Config::Get(Config::GFX_VR_DISABLE_3D);
+  bHudFullscreen = Config::Get(Config::GFX_VR_HUD_FULLSCREEN);
+  bHudOnTop = Config::Get(Config::GFX_VR_HUD_ON_TOP);
+  bDontClearScreen = Config::Get(Config::GFX_VR_DONT_CLEAR_SCREEN);
+  bCanReadCameraAngles = Config::Get(Config::GFX_VR_CAN_READ_CAMERA_ANGLES);
+  bDetectSkybox = Config::Get(Config::GFX_VR_DETECT_SKYBOX);
+  fUnitsPerMetre = Config::Get(Config::GFX_VR_UNITS_PER_METRE);
+  fHudThickness = Config::Get(Config::GFX_VR_HUD_THICKNESS);
+  fHudDistance = Config::Get(Config::GFX_VR_HUD_DISTANCE);
+  fHud3DCloser = Config::Get(Config::GFX_VR_HUD_3D_CLOSER);
+  fCameraForward = Config::Get(Config::GFX_VR_CAMERA_FORWARD);
+  fCameraPitch = Config::Get(Config::GFX_VR_CAMERA_PITCH);
+  fAimDistance = Config::Get(Config::GFX_VR_AIM_DISTANCE);
+  fMinFOV = Config::Get(Config::GFX_VR_MIN_FOV);
+  fN64FOV = Config::Get(Config::GFX_VR_N64_FOV);
+  fScreenHeight = Config::Get(Config::GFX_VR_SCREEN_HEIGHT);
+  fScreenThickness = Config::Get(Config::GFX_VR_SCREEN_THICKNESS);
+  fScreenDistance = Config::Get(Config::GFX_VR_SCREEN_DISTANCE);
+  fScreenRight = Config::Get(Config::GFX_VR_SCREEN_RIGHT);
+  fScreenUp = Config::Get(Config::GFX_VR_SCREEN_UP);
+  fScreenPitch = Config::Get(Config::GFX_VR_SCREEN_PITCH);
+  iMetroidPrime = Config::Get(Config::GFX_VR_METROID_PRIME);
+  iTelescopeEye = Config::Get(Config::GFX_VR_TELESCOPE_EYE);
+  fTelescopeMaxFOV = Config::Get(Config::GFX_VR_TELESCOPE_MAX_FOV);
+  fReadPitch = Config::Get(Config::GFX_VR_READ_PITCH);
+  iCameraMinPoly = Config::Get(Config::GFX_VR_CAMERA_MIN_POLY);
+  fHudDespPosition0 = Config::Get(Config::GFX_VR_HUD_DESP_POSITION_0);
+  fHudDespPosition1 = Config::Get(Config::GFX_VR_HUD_DESP_POSITION_1);
+  fHudDespPosition2 = Config::Get(Config::GFX_VR_HUD_DESP_POSITION_2);
+
+  if (iEFBScale == SCALE_FORCE_INTEGRAL)
+  {
+    // Round down to multiple of native IR
+    switch (Config::GetBase(Config::GFX_EFB_SCALE))
+    {
+    case SCALE_AUTO:
+      iEFBScale = SCALE_AUTO_INTEGRAL;
+      break;
+    case SCALE_1_5X:
+      iEFBScale = SCALE_1X;
+      break;
+    case SCALE_2_5X:
+      iEFBScale = SCALE_2X;
+      break;
+    default:
+      iEFBScale = Config::GetBase(Config::GFX_EFB_SCALE);
+      break;
+    }
+  }
+
+  bool bNoMirrorToWindow;
+
+  fScale = Config::Get(Config::GLOBAL_VR_SCALE);
+  fFreeLookSensitivity = Config::Get(Config::GLOBAL_VR_FREE_LOOK_SENSITIVITY);
+  fLeanBackAngle = Config::Get(Config::GLOBAL_VR_LEAN_BACK_ANGLE);
+  bEnableVR = Config::Get(Config::GLOBAL_VR_ENABLE_VR);
+  bLowPersistence = Config::Get(Config::GLOBAL_VR_LOW_PERSISTENCE);
+  bDynamicPrediction = Config::Get(Config::GLOBAL_VR_DYNAMIC_PREDICTION);
+  bNoMirrorToWindow = Config::Get(Config::GLOBAL_VR_NO_MIRROR_TO_WINDOW);
+  bOrientationTracking = Config::Get(Config::GLOBAL_VR_ORIENTATION_TRACKING);
+  bMagYawCorrection = Config::Get(Config::GLOBAL_VR_MAG_YAW_CORRECTION);
+  bPositionTracking = Config::Get(Config::GLOBAL_VR_POSITION_TRACKING);
+  bChromatic = Config::Get(Config::GLOBAL_VR_CHROMATIC);
+  bTimewarp = Config::Get(Config::GLOBAL_VR_TIMEWARP);
+  bVignette = Config::Get(Config::GLOBAL_VR_VIGNETTE);
+  bNoRestore = Config::Get(Config::GLOBAL_VR_NO_RESTORE);
+  bFlipVertical = Config::Get(Config::GLOBAL_VR_FLIP_VERTICAL);
+  bSRGB = Config::Get(Config::GLOBAL_VR_SRGB);
+  bOverdrive = Config::Get(Config::GLOBAL_VR_OVERDRIVE);
+  bHqDistortion = Config::Get(Config::GLOBAL_VR_HQ_DISTORTION);
+  bDisableNearClipping = Config::Get(Config::GLOBAL_VR_DISABLE_NEAR_CLIPPING);
+  bAutoPairViveControllers = Config::Get(Config::GLOBAL_VR_AUTO_PAIR_VIVE_CONTROLLERS);
+  bShowHands = Config::Get(Config::GLOBAL_VR_SHOW_HANDS);
+  bShowFeet = Config::Get(Config::GLOBAL_VR_SHOW_FEET);
+  bShowController = Config::Get(Config::GLOBAL_VR_SHOW_CONTROLLER);
+  bShowLaserPointer = Config::Get(Config::GLOBAL_VR_SHOW_LASER_POINTER);
+  bShowAimRectangle = Config::Get(Config::GLOBAL_VR_SHOW_AIM_RECTANGLE);
+  bShowHudBox = Config::Get(Config::GLOBAL_VR_SHOW_HUD_BOX);
+  bShow2DBox = Config::Get(Config::GLOBAL_VR_SHOW_2D_SCREEN_BOX);
+  bShowSensorBar = Config::Get(Config::GLOBAL_VR_SHOW_SENSOR_BAR);
+  bShowGameCamera = Config::Get(Config::GLOBAL_VR_SHOW_GAME_CAMERA);
+  bShowGameFrustum = Config::Get(Config::GLOBAL_VR_SHOW_GAME_FRUSTUM);
+  bShowTrackingCamera = Config::Get(Config::GLOBAL_VR_SHOW_TRACKING_CAMERA);
+  bShowTrackingVolume = Config::Get(Config::GLOBAL_VR_SHOW_TRACKING_VOLUME);
+  bShowBaseStation = Config::Get(Config::GLOBAL_VR_SHOW_BASE_STATION);
+  bMotionSicknessAlways = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_ALWAYS);
+  bMotionSicknessFreelook = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_FREELOOK);
+  bMotionSickness2D = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_2D);
+  bMotionSicknessLeftStick = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_LEFT_STICK);
+  bMotionSicknessRightStick = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_RIGHT_STICK);
+  bMotionSicknessDPad = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_DPAD);
+  bMotionSicknessIR = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_IR);
+  iMotionSicknessMethod = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_METHOD);
+  iMotionSicknessSkybox = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_SKYBOX);
+  fMotionSicknessFOV = Config::Get(Config::GLOBAL_VR_MOTION_SICKNESS_FOV);
+  iVRPlayer = Config::Get(Config::GLOBAL_VR_PLAYER);
+  iVRPlayer2 = Config::Get(Config::GLOBAL_VR_PLAYER_2);
+  iMirrorPlayer = Config::Get(Config::GLOBAL_VR_MIRROR_PLAYER);
+
+  // TODO: This doesn't work anymore, because we want to specify a default for a setting based on
+  // another existing setting
+  iMirrorStyle = bNoMirrorToWindow ? VR_MIRROR_DISABLED : VR_MIRROR_LEFT;
+  iMirrorStyle = Config::Get(Config::GLOBAL_VR_MIRROR_STYLE);
+
+  fTimeWarpTweak = Config::Get(Config::GLOBAL_VR_TIMEWARP_TWEAK);
+  iExtraTimewarpedFrames = Config::Get(Config::GLOBAL_VR_NUM_EXTRA_FRAMES);
+  iExtraVideoLoops = Config::Get(Config::GLOBAL_VR_NUM_EXTRA_VIDEO_LOOPS);
+  iExtraVideoLoopsDivider = Config::Get(Config::GLOBAL_VR_NUM_EXTRA_VIDEO_LOOPS_DIVIDER);
+  bStabilizeRoll = Config::Get(Config::GLOBAL_VR_STABILIZE_ROLL);
+  bStabilizePitch = Config::Get(Config::GLOBAL_VR_STABILIZE_PITCH);
+  bStabilizeYaw = Config::Get(Config::GLOBAL_VR_STABILIZE_YAW);
+  bStabilizeX = Config::Get(Config::GLOBAL_VR_STABILIZE_X);
+  bStabilizeY = Config::Get(Config::GLOBAL_VR_STABILIZE_Y);
+  bStabilizeZ = Config::Get(Config::GLOBAL_VR_STABILIZE_Z);
+  bKeyhole = Config::Get(Config::GLOBAL_VR_KEYHOLE);
+  fKeyholeWidth = Config::Get(Config::GLOBAL_VR_KEYHOLE_WIDTH);
+  bKeyholeSnap = Config::Get(Config::GLOBAL_VR_KEYHOLE_SNAP);
+  fKeyholeSnapSize = Config::Get(Config::GLOBAL_VR_KEYHOLE_SIZE);
+  bPullUp20fps = Config::Get(Config::GLOBAL_VR_PULL_UP_20_FPS);
+  bPullUp30fps = Config::Get(Config::GLOBAL_VR_PULL_UP_30_FPS);
+  bPullUp60fps = Config::Get(Config::GLOBAL_VR_PULL_UP_60_FPS);
+  bPullUpAuto = Config::Get(Config::GLOBAL_VR_PULL_UP_AUTO);
+  bOpcodeReplay = Config::Get(Config::GLOBAL_VR_OPCODE_REPLAY);
+  bOpcodeWarningDisable = Config::Get(Config::GLOBAL_VR_OPCODE_WARNING_DISABLE);
+  bReplayVertexData = Config::Get(Config::GLOBAL_VR_REPLAY_VERTEX_DATA);
+  bReplayOtherData = Config::Get(Config::GLOBAL_VR_REPLAY_OTHER_DATA);
+  bPullUp20fpsTimewarp = Config::Get(Config::GLOBAL_VR_PULL_UP_20_FPS_TIMEWARP);
+  bPullUp30fpsTimewarp = Config::Get(Config::GLOBAL_VR_PULL_UP_30_FPS_TIMEWARP);
+  bPullUp60fpsTimewarp = Config::Get(Config::GLOBAL_VR_PULL_UP_60_FPS_TIMEWARP);
+  bPullUpAutoTimewarp = Config::Get(Config::GLOBAL_VR_PULL_UP_AUTO_TIMEWARP);
+  bSynchronousTimewarp = Config::Get(Config::GLOBAL_VR_SYNCHRONOUS_TIMEWARP);
+  sLeftTexture = Config::Get(Config::GLOBAL_VR_LEFT_TEXTURE);
+  sRightTexture = Config::Get(Config::GLOBAL_VR_RIGHT_TEXTURE);
+  sGCLeftTexture = Config::Get(Config::GLOBAL_VR_GC_LEFT_TEXTURE);
+  sGCRightTexture = Config::Get(Config::GLOBAL_VR_GC_RIGHT_TEXTURE);
+
+  // LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
   // Load common settings
+  IniFile iniFile;
   iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
   bool bTmp;
@@ -262,376 +413,83 @@ void VideoConfig::Load(const std::string& ini_file)
   VerifyValidity();
 }
 
-void VideoConfig::LoadVR(const std::string& ini_file)
-{
-  IniFile iniFile;
-  iniFile.Load(ini_file);
-  bool bNoMirrorToWindow;
-
-  IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
-  vr->Get("Scale", &fScale, 1.0f);
-  vr->Get("FreeLookSensitivity", &fFreeLookSensitivity, DEFAULT_VR_FREE_LOOK_SENSITIVITY);
-  vr->Get("LeanBackAngle", &fLeanBackAngle, 0);
-  vr->Get("EnableVR", &bEnableVR, true);
-  vr->Get("LowPersistence", &bLowPersistence, true);
-  vr->Get("DynamicPrediction", &bDynamicPrediction, true);
-  vr->Get("NoMirrorToWindow", &bNoMirrorToWindow, false);
-  vr->Get("OrientationTracking", &bOrientationTracking, true);
-  vr->Get("MagYawCorrection", &bMagYawCorrection, true);
-  vr->Get("PositionTracking", &bPositionTracking, true);
-  vr->Get("Chromatic", &bChromatic, true);
-  vr->Get("Timewarp", &bTimewarp, true);
-  vr->Get("Vignette", &bVignette, false);
-  vr->Get("NoRestore", &bNoRestore, false);
-  vr->Get("FlipVertical", &bFlipVertical, false);
-  vr->Get("sRGB", &bSRGB, false);
-  vr->Get("Overdrive", &bOverdrive, true);
-  vr->Get("HQDistortion", &bHqDistortion, false);
-  vr->Get("DisableNearClipping", &bDisableNearClipping, true);
-  vr->Get("AutoPairViveControllers", &bAutoPairViveControllers, false);
-  vr->Get("ShowHands", &bShowHands, false);
-  vr->Get("ShowFeet", &bShowFeet, false);
-  vr->Get("ShowController", &bShowController, false);
-  vr->Get("ShowLaserPointer", &bShowLaserPointer, false);
-  vr->Get("ShowAimRectangle", &bShowAimRectangle, false);
-  vr->Get("ShowHudBox", &bShowHudBox, false);
-  vr->Get("Show2DScreenBox", &bShow2DBox, false);
-  vr->Get("ShowSensorBar", &bShowSensorBar, false);
-  vr->Get("ShowGameCamera", &bShowGameCamera, false);
-  vr->Get("ShowGameFrustum", &bShowGameFrustum, false);
-  vr->Get("ShowTrackingCamera", &bShowTrackingCamera, false);
-  vr->Get("ShowTrackingVolume", &bShowTrackingVolume, false);
-  vr->Get("ShowBaseStation", &bShowBaseStation, false);
-  vr->Get("MotionSicknessAlways", &bMotionSicknessAlways, false);
-  vr->Get("MotionSicknessFreelook", &bMotionSicknessFreelook, false);
-  vr->Get("MotionSickness2D", &bMotionSickness2D, false);
-  vr->Get("MotionSicknessLeftStick", &bMotionSicknessLeftStick, false);
-  vr->Get("MotionSicknessRightStick", &bMotionSicknessRightStick, false);
-  vr->Get("MotionSicknessDPad", &bMotionSicknessDPad, false);
-  vr->Get("MotionSicknessIR", &bMotionSicknessIR, false);
-  vr->Get("MotionSicknessMethod", &iMotionSicknessMethod, 0);
-  vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
-  vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
-  vr->Get("Player", &iVRPlayer, 0);
-  vr->Get("Player2", &iVRPlayer2, 1);
-  vr->Get("MirrorPlayer", &iMirrorPlayer, VR_PLAYER_DEFAULT);
-  iMirrorStyle = bNoMirrorToWindow ? VR_MIRROR_DISABLED : VR_MIRROR_LEFT;
-  vr->Get("MirrorStyle", &iMirrorStyle, iMirrorStyle);
-  vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
-  vr->Get("NumExtraFrames", &iExtraTimewarpedFrames, DEFAULT_VR_EXTRA_FRAMES);
-  vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
-  vr->Get("NumExtraVideoLoopsDivider", &iExtraVideoLoopsDivider,
-          DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER);
-  vr->Get("StabilizeRoll", &bStabilizeRoll, true);
-  vr->Get("StabilizePitch", &bStabilizePitch, true);
-  vr->Get("StabilizeYaw", &bStabilizeYaw, false);
-  vr->Get("StabilizeX", &bStabilizeX, false);
-  vr->Get("StabilizeY", &bStabilizeY, false);
-  vr->Get("StabilizeZ", &bStabilizeZ, false);
-  vr->Get("Keyhole", &bKeyhole, false);
-  vr->Get("KeyholeWidth", &fKeyholeWidth, 45.0f);
-  vr->Get("KeyholeSnap", &bKeyholeSnap, false);
-  vr->Get("KeyholeSnapSize", &fKeyholeSnapSize, 30.0f);
-  vr->Get("PullUp20fps", &bPullUp20fps, false);
-  vr->Get("PullUp30fps", &bPullUp30fps, false);
-  vr->Get("PullUp60fps", &bPullUp60fps, false);
-  vr->Get("PullUpAuto", &bPullUpAuto, false);
-  vr->Get("OpcodeReplay", &bOpcodeReplay, false);
-  vr->Get("OpcodeWarningDisable", &bOpcodeWarningDisable, false);
-  vr->Get("ReplayVertexData", &bReplayVertexData, false);
-  vr->Get("ReplayOtherData", &bReplayOtherData, false);
-  vr->Get("PullUp20fpsTimewarp", &bPullUp20fpsTimewarp, false);
-  vr->Get("PullUp30fpsTimewarp", &bPullUp30fpsTimewarp, false);
-  vr->Get("PullUp60fpsTimewarp", &bPullUp60fpsTimewarp, false);
-  vr->Get("PullUpAutoTimewarp", &bPullUpAutoTimewarp, false);
-  vr->Get("SynchronousTimewarp", &bSynchronousTimewarp, false);
-  vr->Get("LeftTexture", &sLeftTexture);
-  vr->Get("RightTexture", &sRightTexture);
-  vr->Get("GCLeftTexture", &sGCLeftTexture);
-  vr->Get("GCRightTexture", &sGCRightTexture);
-}
-
-void VideoConfig::GameIniLoad()
-{
-  bool gfx_override_exists = false;
-
-// XXX: Again, bad place to put OSD messages at (see delroth's comment above)
-// XXX: This will add an OSD message for each projection hack value... meh
-#define CHECK_SETTING(section, key, var)                                                           \
-  do                                                                                               \
-  {                                                                                                \
-    decltype(var) temp = var;                                                                      \
-    if (iniFile.GetIfExists(section, key, &var, var) && var != temp)                               \
-    {                                                                                              \
-      std::string msg = StringFromFormat("Note: Option \"%s\" is overridden by game ini.", key);   \
-      OSD::AddMessage(msg, 7500);                                                                  \
-      gfx_override_exists = true;                                                                  \
-    }                                                                                              \
-  } while (0)
-
-  IniFile iniFile = SConfig::GetInstance().LoadGameIni();
-
-  if (g_has_hmd)
-  {
-    iniFile.OverrideSectionWithSection("Video_Settings", "Video_Settings_VR");
-    iniFile.OverrideSectionWithSection("Video_Hardware", "Video_Hardware_VR");
-    iniFile.OverrideSectionWithSection("Video_Enhancements", "Video_Enhancements_VR");
-    iniFile.OverrideSectionWithSection("Video_Hacks", "Video_Hacks_VR");
-    iniFile.OverrideSectionWithSection("Video", "Video_VR");
-  }
-
-  CHECK_SETTING("Video_Hardware", "VSync", bVSync);
-
-  CHECK_SETTING("Video_Settings", "wideScreenHack", bWidescreenHack);
-  CHECK_SETTING("Video_Settings", "AspectRatio", iAspectRatio);
-  CHECK_SETTING("Video_Settings", "Crop", bCrop);
-  CHECK_SETTING("Video_Settings", "UseXFB", bUseXFB);
-  CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
-  CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-  CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
-  CHECK_SETTING("Video_Settings", "ConvertHiresTextures", bConvertHiresTextures);
-  CHECK_SETTING("Video_Settings", "CacheHiresTextures", bCacheHiresTextures);
-  CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
-  CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
-  CHECK_SETTING("Video_Settings", "MSAA", iMultisamples);
-  CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
-  CHECK_SETTING("Video_Settings", "ForceTrueColor", bForceTrueColor);
-
-  int tmp = -9000;
-  CHECK_SETTING("Video_Settings", "EFBScale", tmp);  // integral
-  if (tmp != -9000)
-  {
-    if (tmp != SCALE_FORCE_INTEGRAL)
-    {
-      iEFBScale = tmp;
-    }
-    else  // Round down to multiple of native IR
-    {
-      switch (iEFBScale)
-      {
-      case SCALE_AUTO:
-        iEFBScale = SCALE_AUTO_INTEGRAL;
-        break;
-      case SCALE_1_5X:
-        iEFBScale = SCALE_1X;
-        break;
-      case SCALE_2_5X:
-        iEFBScale = SCALE_2X;
-        break;
-      default:
-        break;
-      }
-    }
-  }
-
-  CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
-  CHECK_SETTING("Video_Settings", "BackendMultithreading", bBackendMultithreading);
-  CHECK_SETTING("Video_Settings", "CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
-
-  CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
-  CHECK_SETTING("Video_Enhancements", "MaxAnisotropy",
-                iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-  CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
-
-  // These are not overrides, they are per-game stereoscopy parameters, hence no warning
-  iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
-  iniFile.GetIfExists("Video_Stereoscopy", "StereoEFBMonoDepth", &bStereoEFBMonoDepth, false);
-  iniFile.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iStereoDepthPercentage, 100);
-
-  CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
-  CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
-  CHECK_SETTING("Video_Stereoscopy", "StereoSwapEyes", bStereoSwapEyes);
-
-  CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
-  CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
-  CHECK_SETTING("Video_Hacks", "ForceProgressive", bForceProgressive);
-  CHECK_SETTING("Video_Hacks", "EFBCopyEnable", bEFBCopyEnable);
-  CHECK_SETTING("Video_Hacks", "EFBCopyClearDisable", bEFBCopyClearDisable);
-  CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
-  CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
-  CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-  CHECK_SETTING("Video_Hacks", "VertexRounding", bVertexRounding);
-
-  CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
-  CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);
-  CHECK_SETTING("Video", "PH_SZFar", iPhackvalue[2]);
-  CHECK_SETTING("Video", "PH_ZNear", sPhackvalue[0]);
-  CHECK_SETTING("Video", "PH_ZFar", sPhackvalue[1]);
-  CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
-
-  fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
-  fHudDistance = DEFAULT_VR_HUD_DISTANCE;
-  fHudThickness = DEFAULT_VR_HUD_THICKNESS;
-  fHud3DCloser = DEFAULT_VR_HUD_3D_CLOSER;
-  fCameraForward = DEFAULT_VR_CAMERA_FORWARD;
-  fCameraPitch = DEFAULT_VR_CAMERA_PITCH;
-  fAimDistance = DEFAULT_VR_AIM_DISTANCE;
-  fMinFOV = DEFAULT_VR_MIN_FOV;
-  fN64FOV = DEFAULT_VR_N64_FOV;
-  fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
-  fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
-  fScreenThickness = DEFAULT_VR_HUD_THICKNESS;
-  fScreenRight = DEFAULT_VR_SCREEN_RIGHT;
-  fScreenUp = DEFAULT_VR_SCREEN_UP;
-  fScreenPitch = DEFAULT_VR_SCREEN_PITCH;
-  fHudDespPosition0 = 0;
-  fHudDespPosition1 = 0;
-  fHudDespPosition2 = 0;
-
-  fReadPitch = 0;
-  iCameraMinPoly = 0;
-  bDisable3D = false;
-  bHudFullscreen = false;
-  bHudOnTop = false;
-  bDontClearScreen = false;
-  bCanReadCameraAngles = false;
-  bDetectSkybox = false;
-  iSelectedLayer = -2;
-  iFlashState = 0;
-
-  CHECK_SETTING("VR", "Disable3D", bDisable3D);
-  CHECK_SETTING("VR", "HudFullscreen", bHudFullscreen);
-  CHECK_SETTING("VR", "HudOnTop", bHudOnTop);
-  CHECK_SETTING("VR", "DontClearScreen", bDontClearScreen);
-  CHECK_SETTING("VR", "CanReadCameraAngles", bCanReadCameraAngles);
-  CHECK_SETTING("VR", "DetectSkybox", bDetectSkybox);
-  CHECK_SETTING("VR", "UnitsPerMetre", fUnitsPerMetre);
-  CHECK_SETTING("VR", "HudThickness", fHudThickness);
-  CHECK_SETTING("VR", "HudDistance", fHudDistance);
-  CHECK_SETTING("VR", "Hud3DCloser", fHud3DCloser);
-  CHECK_SETTING("VR", "CameraForward", fCameraForward);
-  CHECK_SETTING("VR", "CameraPitch", fCameraPitch);
-  CHECK_SETTING("VR", "AimDistance", fAimDistance);
-  CHECK_SETTING("VR", "MinFOV", fMinFOV);
-  CHECK_SETTING("VR", "N64FOV", fN64FOV);
-  CHECK_SETTING("VR", "ScreenHeight", fScreenHeight);
-  CHECK_SETTING("VR", "ScreenThickness", fScreenThickness);
-  CHECK_SETTING("VR", "ScreenDistance", fScreenDistance);
-  CHECK_SETTING("VR", "ScreenRight", fScreenRight);
-  CHECK_SETTING("VR", "ScreenUp", fScreenUp);
-  CHECK_SETTING("VR", "ScreenPitch", fScreenPitch);
-  CHECK_SETTING("VR", "MetroidPrime", iMetroidPrime);
-  CHECK_SETTING("VR", "TelescopeEye", iTelescopeEye);
-  CHECK_SETTING("VR", "TelescopeFOV", fTelescopeMaxFOV);
-  CHECK_SETTING("VR", "ReadPitch", fReadPitch);
-  CHECK_SETTING("VR", "CameraMinPoly", iCameraMinPoly);
-  CHECK_SETTING("VR", "HudDespPosition0", fHudDespPosition0);
-  CHECK_SETTING("VR", "HudDespPosition1", fHudDespPosition1);
-  CHECK_SETTING("VR", "HudDespPosition2", fHudDespPosition2);
-
-  NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick",
-             fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
-
-  g_SavedConfig = *this;
-  if (gfx_override_exists)
-    OSD::AddMessage(
-        "Warning: Opening the graphics configuration will reset settings and might cause issues!",
-        10000);
-}
-
 void VideoConfig::GameIniSave()
 {
-  // Load game ini
-  IniFile GameIniDefault, GameIniLocal;
-  GameIniDefault = SConfig::GetInstance().LoadDefaultGameIni();
-  GameIniLocal = SConfig::GetInstance().LoadLocalGameIni();
+  // Save game ini
+  INFO_LOG(CORE, "VideoConfig::GameIniSave()");
 
-#define SAVE_IF_NOT_DEFAULT(section, key, val, def)                                                \
-  do                                                                                               \
-  {                                                                                                \
-    if (GameIniDefault.Exists((section), (key)))                                                   \
-    {                                                                                              \
-      std::remove_reference<decltype((val))>::type tmp__;                                          \
-      GameIniDefault.GetOrCreateSection((section))->Get((key), &tmp__);                            \
-      if ((val) != tmp__)                                                                          \
-        GameIniLocal.GetOrCreateSection((section))->Set((key), (val));                             \
-      else                                                                                         \
-        GameIniLocal.DeleteKey((section), (key));                                                  \
-    }                                                                                              \
-    else if ((val) != (def))                                                                       \
-      GameIniLocal.GetOrCreateSection((section))->Set((key), (val));                               \
-    else                                                                                           \
-      GameIniLocal.DeleteKey((section), (key));                                                    \
-  } while (0)
+  if (!Config::LayerExists(Config::LayerType::LocalGame))
+    return;
 
-  SAVE_IF_NOT_DEFAULT("VR", "Disable3D", bDisable3D, false);
-  SAVE_IF_NOT_DEFAULT("VR", "UnitsPerMetre", (float)fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
-  SAVE_IF_NOT_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
-  SAVE_IF_NOT_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
-  SAVE_IF_NOT_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
-  SAVE_IF_NOT_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
-  SAVE_IF_NOT_DEFAULT("VR", "DetectSkybox", bDetectSkybox, false);
-  SAVE_IF_NOT_DEFAULT("VR", "HudDistance", (float)fHudDistance, DEFAULT_VR_HUD_DISTANCE);
-  SAVE_IF_NOT_DEFAULT("VR", "HudThickness", (float)fHudThickness, DEFAULT_VR_HUD_THICKNESS);
-  SAVE_IF_NOT_DEFAULT("VR", "Hud3DCloser", (float)fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
-  SAVE_IF_NOT_DEFAULT("VR", "CameraForward", (float)fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
-  SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
-  SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, DEFAULT_VR_AIM_DISTANCE);
-  SAVE_IF_NOT_DEFAULT("VR", "MinFOV", (float)fMinFOV, DEFAULT_VR_MIN_FOV);
-  SAVE_IF_NOT_DEFAULT("VR", "N64FOV", (float)fN64FOV, DEFAULT_VR_N64_FOV);
-  SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)fScreenHeight, DEFAULT_VR_SCREEN_HEIGHT);
-  SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)fScreenDistance, DEFAULT_VR_SCREEN_DISTANCE);
-  SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)fScreenThickness,
-                      DEFAULT_VR_SCREEN_THICKNESS);
-  SAVE_IF_NOT_DEFAULT("VR", "ScreenUp", (float)fScreenUp, DEFAULT_VR_SCREEN_UP);
-  SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
-  SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
-  SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition0", (float)fHudDespPosition0, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition1", (float)fHudDespPosition1, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition2", (float)fHudDespPosition2, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "CameraMinPoly", (int)iCameraMinPoly, 0);
+  Config::SaveIfNotDefault(Config::GFX_VR_DISABLE_3D);
 
-  GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() +
-                    ".ini");
+  Config::SaveIfNotDefault(Config::GFX_VR_UNITS_PER_METRE);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_FULLSCREEN);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_ON_TOP);
+  Config::SaveIfNotDefault(Config::GFX_VR_DONT_CLEAR_SCREEN);
+  Config::SaveIfNotDefault(Config::GFX_VR_CAN_READ_CAMERA_ANGLES);
+  Config::SaveIfNotDefault(Config::GFX_VR_DETECT_SKYBOX);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_DISTANCE);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_THICKNESS);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_3D_CLOSER);
+  Config::SaveIfNotDefault(Config::GFX_VR_CAMERA_FORWARD);
+  Config::SaveIfNotDefault(Config::GFX_VR_CAMERA_PITCH);
+  Config::SaveIfNotDefault(Config::GFX_VR_AIM_DISTANCE);
+  Config::SaveIfNotDefault(Config::GFX_VR_MIN_FOV);
+  Config::SaveIfNotDefault(Config::GFX_VR_N64_FOV);
+  Config::SaveIfNotDefault(Config::GFX_VR_SCREEN_HEIGHT);
+  Config::SaveIfNotDefault(Config::GFX_VR_SCREEN_DISTANCE);
+  Config::SaveIfNotDefault(Config::GFX_VR_SCREEN_THICKNESS);
+  Config::SaveIfNotDefault(Config::GFX_VR_SCREEN_UP);
+  Config::SaveIfNotDefault(Config::GFX_VR_SCREEN_RIGHT);
+  Config::SaveIfNotDefault(Config::GFX_VR_SCREEN_PITCH);
+  Config::SaveIfNotDefault(Config::GFX_VR_READ_PITCH);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_DESP_POSITION_0);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_DESP_POSITION_1);
+  Config::SaveIfNotDefault(Config::GFX_VR_HUD_DESP_POSITION_2);
+  Config::SaveIfNotDefault(Config::GFX_VR_CAMERA_MIN_POLY);
+  Config::Layer* local = Config::GetLayer(Config::LayerType::LocalGame);
+  if (local)
+    local->Save();
+  Refresh();
   g_SavedConfig = *this;
 }
 
 void VideoConfig::GameIniReset()
 {
-  // Load game ini
-  IniFile GameIniDefault = SConfig::GetInstance().LoadDefaultGameIni();
-
-#define LOAD_DEFAULT(section, key, var, def)                                                       \
-  do                                                                                               \
-  {                                                                                                \
-    decltype(var) temp = var;                                                                      \
-    if (GameIniDefault.GetIfExists(section, key, &var))                                            \
-      var = temp;                                                                                  \
-    else                                                                                           \
-      var = def;                                                                                   \
-  } while (0)
-
-  LOAD_DEFAULT("VR", "Disable3D", bDisable3D, false);
-  LOAD_DEFAULT("VR", "UnitsPerMetre", fUnitsPerMetre, DEFAULT_VR_UNITS_PER_METRE);
-  LOAD_DEFAULT("VR", "HudFullscreen", bHudFullscreen, false);
-  LOAD_DEFAULT("VR", "HudOnTop", bHudOnTop, false);
-  LOAD_DEFAULT("VR", "DontClearScreen", bDontClearScreen, false);
-  LOAD_DEFAULT("VR", "CanReadCameraAngles", bCanReadCameraAngles, false);
-  LOAD_DEFAULT("VR", "DetectSkybox", bDetectSkybox, false);
-  LOAD_DEFAULT("VR", "HudDistance", fHudDistance, DEFAULT_VR_HUD_DISTANCE);
-  LOAD_DEFAULT("VR", "HudThickness", fHudThickness, DEFAULT_VR_HUD_THICKNESS);
-  LOAD_DEFAULT("VR", "Hud3DCloser", fHud3DCloser, DEFAULT_VR_HUD_3D_CLOSER);
-  LOAD_DEFAULT("VR", "CameraForward", fCameraForward, DEFAULT_VR_CAMERA_FORWARD);
-  LOAD_DEFAULT("VR", "CameraPitch", fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
-  LOAD_DEFAULT("VR", "AimDistance", fAimDistance, DEFAULT_VR_AIM_DISTANCE);
-  LOAD_DEFAULT("VR", "MinFOV", fMinFOV, DEFAULT_VR_MIN_FOV);
-  LOAD_DEFAULT("VR", "N64FOV", fN64FOV, DEFAULT_VR_N64_FOV);
-  LOAD_DEFAULT("VR", "ScreenHeight", fScreenHeight, DEFAULT_VR_SCREEN_HEIGHT);
-  LOAD_DEFAULT("VR", "ScreenDistance", fScreenDistance, DEFAULT_VR_SCREEN_DISTANCE);
-  LOAD_DEFAULT("VR", "ScreenThickness", fScreenThickness, DEFAULT_VR_SCREEN_THICKNESS);
-  LOAD_DEFAULT("VR", "ScreenUp", fScreenUp, DEFAULT_VR_SCREEN_UP);
-  LOAD_DEFAULT("VR", "ScreenRight", fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
-  LOAD_DEFAULT("VR", "ScreenPitch", fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
-  LOAD_DEFAULT("VR", "ReadPitch", fReadPitch, 0.0f);
-  LOAD_DEFAULT("VR", "HudDespPosition0", fHudDespPosition0, 0.0f);
-  LOAD_DEFAULT("VR", "HudDespPosition1", fHudDespPosition1, 0.0f);
-  LOAD_DEFAULT("VR", "HudDespPosition2", fHudDespPosition2, 0.0f);
-  LOAD_DEFAULT("VR", "CameraMinPoly", iCameraMinPoly, 0);
+  Config::ResetToGameDefault(Config::GFX_VR_DISABLE_3D);
+  Config::ResetToGameDefault(Config::GFX_VR_UNITS_PER_METRE);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_FULLSCREEN);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_3D_CLOSER);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_DISTANCE);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_THICKNESS);
+  Config::ResetToGameDefault(Config::GFX_VR_CAMERA_FORWARD);
+  Config::ResetToGameDefault(Config::GFX_VR_CAMERA_PITCH);
+  Config::ResetToGameDefault(Config::GFX_VR_AIM_DISTANCE);
+  Config::ResetToGameDefault(Config::GFX_VR_SCREEN_HEIGHT);
+  Config::ResetToGameDefault(Config::GFX_VR_SCREEN_DISTANCE);
+  Config::ResetToGameDefault(Config::GFX_VR_SCREEN_THICKNESS);
+  Config::ResetToGameDefault(Config::GFX_VR_SCREEN_UP);
+  Config::ResetToGameDefault(Config::GFX_VR_SCREEN_RIGHT);
+  Config::ResetToGameDefault(Config::GFX_VR_SCREEN_PITCH);
+  Config::ResetToGameDefault(Config::GFX_VR_MIN_FOV);
+  Config::ResetToGameDefault(Config::GFX_VR_N64_FOV);
+  Config::ResetToGameDefault(Config::GFX_VR_READ_PITCH);
+  Config::ResetToGameDefault(Config::GFX_VR_CAMERA_MIN_POLY);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_DESP_POSITION_0);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_DESP_POSITION_1);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_DESP_POSITION_2);
+  Config::ResetToGameDefault(Config::GFX_VR_CAN_READ_CAMERA_ANGLES);
+  Config::ResetToGameDefault(Config::GFX_VR_DETECT_SKYBOX);
+  Config::ResetToGameDefault(Config::GFX_VR_HUD_ON_TOP);
+  Config::ResetToGameDefault(Config::GFX_VR_DONT_CLEAR_SCREEN);
+  Config::Save();
+  g_Config.Refresh();
 }
 
 void VideoConfig::VerifyValidity()
 {
+  INFO_LOG(CORE, "VideoConfig::VerifyValidity()");
   // TODO: Check iMaxAnisotropy value
   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
     iAdapter = 0;
@@ -663,186 +521,6 @@ void VideoConfig::VerifyValidity()
       iStereoMode = 0;
     }
   }
-}
-
-void VideoConfig::Save(const std::string& ini_file)
-{
-  IniFile iniFile;
-  iniFile.Load(ini_file);
-
-  IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-  if (!ARBruteForcer::ch_dont_save_settings)
-    hardware->Set("VSync", bVSync);
-  hardware->Set("Adapter", iAdapter);
-
-  IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
-  settings->Set("AspectRatio", iAspectRatio);
-  settings->Set("Crop", bCrop);
-  settings->Set("wideScreenHack", bWidescreenHack);
-  settings->Set("UseXFB", bUseXFB);
-  settings->Set("UseRealXFB", bUseRealXFB);
-  settings->Set("SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-  settings->Set("ShowFPS", bShowFPS);
-  settings->Set("ShowNetPlayPing", bShowNetPlayPing);
-  settings->Set("ShowNetPlayMessages", bShowNetPlayMessages);
-  settings->Set("LogRenderTimeToFile", bLogRenderTimeToFile);
-  settings->Set("OverlayStats", bOverlayStats);
-  settings->Set("OverlayProjStats", bOverlayProjStats);
-  settings->Set("DumpTextures", bDumpTextures);
-  settings->Set("HiresTextures", bHiresTextures);
-  settings->Set("ConvertHiresTextures", bConvertHiresTextures);
-  settings->Set("CacheHiresTextures", bCacheHiresTextures);
-  settings->Set("DumpEFBTarget", bDumpEFBTarget);
-  settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
-  settings->Set("FreeLook", bFreeLook);
-  settings->Set("UseFFV1", bUseFFV1);
-  settings->Set("DumpFormat", sDumpFormat);
-  settings->Set("DumpCodec", sDumpCodec);
-  settings->Set("DumpPath", sDumpPath);
-  settings->Set("BitrateKbps", iBitrateKbps);
-  settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
-  settings->Set("EnableGPUTextureDecoding", bEnableGPUTextureDecoding);
-  settings->Set("EnablePixelLighting", bEnablePixelLighting);
-  settings->Set("FastDepthCalc", bFastDepthCalc);
-  if (!ARBruteForcer::ch_dont_save_settings)
-  {
-    settings->Set("MSAA", iMultisamples);
-    settings->Set("SSAA", bSSAA);
-    settings->Set("EFBScale", iEFBScale);
-  }
-  settings->Set("TexFmtOverlayEnable", bTexFmtOverlayEnable);
-  settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
-  settings->Set("Wireframe", bWireFrame);
-  settings->Set("DisableFog", bDisableFog);
-  settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
-  settings->Set("EnableValidationLayer", bEnableValidationLayer);
-  settings->Set("BackendMultithreading", bBackendMultithreading);
-  settings->Set("CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
-  settings->Set("ShaderCache", bShaderCache);
-
-  settings->Set("SWZComploc", bZComploc);
-  settings->Set("SWZFreeze", bZFreeze);
-  settings->Set("SWDumpObjects", bDumpObjects);
-  settings->Set("SWDumpTevStages", bDumpTevStages);
-  settings->Set("SWDumpTevTexFetches", bDumpTevTextureFetches);
-  settings->Set("SWDrawStart", drawStart);
-  settings->Set("SWDrawEnd", drawEnd);
-
-  IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
-  enhancements->Set("ForceFiltering", bForceFiltering);
-  enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
-  enhancements->Set("PostProcessingShader", sPostProcessingShader);
-  enhancements->Set("ForceTrueColor", bForceTrueColor);
-
-  IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
-  stereoscopy->Set("StereoMode", iStereoMode);
-  stereoscopy->Set("StereoDepth", iStereoDepth);
-  stereoscopy->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
-  stereoscopy->Set("StereoSwapEyes", bStereoSwapEyes);
-
-  IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
-  hacks->Set("EFBAccessEnable", bEFBAccessEnable);
-  hacks->Set("BBoxEnable", bBBoxEnable);
-  hacks->Set("BBoxPreferStencilImplementation", bBBoxPreferStencilImplementation);
-  hacks->Set("ForceProgressive", bForceProgressive);
-  hacks->Set("EFBCopyEnable", bEFBCopyEnable);
-  hacks->Set("EFBCopyClearDisable", bEFBCopyClearDisable);
-  hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);
-  hacks->Set("EFBScaledCopy", bCopyEFBScaled);
-  hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-  hacks->Set("VertexRounding", bVertexRounding);
-
-  SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
-  iniFile.Save(ini_file);
-}
-
-void VideoConfig::SaveVR(const std::string& ini_file)
-{
-  IniFile iniFile;
-  iniFile.Load(ini_file);
-
-  IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
-  vr->Set("Scale", fScale);
-  vr->Set("FreeLookSensitivity", fFreeLookSensitivity);
-  vr->Set("LeanBackAngle", fLeanBackAngle);
-  vr->Set("EnableVR", bEnableVR);
-  vr->Set("LowPersistence", bLowPersistence);
-  vr->Set("DynamicPrediction", bDynamicPrediction);
-  vr->Set("NoMirrorToWindow",
-          iMirrorPlayer == VR_PLAYER_NONE || iMirrorStyle == VR_MIRROR_DISABLED);
-  vr->Set("OrientationTracking", bOrientationTracking);
-  vr->Set("MagYawCorrection", bMagYawCorrection);
-  vr->Set("PositionTracking", bPositionTracking);
-  vr->Set("Chromatic", bChromatic);
-  vr->Set("Timewarp", bTimewarp);
-  vr->Set("Vignette", bVignette);
-  vr->Set("NoRestore", bNoRestore);
-  vr->Set("FlipVertical", bFlipVertical);
-  vr->Set("sRGB", bSRGB);
-  vr->Set("Overdrive", bOverdrive);
-  vr->Set("HQDistortion", bHqDistortion);
-  vr->Set("DisableNearClipping", bDisableNearClipping);
-  vr->Set("AutoPairViveControllers", bAutoPairViveControllers);
-  vr->Set("ShowHands", bShowHands);
-  vr->Set("ShowFeet", bShowFeet);
-  vr->Set("ShowController", bShowController);
-  vr->Set("ShowLaserPointer", bShowLaserPointer);
-  vr->Set("ShowAimRectangle", bShowAimRectangle);
-  vr->Set("ShowHudBox", bShowHudBox);
-  vr->Set("Show2DScreenBox", bShow2DBox);
-  vr->Set("ShowSensorBar", bShowSensorBar);
-  vr->Set("ShowGameCamera", bShowGameCamera);
-  vr->Set("ShowGameFrustum", bShowGameFrustum);
-  vr->Set("ShowTrackingCamera", bShowTrackingCamera);
-  vr->Set("ShowTrackingVolume", bShowTrackingVolume);
-  vr->Set("ShowBaseStation", bShowBaseStation);
-  vr->Set("MotionSicknessAlways", bMotionSicknessAlways);
-  vr->Set("MotionSicknessFreelook", bMotionSicknessFreelook);
-  vr->Set("MotionSickness2D", bMotionSickness2D);
-  vr->Set("MotionSicknessLeftStick", bMotionSicknessLeftStick);
-  vr->Set("MotionSicknessRightStick", bMotionSicknessRightStick);
-  vr->Set("MotionSicknessDPad", bMotionSicknessDPad);
-  vr->Set("MotionSicknessIR", bMotionSicknessIR);
-  vr->Set("MotionSicknessMethod", iMotionSicknessMethod);
-  vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
-  vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
-  vr->Set("Player", iVRPlayer);
-  vr->Set("Player2", iVRPlayer2);
-  vr->Set("MirrorPlayer", iMirrorPlayer);
-  vr->Set("MirrorStyle", iMirrorStyle);
-  vr->Set("TimewarpTweak", fTimeWarpTweak);
-  vr->Set("NumExtraFrames", iExtraTimewarpedFrames);
-  vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
-  vr->Set("NumExtraVideoLoopsDivider", iExtraVideoLoopsDivider);
-  vr->Set("StabilizeRoll", bStabilizeRoll);
-  vr->Set("StabilizePitch", bStabilizePitch);
-  vr->Set("StabilizeYaw", bStabilizeYaw);
-  vr->Set("StabilizeX", bStabilizeX);
-  vr->Set("StabilizeY", bStabilizeY);
-  vr->Set("StabilizeZ", bStabilizeZ);
-  vr->Set("Keyhole", bKeyhole);
-  vr->Set("KeyholeWidth", fKeyholeWidth);
-  vr->Set("KeyholeSnap", bKeyholeSnap);
-  vr->Set("KeyholeSnapSize", fKeyholeSnapSize);
-  vr->Set("PullUp20fps", bPullUp20fps);
-  vr->Set("PullUp30fps", bPullUp30fps);
-  vr->Set("PullUp60fps", bPullUp60fps);
-  vr->Set("PullUpAuto", bPullUpAuto);
-  vr->Set("OpcodeReplay", bOpcodeReplay);
-  vr->Set("OpcodeWarningDisable", bOpcodeWarningDisable);
-  vr->Set("ReplayVertexData", bReplayVertexData);
-  vr->Set("ReplayOtherData", bReplayOtherData);
-  vr->Set("PullUp20fpsTimewarp", bPullUp20fpsTimewarp);
-  vr->Set("PullUp30fpsTimewarp", bPullUp30fpsTimewarp);
-  vr->Set("PullUp60fpsTimewarp", bPullUp60fpsTimewarp);
-  vr->Set("PullUpAutoTimewarp", bPullUpAutoTimewarp);
-  vr->Set("SynchronousTimewarp", bSynchronousTimewarp);
-  vr->Set("LeftTexture", sLeftTexture);
-  vr->Set("RightTexture", sRightTexture);
-  vr->Set("GCLeftTexture", sGCLeftTexture);
-  vr->Set("GCRightTexture", sGCRightTexture);
-
-  iniFile.Save(ini_file);
 }
 
 bool VideoConfig::IsVSync()

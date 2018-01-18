@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/Software/EfbCopy.h"
@@ -146,10 +147,12 @@ void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   UpdateActiveConfig();
 
-// virtual XFB is not supported
+  // virtual XFB is not supported
 #if 0
-	if (g_ActiveConfig.bUseXFB)
-		g_ActiveConfig.bUseRealXFB = true;
+  if (g_ActiveConfig.bUseXFB)
+  {
+    Config::SetCurrent(Config::GFX_USE_REAL_XFB, true);
+  }
 #endif
 
   VR_NewVRFrame();

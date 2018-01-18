@@ -91,6 +91,9 @@ void Save()
 
 void Init()
 {
+  // These layers contain temporary values
+  s_layers[LayerType::CommandLine] = std::make_unique<Layer>(LayerType::CommandLine);
+  ClearCurrentRunLayer();
   // This layer always has to exist
   s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }
@@ -99,6 +102,47 @@ void Shutdown()
 {
   s_layers.clear();
   s_callbacks.clear();
+}
+
+void ClearCurrentRunLayer()
+{
+  s_layers[LayerType::CurrentRun] = std::make_unique<Layer>(LayerType::CurrentRun);
+}
+
+void CreateVRGameLayer()
+{
+  s_layers[LayerType::VRGame] = std::make_unique<Layer>(LayerType::VRGame);
+}
+
+bool OverrideSectionWithSection(const std::string& sectionName, const std::string& sectionName2)
+{
+  Section* section_default = s_layers[LayerType::GlobalGame] ? (s_layers[LayerType::GlobalGame]->GetOrCreateSection(Config::System::GFX, sectionName2)) : nullptr;
+  Config::SectionValueMap section_values_default;
+  if (section_default)
+	  section_values_default = section_default->GetValues();
+  Section* section_local = s_layers[LayerType::LocalGame] ? (s_layers[LayerType::LocalGame]->GetOrCreateSection(Config::System::GFX, sectionName2)) : nullptr;
+  Config::SectionValueMap section_values_local;
+  if (section_local)
+	  section_values_local = section_local->GetValues();
+  if (!section_values_default.size() && !section_values_local.size())
+    return false;
+  Section* section =
+      s_layers[LayerType::VRGame]->GetOrCreateSection(Config::System::GFX, sectionName);
+  for (const auto& value : section_values_default)
+  {
+    NOTICE_LOG(VR, "Override [%s] %s with game VR default [%s] %s =\"%s\"", sectionName.c_str(),
+               value.first.c_str(), sectionName2.c_str(), value.first.c_str(),
+               value.second.c_str());
+    section->Set(value.first, value.second);
+  }
+  for (const auto& value : section_values_local)
+  {
+	  NOTICE_LOG(VR, "Override [%s] %s with game VR user setting [%s] %s =\"%s\"", sectionName.c_str(),
+		  value.first.c_str(), sectionName2.c_str(), value.first.c_str(),
+		  value.second.c_str());
+	  section->Set(value.first, value.second);
+  }
+  return true;
 }
 
 static const std::map<System, std::string> system_to_name = {
@@ -129,6 +173,7 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Base, "Base"},
       {LayerType::GlobalGame, "Global GameINI"},
       {LayerType::LocalGame, "Local GameINI"},
+      {LayerType::VRGame, "VR GameINI"},
       {LayerType::Netplay, "Netplay"},
       {LayerType::Movie, "Movie"},
       {LayerType::CommandLine, "Command Line"},

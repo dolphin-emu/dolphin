@@ -46,14 +46,19 @@ protected:
 
   // Creates controls and connects their enter/leave window events to Evt_Enter/LeaveControl
   SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label,
-                                  const wxString& description, bool& setting, bool reverse = false,
+                                  const wxString& description,
+                                  const Config::ConfigInfo<bool>& setting, bool reverse = false,
                                   long style = 0);
-  SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description,
-                              int num = 0, const wxString choices[] = nullptr, long style = 0);
+  RefBoolSetting<wxCheckBox>* CreateCheckBoxRefBool(wxWindow* parent, const wxString& label,
+                                                    const wxString& description, bool& setting);
+  SettingChoice* CreateChoice(wxWindow* parent, const Config::ConfigInfo<int>& setting,
+                              const wxString& description, int num = 0,
+                              const wxString choices[] = nullptr, long style = 0);
   SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label,
-                                        const wxString& description, bool& setting,
+                                        const wxString& description,
+                                        const Config::ConfigInfo<bool>& setting,
                                         bool reverse = false, long style = 0);
-  SettingNumber* CreateNumber(wxWindow* parent, float& setting, const wxString& description,
+  SettingNumber* CreateNumber(wxWindow* parent, const Config::ConfigInfo<float>& setting, const wxString& description,
                               float min, float max, float inc, long style = 0);
 
   // Same as above but only connects enter/leave window events

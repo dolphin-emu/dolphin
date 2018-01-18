@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 namespace Config
 {
 enum class LayerType
@@ -11,6 +13,7 @@ enum class LayerType
   Base,
   GlobalGame,
   LocalGame,
+  VRGame,
   Movie,
   Netplay,
   CommandLine,
@@ -29,4 +32,10 @@ enum class System
   Debugger,
   UI,
 };
+
+constexpr std::array<LayerType, 8> SEARCH_ORDER{{
+    // Skip the meta layer
+    LayerType::CurrentRun, LayerType::CommandLine, LayerType::Movie, LayerType::Netplay, LayerType::VRGame,
+    LayerType::LocalGame, LayerType::GlobalGame, LayerType::Base,
+}};
 }

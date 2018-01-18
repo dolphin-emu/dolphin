@@ -18,6 +18,7 @@
 #include <wx/stattext.h>
 
 #include "Common/CommonTypes.h"
+#include "Core/Config/GraphicsSettings.h"
 
 class DolphinSlider;
 struct VideoConfig;
@@ -30,12 +31,30 @@ template <typename W>
 class BoolSetting : public W
 {
 public:
-  BoolSetting(wxWindow* parent, const wxString& label, const wxString& tooltip, bool& setting,
-              bool reverse = false, long style = 0);
+  BoolSetting(wxWindow* parent, const wxString& label, const wxString& tooltip,
+              const Config::ConfigInfo<bool>& setting, bool reverse = false, long style = 0);
 
   void UpdateValue(wxCommandEvent& ev)
   {
-    m_setting = (ev.GetInt() != 0) ^ m_reverse;
+    Config::SetBaseOrCurrent(m_setting, (ev.GetInt() != 0) != m_reverse);
+    ev.Skip();
+  }
+
+public:
+  Config::ConfigInfo<bool> m_setting;
+  const bool m_reverse;
+};
+
+template <typename W>
+class RefBoolSetting : public W
+{
+public:
+  RefBoolSetting(wxWindow* parent, const wxString& label, const wxString& tooltip, bool& setting,
+                 bool reverse = false, long style = 0);
+
+  void UpdateValue(wxCommandEvent& ev)
+  {
+    m_setting = (ev.GetInt() != 0) != m_reverse;
     ev.Skip();
   }
 
@@ -51,14 +70,38 @@ template <typename T>
 class IntegerSetting : public wxSpinCtrl
 {
 public:
-  IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal,
-                 long style = 0)
+  IntegerSetting(wxWindow* parent, const wxString& label, const Config::ConfigInfo<T>& setting,
+                 T minVal, T maxVal, long style = 0)
+      : wxSpinCtrl(parent, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, style),
+        m_setting(setting)
+  {
+    SetRange(minVal, maxVal);
+    SetValue(Config::Get(m_setting));
+    Bind(wxEVT_SPINCTRL, &IntegerSetting<T>::UpdateValue, this);
+  }
+
+  void UpdateValue(wxCommandEvent& ev)
+  {
+    Config::SetBaseOrCurrent(m_setting, (T)ev.GetInt());
+    ev.Skip();
+  }
+
+public:
+  Config::ConfigInfo<T> m_setting;
+};
+
+template <typename T>
+class RefIntegerSetting : public wxSpinCtrl
+{
+public:
+  RefIntegerSetting(wxWindow* parent, const wxString& label, T& setting, T minVal, T maxVal,
+                    long style = 0)
       : wxSpinCtrl(parent, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, style),
         m_setting(setting)
   {
     SetRange(minVal, maxVal);
     SetValue(m_setting);
-    Bind(wxEVT_SPINCTRL, &IntegerSetting::UpdateValue, this);
+    Bind(wxEVT_SPINCTRL, &RefIntegerSetting<T>::UpdateValue, this);
   }
 
   void UpdateValue(wxCommandEvent& ev)
@@ -71,23 +114,26 @@ private:
   T& m_setting;
 };
 
+typedef IntegerSetting<s32> I32Setting;
 typedef IntegerSetting<u32> U32Setting;
+typedef RefIntegerSetting<s32> RefI32Setting;
+typedef RefIntegerSetting<u32> RefU32Setting;
 
 template <typename T>
 class FloatSetting : public wxSpinCtrlDouble
 {
 public:
-  FloatSetting(wxWindow* parent, const wxString& label, T& setting, T minVal, T maxVal,
+  FloatSetting(wxWindow* parent, const wxString& label, const Config::ConfigInfo<T>& setting, T minVal, T maxVal,
                T increment = 0, long style = 0);
 
   void UpdateValue(wxSpinDoubleEvent& ev)
   {
-    m_setting = ev.GetValue();
+    Config::SetBaseOrCurrent(m_setting, (T)(ev.GetValue()));
     ev.Skip();
   }
 
 private:
-  T& m_setting;
+   Config::ConfigInfo<T> m_setting;
 };
 
 typedef FloatSetting<double> SettingDouble;
@@ -96,12 +142,12 @@ typedef FloatSetting<float> SettingNumber;
 class SettingChoice : public wxChoice
 {
 public:
-  SettingChoice(wxWindow* parent, int& setting, const wxString& tooltip, int num = 0,
-                const wxString choices[] = nullptr, long style = 0);
+  SettingChoice(wxWindow* parent, const Config::ConfigInfo<int>& setting, const wxString& tooltip,
+                int num = 0, const wxString choices[] = nullptr, long style = 0);
   void UpdateValue(wxCommandEvent& ev);
 
 private:
-  int& m_setting;
+  Config::ConfigInfo<int> m_setting;
 };
 
 class VideoConfigDiag : public wxDialog
@@ -130,15 +176,21 @@ protected:
 
   // Creates controls and connects their enter/leave window events to Evt_Enter/LeaveControl
   SettingCheckBox* CreateCheckBox(wxWindow* parent, const wxString& label,
-                                  const wxString& description, bool& setting, bool reverse = false,
+                                  const wxString& description,
+                                  const Config::ConfigInfo<bool>& setting, bool reverse = false,
                                   long style = 0);
-  SettingChoice* CreateChoice(wxWindow* parent, int& setting, const wxString& description,
-                              int num = 0, const wxString choices[] = nullptr, long style = 0);
+  RefBoolSetting<wxCheckBox>* CreateCheckBoxRefBool(wxWindow* parent, const wxString& label,
+                                                    const wxString& description, bool& setting);
+  SettingChoice* CreateChoice(wxWindow* parent, const Config::ConfigInfo<int>& setting,
+                              const wxString& description, int num = 0,
+                              const wxString choices[] = nullptr, long style = 0);
   SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label,
-                                        const wxString& description, bool& setting,
+                                        const wxString& description,
+                                        const Config::ConfigInfo<bool>& setting,
                                         bool reverse = false, long style = 0);
-  SettingNumber* CreateNumber(wxWindow* parent, float& setting, const wxString& description,
-                              float min, float max, float inc, long style = 0);
+  SettingNumber* CreateNumber(wxWindow* parent, const Config::ConfigInfo<float>& setting,
+                              const wxString& description, float min, float max, float inc,
+                              long style = 0);
 
   // Same as above but only connects enter/leave window events
   wxControl* RegisterControl(wxControl* const control, const wxString& description);
@@ -166,7 +218,7 @@ protected:
   wxButton* button_config_pp;
 
   SettingCheckBox* borderless_fullscreen;
-  SettingCheckBox* render_to_main_checkbox;
+  RefBoolSetting<wxCheckBox>* render_to_main_checkbox;
   SettingCheckBox* async_timewarp_checkbox;
   SettingCheckBox* efbcopy_clear_disable;
 

@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <array>
 #include <cstddef>
 #include <map>
 #include <memory>
@@ -29,6 +28,8 @@ bool Section::Exists(const std::string& key) const
 
 bool Section::Delete(const std::string& key)
 {
+  INFO_LOG(CORE, "Delete %s %s.%s.%s", GetLayerName(m_layer).c_str(),
+           GetSystemName(m_system).c_str(), m_name.c_str(), key.c_str());
   auto it = m_values.find(key);
   if (it == m_values.end())
     return false;
@@ -42,6 +43,8 @@ bool Section::Delete(const std::string& key)
 
 void Section::Set(const std::string& key, const std::string& value)
 {
+  INFO_LOG(CORE, "%s %s.%s.%s=\"%s\"", GetLayerName(m_layer).c_str(),
+           GetSystemName(m_system).c_str(), m_name.c_str(), key.c_str(), value.c_str());
   auto it = m_values.find(key);
   if (it != m_values.end() && it->second != value)
   {
@@ -254,13 +257,7 @@ bool RecursiveSection::Exists(const std::string& key) const
 bool RecursiveSection::Get(const std::string& key, std::string* value,
                            const std::string& default_value) const
 {
-  static constexpr std::array<LayerType, 7> search_order = {{
-      // Skip the meta layer
-      LayerType::CurrentRun, LayerType::CommandLine, LayerType::Movie, LayerType::Netplay,
-      LayerType::LocalGame, LayerType::GlobalGame, LayerType::Base,
-  }};
-
-  for (auto layer_id : search_order)
+  for (auto layer_id : SEARCH_ORDER)
   {
     auto layers_it = Config::GetLayers()->find(layer_id);
     if (layers_it == Config::GetLayers()->end())

@@ -40,6 +40,7 @@ public:
   // Convenience functions
   bool Exists(System system, const std::string& section_name, const std::string& key);
   bool DeleteKey(System system, const std::string& section_name, const std::string& key);
+  bool DeleteSection(System system, const std::string& section_name);
   template <typename T>
   bool GetIfExists(System system, const std::string& section_name, const std::string& key, T* value)
   {
@@ -55,6 +56,11 @@ public:
   // Explicit load and save of layers
   void Load();
   void Save();
+
+  void Clear()
+  {
+	  m_sections.clear();
+  }
 
   LayerType GetLayer() const;
   const LayerMap& GetLayerMap() const;

@@ -23,6 +23,7 @@ public:
 
   void Load(Config::Layer* config_layer) override
   {
+    INFO_LOG(CORE, "NetPlayConfigLayerLoader::Load()");
     Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
     Config::Section* dsp = config_layer->GetOrCreateSection(Config::System::Main, "DSP");
     Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");

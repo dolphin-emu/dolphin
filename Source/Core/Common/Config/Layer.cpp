@@ -54,6 +54,11 @@ bool Layer::DeleteKey(System system, const std::string& section_name, const std:
   return section->Delete(key);
 }
 
+bool Layer::DeleteSection(System system, const std::string& section_name)
+{
+  return false;
+}
+
 Section* Layer::GetSection(System system, const std::string& section_name)
 {
   for (auto& section : m_sections[system])

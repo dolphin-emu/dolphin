@@ -44,6 +44,8 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
+#include "Core/Config/Config.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
@@ -331,18 +333,22 @@ void InputConfigDialog::OnClose(wxCloseEvent& event)
   m_config.SaveConfig();
   if (m_left_texture_box && m_right_texture_box)
   {
-    g_Config.LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+    g_Config.Refresh();
     if (m_config.GetProfileName() == "GCPad")
     {
       g_Config.sGCLeftTexture = m_left_texture_box->GetValue();
       g_Config.sGCRightTexture = m_right_texture_box->GetValue();
-    }
+	  Config::SetBaseOrCurrent(Config::GLOBAL_VR_GC_LEFT_TEXTURE, g_Config.sGCLeftTexture);
+	  Config::SetBaseOrCurrent(Config::GLOBAL_VR_GC_RIGHT_TEXTURE, g_Config.sGCRightTexture);
+	}
     else if (m_config.GetProfileName() == "Wiimote")
     {
       g_Config.sLeftTexture = m_left_texture_box->GetValue();
       g_Config.sRightTexture = m_right_texture_box->GetValue();
-    }
-    g_Config.SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	  Config::SetBaseOrCurrent(Config::GLOBAL_VR_LEFT_TEXTURE, g_Config.sLeftTexture);
+	  Config::SetBaseOrCurrent(Config::GLOBAL_VR_RIGHT_TEXTURE, g_Config.sRightTexture);
+	}
+	Config::Save();
   }
   EndModal(wxID_OK);
 }
@@ -1413,7 +1419,7 @@ wxSizer* InputConfigDialog::CreateTextureChooserAndButtonBar()
 {
   // Add texture drop-down boxes
   wxSizer* b_szr = CreateButtonSizer(wxCLOSE | wxNO_DEFAULT);
-  g_Config.LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+  g_Config.Refresh();
   wxString left = "", right = "";
   bool showboxes = (b_szr != nullptr);
   if (m_config.GetProfileName() == "GCPad")

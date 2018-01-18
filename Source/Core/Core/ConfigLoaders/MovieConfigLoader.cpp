@@ -11,6 +11,7 @@
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/Movie.h"
@@ -21,6 +22,7 @@ namespace ConfigLoaders
 // This will require a large break to the DTM format
 void MovieConfigLayerLoader::Load(Config::Layer* config_layer)
 {
+  INFO_LOG(CORE, "MovieConfigLayerLoader::Load()");
   Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
   Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");
   Config::Section* video_settings = Config::GetOrCreateSection(Config::System::GFX, "Settings");
@@ -45,6 +47,7 @@ void MovieConfigLayerLoader::Load(Config::Layer* config_layer)
 
 void MovieConfigLayerLoader::Save(Config::Layer* config_layer)
 {
+  INFO_LOG(CORE, "MovieConfigLayerLoader::Save()");
   Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
   Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");
   Config::Section* video_settings = Config::GetOrCreateSection(Config::System::GFX, "Settings");
