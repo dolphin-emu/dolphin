@@ -12,6 +12,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "UICommon/UICommon.h"
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #define CONSTEXPR(datatype, name, value)                                                           \
@@ -46,6 +47,7 @@ public:
   ScopeInit()
   {
     Core::DeclareAsCPUThread();
+    UICommon::SetUserDirectory("");
     Config::Init();
     SConfig::Init();
     PowerPC::Init(PowerPC::CORE_INTERPRETER);

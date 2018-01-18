@@ -97,6 +97,9 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29F29A19-F141-45AD-9679-5A2923B49DA3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(CoreDir)UICommon\UICommon.vcxproj">
+      <Project>{604c8368-f34a-4d55-82c8-cc92a0c13254}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Core\VideoCommon\VR.vcxproj">
       <Project>{2e6f41ca-9ead-4a12-97da-1b428c7dea76}</Project>
     </ProjectReference>
