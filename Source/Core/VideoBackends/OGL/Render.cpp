@@ -1493,10 +1493,6 @@ void Renderer::RestoreAPIState()
   BPFunctions::SetViewport();
   BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
-
-  ProgramShaderCache::BindLastVertexFormat();
-  const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
-  glBindBuffer(GL_ARRAY_BUFFER, vm->GetVertexBufferHandle());
 }
 
 void Renderer::SetRasterizationState(const RasterizationState& state)

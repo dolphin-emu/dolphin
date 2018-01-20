@@ -98,7 +98,6 @@ public:
   static SHADER* SetUberShader(PrimitiveType primitive_type, const GLVertexFormat* vertex_format);
   static void BindVertexFormat(const GLVertexFormat* vertex_format);
   static void InvalidateVertexFormat();
-  static void BindLastVertexFormat();
 
   static bool CompileShader(SHADER& shader, const std::string& vcode, const std::string& pcode,
                             const std::string& gcode = "");
@@ -191,6 +190,7 @@ private:
   typedef std::map<SHADERUID, PCacheEntry> PCache;
   typedef std::map<UBERSHADERUID, PCacheEntry> UberPCache;
 
+  static void CreateAttributelessVAO();
   static GLuint CreateProgramFromBinary(const u8* value, u32 value_size);
   static bool CreateCacheEntryFromBinary(PCacheEntry* entry, const u8* value, u32 value_size);
   static void LoadProgramBinaries();
@@ -210,7 +210,10 @@ private:
   static std::unique_ptr<SharedContextAsyncShaderCompiler> s_async_compiler;
   static u32 s_ubo_buffer_size;
   static s32 s_ubo_align;
-  static u32 s_last_VAO;
+
+  static GLuint s_attributeless_VBO;
+  static GLuint s_attributeless_VAO;
+  static GLuint s_last_VAO;
 };
 
 }  // namespace OGL

@@ -95,6 +95,11 @@ void VertexManager::ResetBuffer(u32 stride)
   }
   else
   {
+    // The index buffer is part of the VAO state, therefore we need to bind it first.
+    const GLVertexFormat* vertex_format =
+        static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+    ProgramShaderCache::BindVertexFormat(vertex_format);
+
     auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
     m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
     m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;

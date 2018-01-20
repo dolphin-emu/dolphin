@@ -40,13 +40,14 @@
 namespace OGL
 {
 static constexpr u32 UBO_LENGTH = 32 * 1024 * 1024;
-static constexpr u32 INVALID_VAO = std::numeric_limits<u32>::max();
 
 std::unique_ptr<ProgramShaderCache::SharedContextAsyncShaderCompiler>
     ProgramShaderCache::s_async_compiler;
 u32 ProgramShaderCache::s_ubo_buffer_size;
 s32 ProgramShaderCache::s_ubo_align;
-u32 ProgramShaderCache::s_last_VAO = INVALID_VAO;
+GLuint ProgramShaderCache::s_attributeless_VBO = 0;
+GLuint ProgramShaderCache::s_attributeless_VAO = 0;
+GLuint ProgramShaderCache::s_last_VAO = 0;
 
 static std::unique_ptr<StreamBuffer> s_buffer;
 static int num_failures = 0;
@@ -608,6 +609,7 @@ void ProgramShaderCache::Init()
     LoadProgramBinaries();
 
   CreateHeader();
+  CreateAttributelessVAO();
 
   CurrentProgram = 0;
   last_entry = nullptr;
@@ -657,7 +659,6 @@ void ProgramShaderCache::Reload()
   if (g_ActiveConfig.CanPrecompileUberShaders())
     PrecompileUberShaders();
 
-  InvalidateVertexFormat();
   CurrentProgram = 0;
   last_entry = nullptr;
   last_uber_entry = nullptr;
@@ -681,14 +682,38 @@ void ProgramShaderCache::Shutdown()
   s_program_disk_cache.Close();
   s_uber_program_disk_cache.Close();
 
-  InvalidateVertexFormat();
   DestroyShaders();
   s_buffer.reset();
+
+  glBindVertexArray(0);
+  glDeleteBuffers(1, &s_attributeless_VBO);
+  glDeleteVertexArrays(1, &s_attributeless_VAO);
+  s_attributeless_VBO = 0;
+  s_attributeless_VAO = 0;
+  s_last_VAO = 0;
+}
+
+void ProgramShaderCache::CreateAttributelessVAO()
+{
+  glGenVertexArrays(1, &s_attributeless_VAO);
+
+  // In a compatibility context, we require a valid, bound array buffer.
+  glGenBuffers(1, &s_attributeless_VBO);
+
+  // Initialize the buffer with nothing. 16 floats is an arbitrary size that may work around driver
+  // issues.
+  glBindBuffer(GL_ARRAY_BUFFER, s_attributeless_VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, nullptr, GL_STATIC_DRAW);
+
+  // We must also define vertex attribute 0.
+  glBindVertexArray(s_attributeless_VAO);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+  glEnableVertexAttribArray(0);
 }
 
 void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 {
-  u32 new_VAO = vertex_format ? vertex_format->VAO : 0;
+  u32 new_VAO = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
   if (s_last_VAO == new_VAO)
     return;
 
@@ -698,15 +723,7 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 
 void ProgramShaderCache::InvalidateVertexFormat()
 {
-  s_last_VAO = INVALID_VAO;
-}
-
-void ProgramShaderCache::BindLastVertexFormat()
-{
-  if (s_last_VAO != INVALID_VAO)
-    glBindVertexArray(s_last_VAO);
-  else
-    glBindVertexArray(0);
+  s_last_VAO = 0;
 }
 
 GLuint ProgramShaderCache::CreateProgramFromBinary(const u8* value, u32 value_size)
