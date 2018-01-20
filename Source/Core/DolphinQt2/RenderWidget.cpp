@@ -22,6 +22,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           Qt::DirectConnection);
   connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
           Qt::DirectConnection);
+  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::UpdateSurface,
+          Qt::DirectConnection);
 
   emit HandleChanged((void*)winId());
 
@@ -74,6 +76,9 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowDeactivate:
     Host::GetInstance()->SetRenderFocus(false);
+    break;
+  case QEvent::Resize:
+    emit SizeChanged();
     break;
   case QEvent::WindowStateChange:
     emit StateChanged(isFullScreen());
