@@ -32,7 +32,6 @@
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
-class AbstractRawTexture;
 class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
