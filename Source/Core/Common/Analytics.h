@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -179,7 +180,7 @@ public:
 
 protected:
   std::string m_endpoint;
-  HttpRequest m_http;
+  HttpRequest m_http{std::chrono::seconds{5}};
 };
 
 }  // namespace Common
