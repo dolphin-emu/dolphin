@@ -496,7 +496,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Set("HLE_BS2", bHLE_BS2);
+  core->Set("SkipIPL", bHLE_BS2);
   core->Set("TimingVariance", iTimingVariance);
   core->Set("CPUCore", iCPUCore);
   core->Set("Fastmem", bFastmem);
@@ -892,7 +892,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 {
   IniFile::Section* core = ini.GetOrCreateSection("Core");
 
-  core->Get("HLE_BS2", &bHLE_BS2, false);
+  core->Get("SkipIPL", &bHLE_BS2, true);
 #ifdef _M_X86
   core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JIT64);
 #elif _M_ARM_64
