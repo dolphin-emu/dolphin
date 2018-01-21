@@ -332,64 +332,6 @@ static u64 GetCRC32(const u8* src, u32 len, u32 samples)
 
 #endif
 
-/*
- * NOTE: This hash function is used for custom texture loading/dumping, so
- * it should not be changed, which would require all custom textures to be
- * recalculated for their new hash values. If the hashing function is
- * changed, make sure this one is still used when the legacy parameter is
- * true.
- */
-u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
-{
-  const u64 m = 0xc6a4a7935bd1e995;
-  u64 h = len * m;
-  const int r = 47;
-  u32 Step = (len / 8);
-  const u64* data = (const u64*)src;
-  const u64* end = data + Step;
-  if (samples == 0)
-    samples = std::max(Step, 1u);
-  Step = Step / samples;
-  if (Step < 1)
-    Step = 1;
-  while (data < end)
-  {
-    u64 k = data[0];
-    data += Step;
-    k *= m;
-    k ^= k >> r;
-    k *= m;
-    h ^= k;
-    h *= m;
-  }
-
-  const u8* data2 = (const u8*)end;
-
-  switch (len & 7)
-  {
-  case 7:
-    h ^= u64(data2[6]) << 48;
-  case 6:
-    h ^= u64(data2[5]) << 40;
-  case 5:
-    h ^= u64(data2[4]) << 32;
-  case 4:
-    h ^= u64(data2[3]) << 24;
-  case 3:
-    h ^= u64(data2[2]) << 16;
-  case 2:
-    h ^= u64(data2[1]) << 8;
-  case 1:
-    h ^= u64(data2[0]);
-    h *= m;
-  };
-
-  h ^= h >> r;
-  h *= m;
-  h ^= h >> r;
-
-  return h;
-}
 #else
 
 // CRC32 hash using the SSE4.2 instruction
@@ -552,63 +494,6 @@ static u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
   out[1] = h2;
 
   return *((u64*)&out);
-}
-
-/*
- * FIXME: The old 32-bit version of this hash made different hashes than the
- * 64-bit version. Until someone can make a new version of the 32-bit one that
- * makes identical hashes, this is just a c/p of the 64-bit one.
- */
-u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
-{
-  const u64 m = 0xc6a4a7935bd1e995ULL;
-  u64 h = len * m;
-  const int r = 47;
-  u32 Step = (len / 8);
-  const u64* data = (const u64*)src;
-  const u64* end = data + Step;
-  if (samples == 0)
-    samples = std::max(Step, 1u);
-  Step = Step / samples;
-  if (Step < 1)
-    Step = 1;
-  while (data < end)
-  {
-    u64 k = data[0];
-    data += Step;
-    k *= m;
-    k ^= k >> r;
-    k *= m;
-    h ^= k;
-    h *= m;
-  }
-
-  const u8* data2 = (const u8*)end;
-
-  switch (len & 7)
-  {
-  case 7:
-    h ^= u64(data2[6]) << 48;
-  case 6:
-    h ^= u64(data2[5]) << 40;
-  case 5:
-    h ^= u64(data2[4]) << 32;
-  case 4:
-    h ^= u64(data2[3]) << 24;
-  case 3:
-    h ^= u64(data2[2]) << 16;
-  case 2:
-    h ^= u64(data2[1]) << 8;
-  case 1:
-    h ^= u64(data2[0]);
-    h *= m;
-  };
-
-  h ^= h >> r;
-  h *= m;
-  h ^= h >> r;
-
-  return h;
 }
 #endif
 
