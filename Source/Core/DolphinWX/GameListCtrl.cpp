@@ -446,9 +446,15 @@ void GameListCtrl::RefreshList()
     std::unique_lock<std::mutex> lk(m_title_database_mutex);
     for (const auto& drive : cdio_get_devices())
     {
-      auto file = std::make_shared<GameListItem>(drive, m_title_database);
+      auto file = std::make_shared<GameListItem>(drive);
       if (file->IsValid())
+      {
+        if (file->EmuStateChanged())
+          file->EmuStateCommit();
+        if (file->CustomNameChanged(m_title_database))
+          file->CustomNameCommit();
         m_shown_files.push_back(file);
+      }
     }
   }
 
@@ -812,7 +818,7 @@ void GameListCtrl::RescanList()
     }
     for (const auto& path : new_paths)
     {
-      auto file = std::make_shared<GameListItem>(path, m_title_database);
+      auto file = std::make_shared<GameListItem>(path);
       if (file->IsValid())
       {
         cache_changed = true;
@@ -836,7 +842,8 @@ void GameListCtrl::RescanList()
     {
       bool emu_state_changed = file->EmuStateChanged();
       bool banner_changed = file->BannerChanged();
-      if (emu_state_changed || banner_changed)
+      bool custom_title_changed = file->CustomNameChanged(m_title_database);
+      if (emu_state_changed || banner_changed || custom_title_changed)
       {
         cache_changed = refresh_needed = true;
         auto copy = std::make_shared<GameListItem>(*file);
@@ -844,6 +851,8 @@ void GameListCtrl::RescanList()
           copy->EmuStateCommit();
         if (banner_changed)
           copy->BannerCommit();
+        if (custom_title_changed)
+          copy->CustomNameCommit();
         file = std::move(copy);
       }
     }

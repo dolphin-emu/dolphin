@@ -61,7 +61,7 @@ static std::string GetLanguageString(DiscIO::Language language,
   return "";
 }
 
-GameListItem::GameListItem(const std::string& filename, const Core::TitleDatabase& title_database)
+GameListItem::GameListItem(const std::string& filename)
     : m_file_name(filename), m_region(DiscIO::Region::UNKNOWN_REGION),
       m_country(DiscIO::Country::COUNTRY_UNKNOWN)
 {
@@ -99,14 +99,6 @@ GameListItem::GameListItem(const std::string& filename, const Core::TitleDatabas
 
   if (m_company.empty() && m_game_id.size() >= 6)
     m_company = DiscIO::GetCompanyFromID(m_game_id.substr(4, 2));
-
-  if (IsValid())
-  {
-    const auto type = m_platform == DiscIO::Platform::WII_WAD ?
-                          Core::TitleDatabase::TitleType::Channel :
-                          Core::TitleDatabase::TitleType::Other;
-    m_custom_name = title_database.GetTitleName(m_game_id, type);
-  }
 
   if (!IsValid() && IsElfOrDol())
   {
@@ -230,6 +222,20 @@ bool GameListItem::IsValid() const
   return true;
 }
 
+bool GameListItem::CustomNameChanged(const Core::TitleDatabase& title_database)
+{
+  const auto type = m_platform == DiscIO::Platform::WII_WAD ?
+                        Core::TitleDatabase::TitleType::Channel :
+                        Core::TitleDatabase::TitleType::Other;
+  m_pending.custom_name = title_database.GetTitleName(m_game_id, type);
+  return m_custom_name != m_pending.custom_name;
+}
+
+void GameListItem::CustomNameCommit()
+{
+  m_custom_name = std::move(m_pending.custom_name);
+}
+
 bool GameListItem::EmuStateChanged()
 {
   IniFile ini = SConfig::LoadGameIni(m_game_id, m_revision);
@@ -242,7 +248,7 @@ bool GameListItem::EmuStateChanged()
 
 void GameListItem::EmuStateCommit()
 {
-  m_emu_state = m_pending.emu_state;
+  m_emu_state = std::move(m_pending.emu_state);
   m_vr_state = m_pending.vr_state;
 }
 
