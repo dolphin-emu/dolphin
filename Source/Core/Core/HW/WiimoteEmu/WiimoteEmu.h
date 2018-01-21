@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <queue>
 #include <string>
 
@@ -154,13 +155,13 @@ struct ExtensionReg
 #pragma pack(pop)
 
 void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
-                  u8* const shake_step);
+                  const double intensity, u8* const shake_step);
 
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
                  const bool sideways = false, const bool upright = false);
 
 void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group,
-                  const bool sideways = false, const bool upright = false);
+                  const double intensity, const bool sideways = false, const bool upright = false);
 
 enum
 {
@@ -247,9 +248,13 @@ private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_dpad;
   ControllerEmu::Buttons* m_shake;
+  ControllerEmu::Buttons* m_shake_soft;
+  ControllerEmu::Buttons* m_shake_hard;
   ControllerEmu::Cursor* m_ir;
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
+  ControllerEmu::Force* m_swing_slow;
+  ControllerEmu::Force* m_swing_fast;
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Output* m_motor;
   ControllerEmu::Extension* m_extension;
@@ -274,7 +279,9 @@ private:
   u8 m_reporting_mode;
   u16 m_reporting_channel;
 
-  u8 m_shake_step[3];
+  std::array<u8, 3> m_shake_step{};
+  std::array<u8, 3> m_shake_soft_step{};
+  std::array<u8, 3> m_shake_hard_step{};
 
   bool m_sensor_bar_on_top;
 

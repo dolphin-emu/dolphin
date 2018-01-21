@@ -91,9 +91,9 @@ void Nunchuk::GetState(u8* const data)
   EmulateTilt(&accel, m_tilt);
 
   // swing
-  EmulateSwing(&accel, m_swing);
+  EmulateSwing(&accel, m_swing, 2.5);
   // shake
-  EmulateShake(&accel, m_shake, m_shake_step.data());
+  EmulateShake(&accel, m_shake, 3.0, m_shake_step.data());
   // buttons
   m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
 
