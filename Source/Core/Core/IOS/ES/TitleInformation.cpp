@@ -97,7 +97,21 @@ IPCCommandResult ES::GetTMDStoredContents(const IOCtlVRequest& request)
 
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
-  return GetStoredContents(IOS::ES::TMDReader{std::move(tmd_bytes)}, request);
+
+  const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+  if (!tmd.IsValid())
+    return GetDefaultReply(ES_EINVAL);
+
+  std::vector<u8> cert_store;
+  ReturnCode ret = ReadCertStore(&cert_store);
+  if (ret != IPC_SUCCESS)
+    return GetDefaultReply(ret);
+
+  ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore, tmd, cert_store);
+  if (ret != IPC_SUCCESS)
+    return GetDefaultReply(ret);
+
+  return GetStoredContents(tmd, request);
 }
 
 IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request)

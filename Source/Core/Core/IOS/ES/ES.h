@@ -112,9 +112,10 @@ public:
   std::vector<std::array<u8, 20>> GetSharedContents() const;
 
   // Title management
-  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes);
+  ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
-  ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes);
+  ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
+                             const std::vector<u8>& cert_chain);
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
   ReturnCode ImportContentEnd(Context& context, u32 content_fd);
@@ -305,6 +306,25 @@ private:
 
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
                                        const IOS::ES::TMDReader& tmd) const;
+
+  enum class VerifyContainerType
+  {
+    TMD,
+    Ticket,
+    Device,
+  };
+  enum class VerifyMode
+  {
+    // Whether or not new certificates should be added to the certificate store (/sys/cert.sys).
+    DoNotUpdateCertStore,
+    UpdateCertStore,
+  };
+  bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
+  ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
+  ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::SignedBlobReader& signed_blob,
+                             const std::vector<u8>& cert_chain, u32 iosc_handle = 0);
 
   // Start a title import.
   bool InitImport(u64 title_id);

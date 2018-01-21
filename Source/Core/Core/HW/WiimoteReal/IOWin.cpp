@@ -476,6 +476,7 @@ bool WiimoteScannerWindows::IsReady() const
 
   if (nullptr != hFindRadio)
   {
+    CloseHandle(hRadio);
     pBluetoothFindRadioClose(hFindRadio);
     return true;
   }
@@ -897,6 +898,7 @@ void ProcessWiimotes(bool new_scan, const T& callback)
 
     if (false == pBluetoothFindNextRadio(hFindRadio, &hRadio))
     {
+      CloseHandle(hRadio);
       pBluetoothFindRadioClose(hFindRadio);
       hFindRadio = nullptr;
     }
