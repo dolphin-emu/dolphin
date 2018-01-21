@@ -703,7 +703,8 @@ void StateTracker::EndRenderPass()
   m_current_render_pass = VK_NULL_HANDLE;
 }
 
-void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue clear_values[2])
+void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue* clear_values,
+                                        u32 num_clear_values)
 {
   _assert_(!InRenderPass());
 
@@ -715,7 +716,7 @@ void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue
                                       m_current_render_pass,
                                       m_framebuffer,
                                       m_framebuffer_render_area,
-                                      2,
+                                      num_clear_values,
                                       clear_values};
 
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,

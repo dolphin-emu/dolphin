@@ -90,6 +90,8 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)m_target_width, (float)m_target_height);
   D3D::context->RSSetViewports(1, &vp);
   FramebufferManager::BindEFBRenderTarget();
+  m_current_framebuffer_width = m_target_width;
+  m_current_framebuffer_height = m_target_height;
 }
 
 Renderer::~Renderer()
@@ -241,6 +243,14 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
                                                                        const TextureConfig& config)
 {
   return DXStagingTexture::Create(type, config);
+}
+
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                            const AbstractTexture* depth_attachment)
+{
+  return DXFramebuffer::Create(static_cast<const DXTexture*>(color_attachment),
+                               static_cast<const DXTexture*>(depth_attachment));
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
@@ -648,6 +658,9 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   static constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
   D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
   D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), clear_color.data());
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = m_backbuffer_width;
+  m_current_framebuffer_height = m_backbuffer_height;
 
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
@@ -763,6 +776,9 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
   // Gets us back into a more game-like state.
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = m_target_width;
+  m_current_framebuffer_height = m_target_height;
   FramebufferManager::BindEFBRenderTarget();
   BPFunctions::SetViewport();
   BPFunctions::SetScissor();
@@ -790,6 +806,36 @@ void Renderer::ApplyState()
 
 void Renderer::RestoreState()
 {
+}
+
+void Renderer::SetFramebuffer(const AbstractFramebuffer* framebuffer)
+{
+  const DXFramebuffer* fb = static_cast<const DXFramebuffer*>(framebuffer);
+  D3D::context->OMSetRenderTargets(fb->GetNumRTVs(), fb->GetRTVArray(), fb->GetDSV());
+  m_current_framebuffer = fb;
+  m_current_framebuffer_width = fb->GetWidth();
+  m_current_framebuffer_height = fb->GetHeight();
+}
+
+void Renderer::SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer)
+{
+  SetFramebuffer(framebuffer);
+}
+
+void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value, float depth_value)
+{
+  SetFramebuffer(framebuffer);
+  if (framebuffer->GetColorFormat() != AbstractTextureFormat::Undefined)
+  {
+    D3D::context->ClearRenderTargetView(
+        static_cast<const DXFramebuffer*>(framebuffer)->GetRTVArray()[0], color_value.data());
+  }
+  if (framebuffer->GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    D3D::context->ClearDepthStencilView(static_cast<const DXFramebuffer*>(framebuffer)->GetDSV(),
+                                        D3D11_CLEAR_DEPTH, depth_value, 0);
+  }
 }
 
 void Renderer::SetRasterizationState(const RasterizationState& state)

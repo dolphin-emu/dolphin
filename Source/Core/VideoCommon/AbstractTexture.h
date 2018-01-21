@@ -40,6 +40,7 @@ public:
 
   static bool IsCompressedFormat(AbstractTextureFormat format);
   static bool IsDepthFormat(AbstractTextureFormat format);
+  static bool IsStencilFormat(AbstractTextureFormat format);
   static size_t CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length);
   static size_t GetTexelSizeForFormat(AbstractTextureFormat format);
 

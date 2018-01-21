@@ -70,4 +70,31 @@ void NullStagingTexture::Flush()
   m_needs_flush = false;
 }
 
+NullFramebuffer::NullFramebuffer(AbstractTextureFormat color_format,
+                                 AbstractTextureFormat depth_format, u32 width, u32 height,
+                                 u32 layers, u32 samples)
+    : AbstractFramebuffer(color_format, depth_format, width, height, layers, samples)
+{
+}
+
+std::unique_ptr<NullFramebuffer> NullFramebuffer::Create(const NullTexture* color_attachment,
+                                                         const NullTexture* depth_attachment)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment))
+    return nullptr;
+
+  const AbstractTextureFormat color_format =
+      color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const AbstractTextureFormat depth_format =
+      depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const NullTexture* either_attachment = color_attachment ? color_attachment : depth_attachment;
+  const u32 width = either_attachment->GetWidth();
+  const u32 height = either_attachment->GetHeight();
+  const u32 layers = either_attachment->GetLayers();
+  const u32 samples = either_attachment->GetSamples();
+
+  return std::make_unique<NullFramebuffer>(color_format, depth_format, width, height, layers,
+                                           samples);
+}
+
 }  // namespace Null

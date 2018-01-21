@@ -39,6 +39,14 @@ SWRenderer::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
   return std::make_unique<SW::SWStagingTexture>(type, config);
 }
 
+std::unique_ptr<AbstractFramebuffer>
+SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                              const AbstractTexture* depth_attachment)
+{
+  return SW::SWFramebuffer::Create(static_cast<const SW::SWTexture*>(color_attachment),
+                                   static_cast<const SW::SWTexture*>(depth_attachment));
+}
+
 void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
 {
   SWOGLWindow::s_instance->PrintText(pstr, left, top, color);

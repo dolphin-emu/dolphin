@@ -78,6 +78,11 @@ bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
   }
 }
 
+bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
+{
+  return format == AbstractTextureFormat::D32F_S8;
+}
+
 size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
 {
   switch (format)

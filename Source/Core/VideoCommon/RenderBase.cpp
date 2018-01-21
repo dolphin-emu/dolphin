@@ -43,6 +43,7 @@
 #include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"

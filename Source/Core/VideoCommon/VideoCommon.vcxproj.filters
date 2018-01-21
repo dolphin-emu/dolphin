@@ -194,6 +194,9 @@
     <ClCompile Include="AbstractStagingTexture.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="AbstractFramebuffer.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -261,9 +264,6 @@
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="TextureConversionShader.h">
-      <Filter>Shader Generators</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureConvertionShaderGen.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderGen.h">
@@ -372,6 +372,10 @@
       <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="AbstractPipeline.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConverterShaderGen.h" />
+    <ClInclude Include="AbstractFramebuffer.h">
       <Filter>Base</Filter>
     </ClInclude>
   </ItemGroup>

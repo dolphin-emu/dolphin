@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
@@ -57,6 +59,17 @@ public:
 
 private:
   std::vector<u8> m_data;
+};
+
+class SWFramebuffer final : public AbstractFramebuffer
+{
+public:
+  explicit SWFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+                         u32 width, u32 height, u32 layers, u32 samples);
+  ~SWFramebuffer() override = default;
+
+  static std::unique_ptr<SWFramebuffer> Create(const SWTexture* color_attachment,
+                                               const SWTexture* depth_attachment);
 };
 
 }  // namespace SW

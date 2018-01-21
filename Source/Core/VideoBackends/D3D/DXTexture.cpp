@@ -344,4 +344,88 @@ void DXStagingTexture::Flush()
   m_needs_flush = false;
 }
 
+DXFramebuffer::DXFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+                             u32 width, u32 height, u32 layers, u32 samples,
+                             ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv)
+    : AbstractFramebuffer(color_format, depth_format, width, height, layers, samples), m_rtv(rtv),
+      m_dsv(dsv)
+{
+}
+
+DXFramebuffer::~DXFramebuffer()
+{
+  if (m_rtv)
+    m_rtv->Release();
+  if (m_dsv)
+    m_dsv->Release();
+}
+
+std::unique_ptr<DXFramebuffer> DXFramebuffer::Create(const DXTexture* color_attachment,
+                                                     const DXTexture* depth_attachment)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment))
+    return nullptr;
+
+  const AbstractTextureFormat color_format =
+      color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const AbstractTextureFormat depth_format =
+      depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const DXTexture* either_attachment = color_attachment ? color_attachment : depth_attachment;
+  const u32 width = either_attachment->GetWidth();
+  const u32 height = either_attachment->GetHeight();
+  const u32 layers = either_attachment->GetLayers();
+  const u32 samples = either_attachment->GetSamples();
+
+  ID3D11RenderTargetView* rtv = nullptr;
+  if (color_attachment)
+  {
+    D3D11_RENDER_TARGET_VIEW_DESC desc;
+    desc.Format = GetDXGIFormatForHostFormat(color_attachment->GetConfig().format);
+    if (color_attachment->GetConfig().IsMultisampled())
+    {
+      desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
+      desc.Texture2DMSArray.ArraySize = color_attachment->GetConfig().layers;
+      desc.Texture2DMSArray.FirstArraySlice = 0;
+    }
+    else
+    {
+      desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+      desc.Texture2DArray.ArraySize = color_attachment->GetConfig().layers;
+      desc.Texture2DArray.FirstArraySlice = 0;
+      desc.Texture2DArray.MipSlice = 0;
+    }
+
+    HRESULT hr = D3D::device->CreateRenderTargetView(
+        color_attachment->GetRawTexIdentifier()->GetTex(), &desc, &rtv);
+    CHECK(SUCCEEDED(hr), "Create render target view for framebuffer");
+  }
+
+  ID3D11DepthStencilView* dsv = nullptr;
+  if (depth_attachment)
+  {
+    D3D11_DEPTH_STENCIL_VIEW_DESC desc;
+    desc.Format = GetDXGIFormatForHostFormat(depth_attachment->GetConfig().format);
+    if (depth_attachment->GetConfig().IsMultisampled())
+    {
+      desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY;
+      desc.Texture2DMSArray.ArraySize = depth_attachment->GetConfig().layers;
+      desc.Texture2DMSArray.FirstArraySlice = 0;
+    }
+    else
+    {
+      desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+      desc.Texture2DArray.ArraySize = depth_attachment->GetConfig().layers;
+      desc.Texture2DArray.FirstArraySlice = 0;
+      desc.Texture2DArray.MipSlice = 0;
+    }
+
+    HRESULT hr = D3D::device->CreateDepthStencilView(
+        depth_attachment->GetRawTexIdentifier()->GetTex(), &desc, &dsv);
+    CHECK(SUCCEEDED(hr), "Create depth stencil view for framebuffer");
+  }
+
+  return std::make_unique<DXFramebuffer>(color_format, depth_format, width, height, layers, samples,
+                                         rtv, dsv);
+}
+
 }  // namespace DX11

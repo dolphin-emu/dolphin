@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/GL/GLUtil.h"
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
@@ -72,6 +74,21 @@ private:
   GLuint m_buffer_name;
   size_t m_buffer_size;
   GLsync m_fence = 0;
+};
+
+class OGLFramebuffer final : public AbstractFramebuffer
+{
+public:
+  OGLFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format, u32 width,
+                 u32 height, u32 layers, u32 samples, GLuint fbo);
+  ~OGLFramebuffer() override;
+
+  GLuint GetFBO() const { return m_fbo; }
+  static std::unique_ptr<OGLFramebuffer> Create(const OGLTexture* color_attachment,
+                                                const OGLTexture* depth_attachment);
+
+protected:
+  GLuint m_fbo;
 };
 
 }  // namespace OGL

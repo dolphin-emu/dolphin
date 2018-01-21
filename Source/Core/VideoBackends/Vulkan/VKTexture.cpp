@@ -566,4 +566,118 @@ void VKStagingTexture::Flush()
     m_staging_buffer->InvalidateCPUCache();
 }
 
+VKFramebuffer::VKFramebuffer(const VKTexture* color_attachment, const VKTexture* depth_attachment,
+                             u32 width, u32 height, u32 layers, u32 samples, VkFramebuffer fb,
+                             VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
+                             VkRenderPass clear_render_pass)
+    : AbstractFramebuffer(
+          color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined,
+          depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined,
+          width, height, layers, samples),
+      m_color_attachment(color_attachment), m_depth_attachment(depth_attachment), m_fb(fb),
+      m_load_render_pass(load_render_pass), m_discard_render_pass(discard_render_pass),
+      m_clear_render_pass(clear_render_pass)
+{
+}
+
+VKFramebuffer::~VKFramebuffer()
+{
+  g_command_buffer_mgr->DeferFramebufferDestruction(m_fb);
+}
+
+std::unique_ptr<VKFramebuffer> VKFramebuffer::Create(const VKTexture* color_attachment,
+                                                     const VKTexture* depth_attachment)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment))
+    return nullptr;
+
+  const VkFormat vk_color_format =
+      color_attachment ? color_attachment->GetRawTexIdentifier()->GetFormat() : VK_FORMAT_UNDEFINED;
+  const VkFormat vk_depth_format =
+      depth_attachment ? depth_attachment->GetRawTexIdentifier()->GetFormat() : VK_FORMAT_UNDEFINED;
+  const VKTexture* either_attachment = color_attachment ? color_attachment : depth_attachment;
+  const u32 width = either_attachment->GetWidth();
+  const u32 height = either_attachment->GetHeight();
+  const u32 layers = either_attachment->GetLayers();
+  const u32 samples = either_attachment->GetSamples();
+
+  std::array<VkImageView, 2> attachment_views{};
+  u32 num_attachments = 0;
+
+  if (color_attachment)
+    attachment_views[num_attachments++] = color_attachment->GetRawTexIdentifier()->GetView();
+
+  if (depth_attachment)
+    attachment_views[num_attachments++] = depth_attachment->GetRawTexIdentifier()->GetView();
+
+  VkRenderPass load_render_pass = g_object_cache->GetRenderPass(
+      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_LOAD);
+  VkRenderPass discard_render_pass = g_object_cache->GetRenderPass(
+      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+  VkRenderPass clear_render_pass = g_object_cache->GetRenderPass(
+      vk_color_format, vk_depth_format, samples, VK_ATTACHMENT_LOAD_OP_CLEAR);
+  if (load_render_pass == VK_NULL_HANDLE || discard_render_pass == VK_NULL_HANDLE ||
+      clear_render_pass == VK_NULL_HANDLE)
+  {
+    return nullptr;
+  }
+
+  VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                              nullptr,
+                                              0,
+                                              load_render_pass,
+                                              num_attachments,
+                                              attachment_views.data(),
+                                              width,
+                                              height,
+                                              layers};
+
+  VkFramebuffer fb;
+  VkResult res =
+      vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr, &fb);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+    return nullptr;
+  }
+
+  return std::make_unique<VKFramebuffer>(color_attachment, depth_attachment, width, height, layers,
+                                         samples, fb, load_render_pass, discard_render_pass,
+                                         clear_render_pass);
+}
+
+void VKFramebuffer::TransitionForRender() const
+{
+  if (m_color_attachment)
+  {
+    m_color_attachment->GetRawTexIdentifier()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  }
+
+  if (m_depth_attachment)
+  {
+    m_depth_attachment->GetRawTexIdentifier()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(),
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+  }
+}
+
+void VKFramebuffer::TransitionForSample() const
+{
+  if (StateTracker::GetInstance()->GetFramebuffer() == m_fb)
+    StateTracker::GetInstance()->EndRenderPass();
+
+  if (m_color_attachment)
+  {
+    m_color_attachment->GetRawTexIdentifier()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
+
+  if (m_depth_attachment)
+  {
+    m_depth_attachment->GetRawTexIdentifier()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  }
+}
+
 }  // namespace Vulkan

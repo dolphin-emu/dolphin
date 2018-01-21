@@ -593,4 +593,72 @@ void OGLStagingTexture::Unmap()
   m_map_pointer = nullptr;
 }
 
+OGLFramebuffer::OGLFramebuffer(AbstractTextureFormat color_format,
+                               AbstractTextureFormat depth_format, u32 width, u32 height,
+                               u32 layers, u32 samples, GLuint fbo)
+    : AbstractFramebuffer(color_format, depth_format, width, height, layers, samples), m_fbo(fbo)
+{
+}
+
+OGLFramebuffer::~OGLFramebuffer()
+{
+  glDeleteFramebuffers(1, &m_fbo);
+}
+
+std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(const OGLTexture* color_attachment,
+                                                       const OGLTexture* depth_attachment)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment))
+    return nullptr;
+
+  const AbstractTextureFormat color_format =
+      color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const AbstractTextureFormat depth_format =
+      depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const OGLTexture* either_attachment = color_attachment ? color_attachment : depth_attachment;
+  const u32 width = either_attachment->GetWidth();
+  const u32 height = either_attachment->GetHeight();
+  const u32 layers = either_attachment->GetLayers();
+  const u32 samples = either_attachment->GetSamples();
+
+  GLuint fbo;
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+  if (color_attachment)
+  {
+    if (color_attachment->GetConfig().layers > 1)
+    {
+      glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                           color_attachment->GetRawTexIdentifier(), 0);
+    }
+    else
+    {
+      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                color_attachment->GetRawTexIdentifier(), 0, 0);
+    }
+  }
+
+  if (depth_attachment)
+  {
+    GLenum attachment = AbstractTexture::IsStencilFormat(depth_format) ?
+                            GL_DEPTH_STENCIL_ATTACHMENT :
+                            GL_DEPTH_ATTACHMENT;
+    if (depth_attachment->GetConfig().layers > 1)
+    {
+      glFramebufferTexture(GL_FRAMEBUFFER, attachment, depth_attachment->GetRawTexIdentifier(), 0);
+    }
+    else
+    {
+      glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, depth_attachment->GetRawTexIdentifier(),
+                                0, 0);
+    }
+  }
+
+  _dbg_assert_(VIDEO, glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+  FramebufferManager::SetFramebuffer(0);
+  return std::make_unique<OGLFramebuffer>(color_format, depth_format, width, height, layers,
+                                          samples, fbo);
+}
+
 }  // namespace OGL
