@@ -25,7 +25,7 @@
 
 namespace DiscIO
 {
-// Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if the enum below is modified
+// Increment CACHE_REVISION (GameListCtrl.cpp) if the enum below is modified
 enum class BlobType
 {
   PLAIN,

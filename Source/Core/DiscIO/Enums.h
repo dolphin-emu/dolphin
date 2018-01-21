@@ -10,7 +10,7 @@
 
 namespace DiscIO
 {
-// Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if these enums are modified
+// Increment CACHE_REVISION (GameListCtrl.cpp) if these enums are modified
 
 enum class Platform
 {

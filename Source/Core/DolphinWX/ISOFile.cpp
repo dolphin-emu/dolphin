@@ -90,8 +90,9 @@ GameListItem::GameListItem(const std::string& filename)
       m_disc_number = volume->GetDiscNumber().value_or(0);
       m_revision = volume->GetRevision().value_or(0);
 
-      std::vector<u32> buffer = volume->GetBanner(&m_banner.width, &m_banner.height);
-      ReadVolumeBanner(&m_banner.buffer, buffer, m_banner.width, m_banner.height);
+      auto& banner = m_volume_banner;
+      std::vector<u32> buffer = volume->GetBanner(&banner.width, &banner.height);
+      ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
 
       m_valid = true;
     }
@@ -113,18 +114,17 @@ GameListItem::GameListItem(const std::string& filename)
     // A bit like the Homebrew Channel icon, except there can be multiple files
     // in a folder with their own icons. Useful for those who don't want to have
     // a Homebrew Channel-style folder structure.
-    if (SetWxBannerFromPngFile(path + name + ".png"))
+    if (SetWxBannerFromPNGFile(path + name + ".png"))
       return;
 
-    // Homebrew Channel icon. Typical for DOLs and ELFs,
-    // but can be also used with volumes.
-    if (SetWxBannerFromPngFile(path + "icon.png"))
+    // Homebrew Channel icon. The most typical icon format for DOLs and ELFs.
+    if (SetWxBannerFromPNGFile(path + "icon.png"))
       return;
   }
   else
   {
     // Volume banner. Typical for everything that isn't a DOL or ELF.
-    SetWxBannerFromRaw(m_banner);
+    SetWxBannerFromRaw(m_volume_banner);
   }
 
   if (IsValid())
@@ -249,7 +249,7 @@ bool GameListItem::EmuStateChanged()
 void GameListItem::EmuStateCommit()
 {
   m_emu_state = std::move(m_pending.emu_state);
-  m_vr_state = m_pending.vr_state;
+  m_vr_state = std::move(m_pending.vr_state);
 }
 
 void GameListItem::EmuState::DoState(PointerWrap& p)
@@ -283,13 +283,13 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_blob_type);
   p.Do(m_revision);
   p.Do(m_disc_number);
-  m_banner.DoState(p);
+  m_volume_banner.DoState(p);
   m_emu_state.DoState(p);
   m_vr_state.DoState(p);
   p.Do(m_custom_name);
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
-    SetWxBannerFromRaw(m_banner);
+    SetWxBannerFromRaw(m_volume_banner);
   }
 }
 
@@ -315,7 +315,7 @@ void GameListItem::ReadVolumeBanner(std::vector<u8>* image, const std::vector<u3
   }
 }
 
-bool GameListItem::SetWxBannerFromPngFile(const std::string& path)
+bool GameListItem::SetWxBannerFromPNGFile(const std::string& path)
 {
   if (!File::Exists(path))
     return false;
@@ -330,13 +330,13 @@ bool GameListItem::SetWxBannerFromPngFile(const std::string& path)
 
 void GameListItem::SetWxBannerFromRaw(const Banner& banner)
 {
+  if (banner.empty())
+    return;
+
   // Need to make explicit copy as wxImage uses reference counting for copies combined with only
   // taking a pointer, not the content, when given a buffer to its constructor.
-  if (!banner.empty())
-  {
-    m_banner_wx.Create(banner.width, banner.height, false);
-    std::memcpy(m_banner_wx.GetData(), banner.buffer.data(), banner.buffer.size());
-  }
+  m_banner_wx.Create(banner.width, banner.height, false);
+  std::memcpy(m_banner_wx.GetData(), banner.buffer.data(), banner.buffer.size());
 }
 
 bool GameListItem::BannerChanged()
@@ -344,27 +344,27 @@ bool GameListItem::BannerChanged()
   // Wii banners can only be read if there is a savefile,
   // so sometimes caches don't contain banners. Let's check
   // if a banner has become available after the cache was made.
-  if ((m_platform == DiscIO::Platform::WII_DISC || m_platform == DiscIO::Platform::WII_WAD) &&
-      m_banner.empty())
-  {
-    auto& banner = m_pending.banner;
-    std::vector<u32> buffer =
-        DiscIO::Volume::GetWiiBanner(&banner.width, &banner.height, m_title_id);
-    if (buffer.size())
-    {
-      ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
-      // Only reach here if m_banner was empty, so don't need to explicitly compare to see if
-      // different
-      return true;
-    }
-  }
-  return false;
+
+  if (!m_volume_banner.empty())
+    return false;
+  if (m_platform != DiscIO::Platform::WII_DISC && m_platform != DiscIO::Platform::WII_WAD)
+    return false;
+
+  auto& banner = m_pending.volume_banner;
+  std::vector<u32> buffer = DiscIO::Volume::GetWiiBanner(&banner.width, &banner.height, m_title_id);
+  if (!buffer.size())
+    return false;
+
+  ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);
+  // We only reach here if m_volume_banner was empty, so we don't need to explicitly
+  // compare to see if they are different
+  return true;
 }
 
 void GameListItem::BannerCommit()
 {
-  m_banner = std::move(m_pending.banner);
-  SetWxBannerFromRaw(m_banner);
+  m_volume_banner = std::move(m_pending.volume_banner);
+  SetWxBannerFromRaw(m_volume_banner);
 }
 
 std::string GameListItem::GetDescription(DiscIO::Language language) const

@@ -80,6 +80,8 @@ public:
   wxProgressDialog* dialog;
 };
 
+static constexpr u32 CACHE_REVISION = 2;  // Last changed in PR 5687
+
 static bool sorted = false;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
