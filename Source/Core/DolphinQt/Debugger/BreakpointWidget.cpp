@@ -112,6 +112,8 @@ void BreakpointWidget::CreateWidgets()
   m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = m_toolbar->addAction(tr("Save"), this, &BreakpointWidget::OnSave);
 
+  AddAction(m_toolbar, tr("Refresh"), this, &BreakpointWidget::OnRefresh);
+
   m_new->setEnabled(false);
   m_load->setEnabled(false);
   m_save->setEnabled(false);
@@ -289,6 +291,11 @@ void BreakpointWidget::OnSave()
   ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
   ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
+}
+
+void BreakpointWidget::OnRefresh()
+{
+  Update();
 }
 
 void BreakpointWidget::AddBP(u32 addr)

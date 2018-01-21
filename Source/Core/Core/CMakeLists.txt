@@ -202,6 +202,7 @@ add_library(core
   IOS/WFS/WFSSRV.cpp
   IOS/WFS/WFSI.cpp
   PowerPC/BreakPoints.cpp
+  PowerPC/GDBThread.cpp
   PowerPC/MMU.cpp
   PowerPC/PowerPC.cpp
   PowerPC/PPCAnalyst.cpp

@@ -66,6 +66,7 @@
 #ifdef USE_GDBSTUB
 #include "Core/PowerPC/GDBStub.h"
 #endif
+#include "Core/PowerPC/GDBThread.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
@@ -346,10 +347,21 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   }
 #endif
 
+  GDBThread gdb_thread;
+  if (_CoreParameter.bEnableDebugging)
+  {
+    gdb_thread.Initialize();
+  }
+
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
 
   s_is_started = false;
+
+  if (_CoreParameter.bEnableDebugging)
+  {
+    gdb_thread.Terminate();
+  }
 
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();

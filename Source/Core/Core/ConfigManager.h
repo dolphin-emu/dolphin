@@ -72,11 +72,9 @@ struct SConfig
 
   // Settings
   bool bEnableDebugging = false;
-#ifdef USE_GDBSTUB
   int iGDBPort;
 #ifndef _WIN32
   std::string gdb_socket;
-#endif
 #endif
   bool bAutomaticStart = false;
   bool bBootToPause = false;

@@ -126,12 +126,10 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
   general->Set("WirelessMac", m_WirelessMac);
 
-#ifdef USE_GDBSTUB
 #ifndef _WIN32
   general->Set("GDBSocket", gdb_socket);
 #endif
   general->Set("GDBPort", iGDBPort);
-#endif
 }
 
 void SConfig::SaveInterfaceSettings(IniFile& ini)
@@ -399,12 +397,10 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("ShowLag", &m_ShowLag, false);
   general->Get("ShowFrameCount", &m_ShowFrameCount, false);
-#ifdef USE_GDBSTUB
 #ifndef _WIN32
   general->Get("GDBSocket", &gdb_socket, "");
 #endif
   general->Get("GDBPort", &(iGDBPort), -1);
-#endif
 
   m_ISOFolder.clear();
   int numISOPaths;

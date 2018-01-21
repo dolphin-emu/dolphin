@@ -236,6 +236,10 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 
 #define rPS(i) (PowerPC::ppcState.ps[(i)])
 
+#define XER PowerPC::ppcState.spr[SPR_XER]
+#define DSISR PowerPC::ppcState.spr[SPR_DSISR]
+#define DAR PowerPC::ppcState.spr[SPR_DAR]
+
 inline void SetCarry(u32 ca)
 {
   PowerPC::ppcState.xer_ca = ca;

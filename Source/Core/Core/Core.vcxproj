@@ -258,6 +258,7 @@
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
     <ClCompile Include="PowerPC\ConditionRegister.cpp" />
+    <ClCompile Include="PowerPC\GDBThread.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -518,6 +519,7 @@
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="PowerPC\BreakPoints.h" />
     <ClInclude Include="PowerPC\CPUCoreBase.h" />
+    <ClInclude Include="PowerPC\GDBThread.h" />
     <ClInclude Include="PowerPC\Gekko.h" />
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h" />

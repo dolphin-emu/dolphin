@@ -107,6 +107,7 @@ LogManager::LogManager()
   m_log[LogTypes::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[LogTypes::FILEMON] = {"FileMon", "File Monitor"};
   m_log[LogTypes::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
+  m_log[LogTypes::GDB_THREAD] = {"GDB_THREAD", "GDB Thread"};
   m_log[LogTypes::GPFIFO] = {"GP", "GPFifo"};
   m_log[LogTypes::HOST_GPU] = {"Host GPU", "Host GPU"};
   m_log[LogTypes::IOS] = {"IOS", "IOS"};

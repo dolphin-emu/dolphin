@@ -5,7 +5,9 @@
 #pragma once
 
 #include <cstddef>
+#include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -42,12 +44,22 @@ struct TMemCheck
               u32 pc);
 };
 
+enum class MemCheckCondition
+{
+  Execute,
+  Read,
+  Write,
+  ReadWrite,
+};
+
 // Code breakpoints.
 class BreakPoints
 {
 public:
   using TBreakPoints = std::vector<TBreakPoint>;
   using TBreakPointsStr = std::vector<std::string>;
+  using TTriggeredBreakPoint =
+      std::tuple<bool, std::optional<u64>, std::optional<MemCheckCondition>>;
 
   const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
   TBreakPointsStr GetStrings() const;
@@ -66,8 +78,18 @@ public:
   void Clear();
   void ClearAllTemporary();
 
+  void SetBreakpointTriggered(bool breakpoint_triggered,
+                              std::optional<u64> target_address = std::nullopt,
+                              std::optional<MemCheckCondition> breakpoint_condition = std::nullopt);
+  bool WasBreakpointTriggered() const { return m_breakpoint_triggered; }
+  TTriggeredBreakPoint GetBreakpointTriggered() const;
+
 private:
   TBreakPoints m_breakpoints;
+
+  bool m_breakpoint_triggered;
+  std::optional<u64> m_breakpoint_address;
+  std::optional<MemCheckCondition> m_breakpoint_condition;
 };
 
 // Memory breakpoints

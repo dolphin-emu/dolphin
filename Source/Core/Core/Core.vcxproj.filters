@@ -871,6 +871,9 @@
     <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\GDBThread.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
     <ClCompile Include="Config\UISettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
@@ -1633,6 +1636,9 @@
     </ClInclude>
     <ClInclude Include="HW\WiimoteCommon\DataReport.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\GDBThread.h">
+      <Filter>PowerPC</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

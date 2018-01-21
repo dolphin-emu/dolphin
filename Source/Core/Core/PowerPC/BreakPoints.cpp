@@ -125,6 +125,20 @@ void BreakPoints::ClearAllTemporary()
   }
 }
 
+void BreakPoints::SetBreakpointTriggered(bool breakpoint_triggered,
+                                         std::optional<u64> target_address,
+                                         std::optional<MemCheckCondition> breakpoint_condition)
+{
+  m_breakpoint_triggered = breakpoint_triggered;
+  m_breakpoint_address = target_address;
+  m_breakpoint_condition = breakpoint_condition;
+};
+
+BreakPoints::TTriggeredBreakPoint BreakPoints::GetBreakpointTriggered() const
+{
+  return std::make_tuple(m_breakpoint_triggered, m_breakpoint_address, m_breakpoint_condition);
+};
+
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
   TMemChecksStr mc_strings;
