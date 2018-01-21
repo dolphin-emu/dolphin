@@ -8,7 +8,7 @@
 #include <string>
 #include <wx/frame.h>
 
-class CGameListCtrl;
+class GameListCtrl;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
@@ -20,7 +20,7 @@ class wxTextCtrl;
 class NetPlaySetupFrame final : public wxFrame
 {
 public:
-  NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list);
+  NetPlaySetupFrame(wxWindow* const parent, const GameListCtrl* const game_list);
   ~NetPlaySetupFrame();
 
 private:
@@ -76,5 +76,5 @@ private:
 #endif
 
   wxString m_traversal_string;
-  const CGameListCtrl* const m_game_list;
+  const GameListCtrl* const m_game_list;
 };

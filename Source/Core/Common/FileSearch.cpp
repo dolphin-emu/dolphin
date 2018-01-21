@@ -7,10 +7,19 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
+
+#ifdef _MSC_VER
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#define HAS_STD_FILESYSTEM
+#else
 #include "Common/FileUtil.h"
+#endif
 
 namespace Common
 {
+#ifndef HAS_STD_FILESYSTEM
+
 static std::vector<std::string>
 FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
                    std::function<bool(const File::FSTEntry&)> callback)
@@ -36,10 +45,10 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
   return result;
 }
 
-std::vector<std::string> DoFileSearch(const std::vector<std::string>& exts,
-                                      const std::vector<std::string>& directories, bool recursive)
+std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>& directories,
+                                           const std::vector<std::string>& exts, bool recursive)
 {
-  bool accept_all = std::find(exts.begin(), exts.end(), "") != exts.end();
+  bool accept_all = exts.empty();
   return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
     if (accept_all)
       return true;
@@ -52,11 +61,71 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& exts,
   });
 }
 
-// Result includes the passed directories themselves as well as their subdirectories.
-std::vector<std::string> FindSubdirectories(const std::vector<std::string>& directories,
-                                            bool recursive)
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
+                                      const std::vector<std::string>& exts, bool recursive)
 {
-  return FileSearchWithTest(directories, true,
-                            [&](const File::FSTEntry& entry) { return entry.isDirectory; });
+  return DoFileSearchNoSTL(directories, exts, recursive);
 }
+
+#else
+
+std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
+                                      const std::vector<std::string>& exts, bool recursive)
+{
+  bool accept_all = exts.empty();
+
+  std::vector<fs::path> native_exts;
+  for (const auto& ext : exts)
+    native_exts.push_back(ext);
+
+  // N.B. This avoids doing any copies
+  auto ext_matches = [&native_exts](const fs::path& path) {
+    const auto& native_path = path.native();
+    return std::any_of(native_exts.cbegin(), native_exts.cend(), [&native_path](const auto& ext) {
+      // TODO provide cross-platform compat for the comparison function, once more platforms
+      // support std::filesystem
+      return native_path.length() >= ext.native().length() &&
+             _wcsicmp(&native_path.c_str()[native_path.length() - ext.native().length()],
+                      ext.c_str()) == 0;
+    });
+  };
+
+  std::vector<std::string> result;
+  auto add_filtered = [&](const fs::directory_entry& entry) {
+    auto& path = entry.path();
+    if (accept_all || (ext_matches(path) && !fs::is_directory(path)))
+      result.emplace_back(path.u8string());
+  };
+  for (const auto& directory : directories)
+  {
+    if (recursive)
+    {
+      // TODO use fs::directory_options::follow_directory_symlink ?
+      for (auto& entry : fs::recursive_directory_iterator(fs::path(directory.c_str())))
+        add_filtered(entry);
+    }
+    else
+    {
+      for (auto& entry : fs::directory_iterator(fs::path(directory.c_str())))
+        add_filtered(entry);
+    }
+  }
+
+  // Remove duplicates (occurring because caller gave e.g. duplicate or overlapping directories -
+  // not because std::filesystem returns duplicates). Also note that this pathname-based uniqueness
+  // isn't as thorough as std::filesystem::equivalent.
+  std::sort(result.begin(), result.end());
+  result.erase(std::unique(result.begin(), result.end()), result.end());
+
+  // Dolphin expects to be able to use "/" (DIR_SEP) everywhere. std::filesystem uses the OS
+  // separator.
+  if (fs::path::preferred_separator != DIR_SEP_CHR)
+    for (auto& path : result)
+      std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+
+  return result;
+}
+
+#endif
+
 }  // namespace Common
