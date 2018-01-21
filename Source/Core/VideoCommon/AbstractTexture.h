@@ -27,6 +27,13 @@ public:
   virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                     size_t buffer_size) = 0;
 
+  u32 GetWidth() const { return m_config.width; }
+  u32 GetHeight() const { return m_config.height; }
+  u32 GetLevels() const { return m_config.levels; }
+  u32 GetLayers() const { return m_config.layers; }
+  u32 GetSamples() const { return m_config.samples; }
+  AbstractTextureFormat GetFormat() const { return m_config.format; }
+  bool IsMultisampled() const { return m_config.IsMultisampled(); }
   bool Save(const std::string& filename, unsigned int level);
 
   static bool IsCompressedFormat(AbstractTextureFormat format);
