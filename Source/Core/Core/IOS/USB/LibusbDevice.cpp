@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/LibusbDevice.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -16,11 +18,9 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
-#include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
-#include "Core/IOS/USB/LibusbDevice.h"
 
 namespace IOS
 {

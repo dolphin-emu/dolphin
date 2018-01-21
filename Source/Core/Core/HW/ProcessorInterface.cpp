@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/ProcessorInterface.h"
+
 #include <cstdio>
 #include <memory>
 
@@ -10,7 +12,6 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
-#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"

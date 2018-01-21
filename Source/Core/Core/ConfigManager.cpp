@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/ConfigManager.h"
+
 #include <cinttypes>
 #include <climits>
 #include <memory>
@@ -25,8 +27,6 @@
 #include "Core/Analytics.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Boot/Boot.h"
-#include "Core/Config/Config.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"

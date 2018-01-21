@@ -2,11 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/FifoPlayer/FifoRecorder.h"
+
 #include <algorithm>
 #include <cstring>
 #include <mutex>
-
-#include "Core/FifoPlayer/FifoRecorder.h"
 
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"

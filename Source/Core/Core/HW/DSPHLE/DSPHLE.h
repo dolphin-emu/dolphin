@@ -23,6 +23,7 @@ class DSPHLE : public DSPEmulator
 {
 public:
   DSPHLE();
+  ~DSPHLE();
 
   bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;

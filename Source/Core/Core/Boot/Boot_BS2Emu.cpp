@@ -26,7 +26,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
 #include "Core/HideObjectEngine.h"
-#include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"

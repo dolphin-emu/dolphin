@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/IOS/DeviceStub.h"
+
 #include "Common/Logging/Log.h"
 
 namespace IOS

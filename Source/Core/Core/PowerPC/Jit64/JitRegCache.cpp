@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Jit64/JitRegCache.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cmath>
@@ -13,7 +15,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;

@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
+
 #include <algorithm>
 #include <cstring>
-
-#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/DI/DI.h"
+
 #include <cinttypes>
 #include <memory>
 #include <vector>
@@ -14,7 +16,6 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDThread.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/DI/DI.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Volume.h"

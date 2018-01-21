@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <tuple>
-
 #include "Core/Config/Config.h"
+
+#include <tuple>
 
 namespace Config
 {

@@ -7,7 +7,6 @@
 #include <cstring>
 #include <vector>
 
-#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"

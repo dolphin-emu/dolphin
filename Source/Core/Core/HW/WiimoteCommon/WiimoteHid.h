@@ -6,8 +6,8 @@
 
 #include "Common/CommonTypes.h"
 
-// what is this ?
 #ifdef _MSC_VER
+#pragma warning(push)
 #pragma warning(disable : 4200)
 #endif
 
@@ -32,3 +32,7 @@ constexpr u8 HID_PARAM_INPUT = 1;
 constexpr u8 HID_PARAM_OUTPUT = 2;
 
 #pragma pack(pop)
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

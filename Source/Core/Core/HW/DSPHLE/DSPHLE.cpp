@@ -2,13 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <iostream>
+#include "Core/HW/DSPHLE/DSPHLE.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/Core.h"
-#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/SystemTimers.h"
 
@@ -19,9 +18,9 @@ namespace DSP
 {
 namespace HLE
 {
-DSPHLE::DSPHLE()
-{
-}
+DSPHLE::DSPHLE() = default;
+
+DSPHLE::~DSPHLE() = default;
 
 bool DSPHLE::Initialize(bool wii, bool dsp_thread)
 {

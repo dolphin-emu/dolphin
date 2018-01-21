@@ -19,6 +19,8 @@
 // copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include "Core/ActionReplay.h"
+
 #include <algorithm>
 #include <atomic>
 #include <cstdarg>
@@ -37,9 +39,7 @@
 
 #include "Core/ARBruteForcer.h"
 #include "Core/ARDecrypt.h"
-#include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 

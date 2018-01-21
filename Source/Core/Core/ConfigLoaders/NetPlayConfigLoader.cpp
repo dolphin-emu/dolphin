@@ -2,15 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
+
 #include <memory>
 
-#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Common/Logging/Log.h"
-
-#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/NetPlayProto.h"
 
 namespace ConfigLoaders
@@ -25,7 +21,6 @@ public:
 
   void Load(Config::Layer* config_layer) override
   {
-    INFO_LOG(CORE, "NetPlayConfigLayerLoader::Load()");
     Config::Section* core = config_layer->GetOrCreateSection(Config::System::Main, "Core");
     Config::Section* dsp = config_layer->GetOrCreateSection(Config::System::Main, "DSP");
     Config::Section* display = config_layer->GetOrCreateSection(Config::System::Main, "Display");

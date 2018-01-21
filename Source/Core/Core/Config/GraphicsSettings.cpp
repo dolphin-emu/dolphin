@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Config/GraphicsSettings.h"
+
 #include <string>
 
 #include "Core/Config/Config.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
 

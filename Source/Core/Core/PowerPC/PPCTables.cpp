@@ -19,7 +19,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 std::array<GekkoOPInfo*, 64> m_infoTable;

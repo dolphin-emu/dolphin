@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/TitleDatabase.h"
+
 #include <cstddef>
 #include <fstream>
 #include <functional>
 #include <unordered_map>
 #include <utility>
-
-#include "Core/TitleDatabase.h"
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
