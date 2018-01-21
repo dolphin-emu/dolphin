@@ -305,11 +305,11 @@ bool MainWindow::Stop()
                                            "may be lost if you stop the current emulation "
                                            "before it completes. Force stop?") :
                                         tr("Do you want to stop the current emulation?"));
-    if (confirm != QMessageBox::Yes)
-      return false;
-
     if (pause)
       Core::SetState(state);
+
+    if (confirm != QMessageBox::Yes)
+      return false;
   }
 
   // TODO: Add Movie shutdown

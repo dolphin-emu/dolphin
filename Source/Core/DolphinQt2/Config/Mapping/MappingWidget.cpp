@@ -89,15 +89,16 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   return group_box;
 }
 
-void MappingWidget::SetBlockInputs(const bool block)
-{
-  m_parent->SetBlockInputs(block);
-}
-
 void MappingWidget::OnClearFields()
 {
   for (auto* button : m_buttons)
     button->Clear();
+
+  for (auto* spinbox : m_numerics)
+    spinbox->Clear();
+
+  for (auto* checkbox : m_bools)
+    checkbox->Clear();
 }
 
 void MappingWidget::Update()
@@ -108,20 +109,10 @@ void MappingWidget::Update()
   for (auto* spinbox : m_numerics)
     spinbox->Update();
 
-  for (auto* checkbox : m_numerics)
+  for (auto* checkbox : m_bools)
     checkbox->Update();
 
   LoadSettings();
-}
-
-bool MappingWidget::GetFirstButtonPress()
-{
-  if (m_first)
-  {
-    m_first = false;
-    return true;
-  }
-  return false;
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const

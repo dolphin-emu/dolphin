@@ -369,15 +369,12 @@ std::shared_ptr<ciface::Core::Device> MappingWindow::GetDevice() const
   return g_controller_interface.FindDevice(m_devq);
 }
 
-void MappingWindow::SetBlockInputs(const bool block)
+void MappingWindow::OnDefaultFieldsPressed()
 {
-  m_block = block;
-}
+  if (m_controller == nullptr)
+    return;
 
-bool MappingWindow::event(QEvent* event)
-{
-  if (!m_block)
-    return QDialog::event(event);
-
-  return false;
+  m_controller->LoadDefaults(g_controller_interface);
+  m_controller->UpdateReferences(g_controller_interface);
+  emit Update();
 }
