@@ -90,6 +90,10 @@ void SWTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
     memcpy(GetData(), destination_pixels.data(), destination_pixels.size());
   }
 }
+void SWTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                                   u32 layer, u32 level)
+{
+}
 
 void SWTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                      size_t buffer_size)

@@ -86,7 +86,7 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 
 void Init()
 {
-  TextureConfig config(renderBufferWidth, renderBufferHeight, 1, 1, AbstractTextureFormat::BGRA8,
+  TextureConfig config(renderBufferWidth, renderBufferHeight, 1, 1, 1, AbstractTextureFormat::BGRA8,
                        true);
   s_encoding_render_texture = g_renderer->CreateTexture(config);
   s_encoding_readback_texture =

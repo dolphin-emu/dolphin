@@ -31,7 +31,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level)
 
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but this is not a frequently-executed code path..
-  TextureConfig readback_texture_config(level_width, level_height, 1, 1,
+  TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
                                         AbstractTextureFormat::RGBA8, false);
   auto readback_texture =
       g_renderer->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);

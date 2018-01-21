@@ -714,7 +714,7 @@ VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyParams& params)
 
 bool TextureConverter::CreateEncodingTexture()
 {
-  TextureConfig config(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1,
+  TextureConfig config(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1, 1,
                        ENCODING_TEXTURE_FORMAT, true);
 
   m_encoding_render_texture = g_renderer->CreateTexture(config);
