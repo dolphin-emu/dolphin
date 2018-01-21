@@ -45,8 +45,8 @@ void AudioConfigPane::InitializeGUI()
   m_audio_backend_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
   m_audio_latency_spinctrl =
-      new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
-  m_audio_latency_label = new wxStaticText(this, wxID_ANY, _("Latency:"));
+      new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 200);
+  m_audio_latency_label = new wxStaticText(this, wxID_ANY, _("Latency (ms):"));
 
   m_stretch_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Audio Stretching"));
   m_stretch_label = new wxStaticText(this, wxID_ANY, _("Buffer Size:"));
