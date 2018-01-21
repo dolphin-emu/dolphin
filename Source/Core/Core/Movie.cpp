@@ -669,7 +669,8 @@ bool BeginRecordingInput(int controllers)
 
   s_currentByte = s_totalBytes = 0;
 
-  Core::UpdateWantDeterminism();
+  if (Core::IsRunning())
+    Core::UpdateWantDeterminism();
 
   Core::PauseAndLock(false, was_unpaused);
 
