@@ -8,6 +8,7 @@
 #include <string>
 #include <tuple>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -848,6 +849,15 @@ void Renderer::SetBlendingState(const BlendingState& state)
   StateTracker::GetInstance()->SetBlendState(state);
 }
 
+void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+{
+  // Texture should always be in SHADER_READ_ONLY layout prior to use.
+  // This is so we don't need to transition during render passes.
+  auto* tex = texture ? static_cast<const VKTexture*>(texture)->GetRawTexIdentifier() : nullptr;
+  _dbg_assert_(VIDEO, !tex || tex->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  StateTracker::GetInstance()->SetTexture(index, tex ? tex->GetView() : VK_NULL_HANDLE);
+}
+
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   // Skip lookup if the state hasn't changed.
@@ -864,6 +874,12 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 
   StateTracker::GetInstance()->SetSampler(index, sampler);
   m_sampler_states[index].hex = state.hex;
+}
+
+void Renderer::UnbindTexture(const AbstractTexture* texture)
+{
+  StateTracker::GetInstance()->UnbindTexture(
+      static_cast<const VKTexture*>(texture)->GetRawTexIdentifier()->GetView());
 }
 
 void Renderer::ResetSamplerStates()

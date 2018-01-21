@@ -733,9 +733,22 @@ void Renderer::SetDepthState(const DepthState& state)
   m_gx_state.zmode.hex = state.hex;
 }
 
+void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+{
+  D3D::stateman->SetTexture(
+      index,
+      texture ? static_cast<const DXTexture*>(texture)->GetRawTexIdentifier()->GetSRV() : nullptr);
+}
+
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   m_gx_state.samplers[index].hex = state.hex;
+}
+
+void Renderer::UnbindTexture(const AbstractTexture* texture)
+{
+  D3D::stateman->UnsetTexture(
+      static_cast<const DXTexture*>(texture)->GetRawTexIdentifier()->GetSRV());
 }
 
 void Renderer::SetInterlacingMode()

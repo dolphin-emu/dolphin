@@ -19,8 +19,6 @@ public:
   explicit DXTexture(const TextureConfig& tex_config);
   ~DXTexture();
 
-  void Bind(unsigned int stage) override;
-
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                 u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

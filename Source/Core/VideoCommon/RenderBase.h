@@ -73,7 +73,9 @@ public:
   virtual void SetScissorRect(const EFBRectangle& rc) {}
   virtual void SetRasterizationState(const RasterizationState& state) {}
   virtual void SetDepthState(const DepthState& state) {}
+  virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
+  virtual void UnbindTexture(const AbstractTexture* texture) {}
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}
   virtual void SetFullscreen(bool enable_fullscreen) {}

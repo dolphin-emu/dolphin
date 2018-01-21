@@ -1571,8 +1571,6 @@ void Renderer::RestoreAPIState()
   ProgramShaderCache::BindLastVertexFormat();
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
   glBindBuffer(GL_ARRAY_BUFFER, vm->GetVertexBufferHandle());
-
-  OGLTexture::SetStage();
 }
 
 void Renderer::SetRasterizationState(const RasterizationState& state)
@@ -1611,9 +1609,32 @@ void Renderer::SetDepthState(const DepthState& state)
   }
 }
 
+void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+{
+  if (m_bound_textures[index] == texture)
+    return;
+
+  glActiveTexture(GL_TEXTURE0 + index);
+  glBindTexture(GL_TEXTURE_2D_ARRAY,
+                texture ? static_cast<const OGLTexture*>(texture)->GetRawTexIdentifier() : 0);
+  m_bound_textures[index] = texture;
+}
+
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   g_sampler_cache->SetSamplerState(index, state);
+}
+
+void Renderer::UnbindTexture(const AbstractTexture* texture)
+{
+  for (size_t i = 0; i < m_bound_textures.size(); i++)
+  {
+    if (m_bound_textures[i] != texture)
+      continue;
+
+    glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + i));
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+  }
 }
 
 void Renderer::SetInterlacingMode()

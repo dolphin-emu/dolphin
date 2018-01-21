@@ -52,10 +52,6 @@ SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
   m_data.resize(tex_config.width * tex_config.height * 4);
 }
 
-void SWTexture::Bind(unsigned int stage)
-{
-}
-
 void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

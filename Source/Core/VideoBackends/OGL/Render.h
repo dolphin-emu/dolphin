@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "Common/GL/GLUtil.h"
@@ -93,7 +94,9 @@ public:
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
+  void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
+  void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
 
@@ -128,5 +131,7 @@ private:
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
                   int src_height);
+
+  std::array<const AbstractTexture*, 8> m_bound_textures{};
 };
 }
