@@ -51,6 +51,7 @@ set(SRCS
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  Settings/AudioPane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp

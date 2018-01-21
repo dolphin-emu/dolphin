@@ -77,6 +77,12 @@ public:
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
 
+  // Audio
+  int GetVolume() const;
+  void SetVolume(int volume);
+  void IncreaseVolume(int volume);
+  void DecreaseVolume(int volume);
+
   // Columns
   bool& BannerVisible() const;
   bool& CountryVisible() const;
@@ -118,6 +124,7 @@ signals:
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
   void HideCursorChanged();
+  void VolumeChanged(int volume);
 
 public:
   Settings();

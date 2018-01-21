@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QSize>
 
+#include "AudioCommon/AudioCommon.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -238,6 +239,32 @@ void Settings::SetHideCursor(bool hide_cursor)
 bool Settings::GetHideCursor() const
 {
   return SConfig::GetInstance().bHideCursor;
+}
+
+int Settings::GetVolume() const
+{
+  return SConfig::GetInstance().m_Volume;
+}
+
+void Settings::SetVolume(int volume)
+{
+  if (GetVolume() != volume)
+  {
+    SConfig::GetInstance().m_Volume = volume;
+    emit VolumeChanged(volume);
+  }
+}
+
+void Settings::IncreaseVolume(int volume)
+{
+  AudioCommon::IncreaseVolume(volume);
+  emit VolumeChanged(GetVolume());
+}
+
+void Settings::DecreaseVolume(int volume)
+{
+  AudioCommon::DecreaseVolume(volume);
+  emit VolumeChanged(GetVolume());
 }
 
 bool& Settings::BannerVisible() const
