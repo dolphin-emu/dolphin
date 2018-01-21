@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -35,10 +36,12 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 
@@ -51,6 +54,8 @@ public final class EmulationActivity extends AppCompatActivity
 {
 	private static final String BACKSTACK_NAME_MENU = "menu";
 	private static final String BACKSTACK_NAME_SUBMENU = "submenu";
+	public static final int REQUEST_CHANGE_DISC = 1;
+
 	private View mDecorView;
 	private ImageView mImageView;
 	private EmulationFragment mEmulationFragment;
@@ -84,7 +89,7 @@ public final class EmulationActivity extends AppCompatActivity
 			MENU_ACTION_SAVE_SLOT3, MENU_ACTION_SAVE_SLOT4, MENU_ACTION_SAVE_SLOT5,
 			MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
 			MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
-			MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT})
+			MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC})
 	public @interface MenuAction {
 	}
 
@@ -111,6 +116,7 @@ public final class EmulationActivity extends AppCompatActivity
 	public static final int MENU_ACTION_LOAD_SLOT5 = 20;
 	public static final int MENU_ACTION_LOAD_SLOT6 = 21;
 	public static final int MENU_ACTION_EXIT = 22;
+	public static final int MENU_ACTION_CHANGE_DISC = 23;
 
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -136,6 +142,7 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
 		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
+		buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
 	}
 
@@ -308,6 +315,25 @@ public final class EmulationActivity extends AppCompatActivity
 			exitWithAnimation();
 		}
 
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent result)
+	{
+		switch (requestCode)
+		{
+			case REQUEST_CHANGE_DISC:
+				// If the user picked a file, as opposed to just backing out.
+				if (resultCode == MainActivity.RESULT_OK)
+				{
+					String newDiscPath = FileBrowserHelper.getSelectedDirectory(result);
+					if (!TextUtils.isEmpty(newDiscPath))
+					{
+						NativeLibrary.ChangeDisc(newDiscPath);
+					}
+				}
+				break;
+		}
 	}
 
 	private void enableFullscreenImmersive()
@@ -516,6 +542,10 @@ public final class EmulationActivity extends AppCompatActivity
 
 			case MENU_ACTION_LOAD_SLOT6:
 				NativeLibrary.LoadState(5);
+				return;
+
+			case MENU_ACTION_CHANGE_DISC:
+				FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
 				return;
 
 			case MENU_ACTION_EXIT:
