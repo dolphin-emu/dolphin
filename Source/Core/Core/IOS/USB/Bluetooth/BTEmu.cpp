@@ -49,44 +49,41 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
     BackUpBTInfoSection(&sysconf);
 
   _conf_pads BT_DINF;
-  if (!sysconf.GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
+  bdaddr_t tmpBD = BDADDR_ANY;
+  u8 i = 0;
+  while (i < MAX_BBMOTES)
   {
-    PanicAlertT("Trying to read from invalid SYSCONF\nWii Remote Bluetooth IDs are not available");
+    // Previous records can be safely overwritten, since they are backed up
+    tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
+    tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
+    tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
+    tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
+    tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
+    tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
+
+    const char* wmName;
+    if (i == WIIMOTE_BALANCE_BOARD)
+      wmName = "Nintendo RVL-WBC-01";
+    else
+      wmName = "Nintendo RVL-CNT-01";
+    memcpy(BT_DINF.registered[i].name, wmName, 20);
+    memcpy(BT_DINF.active[i].name, wmName, 20);
+
+    DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
+              tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
+    m_WiiMotes.emplace_back(this, i, tmpBD, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
+    i++;
   }
-  else
-  {
-    bdaddr_t tmpBD = BDADDR_ANY;
-    u8 i = 0;
-    while (i < MAX_BBMOTES)
-    {
-      // Previous records can be safely overwritten, since they are backed up
-      tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
-      tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
-      tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
-      tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
-      tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
-      tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
 
-      const char* wmName;
-      if (i == WIIMOTE_BALANCE_BOARD)
-        wmName = "Nintendo RVL-WBC-01";
-      else
-        wmName = "Nintendo RVL-CNT-01";
-      memcpy(BT_DINF.registered[i].name, wmName, 20);
-      memcpy(BT_DINF.active[i].name, wmName, 20);
+  BT_DINF.num_registered = MAX_BBMOTES;
 
-      DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
-                tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-      m_WiiMotes.emplace_back(this, i, tmpBD, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
-      i++;
-    }
-
-    BT_DINF.num_registered = MAX_BBMOTES;
-    // save now so that when games load sysconf file it includes the new Wii Remotes
-    // and the correct order for connected Wii Remotes
-    if (!sysconf.SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf.Save())
-      PanicAlertT("Failed to write BT.DINF to SYSCONF");
-  }
+  // save now so that when games load sysconf file it includes the new Wii Remotes
+  // and the correct order for connected Wii Remotes
+  std::vector<u8> data(sizeof(_conf_pads));
+  std::memcpy(data.data(), &BT_DINF, data.size());
+  sysconf.GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes = std::move(data);
+  if (!sysconf.Save())
+    PanicAlertT("Failed to write BT.DINF to SYSCONF");
 
   // The BCM2045's btaddr:
   m_ControllerBD.b[0] = 0x11;

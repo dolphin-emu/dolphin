@@ -6,7 +6,9 @@
 
 #include <array>
 #include <bitset>
+#include <string>
 
+#include "Common/FileUtil.h"
 #include "Core/Config/Config.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -44,10 +46,10 @@ void CallbackTemplate(u64 userdata, s64 lateness)
 class ScopeInit final
 {
 public:
-  ScopeInit()
+  ScopeInit() : m_profile_path(File::CreateTempDir())
   {
     Core::DeclareAsCPUThread();
-    UICommon::SetUserDirectory("");
+    UICommon::SetUserDirectory(m_profile_path);
     Config::Init();
     SConfig::Init();
     PowerPC::Init(PowerPC::CORE_INTERPRETER);
@@ -60,7 +62,10 @@ public:
     SConfig::Shutdown();
     Config::Shutdown();
     Core::UndeclareAsCPUThread();
+    File::DeleteDirRecursively(m_profile_path);
   }
+private:
+  std::string m_profile_path;
 };
 
 static void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0,
