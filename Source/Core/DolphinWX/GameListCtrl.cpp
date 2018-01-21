@@ -283,27 +283,11 @@ GameListCtrl::GameListCtrl(bool disable_scanning, wxWindow* parent, const wxWind
       Common::SetCurrentThreadName("gamelist scanner");
 
       if (SyncCacheFile(false))
-      {
-        // Account for changes outside the cache (just wii banners atm; could scan Ini here)
-        // Note this is on the initial load path. Further improvements could be made if updates
-        // from scan->ui threads described small changelists instead of updating the entire list
-        // at once.
-        bool cache_modified = false;
-        for (auto& file : m_cached_files)
-        {
-          if (file->ReloadBannerIfNeeded())
-            cache_modified = true;
-        }
-
         QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
 
-        if (cache_modified)
-          SyncCacheFile(true);
-      }
-      else
-      {
-        RescanList();
-      }
+      // Always do an initial scan to catch new files and perform the more expensive per-file
+      // checks. TODO Make this safely cancellable if it becomes too slow?
+      RescanList();
 
       m_scan_trigger.Wait();
       while (!m_scan_exiting.IsSet())
@@ -446,20 +430,23 @@ void GameListCtrl::RefreshList()
     return;
 
   m_shown_files.clear();
-  for (auto& item : m_cached_files)
   {
-    if (ShouldDisplayGameListItem(*item))
-      m_shown_files.push_back(item);
+    std::unique_lock<std::mutex> lk(m_cache_mutex);
+    for (auto& item : m_cached_files)
+    {
+      if (ShouldDisplayGameListItem(*item))
+        m_shown_files.push_back(item);
+    }
   }
 
   // Drives are not cached. Not sure if this is required, but better to err on the
   // side of caution if cross-platform issues could come into play.
   if (SConfig::GetInstance().m_ListDrives)
   {
-    const Core::TitleDatabase title_database;
+    std::unique_lock<std::mutex> lk(m_title_database_mutex);
     for (const auto& drive : cdio_get_devices())
     {
-      auto file = std::make_shared<GameListItem>(drive, title_database);
+      auto file = std::make_shared<GameListItem>(drive, m_title_database);
       if (file->IsValid())
         m_shown_files.push_back(file);
     }
@@ -800,33 +787,75 @@ void GameListCtrl::RescanList()
   std::set_difference(search_results.cbegin(), search_results.cend(), cached_paths.cbegin(),
                       cached_paths.cend(), std::back_inserter(new_paths));
 
-  const Core::TitleDatabase title_database;
+  // Reload the TitleDatabase
+  {
+    std::unique_lock<std::mutex> lk(m_title_database_mutex);
+    m_title_database = {};
+  }
+
   // For now, only scan new_paths. This could cause false negatives (file actively being written),
   // but otherwise should be fine.
-  for (const auto& path : removed_paths)
+  bool cache_changed = false;
   {
-    auto it = std::find_if(
-        m_cached_files.cbegin(), m_cached_files.cend(),
-        [&path](const std::shared_ptr<GameListItem>& file) { return file->GetFileName() == path; });
-    if (it != m_cached_files.cend())
-      m_cached_files.erase(it);
+    std::unique_lock<std::mutex> lk(m_cache_mutex);
+    for (const auto& path : removed_paths)
+    {
+      auto it = std::find_if(m_cached_files.cbegin(), m_cached_files.cend(),
+                             [&path](const std::shared_ptr<GameListItem>& file) {
+                               return file->GetFileName() == path;
+                             });
+      if (it != m_cached_files.cend())
+      {
+        cache_changed = true;
+        m_cached_files.erase(it);
+      }
+    }
+    for (const auto& path : new_paths)
+    {
+      auto file = std::make_shared<GameListItem>(path, m_title_database);
+      if (file->IsValid())
+      {
+        cache_changed = true;
+        m_cached_files.push_back(std::move(file));
+      }
+    }
   }
-  for (const auto& path : new_paths)
+  // The common case is that just a file has been added/removed, so trigger a refresh ASAP with the
+  // assumption that other properties of files will not change at the same time (which will be fine
+  // and just causes a double refresh).
+  if (cache_changed)
+    QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
+
+  // If any cached files need updates, apply the updates to a copy and delete the original - this
+  // makes the UI thread's use of cached files safe. Note however, it is assumed that RefreshList
+  // will not iterate m_cached_files while the scan thread is modifying the list itself.
+  bool refresh_needed = false;
   {
-    auto file = std::make_shared<GameListItem>(path, title_database);
-    if (file->IsValid())
-      m_cached_files.push_back(std::move(file));
+    std::unique_lock<std::mutex> lk(m_cache_mutex);
+    for (auto& file : m_cached_files)
+    {
+      bool emu_state_changed = file->EmuStateChanged();
+      bool banner_changed = file->BannerChanged();
+      if (emu_state_changed || banner_changed)
+      {
+        cache_changed = refresh_needed = true;
+        auto copy = std::make_shared<GameListItem>(*file);
+        if (emu_state_changed)
+          copy->EmuStateCommit();
+        if (banner_changed)
+          copy->BannerCommit();
+        file = std::move(copy);
+      }
+    }
   }
+  // Only post UI event to update the displayed list if something actually changed
+  if (refresh_needed)
+    QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
 
-  for (auto& file : m_cached_files)
-    file->ReloadINI();
+  post_status("");
 
-  // Post UI event to update the displayed list
-  QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
-
-  post_status(_("Scan complete!"));
-
-  SyncCacheFile(true);
+  if (cache_changed)
+    SyncCacheFile(true);
 }
 
 void GameListCtrl::OnRefreshGameList(wxCommandEvent& WXUNUSED(event))
@@ -834,8 +863,14 @@ void GameListCtrl::OnRefreshGameList(wxCommandEvent& WXUNUSED(event))
   RefreshList();
 }
 
-void GameListCtrl::OnRescanGameList(wxCommandEvent& WXUNUSED(event))
+void GameListCtrl::OnRescanGameList(wxCommandEvent& event)
 {
+  if (event.GetInt())
+  {
+    // Knock out the cache on a purge event
+    std::unique_lock<std::mutex> lk(m_cache_mutex);
+    m_cached_files.clear();
+  }
   m_scan_trigger.Set();
 }
 

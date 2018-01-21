@@ -99,7 +99,7 @@ public:
   void DoStop();
   void UpdateGUI();
   void GameListRefresh();
-  void GameListRescan();
+  void GameListRescan(bool purge_cache = false);
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
   void StatusBarMessage(const char* format, ...);
@@ -253,7 +253,6 @@ private:
   void DoFullscreen(bool enable_fullscreen);
   void DoExclusiveFullscreen(bool enable_fullscreen);
   void ToggleDisplayMode(bool bFullscreen);
-  bool TriggerSTMPowerEvent();
   void OnStopped();
   void OnRenderWindowSizeRequest(int width, int height);
   void UpdateTitle(const wxString& str);

@@ -211,6 +211,8 @@ public:
 
     switch (mode)
     {
+    case kNonBlock:
+      break;
     case kBlock:
       Wait();
       break;

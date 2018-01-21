@@ -181,7 +181,7 @@ void SendAIBuffer(const short* samples, unsigned int num_samples)
   else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
     StopAudioDump();
 
-  CMixer* pMixer = g_sound_stream->GetMixer();
+  Mixer* pMixer = g_sound_stream->GetMixer();
 
   if (pMixer && samples)
   {

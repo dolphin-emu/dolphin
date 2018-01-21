@@ -91,6 +91,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/UICommon.h"
 #include "UICommon/WiiUtils.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -982,34 +983,22 @@ void CFrame::DoStop()
     if (NetPlayDialog::GetNetPlayClient())
       NetPlayDialog::GetNetPlayClient()->Stop();
 
-    if (!m_tried_graceful_shutdown && TriggerSTMPowerEvent())
+    if (!m_tried_graceful_shutdown && UICommon::TriggerSTMPowerEvent())
     {
       m_tried_graceful_shutdown = true;
+      m_confirm_stop = false;
+
+      // Unpause because gracefully shutting down needs the game to actually request a shutdown.
+      // Do not unpause in debug mode to allow debugging until the complete shutdown.
+      if (Core::GetState() == Core::State::Paused && !m_use_debugger)
+        Core::SetState(Core::State::Running);
+
       return;
     }
+
     Core::Stop();
     UpdateGUI();
   }
-}
-
-bool CFrame::TriggerSTMPowerEvent()
-{
-  const auto ios = IOS::HLE::GetIOS();
-  if (!ios)
-    return false;
-
-  const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
-  if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
-    return false;
-
-  Core::DisplayMessage("Shutting down", 30000);
-  // Unpause because gracefully shutting down needs the game to actually request a shutdown.
-  // Do not unpause in debug mode to allow debugging until the complete shutdown.
-  if (Core::GetState() == Core::State::Paused && !m_use_debugger)
-    DoPause();
-  ProcessorInterface::PowerButton_Tap();
-  m_confirm_stop = false;
-  return true;
 }
 
 void CFrame::OnStopped()
@@ -1914,10 +1903,11 @@ void CFrame::GameListRefresh()
   wxPostEvent(m_game_list_ctrl, event);
 }
 
-void CFrame::GameListRescan()
+void CFrame::GameListRescan(bool purge_cache)
 {
   wxCommandEvent event{DOLPHIN_EVT_RESCAN_GAMELIST, GetId()};
   event.SetEventObject(this);
+  event.SetInt(purge_cache ? 1 : 0);
   wxPostEvent(m_game_list_ctrl, event);
 }
 
@@ -1991,7 +1981,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
       File::Delete(filename);
     }
     // Do rescan after cache has been cleared
-    GameListRescan();
+    GameListRescan(true);
     return;
   }
 

@@ -11,11 +11,11 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 
-class CMixer final
+class Mixer final
 {
 public:
-  explicit CMixer(unsigned int BackendSampleRate);
-  ~CMixer();
+  explicit Mixer(unsigned int BackendSampleRate);
+  ~Mixer();
 
   // Called from audio threads
   unsigned int Mix(short* samples, unsigned int numSamples);
@@ -58,8 +58,7 @@ private:
   class MixerFifo final
   {
   public:
-    MixerFifo(CMixer* mixer, unsigned sample_rate)
-        : m_mixer(mixer), m_input_sample_rate(sample_rate)
+    MixerFifo(Mixer* mixer, unsigned sample_rate) : m_mixer(mixer), m_input_sample_rate(sample_rate)
     {
     }
     void PushSamples(const short* samples, unsigned int num_samples);
@@ -70,7 +69,7 @@ private:
     unsigned int AvailableSamples() const;
 
   private:
-    CMixer* m_mixer;
+    Mixer* m_mixer;
     unsigned m_input_sample_rate;
     std::array<short, MAX_SAMPLES * 2> m_buffer{};
     std::atomic<u32> m_indexW{0};
