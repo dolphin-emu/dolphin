@@ -60,7 +60,7 @@ public:
   void RestoreAPIState() override;
 
   void SetBlendingState(const BlendingState& state) override;
-  void SetScissorRect(const EFBRectangle& rc) override;
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;

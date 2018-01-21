@@ -863,20 +863,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-// Function: This function handles the OpenGL glScissor() function
-// ----------------------------
-// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-//		case 0x52 > SetScissorRect()
-// ----------------------------
-// bpmem.scissorTL.x, y = 342x342
-// bpmem.scissorBR.x, y = 981x821
-// Renderer::GetTargetHeight() = the fixed ini file setting
-// donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
-// therefore the width and height are (scissorBR + 1) - scissorTL
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle trc = ConvertEFBRectangle(rc);
-  glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
+  glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
 void ClearEFBCache()

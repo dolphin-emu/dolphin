@@ -49,24 +49,12 @@ void SetScissor()
   const int xoff = bpmem.scissorOffset.x * 2;
   const int yoff = bpmem.scissorOffset.y * 2;
 
-  EFBRectangle rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff, bpmem.scissorBR.x - xoff + 1,
-                  bpmem.scissorBR.y - yoff + 1);
+  EFBRectangle native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
+                         bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
+  native_rc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
-  if (rc.left < 0)
-    rc.left = 0;
-  if (rc.top < 0)
-    rc.top = 0;
-  if (rc.right > EFB_WIDTH)
-    rc.right = EFB_WIDTH;
-  if (rc.bottom > EFB_HEIGHT)
-    rc.bottom = EFB_HEIGHT;
-
-  if (rc.left > rc.right)
-    rc.right = rc.left;
-  if (rc.top > rc.bottom)
-    rc.bottom = rc.top;
-
-  g_renderer->SetScissorRect(rc);
+  TargetRectangle target_rc = g_renderer->ConvertEFBRectangle(native_rc);
+  g_renderer->SetScissorRect(target_rc);
 }
 
 void SetViewport()

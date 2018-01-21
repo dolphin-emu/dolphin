@@ -899,14 +899,10 @@ void Renderer::SetInterlacingMode()
 {
 }
 
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle target_rc = ConvertEFBRectangle(rc);
-
-  VkRect2D scissor = {
-      {target_rc.left, target_rc.top},
-      {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
-
+  VkRect2D scissor = {{rc.left, rc.top},
+                      {static_cast<u32>(rc.GetWidth()), static_cast<u32>(rc.GetHeight())}};
   StateTracker::GetInstance()->SetScissor(scissor);
 }
 

@@ -258,10 +258,10 @@ bool Renderer::CheckForResize()
   return false;
 }
 
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle trc = ConvertEFBRectangle(rc);
-  D3D::context->RSSetScissorRects(1, trc.AsRECT());
+  const RECT rect = {rc.left, rc.top, rc.right, rc.bottom};
+  D3D::context->RSSetScissorRects(1, &rect);
 }
 
 // This function allows the CPU to directly access the EFB.

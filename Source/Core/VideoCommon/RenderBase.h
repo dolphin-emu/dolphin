@@ -70,7 +70,7 @@ public:
   };
 
   virtual void SetBlendingState(const BlendingState& state) {}
-  virtual void SetScissorRect(const EFBRectangle& rc) {}
+  virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetRasterizationState(const RasterizationState& state) {}
   virtual void SetDepthState(const DepthState& state) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
