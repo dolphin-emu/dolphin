@@ -16,6 +16,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Core/IOS/IOSC.h"
 #include "DiscIO/Enums.h"
 
 class PointerWrap;
@@ -56,10 +57,7 @@ enum TitleFlags : u32
 #pragma pack(push, 4)
 struct TMDHeader
 {
-  u32 signature_type;
-  u8 rsa_2048_signature[256];
-  u8 fill[60];
-  u8 issuer[64];
+  SignatureRSA2048 signature;
   u8 tmd_version;
   u8 ca_crl_version;
   u8 signer_crl_version;
@@ -120,10 +118,7 @@ static_assert(sizeof(TicketView) == 0xd8, "TicketView has the wrong size");
 // the only ticket type that is supported by the Wii's IOS.
 struct Ticket
 {
-  u32 signature_type;
-  u8 signature[256];
-  u8 unused[60];
-  u8 signature_issuer[0x40];
+  SignatureRSA2048 signature;
   u8 server_public_key[0x3c];
   u8 version;
   u8 ca_crl_version;

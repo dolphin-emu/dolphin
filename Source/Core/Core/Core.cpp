@@ -568,6 +568,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
     HW::Shutdown();
     INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+
+    // Clear on screen messages that haven't expired
+    OSD::ClearMessages();
+
+    // The config must be restored only after the whole HW has shut down,
+    // not when it is still running.
+    BootManager::RestoreConfig();
+
+    PatchEngine::Shutdown();
+    HLE::Clear();
   }};
 
 // Initialize backend, and optionally VR thread for asynchronous timewarp rendering
@@ -794,18 +804,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     g_video_backend->Video_Cleanup();
   }
 
-
-  AudioCommon::ShutdownSoundStream();
-
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
-
-  // Clear on screen messages that haven't expired
-  OSD::ClearMessages();
-
-  BootManager::RestoreConfig();
-
-  PatchEngine::Shutdown();
-  HLE::Clear();
   // If we shut down normally, the stop message does not need to be triggered.
   stop_message_guard.Dismiss();
 }
@@ -1232,7 +1230,10 @@ void UpdateWantDeterminism(bool initial)
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.
     JitInterface::ClearCache();
-    Core::InitializeWiiRoot(s_wants_determinism);
+
+    // Don't call InitializeWiiRoot during boot, because IOS already does it.
+    if (!initial)
+      Core::InitializeWiiRoot(s_wants_determinism);
 
     Core::PauseAndLock(false, was_unpaused);
   }
