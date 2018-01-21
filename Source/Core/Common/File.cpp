@@ -60,12 +60,12 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 {
   Close();
 #ifdef _WIN32
-  _tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str());
+  m_good = _tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str()) == 0;
 #else
-  m_file = fopen(filename.c_str(), openmode);
+  m_file = std::fopen(filename.c_str(), openmode);
+  m_good = m_file != nullptr;
 #endif
 
-  m_good = IsOpen();
   return m_good;
 }
 

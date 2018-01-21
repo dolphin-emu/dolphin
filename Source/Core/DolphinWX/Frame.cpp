@@ -761,17 +761,17 @@ void CFrame::UninhibitScreensaver()
 #endif
 }
 
-void CFrame::UpdateTitle(const std::string& str)
+void CFrame::UpdateTitle(const wxString& str)
 {
+  const wxString revision_string = StrToWxStr(scm_rev_str);
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
   {
     GetStatusBar()->SetStatusText(str, 0);
-    m_render_frame->SetTitle(scm_rev_str);
+    m_render_frame->SetTitle(revision_string);
   }
   else
   {
-    std::string titleStr = StringFromFormat("%s | %s", scm_rev_str.c_str(), str.c_str());
-    m_render_frame->SetTitle(titleStr);
+    m_render_frame->SetTitle(revision_string + StrToWxStr(" | ") + str);
   }
 }
 
@@ -794,7 +794,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     break;
 
   case IDM_UPDATE_TITLE:
-    UpdateTitle(WxStrToStr(event.GetString()));
+    UpdateTitle(event.GetString());
     break;
 
   case IDM_WINDOW_SIZE_REQUEST:

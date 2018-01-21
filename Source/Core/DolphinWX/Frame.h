@@ -14,6 +14,7 @@
 #include <wx/frame.h>
 #include <wx/image.h>
 #include <wx/panel.h>
+#include <wx/string.h>
 #include <wx/timer.h>
 
 #include "Common/CommonTypes.h"
@@ -254,7 +255,7 @@ private:
   bool TriggerSTMPowerEvent();
   void OnStopped();
   void OnRenderWindowSizeRequest(int width, int height);
-  void UpdateTitle(const std::string& str);
+  void UpdateTitle(const wxString& str);
   static void ConnectWiimote(int wm_idx, bool connect);
 
   // Event functions
