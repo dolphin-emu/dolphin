@@ -54,6 +54,7 @@ public:
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
   void SetBlockInputs(const bool block);
+  ControllerEmu::EmulatedController* GetController() const;
 signals:
   void Update();
   void ClearFields();

@@ -87,6 +87,12 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   TCacheEntry* unconverted = static_cast<TCacheEntry*>(base_unconverted);
 
   m_texture_converter->ConvertTexture(entry, unconverted, m_render_pass, palette, format);
+
+  // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
+  unconverted->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  entry->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
@@ -140,6 +146,12 @@ void TextureCache::CopyRectangleFromTexture(TCacheEntry* dst_texture,
     CopyTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
   else
     ScaleTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
+
+  // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)

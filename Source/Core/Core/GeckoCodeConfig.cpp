@@ -5,28 +5,17 @@
 #include "Core/GeckoCodeConfig.h"
 
 #include <algorithm>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <curl/curl.h>
-
+#include "Common/HttpRequest.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 namespace Gecko
 {
-static size_t DownloadCodesWriteCallback(void* contents, size_t size, size_t nmemb,
-                                         std::string* body)
-{
-  size_t realsize = size * nmemb;
-  body->insert(body->end(), reinterpret_cast<char*>(contents),
-               reinterpret_cast<char*>(contents) + realsize);
-  return realsize;
-}
-
 std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
 {
   switch (gameid[0])
@@ -41,37 +30,18 @@ std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
     break;
   }
 
-  std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curl{curl_easy_init(), curl_easy_cleanup};
-
   std::string endpoint{"http://geckocodes.org/txt.php?txt=" + gameid};
-  curl_easy_setopt(curl.get(), CURLOPT_URL, endpoint.c_str());
-  curl_easy_setopt(curl.get(), CURLOPT_TIMEOUT, 5);
-  std::string response_body;
-  curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, DownloadCodesWriteCallback);
-  curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, &response_body);
-
-  *succeeded = true;
-  CURLcode res = curl_easy_perform(curl.get());
-  if (res != CURLE_OK)
-  {
-    ERROR_LOG(COMMON, "DownloadCodes: Curl error: %s", curl_easy_strerror(res));
-    *succeeded = false;
+  Common::HttpRequest http;
+  const Common::HttpRequest::Response response = http.Get(endpoint);
+  *succeeded = response.has_value();
+  if (!response)
     return {};
-  }
-  long response_code{0};
-  curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
-  if (response_code != 200)
-  {
-    WARN_LOG(COMMON, "DownloadCodes: Curl response code: %li", response_code);
-    *succeeded = false;
-    return {};
-  }
 
   // temp vector containing parsed codes
   std::vector<GeckoCode> gcodes;
 
   // parse the codes
-  std::istringstream ss(response_body);
+  std::istringstream ss(reinterpret_cast<const char*>(response->data()));
 
   std::string line;
 

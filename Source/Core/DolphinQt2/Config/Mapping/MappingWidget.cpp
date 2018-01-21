@@ -8,6 +8,7 @@
 
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 
+#include "DolphinQt2/Config/Mapping/IOWindow.h"
 #include "DolphinQt2/Config/Mapping/MappingBool.h"
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 #include "DolphinQt2/Config/Mapping/MappingNumeric.h"
@@ -49,9 +50,23 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& control : group->controls)
   {
     auto* button = new MappingButton(this, control->control_ref.get());
+
     button->setMinimumWidth(125);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     form_layout->addRow(QString::fromStdString(control->name), button);
+
+    auto* control_ref = control->control_ref.get();
+
+    connect(button, &MappingButton::AdvancedPressed, [this, control_ref] {
+      if (m_parent->GetDevice() == nullptr)
+        return;
+
+      IOWindow io(this, m_parent->GetController(), control_ref,
+                  control_ref->IsInput() ? IOWindow::Type::Input : IOWindow::Type::Output);
+      io.exec();
+      Update();
+    });
+
     m_buttons.push_back(button);
   }
 
@@ -107,4 +122,9 @@ bool MappingWidget::GetFirstButtonPress()
     return true;
   }
   return false;
+}
+
+ControllerEmu::EmulatedController* MappingWidget::GetController() const
+{
+  return m_parent->GetController();
 }

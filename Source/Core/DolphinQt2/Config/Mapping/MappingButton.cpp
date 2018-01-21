@@ -2,19 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <thread>
+
 #include <QMouseEvent>
 #include <QRegExp>
 #include <QString>
-#include <thread>
 
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 
 #include "Common/Thread.h"
+#include "DolphinQt2/Config/Mapping/IOWindow.h"
+#include "DolphinQt2/Config/Mapping/MappingCommon.h"
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Device.h"
 
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
     : ElidedButton(QString::fromStdString(ref->expression)), m_parent(widget), m_reference(ref)
@@ -27,81 +31,52 @@ void MappingButton::Connect()
   connect(this, &MappingButton::clicked, this, &MappingButton::OnButtonPressed);
 }
 
-static QString
-GetExpressionForControl(const QString& control_name,
-                        const ciface::Core::DeviceQualifier* control_device = nullptr,
-                        const ciface::Core::DeviceQualifier* default_device = nullptr)
-{
-  QString expr;
-
-  // non-default device
-  if (control_device && default_device && !(*control_device == *default_device))
-  {
-    expr += QString::fromStdString(control_device->ToString());
-    expr += QStringLiteral(":");
-  }
-
-  // append the control name
-  expr += control_name;
-
-  QRegExp reg(QStringLiteral("[a-zA-Z0-9_]*"));
-  if (!reg.exactMatch(expr))
-    expr = QStringLiteral("`%1`").arg(expr);
-
-  return expr;
-}
-
 void MappingButton::OnButtonPressed()
 {
-  if (m_block || m_parent->GetDevice() == nullptr)
+  if (m_block || m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
 
   // Make sure that we don't block event handling
   std::thread([this] {
-    if (m_reference->IsInput())
+    const auto dev = m_parent->GetDevice();
+
+    setText(QStringLiteral("..."));
+
+    Common::SleepCurrentThread(100);
+
+    SetBlockInputs(true);
+
+    if (m_parent->GetFirstButtonPress())
+      m_reference->Detect(10, dev.get());
+
+    // Avoid that the button press itself is registered as an event
+    Common::SleepCurrentThread(100);
+
+    const auto expr = MappingCommon::DetectExpression(m_reference, dev.get(),
+                                                      m_parent->GetParent()->GetDeviceQualifier(),
+                                                      m_parent->GetController()->default_device);
+
+    SetBlockInputs(false);
+    if (!expr.isEmpty())
     {
-      const auto dev = m_parent->GetDevice();
-
-      setText(QStringLiteral("..."));
-
-      Common::SleepCurrentThread(100);
-
-      SetBlockInputs(true);
-
-      if (m_parent->GetFirstButtonPress())
-        m_reference->Detect(10, dev.get());
-
-      // Avoid that the button press itself is registered as an event
-      Common::SleepCurrentThread(100);
-
-      ciface::Core::Device::Control* const ctrl = m_reference->Detect(5000, dev.get());
-
-      SetBlockInputs(false);
-      if (ctrl)
-      {
-        m_reference->expression =
-            GetExpressionForControl(QString::fromStdString(ctrl->GetName())).toStdString();
-        Update();
-      }
-      else
-      {
-        OnButtonTimeout();
-      }
+      m_reference->expression = expr.toStdString();
+      Update();
     }
     else
     {
-      // TODO: Implement Output
+      OnButtonTimeout();
     }
   }).detach();
 }
 
 void MappingButton::OnButtonTimeout()
 {
-  setText(QStringLiteral(""));
+  setText(QString::fromStdString(m_reference->expression));
 }
 
 void MappingButton::Clear()
 {
+  m_parent->Update();
   m_reference->expression.clear();
   Update();
 }
@@ -137,25 +112,21 @@ bool MappingButton::event(QEvent* event)
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)
 {
-  if (m_reference->IsInput())
+  switch (event->button())
   {
-    switch (event->button())
-    {
-    case Qt::MouseButton::LeftButton:
+  case Qt::MouseButton::LeftButton:
+    if (m_reference->IsInput())
       QPushButton::mouseReleaseEvent(event);
-      break;
-    case Qt::MouseButton::MiddleButton:
-      Clear();
-      break;
-    case Qt::MouseButton::RightButton:
-      // TODO Open advanced dialog
-      break;
-    default:
-      break;
-    }
-  }
-  else
-  {
-    // TODO Open output dialog
+    else
+      emit AdvancedPressed();
+    return;
+  case Qt::MouseButton::MiddleButton:
+    Clear();
+    return;
+  case Qt::MouseButton::RightButton:
+    emit AdvancedPressed();
+    return;
+  default:
+    return;
   }
 }

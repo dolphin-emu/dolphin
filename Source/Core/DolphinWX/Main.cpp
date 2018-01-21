@@ -149,6 +149,9 @@ bool DolphinApp::OnInit()
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
 
+  // Silent PNG warnings from some homebrew banners: "iCCP: known incorrect sRGB profile"
+  wxImage::SetDefaultLoadFlags(wxImage::GetDefaultLoadFlags() & ~wxImage::Load_Verbose);
+
   // We have to copy the size and position out of SConfig now because CFrame's OnMove
   // handler will corrupt them during window creation (various APIs like SetMenuBar cause
   // event dispatch including WM_MOVE/WM_SIZE)

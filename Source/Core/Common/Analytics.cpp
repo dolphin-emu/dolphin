@@ -4,7 +4,6 @@
 
 #include <cmath>
 #include <cstdio>
-#include <curl/curl.h>
 #include <string>
 
 #include "Common/Analytics.h"
@@ -64,13 +63,6 @@ void AppendType(std::string* out, TypeId type)
 {
   out->push_back(static_cast<u8>(type));
 }
-
-// Dummy write function for curl.
-size_t DummyCurlWriteFunction(char* ptr, size_t size, size_t nmemb, void* userdata)
-{
-  return size * nmemb;
-}
-
 }  // namespace
 
 AnalyticsReportBuilder::AnalyticsReportBuilder()
@@ -210,44 +202,16 @@ void StdoutAnalyticsBackend::Send(std::string report)
          HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
 }
 
-HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint)
+HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint) : m_endpoint(endpoint)
 {
-  CURL* curl = curl_easy_init();
-  if (curl)
-  {
-    // libcurl may not have been built with async DNS support, so we disable
-    // signal handlers to avoid a possible and likely crash if a resolve times out.
-    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, true);
-    curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
-    curl_easy_setopt(curl, CURLOPT_POST, true);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &DummyCurlWriteFunction);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000);
-
-#ifdef _WIN32
-    // ALPN support is enabled by default but requires Windows >= 8.1.
-    curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, false);
-#endif
-
-    m_curl = curl;
-  }
 }
 
-HttpAnalyticsBackend::~HttpAnalyticsBackend()
-{
-  if (m_curl)
-  {
-    curl_easy_cleanup(m_curl);
-  }
-}
+HttpAnalyticsBackend::~HttpAnalyticsBackend() = default;
 
 void HttpAnalyticsBackend::Send(std::string report)
 {
-  if (!m_curl)
-    return;
-
-  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDS, report.c_str());
-  curl_easy_setopt(m_curl, CURLOPT_POSTFIELDSIZE, report.size());
-  curl_easy_perform(m_curl);
+  if (m_http.IsValid())
+    m_http.Post(m_endpoint, report);
 }
 
 }  // namespace Common

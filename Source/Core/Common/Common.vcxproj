@@ -123,6 +123,7 @@
     <ClInclude Include="GL\GLInterface\WGL.h" />
     <ClInclude Include="GL\GLUtil.h" />
     <ClInclude Include="Hash.h" />
+    <ClInclude Include="HttpRequest.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="LinearDiskCache.h" />
@@ -175,6 +176,7 @@
     <ClCompile Include="GL\GLInterface\WGL.cpp" />
     <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="HttpRequest.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
