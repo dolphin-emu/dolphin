@@ -624,8 +624,8 @@ struct ProjectionHack
 namespace
 {
 // Control Variables
-static ProjectionHack g_ProjHack1;
-static ProjectionHack g_ProjHack2;
+static ProjectionHack g_proj_hack_near;
+static ProjectionHack g_proj_hack_far;
 }  // Namespace
 
 static float PHackValue(std::string sValue)
@@ -660,31 +660,39 @@ static float PHackValue(std::string sValue)
   return f;
 }
 
-void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[])
+void UpdateProjectionHack(const ProjectionHackConfig& config)
 {
-  float fhackvalue1 = 0, fhackvalue2 = 0;
-  float fhacksign1 = 1.0, fhacksign2 = 1.0;
-  const char* sTemp[2];
+  float near_value = 0, far_value = 0;
+  float near_sign = 1.0, far_sign = 1.0;
 
-  if (iPhackvalue[0] == 1)
+  if (config.m_enable)
   {
-    INFO_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
+    const char* near_sign_str = "";
+    const char* far_sign_str = "";
 
-    fhacksign1 *= (iPhackvalue[1] == 1) ? -1.0f : fhacksign1;
-    sTemp[0] = (iPhackvalue[1] == 1) ? " * (-1)" : "";
-    fhacksign2 *= (iPhackvalue[2] == 1) ? -1.0f : fhacksign2;
-    sTemp[1] = (iPhackvalue[2] == 1) ? " * (-1)" : "";
+    NOTICE_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
 
-    fhackvalue1 = PHackValue(sPhackvalue[0]);
-    INFO_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", fhackvalue1, sTemp[0]);
+    if (config.m_sznear)
+    {
+      near_sign *= -1.0f;
+      near_sign_str = " * (-1)";
+    }
+    if (config.m_szfar)
+    {
+      far_sign *= -1.0f;
+      far_sign_str = " * (-1)";
+    }
 
-    fhackvalue2 = PHackValue(sPhackvalue[1]);
-    INFO_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", fhackvalue2, sTemp[1]);
+    near_value = PHackValue(config.m_znear);
+    NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", near_value, near_sign_str);
+
+    far_value = PHackValue(config.m_zfar);
+    NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", far_value, far_sign_str);
   }
 
   // Set the projections hacks
-  g_ProjHack1 = ProjectionHack(fhacksign1, fhackvalue1);
-  g_ProjHack2 = ProjectionHack(fhacksign2, fhackvalue2);
+  g_proj_hack_near = ProjectionHack(near_sign, near_value);
+  g_proj_hack_far = ProjectionHack(far_sign, far_value);
 }
 
 // Viewport correction:
@@ -1193,10 +1201,10 @@ void VertexShaderManager::SetProjectionConstants()
 
     g_fProjectionMatrix[8] = 0.0f;
     g_fProjectionMatrix[9] = 0.0f;
-    g_fProjectionMatrix[10] = (g_ProjHack1.value + rawProjection[4]) *
-                              ((g_ProjHack1.sign == 0) ? 1.0f : g_ProjHack1.sign);
-    g_fProjectionMatrix[11] = (g_ProjHack2.value + rawProjection[5]) *
-                              ((g_ProjHack2.sign == 0) ? 1.0f : g_ProjHack2.sign);
+    g_fProjectionMatrix[10] = (g_proj_hack_near.value + rawProjection[4]) *
+                              ((g_proj_hack_near.sign == 0) ? 1.0f : g_proj_hack_near.sign);
+    g_fProjectionMatrix[11] = (g_proj_hack_far.value + rawProjection[5]) *
+                              ((g_proj_hack_far.sign == 0) ? 1.0f : g_proj_hack_far.sign);
 
     g_fProjectionMatrix[12] = 0.0f;
     g_fProjectionMatrix[13] = 0.0f;

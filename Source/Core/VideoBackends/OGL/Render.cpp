@@ -60,7 +60,7 @@ static GLsync eyesFence = 0;
 
 void VideoConfig::UpdateProjectionHack()
 {
-  ::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
+  ::UpdateProjectionHack(g_Config.phack);
 }
 
 namespace OGL

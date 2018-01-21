@@ -26,8 +26,9 @@ enum ViewportType
 extern enum ViewportType g_viewport_type, g_old_viewport_type;
 
 class PointerWrap;
+struct ProjectionHackConfig;
 
-void UpdateProjectionHack(int iParams[], std::string sParams[]);
+void UpdateProjectionHack(const ProjectionHackConfig& config);
 
 // The non-API dependent parts.
 class VertexShaderManager
