@@ -38,7 +38,7 @@ size_t AbstractTexture::CalculateHostTextureLevelPitch(AbstractTextureFormat for
   }
 }
 
-const TextureConfig AbstractTexture::GetConfig() const
+const TextureConfig& AbstractTexture::GetConfig() const
 {
   return m_config;
 }

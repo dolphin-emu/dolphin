@@ -7,7 +7,6 @@
 #include "Common/GL/GLUtil.h"
 
 #include "VideoCommon/AbstractTexture.h"
-#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {
