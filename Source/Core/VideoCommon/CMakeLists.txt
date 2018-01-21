@@ -1,4 +1,5 @@
 set(SRCS
+  AbstractTexture.cpp
   AsyncRequests.cpp
   BoundingBox.cpp
   BPFunctions.cpp
@@ -30,6 +31,7 @@ set(SRCS
   RenderState.cpp
   Statistics.cpp
   TextureCacheBase.cpp
+  TextureConfig.cpp
   TextureConversionShader.cpp
   TextureDecoder_Common.cpp
   VertexLoader.cpp

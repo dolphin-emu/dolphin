@@ -20,6 +20,7 @@ namespace Vulkan
 {
 class StagingTexture2D;
 class Texture2D;
+class VKTexture;
 
 class TextureConverter
 {
@@ -30,8 +31,9 @@ public:
   bool Initialize();
 
   // Applies palette to dst_entry, using indices from src_entry.
-  void ConvertTexture(TextureCache::TCacheEntry* dst_entry, TextureCache::TCacheEntry* src_entry,
-                      VkRenderPass render_pass, const void* palette, TlutFormat palette_format);
+  void ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
+                      TextureCache::TCacheEntry* src_entry, VkRenderPass render_pass,
+                      const void* palette, TlutFormat palette_format);
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
@@ -45,8 +47,8 @@ public:
                                  Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
   // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
-  void DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* dst_texture, const void* src_ptr,
-                                   u32 src_width, u32 src_stride, u32 src_height);
+  void DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr, u32 src_width,
+                                   u32 src_stride, u32 src_height);
 
   bool SupportsTextureDecoding(TextureFormat format, TlutFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,

@@ -77,15 +77,6 @@ enum class APIType
   Nothing
 };
 
-// Texture formats that videocommon can upload/use.
-enum class HostTextureFormat : u32
-{
-  RGBA8,
-  DXT1,
-  DXT3,
-  DXT5
-};
-
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
 {
   u32 color = src;

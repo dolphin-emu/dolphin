@@ -168,6 +168,12 @@
     <ClCompile Include="HiresTextures_DDSLoader.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="TextureConfig.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractTexture.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -317,6 +323,12 @@
     </ClInclude>
     <ClInclude Include="SamplerCommon.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConfig.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractTexture.h">
+      <Filter>Base</Filter>
     </ClInclude>
     <ClInclude Include="VRTracker.h" />
   </ItemGroup>

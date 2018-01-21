@@ -47,6 +47,7 @@
     <ClCompile Include="SWmain.cpp" />
     <ClCompile Include="SWOGLWindow.cpp" />
     <ClCompile Include="SWRenderer.cpp" />
+    <ClCompile Include="SWTexture.cpp" />
     <ClCompile Include="SWVertexLoader.cpp" />
     <ClCompile Include="Tev.cpp" />
     <ClCompile Include="TextureEncoder.cpp" />
@@ -63,6 +64,7 @@
     <ClInclude Include="SetupUnit.h" />
     <ClInclude Include="SWOGLWindow.h" />
     <ClInclude Include="SWRenderer.h" />
+    <ClInclude Include="SWTexture.h" />
     <ClInclude Include="SWVertexLoader.h" />
     <ClInclude Include="Tev.h" />
     <ClInclude Include="TextureEncoder.h" />

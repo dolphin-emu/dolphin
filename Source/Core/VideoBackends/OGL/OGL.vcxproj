@@ -38,6 +38,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="OGLTexture.cpp" />
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="main.cpp" />
@@ -55,6 +56,7 @@
     <ClCompile Include="VROGL.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OGLTexture.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="GPUTimer.h" />

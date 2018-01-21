@@ -53,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
+    <ClCompile Include="OGLTexture.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
     <ClCompile Include="VROGL.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +97,9 @@
     <ClInclude Include="VROGL.h" />
     <ClInclude Include="GPUTimer.h">
       <Filter>GLUtil</Filter>
+    </ClInclude>
+    <ClInclude Include="OGLTexture.h">
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

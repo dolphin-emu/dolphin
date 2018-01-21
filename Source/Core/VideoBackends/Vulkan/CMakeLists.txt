@@ -19,6 +19,7 @@ set(SRCS
   Util.cpp
   VertexFormat.cpp
   VertexManager.cpp
+  VKTexture.cpp
   VulkanContext.cpp
   VulkanLoader.cpp
   main.cpp
