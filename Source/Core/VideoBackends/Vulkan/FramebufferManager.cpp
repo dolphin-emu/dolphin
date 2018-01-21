@@ -846,8 +846,8 @@ bool FramebufferManager::CreateReadbackTextures()
     return false;
   }
 
-  TextureConfig readback_texture_config(EFB_WIDTH, EFB_HEIGHT, 1, 1, AbstractTextureFormat::RGBA8,
-                                        false);
+  TextureConfig readback_texture_config(EFB_WIDTH, EFB_HEIGHT, 1, 1, 1,
+                                        AbstractTextureFormat::RGBA8, false);
   m_color_readback_texture =
       g_renderer->CreateStagingTexture(StagingTextureType::Mutable, readback_texture_config);
   m_depth_readback_texture =

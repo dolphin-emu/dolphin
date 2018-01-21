@@ -719,7 +719,7 @@ void Renderer::RenderFrameDump()
       m_frame_dump_render_texture->GetConfig().height == static_cast<u32>(target_height))
   {
     // Recreate texture objects. Release before creating so we don't temporarily use twice the RAM.
-    TextureConfig config(target_width, target_height, 1, 1, AbstractTextureFormat::RGBA8, true);
+    TextureConfig config(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, true);
     m_frame_dump_render_texture.reset();
     m_frame_dump_render_texture = CreateTexture(config);
     _assert_(m_frame_dump_render_texture);
