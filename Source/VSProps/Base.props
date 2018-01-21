@@ -167,8 +167,8 @@
     </Link>
     <!--Link Base:Application-->
     <Link Condition="'$(ConfigurationType)'=='Application'">
-      <!--See Common/ucrtFreadWorkaround.cpp-->
-      <ForceSymbolReferences>ucrtFreadWorkaround</ForceSymbolReferences>
+      <!--See Common/CompatPatches.cpp-->
+      <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
       <!--TODO fix up ffmpeg garbage-->
       <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
