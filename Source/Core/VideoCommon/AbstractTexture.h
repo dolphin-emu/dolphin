@@ -39,6 +39,7 @@ public:
   bool Save(const std::string& filename, unsigned int level);
 
   static bool IsCompressedFormat(AbstractTextureFormat format);
+  static bool IsDepthFormat(AbstractTextureFormat format);
   static size_t CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length);
   static size_t GetTexelSizeForFormat(AbstractTextureFormat format);
 

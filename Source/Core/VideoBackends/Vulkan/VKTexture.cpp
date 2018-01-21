@@ -79,14 +79,29 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
       return nullptr;
     }
 
-    // Clear render targets before use to prevent reading uninitialized memory.
-    VkClearColorValue clear_value = {{0.0f, 0.0f, 0.0f, 1.0f}};
-    VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, tex_config.levels, 0,
-                                           tex_config.layers};
-    texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), texture->GetImage(),
-                         texture->GetLayout(), &clear_value, 1, &clear_range);
+    if (!IsDepthFormat(tex_config.format))
+    {
+      // Clear render targets before use to prevent reading uninitialized memory.
+      VkClearColorValue clear_value = {{0.0f, 0.0f, 0.0f, 1.0f}};
+      VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, tex_config.levels, 0,
+                                             tex_config.layers};
+      texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), texture->GetImage(),
+                           texture->GetLayout(), &clear_value, 1, &clear_range);
+    }
+    else
+    {
+      // Clear render targets before use to prevent reading uninitialized memory.
+      VkClearDepthStencilValue clear_value = {0.0f, 0};
+      VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, tex_config.levels, 0,
+                                             tex_config.layers};
+      texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+      vkCmdClearDepthStencilImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                  texture->GetImage(), texture->GetLayout(), &clear_value, 1,
+                                  &clear_range);
+    }
   }
 
   return std::unique_ptr<VKTexture>(new VKTexture(tex_config, std::move(texture), framebuffer));

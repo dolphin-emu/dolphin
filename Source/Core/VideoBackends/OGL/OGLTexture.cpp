@@ -35,6 +35,16 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
     return storage ? GL_RGBA8 : GL_RGBA;
   case AbstractTextureFormat::BGRA8:
     return storage ? GL_RGBA8 : GL_BGRA;
+  case AbstractTextureFormat::R16:
+    return GL_R16;
+  case AbstractTextureFormat::R32F:
+    return GL_R32F;
+  case AbstractTextureFormat::D16:
+    return GL_DEPTH_COMPONENT16;
+  case AbstractTextureFormat::D32F:
+    return GL_DEPTH_COMPONENT32F;
+  case AbstractTextureFormat::D32F_S8:
+    return GL_DEPTH32F_STENCIL8;
   default:
     PanicAlert("Unhandled texture format.");
     return storage ? GL_RGBA8 : GL_RGBA;
@@ -49,6 +59,14 @@ GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
     return GL_RGBA;
   case AbstractTextureFormat::BGRA8:
     return GL_BGRA;
+  case AbstractTextureFormat::R16:
+  case AbstractTextureFormat::R32F:
+    return GL_RED;
+  case AbstractTextureFormat::D16:
+  case AbstractTextureFormat::D32F:
+    return GL_DEPTH_COMPONENT;
+  case AbstractTextureFormat::D32F_S8:
+    return GL_DEPTH_STENCIL;
   // Compressed texture formats don't use this parameter.
   default:
     return GL_UNSIGNED_BYTE;
@@ -62,6 +80,16 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
     return GL_UNSIGNED_BYTE;
+  case AbstractTextureFormat::R16:
+    return GL_UNSIGNED_SHORT;
+  case AbstractTextureFormat::R32F:
+    return GL_FLOAT;
+  case AbstractTextureFormat::D16:
+    return GL_UNSIGNED_SHORT;
+  case AbstractTextureFormat::D32F:
+    return GL_FLOAT;
+  case AbstractTextureFormat::D32F_S8:
+    return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
   // Compressed texture formats don't use this parameter.
   default:
     return GL_UNSIGNED_BYTE;

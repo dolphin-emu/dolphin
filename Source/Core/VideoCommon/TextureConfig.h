@@ -18,6 +18,11 @@ enum class AbstractTextureFormat : u32
   DXT3,
   DXT5,
   BPTC,
+  R16,
+  D16,
+  R32F,
+  D32F,
+  D32F_S8,
   Undefined
 };
 

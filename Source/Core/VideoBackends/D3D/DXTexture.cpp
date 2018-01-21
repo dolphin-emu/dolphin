@@ -43,9 +43,47 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
     return DXGI_FORMAT_R8G8B8A8_UNORM;
   case AbstractTextureFormat::BGRA8:
     return DXGI_FORMAT_B8G8R8A8_UNORM;
+  case AbstractTextureFormat::R16:
+    return DXGI_FORMAT_R16_UNORM;
+  case AbstractTextureFormat::R32F:
+    return DXGI_FORMAT_R32_FLOAT;
+  case AbstractTextureFormat::D16:
+    return DXGI_FORMAT_R16_TYPELESS;
+  case AbstractTextureFormat::D32F:
+    return DXGI_FORMAT_R32_TYPELESS;
+  case AbstractTextureFormat::D32F_S8:
+    return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
   default:
     PanicAlert("Unhandled texture format.");
     return DXGI_FORMAT_R8G8B8A8_UNORM;
+  }
+}
+DXGI_FORMAT GetSRVFormatForHostFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::D16:
+    return DXGI_FORMAT_R16_UNORM;
+  case AbstractTextureFormat::D32F:
+    return DXGI_FORMAT_R32_FLOAT;
+  case AbstractTextureFormat::D32F_S8:
+    return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+  default:
+    return GetDXGIFormatForHostFormat(format);
+  }
+}
+DXGI_FORMAT GetDSVFormatForHostFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::D16:
+    return DXGI_FORMAT_D16_UNORM;
+  case AbstractTextureFormat::D32F:
+    return DXGI_FORMAT_D32_FLOAT;
+  case AbstractTextureFormat::D32F_S8:
+    return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+  default:
+    return GetDXGIFormatForHostFormat(format);
   }
 }
 }  // Anonymous namespace
@@ -53,9 +91,23 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
 DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
   DXGI_FORMAT tex_format = GetDXGIFormatForHostFormat(m_config.format);
+  DXGI_FORMAT srv_format = GetSRVFormatForHostFormat(m_config.format);
+  DXGI_FORMAT rtv_format = DXGI_FORMAT_UNKNOWN;
+  DXGI_FORMAT dsv_format = DXGI_FORMAT_UNKNOWN;
   UINT bind_flags = D3D11_BIND_SHADER_RESOURCE;
   if (tex_config.rendertarget)
-    bind_flags |= D3D11_BIND_RENDER_TARGET;
+  {
+    if (IsDepthFormat(tex_config.format))
+    {
+      bind_flags |= D3D11_BIND_DEPTH_STENCIL;
+      dsv_format = GetDSVFormatForHostFormat(m_config.format);
+    }
+    else
+    {
+      bind_flags |= D3D11_BIND_RENDER_TARGET;
+      rtv_format = tex_format;
+    }
+  }
 
   CD3D11_TEXTURE2D_DESC texdesc(tex_format, tex_config.width, tex_config.height, tex_config.layers,
                                 tex_config.levels, bind_flags, D3D11_USAGE_DEFAULT, 0,
@@ -65,13 +117,8 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
   HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
   CHECK(SUCCEEDED(hr), "Create backing DXTexture");
 
-  m_texture = new D3DTexture2D(
-      pTexture, static_cast<D3D11_BIND_FLAG>(bind_flags), tex_format, DXGI_FORMAT_UNKNOWN,
-      tex_config.rendertarget ? tex_format : DXGI_FORMAT_UNKNOWN, tex_config.samples > 1);
-
-  D3D::SetDebugObjectName(m_texture->GetTex(), "a texture of the TextureCache");
-  D3D::SetDebugObjectName(m_texture->GetSRV(),
-                          "shader resource view of a texture of the TextureCache");
+  m_texture = new D3DTexture2D(pTexture, static_cast<D3D11_BIND_FLAG>(bind_flags), srv_format,
+                               dsv_format, rtv_format, tex_config.samples > 1);
 
   SAFE_RELEASE(pTexture);
 }
