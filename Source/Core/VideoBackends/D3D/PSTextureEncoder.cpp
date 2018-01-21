@@ -43,7 +43,7 @@ PSTextureEncoder::~PSTextureEncoder() = default;
 void PSTextureEncoder::Init()
 {
   // TODO: Move this to a constant somewhere in common.
-  TextureConfig encoding_texture_config(EFB_WIDTH * 4, 1024, 1, 1, AbstractTextureFormat::BGRA8,
+  TextureConfig encoding_texture_config(EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8,
                                         true);
   m_encoding_render_texture = g_renderer->CreateTexture(encoding_texture_config);
   m_encoding_readback_texture =

@@ -52,33 +52,28 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
 
 DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
-  DXGI_FORMAT dxgi_format = GetDXGIFormatForHostFormat(m_config.format);
-  if (m_config.rendertarget)
-  {
-    m_texture = D3DTexture2D::Create(
-        m_config.width, m_config.height,
-        (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
-        D3D11_USAGE_DEFAULT, dxgi_format, 1, m_config.layers);
-  }
-  else
-  {
-    const D3D11_TEXTURE2D_DESC texdesc =
-        CD3D11_TEXTURE2D_DESC(dxgi_format, m_config.width, m_config.height, 1, m_config.levels,
-                              D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0);
+  DXGI_FORMAT tex_format = GetDXGIFormatForHostFormat(m_config.format);
+  UINT bind_flags = D3D11_BIND_SHADER_RESOURCE;
+  if (tex_config.rendertarget)
+    bind_flags |= D3D11_BIND_RENDER_TARGET;
 
-    ID3D11Texture2D* pTexture;
-    const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
-    CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
+  CD3D11_TEXTURE2D_DESC texdesc(tex_format, tex_config.width, tex_config.height, tex_config.layers,
+                                tex_config.levels, bind_flags, D3D11_USAGE_DEFAULT, 0,
+                                tex_config.samples, 0, 0);
 
-    m_texture = new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE);
+  ID3D11Texture2D* pTexture;
+  HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
+  CHECK(SUCCEEDED(hr), "Create backing DXTexture");
 
-    // TODO: better debug names
-    D3D::SetDebugObjectName(m_texture->GetTex(), "a texture of the TextureCache");
-    D3D::SetDebugObjectName(m_texture->GetSRV(),
-                            "shader resource view of a texture of the TextureCache");
+  m_texture = new D3DTexture2D(
+      pTexture, static_cast<D3D11_BIND_FLAG>(bind_flags), tex_format, DXGI_FORMAT_UNKNOWN,
+      tex_config.rendertarget ? tex_format : DXGI_FORMAT_UNKNOWN, tex_config.samples > 1);
 
-    SAFE_RELEASE(pTexture);
-  }
+  D3D::SetDebugObjectName(m_texture->GetTex(), "a texture of the TextureCache");
+  D3D::SetDebugObjectName(m_texture->GetSRV(),
+                          "shader resource view of a texture of the TextureCache");
+
+  SAFE_RELEASE(pTexture);
 }
 
 DXTexture::~DXTexture()
@@ -145,6 +140,22 @@ void DXTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
                          GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
   g_renderer->RestoreAPIState();
+}
+
+void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                                   u32 layer, u32 level)
+{
+  const DXTexture* srcentry = static_cast<const DXTexture*>(src);
+  _dbg_assert_(VIDEO, m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
+                          m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  _dbg_assert_(VIDEO,
+               rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
+                   rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
+
+  D3D::context->ResolveSubresource(
+      m_texture->GetTex(), D3D11CalcSubresource(level, layer, m_config.levels),
+      srcentry->m_texture->GetTex(), D3D11CalcSubresource(level, layer, srcentry->m_config.levels),
+      GetDXGIFormatForHostFormat(m_config.format));
 }
 
 void DXTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,

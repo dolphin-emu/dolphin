@@ -42,9 +42,10 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
 
   // Allocate texture object
   VkFormat vk_format = Util::GetVkFormatForHostTextureFormat(tex_config.format);
-  auto texture = Texture2D::Create(tex_config.width, tex_config.height, tex_config.levels,
-                                   tex_config.layers, vk_format, VK_SAMPLE_COUNT_1_BIT,
-                                   VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
+  auto texture =
+      Texture2D::Create(tex_config.width, tex_config.height, tex_config.levels, tex_config.layers,
+                        vk_format, static_cast<VkSampleCountFlagBits>(tex_config.samples),
+                        VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
 
   if (!texture)
   {
@@ -56,8 +57,9 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
   if (tex_config.rendertarget)
   {
     VkImageView framebuffer_attachments[] = {texture->GetView()};
-    VkRenderPass render_pass = g_object_cache->GetRenderPass(
-        texture->GetFormat(), VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+    VkRenderPass render_pass =
+        g_object_cache->GetRenderPass(texture->GetFormat(), VK_FORMAT_UNDEFINED, tex_config.samples,
+                                      VK_ATTACHMENT_LOAD_OP_DONT_CARE);
     VkFramebufferCreateInfo framebuffer_info = {
         VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         nullptr,
@@ -191,6 +193,43 @@ void VKTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
   // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                                   u32 layer, u32 level)
+{
+  const VKTexture* srcentry = static_cast<const VKTexture*>(src);
+  _dbg_assert_(VIDEO, m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
+                          m_config.height == srcentry->m_config.height &&
+                          srcentry->m_config.samples > 1);
+  _dbg_assert_(VIDEO,
+               rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
+                   rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
+
+  // Resolving is considered to be a transfer operation.
+  StateTracker::GetInstance()->EndRenderPass();
+  VkImageLayout old_src_layout = srcentry->m_texture->GetLayout();
+  srcentry->m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  VkImageResolve resolve = {
+      {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // srcSubresource
+      {rect.left, rect.top, 0},                                                   // srcOffset
+      {VK_IMAGE_ASPECT_COLOR_BIT, level, layer, 1},                               // dstSubresource
+      {rect.left, rect.top, 0},                                                   // dstOffset
+      {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight()), 1}  // extent
+  };
+  vkCmdResolveImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                    srcentry->m_texture->GetImage(), srcentry->m_texture->GetLayout(),
+                    m_texture->GetImage(), m_texture->GetLayout(), 1, &resolve);
+
+  // Restore old source texture layout. Destination is assumed to be bound as a shader resource.
+  srcentry->m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          old_src_layout);
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }

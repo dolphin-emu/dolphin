@@ -24,6 +24,8 @@ public:
   virtual void ScaleRectangleFromTexture(const AbstractTexture* source,
                                          const MathUtil::Rectangle<int>& srcrect,
                                          const MathUtil::Rectangle<int>& dstrect) = 0;
+  virtual void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                                  u32 layer, u32 level) = 0;
   virtual void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                     size_t buffer_size) = 0;
 
