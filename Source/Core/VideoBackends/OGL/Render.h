@@ -98,7 +98,8 @@ public:
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
-  void SetViewport() override;
+  void SetViewport(float x, float y, float width, float height, float near_depth,
+                   float far_depth) override;
 
   void RenderText(const std::string& text, int left, int top, u32 color) override;
 

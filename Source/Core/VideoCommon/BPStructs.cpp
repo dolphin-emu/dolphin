@@ -130,6 +130,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_SCISSORBR:      // Scissor Rectable Bottom, Right
   case BPMEM_SCISSOROFFSET:  // Scissor Offset
     SetScissor();
+    SetViewport();
     VertexShaderManager::SetViewportChanged();
     GeometryShaderManager::SetViewportChanged();
     return;
@@ -1415,6 +1416,7 @@ void BPReload()
   // note that PixelShaderManager is already covered since it has its own DoState.
   SetGenerationMode();
   SetScissor();
+  SetViewport();
   SetDepthMode();
   SetBlendMode();
   OnPixelFormatChange();

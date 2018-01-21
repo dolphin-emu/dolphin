@@ -71,12 +71,6 @@ static int OSDTime;
 
 std::unique_ptr<Renderer> g_renderer;
 
-// The maximum depth that is written to the depth buffer should never exceed this value.
-// This is necessary because we use a 2^24 divisor for all our depth values to prevent
-// floating-point round-trip errors. However the console GPU doesn't ever write a value
-// to the depth buffer that exceeds 2^24 - 1.
-const float Renderer::GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
-
 static float AspectToWidescreen(float aspect)
 {
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
