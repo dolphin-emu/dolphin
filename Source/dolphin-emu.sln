@@ -81,6 +81,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp-optparse", "..\External
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cubeb", "..\Externals\cubeb\msvc\cubeb.vcxproj", "{8EA11166-6512-44FC-B7A5-A4D1ECC81170}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pugixml", "..\Externals\pugixml\pugixml.vcxproj", "{38FEE76F-F347-484B-949C-B4649381CFFB}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VR", "Core\VideoCommon\VR.vcxproj", "{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}"
 EndProject
 Global
@@ -233,6 +235,10 @@ Global
 		{8EA11166-6512-44FC-B7A5-A4D1ECC81170}.Debug|x64.Build.0 = Debug|x64
 		{8EA11166-6512-44FC-B7A5-A4D1ECC81170}.Release|x64.ActiveCfg = Release|x64
 		{8EA11166-6512-44FC-B7A5-A4D1ECC81170}.Release|x64.Build.0 = Release|x64
+		{38FEE76F-F347-484B-949C-B4649381CFFB}.Debug|x64.ActiveCfg = Debug|x64
+		{38FEE76F-F347-484B-949C-B4649381CFFB}.Debug|x64.Build.0 = Debug|x64
+		{38FEE76F-F347-484B-949C-B4649381CFFB}.Release|x64.ActiveCfg = Release|x64
+		{38FEE76F-F347-484B-949C-B4649381CFFB}.Release|x64.Build.0 = Release|x64
 		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Debug|x64.ActiveCfg = Release|x64
 		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Debug|x64.Build.0 = Release|x64
 		{2E6F41CA-9EAD-4A12-97DA-1B428C7DEA76}.Release|x64.ActiveCfg = Release|x64

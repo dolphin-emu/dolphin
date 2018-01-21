@@ -280,6 +280,7 @@ set(LIBS
   enet
   inputcommon
   ${LZO}
+  pugixml
   sfml-network
   sfml-system
   videonull
