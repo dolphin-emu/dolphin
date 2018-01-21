@@ -88,28 +88,28 @@ void Log(u64 offset, const DiscIO::Partition& partition)
   if (!s_filesystem)
     return;
 
-  const std::string filename = s_filesystem->GetFileName(offset);
+  const std::unique_ptr<DiscIO::FileInfo> file_info = s_filesystem->FindFileInfo(offset);
 
   // Do nothing if no file was found at that offset
-  if (filename.empty())
+  if (!file_info)
     return;
+
+  const std::string path = file_info->GetPath();
 
   // Do nothing if we found the same file again
-  if (s_previous_file == filename)
+  if (s_previous_file == path)
     return;
 
-  const u64 size = s_filesystem->GetFileSize(filename);
-  const std::string size_string = ThousandSeparate(size / 1000, 7);
+  const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
 
-  const std::string log_string =
-      StringFromFormat("%s kB %s", size_string.c_str(), filename.c_str());
-  if (IsSoundFile(filename))
+  const std::string log_string = StringFromFormat("%s kB %s", size_string.c_str(), path.c_str());
+  if (IsSoundFile(path))
     INFO_LOG(FILEMON, "%s", log_string.c_str());
   else
     WARN_LOG(FILEMON, "%s", log_string.c_str());
 
   // Update the last accessed file
-  s_previous_file = filename;
+  s_previous_file = path;
 }
 
 }  // namespace FileMonitor

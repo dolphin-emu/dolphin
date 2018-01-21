@@ -63,7 +63,7 @@ void MappingWindow::CreateDevicesLayout()
 
 void MappingWindow::CreateProfilesLayout()
 {
-  m_profiles_layout = new QVBoxLayout();
+  m_profiles_layout = new QHBoxLayout();
   m_profiles_box = new QGroupBox(tr("Profiles"));
   m_profiles_combo = new QComboBox();
   m_profiles_load = new QPushButton(tr("Load"));
@@ -86,15 +86,15 @@ void MappingWindow::CreateProfilesLayout()
 
 void MappingWindow::CreateResetLayout()
 {
-  m_reset_layout = new QVBoxLayout();
+  m_reset_layout = new QHBoxLayout();
   m_reset_box = new QGroupBox(tr("Reset"));
   m_reset_clear = new QPushButton(tr("Clear"));
   m_reset_default = new QPushButton(tr("Default"));
 
   m_reset_box->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
-  m_reset_layout->addWidget(m_reset_clear);
   m_reset_layout->addWidget(m_reset_default);
+  m_reset_layout->addWidget(m_reset_clear);
 
   m_reset_box->setLayout(m_reset_layout);
 }
@@ -106,10 +106,10 @@ void MappingWindow::CreateMainLayout()
   m_tab_widget = new QTabWidget();
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
 
-  m_config_layout->addWidget(m_profiles_box);
+  m_config_layout->addWidget(m_devices_box);
   m_config_layout->addWidget(m_reset_box);
+  m_config_layout->addWidget(m_profiles_box);
 
-  m_main_layout->addWidget(m_devices_box);
   m_main_layout->addItem(m_config_layout);
   m_main_layout->addWidget(m_tab_widget);
   m_main_layout->addWidget(m_button_box);

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QMessageBox>
@@ -15,6 +16,7 @@
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
 int main(int argc, char* argv[])
@@ -24,7 +26,11 @@ int main(int argc, char* argv[])
 
   QApplication app(argc, argv);
 
-  UICommon::SetUserDirectory("");
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const std::vector<std::string> args = parser->args();
+
+  UICommon::SetUserDirectory(static_cast<const char*>(options.get("user")));
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();

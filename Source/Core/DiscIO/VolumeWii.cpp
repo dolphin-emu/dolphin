@@ -274,8 +274,9 @@ std::map<Language, std::string> VolumeWii::GetLongNames() const
     return {};
 
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
-  size_t size = file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C);
-  opening_bnr.resize(size);
+  std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
+  opening_bnr.resize(
+      file_system->ReadFile(file_info.get(), opening_bnr.data(), opening_bnr.size(), 0x5C));
   return ReadWiiNames(opening_bnr);
 }
 
