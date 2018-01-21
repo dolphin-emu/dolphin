@@ -79,13 +79,13 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
   g_Config.backend_info.bSupportsST3CTextures = false;
 
-  IDXGIFactory* factory;
+  IDXGIFactory* factory = nullptr;
   IDXGIAdapter* ad;
-// Oculus SDK Bug: Once OpenGL mode has been attached in Direct Mode,
-// running the next line will cause a crash in Oculus SDK.  Seems to work
-// If you never VR_Shutdown() the OpenGL mode, and never VR_Init() for the
-// Direct3D mode, but that is very hacky.  Running ovr_Initialize(); here stops
-// crash, bug kills Direct Mode. Wait until SDK fixes this issue?
+  // Oculus SDK Bug: Once OpenGL mode has been attached in Direct Mode,
+  // running the next line will cause a crash in Oculus SDK.  Seems to work
+  // If you never VR_Shutdown() the OpenGL mode, and never VR_Init() for the
+  // Direct3D mode, but that is very hacky.  Running ovr_Initialize(); here stops
+  // crash, bug kills Direct Mode. Wait until SDK fixes this issue?
   if (g_vr_needs_DXGIFactory1)
   {
     if (DX11::PCreateDXGIFactory1)

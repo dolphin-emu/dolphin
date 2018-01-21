@@ -4,9 +4,9 @@
 
 #include "VideoBackends/D3D/AvatarDrawer.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/Logging/Log.h"
 #include "SOIL/SOIL.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
@@ -234,7 +234,7 @@ void AvatarDrawer::Init()
       Sleep(2);
     }
 
-    int width, width2, height, height2, channels, channels2;
+    int width = 0, width2 = 0, height = 0, height2 = 0, channels, channels2;
     u8 *left_img = nullptr, *right_img = nullptr;
     std::string s = "";
     if (VR_GetHydraStyle(0) != CS_GC_LEFT && !g_ActiveConfig.sLeftTexture.empty())
@@ -924,6 +924,10 @@ void AvatarDrawer::Draw()
   {
     cs = VR_GetHydraStyle(1);
     DrawHydra(1, wmpos, wmrot, cs);
+  }
+  else
+  {
+    cs = CS_HYDRA_RIGHT;
   }
 
   // Draw Lines

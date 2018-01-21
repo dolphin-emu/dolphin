@@ -344,7 +344,7 @@ HRESULT Create(HWND wnd)
     {
       SAFE_RELEASE(adapter);
 
-      HRESULT hr = factory->EnumAdapters(AdapterIndex, &adapter);
+      hr = factory->EnumAdapters(AdapterIndex, &adapter);
       if (hr == DXGI_ERROR_NOT_FOUND)
         break;
 
@@ -412,11 +412,12 @@ HRESULT Create(HWND wnd)
       if (!FAILED(hr))
         hr = firstadapter->EnumOutputs(0, &output);
       if (FAILED(hr))
-        MessageBox(wnd, _T("Failed to enumerate outputs!\n")
-                        _T("This usually happens when you've set your video adapter to the Nvidia ")
-                        _T("GPU in an Optimus-equipped system.\n")
-                        _T("Set Dolphin to use the high-performance graphics in Nvidia's drivers ")
-                        _T("instead and leave Dolphin's video adapter set to the Intel GPU."),
+        MessageBox(wnd,
+                   _T("Failed to enumerate outputs!\n")
+                   _T("This usually happens when you've set your video adapter to the Nvidia ")
+                   _T("GPU in an Optimus-equipped system.\n")
+                   _T("Set Dolphin to use the high-performance graphics in Nvidia's drivers ")
+                   _T("instead and leave Dolphin's video adapter set to the Intel GPU."),
                    _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
       SAFE_RELEASE(firstadapter);
     }

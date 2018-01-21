@@ -46,9 +46,9 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -897,7 +897,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     sourceRc.right = EFB_WIDTH;
     sourceRc.top = 0;
     sourceRc.bottom = EFB_HEIGHT;
-    TargetRectangle targetRc = ConvertEFBRectangle(sourceRc);
+    targetRc = ConvertEFBRectangle(sourceRc);
 
     if (g_ActiveConfig.bUseXFB)
     {
@@ -922,13 +922,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
         drawRc.right = targetRc.left +
                        (targetRc.GetWidth() + xfbWidth * targetRc.GetWidth() / (s32)fbStride) / 2;
 
-        TargetRectangle sourceRc;
-        sourceRc.left = 0;
-        sourceRc.top = 0;
-        sourceRc.right = (int)xfbSource->texWidth;
-        sourceRc.bottom = (int)xfbSource->texHeight;
+        TargetRectangle xfbTexRc;
+        xfbTexRc.left = 0;
+        xfbTexRc.top = 0;
+        xfbTexRc.right = (int)xfbSource->texWidth;
+        xfbTexRc.bottom = (int)xfbSource->texHeight;
 
-        sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
+        xfbTexRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
         D3DTexture2D* read_texture = xfbSource->tex;
 
@@ -938,14 +938,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
         // Render to left eye
         VR_RenderToEyebuffer(0);
         D3D::context->RSSetViewports(1, &Vp);
-        D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth,
+        D3D::drawShadedTexQuad(read_texture->GetSRV(), xfbTexRc.AsRECT(), xfbSource->texWidth,
                                xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
                                VertexShaderCache::GetSimpleVertexShader(),
                                VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
         if (g_has_two_hmds)
         {
           VR_RenderToEyebuffer(0, 1);
-          D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth,
+          D3D::drawShadedTexQuad(read_texture->GetSRV(), xfbTexRc.AsRECT(), xfbSource->texWidth,
                                  xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
                                  VertexShaderCache::GetSimpleVertexShader(),
                                  VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
@@ -953,14 +953,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
         // Render to right eye
         VR_RenderToEyebuffer(1);
-        D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth,
+        D3D::drawShadedTexQuad(read_texture->GetSRV(), xfbTexRc.AsRECT(), xfbSource->texWidth,
                                xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
                                VertexShaderCache::GetSimpleVertexShader(),
                                VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
         if (g_has_two_hmds)
         {
           VR_RenderToEyebuffer(1, 1);
-          D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth,
+          D3D::drawShadedTexQuad(read_texture->GetSRV(), xfbTexRc.AsRECT(), xfbSource->texWidth,
                                  xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
                                  VertexShaderCache::GetSimpleVertexShader(),
                                  VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
@@ -1202,7 +1202,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   else if (ARBruteForcer::ch_bruteforce)
     WARN_LOG(VR, "ch_take_screenshot = %d", ARBruteForcer::ch_take_screenshot);
 
-  // Dump frames
+// Dump frames
 #if defined(HAVE_FFMPEG)
   if (IsFrameDumping())
   {
@@ -1246,8 +1246,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
         g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
-        (g_Config.iMirrorPlayer == VR_PLAYER_NONE) != (g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE) ||
-        (g_Config.iMirrorStyle == VR_MIRROR_DISABLED) != (g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED))
+        (g_Config.iMirrorPlayer == VR_PLAYER_NONE) !=
+            (g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE) ||
+        (g_Config.iMirrorStyle == VR_MIRROR_DISABLED) !=
+            (g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED))
     {
       VR_ConfigureHMDPrediction();
     }
