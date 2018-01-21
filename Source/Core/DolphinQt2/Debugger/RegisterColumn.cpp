@@ -83,14 +83,9 @@ void RegisterColumn::SetValue()
   }
 
   if (!valid)
-  {
-    QMessageBox::critical(nullptr, QObject::tr("Invalid input"),
-                          QObject::tr("Bad input for field"));
-  }
+    QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid input provided"));
   else
-  {
     m_set_register(value);
-  }
 
   RefreshValue();
 }

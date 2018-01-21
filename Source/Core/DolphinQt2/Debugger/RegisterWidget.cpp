@@ -130,7 +130,9 @@ void RegisterWidget::ShowContextMenu()
       auto* view_hex = menu->addAction(tr("Hexadecimal"));
       auto* view_int = menu->addAction(tr("Signed Integer"));
       auto* view_uint = menu->addAction(tr("Unsigned Integer"));
+      // i18n: A floating point number
       auto* view_float = menu->addAction(tr("Float"));
+      // i18n: A double precision floating point number
       auto* view_double = menu->addAction(tr("Double"));
 
       for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
