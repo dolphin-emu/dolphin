@@ -306,7 +306,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 				Log.debug("[EmulationFragment] Pausing emulation.");
 
 				// Release the surface before pausing, since emulation has to be running for that.
-				mSurface = null;
 				NativeLibrary.SurfaceDestroyed();
 				NativeLibrary.PauseEmulation();
 			}
