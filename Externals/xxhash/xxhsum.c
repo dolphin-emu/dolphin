@@ -1,71 +1,77 @@
 /*
-bench.c - Demo program to benchmark open-source algorithm
-Copyright (C) Yann Collet 2012-2014
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
-You can contact the author at :
-- Blog homepage : http://fastcompression.blogspot.com/
-- Discussion group : https://groups.google.com/forum/?fromgroups#!forum/lz4c
+*  xxhsum - Command line interface for xxhash algorithms
+*  Copyright (C) Yann Collet 2012-2016
+*
+*  GPL v2 License
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License along
+*  with this program; if not, write to the Free Software Foundation, Inc.,
+*  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*
+*  You can contact the author at :
+*  - xxHash homepage : http://www.xxhash.com
+*  - xxHash source repository : https://github.com/Cyan4973/xxHash
 */
 
-/**************************************
- * Compiler Options
- *************************************/
+/* xxhsum :
+ * Provides hash value of a file content, or a list of files, or stdin
+ * Display convention is Big Endian, for both 32 and 64 bits algorithms
+ */
+
+#ifndef XXHASH_C_2097394837
+#define XXHASH_C_2097394837
+
+/* ************************************
+*  Compiler Options
+**************************************/
 /* MS Visual */
 #if defined(_MSC_VER) || defined(_WIN32)
 #  define _CRT_SECURE_NO_WARNINGS   /* removes visual warnings */
-#  define BMK_LEGACY_TIMER 1        /* gettimeofday() not supported by MSVC */
 #endif
 
 /* Under Linux at least, pull in the *64 commands */
-#define _LARGEFILE64_SOURCE
+#ifndef _LARGEFILE64_SOURCE
+#  define _LARGEFILE64_SOURCE
+#endif
 
 
-/**************************************
- * Includes
- *************************************/
-#include <stdlib.h>     // malloc
-#include <stdio.h>      // fprintf, fopen, ftello64, fread, stdin, stdout; when present : _fileno
-#include <string.h>     // strcmp
-#include <sys/types.h>  // stat64
-#include <sys/stat.h>   // stat64
+/* ************************************
+*  Includes
+**************************************/
+#include <stdlib.h>     /* malloc */
+#include <stdio.h>      /* fprintf, fopen, ftello64, fread, stdin, stdout; when present : _fileno */
+#include <string.h>     /* strcmp */
+#include <sys/types.h>  /* stat64 */
+#include <sys/stat.h>   /* stat64 */
+#include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 
+#define XXH_STATIC_LINKING_ONLY   /* *_state_t */
 #include "xxhash.h"
 
 
-/**************************************
- * OS-Specific Includes
- *************************************/
-// Use ftime() if gettimeofday() is not available on your target
-#if defined(BMK_LEGACY_TIMER)
-#  include <sys/timeb.h>   // timeb, ftime
-#else
-#  include <sys/time.h>    // gettimeofday
-#endif
-
+/*-************************************
+*  OS-Specific Includes
+**************************************/
 #if defined(MSDOS) || defined(OS2) || defined(WIN32) || defined(_WIN32) || defined(__CYGWIN__)
-#  include <fcntl.h>    // _O_BINARY
-#  include <io.h>       // _setmode, _isatty
+#  include <fcntl.h>    /* _O_BINARY */
+#  include <io.h>       /* _setmode, _isatty */
 #  ifdef __MINGW32__
-   int _fileno(FILE *stream);   // MINGW somehow forgets to include this windows declaration into <stdio.h>
+   int _fileno(FILE *stream);   /* MINGW somehow forgets to include this windows declaration into <stdio.h> */
 #  endif
 #  define SET_BINARY_MODE(file) _setmode(_fileno(file), _O_BINARY)
 #  define IS_CONSOLE(stdStream) _isatty(_fileno(stdStream))
 #else
-#  include <unistd.h>   // isatty, STDIN_FILENO
+#  include <unistd.h>   /* isatty, STDIN_FILENO */
 #  define SET_BINARY_MODE(file)
 #  define IS_CONSOLE(stdStream) isatty(STDIN_FILENO)
 #endif
@@ -75,128 +81,122 @@ You can contact the author at :
 #endif
 
 
-/**************************************
- * Basic Types
- *************************************/
-#if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L   // C99
-# include <stdint.h>
-  typedef  uint8_t BYTE;
-  typedef uint16_t U16;
-  typedef uint32_t U32;
-  typedef  int32_t S32;
-  typedef uint64_t U64;
-#else
-  typedef unsigned char       BYTE;
-  typedef unsigned short      U16;
-  typedef unsigned int        U32;
-  typedef   signed int        S32;
-  typedef unsigned long long  U64;
+/* ************************************
+*  Basic Types
+**************************************/
+#ifndef MEM_MODULE
+# define MEM_MODULE
+# if defined (__STDC_VERSION__) && __STDC_VERSION__ >= 199901L   /* C99 */
+#   include <stdint.h>
+    typedef uint8_t  BYTE;
+    typedef uint16_t U16;
+    typedef uint32_t U32;
+    typedef  int32_t S32;
+    typedef uint64_t U64;
+#  else
+    typedef unsigned char      BYTE;
+    typedef unsigned short     U16;
+    typedef unsigned int       U32;
+    typedef   signed int       S32;
+    typedef unsigned long long U64;
+#  endif
 #endif
 
+static unsigned BMK_isLittleEndian(void)
+{
+    const union { U32 u; BYTE c[4]; } one = { 1 };   /* don't use static : performance detrimental  */
+    return one.c[0];
+}
 
-/**************************************
- * Constants
- *************************************/
-#define PROGRAM_NAME exename
-#define PROGRAM_VERSION ""
-#define COMPILED __DATE__
-#define AUTHOR "Yann Collet"
-#define WELCOME_MESSAGE "*** %s %i-bits %s, by %s (%s) ***\n", PROGRAM_NAME, (int)(sizeof(void*)*8), PROGRAM_VERSION, AUTHOR, COMPILED
 
-#define NBLOOPS    3           // Default number of benchmark iterations
-#define TIMELOOP   2500        // Minimum timing per iteration
-#define PRIME 2654435761U
+/* *************************************
+*  Constants
+***************************************/
+#define LIB_VERSION XXH_VERSION_MAJOR.XXH_VERSION_MINOR.XXH_VERSION_RELEASE
+#define QUOTE(str) #str
+#define EXPAND_AND_QUOTE(str) QUOTE(str)
+#define PROGRAM_VERSION EXPAND_AND_QUOTE(LIB_VERSION)
+static const int g_nbBits = (int)(sizeof(void*)*8);
+static const char g_lename[] = "little endian";
+static const char g_bename[] = "big endian";
+#define ENDIAN_NAME (BMK_isLittleEndian() ? g_lename : g_bename)
+static const char author[] = "Yann Collet";
+#define WELCOME_MESSAGE(exename) "%s %s (%i-bits %s), by %s \n", exename, PROGRAM_VERSION,  g_nbBits, ENDIAN_NAME, author
 
-#define KB *(1<<10)
-#define MB *(1<<20)
+#define NBLOOPS    3                              /* Default number of benchmark iterations */
+#define TIMELOOP_S 1
+#define TIMELOOP  (TIMELOOP_S * CLOCKS_PER_SEC)   /* Minimum timing per iteration */
+#define XXHSUM32_DEFAULT_SEED 0                   /* Default seed for algo_xxh32 */
+#define XXHSUM64_DEFAULT_SEED 0                   /* Default seed for algo_xxh64 */
+
+#define KB *( 1<<10)
+#define MB *( 1<<20)
 #define GB *(1U<<30)
 
 #define MAX_MEM    (2 GB - 64 MB)
 
 static const char stdinName[] = "-";
+typedef enum { algo_xxh32, algo_xxh64 } algoType;
+static const algoType g_defaultAlgo = algo_xxh64;    /* required within main() & usage() */
+
+/* <16 hex char> <SPC> <SPC> <filename> <'\0'>
+ * '4096' is typical Linux PATH_MAX configuration. */
+#define DEFAULT_LINE_LENGTH (sizeof(XXH64_hash_t) * 2 + 2 + 4096 + 1)
+
+/* Maximum acceptable line length. */
+#define MAX_LINE_LENGTH (32 KB)
 
 
-//**************************************
-// Display macros
-//**************************************
+/* ************************************
+*  Display macros
+**************************************/
 #define DISPLAY(...)         fprintf(stderr, __VA_ARGS__)
 #define DISPLAYRESULT(...)   fprintf(stdout, __VA_ARGS__)
 #define DISPLAYLEVEL(l, ...) if (g_displayLevel>=l) DISPLAY(__VA_ARGS__);
-static unsigned g_displayLevel = 1;
+static U32 g_displayLevel = 1;
 
 
-//**************************************
-// Unit variables
-//**************************************
-static int g_nbIterations = NBLOOPS;
-static int g_fn_selection = 1;    // required within main() & usage()
+/* ************************************
+*  Local variables
+**************************************/
+static size_t g_sampleSize = 100 KB;
+static U32 g_nbIterations = NBLOOPS;
 
 
-//*********************************************************
-// Benchmark Functions
-//*********************************************************
-
-#if defined(BMK_LEGACY_TIMER)
-
-static int BMK_GetMilliStart(void)
+/* ************************************
+*  Benchmark Functions
+**************************************/
+static clock_t BMK_clockSpan( clock_t start )
 {
-  // Based on Legacy ftime()
-  // Rolls over every ~ 12.1 days (0x100000/24/60/60)
-  // Use GetMilliSpan to correct for rollover
-  struct timeb tb;
-  int nCount;
-  ftime( &tb );
-  nCount = (int) (tb.millitm + (tb.time & 0xfffff) * 1000);
-  return nCount;
-}
-
-#else
-
-static int BMK_GetMilliStart(void)
-{
-  // Based on newer gettimeofday()
-  // Use GetMilliSpan to correct for rollover
-  struct timeval tv;
-  int nCount;
-  gettimeofday(&tv, NULL);
-  nCount = (int) (tv.tv_usec/1000 + (tv.tv_sec & 0xfffff) * 1000);
-  return nCount;
-}
-
-#endif
-
-static int BMK_GetMilliSpan( int nTimeStart )
-{
-    int nSpan = BMK_GetMilliStart() - nTimeStart;
-    if ( nSpan < 0 )
-        nSpan += 0x100000 * 1000;
-    return nSpan;
+    return clock() - start;   /* works even if overflow; Typical max span ~ 30 mn */
 }
 
 
-static size_t BMK_findMaxMem(U64 requestedMem)
+static size_t BMK_findMaxMem(U64 requiredMem)
 {
-    size_t step = (64 MB);
-    size_t allocatedMemory;
-    BYTE* testmem=NULL;
+    size_t const step = 64 MB;
+    void* testmem = NULL;
 
-    requestedMem += 3*step;
-    requestedMem -= (size_t)requestedMem & (step-1);
-    if (requestedMem > MAX_MEM) requestedMem = MAX_MEM;
-    allocatedMemory = (size_t)requestedMem;
+    requiredMem = (((requiredMem >> 26) + 1) << 26);
+    requiredMem += 2*step;
+    if (requiredMem > MAX_MEM) requiredMem = MAX_MEM;
 
-    while (!testmem)
-    {
-        allocatedMemory -= step;
-        testmem = (BYTE*) malloc((size_t)allocatedMemory);
+    while (!testmem) {
+        if (requiredMem > step) requiredMem -= step;
+        else requiredMem >>= 1;
+        testmem = malloc ((size_t)requiredMem);
     }
     free (testmem);
 
-    return (size_t) (allocatedMemory - step);
+    /* keep some space available */
+    if (requiredMem > step) requiredMem -= step;
+    else requiredMem >>= 1;
+
+    return (size_t)requiredMem;
 }
 
 
-static U64 BMK_GetFileSize(char* infilename)
+static U64 BMK_GetFileSize(const char* infilename)
 {
     int r;
 #if defined(_MSC_VER)
@@ -206,194 +206,145 @@ static U64 BMK_GetFileSize(char* infilename)
     struct stat statbuf;
     r = stat(infilename, &statbuf);
 #endif
-    if (r || !S_ISREG(statbuf.st_mode)) return 0;   // No good...
+    if (r || !S_ISREG(statbuf.st_mode)) return 0;   /* No good... */
     return (U64)statbuf.st_size;
 }
 
+typedef U32 (*hashFunction)(const void* buffer, size_t bufferSize, U32 seed);
 
-static int BMK_benchFile(char** fileNamesTable, int nbFiles)
+static U32 localXXH32(const void* buffer, size_t bufferSize, U32 seed) { return XXH32(buffer, bufferSize, seed); }
+
+static U32 localXXH64(const void* buffer, size_t bufferSize, U32 seed) { return (U32)XXH64(buffer, bufferSize, seed); }
+
+static void BMK_benchHash(hashFunction h, const char* hName, const void* buffer, size_t bufferSize)
 {
-    int fileIdx=0;
-    U32 hashResult=0;
+    static const U32 nbh_perloop = 100;
+    U32 iterationNb;
+    double fastestH = 100000000.;
 
-    U64 totals = 0;
-    double totalc = 0.;
+    DISPLAY("\r%79s\r", "");       /* Clean display line */
+    if (g_nbIterations<1) g_nbIterations=1;
+    for (iterationNb = 1; iterationNb <= g_nbIterations; iterationNb++) {
+        U32 nbHashes = 0, r=0;
+        clock_t cStart;
+
+        DISPLAY("%1i-%-17.17s : %10u ->\r", iterationNb, hName, (U32)bufferSize);
+        cStart = clock();
+        while (clock() == cStart);   /* starts clock() at its exact beginning */
+        cStart = clock();
+
+        while (BMK_clockSpan(cStart) < TIMELOOP) {
+            U32 i;
+            for (i=0; i<nbh_perloop; i++)
+                r += h(buffer, bufferSize, i);
+            nbHashes += nbh_perloop;
+        }
+        if (r==0) DISPLAY(".\r");   /* need to do something with r to avoid compiler optimizing away the hash function */
+        {   double const timeS = ((double)BMK_clockSpan(cStart) / CLOCKS_PER_SEC) / nbHashes;
+            if (timeS < fastestH) fastestH = timeS;
+            DISPLAY("%1i-%-17.17s : %10u -> %7.1f MB/s\r", iterationNb, hName, (U32)bufferSize, ((double)bufferSize / (1<<20)) / fastestH );
+        }
+    }
+    DISPLAY("%-19.19s : %10u -> %7.1f MB/s  \n", hName, (U32)bufferSize, ((double)bufferSize / (1<<20)) / fastestH);
+}
 
 
-    // Loop for each file
-    while (fileIdx<nbFiles)
-    {
-        FILE*  inFile;
-        char*  inFileName;
-        U64    inFileSize;
-        size_t benchedSize;
-        size_t readSize;
-        char*  buffer;
-        char*  alignedBuffer;
+/* Note : buffer is supposed malloc'ed, hence aligned */
+static void BMK_benchMem(const void* buffer, size_t bufferSize)
+{
+    /* XXH32 bench */
+    BMK_benchHash(localXXH32, "XXH32", buffer, bufferSize);
 
-        // Check file existence
-        inFileName = fileNamesTable[fileIdx++];
-        inFile = fopen( inFileName, "rb" );
-        if (inFile==NULL)
-        {
+    /* Bench XXH32 on Unaligned input */
+    if (bufferSize>1)
+        BMK_benchHash(localXXH32, "XXH32 unaligned", ((const char*)buffer)+1, bufferSize-1);
+
+    /* Bench XXH64 */
+    BMK_benchHash(localXXH64, "XXH64", buffer, bufferSize);
+
+    /* Bench XXH64 on Unaligned input */
+    if (bufferSize>1)
+        BMK_benchHash(localXXH64, "XXH64 unaligned", ((const char*)buffer)+1, bufferSize-1);
+}
+
+
+static size_t BMK_selectBenchedSize(const char* fileName)
+{   U64 const inFileSize = BMK_GetFileSize(fileName);
+    size_t benchedSize = (size_t) BMK_findMaxMem(inFileSize);
+    if ((U64)benchedSize > inFileSize) benchedSize = (size_t)inFileSize;
+    if (benchedSize < inFileSize) {
+        DISPLAY("Not enough memory for '%s' full size; testing %i MB only...\n", fileName, (int)(benchedSize>>20));
+    }
+    return benchedSize;
+}
+
+
+static int BMK_benchFiles(const char** fileNamesTable, int nbFiles)
+{
+    int fileIdx;
+    for (fileIdx=0; fileIdx<nbFiles; fileIdx++) {
+        const char* const inFileName = fileNamesTable[fileIdx];
+        FILE* const inFile = fopen( inFileName, "rb" );
+        size_t const benchedSize = BMK_selectBenchedSize(inFileName);
+        char* const buffer = (char*)malloc(benchedSize+16);
+        void* const alignedBuffer = (buffer+15) - (((size_t)(buffer+15)) & 0xF);   /* align on next 16 bytes boundaries */
+
+        /* Checks */
+        if ((inFile==NULL) || (inFileName==NULL)) {
             DISPLAY( "Pb opening %s\n", inFileName);
+            free(buffer);
             return 11;
         }
-
-        // Memory allocation & restrictions
-        inFileSize = BMK_GetFileSize(inFileName);
-        benchedSize = (size_t) BMK_findMaxMem(inFileSize);
-        if ((U64)benchedSize > inFileSize) benchedSize = (size_t)inFileSize;
-        if (benchedSize < inFileSize)
-        {
-            DISPLAY("Not enough memory for '%s' full size; testing %i MB only...\n", inFileName, (int)(benchedSize>>20));
-        }
-
-        buffer = (char*)malloc((size_t )benchedSize+16);
-        if(!buffer)
-        {
+        if(!buffer) {
             DISPLAY("\nError: not enough memory!\n");
             fclose(inFile);
             return 12;
         }
-        alignedBuffer = (buffer+15) - (((size_t)(buffer+15)) & 0xF);   // align on next 16 bytes boundaries
 
-        // Fill input buffer
+        /* Fill input buffer */
         DISPLAY("\rLoading %s...        \n", inFileName);
-        readSize = fread(alignedBuffer, 1, benchedSize, inFile);
-        fclose(inFile);
+        {   size_t const readSize = fread(alignedBuffer, 1, benchedSize, inFile);
+            fclose(inFile);
+            if(readSize != benchedSize) {
+                DISPLAY("\nError: problem reading file '%s' !!    \n", inFileName);
+                free(buffer);
+                return 13;
+        }   }
 
-        if(readSize != benchedSize)
-        {
-            DISPLAY("\nError: problem reading file '%s' !!    \n", inFileName);
-            free(buffer);
-            return 13;
-        }
-
-
-        // Bench XXH32
-        {
-            int interationNb;
-            double fastestC = 100000000.;
-
-            DISPLAY("\r%79s\r", "");       // Clean display line
-            for (interationNb = 1; interationNb <= g_nbIterations; interationNb++)
-            {
-                int nbHashes = 0;
-                int milliTime;
-
-                DISPLAY("%1i-%-14.14s : %10i ->\r", interationNb, "XXH32", (int)benchedSize);
-
-                // Hash loop
-                milliTime = BMK_GetMilliStart();
-                while(BMK_GetMilliStart() == milliTime);
-                milliTime = BMK_GetMilliStart();
-                while(BMK_GetMilliSpan(milliTime) < TIMELOOP)
-                {
-                    int i;
-                    for (i=0; i<100; i++)
-                    {
-                        hashResult = XXH32(alignedBuffer, benchedSize, 0);
-                        nbHashes++;
-                    }
-                }
-                milliTime = BMK_GetMilliSpan(milliTime);
-                if ((double)milliTime < fastestC*nbHashes) fastestC = (double)milliTime/nbHashes;
-                DISPLAY("%1i-%-14.14s : %10i -> %7.1f MB/s\r", interationNb, "XXH32", (int)benchedSize, (double)benchedSize / fastestC / 1000.);
-            }
-            DISPLAY("%-16.16s : %10i -> %7.1f MB/s   0x%08X\n", "XXH32", (int)benchedSize, (double)benchedSize / fastestC / 1000., hashResult);
-
-            totals += benchedSize;
-            totalc += fastestC;
-        }
-
-        // Bench Unaligned XXH32
-        {
-            int interationNb;
-            double fastestC = 100000000.;
-
-            DISPLAY("\r%79s\r", "");       // Clean display line
-            for (interationNb = 1; (interationNb <= g_nbIterations) && ((benchedSize>1)); interationNb++)
-            {
-                int nbHashes = 0;
-                int milliTime;
-
-                DISPLAY("%1i-%-14.14s : %10i ->\r", interationNb, "(unaligned)", (int)benchedSize);
-                // Hash loop
-                milliTime = BMK_GetMilliStart();
-                while(BMK_GetMilliStart() == milliTime);
-                milliTime = BMK_GetMilliStart();
-                while(BMK_GetMilliSpan(milliTime) < TIMELOOP)
-                {
-                    int i;
-                    for (i=0; i<100; i++)
-                    {
-                        hashResult = XXH32(alignedBuffer+1, benchedSize-1, 0);
-                        nbHashes++;
-                    }
-                }
-                milliTime = BMK_GetMilliSpan(milliTime);
-                if ((double)milliTime < fastestC*nbHashes) fastestC = (double)milliTime/nbHashes;
-                DISPLAY("%1i-%-14.14s : %10i -> %7.1f MB/s\r", interationNb, "XXH32 (unaligned)", (int)(benchedSize-1), (double)(benchedSize-1) / fastestC / 1000.);
-            }
-            DISPLAY("%-16.16s : %10i -> %7.1f MB/s \n", "XXH32 (unaligned)", (int)benchedSize-1, (double)(benchedSize-1) / fastestC / 1000.);
-        }
-
-        // Bench XXH64
-        {
-            int interationNb;
-            double fastestC = 100000000.;
-            unsigned long long h64 = 0;
-
-            DISPLAY("\r%79s\r", "");       // Clean display line
-            for (interationNb = 1; interationNb <= g_nbIterations; interationNb++)
-            {
-                int nbHashes = 0;
-                int milliTime;
-
-                DISPLAY("%1i-%-14.14s : %10i ->\r", interationNb, "XXH64", (int)benchedSize);
-
-                // Hash loop
-                milliTime = BMK_GetMilliStart();
-                while(BMK_GetMilliStart() == milliTime);
-                milliTime = BMK_GetMilliStart();
-                while(BMK_GetMilliSpan(milliTime) < TIMELOOP)
-                {
-                    int i;
-                    for (i=0; i<100; i++)
-                    {
-                        h64 = XXH64(alignedBuffer, benchedSize, 0);
-                        nbHashes++;
-                    }
-                }
-                milliTime = BMK_GetMilliSpan(milliTime);
-                if ((double)milliTime < fastestC*nbHashes) fastestC = (double)milliTime/nbHashes;
-                DISPLAY("%1i-%-14.14s : %10i -> %7.1f MB/s\r", interationNb, "XXH64", (int)benchedSize, (double)benchedSize / fastestC / 1000.);
-            }
-            DISPLAY("%-16.16s : %10i -> %7.1f MB/s   0x%08X%08X\n", "XXH64", (int)benchedSize, (double)benchedSize / fastestC / 1000., (U32)(h64>>32), (U32)(h64));
-
-            totals += benchedSize;
-            totalc += fastestC;
-        }
+        /* bench */
+        BMK_benchMem(alignedBuffer, benchedSize);
 
         free(buffer);
     }
-
-    if (nbFiles > 1)
-        printf("%-16.16s :%11llu -> %7.1f MB/s\n", "  TOTAL", (long long unsigned int)totals, (double)totals/totalc/1000.);
 
     return 0;
 }
 
 
 
+static int BMK_benchInternal(void)
+{
+    size_t const benchedSize = g_sampleSize;
+    void* const buffer = malloc(benchedSize);
+    if(!buffer) {
+        DISPLAY("\nError: not enough memory!\n");
+        return 12;
+    }
+
+    /* bench */
+    DISPLAY("\rSample of %u KB...        \n", (U32)(benchedSize >> 10));
+    BMK_benchMem(buffer, benchedSize);
+
+    free(buffer);
+    return 0;
+}
+
+
 static void BMK_checkResult(U32 r1, U32 r2)
 {
     static int nbTests = 1;
-
     if (r1==r2) DISPLAY("\rTest%3i : %08X == %08X   ok   ", nbTests, r1, r2);
-    else
-    {
+    else {
         DISPLAY("\rERROR : Test%3i : %08X <> %08X   !!!!!   \n", nbTests, r1, r2);
         exit(1);
     }
@@ -404,22 +355,20 @@ static void BMK_checkResult(U32 r1, U32 r2)
 static void BMK_checkResult64(U64 r1, U64 r2)
 {
     static int nbTests = 1;
-
-    if (r1!=r2)
-    {
+    if (r1!=r2) {
         DISPLAY("\rERROR : Test%3i : 64-bits values non equals   !!!!!   \n", nbTests);
-        DISPLAY("\r %08X%08X != %08X%08X \n", (U32)(r1>>32), (U32)r1, (U32)(r2<<32), (U32)r2);
+        DISPLAY("\r %08X%08X != %08X%08X \n", (U32)(r1>>32), (U32)r1, (U32)(r2>>32), (U32)r2);
         exit(1);
     }
     nbTests++;
 }
 
 
-static void BMK_testSequence64(void* sentence, int len, U64 seed, U64 Nresult)
+static void BMK_testSequence64(void* sentence, size_t len, U64 seed, U64 Nresult)
 {
-    U64 Dresult;
     XXH64_state_t state;
-    int index;
+    U64 Dresult;
+    size_t pos;
 
     Dresult = XXH64(sentence, len, seed);
     BMK_checkResult64(Dresult, Nresult);
@@ -430,28 +379,28 @@ static void BMK_testSequence64(void* sentence, int len, U64 seed, U64 Nresult)
     BMK_checkResult64(Dresult, Nresult);
 
     XXH64_reset(&state, seed);
-    for (index=0; index<len; index++) XXH64_update(&state, ((char*)sentence)+index, 1);
+    for (pos=0; pos<len; pos++) XXH64_update(&state, ((char*)sentence)+pos, 1);
     Dresult = XXH64_digest(&state);
     BMK_checkResult64(Dresult, Nresult);
 }
 
 
-static void BMK_testSequence(void* sentence, int len, U32 seed, U32 Nresult)
+static void BMK_testSequence(const void* sequence, size_t len, U32 seed, U32 Nresult)
 {
-    U32 Dresult;
     XXH32_state_t state;
-    int index;
+    U32 Dresult;
+    size_t pos;
 
-    Dresult = XXH32(sentence, len, seed);
+    Dresult = XXH32(sequence, len, seed);
     BMK_checkResult(Dresult, Nresult);
 
     XXH32_reset(&state, seed);
-    XXH32_update(&state, sentence, len);
+    XXH32_update(&state, sequence, len);
     Dresult = XXH32_digest(&state);
     BMK_checkResult(Dresult, Nresult);
 
     XXH32_reset(&state, seed);
-    for (index=0; index<len; index++) XXH32_update(&state, ((char*)sentence)+index, 1);
+    for (pos=0; pos<len; pos++) XXH32_update(&state, ((const char*)sequence)+pos, 1);
     Dresult = XXH32_digest(&state);
     BMK_checkResult(Dresult, Nresult);
 }
@@ -460,121 +409,181 @@ static void BMK_testSequence(void* sentence, int len, U32 seed, U32 Nresult)
 #define SANITY_BUFFER_SIZE 101
 static void BMK_sanityCheck(void)
 {
+    static const U32 prime = 2654435761U;
     BYTE sanityBuffer[SANITY_BUFFER_SIZE];
-    int i;
-    U32 prime = PRIME;
+    U32 byteGen = prime;
 
-    for (i=0; i<SANITY_BUFFER_SIZE; i++)
-    {
-        sanityBuffer[i] = (BYTE)(prime>>24);
-        prime *= prime;
+    int i;
+    for (i=0; i<SANITY_BUFFER_SIZE; i++) {
+        sanityBuffer[i] = (BYTE)(byteGen>>24);
+        byteGen *= byteGen;
     }
 
     BMK_testSequence(NULL,          0, 0,     0x02CC5D05);
-    BMK_testSequence(NULL,          0, PRIME, 0x36B78AE7);
+    BMK_testSequence(NULL,          0, prime, 0x36B78AE7);
     BMK_testSequence(sanityBuffer,  1, 0,     0xB85CBEE5);
-    BMK_testSequence(sanityBuffer,  1, PRIME, 0xD5845D64);
+    BMK_testSequence(sanityBuffer,  1, prime, 0xD5845D64);
     BMK_testSequence(sanityBuffer, 14, 0,     0xE5AA0AB4);
-    BMK_testSequence(sanityBuffer, 14, PRIME, 0x4481951D);
+    BMK_testSequence(sanityBuffer, 14, prime, 0x4481951D);
     BMK_testSequence(sanityBuffer, SANITY_BUFFER_SIZE, 0,     0x1F1AA412);
-    BMK_testSequence(sanityBuffer, SANITY_BUFFER_SIZE, PRIME, 0x498EC8E2);
+    BMK_testSequence(sanityBuffer, SANITY_BUFFER_SIZE, prime, 0x498EC8E2);
 
     BMK_testSequence64(NULL        ,  0, 0,     0xEF46DB3751D8E999ULL);
-    BMK_testSequence64(NULL        ,  0, PRIME, 0xAC75FDA2929B17EFULL);
+    BMK_testSequence64(NULL        ,  0, prime, 0xAC75FDA2929B17EFULL);
     BMK_testSequence64(sanityBuffer,  1, 0,     0x4FCE394CC88952D8ULL);
-    BMK_testSequence64(sanityBuffer,  1, PRIME, 0x739840CB819FA723ULL);
+    BMK_testSequence64(sanityBuffer,  1, prime, 0x739840CB819FA723ULL);
     BMK_testSequence64(sanityBuffer, 14, 0,     0xCFFA8DB881BC3A3DULL);
-    BMK_testSequence64(sanityBuffer, 14, PRIME, 0x5B9611585EFCC9CBULL);
+    BMK_testSequence64(sanityBuffer, 14, prime, 0x5B9611585EFCC9CBULL);
     BMK_testSequence64(sanityBuffer, SANITY_BUFFER_SIZE, 0,     0x0EAB543384F878ADULL);
-    BMK_testSequence64(sanityBuffer, SANITY_BUFFER_SIZE, PRIME, 0xCAA65939306F1E21ULL);
+    BMK_testSequence64(sanityBuffer, SANITY_BUFFER_SIZE, prime, 0xCAA65939306F1E21ULL);
 
-    DISPLAY("\r%79s\r", "");       // Clean display line
+    DISPLAY("\r%79s\r", "");       /* Clean display line */
     DISPLAYLEVEL(2, "Sanity check -- all tests ok\n");
 }
 
 
-static int BMK_hash(const char* fileName, U32 hashNb)
+/* ********************************************************
+*  File Hashing
+**********************************************************/
+
+static void BMK_display_LittleEndian(const void* ptr, size_t length)
 {
-    FILE*  inFile;
-    size_t const blockSize = 64 KB;
+    const BYTE* p = (const BYTE*)ptr;
+    size_t idx;
+    for (idx=length-1; idx<length; idx--)    /* intentional underflow to negative to detect end */
+        DISPLAYRESULT("%02x", p[idx]);
+}
+
+static void BMK_display_BigEndian(const void* ptr, size_t length)
+{
+    const BYTE* p = (const BYTE*)ptr;
+    size_t idx;
+    for (idx=0; idx<length; idx++)
+        DISPLAYRESULT("%02x", p[idx]);
+}
+
+static void BMK_hashStream(void* xxhHashValue, const algoType hashType, FILE* inFile, void* buffer, size_t blockSize)
+{
+    XXH64_state_t state64;
+    XXH32_state_t state32;
     size_t readSize;
-    char*  buffer;
-    XXH64_state_t state;
 
-    // Check file existence
-    if (fileName == stdinName)
-    {
-        inFile = stdin;
-        SET_BINARY_MODE(stdin);
-    }
-    else
-        inFile = fopen( fileName, "rb" );
-    if (inFile==NULL)
-    {
-        DISPLAY( "Pb opening %s\n", fileName);
-        return 11;
-    }
+    /* Init */
+    XXH32_reset(&state32, XXHSUM32_DEFAULT_SEED);
+    XXH64_reset(&state64, XXHSUM64_DEFAULT_SEED);
 
-    // Memory allocation & restrictions
-    buffer = (char*)malloc(blockSize);
-    if(!buffer)
-    {
-        DISPLAY("\nError: not enough memory!\n");
-        fclose(inFile);
-        return 12;
-    }
-
-    // Init
-    switch(hashNb)
-    {
-    case 0:
-        XXH32_reset((XXH32_state_t*)&state, 0);
-        break;
-    case 1:
-        XXH64_reset(&state, 0);
-        break;
-    default:
-        DISPLAY("Error : bad hash algorithm ID\n");
-        fclose(inFile);
-        free(buffer);
-        return -1;
-    }
-
-
-    // Load file & update hash
-    DISPLAY("\rLoading %s...        \r", fileName);
+    /* Load file & update hash */
     readSize = 1;
-    while (readSize)
-    {
+    while (readSize) {
         readSize = fread(buffer, 1, blockSize, inFile);
-        switch(hashNb)
+        switch(hashType)
         {
-        case 0:
-            XXH32_update((XXH32_state_t*)&state, buffer, readSize);
+        case algo_xxh32:
+            XXH32_update(&state32, buffer, readSize);
             break;
-        case 1:
-            XXH64_update(&state, buffer, readSize);
+        case algo_xxh64:
+            XXH64_update(&state64, buffer, readSize);
             break;
         default:
             break;
         }
     }
+
+    switch(hashType)
+    {
+    case algo_xxh32:
+        {   U32 const h32 = XXH32_digest(&state32);
+            memcpy(xxhHashValue, &h32, sizeof(h32));
+            break;
+        }
+    case algo_xxh64:
+        {   U64 const h64 = XXH64_digest(&state64);
+            memcpy(xxhHashValue, &h64, sizeof(h64));
+            break;
+        }
+    default:
+            break;
+    }
+}
+
+
+typedef enum { big_endian, little_endian} endianess;
+
+static int BMK_hash(const char* fileName,
+                    const algoType hashType,
+                    const endianess displayEndianess)
+{
+    FILE*  inFile;
+    size_t const blockSize = 64 KB;
+    void*  buffer;
+    U32    h32 = 0;
+    U64    h64 = 0;
+
+    /* Check file existence */
+    if (fileName == stdinName) {
+        inFile = stdin;
+        SET_BINARY_MODE(stdin);
+    }
+    else
+        inFile = fopen( fileName, "rb" );
+    if (inFile==NULL) {
+        DISPLAY( "Pb opening %s\n", fileName);
+        return 1;
+    }
+
+    /* Memory allocation & restrictions */
+    buffer = malloc(blockSize);
+    if(!buffer) {
+        DISPLAY("\nError: not enough memory!\n");
+        fclose(inFile);
+        return 1;
+    }
+
+    /* loading notification */
+    {   const size_t fileNameSize = strlen(fileName);
+        const char* const fileNameEnd = fileName + fileNameSize;
+        const size_t maxInfoFilenameSize = fileNameSize > 30 ? 30 : fileNameSize;
+        size_t infoFilenameSize = 1;
+        while ( (infoFilenameSize < maxInfoFilenameSize)
+              &&(fileNameEnd[-1-infoFilenameSize] != '/')
+              &&(fileNameEnd[-1-infoFilenameSize] != '\\') )
+              infoFilenameSize++;
+        DISPLAY("\rLoading %s...                        \r", fileNameEnd - infoFilenameSize);
+    }
+
+    /* Load file & update hash */
+    switch(hashType)
+    {
+    case algo_xxh32:
+        BMK_hashStream(&h32, algo_xxh32, inFile, buffer, blockSize);
+        break;
+    case algo_xxh64:
+        BMK_hashStream(&h64, algo_xxh64, inFile, buffer, blockSize);
+        break;
+    default:
+        break;
+    }
+
     fclose(inFile);
     free(buffer);
 
-    // display Hash
-    switch(hashNb)
+    /* display Hash */
+    switch(hashType)
     {
-    case 0:
-        {
-            U32 h32 = XXH32_digest((XXH32_state_t*)&state);
-            DISPLAYRESULT("%08x   %s           \n", h32, fileName);
+    case algo_xxh32:
+        {   XXH32_canonical_t hcbe32;
+            XXH32_canonicalFromHash(&hcbe32, h32);
+            displayEndianess==big_endian ?
+                BMK_display_BigEndian(&hcbe32, sizeof(hcbe32)) : BMK_display_LittleEndian(&hcbe32, sizeof(hcbe32));
+            DISPLAYRESULT("  %s\n", fileName);
             break;
         }
-    case 1:
-        {
-            U64 h64 = XXH64_digest(&state);
-            DISPLAYRESULT("%08x%08x   %s     \n", (U32)(h64>>32), (U32)(h64), fileName);
+    case algo_xxh64:
+        {   XXH64_canonical_t hcbe64;
+            XXH64_canonicalFromHash(&hcbe64, h64);
+            displayEndianess==big_endian ?
+                BMK_display_BigEndian(&hcbe64, sizeof(hcbe64)) : BMK_display_LittleEndian(&hcbe64, sizeof(hcbe64));
+            DISPLAYRESULT("  %s\n", fileName);
             break;
         }
     default:
@@ -585,24 +594,526 @@ static int BMK_hash(const char* fileName, U32 hashNb)
 }
 
 
-//*********************************************************
-//  Main
-//*********************************************************
+static int BMK_hashFiles(const char** fnList, int fnTotal,
+                         algoType hashType, endianess displayEndianess)
+{
+    int fnNb;
+    int result = 0;
+
+    if (fnTotal==0)
+        return BMK_hash(stdinName, hashType, displayEndianess);
+
+    for (fnNb=0; fnNb<fnTotal; fnNb++)
+        result += BMK_hash(fnList[fnNb], hashType, displayEndianess);
+    DISPLAY("\r%70s\r", "");
+    return result;
+}
+
+
+typedef enum {
+    GetLine_ok,
+    GetLine_eof,
+    GetLine_exceedMaxLineLength,
+    GetLine_outOfMemory,
+} GetLineResult;
+
+typedef enum {
+    CanonicalFromString_ok,
+    CanonicalFromString_invalidFormat,
+} CanonicalFromStringResult;
+
+typedef enum {
+    ParseLine_ok,
+    ParseLine_invalidFormat,
+} ParseLineResult;
+
+typedef enum {
+    LineStatus_hashOk,
+    LineStatus_hashFailed,
+    LineStatus_failedToOpen,
+} LineStatus;
+
+typedef union {
+    XXH32_canonical_t xxh32;
+    XXH64_canonical_t xxh64;
+} Canonical;
+
+typedef struct {
+    Canonical   canonical;
+    const char* filename;
+    int         xxhBits;    /* canonical type : 32:xxh32, 64:xxh64 */
+} ParsedLine;
+
+typedef struct {
+    unsigned long   nProperlyFormattedLines;
+    unsigned long   nImproperlyFormattedLines;
+    unsigned long   nMismatchedChecksums;
+    unsigned long   nOpenOrReadFailures;
+    unsigned long   nMixedFormatLines;
+    int             xxhBits;
+    int             quit;
+} ParseFileReport;
+
+typedef struct {
+    const char*     inFileName;
+    FILE*           inFile;
+    int             lineMax;
+    char*           lineBuf;
+    size_t          blockSize;
+    char*           blockBuf;
+    int             strictMode;
+    int             statusOnly;
+    int             warn;
+    int             quiet;
+    ParseFileReport report;
+} ParseFileArg;
+
+
+/*  Read line from stream.
+    Returns GetLine_ok, if it reads line successfully.
+    Returns GetLine_eof, if stream reaches EOF.
+    Returns GetLine_exceedMaxLineLength, if line length is longer than MAX_LINE_LENGTH.
+    Returns GetLine_outOfMemory, if line buffer memory allocation failed.
+ */
+static GetLineResult getLine(char** lineBuf, int* lineMax, FILE* inFile)
+{
+    GetLineResult result = GetLine_ok;
+    int len = 0;
+
+    if (*lineBuf == NULL || *lineMax < 1) {
+        *lineMax = DEFAULT_LINE_LENGTH;
+        *lineBuf = (char*) realloc(*lineBuf, *lineMax);
+        if(*lineBuf == NULL) return GetLine_outOfMemory;
+    }
+
+    for (;;) {
+        const int c = fgetc(inFile);
+        if (c == EOF) {
+            /* If we meet EOF before first character, returns GetLine_eof,
+             * otherwise GetLine_ok.
+             */
+            if (len == 0) result = GetLine_eof;
+            break;
+        }
+
+        /* Make enough space for len+1 (for final NUL) bytes. */
+        if (len+1 >= *lineMax) {
+            char* newLineBuf = NULL;
+            int newBufSize = *lineMax;
+
+            newBufSize += (newBufSize/2) + 1; /* x 1.5 */
+            if (newBufSize > MAX_LINE_LENGTH) newBufSize = MAX_LINE_LENGTH;
+            if (len+1 >= newBufSize) return GetLine_exceedMaxLineLength;
+
+            newLineBuf = (char*) realloc(*lineBuf, newBufSize);
+            if (newLineBuf == NULL) return GetLine_outOfMemory;
+
+            *lineBuf = newLineBuf;
+            *lineMax = newBufSize;
+        }
+
+        if (c == '\n') break;
+        (*lineBuf)[len++] = (char) c;
+    }
+
+    (*lineBuf)[len] = '\0';
+    return result;
+}
+
+
+/*  Converts one hexadecimal character to integer.
+ *  Returns -1, if given character is not hexadecimal.
+ */
+static int charToHex(char c)
+{
+    int result = -1;
+    if (c >= '0' && c <= '9') {
+        result = (int) (c - '0');
+    } else if (c >= 'A' && c <= 'F') {
+        result = (int) (c - 'A') + 0x0a;
+    } else if (c >= 'a' && c <= 'f') {
+        result = (int) (c - 'a') + 0x0a;
+    }
+    return result;
+}
+
+
+/*  Converts XXH32 canonical hexadecimal string hashStr to big endian unsigned char array dst.
+ *  Returns CANONICAL_FROM_STRING_INVALID_FORMAT, if hashStr is not well formatted.
+ *  Returns CANONICAL_FROM_STRING_OK, if hashStr is parsed successfully.
+ */
+static CanonicalFromStringResult canonicalFromString(unsigned char* dst,
+                                                     size_t dstSize,
+                                                     const char* hashStr)
+{
+    size_t i;
+    for (i = 0; i < dstSize; ++i) {
+        int h0, h1;
+
+        h0 = charToHex(hashStr[i*2 + 0]);
+        if (h0 < 0) return CanonicalFromString_invalidFormat;
+
+        h1 = charToHex(hashStr[i*2 + 1]);
+        if (h1 < 0) return CanonicalFromString_invalidFormat;
+
+        dst[i] = (unsigned char) ((h0 << 4) | h1);
+    }
+    return CanonicalFromString_ok;
+}
+
+
+/*  Parse single line of xxHash checksum file.
+ *  Returns PARSE_LINE_ERROR_INVALID_FORMAT, if line is not well formatted.
+ *  Returns PARSE_LINE_OK if line is parsed successfully.
+ *  And members of parseLine will be filled by parsed values.
+ *
+ *  - line must be ended with '\0'.
+ *  - Since parsedLine.filename will point within given argument `line`,
+ *    users must keep `line`s content during they are using parsedLine.
+ *
+ *  Given xxHash checksum line should have the following format:
+ *
+ *      <8 or 16 hexadecimal char> <space> <space> <filename...> <'\0'>
+ */
+static ParseLineResult parseLine(ParsedLine* parsedLine, const char* line)
+{
+    const char* const firstSpace = strchr(line, ' ');
+    const char* const secondSpace = firstSpace + 1;
+
+    parsedLine->filename = NULL;
+    parsedLine->xxhBits = 0;
+
+    if (firstSpace == NULL || *secondSpace != ' ') return ParseLine_invalidFormat;
+
+    switch (firstSpace - line)
+    {
+    case 8:
+        {   XXH32_canonical_t* xxh32c = &parsedLine->canonical.xxh32;
+            if (canonicalFromString(xxh32c->digest, sizeof(xxh32c->digest), line)
+                != CanonicalFromString_ok) {
+                return ParseLine_invalidFormat;
+            }
+            parsedLine->xxhBits = 32;
+            break;
+        }
+
+    case 16:
+        {   XXH64_canonical_t* xxh64c = &parsedLine->canonical.xxh64;
+            if (canonicalFromString(xxh64c->digest, sizeof(xxh64c->digest), line)
+                != CanonicalFromString_ok) {
+                return ParseLine_invalidFormat;
+            }
+            parsedLine->xxhBits = 64;
+            break;
+        }
+
+    default:
+            return ParseLine_invalidFormat;
+            break;
+    }
+
+    parsedLine->filename = secondSpace + 1;
+    return ParseLine_ok;
+}
+
+
+/*!  Parse xxHash checksum file.
+ */
+static void parseFile1(ParseFileArg* parseFileArg)
+{
+    const char* const inFileName = parseFileArg->inFileName;
+    ParseFileReport* const report = &parseFileArg->report;
+
+    unsigned long lineNumber = 0;
+    memset(report, 0, sizeof(*report));
+
+    while (!report->quit) {
+        FILE* fp = NULL;
+        LineStatus lineStatus = LineStatus_hashFailed;
+        GetLineResult getLineResult;
+        ParsedLine parsedLine;
+        memset(&parsedLine, 0, sizeof(parsedLine));
+
+        lineNumber++;
+        if (lineNumber == 0) {
+            /* This is unlikely happen, but md5sum.c has this
+             * error check. */
+            DISPLAY("%s : too many checksum lines\n", inFileName);
+            report->quit = 1;
+            break;
+        }
+
+        getLineResult = getLine(&parseFileArg->lineBuf, &parseFileArg->lineMax,
+                                parseFileArg->inFile);
+        if (getLineResult != GetLine_ok) {
+            if (getLineResult == GetLine_eof) break;
+
+            switch (getLineResult)
+            {
+            case GetLine_ok:
+            case GetLine_eof:
+                /* These cases never happen.  See above getLineResult related "if"s.
+                   They exist just for make gcc's -Wswitch-enum happy. */
+                break;
+
+            default:
+                DISPLAY("%s : %lu: unknown error\n", inFileName, lineNumber);
+                break;
+
+            case GetLine_exceedMaxLineLength:
+                DISPLAY("%s : %lu: too long line\n", inFileName, lineNumber);
+                break;
+
+            case GetLine_outOfMemory:
+                DISPLAY("%s : %lu: out of memory\n", inFileName, lineNumber);
+                break;
+            }
+            report->quit = 1;
+            break;
+        }
+
+        if (parseLine(&parsedLine, parseFileArg->lineBuf) != ParseLine_ok) {
+            report->nImproperlyFormattedLines++;
+            if (parseFileArg->warn) {
+                DISPLAY("%s : %lu: improperly formatted XXHASH checksum line\n"
+                    , inFileName, lineNumber);
+            }
+            continue;
+        }
+
+        if (report->xxhBits != 0 && report->xxhBits != parsedLine.xxhBits) {
+            /* Don't accept xxh32/xxh64 mixed file */
+            report->nImproperlyFormattedLines++;
+            report->nMixedFormatLines++;
+            if (parseFileArg->warn) {
+                DISPLAY("%s : %lu: improperly formatted XXHASH checksum line (XXH32/64)\n"
+                    , inFileName, lineNumber);
+            }
+            continue;
+        }
+
+        report->nProperlyFormattedLines++;
+        if (report->xxhBits == 0) {
+            report->xxhBits = parsedLine.xxhBits;
+        }
+
+        fp = fopen(parsedLine.filename, "rb");
+        if (fp == NULL) {
+            lineStatus = LineStatus_failedToOpen;
+        } else {
+            lineStatus = LineStatus_hashFailed;
+            switch (parsedLine.xxhBits)
+            {
+            case 32:
+                {   XXH32_hash_t xxh;
+                    BMK_hashStream(&xxh, algo_xxh32, fp, parseFileArg->blockBuf, parseFileArg->blockSize);
+                    if (xxh == XXH32_hashFromCanonical(&parsedLine.canonical.xxh32)) {
+                        lineStatus = LineStatus_hashOk;
+                }   }
+                break;
+
+            case 64:
+                {   XXH64_hash_t xxh;
+                    BMK_hashStream(&xxh, algo_xxh64, fp, parseFileArg->blockBuf, parseFileArg->blockSize);
+                    if (xxh == XXH64_hashFromCanonical(&parsedLine.canonical.xxh64)) {
+                        lineStatus = LineStatus_hashOk;
+                }   }
+                break;
+
+            default:
+                break;
+            }
+            fclose(fp);
+        }
+
+        switch (lineStatus)
+        {
+        default:
+            DISPLAY("%s : unknown error\n", inFileName);
+            report->quit = 1;
+            break;
+
+        case LineStatus_failedToOpen:
+            report->nOpenOrReadFailures++;
+            if (!parseFileArg->statusOnly) {
+                DISPLAYRESULT("%s : %lu: FAILED open or read %s\n"
+                    , inFileName, lineNumber, parsedLine.filename);
+            }
+            break;
+
+        case LineStatus_hashOk:
+        case LineStatus_hashFailed:
+            {   int b = 1;
+                if (lineStatus == LineStatus_hashOk) {
+                    /* If --quiet is specified, don't display "OK" */
+                    if (parseFileArg->quiet) b = 0;
+                } else {
+                    report->nMismatchedChecksums++;
+                }
+
+                if (b && !parseFileArg->statusOnly) {
+                    DISPLAYRESULT("%s: %s\n", parsedLine.filename
+                        , lineStatus == LineStatus_hashOk ? "OK" : "FAILED");
+            }   }
+            break;
+        }
+    }   /* while (!report->quit) */
+}
+
+
+/*  Parse xxHash checksum file.
+ *  Returns 1, if all procedures were succeeded.
+ *  Returns 0, if any procedures was failed.
+ *
+ *  If strictMode != 0, return error code if any line is invalid.
+ *  If statusOnly != 0, don't generate any output.
+ *  If warn != 0, print a warning message to stderr.
+ *  If quiet != 0, suppress "OK" line.
+ *
+ *  "All procedures are succeeded" means:
+ *    - Checksum file contains at least one line and less than SIZE_T_MAX lines.
+ *    - All files are properly opened and read.
+ *    - All hash values match with its content.
+ *    - (strict mode) All lines in checksum file are consistent and well formatted.
+ *
+ */
+static int checkFile(const char* inFileName,
+                     const endianess displayEndianess,
+                     U32 strictMode,
+                     U32 statusOnly,
+                     U32 warn,
+                     U32 quiet)
+{
+    int result = 0;
+    FILE* inFile = NULL;
+    ParseFileArg parseFileArgBody;
+    ParseFileArg* const parseFileArg = &parseFileArgBody;
+    ParseFileReport* const report = &parseFileArg->report;
+
+    if (displayEndianess != big_endian) {
+        /* Don't accept little endian */
+        DISPLAY( "Check file mode doesn't support little endian\n" );
+        return 0;
+    }
+
+    /* note : stdinName is special constant pointer.  It is not a string. */
+    if (inFileName == stdinName) {
+        /* note : Since we expect text input for xxhash -c mode,
+         * Don't set binary mode for stdin */
+        inFile = stdin;
+    } else {
+        inFile = fopen( inFileName, "rt" );
+    }
+
+    if (inFile == NULL) {
+        DISPLAY( "Pb opening %s\n", inFileName);
+        return 0;
+    }
+
+    parseFileArg->inFileName    = inFileName;
+    parseFileArg->inFile        = inFile;
+    parseFileArg->lineMax       = DEFAULT_LINE_LENGTH;
+    parseFileArg->lineBuf       = (char*) malloc((size_t) parseFileArg->lineMax);
+    parseFileArg->blockSize     = 64 * 1024;
+    parseFileArg->blockBuf      = (char*) malloc(parseFileArg->blockSize);
+    parseFileArg->strictMode    = strictMode;
+    parseFileArg->statusOnly    = statusOnly;
+    parseFileArg->warn          = warn;
+    parseFileArg->quiet         = quiet;
+
+    parseFile1(parseFileArg);
+
+    free(parseFileArg->blockBuf);
+    free(parseFileArg->lineBuf);
+
+    if (inFile != stdin) fclose(inFile);
+
+    /* Show error/warning messages.  All messages are copied from md5sum.c
+     */
+    if (report->nProperlyFormattedLines == 0) {
+        DISPLAY("%s: no properly formatted XXHASH checksum lines found\n", inFileName);
+    } else if (!statusOnly) {
+        if (report->nImproperlyFormattedLines) {
+            DISPLAYRESULT("%lu lines are improperly formatted\n"
+                , report->nImproperlyFormattedLines);
+        }
+        if (report->nOpenOrReadFailures) {
+            DISPLAYRESULT("%lu listed files could not be read\n"
+                , report->nOpenOrReadFailures);
+        }
+        if (report->nMismatchedChecksums) {
+            DISPLAYRESULT("%lu computed checksums did NOT match\n"
+                , report->nMismatchedChecksums);
+    }   }
+
+    /* Result (exit) code logic is copied from
+     * gnu coreutils/src/md5sum.c digest_check() */
+    result =   report->nProperlyFormattedLines != 0
+            && report->nMismatchedChecksums == 0
+            && report->nOpenOrReadFailures == 0
+            && (!strictMode || report->nImproperlyFormattedLines == 0)
+            && report->quit == 0;
+    return result;
+}
+
+
+static int checkFiles(const char** fnList, int fnTotal,
+                      const endianess displayEndianess,
+                      U32 strictMode,
+                      U32 statusOnly,
+                      U32 warn,
+                      U32 quiet)
+{
+    int ok = 1;
+
+    /* Special case for stdinName "-",
+     * note: stdinName is not a string.  It's special pointer. */
+    if (fnTotal==0) {
+        ok &= checkFile(stdinName, displayEndianess, strictMode, statusOnly, warn, quiet);
+    } else {
+        int fnNb;
+        for (fnNb=0; fnNb<fnTotal; fnNb++)
+            ok &= checkFile(fnList[fnNb], displayEndianess, strictMode, statusOnly, warn, quiet);
+    }
+    return ok ? 0 : 1;
+}
+
+
+/* ********************************************************
+*  Main
+**********************************************************/
 
 static int usage(const char* exename)
 {
-    DISPLAY( WELCOME_MESSAGE );
+    DISPLAY( WELCOME_MESSAGE(exename) );
     DISPLAY( "Usage :\n");
-    DISPLAY( "      %s [arg] [filename]\n", exename);
+    DISPLAY( "      %s [arg] [filenames]\n", exename);
     DISPLAY( "When no filename provided, or - provided : use stdin as input\n");
     DISPLAY( "Arguments :\n");
-    DISPLAY( " -H# : hash selection : 0=32bits, 1=64bits (default %i)\n", g_fn_selection);
-    DISPLAY( " -b  : benchmark mode \n");
-    DISPLAY( " -i# : number of iterations (benchmark mode; default %i)\n", g_nbIterations);
-    DISPLAY( " -h  : help (this text)\n");
+    DISPLAY( " -H# : hash selection : 0=32bits, 1=64bits (default: %i)\n", (int)g_defaultAlgo);
+    DISPLAY( " -c  : read xxHash sums from the [filenames] and check them\n");
+    DISPLAY( " -h  : help \n");
     return 0;
 }
 
+
+static int usage_advanced(const char* exename)
+{
+    usage(exename);
+    DISPLAY( "Advanced :\n");
+    DISPLAY( " --little-endian : hash printed using little endian convention (default: big endian)\n");
+    DISPLAY( " -V, --version   : display version\n");
+    DISPLAY( " -h, --help      : display long help and exit\n");
+    DISPLAY( " -b  : benchmark mode \n");
+    DISPLAY( " -i# : number of iterations (benchmark mode; default %i)\n", g_nbIterations);
+    DISPLAY( "\n");
+    DISPLAY( "The following four options are useful only when verifying checksums (-c):\n");
+    DISPLAY( "--strict : don't print OK for each successfully verified file\n");
+    DISPLAY( "--status : don't output anything, status code shows success\n");
+    DISPLAY( "--quiet  : exit non-zero for improperly formatted checksum lines\n");
+    DISPLAY( "--warn   : warn about improperly formatted checksum lines\n");
+    return 0;
+}
 
 static int badusage(const char* exename)
 {
@@ -612,78 +1123,116 @@ static int badusage(const char* exename)
 }
 
 
-int main(int argc, char** argv)
+int main(int argc, const char** argv)
 {
     int i, filenamesStart=0;
-    const char* input_filename = (char*)stdinName;
-    const char* exename = argv[0];
+    const char* const exename = argv[0];
     U32 benchmarkMode = 0;
+    U32 fileCheckMode = 0;
+    U32 strictMode    = 0;
+    U32 statusOnly    = 0;
+    U32 warn          = 0;
+    U32 quiet         = 0;
+    algoType algo = g_defaultAlgo;
+    endianess displayEndianess = big_endian;
 
-    // xxh32sum default to 32 bits checksum
-    if (strstr(exename, "xxh32sum")!=NULL) g_fn_selection=0;
+    /* special case : xxh32sum default to 32 bits checksum */
+    if (strstr(exename, "xxh32sum") != NULL) algo = algo_xxh32;
 
-    for(i=1; i<argc; i++)
-    {
-        char* argument = argv[i];
+    for(i=1; i<argc; i++) {
+        const char* argument = argv[i];
 
-        if(!argument) continue;   // Protection if argument empty
+        if(!argument) continue;   /* Protection, if argument empty */
 
-        if (*argument!='-')
-        {
-            input_filename=argument;
-            if (filenamesStart==0) filenamesStart=i;
+        if (!strcmp(argument, "--little-endian")) { displayEndianess = little_endian; continue; }
+        if (!strcmp(argument, "--check")) { fileCheckMode = 1; continue; }
+        if (!strcmp(argument, "--strict")) { strictMode = 1; continue; }
+        if (!strcmp(argument, "--status")) { statusOnly = 1; continue; }
+        if (!strcmp(argument, "--quiet")) { quiet = 1; continue; }
+        if (!strcmp(argument, "--warn")) { warn = 1; continue; }
+        if (!strcmp(argument, "--help")) { return usage_advanced(exename); }
+        if (!strcmp(argument, "--version")) { DISPLAY(WELCOME_MESSAGE(exename)); return 0; }
+
+        if (*argument!='-') {
+            if (filenamesStart==0) filenamesStart=i;   /* only supports a continuous list of filenames */
             continue;
         }
 
-        // Select command
-        // note : *argument=='-'
-        argument++;
+        /* command selection */
+        argument++;   /* note : *argument=='-' */
 
-        while (*argument!=0)
-        {
+        while (*argument!=0) {
             switch(*argument)
             {
-            // Display help on usage
-            case 'h':
-                return usage(exename);
+            /* Display version */
+            case 'V':
+                DISPLAY(WELCOME_MESSAGE(exename)); return 0;
 
-            // select hash algorithm
+            /* Display help on usage */
+            case 'h':
+                return usage_advanced(exename);
+
+            /* select hash algorithm */
             case 'H':
-                g_fn_selection = argument[1] - '0';
+                algo = (algoType)(argument[1] - '0');
                 argument+=2;
                 break;
 
-            // Trigger benchmark mode
+            /* File check mode */
+            case 'c':
+                fileCheckMode=1;
+                argument++;
+                break;
+
+            /* Warning mode (file check mode only, alias of "--warning") */
+            case 'w':
+                warn=1;
+                argument++;
+                break;
+
+            /* Trigger benchmark mode */
             case 'b':
                 argument++;
                 benchmarkMode=1;
                 break;
 
-            // Modify Nb Iterations (benchmark only)
+            /* Modify Nb Iterations (benchmark only) */
             case 'i':
                 g_nbIterations = argument[1] - '0';
                 argument+=2;
+                break;
+
+            /* Modify Block size (benchmark only) */
+            case 'B':
+                argument++;
+                g_sampleSize = 0;
+                while (argument[0]>='0' && argument[0]<='9')
+                    g_sampleSize *= 10, g_sampleSize += argument[0]-'0', argument++;
                 break;
 
             default:
                 return badusage(exename);
             }
         }
-    }
+    }   /* for(i=1; i<argc; i++) */
 
-    // Check if input is defined as console; trigger an error in this case
-    if ((input_filename == stdinName) && IS_CONSOLE(stdin) ) return badusage(exename);
-
-    // Check results are good
-    if (benchmarkMode)
-    {
-        if (filenamesStart==0) return badusage(exename);
-        DISPLAY( WELCOME_MESSAGE );
+    /* Check benchmark mode */
+    if (benchmarkMode) {
+        DISPLAY( WELCOME_MESSAGE(exename) );
         BMK_sanityCheck();
-        return BMK_benchFile(argv+filenamesStart, argc-filenamesStart);
+        if (filenamesStart==0) return BMK_benchInternal();
+        return BMK_benchFiles(argv+filenamesStart, argc-filenamesStart);
     }
 
-    if(g_fn_selection < 0 || g_fn_selection > 1) return badusage(exename);
+    /* Check if input is defined as console; trigger an error in this case */
+    if ( (filenamesStart==0) && IS_CONSOLE(stdin) ) return badusage(exename);
 
-    return BMK_hash(input_filename, g_fn_selection);
+    if (filenamesStart==0) filenamesStart = argc;
+    if (fileCheckMode) {
+        return checkFiles(argv+filenamesStart, argc-filenamesStart, displayEndianess, strictMode, statusOnly, warn, quiet);
+    } else {
+        return BMK_hashFiles(argv+filenamesStart, argc-filenamesStart, algo, displayEndianess);
+    }
 }
+
+#endif /* XXHASH_C_2097394837 */

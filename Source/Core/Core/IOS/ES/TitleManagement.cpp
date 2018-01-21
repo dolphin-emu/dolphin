@@ -60,7 +60,7 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vect
       WARN_LOG(IOS_ES, "Device ID mismatch: ticket %08x, device %08x", ticket_device_id, device_id);
       return ES_DEVICE_ID_MISMATCH;
     }
-    const ReturnCode ret = static_cast<ReturnCode>(ticket.Unpersonalise());
+    const ReturnCode ret = ticket.Unpersonalise(m_ios.GetIOSC());
     if (ret < 0)
     {
       ERROR_LOG(IOS_ES, "ImportTicket: Failed to unpersonalise ticket for %016" PRIx64 " (%d)",
@@ -294,9 +294,9 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   u8 iv[16] = {0};
   iv[0] = (content_info.index >> 8) & 0xFF;
   iv[1] = content_info.index & 0xFF;
-  std::vector<u8> decrypted_data = Common::AES::Decrypt(ticket.GetTitleKey().data(), iv,
-                                                        context.title_import.content_buffer.data(),
-                                                        context.title_import.content_buffer.size());
+  std::vector<u8> decrypted_data = Common::AES::Decrypt(
+      ticket.GetTitleKey(m_ios.GetIOSC()).data(), iv, context.title_import.content_buffer.data(),
+      context.title_import.content_buffer.size());
   if (!CheckIfContentHashMatches(decrypted_data, content_info))
   {
     ERROR_LOG(IOS_ES, "ImportContentEnd: Hash for content %08x doesn't match", content_info.id);
@@ -570,7 +570,7 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   if (ticket.GetTitleId() != context.title_export.tmd.GetTitleId())
     return ES_EINVAL;
 
-  context.title_export.title_key = ticket.GetTitleKey();
+  context.title_export.title_key = ticket.GetTitleKey(m_ios.GetIOSC());
 
   const std::vector<u8>& raw_tmd = context.title_export.tmd.GetBytes();
   if (tmd_size != raw_tmd.size())
