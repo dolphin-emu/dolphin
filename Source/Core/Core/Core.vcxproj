@@ -575,11 +575,11 @@
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\cubeb\msvc\cubeb.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)cubeb\msvc\cubeb.vcxproj">
       <Project>{8ea11166-6512-44fc-b7a5-a4d1ecc81170}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
-      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
+      <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
