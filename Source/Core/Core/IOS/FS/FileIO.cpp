@@ -16,6 +16,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
 
@@ -40,7 +41,7 @@ void CreateVirtualFATFilesystem()
 {
   const int cdbSize = 0x01400000;
   const std::string cdbPath =
-      Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "cdb.vff";
   if ((int)File::GetSize(cdbPath) < cdbSize)
   {
     // cdb.vff is a virtual Fat filesystem created on first launch of sysmenu

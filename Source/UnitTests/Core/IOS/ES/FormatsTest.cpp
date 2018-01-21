@@ -6,14 +6,14 @@
 
 #include <vector>
 
+#include "Core/CommonTitles.h"
 #include "Core/IOS/ES/Formats.h"
 #include "TestBinaryData.h"
 
 TEST(ESFormats, TitleType)
 {
-  const u64 system_menu_title_id = 0x0000000100000002;
-  EXPECT_TRUE(IOS::ES::IsTitleType(system_menu_title_id, IOS::ES::TitleType::System));
-  EXPECT_FALSE(IOS::ES::IsDiscTitle(system_menu_title_id));
+  EXPECT_TRUE(IOS::ES::IsTitleType(Titles::SYSTEM_MENU, IOS::ES::TitleType::System));
+  EXPECT_FALSE(IOS::ES::IsDiscTitle(Titles::SYSTEM_MENU));
 
   const u64 ios59_title_id = 0x000000010000003b;
   EXPECT_TRUE(IOS::ES::IsTitleType(ios59_title_id, IOS::ES::TitleType::System));
