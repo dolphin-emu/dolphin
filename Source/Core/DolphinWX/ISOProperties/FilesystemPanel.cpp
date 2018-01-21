@@ -402,9 +402,9 @@ void FilesystemPanel::ExtractSingleDirectory(const wxString& output_folder)
   }
 }
 
-void ExtractDir(const std::string& full_path, const std::string& output_folder,
-                const DiscIO::FileSystem& file_system, const DiscIO::FileInfo& directory,
-                const std::function<bool(const std::string& path)>& update_progress)
+static void ExtractDir(const std::string& full_path, const std::string& output_folder,
+                       const DiscIO::FileSystem& file_system, const DiscIO::FileInfo& directory,
+                       const std::function<bool(const std::string& path)>& update_progress)
 {
   for (const DiscIO::FileInfo& file_info : directory)
   {

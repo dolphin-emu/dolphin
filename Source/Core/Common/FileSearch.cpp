@@ -45,8 +45,9 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
   return result;
 }
 
-std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>& directories,
-                                           const std::vector<std::string>& exts, bool recursive)
+static std::vector<std::string> DoFileSearchNoSTL(const std::vector<std::string>& directories,
+                                                  const std::vector<std::string>& exts,
+                                                  bool recursive)
 {
   bool accept_all = exts.empty();
   return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
