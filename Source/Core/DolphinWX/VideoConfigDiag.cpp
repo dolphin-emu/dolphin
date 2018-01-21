@@ -411,6 +411,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                 wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
+  vconfig.Refresh();
+
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
   wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);

@@ -94,8 +94,8 @@ void ARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
   std::vector<std::string> encrypted_lines;
 
   // Split the entered cheat into lines.
-  std::vector<std::string> input_lines;
-  SplitString(WxStrToStr(m_cheat_codes->GetValue()), '\n', input_lines);
+  const std::vector<std::string> input_lines =
+      SplitString(WxStrToStr(m_cheat_codes->GetValue()), '\n');
 
   for (size_t i = 0; i < input_lines.size(); i++)
   {
@@ -106,8 +106,7 @@ void ARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
       continue;
 
     // Let's parse the current line.  Is it in encrypted or decrypted form?
-    std::vector<std::string> pieces;
-    SplitString(line_str, ' ', pieces);
+    std::vector<std::string> pieces = SplitString(line_str, ' ');
 
     if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
     {
@@ -120,7 +119,7 @@ void ARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
     }
     else if (pieces.size() == 1)
     {
-      SplitString(line_str, '-', pieces);
+      pieces = SplitString(line_str, '-');
 
       if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 &&
           pieces[2].size() == 5)

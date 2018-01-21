@@ -746,7 +746,6 @@ void CFrame::DoLoadPerspective()
 void CFrame::LoadIniPerspectives()
 {
   m_perspectives.clear();
-  std::vector<std::string> VPerspectives;
   std::string _Perspectives;
 
   IniFile ini;
@@ -755,13 +754,11 @@ void CFrame::LoadIniPerspectives()
   IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
   perspectives->Get("Perspectives", &_Perspectives, "Perspective 1");
   perspectives->Get("Active", &m_active_perspective, 0);
-  SplitString(_Perspectives, ',', VPerspectives);
 
-  for (auto& VPerspective : VPerspectives)
+  for (auto& VPerspective : SplitString(_Perspectives, ','))
   {
     SPerspectives Tmp;
     std::string _Section, _Perspective, _Widths, _Heights;
-    std::vector<std::string> _SWidth, _SHeight;
     Tmp.name = VPerspective;
 
     // Don't save a blank perspective
@@ -783,15 +780,13 @@ void CFrame::LoadIniPerspectives()
 
     Tmp.perspective = StrToWxStr(_Perspective);
 
-    SplitString(_Widths, ',', _SWidth);
-    SplitString(_Heights, ',', _SHeight);
-    for (auto& Width : _SWidth)
+    for (auto& Width : SplitString(_Widths, ','))
     {
       int _Tmp;
       if (TryParse(Width, &_Tmp))
         Tmp.width.push_back(_Tmp);
     }
-    for (auto& Height : _SHeight)
+    for (auto& Height : SplitString(_Heights, ','))
     {
       int _Tmp;
       if (TryParse(Height, &_Tmp))

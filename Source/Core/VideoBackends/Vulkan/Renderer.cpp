@@ -50,7 +50,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
                  swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
       m_swap_chain(std::move(swap_chain))
 {
-  g_Config.bRunning = true;
   UpdateActiveConfig();
 
   // Set to something invalid, forcing all states to be re-initialized.
@@ -60,7 +59,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
 
 Renderer::~Renderer()
 {
-  g_Config.bRunning = false;
   UpdateActiveConfig();
 
   // Ensure all frames are written to frame dump at shutdown.

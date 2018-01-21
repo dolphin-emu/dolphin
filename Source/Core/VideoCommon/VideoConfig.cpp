@@ -3,17 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cmath>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -41,8 +36,6 @@ void UpdateActiveConfig()
 
 VideoConfig::VideoConfig()
 {
-  bRunning = false;
-
   // Needed for the first frame, I think
   fAspectRatioHackW = 1;
   fAspectRatioHackH = 1;
@@ -401,14 +394,6 @@ void VideoConfig::Refresh()
   sGCRightTexture = Config::Get(Config::GLOBAL_VR_GC_RIGHT_TEXTURE);
 
   // LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
-
-  // Load common settings
-  IniFile iniFile;
-  iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
-  bool bTmp;
-  interface->Get("UsePanicHandlers", &bTmp, true);
-  SetEnableAlert(bTmp);
 
   VerifyValidity();
 }

@@ -71,8 +71,7 @@ void LoadHideObjectSection(const std::string& section, std::vector<HideObject>& 
           line[loc] = ':';
         }
 
-        std::vector<std::string> items;
-        SplitString(line, ':', items);
+        std::vector<std::string> items = SplitString(line, ':');
 
         if (items.size() >= 3)
         {

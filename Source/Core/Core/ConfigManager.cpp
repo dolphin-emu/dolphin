@@ -1045,10 +1045,8 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
   IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
   m_usb_passthrough_devices.clear();
   std::string devices_string;
-  std::vector<std::string> pairs;
   section->Get("Devices", &devices_string, "");
-  SplitString(devices_string, ',', pairs);
-  for (const auto& pair : pairs)
+  for (const auto& pair : SplitString(devices_string, ','))
   {
     const auto index = pair.find(':');
     if (index == std::string::npos)

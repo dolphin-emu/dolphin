@@ -721,7 +721,6 @@ Renderer::Renderer()
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
-  g_Config.bRunning = true;
 
   // The stencil is used for bounding box emulation when SSBOs are not available
   glDisable(GL_STENCIL_TEST);
@@ -816,7 +815,6 @@ void Renderer::Shutdown()
 
   g_framebuffer_manager.reset();
 
-  g_Config.bRunning = false;
   UpdateActiveConfig();
 
   s_raster_font.reset();
