@@ -173,8 +173,8 @@ void FrameUpdateOnCPUThread()
 // Formatted stop message
 std::string StopMessage(bool main_thread, const std::string& message)
 {
-  return StringFromFormat("Stop [%s %i]\t%s\t%s", main_thread ? "Main Thread" : "Video Thread",
-                          Common::CurrentThreadId(), Common::MemUsage().c_str(), message.c_str());
+  return StringFromFormat("Stop [%s %i]\t%s", main_thread ? "Main Thread" : "Video Thread",
+                          Common::CurrentThreadId(), message.c_str());
 }
 
 void DisplayMessage(const std::string& message, int time_in_ms)

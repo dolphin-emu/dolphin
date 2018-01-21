@@ -45,7 +45,7 @@
   <!--Compile files needed to MOC and output in the build directory-->
   <!--TODO find a way to autocreate from ClCompile settings-->
   <PropertyGroup>
-    <MocDefines>-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -D_SECURE_SCL=0 -D_ARCH_64=1 -D_M_X86_64=1 -DPSAPI_VERSION=1 -D_M_X86=1 -DUSE_UPNP -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -DUNICODE</MocDefines>
+    <MocDefines>-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII -DQT_DLL -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -D_SECURE_SCL=0 -D_ARCH_64=1 -D_M_X86_64=1 -D_M_X86=1 -DUSE_UPNP -D_CRT_SECURE_NO_WARNINGS -D_CRT_SECURE_NO_DEPRECATE -D_UNICODE -DUNICODE</MocDefines>
     <MocDefines Condition="'$(Configuration)'=='Release'">-DQT_NO_DEBUG -DNDEBUG $(MocDefines)</MocDefines>
     <!-- !!!HOLY UGLY BATMAN!!!
         Be very careful here when adding include directories. Each path must have the whole arg surrounded by doublequotes - HOWEVER,
