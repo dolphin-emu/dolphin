@@ -24,10 +24,8 @@ public slots:
 
 private:
   void MakeCategoryList();
-  void MakeUnfinishedWarning();
   void AddCategoryToList(const QString& title, const std::string& icon_name);
   void SetupSettingsWidget();
   QStackedWidget* m_settings_outer;
   QListWidget* m_categories;
-  QGroupBox* m_warning_group;
 };

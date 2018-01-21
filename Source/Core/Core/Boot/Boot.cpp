@@ -240,6 +240,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   constexpr u32 JAP_v1_0 = 0x6DAC1F2A;
   // https://bugs.dolphin-emu.org/issues/8936
   constexpr u32 JAP_v1_1 = 0xD235E3F9;
+  constexpr u32 JAP_v1_2 = 0x8BDABBD4;
   // Redump
   constexpr u32 PAL_v1_0 = 0x4F319F43;
   // https://forums.dolphin-emu.org/Thread-ipl-with-unknown-hash-dd8cab7c-problem-caused-by-my-pal-gamecube-bios?pid=435463#pid435463
@@ -266,6 +267,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
     break;
   case JAP_v1_0:
   case JAP_v1_1:
+  case JAP_v1_2:
     ipl_region = DiscIO::Region::NTSC_J;
     break;
   case PAL_v1_0:

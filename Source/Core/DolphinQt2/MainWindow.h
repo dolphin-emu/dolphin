@@ -69,6 +69,8 @@ private:
   void InitControllers();
   void ShutdownControllers();
 
+  void InitCoreCallbacks();
+
   void StartGame(const QString& path);
   void ShowRenderWidget();
   void HideRenderWidget();
