@@ -16,6 +16,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Core/IOS/Device.h"
 #include "Core/IOS/IOSC.h"
 #include "DiscIO/Enums.h"
 
@@ -140,23 +141,45 @@ struct Ticket
 static_assert(sizeof(Ticket) == 0x2A4, "Ticket has the wrong size");
 #pragma pack(pop)
 
+class SignedBlobReader
+{
+public:
+  SignedBlobReader() = default;
+  explicit SignedBlobReader(const std::vector<u8>& bytes);
+  explicit SignedBlobReader(std::vector<u8>&& bytes);
+
+  const std::vector<u8>& GetBytes() const;
+  void SetBytes(const std::vector<u8>& bytes);
+  void SetBytes(std::vector<u8>&& bytes);
+
+  // Only checks whether the signature data could be parsed. The signature is not verified.
+  bool IsSignatureValid() const;
+
+  SignatureType GetSignatureType() const;
+  std::vector<u8> GetSignatureData() const;
+  size_t GetSignatureSize() const;
+  // Returns the whole issuer chain.
+  // Example: Root-CA00000001 if the blob was signed by CA00000001, which is signed by the Root.
+  std::string GetIssuer() const;
+
+  void DoState(PointerWrap& p);
+
+protected:
+  std::vector<u8> m_bytes;
+};
+
 bool IsValidTMDSize(size_t size);
 
-class TMDReader final
+class TMDReader final : public SignedBlobReader
 {
 public:
   TMDReader() = default;
   explicit TMDReader(const std::vector<u8>& bytes);
   explicit TMDReader(std::vector<u8>&& bytes);
 
-  void SetBytes(const std::vector<u8>& bytes);
-  void SetBytes(std::vector<u8>&& bytes);
-
   bool IsValid() const;
 
-  // Returns the TMD or parts of it without any kind of parsing. Intended for use by ES.
-  const std::vector<u8>& GetRawTMD() const;
-  std::vector<u8> GetRawHeader() const;
+  // Returns parts of the TMD without any kind of parsing. Intended for use by ES.
   std::vector<u8> GetRawView() const;
 
   u16 GetBootIndex() const;
@@ -176,27 +199,17 @@ public:
   bool GetContent(u16 index, Content* content) const;
   std::vector<Content> GetContents() const;
   bool FindContentById(u32 id, Content* content) const;
-
-  void DoState(PointerWrap& p);
-
-private:
-  std::vector<u8> m_bytes;
 };
 
-class TicketReader final
+class TicketReader final : public SignedBlobReader
 {
 public:
   TicketReader() = default;
   explicit TicketReader(const std::vector<u8>& bytes);
   explicit TicketReader(std::vector<u8>&& bytes);
 
-  void SetBytes(const std::vector<u8>& bytes);
-  void SetBytes(std::vector<u8>&& bytes);
-
   bool IsValid() const;
-  void DoState(PointerWrap& p);
 
-  const std::vector<u8>& GetRawTicket() const;
   std::vector<u8> GetRawTicket(u64 ticket_id) const;
   size_t GetNumberOfTickets() const;
 
@@ -206,7 +219,6 @@ public:
   // more than just one ticket and generate ticket views for them, so we implement it too.
   std::vector<u8> GetRawTicketView(u32 ticket_num) const;
 
-  std::string GetIssuer() const;
   u32 GetDeviceId() const;
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;
@@ -217,9 +229,6 @@ public:
   // Decrypts the title key field for a "personalised" ticket -- one that is device-specific
   // and has a title key that must be decrypted first.
   s32 Unpersonalise();
-
-private:
-  std::vector<u8> m_bytes;
 };
 
 class SharedContentMap final
@@ -256,5 +265,26 @@ private:
   std::string m_file_path;
   std::map<u32, u64> m_entries;
 };
+
+class CertReader final : public SignedBlobReader
+{
+public:
+  explicit CertReader(std::vector<u8>&& bytes);
+
+  bool IsValid() const;
+
+  u32 GetId() const;
+  // Returns the certificate name. Examples: XS00000003, CA00000001
+  std::string GetName() const;
+  PublicKeyType GetPublicKeyType() const;
+  // Returns the public key bytes + any other data associated with it.
+  // For RSA public keys, this includes 4 bytes for the exponent at the end.
+  std::vector<u8> GetPublicKey() const;
+
+private:
+  bool m_is_valid = false;
+};
+
+std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain);
 }  // namespace ES
 }  // namespace IOS

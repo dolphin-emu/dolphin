@@ -21,11 +21,13 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -45,8 +47,11 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+
 #include "DiscIO/Enums.h"
+
 #include "InputCommon/GCPadStatus.h"
+
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"

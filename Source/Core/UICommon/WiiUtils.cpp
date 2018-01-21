@@ -27,8 +27,8 @@ bool InstallWAD(const std::string& wad_path)
   const auto es = ios.GetES();
 
   IOS::HLE::Device::ES::Context context;
-  if (es->ImportTicket(wad.GetTicket().GetRawTicket()) < 0 ||
-      es->ImportTitleInit(context, tmd.GetRawTMD()) < 0)
+  if (es->ImportTicket(wad.GetTicket().GetBytes()) < 0 ||
+      es->ImportTitleInit(context, tmd.GetBytes()) < 0)
   {
     PanicAlertT("WAD installation failed: Could not initialise title import.");
     return false;

@@ -22,6 +22,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MemoryUtil.h"

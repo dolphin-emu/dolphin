@@ -14,6 +14,7 @@
 
 #include "Common/Align.h"
 #include "Common/Crypto/AES.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
@@ -36,11 +37,12 @@ static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
   const std::string ticket_path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
   File::CreateFullPath(ticket_path);
 
+
   File::IOFile ticket_file(ticket_path, "wb");
   if (!ticket_file)
     return ES_EIO;
 
-  const std::vector<u8>& raw_ticket = ticket.GetRawTicket();
+  const std::vector<u8>& raw_ticket = ticket.GetBytes();
   return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size()) ? IPC_SUCCESS : ES_EIO;
 }
 
@@ -394,7 +396,7 @@ ReturnCode ES::DeleteTicket(const u8* ticket_view)
   const u64 ticket_id = Common::swap64(ticket_view + offsetof(IOS::ES::TicketView, ticket_id));
   ticket.DeleteTicket(ticket_id);
 
-  const std::vector<u8>& new_ticket = ticket.GetRawTicket();
+  const std::vector<u8>& new_ticket = ticket.GetBytes();
   const std::string ticket_path = Common::GetTicketFileName(title_id, Common::FROM_SESSION_ROOT);
   {
     File::IOFile ticket_file(ticket_path, "wb");
@@ -505,7 +507,7 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
 
   context.title_export.title_key = ticket.GetTitleKey();
 
-  const auto& raw_tmd = context.title_export.tmd.GetRawTMD();
+  const std::vector<u8>& raw_tmd = context.title_export.tmd.GetBytes();
   if (tmd_size != raw_tmd.size())
     return ES_EINVAL;
 

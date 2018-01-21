@@ -376,7 +376,7 @@ IPCCommandResult ES::DIGetTMDSize(const IOCtlVRequest& request)
   if (!GetTitleContext().active)
     return GetDefaultReply(ES_EINVAL);
 
-  Memory::Write_U32(static_cast<u32>(GetTitleContext().tmd.GetRawTMD().size()),
+  Memory::Write_U32(static_cast<u32>(GetTitleContext().tmd.GetBytes().size()),
                     request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -393,7 +393,7 @@ IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
   if (!GetTitleContext().active)
     return GetDefaultReply(ES_EINVAL);
 
-  const std::vector<u8>& tmd_bytes = GetTitleContext().tmd.GetRawTMD();
+  const std::vector<u8>& tmd_bytes = GetTitleContext().tmd.GetBytes();
 
   if (static_cast<u32>(tmd_bytes.size()) > tmd_size)
     return GetDefaultReply(ES_EINVAL);

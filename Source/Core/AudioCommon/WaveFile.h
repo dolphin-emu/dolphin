@@ -16,8 +16,9 @@
 
 #include <array>
 #include <string>
+
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Common/NonCopyable.h"
 
 class WaveFileWriter : NonCopyable

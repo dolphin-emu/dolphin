@@ -65,6 +65,7 @@
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="FifoQueue.h" />
+    <ClInclude Include="File.h" />
     <ClInclude Include="FileSearch.h" />
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
@@ -168,6 +169,7 @@
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Config\Section.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
+    <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />

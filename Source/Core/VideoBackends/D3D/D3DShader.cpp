@@ -56,7 +56,7 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
     std::string filename = StringFromFormat("%sbad_vs_%04i.txt",
                                             File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
     std::ofstream file;
-    OpenFStream(file, filename, std::ios_base::out);
+    File::OpenFStream(file, filename, std::ios_base::out);
     file << code;
     file.close();
 
@@ -117,7 +117,7 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob,
     std::string filename = StringFromFormat("%sbad_gs_%04i.txt",
                                             File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
     std::ofstream file;
-    OpenFStream(file, filename, std::ios_base::out);
+    File::OpenFStream(file, filename, std::ios_base::out);
     file << code;
     file.close();
 
@@ -174,7 +174,7 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
     std::string filename = StringFromFormat("%sbad_ps_%04i.txt",
                                             File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
     std::ofstream file;
-    OpenFStream(file, filename, std::ios_base::out);
+    File::OpenFStream(file, filename, std::ios_base::out);
     file << code;
     file.close();
 

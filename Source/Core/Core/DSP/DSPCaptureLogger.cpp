@@ -7,7 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Common/PcapFile.h"
 
 #include "Core/DSP/DSPCaptureLogger.h"

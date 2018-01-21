@@ -17,6 +17,7 @@
 #include <vector>
 #include <xxhash.h>
 
+#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"

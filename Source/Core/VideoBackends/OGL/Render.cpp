@@ -17,7 +17,6 @@
 
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"

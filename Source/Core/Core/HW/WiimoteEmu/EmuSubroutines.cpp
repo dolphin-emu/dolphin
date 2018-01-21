@@ -277,8 +277,8 @@ u8 Wiimote::WriteData(const wm_write_data* const wd)
     {
       // TODO Only write parts of the Mii block
       std::ofstream file;
-      OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
-                  std::ios::binary | std::ios::out);
+      File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
+                        std::ios::binary | std::ios::out);
       file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
       file.close();
     }

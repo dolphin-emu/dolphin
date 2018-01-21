@@ -174,7 +174,7 @@ LogContainer::LogContainer(const std::string& shortName, const std::string& full
 
 FileLogListener::FileLogListener(const std::string& filename)
 {
-  OpenFStream(m_logfile, filename, std::ios::app);
+  File::OpenFStream(m_logfile, filename, std::ios::app);
   SetEnable(true);
 }
 

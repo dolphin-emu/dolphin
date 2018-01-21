@@ -3,13 +3,15 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/HiresTextures.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <functional>
+
 #include "Common/Align.h"
-#include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"
 

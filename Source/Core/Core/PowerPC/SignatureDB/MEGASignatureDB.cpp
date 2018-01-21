@@ -128,7 +128,7 @@ void MEGASignatureDB::Clear()
 bool MEGASignatureDB::Load(const std::string& file_path)
 {
   std::ifstream ifs;
-  OpenFStream(ifs, file_path, std::ios_base::in);
+  File::OpenFStream(ifs, file_path, std::ios_base::in);
 
   if (!ifs)
     return false;
