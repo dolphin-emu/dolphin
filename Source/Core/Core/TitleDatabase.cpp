@@ -49,6 +49,7 @@ static std::string GetLanguageCode(DiscIO::Language language)
 
 using Map = std::unordered_map<std::string, std::string>;
 
+// Note that this function will not overwrite entries that already are in the maps
 static bool LoadMap(const std::string& file_path, Map& map,
                     std::function<bool(const std::string& game_id)> predicate)
 {
@@ -69,14 +70,15 @@ static bool LoadMap(const std::string& file_path, Map& map,
     {
       const std::string game_id = StripSpaces(line.substr(0, equals_index));
       if (game_id.length() >= 4 && predicate(game_id))
-        map[game_id] = StripSpaces(line.substr(equals_index + 1));
+        map.emplace(game_id, StripSpaces(line.substr(equals_index + 1)));
     }
   }
   return true;
 }
 
-// This should only be used with the standard game ID format (used by WiiTDBs), not Dolphin's.
-// The main difference is that Dolphin uses 6 characters for non-disc titles (instead of 4).
+// This should only be used with the common game ID format (used by WiiTDBs), not Dolphin's.
+// Otherwise, TurboGrafx-16 VC games (with the system ID P) will be misdetected as GameCube titles.
+// The formats differ in that Dolphin's uses 6 characters for non-disc titles instead of 4.
 static bool IsGCTitle(const std::string& game_id)
 {
   const char system_id = game_id[0];
@@ -100,6 +102,7 @@ static bool IsNonJapaneseGCTitle(const std::string& game_id)
   return IsGCTitle(game_id) && DiscIO::RegionSwitchGC(game_id[3]) != DiscIO::Region::NTSC_J;
 }
 
+// Note that this function will not overwrite entries that already are in the maps
 static bool LoadMap(const std::string& file_path, Map& gc_map, Map& wii_map)
 {
   Map map;
@@ -116,17 +119,10 @@ static bool LoadMap(const std::string& file_path, Map& gc_map, Map& wii_map)
 
 TitleDatabase::TitleDatabase()
 {
-  // Titles that cannot be part of the Wii TDB,
-  // but common enough to justify having entries for them.
-
-  // i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
-  // which is (usually) the first thing users see when a Wii console starts.
-  m_wii_title_map.emplace("0000000100000002", GetStringT("Wii Menu"));
-  for (const auto& id : {"HAXX", "JODI", "00010001af1bf516", "LULZ", "OHBC"})
-    m_wii_title_map.emplace(id, "The Homebrew Channel");
-
-  // Load the English database as the base database.
-  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
+  // Load the user databases.
+  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
+  if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
+    LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
 
   // Load the database in the console language.
   // Note: The GameCube language setting can't be set to Japanese,
@@ -142,10 +138,17 @@ TitleDatabase::TitleDatabase()
   if (wii_code != "en")
     LoadMap(File::GetSysDirectory() + "wiitdb-" + wii_code + ".txt", m_wii_title_map, IsWiiTitle);
 
-  // Load the user databases.
-  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
-  if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
-    LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
+  // Load the English database as the base database.
+  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
+
+  // Titles that cannot be part of the Wii TDB,
+  // but common enough to justify having entries for them.
+
+  // i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
+  // which is (usually) the first thing users see when a Wii console starts.
+  m_wii_title_map.emplace("0000000100000002", GetStringT("Wii Menu"));
+  for (const auto& id : {"HAXX", "JODI", "00010001af1bf516", "LULZ", "OHBC"})
+    m_wii_title_map.emplace(id, "The Homebrew Channel");
 }
 
 TitleDatabase::~TitleDatabase() = default;
