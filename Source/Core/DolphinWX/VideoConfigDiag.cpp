@@ -32,6 +32,7 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "UICommon/VideoUtils.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -341,6 +342,7 @@ static wxString gpu_texture_decoding_desc =
                 "performance gains in some scenarios, or on systems where the CPU is the "
                 "bottleneck.\n\nIf unsure, leave this unchecked.");
 
+#if 0
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
 // No, now it depends on VR to know which display to check, so don't move it to Common.
@@ -403,6 +405,7 @@ static wxArrayString GetListOfResolutions()
 #endif
   return retlist;
 }
+#endif
 #endif
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
@@ -472,7 +475,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
 #if !defined(__APPLE__)
         // display resolution
         {
-          wxArrayString res_list = GetListOfResolutions();
+          wxArrayString res_list;
+          res_list.Add(_("Auto"));
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+          const auto resolutions = VideoUtils::GetAvailableResolutions(main_frame->m_xrr_config);
+#else
+          const auto resolutions = VideoUtils::GetAvailableResolutions(nullptr);
+#endif
+
+          for (const auto& res : resolutions)
+            res_list.Add(res);
+
           if (res_list.empty())
             res_list.Add(_("<No resolutions found>"));
           label_display_resolution =

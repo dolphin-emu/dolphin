@@ -52,6 +52,7 @@
     <ClCompile Include="USBUtils.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="VideoUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandLineParse.h" />

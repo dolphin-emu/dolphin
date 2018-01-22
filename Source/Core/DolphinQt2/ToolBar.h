@@ -30,6 +30,7 @@ signals:
 
   void SettingsPressed();
   void ControllersPressed();
+  void GraphicsPressed();
 
 private:
   void MakeActions();
@@ -43,4 +44,5 @@ private:
   QAction* m_screenshot_action;
   QAction* m_config_action;
   QAction* m_controllers_action;
+  QAction* m_graphics_action;
 };
