@@ -447,6 +447,11 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.Windowed =
       !SConfig::GetInstance().bFullscreen || g_ActiveConfig.bBorderlessFullscreen;
 
+  // By creating a stereo swapchain early we can toggle Quad-Buffered stereoscopy
+  // while the game is running.
+  // swap_chain_desc.Stereo =
+  //    g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER || factory->IsWindowedStereoEnabled();
+
   out_desc = {};
   output->GetDesc(&out_desc);
 
@@ -746,8 +751,12 @@ void EndFrame()
 
 void Present()
 {
+  UINT present_flags = 0;
+  // if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.iStereoMode != STEREO_QUADBUFFER)
+  //  present_flags = DXGI_PRESENT_STEREO_TEMPORARY_MONO;
+
   // TODO: Is 1 the correct value for vsyncing?
-  swapchain->Present((UINT)g_ActiveConfig.IsVSync(), 0);
+  swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);
 }
 
 HRESULT SetFullscreenState(bool enable_fullscreen)
