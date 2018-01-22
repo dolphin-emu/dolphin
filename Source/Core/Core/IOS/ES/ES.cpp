@@ -339,34 +339,11 @@ void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
   p.Do(s_content_file);
-  p.Do(m_AccessIdentID);
+  p.Do(m_content_table);
   s_title_context.DoState(p);
 
   for (auto& context : m_contexts)
     context.DoState(p);
-
-  u32 Count = (u32)(m_ContentAccessMap.size());
-  p.Do(Count);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    for (u32 i = 0; i < Count; i++)
-    {
-      u32 cfd = 0;
-      OpenedContent content;
-      p.Do(cfd);
-      p.Do(content);
-      cfd = OpenTitleContent(cfd, content.m_title_id, content.m_content.index);
-    }
-  }
-  else
-  {
-    for (const auto& pair : m_ContentAccessMap)
-    {
-      p.Do(pair.first);
-      p.Do(pair.second);
-    }
-  }
 }
 
 ES::ContextArray::iterator ES::FindActiveContext(s32 fd)
@@ -403,10 +380,6 @@ ReturnCode ES::Close(u32 fd)
   context->active = false;
   context->ipc_fd = -1;
 
-  // FIXME: IOS doesn't clear the content access map here.
-  m_ContentAccessMap.clear();
-  m_AccessIdentID = 0;
-
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
   // clear the NAND content cache to make sure nothing remains open.
@@ -441,16 +414,18 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return ImportTitleCancel(*context, request);
   case IOCTL_ES_GETDEVICEID:
     return GetDeviceId(request);
-  case IOCTL_ES_OPENTITLECONTENT:
-    return OpenTitleContent(context->uid, request);
+
   case IOCTL_ES_OPENCONTENT:
     return OpenContent(context->uid, request);
+  case IOCTL_ES_OPEN_ACTIVE_TITLE_CONTENT:
+    return OpenActiveTitleContent(context->uid, request);
   case IOCTL_ES_READCONTENT:
     return ReadContent(context->uid, request);
   case IOCTL_ES_CLOSECONTENT:
     return CloseContent(context->uid, request);
   case IOCTL_ES_SEEKCONTENT:
     return SeekContent(context->uid, request);
+
   case IOCTL_ES_GETTITLEDIR:
     return GetTitleDirectory(request);
   case IOCTL_ES_GETTITLEID:

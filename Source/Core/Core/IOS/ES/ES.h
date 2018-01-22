@@ -57,9 +57,11 @@ public:
 
   struct OpenedContent
   {
-    u64 m_title_id;
+    bool m_opened = false;
+    u64 m_title_id = 0;
     IOS::ES::Content m_content;
-    u32 m_position;
+    u32 m_position = 0;
+    u32 m_uid = 0;
   };
 
   struct TitleImportContext
@@ -152,7 +154,7 @@ private:
     IOCTL_ES_ADDTITLEFINISH = 0x06,
     IOCTL_ES_GETDEVICEID = 0x07,
     IOCTL_ES_LAUNCH = 0x08,
-    IOCTL_ES_OPENCONTENT = 0x09,
+    IOCTL_ES_OPEN_ACTIVE_TITLE_CONTENT = 0x09,
     IOCTL_ES_READCONTENT = 0x0A,
     IOCTL_ES_CLOSECONTENT = 0x0B,
     IOCTL_ES_GETOWNEDTITLECNT = 0x0C,
@@ -179,7 +181,7 @@ private:
     IOCTL_ES_SETUID = 0x21,
     IOCTL_ES_DELETETITLECONTENT = 0x22,
     IOCTL_ES_SEEKCONTENT = 0x23,
-    IOCTL_ES_OPENTITLECONTENT = 0x24,
+    IOCTL_ES_OPENCONTENT = 0x24,
     IOCTL_ES_LAUNCHBC = 0x25,
     IOCTL_ES_EXPORTTITLEINIT = 0x26,
     IOCTL_ES_EXPORTCONTENTBEGIN = 0x27,
@@ -258,7 +260,7 @@ private:
   IPCCommandResult DeleteStreamKey(const IOCtlVRequest& request);
 
   // Title contents
-  IPCCommandResult OpenTitleContent(u32 uid, const IOCtlVRequest& request);
+  IPCCommandResult OpenActiveTitleContent(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult OpenContent(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult ReadContent(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult CloseContent(u32 uid, const IOCtlVRequest& request);
@@ -340,12 +342,10 @@ private:
 
   static const DiscIO::NANDContentLoader& AccessContentDevice(u64 title_id);
 
-  u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
+  s32 OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid);
 
-  using ContentAccessMap = std::map<u32, OpenedContent>;
-  ContentAccessMap m_ContentAccessMap;
-
-  u32 m_AccessIdentID = 0;
+  using ContentTable = std::array<OpenedContent, 16>;
+  ContentTable m_content_table;
 
   ContextArray m_contexts;
 };
