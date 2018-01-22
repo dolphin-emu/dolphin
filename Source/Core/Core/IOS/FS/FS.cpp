@@ -613,13 +613,31 @@ IPCCommandResult FS::GetUsage(const IOCtlVRequest& request)
   INFO_LOG(IOS_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
   if (File::IsDirectory(path))
   {
-    File::FSTEntry parentDir = File::ScanDirectoryTree(path, true);
-    // add one for the folder itself
-    iNodes = 1 + (u32)parentDir.size;
+    // Carl: Set this to true for infinite NAND storage space, or false for more accurate emulation
+    bool fs_hack = true;
+    // LPFaint99: After I found that setting the number of inodes to the number of children + 1
+    // for the directory itself
+    // I decided to compare with sneek which has the following 2 special cases which are
+    // Copyright (C) 2009-2011  crediar https://code.google.com/archive/p/sneek/
+    if (fs_hack && ((relativepath.compare(0, 16, "/title/00010001") == 0) ||
+                    (relativepath.compare(0, 16, "/title/00010005") == 0)))
+    {
+      fsBlocks = 23;  // size is size/0x4000
+      iNodes = 42;    // empty folders return a FileCount of 1
+    }
+    else
+    {
+      File::FSTEntry parentDir = File::ScanDirectoryTree(path, true);
+      // add one for the folder itself
+      iNodes = 1 + (u32)parentDir.size;
 
-    u64 totalSize = ComputeTotalFileSize(parentDir);  // "Real" size, to be converted to nand blocks
+      u64 totalSize =
+          ComputeTotalFileSize(parentDir);  // "Real" size, to be converted to nand blocks
 
-    fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
+      // Carl: Is this correct? Shouldn't we round up so data less than one block takes the whole
+      // block?
+      fsBlocks = (u32)(totalSize / (16 * 1024));  // one block is 16kb
+    }
 
     INFO_LOG(IOS_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
   }
