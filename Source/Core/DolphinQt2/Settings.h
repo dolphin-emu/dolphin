@@ -62,6 +62,7 @@ signals:
   void PathRemoved(const QString&);
   void HideCursorChanged();
   void VolumeChanged(int volume);
+  void NANDRefresh();
 
 public:
   Settings();

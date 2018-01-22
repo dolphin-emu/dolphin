@@ -18,6 +18,7 @@
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
@@ -154,10 +155,24 @@ void GameList::ShowContextMenu(const QPoint&)
   }
   if (platform == DiscIO::Platform::WII_WAD)
   {
-    menu->addAction(tr("Install to the NAND"), this, SLOT(InstallWAD()));
+    QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
+    QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
 
-    if (GameFile(game).IsInstalled())
-      menu->addAction(tr("Uninstall from the NAND"), this, SLOT(UninstallWAD()));
+    connect(wad_install_action, &QAction::triggered, this, &GameList::InstallWAD);
+    connect(wad_uninstall_action, &QAction::triggered, this, &GameList::UninstallWAD);
+
+    for (QAction* a : {wad_install_action, wad_uninstall_action})
+    {
+      connect(this, &GameList::EmulationStarted, a, [a] { a->setEnabled(false); });
+      a->setEnabled(!Core::IsRunning());
+      menu->addAction(a);
+    }
+
+    connect(this, &GameList::EmulationStopped, wad_install_action,
+            [wad_install_action] { wad_install_action->setEnabled(true); });
+    connect(this, &GameList::EmulationStopped, wad_uninstall_action, [wad_uninstall_action, game] {
+      wad_uninstall_action->setEnabled(GameFile(game).IsInstalled());
+    });
 
     menu->addSeparator();
   }

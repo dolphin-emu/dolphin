@@ -59,16 +59,15 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
   icon->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   QString body_text = tr(
-      "<p>DolphinQt is a new experimental GUI that is eventually intended to replace "
-      "the current GUI based on wxWidgets. The implementation is <b>very "
-      "incomplete</b>, even basic functionality like changing settings and "
-      "attaching gamepads may be missing or not work at all.</p>\n"
-      "<p>Only developers working on the DolphinQt implementation should use it at "
+      "<p>DolphinQt is a new experimental GUI that is intended to replace "
+      "the current GUI based on wxWidgets. The implementation is <b>currently "
+      "incomplete</b> so some functionality (like changing certain settings) may be missing.</p>\n"
+      "<p>Only developers working on the DolphinQt implementation and curious testers should use "
+      "it at "
       "the present time; normal users are recommended to continue using the "
       "older DolphinWX GUI for the time being.</p>\n"
-      "<p><big><b>Bug Reports:</b></big> At the current time there is no point making bug reports "
-      "about the DolphinQt GUI as the list of what is broken is much longer "
-      "than the list of things that work.</p>\n");
+      "<h3>Bug Reports</h3><p>At the current time there is no point making bug reports "
+      "about DolphinQt GUI's missing features as the developers are already aware of those.</p>\n");
   body->setText(body_text);
   body->setWordWrap(true);
   body->setForegroundRole(QPalette::Text);

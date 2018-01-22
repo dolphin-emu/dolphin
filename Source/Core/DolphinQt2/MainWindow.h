@@ -56,6 +56,7 @@ private slots:
   void StateSaveUndo();
   void StateSaveOldest();
   void SetStateSlot(int slot);
+  void BootWiiSystemMenu();
 
   void PerformOnlineUpdate(const std::string& region);
 
