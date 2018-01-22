@@ -282,6 +282,7 @@ struct SConfig : NonCopyable
   bool m_InterfaceLogConfigWindow;
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
+  bool m_show_development_warning;
 
   bool m_ListDrives;
   bool m_ListWad;

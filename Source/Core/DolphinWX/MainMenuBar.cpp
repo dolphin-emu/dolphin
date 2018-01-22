@@ -253,7 +253,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   online_update_menu->AppendSeparator();
   online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_EUR, _("Europe"));
   online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_JPN, _("Japan"));
-  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_KOR, _("Korean"));
+  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_KOR, _("Korea"));
   online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_USA, _("United States"));
   tools_menu->AppendSubMenu(
       online_update_menu, _("Perform Online System Update"),

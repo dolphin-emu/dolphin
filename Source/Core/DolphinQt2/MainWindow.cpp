@@ -259,7 +259,6 @@ void MainWindow::ConnectRenderWidget()
 
 void MainWindow::ConnectStack()
 {
-  m_stack->setMinimumSize(800, 600);
   m_stack->addWidget(m_game_list);
   setCentralWidget(m_stack);
 }
@@ -295,7 +294,7 @@ void MainWindow::Play()
     }
     else
     {
-      QString default_path = Settings::Instance().GetDefaultGame();
+      auto default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path);
@@ -323,7 +322,7 @@ bool MainWindow::Stop()
   if (!Core::IsRunning())
     return true;
 
-  if (Settings::Instance().GetConfirmStop())
+  if (SConfig::GetInstance().bConfirmStop)
   {
     const Core::State state = Core::GetState();
     // Set to false when Netplay is running as a CPU thread
@@ -435,8 +434,7 @@ void MainWindow::StartGame(const QString& path)
 
 void MainWindow::ShowRenderWidget()
 {
-  auto& settings = Settings::Instance();
-  if (settings.GetRenderToMain())
+  if (SConfig::GetInstance().bRenderToMain)
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
     m_rendering_to_main = true;
@@ -447,13 +445,13 @@ void MainWindow::ShowRenderWidget()
   {
     // Otherwise, just show it.
     m_rendering_to_main = false;
-    if (settings.GetFullScreen())
+    if (SConfig::GetInstance().bFullscreen)
     {
       m_render_widget->showFullScreen();
     }
     else
     {
-      m_render_widget->resize(settings.GetRenderWindowSize());
+      m_render_widget->resize(640, 480);
       m_render_widget->showNormal();
     }
   }
@@ -625,4 +623,9 @@ void MainWindow::dropEvent(QDropEvent* event)
     }
     settings.AddPath(path);
   }
+}
+
+QSize MainWindow::sizeHint() const
+{
+  return QSize(800, 600);
 }

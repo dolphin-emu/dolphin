@@ -230,7 +230,7 @@ void AutoDisassembly(u16 start_addr, u16 end_addr)
     addr_to_line[addr] = line_counter;
 
     std::string buf;
-    if (!disasm.DisassembleOpcode(ptr, 0, 2, &addr, buf))
+    if (!disasm.DisassembleOpcode(ptr, &addr, buf))
     {
       ERROR_LOG(DSPLLE, "disasm failed at %04x", addr);
       break;

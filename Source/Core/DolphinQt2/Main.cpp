@@ -42,9 +42,11 @@ int main(int argc, char* argv[])
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
                    &app, &Core::HostDispatchJobs);
 
-  auto& settings = Settings::Instance();
   int retval = 0;
-  if (settings.IsInDevelopmentWarningEnabled())
+
+  // There's intentionally no way to set this from the UI.
+  // Add it to your INI manually instead.
+  if (SConfig::GetInstance().m_show_development_warning)
   {
     InDevelopmentWarning warning_box;
     retval = warning_box.exec() == QDialog::Rejected;
@@ -57,7 +59,7 @@ int main(int argc, char* argv[])
     win.show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-    if (!settings.HasAskedForAnalyticsPermission())
+    if (!SConfig::GetInstance().m_analytics_permission_asked)
     {
       QMessageBox analytics_prompt(&win);
 
@@ -78,9 +80,8 @@ int main(int argc, char* argv[])
 
       const int answer = analytics_prompt.exec();
 
-      settings.SetAskedForAnalyticsPermission(true);
-      settings.SetAnalyticsEnabled(answer == QMessageBox::Yes);
-      settings.Save();
+      SConfig::GetInstance().m_analytics_permission_asked = true;
+      SConfig::GetInstance().m_analytics_enabled = (answer == QMessageBox::Yes);
 
       DolphinAnalytics::Instance()->ReloadConfig();
     }
