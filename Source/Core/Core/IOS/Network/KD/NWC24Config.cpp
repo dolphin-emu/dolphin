@@ -27,22 +27,15 @@ NWC24Config::NWC24Config()
 
 void NWC24Config::ReadConfig()
 {
-  if (File::Exists(m_path))
+  if (!File::IOFile(m_path, "rb").ReadBytes(&m_data, sizeof(m_data)))
   {
-    if (!File::IOFile(m_path, "rb").ReadBytes(&m_data, sizeof(m_data)))
-    {
-      ResetConfig();
-    }
-    else
-    {
-      const s32 config_error = CheckNwc24Config();
-      if (config_error)
-        ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
-    }
+    ResetConfig();
   }
   else
   {
-    ResetConfig();
+    const s32 config_error = CheckNwc24Config();
+    if (config_error)
+      ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
   }
 }
 

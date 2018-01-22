@@ -4,6 +4,7 @@
 
 #include "DolphinWX/ISOProperties/ISOProperties.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
@@ -688,16 +689,12 @@ void CISOProperties::CreateGUIControls()
   sButtons->GetAffirmativeButton()->SetLabel(_("Close"));
 
   // If there is no default gameini, disable the button.
-  bool game_ini_exists = false;
-  for (const std::string& ini_filename :
-       SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision()))
-  {
-    if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
-    {
-      game_ini_exists = true;
-      break;
-    }
-  }
+  const std::vector<std::string> ini_names =
+      SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision());
+  const bool game_ini_exists =
+      std::any_of(ini_names.cbegin(), ini_names.cend(), [](const std::string& name) {
+        return File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + name);
+      });
   if (!game_ini_exists)
     EditConfigDefault->Disable();
 

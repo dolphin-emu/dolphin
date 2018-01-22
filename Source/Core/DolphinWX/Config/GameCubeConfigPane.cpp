@@ -359,18 +359,15 @@ void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, ExpansionInterface::TEXI
 
   if (!filename.empty())
   {
-    if (File::Exists(filename))
+    if (memcard && File::Exists(filename))
     {
-      if (memcard)
+      GCMemcard memorycard(filename);
+      if (!memorycard.IsValid())
       {
-        GCMemcard memorycard(filename);
-        if (!memorycard.IsValid())
-        {
-          WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n"
-                                                      "is not a valid GameCube memory card file"),
-                                                    filename.c_str()));
-          return;
-        }
+        WxUtils::ShowErrorDialog(wxString::Format(_("Cannot use that file as a memory card.\n%s\n"
+                                                    "is not a valid GameCube memory card file"),
+                                                  filename.c_str()));
+        return;
       }
     }
 

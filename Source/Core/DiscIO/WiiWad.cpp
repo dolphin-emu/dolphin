@@ -46,7 +46,7 @@ bool IsWiiWAD(BlobReader& reader)
 
 WiiWAD::WiiWAD(const std::string& name) : m_reader(CreateBlobReader(name))
 {
-  if (m_reader == nullptr || File::IsDirectory(name))
+  if (m_reader == nullptr)
   {
     m_valid = false;
     return;

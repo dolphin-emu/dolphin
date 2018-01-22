@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <sys/stat.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
 
@@ -78,14 +80,42 @@ struct FSTEntry
   std::vector<FSTEntry> children;
 };
 
-// Returns true if file filename exists
-bool Exists(const std::string& filename);
+// The functions in this class are functionally identical to the standalone functions
+// below, but if you are going to be calling more than one of the functions using the
+// same path, creating a single FileInfo object and calling its functions multiple
+// times is faster than calling standalone functions multiple times.
+class FileInfo final
+{
+public:
+  explicit FileInfo(const std::string& path);
+  explicit FileInfo(const char* path);
+  explicit FileInfo(int fd);
 
-// Returns true if filename is a directory
-bool IsDirectory(const std::string& filename);
+  // Returns true if the path exists
+  bool Exists() const;
+  // Returns true if the path exists and is a directory
+  bool IsDirectory() const;
+  // Returns true if the path exists and is a file
+  bool IsFile() const;
+  // Returns the size of a file (or returns 0 if the path doesn't refer to a file)
+  u64 GetSize() const;
 
-// Returns the size of filename (64bit)
-u64 GetSize(const std::string& filename);
+private:
+  struct stat m_stat;
+  bool m_exists;
+};
+
+// Returns true if the path exists
+bool Exists(const std::string& path);
+
+// Returns true if the path exists and is a directory
+bool IsDirectory(const std::string& path);
+
+// Returns true if the path exists and is a file
+bool IsFile(const std::string& path);
+
+// Returns the size of a file (or returns 0 if the path isn't a file that exists)
+u64 GetSize(const std::string& path);
 
 // Overloaded GetSize, accepts file descriptor
 u64 GetSize(const int fd);

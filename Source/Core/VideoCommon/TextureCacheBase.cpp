@@ -424,7 +424,7 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
   std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().GetGameID();
 
   // make sure that the directory exists
-  if (!File::Exists(szDir) || !File::IsDirectory(szDir))
+  if (!File::IsDirectory(szDir))
     File::CreateDir(szDir);
 
   if (level > 0)

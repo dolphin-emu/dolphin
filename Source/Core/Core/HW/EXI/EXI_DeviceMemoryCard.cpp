@@ -180,11 +180,12 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
                      StringFromFormat("Card %c", 'A' + card_index);
 
-  if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
+  const File::FileInfo file_info(strDirectoryName);
+  if (!file_info.Exists())  // first use of memcard folder, migrate automatically
   {
     MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
   }
-  else if (!File::IsDirectory(strDirectoryName))
+  else if (!file_info.IsDirectory())
   {
     if (File::Rename(strDirectoryName, strDirectoryName + ".original"))
     {
