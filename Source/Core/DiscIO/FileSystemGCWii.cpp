@@ -270,21 +270,20 @@ std::unique_ptr<FileInfo> FileSystemGCWii::FindFileInfo(const std::string& path,
   // Given a path like "directory1/directory2/fileA.bin", this function will
   // find directory1 and then call itself to search for "directory2/fileA.bin".
 
-  if (path.empty() || path == "/")
-    return file_info.clone();
+  size_t name_start = 0;
+  while (name_start < path.size() && path[name_start] == '/')
+    ++name_start;
 
-  // It's only possible to search in directories. Searching in a file is an error
-  if (!file_info.IsDirectory())
-    return nullptr;
+  if (name_start == path.size())
+    return file_info.clone();  // We're done
 
-  size_t first_dir_separator = path.find('/');
-  const std::string searching_for = path.substr(0, first_dir_separator);
-  const std::string rest_of_path =
-      (first_dir_separator != std::string::npos) ? path.substr(first_dir_separator + 1) : "";
+  const size_t name_end = path.find('/', name_start);
+  const std::string name = path.substr(name_start, name_end - name_start);
+  const std::string rest_of_path = (name_end != std::string::npos) ? path.substr(name_end + 1) : "";
 
   for (const FileInfo& child : file_info)
   {
-    if (!strcasecmp(child.GetName().c_str(), searching_for.c_str()))
+    if (!strcasecmp(child.GetName().c_str(), name.c_str()))
     {
       // A match is found. The rest of the path is passed on to finish the search.
       std::unique_ptr<FileInfo> result = FindFileInfo(rest_of_path, child);

@@ -94,7 +94,7 @@ void IniFile::Section::Set(const std::string& key, double newValue)
 
 void IniFile::Section::Set(const std::string& key, int newValue)
 {
-  Set(key, StringFromInt(newValue));
+  Set(key, std::to_string(newValue));
 }
 
 void IniFile::Section::Set(const std::string& key, s64 newValue)

@@ -20,8 +20,14 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+static QString EscapeAmpersand(QString&& string)
+{
+  return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
+}
+
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
-    : ElidedButton(QString::fromStdString(ref->expression)), m_parent(widget), m_reference(ref)
+    : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->expression))), m_parent(widget),
+      m_reference(ref)
 {
   Connect();
 }
@@ -73,7 +79,7 @@ void MappingButton::OnButtonPressed()
 
 void MappingButton::OnButtonTimeout()
 {
-  setText(QString::fromStdString(m_reference->expression));
+  setText(EscapeAmpersand(QString::fromStdString(m_reference->expression)));
 }
 
 void MappingButton::Clear()
@@ -87,7 +93,7 @@ void MappingButton::Update()
 {
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   m_reference->UpdateReference(g_controller_interface, m_parent->GetParent()->GetDeviceQualifier());
-  setText(QString::fromStdString(m_reference->expression));
+  setText(EscapeAmpersand(QString::fromStdString(m_reference->expression)));
   m_parent->SaveSettings();
 }
 

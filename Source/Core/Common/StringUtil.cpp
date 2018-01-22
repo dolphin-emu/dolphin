@@ -287,13 +287,6 @@ bool TryParse(const std::string& str, bool* const output)
   return true;
 }
 
-std::string StringFromInt(int value)
-{
-  char temp[16];
-  sprintf(temp, "%i", value);
-  return temp;
-}
-
 std::string StringFromBool(bool value)
 {
   return value ? "True" : "False";
