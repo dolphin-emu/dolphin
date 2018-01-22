@@ -391,6 +391,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
+  interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
   interface->Set("ShowDevelopmentWarning", m_show_development_warning);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
@@ -774,6 +775,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
+  interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
   interface->Get("ShowDevelopmentWarning", &m_show_development_warning, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
