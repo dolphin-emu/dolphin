@@ -167,7 +167,7 @@ void MainWindow::ConnectMenuBar()
   // Emulation
   connect(m_menu_bar, &MenuBar::Pause, this, &MainWindow::Pause);
   connect(m_menu_bar, &MenuBar::Play, this, &MainWindow::Play);
-  connect(m_menu_bar, &MenuBar::Stop, this, &MainWindow::Stop);
+  connect(m_menu_bar, &MenuBar::Stop, this, &MainWindow::RequestStop);
   connect(m_menu_bar, &MenuBar::Reset, this, &MainWindow::Reset);
   connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::FullScreen);
   connect(m_menu_bar, &MenuBar::FrameAdvance, this, &MainWindow::FrameAdvance);
@@ -211,7 +211,7 @@ void MainWindow::ConnectHotkeys()
 {
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
   connect(m_hotkey_scheduler, &HotkeyScheduler::PauseHotkey, this, &MainWindow::Pause);
-  connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::Stop);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
 
@@ -229,7 +229,7 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
   connect(m_tool_bar, &ToolBar::PlayPressed, this, &MainWindow::Play);
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
-  connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
+  connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::RequestStop);
   connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
   connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
@@ -240,10 +240,7 @@ void MainWindow::ConnectToolBar()
   connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
   connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
 
-  connect(this, &MainWindow::EmulationStopped, [this] {
-    m_stop_requested = false;
-    m_render_widget->hide();
-  });
+  connect(this, &MainWindow::EmulationStopped, this, &MainWindow::OnStopComplete);
 }
 
 void MainWindow::ConnectGameList()
@@ -257,7 +254,7 @@ void MainWindow::ConnectRenderWidget()
 {
   m_rendering_to_main = false;
   m_render_widget->hide();
-  connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::Stop);
+  connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 
@@ -321,15 +318,34 @@ void MainWindow::Pause()
   emit EmulationPaused();
 }
 
-bool MainWindow::Stop()
+void MainWindow::OnStopComplete()
+{
+  m_stop_requested = false;
+  m_render_widget->hide();
+
+  if (m_exit_requested)
+    QGuiApplication::instance()->quit();
+
+  // If the current emulation prevented the booting of another, do that now
+  if (!m_pending_boot.isEmpty())
+  {
+    StartGame(m_pending_boot);
+    m_pending_boot.clear();
+  }
+}
+
+bool MainWindow::RequestStop()
 {
   if (!Core::IsRunning())
+  {
+    Core::QueueHostJob([this] { OnStopComplete(); }, true);
     return true;
+  }
 
   if (SConfig::GetInstance().bConfirmStop)
   {
     const Core::State state = Core::GetState();
-    // Set to false when Netplay is running as a CPU thread
+    // TODO: Set to false when Netplay is running as a CPU thread
     bool pause = true;
 
     if (pause)
@@ -342,6 +358,7 @@ bool MainWindow::Stop()
                                            "may be lost if you stop the current emulation "
                                            "before it completes. Force stop?") :
                                         tr("Do you want to stop the current emulation?"));
+
     if (pause)
       Core::SetState(state);
 
@@ -357,15 +374,14 @@ bool MainWindow::Stop()
     m_stop_requested = true;
 
     // Unpause because gracefully shutting down needs the game to actually request a shutdown.
-    // Do not unpause in debug mode to allow debugging until the complete shutdown.
+    // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
     if (Core::GetState() == Core::State::Paused)
       Core::SetState(Core::State::Running);
 
-    return false;
+    return true;
   }
 
   ForceStop();
-
 #ifdef Q_OS_WIN
   // Allow windows to idle or turn off display again
   SetThreadExecutionState(ES_CONTINUOUS);
@@ -415,8 +431,12 @@ void MainWindow::StartGame(const QString& path)
   // If we're running, only start a new game once we've stopped the last.
   if (Core::GetState() != Core::State::Uninitialized)
   {
-    if (!Stop())
+    if (!RequestStop())
       return;
+
+    // As long as the shutdown isn't complete, we can't boot, so let's boot later
+    m_pending_boot = path;
+    return;
   }
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(BootParameters::GenerateFromFile(path.toStdString())))
@@ -583,8 +603,11 @@ void MainWindow::BootWiiSystemMenu()
 
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
 {
-  if (event->type() == QEvent::Close && !Stop())
+  if (event->type() == QEvent::Close)
   {
+    if (RequestStop() && object == this)
+      m_exit_requested = true;
+
     static_cast<QCloseEvent*>(event)->ignore();
     return true;
   }
