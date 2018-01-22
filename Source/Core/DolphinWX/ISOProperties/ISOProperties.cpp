@@ -676,7 +676,7 @@ void CISOProperties::CreateGUIControls()
   gecko_layout->Add(m_geckocode_panel, 1, wxEXPAND);
   gecko_cheat_page->SetSizer(gecko_layout);
 
-  if (m_open_iso->GetVolumeType() != DiscIO::Platform::WII_WAD)
+  if (DiscIO::IsDisc(m_open_iso->GetVolumeType()))
   {
     m_Notebook->AddPage(new FilesystemPanel(m_Notebook, ID_FILESYSTEM, m_open_iso),
                         _("Filesystem"));

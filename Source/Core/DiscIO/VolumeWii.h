@@ -34,6 +34,7 @@ public:
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const override;
   std::vector<Partition> GetPartitions() const override;
   Partition GetGamePartition() const override;
+  std::optional<u32> GetPartitionType(const Partition& partition) const override;
   std::optional<u64> GetTitleID(const Partition& partition) const override;
   const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
@@ -64,6 +65,7 @@ public:
 
 private:
   std::unique_ptr<BlobReader> m_pReader;
+  std::map<Partition, u32> m_partition_types;
   std::map<Partition, std::unique_ptr<mbedtls_aes_context>> m_partition_keys;
   std::map<Partition, IOS::ES::TicketReader> m_partition_tickets;
   std::map<Partition, IOS::ES::TMDReader> m_partition_tmds;
