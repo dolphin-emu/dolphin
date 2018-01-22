@@ -75,7 +75,12 @@ void CLogWindow::CreateGUIControls()
   m_FontChoice->Append(_("Selected font"));
 
   DefaultFont = GetFont();
-  MonoSpaceFont.SetNativeFontInfoUserDesc("lucida console windows-1252");
+  MonoSpaceFont.SetFamily(wxFONTFAMILY_TELETYPE);
+#ifdef _WIN32
+  // Windows uses Courier New for monospace even though there are better fonts.
+  MonoSpaceFont.SetFaceName("Consolas");
+#endif
+  MonoSpaceFont.SetPointSize(DefaultFont.GetPointSize());
   LogFont.push_back(DefaultFont);
   LogFont.push_back(MonoSpaceFont);
   LogFont.push_back(DebuggerFont);
