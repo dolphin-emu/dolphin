@@ -248,6 +248,16 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_LOAD_WII_MENU, dummy_string);
   tools_menu->Append(IDM_IMPORT_NAND, _("Import BootMii NAND Backup..."));
   tools_menu->Append(IDM_EXTRACT_CERTIFICATES, _("Extract Certificates from NAND"));
+  auto* const online_update_menu = new wxMenu;
+  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_CURRENT, _("Current Region"));
+  online_update_menu->AppendSeparator();
+  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_EUR, _("Europe"));
+  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_JPN, _("Japan"));
+  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_KOR, _("Korean"));
+  online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_USA, _("United States"));
+  tools_menu->AppendSubMenu(
+      online_update_menu, _("Perform Online System Update"),
+      _("Update the Wii system software to the latest version from Nintendo."));
   tools_menu->AppendCheckItem(IDM_DEBUGGER, _("Debugger"));
   tools_menu->Enable(IDM_DEBUGGER, m_type != MenuType::Debug);
   tools_menu->Check(IDM_DEBUGGER, m_type == MenuType::Debug);
@@ -590,8 +600,6 @@ void MainMenuBar::RefreshSaveStateMenuLabels() const
 
 void MainMenuBar::RefreshWiiToolsLabels() const
 {
-  RefreshWiiSystemMenuLabel();
-
   // The Install WAD option should not be enabled while emulation is running, because
   // having unexpected title changes can confuse emulated software; and of course, this is
   // not possible on a real Wii and won't be if we have IOS LLE (or simply more accurate IOS HLE).
@@ -599,10 +607,26 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   // For similar reasons, it should not be possible to export or import saves, because this can
   // result in the emulated software being confused, or even worse, exported saves having
   // inconsistent data.
-  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE,
-                          IDM_IMPORT_NAND, IDM_EXTRACT_CERTIFICATES})
+  const bool enable_wii_tools = !Core::IsRunning() || !SConfig::GetInstance().bWii;
+  for (const int index :
+       {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE, IDM_IMPORT_NAND,
+        IDM_EXTRACT_CERTIFICATES, IDM_LOAD_WII_MENU, IDM_PERFORM_ONLINE_UPDATE_CURRENT,
+        IDM_PERFORM_ONLINE_UPDATE_EUR, IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
+        IDM_PERFORM_ONLINE_UPDATE_USA})
   {
-    FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+    FindItem(index)->Enable(enable_wii_tools);
+  }
+  if (enable_wii_tools)
+    RefreshWiiSystemMenuLabel();
+}
+
+void MainMenuBar::EnableUpdateMenu(UpdateMenuMode mode) const
+{
+  FindItem(IDM_PERFORM_ONLINE_UPDATE_CURRENT)->Enable(mode == UpdateMenuMode::CurrentRegionOnly);
+  for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_EUR, IDM_PERFORM_ONLINE_UPDATE_JPN,
+                        IDM_PERFORM_ONLINE_UPDATE_KOR, IDM_PERFORM_ONLINE_UPDATE_USA})
+  {
+    FindItem(idm)->Enable(mode == UpdateMenuMode::SpecificRegionsOnly);
   }
 }
 
@@ -619,11 +643,13 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
     const wxString version_string = StrToWxStr(DiscIO::GetSysMenuVersionString(version_number));
     item->Enable();
     item->SetItemLabel(wxString::Format(_("Load Wii System Menu %s"), version_string));
+    EnableUpdateMenu(UpdateMenuMode::CurrentRegionOnly);
   }
   else
   {
     item->Enable(false);
     item->SetItemLabel(_("Load Wii System Menu"));
+    EnableUpdateMenu(UpdateMenuMode::SpecificRegionsOnly);
   }
 }
 

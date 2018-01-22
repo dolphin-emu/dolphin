@@ -843,30 +843,21 @@ ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 
 ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 {
-  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
-  // The certificate store file may not exist, so we use a+b and not r+b here.
-  File::IOFile store_file{store_path, "a+b"};
-  if (!store_file)
-    return ES_EIO;
-
   // Read the current store to determine if the new cert needs to be written.
-  const u64 file_size = store_file.GetSize();
-  if (file_size != 0)
+  std::vector<u8> current_store;
+  const ReturnCode ret = ReadCertStore(&current_store);
+  if (ret == IPC_SUCCESS)
   {
-    std::vector<u8> certs_bytes(file_size);
-    if (!store_file.ReadBytes(certs_bytes.data(), certs_bytes.size()))
-      return ES_SHORT_READ;
-
-    const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(certs_bytes);
+    const std::map<std::string, IOS::ES::CertReader> certs = IOS::ES::ParseCertChain(current_store);
     // The cert is already present in the store. Nothing to do.
     if (certs.find(cert.GetName()) != certs.end())
       return IPC_SUCCESS;
   }
 
   // Otherwise, write the new cert at the end of the store.
-  // When opening a file in read-write mode, a seek is required before a write.
-  store_file.Seek(0, SEEK_END);
-  if (!store_file.WriteBytes(cert.GetBytes().data(), cert.GetBytes().size()))
+  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
+  File::IOFile store_file{store_path, "ab"};
+  if (!store_file || !store_file.WriteBytes(cert.GetBytes().data(), cert.GetBytes().size()))
     return ES_EIO;
   return IPC_SUCCESS;
 }

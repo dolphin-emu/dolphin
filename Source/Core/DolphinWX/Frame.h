@@ -348,6 +348,7 @@ private:
   void OnUninstallWAD(wxCommandEvent& event);
   void OnImportBootMiiBackup(wxCommandEvent& event);
   void OnExtractCertificates(wxCommandEvent& event);
+  void OnPerformOnlineWiiUpdate(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
   void OnDebugger(wxCommandEvent& event);
   void OnBruteForce(wxCommandEvent& event);

@@ -15,6 +15,7 @@
 #include "Core/HW/WiiSaveCrypted.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
+#include "Core/WiiUtils.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
@@ -22,7 +23,6 @@
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
-#include "UICommon/WiiUtils.h"
 
 static const int CACHE_VERSION = 13;  // Last changed in PR #3261
 static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;

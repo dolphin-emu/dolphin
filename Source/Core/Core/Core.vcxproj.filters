@@ -179,6 +179,7 @@
     <ClCompile Include="State.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
+    <ClCompile Include="WiiUtils.cpp" />
     <ClCompile Include="ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
     </ClCompile>
@@ -904,6 +905,7 @@
     <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
+    <ClInclude Include="WiiUtils.h" />
     <ClInclude Include="ActionReplay.h">
       <Filter>ActionReplay</Filter>
     </ClInclude>

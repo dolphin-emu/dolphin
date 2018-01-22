@@ -56,6 +56,8 @@ private slots:
   void StateSaveOldest();
   void SetStateSlot(int slot);
 
+  void PerformOnlineUpdate(const std::string& region);
+
   void FullScreen();
   void ScreenShot();
 
