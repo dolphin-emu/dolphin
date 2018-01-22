@@ -17,7 +17,7 @@ class cInterfaceAGL : public cInterfaceBase
 {
 public:
   void Swap() override;
-  bool Create(void* window_handle, bool core) override;
+  bool Create(void* window_handle, bool stereo, bool core) override;
   bool MakeCurrent() override;
   bool ClearCurrent() override;
   void Shutdown() override;

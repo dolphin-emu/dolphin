@@ -13,24 +13,24 @@
 class cInterfaceGLX : public cInterfaceBase
 {
 private:
-	cX11Window XWindow;
-	Display *dpy, *dpy_offscreen;
-	Window win;//, win_offscreen;
-	GLXContext ctx, ctx_offscreen;
-	GLXFBConfig fbconfig;
+  cX11Window XWindow;
+  Display *dpy, *dpy_offscreen;
+  Window win;//, win_offscreen;
+  GLXContext ctx, ctx_offscreen;
+  GLXFBConfig fbconfig;
 public:
-	const Display* getDisplay() {return dpy;};
-	friend class cX11Window;
-	void SwapInterval(int Interval) override;
-	void Swap() override;
-	void* GetFuncAddress(const std::string& name) override;
-	bool Create(void *window_handle, bool core) override;
-	bool CreateOffscreen();
-	bool MakeCurrent() override;
-	bool MakeCurrentOffscreen();
-	bool ClearCurrent() override;
-	bool ClearCurrentOffscreen();
+  const Display* getDisplay() {return dpy;};
+  friend class cX11Window;
+  void SwapInterval(int Interval) override;
+  void Swap() override;
+  void* GetFuncAddress(const std::string& name) override;
+  bool Create(void *window_handle, bool stereo, bool core) override;
+  bool CreateOffscreen();
+  bool MakeCurrent() override;
+  bool MakeCurrentOffscreen();
+  bool ClearCurrent() override;
+  bool ClearCurrentOffscreen();
 
-	void Shutdown() override;
-	void ShutdownOffscreen();
+  void Shutdown() override;
+  void ShutdownOffscreen();
 };

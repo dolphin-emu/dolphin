@@ -34,7 +34,7 @@ public:
   virtual void SetMode(GLInterfaceMode mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
   virtual GLInterfaceMode GetMode() { return s_opengl_mode; }
   virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
-  virtual bool Create(void* window_handle, bool core = true) { return true; }
+  virtual bool Create(void* window_handle, bool stereo = false, bool core = true) { return true; }
   virtual bool Create(cInterfaceBase* main_context) { return true; }
   virtual bool CreateOffscreen() { return true; }
   virtual bool MakeCurrent() { return true; }

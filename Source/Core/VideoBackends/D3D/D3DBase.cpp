@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+// Carl: TODO: Actually merge the QUAD BUFFERED 3D mode in D3D from "Merge pull request #5697 from Armada651/quad-buffer"
+
 #include <algorithm>
 
 #include "Common/CommonTypes.h"
@@ -60,6 +62,8 @@ const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] =
 unsigned int xres, yres;
 
 bool bFrameInProgress = false;
+
+#define NUM_SWAPCHAIN_BUFFERS 1
 
 HRESULT LoadDXGI()
 {
@@ -435,7 +439,7 @@ HRESULT Create(HWND wnd)
   }
 
   DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
-  swap_chain_desc.BufferCount = 1;
+  swap_chain_desc.BufferCount = NUM_SWAPCHAIN_BUFFERS;
   swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   swap_chain_desc.OutputWindow = wnd;
   swap_chain_desc.SampleDesc.Count = 1;
@@ -698,7 +702,7 @@ void Reset()
   GetClientRect(hWnd, &client);
   xres = client.right - client.left;
   yres = client.bottom - client.top;
-  D3D::swapchain->ResizeBuffers(1, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  D3D::swapchain->ResizeBuffers(NUM_SWAPCHAIN_BUFFERS, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
   // recreate back buffer texture
   ID3D11Texture2D* buf;

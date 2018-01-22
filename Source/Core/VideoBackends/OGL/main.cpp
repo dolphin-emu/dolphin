@@ -169,7 +169,7 @@ bool VideoBackend::Initialize(void* window_handle)
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
   if (window_handle)
   {
-    if (!GLInterface->Create(window_handle))
+    if (!GLInterface->Create(window_handle, g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER))
       return false;
   }
   else
@@ -187,7 +187,7 @@ bool VideoBackend::InitializeOtherThread(void* window_handle, std::thread* video
   g_vr_lock.lock();
   if (window_handle)
   {
-    if (!GLInterface->Create(window_handle))
+    if (!GLInterface->Create(window_handle, g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER))
       return false;
   }
   else

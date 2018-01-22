@@ -320,6 +320,9 @@ bool SwapChain::CreateSwapChain()
     return false;
   }
 
+  // Select the number of image layers for Quad-Buffered stereoscopy
+  uint32_t image_layers = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER ? 2 : 1;
+
   // Store the old/current swap chain when recreating for resize
   VkSwapchainKHR old_swap_chain = m_swap_chain;
 
@@ -333,7 +336,7 @@ bool SwapChain::CreateSwapChain()
                                               m_surface_format.format,
                                               m_surface_format.colorSpace,
                                               size,
-                                              1,
+                                              image_layers,
                                               image_usage,
                                               VK_SHARING_MODE_EXCLUSIVE,
                                               0,
@@ -359,6 +362,7 @@ bool SwapChain::CreateSwapChain()
 
   m_width = size.width;
   m_height = size.height;
+  m_layers = image_layers;
   return true;
 }
 
@@ -400,7 +404,7 @@ bool SwapChain::SetupSwapChainImages()
                                                 &view,
                                                 m_width,
                                                 m_height,
-                                                1};
+                                                m_layers};
 
     res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
                               &image.framebuffer);
