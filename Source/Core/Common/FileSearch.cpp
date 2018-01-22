@@ -74,7 +74,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 
   std::vector<fs::path> native_exts;
   for (const auto& ext : exts)
-    native_exts.push_back(ext);
+    native_exts.push_back(fs::u8path(ext));
 
   // N.B. This avoids doing any copies
   auto ext_matches = [&native_exts](const fs::path& path) {
@@ -100,12 +100,12 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
     if (recursive)
     {
       // TODO use fs::directory_options::follow_directory_symlink ?
-      for (auto& entry : fs::recursive_directory_iterator(fs::path(directory)))
+      for (auto& entry : fs::recursive_directory_iterator(fs::u8path(directory)))
         add_filtered(entry);
     }
     else
     {
-      for (auto& entry : fs::directory_iterator(fs::path(directory)))
+      for (auto& entry : fs::directory_iterator(fs::u8path(directory)))
         add_filtered(entry);
     }
   }
