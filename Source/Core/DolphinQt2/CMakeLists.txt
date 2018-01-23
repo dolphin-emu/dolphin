@@ -32,6 +32,8 @@ set(SRCS
   Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/ARCodeEditor.cpp
+  Config/ARCodeWidget.cpp
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
