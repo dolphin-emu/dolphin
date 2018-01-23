@@ -52,6 +52,7 @@ set(SRCS
   Config/LogConfigWidget.cpp
   Config/LogWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
+  Config/Mapping/GCMicrophone.cpp
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
@@ -96,6 +97,7 @@ set(SRCS
   QtUtils/WindowActivationEventFilter.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
+  Settings/GameCubePane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp

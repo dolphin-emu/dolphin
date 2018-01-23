@@ -12,6 +12,7 @@
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Settings/AdvancedPane.h"
 #include "DolphinQt2/Settings/AudioPane.h"
+#include "DolphinQt2/Settings/GameCubePane.h"
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
 #include "DolphinQt2/Settings/PathPane.h"
@@ -42,6 +43,7 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_general_pane_index = AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
   AddTab(m_tabs, tr("Interface"), new InterfacePane(), "browse");
   m_audio_pane_index = AddTab(m_tabs, tr("Audio"), new AudioPane(), "play");
+  AddTab(m_tabs, tr("GameCube"), new GameCubePane(), "gcpad");
   AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
   AddTab(m_tabs, tr("Advanced"), new AdvancedPane(), "config");
 

@@ -192,6 +192,7 @@
     <ClCompile Include="Config\Graphics\SoftwareRendererWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />
+    <ClCompile Include="Config\Mapping\GCMicrophone.cpp" />
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
@@ -248,6 +249,7 @@
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />
+    <ClCompile Include="Settings\GameCubePane.cpp" />
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
@@ -258,6 +260,7 @@
   <!--Put standard C/C++ headers here-->
   <ItemGroup>
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
+    <ClInclude Include="Config\Mapping\GCMicrophone.h" />
     <ClInclude Include="Config\Mapping\GCPadEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadWiiU.h" />
     <ClInclude Include="Config\Mapping\Hotkey3D.h" />
@@ -279,6 +282,7 @@
     <ClInclude Include="QtUtils\ElidedButton.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Settings\GameCubePane.h" />
     <ClInclude Include="Settings\PathPane.h" />
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
