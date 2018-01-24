@@ -38,6 +38,8 @@ void GeneralPane::CreateLayout()
   CreateAnalytics();
 #endif
   CreateAdvanced();
+
+  m_main_layout->setContentsMargins(0, 0, 0, 0);
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
 }
@@ -79,7 +81,6 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addLayout(speed_limit_layout);
 
   m_combobox_speedlimit = new QComboBox();
-  m_combobox_speedlimit->setMaximumWidth(300);
 
   m_combobox_speedlimit->addItem(tr("Unlimited"));
   for (int i = 10; i <= 200; i += 10)  // from 10% to 200%
@@ -106,7 +107,6 @@ void GeneralPane::CreateAnalytics()
 
   m_checkbox_enable_analytics = new QCheckBox(tr("Enable Usage Statistics Reporting"));
   m_button_generate_new_identity = new QPushButton(tr("Generate a New Statistics Identity"));
-  m_button_generate_new_identity->setMaximumWidth(300);
   analytics_group_layout->addWidget(m_checkbox_enable_analytics);
   analytics_group_layout->addWidget(m_button_generate_new_identity);
 }

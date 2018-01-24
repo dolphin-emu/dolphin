@@ -7,6 +7,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
+#include <QScrollBar>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
@@ -24,7 +25,6 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   // Set Window Properties
   setWindowTitle(tr("Settings"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  resize(720, 600);
 
   // Main Layout
   QVBoxLayout* layout = new QVBoxLayout;
@@ -76,7 +76,6 @@ void SettingsWindow::AddCategoryToList(const QString& title, const std::string& 
   QListWidgetItem* button = new QListWidgetItem();
   button->setText(title);
   button->setTextAlignment(Qt::AlignVCenter);
-  button->setSizeHint(QSize(28, 28));
   button->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
   auto set_icon = [=] { button->setIcon(Resources::GetScaledThemeIcon(icon_name)); };
@@ -88,7 +87,6 @@ void SettingsWindow::AddCategoryToList(const QString& title, const std::string& 
 void SettingsWindow::MakeCategoryList()
 {
   m_categories = new QListWidget;
-  m_categories->setMaximumWidth(175);
   m_categories->setIconSize(QSize(32, 32));
   m_categories->setMovement(QListView::Static);
   m_categories->setSpacing(0);
@@ -98,6 +96,10 @@ void SettingsWindow::MakeCategoryList()
   AddCategoryToList(tr("Audio"), "play");
   AddCategoryToList(tr("Paths"), "browse");
   connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
+
+  m_categories->setFixedWidth(m_categories->sizeHintForColumn(0) +
+                              m_categories->verticalScrollBar()->sizeHint().width() +
+                              2 * m_categories->frameWidth());
 }
 
 void SettingsWindow::changePage(QListWidgetItem* current, QListWidgetItem* previous)
