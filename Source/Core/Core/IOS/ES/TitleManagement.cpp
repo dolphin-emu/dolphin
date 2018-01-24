@@ -13,12 +13,12 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
-#include "Common/Crypto/AES.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/ec_wii.h"
@@ -48,7 +48,7 @@ static ReturnCode WriteTicket(const IOS::ES::TicketReader& ticket)
 void ES::TitleImportExportContext::DoState(PointerWrap& p)
 {
   p.Do(valid);
-  p.Do(key);
+  p.Do(key_handle);
   tmd.DoState(p);
   p.Do(content.valid);
   p.Do(content.id);
@@ -105,11 +105,43 @@ IPCCommandResult ES::ImportTicket(const IOCtlVRequest& request)
   return GetDefaultReply(ImportTicket(bytes, cert_chain));
 }
 
+constexpr std::array<u8, 16> NULL_KEY{};
+
+// Used for exporting titles and importing them back (ImportTmd and ExportTitleInit).
+static ReturnCode InitBackupKey(const IOS::ES::TMDReader& tmd, IOSC& iosc, IOSC::Handle* key)
+{
+  // Some versions of IOS have a bug that causes it to use a zeroed key instead of the PRNG key.
+  // When Nintendo decided to fix it, they added checks to keep using the zeroed key only in
+  // affected titles to avoid making existing exports useless.
+
+  // Ignore the region byte.
+  const u64 title_id = tmd.GetTitleId() | 0xff;
+  const u32 title_flags = tmd.GetTitleFlags();
+  const u32 affected_type = IOS::ES::TITLE_TYPE_0x10 | IOS::ES::TITLE_TYPE_DATA;
+  if (title_id == Titles::SYSTEM_MENU || (title_flags & affected_type) != affected_type ||
+      !(title_id == 0x00010005735841ff || title_id - 0x00010005735a41ff <= 0x700))
+  {
+    *key = IOSC::HANDLE_PRNG_KEY;
+    return IPC_SUCCESS;
+  }
+
+  // Otherwise, use a null key.
+  ReturnCode ret = iosc.CreateObject(key, IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128, PID_ES);
+  return ret == IPC_SUCCESS ? iosc.ImportSecretKey(*key, NULL_KEY.data(), PID_ES) : ret;
+}
+
+static void ResetTitleImportContext(ES::Context* context, IOSC& iosc)
+{
+  if (context->title_import_export.key_handle)
+    iosc.DeleteObject(context->title_import_export.key_handle, PID_ES);
+  context->title_import_export = {};
+}
+
 ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
 {
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
-  context.title_import_export = {};
+  ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd.SetBytes(tmd_bytes);
   if (!context.title_import_export.tmd.IsValid())
     return ES_EINVAL;
@@ -127,11 +159,10 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   if (!InitImport(context.title_import_export.tmd.GetTitleId()))
     return ES_EIO;
 
-  // FIXME: ImportTmd does not use the ticket or the title key.
-  const auto ticket = DiscIO::FindSignedTicket(context.title_import_export.tmd.GetTitleId());
-  if (!ticket.IsValid())
-    return ES_NO_TICKET;
-  context.title_import_export.key = ticket.GetTitleKey(m_ios.GetIOSC());
+  ret = InitBackupKey(GetTitleContext().tmd, m_ios.GetIOSC(),
+                      &context.title_import_export.key_handle);
+  if (ret != IPC_SUCCESS)
+    return ret;
 
   context.title_import_export.valid = true;
   return IPC_SUCCESS;
@@ -150,11 +181,29 @@ IPCCommandResult ES::ImportTmd(Context& context, const IOCtlVRequest& request)
   return GetDefaultReply(ImportTmd(context, tmd));
 }
 
+static ReturnCode InitTitleImportKey(const std::vector<u8>& ticket_bytes, IOSC& iosc,
+                                     IOSC::Handle* handle)
+{
+  ReturnCode ret = iosc.CreateObject(handle, IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128, PID_ES);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  std::array<u8, 16> iv{};
+  std::copy_n(&ticket_bytes[offsetof(IOS::ES::Ticket, title_id)], sizeof(u64), iv.begin());
+  const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
+  if (index > 1)
+    return ES_INVALID_TICKET;
+
+  return iosc.ImportSecretKey(
+      *handle, index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY, iv.data(),
+      &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)], PID_ES);
+}
+
 ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
                                const std::vector<u8>& cert_chain)
 {
   INFO_LOG(IOS_ES, "ImportTitleInit");
-  context.title_import_export = {};
+  ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd.SetBytes(tmd_bytes);
   if (!context.title_import_export.tmd.IsValid())
   {
@@ -174,8 +223,6 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   if (!ticket.IsValid())
     return ES_NO_TICKET;
 
-  context.title_import_export.key = ticket.GetTitleKey(m_ios.GetIOSC());
-
   std::vector<u8> cert_store;
   ret = ReadCertStore(&cert_store);
   if (ret != IPC_SUCCESS)
@@ -183,6 +230,11 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
 
   ret = VerifyContainer(VerifyContainerType::Ticket, VerifyMode::DoNotUpdateCertStore, ticket,
                         cert_store);
+  if (ret != IPC_SUCCESS)
+    return ret;
+
+  ret = InitTitleImportKey(ticket.GetBytes(), m_ios.GetIOSC(),
+                           &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -300,10 +352,14 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   if (!context.title_import_export.valid || !context.title_import_export.content.valid)
     return ES_EINVAL;
 
-  std::vector<u8> decrypted_data = Common::AES::Decrypt(
-      context.title_import_export.key.data(), context.title_import_export.content.iv.data(),
+  std::vector<u8> decrypted_data(context.title_import_export.content.buffer.size());
+  const ReturnCode decrypt_ret = m_ios.GetIOSC().Decrypt(
+      context.title_import_export.key_handle, context.title_import_export.content.iv.data(),
       context.title_import_export.content.buffer.data(),
-      context.title_import_export.content.buffer.size());
+      context.title_import_export.content.buffer.size(), decrypted_data.data(), PID_ES);
+  if (decrypt_ret != IPC_SUCCESS)
+    return decrypt_ret;
+
   IOS::ES::Content content_info;
   context.title_import_export.tmd.FindContentById(context.title_import_export.content.id,
                                                   &content_info);
@@ -391,7 +447,7 @@ ReturnCode ES::ImportTitleDone(Context& context)
     return ES_EIO;
 
   INFO_LOG(IOS_ES, "ImportTitleDone: title %016" PRIx64, title_id);
-  context.title_import_export = {};
+  ResetTitleImportContext(&context, m_ios.GetIOSC());
   return IPC_SUCCESS;
 }
 
@@ -417,7 +473,7 @@ ReturnCode ES::ImportTitleCancel(Context& context)
     INFO_LOG(IOS_ES, "ImportTitleCancel: title %016" PRIx64, title_id);
   }
 
-  context.title_import_export = {};
+  ResetTitleImportContext(&context, m_ios.GetIOSC());
   return IPC_SUCCESS;
 }
 
@@ -579,17 +635,13 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   if (!tmd.IsValid())
     return FS_ENOENT;
 
-  context.title_import_export = {};
+  ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd = tmd;
 
-  const auto ticket = DiscIO::FindSignedTicket(context.title_import_export.tmd.GetTitleId());
-  if (!ticket.IsValid())
-    return ES_NO_TICKET;
-  if (ticket.GetTitleId() != context.title_import_export.tmd.GetTitleId())
-    return ES_EINVAL;
-
-  // FIXME: this is wrong. The title key is *not* used here. Key #5 or a null key is.
-  context.title_import_export.key = ticket.GetTitleKey(m_ios.GetIOSC());
+  const ReturnCode ret = InitBackupKey(GetTitleContext().tmd, m_ios.GetIOSC(),
+                                       &context.title_import_export.key_handle);
+  if (ret != IPC_SUCCESS)
+    return ret;
 
   const std::vector<u8>& raw_tmd = context.title_import_export.tmd.GetBytes();
   if (tmd_size != raw_tmd.size())
@@ -633,7 +685,7 @@ ReturnCode ES::ExportContentBegin(Context& context, u64 title_id, u32 content_id
   const s32 ret = OpenContent(context.title_import_export.tmd, content_info.index, 0);
   if (ret < 0)
   {
-    context.title_import_export = {};
+    ResetTitleImportContext(&context, m_ios.GetIOSC());
     return static_cast<ReturnCode>(ret);
   }
 
@@ -671,7 +723,7 @@ ReturnCode ES::ExportContentData(Context& context, u32 content_fd, u8* data, u32
   if (read_size < 0)
   {
     CloseContent(content_fd, 0);
-    context.title_import_export = {};
+    ResetTitleImportContext(&context, m_ios.GetIOSC());
     return ES_SHORT_READ;
   }
 
@@ -679,9 +731,13 @@ ReturnCode ES::ExportContentData(Context& context, u32 content_fd, u8* data, u32
   // let's just follow IOS here.
   buffer.resize(Common::AlignUp(buffer.size(), 32));
 
-  const std::vector<u8> output = Common::AES::Encrypt(context.title_import_export.key.data(),
-                                                      context.title_import_export.content.iv.data(),
-                                                      buffer.data(), buffer.size());
+  std::vector<u8> output(buffer.size());
+  const ReturnCode decrypt_ret = m_ios.GetIOSC().Encrypt(
+      context.title_import_export.key_handle, context.title_import_export.content.iv.data(),
+      buffer.data(), buffer.size(), output.data(), PID_ES);
+  if (decrypt_ret != IPC_SUCCESS)
+    return decrypt_ret;
+
   std::copy(output.cbegin(), output.cend(), data);
   return IPC_SUCCESS;
 }
@@ -719,7 +775,7 @@ IPCCommandResult ES::ExportContentEnd(Context& context, const IOCtlVRequest& req
 
 ReturnCode ES::ExportTitleDone(Context& context)
 {
-  context.title_import_export = {};
+  ResetTitleImportContext(&context, m_ios.GetIOSC());
   return IPC_SUCCESS;
 }
 

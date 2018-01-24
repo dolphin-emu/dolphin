@@ -97,49 +97,42 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 
   switch (sortData)
   {
-  case GameListCtrl::COLUMN_TITLE:
-    if (!strcasecmp(iso1->GetName().c_str(), iso2->GetName().c_str()))
-    {
-      if (iso1->GetGameID() != iso2->GetGameID())
-        return t * (iso1->GetGameID() > iso2->GetGameID() ? 1 : -1);
-      if (iso1->GetRevision() != iso2->GetRevision())
-        return t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
-      if (iso1->GetDiscNumber() != iso2->GetDiscNumber())
-        return t * (iso1->GetDiscNumber() > iso2->GetDiscNumber() ? 1 : -1);
-
-      wxString iso1_filename = wxFileNameFromPath(iso1->GetFileName());
-      wxString iso2_filename = wxFileNameFromPath(iso2->GetFileName());
-
-      if (iso1_filename != iso2_filename)
-        return t * wxStricmp(iso1_filename, iso2_filename);
-    }
-    return strcasecmp(iso1->GetName().c_str(), iso2->GetName().c_str()) * t;
   case GameListCtrl::COLUMN_MAKER:
-    return strcasecmp(iso1->GetCompany().c_str(), iso2->GetCompany().c_str()) * t;
+  {
+    int maker_cmp = strcasecmp(iso1->GetCompany().c_str(), iso2->GetCompany().c_str()) * t;
+    if (maker_cmp != 0)
+      return maker_cmp;
+    break;
+  }
   case GameListCtrl::COLUMN_FILENAME:
     return wxStricmp(wxFileNameFromPath(iso1->GetFileName()),
                      wxFileNameFromPath(iso2->GetFileName())) *
            t;
   case GameListCtrl::COLUMN_ID:
-    return strcasecmp(iso1->GetGameID().c_str(), iso2->GetGameID().c_str()) * t;
+  {
+    int id_cmp = strcasecmp(iso1->GetGameID().c_str(), iso2->GetGameID().c_str()) * t;
+    if (id_cmp != 0)
+      return id_cmp;
+    break;
+  }
   case GameListCtrl::COLUMN_COUNTRY:
     if (iso1->GetCountry() > iso2->GetCountry())
       return 1 * t;
     if (iso1->GetCountry() < iso2->GetCountry())
       return -1 * t;
-    return 0;
+    break;
   case GameListCtrl::COLUMN_SIZE:
     if (iso1->GetFileSize() > iso2->GetFileSize())
       return 1 * t;
     if (iso1->GetFileSize() < iso2->GetFileSize())
       return -1 * t;
-    return 0;
+    break;
   case GameListCtrl::COLUMN_PLATFORM:
     if (iso1->GetDetailedPlatform() > iso2->GetDetailedPlatform())
       return 1 * t;
     if (iso1->GetDetailedPlatform() < iso2->GetDetailedPlatform())
       return -1 * t;
-    return 0;
+    break;
 
   case GameListCtrl::COLUMN_EMULATION_STATE:
   {
@@ -149,8 +142,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
       return 1 * t;
     if (nState1 < nState2)
       return -1 * t;
-    else
-      return 0;
+    break;
   }
 
   case GameListCtrl::COLUMN_VR_STATE:
@@ -162,11 +154,29 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
       return 1 * t;
     if (nState1 < nState2)
       return -1 * t;
-    else
-      return 0;
+    break;
   }
-  break;
   }
+
+  if (sortData != GameListCtrl::COLUMN_TITLE)
+    t = 1;
+
+  int name_cmp = strcasecmp(iso1->GetName().c_str(), iso2->GetName().c_str()) * t;
+  if (name_cmp != 0)
+    return name_cmp;
+
+  if (iso1->GetGameID() != iso2->GetGameID())
+    return t * (iso1->GetGameID() > iso2->GetGameID() ? 1 : -1);
+  if (iso1->GetRevision() != iso2->GetRevision())
+    return t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
+  if (iso1->GetDiscNumber() != iso2->GetDiscNumber())
+    return t * (iso1->GetDiscNumber() > iso2->GetDiscNumber() ? 1 : -1);
+
+  wxString iso1_filename = wxFileNameFromPath(iso1->GetFileName());
+  wxString iso2_filename = wxFileNameFromPath(iso2->GetFileName());
+
+  if (iso1_filename != iso2_filename)
+    return t * wxStricmp(iso1_filename, iso2_filename);
 
   return 0;
 }
@@ -918,6 +928,9 @@ static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sor
   // return 0 for identity
   const GameListItem* iso1 = caller->GetISO(item1);
   const GameListItem* iso2 = caller->GetISO(item2);
+
+  if (iso1 == iso2)
+    return 0;
 
   return CompareGameListItems(iso1, iso2, sortData);
 }

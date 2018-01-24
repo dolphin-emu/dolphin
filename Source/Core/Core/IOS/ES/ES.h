@@ -13,6 +13,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
 
 class PointerWrap;
 
@@ -61,7 +62,7 @@ public:
 
     bool valid = false;
     IOS::ES::TMDReader tmd;
-    std::array<u8, 16> key{};
+    IOSC::Handle key_handle = 0;
     struct ContentContext
     {
       bool valid = false;
