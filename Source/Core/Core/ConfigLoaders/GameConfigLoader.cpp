@@ -8,6 +8,7 @@
 #include <array>
 #include <list>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -28,12 +29,16 @@
 
 namespace ConfigLoaders
 {
-using ConfigLocation = Config::ConfigLocation;
-
 // Returns all possible filenames in ascending order of priority
-static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision)
+std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optional<u16> revision)
 {
   std::vector<std::string> filenames;
+
+  if (id.empty())
+    return filenames;
+
+  // INIs that match the system code (unique for each Virtual Console system)
+  filenames.push_back(id.substr(0, 1) + ".ini");
 
   // INIs that match all regions
   if (id.size() >= 4)
@@ -43,11 +48,13 @@ static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 r
   filenames.push_back(id + ".ini");
 
   // INIs with specific revisions
-  filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
+  if (revision)
+    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
 
   return filenames;
 }
 
+using ConfigLocation = Config::ConfigLocation;
 using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLocation>;
 
 // This is a mapping from the legacy section-key pairs to ConfigLocations.

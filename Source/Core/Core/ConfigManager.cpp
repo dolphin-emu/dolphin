@@ -27,6 +27,7 @@
 #include "Core/Analytics.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Boot/Boot.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
@@ -1444,7 +1445,7 @@ IniFile SConfig::LoadGameIni() const
 IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
   return game_ini;
 }
@@ -1452,7 +1453,7 @@ IniFile SConfig::LoadDefaultGameIni(const std::string& id, std::optional<u16> re
 IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
 }
@@ -1460,35 +1461,9 @@ IniFile SConfig::LoadLocalGameIni(const std::string& id, std::optional<u16> revi
 IniFile SConfig::LoadGameIni(const std::string& id, std::optional<u16> revision)
 {
   IniFile game_ini;
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-  for (const std::string& filename : GetGameIniFilenames(id, revision))
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(id, revision))
     game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
   return game_ini;
-}
-
-// Returns all possible filenames in ascending order of priority
-std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id,
-                                                      std::optional<u16> revision)
-{
-  std::vector<std::string> filenames;
-
-  if (id.empty())
-    return filenames;
-
-  // INIs that match the system code (unique for each Virtual Console system)
-  filenames.push_back(id.substr(0, 1) + ".ini");
-
-  // INIs that match all regions
-  if (id.size() >= 4)
-    filenames.push_back(id.substr(0, 3) + ".ini");
-
-  // Regular INIs
-  filenames.push_back(id + ".ini");
-
-  // INIs with specific revisions
-  if (revision)
-    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
-
-  return filenames;
 }

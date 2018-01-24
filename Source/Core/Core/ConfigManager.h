@@ -255,9 +255,6 @@ struct SConfig : NonCopyable
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
-  static std::vector<std::string> GetGameIniFilenames(const std::string& id,
-                                                      std::optional<u16> revision);
-
   std::string m_NANDPath;
   std::string m_DumpPath;
 
