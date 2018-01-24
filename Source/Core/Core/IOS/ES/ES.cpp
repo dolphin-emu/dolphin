@@ -321,15 +321,7 @@ void ES::Context::DoState(PointerWrap& p)
 {
   p.Do(uid);
   p.Do(gid);
-
-  title_import.tmd.DoState(p);
-  p.Do(title_import.content_id);
-  p.Do(title_import.content_buffer);
-
-  p.Do(title_export.valid);
-  title_export.tmd.DoState(p);
-  p.Do(title_export.title_key);
-  p.Do(title_export.contents);
+  title_import_export.DoState(p);
 
   p.Do(active);
   p.Do(ipc_fd);
