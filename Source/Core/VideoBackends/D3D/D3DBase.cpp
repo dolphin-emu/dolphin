@@ -63,8 +63,6 @@ unsigned int xres, yres;
 
 bool bFrameInProgress = false;
 
-#define NUM_SWAPCHAIN_BUFFERS 1
-
 HRESULT LoadDXGI()
 {
   if (dxgi_dll_ref++ > 0)
@@ -439,7 +437,7 @@ HRESULT Create(HWND wnd)
   }
 
   DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
-  swap_chain_desc.BufferCount = NUM_SWAPCHAIN_BUFFERS;
+  swap_chain_desc.BufferCount = 1;
   swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
   swap_chain_desc.OutputWindow = wnd;
   swap_chain_desc.SampleDesc.Count = 1;
@@ -548,6 +546,12 @@ HRESULT Create(HWND wnd)
   SAFE_RELEASE(factory);
   SAFE_RELEASE(output);
   SAFE_RELEASE(adapter);
+
+  if (SConfig::GetInstance().bFullscreen && !g_ActiveConfig.bBorderlessFullscreen)
+  {
+    swapchain->SetFullscreenState(true, nullptr);
+    swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  }
 
   ID3D11Texture2D* buf;
   hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
@@ -707,7 +711,7 @@ void Reset()
   GetClientRect(hWnd, &client);
   xres = client.right - client.left;
   yres = client.bottom - client.top;
-  D3D::swapchain->ResizeBuffers(NUM_SWAPCHAIN_BUFFERS, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+  D3D::swapchain->ResizeBuffers(0, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
   // recreate back buffer texture
   ID3D11Texture2D* buf;
