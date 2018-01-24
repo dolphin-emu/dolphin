@@ -32,6 +32,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -238,6 +240,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+  connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -282,6 +285,8 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::OnStartRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
+          &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
     bool read_only = !Movie::IsReadOnly();
     Movie::SetReadOnly(read_only);
@@ -1046,4 +1051,17 @@ void MainWindow::OnExportRecording()
   Core::SetState(Core::State::Running);
 
   Movie::SaveRecording(dtm_file.toStdString());
+}
+
+void MainWindow::OnConnectWiiRemote(int id)
+{
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
+    return;
+  Core::RunAsCPUThread([&] {
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
+    const bool is_connected = bt && bt->AccessWiiMote(id | 0x100)->IsConnected();
+    Wiimote::Connect(id, !is_connected);
+  });
 }

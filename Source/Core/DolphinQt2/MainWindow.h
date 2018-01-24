@@ -112,6 +112,7 @@ private:
 
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
+  void OnConnectWiiRemote(int id);
 
   void OnPlayRecording();
   void OnStartRecording();
