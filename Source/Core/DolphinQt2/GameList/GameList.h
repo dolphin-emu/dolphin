@@ -21,13 +21,18 @@ public:
   explicit GameList(QWidget* parent = nullptr);
   QString GetSelectedGame() const;
 
-public slots:
   void SetTableView() { SetPreferredView(true); }
   void SetListView() { SetPreferredView(false); }
   void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
   void OnColumnVisibilityToggled(const QString& row, bool visible);
+  void OnGameListVisibilityChanged();
 
-private slots:
+signals:
+  void GameSelected();
+  void EmulationStarted();
+  void EmulationStopped();
+
+private:
   void ShowContextMenu(const QPoint&);
   void OpenContainingFolder();
   void OpenProperties();
@@ -41,12 +46,6 @@ private slots:
   void CompressISO();
   void OnHeaderViewChanged();
 
-signals:
-  void GameSelected();
-  void EmulationStarted();
-  void EmulationStopped();
-
-private:
   void MakeTableView();
   void MakeListView();
   void MakeEmptyView();

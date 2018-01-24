@@ -77,14 +77,14 @@ void MenuBar::EmulationStopped()
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("File"));
-  m_open_action = file_menu->addAction(tr("Open"), this, SIGNAL(Open()));
-  m_exit_action = file_menu->addAction(tr("Exit"), this, SIGNAL(Exit()));
+  m_open_action = file_menu->addAction(tr("Open"), this, &MenuBar::Open);
+  m_exit_action = file_menu->addAction(tr("Exit"), this, &MenuBar::Exit);
 }
 
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("Tools"));
-  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, SLOT(InstallWAD()));
+  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu = tools_menu->addAction(QStringLiteral(""), [this] { emit BootWiiSystemMenu(); });
@@ -107,13 +107,13 @@ void MenuBar::AddToolsMenu()
 void MenuBar::AddEmulationMenu()
 {
   QMenu* emu_menu = addMenu(tr("Emulation"));
-  m_play_action = emu_menu->addAction(tr("Play"), this, SIGNAL(Play()));
-  m_pause_action = emu_menu->addAction(tr("Pause"), this, SIGNAL(Pause()));
-  m_stop_action = emu_menu->addAction(tr("Stop"), this, SIGNAL(Stop()));
-  m_reset_action = emu_menu->addAction(tr("Reset"), this, SIGNAL(Reset()));
-  m_fullscreen_action = emu_menu->addAction(tr("Fullscreen"), this, SIGNAL(Fullscreen()));
-  m_frame_advance_action = emu_menu->addAction(tr("Frame Advance"), this, SIGNAL(FrameAdvance()));
-  m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, SIGNAL(Screenshot()));
+  m_play_action = emu_menu->addAction(tr("Play"), this, &MenuBar::Play);
+  m_pause_action = emu_menu->addAction(tr("Pause"), this, &MenuBar::Pause);
+  m_stop_action = emu_menu->addAction(tr("Stop"), this, &MenuBar::Stop);
+  m_reset_action = emu_menu->addAction(tr("Reset"), this, &MenuBar::Reset);
+  m_fullscreen_action = emu_menu->addAction(tr("Fullscreen"), this, &MenuBar::Fullscreen);
+  m_frame_advance_action = emu_menu->addAction(tr("Frame Advance"), this, &MenuBar::FrameAdvance);
+  m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, &MenuBar::Screenshot);
   AddStateLoadMenu(emu_menu);
   AddStateSaveMenu(emu_menu);
   AddStateSlotMenu(emu_menu);
@@ -123,10 +123,10 @@ void MenuBar::AddEmulationMenu()
 void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 {
   m_state_load_menu = emu_menu->addMenu(tr("Load State"));
-  m_state_load_menu->addAction(tr("Load State from File"), this, SIGNAL(StateLoad()));
-  m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, SIGNAL(StateLoadSlot()));
+  m_state_load_menu->addAction(tr("Load State from File"), this, &MenuBar::StateLoad);
+  m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
-  m_state_load_menu->addAction(tr("Undo Load State"), this, SIGNAL(StateLoadUndo()));
+  m_state_load_menu->addAction(tr("Undo Load State"), this, &MenuBar::StateLoadUndo);
 
   for (int i = 1; i <= 10; i++)
   {
@@ -139,11 +139,11 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 {
   m_state_save_menu = emu_menu->addMenu(tr("Save State"));
-  m_state_save_menu->addAction(tr("Save State to File"), this, SIGNAL(StateSave()));
-  m_state_save_menu->addAction(tr("Save State to Selected Slot"), this, SIGNAL(StateSaveSlot()));
-  m_state_save_menu->addAction(tr("Save State to Oldest Slot"), this, SIGNAL(StateSaveOldest()));
+  m_state_save_menu->addAction(tr("Save State to File"), this, &MenuBar::StateSave);
+  m_state_save_menu->addAction(tr("Save State to Selected Slot"), this, &MenuBar::StateSaveSlot);
+  m_state_save_menu->addAction(tr("Save State to Oldest Slot"), this, &MenuBar::StateSaveOldest);
   m_state_save_slots_menu = m_state_save_menu->addMenu(tr("Save State to Slot"));
-  m_state_save_menu->addAction(tr("Undo Save State"), this, SIGNAL(StateSaveUndo()));
+  m_state_save_menu->addAction(tr("Undo Save State"), this, &MenuBar::StateSaveUndo);
 
   for (int i = 1; i <= 10; i++)
   {
@@ -191,6 +191,9 @@ void MenuBar::AddViewMenu()
   AddGameListTypeSection(view_menu);
   view_menu->addSeparator();
   AddTableColumnsMenu(view_menu);
+  view_menu->addSeparator();
+  AddShowPlatformsMenu(view_menu);
+  AddShowRegionsMenu(view_menu);
 }
 
 void MenuBar::AddOptionsMenu()
@@ -220,8 +223,7 @@ void MenuBar::AddHelpMenu()
   });
 
   help_menu->addSeparator();
-
-  help_menu->addAction(tr("About"), this, SIGNAL(ShowAboutDialog()));
+  help_menu->addAction(tr("About"), this, &MenuBar::ShowAboutDialog);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
@@ -270,6 +272,66 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
     connect(action, &QAction::toggled, [this, config, key](bool value) {
       *config = value;
       emit ColumnVisibilityToggled(key, value);
+    });
+  }
+}
+
+void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
+{
+  static const QMap<QString, bool*> platform_map{
+      {tr("Show Wii"), &SConfig::GetInstance().m_ListWii},
+      {tr("Show GameCube"), &SConfig::GetInstance().m_ListGC},
+      {tr("Show WAD"), &SConfig::GetInstance().m_ListWad},
+      {tr("Show ELF/DOL"), &SConfig::GetInstance().m_ListElfDol}};
+
+  QActionGroup* platform_group = new QActionGroup(this);
+  QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
+  platform_group->setExclusive(false);
+
+  for (const auto& key : platform_map.keys())
+  {
+    bool* config = platform_map[key];
+    QAction* action = platform_group->addAction(plat_menu->addAction(key));
+    action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      emit GameListPlatformVisibilityToggled(key, value);
+    });
+  }
+}
+
+void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
+{
+  static const QMap<QString, bool*> region_map{
+      {tr("Show JAP"), &SConfig::GetInstance().m_ListJap},
+      {tr("Show PAL"), &SConfig::GetInstance().m_ListPal},
+      {tr("Show USA"), &SConfig::GetInstance().m_ListUsa},
+      {tr("Show Australia"), &SConfig::GetInstance().m_ListAustralia},
+      {tr("Show France"), &SConfig::GetInstance().m_ListFrance},
+      {tr("Show Germany"), &SConfig::GetInstance().m_ListGermany},
+      {tr("Show Italy"), &SConfig::GetInstance().m_ListItaly},
+      {tr("Show Korea"), &SConfig::GetInstance().m_ListKorea},
+      {tr("Show Netherlands"), &SConfig::GetInstance().m_ListNetherlands},
+      {tr("Show Russia"), &SConfig::GetInstance().m_ListRussia},
+      {tr("Show Spain"), &SConfig::GetInstance().m_ListSpain},
+      {tr("Show Taiwan"), &SConfig::GetInstance().m_ListTaiwan},
+      {tr("Show World"), &SConfig::GetInstance().m_ListWorld},
+      {tr("Show Unknown"), &SConfig::GetInstance().m_ListUnknown}};
+
+  QActionGroup* region_group = new QActionGroup(this);
+  QMenu* region_menu = view_menu->addMenu(tr("Show Regions"));
+  region_group->setExclusive(false);
+
+  for (const auto& key : region_map.keys())
+  {
+    bool* config = region_map[key];
+    QAction* action = region_group->addAction(region_menu->addAction(key));
+    action->setCheckable(true);
+    action->setChecked(*config);
+    connect(action, &QAction::toggled, [this, config, key](bool value) {
+      *config = value;
+      emit GameListRegionVisibilityToggled(key, value);
     });
   }
 }

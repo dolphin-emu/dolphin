@@ -26,6 +26,7 @@
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
+#include "DolphinQt2/GameList/TableProxyModel.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
 
@@ -34,7 +35,7 @@ static bool CompressCB(const std::string&, float, void*);
 GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 {
   m_model = new GameListModel(this);
-  m_table_proxy = new QSortFilterProxyModel(this);
+  m_table_proxy = new TableProxyModel(this);
   m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
   m_table_proxy->setSortRole(Qt::InitialSortOrderRole);
   m_table_proxy->setSourceModel(m_model);
@@ -147,19 +148,19 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
   DiscIO::Platform platform = GameFile(game).GetPlatformID();
-  menu->addAction(tr("Properties"), this, SLOT(OpenProperties()));
-  menu->addAction(tr("Wiki"), this, SLOT(OpenWiki()));
+  menu->addAction(tr("Properties"), this, &GameList::OpenProperties);
+  menu->addAction(tr("Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
 
   if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Default ISO"), this, SLOT(SetDefaultISO()));
+    menu->addAction(tr("Default ISO"), this, &GameList::SetDefaultISO);
     const auto blob_type = GameFile(game).GetBlobType();
 
     if (blob_type == DiscIO::BlobType::GCZ)
-      menu->addAction(tr("Decompress ISO"), this, SLOT(DecompressISO()));
+      menu->addAction(tr("Decompress ISO"), this, &GameList::CompressISO);
     else if (blob_type == DiscIO::BlobType::PLAIN)
-      menu->addAction(tr("Compress ISO"), this, SLOT(CompressISO()));
+      menu->addAction(tr("Compress ISO"), this, &GameList::CompressISO);
 
     menu->addSeparator();
   }
@@ -189,13 +190,13 @@ void GameList::ShowContextMenu(const QPoint&)
 
   if (platform == DiscIO::Platform::WII_WAD || platform == DiscIO::Platform::WII_DISC)
   {
-    menu->addAction(tr("Open Wii save folder"), this, SLOT(OpenSaveFolder()));
-    menu->addAction(tr("Export Wii save (Experimental)"), this, SLOT(ExportWiiSave()));
+    menu->addAction(tr("Open Wii save folder"), this, &GameList::OpenSaveFolder);
+    menu->addAction(tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
     menu->addSeparator();
   }
 
-  menu->addAction(tr("Open Containing Folder"), this, SLOT(OpenContainingFolder()));
-  menu->addAction(tr("Remove File"), this, SLOT(DeleteFile()));
+  menu->addAction(tr("Open Containing Folder"), this, &GameList::OpenContainingFolder);
+  menu->addAction(tr("Remove File"), this, &GameList::DeleteFile);
   menu->exec(QCursor::pos());
 }
 
@@ -444,6 +445,12 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Quality"), GameListModel::COL_RATING}};
 
   m_table->setColumnHidden(rowname_to_col_index[row], !visible);
+}
+
+void GameList::OnGameListVisibilityChanged()
+{
+  m_table_proxy->invalidate();
+  m_list_proxy->invalidate();
 }
 
 static bool CompressCB(const std::string& text, float percent, void* ptr)

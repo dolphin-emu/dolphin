@@ -36,7 +36,7 @@ signals:
   void EmulationPaused();
   void EmulationStopped();
 
-private slots:
+private:
   void Open();
   void Play();
   void Pause();
@@ -63,7 +63,6 @@ private slots:
   void FullScreen();
   void ScreenShot();
 
-private:
   void CreateComponents();
 
   void ConnectGameList();

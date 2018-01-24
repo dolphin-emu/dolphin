@@ -29,7 +29,6 @@ public:
   explicit GameTracker(QObject* parent = nullptr);
   ~GameTracker();
 
-public slots:
   void AddDirectory(const QString& dir);
   void RemoveDirectory(const QString& dir);
 
@@ -54,7 +53,7 @@ class GameLoader final : public QObject
 {
   Q_OBJECT
 
-public slots:
+public:
   void LoadGame(const QString& path)
   {
     GameFile* game = new GameFile(path);

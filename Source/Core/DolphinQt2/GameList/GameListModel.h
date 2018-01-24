@@ -27,6 +27,7 @@ public:
 
   // Path of the Game at the specified index.
   QString GetPath(int index) const { return m_games[index]->GetFilePath(); }
+  bool ShouldDisplayGameListItem(int index) const;
   enum
   {
     COL_PLATFORM = 0,
@@ -41,7 +42,6 @@ public:
     NUM_COLS
   };
 
-public slots:
   void UpdateGame(QSharedPointer<GameFile> game);
   void RemoveGame(const QString& path);
 

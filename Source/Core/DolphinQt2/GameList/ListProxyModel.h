@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <QSortFilterProxyModel>
 
 // This subclass of QSortFilterProxyModel transforms the raw data into a
@@ -13,4 +15,5 @@ class ListProxyModel final : public QSortFilterProxyModel
 public:
   explicit ListProxyModel(QObject* parent = nullptr);
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
 };
