@@ -41,9 +41,9 @@ void ARCodeWidget::CreateWidgets()
 {
   m_warning = new CheatWarningWidget(m_game_id);
   m_code_list = new QListWidget;
-  m_code_add = new QPushButton(tr("Add New Code..."));
-  m_code_edit = new QPushButton(tr("Edit Code..."));
-  m_code_remove = new QPushButton(tr("Remove Code"));
+  m_code_add = new QPushButton(tr("&Add New Code..."));
+  m_code_edit = new QPushButton(tr("&Edit Code..."));
+  m_code_remove = new QPushButton(tr("&Remove Code"));
 
   auto* button_layout = new QHBoxLayout;
 
@@ -90,7 +90,7 @@ void ARCodeWidget::OnSelectionChanged()
   bool user_defined = m_ar_codes[m_code_list->row(selected)].user_defined;
 
   m_code_remove->setEnabled(user_defined);
-  m_code_edit->setText(user_defined ? tr("Edit Code...") : tr("Clone and Edit Code..."));
+  m_code_edit->setText(user_defined ? tr("&Edit Code...") : tr("Clone and &Edit Code..."));
 }
 
 void ARCodeWidget::UpdateList()
