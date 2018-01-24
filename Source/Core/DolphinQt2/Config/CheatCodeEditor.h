@@ -11,7 +11,7 @@ class QTextEdit;
 
 namespace ActionReplay
 {
-class ARCode;
+struct ARCode;
 }
 
 namespace Gecko
