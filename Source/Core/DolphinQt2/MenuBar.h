@@ -44,6 +44,10 @@ signals:
   void PerformOnlineUpdate(const std::string& region);
 
   // Options
+  void Configure();
+  void ConfigureGraphics();
+  void ConfigureAudio();
+  void ConfigureControllers();
   void ConfigureHotkeys();
 
   // View

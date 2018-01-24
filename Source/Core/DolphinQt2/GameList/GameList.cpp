@@ -91,7 +91,9 @@ void GameList::MakeTableView()
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
+  connect(hor_header, &QHeaderView::sectionMoved, this, &GameList::OnHeaderViewChanged);
 
+  hor_header->setSectionsMovable(true);
   hor_header->restoreState(QSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
