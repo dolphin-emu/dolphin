@@ -22,6 +22,8 @@
 
 WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 {
+  // i18n: This kind of "watch" is used for watching emulated memory.
+  // It's not related to timekeeping devices.
   setWindowTitle(tr("Watch"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
@@ -105,8 +107,9 @@ void WatchWidget::Update()
 
   m_table->setRowCount(size + 1);
 
-  m_table->setHorizontalHeaderLabels(
-      {tr("Label"), tr("Address"), tr("Hexadecimal"), tr("Decimal"), tr("String")});
+  m_table->setHorizontalHeaderLabels({tr("Label"), tr("Address"), tr("Hexadecimal"), tr("Decimal"),
+                                      // i18n: Data type used in computing
+                                      tr("String")});
 
   for (int i = 0; i < size; i++)
   {
@@ -218,6 +221,8 @@ void WatchWidget::ShowContextMenu()
 
       if (row >= 0)
       {
+        // i18n: This kind of "watch" is used for watching emulated memory.
+        // It's not related to timekeeping devices.
         AddAction(menu, tr("&Delete Watch"), this, [this, row] { DeleteWatch(row); });
         AddAction(menu, tr("&Add Memory Breakpoint"), this,
                   [this, row] { AddWatchBreakpoint(row); });
@@ -280,7 +285,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       }
       else
       {
-        QMessageBox::critical(this, tr("Error"), tr("Bad input provided"));
+        QMessageBox::critical(this, tr("Error"), tr("Invalid input provided"));
       }
       break;
     }

@@ -48,18 +48,25 @@ void NewBreakpointDialog::CreateWidgets()
   m_memory_box = new QGroupBox;
   m_memory_use_address = new QRadioButton(tr("Address"));
   m_memory_use_address->setChecked(true);
+  // i18n: A range of memory addresses
   m_memory_use_range = new QRadioButton(tr("Range"));
   m_memory_address_from = new QLineEdit;
   m_memory_address_to = new QLineEdit;
   m_memory_address_from_label = new QLabel;  // Set by OnAddressTypeChanged
   m_memory_address_to_label = new QLabel(tr("To:"));
+  // i18n: This is a selectable condition when adding a breakpoint
   m_memory_on_read = new QRadioButton(tr("Read"));
+  // i18n: This is a selectable condition when adding a breakpoint
   m_memory_on_write = new QRadioButton(tr("Write"));
+  // i18n: This is a selectable condition when adding a breakpoint
   m_memory_on_read_and_write = new QRadioButton(tr("Read or Write"));
   m_memory_on_write->setChecked(true);
-  m_memory_do_log = new QRadioButton(tr("Log"));
+  // i18n: This is a selectable action when adding a breakpoint
+  m_memory_do_log = new QRadioButton(tr("Write to Log"));
+  // i18n: This is a selectable action when adding a breakpoint
   m_memory_do_break = new QRadioButton(tr("Break"));
-  m_memory_do_log_and_break = new QRadioButton(tr("Log and Break"));
+  // i18n: This is a selectable action when adding a breakpoint
+  m_memory_do_log_and_break = new QRadioButton(tr("Write to Log and Break"));
   m_memory_do_log_and_break->setChecked(true);
 
   auto* memory_layout = new QGridLayout;
@@ -70,11 +77,11 @@ void NewBreakpointDialog::CreateWidgets()
   memory_layout->addWidget(m_memory_address_from, 1, 1);
   memory_layout->addWidget(m_memory_address_to_label, 1, 2);
   memory_layout->addWidget(m_memory_address_to, 1, 3);
-  memory_layout->addWidget(new QLabel(tr("On...")), 2, 0);
+  memory_layout->addWidget(new QLabel(tr("Condition:")), 2, 0);
   memory_layout->addWidget(m_memory_on_read, 2, 1);
   memory_layout->addWidget(m_memory_on_write, 2, 2);
   memory_layout->addWidget(m_memory_on_read_and_write, 2, 3);
-  memory_layout->addWidget(new QLabel(tr("Do...")), 3, 0);
+  memory_layout->addWidget(new QLabel(tr("Action:")), 3, 0);
   memory_layout->addWidget(m_memory_do_log, 3, 1);
   memory_layout->addWidget(m_memory_do_break, 3, 2);
   memory_layout->addWidget(m_memory_do_log_and_break, 3, 3);
@@ -123,7 +130,7 @@ void NewBreakpointDialog::OnAddressTypeChanged()
 void NewBreakpointDialog::accept()
 {
   auto invalid_input = [this](QString field) {
-    QMessageBox::critical(this, tr("Error"), tr("Bad input provided for %1 field").arg(field));
+    QMessageBox::critical(this, tr("Error"), tr("Invalid input for the field \"%1\"").arg(field));
   };
 
   bool instruction = m_instruction_bp->isChecked();
@@ -145,7 +152,7 @@ void NewBreakpointDialog::accept()
 
     if (!good)
     {
-      invalid_input(tr("address"));
+      invalid_input(tr("Address"));
       return;
     }
 
@@ -157,7 +164,7 @@ void NewBreakpointDialog::accept()
 
     if (!good)
     {
-      invalid_input(ranged ? tr("from") : tr("address"));
+      invalid_input(ranged ? tr("From") : tr("Address"));
       return;
     }
 
@@ -166,7 +173,7 @@ void NewBreakpointDialog::accept()
       u32 to = m_memory_address_to->text().toUInt(&good, 16);
       if (!good)
       {
-        invalid_input(tr("to"));
+        invalid_input(tr("To"));
         return;
       }
 
