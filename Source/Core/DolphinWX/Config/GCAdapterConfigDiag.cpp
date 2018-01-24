@@ -71,12 +71,12 @@ void GCAdapterConfigDiag::ScheduleAdapterUpdate()
 
 void GCAdapterConfigDiag::OnUpdateAdapter(wxCommandEvent& WXUNUSED(event))
 {
-  bool unpause = Core::PauseAndLock(true);
-  if (GCAdapter::IsDetected())
-    m_adapter_status->SetLabelText(_("Adapter Detected"));
-  else
-    m_adapter_status->SetLabelText(_("Adapter Not Detected"));
-  Core::PauseAndLock(false, unpause);
+  Core::RunAsCPUThread([this] {
+    if (GCAdapter::IsDetected())
+      m_adapter_status->SetLabelText(_("Adapter Detected"));
+    else
+      m_adapter_status->SetLabelText(_("Adapter Not Detected"));
+  });
 }
 
 void GCAdapterConfigDiag::OnAdapterRumble(wxCommandEvent& event)

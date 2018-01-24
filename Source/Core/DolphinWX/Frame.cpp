@@ -1263,9 +1263,7 @@ void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
   if (!g_renderer || g_renderer->IsFullscreen() == enable_fullscreen)
     return;
 
-  bool was_unpaused = Core::PauseAndLock(true);
-  g_renderer->SetFullscreen(enable_fullscreen);
-  Core::PauseAndLock(false, was_unpaused);
+  Core::RunAsCPUThread([enable_fullscreen] { g_renderer->SetFullscreen(enable_fullscreen); });
 }
 
 void CFrame::PollHotkeys(wxTimerEvent& event)

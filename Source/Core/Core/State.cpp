@@ -214,42 +214,36 @@ void LoadFromBuffer(std::vector<u8>& buffer)
     return;
   }
 
-  bool wasUnpaused = Core::PauseAndLock(true);
-
-  u8* ptr = &buffer[0];
-  PointerWrap p(&ptr, PointerWrap::MODE_READ);
-  DoState(p);
-
-  Core::PauseAndLock(false, wasUnpaused);
+  Core::RunAsCPUThread([&] {
+    u8* ptr = &buffer[0];
+    PointerWrap p(&ptr, PointerWrap::MODE_READ);
+    DoState(p);
+  });
 }
 
 void SaveToBuffer(std::vector<u8>& buffer)
 {
-  bool wasUnpaused = Core::PauseAndLock(true);
+  Core::RunAsCPUThread([&] {
+    u8* ptr = nullptr;
+    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
-  u8* ptr = nullptr;
-  PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+    DoState(p);
+    const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+    buffer.resize(buffer_size);
 
-  DoState(p);
-  const size_t buffer_size = reinterpret_cast<size_t>(ptr);
-  buffer.resize(buffer_size);
-
-  ptr = &buffer[0];
-  p.SetMode(PointerWrap::MODE_WRITE);
-  DoState(p);
-
-  Core::PauseAndLock(false, wasUnpaused);
+    ptr = &buffer[0];
+    p.SetMode(PointerWrap::MODE_WRITE);
+    DoState(p);
+  });
 }
 
 void VerifyBuffer(std::vector<u8>& buffer)
 {
-  bool wasUnpaused = Core::PauseAndLock(true);
-
-  u8* ptr = &buffer[0];
-  PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
-  DoState(p);
-
-  Core::PauseAndLock(false, wasUnpaused);
+  Core::RunAsCPUThread([&] {
+    u8* ptr = &buffer[0];
+    PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
+    DoState(p);
+  });
 }
 
 // return state number not in map
@@ -406,48 +400,44 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 void SaveAs(const std::string& filename, bool wait)
 {
-  // Pause the core while we save the state
-  bool wasUnpaused = Core::PauseAndLock(true);
-
-  // Measure the size of the buffer.
-  u8* ptr = nullptr;
-  PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-  DoState(p);
-  const size_t buffer_size = reinterpret_cast<size_t>(ptr);
-
-  // Then actually do the write.
-  {
-    std::lock_guard<std::mutex> lk(g_cs_current_buffer);
-    g_current_buffer.resize(buffer_size);
-    ptr = &g_current_buffer[0];
-    p.SetMode(PointerWrap::MODE_WRITE);
+  Core::RunAsCPUThread([&] {
+    // Measure the size of the buffer.
+    u8* ptr = nullptr;
+    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
     DoState(p);
-  }
+    const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
-  if (p.GetMode() == PointerWrap::MODE_WRITE)
-  {
-    Core::DisplayMessage("Saving State...", 1000);
+    // Then actually do the write.
+    {
+      std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+      g_current_buffer.resize(buffer_size);
+      ptr = &g_current_buffer[0];
+      p.SetMode(PointerWrap::MODE_WRITE);
+      DoState(p);
+    }
 
-    CompressAndDumpState_args save_args;
-    save_args.buffer_vector = &g_current_buffer;
-    save_args.buffer_mutex = &g_cs_current_buffer;
-    save_args.filename = filename;
-    save_args.wait = wait;
+    if (p.GetMode() == PointerWrap::MODE_WRITE)
+    {
+      Core::DisplayMessage("Saving State...", 1000);
 
-    Flush();
-    g_save_thread = std::thread(CompressAndDumpState, save_args);
-    g_compressAndDumpStateSyncEvent.Wait();
+      CompressAndDumpState_args save_args;
+      save_args.buffer_vector = &g_current_buffer;
+      save_args.buffer_mutex = &g_cs_current_buffer;
+      save_args.filename = filename;
+      save_args.wait = wait;
 
-    g_last_filename = filename;
-  }
-  else
-  {
-    // someone aborted the save by changing the mode?
-    Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
-  }
+      Flush();
+      g_save_thread = std::thread(CompressAndDumpState, save_args);
+      g_compressAndDumpStateSyncEvent.Wait();
 
-  // Resume the core and disable stepping
-  Core::PauseAndLock(false, wasUnpaused);
+      g_last_filename = filename;
+    }
+    else
+    {
+      // someone aborted the save by changing the mode?
+      Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
+    }
+  });
 }
 
 bool ReadHeader(const std::string& filename, StateHeader& header)
@@ -557,92 +547,94 @@ void LoadAs(const std::string& filename)
     return;
   }
 
-  // Stop the core while we load the state
-  bool wasUnpaused = Core::PauseAndLock(true) || ARBruteForcer::ch_bruteforce;
+  Core::RunAsCPUThread([&] {
+    g_loadDepth++;
 
-  g_loadDepth++;
-
-  // Save temp buffer for undo load state
-  if (!ARBruteForcer::ch_bruteforce && !Movie::IsJustStartingRecordingInputFromSaveState())
-  {
-    std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
-    SaveToBuffer(g_undo_load_buffer);
-    if (Movie::IsMovieActive())
-      Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-    else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
-      File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-  }
-
-  bool loaded = false;
-  bool loadedSuccessfully = false;
-  std::string version_created_by;
-
-  // load from memory during culling code bruteforcing, because we are loading state tens of
-  // thousands of times.
-  if (ARBruteForcer::ch_bruteforce && !g_bruteforce_buffer.empty() &&
-      filename == g_bruteforce_filename)
-  {
-    u8* ptr = &g_bruteforce_buffer[0];
-    PointerWrap p(&ptr, PointerWrap::MODE_READ);
-    version_created_by = DoState(p);
-    loaded = true;
-    loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
-  }
-  else
-  // brackets here are so buffer gets freed ASAP
-  {
-    std::vector<u8> buffer;
-    LoadFileStateData(filename, buffer);
-
-    if (!buffer.empty())
+    // Save temp buffer for undo load state
+    if (!ARBruteForcer::ch_bruteforce && !Movie::IsJustStartingRecordingInputFromSaveState())
     {
-      u8* ptr = &buffer[0];
-      PointerWrap p(&ptr, PointerWrap::MODE_READ);
-      version_created_by = DoState(p);
-      loaded = true;
-      loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
-      if (ARBruteForcer::ch_bruteforce && loadedSuccessfully)
+      std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+      SaveToBuffer(g_undo_load_buffer);
+      if (Movie::IsMovieActive())
+        Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+      else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
+        File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+    }
+
+    bool loaded = false;
+    bool loadedSuccessfully = false;
+    std::string version_created_by;
+
+    // brackets here are so buffer gets freed ASAP
+    {
+      std::vector<u8> buffer;
+      LoadFileStateData(filename, buffer);
+
+      // load from memory during culling code bruteforcing, because we are loading state tens of
+      // thousands of times.
+      if (ARBruteForcer::ch_bruteforce && !g_bruteforce_buffer.empty() &&
+          filename == g_bruteforce_filename)
       {
-        g_bruteforce_filename = filename;
-        g_bruteforce_buffer.swap(buffer);
+        u8* ptr = &g_bruteforce_buffer[0];
+        PointerWrap p(&ptr, PointerWrap::MODE_READ);
+        version_created_by = DoState(p);
+        loaded = true;
+        loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+      }
+      else
+      // brackets here are so buffer2 gets freed ASAP
+      {
+        std::vector<u8> buffer2;
+        LoadFileStateData(filename, buffer2);
+
+        if (!buffer2.empty())
+        {
+          u8* ptr = &buffer2[0];
+          PointerWrap p(&ptr, PointerWrap::MODE_READ);
+          version_created_by = DoState(p);
+          loaded = true;
+          loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+          if (ARBruteForcer::ch_bruteforce && loadedSuccessfully)
+          {
+            g_bruteforce_filename = filename;
+            g_bruteforce_buffer.swap(buffer2);
+          }
+        }
+	  }
+	}
+
+    if (loaded)
+    {
+      if (loadedSuccessfully)
+      {
+        if (ARBruteForcer::ch_bruteforce)
+          ARBruteForcer::ch_take_screenshot = 3;
+        else
+          Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
+        if (File::Exists(filename + ".dtm"))
+          Movie::LoadInput(filename + ".dtm");
+        else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
+                 !Movie::IsJustStartingPlayingInputFromSaveState())
+          Movie::EndPlayInput(false);
+      }
+      else
+      {
+        // failed to load
+        Core::DisplayMessage("Unable to load: Can't load state from other versions!", 4000);
+        if (!version_created_by.empty())
+          Core::DisplayMessage("The savestate was created using " + version_created_by, 4000);
+
+        // since we could be in an inconsistent state now (and might crash or whatever), undo.
+        if (g_loadDepth < 2)
+          UndoLoadState();
       }
     }
-  }
 
-  if (loaded)
-  {
-    if (loadedSuccessfully)
-    {
-      if (ARBruteForcer::ch_bruteforce)
-        ARBruteForcer::ch_take_screenshot = 3;
-      else
-        Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
-      if (File::Exists(filename + ".dtm"))
-        Movie::LoadInput(filename + ".dtm");
-      else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
-               !Movie::IsJustStartingPlayingInputFromSaveState())
-        Movie::EndPlayInput(false);
-    }
-    else
-    {
-      // failed to load
-      Core::DisplayMessage("Unable to load: Can't load state from other versions!", 4000);
-      if (!version_created_by.empty())
-        Core::DisplayMessage("The savestate was created using " + version_created_by, 4000);
+    if (s_on_after_load_callback)
+      s_on_after_load_callback();
 
-      // since we could be in an inconsistent state now (and might crash or whatever), undo.
-      if (g_loadDepth < 2)
-        UndoLoadState();
-    }
-  }
-
-  if (s_on_after_load_callback)
-    s_on_after_load_callback();
-
-  g_loadDepth--;
-
-  // resume dat core
-  Core::PauseAndLock(false, wasUnpaused);
+    g_loadDepth--;
+  });
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
@@ -652,24 +644,22 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 
 void VerifyAt(const std::string& filename)
 {
-  bool wasUnpaused = Core::PauseAndLock(true);
+  Core::RunAsCPUThread([&] {
+    std::vector<u8> buffer;
+    LoadFileStateData(filename, buffer);
 
-  std::vector<u8> buffer;
-  LoadFileStateData(filename, buffer);
+    if (!buffer.empty())
+    {
+      u8* ptr = &buffer[0];
+      PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
+      DoState(p);
 
-  if (!buffer.empty())
-  {
-    u8* ptr = &buffer[0];
-    PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
-    DoState(p);
-
-    if (p.GetMode() == PointerWrap::MODE_VERIFY)
-      Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()), 2000);
-    else
-      Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
-  }
-
-  Core::PauseAndLock(false, wasUnpaused);
+      if (p.GetMode() == PointerWrap::MODE_VERIFY)
+        Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()), 2000);
+      else
+        Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
+    }
+  });
 }
 
 void Init()

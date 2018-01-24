@@ -476,12 +476,7 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 // Can only be called by the host thread
 void ChangeDiscAsHost(const std::string& new_path)
 {
-  bool was_unpaused = Core::PauseAndLock(true);
-
-  // The host thread is now temporarily the CPU thread
-  ChangeDiscAsCPU(new_path);
-
-  Core::PauseAndLock(false, was_unpaused);
+  Core::RunAsCPUThread([&] { ChangeDiscAsCPU(new_path); });
 }
 
 // Can only be called by the CPU thread
