@@ -60,7 +60,7 @@
   <!--NOTE: When adding moc'd files, you must list outputs in the ClCompile ItemGroup too!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
-    <QtMoc Include="Config\ARCodeEditor.h" />
+    <QtMoc Include="Config\CheatCodeEditor.h" />
     <QtMoc Include="Config\ARCodeWidget.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
@@ -118,7 +118,7 @@
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
-    <ClCompile Include="$(QtMocOutPrefix)ARCodeEditor.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CheatCodeEditor.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ARCodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedPane.cpp" />
@@ -174,7 +174,7 @@
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WatchWidget.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
-    <ClCompile Include="Config\ARCodeEditor.cpp" />
+    <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
