@@ -14,6 +14,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QSettings>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
@@ -86,6 +87,13 @@ void GameList::MakeTableView()
   m_table->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
 
   QHeaderView* hor_header = m_table->horizontalHeader();
+
+  connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
+  connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnHeaderViewChanged);
+  connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
+
+  hor_header->restoreState(QSettings().value(QStringLiteral("tableheader/state")).toByteArray());
+
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
@@ -444,4 +452,10 @@ static bool CompressCB(const std::string& text, float percent, void* ptr)
 
   progress_dialog->setValue(percent * 100);
   return !progress_dialog->wasCanceled();
+}
+
+void GameList::OnHeaderViewChanged()
+{
+  QSettings().setValue(QStringLiteral("tableheader/state"),
+                       m_table->horizontalHeader()->saveState());
 }
