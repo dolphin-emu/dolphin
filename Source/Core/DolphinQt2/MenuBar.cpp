@@ -179,10 +179,9 @@ void MenuBar::UpdateStateSlotMenu()
   {
     int slot = i + 1;
     QString info = QString::fromStdString(State::GetInfoStringOfSlot(slot));
-    QString action_string = tr(" Slot %1 - %2").arg(slot).arg(info);
-    actions_load.at(i)->setText(tr("Load from") + action_string);
-    actions_save.at(i)->setText(tr("Save to") + action_string);
-    actions_slot.at(i)->setText(tr("Select") + action_string);
+    actions_load.at(i)->setText(tr("Load from Slot %1 - %2").arg(slot).arg(info));
+    actions_save.at(i)->setText(tr("Save to Slot %1 - %2").arg(slot).arg(info));
+    actions_slot.at(i)->setText(tr("Select Slot %1 - %2").arg(slot).arg(info));
   }
 }
 
