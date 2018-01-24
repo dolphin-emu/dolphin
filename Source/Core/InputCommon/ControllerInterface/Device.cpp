@@ -71,7 +71,7 @@ bool Device::Control::InputGateOn()
 {
   if (SConfig::GetInstance().m_BackgroundInput)
     return true;
-  else if (Host_RendererHasFocus() || Host_UIHasFocus())
+  else if (Host_RendererHasFocus() || Host_UINeedsControllerState())
     return true;
   else
     return false;

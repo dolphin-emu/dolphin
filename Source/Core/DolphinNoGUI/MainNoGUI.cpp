@@ -117,7 +117,7 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-bool Host_UIHasFocus()
+bool Host_UINeedsControllerState()
 {
   return false;
 }

@@ -80,6 +80,7 @@ set(SRCS
   HideObjectAddEdit.cpp
   SoftwareVideoConfigDialog.cpp
   TASInputDlg.cpp
+  UINeedsControllerState.cpp
   VideoConfigDiag.cpp
   WxEventUtils.cpp
   WxUtils.cpp

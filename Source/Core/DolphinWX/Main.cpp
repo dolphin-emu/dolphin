@@ -52,6 +52,7 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/SoftwareVideoConfigDialog.h"
+#include "DolphinWX/UINeedsControllerState.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -552,9 +553,9 @@ void Host_SetWiiMoteConnectionState(int _State)
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-bool Host_UIHasFocus()
+bool Host_UINeedsControllerState()
 {
-  return wxGetApp().IsActiveThreadsafe();
+  return wxGetApp().IsActiveThreadsafe() && GetUINeedsControllerState();
 }
 
 bool Host_RendererHasFocus()
