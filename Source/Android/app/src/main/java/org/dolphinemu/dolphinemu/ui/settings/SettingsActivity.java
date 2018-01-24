@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -106,11 +107,14 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 		if (addToStack)
 		{
-			transaction.setCustomAnimations(
-					R.animator.settings_enter,
-					R.animator.settings_exit,
-					R.animator.settings_pop_enter,
-					R.animator.setttings_pop_exit);
+			if (areSystemAnimationsEnabled())
+			{
+				transaction.setCustomAnimations(
+						R.animator.settings_enter,
+						R.animator.settings_exit,
+						R.animator.settings_pop_enter,
+						R.animator.setttings_pop_exit);
+			}
 
 			transaction.addToBackStack(null);
 			mPresenter.addToStack();
@@ -118,6 +122,17 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), FRAGMENT_TAG);
 
 		transaction.commit();
+	}
+
+	private boolean areSystemAnimationsEnabled()
+	{
+		float duration = Settings.Global.getFloat(
+				getContentResolver(),
+				Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+		float transition = Settings.Global.getFloat(
+				getContentResolver(),
+				Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
+		return duration != 0 && transition != 0;
 	}
 
 	@Override
