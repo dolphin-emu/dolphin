@@ -350,6 +350,8 @@ public final class NativeLibrary
 	 */
 	public static native void Run(String path, String savestatePath, boolean deleteSavestate);
 
+	public static native void ChangeDisc(String path);
+
 	// Surface Handling
 	public static native void SurfaceChanged(Surface surf);
 	public static native void SurfaceDestroyed();
