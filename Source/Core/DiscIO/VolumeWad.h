@@ -50,6 +50,7 @@ public:
     return "";
   }
   Platform GetVolumeType() const override;
+  // Provides a best guess for the region. Might be inaccurate or UNKNOWN_REGION.
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 

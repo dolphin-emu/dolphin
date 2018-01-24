@@ -48,7 +48,7 @@ Country TypicalCountryForRegion(Region region)
 Region RegionSwitchGC(u8 country_code)
 {
   Region region = RegionSwitchWii(country_code);
-  return region == Region::NTSC_K ? Region::UNKNOWN_REGION : region;
+  return region == Region::NTSC_K ? Region::NTSC_J : region;
 }
 
 Region RegionSwitchWii(u8 country_code)

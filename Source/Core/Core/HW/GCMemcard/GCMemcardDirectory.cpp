@@ -21,16 +21,15 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "DiscIO/Volume.h"
 
 const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(const std::string& file_name, DiscIO::Region card_region,
-                                bool current_game_only)
+int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_only)
 {
   File::IOFile gci_file(file_name, "rb");
   if (gci_file)
@@ -41,19 +40,6 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, DiscIO::Region car
     if (!gci_file.ReadBytes(&(gci.m_gci_header), DENTRY_SIZE))
     {
       ERROR_LOG(EXPANSIONINTERFACE, "%s failed to read header", file_name.c_str());
-      return NO_INDEX;
-    }
-
-    DiscIO::Region gci_region = DiscIO::RegionSwitchGC(gci.m_gci_header.Gamecode[3]);
-    // Some special save files have game IDs that we parse as UNKNOWN_REGION. For instance:
-    // - Datel Action Replay uses C as the fourth character. (Can be on any region's card.)
-    // - Homeland's network config file only uses null bytes. (Homeland is exclusive to Japan,
-    //   but maybe the network config file ID was intended to be used in other regions too.)
-    if (card_region != gci_region && gci_region != DiscIO::Region::UNKNOWN_REGION)
-    {
-      PanicAlertT(
-          "GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
-          file_name.c_str());
       return NO_INDEX;
     }
 
@@ -136,7 +122,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, DiscIO::Region car
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
-                                       bool shift_jis, DiscIO::Region card_region, int game_id)
+                                       bool shift_jis, int game_id)
     : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
       m_hdr(slot, size_mbits, shift_jis), m_bat1(size_mbits), m_saves(0),
       m_save_directory(directory), m_exiting(false)
@@ -165,7 +151,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
           m_save_directory.c_str());
       break;
     }
-    int index = LoadGCI(gci_file, card_region, m_saves.size() > 112);
+    int index = LoadGCI(gci_file, m_saves.size() > 112);
     if (index != NO_INDEX)
     {
       m_loaded_saves.push_back(m_saves.at(index).m_gci_header.GCI_FileName());

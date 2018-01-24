@@ -12,7 +12,6 @@
 #include "Common/Event.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
-#include "DiscIO/Enums.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1
@@ -22,7 +21,7 @@ class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
   GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits, bool shift_jis,
-                     DiscIO::Region card_region, int game_id);
+                     int game_id);
   ~GCMemcardDirectory();
   void FlushToFile();
   void FlushThread();
@@ -33,7 +32,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  int LoadGCI(const std::string& file_name, DiscIO::Region card_region, bool current_game_only);
+  int LoadGCI(const std::string& file_name, bool current_game_only);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* dest_address);
   s32 DirectoryWrite(u32 dest_address, u32 length, const u8* src_address);

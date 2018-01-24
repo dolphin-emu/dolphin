@@ -161,7 +161,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-  DiscIO::Region region = SConfig::GetInstance().m_region;
+  const DiscIO::Region region = SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region);
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   u32 CurrentGameId = 0;
@@ -203,7 +203,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   }
 
   memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb,
-                                                    shift_jis, region, CurrentGameId);
+                                                    shift_jis, CurrentGameId);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
