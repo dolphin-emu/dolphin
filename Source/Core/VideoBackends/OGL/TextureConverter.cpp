@@ -136,7 +136,6 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   s_encoding_readback_texture->ReadTexels(copy_rect, destAddr, writeStride);
 
   FramebufferManager::SetFramebuffer(0);
-  OGLTexture::SetStage();
 }
 
 void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,

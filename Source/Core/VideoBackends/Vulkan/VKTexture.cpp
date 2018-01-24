@@ -107,14 +107,6 @@ VkFramebuffer VKTexture::GetFramebuffer() const
   return m_framebuffer;
 }
 
-void VKTexture::Bind(unsigned int stage)
-{
-  // Texture should always be in SHADER_READ_ONLY layout prior to use.
-  // This is so we don't need to transition during render passes.
-  _assert_(m_texture->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
-}
-
 void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

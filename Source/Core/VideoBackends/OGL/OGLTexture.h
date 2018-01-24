@@ -19,8 +19,6 @@ public:
   explicit OGLTexture(const TextureConfig& tex_config);
   ~OGLTexture();
 
-  void Bind(unsigned int stage) override;
-
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                 u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
@@ -33,9 +31,6 @@ public:
 
   GLuint GetRawTexIdentifier() const;
   GLuint GetFramebuffer() const;
-
-  static void DisableStage(unsigned int stage);
-  static void SetStage();
 
 private:
   GLuint m_texId;

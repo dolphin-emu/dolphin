@@ -17,8 +17,6 @@ public:
   explicit AbstractTexture(const TextureConfig& c);
   virtual ~AbstractTexture();
 
-  virtual void Bind(unsigned int stage) = 0;
-
   virtual void CopyRectangleFromTexture(const AbstractTexture* src,
                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

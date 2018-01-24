@@ -15,7 +15,10 @@ AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
 }
 
-AbstractTexture::~AbstractTexture() = default;
+AbstractTexture::~AbstractTexture()
+{
+  g_renderer->UnbindTexture(this);
+}
 
 bool AbstractTexture::Save(const std::string& filename, unsigned int level)
 {

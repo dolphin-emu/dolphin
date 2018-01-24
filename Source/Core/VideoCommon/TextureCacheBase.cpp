@@ -470,10 +470,10 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 
 void TextureCacheBase::BindTextures()
 {
-  for (size_t i = 0; i < bound_textures.size(); ++i)
+  for (u32 i = 0; i < bound_textures.size(); i++)
   {
-    if (IsValidBindPoint(static_cast<u32>(i)) && bound_textures[i])
-      bound_textures[i]->texture->Bind(static_cast<u32>(i));
+    if (IsValidBindPoint(i) && bound_textures[i])
+      g_renderer->SetTexture(i, bound_textures[i]->texture.get());
   }
 }
 
