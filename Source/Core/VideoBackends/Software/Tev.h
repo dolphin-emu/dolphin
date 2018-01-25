@@ -59,10 +59,10 @@ class Tev
 
   void SetRasColor(int colorChan, int swaptable);
 
-  void DrawColorRegular(TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
-  void DrawColorCompare(TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
-  void DrawAlphaRegular(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4]);
-  void DrawAlphaCompare(TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4]);
+  void DrawColorRegular(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
+  void DrawColorCompare(const TevStageCombiner::ColorCombiner& cc, const InputRegType inputs[4]);
+  void DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4]);
+  void DrawAlphaCompare(const TevStageCombiner::AlphaCombiner& ac, const InputRegType inputs[4]);
 
   void Indirect(unsigned int stageNum, s32 s, s32 t);
 
