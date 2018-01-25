@@ -1141,8 +1141,6 @@ void Renderer::CheckForConfigChanges()
   bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   bool old_use_xfb = g_ActiveConfig.bUseXFB;
   bool old_use_realxfb = g_ActiveConfig.bUseRealXFB;
-  bool old_vertex_ubershaders = g_ActiveConfig.bForceVertexUberShaders;
-  bool old_pixel_ubershaders = g_ActiveConfig.bForcePixelUberShaders;
 
   // Copy g_Config to g_ActiveConfig.
   // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
@@ -1156,8 +1154,6 @@ void Renderer::CheckForConfigChanges()
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
   bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
   bool use_realxfb_changed = old_use_realxfb != g_ActiveConfig.bUseRealXFB;
-  bool ubershaders_changed = old_vertex_ubershaders != g_ActiveConfig.bForceVertexUberShaders ||
-                             old_pixel_ubershaders != g_ActiveConfig.bForcePixelUberShaders;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
@@ -1202,10 +1198,6 @@ void Renderer::CheckForConfigChanges()
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)
     ResetSamplerStates();
-
-  // Clear UID state if ubershaders are toggled.
-  if (ubershaders_changed)
-    StateTracker::GetInstance()->ClearShaders();
 
   // Check for a changed post-processing shader and recompile if needed.
   static_cast<VulkanPostProcessing*>(m_post_processor.get())->UpdateConfig();

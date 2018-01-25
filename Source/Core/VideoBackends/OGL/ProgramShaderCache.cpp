@@ -272,19 +272,8 @@ SHADER* ProgramShaderCache::SetShader(u32 primitive_type, const GLVertexFormat* 
 
   // Synchronous shader compiling.
   ShaderHostConfig host_config = ShaderHostConfig::GetCurrent();
-  ShaderCode vcode;
-  if (!g_ActiveConfig.bForceVertexUberShaders)
-    vcode = GenerateVertexShaderCode(APIType::OpenGL, host_config, uid.vuid.GetUidData());
-  else
-    vcode = UberShader::GenVertexShader(APIType::OpenGL, host_config,
-                                        UberShader::GetVertexShaderUid().GetUidData());
-  ShaderCode pcode;
-  if (!g_ActiveConfig.bForcePixelUberShaders)
-    pcode = GeneratePixelShaderCode(APIType::OpenGL, host_config, uid.puid.GetUidData());
-  else
-    pcode = UberShader::GenPixelShader(APIType::OpenGL, host_config,
-                                       UberShader::GetPixelShaderUid().GetUidData());
-
+  ShaderCode vcode = GenerateVertexShaderCode(APIType::OpenGL, host_config, uid.vuid.GetUidData());
+  ShaderCode pcode = GeneratePixelShaderCode(APIType::OpenGL, host_config, uid.puid.GetUidData());
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())

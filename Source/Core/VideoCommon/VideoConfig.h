@@ -327,10 +327,6 @@ struct VideoConfig final
   int iShaderCompilerThreads;
   int iShaderPrecompilerThreads;
 
-  // Temporary toggling of ubershaders, for debugging
-  bool bForceVertexUberShaders;
-  bool bForcePixelUberShaders;
-
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct

@@ -47,7 +47,6 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_DISABLE_SPECIALIZED_SHADERS.location,
       Config::GFX_PRECOMPILE_UBER_SHADERS.location, Config::GFX_SHADER_COMPILER_THREADS.location,
       Config::GFX_SHADER_PRECOMPILER_THREADS.location,
-      Config::GFX_FORCE_VERTEX_UBER_SHADERS.location, Config::GFX_FORCE_PIXEL_UBER_SHADERS.location,
 
       Config::GFX_SW_ZCOMPLOC.location, Config::GFX_SW_ZFREEZE.location,
       Config::GFX_SW_DUMP_OBJECTS.location, Config::GFX_SW_DUMP_TEV_STAGES.location,

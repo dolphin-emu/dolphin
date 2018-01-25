@@ -88,10 +88,6 @@ const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
     {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{
     {System::GFX, "Settings", "ShaderPrecompilerThreads"}, 1};
-const ConfigInfo<bool> GFX_FORCE_VERTEX_UBER_SHADERS{
-    {System::GFX, "Settings", "ForceVertexUberShaders"}, false};
-const ConfigInfo<bool> GFX_FORCE_PIXEL_UBER_SHADERS{
-    {System::GFX, "Settings", "ForcePixelUberShaders"}, false};
 
 const ConfigInfo<bool> GFX_SW_ZCOMPLOC{{System::GFX, "Settings", "SWZComploc"}, true};
 const ConfigInfo<bool> GFX_SW_ZFREEZE{{System::GFX, "Settings", "SWZFreeze"}, true};
