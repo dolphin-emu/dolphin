@@ -338,15 +338,11 @@ static void CopyVertex(OutputVertexData* dst, const OutputVertexData* src, float
   dst->screenPosition.y = src->screenPosition.y + dy;
   dst->screenPosition.z = src->screenPosition.z;
 
-  for (int i = 0; i < 3; ++i)
-    dst->normal[i] = src->normal[i];
-
-  for (int i = 0; i < 4; ++i)
-    dst->color[0][i] = src->color[0][i];
+  dst->normal = src->normal;
+  dst->color = src->color;
 
   // todo - s offset
-  for (int i = 0; i < 8; ++i)
-    dst->texCoords[i] = src->texCoords[i];
+  dst->texCoords = src->texCoords;
 }
 
 void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
