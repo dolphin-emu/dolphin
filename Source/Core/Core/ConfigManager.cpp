@@ -1150,6 +1150,10 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
   m_title_description = title_database.Describe(m_game_id, type);
   NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
 
+  Config::CreateVRGameLayer();
+  Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+
   if (Core::IsRunning())
   {
     // TODO: have a callback mechanism for title changes?
