@@ -167,7 +167,11 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  iAspectRatio = Config::Get(Config::GFX_ASPECT_RATIO);
+  const int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
+  if (aspect_ratio == ASPECT_AUTO)
+    iAspectRatio = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
+  else
+    iAspectRatio = aspect_ratio;
   bCrop = Config::Get(Config::GFX_CROP);
   bUseXFB = Config::Get(Config::GFX_USE_XFB);
   bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);

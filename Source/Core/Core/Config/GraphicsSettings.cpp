@@ -24,6 +24,8 @@ const ConfigInfo<int> GFX_ADAPTER{{System::GFX, "Hardware", "Adapter"}, 0};
 const ConfigInfo<bool> GFX_WIDESCREEN_HACK{{System::GFX, "Settings", "wideScreenHack"}, false};
 const ConfigInfo<int> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"},
                                        static_cast<int>(ASPECT_AUTO)};
+const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "SuggestedAspectRatio"},
+                                                 static_cast<int>(ASPECT_AUTO)};
 const ConfigInfo<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const ConfigInfo<bool> GFX_USE_XFB{{System::GFX, "Settings", "UseXFB"}, false};
 const ConfigInfo<bool> GFX_USE_REAL_XFB{{System::GFX, "Settings", "UseRealXFB"}, false};
