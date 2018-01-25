@@ -15,6 +15,7 @@
 #include "DolphinQt2/Config/Mapping/MappingCommon.h"
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
+#include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -42,9 +43,7 @@ void MappingButton::OnButtonPressed()
   if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
 
-  if (!m_block.TestAndSet())
-    return;
-
+  installEventFilter(BlockUserInputFilter::Instance());
   grabKeyboard();
   grabMouse();
 
@@ -63,7 +62,7 @@ void MappingButton::OnButtonPressed()
 
     releaseMouse();
     releaseKeyboard();
-    m_block.Clear();
+    removeEventFilter(BlockUserInputFilter::Instance());
 
     if (!expr.isEmpty())
     {
@@ -95,22 +94,6 @@ void MappingButton::Update()
   m_reference->UpdateReference(g_controller_interface, m_parent->GetParent()->GetDeviceQualifier());
   setText(EscapeAmpersand(QString::fromStdString(m_reference->expression)));
   m_parent->SaveSettings();
-}
-
-bool MappingButton::event(QEvent* event)
-{
-  const QEvent::Type event_type = event->type();
-  // Returning 'true' means "yes, this event has been handled, don't propagate it to parent
-  // widgets".
-  if (m_block.IsSet() &&
-      (event_type == QEvent::KeyPress || event_type == QEvent::KeyRelease ||
-       event_type == QEvent::MouseButtonPress || event_type == QEvent::MouseButtonRelease ||
-       event_type == QEvent::MouseButtonDblClick))
-  {
-    return true;
-  }
-
-  return QPushButton::event(event);
 }
 
 void MappingButton::mouseReleaseEvent(QMouseEvent* event)

@@ -1294,7 +1294,7 @@ bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
   {
     if (netplay_client->WiimoteUpdate(wiimote, data, 2, 0))
     {
-      return data[0];
+      return data[0] != 0;
     }
     PanicAlertT("Netplay has desynced in NetPlay_GetButtonPress()");
     return false;

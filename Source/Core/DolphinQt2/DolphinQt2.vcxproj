@@ -205,6 +205,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
+    <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
@@ -236,6 +237,7 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />
     <ClInclude Include="Resources.h" />
