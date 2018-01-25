@@ -165,15 +165,24 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
+ReturnCode ES::GetTitleId(u64* title_id) const
+{
+  if (!s_title_context.active)
+    return ES_EINVAL;
+  *title_id = s_title_context.tmd.GetTitleId();
+  return IPC_SUCCESS;
+}
+
+IPCCommandResult ES::GetTitleId(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_EINVAL);
 
-  if (!s_title_context.active)
-    return GetDefaultReply(ES_EINVAL);
+  u64 title_id;
+  const ReturnCode ret = GetTitleId(&title_id);
+  if (ret != IPC_SUCCESS)
+    return GetDefaultReply(ret);
 
-  const u64 title_id = s_title_context.tmd.GetTitleId();
   Memory::Write_U64(title_id, request.io_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", static_cast<u32>(title_id >> 32),
            static_cast<u32>(title_id));
@@ -421,7 +430,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GETTITLEDIR:
     return GetTitleDirectory(request);
   case IOCTL_ES_GETTITLEID:
-    return GetTitleID(request);
+    return GetTitleId(request);
   case IOCTL_ES_SETUID:
     return SetUID(context->uid, request);
   case IOCTL_ES_DIVERIFY:

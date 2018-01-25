@@ -224,6 +224,7 @@
     <ClCompile Include="IOS\USB\OH0\OH0.cpp" />
     <ClCompile Include="IOS\USB\OH0\OH0Device.cpp" />
     <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp" />
+    <ClCompile Include="IOS\USB\USB_HID\HIDv5.cpp" />
     <ClCompile Include="IOS\USB\USB_VEN\VEN.cpp" />
     <ClCompile Include="IOS\USB\USBV0.cpp" />
     <ClCompile Include="IOS\USB\USBV4.cpp" />
@@ -475,6 +476,7 @@
     <ClInclude Include="IOS\USB\OH0\OH0.h" />
     <ClInclude Include="IOS\USB\OH0\OH0Device.h" />
     <ClInclude Include="IOS\USB\USB_HID\HIDv4.h" />
+    <ClInclude Include="IOS\USB\USB_HID\HIDv5.h" />
     <ClInclude Include="IOS\USB\USB_VEN\VEN.h" />
     <ClInclude Include="IOS\USB\USBV0.h" />
     <ClInclude Include="IOS\USB\USBV4.h" />
