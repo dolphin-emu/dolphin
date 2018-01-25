@@ -371,5 +371,5 @@ private:
   bool InitControllers();
 
   // Event table
-  DECLARE_EVENT_TABLE();
+  DECLARE_EVENT_TABLE()
 };

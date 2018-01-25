@@ -116,4 +116,4 @@ void PerformOnlineUpdate(const std::string& region, QWidget* parent)
     break;
   }
 }
-};  // namespace WiiUpdate
+}  // namespace WiiUpdate

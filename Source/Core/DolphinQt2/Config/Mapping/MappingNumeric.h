@@ -12,7 +12,7 @@ class MappingWidget;
 namespace ControllerEmu
 {
 class NumericSetting;
-};
+}
 
 class MappingNumeric : public QSpinBox
 {

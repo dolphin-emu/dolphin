@@ -54,7 +54,12 @@ bool InstallWAD(const std::string& wad_path)
   IOS::HLE::Device::ES::Context context;
   IOS::HLE::ReturnCode ret;
   const bool checks_enabled = SConfig::GetInstance().m_enable_signature_checks;
-  while ((ret = es->ImportTicket(wad.GetTicket().GetBytes(), wad.GetCertificateChain())) < 0 ||
+
+  IOS::ES::TicketReader ticket = wad.GetTicket();
+  // Ensure the common key index is correct, as it's checked by IOS.
+  ticket.FixCommonKeyIndex();
+
+  while ((ret = es->ImportTicket(ticket.GetBytes(), wad.GetCertificateChain())) < 0 ||
          (ret = es->ImportTitleInit(context, tmd.GetBytes(), wad.GetCertificateChain())) < 0)
   {
     if (checks_enabled && ret == IOS::HLE::IOSC_FAIL_CHECKVALUE &&

@@ -40,9 +40,9 @@ public:
   {
     memset(EfbInterface::perf_values, 0, sizeof(EfbInterface::perf_values));
   }
-  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::perf_values[type]; };
+  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::perf_values[type]; }
   void FlushResults() override {}
-  bool IsFlushed() const override { return true; };
+  bool IsFlushed() const override { return true; }
 };
 
 class TextureCache : public TextureCacheBase
