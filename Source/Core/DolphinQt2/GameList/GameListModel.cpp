@@ -14,8 +14,11 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
   connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
   connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
-  connect(this, &GameListModel::DirectoryAdded, &m_tracker, &GameTracker::AddDirectory);
-  connect(this, &GameListModel::DirectoryRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+  connect(&Settings::Instance(), &Settings::PathAdded, &m_tracker, &GameTracker::AddDirectory);
+  connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+
+  for (const QString& dir : Settings::Instance().GetPaths())
+    m_tracker.AddDirectory(dir);
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, [this] {
     // Tell the view to repaint. The signal 'dataChanged' also seems like it would work here, but
@@ -73,7 +76,10 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
                                                Core::TitleDatabase::TitleType::Channel :
                                                Core::TitleDatabase::TitleType::Other));
       if (display_name.isEmpty())
-        return game->GetLongName();
+        display_name = game->GetLongName();
+
+      if (display_name.isEmpty())
+        display_name = game->GetFileName();
 
       return display_name;
     }

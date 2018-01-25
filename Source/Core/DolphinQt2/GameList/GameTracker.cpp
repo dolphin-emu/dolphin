@@ -28,9 +28,6 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   connect(m_loader, &GameLoader::GameLoaded, this, &GameTracker::GameLoaded);
 
   m_loader_thread.start();
-
-  for (QString dir : Settings::Instance().GetPaths())
-    AddDirectory(dir);
 }
 
 GameTracker::~GameTracker()

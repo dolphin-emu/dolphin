@@ -48,10 +48,6 @@ public:
   void UpdateGame(QSharedPointer<GameFile> game);
   void RemoveGame(const QString& path);
 
-signals:
-  void DirectoryAdded(const QString& dir);
-  void DirectoryRemoved(const QString& dir);
-
 private:
   // Index in m_games, or -1 if it isn't found
   int FindGame(const QString& path) const;
