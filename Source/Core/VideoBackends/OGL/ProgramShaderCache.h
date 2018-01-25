@@ -146,9 +146,9 @@ private:
   class SharedContextAsyncShaderCompiler : public VideoCommon::AsyncShaderCompiler
   {
   protected:
-    virtual bool WorkerThreadInitMainThread(void** param) override;
-    virtual bool WorkerThreadInitWorkerThread(void* param) override;
-    virtual void WorkerThreadExit(void* param) override;
+    bool WorkerThreadInitMainThread(void** param) override;
+    bool WorkerThreadInitWorkerThread(void* param) override;
+    void WorkerThreadExit(void* param) override;
   };
 
   struct SharedContextData
@@ -165,7 +165,7 @@ private:
   class ShaderCompileWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    ShaderCompileWorkItem(const SHADERUID& uid);
+    explicit ShaderCompileWorkItem(const SHADERUID& uid);
 
     bool Compile() override;
     void Retrieve() override;
@@ -178,7 +178,7 @@ private:
   class UberShaderCompileWorkItem : public VideoCommon::AsyncShaderCompiler::WorkItem
   {
   public:
-    UberShaderCompileWorkItem(const UBERSHADERUID& uid);
+    explicit UberShaderCompileWorkItem(const UBERSHADERUID& uid);
 
     bool Compile() override;
     void Retrieve() override;
