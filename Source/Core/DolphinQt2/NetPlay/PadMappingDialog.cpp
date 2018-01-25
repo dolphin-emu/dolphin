@@ -31,7 +31,7 @@ void PadMappingDialog::CreateWidgets()
     m_wii_boxes[i] = new QComboBox;
 
     m_main_layout->addWidget(new QLabel(tr("GC Port %1").arg(i + 1)), 0, i);
-    m_main_layout->addWidget(new QLabel(tr("Wii Remote Port %1").arg(i + 1)), 0, 4 + i);
+    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 0, 4 + i);
     m_main_layout->addWidget(m_gc_boxes[i], 1, i);
     m_main_layout->addWidget(m_wii_boxes[i], 1, 4 + i);
   }

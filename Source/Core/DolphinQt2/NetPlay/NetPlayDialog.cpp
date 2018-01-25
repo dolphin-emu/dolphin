@@ -59,7 +59,7 @@ void NetPlayDialog::CreateMainLayout()
   m_md5_box = new QComboBox;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
-  m_save_sd_box = new QCheckBox(tr("Write save / SD-Card data"));
+  m_save_sd_box = new QCheckBox(tr("Write save/SD data"));
   m_load_wii_box = new QCheckBox(tr("Load Wii Save"));
   m_record_input_box = new QCheckBox(tr("Record inputs"));
   m_buffer_label = new QLabel(tr("Buffer:"));

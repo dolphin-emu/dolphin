@@ -91,7 +91,7 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
 
   if (m_hashes.size() > 1)
   {
-    wxString label = AllHashesMatch() ? _("Hashes match!") : _("Hashes do not match.");
+    wxString label = AllHashesMatch() ? _("The hashes match!") : _("The hashes do not match!");
     m_final_result_label->SetLabel(label);
   }
   Layout();
