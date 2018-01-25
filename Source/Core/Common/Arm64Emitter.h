@@ -721,7 +721,7 @@ public:
   void MOV(ARM64Reg Rd, ARM64Reg Rm);
   void MVN(ARM64Reg Rd, ARM64Reg Rm);
 
-  // TODO: These are "slow" as they use arith+shift, should be replaced with UBFM/EXTR variants.
+  // Convenience wrappers around UBFM/EXTR.
   void LSR(ARM64Reg Rd, ARM64Reg Rm, int shift);
   void LSL(ARM64Reg Rd, ARM64Reg Rm, int shift);
   void ASR(ARM64Reg Rd, ARM64Reg Rm, int shift);

@@ -12,16 +12,11 @@
 
 void Interpreter::Helper_UpdateCR0(u32 value)
 {
-  Helper_UpdateCRx(0, value);
-}
-
-void Interpreter::Helper_UpdateCRx(int idx, u32 value)
-{
   s64 sign_extended = (s64)(s32)value;
   u64 cr_val = (u64)sign_extended;
   cr_val = (cr_val & ~(1ull << 61)) | ((u64)GetXER_SO() << 61);
 
-  PowerPC::ppcState.cr_val[idx] = cr_val;
+  PowerPC::ppcState.cr_val[0] = cr_val;
 }
 
 u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
@@ -89,7 +84,21 @@ void Interpreter::andis_rc(UGeckoInstruction inst)
 
 void Interpreter::cmpi(UGeckoInstruction inst)
 {
-  Helper_UpdateCRx(inst.CRFD, rGPR[inst.RA] - inst.SIMM_16);
+  s32 a = rGPR[inst.RA];
+  s32 b = inst.SIMM_16;
+  int f;
+
+  if (a < b)
+    f = 0x8;
+  else if (a > b)
+    f = 0x4;
+  else
+    f = 0x2;  // equals
+
+  if (GetXER_SO())
+    f |= 0x1;
+
+  SetCRField(inst.CRFD, f);
 }
 
 void Interpreter::cmpli(UGeckoInstruction inst)

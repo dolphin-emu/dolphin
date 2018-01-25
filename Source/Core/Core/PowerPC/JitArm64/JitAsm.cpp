@@ -374,7 +374,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedFloatSlow = GetCodePtr();
     float_emit.UMOV(64, X0, Q0, 0);
-    ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
+    ROR(X0, X0, 32);
     MOVP2R(X2, &PowerPC::Write_U64);
     BR(X2);
   }

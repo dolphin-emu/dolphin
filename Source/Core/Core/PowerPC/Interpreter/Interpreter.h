@@ -287,7 +287,6 @@ private:
   // flag helper
   static void Helper_UpdateCR0(u32 value);
   static void Helper_UpdateCR1();
-  static void Helper_UpdateCRx(int x, u32 value);
 
   // address helper
   static u32 Helper_Get_EA(const UGeckoInstruction inst);
