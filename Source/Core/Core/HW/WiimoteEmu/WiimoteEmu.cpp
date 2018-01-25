@@ -28,7 +28,6 @@
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 
@@ -268,8 +267,7 @@ void Wiimote::Reset()
   m_adpcm_state.step = 127;
 }
 
-Wiimote::Wiimote(const unsigned int index)
-    : m_index(index), ir_sin(0), ir_cos(1), m_last_connect_request_counter(0)
+Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1)
 {
   // ---- set up all the controls ----
 
@@ -1035,26 +1033,14 @@ void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
   }
 }
 
-void Wiimote::ConnectOnInput()
+bool Wiimote::CheckForButtonPress()
 {
-  if (m_last_connect_request_counter > 0)
-  {
-    --m_last_connect_request_counter;
-    return;
-  }
-
   u16 buttons = 0;
   const auto lock = GetStateLock();
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  if (buttons != 0 || m_extension->IsButtonPressed())
-  {
-    ::Wiimote::Connect(m_index, true);
-    // arbitrary value so it doesn't try to send multiple requests before Dolphin can react
-    // if Wii Remotes are polled at 200Hz then this results in one request being sent per 500ms
-    m_last_connect_request_counter = 100;
-  }
+  return (buttons != 0 || m_extension->IsButtonPressed());
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)

@@ -36,7 +36,7 @@ public:
   void ControlChannel(const u16 channel, const void* const data, const u32 size);
   void InterruptChannel(const u16 channel, const void* const data, const u32 size);
   void Update();
-  void ConnectOnInput();
+  bool CheckForButtonPress();
 
   Report& ProcessReadQueue();
 
@@ -83,7 +83,6 @@ protected:
   int m_index;
   Report m_last_input_report;
   u16 m_channel;
-  u8 m_last_connect_request_counter;
   // If true, the Wiimote will be really disconnected when it is disconnected by Dolphin.
   // In any other case, data reporting is not paused to allow reconnecting on any button press.
   // This is not enabled on all platforms as connecting a Wiimote can be a pain on some platforms.
@@ -159,7 +158,7 @@ extern Wiimote* g_wiimotes[MAX_BBMOTES];
 void InterruptChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
 void ControlChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
 void Update(int wiimote_number);
-void ConnectOnInput(int wiimote_number);
+bool CheckForButtonPress(int wiimote_number);
 
 void ChangeWiimoteSource(unsigned int index, int source);
 
