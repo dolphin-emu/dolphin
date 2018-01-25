@@ -983,14 +983,14 @@ void CFrame::DoStop()
       Core::SetState(state);
     }
 
+    if (NetPlayDialog::GetNetPlayClient())
+      NetPlayDialog::GetNetPlayClient()->Stop();
+
     // TODO: Show the author/description dialog here
     if (Movie::IsRecordingInput())
       DoRecordingSave();
     if (Movie::IsMovieActive())
       Movie::EndPlayInput(false);
-
-    if (NetPlayDialog::GetNetPlayClient())
-      NetPlayDialog::GetNetPlayClient()->Stop();
 
     if (!m_tried_graceful_shutdown && UICommon::TriggerSTMPowerEvent())
     {
