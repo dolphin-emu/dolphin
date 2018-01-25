@@ -134,7 +134,6 @@ LogManager::LogManager()
 
   // Set up log listeners
   int verbosity = Config::Get(LOGGER_VERBOSITY);
-  ;
 
   // Ensure the verbosity level is valid
   if (verbosity < 1)
