@@ -1,3 +1,13 @@
+Legal GC/WII DSP IROM replacement (v0.3.1)
+-------------------------------------------------------
+
+- irom: When running from the ROM entrypoint, skip the bootucode_ax branch
+  of the bootucode procedure. Since the ROM doesn't set any of the AX
+  registers, it could cause bad DMA transfers and crashes.
+
+ligfx
+10/aug/2017
+
 Legal GC/WII DSP IROM replacement (v0.3)
 -------------------------------------------------------
 
