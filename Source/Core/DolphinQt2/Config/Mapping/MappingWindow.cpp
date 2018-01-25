@@ -16,7 +16,6 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Core/Core.h"
-#include "Core/HW/GCPad.h"
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
 #include "DolphinQt2/Config/Mapping/GCPadWiiU.h"

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 
 class QComboBox;
