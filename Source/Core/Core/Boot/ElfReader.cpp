@@ -5,8 +5,10 @@
 #include "Core/Boot/ElfReader.h"
 
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
@@ -67,6 +69,11 @@ static void byteswapSection(Elf32_Shdr& sec)
 }
 
 ElfReader::ElfReader(const std::vector<u8>& buffer) : BootExecutableReader(buffer)
+{
+  Initialize(m_bytes.data());
+}
+
+ElfReader::ElfReader(File::IOFile file) : BootExecutableReader(std::move(file))
 {
   Initialize(m_bytes.data());
 }

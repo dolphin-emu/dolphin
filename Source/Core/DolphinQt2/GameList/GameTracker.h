@@ -54,12 +54,7 @@ class GameLoader final : public QObject
   Q_OBJECT
 
 public:
-  void LoadGame(const QString& path)
-  {
-    GameFile* game = new GameFile(path);
-    if (game->IsValid())
-      emit GameLoaded(QSharedPointer<GameFile>(game));
-  }
+  void LoadGame(const QString& path);
 
 signals:
   void GameLoaded(QSharedPointer<GameFile> game);

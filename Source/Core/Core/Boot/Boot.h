@@ -15,6 +15,11 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
+namespace File
+{
+class IOFile;
+}
+
 struct RegionSetting
 {
   const std::string area;
@@ -101,7 +106,6 @@ private:
   static bool EmulatedBS2_Wii(const DiscIO::Volume* volume);
   static bool EmulatedBS2(bool is_wii, const DiscIO::Volume* volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
-  static void Load_FST(bool is_wii, const DiscIO::Volume* volume);
 
   static bool SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id);
 };
@@ -110,6 +114,7 @@ class BootExecutableReader
 {
 public:
   explicit BootExecutableReader(const std::string& file_name);
+  explicit BootExecutableReader(File::IOFile file);
   explicit BootExecutableReader(const std::vector<u8>& buffer);
   virtual ~BootExecutableReader();
 
