@@ -5,5 +5,6 @@
 # script before committing changes to the .po files, otherwise the .po
 # files might get modified the next time you try to build using cmake.
 
+cd "$(dirname "$0")/.."
 POTFILE=./Languages/po/dolphin-emu.pot
 find ./Languages/po -name '*.po' -exec msgmerge --quiet --update --backup=none -s {} $POTFILE \;
