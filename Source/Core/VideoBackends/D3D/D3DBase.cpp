@@ -78,6 +78,8 @@ HRESULT LoadDXGI()
     return E_FAIL;
   }
   PCreateDXGIFactory = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory");
+  // Even though we use IDXGIFactory2 we use CreateDXGIFactory1 to create it to maintain
+  // compatibility with Windows 7
   PCreateDXGIFactory1 = (CREATEDXGIFACTORY)GetProcAddress(hDXGIDll, "CreateDXGIFactory1");
   if (PCreateDXGIFactory == nullptr)
     MessageBoxA(nullptr, "GetProcAddress failed for CreateDXGIFactory!", "Critical error",
