@@ -253,6 +253,12 @@ enum Bug
   // Started version: -1
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,
+
+  // Bug: vkCmdClearAttachments with MSAA enabled causes NVIDIA Maxwell+ cards to lock up.
+  // Started version: -1
+  // Ended version: -1
+  // Seems to only occur when the top of the clear rect is non-zero.
+  BUG_BROKEN_MSAA_VKCMDCLEARATTACHMENTS,
 };
 
 // Initializes our internal vendor, device family, and driver version

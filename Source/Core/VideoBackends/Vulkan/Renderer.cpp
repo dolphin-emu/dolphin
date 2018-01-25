@@ -33,6 +33,7 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -391,6 +392,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   // Fast path: Use vkCmdClearAttachments to clear the buffers within a render path
   // We can't use this when preserving alpha but clearing color.
+  if (g_ActiveConfig.iMultisamples == 1 ||
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_MSAA_VKCMDCLEARATTACHMENTS))
   {
     VkClearAttachment clear_attachments[2];
     uint32_t num_clear_attachments = 0;
