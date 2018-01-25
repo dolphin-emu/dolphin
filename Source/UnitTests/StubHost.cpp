@@ -51,9 +51,6 @@ bool Host_RendererIsFullscreen()
 {
   return false;
 }
-void Host_ConnectWiimote(int, bool)
-{
-}
 void Host_SetWiiMoteConnectionState(int)
 {
 }

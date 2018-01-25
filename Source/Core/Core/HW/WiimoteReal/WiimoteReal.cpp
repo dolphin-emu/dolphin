@@ -18,6 +18,7 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/IOAndroid.h"
@@ -390,7 +391,7 @@ void Wiimote::ConnectOnInput()
       // check any button without checking accelerometer data
       if ((rpt[2] & 0x1F) != 0 || (rpt[3] & 0x9F) != 0)
       {
-        Host_ConnectWiimote(m_index, true);
+        ::Wiimote::Connect(m_index, true);
         // see WiimoteEmu::Wiimote::ConnectOnInput(), same idea here
         m_last_connect_request_counter = 100;
       }
@@ -776,6 +777,7 @@ void Pause()
 
 void ChangeWiimoteSource(unsigned int index, int source)
 {
+  const int previous_source = g_wiimote_sources[index];
   g_wiimote_sources[index] = source;
   {
     // kill real connection (or swap to different slot)
@@ -795,11 +797,15 @@ void ChangeWiimoteSource(unsigned int index, int source)
   }
 
   // reconnect to the emulator
-  Host_ConnectWiimote(index, false);
-  if (WIIMOTE_SRC_EMU & source)
-    Host_ConnectWiimote(index, true);
+  Core::RunAsCPUThread([index, previous_source, source] {
+    if (previous_source != WIIMOTE_SRC_NONE)
+      ::Wiimote::Connect(index, false);
+    if (source & WIIMOTE_SRC_EMU)
+      ::Wiimote::Connect(index, true);
+  });
 }
 
+// Called from the Wiimote scanner thread
 static bool TryToConnectWiimoteToSlot(Wiimote* wm, unsigned int i)
 {
   if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
@@ -808,7 +814,7 @@ static bool TryToConnectWiimoteToSlot(Wiimote* wm, unsigned int i)
     {
       NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i.", i + 1);
       g_wiimotes[i] = wm;
-      Host_ConnectWiimote(i, true);
+      Core::RunAsCPUThread([i] { ::Wiimote::Connect(i, true); });
       std::lock_guard<std::mutex> lk(s_known_ids_mutex);
       s_known_ids.insert(wm->GetId());
     }
@@ -884,13 +890,11 @@ void Update(int wiimote_number)
   if (g_wiimotes[wiimote_number])
     g_wiimotes[wiimote_number]->Update();
 
+  g_wiimotes_mutex.unlock();
+
   // Wiimote::Update() may remove the Wiimote if it was disconnected.
   if (!g_wiimotes[wiimote_number])
-  {
-    Host_ConnectWiimote(wiimote_number, false);
-  }
-
-  g_wiimotes_mutex.unlock();
+    ::Wiimote::Connect(wiimote_number, false);
 }
 
 void ConnectOnInput(int wiimote_number)

@@ -26,7 +26,6 @@
 bool Host_UINeedsControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererIsFullscreen();
-void Host_ConnectWiimote(int wm_idx, bool connect);
 void Host_Message(int Id);
 void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();

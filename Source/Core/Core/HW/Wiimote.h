@@ -58,6 +58,7 @@ enum class InitializeMode
 
 void Shutdown();
 void Initialize(InitializeMode init_mode);
+void Connect(unsigned int index, bool connect);
 void ResetAllWiimotes();
 void LoadConfig();
 void Resume();

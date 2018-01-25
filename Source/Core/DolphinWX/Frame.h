@@ -256,7 +256,6 @@ private:
   void OnStopped();
   void OnRenderWindowSizeRequest(int width, int height);
   void UpdateTitle(const wxString& str);
-  static void ConnectWiimote(int wm_idx, bool connect);
 
   // Event functions
   void PostEvent(wxCommandEvent& event);

@@ -22,12 +22,9 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/State.h"
 
 #include "UICommon/CommandLineParse.h"
@@ -130,22 +127,6 @@ bool Host_RendererHasFocus()
 bool Host_RendererIsFullscreen()
 {
   return rendererIsFullscreen;
-}
-
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-  Core::QueueHostJob([=] {
-    const auto ios = IOS::HLE::GetIOS();
-    if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
-      return;
-    Core::RunAsCPUThread([&] {
-      const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-          ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-      if (bt)
-        bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-      Host_UpdateMainFrame();
-    });
-  });
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
