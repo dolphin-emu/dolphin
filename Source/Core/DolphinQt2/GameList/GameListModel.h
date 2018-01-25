@@ -27,6 +27,8 @@ public:
 
   // Path of the Game at the specified index.
   QString GetPath(int index) const { return m_games[index]->GetFilePath(); }
+  // Unique ID of the Game at the specified index
+  QString GetUniqueID(int index) const { return m_games[index]->GetUniqueID(); }
   bool ShouldDisplayGameListItem(int index) const;
   enum
   {
