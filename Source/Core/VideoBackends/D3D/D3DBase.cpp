@@ -444,11 +444,7 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.SampleDesc.Quality = 0;
   swap_chain_desc.Windowed =
       !SConfig::GetInstance().bFullscreen || g_ActiveConfig.bBorderlessFullscreen;
-
-  // By creating a stereo swapchain early we can toggle Quad-Buffered stereoscopy
-  // while the game is running.
-  // swap_chain_desc.Stereo =
-  //    g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER || factory->IsWindowedStereoEnabled();
+  // swap_chain_desc.Stereo = g_ActiveConfig.iStereoMode == STEREO_QUADBUFFER;
 
   out_desc = {};
   output->GetDesc(&out_desc);
