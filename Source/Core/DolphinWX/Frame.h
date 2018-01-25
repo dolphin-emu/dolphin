@@ -352,6 +352,7 @@ private:
   void OnImportBootMiiBackup(wxCommandEvent& event);
   void OnExtractCertificates(wxCommandEvent& event);
   void OnPerformOnlineWiiUpdate(wxCommandEvent& event);
+  void OnPerformDiscWiiUpdate(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
   void OnDebugger(wxCommandEvent& event);
   void OnBruteForce(wxCommandEvent& event);

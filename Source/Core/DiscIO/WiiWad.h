@@ -19,6 +19,7 @@ class WiiWAD
 {
 public:
   explicit WiiWAD(const std::string& name);
+  explicit WiiWAD(std::unique_ptr<BlobReader> blob_reader);
   ~WiiWAD();
 
   bool IsValid() const { return m_valid; }
@@ -32,7 +33,7 @@ public:
 private:
   bool ParseWAD();
 
-  bool m_valid;
+  bool m_valid = false;
 
   std::unique_ptr<BlobReader> m_reader;
 
