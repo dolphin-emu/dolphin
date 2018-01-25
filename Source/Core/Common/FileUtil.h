@@ -12,7 +12,6 @@
 #include <sys/stat.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/NonCopyable.h"
 
 #ifdef _WIN32
 #include "Common/StringUtil.h"

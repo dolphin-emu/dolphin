@@ -9,8 +9,6 @@
 #include <QObject>
 #include <QVector>
 
-#include "Common/NonCopyable.h"
-
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
@@ -23,11 +21,16 @@ class GameListModel;
 class InputConfig;
 
 // UI settings to be stored in the config directory.
-class Settings final : public QObject, NonCopyable
+class Settings final : public QObject
 {
   Q_OBJECT
 
 public:
+  Settings(const Settings&) = delete;
+  Settings& operator=(const Settings&) = delete;
+  Settings(Settings&&) = delete;
+  Settings& operator=(Settings&&) = delete;
+
   static Settings& Instance();
 
   // UI

@@ -9,16 +9,20 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
-#include "Common/NonCopyable.h"
 #include "VideoBackends/OGL/Render.h"
 
 namespace OGL
 {
-class SamplerCache : NonCopyable
+class SamplerCache
 {
 public:
   SamplerCache();
   ~SamplerCache();
+
+  SamplerCache(const SamplerCache&) = delete;
+  SamplerCache& operator=(const SamplerCache&) = delete;
+  SamplerCache(SamplerCache&&) = delete;
+  SamplerCache& operator=(SamplerCache&&) = delete;
 
   void SetSamplerState(int stage, const TexMode0& tm0, const TexMode1& tm1, bool custom_tex);
   void Clear();
