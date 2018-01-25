@@ -33,7 +33,7 @@ void GCPadEmu::CreateMainLayout()
   m_main_layout->addWidget(
       CreateGroupBox(tr("Control Stick"), Pad::GetGroup(GetPort(), PadGroup::MainStick)));
   m_main_layout->addWidget(
-      CreateGroupBox(tr("C-Stick"), Pad::GetGroup(GetPort(), PadGroup::CStick)));
+      CreateGroupBox(tr("C Stick"), Pad::GetGroup(GetPort(), PadGroup::CStick)));
   m_main_layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)));
   m_main_layout->addItem(hbox_layout);
 

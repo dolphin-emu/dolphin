@@ -543,7 +543,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"),
                                       wxGetTranslation(log_render_time_to_file_desc),
                                       Config::GFX_LOG_RENDER_TIME_TO_FILE));
-        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Auto Adjust Window Size"),
+        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Auto-Adjust Window Size"),
                                              wxGetTranslation(auto_window_size_desc),
                                              SConfig::GetInstance().bRenderWindowAutoSize));
         szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Messages"),
@@ -653,7 +653,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
 
     // AF
     {
-      const std::array<wxString, 5> af_choices{{"1x", "2x", "4x", "8x", "16x"}};
+      const std::array<wxString, 5> af_choices{{_("1x"), _("2x"), _("4x"), _("8x"), _("16x")}};
       szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Anisotropic Filtering:")),
                    wxGBPosition(row, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
       szr_enh->Add(CreateChoice(page_enh, Config::GFX_ENHANCE_MAX_ANISOTROPY,

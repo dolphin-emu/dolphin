@@ -77,9 +77,9 @@ void EnhancementsWidget::CreateWidgets()
 
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
   enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing")), 1, 0);
+  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
   enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Antisotrophic Filtering:")), 2, 0);
+  enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
   enhancements_layout->addWidget(m_af_combo, 2, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 3, 0);
   enhancements_layout->addWidget(m_pp_effect, 3, 1);
@@ -233,7 +233,7 @@ void EnhancementsWidget::AddDescriptions()
                  "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
                  "effects, and textures.\n\nIf unsure, select None.");
 
-  static const char* TR_ANTISTROPIC_FILTERING_DESCRIPTION = QT_TR_NOOP(
+  static const char* TR_ANISOTROPIC_FILTERING_DESCRIPTION = QT_TR_NOOP(
       "Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique "
       "viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
 
@@ -263,8 +263,9 @@ void EnhancementsWidget::AddDescriptions()
   static const char* TR_3D_MODE_DESCRIPTION = QT_TR_NOOP(
       "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
       "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
-      "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily "
-      "decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
+      "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
+      "used when your monitor supports 3D display resolutions.\nHeavily decreases "
+      "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
   static const char* TR_3D_DEPTH_DESCRIPTION =
       QT_TR_NOOP("Controls the separation distance between the virtual cameras.\nA higher value "
                  "creates a stronger feeling of depth while a lower value is more comfortable.");
@@ -286,7 +287,7 @@ void EnhancementsWidget::AddDescriptions()
 
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
-  AddDescription(m_af_combo, TR_ANTISTROPIC_FILTERING_DESCRIPTION);
+  AddDescription(m_af_combo, TR_ANISOTROPIC_FILTERING_DESCRIPTION);
   AddDescription(m_pp_effect, TR_POSTPROCESSING_DESCRIPTION);
   AddDescription(m_scaled_efb_copy, TR_SCALED_EFB_COPY_DESCRIPTION);
   AddDescription(m_per_pixel_lighting, TR_PER_PIXEL_LIGHTING_DESCRIPTION);

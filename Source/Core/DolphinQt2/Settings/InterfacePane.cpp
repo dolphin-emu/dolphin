@@ -70,8 +70,8 @@ void InterfacePane::CreateUI()
   }
 
   // Checkboxes
-  m_checkbox_auto_window = new QCheckBox(tr("Auto Adjust Window Size"));
-  m_checkbox_top_window = new QCheckBox(tr("Keep Dolphin on Top"));
+  m_checkbox_auto_window = new QCheckBox(tr("Auto-Adjust Window Size"));
+  m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_render_to_window = new QCheckBox(tr("Render to Main Window"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   groupbox_layout->addWidget(m_checkbox_auto_window);
@@ -89,7 +89,7 @@ void InterfacePane::CreateInGame()
 
   m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
-  m_checkbox_enable_osd = new QCheckBox(tr("Enable On Screen Messages"));
+  m_checkbox_enable_osd = new QCheckBox(tr("Show On-Screen Messages"));
   m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Hide Mouse Cursor"));

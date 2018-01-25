@@ -87,12 +87,12 @@ void InterfaceConfigPane::InitializeGUI()
 
   m_confirm_stop_checkbox = new wxCheckBox(this, wxID_ANY, _("Confirm on Stop"));
   m_panic_handlers_checkbox = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));
-  m_osd_messages_checkbox = new wxCheckBox(this, wxID_ANY, _("On-Screen Display Messages"));
+  m_osd_messages_checkbox = new wxCheckBox(this, wxID_ANY, _("Show On-Screen Messages"));
   m_show_active_title_checkbox =
       new wxCheckBox(this, wxID_ANY, _("Show Active Title in Window Title"));
   m_use_builtin_title_database_checkbox =
       new wxCheckBox(this, wxID_ANY, _("Use Built-In Database of Game Names"));
-  m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Lost"));
+  m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Loss"));
   m_interface_lang_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
   m_theme_choice = new wxChoice(this, wxID_ANY);

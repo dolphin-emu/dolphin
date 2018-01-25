@@ -121,7 +121,7 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
   case COL_SIZE:
     return tr("Size");
   case COL_RATING:
-    return tr("Quality");
+    return tr("State");
   }
   return QVariant();
 }

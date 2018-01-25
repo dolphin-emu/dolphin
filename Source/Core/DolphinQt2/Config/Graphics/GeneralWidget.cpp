@@ -40,8 +40,8 @@ void GeneralWidget::CreateWidgets()
 {
   auto* main_layout = new QVBoxLayout;
 
-  // Video Section
-  auto* m_video_box = new QGroupBox(tr("Video"));
+  // Basic Section
+  auto* m_video_box = new QGroupBox(tr("Basic"));
   m_video_layout = new QGridLayout();
 
   m_backend_combo = new QComboBox();
@@ -83,14 +83,15 @@ void GeneralWidget::CreateWidgets()
   m_video_layout->addWidget(m_enable_vsync, 4, 0);
   m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
 
-  // Options
-  auto* m_options_box = new QGroupBox(tr("Options"));
+  // Other
+  auto* m_options_box = new QGroupBox(tr("Other"));
   auto* m_options_layout = new QGridLayout();
 
   m_show_fps = new GraphicsBool(tr("Show FPS"), Config::GFX_SHOW_FPS);
   m_show_ping = new GraphicsBool(tr("Show NetPlay Ping"), Config::GFX_SHOW_NETPLAY_PING);
-  m_log_render_time = new GraphicsBool(tr("Log Rendertime"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
-  m_autoadjust_window_size = new QCheckBox(tr("Auto-adjust Window size"));
+  m_log_render_time =
+      new GraphicsBool(tr("Log Render Time to File"), Config::GFX_LOG_RENDER_TIME_TO_FILE);
+  m_autoadjust_window_size = new QCheckBox(tr("Auto-Adjust Window Size"));
   m_show_messages =
       new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
   m_keep_window_top = new QCheckBox(tr("Keep Window on Top"));

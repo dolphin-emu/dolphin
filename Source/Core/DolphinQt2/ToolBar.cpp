@@ -76,15 +76,15 @@ void ToolBar::MakeActions()
   m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
   widgetForAction(m_stop_action)->setMinimumWidth(button_width);
 
-  m_fullscreen_action = addAction(tr("Full Screen"), this, &ToolBar::FullScreenPressed);
+  m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
   widgetForAction(m_fullscreen_action)->setMinimumWidth(button_width);
 
-  m_screenshot_action = addAction(tr("Screen Shot"), this, &ToolBar::ScreenShotPressed);
+  m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
   widgetForAction(m_screenshot_action)->setMinimumWidth(button_width);
 
   addSeparator();
 
-  m_config_action = addAction(tr("Settings"), this, &ToolBar::SettingsPressed);
+  m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
