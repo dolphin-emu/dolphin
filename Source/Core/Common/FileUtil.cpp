@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
+#include <fstream>
 #include <limits.h>
 #include <string>
 #include <sys/stat.h>
@@ -322,65 +323,22 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
   return true;
 }
 
-// copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string& srcFilename, const std::string& destFilename)
+// copies file source_path to destination_path, returns true on success
+bool Copy(const std::string& source_path, const std::string& destination_path)
 {
-  INFO_LOG(COMMON, "Copy: %s --> %s", srcFilename.c_str(), destFilename.c_str());
+  INFO_LOG(COMMON, "Copy: %s --> %s", source_path.c_str(), destination_path.c_str());
 #ifdef _WIN32
-  if (CopyFile(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str(), FALSE))
+  if (CopyFile(UTF8ToTStr(source_path).c_str(), UTF8ToTStr(destination_path).c_str(), FALSE))
     return true;
 
-  ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
+  ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", source_path.c_str(), destination_path.c_str(),
             GetLastErrorString().c_str());
   return false;
 #else
-
-// buffer size
-#define BSIZE 1024
-
-  char buffer[BSIZE];
-
-  // Open input file
-  std::ifstream input;
-  OpenFStream(input, srcFilename, std::ifstream::in | std::ifstream::binary);
-  if (!input.is_open())
-  {
-    ERROR_LOG(COMMON, "Copy: failed to open %s", srcFilename.c_str());
-    return false;
-  }
-
-  // open output file
-  File::IOFile output(destFilename, "wb");
-
-  if (!output.IsOpen())
-  {
-    ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s", srcFilename.c_str(),
-              destFilename.c_str(), LastStrerrorString().c_str());
-    return false;
-  }
-
-  // copy loop
-  while (!input.eof())
-  {
-    // read input
-    input.read(buffer, BSIZE);
-    if (!input)
-    {
-      ERROR_LOG(COMMON, "Copy: failed reading from source, %s --> %s", srcFilename.c_str(),
-                destFilename.c_str());
-      return false;
-    }
-
-    // write output
-    if (!output.WriteBytes(buffer, BSIZE))
-    {
-      ERROR_LOG(COMMON, "Copy: failed writing to output, %s --> %s: %s", srcFilename.c_str(),
-                destFilename.c_str(), LastStrerrorString().c_str());
-      return false;
-    }
-  }
-
-  return true;
+  std::ifstream source{source_path, std::ios::binary};
+  std::ofstream destination{destination_path, std::ios::binary};
+  destination << source.rdbuf();
+  return source.good() && destination.good();
 #endif
 }
 

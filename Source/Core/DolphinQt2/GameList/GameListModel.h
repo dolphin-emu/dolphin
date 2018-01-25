@@ -45,7 +45,7 @@ public:
     NUM_COLS
   };
 
-  void UpdateGame(QSharedPointer<GameFile> game);
+  void UpdateGame(const QSharedPointer<GameFile>& game);
   void RemoveGame(const QString& path);
 
 private:

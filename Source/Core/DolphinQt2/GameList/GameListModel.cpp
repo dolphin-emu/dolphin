@@ -208,19 +208,22 @@ QSharedPointer<GameFile> GameListModel::GetGameFile(int index) const
   return m_games[index];
 }
 
-void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
+void GameListModel::UpdateGame(const QSharedPointer<GameFile>& game)
 {
   QString path = game->GetFilePath();
 
-  int entry = FindGame(path);
-  if (entry < 0)
-    entry = m_games.size();
+  int index = FindGame(path);
+  if (index < 0)
+  {
+    beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
+    m_games.push_back(game);
+    endInsertRows();
+  }
   else
-    return;
-
-  beginInsertRows(QModelIndex(), entry, entry);
-  m_games.insert(entry, game);
-  endInsertRows();
+  {
+    m_games[index] = game;
+    emit dataChanged(createIndex(index, 0), createIndex(index + 1, columnCount(QModelIndex())));
+  }
 }
 
 void GameListModel::RemoveGame(const QString& path)
