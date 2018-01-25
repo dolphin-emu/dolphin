@@ -49,6 +49,7 @@ class wxAuiNotebook;
 class wxAuiNotebookEvent;
 class wxListEvent;
 class wxMenuItem;
+class wxProgressDialog;
 
 class CRenderFrame : public wxFrame
 {
@@ -154,6 +155,7 @@ private:
   FifoPlayerDlg* m_fifo_player_dialog = nullptr;
   std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
   wxCheatsWindow* m_cheats_window = nullptr;
+  wxProgressDialog* m_progress_dialog = nullptr;
   bool m_use_debugger = false;
   bool m_batch_mode = false;
   bool m_editing_perspectives = false;

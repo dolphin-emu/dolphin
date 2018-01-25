@@ -215,19 +215,22 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Create main wrapper instances.
   g_object_cache = std::make_unique<ObjectCache>();
+  g_shader_cache = std::make_unique<ShaderCache>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
 
   // Invoke init methods on main wrapper classes.
   // These have to be done before the others because the destructors
   // for the remaining classes may call methods on these.
-  if (!g_object_cache->Initialize() || !FramebufferManager::GetInstance()->Initialize() ||
-      !StateTracker::CreateInstance() || !Renderer::GetInstance()->Initialize())
+  if (!g_object_cache->Initialize() || !g_shader_cache->Initialize() ||
+      !FramebufferManager::GetInstance()->Initialize() || !StateTracker::CreateInstance() ||
+      !Renderer::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
     g_renderer.reset();
     StateTracker::DestroyInstance();
     g_framebuffer_manager.reset();
+    g_shader_cache.reset();
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
@@ -250,6 +253,7 @@ bool VideoBackend::Initialize(void* window_handle)
     g_renderer.reset();
     StateTracker::DestroyInstance();
     g_framebuffer_manager.reset();
+    g_shader_cache.reset();
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
@@ -288,6 +292,7 @@ void VideoBackend::Shutdown()
 {
   g_command_buffer_mgr->WaitForGPUIdle();
 
+  g_shader_cache.reset();
   g_object_cache.reset();
   g_command_buffer_mgr.reset();
   g_vulkan_context.reset();
@@ -307,7 +312,7 @@ void VideoBackend::Video_Cleanup()
 
   // Save all cached pipelines out to disk for next time.
   if (g_ActiveConfig.bShaderCache)
-    g_object_cache->SavePipelineCache();
+    g_shader_cache->SavePipelineCache();
 
   g_perf_query.reset();
   g_texture_cache.reset();

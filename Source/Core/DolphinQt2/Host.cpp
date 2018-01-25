@@ -84,6 +84,9 @@ void Host_YieldToUI()
 {
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 }
+void Host_UpdateProgressDialog(const char* caption, int position, int total)
+{
+}
 
 // We ignore these, and their purpose should be questioned individually.
 // In particular, RequestRenderWindowSize, RequestFullscreen, and

@@ -43,6 +43,7 @@
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="TextureConverter.cpp" />
     <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="RasterFont.cpp" />
@@ -69,6 +70,7 @@
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="TextureConverter.h" />
     <ClInclude Include="RasterFont.h" />
     <ClInclude Include="StagingBuffer.h" />

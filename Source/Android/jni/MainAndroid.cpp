@@ -152,6 +152,10 @@ void Host_YieldToUI()
 {
 }
 
+void Host_UpdateProgressDialog(const char* caption, int position, int total)
+{
+}
+
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
   __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "%s:%s", caption, text);

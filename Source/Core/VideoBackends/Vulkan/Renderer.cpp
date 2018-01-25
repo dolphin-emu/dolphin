@@ -462,8 +462,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
-                         g_object_cache->GetPassthroughVertexShader(),
-                         g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
+                         g_shader_cache->GetPassthroughVertexShader(),
+                         g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
   draw.SetRasterizationState(rs_state);
   draw.SetDepthStencilState(depth_state);
@@ -1177,8 +1177,8 @@ void Renderer::CheckForConfigChanges()
     BindEFBToStateTracker();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
-    g_object_cache->ReloadShaderAndPipelineCaches();
-    g_object_cache->RecompileSharedShaders();
+    g_shader_cache->ReloadShaderAndPipelineCaches();
+    g_shader_cache->RecompileSharedShaders();
     StateTracker::GetInstance()->InvalidateShaderPointers();
     StateTracker::GetInstance()->ReloadPipelineUIDCache();
   }
@@ -1509,7 +1509,7 @@ bool Renderer::CompileShaders()
 
   )";
 
-  std::string source = g_object_cache->GetUtilityShaderHeader() + CLEAR_FRAGMENT_SHADER_SOURCE;
+  std::string source = g_shader_cache->GetUtilityShaderHeader() + CLEAR_FRAGMENT_SHADER_SOURCE;
   m_clear_fragment_shader = Util::CompileAndCreateFragmentShader(source);
 
   return m_clear_fragment_shader != VK_NULL_HANDLE;

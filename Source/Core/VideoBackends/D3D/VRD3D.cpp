@@ -4,6 +4,7 @@
 
 #include "VideoBackends/D3D/VRD3D.h"
 #include "Common/Logging/Log.h"
+#include "Common/Timer.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoBackends/D3D/D3DUtil.h"

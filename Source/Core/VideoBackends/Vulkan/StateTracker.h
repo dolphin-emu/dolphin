@@ -11,7 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/LinearDiskCache.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"

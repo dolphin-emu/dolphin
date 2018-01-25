@@ -370,7 +370,7 @@ void Renderer::DrawDebugText()
       }
       else
       {
-        final_cyan += StringFromFormat("FPS: %u", m_fps_counter.GetFPS());
+        final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
       }
     }
 
