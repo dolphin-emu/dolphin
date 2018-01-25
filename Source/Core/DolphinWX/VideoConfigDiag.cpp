@@ -561,7 +561,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBoxRefBool(page_general, _("Keep Window on Top"),
                                              wxGetTranslation(keep_window_on_top_desc),
                                              SConfig::GetInstance().bKeepWindowOnTop));
-        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Hide Mouse Cursor"),
+        szr_other->Add(CreateCheckBoxRefBool(page_general, _("Always Hide Mouse Cursor"),
                                              wxGetTranslation(hide_mouse_cursor_desc),
                                              SConfig::GetInstance().bHideCursor));
         szr_other->Add(render_to_main_checkbox =

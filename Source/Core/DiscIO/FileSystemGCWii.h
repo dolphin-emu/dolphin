@@ -95,7 +95,6 @@ public:
 
 private:
   bool m_valid;
-  u32 m_offset_shift;
   std::vector<u8> m_file_system_table;
   FileInfoGCWii m_root;
   // Maps the end offset of files to FST indexes

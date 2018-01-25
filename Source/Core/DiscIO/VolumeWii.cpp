@@ -52,22 +52,22 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
     if (!number_of_partitions)
       continue;
 
-    std::optional<u32> read_buffer =
-        m_pReader->ReadSwapped<u32>(0x40000 + (partition_group * 8) + 4);
-    if (!read_buffer)
+    const std::optional<u64> partition_table_offset =
+        ReadSwappedAndShifted(0x40000 + (partition_group * 8) + 4, PARTITION_NONE);
+    if (!partition_table_offset)
       continue;
-    const u64 partition_table_offset = static_cast<u64>(*read_buffer) << 2;
 
     for (u32 i = 0; i < number_of_partitions; i++)
     {
-      read_buffer = m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8));
-      if (!read_buffer)
+      const std::optional<u64> partition_offset =
+          ReadSwappedAndShifted(*partition_table_offset + (i * 8), PARTITION_NONE);
+      if (!partition_offset)
         continue;
-      const u64 partition_offset = static_cast<u64>(*read_buffer) << 2;
-      const Partition partition(partition_offset);
+
+      const Partition partition(*partition_offset);
 
       const std::optional<u32> partition_type =
-          m_pReader->ReadSwapped<u32>(partition_table_offset + (i * 8) + 4);
+          m_pReader->ReadSwapped<u32>(*partition_table_offset + (i * 8) + 4);
       if (!partition_type)
         continue;
 
@@ -84,10 +84,10 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
 
       auto get_tmd = [this, partition]() -> IOS::ES::TMDReader {
         const std::optional<u32> tmd_size = m_pReader->ReadSwapped<u32>(partition.offset + 0x2a4);
-        std::optional<u32> tmd_address = m_pReader->ReadSwapped<u32>(partition.offset + 0x2a8);
+        const std::optional<u64> tmd_address =
+            ReadSwappedAndShifted(partition.offset + 0x2a8, PARTITION_NONE);
         if (!tmd_size || !tmd_address)
           return INVALID_TMD;
-        *tmd_address <<= 2;
         if (!IOS::ES::IsValidTMDSize(*tmd_size))
         {
           // This check is normally done by ES in ES_DiVerify, but that would happen too late

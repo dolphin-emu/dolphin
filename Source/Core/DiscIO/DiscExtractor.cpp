@@ -160,13 +160,13 @@ bool ExportTMD(const Volume& volume, const Partition& partition, const std::stri
   if (volume.GetVolumeType() != Platform::WII_DISC)
     return false;
 
-  std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2a4, PARTITION_NONE);
-  std::optional<u32> offset = volume.ReadSwapped<u32>(partition.offset + 0x2a8, PARTITION_NONE);
+  const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2a4, PARTITION_NONE);
+  const std::optional<u64> offset =
+      volume.ReadSwappedAndShifted(partition.offset + 0x2a8, PARTITION_NONE);
   if (!size || !offset)
     return false;
 
-  const u64 actual_offset = partition.offset + (static_cast<u64>(*offset) << 2);
-  return ExportData(volume, PARTITION_NONE, actual_offset, *size, export_filename);
+  return ExportData(volume, PARTITION_NONE, *offset, *size, export_filename);
 }
 
 bool ExportCertificateChain(const Volume& volume, const Partition& partition,
@@ -175,13 +175,13 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
   if (volume.GetVolumeType() != Platform::WII_DISC)
     return false;
 
-  std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2ac, PARTITION_NONE);
-  std::optional<u32> offset = volume.ReadSwapped<u32>(partition.offset + 0x2b0, PARTITION_NONE);
+  const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2ac, PARTITION_NONE);
+  const std::optional<u64> offset =
+      volume.ReadSwappedAndShifted(partition.offset + 0x2b0, PARTITION_NONE);
   if (!size || !offset)
     return false;
 
-  const u64 actual_offset = partition.offset + (static_cast<u64>(*offset) << 2);
-  return ExportData(volume, PARTITION_NONE, actual_offset, *size, export_filename);
+  return ExportData(volume, PARTITION_NONE, *offset, *size, export_filename);
 }
 
 bool ExportH3Hashes(const Volume& volume, const Partition& partition,
@@ -190,12 +190,12 @@ bool ExportH3Hashes(const Volume& volume, const Partition& partition,
   if (volume.GetVolumeType() != Platform::WII_DISC)
     return false;
 
-  std::optional<u32> offset = volume.ReadSwapped<u32>(partition.offset + 0x2b4, PARTITION_NONE);
+  const std::optional<u64> offset =
+      volume.ReadSwappedAndShifted(partition.offset + 0x2b4, PARTITION_NONE);
   if (!offset)
     return false;
 
-  const u64 actual_offset = partition.offset + (static_cast<u64>(*offset) << 2);
-  return ExportData(volume, PARTITION_NONE, actual_offset, 0x18000, export_filename);
+  return ExportData(volume, PARTITION_NONE, *offset, 0x18000, export_filename);
 }
 
 bool ExportHeader(const Volume& volume, const Partition& partition,
@@ -239,9 +239,7 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
   if (!IsDisc(volume_type))
     return {};
 
-  const std::optional<u32> offset = volume.ReadSwapped<u32>(0x420, partition);
-  const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
-  return offset ? static_cast<u64>(*offset) << offset_shift : std::optional<u64>();
+  return volume.ReadSwappedAndShifted(0x420, partition);
 }
 
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset)
@@ -295,9 +293,7 @@ std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition
   if (!IsDisc(volume_type))
     return {};
 
-  const std::optional<u32> offset = volume.ReadSwapped<u32>(0x424, partition);
-  const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
-  return offset ? static_cast<u64>(*offset) << offset_shift : std::optional<u64>();
+  return volume.ReadSwappedAndShifted(0x424, partition);
 }
 
 std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition)
@@ -306,9 +302,7 @@ std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition)
   if (!IsDisc(volume_type))
     return {};
 
-  const std::optional<u32> size = volume.ReadSwapped<u32>(0x428, partition);
-  const u8 offset_shift = volume_type == Platform::WII_DISC ? 2 : 0;
-  return size ? static_cast<u64>(*size) << offset_shift : std::optional<u64>();
+  return volume.ReadSwappedAndShifted(0x428, partition);
 }
 
 bool ExportFST(const Volume& volume, const Partition& partition, const std::string& export_filename)
