@@ -85,6 +85,7 @@ set(SRCS
   GameList/GameTracker.cpp
   GameList/GridProxyModel.cpp
   GameList/ListProxyModel.cpp
+  GCMemcardManager.cpp
   QtUtils/BlockUserInputFilter.cpp
   NetPlay/GameListDialog.cpp
   NetPlay/MD5Dialog.cpp

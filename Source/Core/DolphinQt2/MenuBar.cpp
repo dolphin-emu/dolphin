@@ -109,6 +109,11 @@ void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
+  AddAction(tools_menu, tr("&Memory Card Manager (GC)"), this,
+            [this] { emit ShowMemcardManager(); });
+
+  tools_menu->addSeparator();
+
   AddAction(tools_menu, tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
   AddAction(tools_menu, tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
