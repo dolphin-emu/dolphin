@@ -326,7 +326,7 @@ static void FinishRead(u64 id, s64 cycles_late)
             (CoreTiming::GetTicks() - request.time_started_ticks) /
                 (SystemTimers::GetTicksPerSecond() / 1000000));
 
-  if (buffer.empty())
+  if (buffer.size() != request.length)
   {
     PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
                 request.dvd_offset, request.dvd_offset + request.length);
