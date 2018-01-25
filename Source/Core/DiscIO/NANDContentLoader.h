@@ -112,11 +112,10 @@ public:
     return instance;
   }
 
-  const NANDContentLoader&
-  GetNANDLoader(const std::string& content_path,
-                Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
-  const NANDContentLoader&
-  GetNANDLoader(u64 title_id, Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
+  const NANDContentLoader& GetNANDLoader(const std::string& content_path,
+                                         Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
+  const NANDContentLoader& GetNANDLoader(u64 title_id,
+                                         Common::FromWhichRoot from = Common::FROM_CONFIGURED_ROOT);
   void ClearCache();
 
 private:
