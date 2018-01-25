@@ -21,6 +21,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
@@ -29,6 +30,9 @@
 #include "Common/Timer.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
+#include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -79,12 +83,7 @@ static u64 s_totalLagCount = 0;                               // just stats
 static u64 s_currentInputCount = 0, s_totalInputCount = 0;    // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0;  // just stats
 static u64 s_recordingStartTime;  // seconds since 1970 that recording started
-static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
-static bool s_bProgressive = false, s_bPAL60 = false;
-static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
-static bool s_bSyncGPU = false, s_bNetPlay = false;
-static std::string s_videoBackend = "unknown";
-static int s_iCPUCore = 1;
+static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bNetPlay = false;
 static bool s_bClearSave = false;
 static bool s_bDiscChange = false;
 static bool s_bReset = false;
@@ -95,7 +94,6 @@ static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
-static u8 s_language = static_cast<u8>(DiscIO::Language::LANGUAGE_UNKNOWN);
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
@@ -109,6 +107,7 @@ static WiiManipFunction s_wii_manip_func;
 
 static std::string s_current_file_name;
 
+static void GetSettings();
 static bool IsMovieHeader(u8 magic[4])
 {
   return magic[0] == 'D' && magic[1] == 'T' && magic[2] == 'M' && magic[3] == 0x1A;
@@ -225,7 +224,6 @@ void Init(const BootParameters& boot)
   s_bPolled = false;
   s_bFrameStep = false;
   s_bSaveConfig = false;
-  s_iCPUCore = SConfig::GetInstance().iCPUCore;
   if (IsPlayingInput())
   {
     ReadHeader();
@@ -457,44 +455,10 @@ bool IsConfigSaved()
 {
   return s_bSaveConfig;
 }
-bool IsDualCore()
-{
-  return s_bDualCore;
-}
-
-bool IsProgressive()
-{
-  return s_bProgressive;
-}
-
-bool IsPAL60()
-{
-  return s_bPAL60;
-}
 
 bool IsSkipIdle()
 {
   return s_bSkipIdle;
-}
-
-bool IsDSPHLE()
-{
-  return s_bDSPHLE;
-}
-
-bool IsFastDiscSpeed()
-{
-  return s_bFastDiscSpeed;
-}
-
-int GetCPUMode()
-{
-  return s_iCPUCore;
-}
-
-u8 GetLanguage()
-{
-  return s_language;
 }
 
 bool IsStartingFromClearSave()
@@ -505,11 +469,6 @@ bool IsStartingFromClearSave()
 bool IsUsingMemcard(int memcard)
 {
   return (s_memcards & (1 << memcard)) != 0;
-}
-
-bool IsSyncGPU()
-{
-  return s_bSyncGPU;
 }
 
 bool IsNetPlayRecording()
@@ -944,19 +903,12 @@ void ReadHeader()
   if (tmpHeader.bSaveConfig)
   {
     s_bSaveConfig = true;
+    Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&tmpHeader));
     s_bSkipIdle = tmpHeader.bSkipIdle;
-    s_bDualCore = tmpHeader.bDualCore;
-    s_bProgressive = tmpHeader.bProgressive;
-    s_bPAL60 = tmpHeader.bPAL60;
-    s_bDSPHLE = tmpHeader.bDSPHLE;
-    s_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-    s_iCPUCore = tmpHeader.CPUCore;
     s_bClearSave = tmpHeader.bClearSave;
     s_memcards = tmpHeader.memcards;
     s_bongos = tmpHeader.bongos;
-    s_bSyncGPU = tmpHeader.bSyncGPU;
     s_bNetPlay = tmpHeader.bNetPlay;
-    s_language = tmpHeader.language;
     memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
   }
   else
@@ -964,7 +916,6 @@ void ReadHeader()
     GetSettings();
   }
 
-  s_videoBackend = (char*)tmpHeader.videoBackend;
   s_discChange = (char*)tmpHeader.discChange;
   s_author = (char*)tmpHeader.author;
   memcpy(s_MD5, tmpHeader.md5, 16);
@@ -1423,24 +1374,10 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
+  ConfigLoaders::SaveToDTM(Config::GetLayer(Config::LayerType::Meta), &header);
   header.bSkipIdle = s_bSkipIdle;
-  header.bDualCore = s_bDualCore;
-  header.bProgressive = s_bProgressive;
-  header.bPAL60 = s_bPAL60;
-  header.bDSPHLE = s_bDSPHLE;
-  header.bFastDiscSpeed = s_bFastDiscSpeed;
-  strncpy((char*)header.videoBackend, s_videoBackend.c_str(), ArraySize(header.videoBackend));
-  header.CPUCore = s_iCPUCore;
-  header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
-  header.bEFBCopyEnable = g_ActiveConfig.bEFBCopyEnable;
-  header.bSkipEFBCopyToRam = g_ActiveConfig.bSkipEFBCopyToRam;
-  header.bEFBCopyCacheEnable = false;
-  header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
-  header.bUseXFB = g_ActiveConfig.bUseXFB;
-  header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
   header.memcards = s_memcards;
   header.bClearSave = s_bClearSave;
-  header.bSyncGPU = s_bSyncGPU;
   header.bNetPlay = s_bNetPlay;
   strncpy((char*)header.discChange, s_discChange.c_str(), ArraySize(header.discChange));
   strncpy((char*)header.author, s_author.c_str(), ArraySize(header.author));
@@ -1450,7 +1387,6 @@ void SaveRecording(const std::string& filename)
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
-  header.language = s_language;
 
   // TODO
   header.uniqueID = 0;
@@ -1511,26 +1447,16 @@ void GetSettings()
 {
   s_bSaveConfig = true;
   s_bSkipIdle = SConfig::GetInstance().bSkipIdle;
-  s_bDualCore = SConfig::GetInstance().bCPUThread;
-  s_bProgressive = SConfig::GetInstance().bProgressive;
-  s_bPAL60 = SConfig::GetInstance().bPAL60;
-  s_bDSPHLE = SConfig::GetInstance().bDSPHLE;
-  s_bFastDiscSpeed = SConfig::GetInstance().bFastDiscSpeed;
-  s_videoBackend = g_video_backend->GetName();
-  s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
-  s_iCPUCore = SConfig::GetInstance().iCPUCore;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
     s_bClearSave =
         !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
-    s_language = SConfig::GetInstance().m_wii_language;
   }
   else
   {
     s_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
-    s_language = SConfig::GetInstance().SelectedLanguage;
   }
   s_memcards |=
       (SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
@@ -1544,7 +1470,7 @@ void GetSettings()
   std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
   std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
 
-  if (!s_bDSPHLE)
+  if (!Config::Get(Config::MAIN_DSP_HLE))
   {
     std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
     std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;

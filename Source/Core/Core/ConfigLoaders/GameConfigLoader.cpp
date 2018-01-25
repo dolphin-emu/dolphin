@@ -25,6 +25,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
@@ -118,6 +119,11 @@ static const INIToLocationMap& GetINIToLocationMap()
       {{"Video", "PH_ZNear"}, {Config::GFX_PROJECTION_HACK_ZNEAR.location}},
       {{"Video", "PH_ZFar"}, {Config::GFX_PROJECTION_HACK_ZFAR.location}},
       {{"Video", "PerfQueriesEnable"}, {Config::GFX_PERF_QUERIES_ENABLE.location}},
+
+      {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.location}},
+      {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.location}},
+      {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.location}},
+      {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.location}},
 
       {{"VR", "Disable3D"},{Config::GFX_VR_DISABLE_3D.location}},
       {{"VR", "HudFullscreen"},{Config::GFX_VR_HUD_FULLSCREEN.location}},

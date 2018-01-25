@@ -137,19 +137,10 @@ void SignalDiscChange(const std::string& new_path);
 void SetReset(bool reset);
 
 bool IsConfigSaved();
-bool IsDualCore();
-bool IsProgressive();
-bool IsPAL60();
 bool IsSkipIdle();
-bool IsDSPHLE();
-bool IsFastDiscSpeed();
-int GetCPUMode();
-u8 GetLanguage();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
-bool IsSyncGPU();
 void SetGraphicsConfig();
-void GetSettings();
 bool IsNetPlayRecording();
 
 bool IsUsingPad(int controller);

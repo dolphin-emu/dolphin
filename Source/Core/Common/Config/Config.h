@@ -71,9 +71,7 @@ T Get(LayerType layer, const ConfigInfo<T>& info)
   if (!LayerExists(layer))
     return info.default_value;
   else
-    return GetLayer(layer)
-        ->GetOrCreateSection(info.location.system, info.location.section)
-        ->template Get<T>(info.location.key, info.default_value);
+  return GetLayer(layer)->Get(info);
 }
 
 template <typename T>
@@ -97,9 +95,7 @@ LayerType GetActiveLayerForConfig(const ConfigInfo<T>& info)
 template <typename T>
 void Set(LayerType layer, const ConfigInfo<T>& info, const T& value)
 {
-  GetLayer(layer)
-      ->GetOrCreateSection(info.location.system, info.location.section)
-      ->Set(info.location.key, value);
+  GetLayer(layer)->Set(info, value);
   InvokeConfigChangedCallbacks();
 }
 
