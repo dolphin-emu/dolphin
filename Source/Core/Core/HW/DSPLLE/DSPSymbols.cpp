@@ -149,7 +149,7 @@ bool ReadAnnotatedAssembly(const std::string& filename)
           temp[i - 5] = 0;
 
           // Mark symbol so the next hex sets the address
-          current_symbol.name = temp;
+          current_symbol.Rename(temp);
           current_symbol.address = 0xFFFF;
           current_symbol.index = symbol_count++;
           symbol_in_progress = true;

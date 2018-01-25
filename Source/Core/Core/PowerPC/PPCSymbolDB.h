@@ -40,8 +40,6 @@ public:
   void PrintCallers(u32 funcAddr) const;
   void LogFunctionCall(u32 addr);
 
-  const std::string Demangle(const std::string& name);
-
 private:
   DebugInterface* debugger;
 };

@@ -361,7 +361,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
                                      StrToWxStr(symbol->name));
       if (input_symbol.ShowModal() == wxID_OK)
       {
-        symbol->name = WxStrToStr(input_symbol.GetValue());
+        symbol->Rename(WxStrToStr(input_symbol.GetValue()));
         Refresh();  // Redraw to show the renamed symbol
       }
       Host_NotifyMapLoaded();
