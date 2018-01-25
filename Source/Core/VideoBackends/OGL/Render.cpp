@@ -2405,7 +2405,7 @@ void Renderer::RestoreAPIState()
 
   ProgramShaderCache::BindLastVertexFormat();
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
-  glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
+  glBindBuffer(GL_ARRAY_BUFFER, vm->GetVertexBufferHandle());
 
   OGLTexture::SetStage();
   if (g_ActiveConfig.bDisableNearClipping)

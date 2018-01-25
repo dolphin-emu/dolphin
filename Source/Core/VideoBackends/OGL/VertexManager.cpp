@@ -62,6 +62,16 @@ void VertexManager::DestroyDeviceObjects()
   s_indexBuffer.reset();
 }
 
+GLuint VertexManager::GetVertexBufferHandle() const
+{
+  return m_vertex_buffers;
+}
+
+GLuint VertexManager::GetIndexBufferHandle() const
+{
+  return m_index_buffers;
+}
+
 void VertexManager::PrepareDrawBuffers(u32 stride)
 {
   u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;

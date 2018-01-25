@@ -37,9 +37,8 @@ public:
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
-  // NativeVertexFormat use this
-  GLuint m_vertex_buffers;
-  GLuint m_index_buffers;
+  GLuint GetVertexBufferHandle() const;
+  GLuint GetIndexBufferHandle() const;
 
 protected:
   void ResetBuffer(u32 stride) override;
@@ -49,6 +48,9 @@ private:
   void vFlush() override;
   void vFlush3D(bool useDstAlpha);
   void PrepareDrawBuffers(u32 stride);
+
+  GLuint m_vertex_buffers;
+  GLuint m_index_buffers;
 
   // Alternative buffers in CPU memory for primatives we are going to discard.
   std::vector<u8> m_cpu_v_buffer;
