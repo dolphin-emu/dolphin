@@ -480,7 +480,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;
   }
-  Settings().SetLastGame(path);
+  // Settings().SetLastGame(path);
   ShowRenderWidget();
   emit EmulationStarted();
 
