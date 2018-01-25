@@ -1180,15 +1180,15 @@ void ProgramShaderCache::CreatePrerenderArrays(SharedContextData* data)
   // This is because in EGL, and potentially GLX, we have a surfaceless context.
   glGenTextures(1, &data->prerender_FBO_tex);
   glBindTexture(GL_TEXTURE_2D_ARRAY, data->prerender_FBO_tex);
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 1, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 1);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 1, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
   glGenTextures(1, &data->prerender_FBO_depth);
   glBindTexture(GL_TEXTURE_2D_ARRAY, data->prerender_FBO_depth);
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, 1, 1, 1, 0, GL_DEPTH_COMPONENT,
-               GL_FLOAT, nullptr);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 1);
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT32F, 1, 1, 1, 0, GL_DEPTH_COMPONENT,
+               GL_FLOAT, nullptr);
   glGenFramebuffers(1, &data->prerender_FBO);
   glBindFramebuffer(GL_FRAMEBUFFER, data->prerender_FBO);
   glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, data->prerender_FBO_tex, 0, 0);
