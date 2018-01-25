@@ -204,15 +204,15 @@ _write:
 _write816:
 	beq	cr4,+32			#lf r5 = 1 then 16 bits write
 	stbx	r4,r9,r12		#write byte
-	add r20, r9, r12
-	icbi r0, r20
+	add r21, r9, r12
+	icbi r0, r21
 	sync
 	isync
 	addi	r9,r9,1
 	b	+28
 	sthx	r4,r9,r12		#write halfword
-	add r20, r9, r12 #Get Real Memory Offset
-	icbi r0, r20 #Invalidate Icache around real memory offset
+	add r21, r9, r12 #Get Real Memory Offset
+	icbi r0, r21 #Invalidate Icache around real memory offset
 	sync
 	isync
 	addi	r9,r9,2
@@ -238,8 +238,8 @@ _write_string:				#endianess ?
 	blt-	_skip_and_align		#lf r9 < 0 then exit
 	lbzx	r5,r9,r15
 	stbx	r5,r9,r12		#loop until all the data has been written
-	add r20, r9, r12 #Get Real Memory Offset
-	icbi r0, r20 #Invalidate Icache around real memory offset
+	add r21, r9, r12 #Get Real Memory Offset
+	icbi r0, r21 #Invalidate Icache around real memory offset
 	sync
 	isync
 	b	_stb
@@ -269,8 +269,8 @@ _loop_serial:
 	b	+8
 
 	stwx	r4,r9,r12		#write serial word (CT04,T>=2)
-	add r20, r9, r12 #Get Real Memory Offset
-	icbi r0, r20 #Invalidate Icache around real memory offset
+	add r21, r9, r12 #Get Real Memory Offset
+	icbi r0, r21 #Invalidate Icache around real memory offset
 	sync
 	isync
 	add	r4,r4,r11		#value +=VVVVVVVV
