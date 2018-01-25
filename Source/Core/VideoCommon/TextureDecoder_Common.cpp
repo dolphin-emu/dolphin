@@ -127,6 +127,7 @@ int TexDecoder_GetEFBCopyBlockWidthInTexels(EFBCopyFormat format)
   case EFBCopyFormat::R4:
     return 8;
   // 8-bit formats
+  case EFBCopyFormat::RA4:
   case EFBCopyFormat::A8:
   case EFBCopyFormat::R8_0x1:
   case EFBCopyFormat::R8:
@@ -158,6 +159,7 @@ int TexDecoder_GetEFBCopyBlockHeightInTexels(EFBCopyFormat format)
   case EFBCopyFormat::R4:
     return 8;
   // 8-bit formats
+  case EFBCopyFormat::RA4:
   case EFBCopyFormat::A8:
   case EFBCopyFormat::R8_0x1:
   case EFBCopyFormat::R8:
