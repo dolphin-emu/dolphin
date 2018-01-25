@@ -117,17 +117,61 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       out.Write(") {\n");
     }
 
-    out.Write("  switch (index) {\n");
-    for (u32 i = 0; i < numTexgen; i++)
+    if (ApiType == APIType::D3D)
     {
-      out.Write("  case %uu:\n"
-                "    return tex%u;\n",
-                i, i);
+      out.Write("  switch (index) {\n");
+      for (u32 i = 0; i < numTexgen; i++)
+      {
+        out.Write("  case %uu:\n"
+                  "    return tex%u;\n",
+                  i, i);
+      }
+      out.Write("  default:\n"
+                "    return float3(0.0, 0.0, 0.0);\n"
+                "  }\n");
     }
-    out.Write("  default:\n"
-              "    return float3(0.0, 0.0, 0.0);\n"
-              "  }\n"
-              "}\n\n");
+    else
+    {
+      if (numTexgen > 4)
+        out.Write("  if (index < 4u) {\n");
+      if (numTexgen > 2)
+        out.Write("    if (index < 2u) {\n");
+      if (numTexgen > 1)
+        out.Write("      return (index == 0u) ? tex0 : tex1;\n");
+      else
+        out.Write("      return (index == 0u) ? tex0 : float3(0.0, 0.0, 0.0);\n");
+      if (numTexgen > 2)
+      {
+        out.Write("    } else {\n");  // >= 2
+        if (numTexgen > 3)
+          out.Write("      return (index == 2u) ? tex2 : tex3;\n");
+        else
+          out.Write("      return (index == 2u) ? tex2 : float3(0.0, 0.0, 0.0);\n");
+        out.Write("    }\n");
+      }
+      if (numTexgen > 4)
+      {
+        out.Write("  } else {\n");  // >= 4 <= 8
+        if (numTexgen > 6)
+          out.Write("    if (index < 6u) {\n");
+        if (numTexgen > 5)
+          out.Write("      return (index == 4u) ? tex4 : tex5;\n");
+        else
+          out.Write("      return (index == 4u) ? tex4 : float3(0.0, 0.0, 0.0);\n");
+        if (numTexgen > 6)
+        {
+          out.Write("    } else {\n");  // >= 6 <= 8
+          if (numTexgen > 7)
+            out.Write("      return (index == 6u) ? tex6 : tex7;\n");
+          else
+            out.Write("      return (index == 6u) ? tex6 : float3(0.0, 0.0, 0.0);\n");
+          out.Write("    }\n");
+        }
+        out.Write("  }\n");
+      }
+    }
+
+    out.Write("}\n\n");
   }
 
   // =====================
@@ -301,32 +345,6 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       "}\n\n");
 
   // =================
-  //   Alpha Compare
-  // =================
-
-  out.Write("// Helper function for Alpha Test\n"
-            "bool alphaCompare(int a, int b, uint compare) {\n"
-            "  switch (compare) {\n"
-            "  case 0u: // NEVER\n"
-            "    return false;\n"
-            "  case 1u: // LESS\n"
-            "    return a < b;\n"
-            "  case 2u: // EQUAL\n"
-            "    return a == b;\n"
-            "  case 3u: // LEQUAL\n"
-            "    return a <= b;\n"
-            "  case 4u: // GREATER\n"
-            "    return a > b;\n"
-            "  case 5u: // NEQUAL;\n"
-            "    return a != b;\n"
-            "  case 6u: // GEQUAL\n"
-            "    return a >= b;\n"
-            "  case 7u: // ALWAYS\n"
-            "    return true;\n"
-            "  }\n"
-            "}\n\n");
-
-  // =================
   //   Input Selects
   // =================
 
@@ -345,116 +363,265 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "\n"
             "int4 getRasColor(State s, StageState ss, float4 colors_0, float4 colors_1);\n"
             "int4 getKonstColor(State s, StageState ss);\n"
-            "\n"
-            "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, uint "
-            "index) {\n"
-            "  switch (index) {\n"
-            "  case 0u: // prev.rgb\n"
-            "    return s.Reg[0].rgb;\n"
-            "  case 1u: // prev.aaa\n"
-            "    return s.Reg[0].aaa;\n"
-            "  case 2u: // c0.rgb\n"
-            "    return s.Reg[1].rgb;\n"
-            "  case 3u: // c0.aaa\n"
-            "    return s.Reg[1].aaa;\n"
-            "  case 4u: // c1.rgb\n"
-            "    return s.Reg[2].rgb;\n"
-            "  case 5u: // c1.aaa\n"
-            "    return s.Reg[2].aaa;\n"
-            "  case 6u: // c2.rgb\n"
-            "    return s.Reg[3].rgb;\n"
-            "  case 7u: // c2.aaa\n"
-            "    return s.Reg[3].aaa;\n"
-            "  case 8u:\n"
-            "    return s.TexColor.rgb;\n"
-            "  case 9u:\n"
-            "    return s.TexColor.aaa;\n"
-            "  case 10u:\n"
-            "    return getRasColor(s, ss, colors_0, colors_1).rgb;\n"
-            "  case 11u:\n"
-            "    return getRasColor(s, ss, colors_0, colors_1).aaa;\n"
-            "  case 12u: // One\n"
-            "    return int3(255, 255, 255);\n"
-            "  case 13u: // Half\n"
-            "    return int3(128, 128, 128);\n"
-            "  case 14u:\n"
-            "    return getKonstColor(s, ss).rgb;\n"
-            "  case 15u: // Zero\n"
-            "    return int3(0, 0, 0);\n"
-            "  }\n"
-            "}\n"
-            "\n"
-            "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, uint "
-            "index) {\n"
-            "  switch (index) {\n"
-            "  case 0u: // prev.a\n"
-            "    return s.Reg[0].a;\n"
-            "  case 1u: // c0.a\n"
-            "    return s.Reg[1].a;\n"
-            "  case 2u: // c1.a\n"
-            "    return s.Reg[2].a;\n"
-            "  case 3u: // c2.a\n"
-            "    return s.Reg[3].a;\n"
-            "  case 4u:\n"
-            "    return s.TexColor.a;\n"
-            "  case 5u:\n"
-            "    return getRasColor(s, ss, colors_0, colors_1).a;\n"
-            "  case 6u:\n"
-            "    return getKonstColor(s, ss).a;\n"
-            "  case 7u: // Zero\n"
-            "    return 0;\n"
-            "  }\n"
-            "}\n"
-            "\n"
-            "int4 getTevReg(in State s, uint index) {\n"
-            "  switch (index) {\n"
-            "  case 0u: // prev\n"
-            "    return s.Reg[0];\n"
-            "  case 1u: // c0\n"
-            "    return s.Reg[1];\n"
-            "  case 2u: // c1\n"
-            "    return s.Reg[2];\n"
-            "  case 3u: // c2\n"
-            "    return s.Reg[3];\n"
-            "  default: // prev\n"
-            "    return s.Reg[0];\n"
-            "  }\n"
-            "}\n"
-            "\n"
-            "void setRegColor(inout State s, uint index, int3 color) {\n"
-            "  switch (index) {\n"
-            "  case 0u: // prev\n"
-            "    s.Reg[0].rgb = color;\n"
-            "    break;\n"
-            "  case 1u: // c0\n"
-            "    s.Reg[1].rgb = color;\n"
-            "    break;\n"
-            "  case 2u: // c1\n"
-            "    s.Reg[2].rgb = color;\n"
-            "    break;\n"
-            "  case 3u: // c2\n"
-            "    s.Reg[3].rgb = color;\n"
-            "    break;\n"
-            "  }\n"
-            "}\n"
-            "\n"
-            "void setRegAlpha(inout State s, uint index, int alpha) {\n"
-            "  switch (index) {\n"
-            "  case 0u: // prev\n"
-            "    s.Reg[0].a = alpha;\n"
-            "    break;\n"
-            "  case 1u: // c0\n"
-            "    s.Reg[1].a = alpha;\n"
-            "    break;\n"
-            "  case 2u: // c1\n"
-            "    s.Reg[2].a = alpha;\n"
-            "    break;\n"
-            "  case 3u: // c2\n"
-            "    s.Reg[3].a = alpha;\n"
-            "    break;\n"
-            "  }\n"
-            "}\n"
             "\n");
+
+  // The switch statements in these functions appear to get transformed into an if..else chain
+  // on NVIDIA's OpenGL/Vulkan drivers, resulting in lower performance than the D3D counterparts.
+  // Transforming the switch into a binary tree of ifs can increase performance by up to 20%.
+  if (ApiType == APIType::D3D)
+  {
+    out.Write("// Helper function for Alpha Test\n"
+              "bool alphaCompare(int a, int b, uint compare) {\n"
+              "  switch (compare) {\n"
+              "  case 0u: // NEVER\n"
+              "    return false;\n"
+              "  case 1u: // LESS\n"
+              "    return a < b;\n"
+              "  case 2u: // EQUAL\n"
+              "    return a == b;\n"
+              "  case 3u: // LEQUAL\n"
+              "    return a <= b;\n"
+              "  case 4u: // GREATER\n"
+              "    return a > b;\n"
+              "  case 5u: // NEQUAL;\n"
+              "    return a != b;\n"
+              "  case 6u: // GEQUAL\n"
+              "    return a >= b;\n"
+              "  case 7u: // ALWAYS\n"
+              "    return true;\n"
+              "  }\n"
+              "}\n"
+              "\n"
+              "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+              "uint index) {\n"
+              "  switch (index) {\n"
+              "  case 0u: // prev.rgb\n"
+              "    return s.Reg[0].rgb;\n"
+              "  case 1u: // prev.aaa\n"
+              "    return s.Reg[0].aaa;\n"
+              "  case 2u: // c0.rgb\n"
+              "    return s.Reg[1].rgb;\n"
+              "  case 3u: // c0.aaa\n"
+              "    return s.Reg[1].aaa;\n"
+              "  case 4u: // c1.rgb\n"
+              "    return s.Reg[2].rgb;\n"
+              "  case 5u: // c1.aaa\n"
+              "    return s.Reg[2].aaa;\n"
+              "  case 6u: // c2.rgb\n"
+              "    return s.Reg[3].rgb;\n"
+              "  case 7u: // c2.aaa\n"
+              "    return s.Reg[3].aaa;\n"
+              "  case 8u:\n"
+              "    return s.TexColor.rgb;\n"
+              "  case 9u:\n"
+              "    return s.TexColor.aaa;\n"
+              "  case 10u:\n"
+              "    return getRasColor(s, ss, colors_0, colors_1).rgb;\n"
+              "  case 11u:\n"
+              "    return getRasColor(s, ss, colors_0, colors_1).aaa;\n"
+              "  case 12u: // One\n"
+              "    return int3(255, 255, 255);\n"
+              "  case 13u: // Half\n"
+              "    return int3(128, 128, 128);\n"
+              "  case 14u:\n"
+              "    return getKonstColor(s, ss).rgb;\n"
+              "  case 15u: // Zero\n"
+              "    return int3(0, 0, 0);\n"
+              "  }\n"
+              "}\n"
+              "\n"
+              "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+              "uint index) {\n"
+              "  switch (index) {\n"
+              "  case 0u: // prev.a\n"
+              "    return s.Reg[0].a;\n"
+              "  case 1u: // c0.a\n"
+              "    return s.Reg[1].a;\n"
+              "  case 2u: // c1.a\n"
+              "    return s.Reg[2].a;\n"
+              "  case 3u: // c2.a\n"
+              "    return s.Reg[3].a;\n"
+              "  case 4u:\n"
+              "    return s.TexColor.a;\n"
+              "  case 5u:\n"
+              "    return getRasColor(s, ss, colors_0, colors_1).a;\n"
+              "  case 6u:\n"
+              "    return getKonstColor(s, ss).a;\n"
+              "  case 7u: // Zero\n"
+              "    return 0;\n"
+              "  }\n"
+              "}\n"
+              "\n"
+              "int4 getTevReg(in State s, uint index) {\n"
+              "  switch (index) {\n"
+              "  case 0u: // prev\n"
+              "    return s.Reg[0];\n"
+              "  case 1u: // c0\n"
+              "    return s.Reg[1];\n"
+              "  case 2u: // c1\n"
+              "    return s.Reg[2];\n"
+              "  case 3u: // c2\n"
+              "    return s.Reg[3];\n"
+              "  default: // prev\n"
+              "    return s.Reg[0];\n"
+              "  }\n"
+              "}\n"
+              "\n"
+              "void setRegColor(inout State s, uint index, int3 color) {\n"
+              "  switch (index) {\n"
+              "  case 0u: // prev\n"
+              "    s.Reg[0].rgb = color;\n"
+              "    break;\n"
+              "  case 1u: // c0\n"
+              "    s.Reg[1].rgb = color;\n"
+              "    break;\n"
+              "  case 2u: // c1\n"
+              "    s.Reg[2].rgb = color;\n"
+              "    break;\n"
+              "  case 3u: // c2\n"
+              "    s.Reg[3].rgb = color;\n"
+              "    break;\n"
+              "  }\n"
+              "}\n"
+              "\n"
+              "void setRegAlpha(inout State s, uint index, int alpha) {\n"
+              "  switch (index) {\n"
+              "  case 0u: // prev\n"
+              "    s.Reg[0].a = alpha;\n"
+              "    break;\n"
+              "  case 1u: // c0\n"
+              "    s.Reg[1].a = alpha;\n"
+              "    break;\n"
+              "  case 2u: // c1\n"
+              "    s.Reg[2].a = alpha;\n"
+              "    break;\n"
+              "  case 3u: // c2\n"
+              "    s.Reg[3].a = alpha;\n"
+              "    break;\n"
+              "  }\n"
+              "}\n"
+              "\n");
+  }
+  else
+  {
+    out.Write(
+        "// Helper function for Alpha Test\n"
+        "bool alphaCompare(int a, int b, uint compare) {\n"
+        "  if (compare < 4u) {\n"
+        "    if (compare < 2u) {\n"
+        "      return (compare == 0u) ? (false) : (a < b);\n"
+        "    } else {\n"
+        "      return (compare == 2u) ? (a == b) : (a <= b);\n"
+        "    }\n"
+        "  } else {\n"
+        "    if (compare < 6u) {\n"
+        "      return (compare == 4u) ? (a > b) : (a != b);\n"
+        "    } else {\n"
+        "      return (compare == 6u) ? (a >= b) : (true);\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "\n"
+        "int3 selectColorInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+        "uint index) {\n"
+        "  if (index < 8u) {\n"
+        "    if (index < 4u) {\n"
+        "      if (index < 2u) {\n"
+        "        return (index == 0u) ? s.Reg[0].rgb : s.Reg[0].aaa;\n"
+        "      } else {\n"
+        "        return (index == 2u) ? s.Reg[1].rgb : s.Reg[1].aaa;\n"
+        "      }\n"
+        "    } else {\n"
+        "      if (index < 6u) {\n"
+        "        return (index == 4u) ? s.Reg[2].rgb : s.Reg[2].aaa;\n"
+        "      } else {\n"
+        "        return (index == 6u) ? s.Reg[3].rgb : s.Reg[3].aaa;\n"
+        "      }\n"
+        "    }\n"
+        "  } else {\n"
+        "    if (index < 12u) {\n"
+        "      if (index < 10u) {\n"
+        "        return (index == 8u) ? s.TexColor.rgb : s.TexColor.aaa;\n"
+        "      } else {\n"
+        "        int4 ras = getRasColor(s, ss, colors_0, colors_1);\n"
+        "        return (index == 10u) ? ras.rgb : ras.aaa;\n"
+        "      }\n"
+        "    } else {\n"
+        "      if (index < 14u) {\n"
+        "        return (index == 12u) ? int3(255, 255, 255) : int3(128, 128, 128);\n"
+        "      } else {\n"
+        "        return (index == 14u) ? getKonstColor(s, ss).rgb : int3(0, 0, 0);\n"
+        "      }\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "\n"
+        "int selectAlphaInput(State s, StageState ss, float4 colors_0, float4 colors_1, "
+        "uint index) {\n"
+        "  if (index < 4u) {\n"
+        "    if (index < 2u) {\n"
+        "      return (index == 0u) ? s.Reg[0].a : s.Reg[1].a;\n"
+        "    } else {\n"
+        "      return (index == 2u) ? s.Reg[2].a : s.Reg[3].a;\n"
+        "    }\n"
+        "  } else {\n"
+        "    if (index < 6u) {\n"
+        "      return (index == 4u) ? s.TexColor.a : getRasColor(s, ss, colors_0, colors_1).a;\n"
+        "    } else {\n"
+        "      return (index == 6u) ? getKonstColor(s, ss).a : 0;\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "\n"
+        "int4 getTevReg(in State s, uint index) {\n"
+        "  if (index < 2u) {\n"
+        "    if (index == 0u) {\n"
+        "      return s.Reg[0];\n"
+        "    } else {\n"
+        "      return s.Reg[1];\n"
+        "    }\n"
+        "  } else {\n"
+        "    if (index == 2u) {\n"
+        "      return s.Reg[2];\n"
+        "    } else {\n"
+        "      return s.Reg[3];\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "\n"
+        "void setRegColor(inout State s, uint index, int3 color) {\n"
+        "  if (index < 2u) {\n"
+        "    if (index == 0u) {\n"
+        "      s.Reg[0].rgb = color;\n"
+        "    } else {\n"
+        "      s.Reg[1].rgb = color;\n"
+        "    }\n"
+        "  } else {\n"
+        "    if (index == 2u) {\n"
+        "      s.Reg[2].rgb = color;\n"
+        "    } else {\n"
+        "      s.Reg[3].rgb = color;\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "\n"
+        "void setRegAlpha(inout State s, uint index, int alpha) {\n"
+        "  if (index < 2u) {\n"
+        "    if (index == 0u) {\n"
+        "      s.Reg[0].a = alpha;\n"
+        "    } else {\n"
+        "      s.Reg[1].a = alpha;\n"
+        "    }\n"
+        "  } else {\n"
+        "    if (index == 2u) {\n"
+        "      s.Reg[2].a = alpha;\n"
+        "    } else {\n"
+        "      s.Reg[3].a = alpha;\n"
+        "    }\n"
+        "  }\n"
+        "}\n"
+        "\n");
+  }
 
   // Since the texture coodinate variables aren't global, we need to pass
   // them to the select function in D3D.
