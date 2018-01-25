@@ -37,12 +37,16 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
   if (id.empty())
     return filenames;
 
-  // INIs that match the system code (unique for each Virtual Console system)
-  filenames.push_back(id.substr(0, 1) + ".ini");
+  // Using the first letter or the 3 letters of the ID only makes sense
+  // if the ID is an actual game ID (which has 6 characters).
+  if (id.length() == 6)
+  {
+    // INIs that match the system code (unique for each Virtual Console system)
+    filenames.push_back(id.substr(0, 1) + ".ini");
 
-  // INIs that match all regions
-  if (id.size() >= 4)
+    // INIs that match all regions
     filenames.push_back(id.substr(0, 3) + ".ini");
+  }
 
   // Regular INIs
   filenames.push_back(id + ".ini");

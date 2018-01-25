@@ -34,8 +34,8 @@ namespace UICommon
 void Init()
 {
   Config::Init();
-  NOTICE_LOG(VR, "Config::AddLoadLayer(ConfigLoaders::GenerateBaseConfigLoader());");
-  Config::AddLoadLayer(ConfigLoaders::GenerateBaseConfigLoader());
+  NOTICE_LOG(VR, "Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());");
+  Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   LogManager::Init();
   VideoBackendBase::PopulateList();
