@@ -260,6 +260,16 @@ static bool SupportsS3TCTextures(ID3D11Device* dev)
   return ((bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
 }
 
+static bool SupportsBPTCTextures(ID3D11Device* dev)
+{
+  // Currently, we only care about BC7. This could be extended to BC6H in the future.
+  UINT bc7_support;
+  if (FAILED(dev->CheckFormatSupport(DXGI_FORMAT_BC7_UNORM, &bc7_support)))
+    return false;
+
+  return (bc7_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
 HRESULT Create(HWND wnd)
 {
   hWnd = wnd;
@@ -577,6 +587,7 @@ HRESULT Create(HWND wnd)
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
   bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
   g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
+  g_Config.backend_info.bSupportsBPTCTextures = SupportsBPTCTextures(device);
 
   stateman = new StateManager;
   return S_OK;

@@ -365,6 +365,7 @@ struct VideoConfig final
     bool bSupportsST3CTextures;
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
+    bool bSupportsBPTCTextures;
   } backend_info;
 
   // Utility

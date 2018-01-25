@@ -33,6 +33,8 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
     return GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
   case AbstractTextureFormat::DXT5:
     return GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+  case AbstractTextureFormat::BPTC:
+    return GL_COMPRESSED_RGBA_BPTC_UNORM_ARB;
   case AbstractTextureFormat::RGBA8:
   default:
     return storage ? GL_RGBA8 : GL_RGBA;
