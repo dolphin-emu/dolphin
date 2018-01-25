@@ -19,7 +19,7 @@ class GameList final : public QStackedWidget
 
 public:
   explicit GameList(QWidget* parent = nullptr);
-  QString GetSelectedGame() const;
+  QSharedPointer<GameFile> GetSelectedGame() const;
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }

@@ -143,11 +143,11 @@ void GameList::MakeGridView()
 void GameList::ShowContextMenu(const QPoint&)
 {
   const auto game = GetSelectedGame();
-  if (game.isEmpty())
+  if (game.isNull())
     return;
 
   QMenu* menu = new QMenu(this);
-  DiscIO::Platform platform = GameFile(game).GetPlatformID();
+  DiscIO::Platform platform = game->GetPlatformID();
   menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
   menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
@@ -155,7 +155,7 @@ void GameList::ShowContextMenu(const QPoint&)
   if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
   {
     menu->addAction(tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
-    const auto blob_type = GameFile(game).GetBlobType();
+    const auto blob_type = game->GetBlobType();
 
     if (blob_type == DiscIO::BlobType::GCZ)
       menu->addAction(tr("Decompress ISO..."), this, &GameList::CompressISO);
@@ -182,7 +182,7 @@ void GameList::ShowContextMenu(const QPoint&)
     connect(this, &GameList::EmulationStopped, wad_install_action,
             [wad_install_action] { wad_install_action->setEnabled(true); });
     connect(this, &GameList::EmulationStopped, wad_uninstall_action, [wad_uninstall_action, game] {
-      wad_uninstall_action->setEnabled(GameFile(game).IsInstalled());
+      wad_uninstall_action->setEnabled(game->IsInstalled());
     });
 
     menu->addSeparator();
@@ -201,7 +201,7 @@ void GameList::ShowContextMenu(const QPoint&)
   QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
   connect(netplay_host, &QAction::triggered,
-          [this, game] { emit NetPlayHost(GameFile(game).GetUniqueID()); });
+          [this, game] { emit NetPlayHost(game->GetUniqueID()); });
 
   connect(this, &GameList::EmulationStarted, netplay_host,
           [netplay_host] { netplay_host->setEnabled(false); });
@@ -216,7 +216,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
 void GameList::OpenProperties()
 {
-  PropertiesDialog* properties = new PropertiesDialog(this, GameFile(GetSelectedGame()));
+  PropertiesDialog* properties = new PropertiesDialog(this, *GetSelectedGame());
   properties->show();
 }
 
@@ -224,7 +224,7 @@ void GameList::ExportWiiSave()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = GameFile(GetSelectedGame()).ExportWiiSave();
+  const bool success = GetSelectedGame()->ExportWiiSave();
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully exported save files") :
@@ -234,19 +234,19 @@ void GameList::ExportWiiSave()
 
 void GameList::OpenWiki()
 {
-  QString game_id = GameFile(GetSelectedGame()).GetGameID();
+  QString game_id = GetSelectedGame()->GetGameID();
   QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }
 
 void GameList::CompressISO()
 {
-  const auto original_path = GetSelectedGame();
-  auto file = GameFile(original_path);
+  auto file = GetSelectedGame();
+  const auto original_path = file->GetFilePath();
 
-  const bool compressed = (file.GetBlobType() == DiscIO::BlobType::GCZ);
+  const bool compressed = (file->GetBlobType() == DiscIO::BlobType::GCZ);
 
-  if (!compressed && file.GetPlatformID() == DiscIO::Platform::WII_DISC)
+  if (!compressed && file->GetPlatformID() == DiscIO::Platform::WII_DISC)
   {
     QMessageBox wii_warning(this);
     wii_warning.setIcon(QMessageBox::Warning);
@@ -263,9 +263,9 @@ void GameList::CompressISO()
   QString dst_path = QFileDialog::getSaveFileName(
       this, compressed ? tr("Select where you want to save the decompressed image") :
                          tr("Select where you want to save the compressed image"),
-      QFileInfo(GetSelectedGame())
+      QFileInfo(GetSelectedGame()->GetFilePath())
           .dir()
-          .absoluteFilePath(file.GetGameID())
+          .absoluteFilePath(file->GetGameID())
           .append(compressed ? QStringLiteral(".gcm") : QStringLiteral(".gcz")),
       compressed ? tr("Uncompressed GC/Wii images (*.iso *.gcm)") :
                    tr("Compressed GC/Wii images (*.gcz)"));
@@ -287,7 +287,7 @@ void GameList::CompressISO()
   else
   {
     good = DiscIO::CompressFileToBlob(original_path.toStdString(), dst_path.toStdString(),
-                                      file.GetPlatformID() == DiscIO::Platform::WII_DISC ? 1 : 0,
+                                      file->GetPlatformID() == DiscIO::Platform::WII_DISC ? 1 : 0,
                                       16384, &CompressCB, &progress_dialog);
   }
 
@@ -307,7 +307,7 @@ void GameList::InstallWAD()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = GameFile(GetSelectedGame()).Install();
+  const bool success = GetSelectedGame()->Install();
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
@@ -329,7 +329,7 @@ void GameList::UninstallWAD()
 
   QMessageBox result_dialog(this);
 
-  const bool success = GameFile(GetSelectedGame()).Uninstall();
+  const bool success = GetSelectedGame()->Uninstall();
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
@@ -339,24 +339,24 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame().toStdString();
+  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame()->GetFilePath().toStdString();
 }
 
 void GameList::OpenContainingFolder()
 {
-  QUrl url = QUrl::fromLocalFile(QFileInfo(GetSelectedGame()).dir().absolutePath());
+  QUrl url = QUrl::fromLocalFile(QFileInfo(GetSelectedGame()->GetFilePath()).dir().absolutePath());
   QDesktopServices::openUrl(url);
 }
 
 void GameList::OpenSaveFolder()
 {
-  QUrl url = QUrl::fromLocalFile(GameFile(GetSelectedGame()).GetWiiFSPath());
+  QUrl url = QUrl::fromLocalFile(GetSelectedGame()->GetWiiFSPath());
   QDesktopServices::openUrl(url);
 }
 
 void GameList::DeleteFile()
 {
-  const auto game = GetSelectedGame();
+  const auto game = GetSelectedGame()->GetFilePath();
   QMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
@@ -393,7 +393,7 @@ void GameList::DeleteFile()
   }
 }
 
-QString GameList::GetSelectedGame() const
+QSharedPointer<GameFile> GameList::GetSelectedGame() const
 {
   QAbstractItemView* view;
   QSortFilterProxyModel* proxy;
@@ -411,9 +411,9 @@ QString GameList::GetSelectedGame() const
   if (sel_model->hasSelection())
   {
     QModelIndex model_index = proxy->mapToSource(sel_model->selectedIndexes()[0]);
-    return m_model->GetPath(model_index.row());
+    return m_model->GetGameFile(model_index.row());
   }
-  return QStringLiteral("");
+  return {};
 }
 
 void GameList::SetPreferredView(bool list)
