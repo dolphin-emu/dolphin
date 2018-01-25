@@ -877,9 +877,6 @@
     <ClCompile Include="ConfigLoaders\IsSettingSaveable.cpp">
       <Filter>ConfigLoader</Filter>
     </ClCompile>
-    <ClCompile Include="Config\Config.cpp">
-      <Filter>Config</Filter>
-    </ClCompile>
     <ClCompile Include="Config\GraphicsSettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
@@ -1528,9 +1525,6 @@
     </ClInclude>
     <ClInclude Include="ConfigLoaders\IsSettingSaveable.h">
       <Filter>ConfigLoader</Filter>
-    </ClInclude>
-    <ClInclude Include="Config\Config.h">
-      <Filter>Config</Filter>
     </ClInclude>
     <ClInclude Include="Config\GraphicsSettings.h">
       <Filter>Config</Filter>

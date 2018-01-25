@@ -37,6 +37,7 @@
 #include <wx/timer.h>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -44,7 +45,6 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
-#include "Core/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"

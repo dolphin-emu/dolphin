@@ -16,7 +16,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/Config/Config.h"
+#include "Common/Config/Config.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
 namespace ConfigLoaders
