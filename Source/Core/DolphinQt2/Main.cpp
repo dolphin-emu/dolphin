@@ -79,8 +79,6 @@ int main(int argc, char* argv[])
 
   int retval = 0;
 
-  // There's intentionally no way to set this from the UI.
-  // Add it to your INI manually instead.
   if (SConfig::GetInstance().m_show_development_warning)
   {
     InDevelopmentWarning warning_box;
