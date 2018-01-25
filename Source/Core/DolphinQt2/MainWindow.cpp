@@ -869,13 +869,14 @@ void MainWindow::OnImportNANDBackup()
   dialog->setLabelText(tr("Importing NAND backup"));
   dialog->setCancelButton(nullptr);
 
-  auto beginning = QDateTime::currentDateTime().toSecsSinceEpoch();
+  auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
   auto result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(file.toStdString(), [&dialog, beginning] {
       QueueOnObject(dialog, [&dialog, beginning] {
-        dialog->setLabelText(tr("Importing NAND backup\n Time elapsed: %1s")
-                                 .arg(QDateTime::currentDateTime().toSecsSinceEpoch() - beginning));
+        dialog->setLabelText(
+            tr("Importing NAND backup\n Time elapsed: %1s")
+                .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
       });
     });
     QueueOnObject(dialog, [dialog] { dialog->close(); });
