@@ -16,8 +16,8 @@ static void GetRandomishBytes(u8* buf, size_t size)
 }
 
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
-    : m_NetHost(netHost), m_Client(nullptr), m_FailureReason(0), m_ConnectRequestId(0),
-      m_PendingConnect(false), m_Server(server), m_port(port), m_PingTime(0)
+    : m_NetHost(netHost), m_Client(nullptr), m_ConnectRequestId(0), m_PendingConnect(false),
+      m_Server(server), m_port(port), m_PingTime(0)
 {
   netHost->intercept = TraversalClient::InterceptCallback;
 
@@ -34,7 +34,7 @@ void TraversalClient::ReconnectToServer()
 {
   if (enet_address_set_host(&m_ServerAddress, m_Server.c_str()))
   {
-    OnFailure(BadHost);
+    OnFailure(FailureReason::BadHost);
     return;
   }
   m_ServerAddress.port = m_port;
@@ -123,7 +123,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
   case TraversalPacketAck:
     if (!packet->ack.ok)
     {
-      OnFailure(ServerForgotAboutUs);
+      OnFailure(FailureReason::ServerForgotAboutUs);
       break;
     }
     for (auto it = m_OutgoingTraversalPackets.begin(); it != m_OutgoingTraversalPackets.end(); ++it)
@@ -140,7 +140,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
       break;
     if (!packet->helloFromServer.ok)
     {
-      OnFailure(VersionTooOld);
+      OnFailure(FailureReason::VersionTooOld);
       break;
     }
     m_HostId = packet->helloFromServer.yourHostId;
@@ -199,7 +199,7 @@ void TraversalClient::HandleServerPacket(TraversalPacket* packet)
     buf.data = &ack;
     buf.dataLength = sizeof(ack);
     if (enet_socket_send(m_NetHost->socket, &m_ServerAddress, &buf, 1) == -1)
-      OnFailure(SocketSendError);
+      OnFailure(FailureReason::SocketSendError);
   }
 }
 
@@ -220,7 +220,7 @@ void TraversalClient::ResendPacket(OutgoingTraversalPacketInfo* info)
   buf.data = &info->packet;
   buf.dataLength = sizeof(info->packet);
   if (enet_socket_send(m_NetHost->socket, &m_ServerAddress, &buf, 1) == -1)
-    OnFailure(SocketSendError);
+    OnFailure(FailureReason::SocketSendError);
 }
 
 void TraversalClient::HandleResends()
@@ -232,7 +232,7 @@ void TraversalClient::HandleResends()
     {
       if (tpi.tries >= 5)
       {
-        OnFailure(ResendTimeout);
+        OnFailure(FailureReason::ResendTimeout);
         m_OutgoingTraversalPackets.clear();
         break;
       }

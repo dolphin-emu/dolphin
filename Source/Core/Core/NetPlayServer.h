@@ -136,8 +136,6 @@ private:
   static struct IGDdatas m_upnp_data;
   static std::string m_upnp_ourip;
   static u16 m_upnp_mapped;
-  static bool m_upnp_inited;
-  static bool m_upnp_error;
   static std::thread m_upnp_thread;
 #endif
 };
