@@ -208,7 +208,7 @@ TextureCache::TextureCache()
       CD3D11_BUFFER_DESC(16, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
   hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &palette_uniform);
   CHECK(SUCCEEDED(hr), "Create palette decoder constant buffer");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)palette_uniform,
+  D3D::SetDebugObjectName(palette_uniform,
                           "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 }
 
@@ -264,7 +264,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
     data.pSysMem = colmat;
     HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &s_efbcopycbuf[cbuf_id]);
     CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbuf_id);
-    D3D::SetDebugObjectName((ID3D11DeviceChild*)s_efbcopycbuf[cbuf_id],
+    D3D::SetDebugObjectName(s_efbcopycbuf[cbuf_id],
                             "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
   }
   D3D::stateman->SetPixelConstants(s_efbcopycbuf[cbuf_id]);
