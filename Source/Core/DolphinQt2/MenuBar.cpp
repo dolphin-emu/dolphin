@@ -77,8 +77,10 @@ void MenuBar::EmulationStopped()
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
-  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open);
-  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
+  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
+                                       QKeySequence(QStringLiteral("Ctrl+O")));
+  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit,
+                                       QKeySequence(QStringLiteral("Alt+F4")));
 }
 
 void MenuBar::AddToolsMenu()
@@ -113,7 +115,11 @@ void MenuBar::AddEmulationMenu()
   m_reset_action = emu_menu->addAction(tr("&Reset"), this, &MenuBar::Reset);
   m_fullscreen_action = emu_menu->addAction(tr("Toggle &Fullscreen"), this, &MenuBar::Fullscreen);
   m_frame_advance_action = emu_menu->addAction(tr("&Frame Advance"), this, &MenuBar::FrameAdvance);
+
   m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, &MenuBar::Screenshot);
+
+  emu_menu->addSeparator();
+
   AddStateLoadMenu(emu_menu);
   AddStateSaveMenu(emu_menu);
   AddStateSlotMenu(emu_menu);
