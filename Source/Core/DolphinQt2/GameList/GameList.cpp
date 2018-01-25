@@ -74,6 +74,10 @@ void GameList::MakeListView()
   m_list->setWordWrap(false);
 
   connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+  connect(m_list->selectionModel(), &QItemSelectionModel::selectionChanged,
+          [this](const QItemSelection&, const QItemSelection&) {
+            emit SelectionChanged(GetSelectedGame());
+          });
 
   m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
   m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
@@ -137,6 +141,10 @@ void GameList::MakeGridView()
   m_grid->setContextMenuPolicy(Qt::CustomContextMenu);
   m_grid->setFrameStyle(QFrame::NoFrame);
   connect(m_grid, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+  connect(m_grid->selectionModel(), &QItemSelectionModel::selectionChanged,
+          [this](const QItemSelection&, const QItemSelection&) {
+            emit SelectionChanged(GetSelectedGame());
+          });
 }
 
 void GameList::ShowContextMenu(const QPoint&)

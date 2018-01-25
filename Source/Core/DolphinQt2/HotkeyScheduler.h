@@ -28,6 +28,9 @@ signals:
   void SetStateSlotHotkey(int slot);
   void StateLoadSlotHotkey();
   void StateSaveSlotHotkey();
+  void StartRecording();
+  void ExportRecording();
+  void ToggleReadOnlyMode();
 
 private:
   void Run();
