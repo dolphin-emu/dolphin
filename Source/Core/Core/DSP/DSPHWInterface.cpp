@@ -156,6 +156,18 @@ void gdsp_ifx_write(u32 addr, u32 val)
         dsp_step_accelerator();
         break;
   */
+
+  // Masking occurs for the start and end addresses as soon as the registers are written to.
+  case DSP_ACSAH:
+  case DSP_ACEAH:
+    g_dsp.ifx_regs[addr & 0xff] = val & 0x3fff;
+    break;
+
+  // This also happens for the current address, but with a different mask.
+  case DSP_ACCAH:
+    g_dsp.ifx_regs[addr & 0xff] = val & 0xbfff;
+    break;
+
   default:
     if ((addr & 0xff) >= 0xa0)
     {

@@ -9,6 +9,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
 
 namespace DSP
@@ -177,8 +178,8 @@ u16 dsp_read_accelerator()
     DSPCore_SetException(EXP_ACCOV);
   }
 
-  g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
-  g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
+  gdsp_ifx_write(DSP_ACCAH, Address >> 16);
+  gdsp_ifx_write(DSP_ACCAL, Address & 0xffff);
   return val;
 }
 }  // namespace DSP
