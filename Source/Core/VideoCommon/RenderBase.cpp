@@ -808,10 +808,8 @@ bool Renderer::IsFrameDumping()
   if (m_screenshot_request.IsSet())
     return true;
 
-#if defined(HAVE_FFMPEG)
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
-#endif
 
   ShutdownFrameDumping();
   return false;
