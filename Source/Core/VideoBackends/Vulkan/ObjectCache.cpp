@@ -61,15 +61,15 @@ bool ObjectCache::Initialize()
     return false;
 
   m_dummy_texture = Texture2D::Create(1, 1, 1, 1, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT,
-                                      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_LINEAR,
+                                      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
                                       VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
   m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   VkClearColorValue clear_color = {};
   VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
   vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                       m_dummy_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                       &clear_color, 1, &clear_range);
+                       m_dummy_texture->GetImage(), m_dummy_texture->GetLayout(), &clear_color, 1,
+                       &clear_range);
   m_dummy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
