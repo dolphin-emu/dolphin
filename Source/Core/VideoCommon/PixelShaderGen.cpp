@@ -379,7 +379,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "\tuint  bpmem_fogRangeBase;\n"
             "\tuint  bpmem_dstalpha;\n"
             "\tuint  bpmem_ztex_op;\n"
-            "\tbool  bpmem_early_ztest;\n"
+            "\tbool  bpmem_late_ztest;\n"
             "\tbool  bpmem_rgba6_format;\n"
             "\tbool  bpmem_dither;\n"
             "\tbool  bpmem_bounding_box;\n"
