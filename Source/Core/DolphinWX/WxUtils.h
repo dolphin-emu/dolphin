@@ -151,3 +151,4 @@ wxImage ScaleImage(wxImage image, double source_scale_factor = 1.0,
 
 std::string WxStrToStr(const wxString& str);
 wxString StrToWxStr(const std::string& str);
+unsigned long WxStrToUL(const wxString& str);
