@@ -812,7 +812,7 @@ void VertexShaderManager::SetConstants()
   {
     int startn = nTransformMatricesChanged[0] / 4;
     int endn = (nTransformMatricesChanged[1] + 3) / 4;
-    memcpy(constants.transformmatrices[startn], &xfmem.posMatrices[startn * 4],
+    memcpy(constants.transformmatrices[startn].data(), &xfmem.posMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
     nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
@@ -825,7 +825,7 @@ void VertexShaderManager::SetConstants()
     int endn = (nNormalMatricesChanged[1] + 2) / 3;
     for (int i = startn; i < endn; i++)
     {
-      memcpy(constants.normalmatrices[i], &xfmem.normalMatrices[3 * i], 12);
+      memcpy(constants.normalmatrices[i].data(), &xfmem.normalMatrices[3 * i], 12);
     }
     dirty = true;
     nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
@@ -835,7 +835,7 @@ void VertexShaderManager::SetConstants()
   {
     int startn = nPostTransformMatricesChanged[0] / 4;
     int endn = (nPostTransformMatricesChanged[1] + 3) / 4;
-    memcpy(constants.posttransformmatrices[startn], &xfmem.postMatrices[startn * 4],
+    memcpy(constants.posttransformmatrices[startn].data(), &xfmem.postMatrices[startn * 4],
            (endn - startn) * sizeof(float4));
     dirty = true;
     nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
@@ -913,10 +913,10 @@ void VertexShaderManager::SetConstants()
     const float* norm =
         &xfmem.normalMatrices[3 * (g_main_cp_state.matrix_index_a.PosNormalMtxIdx & 31)];
 
-    memcpy(constants.posnormalmatrix, pos, 3 * sizeof(float4));
-    memcpy(constants.posnormalmatrix[3], norm, 3 * sizeof(float));
-    memcpy(constants.posnormalmatrix[4], norm + 3, 3 * sizeof(float));
-    memcpy(constants.posnormalmatrix[5], norm + 6, 3 * sizeof(float));
+    memcpy(constants.posnormalmatrix.data(), pos, 3 * sizeof(float4));
+    memcpy(constants.posnormalmatrix[3].data(), norm, 3 * sizeof(float));
+    memcpy(constants.posnormalmatrix[4].data(), norm + 3, 3 * sizeof(float));
+    memcpy(constants.posnormalmatrix[5].data(), norm + 6, 3 * sizeof(float));
     dirty = true;
     position_changed = true;
   }
@@ -932,7 +932,7 @@ void VertexShaderManager::SetConstants()
 
     for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
     {
-      memcpy(constants.texmatrices[3 * i], pos_matrix_ptrs[i], 3 * sizeof(float4));
+      memcpy(constants.texmatrices[3 * i].data(), pos_matrix_ptrs[i], 3 * sizeof(float4));
     }
     dirty = true;
   }
@@ -948,7 +948,7 @@ void VertexShaderManager::SetConstants()
 
     for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
     {
-      memcpy(constants.texmatrices[3 * i + 12], pos_matrix_ptrs[i], 3 * sizeof(float4));
+      memcpy(constants.texmatrices[3 * i + 12].data(), pos_matrix_ptrs[i], 3 * sizeof(float4));
     }
     dirty = true;
   }
@@ -1272,9 +1272,9 @@ void VertexShaderManager::SetProjectionConstants()
   if (bHide)
   {
     // If we are supposed to hide the layer, zero out the projection matrix
-    memset(constants.projection, 0, 4 * 16);
+    memset(constants.projection.data(), 0, 4 * 16);
     memset(constants_eye_projection[0], 0, 2 * 4 * 16);
-    memset(GeometryShaderManager::constants.stereoparams, 0, 4 * 4);
+    memset(GeometryShaderManager::constants.stereoparams.data(), 0, 4 * 4);
     return;
   }
   // don't do anything fancy for rendering to a texture
@@ -1286,7 +1286,7 @@ void VertexShaderManager::SetProjectionConstants()
     Matrix44 correctedMtx;
     Matrix44::Set(correctedMtx, g_fProjectionMatrix);
 
-    memcpy(constants.projection, correctedMtx.data, 4 * 16);
+    memcpy(constants.projection.data(), correctedMtx.data, 4 * 16);
     memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
     memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
     GeometryShaderManager::constants.stereoparams[0] =
@@ -1322,7 +1322,7 @@ void VertexShaderManager::SetProjectionConstants()
     Matrix44::Multiply(mtxB, viewMtx, mtxA);               // mtxA = projection x view
     Matrix44::Multiply(s_viewportCorrection, mtxA, mtxB);  // mtxB = viewportCorrection x mtxA
 
-    memcpy(constants.projection, mtxB.data, 4 * 16);
+    memcpy(constants.projection.data(), mtxB.data, 4 * 16);
     memcpy(constants_eye_projection[0], mtxB.data, 4 * 16);
     memcpy(constants_eye_projection[1], mtxB.data, 4 * 16);
 
@@ -1365,7 +1365,7 @@ void VertexShaderManager::SetProjectionConstants()
     Matrix44::LoadIdentity(scale_matrix);
     correctedMtx = projMtx * scale_matrix;
 
-    memcpy(constants.projection, correctedMtx.data, 4 * 16);
+    memcpy(constants.projection.data(), correctedMtx.data, 4 * 16);
     memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
     memcpy(constants_eye_projection[1], correctedMtx.data, 4 * 16);
     GeometryShaderManager::constants.stereoparams[0] =
@@ -2062,7 +2062,7 @@ void VertexShaderManager::SetProjectionConstants()
       memset(final_matrix_right.data, 0, 16 * sizeof(final_matrix_right.data[0]));
     }
 
-    memcpy(constants.projection, final_matrix_left.data, 4 * 16);
+    memcpy(constants.projection.data(), final_matrix_left.data, 4 * 16);
     memcpy(constants_eye_projection[0], final_matrix_left.data, 4 * 16);
     memcpy(constants_eye_projection[1], final_matrix_right.data, 4 * 16);
     if (g_ActiveConfig.iStereoMode == STEREO_OCULUS)
@@ -2150,7 +2150,7 @@ void VertexShaderManager::CheckOrientationConstants()
   }
   if (can_read)
   {
-    float* p = constants.posnormalmatrix[0];
+    float* p = constants.posnormalmatrix[0].data();
     float pos[3], worldspacepos[3], movement[3];
     pos[0] = p[0 * 4 + 3];
     pos[1] = p[1 * 4 + 3];
@@ -2357,7 +2357,7 @@ void VertexShaderManager::CheckSkybox()
 {
   if (xfmem.projection.type == GX_PERSPECTIVE)
   {
-    float* p = constants.posnormalmatrix[0];
+    float* p = constants.posnormalmatrix[0].data();
     float pos[3];
     pos[0] = p[0 * 4 + 3];
     pos[1] = p[1 * 4 + 3];
@@ -2382,7 +2382,7 @@ void VertexShaderManager::LockSkybox()
 {
   if (xfmem.projection.type == GX_PERSPECTIVE)
   {
-    float* p = constants.posnormalmatrix[0];
+    float* p = constants.posnormalmatrix[0].data();
     if (s_had_skybox)
     {
       memcpy(p, s_locked_skybox, 4 * 3 * sizeof(float));
