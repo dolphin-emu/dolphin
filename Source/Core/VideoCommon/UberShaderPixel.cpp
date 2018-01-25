@@ -182,17 +182,16 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   {
     // Doesn't look like directx supports this. Oh well the code path is here just incase it
     // supports this in the future.
-    out.Write("int4 sampleTexture(uint sampler_num, float2 uv) {\n");
+    out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {\n");
     if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-      out.Write("  return iround(texture(samp[sampler_num], float3(uv, 0.0)) * 255.0);\n");
+      out.Write("  return iround(texture(samp[sampler_num], uv) * 255.0);\n");
     else if (ApiType == APIType::D3D)
-      out.Write("  return iround(Tex[sampler_num].Sample(samp[sampler_num], float3(uv, 0.0)) * "
-                "255.0);\n");
+      out.Write("  return iround(Tex[sampler_num].Sample(samp[sampler_num], uv) * 255.0);\n");
     out.Write("}\n\n");
   }
   else
   {
-    out.Write("int4 sampleTexture(uint sampler_num, float2 uv) {\n"
+    out.Write("int4 sampleTexture(uint sampler_num, float3 uv) {\n"
               "  // This is messy, but DirectX, OpenGl 3.3 and Opengl ES 3.0 doesn't support "
               "dynamic indexing of the sampler array\n"
               "  // With any luck the shader compiler will optimise this if the hardware supports "
@@ -201,10 +200,9 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     for (int i = 0; i < 8; i++)
     {
       if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-        out.Write("  case %du: return iround(texture(samp[%d], float3(uv, 0.0)) * 255.0);\n", i, i);
+        out.Write("  case %du: return iround(texture(samp[%d], uv) * 255.0);\n", i, i);
       else if (ApiType == APIType::D3D)
-        out.Write("  case %du: return iround(Tex[%d].Sample(samp[%d], float3(uv, 0.0)) * 255.0);\n",
-                  i, i, i);
+        out.Write("  case %du: return iround(Tex[%d].Sample(samp[%d], uv) * 255.0);\n", i, i, i);
     }
     out.Write("  }\n"
               "}\n\n");
@@ -244,31 +242,33 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // ======================
   //    Indirect Lookup
   // ======================
-  auto LookupIndirectTexture = [&out](const char* out_var_name, const char* in_index_name) {
-    out.Write(
-        "{\n"
-        "  uint iref = bpmem_iref(%s);\n"
-        "  if ( iref != 0u)\n"
-        "  {\n"
-        "    uint texcoord = bitfieldExtract(iref, 0, 3);\n"
-        "    uint texmap = bitfieldExtract(iref, 8, 3);\n"
-        "    float3 uv = getTexCoord(texcoord);\n"
-        "    int2 fixedPoint_uv = int2((uv.z == 0.0 ? uv.xy : (uv.xy / uv.z)) * " I_TEXDIMS
-        "[texcoord].zw);\n"
-        "\n"
-        "    if ((%s & 1u) == 0u)\n"
-        "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[%s >> 1].xy;\n"
-        "    else\n"
-        "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[%s >> 1].zw;\n"
-        "\n"
-        "    %s = sampleTexture(texmap, float2(fixedPoint_uv) * " I_TEXDIMS "[texmap].xy).abg;\n"
-        "  }\n"
-        "  else\n"
-        "  {\n"
-        "    %s = int3(0, 0, 0);\n"
-        "  }\n"
-        "}\n",
-        in_index_name, in_index_name, in_index_name, in_index_name, out_var_name, out_var_name);
+  auto LookupIndirectTexture = [&out, stereo](const char* out_var_name, const char* in_index_name) {
+    out.Write("{\n"
+              "  uint iref = bpmem_iref(%s);\n"
+              "  if ( iref != 0u)\n"
+              "  {\n"
+              "    uint texcoord = bitfieldExtract(iref, 0, 3);\n"
+              "    uint texmap = bitfieldExtract(iref, 8, 3);\n"
+              "    float3 uv = getTexCoord(texcoord);\n"
+              "    int2 fixedPoint_uv = int2((uv.z == 0.0 ? uv.xy : (uv.xy / uv.z)) * " I_TEXDIMS
+              "[texcoord].zw);\n"
+              "\n"
+              "    if ((%s & 1u) == 0u)\n"
+              "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[%s >> 1].xy;\n"
+              "    else\n"
+              "      fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE "[%s >> 1].zw;\n"
+              "\n"
+              "    %s = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
+              "[texmap].xy, %s)).abg;\n",
+              in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
+              stereo ? "float(layer)" : "0.0");
+    out.Write("  }\n"
+              "  else\n"
+              "  {\n"
+              "    %s = int3(0, 0, 0);\n"
+              "  }\n"
+              "}\n",
+              out_var_name);
   };
 
   // ======================
@@ -837,11 +837,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "      uint sampler_num = %s;\n",
               BitfieldExtract("ss.order", TwoTevStageOrders().texmap0).c_str());
     out.Write("\n"
-              "      float2 uv = (float2(tevcoord.xy)) * " I_TEXDIMS "[sampler_num].xy;\n"
-              "\n"
-              "      int4 color = sampleTexture(sampler_num, uv);\n"
-              "\n"
-              "      uint swap = %s;\n",
+              "      float2 uv = (float2(tevcoord.xy)) * " I_TEXDIMS "[sampler_num].xy;\n");
+    out.Write("      int4 color = sampleTexture(sampler_num, float3(uv, %s));\n",
+              stereo ? "float(layer)" : "0.0");
+    out.Write("      uint swap = %s;\n",
               BitfieldExtract("ss.ac", TevStageCombiner().alphaC.tswap).c_str());
     out.Write("      s.TexColor = Swizzle(swap, color);\n");
     out.Write("    } else {\n"
