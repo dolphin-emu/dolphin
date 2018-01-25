@@ -1282,12 +1282,12 @@ bool FramebufferManager::CompilePokeShaders()
     layout(triangles) in;
     layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
 
-    in VertexData
+    VARYING_LOCATION(0) in VertexData
     {
       vec4 col0;
     } in_data[];
 
-    out VertexData
+    VARYING_LOCATION(0) out VertexData
     {
       vec4 col0;
     } out_data;

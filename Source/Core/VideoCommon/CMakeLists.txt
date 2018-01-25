@@ -29,6 +29,7 @@ set(SRCS
   PostProcessing.cpp
   RenderBase.cpp
   RenderState.cpp
+  ShaderGenCommon.cpp
   Statistics.cpp
   TextureCacheBase.cpp
   TextureConfig.cpp

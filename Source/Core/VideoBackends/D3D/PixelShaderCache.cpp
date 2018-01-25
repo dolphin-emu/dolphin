@@ -584,18 +584,23 @@ void PixelShaderCache::Init()
   SETSTAT(stats.numPixelShadersAlive, 0);
 
   if (g_ActiveConfig.bShaderCache)
-  {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    LoadShaderCache();
+}
 
-    std::string cache_filename =
-        StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().GetGameID().c_str());
-    PixelShaderCacheInserter inserter;
-    g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
-  }
+void PixelShaderCache::LoadShaderCache()
+{
+  PixelShaderCacheInserter inserter;
+  g_ps_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "PS", true, true), inserter);
+}
 
-  last_entry = nullptr;
+void PixelShaderCache::Reload()
+{
+  g_ps_disk_cache.Sync();
+  g_ps_disk_cache.Close();
+  Clear();
+
+  if (g_ActiveConfig.bShaderCache)
+    LoadShaderCache();
 }
 
 // ONLY to be used during shutdown.
@@ -606,6 +611,7 @@ void PixelShaderCache::Clear()
   PixelShaders.clear();
 
   last_entry = nullptr;
+  last_uid = {};
 }
 
 // Used in Swap() when AA mode has changed
@@ -672,7 +678,8 @@ bool PixelShaderCache::SetShader()
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(APIType::D3D, uid.GetUidData());
+  ShaderCode code =
+      GeneratePixelShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))

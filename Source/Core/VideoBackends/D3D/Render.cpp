@@ -1368,12 +1368,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     // around the edges.  How does OGL handle this gracefully?
     // To Do: Figure out the best thing to do here.
 
+
     // VR Clear screen before every frame
     float clear_col[4] = {0.f, 0.f, 0.f, 1.f};
     D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                         clear_col);
     D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(),
                                         D3D11_CLEAR_DEPTH, 0.f, 0);
+  }
+
+  if (CheckForHostConfigChanges())
+  {
+    VertexShaderCache::Reload();
+    GeometryShaderCache::Reload();
+    PixelShaderCache::Reload();
   }
 
   // begin next frame

@@ -198,18 +198,23 @@ void VertexShaderCache::Init()
   SETSTAT(stats.numVertexShadersAlive, 0);
 
   if (g_ActiveConfig.bShaderCache)
-  {
-    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    LoadShaderCache();
+}
 
-    std::string cache_filename =
-        StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                         SConfig::GetInstance().GetGameID().c_str());
-    VertexShaderCacheInserter inserter;
-    g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
-  }
+void VertexShaderCache::LoadShaderCache()
+{
+  VertexShaderCacheInserter inserter;
+  g_vs_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "VS", true, true), inserter);
+}
 
-  last_entry = nullptr;
+void VertexShaderCache::Reload()
+{
+  g_vs_disk_cache.Sync();
+  g_vs_disk_cache.Close();
+  Clear();
+
+  if (g_ActiveConfig.bShaderCache)
+    LoadShaderCache();
 }
 
 void VertexShaderCache::Clear()
@@ -219,6 +224,7 @@ void VertexShaderCache::Clear()
   vshaders.clear();
 
   last_entry = nullptr;
+  last_uid = {};
 }
 
 void VertexShaderCache::Shutdown()
@@ -263,7 +269,8 @@ bool VertexShaderCache::SetShader()
     return (entry.shader != nullptr);
   }
 
-  ShaderCode code = GenerateVertexShaderCode(APIType::D3D, uid.GetUidData());
+  ShaderCode code =
+      GenerateVertexShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
 
   D3DBlob* pbytecode = nullptr;
   D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);

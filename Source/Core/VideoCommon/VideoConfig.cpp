@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Core.h"

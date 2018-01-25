@@ -151,6 +151,43 @@ private:
   std::vector<bool> constant_usage;  // TODO: Is vector<bool> appropriate here?
 };
 
+// Host config contains the settings which can influence generated shaders.
+union ShaderHostConfig
+{
+  u32 bits;
+
+  struct
+  {
+    u32 msaa : 1;
+    u32 ssaa : 1;
+    u32 stereo : 1;
+    u32 wireframe : 1;
+    u32 per_pixel_lighting : 1;
+    u32 vertex_rounding : 1;
+    u32 fast_depth_calc : 1;
+    u32 bounding_box : 1;
+    u32 backend_dual_source_blend : 1;
+    u32 backend_geometry_shaders : 1;
+    u32 backend_early_z : 1;
+    u32 backend_bbox : 1;
+    u32 backend_gs_instancing : 1;
+    u32 backend_clip_control : 1;
+    u32 backend_ssaa : 1;
+    u32 backend_atomics : 1;
+    u32 backend_depth_clamp : 1;
+    u32 backend_reversed_depth_range : 1;
+    u32 pad : 12;
+	u32 more_layers : 1;
+	u32 vr : 1;
+  };
+
+  static ShaderHostConfig GetCurrent();
+};
+
+// Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
+std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
+                                       bool include_host_config);
+
 template <class T>
 inline void DefineOutputMember(T& object, APIType api_type, const char* qualifier, const char* type,
                                const char* name, int var_index, const char* semantic = "",

@@ -69,6 +69,7 @@
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
+    <ClCompile Include="ShaderGenCommon.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="GeometryShaderGen.cpp" />
     <ClCompile Include="GeometryShaderManager.cpp" />

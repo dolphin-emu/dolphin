@@ -17,6 +17,7 @@ class VertexShaderCache
 {
 public:
   static void Init();
+  static void Reload();
   static void Clear();
   static void Shutdown();
   static bool SetShader();  // TODO: Should be renamed to LoadShader
@@ -52,6 +53,8 @@ private:
     }
   };
   typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;
+
+  static void LoadShaderCache();
 
   static VSCache vshaders;
   static const VSCacheEntry* last_entry;

@@ -50,6 +50,7 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -677,6 +678,9 @@ Renderer::Renderer()
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
+
+  // Since we modify the config here, we need to update the last host bits, it may have changed.
+  m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
 
   OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", g_ogl_config.gl_vendor,
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
@@ -2070,6 +2074,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     VR_BeginFrame();
   }
+
+  // Invalidate shader cache when the host config changes.
+  if (CheckForHostConfigChanges())
+    ProgramShaderCache::Reload();
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();

@@ -72,6 +72,7 @@ public:
   static void UploadConstants(bool force_upload);
 
   static void Init();
+  static void Reload();
   static void Shutdown();
   static void CreateHeader();
 
@@ -81,6 +82,10 @@ private:
   public:
     void Read(const SHADERUID& key, const u8* value, u32 value_size) override;
   };
+
+  static void LoadProgramBinaries();
+  static void SaveProgramBinaries();
+  static void DestroyShaders();
 
   typedef std::map<SHADERUID, PCacheEntry> PCache;
   static PCache pshaders;
