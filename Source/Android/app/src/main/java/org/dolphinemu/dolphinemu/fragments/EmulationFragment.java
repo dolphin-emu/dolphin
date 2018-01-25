@@ -66,9 +66,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		String path = getArguments().getString(ARGUMENT_GAME_PATH);
-		NativeLibrary.SetFilename(path);
-
 		View contents = inflater.inflate(R.layout.fragment_emulation, container, false);
 
 		SurfaceView surfaceView = (SurfaceView) contents.findViewById(R.id.surface_emulation);
@@ -241,7 +238,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			Log.info("[EmulationFragment] Starting emulation: " + mSurface);
 
 			// Start emulation using the provided Surface.
-			NativeLibrary.Run();
+			String path = getArguments().getString(ARGUMENT_GAME_PATH);
+			NativeLibrary.Run(path);
 		}
 	};
 

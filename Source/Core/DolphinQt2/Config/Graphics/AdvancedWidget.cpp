@@ -73,7 +73,7 @@ void AdvancedWidget::CreateWidgets()
   utility_layout->addWidget(m_dump_efb_target, 2, 0);
   utility_layout->addWidget(m_enable_freelook, 2, 1);
 #if defined(HAVE_FFMPEG)
-  utility_layout->addWidget(m_dump_use_ffv1, 3, -1);
+  utility_layout->addWidget(m_dump_use_ffv1, 3, 0);
 #endif
 
   // Misc.
