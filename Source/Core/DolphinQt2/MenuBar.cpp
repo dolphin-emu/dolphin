@@ -215,7 +215,7 @@ void MenuBar::AddViewMenu()
 
   AddGameListTypeSection(view_menu);
   view_menu->addSeparator();
-  AddTableColumnsMenu(view_menu);
+  AddListColumnsMenu(view_menu);
   view_menu->addSeparator();
   AddShowPlatformsMenu(view_menu);
   AddShowRegionsMenu(view_menu);
@@ -253,27 +253,25 @@ void MenuBar::AddHelpMenu()
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 {
-  // i18n: When this option is enabled, the game list is displayed as a table
-  QAction* table_view = view_menu->addAction(tr("Table"));
-  table_view->setCheckable(true);
-
-  // i18n: When this option is enabled, the game list is displayed as a list
-  QAction* list_view = view_menu->addAction(tr("List"));
+  QAction* list_view = view_menu->addAction(tr("List View"));
   list_view->setCheckable(true);
 
+  QAction* grid_view = view_menu->addAction(tr("Grid View"));
+  grid_view->setCheckable(true);
+
   QActionGroup* list_group = new QActionGroup(this);
-  list_group->addAction(table_view);
   list_group->addAction(list_view);
+  list_group->addAction(grid_view);
 
-  bool prefer_table = Settings::Instance().GetPreferredView();
-  table_view->setChecked(prefer_table);
-  list_view->setChecked(!prefer_table);
+  bool prefer_list = Settings::Instance().GetPreferredView();
+  list_view->setChecked(prefer_list);
+  grid_view->setChecked(!prefer_list);
 
-  connect(table_view, &QAction::triggered, this, &MenuBar::ShowTable);
   connect(list_view, &QAction::triggered, this, &MenuBar::ShowList);
+  connect(grid_view, &QAction::triggered, this, &MenuBar::ShowGrid);
 }
 
-void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
+void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 {
   static const QMap<QString, bool*> columns{
       {tr("Platform"), &SConfig::GetInstance().m_showSystemColumn},
@@ -287,7 +285,7 @@ void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
       {tr("State"), &SConfig::GetInstance().m_showStateColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
+  QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())

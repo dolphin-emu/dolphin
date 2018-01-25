@@ -90,9 +90,9 @@ bool Settings::GetPreferredView() const
   return QSettings().value(QStringLiteral("PreferredView"), true).toBool();
 }
 
-void Settings::SetPreferredView(bool table)
+void Settings::SetPreferredView(bool list)
 {
-  QSettings().setValue(QStringLiteral("PreferredView"), table);
+  QSettings().setValue(QStringLiteral("PreferredView"), list);
 }
 
 int Settings::GetStateSlot() const

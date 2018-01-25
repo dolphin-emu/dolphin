@@ -43,7 +43,7 @@ public:
   void AddPath(const QString& path);
   void RemovePath(const QString& path);
   bool GetPreferredView() const;
-  void SetPreferredView(bool table);
+  void SetPreferredView(bool list);
 
   // Emulation
   int GetStateSlot() const;

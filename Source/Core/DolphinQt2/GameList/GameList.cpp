@@ -25,8 +25,8 @@
 
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
+#include "DolphinQt2/GameList/GridProxyModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
-#include "DolphinQt2/GameList/TableProxyModel.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt2/Settings.h"
 
@@ -35,59 +35,59 @@ static bool CompressCB(const std::string&, float, void*);
 GameList::GameList(QWidget* parent) : QStackedWidget(parent)
 {
   m_model = new GameListModel(this);
-  m_table_proxy = new TableProxyModel(this);
-  m_table_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
-  m_table_proxy->setSortRole(Qt::InitialSortOrderRole);
-  m_table_proxy->setSourceModel(m_model);
   m_list_proxy = new ListProxyModel(this);
+  m_list_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
+  m_list_proxy->setSortRole(Qt::InitialSortOrderRole);
   m_list_proxy->setSourceModel(m_model);
+  m_grid_proxy = new GridProxyModel(this);
+  m_grid_proxy->setSourceModel(m_model);
 
-  MakeTableView();
   MakeListView();
+  MakeGridView();
   MakeEmptyView();
 
-  connect(m_table, &QTableView::doubleClicked, this, &GameList::GameSelected);
-  connect(m_list, &QListView::doubleClicked, this, &GameList::GameSelected);
+  connect(m_list, &QTableView::doubleClicked, this, &GameList::GameSelected);
+  connect(m_grid, &QListView::doubleClicked, this, &GameList::GameSelected);
   connect(&Settings::Instance(), &Settings::PathAdded, m_model, &GameListModel::DirectoryAdded);
   connect(&Settings::Instance(), &Settings::PathRemoved, m_model, &GameListModel::DirectoryRemoved);
   connect(m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
   connect(m_model, &QAbstractItemModel::rowsRemoved, this, &GameList::ConsiderViewChange);
 
-  addWidget(m_table);
   addWidget(m_list);
+  addWidget(m_grid);
   addWidget(m_empty);
-  m_prefer_table = Settings::Instance().GetPreferredView();
+  m_prefer_list = Settings::Instance().GetPreferredView();
   ConsiderViewChange();
 }
 
-void GameList::MakeTableView()
+void GameList::MakeListView()
 {
-  m_table = new QTableView(this);
-  m_table->setModel(m_table_proxy);
+  m_list = new QTableView(this);
+  m_list->setModel(m_list_proxy);
 
-  m_table->setSelectionMode(QAbstractItemView::SingleSelection);
-  m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_table->setAlternatingRowColors(true);
-  m_table->setShowGrid(false);
-  m_table->setSortingEnabled(true);
-  m_table->setCurrentIndex(QModelIndex());
-  m_table->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_table->setWordWrap(false);
+  m_list->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_list->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_list->setAlternatingRowColors(true);
+  m_list->setShowGrid(false);
+  m_list->setSortingEnabled(true);
+  m_list->setCurrentIndex(QModelIndex());
+  m_list->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_list->setWordWrap(false);
 
-  connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+  connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
-  m_table->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
-  m_table->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
-  m_table->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
-  m_table->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
-  m_table->setColumnHidden(GameListModel::COL_DESCRIPTION,
-                           !SConfig::GetInstance().m_showDescriptionColumn);
-  m_table->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
-  m_table->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
-  m_table->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
-  m_table->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
+  m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
+  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
+  m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
+  m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
+  m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
+                          !SConfig::GetInstance().m_showDescriptionColumn);
+  m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
+  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
+  m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
+  m_list->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
 
-  QHeaderView* hor_header = m_table->horizontalHeader();
+  QHeaderView* hor_header = m_list->horizontalHeader();
 
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnHeaderViewChanged);
@@ -107,8 +107,8 @@ void GameList::MakeTableView()
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
 
-  m_table->verticalHeader()->hide();
-  m_table->setFrameStyle(QFrame::NoFrame);
+  m_list->verticalHeader()->hide();
+  m_list->setFrameStyle(QFrame::NoFrame);
 }
 
 void GameList::MakeEmptyView()
@@ -128,16 +128,16 @@ void GameList::MakeEmptyView()
   });
 }
 
-void GameList::MakeListView()
+void GameList::MakeGridView()
 {
-  m_list = new QListView(this);
-  m_list->setModel(m_list_proxy);
-  m_list->setViewMode(QListView::IconMode);
-  m_list->setResizeMode(QListView::Adjust);
-  m_list->setUniformItemSizes(true);
-  m_list->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_list->setFrameStyle(QFrame::NoFrame);
-  connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+  m_grid = new QListView(this);
+  m_grid->setModel(m_grid_proxy);
+  m_grid->setViewMode(QListView::IconMode);
+  m_grid->setResizeMode(QListView::Adjust);
+  m_grid->setUniformItemSizes(true);
+  m_grid->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_grid->setFrameStyle(QFrame::NoFrame);
+  connect(m_grid, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 }
 
 void GameList::ShowContextMenu(const QPoint&)
@@ -383,15 +383,15 @@ QString GameList::GetSelectedGame() const
 {
   QAbstractItemView* view;
   QSortFilterProxyModel* proxy;
-  if (currentWidget() == m_table)
-  {
-    view = m_table;
-    proxy = m_table_proxy;
-  }
-  else
+  if (currentWidget() == m_list)
   {
     view = m_list;
     proxy = m_list_proxy;
+  }
+  else
+  {
+    view = m_grid;
+    proxy = m_grid_proxy;
   }
   QItemSelectionModel* sel_model = view->selectionModel();
   if (sel_model->hasSelection())
@@ -402,10 +402,10 @@ QString GameList::GetSelectedGame() const
   return QStringLiteral("");
 }
 
-void GameList::SetPreferredView(bool table)
+void GameList::SetPreferredView(bool list)
 {
-  m_prefer_table = table;
-  Settings::Instance().SetPreferredView(table);
+  m_prefer_list = list;
+  Settings::Instance().SetPreferredView(list);
   ConsiderViewChange();
 }
 
@@ -413,10 +413,10 @@ void GameList::ConsiderViewChange()
 {
   if (m_model->rowCount(QModelIndex()) > 0)
   {
-    if (m_prefer_table)
-      setCurrentWidget(m_table);
-    else
+    if (m_prefer_list)
       setCurrentWidget(m_list);
+    else
+      setCurrentWidget(m_grid);
   }
   else
   {
@@ -444,13 +444,13 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Title"), GameListModel::COL_TITLE},
       {tr("State"), GameListModel::COL_RATING}};
 
-  m_table->setColumnHidden(rowname_to_col_index[row], !visible);
+  m_list->setColumnHidden(rowname_to_col_index[row], !visible);
 }
 
 void GameList::OnGameListVisibilityChanged()
 {
-  m_table_proxy->invalidate();
   m_list_proxy->invalidate();
+  m_grid_proxy->invalidate();
 }
 
 static bool CompressCB(const std::string& text, float percent, void* ptr)
@@ -466,5 +466,5 @@ static bool CompressCB(const std::string& text, float percent, void* ptr)
 void GameList::OnHeaderViewChanged()
 {
   QSettings().setValue(QStringLiteral("tableheader/state"),
-                       m_table->horizontalHeader()->saveState());
+                       m_list->horizontalHeader()->saveState());
 }
