@@ -137,6 +137,9 @@ private:
   void OnJitMenu(wxCommandEvent& event);
   void OnProfilerMenu(wxCommandEvent& event);
 
+  void OnBootToPauseSelected(wxCommandEvent& event);
+  void OnAutomaticStartSelected(wxCommandEvent& event);
+
   void OnSymbolListChange(wxCommandEvent& event);
   void OnCallstackListChange(wxCommandEvent& event);
   void OnCallersListChange(wxCommandEvent& event);
