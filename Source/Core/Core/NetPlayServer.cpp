@@ -18,6 +18,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/UPnP.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
@@ -57,16 +58,13 @@ NetPlayServer::~NetPlayServer()
   }
 
 #ifdef USE_UPNP
-  if (m_upnp_thread.joinable())
-    m_upnp_thread.join();
-  m_upnp_thread = std::thread(&NetPlayServer::unmapPortThread);
-  m_upnp_thread.join();
+  UPnP::StopPortmapping();
 #endif
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer,
-                             u16 centralPort)
+NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
+                             const NetTraversalConfig& traversal_config)
 {
   //--use server time
   if (enet_initialize() != 0)
@@ -77,9 +75,10 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
   m_pad_map.fill(-1);
   m_wiimote_map.fill(-1);
 
-  if (traversal)
+  if (traversal_config.use_traversal)
   {
-    if (!EnsureTraversalClient(centralServer, centralPort, port))
+    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port,
+                               port))
       return;
 
     g_TraversalClient->m_Client = this;
@@ -105,6 +104,11 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
     m_do_loop = true;
     m_thread = std::thread(&NetPlayServer::ThreadFunc, this);
     m_target_buffer_size = 5;
+
+#ifdef USE_UPNP
+    if (forward_port)
+      UPnP::TryPortmapping(port);
+#endif
   }
 }
 
@@ -933,155 +937,3 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
     result.emplace_back(std::make_pair("!local!", "127.0.0.1"));
   return result;
 }
-
-#ifdef USE_UPNP
-#include <miniupnpc.h>
-#include <miniwget.h>
-#include <upnpcommands.h>
-
-struct UPNPUrls NetPlayServer::m_upnp_urls;
-struct IGDdatas NetPlayServer::m_upnp_data;
-std::string NetPlayServer::m_upnp_ourip;
-u16 NetPlayServer::m_upnp_mapped = 0;
-std::thread NetPlayServer::m_upnp_thread;
-
-// called from ---GUI--- thread
-void NetPlayServer::TryPortmapping(u16 port)
-{
-  if (m_upnp_thread.joinable())
-    m_upnp_thread.join();
-  m_upnp_thread = std::thread(&NetPlayServer::mapPortThread, port);
-}
-
-// UPnP thread: try to map a port
-void NetPlayServer::mapPortThread(const u16 port)
-{
-  if (initUPnP() && UPnPMapPort(m_upnp_ourip, port))
-  {
-    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
-    return;
-  }
-
-  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, m_upnp_ourip.c_str());
-}
-
-// UPnP thread: try to unmap a port
-void NetPlayServer::unmapPortThread()
-{
-  if (m_upnp_mapped > 0)
-    UPnPUnmapPort(m_upnp_mapped);
-}
-
-// called from ---UPnP--- thread
-// discovers the IGD
-bool NetPlayServer::initUPnP()
-{
-  static bool s_inited = false;
-  static bool s_error = false;
-
-  std::vector<UPNPDev*> igds;
-  int descXMLsize = 0, upnperror = 0;
-  char cIP[20];
-
-  // Don't init if already inited
-  if (s_inited)
-    return true;
-
-  // Don't init if it failed before
-  if (s_error)
-    return false;
-
-  memset(&m_upnp_urls, 0, sizeof(UPNPUrls));
-  memset(&m_upnp_data, 0, sizeof(IGDdatas));
-
-  // Find all UPnP devices
-  std::unique_ptr<UPNPDev, decltype(&freeUPNPDevlist)> devlist(nullptr, freeUPNPDevlist);
-#if MINIUPNPC_API_VERSION >= 14
-  devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror));
-#else
-  devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror));
-#endif
-  if (!devlist)
-  {
-    WARN_LOG(NETPLAY, "An error occurred trying to discover UPnP devices.");
-
-    s_error = true;
-
-    return false;
-  }
-
-  // Look for the IGD
-  for (UPNPDev* dev = devlist.get(); dev; dev = dev->pNext)
-  {
-    if (strstr(dev->st, "InternetGatewayDevice"))
-      igds.push_back(dev);
-  }
-
-  for (const UPNPDev* dev : igds)
-  {
-    std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
-    int statusCode = 200;
-#if MINIUPNPC_API_VERSION >= 16
-    descXML.reset(static_cast<char*>(
-        miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0, &statusCode)));
-#else
-    descXML.reset(
-        static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0)));
-#endif
-    if (descXML && statusCode == 200)
-    {
-      parserootdesc(descXML.get(), descXMLsize, &m_upnp_data);
-      GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
-
-      m_upnp_ourip = cIP;
-
-      NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
-      break;
-    }
-    else
-    {
-      WARN_LOG(NETPLAY, "Error getting info from IGD at %s.", dev->descURL);
-    }
-  }
-
-  s_inited = true;
-  return true;
-}
-
-// called from ---UPnP--- thread
-// Attempt to portforward!
-bool NetPlayServer::UPnPMapPort(const std::string& addr, const u16 port)
-{
-  if (m_upnp_mapped > 0)
-    UPnPUnmapPort(m_upnp_mapped);
-
-  std::string port_str = StringFromFormat("%d", port);
-  int result = UPNP_AddPortMapping(
-      m_upnp_urls.controlURL, m_upnp_data.first.servicetype, port_str.c_str(), port_str.c_str(),
-      addr.c_str(), (std::string("dolphin-emu UDP on ") + addr).c_str(), "UDP", nullptr, nullptr);
-
-  if (result != 0)
-    return false;
-
-  m_upnp_mapped = port;
-
-  return true;
-}
-
-// called from ---UPnP--- thread
-// Attempt to stop portforwarding.
-// --
-// NOTE: It is important that this happens! A few very crappy routers
-// apparently do not delete UPnP mappings on their own, so if you leave them
-// hanging, the NVRAM will fill with portmappings, and eventually all UPnP
-// requests will fail silently, with the only recourse being a factory reset.
-// --
-bool NetPlayServer::UPnPUnmapPort(const u16 port)
-{
-  std::string port_str = StringFromFormat("%d", port);
-  UPNP_DeletePortMapping(m_upnp_urls.controlURL, m_upnp_data.first.servicetype, port_str.c_str(),
-                         "UDP", nullptr);
-
-  return true;
-}
-#endif

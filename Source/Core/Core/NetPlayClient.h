@@ -67,8 +67,7 @@ public:
   void SendAsync(sf::Packet&& packet);
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                const std::string& name, bool traversal, const std::string& centralServer,
-                u16 centralPort);
+                const std::string& name, const NetTraversalConfig& traversal_config);
   ~NetPlayClient();
 
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);

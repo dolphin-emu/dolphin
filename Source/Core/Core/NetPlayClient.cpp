@@ -74,13 +74,12 @@ NetPlayClient::~NetPlayClient()
 
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                             const std::string& name, bool traversal,
-                             const std::string& centralServer, u16 centralPort)
+                             const std::string& name, const NetTraversalConfig& traversal_config)
     : m_dialog(dialog), m_player_name(name)
 {
   ClearBuffers();
 
-  if (!traversal)
+  if (!traversal_config.use_traversal)
   {
     // Direct Connection
     m_client = enet_host_create(nullptr, 1, 3, 0, 0);
@@ -124,7 +123,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       return;
     }
 
-    if (!EnsureTraversalClient(centralServer, centralPort))
+    if (!EnsureTraversalClient(traversal_config.traversal_host, traversal_config.traversal_port))
       return;
     m_client = g_MainNetHost.get();
 
