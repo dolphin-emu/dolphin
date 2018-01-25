@@ -274,10 +274,13 @@ public final class SettingsFile
 					current = sectionFromLine(line);
 					sections.put(current.getName(), current);
 				}
-				else if ((current != null) && line.contains("="))
+				else if ((current != null))
 				{
 					Setting setting = settingFromLine(current, line, fileName);
-					current.putSetting(setting);
+					if (setting != null)
+					{
+						current.putSetting(setting);
+					}
 				}
 			}
 		}
@@ -380,6 +383,12 @@ public final class SettingsFile
 	private static Setting settingFromLine(SettingSection current, String line, String fileName)
 	{
 		String[] splitLine = line.split("=");
+
+		if (splitLine.length != 2)
+		{
+			Log.warning("Skipping invalid config line \"" + line + "\"");
+			return null;
+		}
 
 		String key = splitLine[0].trim();
 		String value = splitLine[1].trim();

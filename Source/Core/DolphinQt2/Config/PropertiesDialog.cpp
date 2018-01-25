@@ -12,7 +12,8 @@
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDialog(parent)
 {
-  setWindowTitle(QStringLiteral("%1: %2").arg(game.GetGameID()).arg(game.GetLongName()));
+  setWindowTitle(
+      QStringLiteral("%1: %2 - %3").arg(game.GetFileName(), game.GetGameID(), game.GetLongName()));
   QVBoxLayout* layout = new QVBoxLayout();
 
   QTabWidget* tab_widget = new QTabWidget(this);
