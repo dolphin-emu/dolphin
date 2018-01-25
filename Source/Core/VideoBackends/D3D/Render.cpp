@@ -1290,6 +1290,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     g_ActiveConfig.iAspectRatio = 3;
   }
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
+  VertexShaderCache::RetreiveAsyncShaders();
   if (g_has_hmd && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
     VR_BeginFrame();
 
@@ -1442,10 +1443,6 @@ void Renderer::ApplyState()
                                    g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
   D3D::stateman->SetVertexConstants(vertexConstants);
   D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
-
-  D3D::stateman->SetPixelShader(PixelShaderCache::GetActiveShader());
-  D3D::stateman->SetVertexShader(VertexShaderCache::GetActiveShader());
-  D3D::stateman->SetGeometryShader(GeometryShaderCache::GetActiveShader());
 }
 
 void Renderer::RestoreState()

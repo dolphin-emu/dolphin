@@ -176,7 +176,9 @@ union ShaderHostConfig
     u32 backend_atomics : 1;
     u32 backend_depth_clamp : 1;
     u32 backend_reversed_depth_range : 1;
-    u32 pad : 12;
+    u32 backend_bitfield : 1;
+    u32 backend_dynamic_sampler_indexing : 1;
+    u32 pad : 10;
 	u32 more_layers : 1;
 	u32 vr : 1;
   };
@@ -318,7 +320,10 @@ inline const char* GetInterpolationQualifier(bool msaa, bool ssaa,
 #define I_LINEPTPARAMS "clinept"
 #define I_TEXOFFSET "ctexoffset"
 
-static const char s_shader_uniforms[] = "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
+static const char s_shader_uniforms[] = "\tuint    components;\n"
+                                        "\tuint    xfmem_dualTexInfo;\n"
+                                        "\tuint    xfmem_numColorChans;\n"
+                                        "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
                                         "\tfloat4 " I_PROJECTION "[4];\n"
                                         "\tint4 " I_MATERIALS "[4];\n"
                                         "\tLight " I_LIGHTS "[8];\n"
@@ -327,4 +332,9 @@ static const char s_shader_uniforms[] = "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
                                         "\tfloat4 " I_NORMALMATRICES "[32];\n"
                                         "\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
                                         "\tfloat4 " I_PIXELCENTERCORRECTION ";\n"
-                                        "\tfloat2 " I_VIEWPORT_SIZE ";\n";
+                                        "\tfloat2 " I_VIEWPORT_SIZE ";\n"
+                                        "\tuint4   xfmem_pack1[8];\n"
+                                        "\t#define xfmem_texMtxInfo(i) (xfmem_pack1[(i)].x)\n"
+                                        "\t#define xfmem_postMtxInfo(i) (xfmem_pack1[(i)].y)\n"
+                                        "\t#define xfmem_color(i) (xfmem_pack1[(i)].z)\n"
+                                        "\t#define xfmem_alpha(i) (xfmem_pack1[(i)].w)\n";

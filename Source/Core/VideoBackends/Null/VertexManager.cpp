@@ -16,7 +16,6 @@ class NullNativeVertexFormat : public NativeVertexFormat
 {
 public:
   NullNativeVertexFormat() {}
-  void SetupVertexPointers() override {}
 };
 
 std::unique_ptr<NativeVertexFormat>

@@ -15,6 +15,7 @@
 #include "Common/LinearDiskCache.h"
 
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/Texture2D.h"
 
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
@@ -62,6 +63,9 @@ public:
   VkSampler GetLinearSampler() const { return m_linear_sampler; }
   VkSampler GetSampler(const SamplerState& info);
 
+  // Dummy image for samplers that are unbound
+  Texture2D* GetDummyImage() const { return m_dummy_texture.get(); }
+  VkImageView GetDummyImageView() const { return m_dummy_texture->GetView(); }
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
 
@@ -89,6 +93,9 @@ private:
   VkSampler m_linear_sampler = VK_NULL_HANDLE;
 
   std::map<SamplerState, VkSampler> m_sampler_cache;
+
+  // Dummy image for samplers that are unbound
+  std::unique_ptr<Texture2D> m_dummy_texture;
 };
 
 extern std::unique_ptr<ObjectCache> g_object_cache;

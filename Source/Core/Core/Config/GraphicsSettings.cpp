@@ -78,6 +78,20 @@ const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING{
 const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
     {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 100};
 const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};
+const ConfigInfo<bool> GFX_BACKGROUND_SHADER_COMPILING{
+    {System::GFX, "Settings", "BackgroundShaderCompiling"}, false};
+const ConfigInfo<bool> GFX_DISABLE_SPECIALIZED_SHADERS{
+    {System::GFX, "Settings", "DisableSpecializedShaders"}, false};
+const ConfigInfo<bool> GFX_PRECOMPILE_UBER_SHADERS{
+    {System::GFX, "Settings", "PrecompileUberShaders"}, true};
+const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
+    {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
+const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{
+    {System::GFX, "Settings", "ShaderPrecompilerThreads"}, 1};
+const ConfigInfo<bool> GFX_FORCE_VERTEX_UBER_SHADERS{
+    {System::GFX, "Settings", "ForceVertexUberShaders"}, false};
+const ConfigInfo<bool> GFX_FORCE_PIXEL_UBER_SHADERS{
+    {System::GFX, "Settings", "ForcePixelUberShaders"}, false};
 
 const ConfigInfo<bool> GFX_SW_ZCOMPLOC{{System::GFX, "Settings", "SWZComploc"}, true};
 const ConfigInfo<bool> GFX_SW_ZFREEZE{{System::GFX, "Settings", "SWZFreeze"}, true};

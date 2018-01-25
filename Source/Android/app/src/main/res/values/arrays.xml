@@ -89,6 +89,18 @@
         <item>2</item>
     </integer-array>
 
+    <!-- Ubershader Mode Preference -->
+    <string-array name="uberShaderModeEntries" translatable="false">
+        <item>Disabled</item>
+        <item>Hybrid</item>
+        <item>Exclusive</item>
+    </string-array>
+    <integer-array name="uberShaderModeValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
         <item>1x Native (640x528)</item>

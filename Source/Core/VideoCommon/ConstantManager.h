@@ -24,11 +24,31 @@ struct PixelShaderConstants
   int4 fogi;
   float4 fogf[2];
   float4 zslope;
-  float4 efbscale;
+  float efbscale[2];
+
+  // Constants from here onwards are only used in ubershaders.
+  u32 genmode;       // .z
+  u32 alphaTest;     // .w
+  u32 fogParam3;     // .x
+  u32 fogRangeBase;  // .y
+  u32 dstalpha;      // .z
+  u32 ztex_op;       // .w
+  u32 early_ztest;   // .x (bool)
+  u32 rgba6_format;  // .y (bool)
+  u32 dither;        // .z (bool)
+  u32 bounding_box;  // .w (bool)
+  uint4 pack1[16];   // .xy - combiners, .z - tevind, .w - iref
+  uint4 pack2[8];    // .x - tevorder, .y - tevksel
+  int4 konst[32];    // .rgba
 };
 
 struct VertexShaderConstants
 {
+  u32 components;           // .x
+  u32 xfmem_dualTexInfo;    // .y
+  u32 xfmem_numColorChans;  // .z
+  u32 pad1;                 // .w
+
   float4 posnormalmatrix[6];
   float4 projection[4];
   int4 materials[4];
@@ -45,7 +65,10 @@ struct VertexShaderConstants
   float4 normalmatrices[32];
   float4 posttransformmatrices[64];
   float4 pixelcentercorrection;
-  float4 viewport;
+  float viewport[2];  // .xy
+  float pad2[2];      // .zw
+
+  uint4 xfmem_pack1[8];  // .x - texMtxInfo, .y - postMtxInfo, [0..1].z = color, [0..1].w = alpha
 };
 
 struct GeometryShaderConstants

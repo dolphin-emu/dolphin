@@ -20,7 +20,7 @@ namespace DX11
 namespace D3D
 {
 // bytecode->shader
-ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len)
+ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, size_t len)
 {
   ID3D11VertexShader* v_shader;
   HRESULT hr = D3D::device->CreateVertexShader(bytecode, len, nullptr, &v_shader);
@@ -78,7 +78,7 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
 }
 
 // bytecode->shader
-ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, unsigned int len)
+ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, size_t len)
 {
   ID3D11GeometryShader* g_shader;
   HRESULT hr = D3D::device->CreateGeometryShader(bytecode, len, nullptr, &g_shader);
@@ -136,7 +136,7 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob,
 }
 
 // bytecode->shader
-ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len)
+ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, size_t len)
 {
   ID3D11PixelShader* p_shader;
   HRESULT hr = D3D::device->CreatePixelShader(bytecode, len, nullptr, &p_shader);

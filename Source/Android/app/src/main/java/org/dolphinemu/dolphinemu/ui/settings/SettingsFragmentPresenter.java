@@ -276,6 +276,8 @@ public final class SettingsFragmentPresenter
 
 	private void addEnhanceSettings(ArrayList<SettingsItem> sl)
 	{
+		int uberShaderModeValue = getUberShaderModeValue();
+
 		Setting resolution = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_INTERNAL_RES);
 		Setting fsaa = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_FSAA);
 		Setting anisotropic = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_ANISOTROPY);
@@ -283,6 +285,7 @@ public final class SettingsFragmentPresenter
 		Setting perPixel = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_PER_PIXEL);
 		Setting forceFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_FORCE_FILTERING);
 		Setting disableFog = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_FOG);
+		IntSetting uberShaderMode = new IntSetting(SettingsFile.KEY_UBERSHADER_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, uberShaderModeValue);
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.internal_resolution, R.string.internal_resolution_descrip, R.array.internalResolutionEntries, R.array.internalResolutionValues, 0, resolution));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_descrip, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
@@ -296,6 +299,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_descrip, false, perPixel));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.force_texture_filtering, R.string.force_texture_filtering_descrip, false, forceFilter));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_descrip, false, disableFog));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_UBERSHADER_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.ubershader_mode, R.string.ubershader_mode_descrip, R.array.uberShaderModeEntries, R.array.uberShaderModeValues, 0, uberShaderMode));
 
 		 /*
 		 Check if we support stereo
@@ -901,6 +905,29 @@ public final class SettingsFragmentPresenter
 		}
 
 		return xfbValue;
+	}
+
+	private int getUberShaderModeValue()
+	{
+		int uberShaderModeValue = 0;
+
+		try
+		{
+			boolean backgroundShaderCompiling = ((BooleanSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_BACKGROUND_SHADER_COMPILING)).getValue();
+			boolean disableSpecializedShaders = ((BooleanSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_SPECIALIZED_SHADERS)).getValue();
+
+			if (disableSpecializedShaders)
+				uberShaderModeValue = 2;    // Exclusive
+			else if (backgroundShaderCompiling)
+				uberShaderModeValue = 1;    // Hybrid
+			else
+				uberShaderModeValue = 0;    // Disabled
+		}
+		catch (NullPointerException ex)
+		{
+		}
+
+		return uberShaderModeValue;
 	}
 
 	private int getExtensionValue(int wiimoteNumber)

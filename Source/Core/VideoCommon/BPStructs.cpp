@@ -96,6 +96,9 @@ static void BPWritten(const BPCmd& bp)
              (u32)bpmem.genMode.cullmode, (u32)bpmem.genMode.numindstages,
              (u32)bpmem.genMode.zfreeze);
 
+    if (bp.changes)
+      PixelShaderManager::SetGenModeChanged();
+
     // Only call SetGenerationMode when cull mode changes.
     if (bp.changes & 0xC000)
       SetGenerationMode();
@@ -158,12 +161,20 @@ static void BPWritten(const BPCmd& bp)
       // Set Color Mask
       if (bp.changes & 0x18)  // colorupdate | alphaupdate
         SetColorMask();
+
+      // Dither
+      if (bp.changes & 0x04)
+        PixelShaderManager::SetBlendModeChanged();
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha
-    PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-    if (bp.changes & 0xFF)
-      PixelShaderManager::SetDestAlpha();
+    PRIM_LOG("constalpha: alp=%d, en=%d", bpmem.dstalpha.alpha.Value(),
+             bpmem.dstalpha.enable.Value());
+    if (bp.changes)
+    {
+      PixelShaderManager::SetAlpha();
+      PixelShaderManager::SetDestAlphaChanged();
+    }
     if (bp.changes & 0x100)
       SetBlendMode();
     return;
@@ -276,6 +287,7 @@ static void BPWritten(const BPCmd& bp)
       // the number of lines copied is determined by the y scale * source efb height
 
       BoundingBox::active = false;
+      PixelShaderManager::SetBoundingBoxActive(false);
 
       float yScale;
       if (PE_copy.scale_invert)
@@ -367,12 +379,13 @@ static void BPWritten(const BPCmd& bp)
       PixelShaderManager::SetAlpha();
     if (bp.changes)
     {
+      PixelShaderManager::SetAlphaTestChanged();
       g_renderer->SetColorMask();
       SetBlendMode();
     }
     return;
   case BPMEM_BIAS:  // BIAS
-    PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
+    PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias.Value());
     if (bp.changes)
       PixelShaderManager::SetZTextureBias();
     return;
@@ -381,7 +394,7 @@ static void BPWritten(const BPCmd& bp)
     if (bp.changes & 3)
       PixelShaderManager::SetZTextureTypeChanged();
     if (bp.changes & 12)
-      VertexShaderManager::SetViewportChanged();
+      PixelShaderManager::SetZTextureOpChanged();
 #if defined(_DEBUG) || defined(DEBUGFAST)
     const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
     const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
@@ -439,6 +452,7 @@ static void BPWritten(const BPCmd& bp)
   {
     u8 offset = bp.address & 2;
     BoundingBox::active = true;
+    PixelShaderManager::SetBoundingBoxActive(true);
 
     if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
     {
@@ -475,6 +489,11 @@ static void BPWritten(const BPCmd& bp)
    * 3 BC0 - Ind. Tex Stage 0 NTexCoord
    * 0 BI0 - Ind. Tex Stage 0 NTexMap */
   case BPMEM_IREF:
+  {
+    if (bp.changes)
+      PixelShaderManager::SetTevIndirectChanged();
+    return;
+  }
 
   case BPMEM_TEV_KSEL:      // Texture Environment Swap Mode Table 0
   case BPMEM_TEV_KSEL + 1:  // Texture Environment Swap Mode Table 1
@@ -484,6 +503,8 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TEV_KSEL + 5:  // Texture Environment Swap Mode Table 5
   case BPMEM_TEV_KSEL + 6:  // Texture Environment Swap Mode Table 6
   case BPMEM_TEV_KSEL + 7:  // Texture Environment Swap Mode Table 7
+    PixelShaderManager::SetTevKSel(bp.address - BPMEM_TEV_KSEL, bp.newvalue);
+    return;
 
   /* This Register can be used to limit to which bits of BP registers is
    * actually written to. The mask is only valid for the next BP write,
@@ -616,6 +637,7 @@ static void BPWritten(const BPCmd& bp)
   // -------------------------
   case BPMEM_TREF:
   case BPMEM_TREF + 4:
+    PixelShaderManager::SetTevOrder(bp.address - BPMEM_TREF, bp.newvalue);
     return;
   // ----------------------
   // Set wrap size
@@ -679,15 +701,18 @@ static void BPWritten(const BPCmd& bp)
   // --------------
   // Indirect Tev
   // --------------
-  case BPMEM_IND_CMD:  // Indirect 0-15
+  case BPMEM_IND_CMD:
+    PixelShaderManager::SetTevIndirectChanged();
     return;
   // --------------------------------------------------
   // Set Color/Alpha of a Tev
   // BPMEM_TEV_COLOR_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D
   // BPMEM_TEV_ALPHA_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D, T Swap, R Swap
   // --------------------------------------------------
-  case BPMEM_TEV_COLOR_ENV:       // Texture Environment Color/Alpha 0-7
-  case BPMEM_TEV_COLOR_ENV + 16:  // Texture Environment Color/Alpha 8-15
+  case BPMEM_TEV_COLOR_ENV:  // Texture Environment 1
+  case BPMEM_TEV_COLOR_ENV + 16:
+    PixelShaderManager::SetTevCombiner((bp.address - BPMEM_TEV_COLOR_ENV) >> 1,
+                                       (bp.address - BPMEM_TEV_COLOR_ENV) & 1, bp.newvalue);
     return;
   default:
     break;
@@ -1332,7 +1357,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                          "Tex sel: %d\n",
                          (data[0] - BPMEM_TEV_ALPHA_ENV) / 2, tevin[ac.a], tevin[ac.b], tevin[ac.c],
                          tevin[ac.d], tevbias[ac.bias], tevop[ac.op], no_yes[ac.clamp],
-                         tevscale[ac.shift], tevout[ac.dest], ac.rswap, ac.tswap);
+                         tevscale[ac.shift], tevout[ac.dest], ac.rswap.Value(), ac.tswap.Value());
     break;
   }
 

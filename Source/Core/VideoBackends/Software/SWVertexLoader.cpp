@@ -30,7 +30,6 @@ class NullNativeVertexFormat : public NativeVertexFormat
 {
 public:
   NullNativeVertexFormat(const PortableVertexDeclaration& _vtx_decl) { vtx_decl = _vtx_decl; }
-  void SetupVertexPointers() override {}
 };
 
 std::unique_ptr<NativeVertexFormat>

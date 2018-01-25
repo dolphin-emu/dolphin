@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -29,3 +30,4 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
                                       const geometry_shader_uid_data* uid_data);
 ShaderCode GenerateAvatarGeometryShaderCode(u32 primitive_type, APIType ApiType, const ShaderHostConfig& host_config);
 GeometryShaderUid GetGeometryShaderUid(u32 primitive_type);
+void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUid&)>& callback);

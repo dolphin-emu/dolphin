@@ -179,6 +179,8 @@
     <string name="fast_depth_calculation_descrip">Uses a less accurate algorithm to calculate depth values.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_descrip">Select what aspect ratio to use when rendering</string>
+    <string name="ubershader_mode">Ubershader Mode</string>
+    <string name="ubershader_mode_descrip">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact.</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>

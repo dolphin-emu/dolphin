@@ -379,6 +379,26 @@ static void EndPrimitive(ShaderCode& out, const ShaderHostConfig& host_config,
     out.Write("\toutput.RestartStrip();\n");
 }
 
+void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUid&)>& callback)
+{
+  GeometryShaderUid uid;
+  std::memset(&uid, 0, sizeof(uid));
+
+  static constexpr std::array<u32, 3> primitive_lut = {
+      {PRIMITIVE_TRIANGLES, PRIMITIVE_LINES, PRIMITIVE_POINTS}};
+  for (u32 primitive : primitive_lut)
+  {
+    auto* guid = uid.GetUidData<geometry_shader_uid_data>();
+    guid->primitive_type = primitive;
+
+    for (u32 texgens = 0; texgens <= 8; texgens++)
+    {
+      guid->numTexGens = texgens;
+      callback(uid);
+    }
+  }
+}
+
 template <class T>
 static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const ShaderHostConfig& host_config)
 {
@@ -386,6 +406,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const
 
   const bool wireframe = host_config.wireframe;
   const bool pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  const bool stereo = host_config.stereo;
 
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)
   geometry_shader_uid_data dummy_data;
@@ -459,7 +480,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const
     DefineOutputMember(out, ApiType, qualifier, "float4", "colors_", 0, "COLOR", 0);
     DefineOutputMember(out, ApiType, qualifier, "float3", "tex", 0, "TEXCOORD", 0);
 
-    if (host_config.stereo || host_config.more_layers)
+    if (stereo || host_config.more_layers)
       out.Write("\tflat int layer;\n");
 
     out.Write("} ps;\n");
@@ -471,7 +492,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const
     out.Write("struct VertexData {\n");
     out.Write("\tVS_OUTPUT o;\n");
 
-    if (host_config.stereo || host_config.more_layers)
+    if (stereo || host_config.more_layers)
       out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
 
     out.Write("};\n");
@@ -556,7 +577,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const
               ".x, -" I_LINEPTPARAMS ".w / " I_LINEPTPARAMS ".y) * center.pos.w;\n");
   }
 
-  if (host_config.stereo || host_config.more_layers)
+  if (stereo || host_config.more_layers)
   {
     // If the GPU supports invocation we don't need a for loop and can simply use the
     // invocation identifier to determine which layer we're rendering.
@@ -597,7 +618,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const
     // f.clipPos.w;\n");
     out.Write("\tf.pos.x += " I_STEREOPARAMS "[eye] - " I_STEREOPARAMS "[eye+2] * f.pos.w;\n");
   }
-  else if (host_config.stereo || host_config.more_layers)
+  else if (stereo || host_config.more_layers)
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
@@ -677,7 +698,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType, const
 
   EndPrimitive(out, host_config, uid_data, ApiType, wireframe, pixel_lighting);
 
-  if ((host_config.stereo || host_config.more_layers) && !host_config.backend_gs_instancing)
+  if ((stereo || host_config.more_layers) && !host_config.backend_gs_instancing)
     out.Write("\t}\n");
 
   out.Write("}\n");

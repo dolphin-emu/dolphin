@@ -16,9 +16,9 @@ namespace DX11
 {
 namespace D3D
 {
-ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len);
-ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, unsigned int len);
-ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len);
+ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, size_t len);
+ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, size_t len);
+ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, size_t len);
 
 // The returned bytecode buffers should be Release()d.
 bool CompileVertexShader(const std::string& code, D3DBlob** blob);

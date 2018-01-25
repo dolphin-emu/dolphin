@@ -575,8 +575,7 @@ void UtilityShaderDraw::BindDescriptors()
 {
   // TODO: This method is a mess, clean it up
   std::array<VkDescriptorSet, NUM_DESCRIPTOR_SET_BIND_POINTS> bind_descriptor_sets = {};
-  std::array<VkWriteDescriptorSet, NUM_UBO_DESCRIPTOR_SET_BINDINGS + NUM_PIXEL_SHADER_SAMPLERS>
-      set_writes = {};
+  std::array<VkWriteDescriptorSet, NUM_UBO_DESCRIPTOR_SET_BINDINGS + 1> set_writes = {};
   uint32_t num_set_writes = 0;
 
   VkDescriptorBufferInfo dummy_uniform_buffer = {
@@ -633,29 +632,32 @@ void UtilityShaderDraw::BindDescriptors()
   // Check if we have any at all, skip the binding process entirely if we don't
   if (first_active_sampler != NUM_PIXEL_SHADER_SAMPLERS)
   {
+    // We need to fill it with non-empty images.
+    for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
+    {
+      if (m_ps_samplers[i].imageView == VK_NULL_HANDLE)
+      {
+        m_ps_samplers[i].imageView = g_object_cache->GetDummyImageView();
+        m_ps_samplers[i].sampler = g_object_cache->GetPointSampler();
+      }
+    }
+
     // Allocate a new descriptor set
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
         g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
-    for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
-    {
-      const VkDescriptorImageInfo& info = m_ps_samplers[i];
-      if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
-      {
-        set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                        nullptr,
-                                        set,
-                                        static_cast<uint32_t>(i),
-                                        0,
-                                        1,
-                                        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                                        &info,
-                                        nullptr,
-                                        nullptr};
-      }
-    }
+    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    set,
+                                    0,
+                                    0,
+                                    static_cast<u32>(NUM_PIXEL_SHADER_SAMPLERS),
+                                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                    m_ps_samplers.data(),
+                                    nullptr,
+                                    nullptr};
 
     bind_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS] = set;
   }

@@ -58,6 +58,7 @@ struct VideoConfig
   bool bSupportsConservativeDepth;
   bool bSupportsImageLoadStore;
   bool bSupportsAniso;
+  bool bSupportsBitfield;
 
   const char* gl_vendor;
   const char* gl_renderer;

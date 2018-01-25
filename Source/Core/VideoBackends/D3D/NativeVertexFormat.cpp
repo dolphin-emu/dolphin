@@ -13,20 +13,6 @@
 
 namespace DX11
 {
-class D3DVertexFormat : public NativeVertexFormat
-{
-public:
-  D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
-  ~D3DVertexFormat() { SAFE_RELEASE(m_layout); }
-  void SetupVertexPointers() override;
-
-private:
-  std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
-  UINT m_num_elems = 0;
-
-  ID3D11InputLayout* m_layout = nullptr;
-};
-
 std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
@@ -66,7 +52,6 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
   this->vtx_decl = _vtx_decl;
 
   const AttributeFormat* format = &_vtx_decl.position;
-
   if (format->enable)
   {
     m_elems[m_num_elems].SemanticName = "POSITION";
@@ -129,15 +114,18 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
   }
 }
 
-void D3DVertexFormat::SetupVertexPointers()
+D3DVertexFormat::~D3DVertexFormat()
+{
+  SAFE_RELEASE(m_layout);
+}
+
+void D3DVertexFormat::SetInputLayout(D3DBlob* vs_bytecode)
 {
   if (!m_layout)
   {
     // CreateInputLayout requires a shader input, but it only looks at the
     // signature of the shader, so we don't need to recompute it if the shader
     // changes.
-    D3DBlob* vs_bytecode = DX11::VertexShaderCache::GetActiveShaderBytecode();
-
     HRESULT hr = DX11::D3D::device->CreateInputLayout(
         m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
     if (FAILED(hr))

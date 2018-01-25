@@ -4,13 +4,30 @@
 
 #pragma once
 
+#include <d3d11.h>
 #include <memory>
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
 struct ID3D11Buffer;
 
 namespace DX11
 {
+class D3DBlob;
+class D3DVertexFormat : public NativeVertexFormat
+{
+public:
+  D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
+  ~D3DVertexFormat();
+  void SetInputLayout(D3DBlob* vs_bytecode);
+
+private:
+  std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
+  UINT m_num_elems = 0;
+
+  ID3D11InputLayout* m_layout = nullptr;
+};
+
 class VertexManager : public VertexManagerBase
 {
 public:
