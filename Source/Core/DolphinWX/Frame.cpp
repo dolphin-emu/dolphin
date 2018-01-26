@@ -42,6 +42,7 @@
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Version.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ARBruteForcer.h"
@@ -772,7 +773,7 @@ void CFrame::UninhibitScreensaver()
 
 void CFrame::UpdateTitle(const wxString& str)
 {
-  const wxString revision_string = StrToWxStr(scm_rev_str);
+  const wxString revision_string = StrToWxStr(Common::scm_rev_str);
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
   {
     GetStatusBar()->SetStatusText(str, 0);

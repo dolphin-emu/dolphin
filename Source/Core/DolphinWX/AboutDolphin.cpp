@@ -12,7 +12,7 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include "Common/Common.h"
+#include "Common/Version.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/VR.h"
@@ -25,12 +25,13 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
       this, wxID_ANY, WxUtils::LoadScaledResourceBitmap("dolphin_logo", this));
 
   const wxString DolphinText = _("Dolphin VR");
-  const wxString RevisionText = scm_desc_str + wxString::Format("%s", scm_vr_sdk_str);
+  const wxString RevisionText = Common::scm_desc_str + wxString::Format("%s", scm_vr_sdk_str);
   const wxString CopyrightText =
       _("(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of Nintendo. Dolphin "
         "is not affiliated with Nintendo in any way.");
-  const wxString BranchText = wxString::Format(_("Branch: %s"), scm_branch_str.c_str());
-  const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str.c_str());
+  const wxString BranchText = wxString::Format(_("Branch: %s"), Common::scm_branch_str.c_str());
+  const wxString BranchRevText =
+      wxString::Format(_("Revision: %s"), Common::scm_rev_git_str.c_str());
   const wxString CompiledText = wxString::Format(_("Compiled: %s @ %s"), __DATE__, __TIME__);
   const wxString CheckUpdateText = _("Check for updates: ");
   const wxString Text =

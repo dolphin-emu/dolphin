@@ -1,12 +1,15 @@
 // This file is public domain, in case it's useful to anyone. -comex
 
 #pragma once
-#include <enet/enet.h>
-#include <functional>
+
+#include <cstddef>
 #include <list>
 #include <memory>
-#include <random>
-#include "Common/Common.h"
+#include <string>
+
+#include <enet/enet.h>
+
+#include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "Common/TraversalProto.h"
 

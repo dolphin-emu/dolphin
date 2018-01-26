@@ -15,9 +15,9 @@
 
 #include "Common/Analytics.h"
 #include "Common/CPUDetect.h"
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Version.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
@@ -125,10 +125,10 @@ void DolphinAnalytics::MakeBaseBuilder()
   Common::AnalyticsReportBuilder builder;
 
   // Version information.
-  builder.AddData("version-desc", scm_desc_str);
-  builder.AddData("version-hash", scm_rev_git_str);
-  builder.AddData("version-branch", scm_branch_str);
-  builder.AddData("version-dist", scm_distributor_str);
+  builder.AddData("version-desc", Common::scm_desc_str);
+  builder.AddData("version-hash", Common::scm_rev_git_str);
+  builder.AddData("version-branch", Common::scm_branch_str);
+  builder.AddData("version-dist", Common::scm_distributor_str);
 
   // CPU information.
   builder.AddData("cpu-summary", cpu_info.Summarize());

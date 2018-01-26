@@ -24,6 +24,7 @@
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -589,7 +590,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return env->NewStringUTF(scm_rev_str.c_str());
+  return env->NewStringUTF(Common::scm_rev_str.c_str());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,

@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include <fcntl.h>
 #include <libudev.h>
 #include <map>
 #include <memory>
+#include <string>
 #include <unistd.h>
 
 #include <sys/eventfd.h>

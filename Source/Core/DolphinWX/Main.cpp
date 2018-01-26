@@ -35,6 +35,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
+#include "Common/Version.h"
 
 #include "Core/ARBruteForcer.h"
 #include "Core/Analytics.h"
@@ -157,7 +158,7 @@ bool DolphinApp::OnInit()
   // event dispatch including WM_MOVE/WM_SIZE)
   wxRect window_geometry(SConfig::GetInstance().iPosX, SConfig::GetInstance().iPosY,
                          SConfig::GetInstance().iWidth, SConfig::GetInstance().iHeight);
-  std::string titleStr = StringFromFormat("%s%s", scm_rev_str.c_str(), scm_vr_sdk_str);
+  std::string titleStr = StringFromFormat("%s%s", Common::scm_rev_str.c_str(), scm_vr_sdk_str);
   main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(titleStr), window_geometry,
                           m_use_debugger, m_batch_mode, m_use_logger);
   SetTopWindow(main_frame);

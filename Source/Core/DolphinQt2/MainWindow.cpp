@@ -16,7 +16,7 @@
 
 #include <future>
 
-#include "Common/Common.h"
+#include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -66,7 +66,7 @@
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
-  setWindowTitle(QString::fromStdString(scm_rev_str));
+  setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
@@ -546,7 +546,7 @@ void MainWindow::HideRenderWidget()
     m_render_widget->setParent(nullptr);
     m_rendering_to_main = false;
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
-    setWindowTitle(QString::fromStdString(scm_rev_str));
+    setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   }
   m_render_widget->hide();
 }

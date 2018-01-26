@@ -31,6 +31,7 @@
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Version.h"
 
 #include "Core/ARBruteForcer.h"
 #include "Core/Boot/Boot.h"
@@ -1018,7 +1019,7 @@ void CFrame::OnStopped()
 
   UninhibitScreensaver();
 
-  m_render_frame->SetTitle(StrToWxStr(scm_rev_str));
+  m_render_frame->SetTitle(StrToWxStr(Common::scm_rev_str));
 
   // Destroy the renderer frame when not rendering to main
   m_render_parent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);

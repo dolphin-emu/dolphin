@@ -6,7 +6,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
-#include "Common/Common.h"
+#include "Common/Version.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Resources.h"
 
@@ -23,11 +23,11 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text.append(QStringLiteral("<p style='font-size:50pt; font-weight:400; margin-bottom:0px;'>") +
               tr("Dolphin") + QStringLiteral("</p>"));
   text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0px;'>%1</p>")
-                  .arg(QString::fromUtf8(scm_desc_str.c_str())));
+                  .arg(QString::fromUtf8(Common::scm_desc_str.c_str())));
 
-  text.append(small + tr("Branch: ") + QString::fromUtf8(scm_branch_str.c_str()) +
+  text.append(small + tr("Branch: ") + QString::fromUtf8(Common::scm_branch_str.c_str()) +
               QStringLiteral("</p>"));
-  text.append(small + tr("Revision: ") + QString::fromUtf8(scm_rev_git_str.c_str()) +
+  text.append(small + tr("Revision: ") + QString::fromUtf8(Common::scm_rev_git_str.c_str()) +
               QStringLiteral("</p>"));
   text.append(small + tr("Compiled: ") + QStringLiteral(__DATE__) + QStringLiteral(" ") + QStringLiteral(__TIME__) + QStringLiteral("</p>"));
 
