@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v17.leanback.widget.TitleView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:visibility="gone"
+            android:layout_alignTop="@+id/badge"
+            android:layout_alignBottom="@+id/badge"
+            android:layout_alignParentRight="true"
+            android:id="@+id/title"
+            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"/>
+
+        <ImageView
+            android:visibility="gone"
+            android:layout_toLeftOf="@id/title"
+            android:id="@+id/badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_launcher"/>
+
+    </RelativeLayout>
+</android.support.v17.leanback.widget.TitleView>

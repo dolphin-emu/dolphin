@@ -2,9 +2,8 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 
 import android.database.Cursor;
-
+import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.DolphinApplication;
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
@@ -27,9 +26,7 @@ public final class MainPresenter
 
 	public void onCreate()
 	{
-		// TODO Rather than calling into native code, this should use the commented line below.
-		// String versionName = BuildConfig.VERSION_NAME;
-		String versionName = NativeLibrary.GetVersionString();
+		String versionName = BuildConfig.VERSION_NAME;
 		mView.setVersionString(versionName);
 	}
 

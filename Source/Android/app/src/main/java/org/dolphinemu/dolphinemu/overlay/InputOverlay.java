@@ -50,11 +50,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	/**
 	 * Resizes a {@link Bitmap} by a given scale factor
-	 * 
+	 *
 	 * @param context The current {@link Context}
 	 * @param bitmap  The {@link Bitmap} to scale.
 	 * @param scale   The scale factor for the bitmap.
-	 * 
+	 *
 	 * @return The scaled {@link Bitmap}
 	 */
 	public static Bitmap resizeBitmap(Context context, Bitmap bitmap, float scale)
@@ -72,7 +72,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param context The current {@link Context}.
 	 * @param attrs   {@link AttributeSet} for parsing XML attributes.
 	 */
@@ -589,7 +589,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	/**
 	 * Initializes an InputOverlayDrawableButton, given by resId, with all of the
-	 * parameters set for it to be properly shown on the InputOverlay. 
+	 * parameters set for it to be properly shown on the InputOverlay.
 	 * <p>
 	 * This works due to the way the X and Y coordinates are stored within
 	 * the {@link SharedPreferences}.
@@ -610,12 +610,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	 * Technically no modifications should need to be performed on the returned
 	 * InputOverlayDrawableButton. Simply add it to the HashSet of overlay items and wait
 	 * for Android to call the onDraw method.
-	 * 
+	 *
 	 * @param context      The current {@link Context}.
 	 * @param defaultResId The resource ID of the {@link Drawable} to get the {@link Bitmap} of (Default State).
 	 * @param pressedResId The resource ID of the {@link Drawable} to get the {@link Bitmap} of (Pressed State).
 	 * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
-	 * 
+	 *
 	 * @return An {@link InputOverlayDrawableButton} with the correct drawing bounds set.
 	 *
 	 */
@@ -773,14 +773,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	}
 
 	/**
-	 * Initializes an {@link InputOverlayDrawableJoystick} 
-	 * 
+	 * Initializes an {@link InputOverlayDrawableJoystick}
+	 *
 	 * @param context         The current {@link Context}
 	 * @param resOuter        Resource ID for the outer image of the joystick (the static image that shows the circular bounds).
 	 * @param defaultResInner Resource ID for the default inner image of the joystick (the one you actually move around).
 	 * @param pressedResInner Resource ID for the pressed inner image of the joystick.
 	 * @param joystick        Identifier for which joystick this is.
-	 * 
+	 *
 	 * @return the initialized {@link InputOverlayDrawableJoystick}.
 	 */
 	private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter, int defaultResInner, int pressedResInner, int joystick)

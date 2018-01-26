@@ -19,7 +19,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 /**
  * Utility class that abstracts all the stuff about
- * EGL initialization out of the way if all that is 
+ * EGL initialization out of the way if all that is
  * wanted is to query the underlying GL API for information.
  */
 public final class EGLHelper
@@ -52,7 +52,7 @@ public final class EGLHelper
 	 * Initializes the underlying {@link EGLSurface} with a width and height of 1.
 	 * This is useful if all you need to use this class for is to query information
 	 * from specific API contexts.
-	 * 
+	 *
 	 * @param renderableType Bitmask indicating which types of client API contexts
 	 *                       the framebuffer config must support.
 	 */
@@ -63,9 +63,9 @@ public final class EGLHelper
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param width          Width of the underlying {@link EGLSurface}.
-	 * @param height         Height of the underlying {@link EGLSurface}. 
+	 * @param height         Height of the underlying {@link EGLSurface}.
 	 * @param renderableType Bitmask indicating which types of client API contexts
 	 *                       the framebuffer config must support.
 	 */
@@ -101,7 +101,7 @@ public final class EGLHelper
 	/**
 	 * Releases all resources associated with this helper.
 	 * <p>
-	 * This should be called whenever this helper is no longer needed. 
+	 * This should be called whenever this helper is no longer needed.
 	 */
 	public void closeHelper()
 	{
@@ -115,7 +115,7 @@ public final class EGLHelper
 	 * Index 1: Version    <br/>
 	 * Index 2: Renderer   <br/>
 	 * Index 3: Extensions <br/>
-	 * 
+	 *
 	 * @return information retrieved through EGL.
 	 */
 	public String[] getEGLInfo()
@@ -130,7 +130,7 @@ public final class EGLHelper
 
 	/**
 	 * Whether or not this device supports OpenGL.
-	 * 
+	 *
 	 * @return true if this device supports OpenGL; false otherwise.
 	 */
 	public boolean supportsOpenGL()
@@ -142,7 +142,7 @@ public final class EGLHelper
 	 * Whether or not this device supports OpenGL ES 2.
 	 * <br/>
 	 * Note that if this returns true, then OpenGL ES 1 is also supported.
-	 * 
+	 *
 	 * @return true if this device supports OpenGL ES 2; false otherwise.
 	 */
 	public boolean supportsGLES2()
@@ -154,7 +154,7 @@ public final class EGLHelper
 	 * Whether or not this device supports OpenGL ES 3.
 	 * <br/>
 	 * Note that if this returns true, then OpenGL ES 1 and 2 are also supported.
-	 * 
+	 *
 	 * @return true if this device supports OpenGL ES 3; false otherwise.
 	 */
 	public boolean supportsGLES3()
@@ -164,7 +164,7 @@ public final class EGLHelper
 
 	/**
 	 * Gets the underlying {@link EGL10} instance.
-	 * 
+	 *
 	 * @return the underlying {@link EGL10} instance.
 	 */
 	public EGL10 getEGL()
@@ -174,7 +174,7 @@ public final class EGLHelper
 
 	/**
 	 * Gets the underlying {@link GL10} instance.
-	 * 
+	 *
 	 * @return the underlying {@link GL10} instance.
 	 */
 	public GL10 getGL()
@@ -184,7 +184,7 @@ public final class EGLHelper
 
 	/**
 	 * Gets the underlying {@link EGLDisplay}.
-	 * 
+	 *
 	 * @return the underlying {@link EGLDisplay}
 	 */
 	public EGLDisplay getDisplay()
@@ -194,7 +194,7 @@ public final class EGLHelper
 
 	/**
 	 * Gets all supported framebuffer configurations for this device.
-	 * 
+	 *
 	 * @return all supported framebuffer configurations for this device.
 	 */
 	public EGLConfig[] getConfigs()
@@ -204,7 +204,7 @@ public final class EGLHelper
 
 	/**
 	 * Gets the underlying {@link EGLContext}.
-	 * 
+	 *
 	 * @return the underlying {@link EGLContext}.
 	 */
 	public EGLContext getContext()
@@ -214,7 +214,7 @@ public final class EGLHelper
 
 	/**
 	 * Gets the underlying {@link EGLSurface}.
-	 * 
+	 *
 	 * @return the underlying {@link EGLSurface}.
 	 */
 	public EGLSurface getSurface()
@@ -319,9 +319,9 @@ public final class EGLHelper
 	 *    <li>GL_RENDERER - Name of the renderer</li>
 	 *    <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
 	 * </ul>
-	 * 
+	 *
 	 * @param glEnum A symbolic constant within {@link GL10}.
-	 * 
+	 *
 	 * @return the string information represented by {@code glEnum}.
 	 */
 	public String glGetString(int glEnum)
@@ -340,10 +340,10 @@ public final class EGLHelper
 	 *    <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
 	 *    <li>GL_EXTENSIONS - Extension string supported by the implementation at {@code index}.</li>
 	 * </ul>
-	 * 
+	 *
 	 * @param glEnum A symbolic GL constant
 	 * @param index  The index of the string to return.
-	 * 
+	 *
 	 * @return the string information represented by {@code glEnum} and {@code index}.
 	 */
 	public String glGetStringi(int glEnum, int index)
@@ -376,9 +376,9 @@ public final class EGLHelper
 
 	/**
 	 * Simplified call to {@link GL10#glGetIntegerv(int, int[], int)
-	 * 
+	 *
 	 * @param glEnum A symbolic GL constant.
-	 * 
+	 *
 	 * @return the integer information represented by {@code glEnum}.
 	 */
 	public int glGetInteger(int glEnum)
