@@ -421,12 +421,6 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
   {
     s_is_started = true;
     Host_Message(WM_USER_STOP);
-    while (CPU::GetState() != CPU::State::PowerDown)
-    {
-      if (!_CoreParameter.bCPUThread)
-        g_video_backend->PeekMessages();
-      std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    }
     s_is_started = false;
   }
 
@@ -610,40 +604,22 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 
     // We have now exited the Video Loop
     INFO_LOG(CONSOLE, "%s", StopMessage(false, "Video Loop Ended").c_str());
+
+    // Join with the CPU thread.
+    s_cpu_thread.join();
+    INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
   }
   else  // SingleCore mode
   {
-    // The spawned CPU Thread also does the graphics.
-    // The EmuThread is thus an idle thread, which sleeps while
-    // waiting for the program to terminate. Without this extra
-    // thread, the video backend window hangs in single core mode
-    // because no one is pumping messages.
-    Common::SetCurrentThreadName("Emuthread - Idle");
-
-    // Spawn the CPU+GPU thread
-    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);
-
-    while (CPU::GetState() != CPU::State::PowerDown)
-    {
-      g_video_backend->PeekMessages();
-      Common::SleepCurrentThread(20);
-    }
+    // Become the CPU thread
+    cpuThreadFunc(savestate_path, delete_savestate);
   }
-
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
-
-  // Wait for s_cpu_thread to exit
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 
 #ifdef USE_GDBSTUB
   INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
   gdb_deinit();
   INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
 #endif
-
-  s_cpu_thread.join();
-
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 
   if (core_parameter.bCPUThread)
     g_video_backend->Video_CleanupShared();
