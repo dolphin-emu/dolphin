@@ -135,6 +135,10 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
 
+    <!-- Graphics Settings -->
+    <string name="graphics_general">General</string>
+    <string name="graphics_enhancements_and_hacks">Enhancements &amp; Hacks</string>
+
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_description">Select the API used for graphics rendering.</string>
