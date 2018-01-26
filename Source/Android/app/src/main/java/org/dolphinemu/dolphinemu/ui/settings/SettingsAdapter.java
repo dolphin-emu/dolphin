@@ -186,6 +186,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		seekbar.setMax(item.getMax());
 		seekbar.setProgress(mSeekbarProgress);
+		seekbar.setKeyProgressIncrement(5);
 
 		seekbar.setOnSeekBarChangeListener(this);
 	}
