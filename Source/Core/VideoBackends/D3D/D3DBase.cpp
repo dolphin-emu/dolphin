@@ -44,6 +44,7 @@ int d3d_dll_ref = 0;
 namespace D3D
 {
 ID3D11Device* device = nullptr;
+ID3D11Device1* device1 = nullptr;
 ID3D11DeviceContext* context = nullptr;
 IDXGISwapChain* swapchain = nullptr;
 static ID3D11Debug* debug = nullptr;
@@ -531,6 +532,10 @@ HRESULT Create(HWND wnd)
     return E_FAIL;
   }
 
+  hr = device->QueryInterface<ID3D11Device1>(&device1);
+  if (FAILED(hr))
+    WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
+
   // prevent DXGI from responding to Alt+Enter, unfortunately DXGI_MWA_NO_ALT_ENTER
   // does not work so we disable all monitoring of window messages. However this
   // may make it more difficult for DXGI to handle display mode changes.
@@ -595,6 +600,7 @@ void Close()
   context->Flush();  // immediately destroy device objects
 
   SAFE_RELEASE(context);
+  SAFE_RELEASE(device1);
   ULONG references = device->Release();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

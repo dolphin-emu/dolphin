@@ -25,6 +25,7 @@ PixelShaderUid GetPixelShaderUid()
       (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest()) ||
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
+  uid_data->uint_output = bpmem.blendmode.UseLogicOp();
   return out;
 }
 
@@ -1163,18 +1164,29 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "  }\n"
             "\n");
 
-  // TODO: Do we still want to support two pass alpha blending?
-  out.Write("  if (bpmem_rgba6_format)\n"
-            "    ocol0.rgb = float3(TevResult.rgb >> 2) / 63.0;\n"
-            "  else\n"
-            "    ocol0.rgb = float3(TevResult.rgb) / 255.0;\n"
-            "\n"
-            "  if (bpmem_dstalpha != 0u)\n");
-  out.Write("    ocol0.a = float(%s >> 2) / 63.0;\n",
-            BitfieldExtract("bpmem_dstalpha", ConstantAlpha().alpha).c_str());
-  out.Write("  else\n"
-            "    ocol0.a = float(TevResult.a >> 2) / 63.0;\n"
-            "  \n");
+  // D3D requires that the shader outputs be uint when writing to a uint render target for logic op.
+  if (ApiType == APIType::D3D && uid_data->uint_output)
+  {
+    out.Write("  if (bpmem_rgba6_format)\n"
+              "    ocol0 = uint4(TevResult & 0xFC);\n"
+              "  else\n"
+              "    ocol0 = uint4(TevResult);\n"
+              "\n");
+  }
+  else
+  {
+    out.Write("  if (bpmem_rgba6_format)\n"
+              "    ocol0.rgb = float3(TevResult.rgb >> 2) / 63.0;\n"
+              "  else\n"
+              "    ocol0.rgb = float3(TevResult.rgb) / 255.0;\n"
+              "\n"
+              "  if (bpmem_dstalpha != 0u)\n");
+    out.Write("    ocol0.a = float(%s >> 2) / 63.0;\n",
+              BitfieldExtract("bpmem_dstalpha", ConstantAlpha().alpha).c_str());
+    out.Write("  else\n"
+              "    ocol0.a = float(TevResult.a >> 2) / 63.0;\n"
+              "  \n");
+  }
 
   if (use_dual_source)
   {
@@ -1259,7 +1271,11 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
           continue;
 
         puid->per_pixel_depth = per_pixel_depth != 0;
-        callback(uid);
+        for (u32 uint_output = 0; uint_output < 2; uint_output++)
+        {
+          puid->uint_output = uint_output;
+          callback(uid);
+        }
       }
     }
   }

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include <d3d11_1.h>
 #include <d3dcompiler.h>
 #include <dxgi1_2.h>
 #include <vector>
@@ -56,6 +57,7 @@ HRESULT Create(HWND wnd);
 void Close();
 
 extern ID3D11Device* device;
+extern ID3D11Device1* device1;
 extern ID3D11DeviceContext* context;
 extern IDXGISwapChain* swapchain;
 extern HWND hWnd;
