@@ -154,7 +154,7 @@ public:
   virtual void ChangeSurface(void* new_surface_handle) {}
   bool UseVertexDepthRange() const;
 
-  void ShutdownFrameDumping();
+  virtual void Shutdown();
 
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
@@ -243,6 +243,7 @@ private:
   std::string GetFrameDumpNextImageFileName() const;
   bool StartFrameDumpToImage(const FrameDumpConfig& config);
   void DumpFrameToImage(const FrameDumpConfig& config);
+  void ShutdownFrameDumping();
 
   bool IsFrameDumping();
 

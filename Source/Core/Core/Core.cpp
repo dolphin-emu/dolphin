@@ -464,11 +464,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     PanicAlert("Failed to initialize video backend!");
     return;
   }
-  g_video_backend->Video_Prepare();
-  Common::ScopeGuard video_guard{[] {
-    g_video_backend->Video_Cleanup();
-    g_video_backend->Shutdown();
-  }};
+  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
 
   if (cpu_info.HTT)
     SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;

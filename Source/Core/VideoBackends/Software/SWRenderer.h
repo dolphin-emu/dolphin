@@ -13,9 +13,6 @@ class SWRenderer : public Renderer
 public:
   SWRenderer();
 
-  static void Init();
-  static void Shutdown();
-
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;

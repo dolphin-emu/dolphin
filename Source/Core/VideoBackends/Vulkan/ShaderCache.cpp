@@ -76,6 +76,9 @@ void ShaderCache::Shutdown()
     m_async_shader_compiler->StopWorkerThreads();
     m_async_shader_compiler->RetrieveWorkItems();
   }
+
+  if (g_ActiveConfig.bShaderCache && m_pipeline_cache != VK_NULL_HANDLE)
+    SavePipelineCache();
 }
 
 static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)

@@ -145,32 +145,30 @@ bool VideoBackend::Initialize(void* window_handle)
   InitBackendInfo();
   InitializeShared();
 
-  m_window_handle = window_handle;
-
-  return true;
-}
-
-void VideoBackend::Video_Prepare()
-{
-  if (FAILED(D3D::Create(reinterpret_cast<HWND>(m_window_handle))))
+  if (FAILED(D3D::Create(reinterpret_cast<HWND>(window_handle))))
+  {
     PanicAlert("Failed to create D3D device.");
+    return false;
+  }
 
-  // internal interfaces
   g_renderer = std::make_unique<Renderer>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
+
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();
   VertexShaderCache::WaitForBackgroundCompilesToComplete();
   D3D::InitUtils();
   BBox::Init();
+  return true;
 }
 
 void VideoBackend::Shutdown()
 {
-  // TODO: should be in Video_Cleanup
+  g_renderer->Shutdown();
+
   D3D::ShutdownUtils();
   PixelShaderCache::Shutdown();
   VertexShaderCache::Shutdown();
@@ -182,13 +180,8 @@ void VideoBackend::Shutdown()
   g_texture_cache.reset();
   g_renderer.reset();
 
-  D3D::Close();
-
   ShutdownShared();
-}
 
-void VideoBackend::Video_Cleanup()
-{
-  CleanupShared();
+  D3D::Close();
 }
 }
