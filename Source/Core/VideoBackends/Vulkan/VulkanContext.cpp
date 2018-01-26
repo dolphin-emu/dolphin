@@ -498,36 +498,41 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
                                            queue_family_properties.data());
   INFO_LOG(VIDEO, "%u vulkan queue families", queue_family_count);
 
-  // Find a graphics queue
-  // Currently we only use a single queue for both graphics and presenting.
-  // TODO: In the future we could do post-processing and presenting on a different queue.
+  // Find graphics and present queues.
   m_graphics_queue_family_index = queue_family_count;
+  m_present_queue_family_index = queue_family_count;
   for (uint32_t i = 0; i < queue_family_count; i++)
   {
-    if (queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+    VkBool32 graphics_supported = queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT;
+    if (graphics_supported)
     {
-      // Check that it can present to our surface from this queue
-      if (surface)
+      m_graphics_queue_family_index = i;
+      // Quit now, no need for a present queue.
+      if (!surface)
       {
-        VkBool32 present_supported;
-        VkResult res =
-            vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, surface, &present_supported);
-        if (res != VK_SUCCESS)
-        {
-          LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceSupportKHR failed: ");
-          return false;
-        }
-
-        if (present_supported)
-        {
-          m_graphics_queue_family_index = i;
-          break;
-        }
+        break;
       }
-      else
+    }
+
+    if (surface)
+    {
+      VkBool32 present_supported;
+      VkResult res =
+          vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, surface, &present_supported);
+      if (res != VK_SUCCESS)
       {
-        // We don't need present, so any graphics queue will do.
-        m_graphics_queue_family_index = i;
+        LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceSupportKHR failed: ");
+        return false;
+      }
+
+      if (present_supported)
+      {
+        m_present_queue_family_index = i;
+      }
+
+      // Prefer one queue family index that does both graphics and present.
+      if (graphics_supported && present_supported)
+      {
         break;
       }
     }
@@ -535,6 +540,11 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   if (m_graphics_queue_family_index == queue_family_count)
   {
     ERROR_LOG(VIDEO, "Vulkan: Failed to find an acceptable graphics queue.");
+    return false;
+  }
+  if (surface && m_present_queue_family_index == queue_family_count)
+  {
+    ERROR_LOG(VIDEO, "Vulkan: Failed to find an acceptable present queue.");
     return false;
   }
 
@@ -547,15 +557,32 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
 #define constexpr const
 #endif
   static constexpr float queue_priorities[] = {1.0f};
-  VkDeviceQueueCreateInfo queue_info = {};
-  queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-  queue_info.pNext = nullptr;
-  queue_info.flags = 0;
-  queue_info.queueFamilyIndex = m_graphics_queue_family_index;
-  queue_info.queueCount = 1;
-  queue_info.pQueuePriorities = queue_priorities;
+  VkDeviceQueueCreateInfo graphics_queue_info = {};
+  graphics_queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+  graphics_queue_info.pNext = nullptr;
+  graphics_queue_info.flags = 0;
+  graphics_queue_info.queueFamilyIndex = m_graphics_queue_family_index;
+  graphics_queue_info.queueCount = 1;
+  graphics_queue_info.pQueuePriorities = queue_priorities;
+
+  VkDeviceQueueCreateInfo present_queue_info = {};
+  present_queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+  present_queue_info.pNext = nullptr;
+  present_queue_info.flags = 0;
+  present_queue_info.queueFamilyIndex = m_present_queue_family_index;
+  present_queue_info.queueCount = 1;
+  present_queue_info.pQueuePriorities = queue_priorities;
+
+  std::array<VkDeviceQueueCreateInfo, 2> queue_infos = {{
+      graphics_queue_info, present_queue_info,
+  }};
+
   device_info.queueCreateInfoCount = 1;
-  device_info.pQueueCreateInfos = &queue_info;
+  if (m_graphics_queue_family_index != m_present_queue_family_index)
+  {
+    device_info.queueCreateInfoCount = 2;
+  }
+  device_info.pQueueCreateInfos = queue_infos.data();
 
   ExtensionList enabled_extensions;
   if (!SelectDeviceExtensions(&enabled_extensions, surface != VK_NULL_HANDLE))
@@ -591,8 +618,12 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   if (!LoadVulkanDeviceFunctions(m_device))
     return false;
 
-  // Grab the graphics queue (only one we're using at this point).
+  // Grab the graphics and present queues.
   vkGetDeviceQueue(m_device, m_graphics_queue_family_index, 0, &m_graphics_queue);
+  if (surface)
+  {
+    vkGetDeviceQueue(m_device, m_present_queue_family_index, 0, &m_present_queue);
+  }
   return true;
 }
 
