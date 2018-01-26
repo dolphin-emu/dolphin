@@ -114,9 +114,4 @@ void VideoSoftware::Shutdown()
   g_renderer.reset();
   ShutdownShared();
 }
-
-unsigned int VideoSoftware::PeekMessages()
-{
-  return SWOGLWindow::s_instance->PeekMessages();
-}
 }

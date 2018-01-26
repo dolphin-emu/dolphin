@@ -26,19 +26,6 @@
 
 namespace DX11
 {
-unsigned int VideoBackend::PeekMessages()
-{
-  MSG msg;
-  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-  {
-    if (msg.message == WM_QUIT)
-      return FALSE;
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-  return TRUE;
-}
-
 std::string VideoBackend::GetName() const
 {
   return "D3D";

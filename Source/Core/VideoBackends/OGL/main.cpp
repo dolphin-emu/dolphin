@@ -58,12 +58,6 @@ Make AA apply instantly during gameplay if possible
 
 namespace OGL
 {
-// Draw messages on top of the screen
-unsigned int VideoBackend::PeekMessages()
-{
-  return GLInterface->PeekMessages();
-}
-
 std::string VideoBackend::GetName() const
 {
   return "OGL";

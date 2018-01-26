@@ -18,7 +18,5 @@ class VideoBackend : public VideoBackendBase
   std::string GetDisplayName() const override;
 
   void InitBackendInfo() override;
-
-  unsigned int PeekMessages() override;
 };
 }
