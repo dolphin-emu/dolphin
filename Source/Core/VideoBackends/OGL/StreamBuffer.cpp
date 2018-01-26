@@ -97,7 +97,13 @@ void StreamBuffer::AllocMemory(u32 size)
     glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
     glDeleteSync(m_fences[i]);
   }
-  m_free_iterator = m_iterator + size;
+
+  // If we allocate a large amount of memory (A), commit a smaller amount, then allocate memory
+  // smaller than allocation A, we will have already waited for these fences in A, but not used
+  // the space. In this case, don't set m_free_iterator to a position before that which we know
+  // is safe to use, which would result in waiting on the same fence(s) next time.
+  if ((m_iterator + size) > m_free_iterator)
+    m_free_iterator = m_iterator + size;
 
   // if buffer is full
   if (m_iterator + size >= m_size)
