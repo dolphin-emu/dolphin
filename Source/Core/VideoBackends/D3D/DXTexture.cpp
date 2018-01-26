@@ -83,6 +83,7 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
 
 DXTexture::~DXTexture()
 {
+  g_renderer->UnbindTexture(this);
   m_texture->Release();
 }
 

@@ -15,7 +15,7 @@ class AbstractTexture
 {
 public:
   explicit AbstractTexture(const TextureConfig& c);
-  virtual ~AbstractTexture();
+  virtual ~AbstractTexture() = default;
 
   virtual void CopyRectangleFromTexture(const AbstractTexture* src,
                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
