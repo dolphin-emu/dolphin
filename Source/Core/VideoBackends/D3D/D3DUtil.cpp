@@ -387,9 +387,9 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
   UINT stride = sizeof(FONT2DVERTEX);
   UINT bufoffset = 0;
 
-  float scalex = 1 / (float)D3D::GetBackBufferWidth() * 2.f;
-  float scaley = 1 / (float)D3D::GetBackBufferHeight() * 2.f;
-  float sizeratio = size / (float)m_LineHeight;
+  float scalex = 1.0f / g_renderer->GetBackbufferWidth() * 2.f;
+  float scaley = 1.0f / g_renderer->GetBackbufferHeight() * 2.f;
+  float sizeratio = size / m_LineHeight;
 
   // translate starting positions
   float sx = x * scalex - 1.f;

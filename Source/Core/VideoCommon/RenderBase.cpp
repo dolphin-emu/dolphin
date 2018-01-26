@@ -400,6 +400,21 @@ bool Renderer::IsHeadless() const
   return !m_surface_handle;
 }
 
+void Renderer::ChangeSurface(void* new_surface_handle)
+{
+  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  m_new_surface_handle = new_surface_handle;
+  m_surface_changed.Set();
+}
+
+void Renderer::ResizeSurface(int new_width, int new_height)
+{
+  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  m_new_backbuffer_width = new_width;
+  m_new_backbuffer_height = new_height;
+  m_surface_resized.Set();
+}
+
 std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
                                                              const int height) const
 {
@@ -651,7 +666,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_last_xfb_region = xfb_rect;
 
       // TODO: merge more generic parts into VideoCommon
-      g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+      {
+        std::lock_guard<std::mutex> guard(m_swap_mutex);
+        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+      }
 
       // Update the window size based on the frame that was just rendered.
       // Due to depending on guest state, we need to call this every frame.

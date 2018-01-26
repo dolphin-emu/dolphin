@@ -70,8 +70,6 @@ public:
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
 
-  void ChangeSurface(void* new_surface_handle) override;
-
 private:
   bool CreateSemaphores();
   void DestroySemaphores();
@@ -79,6 +77,7 @@ private:
   void BeginFrame();
 
   void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
   void CheckForConfigChanges();
 
   void ResetSamplerStates();

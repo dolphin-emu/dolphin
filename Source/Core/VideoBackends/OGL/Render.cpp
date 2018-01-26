@@ -845,12 +845,10 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  u32 backbuffer_width = std::max(GLInterface->GetBackBufferWidth(), 1u);
-  u32 backbuffer_height = std::max(GLInterface->GetBackBufferHeight(), 1u);
-
-  s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(backbuffer_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(backbuffer_height), 0,
-                                    backbuffer_width, backbuffer_height, color);
+  s_raster_font->printMultilineText(text,
+                                    left * 2.0f / static_cast<float>(m_backbuffer_width) - 1.0f,
+                                    1.0f - top * 2.0f / static_cast<float>(m_backbuffer_height), 0,
+                                    m_backbuffer_width, m_backbuffer_height, color);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -1319,14 +1317,15 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   ResetAPIState();
 
-  UpdateDrawRectangle();
-  TargetRectangle flipped_trc = GetTargetRectangle();
-
-  // Flip top and bottom for some reason; TODO: Fix the code to suck less?
-  std::swap(flipped_trc.top, flipped_trc.bottom);
-
   // Do our OSD callbacks
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
+
+  // Check if we need to render to a new surface.
+  CheckForSurfaceChange();
+  CheckForSurfaceResize();
+  UpdateDrawRectangle();
+  TargetRectangle flipped_trc = GetTargetRectangle();
+  std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Skip screen rendering when running in headless mode.
   if (!IsHeadless())
@@ -1357,32 +1356,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     glFlush();
   }
 
-#ifdef ANDROID
-  // Handle surface changes on Android.
-  if (m_surface_needs_change.IsSet())
-  {
-    GLInterface->UpdateHandle(m_new_surface_handle);
-    GLInterface->UpdateSurface();
-    m_surface_handle = m_new_surface_handle;
-    m_new_surface_handle = nullptr;
-    m_surface_needs_change.Clear();
-    m_surface_changed.Set();
-  }
-#endif
-
-  GLInterface->Update();
-
   // Was the size changed since the last frame?
-  bool window_resized = false;
-  int window_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
-  int window_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
-  if (window_width != m_backbuffer_width || window_height != m_backbuffer_height)
-  {
-    window_resized = true;
-    m_backbuffer_width = window_width;
-    m_backbuffer_height = window_height;
-  }
-
   bool target_size_changed = CalculateTargetSize();
   bool stencil_buffer_enabled =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get())->HasStencilBuffer();
@@ -1392,10 +1366,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
                          stencil_buffer_enabled != BoundingBox::NeedsStencilBuffer() ||
                          s_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off);
 
-  if (window_resized || fb_needs_update)
-  {
-    UpdateDrawRectangle();
-  }
   if (fb_needs_update)
   {
     s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
@@ -1415,6 +1385,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_framebuffer_manager = std::make_unique<FramebufferManager>(
         m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
     BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
+    UpdateDrawRectangle();
   }
 
   if (s_vsync != g_ActiveConfig.IsVSync())
@@ -1453,6 +1424,30 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // Invalidate EFB cache
   ClearEFBCache();
+}
+
+void Renderer::CheckForSurfaceChange()
+{
+  if (!m_surface_changed.TestAndClear())
+    return;
+
+  m_surface_handle = m_new_surface_handle;
+  m_new_surface_handle = nullptr;
+  GLInterface->UpdateHandle(m_surface_handle);
+  GLInterface->UpdateSurface();
+
+  // With a surface change, the window likely has new dimensions.
+  m_backbuffer_width = GLInterface->GetBackBufferWidth();
+  m_backbuffer_height = GLInterface->GetBackBufferHeight();
+}
+
+void Renderer::CheckForSurfaceResize()
+{
+  if (!m_surface_resized.TestAndClear())
+    return;
+
+  m_backbuffer_width = m_new_backbuffer_width;
+  m_backbuffer_height = m_new_backbuffer_height;
 }
 
 void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
@@ -1571,17 +1566,5 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 void Renderer::SetInterlacingMode()
 {
   // TODO
-}
-
-void Renderer::ChangeSurface(void* new_surface_handle)
-{
-// Win32 polls the window size when redrawing, X11 runs an event loop in another thread.
-// This is only necessary for Android at this point, although handling resizes here
-// would be more efficient than polling.
-#ifdef ANDROID
-  m_new_surface_handle = new_surface_handle;
-  m_surface_needs_change.Set();
-  m_surface_changed.Wait();
-#endif
 }
 }

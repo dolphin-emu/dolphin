@@ -14,6 +14,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
+#include "VideoCommon/RenderBase.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
@@ -261,11 +262,13 @@ bool SwapChain::CreateSwapChain()
   VkExtent2D size = surface_capabilities.currentExtent;
   if (size.width == UINT32_MAX)
   {
-    size.width = std::min(std::max(surface_capabilities.minImageExtent.width, 640u),
-                          surface_capabilities.maxImageExtent.width);
-    size.height = std::min(std::max(surface_capabilities.minImageExtent.height, 480u),
-                           surface_capabilities.maxImageExtent.height);
+    size.width = std::max(g_renderer->GetBackbufferWidth(), 1);
+    size.height = std::max(g_renderer->GetBackbufferHeight(), 1);
   }
+  size.width = MathUtil::Clamp(size.width, surface_capabilities.minImageExtent.width,
+                               surface_capabilities.maxImageExtent.width);
+  size.height = MathUtil::Clamp(size.height, surface_capabilities.minImageExtent.height,
+                                surface_capabilities.maxImageExtent.height);
 
   // Prefer identity transform if possible
   VkSurfaceTransformFlagBitsKHR transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
@@ -467,6 +470,22 @@ bool SwapChain::RecreateSurface(void* native_handle)
   m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), native_handle);
   if (m_surface == VK_NULL_HANDLE)
     return false;
+
+  // The validation layers get angry at us if we don't call this before creating the swapchain.
+  VkBool32 present_supported = VK_TRUE;
+  VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(
+      g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetPresentQueueFamilyIndex(),
+      m_surface, &present_supported);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceSupportKHR failed: ");
+    return false;
+  }
+  if (!present_supported)
+  {
+    PanicAlert("Recreated surface does not support presenting.");
+    return false;
+  }
 
   // Finally re-create the swap chain
   if (!CreateSwapChain() || !SetupSwapChainImages() || !CreateRenderPass())
