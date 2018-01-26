@@ -14,7 +14,7 @@
 #include "Common/IniFile.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
-#include "DolphinQt2/Config/ARCodeEditor.h"
+#include "DolphinQt2/Config/CheatCodeEditor.h"
 #include "DolphinQt2/Config/CheatWarningWidget.h"
 #include "DolphinQt2/GameList/GameFile.h"
 
@@ -122,15 +122,19 @@ void ARCodeWidget::SaveCodes()
 void ARCodeWidget::OnCodeAddPressed()
 {
   ActionReplay::ARCode ar;
+  ar.active = true;
 
-  ARCodeEditor ed(ar);
+  CheatCodeEditor ed;
 
-  ed.exec();
+  ed.SetARCode(&ar);
 
-  m_ar_codes.push_back(std::move(ar));
+  if (ed.exec())
+  {
+    m_ar_codes.push_back(std::move(ar));
 
-  UpdateList();
-  SaveCodes();
+    UpdateList();
+    SaveCodes();
+  }
 }
 
 void ARCodeWidget::OnCodeEditPressed()
@@ -148,8 +152,9 @@ void ARCodeWidget::OnCodeEditPressed()
 
   ActionReplay::ARCode ar = current_ar;
 
-  ARCodeEditor ed(user_defined ? current_ar : ar);
+  CheatCodeEditor ed;
 
+  ed.SetARCode(user_defined ? &current_ar : &ar);
   ed.exec();
 
   if (!user_defined)
