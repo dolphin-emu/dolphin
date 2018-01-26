@@ -1349,11 +1349,8 @@ void Renderer::SetDepthMode()
   StateTracker::GetInstance()->SetDepthStencilState(new_ds_state);
 }
 
-void Renderer::SetBlendMode(bool force_update)
+void Renderer::SetBlendingState(const BlendingState& state)
 {
-  BlendingState state;
-  state.Generate(bpmem);
-
   StateTracker::GetInstance()->SetBlendState(state);
 }
 

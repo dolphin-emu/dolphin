@@ -482,9 +482,9 @@ HRESULT Create(HWND wnd)
     }
   }
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
   // Creating debug devices can sometimes fail if the user doesn't have the correct
   // version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+  if (g_Config.bEnableValidationLayer)
   {
     hr = PD3D11CreateDeviceAndSwapChain(
         adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
@@ -511,8 +511,7 @@ HRESULT Create(HWND wnd)
     }
   }
 
-  if (FAILED(hr))
-#endif
+  if (!g_Config.bEnableValidationLayer || FAILED(hr))
   {
     hr = PD3D11CreateDeviceAndSwapChain(
         adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0,

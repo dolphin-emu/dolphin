@@ -12,7 +12,7 @@
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/RenderState.h"
 
 struct ID3D11BlendState;
 struct ID3D11DepthStencilState;
@@ -24,18 +24,6 @@ union RasterizerState
 {
   BitField<0, 2, D3D11_CULL_MODE> cull_mode;
   BitField<2, 1, u32> depth_clip_enable;
-
-  u32 packed;
-};
-
-union BlendState
-{
-  BitField<0, 1, u32> blend_enable;
-  BitField<1, 3, D3D11_BLEND_OP> blend_op;
-  BitField<4, 4, u32> write_mask;
-  BitField<8, 5, D3D11_BLEND> src_blend;
-  BitField<13, 5, D3D11_BLEND> dst_blend;
-  BitField<18, 1, u32> use_dst_alpha;
 
   u32 packed;
 };
@@ -60,7 +48,7 @@ public:
   // Get existing or create new render state.
   // Returned objects is owned by the cache and does not need to be released.
   ID3D11SamplerState* Get(SamplerState state);
-  ID3D11BlendState* Get(BlendState state);
+  ID3D11BlendState* Get(BlendingState state);
   ID3D11RasterizerState* Get(RasterizerState state);
   ID3D11DepthStencilState* Get(ZMode state);
 

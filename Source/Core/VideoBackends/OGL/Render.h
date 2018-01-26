@@ -77,7 +77,7 @@ public:
   void Init();
   void Shutdown();
 
-  void SetBlendMode(bool forceUpdate) override;
+  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetGenerationMode() override;
   void SetDepthMode() override;
