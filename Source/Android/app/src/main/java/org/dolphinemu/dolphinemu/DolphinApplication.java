@@ -15,8 +15,6 @@ public class DolphinApplication extends Application
 	{
 		super.onCreate();
 
-		NativeLibrary.SetUserDirectory("");  // Empty string means use the default path
-
 		if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
 			DirectoryInitializationService.startService(getApplicationContext());
 

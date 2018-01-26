@@ -10,6 +10,7 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -22,6 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 /**
  * A service that spawns its own thread in order to copy several binary and shader files
@@ -32,12 +35,15 @@ public final class DirectoryInitializationService extends IntentService
     public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.BROADCAST";
 
     public static final String EXTRA_STATE = "directoryState";
-    private static DirectoryInitializationState directoryState = null;
+    private static volatile DirectoryInitializationState directoryState = null;
+    private static String userPath;
+    private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
 
     public enum DirectoryInitializationState
     {
         DOLPHIN_DIRECTORIES_INITIALIZED,
-        EXTERNAL_STORAGE_PERMISSION_NEEDED
+        EXTERNAL_STORAGE_PERMISSION_NEEDED,
+        CANT_FIND_EXTERNAL_STORAGE
     }
 
     public DirectoryInitializationService()
@@ -55,21 +61,50 @@ public final class DirectoryInitializationService extends IntentService
     @Override
     protected void onHandleIntent(Intent intent)
     {
-        if (directoryState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+        isDolphinDirectoryInitializationRunning.set(true);
+
+        if (directoryState != DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
         {
-            sendBroadcastState(DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED);
+            if (PermissionsHandler.hasWriteAccess(this))
+            {
+                if (setDolphinUserDirectory())
+                {
+                    initializeInternalStorage();
+                    initializeExternalStorage();
+
+                    directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
+                }
+                else
+                {
+                    directoryState = DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE;
+                }
+            }
+            else
+            {
+                directoryState = DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED;
+            }
         }
-        else if (PermissionsHandler.hasWriteAccess(this))
+
+        isDolphinDirectoryInitializationRunning.set(false);
+        sendBroadcastState(directoryState);
+    }
+
+    private boolean setDolphinUserDirectory()
+    {
+        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
         {
-            initializeInternalStorage();
-            initializeExternalStorage();
-            directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
-            sendBroadcastState(directoryState);
+            File externalPath = Environment.getExternalStorageDirectory();
+            if (externalPath != null)
+            {
+                userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
+                Log.debug("[DirectoryInitializationService] User Dir: " + userPath);
+                NativeLibrary.SetUserDirectory(userPath);
+                return true;
+            }
+
         }
-        else
-        {
-            sendBroadcastState(DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED);
-        }
+
+        return false;
     }
 
     private void initializeInternalStorage()
@@ -126,6 +161,20 @@ public final class DirectoryInitializationService extends IntentService
     public static boolean areDolphinDirectoriesReady()
     {
         return directoryState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
+    }
+
+    public static String getUserDirectory()
+    {
+        if (directoryState == null)
+        {
+            throw new IllegalStateException("DirectoryInitializationService has to run at least once!");
+        }
+        else if (isDolphinDirectoryInitializationRunning.get())
+        {
+            throw new IllegalStateException("DirectoryInitializationService has to finish running first!");
+        }
+        return userPath;
+
     }
 
     private void sendBroadcastState(DirectoryInitializationState state)

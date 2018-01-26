@@ -119,6 +119,11 @@ public interface SettingsActivityView
 	void showPermissionNeededHint();
 
 	/**
+	 * Show a hint to the user that the app needs the external storage to be mounted
+	 */
+	void showExternalStorageNotMountedHint();
+
+	/**
 	 * Start the DirectoryInitializationService and listen for the result.
 	 *
 	 * @param receiver the broadcast receiver for the DirectoryInitializationService

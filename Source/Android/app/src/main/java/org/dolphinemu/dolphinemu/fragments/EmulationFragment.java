@@ -158,11 +158,20 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 				DirectoryInitializationService.BROADCAST_ACTION);
 
 		directoryStateReceiver =
-				new DirectoryStateReceiver(directoryInitializationState -> {
-					if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED) {
+				new DirectoryStateReceiver(directoryInitializationState ->
+				{
+					if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+					{
 						mEmulationState.run(activity.isActivityRecreated());
-					} else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED) {
+					}
+					else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
+					{
 						Toast.makeText(getContext(), R.string.write_permission_needed, Toast.LENGTH_SHORT)
+								.show();
+					}
+					else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
+					{
+						Toast.makeText(getContext(), R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
 								.show();
 					}
 				});
