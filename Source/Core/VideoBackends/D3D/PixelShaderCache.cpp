@@ -733,7 +733,7 @@ bool PixelShaderCache::SetShader()
   ShaderCode code =
       GeneratePixelShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   D3D::CompilePixelShader(code.GetBuffer(), &bytecode);
-  if (!InsertByteCode(uid, bytecode->Data(), bytecode->Size()))
+  if (!InsertByteCode(uid, bytecode ? bytecode->Data() : nullptr, bytecode ? bytecode->Size() : 0))
   {
     SAFE_RELEASE(bytecode);
     return false;
@@ -776,7 +776,7 @@ bool PixelShaderCache::SetUberShader()
   ShaderCode code =
       UberShader::GenPixelShader(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
   D3D::CompilePixelShader(code.GetBuffer(), &bytecode);
-  if (!InsertByteCode(uid, bytecode->Data(), bytecode->Size()))
+  if (!InsertByteCode(uid, bytecode ? bytecode->Data() : nullptr, bytecode ? bytecode->Size() : 0))
   {
     SAFE_RELEASE(bytecode);
     return false;
