@@ -14,6 +14,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
+#define DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING (2048)
+#define DXGI_PRESENT_ALLOW_TEARING (0x00000200UL)
+
 namespace DX11
 {
 #define SAFE_RELEASE(x)                                                                            \
@@ -75,6 +78,7 @@ const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
+bool AllowTearingSupported();
 
 u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level);
 

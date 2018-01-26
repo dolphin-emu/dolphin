@@ -1351,7 +1351,7 @@ void Renderer::ApplyState()
   D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
-  FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable);
+  FramebufferManager::SetIntegerEFBRenderTarget(s_gx_state.blend.logicopenable != 0);
 
   for (size_t stage = 0; stage < s_gx_state.samplers.size(); stage++)
   {
