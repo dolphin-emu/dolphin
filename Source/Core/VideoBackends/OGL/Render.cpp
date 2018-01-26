@@ -1331,21 +1331,23 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Skip screen rendering when running in headless mode.
   if (!IsHeadless())
   {
-    // Copy the framebuffer to screen.
+    // Clear the framebuffer before drawing anything.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Copy the framebuffer to screen.
     BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
                xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
-    // Finish up the current frame, print some stats
+    // Render OSD messages.
+    glViewport(0, 0, m_backbuffer_width, m_backbuffer_height);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Reset viewport for drawing text
-    glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
     DrawDebugText();
     OSD::DrawMessages();
 
-    // Copy the rendered frame to the real window.
+    // Swap the back and front buffers, presenting the image.
     GLInterface->Swap();
   }
   else
@@ -1413,13 +1415,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_framebuffer_manager = std::make_unique<FramebufferManager>(
         m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
     BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
-  }
-
-  // Clear framebuffer
-  if (!IsHeadless())
-  {
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
   if (s_vsync != g_ActiveConfig.IsVSync())
