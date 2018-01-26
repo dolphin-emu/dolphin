@@ -93,7 +93,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
 VKTexture::~VKTexture()
 {
   // Texture is automatically cleaned up, however, we don't want to leave it bound.
-  StateTracker::GetInstance()->UnbindTexture(m_texture->GetView());
+  g_renderer->UnbindTexture(this);
   if (m_framebuffer != VK_NULL_HANDLE)
     g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }

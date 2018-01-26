@@ -121,6 +121,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_co
 
 OGLTexture::~OGLTexture()
 {
+  g_renderer->UnbindTexture(this);
   if (m_texId)
     glDeleteTextures(1, &m_texId);
 
