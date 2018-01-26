@@ -83,10 +83,9 @@ static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
   if (Id == WM_USER_STOP)
-  {
     s_running.Clear();
+  if (Id == WM_USER_JOB_DISPATCH || Id == WM_USER_STOP)
     updateMainFrameEvent.Set();
-  }
 }
 
 static void* s_window_handle = nullptr;
