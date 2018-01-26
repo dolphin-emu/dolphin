@@ -23,6 +23,32 @@ import java.util.Set;
 import java.util.TreeSet;
 
 /**
+ * A HashMap<String, SettingSection> that constructs a new SettingSection instead of returning null
+ * when getting a key not already in the map
+ */
+final class SettingsSectionMap extends HashMap<String, SettingSection>
+{
+	@Override
+	public SettingSection get(Object key)
+	{
+		if (!(key instanceof String))
+		{
+			return null;
+		}
+
+		String stringKey = (String)key;
+
+		if (!super.containsKey(stringKey))
+		{
+			SettingSection section = new SettingSection(stringKey);
+			super.put(stringKey, section);
+			return section;
+		}
+		return super.get(key);
+	}
+}
+
+/**
  * Contains static methods for interacting with .ini files in which settings are stored.
  */
 public final class SettingsFile
@@ -256,7 +282,7 @@ public final class SettingsFile
 	 */
 	public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
 	{
-		HashMap<String, SettingSection> sections = new HashMap<>();
+		HashMap<String, SettingSection> sections = new SettingsSectionMap();
 
 		File ini = getSettingsFile(fileName);
 
