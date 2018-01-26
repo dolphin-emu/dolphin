@@ -204,6 +204,7 @@
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
+    <ClCompile Include="GameList\GameFileCache.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />
     <ClCompile Include="GameList\GameListModel.cpp" />
     <ClCompile Include="GameList\GameTracker.cpp" />
@@ -252,6 +253,7 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
+    <ClInclude Include="GameList\GameFileCache.h" />
     <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />

@@ -18,7 +18,7 @@
 #include <QScreen>
 #include <QVBoxLayout>
 
-#include <unordered_map>
+#include <map>
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/SI/SI.h"
@@ -33,13 +33,13 @@
 
 #include "DolphinQt2/Config/ControllersWindow.h"
 
-static const std::unordered_map<SerialInterface::SIDevices, int> s_gc_types = {
+static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},
     {SerialInterface::SIDEVICE_WIIU_ADAPTER, 2}, {SerialInterface::SIDEVICE_GC_STEERING, 3},
     {SerialInterface::SIDEVICE_DANCEMAT, 4},     {SerialInterface::SIDEVICE_GC_TARUKONGA, 5},
     {SerialInterface::SIDEVICE_GC_GBA, 6},       {SerialInterface::SIDEVICE_GC_KEYBOARD, 7}};
 
-static const std::unordered_map<int, int> s_wiimote_types = {
+static const std::map<int, int> s_wiimote_types = {
     {WIIMOTE_SRC_NONE, 0}, {WIIMOTE_SRC_EMU, 1}, {WIIMOTE_SRC_REAL, 2}, {WIIMOTE_SRC_HYBRID, 3}};
 
 static int ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
