@@ -61,16 +61,20 @@ void ExecuteCurrentCommandsAndRestoreState(bool execute_off_thread,
 VkShaderModule CreateShaderModule(const u32* spv, size_t spv_word_count);
 
 // Compile a vertex shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateVertexShader(const std::string& source_code);
+VkShaderModule CompileAndCreateVertexShader(const std::string& source_code,
+                                            bool prepend_header = true);
 
 // Compile a geometry shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateGeometryShader(const std::string& source_code);
+VkShaderModule CompileAndCreateGeometryShader(const std::string& source_code,
+                                              bool prepend_header = true);
 
 // Compile a fragment shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code);
+VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code,
+                                              bool prepend_header = true);
 
 // Compile a compute shader and create a shader module, discarding the intermediate SPIR-V.
-VkShaderModule CompileAndCreateComputeShader(const std::string& source_code);
+VkShaderModule CompileAndCreateComputeShader(const std::string& source_code,
+                                             bool prepend_header = true);
 }
 
 // Utility shader vertex format
