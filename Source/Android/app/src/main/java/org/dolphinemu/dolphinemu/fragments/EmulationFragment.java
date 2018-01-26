@@ -420,8 +420,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			else if (state == State.PAUSED)
 			{
 				Log.debug("[EmulationFragment] Resuming emulation.");
-				NativeLibrary.UnPauseEmulation();
 				NativeLibrary.SurfaceChanged(mSurface);
+				NativeLibrary.UnPauseEmulation();
 			}
 			else
 			{
