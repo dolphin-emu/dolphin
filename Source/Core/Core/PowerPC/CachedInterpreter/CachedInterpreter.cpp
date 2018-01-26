@@ -200,7 +200,6 @@ void CachedInterpreter::Jit(u32 address)
 
   b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
-  b->runCount = 0;
 
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {

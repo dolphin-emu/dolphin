@@ -603,9 +603,9 @@ public:
 
   // System
   void _MSR(PStateField field, u8 imm);
-
   void _MSR(PStateField field, ARM64Reg Rt);
   void MRS(ARM64Reg Rt, PStateField field);
+  void CNTVCT(ARM64Reg Rt);
 
   void HINT(SystemHint op);
   void CLREX();

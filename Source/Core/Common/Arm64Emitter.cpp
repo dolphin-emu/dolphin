@@ -1218,6 +1218,14 @@ void ARM64XEmitter::MRS(ARM64Reg Rt, PStateField field)
   EncodeSystemInst(o0 | 4, op1, CRn, CRm, op2, DecodeReg(Rt));
 }
 
+void ARM64XEmitter::CNTVCT(Arm64Gen::ARM64Reg Rt)
+{
+  _assert_msg_(DYNA_REC, Is64Bit(Rt), "CNTVCT: Rt must be 64-bit");
+
+  // MRS <Xt>, CNTVCT_EL0 ; Read CNTVCT_EL0 into Xt
+  EncodeSystemInst(3 | 4, 3, 0xe, 0, 2, DecodeReg(Rt));
+}
+
 void ARM64XEmitter::HINT(SystemHint op)
 {
   EncodeSystemInst(0, 3, 2, 0, op, WSP);
