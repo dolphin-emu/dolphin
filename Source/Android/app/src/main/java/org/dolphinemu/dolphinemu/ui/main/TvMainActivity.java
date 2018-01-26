@@ -231,11 +231,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
 		rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
 				R.drawable.ic_settings_core_tv,
-				R.string.grid_menu_core_settings));
+				R.string.grid_menu_config));
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings_video,
+		rowItems.add(new TvSettingsItem(R.id.menu_settings_graphics,
 				R.drawable.ic_settings_graphics_tv,
-				R.string.grid_menu_video_settings));
+				R.string.grid_menu_graphics_settings));
 
 		rowItems.add(new TvSettingsItem(R.id.menu_settings_gcpad,
 				R.drawable.ic_settings_gcpad,

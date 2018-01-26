@@ -67,7 +67,7 @@ public final class MainPresenter
 				mView.launchSettingsActivity(MenuTag.CONFIG);
 				return true;
 
-			case R.id.menu_settings_video:
+			case R.id.menu_settings_graphics:
 				mView.launchSettingsActivity(MenuTag.GRAPHICS);
 				return true;
 
