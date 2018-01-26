@@ -26,7 +26,7 @@
         </dict>
     </array>
     <key>CFBundleExecutable</key>
-    <string>dolphin-emu-qt2</string>
+    <string>Dolphin</string>
     <key>CFBundleIconFile</key>
     <string>Dolphin.icns</string>
     <key>CFBundleIdentifier</key>
