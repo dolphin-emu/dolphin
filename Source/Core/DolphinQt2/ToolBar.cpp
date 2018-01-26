@@ -4,6 +4,7 @@
 
 #include <QIcon>
 
+#include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/ToolBar.h"
@@ -64,33 +65,33 @@ void ToolBar::EmulationStopped()
 void ToolBar::MakeActions()
 {
   constexpr int button_width = 65;
-  m_open_action = addAction(tr("Open"), this, &ToolBar::OpenPressed);
+  m_open_action = AddAction(this, tr("Open"), this, &ToolBar::OpenPressed);
   widgetForAction(m_open_action)->setMinimumWidth(button_width);
 
-  m_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
+  m_play_action = AddAction(this, tr("Play"), this, &ToolBar::PlayPressed);
   widgetForAction(m_play_action)->setMinimumWidth(button_width);
 
-  m_pause_action = addAction(tr("Pause"), this, &ToolBar::PausePressed);
+  m_pause_action = AddAction(this, tr("Pause"), this, &ToolBar::PausePressed);
   widgetForAction(m_pause_action)->setMinimumWidth(button_width);
 
-  m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
+  m_stop_action = AddAction(this, tr("Stop"), this, &ToolBar::StopPressed);
   widgetForAction(m_stop_action)->setMinimumWidth(button_width);
 
-  m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
+  m_fullscreen_action = AddAction(this, tr("FullScr"), this, &ToolBar::FullScreenPressed);
   widgetForAction(m_fullscreen_action)->setMinimumWidth(button_width);
 
-  m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
+  m_screenshot_action = AddAction(this, tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
   widgetForAction(m_screenshot_action)->setMinimumWidth(button_width);
 
   addSeparator();
 
-  m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
+  m_config_action = AddAction(this, tr("Config"), this, &ToolBar::SettingsPressed);
   widgetForAction(m_config_action)->setMinimumWidth(button_width);
 
-  m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
+  m_graphics_action = AddAction(this, tr("Graphics"), this, &ToolBar::GraphicsPressed);
   widgetForAction(m_graphics_action)->setMinimumWidth(button_width);
 
-  m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
+  m_controllers_action = AddAction(this, tr("Controllers"), this, &ToolBar::ControllersPressed);
   widgetForAction(m_controllers_action)->setMinimumWidth(button_width);
   m_controllers_action->setEnabled(true);
 }

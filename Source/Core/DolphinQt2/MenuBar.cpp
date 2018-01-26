@@ -25,6 +25,7 @@
 #include "DiscIO/NANDImporter.h"
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
+#include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
@@ -100,71 +101,75 @@ void MenuBar::EmulationStopped()
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
-  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
-                                       QKeySequence(QStringLiteral("Ctrl+O")));
-  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit,
-                                       QKeySequence(QStringLiteral("Alt+F4")));
+  m_open_action = AddAction(file_menu, tr("&Open..."), this, &MenuBar::Open,
+                            QKeySequence(QStringLiteral("Ctrl+O")));
+  m_exit_action = AddAction(file_menu, tr("E&xit"), this, &MenuBar::Exit,
+                            QKeySequence(QStringLiteral("Alt+F4")));
 }
 
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
-  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  AddAction(tools_menu, tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  AddAction(tools_menu, tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
   tools_menu->addSeparator();
 
-  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+  m_wad_install_action = AddAction(tools_menu, tr("Install WAD..."), this, &MenuBar::InstallWAD);
 
   tools_menu->addSeparator();
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
 
-  m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
-                                  [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_J); });
-  m_ntscu_ipl = gc_ipl->addAction(tr("NTSC-U"), this,
-                                  [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_U); });
+  m_ntscj_ipl = AddAction(gc_ipl, tr("NTSC-J"), this,
+                          [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_J); });
+  m_ntscu_ipl = AddAction(gc_ipl, tr("NTSC-U"), this,
+                          [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_U); });
   m_pal_ipl =
-      gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
+      AddAction(gc_ipl, tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  AddAction(tools_menu, tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
-  m_boot_sysmenu = tools_menu->addAction(QStringLiteral(""), [this] { emit BootWiiSystemMenu(); });
-  m_import_backup = tools_menu->addAction(tr("Import BootMii NAND Backup..."),
-                                          [this] { emit ImportNANDBackup(); });
+  m_boot_sysmenu =
+      AddAction(gc_ipl, QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
+  m_import_backup = AddAction(gc_ipl, tr("Import BootMii NAND Backup..."), this,
+                              [this] { emit ImportNANDBackup(); });
 
-  m_extract_certificates = tools_menu->addAction(tr("Extract Certificates from NAND"), this,
-                                                 &MenuBar::NANDExtractCertificates);
+  m_extract_certificates = AddAction(tools_menu, tr("Extract Certificates from NAND"), this,
+                                     &MenuBar::NANDExtractCertificates);
 
   m_boot_sysmenu->setEnabled(false);
 
   connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
 
   m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
-  m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
-      tr("Current Region"), [this] { emit PerformOnlineUpdate(""); });
+  m_perform_online_update_for_current_region =
+      AddAction(m_perform_online_update_menu, tr("Current Region"), this,
+                [this] { emit PerformOnlineUpdate(""); });
   m_perform_online_update_menu->addSeparator();
-  m_perform_online_update_menu->addAction(tr("Europe"),
-                                          [this] { emit PerformOnlineUpdate("EUR"); });
-  m_perform_online_update_menu->addAction(tr("Japan"), [this] { emit PerformOnlineUpdate("JPN"); });
-  m_perform_online_update_menu->addAction(tr("Korea"), [this] { emit PerformOnlineUpdate("KOR"); });
-  m_perform_online_update_menu->addAction(tr("United States"),
-                                          [this] { emit PerformOnlineUpdate("USA"); });
+  AddAction(m_perform_online_update_menu, tr("Europe"), this,
+            [this] { emit PerformOnlineUpdate("EUR"); });
+  AddAction(m_perform_online_update_menu, tr("Japan"), this,
+            [this] { emit PerformOnlineUpdate("JPN"); });
+  AddAction(m_perform_online_update_menu, tr("Korea"), this,
+            [this] { emit PerformOnlineUpdate("KOR"); });
+  AddAction(m_perform_online_update_menu, tr("United States"), this,
+            [this] { emit PerformOnlineUpdate("USA"); });
 }
 
 void MenuBar::AddEmulationMenu()
 {
   QMenu* emu_menu = addMenu(tr("&Emulation"));
-  m_play_action = emu_menu->addAction(tr("&Play"), this, &MenuBar::Play);
-  m_pause_action = emu_menu->addAction(tr("&Pause"), this, &MenuBar::Pause);
-  m_stop_action = emu_menu->addAction(tr("&Stop"), this, &MenuBar::Stop);
-  m_reset_action = emu_menu->addAction(tr("&Reset"), this, &MenuBar::Reset);
-  m_fullscreen_action = emu_menu->addAction(tr("Toggle &Fullscreen"), this, &MenuBar::Fullscreen);
-  m_frame_advance_action = emu_menu->addAction(tr("&Frame Advance"), this, &MenuBar::FrameAdvance);
+  m_play_action = AddAction(emu_menu, tr("&Play"), this, &MenuBar::Play);
+  m_pause_action = AddAction(emu_menu, tr("&Pause"), this, &MenuBar::Pause);
+  m_stop_action = AddAction(emu_menu, tr("&Stop"), this, &MenuBar::Stop);
+  m_reset_action = AddAction(emu_menu, tr("&Reset"), this, &MenuBar::Reset);
+  m_fullscreen_action = AddAction(emu_menu, tr("Toggle &Fullscreen"), this, &MenuBar::Fullscreen);
+  m_frame_advance_action = AddAction(emu_menu, tr("&Frame Advance"), this, &MenuBar::FrameAdvance);
 
-  m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, &MenuBar::Screenshot);
+  m_screenshot_action = AddAction(emu_menu, tr("Take Screenshot"), this, &MenuBar::Screenshot);
 
   emu_menu->addSeparator();
 
@@ -177,10 +182,10 @@ void MenuBar::AddEmulationMenu()
 void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 {
   m_state_load_menu = emu_menu->addMenu(tr("&Load State"));
-  m_state_load_menu->addAction(tr("Load State from File"), this, &MenuBar::StateLoad);
-  m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
+  AddAction(m_state_load_menu, tr("Load State from File"), this, &MenuBar::StateLoad);
+  AddAction(m_state_load_menu, tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
-  m_state_load_menu->addAction(tr("Undo Load State"), this, &MenuBar::StateLoadUndo);
+  AddAction(m_state_load_menu, tr("Undo Load State"), this, &MenuBar::StateLoadUndo);
 
   for (int i = 1; i <= 10; i++)
   {
@@ -193,11 +198,11 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 {
   m_state_save_menu = emu_menu->addMenu(tr("Sa&ve State"));
-  m_state_save_menu->addAction(tr("Save State to File"), this, &MenuBar::StateSave);
-  m_state_save_menu->addAction(tr("Save State to Selected Slot"), this, &MenuBar::StateSaveSlot);
-  m_state_save_menu->addAction(tr("Save State to Oldest Slot"), this, &MenuBar::StateSaveOldest);
+  AddAction(m_state_save_menu, tr("Save State to File"), this, &MenuBar::StateSave);
+  AddAction(m_state_save_menu, tr("Save State to Selected Slot"), this, &MenuBar::StateSaveSlot);
+  AddAction(m_state_save_menu, tr("Save State to Oldest Slot"), this, &MenuBar::StateSaveOldest);
   m_state_save_slots_menu = m_state_save_menu->addMenu(tr("Save State to Slot"));
-  m_state_save_menu->addAction(tr("Undo Save State"), this, &MenuBar::StateSaveUndo);
+  AddAction(m_state_save_menu, tr("Undo Save State"), this, &MenuBar::StateSaveUndo);
 
   for (int i = 1; i <= 10; i++)
   {
@@ -272,12 +277,12 @@ void MenuBar::AddViewMenu()
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure);
+  AddAction(options_menu, tr("Co&nfiguration"), this, &MenuBar::Configure);
   options_menu->addSeparator();
-  options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
-  options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
-  options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
-  options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+  AddAction(options_menu, tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
+  AddAction(options_menu, tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
+  AddAction(options_menu, tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
+  AddAction(options_menu, tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
 }
 
 void MenuBar::AddHelpMenu()
@@ -296,7 +301,7 @@ void MenuBar::AddHelpMenu()
   });
 
   help_menu->addSeparator();
-  help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
+  AddAction(help_menu, tr("&About"), this, &MenuBar::ShowAboutDialog);
 }
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
@@ -413,13 +418,13 @@ void MenuBar::AddMovieMenu()
 {
   auto* movie_menu = addMenu(tr("&Movie"));
   m_recording_start =
-      movie_menu->addAction(tr("Start Recording Input"), [this] { emit StartRecording(); });
+      AddAction(movie_menu, tr("Start Recording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
-      movie_menu->addAction(tr("Play Input Recording..."), [this] { emit PlayRecording(); });
-  m_recording_stop =
-      movie_menu->addAction(tr("Stop Playing/Recording Input"), [this] { emit StopRecording(); });
+      AddAction(movie_menu, tr("Play Input Recording..."), this, [this] { emit PlayRecording(); });
+  m_recording_stop = AddAction(movie_menu, tr("Stop Playing/Recording Input"), this,
+                               [this] { emit StopRecording(); });
   m_recording_export =
-      movie_menu->addAction(tr("Export Recording..."), [this] { emit ExportRecording(); });
+      AddAction(movie_menu, tr("Export Recording..."), this, [this] { emit ExportRecording(); });
 
   m_recording_start->setEnabled(false);
   m_recording_play->setEnabled(false);
