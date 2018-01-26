@@ -322,6 +322,16 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
+void ClearUnusedPixelShaderUidBits(APIType ApiType, PixelShaderUid* uid)
+{
+  pixel_shader_uid_data* uid_data = uid->GetUidData<pixel_shader_uid_data>();
+
+  // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
+  // Therefore, it is not necessary to use a uint output on these backends.
+  if (ApiType != APIType::D3D)
+    uid_data->uint_output = 0;
+}
+
 void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texgens,
                                   bool per_pixel_lighting, bool bounding_box)
 {

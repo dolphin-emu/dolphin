@@ -232,6 +232,7 @@ SHADER* ProgramShaderCache::SetShader(u32 primitive_type, const GLVertexFormat* 
   uid.puid = GetPixelShaderUid();
   uid.vuid = GetVertexShaderUid();
   uid.guid = GetGeometryShaderUid(primitive_type);
+  ClearUnusedPixelShaderUidBits(APIType::OpenGL, &uid.puid);
 
   // Check if the shader is already set
   if (last_entry && uid == last_uid)
@@ -299,6 +300,7 @@ SHADER* ProgramShaderCache::SetUberShader(u32 primitive_type, const GLVertexForm
   uid.puid = UberShader::GetPixelShaderUid();
   uid.vuid = UberShader::GetVertexShaderUid();
   uid.guid = GetGeometryShaderUid(primitive_type);
+  UberShader::ClearUnusedPixelShaderUidBits(APIType::OpenGL, &uid.puid);
 
   // We need to use the ubershader vertex format with all attributes enabled.
   // Otherwise, the NV driver can generate variants for the vertex shaders.

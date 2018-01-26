@@ -29,6 +29,16 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
+void ClearUnusedPixelShaderUidBits(APIType ApiType, PixelShaderUid* uid)
+{
+  pixel_ubershader_uid_data* uid_data = uid->GetUidData<pixel_ubershader_uid_data>();
+
+  // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
+  // Therefore, it is not necessary to use a uint output on these backends.
+  if (ApiType != APIType::D3D)
+    uid_data->uint_output = 0;
+}
+
 ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
                           const pixel_ubershader_uid_data* uid_data)
 {
@@ -654,13 +664,19 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     if (early_depth && host_config.backend_early_z)
       out.Write("[earlydepthstencil]\n");
 
-    out.Write("void main(\n"
-              "  out float4 ocol0 : SV_Target0,\n"
-              "  out float4 ocol1 : SV_Target1,\n"
-              "  %s\n",
-              per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+    out.Write("void main(\n");
+    if (uid_data->uint_output)
+    {
+      out.Write("  out uint4 ocol0 : SV_Target,\n");
+    }
+    else
+    {
+      out.Write("  out float4 ocol0 : SV_Target0,\n"
+                "  out float4 ocol1 : SV_Target1,\n");
+    }
+    if (per_pixel_depth)
+      out.Write("  out float depth : SV_Depth,\n");
     out.Write("  in float4 rawpos : SV_Position,\n");
-
     out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier(msaa, ssaa));
     out.Write("  in %s float4 colors_1 : COLOR1", GetInterpolationQualifier(msaa, ssaa));
 
@@ -1186,14 +1202,14 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("  else\n"
               "    ocol0.a = float(TevResult.a >> 2) / 63.0;\n"
               "  \n");
-  }
 
-  if (use_dual_source)
-  {
-    out.Write("  // Dest alpha override (dual source blending)\n"
-              "  // Colors will be blended against the alpha from ocol1 and\n"
-              "  // the alpha from ocol0 will be written to the framebuffer.\n"
-              "  ocol1 = float4(0.0, 0.0, 0.0, float(TevResult.a) / 255.0);\n");
+    if (use_dual_source)
+    {
+      out.Write("  // Dest alpha override (dual source blending)\n"
+                "  // Colors will be blended against the alpha from ocol1 and\n"
+                "  // the alpha from ocol0 will be written to the framebuffer.\n"
+                "  ocol1 = float4(0.0, 0.0, 0.0, float(TevResult.a) / 255.0);\n");
+    }
   }
 
   if (bounding_box)
