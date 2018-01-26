@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include <QMenu>
@@ -64,6 +65,7 @@ signals:
   void BootGameCubeIPL(DiscIO::Region region);
   void ShowFIFOPlayer();
   void ShowAboutDialog();
+  void ConnectWiiRemote(int id);
 
   // Options
   void Configure();
@@ -135,6 +137,7 @@ private:
   QAction* m_import_backup;
   QAction* m_check_nand;
   QAction* m_extract_certificates;
+  std::array<QAction*, 5> m_wii_remotes;
 
   // Emulation
   QAction* m_play_action;

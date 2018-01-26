@@ -31,6 +31,7 @@ signals:
   void StartRecording();
   void ExportRecording();
   void ToggleReadOnlyMode();
+  void ConnectWiiRemote(int id);
 
 private:
   void Run();
