@@ -401,8 +401,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("8-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U8(PowerPC::HostRead_U8(new_addr) + data, new_addr);
-    JitInterface::InvalidateICache(new_addr, 1, false);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(new_addr) + (data & 0xFF), new_addr);
+    LogInfo("Wrote %02x to address %08x", PowerPC::HostRead_U8(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -411,8 +410,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("--------");
     PowerPC::HostWrite_U16(PowerPC::HostRead_U16(new_addr) + data, new_addr);
     JitInterface::InvalidateICache(new_addr, 2, false);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U16(new_addr) + (data & 0xFFFF),
-            new_addr);
+    LogInfo("Wrote %04x to address %08x", PowerPC::HostRead_U16(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -421,7 +419,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("--------");
     PowerPC::HostWrite_U32(PowerPC::HostRead_U32(new_addr) + data, new_addr);
     JitInterface::InvalidateICache(new_addr, 4, false);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U32(new_addr) + data, new_addr);
+    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U32(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -546,10 +544,12 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
   return true;
 }
 
-// Looks like this is new?? - untested
+// kenobi's "memory copy" Z-code. Requires an additional master code
+// on a real AR device. Documented here:
+// https://github.com/dolphin-emu/dolphin/wiki/GameCube-Action-Replay-Code-Types#type-z4-size-3--memory-copy
 static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u32 data)
 {
-  const u32 addr_dest = val_last | 0x06000000;
+  const u32 addr_dest = val_last & ~0x06000000;
   const u32 addr_src = addr.GCAddress();
 
   const u8 num_bytes = data & 0x7FFF;
@@ -558,16 +558,20 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
   LogInfo("Src Address: %08x", addr_src);
   LogInfo("Size: %08x", num_bytes);
 
-  if ((data & ~0x7FFF) == 0x0000)
+  if ((data & 0xFF0000) == 0)
   {
     if ((data >> 24) != 0x0)
     {  // Memory Copy With Pointers Support
       LogInfo("Memory Copy With Pointers Support");
       LogInfo("--------");
-      for (int i = 0; i < 138; ++i)
+      const u32 ptr_dest = PowerPC::HostRead_U32(addr_dest);
+      LogInfo("Resolved Dest Address to: %08x", ptr_dest);
+      const u32 ptr_src = PowerPC::HostRead_U32(addr_src);
+      LogInfo("Resolved Src Address to: %08x", ptr_src);
+      for (int i = 0; i < num_bytes; ++i)
       {
-        PowerPC::HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
-        LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
+        PowerPC::HostWrite_U8(PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
+        LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
       }
       JitInterface::InvalidateICache(addr_dest, 138, false);
       LogInfo("--------");
