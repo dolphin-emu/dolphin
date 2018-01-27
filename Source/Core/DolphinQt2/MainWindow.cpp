@@ -882,7 +882,7 @@ void MainWindow::OnImportNANDBackup()
                 .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
       });
     });
-    QueueOnObject(dialog, [dialog] { dialog->close(); });
+    QueueOnObject(dialog, &QProgressDialog::close);
   });
 
   dialog->exec();

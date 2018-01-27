@@ -405,7 +405,7 @@ void NetPlayDialog::StopGame()
 
 void NetPlayDialog::Update()
 {
-  QueueOnObject(this, [this] { UpdateGUI(); });
+  QueueOnObject(this, &NetPlayDialog::UpdateGUI);
 }
 
 void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color, int duration)
@@ -524,7 +524,7 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 
 bool NetPlayDialog::IsRecording()
 {
-  return RunOnObject(this, [this] { return m_record_input_box->isChecked(); });
+  return RunOnObject(m_record_input_box, &QCheckBox::isChecked);
 }
 
 std::string NetPlayDialog::FindGame(const std::string& game)
