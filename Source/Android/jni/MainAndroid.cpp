@@ -58,7 +58,6 @@ std::string s_set_userpath;
 
 jclass s_jni_class;
 jmethodID s_jni_method_alert;
-jmethodID s_jni_method_end;
 
 // The Core only supports using a single Host thread.
 // If multiple threads want to call host functions then they need to queue
@@ -736,7 +735,6 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv* env,
   // Source/Android/app/build/intermediates/classes/arm/debug/org/dolphinemu/dolphinemu/NativeLibrary.class
   s_jni_method_alert =
       env->GetStaticMethodID(s_jni_class, "displayAlertMsg", "(Ljava/lang/String;)V");
-  s_jni_method_end = env->GetStaticMethodID(s_jni_class, "endEmulationActivity", "()V");
 }
 
 // Surface Handling
@@ -820,9 +818,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv* 
     ANativeWindow_release(s_surf);
     s_surf = nullptr;
   }
-
-  // Execute the Java method.
-  env->CallStaticVoidMethod(s_jni_class, s_jni_method_end);
 }
 
 #ifdef __cplusplus

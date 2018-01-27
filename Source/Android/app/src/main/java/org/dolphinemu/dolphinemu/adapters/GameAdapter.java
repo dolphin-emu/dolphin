@@ -1,9 +1,9 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-import android.app.Activity;
 import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -202,7 +202,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	{
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 
-		EmulationActivity.launch((Activity) view.getContext(),
+		EmulationActivity.launch((FragmentActivity) view.getContext(),
 				holder.path,
 				holder.title,
 				holder.screenshotPath,
@@ -225,13 +225,13 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		// TODO This should be all we need to pass in, eventually.
 		// String gameId = (String) holder.gameId;
 
-		Activity activity = (Activity) view.getContext();
+		FragmentActivity activity = (FragmentActivity) view.getContext();
 		GameDetailsDialog.newInstance(holder.title,
 				holder.description,
 				holder.country,
 				holder.company,
 				holder.path,
-				holder.screenshotPath).show(activity.getFragmentManager(), "game_details");
+				holder.screenshotPath).show(activity.getSupportFragmentManager(), "game_details");
 
 		return true;
 	}
