@@ -85,8 +85,7 @@ void FilesystemWidget::PopulateView()
 
   for (size_t i = 0; i < partitions.size(); i++)
   {
-    std::unique_ptr<DiscIO::FileSystem> file_system(
-        DiscIO::CreateFileSystem(m_volume.get(), partitions[i]));
+    const DiscIO::FileSystem* file_system = m_volume->GetFileSystem(partitions[i]);
 
     auto* item = new QStandardItem(tr("Partition %1").arg(i));
     item->setEditable(false);
@@ -104,10 +103,7 @@ void FilesystemWidget::PopulateView()
   }
 
   if (partitions.empty())
-  {
-    PopulateDirectory(-1, disc,
-                      DiscIO::CreateFileSystem(m_volume.get(), DiscIO::PARTITION_NONE)->GetRoot());
-  }
+    PopulateDirectory(-1, disc, m_volume->GetFileSystem(DiscIO::PARTITION_NONE)->GetRoot());
 }
 
 void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
@@ -237,9 +233,7 @@ void FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, con
 void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, const QString path,
                                         const QString& out)
 {
-  std::unique_ptr<DiscIO::FileSystem> filesystem(
-      DiscIO::CreateFileSystem(m_volume.get(), partition));
-
+  const DiscIO::FileSystem* filesystem = m_volume->GetFileSystem(partition);
   std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path.toStdString());
   u32 size = info->GetTotalChildren();
 
@@ -251,7 +245,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   bool all = path.isEmpty();
 
   DiscIO::ExportDirectory(
-      *m_volume, filesystem->GetPartition(), *info, true, path.toStdString(), out.toStdString(),
+      *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
       [all, dialog](const std::string& current) {
         dialog->setLabelText(
             (all ? QObject::tr("Extracting All Files...") : QObject::tr("Extracting Directory..."))
@@ -268,8 +262,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
 void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QString& path,
                                    const QString& out)
 {
-  std::unique_ptr<DiscIO::FileSystem> filesystem(
-      DiscIO::CreateFileSystem(m_volume.get(), partition));
+  const DiscIO::FileSystem* filesystem = m_volume->GetFileSystem(partition);
   bool success = DiscIO::ExportFile(
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 

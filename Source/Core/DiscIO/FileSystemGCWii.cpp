@@ -185,19 +185,19 @@ bool FileInfoGCWii::IsValid(u64 fst_size, const FileInfoGCWii& parent_directory)
 }
 
 FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partition)
-    : FileSystem(volume, partition), m_valid(false), m_root(nullptr, 0, 0, 0)
+    : m_valid(false), m_root(nullptr, 0, 0, 0)
 {
   u8 offset_shift;
   // Check if this is a GameCube or Wii disc
-  if (m_volume->ReadSwapped<u32>(0x18, m_partition) == u32(0x5D1C9EA3))
+  if (volume->ReadSwapped<u32>(0x18, partition) == u32(0x5D1C9EA3))
     offset_shift = 2;  // Wii file system
-  else if (m_volume->ReadSwapped<u32>(0x1c, m_partition) == u32(0xC2339F3D))
+  else if (volume->ReadSwapped<u32>(0x1c, partition) == u32(0xC2339F3D))
     offset_shift = 0;  // GameCube file system
   else
     return;  // Invalid partition (maybe someone removed its data but not its partition table entry)
 
-  const std::optional<u64> fst_offset = GetFSTOffset(*m_volume, m_partition);
-  const std::optional<u64> fst_size = GetFSTSize(*m_volume, m_partition);
+  const std::optional<u64> fst_offset = GetFSTOffset(*volume, partition);
+  const std::optional<u64> fst_size = GetFSTSize(*volume, partition);
   if (!fst_offset || !fst_size)
     return;
   if (*fst_size < FST_ENTRY_SIZE)
@@ -220,7 +220,7 @@ FileSystemGCWii::FileSystemGCWii(const Volume* volume, const Partition& partitio
 
   // Read the whole FST
   m_file_system_table.resize(*fst_size);
-  if (!m_volume->Read(*fst_offset, *fst_size, m_file_system_table.data(), m_partition))
+  if (!volume->Read(*fst_offset, *fst_size, m_file_system_table.data(), partition))
   {
     ERROR_LOG(DISCIO, "Couldn't read file system table");
     return;
