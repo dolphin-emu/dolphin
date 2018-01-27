@@ -14,6 +14,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 
 namespace Core
@@ -163,6 +164,14 @@ std::string TitleDatabase::GetTitleName(const std::string& game_id, TitleType ty
       type == TitleType::Channel && game_id.length() == 6 ? game_id.substr(0, 4) : game_id;
   const auto iterator = map.find(key);
   return iterator != map.end() ? iterator->second : "";
+}
+
+std::string TitleDatabase::GetTitleName(u64 title_id) const
+{
+  const std::string id{
+      {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
+       static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
+  return GetTitleName(id, IOS::ES::IsChannel(title_id) ? TitleType::Channel : TitleType::Other);
 }
 
 std::string TitleDatabase::Describe(const std::string& game_id, TitleType type) const

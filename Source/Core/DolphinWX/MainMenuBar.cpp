@@ -248,6 +248,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD..."));
   tools_menu->Append(IDM_LOAD_WII_MENU, dummy_string);
   tools_menu->Append(IDM_IMPORT_NAND, _("Import BootMii NAND Backup..."));
+  tools_menu->Append(IDM_CHECK_NAND, _("Check NAND..."));
   tools_menu->Append(IDM_EXTRACT_CERTIFICATES, _("Extract Certificates from NAND"));
   auto* const online_update_menu = new wxMenu;
   online_update_menu->Append(IDM_PERFORM_ONLINE_UPDATE_CURRENT, _("Current Region"));
@@ -610,7 +611,7 @@ void MainMenuBar::RefreshWiiToolsLabels() const
   // inconsistent data.
   const bool enable_wii_tools = !Core::IsRunning() || !SConfig::GetInstance().bWii;
   for (const int index :
-       {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE, IDM_IMPORT_NAND,
+       {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE, IDM_IMPORT_NAND, IDM_CHECK_NAND,
         IDM_EXTRACT_CERTIFICATES, IDM_LOAD_WII_MENU, IDM_PERFORM_ONLINE_UPDATE_CURRENT,
         IDM_PERFORM_ONLINE_UPDATE_EUR, IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
         IDM_PERFORM_ONLINE_UPDATE_USA})

@@ -351,6 +351,7 @@ private:
   void OnInstallWAD(wxCommandEvent& event);
   void OnUninstallWAD(wxCommandEvent& event);
   void OnImportBootMiiBackup(wxCommandEvent& event);
+  void OnCheckNAND(wxCommandEvent& event);
   void OnExtractCertificates(wxCommandEvent& event);
   void OnPerformOnlineWiiUpdate(wxCommandEvent& event);
   void OnPerformDiscWiiUpdate(wxCommandEvent& event);
