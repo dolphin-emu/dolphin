@@ -348,7 +348,7 @@ void CMemoryWindow::Search(SearchType search_type)
 {
   u8* ram_ptr = nullptr;
   std::size_t ram_size = 0;
-  // NOTE: We're assuming the base address is zero.
+  u32 base_address = 0;
   switch (m_memory_view->GetMemoryType())
   {
   case 0:
@@ -357,6 +357,7 @@ void CMemoryWindow::Search(SearchType search_type)
     {
       ram_ptr = Memory::m_pRAM;
       ram_size = Memory::REALRAM_SIZE;
+      base_address = 0x80000000;
     }
     break;
   case 1:
@@ -366,6 +367,7 @@ void CMemoryWindow::Search(SearchType search_type)
     {
       ram_ptr = aram;
       ram_size = DSP::ARAM_SIZE;
+      base_address = 0x0c005000;
     }
   }
   break;
@@ -422,7 +424,7 @@ void CMemoryWindow::Search(SearchType search_type)
   }
 
   // Search starting from specified address if there is one.
-  u32 addr = 0;  // Base address
+  u32 addr = 0;  // Physical address
   {
     wxString addr_val = m_address_search_ctrl->GetValue();
     addr_val.Trim(true).Trim(false);
@@ -432,6 +434,9 @@ void CMemoryWindow::Search(SearchType search_type)
       if (addr_val.ToULong(&addr_ul, 16))
       {
         addr = static_cast<u32>(addr_ul);
+        // Get physical address
+        if (addr >= base_address)
+          addr -= base_address;
         // Don't find the result we're already looking at
         if (m_continue_search && addr == m_last_search_address &&
             search_type == SearchType::FindNext)
@@ -469,7 +474,7 @@ void CMemoryWindow::Search(SearchType search_type)
     m_search_result_msg->SetLabel(_("Match Found"));
     u32 offset = static_cast<u32>(ptr - ram_ptr);
     // NOTE: SetValue() generates a synthetic wxEVT_TEXT
-    m_address_search_ctrl->SetValue(wxString::Format("%08x", offset));
+    m_address_search_ctrl->SetValue(wxString::Format("%08x", base_address + offset));
     m_last_search_address = offset;
     m_continue_search = true;
     return;
