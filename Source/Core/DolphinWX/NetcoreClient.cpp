@@ -48,20 +48,22 @@ public:
 };
 
 
-//Define this in here as it's managed and doesn't want to work in NetcoreClient.h
+//Define this in here as it's managed and it can't be in NetcoreClient.h as that's included in unmanaged code. Could probably move this to a header
 public ref class NetcoreClient
 {
 public:
-  static RTCV::NetCore::NetCoreSpec ^ spec = gcnew RTCV::NetCore::NetCoreSpec();
+	static RTCV::NetCore::NetCoreSpec ^ spec;
+	static RTCV::NetCore::NetCoreConnector ^ connector;
+
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
-  void Initialize();
+  
+  void NetcoreClient::StartClient();
+  void NetcoreClient::RestartClient();
 
   void NetcoreClient::LoadState(String^ filename);
   void NetcoreClient::SaveState(String^ filename, bool wait);
-
   Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain);
   void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain);
-
   array<Byte>^ NetcoreClient::PeekBytes(long address, int range, MemoryDomain ^ domain);
   void NetcoreClient::PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain);
 
@@ -79,28 +81,33 @@ public:
 void NetcoreClientInitializer::Initialize()
 {
   NetcoreClient^ client = gcnew NetcoreClient;
-  client->Initialize();
+  client->StartClient();
 }
 
 void NetcoreClientInitializer::isWii()
 {
   if (SConfig::GetInstance().bWii)
-    DolphinClient::DolphinClient::connector->SendSyncedMessage("WII");
+    NetcoreClient::connector->SendSyncedMessage("WII");
   else
-    DolphinClient::DolphinClient::connector->SendSyncedMessage("GAMECUBE");
-   
+    NetcoreClient::connector->SendSyncedMessage("GAMECUBE");
 }
 
 //Initialize it 
-void NetcoreClient::Initialize() {
-  gcnew RTCV::NetCore::NetCoreSpec();
-  DolphinClient::DolphinClient::SetSpec(spec);
-  DolphinClient::DolphinClient::StartClient();
+void NetcoreClient::StartClient() 
+{
+	NetcoreClient::spec = gcnew RTCV::NetCore::NetCoreSpec();
+	NetcoreClient::spec->Side = NetworkSide::CLIENT;
+	NetcoreClient::spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &NetcoreClient::OnMessageReceived);
 
-  //Hook into MessageReceived so we can respond to commands
-  spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &NetcoreClient::OnMessageReceived);
+	NetcoreClient::connector = gcnew RTCV::NetCore::NetCoreConnector(spec);
 }
 
+void NetcoreClient::RestartClient()
+{
+  NetcoreClient::connector->Kill();
+  NetcoreClient::connector = nullptr;
+  StartClient();
+}
 
 /* IMPLEMENT YOUR COMMANDS HERE */
 void NetcoreClient::LoadState(String^ filename) {

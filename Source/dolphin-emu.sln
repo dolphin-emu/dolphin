@@ -5,7 +5,6 @@ VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinWX\DolphinWX.vcxproj", "{47411FDB-1BF2-48D0-AB4E-C7C41160F898}"
 	ProjectSection(ProjectDependencies) = postProject
-		{F2C09915-F793-438A-BE79-E411FFE05843} = {F2C09915-F793-438A-BE79-E411FFE05843}
 		{7E106AEC-5614-4206-9E4D-25759C90E8AE} = {7E106AEC-5614-4206-9E4D-25759C90E8AE}
 	EndProjectSection
 EndProject
@@ -87,12 +86,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cubeb", "..\Externals\cubeb
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pugixml", "..\Externals\pugixml\pugixml.vcxproj", "{38FEE76F-F347-484B-949C-B4649381CFFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DolphinClient", "TestClient\DolphinClient.csproj", "{F2C09915-F793-438A-BE79-E411FFE05843}"
-	ProjectSection(ProjectDependencies) = postProject
-		{7E106AEC-5614-4206-9E4D-25759C90E8AE} = {7E106AEC-5614-4206-9E4D-25759C90E8AE}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCore", "C:\Users\Daniel\Documents\RTCV\NetCore\NetCore.csproj", "{7E106AEC-5614-4206-9E4D-25759C90E8AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCore", "G:\Documents\RTCV\NetCore\NetCore.csproj", "{7E106AEC-5614-4206-9E4D-25759C90E8AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -324,14 +318,6 @@ Global
 		{38FEE76F-F347-484B-949C-B4649381CFFB}.Release|Any CPU.ActiveCfg = Release|x64
 		{38FEE76F-F347-484B-949C-B4649381CFFB}.Release|x64.ActiveCfg = Release|x64
 		{38FEE76F-F347-484B-949C-B4649381CFFB}.Release|x64.Build.0 = Release|x64
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Debug|x64.Build.0 = Debug|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Release|x64.ActiveCfg = Release|Any CPU
-		{F2C09915-F793-438A-BE79-E411FFE05843}.Release|x64.Build.0 = Release|Any CPU
 		{7E106AEC-5614-4206-9E4D-25759C90E8AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7E106AEC-5614-4206-9E4D-25759C90E8AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E106AEC-5614-4206-9E4D-25759C90E8AE}.Debug|x64.ActiveCfg = Debug|Any CPU
