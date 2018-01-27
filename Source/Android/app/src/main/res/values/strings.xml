@@ -160,6 +160,8 @@
     <string name="per_pixel_lighting_description">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU). This usually is a safe enhancement, but might cause issues sometimes.</string>
     <string name="force_texture_filtering">Force Texture Filtering</string>
     <string name="force_texture_filtering_description">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
+    <string name="force_24bit_color">Force 24-Bit Color</string>
+    <string name="force_24bit_color_description">Forces the game to render the RGB color channels in 24-bit, thereby increasing quality by reducing color banding.\nIt has no impact on performance and causes few graphical issues. If unsure, leave this checked.</string>
     <string name="disable_fog">Disable Fog</string>
     <string name="disable_fog_description">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
     <string name="disable_copy_filter">Disable Copy Filter</string>
