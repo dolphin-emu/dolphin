@@ -82,7 +82,8 @@
     <QtMoc Include="Config\Mapping\MappingButton.h" />
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
-    <QtMoc Include="Config\LoggerWidget.h" />
+    <QtMoc Include="Config\LogConfigWidget.h" />
+    <QtMoc Include="Config\LogWidget.h" />
     <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
     <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
@@ -150,7 +151,8 @@
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GridProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)LoggerWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)LogConfigWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)LogWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingButton.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
@@ -200,7 +202,8 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
-    <ClCompile Include="Config\LoggerWidget.cpp" />
+    <ClCompile Include="Config\LogConfigWidget.cpp" />
+    <ClCompile Include="Config\LogWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
@@ -239,6 +242,8 @@
   </ItemGroup>
   <!--Put standard C/C++ headers here-->
   <ItemGroup>
+    <ClInclude Include="Config\LogWidget.h" />
+    <ClInclude Include="Config\LogConfigWidget.h" />
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadEmu.h" />
     <ClInclude Include="Config\Mapping\GCPadWiiU.h" />
