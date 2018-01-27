@@ -56,7 +56,8 @@ void ES::TitleImportExportContext::DoState(PointerWrap& p)
   p.Do(content.buffer);
 }
 
-ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain)
+ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
+                            TicketImportType type)
 {
   IOS::ES::TicketReader ticket{ticket_bytes};
   if (!ticket.IsValid())
@@ -64,7 +65,7 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vect
 
   const u32 ticket_device_id = ticket.GetDeviceId();
   const u32 device_id = EcWii::GetInstance().GetNGID();
-  if (ticket_device_id != 0)
+  if (type == TicketImportType::PossiblyPersonalised && ticket_device_id != 0)
   {
     if (device_id != ticket_device_id)
     {

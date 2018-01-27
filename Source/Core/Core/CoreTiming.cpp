@@ -248,7 +248,8 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
   {
     from_cpu_thread = from == FromThread::CPU;
     _assert_msg_(POWERPC, from_cpu_thread == Core::IsCPUThread(),
-                 "ScheduleEvent from wrong thread (%s)", from_cpu_thread ? "CPU" : "non-CPU");
+                 "A \"%s\" event was scheduled from the wrong thread (%s)",
+                 event_type->name->c_str(), from_cpu_thread ? "CPU" : "non-CPU");
   }
 
   if (from_cpu_thread)
