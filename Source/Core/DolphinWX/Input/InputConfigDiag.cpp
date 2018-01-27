@@ -412,13 +412,14 @@ void ControlDialog::UpdateGUI()
     m_error_label->SetLabel(_("Syntax error"));
     break;
   case ParseStatus::Successful:
-    m_error_label->SetLabel(control_reference->BoundCount() > 0 ? "" : _("Device not found"));
+    m_error_label->SetLabel(control_reference->BoundCount() > 0 ? wxString{} :
+                                                                  _("Device not found"));
     break;
   case ParseStatus::EmptyExpression:
     m_error_label->SetLabel("");
     break;
   }
-};
+}
 
 void InputConfigDialog::UpdateGUI()
 {
