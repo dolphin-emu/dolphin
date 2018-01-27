@@ -36,11 +36,10 @@
 static const std::array<std::string, 29> language_ids{{
     "",
 
-    "ms", "ca", "cs",    "da", "de", "en", "es",    "fr",    "hr", "it", "hu", "nl",
-    "nb",  // wxWidgets won't accept "no"
-    "pl", "pt", "pt_BR", "ro", "sr", "sv", "tr",
+    "ms", "ca", "cs", "da", "de", "en",    "es",    "fr",    "hr", "it",
+    "hu", "nl", "nb", "pl", "pt", "pt_BR", "ro",    "sr",    "sv", "tr",
 
-    "el", "ru", "ar",    "fa", "ko", "ja", "zh_CN", "zh_TW",
+    "el", "ru", "ar", "fa", "ko", "ja",    "zh_CN", "zh_TW",
 }};
 
 InterfaceConfigPane::InterfaceConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)

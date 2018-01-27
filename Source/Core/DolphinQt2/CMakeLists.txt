@@ -28,6 +28,7 @@ set(SRCS
   Resources.cpp
   Settings.cpp
   ToolBar.cpp
+  Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
   Config/ControllersWindow.cpp
@@ -98,6 +99,39 @@ set(DOLPHINQT2_BINARY dolphin-emu-qt2)
 
 add_executable(${DOLPHINQT2_BINARY} ${SRCS} ${UI_HEADERS})
 target_link_libraries(${DOLPHINQT2_BINARY} ${LIBS} Qt5::Widgets)
+
+# Handle localization
+find_package(Gettext)
+if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
+  set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
+  file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
+
+  target_sources(dolphin-emu-qt2 PRIVATE ${pot_file} ${LINGUAS})
+  source_group("Localization" FILES ${LINGUAS})
+  source_group("Localization\\\\Generated" FILES ${pot_file})
+
+  foreach(po ${LINGUAS})
+    get_filename_component(lang ${po} NAME_WE)
+    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+    set(mo ${mo_dir}/dolphin-emu.mo)
+
+    target_sources(dolphin-emu-qt2 PRIVATE ${mo})
+    source_group("Localization\\\\Generated" FILES ${mo})
+
+    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+      set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
+    else()
+      install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
+    endif()
+
+    add_custom_command(OUTPUT ${mo}
+      COMMAND mkdir -p ${mo_dir}
+      COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+      DEPENDS ${po}
+    )
+  endforeach()
+endif()
 
 if(APPLE)
   # Note: This is copied from DolphinQt, based on the DolphinWX version.
