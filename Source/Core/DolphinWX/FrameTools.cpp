@@ -1431,7 +1431,14 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
 
   wxProgressDialog dialog(_("Importing NAND backup"), _("Working..."), 100, this,
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
-  DiscIO::NANDImporter().ImportNANDBin(file_name, [&dialog] { dialog.Pulse(); });
+  DiscIO::NANDImporter().ImportNANDBin(
+      file_name, [&dialog] { dialog.Pulse(); },
+      [this] {
+        return WxStrToStr(wxFileSelector(
+            _("Select the OTP/SEEPROM dump"), wxEmptyString, wxEmptyString, wxEmptyString,
+            _("BootMii OTP/SEEPROM dump (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
+            wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this));
+      });
   wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
