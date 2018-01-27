@@ -22,10 +22,10 @@ namespace DX11
 {
 struct EFBEncodeParams
 {
-  DWORD SrcLeft;
-  DWORD SrcTop;
-  DWORD DestWidth;
-  DWORD ScaleFactor;
+  s32 SrcLeft;
+  s32 SrcTop;
+  u32 DestWidth;
+  u32 ScaleFactor;
 };
 
 PSTextureEncoder::PSTextureEncoder()
