@@ -800,6 +800,9 @@ void Renderer::ShutdownFrameDumping()
   m_frame_dump_start.Set();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();
+  m_frame_dump_render_texture.reset();
+  for (auto& tex : m_frame_dump_readback_textures)
+    tex.reset();
 }
 
 void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
