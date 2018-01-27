@@ -99,3 +99,5 @@ private:
 public:
   Settings();
 };
+
+Q_DECLARE_METATYPE(Core::State);
