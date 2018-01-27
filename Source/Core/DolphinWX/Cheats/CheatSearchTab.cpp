@@ -127,6 +127,28 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
   sizer_cheat_search_filter->Add(m_search_type, 0, wxLEFT | wxRIGHT, space5);
   sizer_cheat_search_filter->AddSpacer(space5);
 
+  // manual address textbox
+  m_textctrl_address = new wxTextCtrl(this, wxID_ANY, "0x00000000");
+  m_textctrl_address->SetMinSize(WxUtils::GetTextWidgetMinSize(m_textctrl_value_x, "0x00000000"));
+  m_textctrl_address->SetToolTip(
+      // Gecko / ActionReplay codes do not use a 0x prefix, but the cheat search UI does
+      _("An address to add manually. "
+        "The 0x prefix is optional - all addresses are always in hexadecimal."));
+
+  m_btn_add_address = new wxButton(this, wxID_ANY, _("Add"));
+  m_btn_add_address->SetToolTip(_("Add the specified address manually."));
+  m_btn_add_address->Bind(wxEVT_BUTTON, &CheatSearchTab::OnAddAddressClicked, this);
+
+  wxBoxSizer* box_address = new wxBoxSizer(wxHORIZONTAL);
+  box_address->Add(m_textctrl_address, 0, wxEXPAND);
+  box_address->Add(m_btn_add_address, 1, wxLEFT, space5);
+
+  wxStaticBoxSizer* const sizer_cheat_add_address =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Add address"));
+  sizer_cheat_add_address->AddSpacer(space5);
+  sizer_cheat_add_address->Add(box_address, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sizer_cheat_add_address->AddSpacer(space5);
+
   // button sizer
   wxBoxSizer* boxButtons = new wxBoxSizer(wxHORIZONTAL);
   boxButtons->Add(m_btn_init_scan, 1);
@@ -136,6 +158,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
   wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
   sizer_right->Add(m_data_sizes, 0, wxEXPAND);
   sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxTOP, space5);
+  sizer_right->Add(sizer_cheat_add_address, 0, wxEXPAND | wxTOP, space5);
   sizer_right->AddStretchSpacer(1);
   sizer_right->Add(m_label_scan_disabled, 0, wxALIGN_CENTER_HORIZONTAL | wxTOP, space5);
   sizer_right->Add(boxButtons, 0, wxEXPAND | wxTOP, space5);
@@ -210,6 +233,31 @@ void CheatSearchTab::OnNextScanClicked(wxCommandEvent&)
 
   FilterCheatSearchResults(user_x_val, blank_user_value);
 
+  UpdateCheatSearchResultsList();
+}
+
+void CheatSearchTab::OnAddAddressClicked(wxCommandEvent&)
+{
+  unsigned long parsed_address = 0;
+  wxString address = m_textctrl_address->GetValue();
+
+  if (!address.ToULong(&parsed_address, address.StartsWith("0x") ? 0 : 16))
+  {
+    WxUtils::ShowErrorDialog(_("You must enter a valid hexadecimal value."));
+    return;
+  }
+
+  if (parsed_address > Memory::RAM_SIZE - sizeof(double))
+  {
+    WxUtils::ShowErrorDialog(wxString::Format(_("Address too large (greater than RAM size).\n"
+                                                "Did you mean to strip the cheat opcode (0x%08X)?"),
+                                              parsed_address & Memory::RAM_MASK));
+    return;
+  }
+
+  CheatSearchResult result;
+  result.address = parsed_address;
+  m_search_results.push_back(result);
   UpdateCheatSearchResultsList();
 }
 
