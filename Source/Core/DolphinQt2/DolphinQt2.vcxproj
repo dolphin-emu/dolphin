@@ -86,6 +86,8 @@
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="FIFOPlayerWindow.h" />
+    <QtMoc Include="TAS\GCTASInputWindow.h" />
+    <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
@@ -112,6 +114,7 @@
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
+    <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
@@ -131,6 +134,8 @@
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOPlayerWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GCTASInputWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)StickWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
@@ -220,6 +225,8 @@
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="FIFOPlayerWindow.cpp" />
+    <ClCompile Include="TAS\GCTASInputWindow.cpp" />
+    <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\NewBreakpointDialog.cpp" />
     <ClCompile Include="Debugger\RegisterColumn.cpp" />
@@ -249,6 +256,7 @@
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
+    <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />

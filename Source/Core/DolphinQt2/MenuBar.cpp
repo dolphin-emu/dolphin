@@ -488,6 +488,8 @@ void MenuBar::AddMovieMenu()
   m_recording_read_only->setChecked(Movie::IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
 
+  AddAction(movie_menu, tr("TAS Input"), this, [this] { emit ShowTASInput(); });
+
   movie_menu->addSeparator();
 
   auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
