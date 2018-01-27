@@ -218,7 +218,7 @@ bool VideoBackend::Initialize(void* window_handle)
   // These have to be done before the others because the destructors
   // for the remaining classes may call methods on these.
   if (!g_object_cache->Initialize() || !g_shader_cache->Initialize() ||
-      !FramebufferManager::GetInstance()->Initialize() || !StateTracker::CreateInstance() ||
+      !StateTracker::CreateInstance() || !FramebufferManager::GetInstance()->Initialize() ||
       !Renderer::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
@@ -281,8 +281,8 @@ void VideoBackend::Shutdown()
   g_texture_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
-  StateTracker::DestroyInstance();
   g_framebuffer_manager.reset();
+  StateTracker::DestroyInstance();
   if (g_shader_cache)
     g_shader_cache->Shutdown();
   g_shader_cache.reset();
