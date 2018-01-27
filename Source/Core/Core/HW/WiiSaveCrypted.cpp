@@ -85,7 +85,7 @@ void CWiiSaveCrypted::ExportAllSaves()
       }
     }
   }
-  SuccessAlertT("Found %u save files", (unsigned int)titles.size());
+  SuccessAlertT("Found %zu save file(s)", titles.size());
   u32 success = 0;
   for (const u64& title : titles)
   {
@@ -93,7 +93,7 @@ void CWiiSaveCrypted::ExportAllSaves()
     if (export_save.m_valid)
       success++;
   }
-  SuccessAlertT("Successfully exported %u saves to %s", success,
+  SuccessAlertT("Successfully exported %u save(s) to %s", success,
                 (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
@@ -112,7 +112,7 @@ CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
     // TODO: check_sig()
     if (m_valid)
     {
-      SuccessAlertT("Successfully imported save files");
+      SuccessAlertT("Successfully imported save file(s)");
     }
     else
     {
@@ -182,11 +182,17 @@ void CWiiSaveCrypted::ReadHDR()
   }
   std::string banner_file_path = m_wii_title_path + "banner.bin";
   if (!File::Exists(banner_file_path) ||
-      AskYesNoT("%s already exists, overwrite?", banner_file_path.c_str()))
+      AskYesNoT("%s already exists. Consider making a backup of the current save files before "
+                "overwriting.\nOverwrite now?",
+                banner_file_path.c_str()))
   {
     INFO_LOG(CONSOLE, "Creating file %s", banner_file_path.c_str());
     File::IOFile banner_file(banner_file_path, "wb");
     banner_file.WriteBytes(m_header.BNR, banner_size);
+  }
+  else
+  {
+    m_valid = false;
   }
 }
 
@@ -361,14 +367,10 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
         mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv,
                               static_cast<const u8*>(file_data_enc.data()), file_data.data());
 
-        if (!file_info.Exists() ||
-            AskYesNoT("%s already exists, overwrite?", file_path_full.c_str()))
-        {
-          INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
+        INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
 
-          File::IOFile raw_save_file(file_path_full, "wb");
-          raw_save_file.WriteBytes(file_data.data(), file_size);
-        }
+        File::IOFile raw_save_file(file_path_full, "wb");
+        raw_save_file.WriteBytes(file_data.data(), file_size);
       }
       else if (file_hdr_tmp.type == 2)
       {
@@ -585,7 +587,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
     if (!File::Exists(m_wii_title_path + "banner.bin"))
     {
       m_valid = false;
-      ERROR_LOG(CONSOLE, "No banner file found for title  %s", game_id);
+      ERROR_LOG(CONSOLE, "No banner file found for title %s", game_id);
       return false;
     }
     if (m_encrypted_save_path.length() == 0)
@@ -599,12 +601,6 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
   else
   {
     File::CreateFullPath(m_wii_title_path);
-    if (!AskYesNoT("Warning! it is advised to backup all files in the folder:\n%s\nDo you wish to "
-                   "continue?",
-                   m_wii_title_path.c_str()))
-    {
-      return false;
-    }
   }
   return true;
 }
