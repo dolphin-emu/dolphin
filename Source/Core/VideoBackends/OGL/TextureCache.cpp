@@ -69,14 +69,16 @@ TextureCache::TextureCache()
     glBindTexture(GL_TEXTURE_BUFFER, m_palette_resolv_texture);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, m_palette_stream_buffer->m_buffer);
 
-    CreateTextureDecodingResources();
+    if (g_ActiveConfig.backend_info.bSupportsGPUTextureDecoding)
+      CreateTextureDecodingResources();
   }
 }
 
 TextureCache::~TextureCache()
 {
   DeleteShaders();
-  DestroyTextureDecodingResources();
+  if (g_ActiveConfig.backend_info.bSupportsGPUTextureDecoding)
+    DestroyTextureDecodingResources();
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
