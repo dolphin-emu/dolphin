@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+#include <mutex>
 #include <vector>
 
 #include "Core/FifoPlayer/FifoDataFile.h"
@@ -14,12 +16,11 @@ public:
   typedef void (*CallbackFunc)(void);
 
   FifoRecorder();
-  ~FifoRecorder();
 
   void StartRecording(s32 numFrames, CallbackFunc finishedCb);
   void StopRecording();
 
-  FifoDataFile* GetRecordedFile() const { return m_File; }
+  FifoDataFile* GetRecordedFile() const;
   // Called from video thread
 
   // Must write one full GP command at a time
@@ -40,21 +41,21 @@ public:
                       u32 xfRegsSize, const u8* texMem);
 
   // Checked once per frame prior to callng EndFrame()
-  bool IsRecording() const { return m_IsRecording; }
+  bool IsRecording() const;
   static FifoRecorder& GetInstance();
 
 private:
   // Accessed from both GUI and video threads
 
+  std::recursive_mutex m_mutex;
   // True if video thread should send data
-  volatile bool m_IsRecording = false;
+  bool m_IsRecording = false;
   // True if m_IsRecording was true during last frame
-  volatile bool m_WasRecording = false;
-  volatile bool m_RequestedRecordingEnd = false;
-  volatile s32 m_RecordFramesRemaining = 0;
-  volatile CallbackFunc m_FinishedCb = nullptr;
-
-  FifoDataFile* volatile m_File = nullptr;
+  bool m_WasRecording = false;
+  bool m_RequestedRecordingEnd = false;
+  s32 m_RecordFramesRemaining = 0;
+  CallbackFunc m_FinishedCb = nullptr;
+  std::unique_ptr<FifoDataFile> m_File;
 
   // Accessed only from video thread
 
