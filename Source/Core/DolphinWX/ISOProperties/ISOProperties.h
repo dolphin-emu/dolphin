@@ -65,36 +65,36 @@ private:
 
   std::unique_ptr<DiscIO::Volume> m_open_iso;
 
-  std::vector<PatchEngine::Patch> onFrame;
-  PHackData m_PHack_Data;
+  std::vector<PatchEngine::Patch> m_on_frame;
+  PHackData m_phack_data;
 
   // Core
-  wxCheckBox *CPUThread, *SkipIdle, *MMU, *DCBZOFF, *FPRF;
-  wxCheckBox *SyncGPU, *FastDiscSpeed, *DSPHLE;
+  wxCheckBox *m_cpu_thread, *m_skip_idle, *m_mmu, *m_dcbz_off, *m_fprf;
+  wxCheckBox *m_sync_gpu, *m_fast_disc_speed, *m_dps_hle;
 
-  wxArrayString arrayStringFor_GPUDeterminism;
-  wxChoice* GPUDeterminism;
+  wxArrayString m_gpu_determinism_string;
+  wxChoice* m_gpu_determinism;
   wxSpinCtrlDouble* AudioSlowDown;
 
   // Wii
-  wxCheckBox* EnableWideScreen;
+  wxCheckBox* m_enable_widescreen;
 
   // Stereoscopy
-  DolphinSlider* DepthPercentage;
-  wxSpinCtrl* Convergence;
-  wxCheckBox* MonoDepth;
+  DolphinSlider* m_depth_percentage;
+  wxSpinCtrl* m_convergence;
+  wxCheckBox* m_mono_depth;
 
-  wxArrayString arrayStringFor_EmuState;
-  wxArrayString arrayStringFor_VRState;
-  wxChoice* EmuState;
-  wxTextCtrl* EmuIssues;
+  wxArrayString m_emustate_string;
+  wxArrayString m_vrstate_string;
+  wxChoice* m_emustate_choice;
+  wxTextCtrl* m_emu_issues;
   wxCheckListBox* HideObjects;
   wxButton* EditHideObject;
   wxButton* RemoveHideObject;
 
-  wxCheckListBox* Patches;
-  wxButton* EditPatch;
-  wxButton* RemovePatch;
+  wxCheckListBox* m_patches;
+  wxButton* m_edit_patch;
+  wxButton* m_remove_patch;
 
   wxCheckListBox* Cheats;
   wxButton* EditCheat;
@@ -210,15 +210,15 @@ private:
   void OnCheatCodeToggled(wxCommandEvent& event);
   void OnChangeTitle(wxCommandEvent& event);
 
-  const GameListItem OpenGameListItem;
+  const GameListItem m_open_gamelist_item;
 
-  IniFile GameIniDefault;
-  IniFile GameIniLocal;
-  std::string GameIniFileLocal;
-  std::string game_id;
+  IniFile m_gameini_default;
+  IniFile m_gameini_local;
+  std::string m_gameini_file_local;
+  std::string m_game_id;
 
   std::set<std::string> DefaultHideObjects;
-  std::set<std::string> DefaultPatches;
+  std::set<std::string> m_default_patches;
 
   void LoadGameConfig();
   bool SaveGameConfig();
