@@ -472,14 +472,27 @@ bool SwapChain::ResizeSwapChain()
   return true;
 }
 
+bool SwapChain::RecreateSwapChain()
+{
+  DestroySwapChainImages();
+  DestroySwapChain();
+  if (!CreateSwapChain() || !SetupSwapChainImages())
+  {
+    PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
+    return false;
+  }
+
+  return true;
+}
+
 bool SwapChain::SetVSync(bool enabled)
 {
   if (m_vsync_enabled == enabled)
     return true;
 
-  // Resizing recreates the swap chain with the new present mode.
+  // Recreate the swap chain with the new present mode.
   m_vsync_enabled = enabled;
-  return ResizeSwapChain();
+  return RecreateSwapChain();
 }
 
 bool SwapChain::RecreateSurface(void* native_handle)

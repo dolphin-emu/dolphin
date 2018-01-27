@@ -55,6 +55,7 @@ public:
 
   bool RecreateSurface(void* native_handle);
   bool ResizeSwapChain();
+  bool RecreateSwapChain();
 
   // Change vsync enabled state. This may fail as it causes a swapchain recreation.
   bool SetVSync(bool enabled);

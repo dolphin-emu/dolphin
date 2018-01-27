@@ -353,8 +353,13 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                                      nullptr};
 
     res = vkQueuePresentKHR(g_vulkan_context->GetPresentQueue(), &present_info);
-    if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
-      LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
+    if (res != VK_SUCCESS)
+    {
+      // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
+      if (res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
+        LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
+      m_present_failed_flag.Set();
+    }
   }
 
   // Command buffer has been queued, so permit the next one.

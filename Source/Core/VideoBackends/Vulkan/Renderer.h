@@ -83,7 +83,6 @@ private:
   void OnSwapChainResized();
   void BindEFBToStateTracker();
   void ResizeEFBTextures();
-  void ResizeSwapChain();
 
   void RecompileShaders();
   bool CompileShaders();
