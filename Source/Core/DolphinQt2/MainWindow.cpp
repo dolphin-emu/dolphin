@@ -279,6 +279,8 @@ void MainWindow::ConnectGameList()
 {
   connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
+
+  connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
 }
 
 void MainWindow::ConnectRenderWidget()
@@ -357,7 +359,7 @@ void MainWindow::Pause()
 void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
-  m_render_widget->hide();
+  HideRenderWidget();
 
   if (m_exit_requested)
     QGuiApplication::instance()->quit();
@@ -429,7 +431,6 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   BootManager::Stop();
-  HideRenderWidget();
 }
 
 void MainWindow::Reset()
@@ -556,10 +557,16 @@ void MainWindow::ShowAudioWindow()
   ShowSettingsWindow();
 }
 
+void MainWindow::ShowGeneralWindow()
+{
+  m_settings_window->SelectGeneralPane();
+  ShowSettingsWindow();
+}
+
 void MainWindow::ShowAboutDialog()
 {
-  AboutDialog* about = new AboutDialog(this);
-  about->show();
+  AboutDialog about{this};
+  about.exec();
 }
 
 void MainWindow::ShowHotkeyDialog()

@@ -40,9 +40,6 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
-  QString GetProfilesDir() const;
-  QVector<QString> GetProfiles(const InputConfig* config) const;
-  QString GetProfileINIPath(const InputConfig* config, const QString& name) const;
 
   bool IsInDevelopmentWarningEnabled() const;
   bool IsLogVisible() const;
@@ -79,6 +76,10 @@ public:
   NetPlayServer* GetNetPlayServer();
   void ResetNetPlayServer(NetPlayServer* server = nullptr);
 
+  // Cheats
+  bool GetCheatsEnabled() const;
+  void SetCheatsEnabled(bool enabled);
+
   // Other
   GameListModel* GetGameListModel() const;
 
@@ -93,6 +94,7 @@ signals:
   void NANDRefresh();
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
+  void EnableCheatsChanged(bool enabled);
 
 private:
   std::unique_ptr<NetPlayClient> m_client;
