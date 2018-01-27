@@ -111,7 +111,7 @@ static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
 static std::thread s_vr_thread;
-static StoppedCallbackFunc s_on_stopped_callback;
+static StateChangedCallbackFunc s_on_state_changed_callback;
 
 static Common::Event s_vr_thread_ready;
 static Common::Event s_nonvr_thread_ready;
@@ -121,6 +121,7 @@ static bool s_vr_thread_failure = false;
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
+static bool s_frame_step = false;
 
 struct HostJob
 {
@@ -536,14 +537,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
+  if (s_on_state_changed_callback)
+    s_on_state_changed_callback(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
     s_is_started = false;
     s_is_stopping = false;
     s_wants_determinism = false;
 
-    if (s_on_stopped_callback)
-      s_on_stopped_callback();
+    if (s_on_state_changed_callback)
+      s_on_state_changed_callback(State::Uninitialized);
 
     INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
@@ -560,6 +563,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 
   // For a time this acts as the CPU thread...
   DeclareAsCPUThread();
+  s_frame_step = false;
 
   Movie::Init(*boot);
   Common::ScopeGuard movie_guard{Movie::Shutdown};
@@ -839,6 +843,9 @@ void SetState(State state)
     PanicAlert("Invalid state");
     break;
   }
+
+  if (s_on_state_changed_callback)
+    s_on_state_changed_callback(GetState());
 }
 
 State GetState()
@@ -853,6 +860,9 @@ State GetState()
 
     return State::Running;
   }
+
+  if (s_is_booting.IsSet())
+    return State::Starting;
 
   return State::Uninitialized;
 }
@@ -1053,6 +1063,14 @@ void Callback_VideoCopiedToXFB(bool video_update)
     s_drawn_frame++;
 
   Movie::FrameUpdate();
+
+  if (s_frame_step)
+  {
+    s_frame_step = false;
+    CPU::Break();
+    if (s_on_state_changed_callback)
+      s_on_state_changed_callback(Core::GetState());
+  }
 }
 
 void UpdateTitle()
@@ -1217,9 +1235,9 @@ void KillDolphinAndRestart()
 #endif
 }
 
-void SetOnStoppedCallback(StoppedCallbackFunc callback)
+void SetOnStateChangedCallback(StateChangedCallbackFunc callback)
 {
-  s_on_stopped_callback = std::move(callback);
+  s_on_state_changed_callback = std::move(callback);
 }
 
 void UpdateWantDeterminism(bool initial)
@@ -1287,6 +1305,23 @@ void HostDispatchJobs()
     guard.unlock();
     job.job();
     guard.lock();
+  }
+}
+
+// NOTE: Host Thread
+void DoFrameStep()
+{
+  if (GetState() == State::Paused)
+  {
+    // if already paused, frame advance for 1 frame
+    s_frame_step = true;
+    RequestRefreshInfo();
+    SetState(State::Running);
+  }
+  else if (!s_frame_step)
+  {
+    // if not paused yet, pause immediately instead
+    SetState(State::Paused);
   }
 }
 

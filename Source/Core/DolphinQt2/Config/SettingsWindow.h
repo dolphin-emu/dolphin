@@ -15,10 +15,6 @@ public:
   explicit SettingsWindow(QWidget* parent = nullptr);
   void SelectAudioPane();
 
-signals:
-  void EmulationStarted();
-  void EmulationStopped();
-
 private:
   ListTabWidget* m_tabs;
   int m_audio_pane_index = -1;

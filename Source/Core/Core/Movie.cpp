@@ -66,7 +66,6 @@ static std::mutex cs_frameSkip;
 
 namespace Movie
 {
-static bool s_bFrameStep = false;
 static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
@@ -197,11 +196,6 @@ void FrameUpdate()
     s_totalFrames = s_currentFrame;
     s_totalLagCount = s_currentLagCount;
   }
-  if (s_bFrameStep)
-  {
-    s_bFrameStep = false;
-    CPU::Break();
-  }
 
   if (s_framesToSkip)
     FrameSkipping();
@@ -223,7 +217,6 @@ void Init(const BootParameters& boot)
     s_current_file_name.clear();
 
   s_bPolled = false;
-  s_bFrameStep = false;
   s_bSaveConfig = false;
   if (IsPlayingInput())
   {
@@ -295,23 +288,6 @@ void SetFrameSkipping(unsigned int framesToSkip)
 void SetPolledDevice()
 {
   s_bPolled = true;
-}
-
-// NOTE: Host Thread
-void DoFrameStep()
-{
-  if (Core::GetState() == Core::State::Paused)
-  {
-    // if already paused, frame advance for 1 frame
-    s_bFrameStep = true;
-    Core::RequestRefreshInfo();
-    Core::SetState(Core::State::Running);
-  }
-  else if (!s_bFrameStep)
-  {
-    // if not paused yet, pause immediately instead
-    Core::SetState(Core::State::Paused);
-  }
 }
 
 // NOTE: Host Thread

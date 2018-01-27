@@ -9,12 +9,17 @@
 #include <QMenu>
 #include <QMenuBar>
 
+#include "DolphinQt2/GameList/GameFile.h"
+
+namespace Core
+{
+enum class State;
+}
+
 namespace DiscIO
 {
 enum class Region;
 };
-
-#include "DolphinQt2/GameList/GameFile.h"
 
 class MenuBar final : public QMenuBar
 {
@@ -23,9 +28,6 @@ class MenuBar final : public QMenuBar
 public:
   explicit MenuBar(QWidget* parent = nullptr);
 
-  void EmulationStarted();
-  void EmulationPaused();
-  void EmulationStopped();
   void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
 
@@ -88,6 +90,8 @@ signals:
   void ReadOnlyModeChanged(bool read_only);
 
 private:
+  void OnEmulationStateChanged(Core::State state);
+
   void AddFileMenu();
 
   void AddEmulationMenu();

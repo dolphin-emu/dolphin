@@ -40,14 +40,8 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 
   AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
   AddTab(m_tabs, tr("Interface"), new InterfacePane(), "browse");
-  auto* audio_pane = new AudioPane;
-  m_audio_pane_index = AddTab(m_tabs, tr("Audio"), audio_pane, "play");
+  m_audio_pane_index = AddTab(m_tabs, tr("Audio"), new AudioPane(), "play");
   AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
-
-  connect(this, &SettingsWindow::EmulationStarted,
-          [audio_pane] { audio_pane->OnEmulationStateChanged(true); });
-  connect(this, &SettingsWindow::EmulationStopped,
-          [audio_pane] { audio_pane->OnEmulationStateChanged(false); });
 
   // Dialog box buttons
   QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);

@@ -174,11 +174,8 @@ void GameList::ShowContextMenu(const QPoint&)
 
     QAction* change_disc = AddAction(menu, tr("Change &Disc"), this, &GameList::ChangeDisc);
 
-    connect(this, &GameList::EmulationStarted, change_disc,
-            [change_disc] { change_disc->setEnabled(true); });
-    connect(this, &GameList::EmulationStopped, change_disc,
-            [change_disc] { change_disc->setEnabled(false); });
-
+    connect(&Settings::Instance(), &Settings::EmulationStateChanged, change_disc,
+            [change_disc] { change_disc->setEnabled(Core::IsRunning()); });
     change_disc->setEnabled(Core::IsRunning());
 
     menu->addSeparator();
@@ -202,15 +199,13 @@ void GameList::ShowContextMenu(const QPoint&)
 
     for (QAction* a : {wad_install_action, wad_uninstall_action})
     {
-      connect(this, &GameList::EmulationStarted, a, [a] { a->setEnabled(false); });
       a->setEnabled(!Core::IsRunning());
       menu->addAction(a);
     }
 
-    connect(this, &GameList::EmulationStopped, wad_install_action,
-            [wad_install_action] { wad_install_action->setEnabled(true); });
-    connect(this, &GameList::EmulationStopped, wad_uninstall_action, [wad_uninstall_action, game] {
-      wad_uninstall_action->setEnabled(game->IsInstalled());
+    connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
+      wad_install_action->setEnabled(state == Core::State::Uninitialized);
+      wad_uninstall_action->setEnabled(state == Core::State::Uninitialized && game->IsInstalled());
     });
 
     menu->addSeparator();
@@ -231,10 +226,9 @@ void GameList::ShowContextMenu(const QPoint&)
   connect(netplay_host, &QAction::triggered,
           [this, game] { emit NetPlayHost(game->GetUniqueID()); });
 
-  connect(this, &GameList::EmulationStarted, netplay_host,
-          [netplay_host] { netplay_host->setEnabled(false); });
-  connect(this, &GameList::EmulationStopped, netplay_host,
-          [netplay_host] { netplay_host->setEnabled(true); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
+    netplay_host->setEnabled(state == Core::State::Uninitialized);
+  });
   netplay_host->setEnabled(!Core::IsRunning());
 
   menu->addAction(netplay_host);

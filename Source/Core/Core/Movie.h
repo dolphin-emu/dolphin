@@ -149,7 +149,6 @@ bool IsUsingBongo(int controller);
 void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
-void DoFrameStep();
 void SetReadOnly(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);

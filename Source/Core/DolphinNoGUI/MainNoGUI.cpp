@@ -397,7 +397,10 @@ int main(int argc, char* argv[])
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
 
-  Core::SetOnStoppedCallback([]() { s_running.Clear(); });
+  Core::SetOnStateChangedCallback([](Core::State state) {
+    if (state == Core::State::Uninitialized)
+      s_running.Clear();
+  });
   platform->Init();
 
   // Shut down cleanly on SIGINT and SIGTERM
