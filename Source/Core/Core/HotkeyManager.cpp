@@ -354,7 +354,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   auto set_key_expression = [this](int index, const std::string& expression) {
     m_keys[FindGroupByID(index)]
         ->controls[GetIndexForGroup(FindGroupByID(index), index)]
-        ->control_ref->expression = expression;
+        ->control_ref->SetExpression(expression);
   };
 
   // General hotkeys

@@ -27,7 +27,7 @@ static QString EscapeAmpersand(QString&& string)
 }
 
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
-    : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->expression))), m_parent(widget),
+    : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
 {
   Connect();
@@ -66,7 +66,7 @@ void MappingButton::OnButtonPressed()
 
     if (!expr.isEmpty())
     {
-      m_reference->expression = expr.toStdString();
+      m_reference->SetExpression(expr.toStdString());
       Update();
     }
     else
@@ -78,13 +78,13 @@ void MappingButton::OnButtonPressed()
 
 void MappingButton::OnButtonTimeout()
 {
-  setText(EscapeAmpersand(QString::fromStdString(m_reference->expression)));
+  setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
 }
 
 void MappingButton::Clear()
 {
   m_parent->Update();
-  m_reference->expression.clear();
+  m_reference->SetExpression("");
   Update();
 }
 
@@ -92,7 +92,7 @@ void MappingButton::Update()
 {
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   m_reference->UpdateReference(g_controller_interface, m_parent->GetParent()->GetDeviceQualifier());
-  setText(EscapeAmpersand(QString::fromStdString(m_reference->expression)));
+  setText(EscapeAmpersand(QString::fromStdString(m_reference->GetExpression())));
   m_parent->SaveSettings();
 }
 
