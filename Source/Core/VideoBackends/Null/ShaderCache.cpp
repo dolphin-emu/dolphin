@@ -33,7 +33,7 @@ void ShaderCache<Uid>::Clear()
 }
 
 template <typename Uid>
-bool ShaderCache<Uid>::SetShader(u32 primitive_type)
+bool ShaderCache<Uid>::SetShader(PrimitiveType primitive_type)
 {
   Uid uid = GetUid(primitive_type, APIType::OpenGL);
 

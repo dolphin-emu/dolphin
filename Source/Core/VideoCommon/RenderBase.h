@@ -66,9 +66,9 @@ public:
 
   virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const EFBRectangle& rc) {}
-  virtual void SetGenerationMode() {}
-  virtual void SetDepthMode() {}
-  virtual void SetSamplerState(int stage, int texindex, bool custom_tex) {}
+  virtual void SetRasterizationState(const RasterizationState& state) {}
+  virtual void SetDepthState(const DepthState& state) {}
+  virtual void SetSamplerState(u32 index, const SamplerState& state) {}
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}
   virtual void SetFullscreen(bool enable_fullscreen) {}

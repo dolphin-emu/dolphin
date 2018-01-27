@@ -11,7 +11,6 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -54,26 +53,6 @@ void StateTracker::DestroyInstance()
 
 bool StateTracker::Initialize()
 {
-  // Set some sensible defaults
-  m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
-  m_pipeline_state.rasterization_state.per_sample_shading = VK_FALSE;
-  m_pipeline_state.rasterization_state.depth_clamp = VK_FALSE;
-  m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
-  m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
-  m_pipeline_state.depth_stencil_state.compare_op = VK_COMPARE_OP_LESS;
-  m_pipeline_state.blend_state.hex = 0;
-  m_pipeline_state.blend_state.blendenable = false;
-  m_pipeline_state.blend_state.srcfactor = BlendMode::ONE;
-  m_pipeline_state.blend_state.srcfactoralpha = BlendMode::ONE;
-  m_pipeline_state.blend_state.dstfactor = BlendMode::ZERO;
-  m_pipeline_state.blend_state.dstfactoralpha = BlendMode::ZERO;
-  m_pipeline_state.blend_state.colorupdate = true;
-  m_pipeline_state.blend_state.alphaupdate = true;
-
-  // Enable depth clamping if supported by driver.
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    m_pipeline_state.rasterization_state.depth_clamp = VK_TRUE;
-
   // BBox is disabled by default.
   m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
   m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
@@ -166,13 +145,12 @@ void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
 {
   SerializedPipelineUID sinfo;
   sinfo.blend_state_bits = info.blend_state.hex;
-  sinfo.rasterizer_state_bits = info.rasterization_state.bits;
-  sinfo.depth_stencil_state_bits = info.depth_stencil_state.bits;
+  sinfo.rasterizer_state_bits = info.rasterization_state.hex;
+  sinfo.depth_state_bits = info.depth_state.hex;
   sinfo.vertex_decl = m_pipeline_state.vertex_format->GetVertexDeclaration();
   sinfo.vs_uid = m_vs_uid;
   sinfo.gs_uid = m_gs_uid;
   sinfo.ps_uid = m_ps_uid;
-  sinfo.primitive_topology = info.primitive_topology;
 
   u32 dummy_value = 0;
   m_uid_cache.Append(sinfo, &dummy_value, 1);
@@ -211,10 +189,10 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
     return false;
   }
   pinfo.render_pass = m_load_render_pass;
-  pinfo.rasterization_state.bits = uid.rasterizer_state_bits;
-  pinfo.depth_stencil_state.bits = uid.depth_stencil_state_bits;
+  pinfo.rasterization_state.hex = uid.rasterizer_state_bits;
+  pinfo.depth_state.hex = uid.depth_state_bits;
   pinfo.blend_state.hex = uid.blend_state_bits;
-  pinfo.primitive_topology = uid.primitive_topology;
+  pinfo.multisampling_state.hex = m_pipeline_state.multisampling_state.hex;
 
   if (g_ActiveConfig.bBackgroundShaderCompiling)
   {
@@ -289,39 +267,30 @@ void StateTracker::SetVertexFormat(const VertexFormat* vertex_format)
   UpdatePipelineVertexFormat();
 }
 
-void StateTracker::SetPrimitiveTopology(VkPrimitiveTopology primitive_topology)
-{
-  if (m_pipeline_state.primitive_topology == primitive_topology)
-    return;
-
-  m_pipeline_state.primitive_topology = primitive_topology;
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
-}
-
-void StateTracker::DisableBackFaceCulling()
-{
-  if (m_pipeline_state.rasterization_state.cull_mode == VK_CULL_MODE_NONE)
-    return;
-
-  m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
-}
-
 void StateTracker::SetRasterizationState(const RasterizationState& state)
 {
-  if (m_pipeline_state.rasterization_state.bits == state.bits)
+  if (m_pipeline_state.rasterization_state.hex == state.hex)
     return;
 
-  m_pipeline_state.rasterization_state.bits = state.bits;
+  m_pipeline_state.rasterization_state.hex = state.hex;
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-void StateTracker::SetDepthStencilState(const DepthStencilState& state)
+void StateTracker::SetMultisamplingstate(const MultisamplingState& state)
 {
-  if (m_pipeline_state.depth_stencil_state.bits == state.bits)
+  if (m_pipeline_state.multisampling_state.hex == state.hex)
     return;
 
-  m_pipeline_state.depth_stencil_state.bits = state.bits;
+  m_pipeline_state.multisampling_state.hex = state.hex;
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetDepthState(const DepthState& state)
+{
+  if (m_pipeline_state.depth_state.hex == state.hex)
+    return;
+
+  m_pipeline_state.depth_state.hex = state.hex;
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
@@ -334,7 +303,7 @@ void StateTracker::SetBlendState(const BlendingState& state)
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
+bool StateTracker::CheckForShaderChanges()
 {
   VertexShaderUid vs_uid = GetVertexShaderUid();
   PixelShaderUid ps_uid = GetPixelShaderUid();
@@ -418,7 +387,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
 
   if (g_vulkan_context->SupportsGeometryShaders())
   {
-    GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type);
+    GeometryShaderUid gs_uid = GetGeometryShaderUid(m_pipeline_state.rasterization_state.primitive);
     if (gs_uid != m_gs_uid)
     {
       m_gs_uid = gs_uid;

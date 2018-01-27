@@ -371,6 +371,7 @@ struct VideoConfig final
   // Utility
   bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
   bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
+  bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool EFBCopiesToTextureEnabled() const { return bEFBCopyEnable && bSkipEFBCopyToRam; }
   bool EFBCopiesToRamEnabled() const { return bEFBCopyEnable && !bSkipEFBCopyToRam; }
   bool ExclusiveFullscreenEnabled() const

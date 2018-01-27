@@ -320,10 +320,10 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         render_pass, m_vertex_shader, VK_NULL_HANDLE, m_fragment_shader);
+                         render_pass, m_vertex_shader, VK_NULL_HANDLE, m_fragment_shader,
+                         PrimitiveType::Triangles);
 
-  UtilityShaderVertex* vertices =
-      draw.ReserveVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, text.length() * 6);
+  UtilityShaderVertex* vertices = draw.ReserveVertices(text.length() * 6);
   size_t num_vertices = 0;
   if (!vertices)
     return;
@@ -410,7 +410,7 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   draw.SetPSSampler(0, m_texture->GetView(), g_object_cache->GetLinearSampler());
 
   // Setup alpha blending
-  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  BlendingState blend_state = RenderState::GetNoBlendingBlendState();
   blend_state.blendenable = true;
   blend_state.srcfactor = BlendMode::SRCALPHA;
   blend_state.dstfactor = BlendMode::INVSRCALPHA;

@@ -52,10 +52,8 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
-
-  // Set to something invalid, forcing all states to be re-initialized.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
-    m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
+    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
 }
 
 Renderer::~Renderer()
@@ -455,18 +453,14 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   StateTracker::GetInstance()->SetPendingRebind();
 
   // Mask away the appropriate colors and use a shader
-  BlendingState blend_state = Util::GetNoBlendingBlendState();
+  BlendingState blend_state = RenderState::GetNoBlendingBlendState();
   blend_state.colorupdate = color_enable;
   blend_state.alphaupdate = alpha_enable;
 
-  DepthStencilState depth_state = Util::GetNoDepthTestingDepthStencilState();
-  depth_state.test_enable = z_enable ? VK_TRUE : VK_FALSE;
-  depth_state.write_enable = z_enable ? VK_TRUE : VK_FALSE;
-  depth_state.compare_op = VK_COMPARE_OP_ALWAYS;
-
-  RasterizationState rs_state = Util::GetNoCullRasterizationState();
-  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
+  DepthState depth_state = RenderState::GetNoDepthTestingDepthStencilState();
+  depth_state.testenable = z_enable;
+  depth_state.updateenable = z_enable;
+  depth_state.func = ZMode::ALWAYS;
 
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -475,8 +469,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
-  draw.SetRasterizationState(rs_state);
-  draw.SetDepthStencilState(depth_state);
+  draw.SetMultisamplingState(FramebufferManager::GetInstance()->GetEFBMultisamplingState());
+  draw.SetDepthState(depth_state);
   draw.SetBlendState(blend_state);
 
   draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
@@ -1236,13 +1230,8 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(
       FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
-
-  // Update rasterization state with MSAA info
-  RasterizationState rs_state = {};
-  rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
-  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
-  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  StateTracker::GetInstance()->SetRasterizationState(rs_state);
+  StateTracker::GetInstance()->SetMultisamplingstate(
+      FramebufferManager::GetInstance()->GetEFBMultisamplingState());
 }
 
 void Renderer::ResizeEFBTextures()
@@ -1285,72 +1274,14 @@ void Renderer::RestoreAPIState()
   StateTracker::GetInstance()->SetPendingRebind();
 }
 
-void Renderer::SetGenerationMode()
+void Renderer::SetRasterizationState(const RasterizationState& state)
 {
-  RasterizationState new_rs_state = {};
-  new_rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
-
-  switch (bpmem.genMode.cullmode)
-  {
-  case GenMode::CULL_NONE:
-    new_rs_state.cull_mode = VK_CULL_MODE_NONE;
-    break;
-  case GenMode::CULL_BACK:
-    new_rs_state.cull_mode = VK_CULL_MODE_BACK_BIT;
-    break;
-  case GenMode::CULL_FRONT:
-    new_rs_state.cull_mode = VK_CULL_MODE_FRONT_BIT;
-    break;
-  case GenMode::CULL_ALL:
-    new_rs_state.cull_mode = VK_CULL_MODE_FRONT_AND_BACK;
-    break;
-  default:
-    new_rs_state.cull_mode = VK_CULL_MODE_NONE;
-    break;
-  }
-
-  StateTracker::GetInstance()->SetRasterizationState(new_rs_state);
+  StateTracker::GetInstance()->SetRasterizationState(state);
 }
 
-void Renderer::SetDepthMode()
+void Renderer::SetDepthState(const DepthState& state)
 {
-  DepthStencilState new_ds_state = {};
-  new_ds_state.test_enable = bpmem.zmode.testenable ? VK_TRUE : VK_FALSE;
-  new_ds_state.write_enable = bpmem.zmode.updateenable ? VK_TRUE : VK_FALSE;
-
-  // Inverted depth, hence these are swapped
-  switch (bpmem.zmode.func)
-  {
-  case ZMode::NEVER:
-    new_ds_state.compare_op = VK_COMPARE_OP_NEVER;
-    break;
-  case ZMode::LESS:
-    new_ds_state.compare_op = VK_COMPARE_OP_GREATER;
-    break;
-  case ZMode::EQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_EQUAL;
-    break;
-  case ZMode::LEQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_GREATER_OR_EQUAL;
-    break;
-  case ZMode::GREATER:
-    new_ds_state.compare_op = VK_COMPARE_OP_LESS;
-    break;
-  case ZMode::NEQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_NOT_EQUAL;
-    break;
-  case ZMode::GEQUAL:
-    new_ds_state.compare_op = VK_COMPARE_OP_LESS_OR_EQUAL;
-    break;
-  case ZMode::ALWAYS:
-    new_ds_state.compare_op = VK_COMPARE_OP_ALWAYS;
-    break;
-  default:
-    new_ds_state.compare_op = VK_COMPARE_OP_ALWAYS;
-    break;
-  }
-
-  StateTracker::GetInstance()->SetDepthStencilState(new_ds_state);
+  StateTracker::GetInstance()->SetDepthState(state);
 }
 
 void Renderer::SetBlendingState(const BlendingState& state)
@@ -1358,65 +1289,22 @@ void Renderer::SetBlendingState(const BlendingState& state)
   StateTracker::GetInstance()->SetBlendState(state);
 }
 
-void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
+void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  const FourTexUnits& tex = bpmem.tex[texindex];
-  const TexMode0& tm0 = tex.texMode0[stage];
-  const TexMode1& tm1 = tex.texMode1[stage];
-  SamplerState new_state = {};
-
-  if (g_ActiveConfig.bForceFiltering)
-  {
-    new_state.min_filter = VK_FILTER_LINEAR;
-    new_state.mag_filter = VK_FILTER_LINEAR;
-    new_state.mipmap_mode = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                                VK_SAMPLER_MIPMAP_MODE_LINEAR :
-                                VK_SAMPLER_MIPMAP_MODE_NEAREST;
-  }
-  else
-  {
-    // Constants for these?
-    new_state.min_filter = (tm0.min_filter & 4) != 0 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-    new_state.mipmap_mode = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
-                                VK_SAMPLER_MIPMAP_MODE_LINEAR :
-                                VK_SAMPLER_MIPMAP_MODE_NEAREST;
-    new_state.mag_filter = tm0.mag_filter != 0 ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-  }
-
-  // If mipmaps are disabled, clamp min/max lod
-  new_state.max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod : 0;
-  new_state.min_lod = std::min(new_state.max_lod.Value(), tm1.min_lod);
-  new_state.lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias : 0;
-
-  // Custom textures may have a greater number of mips
-  if (custom_tex)
-    new_state.max_lod = 255;
-
-  // Address modes
-  static const VkSamplerAddressMode address_modes[] = {
-      VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_SAMPLER_ADDRESS_MODE_REPEAT,
-      VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, VK_SAMPLER_ADDRESS_MODE_REPEAT};
-  new_state.wrap_u = address_modes[tm0.wrap_s];
-  new_state.wrap_v = address_modes[tm0.wrap_t];
-
-  // Only use anisotropic filtering for textures that would be linearly filtered.
-  new_state.enable_anisotropic_filtering = SamplerCommon::IsBpTexMode0PointFiltering(tm0) ? 0 : 1;
-
   // Skip lookup if the state hasn't changed.
-  size_t bind_index = (texindex * 4) + stage;
-  if (m_sampler_states[bind_index].bits == new_state.bits)
+  if (m_sampler_states[index].hex == state.hex)
     return;
 
   // Look up new state and replace in state tracker.
-  VkSampler sampler = g_object_cache->GetSampler(new_state);
+  VkSampler sampler = g_object_cache->GetSampler(state);
   if (sampler == VK_NULL_HANDLE)
   {
     ERROR_LOG(VIDEO, "Failed to create sampler");
     sampler = g_object_cache->GetPointSampler();
   }
 
-  StateTracker::GetInstance()->SetSampler(bind_index, sampler);
-  m_sampler_states[bind_index].bits = new_state.bits;
+  StateTracker::GetInstance()->SetSampler(index, sampler);
+  m_sampler_states[index].hex = state.hex;
 }
 
 void Renderer::ResetSamplerStates()
@@ -1428,7 +1316,7 @@ void Renderer::ResetSamplerStates()
   // Invalidate all sampler states, next draw will re-initialize them.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
   {
-    m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
+    m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
     StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());
   }
 

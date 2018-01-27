@@ -12,7 +12,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
-#include "VideoCommon/SamplerCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 #include "VideoCommon/VertexShaderManager.h"
 
@@ -267,90 +267,55 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 
 ID3D11SamplerState* StateCache::Get(SamplerState state)
 {
-  auto it = m_sampler.find(state.packed);
-
+  auto it = m_sampler.find(state.hex);
   if (it != m_sampler.end())
-  {
     return it->second;
-  }
-
-  const unsigned int d3dMipFilters[4] = {
-      TexMode0::TEXF_NONE, TexMode0::TEXF_POINT, TexMode0::TEXF_LINEAR,
-      TexMode0::TEXF_NONE,  // reserved
-  };
-  const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] = {
-      D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_MIRROR,
-      D3D11_TEXTURE_ADDRESS_WRAP  // reserved
-  };
 
   D3D11_SAMPLER_DESC sampdc = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
-
-  unsigned int mip = d3dMipFilters[state.min_filter & 3];
-
-  if (state.max_anisotropy > 1 && !SamplerCommon::IsBpTexMode0PointFiltering(state))
+  if (state.mipmap_filter == SamplerState::Filter::Linear)
   {
-    sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
-    sampdc.MaxAnisotropy = (u32)state.max_anisotropy;
+    if (state.min_filter == SamplerState::Filter::Linear)
+      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+                          D3D11_FILTER_MIN_MAG_MIP_LINEAR :
+                          D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+    else
+      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+                          D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR :
+                          D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
   }
-  else if (state.min_filter & 4)  // linear min filter
+  else
   {
-    if (state.mag_filter)  // linear mag filter
-    {
-      if (mip == TexMode0::TEXF_NONE)
-        sampdc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-      else if (mip == TexMode0::TEXF_POINT)
-        sampdc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-      else if (mip == TexMode0::TEXF_LINEAR)
-        sampdc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    }
-    else  // point mag filter
-    {
-      if (mip == TexMode0::TEXF_NONE)
-        sampdc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
-      else if (mip == TexMode0::TEXF_POINT)
-        sampdc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
-      else if (mip == TexMode0::TEXF_LINEAR)
-        sampdc.Filter = D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
-    }
-  }
-  else  // point min filter
-  {
-    if (state.mag_filter)  // linear mag filter
-    {
-      if (mip == TexMode0::TEXF_NONE)
-        sampdc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-      else if (mip == TexMode0::TEXF_POINT)
-        sampdc.Filter = D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
-      else if (mip == TexMode0::TEXF_LINEAR)
-        sampdc.Filter = D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
-    }
-    else  // point mag filter
-    {
-      if (mip == TexMode0::TEXF_NONE)
-        sampdc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-      else if (mip == TexMode0::TEXF_POINT)
-        sampdc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-      else if (mip == TexMode0::TEXF_LINEAR)
-        sampdc.Filter = D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
-    }
+    if (state.min_filter == SamplerState::Filter::Linear)
+      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+                          D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT :
+                          D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+    else
+      sampdc.Filter = (state.mag_filter == SamplerState::Filter::Linear) ?
+                          D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT :
+                          D3D11_FILTER_MIN_MAG_MIP_POINT;
   }
 
-  sampdc.AddressU = d3dClamps[state.wrap_s];
-  sampdc.AddressV = d3dClamps[state.wrap_t];
-
-  sampdc.MaxLOD = SamplerCommon::AreBpTexMode0MipmapsEnabled(state) ? state.max_lod / 16.f : 0.f;
-  sampdc.MinLOD = std::min(state.min_lod / 16.f, sampdc.MaxLOD);
+  static constexpr std::array<D3D11_TEXTURE_ADDRESS_MODE, 3> address_modes = {
+      {D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_MIRROR}};
+  sampdc.AddressU = address_modes[static_cast<u32>(state.wrap_u.Value())];
+  sampdc.AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
+  sampdc.MaxLOD = state.max_lod / 16.f;
+  sampdc.MinLOD = state.min_lod / 16.f;
   sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
 
-  ID3D11SamplerState* res = nullptr;
+  if (state.anisotropic_filtering)
+  {
+    sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
+    sampdc.MaxAnisotropy = 1u << g_ActiveConfig.iMaxAnisotropy;
+  }
 
+  ID3D11SamplerState* res = nullptr;
   HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
   if (FAILED(hr))
     PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
 
   D3D::SetDebugObjectName(res, "sampler state used to emulate the GX pipeline");
-  m_sampler.emplace(state.packed, res);
-
+  m_sampler.emplace(state.hex, res);
   return res;
 }
 
@@ -436,37 +401,38 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
   return res;
 }
 
-ID3D11RasterizerState* StateCache::Get(RasterizerState state)
+ID3D11RasterizerState* StateCache::Get(RasterizationState state)
 {
-  auto it = m_raster.find(state.packed);
-
+  auto it = m_raster.find(state.hex);
   if (it != m_raster.end())
     return it->second;
 
-  D3D11_RASTERIZER_DESC rastdc =
-      CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, state.cull_mode, false, 0, 0.f, 0,
-                             state.depth_clip_enable, true, false, false);
+  static constexpr std::array<D3D11_CULL_MODE, 4> cull_modes = {
+      {D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK}};
+
+  D3D11_RASTERIZER_DESC desc = {};
+  desc.FillMode = D3D11_FILL_SOLID;
+  desc.CullMode = cull_modes[state.cullmode];
+  desc.ScissorEnable = TRUE;
+  desc.DepthClipEnable = state.depth_clip_enable;
 
   ID3D11RasterizerState* res = nullptr;
-
-  HRESULT hr = D3D::device->CreateRasterizerState(&rastdc, &res);
+  HRESULT hr = D3D::device->CreateRasterizerState(&desc, &res);
   if (FAILED(hr))
     PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
 
   D3D::SetDebugObjectName(res, "rasterizer state used to emulate the GX pipeline");
-  m_raster.emplace(state.packed, res);
-
+  m_raster.emplace(state.hex, res);
   return res;
 }
 
-ID3D11DepthStencilState* StateCache::Get(ZMode state)
+ID3D11DepthStencilState* StateCache::Get(DepthState state)
 {
   // VR HUD always on Top option
   if (VertexShaderManager::m_layer_on_top)
     state.func = ZMode::ALWAYS;
 
   auto it = m_depth.find(state.hex);
-
   if (it != m_depth.end())
     return it->second;
 
@@ -479,6 +445,7 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
   depthdc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
   depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 
+  // Less/greater are swapped due to inverted depth.
   const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
       D3D11_COMPARISON_NEVER,         D3D11_COMPARISON_GREATER, D3D11_COMPARISON_EQUAL,
       D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
@@ -536,6 +503,14 @@ void StateCache::Clear()
     SAFE_RELEASE(it.second);
   }
   m_sampler.clear();
+}
+
+D3D11_PRIMITIVE_TOPOLOGY StateCache::GetPrimitiveTopology(PrimitiveType primitive)
+{
+  static constexpr std::array<D3D11_PRIMITIVE_TOPOLOGY, 4> primitives = {
+      {D3D11_PRIMITIVE_TOPOLOGY_POINTLIST, D3D11_PRIMITIVE_TOPOLOGY_LINELIST,
+       D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP}};
+  return primitives[static_cast<u32>(primitive)];
 }
 
 }  // namespace DX11

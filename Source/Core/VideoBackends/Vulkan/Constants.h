@@ -146,41 +146,12 @@ CONSTEXPR(u32, PUSH_CONSTANT_BUFFER_SIZE, 128);
 // Minimum number of draw calls per command buffer when attempting to preempt a readback operation.
 CONSTEXPR(u32, MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK, 10);
 
-// Rasterization state info
-union RasterizationState
+// Multisampling state info that we don't expose in VideoCommon.
+union MultisamplingState
 {
-  BitField<0, 2, VkCullModeFlags> cull_mode;
-  BitField<2, 7, VkSampleCountFlagBits> samples;
-  BitField<9, 1, VkBool32> per_sample_shading;
-  BitField<10, 1, VkBool32> depth_clamp;
-
-  u32 bits;
-};
-
-// Depth state info
-union DepthStencilState
-{
-  BitField<0, 1, VkBool32> test_enable;
-  BitField<1, 1, VkBool32> write_enable;
-  BitField<2, 3, VkCompareOp> compare_op;
-
-  u32 bits;
-};
-
-// Sampler info
-union SamplerState
-{
-  BitField<0, 1, VkFilter> min_filter;
-  BitField<1, 1, VkFilter> mag_filter;
-  BitField<2, 1, VkSamplerMipmapMode> mipmap_mode;
-  BitField<3, 2, VkSamplerAddressMode> wrap_u;
-  BitField<5, 2, VkSamplerAddressMode> wrap_v;
-  BitField<7, 8, u32> min_lod;
-  BitField<15, 8, u32> max_lod;
-  BitField<23, 8, s32> lod_bias;
-  BitField<31, 1, u32> enable_anisotropic_filtering;
-
-  u32 bits;
+  BitField<0, 5, u32> samples;             // 1-16
+  BitField<0, 1, u32> per_sample_shading;  // SSAA
+  u32 hex;
 };
 
 }  // namespace Vulkan

@@ -9,10 +9,54 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 
+enum class PrimitiveType : u32
+{
+  Points,
+  Lines,
+  Triangles,
+  TriangleStrip,
+};
+
+union RasterizationState
+{
+  void Generate(const BPMemory& bp, PrimitiveType primitive_type, bool depth_clip);
+
+  RasterizationState& operator=(const RasterizationState& rhs);
+
+  bool operator==(const RasterizationState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const RasterizationState& rhs) const { return hex != rhs.hex; }
+  bool operator<(const RasterizationState& rhs) const { return hex < rhs.hex; }
+  BitField<0, 2, GenMode::CullMode> cullmode;
+  BitField<2, 1, u32> depth_clip_enable;
+  BitField<3, 2, PrimitiveType> primitive;
+  u32 hex;
+};
+
+union DepthState
+{
+  void Generate(const BPMemory& bp);
+
+  DepthState& operator=(const DepthState& rhs);
+
+  bool operator==(const DepthState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const DepthState& rhs) const { return hex != rhs.hex; }
+  bool operator<(const DepthState& rhs) const { return hex < rhs.hex; }
+  BitField<0, 1, u32> testenable;
+  BitField<1, 1, u32> updateenable;
+  BitField<2, 3, ZMode::CompareMode> func;
+
+  u32 hex;
+};
+
 union BlendingState
 {
   void Generate(const BPMemory& bp);
 
+  BlendingState& operator=(const BlendingState& rhs);
+
+  bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const BlendingState& rhs) const { return hex != rhs.hex; }
+  bool operator<(const BlendingState& rhs) const { return hex < rhs.hex; }
   BitField<0, 1, u32> blendenable;
   BitField<1, 1, u32> logicopenable;
   BitField<2, 1, u32> dstalpha;
@@ -29,3 +73,47 @@ union BlendingState
 
   u32 hex;
 };
+
+union SamplerState
+{
+  enum class Filter : u32
+  {
+    Point,
+    Linear
+  };
+
+  enum class AddressMode : u32
+  {
+    Clamp,
+    Repeat,
+    MirroredRepeat
+  };
+
+  void Generate(const BPMemory& bp, u32 index);
+
+  SamplerState& operator=(const SamplerState& rhs);
+
+  bool operator==(const SamplerState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const SamplerState& rhs) const { return hex != rhs.hex; }
+  bool operator<(const SamplerState& rhs) const { return hex < rhs.hex; }
+  BitField<0, 1, Filter> min_filter;
+  BitField<1, 1, Filter> mag_filter;
+  BitField<2, 1, Filter> mipmap_filter;
+  BitField<3, 2, AddressMode> wrap_u;
+  BitField<5, 2, AddressMode> wrap_v;
+  BitField<7, 8, u32> min_lod;    // multiplied by 16
+  BitField<15, 8, u32> max_lod;   // multiplied by 16
+  BitField<23, 8, s32> lod_bias;  // multiplied by 32
+  BitField<31, 1, u32> anisotropic_filtering;
+
+  u32 hex;
+};
+
+namespace RenderState
+{
+RasterizationState GetNoCullRasterizationState();
+DepthState GetNoDepthTestingDepthStencilState();
+BlendingState GetNoBlendingBlendState();
+SamplerState GetPointSamplerState();
+SamplerState GetLinearSamplerState();
+}

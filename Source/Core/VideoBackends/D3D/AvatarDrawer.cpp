@@ -480,7 +480,7 @@ void AvatarDrawer::Init()
 
   // Create triangle geometry shader
   ShaderCode code;
-  code = GenerateAvatarGeometryShaderCode(PRIMITIVE_TRIANGLES, APIType::D3D, ShaderHostConfig::GetCurrent());
+  code = GenerateAvatarGeometryShaderCode(PrimitiveType::TriangleStrip, APIType::D3D, ShaderHostConfig::GetCurrent()); // TODO: check
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode))
   {
     ERROR_LOG(VR, "AvatarDrawer geometry shader failed to compile");
@@ -492,7 +492,7 @@ void AvatarDrawer::Init()
   D3D::SetDebugObjectName(m_geometry_shader, "AvatarDrawer geometry shader");
   bytecode->Release();
   // Create line geometry shader
-  code = GenerateAvatarGeometryShaderCode(PRIMITIVE_LINES, APIType::D3D, ShaderHostConfig::GetCurrent());
+  code = GenerateAvatarGeometryShaderCode(PrimitiveType::Lines, APIType::D3D, ShaderHostConfig::GetCurrent());
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode))
   {
     ERROR_LOG(VR, "AvatarDrawer geometry shader failed to compile");

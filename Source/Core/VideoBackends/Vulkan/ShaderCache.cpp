@@ -89,49 +89,61 @@ static bool IsStripPrimitiveTopology(VkPrimitiveTopology topology)
 static VkPipelineRasterizationStateCreateInfo
 GetVulkanRasterizationState(const RasterizationState& state)
 {
+  static constexpr std::array<VkCullModeFlags, 4> cull_modes = {
+      {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
+       VK_CULL_MODE_FRONT_AND_BACK}};
+
+  bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
+
   return {
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                  // const void*                               pNext
-      0,                        // VkPipelineRasterizationStateCreateFlags   flags
-      state.depth_clamp,        // VkBool32                                  depthClampEnable
-      VK_FALSE,                 // VkBool32                                  rasterizerDiscardEnable
-      VK_POLYGON_MODE_FILL,     // VkPolygonMode                             polygonMode
-      state.cull_mode,          // VkCullModeFlags                           cullMode
-      VK_FRONT_FACE_CLOCKWISE,  // VkFrontFace                               frontFace
-      VK_FALSE,                 // VkBool32                                  depthBiasEnable
-      0.0f,                     // float                                     depthBiasConstantFactor
-      0.0f,                     // float                                     depthBiasClamp
-      0.0f,                     // float                                     depthBiasSlopeFactor
-      1.0f                      // float                                     lineWidth
+      nullptr,               // const void*                               pNext
+      0,                     // VkPipelineRasterizationStateCreateFlags   flags
+      depth_clamp,           // VkBool32                                  depthClampEnable
+      VK_FALSE,              // VkBool32                                  rasterizerDiscardEnable
+      VK_POLYGON_MODE_FILL,  // VkPolygonMode                             polygonMode
+      cull_modes[state.cullmode],  // VkCullModeFlags                           cullMode
+      VK_FRONT_FACE_CLOCKWISE,     // VkFrontFace                               frontFace
+      VK_FALSE,                    // VkBool32                                  depthBiasEnable
+      0.0f,  // float                                     depthBiasConstantFactor
+      0.0f,  // float                                     depthBiasClamp
+      0.0f,  // float                                     depthBiasSlopeFactor
+      1.0f   // float                                     lineWidth
   };
 }
 
 static VkPipelineMultisampleStateCreateInfo
-GetVulkanMultisampleState(const RasterizationState& rs_state)
+GetVulkanMultisampleState(const MultisamplingState& state)
 {
   return {
       VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                      // const void*                              pNext
-      0,                            // VkPipelineMultisampleStateCreateFlags    flags
-      rs_state.samples,             // VkSampleCountFlagBits                    rasterizationSamples
-      rs_state.per_sample_shading,  // VkBool32                                 sampleShadingEnable
-      1.0f,                         // float                                    minSampleShading
-      nullptr,                      // const VkSampleMask*                      pSampleMask;
-      VK_FALSE,  // VkBool32                                 alphaToCoverageEnable
-      VK_FALSE   // VkBool32                                 alphaToOneEnable
+      nullptr,  // const void*                              pNext
+      0,        // VkPipelineMultisampleStateCreateFlags    flags
+      static_cast<VkSampleCountFlagBits>(
+          state.samples.Value()),  // VkSampleCountFlagBits                    rasterizationSamples
+      state.per_sample_shading,    // VkBool32                                 sampleShadingEnable
+      1.0f,                        // float                                    minSampleShading
+      nullptr,                     // const VkSampleMask*                      pSampleMask;
+      VK_FALSE,                    // VkBool32                                 alphaToCoverageEnable
+      VK_FALSE                     // VkBool32                                 alphaToOneEnable
   };
 }
 
-static VkPipelineDepthStencilStateCreateInfo
-GetVulkanDepthStencilState(const DepthStencilState& state)
+static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const DepthState& state)
 {
+  // Less/greater are swapped due to inverted depth.
+  static constexpr std::array<VkCompareOp, 8> funcs = {
+      {VK_COMPARE_OP_NEVER, VK_COMPARE_OP_GREATER, VK_COMPARE_OP_EQUAL,
+       VK_COMPARE_OP_GREATER_OR_EQUAL, VK_COMPARE_OP_LESS, VK_COMPARE_OP_NOT_EQUAL,
+       VK_COMPARE_OP_LESS_OR_EQUAL, VK_COMPARE_OP_ALWAYS}};
+
   return {
       VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,  // VkStructureType sType
       nullptr,             // const void*                               pNext
       0,                   // VkPipelineDepthStencilStateCreateFlags    flags
-      state.test_enable,   // VkBool32                                  depthTestEnable
-      state.write_enable,  // VkBool32                                  depthWriteEnable
-      state.compare_op,    // VkCompareOp                               depthCompareOp
+      state.testenable,    // VkBool32                                  depthTestEnable
+      state.updateenable,  // VkBool32                                  depthWriteEnable
+      funcs[state.func],   // VkCompareOp                               depthCompareOp
       VK_FALSE,            // VkBool32                                  depthBoundsTestEnable
       VK_FALSE,            // VkBool32                                  stencilTestEnable
       {},                  // VkStencilOpState                          front
@@ -256,13 +268,13 @@ VkPipeline ShaderCache::CreatePipeline(const PipelineInfo& info)
       info.vertex_format ? info.vertex_format->GetVertexInputStateInfo() : empty_vertex_input_state;
 
   // Input assembly
+  static constexpr std::array<VkPrimitiveTopology, 4> vk_primitive_topologies = {
+      {VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP}};
   VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                  // const void*                                pNext
-      0,                        // VkPipelineInputAssemblyStateCreateFlags    flags
-      info.primitive_topology,  // VkPrimitiveTopology                        topology
-      VK_FALSE                  // VkBool32                                   primitiveRestartEnable
-  };
+      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, nullptr, 0,
+      vk_primitive_topologies[static_cast<u32>(info.rasterization_state.primitive.Value())],
+      VK_FALSE};
 
   // See Vulkan spec, section 19:
   // If topology is VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
@@ -270,7 +282,7 @@ VkPipeline ShaderCache::CreatePipeline(const PipelineInfo& info)
   // VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY or VK_PRIMITIVE_TOPOLOGY_PATCH_LIST,
   // primitiveRestartEnable must be VK_FALSE
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart &&
-      IsStripPrimitiveTopology(info.primitive_topology))
+      IsStripPrimitiveTopology(input_assembly_state.topology))
   {
     input_assembly_state.primitiveRestartEnable = VK_TRUE;
   }
@@ -310,9 +322,9 @@ VkPipeline ShaderCache::CreatePipeline(const PipelineInfo& info)
   VkPipelineRasterizationStateCreateInfo rasterization_state =
       GetVulkanRasterizationState(info.rasterization_state);
   VkPipelineMultisampleStateCreateInfo multisample_state =
-      GetVulkanMultisampleState(info.rasterization_state);
+      GetVulkanMultisampleState(info.multisampling_state);
   VkPipelineDepthStencilStateCreateInfo depth_stencil_state =
-      GetVulkanDepthStencilState(info.depth_stencil_state);
+      GetVulkanDepthStencilState(info.depth_state);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
       GetVulkanAttachmentBlendState(info.blend_state);
   VkPipelineColorBlendStateCreateInfo blend_state =
@@ -965,18 +977,6 @@ std::string ShaderCache::GetUtilityShaderHeader() const
   return ss.str();
 }
 
-// Comparison operators for PipelineInfos
-// Since these all boil down to POD types, we can just memcmp the entire thing for speed
-// The is_trivially_copyable check fails on MSVC due to BitField.
-// TODO: Can we work around this any way?
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5 && !defined(_MSC_VER)
-static_assert(std::has_trivial_copy_constructor<PipelineInfo>::value,
-              "PipelineInfo is trivially copyable");
-#elif !defined(_MSC_VER)
-static_assert(std::is_trivially_copyable<PipelineInfo>::value,
-              "PipelineInfo is trivially copyable");
-#endif
-
 std::size_t PipelineInfoHash::operator()(const PipelineInfo& key) const
 {
   return static_cast<std::size_t>(XXH64(&key, sizeof(key), 0));
@@ -1000,26 +1000,6 @@ bool operator<(const PipelineInfo& lhs, const PipelineInfo& rhs)
 bool operator>(const PipelineInfo& lhs, const PipelineInfo& rhs)
 {
   return std::memcmp(&lhs, &rhs, sizeof(lhs)) > 0;
-}
-
-bool operator==(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return lhs.bits == rhs.bits;
-}
-
-bool operator!=(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return !operator==(lhs, rhs);
-}
-
-bool operator>(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return lhs.bits > rhs.bits;
-}
-
-bool operator<(const SamplerState& lhs, const SamplerState& rhs)
-{
-  return lhs.bits < rhs.bits;
 }
 
 std::size_t ComputePipelineInfoHash::operator()(const ComputePipelineInfo& key) const
@@ -1198,23 +1178,12 @@ void ShaderCache::CreateDummyPipeline(const UberShader::VertexShaderUid& vuid,
                  VK_NULL_HANDLE;
   pinfo.ps = GetPixelUberShaderForUid(puid);
   pinfo.render_pass = FramebufferManager::GetInstance()->GetEFBLoadRenderPass();
-  pinfo.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
-  pinfo.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
-  pinfo.blend_state.hex = Util::GetNoBlendingBlendState().hex;
-  switch (guid.GetUidData()->primitive_type)
-  {
-  case PRIMITIVE_POINTS:
-    pinfo.primitive_topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
-    break;
-  case PRIMITIVE_LINES:
-    pinfo.primitive_topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
-    break;
-  case PRIMITIVE_TRIANGLES:
-    pinfo.primitive_topology = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
-                                   VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP :
-                                   VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    break;
-  }
+  pinfo.rasterization_state.hex = RenderState::GetNoCullRasterizationState().hex;
+  pinfo.depth_state.hex = RenderState::GetNoDepthTestingDepthStencilState().hex;
+  pinfo.blend_state.hex = RenderState::GetNoBlendingBlendState().hex;
+  pinfo.multisampling_state.hex = FramebufferManager::GetInstance()->GetEFBMultisamplingState().hex;
+  pinfo.rasterization_state.primitive =
+      static_cast<PrimitiveType>(guid.GetUidData()->primitive_type);
   GetPipelineWithCacheResultAsync(pinfo);
 }
 

@@ -38,10 +38,6 @@ VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height);
 // Map {SRC,DST}_COLOR to {SRC,DST}_ALPHA
 VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor);
 
-RasterizationState GetNoCullRasterizationState();
-DepthStencilState GetNoDepthTestingDepthStencilState();
-BlendingState GetNoBlendingBlendState();
-
 // Combines viewport and scissor updates
 void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height,
                            float min_depth = 0.0f, float max_depth = 1.0f);
@@ -131,12 +127,13 @@ class UtilityShaderDraw
 public:
   UtilityShaderDraw(VkCommandBuffer command_buffer, VkPipelineLayout pipeline_layout,
                     VkRenderPass render_pass, VkShaderModule vertex_shader,
-                    VkShaderModule geometry_shader, VkShaderModule pixel_shader);
+                    VkShaderModule geometry_shader, VkShaderModule pixel_shader,
+                    PrimitiveType primitive = PrimitiveType::TriangleStrip);
 
-  UtilityShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
+  UtilityShaderVertex* ReserveVertices(size_t count);
   void CommitVertices(size_t count);
 
-  void UploadVertices(VkPrimitiveTopology topology, UtilityShaderVertex* vertices, size_t count);
+  void UploadVertices(UtilityShaderVertex* vertices, size_t count);
 
   u8* AllocateVSUniforms(size_t size);
   void CommitVSUniforms(size_t size);
@@ -151,7 +148,8 @@ public:
   void SetPSTexelBuffer(VkBufferView view);
 
   void SetRasterizationState(const RasterizationState& state);
-  void SetDepthStencilState(const DepthStencilState& state);
+  void SetMultisamplingState(const MultisamplingState& state);
+  void SetDepthState(const DepthState& state);
   void SetBlendState(const BlendingState& state);
 
   void BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region,
@@ -177,7 +175,7 @@ public:
 
   // Draw without a vertex buffer. Assumes viewport has been initialized separately.
   void SetViewportAndScissor(int x, int y, int width, int height);
-  void DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology, u32 vertex_count);
+  void DrawWithoutVertexBuffer(u32 vertex_count);
 
 private:
   void BindVertexBuffer();
