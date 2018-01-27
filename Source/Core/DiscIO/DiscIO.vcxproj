@@ -49,7 +49,6 @@
     <ClCompile Include="FileBlob.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
-    <ClCompile Include="NANDContentLoader.cpp" />
     <ClCompile Include="NANDImporter.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
     <ClCompile Include="Volume.cpp" />
@@ -72,7 +71,6 @@
     <ClInclude Include="FileBlob.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
-    <ClInclude Include="NANDContentLoader.h" />
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="TGCBlob.h" />
     <ClInclude Include="Volume.h" />

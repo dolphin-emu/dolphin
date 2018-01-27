@@ -73,6 +73,11 @@ std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)
       .metavar("<file>")
       .type("string")
       .help("Load the specified file");
+  parser->add_option("-n", "--nand_title")
+      .action("store")
+      .metavar("<16-character ASCII title ID>")
+      .type("string")
+      .help("Launch a NAND title");
   parser->add_option("-C", "--config")
       .action("append")
       .metavar("<System>.<Section>.<Key>=<Value>")

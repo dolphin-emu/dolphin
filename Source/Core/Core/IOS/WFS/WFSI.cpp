@@ -19,7 +19,6 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/WFS/WFSSRV.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace
 {
@@ -157,7 +156,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     Memory::CopyFromEmu(tmd_bytes.data(), tmd_addr, tmd_size);
     m_tmd.SetBytes(std::move(tmd_bytes));
 
-    IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_tmd.GetTitleId());
+    IOS::ES::TicketReader ticket = m_ios.GetES()->FindSignedTicket(m_tmd.GetTitleId());
     if (!ticket.IsValid())
     {
       return_error_code = -11028;

@@ -54,7 +54,6 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 
 BootParameters::BootParameters(Parameters&& parameters_) : parameters(std::move(parameters_))
@@ -108,8 +107,8 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(const std::stri
   if (extension == ".dff")
     return std::make_unique<BootParameters>(DFF{path});
 
-  if (DiscIO::NANDContentManager::Access().GetNANDLoader(path).IsValid())
-    return std::make_unique<BootParameters>(NAND{path});
+  if (extension == ".wad")
+    return std::make_unique<BootParameters>(DiscIO::WiiWAD{path});
 
   PanicAlertT("Could not recognize file %s", path.c_str());
   return {};
@@ -347,7 +346,8 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
         HID4.SBE = 1;
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
-        SetupWiiMemory(0x000000010000003a);
+        SetupWiiMemory();
+        IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
       }
       else
       {
@@ -364,11 +364,16 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
       return true;
     }
 
-    bool operator()(const BootParameters::NAND& nand) const
+    bool operator()(const DiscIO::WiiWAD& wad) const
     {
-      NOTICE_LOG(BOOT, "Booting from NAND: %s", nand.content_path.c_str());
       SetDefaultDisc();
-      return Boot_WiiWAD(nand.content_path);
+      return Boot_WiiWAD(wad);
+    }
+
+    bool operator()(const BootParameters::NANDTitle& nand_title) const
+    {
+      SetDefaultDisc();
+      return BootNANDTitle(nand_title.id);
     }
 
     bool operator()(const BootParameters::IPL& ipl) const

@@ -39,6 +39,7 @@
 
 #include "Core/ARBruteForcer.h"
 #include "Core/Analytics.h"
+#include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -176,13 +177,24 @@ void DolphinApp::ParseCommandLine()
 
   if (options.is_set("exec"))
   {
-    m_load_file = true;
-    m_file_to_load = static_cast<const char*>(options.get("exec"));
+    m_boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
+  }
+  else if (options.is_set("nand_title"))
+  {
+    const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
+    if (hex_string.length() == 16)
+    {
+      const u64 title_id = std::stoull(hex_string, nullptr, 16);
+      m_boot = std::make_unique<BootParameters>(BootParameters::NANDTitle{title_id});
+    }
+    else
+    {
+      WxUtils::ShowErrorDialog(_("The title ID is invalid."));
+    }
   }
   else if (args.size())
   {
-    m_load_file = true;
-    m_file_to_load = args.front();
+    m_boot = BootParameters::GenerateFromFile(args.front());
     args.erase(args.begin());
   }
 
@@ -239,9 +251,7 @@ void DolphinApp::ParseCommandLine()
 #ifdef __APPLE__
 void DolphinApp::MacOpenFile(const wxString& fileName)
 {
-  m_file_to_load = fileName;
-  m_load_file = true;
-  main_frame->BootGame(WxStrToStr(m_file_to_load));
+  main_frame->StartGame(BootParameters::GenerateFromFile(fileName.ToStdString()));
 }
 #endif
 
@@ -279,20 +289,16 @@ void DolphinApp::AfterInit()
   {
     if (Movie::PlayInput(WxStrToStr(m_movie_file)))
     {
-      if (m_load_file && !m_file_to_load.empty())
-      {
-        main_frame->BootGame(WxStrToStr(m_file_to_load));
-      }
+      if (m_boot)
+        main_frame->StartGame(std::move(m_boot));
       else
-      {
         main_frame->BootGame("");
-      }
     }
   }
   // First check if we have an exec command line.
-  else if (m_load_file && !m_file_to_load.empty())
+  else if (m_boot)
   {
-    main_frame->BootGame(WxStrToStr(m_file_to_load));
+    main_frame->StartGame(std::move(m_boot));
   }
   // If we have selected Automatic Start, start the default ISO,
   // or if no default ISO exists, start the last loaded ISO

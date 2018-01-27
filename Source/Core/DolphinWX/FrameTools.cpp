@@ -64,7 +64,6 @@
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/VolumeWad.h"
 
@@ -682,6 +681,7 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
   if (m_is_game_loading)
     return;
   m_is_game_loading = true;
+  wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 
   GetToolBar()->EnableTool(IDM_PLAY, false);
   GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
@@ -1027,6 +1027,7 @@ void CFrame::OnStopped()
   m_confirm_stop = false;
   m_is_game_loading = false;
   m_tried_graceful_shutdown = false;
+  wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 
   UninhibitScreensaver();
 
@@ -1261,11 +1262,6 @@ void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
   event.Check(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
 }
 
-void CFrame::OnUpdateLoadWiiMenuItem(wxCommandEvent& WXUNUSED(event))
-{
-  UpdateLoadWiiMenuItem();
-}
-
 void CFrame::ClearStatusBar()
 {
   if (this->GetStatusBar()->IsEnabled())
@@ -1355,7 +1351,7 @@ void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED(event))
 {
-  BootGame(Common::GetTitleContentPath(Titles::SYSTEM_MENU, Common::FROM_CONFIGURED_ROOT));
+  StartGame(std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU}));
 }
 
 void CFrame::OnInstallWAD(wxCommandEvent& event)
@@ -1390,7 +1386,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
                               wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
   if (WiiUtils::InstallWAD(fileName))
-    UpdateLoadWiiMenuItem();
+    wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
 void CFrame::OnUninstallWAD(wxCommandEvent&)
@@ -1414,7 +1410,7 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
   }
 
   if (title_id == Titles::SYSTEM_MENU)
-    UpdateLoadWiiMenuItem();
+    wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
 void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
@@ -1436,7 +1432,7 @@ void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
   wxProgressDialog dialog(_("Importing NAND backup"), _("Working..."), 100, this,
                           wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
   DiscIO::NANDImporter().ImportNANDBin(file_name, [&dialog] { dialog.Pulse(); });
-  UpdateLoadWiiMenuItem();
+  wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
 void CFrame::OnCheckNAND(wxCommandEvent&)
@@ -1592,7 +1588,7 @@ void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
 
   const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoOnlineUpdate, region);
   ShowUpdateResult(result);
-  UpdateLoadWiiMenuItem();
+  wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
 void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
@@ -1605,12 +1601,7 @@ void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
 
   const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoDiscUpdate, file_name);
   ShowUpdateResult(result);
-  UpdateLoadWiiMenuItem();
-}
-
-void CFrame::UpdateLoadWiiMenuItem() const
-{
-  GetMenuBar()->Refresh(true, nullptr);
+  wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 }
 
 void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))

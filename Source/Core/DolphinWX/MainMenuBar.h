@@ -44,6 +44,7 @@ public:
 
   // private:
   void OnPopulatePerspectivesMenu(PopulatePerspectivesEvent&);
+  void OnUpdateWiiMenuTool(wxCommandEvent&);
 
   void RefreshMenuLabels() const;
   void RefreshPlayMenuLabel() const;

@@ -515,7 +515,6 @@ void CFrame::BindEvents()
   Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
   Bind(DOLPHIN_EVT_REFRESH_GAMELIST, &CFrame::OnRefreshGameList, this);
   Bind(DOLPHIN_EVT_RESCAN_GAMELIST, &CFrame::OnRescanGameList, this);
-  Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
   Bind(DOLPHIN_EVT_BOOT_SOFTWARE, &CFrame::OnPlay, this);
   Bind(DOLPHIN_EVT_STOP_SOFTWARE, &CFrame::OnStop, this);
 }

@@ -22,7 +22,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/ec_wii.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -160,8 +159,8 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   if (!InitImport(context.title_import_export.tmd.GetTitleId()))
     return ES_EIO;
 
-  ret = InitBackupKey(GetTitleContext().tmd, m_ios.GetIOSC(),
-                      &context.title_import_export.key_handle);
+  ret =
+      InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
@@ -220,7 +219,7 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   if (ret != IPC_SUCCESS)
     return ret;
 
-  const auto ticket = DiscIO::FindSignedTicket(context.title_import_export.tmd.GetTitleId());
+  const auto ticket = FindSignedTicket(context.title_import_export.tmd.GetTitleId());
   if (!ticket.IsValid())
     return ES_NO_TICKET;
 
@@ -506,8 +505,6 @@ ReturnCode ES::DeleteTitle(u64 title_id)
     ERROR_LOG(IOS_ES, "DeleteTitle: Failed to delete title directory: %s", title_dir.c_str());
     return FS_EACCESS;
   }
-  // XXX: ugly, but until we drop NANDContentManager everywhere, this is going to be needed.
-  DiscIO::NANDContentManager::Access().ClearCache();
 
   return IPC_SUCCESS;
 }
@@ -528,7 +525,7 @@ ReturnCode ES::DeleteTicket(const u8* ticket_view)
   if (!CanDeleteTitle(title_id))
     return ES_EINVAL;
 
-  auto ticket = DiscIO::FindSignedTicket(title_id);
+  auto ticket = FindSignedTicket(title_id);
   if (!ticket.IsValid())
     return FS_ENOENT;
 
@@ -639,8 +636,8 @@ ReturnCode ES::ExportTitleInit(Context& context, u64 title_id, u8* tmd_bytes, u3
   ResetTitleImportContext(&context, m_ios.GetIOSC());
   context.title_import_export.tmd = tmd;
 
-  const ReturnCode ret = InitBackupKey(GetTitleContext().tmd, m_ios.GetIOSC(),
-                                       &context.title_import_export.key_handle);
+  const ReturnCode ret =
+      InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
     return ret;
 
