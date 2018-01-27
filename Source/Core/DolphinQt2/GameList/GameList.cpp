@@ -417,7 +417,8 @@ void GameList::DeleteFile()
 
 void GameList::ChangeDisc()
 {
-  DVDInterface::ChangeDiscAsHost(GetSelectedGame()->GetFilePath().toStdString());
+  Core::RunAsCPUThread(
+      [this] { DVDInterface::ChangeDisc(GetSelectedGame()->GetFilePath().toStdString()); });
 }
 
 QSharedPointer<GameFile> GameList::GetSelectedGame() const

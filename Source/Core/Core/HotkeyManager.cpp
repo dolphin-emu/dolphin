@@ -21,7 +21,10 @@
 
 // clang-format off
 const std::string hotkey_labels[] = {
-    _trans("Open"), _trans("Change Disc"), _trans("Refresh List"),
+    _trans("Open"),
+    _trans("Change Disc"),
+    _trans("Eject Disc"),
+    _trans("Refresh List"),
     _trans("Toggle Pause"),
     _trans("Stop"),
     _trans("Reset"),

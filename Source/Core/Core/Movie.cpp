@@ -1225,7 +1225,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     }
     if (found)
     {
-      DVDInterface::ChangeDiscAsCPU(path);
+      Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(path); });
     }
     else
     {

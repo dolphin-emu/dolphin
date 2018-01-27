@@ -19,7 +19,6 @@
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
@@ -451,10 +450,6 @@ bool IsDiscInside()
   return DVDThread::HasDisc();
 }
 
-// Take care of all logic of "swapping discs"
-// We want this in the "backend", NOT the gui
-// any !empty string will be deleted to ensure
-// that the userdata string exists when called
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
   SetDisc(nullptr);
@@ -473,14 +468,14 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
   s_disc_path_to_insert.clear();
 }
 
-// Can only be called by the host thread
-void ChangeDiscAsHost(const std::string& new_path)
+// Must only be called on the CPU thread
+void EjectDisc()
 {
-  Core::RunAsCPUThread([&] { ChangeDiscAsCPU(new_path); });
+  CoreTiming::ScheduleEvent(0, s_eject_disc);
 }
 
-// Can only be called by the CPU thread
-void ChangeDiscAsCPU(const std::string& new_path)
+// Must only be called on the CPU thread
+void ChangeDisc(const std::string& new_path)
 {
   if (!s_disc_path_to_insert.empty())
   {
@@ -488,10 +483,10 @@ void ChangeDiscAsCPU(const std::string& new_path)
     return;
   }
 
-  s_disc_path_to_insert = new_path;
-  CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
+  EjectDisc();
 
+  s_disc_path_to_insert = new_path;
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
   Movie::SignalDiscChange(new_path);
 }
 
