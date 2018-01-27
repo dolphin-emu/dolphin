@@ -218,16 +218,14 @@ void XAudio2::SetVolume(int volume)
     m_mastering_voice->SetVolume(m_volume);
 }
 
-void XAudio2::Clear(bool mute)
+void XAudio2::SetRunning(bool running)
 {
-  m_muted = mute;
-
   if (m_voice_context)
   {
-    if (m_muted)
-      m_voice_context->Stop();
-    else
+    if (running)
       m_voice_context->Play();
+    else
+      m_voice_context->Stop();
   }
 }
 

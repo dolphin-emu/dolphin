@@ -40,11 +40,6 @@ void NullSound::Update()
   m_mixer->Mix(m_realtime_buffer.data(), (unsigned int)num_samples_to_render);
 }
 
-void NullSound::Clear(bool mute)
-{
-  m_muted = mute;
-}
-
 void NullSound::Stop()
 {
 }
