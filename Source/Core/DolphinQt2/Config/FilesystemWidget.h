@@ -30,6 +30,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void PopulateView();
+  void PopulateDirectory(int partition_id, QStandardItem* root, const DiscIO::Partition& partition);
   void PopulateDirectory(int partition_id, QStandardItem* root, const DiscIO::FileInfo& directory);
 
   void ShowContextMenu(const QPoint&);
