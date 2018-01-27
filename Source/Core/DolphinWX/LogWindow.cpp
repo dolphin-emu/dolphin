@@ -70,9 +70,9 @@ void CLogWindow::CreateGUIControls()
   // Font
   m_FontChoice = new wxChoice(this, wxID_ANY);
   m_FontChoice->Bind(wxEVT_CHOICE, &CLogWindow::OnFontChange, this);
-  m_FontChoice->Append(_("Default font"));
-  m_FontChoice->Append(_("Monospaced font"));
-  m_FontChoice->Append(_("Selected font"));
+  m_FontChoice->Append(_("Default Font"));
+  m_FontChoice->Append(_("Monospaced Font"));
+  m_FontChoice->Append(_("Selected Font"));
 
   DefaultFont = GetFont();
   MonoSpaceFont.SetFamily(wxFONTFAMILY_TELETYPE);
