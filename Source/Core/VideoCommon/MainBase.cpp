@@ -197,7 +197,6 @@ void VideoBackendBase::InitializeShared()
 
   g_Config.Refresh();
   g_Config.UpdateProjectionHack();
-  g_Config.VerifyValidity();
   UpdateActiveConfig();
 }
 
