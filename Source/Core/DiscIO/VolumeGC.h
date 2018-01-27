@@ -81,6 +81,9 @@ private:
 
   struct ConvertedGCBanner
   {
+    ConvertedGCBanner();
+    ~ConvertedGCBanner();
+
     std::map<Language, std::string> short_names;
     std::map<Language, std::string> long_names;
     std::map<Language, std::string> short_makers;

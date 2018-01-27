@@ -281,6 +281,8 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   return banner;
 }
 
+VolumeGC::ConvertedGCBanner::ConvertedGCBanner() = default;
+VolumeGC::ConvertedGCBanner::~ConvertedGCBanner() = default;
 }  // namespace
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
