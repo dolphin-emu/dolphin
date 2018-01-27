@@ -92,7 +92,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
   if (func.name.empty())
-    func.Rename(StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFFF));
+    func.Rename(StringFromFormat("zz_%08x_", startAddr));
   if (func.analyzed)
     return true;  // No error, just already did it.
 
