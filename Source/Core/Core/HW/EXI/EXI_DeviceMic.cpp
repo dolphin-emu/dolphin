@@ -80,7 +80,7 @@ void CEXIMic::StreamStart()
   params.layout = CUBEB_LAYOUT_MONO;
 
   u32 minimum_latency;
-  if (cubeb_get_min_latency(m_cubeb_ctx.get(), params, &minimum_latency) != CUBEB_OK)
+  if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
   {
     WARN_LOG(EXPANSIONINTERFACE, "Error getting minimum latency");
   }

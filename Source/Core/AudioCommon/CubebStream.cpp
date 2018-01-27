@@ -56,7 +56,7 @@ bool CubebStream::Start()
   }
 
   u32 minimum_latency = 0;
-  if (cubeb_get_min_latency(m_ctx.get(), params, &minimum_latency) != CUBEB_OK)
+  if (cubeb_get_min_latency(m_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
     ERROR_LOG(AUDIO, "Error getting minimum latency");
   INFO_LOG(AUDIO, "Minimum latency: %i frames", minimum_latency);
 
