@@ -301,7 +301,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
   sampdc.AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
   sampdc.MaxLOD = state.max_lod / 16.f;
   sampdc.MinLOD = state.min_lod / 16.f;
-  sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
+  sampdc.MipLODBias = (s32)state.lod_bias / 256.f;
 
   if (state.anisotropic_filtering)
   {

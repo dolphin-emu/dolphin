@@ -81,7 +81,9 @@ public:
     bool is_efb_copy;
     bool is_custom_tex;
     bool may_have_overlapping_textures = true;
-    bool tmem_only = false;  // indicates that this texture only exists in the tmem cache
+    bool tmem_only = false;           // indicates that this texture only exists in the tmem cache
+    bool has_arbitrary_mips = false;  // indicates that the mips in this texture are arbitrary
+                                      // content, aren't just downscaled
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -224,7 +226,7 @@ private:
   TCacheEntry* DoPartialTextureUpdates(TCacheEntry* entry_to_update, u8* palette,
                                        TLUTFormat tlutfmt);
 
-  void DumpTexture(TCacheEntry* entry, std::string basename, unsigned int level);
+  void DumpTexture(TCacheEntry* entry, std::string basename, unsigned int level, bool is_arbitrary);
   void CheckTempSize(size_t required_size);
 
   TCacheEntry* AllocateCacheEntry(const TextureConfig& config);

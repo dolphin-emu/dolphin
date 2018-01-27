@@ -213,7 +213,7 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
-static void SetSamplerState(u32 index, bool custom_tex)
+static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
 {
   const FourTexUnits& tex = bpmem.tex[index / 4];
   const TexMode0& tm0 = tex.texMode0[index % 4];
@@ -253,6 +253,18 @@ static void SetSamplerState(u32 index, bool custom_tex)
   }
   else
   {
+    state.anisotropic_filtering = 0;
+  }
+
+  if (has_arbitrary_mips && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
+  {
+    // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
+    // that have arbitrary contents, eg. are used for fog effects where the
+    // distance they kick in at is important to preserve at any resolution.
+    state.lod_bias =
+        state.lod_bias + std::log2(static_cast<float>(g_ActiveConfig.iEFBScale)) * 256.f;
+
+    // Anisotropic also pushes mips farther away so it cannot be used either
     state.anisotropic_filtering = 0;
   }
 
@@ -327,7 +339,7 @@ void VertexManagerBase::Flush()
 
       if (tentry)
       {
-        SetSamplerState(i, tentry->is_custom_tex);
+        SetSamplerState(i, tentry->is_custom_tex, tentry->has_arbitrary_mips);
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else

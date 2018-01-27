@@ -76,13 +76,15 @@ union BlendingState
 
 union SamplerState
 {
-  enum class Filter : u32
+  using StorageType = u64;
+
+  enum class Filter : StorageType
   {
     Point,
     Linear
   };
 
-  enum class AddressMode : u32
+  enum class AddressMode : StorageType
   {
     Clamp,
     Repeat,
@@ -101,12 +103,12 @@ union SamplerState
   BitField<2, 1, Filter> mipmap_filter;
   BitField<3, 2, AddressMode> wrap_u;
   BitField<5, 2, AddressMode> wrap_v;
-  BitField<7, 8, u32> min_lod;    // multiplied by 16
-  BitField<15, 8, u32> max_lod;   // multiplied by 16
-  BitField<23, 8, s32> lod_bias;  // multiplied by 32
-  BitField<31, 1, u32> anisotropic_filtering;
+  BitField<7, 16, s64> lod_bias;  // multiplied by 256
+  BitField<23, 8, u64> min_lod;   // multiplied by 16
+  BitField<31, 8, u64> max_lod;   // multiplied by 16
+  BitField<39, 1, u64> anisotropic_filtering;
 
-  u32 hex;
+  StorageType hex;
 };
 
 namespace RenderState
