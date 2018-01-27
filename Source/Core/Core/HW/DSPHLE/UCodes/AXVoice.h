@@ -13,6 +13,7 @@
 #endif
 
 #include <functional>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -163,21 +164,69 @@ void DumpPB(const PB_TYPE& pb)
 #endif
 
 // Simulated accelerator state.
-static u32 acc_loop_addr, acc_end_addr;
-static u32* acc_cur_addr;
 static PB_TYPE* acc_pb;
 static bool acc_end_reached;
 
+class HLEAccelerator final : public Accelerator
+{
+protected:
+  void OnEndException() override
+  {
+    if (acc_pb->audio_addr.looping)
+    {
+      // Set the ADPCM info to continue processing at loop_addr.
+      SetPredScale(acc_pb->adpcm_loop_info.pred_scale);
+      acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
+      acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
+      if (acc_pb->is_stream)
+      {
+        SetYn1(acc_pb->adpcm_loop_info.yn1);
+        SetYn2(acc_pb->adpcm_loop_info.yn2);
+      }
+      else
+      {
+        // Refresh YN1 and YN2. This indirectly causes the accelerator to resume reads.
+        SetYn1(GetYn1());
+        SetYn2(GetYn2());
+#ifdef AX_GC
+        // If we're streaming, increment the loop counter.
+        acc_pb->loop_counter++;
+#endif
+      }
+    }
+    else
+    {
+      // Non looping voice reached the end -> running = 0.
+      acc_pb->running = 0;
+
+#ifdef AX_WII
+      // One of the few meaningful differences between AXGC and AXWii:
+      // while AXGC handles non looping voices ending by relying on the
+      // accelerator to stop reads once the loop address is reached,
+      // AXWii has the 0000 samples internally in DRAM and use an internal
+      // pointer to it (loop addr does not contain 0000 samples on AXWii!).
+      acc_end_reached = true;
+#endif
+    }
+  }
+
+  u8 ReadMemory(u32 address) override { return ReadARAM(address); }
+  void WriteMemory(u32 address, u8 value) override { WriteARAM(value, address); }
+};
+
+static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();
+
 // Sets up the simulated accelerator.
-void AcceleratorSetup(PB_TYPE* pb, u32* cur_addr)
+void AcceleratorSetup(PB_TYPE* pb)
 {
   acc_pb = pb;
-  // Masking occurs for the start and end addresses as soon as the registers are written to.
-  acc_loop_addr = HILO_TO_32(pb->audio_addr.loop_addr) & 0x3fffffff;
-  acc_end_addr = HILO_TO_32(pb->audio_addr.end_addr) & 0x3fffffff;
-  acc_cur_addr = cur_addr;
-  // It also happens for the current address, but with a different mask.
-  *acc_cur_addr &= 0xbfffffff;
+  s_accelerator->SetStartAddress(HILO_TO_32(pb->audio_addr.loop_addr));
+  s_accelerator->SetEndAddress(HILO_TO_32(pb->audio_addr.end_addr));
+  s_accelerator->SetCurrentAddress(HILO_TO_32(pb->audio_addr.cur_addr));
+  s_accelerator->SetSampleFormat(pb->audio_addr.sample_format);
+  s_accelerator->SetYn1(pb->adpcm.yn1);
+  s_accelerator->SetYn2(pb->adpcm.yn2);
+  s_accelerator->SetPredScale(pb->adpcm.pred_scale);
   acc_end_reached = false;
 }
 
@@ -190,57 +239,7 @@ u16 AcceleratorGetSample()
   if (acc_end_reached)
     return 0;
 
-  auto end_address_reached = [] {
-    // loop back to loop_addr.
-    *acc_cur_addr = acc_loop_addr;
-
-    if (acc_pb->audio_addr.looping)
-    {
-      // Set the ADPCM info to continue processing at loop_addr.
-      //
-      // For some reason, yn1 and yn2 aren't set if the voice is not of
-      // stream type. This is what the AX UCode does and I don't really
-      // know why.
-      acc_pb->adpcm.pred_scale = acc_pb->adpcm_loop_info.pred_scale;
-      acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
-      acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
-      if (acc_pb->is_stream)
-      {
-        // HORRIBLE HACK: this behavior changed between versions at some point; needs some sort
-        // of branch. delroth says anyone who submits this code as a serious PR will be banned
-        // from Dolphin.
-        // needed for RS2
-        acc_pb->lpf.enabled += 1;
-        // needed for RS3
-        acc_pb->padding[0] += 1;
-      }
-#ifdef AX_GC
-      else
-      {
-        // If we're streaming, increment the loop counter.
-        acc_pb->loop_counter++;
-      }
-#endif
-    }
-    else
-    {
-      // Non looping voice reached the end -> running = 0.
-      acc_pb->running = 0;
-
-#ifdef AX_WII
-      // One of the few meaningful differences between AXGC and AXWii:
-      // while AXGC handles non looping voices ending by having 0000
-      // samples at the loop address, AXWii has the 0000 samples
-      // internally in DRAM and use an internal pointer to it (loop addr
-      // does not contain 0000 samples on AXWii!).
-      acc_end_reached = true;
-#endif
-    }
-  };
-
-  return ReadAccelerator(acc_loop_addr, acc_end_addr, acc_cur_addr,
-                         acc_pb->audio_addr.sample_format, &acc_pb->adpcm.yn1, &acc_pb->adpcm.yn2,
-                         &acc_pb->adpcm.pred_scale, acc_pb->adpcm.coefs, end_address_reached);
+  return s_accelerator->Read(acc_pb->adpcm.coefs);
 }
 
 // Reads samples from the input callback, resamples them to <count> samples at
@@ -382,8 +381,7 @@ u32 ResampleAudio(std::function<s16(u32)> input_callback, s16* output, u32 count
 // if required.
 void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
 {
-  u32 cur_addr = HILO_TO_32(pb.audio_addr.cur_addr);
-  AcceleratorSetup(&pb, &cur_addr);
+  AcceleratorSetup(&pb);
 
   if (coeffs)
     coeffs += pb.coef_select * 0x200;
@@ -392,9 +390,12 @@ void GetInputSamples(PB_TYPE& pb, s16* samples, u16 count, const s16* coeffs)
                     pb.src.cur_addr_frac, HILO_TO_32(pb.src.ratio), pb.src_type, coeffs);
   pb.src.cur_addr_frac = (curr_pos & 0xFFFF);
 
-  // Update current position in the PB.
-  pb.audio_addr.cur_addr_hi = static_cast<u16>(cur_addr >> 16) & 0xbfff;
-  pb.audio_addr.cur_addr_lo = static_cast<u16>(cur_addr);
+  // Update current position, YN1, YN2 and pred scale in the PB.
+  pb.audio_addr.cur_addr_hi = static_cast<u16>(s_accelerator->GetCurrentAddress() >> 16);
+  pb.audio_addr.cur_addr_lo = static_cast<u16>(s_accelerator->GetCurrentAddress());
+  pb.adpcm.yn1 = s_accelerator->GetYn1();
+  pb.adpcm.yn2 = s_accelerator->GetYn2();
+  pb.adpcm.pred_scale = s_accelerator->GetPredScale();
 }
 
 // Add samples to an output buffer, with optional volume ramping.
