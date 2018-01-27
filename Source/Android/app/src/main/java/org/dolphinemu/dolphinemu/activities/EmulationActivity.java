@@ -41,6 +41,7 @@ import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
@@ -298,7 +299,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-		mIsGameCubeGame = (NativeLibrary.GetPlatform(path) == 0);
+		mIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
 	}
 
 	@Override

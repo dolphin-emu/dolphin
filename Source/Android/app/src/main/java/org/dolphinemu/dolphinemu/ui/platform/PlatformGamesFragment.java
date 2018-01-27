@@ -22,12 +22,12 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 	private GameAdapter mAdapter;
 	private RecyclerView mRecyclerView;
 
-	public static PlatformGamesFragment newInstance(int platform)
+	public static PlatformGamesFragment newInstance(Platform platform)
 	{
 		PlatformGamesFragment fragment = new PlatformGamesFragment();
 
 		Bundle args = new Bundle();
-		args.putInt(ARG_PLATFORM, platform);
+		args.putSerializable(ARG_PLATFORM, platform);
 
 		fragment.setArguments(args);
 		return fragment;
@@ -38,7 +38,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 	{
 		super.onCreate(savedInstanceState);
 
-		mPresenter.onCreate(getArguments().getInt(ARG_PLATFORM));
+		mPresenter.onCreate((Platform) getArguments().getSerializable(ARG_PLATFORM));
 	}
 
 	@Nullable

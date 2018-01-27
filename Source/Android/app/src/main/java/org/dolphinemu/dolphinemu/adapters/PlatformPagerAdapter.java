@@ -10,6 +10,7 @@ import android.text.SpannableString;
 import android.text.style.ImageSpan;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesFragment;
 
 public class PlatformPagerAdapter extends FragmentPagerAdapter
@@ -32,7 +33,7 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
 	@Override
 	public Fragment getItem(int position)
 	{
-		return PlatformGamesFragment.newInstance(position);
+		return PlatformGamesFragment.newInstance(Platform.fromPosition(position));
 	}
 
 	@Override

@@ -2,10 +2,12 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 
 import android.database.Cursor;
+
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import rx.android.schedulers.AndroidSchedulers;
@@ -87,11 +89,11 @@ public final class MainPresenter
 		}
 	}
 
-	public void loadGames(final int platformIndex)
+	public void loadGames(final Platform platform)
 	{
 		GameDatabase databaseHelper = DolphinApplication.databaseHelper;
 
-		databaseHelper.getGamesForPlatform(platformIndex)
+		databaseHelper.getGamesForPlatform(platform)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(new Action1<Cursor>()
@@ -99,7 +101,7 @@ public final class MainPresenter
 							   @Override
 							   public void call(Cursor games)
 							   {
-								   mView.showGames(platformIndex, games);
+								   mView.showGames(platform, games);
 							   }
 						   }
 				);
