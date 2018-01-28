@@ -16,7 +16,8 @@ RegisterColumn::RegisterColumn(RegisterType type, std::function<u64()> get,
   RefreshValue();
   Update();
 
-  setFlags(set == nullptr ? flags() ^ Qt::ItemIsEditable : flags());
+  setFlags(m_set_register == nullptr ? flags() ^ Qt::ItemIsEditable :
+                                       Qt::ItemIsEditable | Qt::ItemIsEnabled);
   setData(DATA_TYPE, static_cast<quint32>(type));
 }
 
