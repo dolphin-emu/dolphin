@@ -1457,17 +1457,24 @@ void CFrame::OnCheckNAND(wxCommandEvent&)
                        "Do you want to try to repair the NAND?");
   if (!result.titles_to_remove.empty())
   {
-    message += _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
-                 "incomplete data on the NAND, including all associated save data. "
-                 "By continuing, the following title(s) will be removed:\n\n");
+    std::string title_listings;
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
       const std::string name = title_db.GetTitleName(title_id);
-      message += !name.empty() ? StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
-                                 StringFromFormat("%016" PRIx64, title_id);
-      message += "\n";
+      title_listings += !name.empty() ?
+                            StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
+                            StringFromFormat("%016" PRIx64, title_id);
+      title_listings += "\n";
     }
+
+    message += wxString::Format(
+        _("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+          "incomplete data on the NAND, including all associated save data. "
+          "By continuing, the following title(s) will be removed:\n\n"
+          "%s"
+          "\nLaunching these titles may also fix the issues."),
+        title_listings.c_str());
   }
 
   if (wxMessageBox(message, _("NAND Check"), wxYES_NO) != wxYES)
