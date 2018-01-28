@@ -5,9 +5,8 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:id="@+id/frame_content">
 
-    <fragment
-        android:id="@+id/fragment_emulation"
-        android:name="org.dolphinemu.dolphinemu.fragments.EmulationFragment"
+    <FrameLayout
+        android:id="@+id/frame_emulation_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
