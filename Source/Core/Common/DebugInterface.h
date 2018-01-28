@@ -7,6 +7,10 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "Core/PowerPC/MemoryPatches.h"
 
 class DebugInterface
 {
@@ -39,7 +43,12 @@ public:
   virtual void SetPC(unsigned int /*address*/) {}
   virtual void Step() {}
   virtual void RunToBreakpoint() {}
-  virtual void Patch(unsigned int /*address*/, unsigned int /*value*/) {}
+  // Memory Patches
+  virtual void Patch(unsigned int address, unsigned int value) = 0;
+  virtual const std::vector<MemoryPatch>& ListPatches() const = 0;
+  virtual void DeletePatch(std::size_t index) = 0;
+  virtual void ClearPatches() = 0;
+
   virtual int GetColor(unsigned int /*address*/) { return 0xFFFFFFFF; }
   virtual std::string GetDescription(unsigned int /*address*/) = 0;
 };

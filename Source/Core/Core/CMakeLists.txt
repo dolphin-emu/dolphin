@@ -200,6 +200,7 @@ set(SRCS
   IOS/WFS/WFSSRV.cpp
   IOS/WFS/WFSI.cpp
   PowerPC/BreakPoints.cpp
+  PowerPC/MemoryPatches.cpp
   PowerPC/MMU.cpp
   PowerPC/PowerPC.cpp
   PowerPC/PPCAnalyst.cpp

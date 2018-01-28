@@ -158,8 +158,22 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
 
 void PPCDebugInterface::Patch(unsigned int address, unsigned int value)
 {
-  PowerPC::HostWrite_U32(value, address);
-  PowerPC::ScheduleInvalidateCacheThreadSafe(address);
+  m_patches.Add(address, value);
+}
+
+const std::vector<MemoryPatch>& PPCDebugInterface::ListPatches() const
+{
+  return m_patches.List();
+}
+
+void PPCDebugInterface::DeletePatch(std::size_t index)
+{
+  m_patches.Delete(index);
+}
+
+void PPCDebugInterface::ClearPatches()
+{
+  m_patches.Clear();
 }
 
 // =======================================================

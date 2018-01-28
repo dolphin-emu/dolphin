@@ -306,6 +306,9 @@
     <ClCompile Include="PowerPC\BreakPoints.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\MemoryPatches.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClCompile>
@@ -1294,6 +1297,9 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\MemoryPatches.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\PowerPC.h">
