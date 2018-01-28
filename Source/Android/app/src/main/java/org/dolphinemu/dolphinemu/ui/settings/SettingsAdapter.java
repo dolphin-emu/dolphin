@@ -23,6 +23,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SliderSetting;
+import org.dolphinemu.dolphinemu.model.settings.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.ui.settings.viewholder.CheckBoxSettingViewHolder;
 import org.dolphinemu.dolphinemu.ui.settings.viewholder.HeaderViewHolder;
@@ -71,6 +72,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				view = inflater.inflate(R.layout.list_item_setting_checkbox, parent, false);
 				return new CheckBoxSettingViewHolder(view, this);
 
+			case SettingsItem.TYPE_STRING_SINGLE_CHOICE:
 			case SettingsItem.TYPE_SINGLE_CHOICE:
 				view = inflater.inflate(R.layout.list_item_setting, parent, false);
 				return new SingleChoiceViewHolder(view, this);
@@ -157,6 +159,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		builder.setTitle(item.getNameId());
 		builder.setSingleChoiceItems(item.getChoicesId(), value, this);
+
+		mDialog = builder.show();
+	}
+
+	public void onStringSingleChoiceClick(StringSingleChoiceSetting item)
+	{
+		mClickedItem = item;
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
+
+		builder.setTitle(item.getNameId());
+		builder.setSingleChoiceItems(item.getChoicesId(), item.getSelectValueIndex(), this);
 
 		mDialog = builder.show();
 	}
@@ -270,6 +284,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				{
 					putExtensionSetting(which, Character.getNumericValue(scSetting.getSection().charAt(scSetting.getSection().length() - 1)));
 				}
+			}
+
+			closeDialog();
+		}
+		else if (mClickedItem instanceof StringSingleChoiceSetting)
+		{
+			StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
+			String value = scSetting.getValueAt(which);
+			StringSetting setting = scSetting.setSelectedValue(value);
+			if (setting != null)
+			{
+				mView.putSetting(setting);
 			}
 
 			closeDialog();

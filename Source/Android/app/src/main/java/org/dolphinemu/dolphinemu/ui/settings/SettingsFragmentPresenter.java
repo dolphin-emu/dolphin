@@ -17,10 +17,14 @@ import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SliderSetting;
+import org.dolphinemu.dolphinemu.model.settings.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SubmenuSetting;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -330,6 +334,7 @@ public final class SettingsFragmentPresenter
 		Setting resolution = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_INTERNAL_RES);
 		Setting fsaa = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_FSAA);
 		Setting anisotropic = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_ANISOTROPY);
+		Setting shader = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_POST_SHADER);
 		Setting efbScaledCopy = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_SCALED_EFB);
 		Setting perPixel = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_PER_PIXEL);
 		Setting forceFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_FORCE_FILTERING);
@@ -341,9 +346,14 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ANISOTROPY, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.anisotropic_filtering, R.string.anisotropic_filtering_description, R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues, 0, anisotropic));
 
-		// TODO
-//		Setting shader = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_POST_SHADER)
-//		sl.add(new SingleChoiceSetting(.getKey(), , R.string., R.string._description, R.array., R.array.));
+		IntSetting stereoModeValue = (IntSetting) mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_MODE);
+		int anaglyphMode = 3;
+		String subDir = stereoModeValue != null && stereoModeValue.getValue() == anaglyphMode ? "Anaglyph" : null;
+		String[] shaderListEntries = getShaderList(subDir);
+		String[] shaderListValues = new String[shaderListEntries.length];
+		System.arraycopy(shaderListEntries, 0, shaderListValues, 0, shaderListEntries.length);
+		shaderListValues[0] = "";
+		sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_POST_SHADER, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.post_processing_shader, R.string.post_processing_shader_description, shaderListEntries, shaderListValues, "", shader));
 
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.scaled_efb_copy, R.string.scaled_efb_copy_description, true, efbScaledCopy));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_description, false, perPixel));
@@ -364,6 +374,44 @@ public final class SettingsFragmentPresenter
 		{
 			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu, R.string.stereoscopy_submenu_description, MenuTag.STEREOSCOPY));
 		}
+	}
+
+	private String[] getShaderList(String subDir)
+	{
+		try
+		{
+			String shadersPath = DirectoryInitializationService.getDolphinInternalDirectory() + "/Shaders";
+			if(!TextUtils.isEmpty(subDir)) {
+				shadersPath += "/" + subDir;
+			}
+
+			File file = new File(shadersPath);
+			File[] shaderFiles = file.listFiles();
+			if (shaderFiles != null)
+			{
+				String[] result = new String[shaderFiles.length + 1];
+				result[0] = "Off";
+				for (int i = 0; i < shaderFiles.length; i++)
+				{
+					String name = shaderFiles[i].getName();
+					int extensionIndex = name.indexOf(".glsl");
+					if (extensionIndex > 0)
+					{
+						name = name.substring(0, extensionIndex);
+					}
+					result[i+1] = name;
+				}
+
+				return result;
+			}
+		}
+		catch (Exception ex)
+		{
+			Log.debug("[Settings] Unable to find shader files");
+			// return empty list
+		}
+
+		return new String[]{};
 	}
 
 	private void addHackSettings(ArrayList<SettingsItem> sl)
