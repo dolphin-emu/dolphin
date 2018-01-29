@@ -546,10 +546,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Handle host window resizes.
   CheckForSurfaceChange();
 
-  // Update the window size based on the frame that was just rendered.
-  // Due to depending on guest state, we need to call this every frame.
-  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
-
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
 

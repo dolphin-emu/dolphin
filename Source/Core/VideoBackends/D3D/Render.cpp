@@ -622,8 +622,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
   VertexShaderCache::RetreiveAsyncShaders();
 
-  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
-
   const bool window_resized = CheckForResize();
   const bool fullscreen = D3D::GetFullscreenState();
   const bool fs_changed = m_last_fullscreen_mode != fullscreen;
