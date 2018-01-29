@@ -25,17 +25,26 @@
 
 constexpr int SLOT_A_INDEX = 0;
 constexpr int SLOT_B_INDEX = 1;
+constexpr int SLOT_SP1_INDEX = 2;
 constexpr int SLOT_COUNT = 3;
 
-constexpr int EXP_MEMORYCARD_INDEX = 2;
-constexpr int EXP_GECKO_INDEX = 4;
+enum ExpansionSelection
+{
+  EXP_NOTHING = 0,
+  EXP_DUMMY = 1,
+  EXP_MEMORYCARD = 2,
+  EXP_BROADBAND = 2,
+  EXP_GCI_FOLDER = 3,
+  EXP_GECKO = 4,
+  EXP_AGP = 5,
+  EXP_MICROPHONE = 6
+};
 
 GameCubePane::GameCubePane()
 {
   CreateWidgets();
-  ConnectWidgets();
-
   LoadSettings();
+  ConnectWidgets();
 }
 
 void GameCubePane::CreateWidgets()
@@ -172,6 +181,7 @@ void GameCubePane::OnConfigPressed(int slot)
       QMessageBox::critical(this, tr("Error"), tr("Cannot use that file as a memory card.\n%s\n"
                                                   "is not a valid GameCube memory card file")
                                                    .arg(filename));
+
       return;
     }
 
@@ -241,29 +251,32 @@ void GameCubePane::LoadSettings()
 
   for (int i = 0; i < SLOT_COUNT; i++)
   {
-    int index = 0;
+    int index = EXP_NOTHING;
     switch (SConfig::GetInstance().m_EXIDevice[i])
     {
     case ExpansionInterface::EXIDEVICE_NONE:
-      index = 0;
+      index = EXP_NOTHING;
       break;
     case ExpansionInterface::EXIDEVICE_DUMMY:
-      index = 1;
+      index = EXP_DUMMY;
       break;
     case ExpansionInterface::EXIDEVICE_MEMORYCARD:
-      index = 2;
+      index = EXP_MEMORYCARD;
+      break;
+    case ExpansionInterface::EXIDEVICE_ETH:
+      index = EXP_BROADBAND;
       break;
     case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
-      index = 3;
+      index = EXP_GCI_FOLDER;
       break;
     case ExpansionInterface::EXIDEVICE_GECKO:
-      index = 4;
+      index = EXP_GECKO;
       break;
     case ExpansionInterface::EXIDEVICE_AGP:
-      index = 5;
+      index = EXP_AGP;
       break;
     case ExpansionInterface::EXIDEVICE_MIC:
-      index = 6;
+      index = EXP_MICROPHONE;
       break;
     default:
       break;
@@ -271,7 +284,7 @@ void GameCubePane::LoadSettings()
 
     if (i <= SLOT_B_INDEX)
     {
-      bool has_config = (index == EXP_MEMORYCARD_INDEX || index > EXP_GECKO_INDEX);
+      bool has_config = (index == EXP_MEMORYCARD || index > EXP_GECKO);
       m_slot_buttons[i]->setEnabled(has_config);
     }
 
@@ -290,37 +303,34 @@ void GameCubePane::SaveSettings()
 
   for (int i = 0; i < SLOT_COUNT; i++)
   {
-    auto& dev = SConfig::GetInstance().m_EXIDevice[i];
+    auto dev = SConfig::GetInstance().m_EXIDevice[i];
 
     int index = m_slot_combos[i]->currentIndex();
 
-    if (i <= SLOT_B_INDEX)
-    {
-      bool has_config = (index == 3 || index > 4);
-      m_slot_buttons[i]->setEnabled(has_config);
-    }
-
     switch (index)
     {
-    case 0:
+    case EXP_NOTHING:
       dev = ExpansionInterface::EXIDEVICE_NONE;
       break;
-    case 1:
+    case EXP_DUMMY:
       dev = ExpansionInterface::EXIDEVICE_DUMMY;
       break;
-    case 2:
-      dev = ExpansionInterface::EXIDEVICE_MEMORYCARD;
+    case EXP_MEMORYCARD:
+      if (i == SLOT_SP1_INDEX)
+        dev = ExpansionInterface::EXIDEVICE_ETH;
+      else
+        dev = ExpansionInterface::EXIDEVICE_MEMORYCARD;
       break;
-    case 3:
+    case EXP_GCI_FOLDER:
       dev = ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
       break;
-    case 4:
+    case EXP_GECKO:
       dev = ExpansionInterface::EXIDEVICE_GECKO;
       break;
-    case 5:
+    case EXP_AGP:
       dev = ExpansionInterface::EXIDEVICE_AGP;
       break;
-    case 6:
+    case EXP_MICROPHONE:
       dev = ExpansionInterface::EXIDEVICE_MIC;
       break;
     }
