@@ -117,7 +117,7 @@ void WatchWidget::Update()
 
   m_table->clear();
 
-  int size = static_cast<int>(PowerPC::watches.GetWatches().size());
+  int size = static_cast<int>(PowerPC::debug_interface.GetWatches().size());
 
   m_table->setRowCount(size + 1);
 
@@ -127,7 +127,7 @@ void WatchWidget::Update()
 
   for (int i = 0; i < size; i++)
   {
-    auto entry = PowerPC::watches.GetWatches().at(i);
+    auto entry = PowerPC::debug_interface.GetWatch(i);
 
     auto* label = new QTableWidgetItem(QString::fromStdString(entry.name));
     auto* address =
@@ -195,7 +195,7 @@ void WatchWidget::OnLoad()
 {
   IniFile ini;
 
-  Watches::TWatchesStr watches;
+  std::vector<std::string> watches;
 
   if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
                 false))
@@ -205,8 +205,8 @@ void WatchWidget::OnLoad()
 
   if (ini.GetLines("Watches", &watches, false))
   {
-    PowerPC::watches.Clear();
-    PowerPC::watches.AddFromStrings(watches);
+    PowerPC::debug_interface.ClearWatches();
+    PowerPC::debug_interface.LoadWatchesFromStrings(watches);
   }
 
   Update();
@@ -217,7 +217,7 @@ void WatchWidget::OnSave()
   IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
-  ini.SetLines("Watches", PowerPC::watches.GetStrings());
+  ini.SetLines("Watches", PowerPC::debug_interface.SaveWatchesToStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
@@ -278,7 +278,7 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       if (item->text().isEmpty())
         DeleteWatch(row);
       else
-        PowerPC::watches.UpdateName(row, item->text().toStdString());
+        PowerPC::debug_interface.UpdateWatchName(row, item->text().toStdString());
       break;
     // Address
     // Hexadecimal
@@ -293,9 +293,9 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
       if (good)
       {
         if (column == 1)
-          PowerPC::watches.Update(row, value);
+          PowerPC::debug_interface.UpdateWatchAddress(row, value);
         else
-          PowerPC::HostWrite_U32(value, PowerPC::watches.GetWatches().at(row).address);
+          PowerPC::HostWrite_U32(value, PowerPC::debug_interface.GetWatch(row).address);
       }
       else
       {
@@ -311,18 +311,16 @@ void WatchWidget::OnItemChanged(QTableWidgetItem* item)
 
 void WatchWidget::DeleteWatch(int row)
 {
-  PowerPC::watches.Remove(PowerPC::watches.GetWatches().at(row).address);
+  PowerPC::debug_interface.RemoveWatch(row);
   Update();
 }
 
 void WatchWidget::AddWatchBreakpoint(int row)
 {
-  emit RequestMemoryBreakpoint(PowerPC::watches.GetWatches().at(row).address);
+  emit RequestMemoryBreakpoint(PowerPC::debug_interface.GetWatch(row).address);
 }
 
 void WatchWidget::AddWatch(QString name, u32 addr)
 {
-  PowerPC::watches.Add(addr);
-  PowerPC::watches.UpdateName(static_cast<int>(PowerPC::watches.GetWatches().size()) - 1,
-                              name.toStdString());
+  PowerPC::debug_interface.SetWatch(addr, name.toStdString());
 }

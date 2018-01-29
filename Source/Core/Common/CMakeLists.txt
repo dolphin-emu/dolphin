@@ -9,6 +9,7 @@ add_library(common
   Crypto/AES.cpp
   Crypto/bn.cpp
   Crypto/ec.cpp
+  Debug/Watches.cpp
   ENetUtil.cpp
   File.cpp
   FileSearch.cpp

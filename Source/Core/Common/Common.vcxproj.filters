@@ -16,6 +16,9 @@
     <Filter Include="GL\GLExtensions">
       <UniqueIdentifier>{c1d6f1fe-5ec5-406d-84f2-ed64d733d2c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{c6eef5b2-5e78-4f8c-8a51-8a4ffb768137}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Align.h" />
@@ -37,7 +40,6 @@
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
-    <ClInclude Include="Config\Section.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="ENetUtil.h" />
@@ -261,6 +263,10 @@
     <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
+    <ClInclude Include="Config\ConfigInfo.h" />
+    <ClInclude Include="Debug\Watches.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -268,7 +274,6 @@
     <ClCompile Include="CommonFuncs.cpp" />
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
-    <ClCompile Include="Config\Section.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
@@ -331,6 +336,10 @@
     <ClCompile Include="File.cpp" />
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="CompatPatches.cpp" />
+    <ClCompile Include="Config\ConfigInfo.cpp" />
+    <ClCompile Include="Debug\Watches.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

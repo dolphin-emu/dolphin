@@ -275,7 +275,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 #endif
 
   case IDM_WATCHADDRESS:
-    debugger->AddWatch(selection);
+    debugger->SetWatch(selection);
     if (watch_window)
       watch_window->NotifyUpdate();
     Refresh();
