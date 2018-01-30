@@ -12,8 +12,11 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
@@ -150,9 +153,7 @@ static void BPWritten(const BPCmd& bp)
 
       SetBlendMode();
 
-      // Dither
-      if (bp.changes & 0x04)
-        PixelShaderManager::SetBlendModeChanged();
+      PixelShaderManager::SetBlendModeChanged();
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha
@@ -211,14 +212,14 @@ static void BPWritten(const BPCmd& bp)
     u32 destStride = bpmem.copyMipMapStrideChannels << 5;
 
     EFBRectangle srcRect;
-    srcRect.left = (int)bpmem.copyTexSrcXY.x;
-    srcRect.top = (int)bpmem.copyTexSrcXY.y;
+    srcRect.left = static_cast<int>(bpmem.copyTexSrcXY.x);
+    srcRect.top = static_cast<int>(bpmem.copyTexSrcXY.y);
 
     // Here Width+1 like Height, otherwise some textures are corrupted already since the native
     // resolution.
     // TODO: What's the behavior of out of bound access?
-    srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
-    srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
+    srcRect.right = static_cast<int>(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
+    srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
     UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
@@ -228,9 +229,9 @@ static void BPWritten(const BPCmd& bp)
       // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
-                                                 is_depth_copy, srcRect, !!PE_copy.intensity_fmt,
-                                                 !!PE_copy.half_scale);
+      g_texture_cache->CopyRenderTargetToTexture(
+          destAddr, PE_copy.tp_realFormat(), srcRect.GetWidth(), srcRect.GetHeight(), destStride,
+          is_depth_copy, srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f);
     }
     else
     {
@@ -243,24 +244,40 @@ static void BPWritten(const BPCmd& bp)
 
       float yScale;
       if (PE_copy.scale_invert)
-        yScale = 256.0f / (float)bpmem.dispcopyyscale;
+        yScale = 256.0f / static_cast<float>(bpmem.dispcopyyscale);
       else
-        yScale = (float)bpmem.dispcopyyscale / 256.0f;
+        yScale = static_cast<float>(bpmem.dispcopyyscale) / 256.0f;
 
       float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
       u32 height = static_cast<u32>(num_xfb_lines);
-      if (height > MAX_XFB_HEIGHT)
-      {
-        INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines: %d (%f)", height, num_xfb_lines);
-        height = MAX_XFB_HEIGHT;
-      }
 
       DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
-                       "fbStride: %u | fbHeight: %u",
+                       "fbStride: %u | fbHeight: %u | yScale: %f",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
-                bpmem.copyTexSrcWH.x + 1, destStride, height);
+                bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
+
+      bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+      g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, srcRect.GetWidth(),
+                                                 height, destStride, is_depth_copy, srcRect, false,
+                                                 false, yScale, s_gammaLUT[PE_copy.gamma]);
+
+      // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+
+      if (g_ActiveConfig.bImmediateXFB)
+      {
+        // below div two to convert from bytes to pixels - it expects width, not stride
+        g_renderer->Swap(destAddr, destStride / 2, destStride / 2, height, srcRect,
+                         CoreTiming::GetTicks());
+      }
+      else
+      {
+        if (FifoPlayer::GetInstance().IsRunningWithFakeVideoInterfaceUpdates())
+        {
+          VideoInterface::FakeVIUpdate(destAddr, srcRect.GetWidth(), height);
+        }
+      }
     }
 
     // Clear the rectangular region after copying it.
@@ -998,7 +1015,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                              (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ?
                                                             "Top only" :
                                                             (copy.clamp1) ? "Bottom only" : "None",
-                             no_yes[copy.yuv], copy.tp_realFormat(),
+                             no_yes[copy.yuv], static_cast<int>(copy.tp_realFormat()),
                              (copy.gamma == 0) ? "1.0" : (copy.gamma == 1) ?
                                                  "1.7" :
                                                  (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",

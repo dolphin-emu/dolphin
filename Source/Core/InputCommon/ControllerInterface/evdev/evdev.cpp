@@ -92,9 +92,7 @@ static void HotplugThreadFunc()
       g_controller_interface.RemoveDevice([&name](const auto& device) {
         return device->GetSource() == "evdev" && device->GetName() == name && !device->IsValid();
       });
-      NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", name.c_str());
       s_devnode_name_map.erase(devnode);
-      g_controller_interface.InvokeHotplugCallbacks();
     }
     // Only react to "device added" events for evdev devices that we can access.
     else if (strcmp(action, "add") == 0 && access(devnode, W_OK) == 0)
@@ -107,8 +105,6 @@ static void HotplugThreadFunc()
       {
         g_controller_interface.AddDevice(std::move(device));
         s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
-        NOTICE_LOG(SERIALINTERFACE, "Added new device: %s", name.c_str());
-        g_controller_interface.InvokeHotplugCallbacks();
       }
     }
     udev_device_unref(dev);
@@ -313,7 +309,7 @@ evdevDevice::Axis::Axis(u8 index, u16 code, bool upper, libevdev* dev)
     : m_code(code), m_index(index), m_upper(upper), m_dev(dev)
 {
   m_min = libevdev_get_abs_minimum(m_dev, m_code);
-  m_range = libevdev_get_abs_maximum(m_dev, m_code) + abs(m_min);
+  m_range = libevdev_get_abs_maximum(m_dev, m_code) - m_min;
 }
 
 std::string evdevDevice::Axis::GetName() const

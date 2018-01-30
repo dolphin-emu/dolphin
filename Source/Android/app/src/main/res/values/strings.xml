@@ -117,6 +117,8 @@
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
+    <string name="slot_a_device">GameCube Slot A Device</string>
+    <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
@@ -172,7 +174,10 @@
     <string name="gpu_texture_decoding">GPU Texture Decoding</string>
     <string name="gpu_texture_decoding_descrip">Decodes textures on the GPU using compute shaders where supported. May improve performance in some scenarios.</string>
     <string name="external_frame_buffer">External Frame Buffer</string>
-    <string name="external_frame_buffer_descrip">Determines how the XFB will be emulated.</string>
+    <string name="xfb_copy_method">Store XFB Copies to Texture Only</string>
+    <string name="xfb_copy_method_descrip">Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games that need to readback from memory. If unsure, leave this checked.</string>
+    <string name="immediate_xfb">Immediately Present XFB</string>
+    <string name="immediate_xfb_descrip">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
     <string name="disable_destination_alpha_descrip">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>
@@ -242,4 +247,10 @@
     <string name="header_controllers">Controllers</string>
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
+
+    <string name="load_settings">Loading Settings...</string>
+
+    <string name="emulation_change_disc">Change Disc</string>
+
+    <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
 </resources>

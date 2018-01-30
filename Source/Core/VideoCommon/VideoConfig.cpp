@@ -36,7 +36,6 @@ VideoConfig::VideoConfig()
   backend_info.MaxTextureSize = 16384;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
-  backend_info.bSupportsInternalResolutionFrameDumps = false;
   backend_info.bSupportsST3CTextures = false;
   backend_info.bSupportsBPTCTextures = false;
 
@@ -61,14 +60,12 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  const int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
-  if (aspect_ratio == ASPECT_AUTO)
-    iAspectRatio = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
+  const auto config_aspect_mode = static_cast<AspectMode>(Config::Get(Config::GFX_ASPECT_RATIO));
+  if (config_aspect_mode == AspectMode::Auto)
+    aspect_mode = static_cast<AspectMode>(Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO));
   else
-    iAspectRatio = aspect_ratio;
+    aspect_mode = config_aspect_mode;
   bCrop = Config::Get(Config::GFX_CROP);
-  bUseXFB = Config::Get(Config::GFX_USE_XFB);
-  bUseRealXFB = Config::Get(Config::GFX_USE_REAL_XFB);
   iSafeTextureCache_ColorSamples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
   bShowFPS = Config::Get(Config::GFX_SHOW_FPS);
   bShowNetPlayPing = Config::Get(Config::GFX_SHOW_NETPLAY_PING);
@@ -78,14 +75,15 @@ void VideoConfig::Refresh()
   bOverlayProjStats = Config::Get(Config::GFX_OVERLAY_PROJ_STATS);
   bDumpTextures = Config::Get(Config::GFX_DUMP_TEXTURES);
   bHiresTextures = Config::Get(Config::GFX_HIRES_TEXTURES);
-  bConvertHiresTextures = Config::Get(Config::GFX_CONVERT_HIRES_TEXTURES);
   bCacheHiresTextures = Config::Get(Config::GFX_CACHE_HIRES_TEXTURES);
   bDumpEFBTarget = Config::Get(Config::GFX_DUMP_EFB_TARGET);
+  bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
   bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
+  sDumpEncoder = Config::Get(Config::GFX_DUMP_ENCODER);
   sDumpPath = Config::Get(Config::GFX_DUMP_PATH);
   iBitrateKbps = Config::Get(Config::GFX_BITRATE_KBPS);
   bInternalResolutionFrameDumps = Config::Get(Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
@@ -123,7 +121,7 @@ void VideoConfig::Refresh()
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
 
-  iStereoMode = Config::Get(Config::GFX_STEREO_MODE);
+  stereo_mode = static_cast<StereoMode>(Config::Get(Config::GFX_STEREO_MODE));
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
@@ -137,7 +135,9 @@ void VideoConfig::Refresh()
       Config::Get(Config::GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION);
   bForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
   bSkipEFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_ENABLED);
+  bSkipXFBCopyToRam = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  bImmediateXFB = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  bCopyEFBScaled = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
 
@@ -161,26 +161,19 @@ void VideoConfig::VerifyValidity()
       backend_info.AAModes.end())
     iMultisamples = 1;
 
-  if (iStereoMode > 0)
+  if (stereo_mode != StereoMode::Off)
   {
     if (!backend_info.bSupportsGeometryShaders)
     {
       OSD::AddMessage(
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
           10000);
-      iStereoMode = 0;
-    }
-
-    if (bUseXFB && bUseRealXFB)
-    {
-      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.",
-                      10000);
-      iStereoMode = 0;
+      stereo_mode = StereoMode::Off;
     }
   }
 }
 
-bool VideoConfig::IsVSync()
+bool VideoConfig::IsVSync() const
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
 }

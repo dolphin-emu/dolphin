@@ -166,12 +166,12 @@ std::string TitleDatabase::GetTitleName(const std::string& game_id, TitleType ty
   return iterator != map.end() ? iterator->second : "";
 }
 
-std::string TitleDatabase::GetTitleName(u64 title_id) const
+std::string TitleDatabase::GetChannelName(u64 title_id) const
 {
   const std::string id{
       {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
        static_cast<char>((title_id >> 8) & 0xff), static_cast<char>(title_id & 0xff)}};
-  return GetTitleName(id, IOS::ES::IsChannel(title_id) ? TitleType::Channel : TitleType::Other);
+  return GetTitleName(id, TitleType::Channel);
 }
 
 std::string TitleDatabase::Describe(const std::string& game_id, TitleType type) const

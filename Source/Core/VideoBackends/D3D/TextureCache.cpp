@@ -29,14 +29,7 @@
 
 namespace DX11
 {
-static const size_t MAX_COPY_BUFFERS = 32;
-static ID3D11Buffer* s_efbcopycbuf[MAX_COPY_BUFFERS] = {0};
 static std::unique_ptr<PSTextureEncoder> g_encoder;
-
-std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
-{
-  return std::make_unique<DXTexture>(config);
-}
 
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
@@ -212,38 +205,42 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-  for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
-    SAFE_RELEASE(s_efbcopycbuf[k]);
-
   g_encoder->Shutdown();
   g_encoder.reset();
 
   SAFE_RELEASE(palette_buf);
   SAFE_RELEASE(palette_buf_srv);
   SAFE_RELEASE(palette_uniform);
-  for (ID3D11PixelShader*& shader : palette_pixel_shader)
+  for (auto*& shader : palette_pixel_shader)
     SAFE_RELEASE(shader);
+  for (auto& iter : m_efb_to_tex_pixel_shaders)
+    SAFE_RELEASE(iter.second);
 }
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       unsigned int cbuf_id, const float* colmat)
+                                       EFBCopyFormat dst_format, bool is_intensity)
 {
   auto* destination_texture = static_cast<DXTexture*>(entry->texture.get());
 
-  // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
-  // This is because multisampled texture reads go through Load, not Sample, and the linear
-  // filter is ignored.
-  bool multisampled = (g_ActiveConfig.iMultisamples > 1);
-  ID3D11ShaderResourceView* efbTexSRV = is_depth_copy ?
-                                            FramebufferManager::GetEFBDepthTexture()->GetSRV() :
-                                            FramebufferManager::GetEFBColorTexture()->GetSRV();
-  if (multisampled && scale_by_half)
+  bool multisampled = g_ActiveConfig.iMultisamples > 1;
+  ID3D11ShaderResourceView* efb_tex_srv;
+  if (multisampled)
   {
-    multisampled = false;
-    efbTexSRV = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-                                FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+    efb_tex_srv = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+                                  FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
   }
+  else
+  {
+    efb_tex_srv = is_depth_copy ? FramebufferManager::GetEFBDepthTexture()->GetSRV() :
+                                  FramebufferManager::GetEFBColorTexture()->GetSRV();
+  }
+
+  auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                      scale_by_half);
+  ID3D11PixelShader* pixel_shader = GetEFBToTexPixelShader(uid);
+  if (!pixel_shader)
+    return;
 
   g_renderer->ResetAPIState();
 
@@ -252,20 +249,6 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
       CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(destination_texture->GetConfig().width),
                       static_cast<float>(destination_texture->GetConfig().height));
   D3D::context->RSSetViewports(1, &vp);
-
-  // set transformation
-  if (nullptr == s_efbcopycbuf[cbuf_id])
-  {
-    const D3D11_BUFFER_DESC cbdesc =
-        CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
-    D3D11_SUBRESOURCE_DATA data;
-    data.pSysMem = colmat;
-    HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &s_efbcopycbuf[cbuf_id]);
-    CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbuf_id);
-    D3D::SetDebugObjectName(s_efbcopycbuf[cbuf_id],
-                            "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
-  }
-  D3D::stateman->SetPixelConstants(s_efbcopycbuf[cbuf_id]);
 
   const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(src_rect);
   // TODO: try targetSource.asRECT();
@@ -288,13 +271,24 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
 
   // Create texture copy
   D3D::drawShadedTexQuad(
-      efbTexSRV, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
-      is_depth_copy ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
-                      PixelShaderCache::GetColorMatrixProgram(multisampled),
-      VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
-      GeometryShaderCache::GetCopyGeometryShader());
+      efb_tex_srv, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+      pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
+      VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
   FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
+}
+
+ID3D11PixelShader*
+TextureCache::GetEFBToTexPixelShader(const TextureConversionShaderGen::TCShaderUid& uid)
+{
+  auto iter = m_efb_to_tex_pixel_shaders.find(uid);
+  if (iter != m_efb_to_tex_pixel_shaders.end())
+    return iter->second;
+
+  ShaderCode code = TextureConversionShaderGen::GenerateShader(APIType::D3D, uid.GetUidData());
+  ID3D11PixelShader* shader = D3D::CompileAndCreatePixelShader(code.GetBuffer());
+  m_efb_to_tex_pixel_shaders.emplace(uid, shader);
+  return shader;
 }
 }

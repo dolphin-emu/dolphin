@@ -186,6 +186,25 @@ bool VideoBackend::Initialize(void* window_handle)
   // With the backend information populated, we can now initialize videocommon.
   InitializeShared();
 
+  // Create command buffers. We do this separately because the other classes depend on it.
+  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
+  if (!g_command_buffer_mgr->Initialize())
+  {
+    PanicAlert("Failed to create Vulkan command buffers");
+    Shutdown();
+    return false;
+  }
+
+  // Remaining classes are also dependent on object/shader cache.
+  g_object_cache = std::make_unique<ObjectCache>();
+  g_shader_cache = std::make_unique<ShaderCache>();
+  if (!g_object_cache->Initialize() || !g_shader_cache->Initialize())
+  {
+    PanicAlert("Failed to initialize Vulkan object cache.");
+    Shutdown();
+    return false;
+  }
+
   // Create swap chain. This has to be done early so that the target size is correct for auto-scale.
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
@@ -199,39 +218,19 @@ bool VideoBackend::Initialize(void* window_handle)
     }
   }
 
-  // Create command buffers. We do this separately because the other classes depend on it.
-  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
-  if (!g_command_buffer_mgr->Initialize())
-  {
-    PanicAlert("Failed to create Vulkan command buffers");
-    Shutdown();
-    return false;
-  }
-
   // Create main wrapper instances.
-  g_object_cache = std::make_unique<ObjectCache>();
-  g_shader_cache = std::make_unique<ShaderCache>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
+  g_vertex_manager = std::make_unique<VertexManager>();
+  g_texture_cache = std::make_unique<TextureCache>();
+  g_perf_query = std::make_unique<PerfQuery>();
 
   // Invoke init methods on main wrapper classes.
   // These have to be done before the others because the destructors
   // for the remaining classes may call methods on these.
-  if (!g_object_cache->Initialize() || !g_shader_cache->Initialize() ||
-      !StateTracker::CreateInstance() || !FramebufferManager::GetInstance()->Initialize() ||
-      !Renderer::GetInstance()->Initialize())
-  {
-    PanicAlert("Failed to initialize Vulkan classes.");
-    Shutdown();
-    return false;
-  }
-
-  // Create remaining wrapper instances.
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_texture_cache = std::make_unique<TextureCache>();
-  g_perf_query = std::make_unique<PerfQuery>();
-  if (!VertexManager::GetInstance()->Initialize() || !TextureCache::GetInstance()->Initialize() ||
-      !PerfQuery::GetInstance()->Initialize())
+  if (!StateTracker::CreateInstance() || !FramebufferManager::GetInstance()->Initialize() ||
+      !Renderer::GetInstance()->Initialize() || !VertexManager::GetInstance()->Initialize() ||
+      !TextureCache::GetInstance()->Initialize() || !PerfQuery::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
     Shutdown();

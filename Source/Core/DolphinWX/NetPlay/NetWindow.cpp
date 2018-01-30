@@ -33,9 +33,9 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
-#include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/SPSCQueue.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/SYSCONFSettings.h"

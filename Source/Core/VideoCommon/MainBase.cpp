@@ -45,11 +45,20 @@ void VideoBackendBase::Video_ExitLoop()
   s_FifoShuttingDown.Set();
 }
 
+void VideoBackendBase::Video_CleanupShared()
+{
+  // First stop any framedumping, which might need to dump the last xfb frame. This process
+  // can require additional graphics sub-systems so it needs to be done first
+  g_renderer->ShutdownFrameDumping();
+
+  Video_Cleanup();
+}
+
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                         u64 ticks)
 {
-  if (m_initialized && g_ActiveConfig.bUseXFB && g_renderer)
+  if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
   {
     Fifo::SyncGPU(Fifo::SyncGPUReason::Swap);
 
@@ -67,7 +76,7 @@ void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, 
 
 u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
-  if (!g_ActiveConfig.bEFBAccessEnable)
+  if (!g_ActiveConfig.bEFBAccessEnable || x >= EFB_WIDTH || y >= EFB_HEIGHT)
   {
     return 0;
   }

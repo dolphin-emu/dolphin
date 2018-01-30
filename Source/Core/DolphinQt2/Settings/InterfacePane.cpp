@@ -27,34 +27,34 @@ static QComboBox* MakeLanguageComboBox()
     const QString name;
     const char* id;
   } languages[] = {
-      {QStringLiteral("Bahasa Melayu"), "ms"},               // Malay
-      {QStringLiteral("Catal\u00E0"), "ca"},                 // Catalan
-      {QStringLiteral("\u010Ce\u0161tina"), "cs"},           // Czech
-      {QStringLiteral("Dansk"), "da"},                       // Danish
-      {QStringLiteral("Deutsch"), "de"},                     // German
-      {QStringLiteral("English"), "en"},                     // English
-      {QStringLiteral("Espa\u00F1ol"), "es"},                // Spanish
-      {QStringLiteral("Fran\u00E7ais"), "fr"},               // French
-      {QStringLiteral("Hrvatski"), "hr"},                    // Croatian
-      {QStringLiteral("Italiano"), "it"},                    // Italian
-      {QStringLiteral("Magyar"), "hu"},                      // Hungarian
-      {QStringLiteral("Nederlands"), "nl"},                  // Dutch
-      {QStringLiteral("Norsk bokm\u00E5l"), "nb"},           // Norwegian
-      {QStringLiteral("Polski"), "pl"},                      // Polish
-      {QStringLiteral("Portugu\u00EAs"), "pt"},              // Portuguese
-      {QStringLiteral("Portugu\u00EAs (Brasil)"), "pt_BR"},  // Portuguese (Brazil)
-      {QStringLiteral("Rom\u00E2n\u0103"), "ro"},            // Romanian
-      {QStringLiteral("Srpski"), "sr"},                      // Serbian
-      {QStringLiteral("Svenska"), "sv"},                     // Swedish
-      {QStringLiteral("T\u00FCrk\u00E7e"), "tr"},            // Turkish
-      {QStringLiteral("\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"), "el"},  // Greek
-      {QStringLiteral("\u0420\u0443\u0441\u0441\u043A\u0438\u0439"), "ru"},        // Russian
-      {QStringLiteral("\u0627\u0644\u0639\u0631\u0628\u064A\u0629"), "ar"},        // Arabic
-      {QStringLiteral("\u0641\u0627\u0631\u0633\u06CC"), "fa"},                    // Farsi
-      {QStringLiteral("\uD55C\uAD6D\uC5B4"), "ko"},                                // Korean
-      {QStringLiteral("\u65E5\u672C\u8A9E"), "ja"},                                // Japanese
-      {QStringLiteral("\u7B80\u4F53\u4E2D\u6587"), "zh_CN"},  // Simplified Chinese
-      {QStringLiteral("\u7E41\u9AD4\u4E2D\u6587"), "zh_TW"},  // Traditional Chinese
+      {QStringLiteral(u"Bahasa Melayu"), "ms"},               // Malay
+      {QStringLiteral(u"Catal\u00E0"), "ca"},                 // Catalan
+      {QStringLiteral(u"\u010Ce\u0161tina"), "cs"},           // Czech
+      {QStringLiteral(u"Dansk"), "da"},                       // Danish
+      {QStringLiteral(u"Deutsch"), "de"},                     // German
+      {QStringLiteral(u"English"), "en"},                     // English
+      {QStringLiteral(u"Espa\u00F1ol"), "es"},                // Spanish
+      {QStringLiteral(u"Fran\u00E7ais"), "fr"},               // French
+      {QStringLiteral(u"Hrvatski"), "hr"},                    // Croatian
+      {QStringLiteral(u"Italiano"), "it"},                    // Italian
+      {QStringLiteral(u"Magyar"), "hu"},                      // Hungarian
+      {QStringLiteral(u"Nederlands"), "nl"},                  // Dutch
+      {QStringLiteral(u"Norsk bokm\u00E5l"), "nb"},           // Norwegian
+      {QStringLiteral(u"Polski"), "pl"},                      // Polish
+      {QStringLiteral(u"Portugu\u00EAs"), "pt"},              // Portuguese
+      {QStringLiteral(u"Portugu\u00EAs (Brasil)"), "pt_BR"},  // Portuguese (Brazil)
+      {QStringLiteral(u"Rom\u00E2n\u0103"), "ro"},            // Romanian
+      {QStringLiteral(u"Srpski"), "sr"},                      // Serbian
+      {QStringLiteral(u"Svenska"), "sv"},                     // Swedish
+      {QStringLiteral(u"T\u00FCrk\u00E7e"), "tr"},            // Turkish
+      {QStringLiteral(u"\u0395\u03BB\u03BB\u03B7\u03BD\u03B9\u03BA\u03AC"), "el"},  // Greek
+      {QStringLiteral(u"\u0420\u0443\u0441\u0441\u043A\u0438\u0439"), "ru"},        // Russian
+      {QStringLiteral(u"\u0627\u0644\u0639\u0631\u0628\u064A\u0629"), "ar"},        // Arabic
+      {QStringLiteral(u"\u0641\u0627\u0631\u0633\u06CC"), "fa"},                    // Farsi
+      {QStringLiteral(u"\uD55C\uAD6D\uC5B4"), "ko"},                                // Korean
+      {QStringLiteral(u"\u65E5\u672C\u8A9E"), "ja"},                                // Japanese
+      {QStringLiteral(u"\u7B80\u4F53\u4E2D\u6587"), "zh_CN"},  // Simplified Chinese
+      {QStringLiteral(u"\u7E41\u9AD4\u4E2D\u6587"), "zh_TW"},  // Traditional Chinese
   };
 
   auto* combobox = new QComboBox();
@@ -123,10 +123,13 @@ void InterfacePane::CreateUI()
   m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_render_to_window = new QCheckBox(tr("Render to Main Window"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
+  m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
+
   groupbox_layout->addWidget(m_checkbox_auto_window);
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_render_to_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
+  groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
 }
 
 void InterfacePane::CreateInGame()
@@ -158,6 +161,7 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_render_to_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::clicked, this,
           &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
           &Settings::Instance(), &Settings::SetThemeName);
   connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
@@ -177,6 +181,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_top_window->setChecked(startup_params.bKeepWindowOnTop);
   m_checkbox_render_to_window->setChecked(startup_params.bRenderToMain);
   m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
+  m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
   m_combobox_language->setCurrentIndex(m_combobox_language->findData(
       QString::fromStdString(SConfig::GetInstance().m_InterfaceLanguage)));
   m_combobox_theme->setCurrentIndex(
@@ -198,6 +203,7 @@ void InterfacePane::OnSaveConfig()
   settings.bKeepWindowOnTop = m_checkbox_top_window->isChecked();
   settings.bRenderToMain = m_checkbox_render_to_window->isChecked();
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
+  Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
 
   // In Game Options
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();

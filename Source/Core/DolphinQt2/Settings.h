@@ -78,9 +78,18 @@ public:
   bool GetCheatsEnabled() const;
   void SetCheatsEnabled(bool enabled);
 
+  // Debug
+  void SetDebugModeEnabled(bool enabled);
+  bool IsDebugModeEnabled() const;
+  void SetRegistersVisible(bool enabled);
+  bool IsRegistersVisible() const;
+  void SetWatchVisible(bool enabled);
+  bool IsWatchVisible() const;
+  void SetBreakpointsVisible(bool enabled);
+  bool IsBreakpointsVisible() const;
+
   // Other
   GameListModel* GetGameListModel() const;
-
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
@@ -90,9 +99,13 @@ signals:
   void HideCursorChanged();
   void VolumeChanged(int volume);
   void NANDRefresh();
+  void RegistersVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void EnableCheatsChanged(bool enabled);
+  void WatchVisibilityChanged(bool visible);
+  void BreakpointsVisibilityChanged(bool visible);
+  void DebugModeToggled(bool enabled);
 
 private:
   std::unique_ptr<NetPlayClient> m_client;

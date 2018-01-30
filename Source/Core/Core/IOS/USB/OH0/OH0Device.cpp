@@ -57,10 +57,6 @@ void OH0Device::DoState(PointerWrap& p)
 
 ReturnCode OH0Device::Open(const OpenRequest& request)
 {
-  const u32 ios_major_version = m_ios.GetVersion();
-  if (ios_major_version == 57 || ios_major_version == 58 || ios_major_version == 59)
-    return IPC_ENOENT;
-
   if (m_vid == 0 && m_pid == 0)
     return IPC_ENOENT;
 

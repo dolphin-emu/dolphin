@@ -25,7 +25,6 @@ private:
 
   void OnDualCoreCheckBoxChanged(wxCommandEvent&);
   void OnCheatCheckBoxChanged(wxCommandEvent&);
-  void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
   void OnThrottlerChoiceChanged(wxCommandEvent&);
   void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
   void OnAnalyticsCheckBoxChanged(wxCommandEvent&);
@@ -36,7 +35,6 @@ private:
 
   wxCheckBox* m_dual_core_checkbox;
   wxCheckBox* m_cheats_checkbox;
-  wxCheckBox* m_force_ntscj_checkbox;
 
   wxCheckBox* m_analytics_checkbox;
   wxButton* m_analytics_new_id;

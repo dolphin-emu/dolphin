@@ -198,7 +198,7 @@ ControlDialog::ControlDialog(InputConfigDialog* const parent, InputConfig& confi
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
       control_reference(ref), m_config(config), m_parent(parent)
 {
-  m_devq = m_parent->GetController()->default_device;
+  m_devq = m_parent->GetController()->GetDefaultDevice();
   const int space5 = FromDIP(5);
 
   // GetStrings() sounds slow :/
@@ -360,7 +360,7 @@ void ControlDialog::UpdateGUI()
 void InputConfigDialog::UpdateGUI()
 {
   if (device_cbox != nullptr)
-    device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
+    device_cbox->SetValue(StrToWxStr(controller->GetDefaultDevice().ToString()));
 
   for (ControlGroupBox* cgBox : control_groups)
   {
@@ -405,7 +405,7 @@ bool ControlDialog::Validate()
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
-                                     m_parent->GetController()->default_device);
+                                     m_parent->GetController()->GetDefaultDevice());
 
   UpdateGUI();
 
@@ -415,13 +415,10 @@ bool ControlDialog::Validate()
 
 void InputConfigDialog::SetDevice(wxCommandEvent&)
 {
-  controller->default_device.FromString(WxStrToStr(device_cbox->GetValue()));
+  controller->SetDefaultDevice(WxStrToStr(device_cbox->GetValue()));
 
   // show user what it was validated as
-  device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
-
-  // this will set all the controls to this default device
-  controller->UpdateDefaultDevice();
+  device_cbox->SetValue(StrToWxStr(controller->GetDefaultDevice().ToString()));
 
   // update references
   controller->UpdateReferences(g_controller_interface);
@@ -444,7 +441,7 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
-                                     m_parent->GetController()->default_device);
+                                     m_parent->GetController()->GetDefaultDevice());
 
   UpdateGUI();
 }
@@ -459,8 +456,8 @@ inline bool IsAlphabetic(wxString& str)
 }
 
 inline void GetExpressionForControl(wxString& expr, wxString& control_name,
-                                    ciface::Core::DeviceQualifier* control_device = nullptr,
-                                    ciface::Core::DeviceQualifier* default_device = nullptr)
+                                    const ciface::Core::DeviceQualifier* control_device = nullptr,
+                                    const ciface::Core::DeviceQualifier* default_device = nullptr)
 {
   expr = "";
 
@@ -486,7 +483,8 @@ bool ControlDialog::GetExpressionForSelectedControl(wxString& expr)
     return false;
 
   wxString control_name = control_lbox->GetString(num);
-  GetExpressionForControl(expr, control_name, &m_devq, &m_parent->GetController()->default_device);
+  GetExpressionForControl(expr, control_name, &m_devq,
+                          &m_parent->GetController()->GetDefaultDevice());
 
   return true;
 }
@@ -503,7 +501,7 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
-                                     m_parent->GetController()->default_device);
+                                     m_parent->GetController()->GetDefaultDevice());
 
   UpdateGUI();
 }
@@ -539,7 +537,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 
   const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
-                                     m_parent->GetController()->default_device);
+                                     m_parent->GetController()->GetDefaultDevice());
 
   UpdateGUI();
 }
@@ -700,7 +698,7 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
 {
   bool success = false;
   // find device :/
-  const auto dev = g_controller_interface.FindDevice(controller->default_device);
+  const auto dev = g_controller_interface.FindDevice(controller->GetDefaultDevice());
   if (dev != nullptr)
   {
     m_event_filter.BlockEvents(true);
@@ -721,7 +719,7 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
       button->control_reference->SetExpression(WxStrToStr(expr));
       const auto lock = ControllerEmu::EmulatedController::GetStateLock();
       button->control_reference->UpdateReference(g_controller_interface,
-                                                 controller->default_device);
+                                                 controller->GetDefaultDevice());
       success = true;
     }
 
@@ -912,7 +910,7 @@ void InputConfigDialog::UpdateDeviceComboBox()
   for (const std::string& device_string : g_controller_interface.GetAllDeviceStrings())
     device_cbox->Append(StrToWxStr(device_string));
 
-  device_cbox->SetValue(StrToWxStr(controller->default_device.ToString()));
+  device_cbox->SetValue(StrToWxStr(controller->GetDefaultDevice().ToString()));
 }
 
 void InputConfigDialog::RefreshDevices(wxCommandEvent&)

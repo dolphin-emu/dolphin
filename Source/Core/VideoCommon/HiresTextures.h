@@ -35,6 +35,8 @@ public:
   ~HiresTexture();
 
   AbstractTextureFormat GetFormat() const;
+  bool HasArbitraryMipmaps() const;
+
   struct Level
   {
     Level();
@@ -59,4 +61,5 @@ private:
   static std::string GetTextureDirectory(const std::string& game_id);
 
   HiresTexture() {}
+  bool m_has_arbitrary_mipmaps;
 };

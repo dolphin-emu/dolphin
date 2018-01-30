@@ -201,6 +201,17 @@ static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE(
     "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
     "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to RAM "
     "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString skip_xfb_copy_to_ram_desc = wxTRANSLATE(
+    "Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
+    "in a small number of games that need to readback from memory.\n\nEnabled = XFB Copies to "
+    "Texture\nDisabled = XFB Copies to RAM "
+    "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString immediate_xfb_desc =
+    wxTRANSLATE("Displays the XFB copies as soon as they are created, without waiting for scanout. "
+                "Can cause graphical defects "
+                "in some games if the game doesn't expect all XFB copies to be displayed. However, "
+                "turning this setting on reduces latency."
+                "\n\nIf unsure, leave this unchecked.");
 static wxString stc_desc =
     wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
                 "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
@@ -229,17 +240,6 @@ static wxString show_netplay_messages_desc =
 static wxString texfmt_desc =
     wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset "
                 "in most cases.\n\nIf unsure, leave this unchecked.");
-static wxString xfb_desc = wxTRANSLATE(
-    "Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many games "
-    "which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
-static wxString xfb_virtual_desc = wxTRANSLATE(
-    "Emulate XFBs using GPU texture objects.\nFixes many games which don't work without XFB "
-    "emulation while not being as slow as real XFB emulation. However, it may still fail for a lot "
-    "of other games (especially homebrew applications).\n\nIf unsure, leave this checked.");
-static wxString xfb_real_desc =
-    wxTRANSLATE("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits "
-                "high-resolution rendering but is necessary to emulate a number of games "
-                "properly.\n\nIf unsure, check virtual XFB emulation instead.");
 static wxString dump_textures_desc =
     wxTRANSLATE("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                 "this unchecked.");
@@ -250,6 +250,8 @@ static wxString cache_hires_textures_desc =
                 "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = wxTRANSLATE(
     "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
+static wxString dump_xfb_desc = wxTRANSLATE(
+    "Dump the contents of XFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 static wxString internal_resolution_frame_dumping_desc = wxTRANSLATE(
     "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
     "the size of the window it is displayed within. If the aspect ratio is widescreen, the output "
@@ -382,41 +384,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       wxFlexGridSizer* const szr_display = new wxFlexGridSizer(2, space5, space5);
 
       {
-#if !defined(__APPLE__)
-        // display resolution
-        {
-          wxArrayString res_list;
-          res_list.Add(_("Auto"));
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-          const auto resolutions = VideoUtils::GetAvailableResolutions(main_frame->m_xrr_config);
-#else
-          const auto resolutions = VideoUtils::GetAvailableResolutions(nullptr);
-#endif
-
-          for (const auto& res : resolutions)
-            res_list.Add(res);
-
-          if (res_list.empty())
-            res_list.Add(_("<No resolutions found>"));
-          label_display_resolution =
-              new wxStaticText(page_general, wxID_ANY, _("Fullscreen Resolution:"));
-          choice_display_resolution =
-              new wxChoice(page_general, wxID_ANY, wxDefaultPosition, wxDefaultSize, res_list);
-          RegisterControl(choice_display_resolution, wxGetTranslation(display_res_desc));
-          choice_display_resolution->Bind(wxEVT_CHOICE, &VideoConfigDiag::Event_DisplayResolution,
-                                          this);
-
-          choice_display_resolution->SetStringSelection(
-              StrToWxStr(SConfig::GetInstance().strFullscreenResolution));
-          // "Auto" is used as a keyword, convert to translated string
-          if (SConfig::GetInstance().strFullscreenResolution == "Auto")
-            choice_display_resolution->SetSelection(0);
-
-          szr_display->Add(label_display_resolution, 0, wxALIGN_CENTER_VERTICAL);
-          szr_display->Add(choice_display_resolution, 0, wxALIGN_CENTER_VERTICAL);
-        }
-#endif
-
         // aspect-ratio
         {
           const wxString ar_choices[] = {_("Auto"), _("Force 16:9"), _("Force 4:3"),
@@ -615,7 +582,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     wxGridSizer* const cb_szr = new wxGridSizer(2, space5, space5);
     cb_szr->Add(CreateCheckBox(page_enh, _("Scaled EFB Copy"),
                                wxGetTranslation(scaled_efb_copy_desc),
-                               Config::GFX_HACK_COPY_EFB_ENABLED));
+                               Config::GFX_HACK_COPY_EFB_SCALED));
     cb_szr->Add(CreateCheckBox(page_enh, _("Per-Pixel Lighting"),
                                wxGetTranslation(pixel_lighting_desc),
                                Config::GFX_ENABLE_PIXEL_LIGHTING));
@@ -785,20 +752,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       wxStaticBoxSizer* const group_xfb =
           new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("External Frame Buffer (XFB)"));
 
-      SettingCheckBox* disable_xfb = CreateCheckBox(
-          page_hacks, _("Disable"), wxGetTranslation(xfb_desc), Config::GFX_USE_XFB, true);
-      virtual_xfb = CreateRadioButton(page_hacks, _("Virtual"), wxGetTranslation(xfb_virtual_desc),
-                                      Config::GFX_USE_REAL_XFB, true, wxRB_GROUP);
-      real_xfb = CreateRadioButton(page_hacks, _("Real"), wxGetTranslation(xfb_real_desc),
-                                   Config::GFX_USE_REAL_XFB);
+      group_xfb->Add(CreateCheckBox(page_hacks, _("Store XFB Copies to Texture Only"),
+                                    wxGetTranslation(skip_xfb_copy_to_ram_desc),
+                                    Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM),
+                     0, wxLEFT | wxRIGHT, space5);
+      group_xfb->AddSpacer(space5);
 
-      wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-      szr->Add(disable_xfb, 0, wxALIGN_CENTER_VERTICAL);
-      szr->AddStretchSpacer(1);
-      szr->Add(virtual_xfb, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
-      szr->Add(real_xfb, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
-
-      group_xfb->Add(szr, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+      group_xfb->Add(CreateCheckBox(page_hacks, _("Immediately Present XFB"),
+                                    wxGetTranslation(immediate_xfb_desc),
+                                    Config::GFX_HACK_IMMEDIATE_XFB),
+                     0, wxLEFT | wxRIGHT, space5);
       group_xfb->AddSpacer(space5);
 
       szr_hacks->AddSpacer(space5);
@@ -880,16 +843,16 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                             Config::GFX_CACHE_HIRES_TEXTURES);
       szr_utility->Add(cache_hires_textures);
 
-      if (vconfig.backend_info.bSupportsInternalResolutionFrameDumps)
-      {
-        szr_utility->Add(CreateCheckBox(page_advanced, _("Full Resolution Frame Dumps"),
-                                        wxGetTranslation(internal_resolution_frame_dumping_desc),
-                                        Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS));
-      }
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Internal Resolution Frame Dumps"),
+                                      wxGetTranslation(internal_resolution_frame_dumping_desc),
+                                      Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS));
 
       szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"),
                                       wxGetTranslation(dump_efb_desc),
                                       Config::GFX_DUMP_EFB_TARGET));
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Dump XFB Target"),
+                                      wxGetTranslation(dump_xfb_desc),
+                                      Config::GFX_DUMP_XFB_TARGET));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), Config::GFX_FREE_LOOK));
 #if defined(HAVE_FFMPEG)
@@ -1010,26 +973,6 @@ void VideoConfigDiag::Event_Backend(wxCommandEvent& ev)
   ev.Skip();
 }
 
-void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
-{
-  // "Auto" has been translated, it needs to be the English string "Auto" to work
-  switch (choice_display_resolution->GetSelection())
-  {
-  case 0:
-    SConfig::GetInstance().strFullscreenResolution = "Auto";
-    break;
-  case wxNOT_FOUND:
-    break;  // Nothing is selected.
-  default:
-    SConfig::GetInstance().strFullscreenResolution =
-        WxStrToStr(choice_display_resolution->GetStringSelection());
-  }
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-  main_frame->m_xrr_config->Update();
-#endif
-  ev.Skip();
-}
-
 void VideoConfigDiag::Event_ProgressiveScan(wxCommandEvent& ev)
 {
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, ev.IsChecked());
@@ -1108,10 +1051,6 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
   choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
   text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 
-  // XFB
-  virtual_xfb->Enable(vconfig.bUseXFB);
-  real_xfb->Enable(vconfig.bUseXFB);
-
   // custom textures
   cache_hires_textures->Enable(vconfig.bHiresTextures);
 
@@ -1134,13 +1073,6 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
       choice_adapter->Disable();
       label_adapter->Disable();
     }
-
-#ifndef __APPLE__
-    // This isn't supported on OS X.
-
-    choice_display_resolution->Disable();
-    label_display_resolution->Disable();
-#endif
 
     progressive_scan_checkbox->Disable();
     render_to_main_checkbox->Disable();
@@ -1264,7 +1196,7 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
 void VideoConfigDiag::PopulatePostProcessingShaders()
 {
   std::vector<std::string> shaders =
-      vconfig.iStereoMode == STEREO_ANAGLYPH ?
+      vconfig.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(vconfig.backend_info.api_type) :
           PostProcessingShaderImplementation::GetShaderList(vconfig.backend_info.api_type);
 
@@ -1288,7 +1220,7 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
     // Invalid shader, reset it to default
     choice_ppshader->Select(0);
 
-    if (vconfig.iStereoMode == STEREO_ANAGLYPH)
+    if (vconfig.stereo_mode == StereoMode::Anaglyph)
     {
       Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
       choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));

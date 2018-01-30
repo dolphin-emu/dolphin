@@ -4,6 +4,7 @@
 
 #include "Common/Logging/Log.h"
 
+#include "VideoBackends/Null/NullTexture.h"
 #include "VideoBackends/Null/Render.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -21,6 +22,17 @@ Renderer::~Renderer()
   UpdateActiveConfig();
 }
 
+std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
+{
+  return std::make_unique<NullTexture>(config);
+}
+
+std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTextureType type,
+                                                                       const TextureConfig& config)
+{
+  return std::make_unique<NullStagingTexture>(type, config);
+}
+
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   NOTICE_LOG(VIDEO, "RenderText: %s", text.c_str());
@@ -36,7 +48,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-void Renderer::SwapImpl(u32, u32, u32, u32, const EFBRectangle&, u64, float)
+void Renderer::SwapImpl(AbstractTexture*, const EFBRectangle&, u64, float)
 {
   UpdateActiveConfig();
 }

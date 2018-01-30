@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.os.Environment;
 import android.support.annotation.NonNull;
 
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
@@ -9,6 +8,7 @@ import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.StringSetting;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivityView;
 
 import java.io.BufferedReader;
@@ -80,9 +80,11 @@ public final class SettingsFile
 	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+	public static final String KEY_SLOT_A_DEVICE = "SlotA";
+	public static final String KEY_SLOT_B_DEVICE = "SlotB";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
-	public static final String KEY_INTERNAL_RES = "EFBScale";
+	public static final String KEY_INTERNAL_RES = "InternalResolution";
 	public static final String KEY_FSAA = "MSAA";
 	public static final String KEY_ANISOTROPY = "MaxAnisotropy";
 	public static final String KEY_POST_SHADER = "PostProcessingShader";
@@ -101,11 +103,10 @@ public final class SettingsFile
 	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
 	public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
-	public static final String KEY_XFB = "UseXFB";
-	public static final String KEY_XFB_REAL = "UseRealXFB";
+	public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";
+	public static final String KEY_IMMEDIATE_XFB = "ImmediateXFBEnable";
 	public static final String KEY_FAST_DEPTH = "FastDepthCalc";
 	public static final String KEY_ASPECT_RATIO = "AspectRatio";
-	public static final String KEY_UBERSHADER_MODE = "UberShaderMode";
 	public static final String KEY_DISABLE_SPECIALIZED_SHADERS = "DisableSpecializedShaders";
 	public static final String KEY_BACKGROUND_SHADER_COMPILING = "BackgroundShaderCompiling";
 
@@ -265,7 +266,7 @@ public final class SettingsFile
 
 	// Internal only, not actually found in settings file.
 	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
-	public static final String KEY_XFB_METHOD = "XFBMethod";
+	public static final String KEY_UBERSHADER_MODE = "UberShaderMode";
 
 	private SettingsFile()
 	{
@@ -335,6 +336,11 @@ public final class SettingsFile
 			}
 		}
 
+		if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
+		{
+			addGcPadSettingsIfTheyDontExist(sections);
+		}
+
 		return sections;
 	}
 
@@ -387,14 +393,30 @@ public final class SettingsFile
 	@NonNull
 	private static File getSettingsFile(String fileName)
 	{
-		String storagePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-		return new File(storagePath + "/dolphin-emu/Config/" + fileName + ".ini");
+		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
 	}
 
 	private static SettingSection sectionFromLine(String line)
 	{
 		String sectionName = line.substring(1, line.length() - 1);
 		return new SettingSection(sectionName);
+	}
+
+	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
+	{
+		SettingSection coreSection = sections.get(SettingsFile.SECTION_CORE);
+
+		for (int i = 0; i < 4; i++)
+		{
+			String key = SettingsFile.KEY_GCPAD_TYPE + i;
+			if (coreSection.getSetting(key) == null)
+			{
+				Setting gcPadSetting = new IntSetting(key, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, 0);
+				coreSection.putSetting(gcPadSetting);
+			}
+		}
+
+		sections.put(SettingsFile.SECTION_CORE, coreSection);
 	}
 
 	/**

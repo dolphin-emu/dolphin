@@ -37,19 +37,12 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-  if (m_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_render_pass, nullptr);
   TextureCache::DeleteShaders();
 }
 
 VkShaderModule TextureCache::GetCopyShader() const
 {
   return m_copy_shader;
-}
-
-VkRenderPass TextureCache::GetTextureCopyRenderPass() const
-{
-  return m_render_pass;
 }
 
 StreamBuffer* TextureCache::GetTextureUploadBuffer() const
@@ -73,12 +66,6 @@ bool TextureCache::Initialize()
     return false;
   }
 
-  if (!CreateRenderPasses())
-  {
-    PanicAlert("Failed to create copy render pass");
-    return false;
-  }
-
   m_texture_converter = std::make_unique<TextureConverter>();
   if (!m_texture_converter->Initialize())
   {
@@ -98,7 +85,7 @@ bool TextureCache::Initialize()
 void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
                                   const void* palette, TLUTFormat format)
 {
-  m_texture_converter->ConvertTexture(destination, source, m_render_pass, palette, format);
+  m_texture_converter->ConvertTexture(destination, source, palette, format);
 
   // Ensure both textures remain in the SHADER_READ_ONLY layout so they can be bound.
   static_cast<VKTexture*>(source->texture.get())
@@ -178,55 +165,6 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   }
 }
 
-std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
-{
-  return VKTexture::Create(config);
-}
-
-bool TextureCache::CreateRenderPasses()
-{
-  static constexpr VkAttachmentDescription update_attachment = {
-      0,
-      TEXTURECACHE_TEXTURE_FORMAT,
-      VK_SAMPLE_COUNT_1_BIT,
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      VK_ATTACHMENT_STORE_OP_STORE,
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,
-      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-
-  static constexpr VkAttachmentReference color_attachment_reference = {
-      0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-
-  static constexpr VkSubpassDescription subpass_description = {
-      0,       VK_PIPELINE_BIND_POINT_GRAPHICS,
-      0,       nullptr,
-      1,       &color_attachment_reference,
-      nullptr, nullptr,
-      0,       nullptr};
-
-  VkRenderPassCreateInfo update_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                        nullptr,
-                                        0,
-                                        1,
-                                        &update_attachment,
-                                        1,
-                                        &subpass_description,
-                                        0,
-                                        nullptr};
-
-  VkResult res =
-      vkCreateRenderPass(g_vulkan_context->GetDevice(), &update_info, nullptr, &m_render_pass);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
-    return false;
-  }
-
-  return true;
-}
-
 bool TextureCache::CompileShaders()
 {
   static const char COPY_SHADER_SOURCE[] = R"(
@@ -242,80 +180,12 @@ bool TextureCache::CompileShaders()
     }
   )";
 
-  static const char EFB_COLOR_TO_TEX_SOURCE[] = R"(
-    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
-
-    layout(std140, push_constant) uniform PSBlock
-    {
-      vec4 colmat[7];
-    } C;
-
-    layout(location = 0) in vec3 uv0;
-    layout(location = 1) in vec4 col0;
-    layout(location = 0) out vec4 ocol0;
-
-    void main()
-    {
-      float4 texcol = texture(samp0, uv0);
-      texcol = floor(texcol * C.colmat[5]) * C.colmat[6];
-      ocol0 = texcol * mat4(C.colmat[0], C.colmat[1], C.colmat[2], C.colmat[3]) + C.colmat[4];
-    }
-  )";
-
-  static const char EFB_DEPTH_TO_TEX_SOURCE[] = R"(
-    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
-
-    layout(std140, push_constant) uniform PSBlock
-    {
-      vec4 colmat[5];
-    } C;
-
-    layout(location = 0) in vec3 uv0;
-    layout(location = 1) in vec4 col0;
-    layout(location = 0) out vec4 ocol0;
-
-    void main()
-    {
-      #if MONO_DEPTH
-        vec4 texcol = texture(samp0, vec3(uv0.xy, 0.0f));
-      #else
-        vec4 texcol = texture(samp0, uv0);
-      #endif
-      int depth = int((1.0 - texcol.x) * 16777216.0);
-
-      // Convert to Z24 format
-      ivec4 workspace;
-      workspace.r = (depth >> 16) & 255;
-      workspace.g = (depth >> 8) & 255;
-      workspace.b = depth & 255;
-
-      // Convert to Z4 format
-      workspace.a = (depth >> 16) & 0xF0;
-
-      // Normalize components to [0.0..1.0]
-      texcol = vec4(workspace) / 255.0;
-
-      ocol0 = texcol * mat4(C.colmat[0], C.colmat[1], C.colmat[2], C.colmat[3]) + C.colmat[4];
-    }
-  )";
-
   std::string header = g_shader_cache->GetUtilityShaderHeader();
-  std::string source;
+  std::string source = header + COPY_SHADER_SOURCE;
 
-  source = header + COPY_SHADER_SOURCE;
   m_copy_shader = Util::CompileAndCreateFragmentShader(source);
 
-  source = header + EFB_COLOR_TO_TEX_SOURCE;
-  m_efb_color_to_tex_shader = Util::CompileAndCreateFragmentShader(source);
-
-  if (g_ActiveConfig.bStereoEFBMonoDepth)
-    source = header + "#define MONO_DEPTH 1\n" + EFB_DEPTH_TO_TEX_SOURCE;
-  else
-    source = header + EFB_DEPTH_TO_TEX_SOURCE;
-  m_efb_depth_to_tex_shader = Util::CompileAndCreateFragmentShader(source);
-
-  return m_copy_shader != VK_NULL_HANDLE && m_efb_color_to_tex_shader != VK_NULL_HANDLE &&
-         m_efb_depth_to_tex_shader != VK_NULL_HANDLE;
+  return m_copy_shader != VK_NULL_HANDLE;
 }
 
 void TextureCache::DeleteShaders()
@@ -329,21 +199,17 @@ void TextureCache::DeleteShaders()
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_copy_shader, nullptr);
     m_copy_shader = VK_NULL_HANDLE;
   }
-  if (m_efb_color_to_tex_shader != VK_NULL_HANDLE)
+
+  for (auto& shader : m_efb_copy_to_tex_shaders)
   {
-    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_efb_color_to_tex_shader, nullptr);
-    m_efb_color_to_tex_shader = VK_NULL_HANDLE;
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader.second, nullptr);
   }
-  if (m_efb_depth_to_tex_shader != VK_NULL_HANDLE)
-  {
-    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_efb_depth_to_tex_shader, nullptr);
-    m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
-  }
+  m_efb_copy_to_tex_shaders.clear();
 }
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       unsigned int cbuf_id, const float* colmat)
+                                       EFBCopyFormat dst_format, bool is_intensity)
 {
   VKTexture* texture = static_cast<VKTexture*>(entry->texture.get());
 
@@ -383,13 +249,31 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   texture->GetRawTexIdentifier()->TransitionToLayout(command_buffer,
                                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(command_buffer,
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         m_render_pass, g_shader_cache->GetPassthroughVertexShader(),
-                         g_shader_cache->GetPassthroughGeometryShader(),
-                         is_depth_copy ? m_efb_depth_to_tex_shader : m_efb_color_to_tex_shader);
+  auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                      scale_by_half);
 
-  draw.SetPushConstants(colmat, (is_depth_copy ? sizeof(float) * 20 : sizeof(float) * 28));
+  auto it = m_efb_copy_to_tex_shaders.emplace(uid, VkShaderModule(VK_NULL_HANDLE));
+  VkShaderModule& shader = it.first->second;
+  bool created = it.second;
+
+  if (created)
+  {
+    std::string source = g_shader_cache->GetUtilityShaderHeader();
+    source +=
+        TextureConversionShaderGen::GenerateShader(APIType::Vulkan, uid.GetUidData()).GetBuffer();
+
+    shader = Util::CompileAndCreateFragmentShader(source);
+  }
+
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      texture->GetRawTexIdentifier()->GetFormat(), VK_FORMAT_UNDEFINED,
+      texture->GetRawTexIdentifier()->GetSamples(), VK_ATTACHMENT_LOAD_OP_DONT_CARE);
+
+  UtilityShaderDraw draw(command_buffer,
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
+                         g_shader_cache->GetPassthroughVertexShader(),
+                         g_shader_cache->GetPassthroughGeometryShader(), shader);
+
   draw.SetPSSampler(0, src_texture->GetView(), src_sampler);
 
   VkRect2D dest_region = {{0, 0}, {texture->GetConfig().width, texture->GetConfig().height}};

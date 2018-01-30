@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <array>
 #include <string>
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/RenderBase.h"
 
 enum class EFBAccessType;
@@ -19,11 +21,18 @@ public:
   Renderer();
   ~Renderer() override;
 
+  StateCache& GetStateCache() { return m_state_cache; }
+  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
+  std::unique_ptr<AbstractStagingTexture>
+  CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
+  void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
+  void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
   void SetFullscreen(bool enable_fullscreen) override;
@@ -46,8 +55,7 @@ public:
 
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                u64 ticks, float Gamma) override;
+  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override;
@@ -57,7 +65,35 @@ public:
   bool CheckForResize();
 
 private:
+  struct GXPipelineState
+  {
+    std::array<SamplerState, 8> samplers;
+    BlendingState blend;
+    DepthState zmode;
+    RasterizationState raster;
+  };
+
+  void SetupDeviceObjects();
+  void TeardownDeviceObjects();
+  void Create3DVisionTexture(int width, int height);
+
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
+
+  StateCache m_state_cache;
+  GXPipelineState m_gx_state;
+
+  std::array<ID3D11BlendState*, 4> m_clear_blend_states{};
+  std::array<ID3D11DepthStencilState*, 3> m_clear_depth_states{};
+  ID3D11BlendState* m_reset_blend_state = nullptr;
+  ID3D11DepthStencilState* m_reset_depth_state = nullptr;
+  ID3D11RasterizerState* m_reset_rast_state = nullptr;
+
+  ID3D11Texture2D* m_screenshot_texture = nullptr;
+  D3DTexture2D* m_3d_vision_texture = nullptr;
+
+  u32 m_last_multisamples = 1;
+  bool m_last_stereo_mode = false;
+  bool m_last_fullscreen_mode = false;
 };
 }

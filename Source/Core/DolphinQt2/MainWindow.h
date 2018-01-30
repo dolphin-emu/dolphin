@@ -10,13 +10,16 @@
 #include <QToolBar>
 
 #include <memory>
+#include <optional>
 
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+class BreakpointWidget;
 struct BootParameters;
+class FIFOPlayerWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
@@ -29,6 +32,8 @@ class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
 class GraphicsWindow;
+class RegisterWidget;
+class WatchWidget;
 
 class MainWindow final : public QMainWindow
 {
@@ -46,7 +51,7 @@ signals:
 
 private:
   void Open();
-  void Play();
+  void Play(const std::optional<std::string>& savestate_path = {});
   void Pause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
@@ -85,7 +90,7 @@ private:
 
   void InitCoreCallbacks();
 
-  void StartGame(const QString& path);
+  void StartGame(const QString& path, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget();
@@ -98,6 +103,7 @@ private:
   void ShowAboutDialog();
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
+  void ShowFIFOPlayer();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -106,11 +112,14 @@ private:
 
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
+  void OnConnectWiiRemote(int id);
 
   void OnPlayRecording();
   void OnStartRecording();
   void OnStopRecording();
   void OnExportRecording();
+
+  void EnableScreenSaver(bool enable);
 
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -135,6 +144,11 @@ private:
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
+
+  BreakpointWidget* m_breakpoint_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  FIFOPlayerWindow* m_fifo_window;
+  RegisterWidget* m_register_widget;
+  WatchWidget* m_watch_widget;
 };

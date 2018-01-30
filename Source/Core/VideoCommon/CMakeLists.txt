@@ -1,4 +1,5 @@
 set(SRCS
+  AbstractStagingTexture.cpp
   AbstractTexture.cpp
   AsyncRequests.cpp
   AsyncShaderCompiler.cpp
@@ -38,6 +39,7 @@ set(SRCS
   TextureCacheBase.cpp
   TextureConfig.cpp
   TextureConversionShader.cpp
+  TextureConverterShaderGen.cpp
   TextureDecoder_Common.cpp
   VertexLoader.cpp
   VertexLoaderBase.cpp

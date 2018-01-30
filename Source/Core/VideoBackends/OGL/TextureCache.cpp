@@ -26,17 +26,45 @@
 
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
-//#define TIME_TEXTURE_DECODING 1
+constexpr const char* vertex_program =
+    "out vec3 %c_uv0;\n"
+    "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
+    "uniform vec4 copy_position;\n"  // left, top, right, bottom
+    "void main()\n"
+    "{\n"
+    "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
+    "	%c_uv0 = vec3(mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, "
+    "0).xy), 0.0);\n"
+    "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
+    "}\n";
 
-std::unique_ptr<AbstractTexture> TextureCache::CreateTexture(const TextureConfig& config)
-{
-  return std::make_unique<OGLTexture>(config);
-}
+constexpr const char* geometry_program = "layout(triangles) in;\n"
+                                         "layout(triangle_strip, max_vertices = 6) out;\n"
+                                         "in vec3 v_uv0[3];\n"
+                                         "out vec3 f_uv0;\n"
+                                         "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
+                                         "void main()\n"
+                                         "{\n"
+                                         "	int layers = textureSize(samp9, 0).z;\n"
+                                         "	for (int layer = 0; layer < layers; ++layer) {\n"
+                                         "		for (int i = 0; i < 3; ++i) {\n"
+                                         "			f_uv0 = vec3(v_uv0[i].xy, layer);\n"
+                                         "			gl_Position = gl_in[i].gl_Position;\n"
+                                         "			gl_Layer = layer;\n"
+                                         "			EmitVertex();\n"
+                                         "		}\n"
+                                         "		EndPrimitive();\n"
+                                         "	}\n"
+                                         "}\n";
+
+//#define TIME_TEXTURE_DECODING 1
 
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
@@ -129,101 +157,22 @@ bool TextureCache::CompileShaders()
                                              "	ocol0 = texcol;\n"
                                              "}\n";
 
-  constexpr const char* color_matrix_program =
-      "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-      "uniform vec4 colmat[7];\n"
-      "in vec3 f_uv0;\n"
-      "out vec4 ocol0;\n"
-      "\n"
-      "void main(){\n"
-      "	vec4 texcol = texture(samp9, f_uv0);\n"
-      "	texcol = floor(texcol * colmat[5]) * colmat[6];\n"
-      "	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
-      "}\n";
-
-  constexpr const char* depth_matrix_program =
-      "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-      "uniform vec4 colmat[5];\n"
-      "in vec3 f_uv0;\n"
-      "out vec4 ocol0;\n"
-      "\n"
-      "void main(){\n"
-      "	vec4 texcol = texture(samp9, vec3(f_uv0.xy, %s));\n"
-      "	int depth = int(texcol.x * 16777216.0);\n"
-
-      // Convert to Z24 format
-      "	ivec4 workspace;\n"
-      "	workspace.r = (depth >> 16) & 255;\n"
-      "	workspace.g = (depth >> 8) & 255;\n"
-      "	workspace.b = depth & 255;\n"
-
-      // Convert to Z4 format
-      "	workspace.a = (depth >> 16) & 0xF0;\n"
-
-      // Normalize components to [0.0..1.0]
-      "	texcol = vec4(workspace) / 255.0;\n"
-
-      "	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
-      "}\n";
-
-  constexpr const char* vertex_program =
-      "out vec3 %s_uv0;\n"
-      "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-      "uniform vec4 copy_position;\n"  // left, top, right, bottom
-      "void main()\n"
-      "{\n"
-      "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-      "	%s_uv0 = vec3(mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, "
-      "0).xy), 0.0);\n"
-      "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-      "}\n";
-
-  const std::string geo_program = g_ActiveConfig.iStereoMode > 0 ?
-                                      "layout(triangles) in;\n"
-                                      "layout(triangle_strip, max_vertices = 6) out;\n"
-                                      "in vec3 v_uv0[3];\n"
-                                      "out vec3 f_uv0;\n"
-                                      "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-                                      "void main()\n"
-                                      "{\n"
-                                      "	int layers = textureSize(samp9, 0).z;\n"
-                                      "	for (int layer = 0; layer < layers; ++layer) {\n"
-                                      "		for (int i = 0; i < 3; ++i) {\n"
-                                      "			f_uv0 = vec3(v_uv0[i].xy, layer);\n"
-                                      "			gl_Position = gl_in[i].gl_Position;\n"
-                                      "			gl_Layer = layer;\n"
-                                      "			EmitVertex();\n"
-                                      "		}\n"
-                                      "		EndPrimitive();\n"
-                                      "	}\n"
-                                      "}\n" :
-                                      "";
-
-  const char* prefix = geo_program.empty() ? "f" : "v";
-  const char* depth_layer = g_ActiveConfig.bStereoEFBMonoDepth ? "0.0" : "f_uv0.z";
+  std::string geo_program = "";
+  char prefix = 'f';
+  if (g_ActiveConfig.stereo_mode != StereoMode::Off)
+  {
+    geo_program = geometry_program;
+    prefix = 'v';
+  }
 
   if (!ProgramShaderCache::CompileShader(m_colorCopyProgram,
                                          StringFromFormat(vertex_program, prefix, prefix),
-                                         color_copy_program, geo_program) ||
-      !ProgramShaderCache::CompileShader(m_colorMatrixProgram,
-                                         StringFromFormat(vertex_program, prefix, prefix),
-                                         color_matrix_program, geo_program) ||
-      !ProgramShaderCache::CompileShader(
-          m_depthMatrixProgram, StringFromFormat(vertex_program, prefix, prefix),
-          StringFromFormat(depth_matrix_program, depth_layer), geo_program))
+                                         color_copy_program, geo_program))
   {
     return false;
   }
 
-  m_colorMatrixUniform = glGetUniformLocation(m_colorMatrixProgram.glprogid, "colmat");
-  m_depthMatrixUniform = glGetUniformLocation(m_depthMatrixProgram.glprogid, "colmat");
-  m_color_cbuf_id = UINT_MAX;
-  m_depth_cbuf_id = UINT_MAX;
-
   m_colorCopyPositionUniform = glGetUniformLocation(m_colorCopyProgram.glprogid, "copy_position");
-  m_colorMatrixPositionUniform =
-      glGetUniformLocation(m_colorMatrixProgram.glprogid, "copy_position");
-  m_depthCopyPositionUniform = glGetUniformLocation(m_depthMatrixProgram.glprogid, "copy_position");
 
   std::string palette_shader =
       R"GLSL(
@@ -325,8 +274,9 @@ bool TextureCache::CompileShaders()
 
 void TextureCache::DeleteShaders()
 {
-  m_colorMatrixProgram.Destroy();
-  m_depthMatrixProgram.Destroy();
+  for (auto& it : m_efb_copy_programs)
+    it.second.shader.Destroy();
+  m_efb_copy_programs.clear();
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
     for (auto& shader : m_palette_shaders)
@@ -387,15 +337,16 @@ void main()
 
 void TextureCache::CreateTextureDecodingResources()
 {
-  static const GLenum gl_view_types[TextureConversionShader::BUFFER_FORMAT_COUNT] = {
-      GL_R8UI,    // BUFFER_FORMAT_R8_UINT
-      GL_R16UI,   // BUFFER_FORMAT_R16_UINT
-      GL_RG32UI,  // BUFFER_FORMAT_R32G32_UINT
+  static const GLenum gl_view_types[TextureConversionShaderTiled::BUFFER_FORMAT_COUNT] = {
+      GL_R8UI,     // BUFFER_FORMAT_R8_UINT
+      GL_R16UI,    // BUFFER_FORMAT_R16_UINT
+      GL_RG32UI,   // BUFFER_FORMAT_R32G32_UINT
+      GL_RGBA8UI,  // BUFFER_FORMAT_RGBA8_UINT
   };
 
-  glGenTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
+  glGenTextures(TextureConversionShaderTiled::BUFFER_FORMAT_COUNT,
                 m_texture_decoding_buffer_views.data());
-  for (size_t i = 0; i < TextureConversionShader::BUFFER_FORMAT_COUNT; i++)
+  for (size_t i = 0; i < TextureConversionShaderTiled::BUFFER_FORMAT_COUNT; i++)
   {
     glBindTexture(GL_TEXTURE_BUFFER, m_texture_decoding_buffer_views[i]);
     glTexBuffer(GL_TEXTURE_BUFFER, gl_view_types[i], m_palette_stream_buffer->m_buffer);
@@ -404,7 +355,7 @@ void TextureCache::CreateTextureDecodingResources()
 
 void TextureCache::DestroyTextureDecodingResources()
 {
-  glDeleteTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
+  glDeleteTextures(TextureConversionShaderTiled::BUFFER_FORMAT_COUNT,
                    m_texture_decoding_buffer_views.data());
   m_texture_decoding_buffer_views.fill(0);
   m_texture_decoding_program_info.clear();
@@ -418,7 +369,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat pal
     return iter->second.valid;
 
   TextureDecodingProgramInfo info;
-  info.base_info = TextureConversionShader::GetDecodingShaderInfo(format);
+  info.base_info = TextureConversionShaderTiled::GetDecodingShaderInfo(format);
   if (!info.base_info)
   {
     m_texture_decoding_program_info.emplace(key, info);
@@ -426,7 +377,7 @@ bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TLUTFormat pal
   }
 
   std::string shader_source =
-      TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
+      TextureConversionShaderTiled::GenerateDecodingShader(format, palette_format, APIType::OpenGL);
   if (shader_source.empty())
   {
     m_texture_decoding_program_info.emplace(key, info);
@@ -466,7 +417,7 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   // Copy to GPU-visible buffer, aligned to the data type.
   auto info = iter->second;
   u32 bytes_per_buffer_elem =
-      TextureConversionShader::GetBytesPerBufferElement(info.base_info->buffer_format);
+      TextureConversionShaderTiled::GetBytesPerBufferElement(info.base_info->buffer_format);
 
   // Only copy palette if it is required.
   bool has_palette = info.base_info->palette_size > 0;
@@ -519,13 +470,11 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   }
 
   auto dispatch_groups =
-      TextureConversionShader::GetDispatchCount(info.base_info, aligned_width, aligned_height);
+      TextureConversionShaderTiled::GetDispatchCount(info.base_info, aligned_width, aligned_height);
   glBindImageTexture(0, static_cast<OGLTexture*>(entry->texture.get())->GetRawTexIdentifier(),
                      dst_level, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA8);
   glDispatchCompute(dispatch_groups.first, dispatch_groups.second, 1);
   glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
-
-  OGLTexture::SetStage();
 
 #ifdef TIME_TEXTURE_DECODING
   WARN_LOG(VIDEO, "Decode texture format %u size %ux%u took %.4fms", static_cast<u32>(format),
@@ -535,7 +484,7 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       unsigned int cbuf_id, const float* colmat)
+                                       EFBCopyFormat dst_format, bool is_intensity)
 {
   auto* destination_texture = static_cast<OGLTexture*>(entry->texture.get());
   g_renderer->ResetAPIState();  // reset any game specific settings
@@ -558,26 +507,36 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
 
   glViewport(0, 0, destination_texture->GetConfig().width, destination_texture->GetConfig().height);
 
-  GLuint uniform_location;
-  if (is_depth_copy)
+  auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
+                                                      scale_by_half);
+
+  auto it = m_efb_copy_programs.emplace(uid, EFBCopyShader());
+  EFBCopyShader& shader = it.first->second;
+  bool created = it.second;
+
+  if (created)
   {
-    m_depthMatrixProgram.Bind();
-    if (m_depth_cbuf_id != cbuf_id)
-      glUniform4fv(m_depthMatrixUniform, 5, colmat);
-    m_depth_cbuf_id = cbuf_id;
-    uniform_location = m_depthCopyPositionUniform;
-  }
-  else
-  {
-    m_colorMatrixProgram.Bind();
-    if (m_color_cbuf_id != cbuf_id)
-      glUniform4fv(m_colorMatrixUniform, 7, colmat);
-    m_color_cbuf_id = cbuf_id;
-    uniform_location = m_colorMatrixPositionUniform;
+    ShaderCode code = TextureConversionShaderGen::GenerateShader(APIType::OpenGL, uid.GetUidData());
+
+    std::string geo_program = "";
+    char prefix = 'f';
+    if (g_ActiveConfig.stereo_mode != StereoMode::Off)
+    {
+      geo_program = geometry_program;
+      prefix = 'v';
+    }
+
+    ProgramShaderCache::CompileShader(shader.shader,
+                                      StringFromFormat(vertex_program, prefix, prefix),
+                                      code.GetBuffer(), geo_program);
+
+    shader.position_uniform = glGetUniformLocation(shader.shader.glprogid, "copy_position");
   }
 
+  shader.shader.Bind();
+
   TargetRectangle R = g_renderer->ConvertEFBRectangle(src_rect);
-  glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
+  glUniform4f(shader.position_uniform, static_cast<float>(R.left), static_cast<float>(R.top),
               static_cast<float>(R.right), static_cast<float>(R.bottom));
 
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

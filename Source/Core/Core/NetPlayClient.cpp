@@ -326,7 +326,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     PadMapping map = 0;
     GCPadStatus pad;
     packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
-        pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
+        pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
 
     // Trusting server for good map value (>=0 && <4)
     // add to pad buffer
@@ -753,7 +753,7 @@ void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
   packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
   packet << static_cast<PadMapping>(in_game_pad);
   packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
-         << pad.substickY << pad.triggerLeft << pad.triggerRight;
+         << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
 
   SendAsync(std::move(packet));
 }

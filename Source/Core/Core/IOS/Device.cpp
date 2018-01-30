@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <map>
 
+#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
@@ -75,6 +76,14 @@ IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
     else
       io_vectors.emplace_back(vector);
   }
+}
+
+const IOCtlVRequest::IOVector* IOCtlVRequest::GetVector(size_t index) const
+{
+  _assert_(index < (in_vectors.size() + io_vectors.size()));
+  if (index < in_vectors.size())
+    return &in_vectors[index];
+  return &io_vectors[index - in_vectors.size()];
 }
 
 bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t io_count) const

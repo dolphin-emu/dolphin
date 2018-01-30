@@ -37,8 +37,8 @@ public:
     MAPPING_GC_DANCEMAT,
     MAPPING_GC_KEYBOARD,
     MAPPING_GCPAD,
-    MAPPING_GCPAD_WIIU,
     MAPPING_GC_STEERINGWHEEL,
+    MAPPING_GC_MICROPHONE,
     // Wii
     MAPPING_WIIMOTE_EMU,
     MAPPING_WIIMOTE_HYBRID,
@@ -46,11 +46,9 @@ public:
     MAPPING_HOTKEYS
   };
 
-  explicit MappingWindow(QWidget* parent, int port_num);
-  void ChangeMappingType(Type type);
+  explicit MappingWindow(QWidget* parent, Type type, int port_num);
 
   int GetPort() const;
-  const ciface::Core::DeviceQualifier& GetDeviceQualifier() const;
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
   ControllerEmu::EmulatedController* GetController() const;
@@ -59,15 +57,14 @@ signals:
   void ClearFields();
 
 private:
+  void SetMappingType(Type type);
   void CreateDevicesLayout();
   void CreateProfilesLayout();
   void CreateResetLayout();
   void CreateMainLayout();
   void ConnectWidgets();
 
-  void SetLayoutComplex(bool is_complex);
   void AddWidget(const QString& name, QWidget* widget);
-  void ClearWidgets();
 
   void RefreshDevices();
 
@@ -108,7 +105,5 @@ private:
 
   Type m_mapping_type;
   const int m_port;
-  bool m_is_complex;
   InputConfig* m_config;
-  ciface::Core::DeviceQualifier m_devq;
 };

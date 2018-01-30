@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>
@@ -24,10 +25,6 @@
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "UICommon/X11Utils.h"
-#endif
-
-#ifdef __APPLE__
-#include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
 struct BootParameters;
@@ -111,7 +108,7 @@ public:
   void ToggleLogConfigWindow(bool bShow);
   void StatusBarMessage(const char* format, ...);
   void ClearStatusBar();
-  void BootGame(const std::string& filename);
+  void BootGame(const std::string& filename, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters> boot);
   bool RendererHasFocus();
   bool RendererIsFullscreen();
@@ -249,13 +246,8 @@ private:
   WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
 
-// Screensaver
-#ifdef __APPLE__
-  IOPMAssertionID m_power_assertion = kIOPMNullAssertionID;
-#endif
-  void InhibitScreensaver();
-  void UninhibitScreensaver();
-
+  // Screensaver
+  void EnableScreenSaver(bool enable);
   void DoOpen(bool Boot);
   void DoPause();
   void DoToggleToolbar(bool);

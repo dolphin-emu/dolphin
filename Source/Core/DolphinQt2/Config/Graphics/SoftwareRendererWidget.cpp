@@ -38,12 +38,10 @@ void SoftwareRendererWidget::CreateWidgets()
   auto* rendering_box = new QGroupBox(tr("Rendering"));
   auto* rendering_layout = new QGridLayout();
   m_backend_combo = new QComboBox();
-  m_bypass_xfb = new GraphicsBool(tr("Bypass XFB"), Config::GFX_USE_XFB, true);
 
   rendering_box->setLayout(rendering_layout);
   rendering_layout->addWidget(new QLabel(tr("Backend:")), 1, 1);
   rendering_layout->addWidget(m_backend_combo, 1, 2);
-  rendering_layout->addWidget(m_bypass_xfb, 2, 1);
 
   for (const auto& backend : g_available_video_backends)
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()));
@@ -51,9 +49,9 @@ void SoftwareRendererWidget::CreateWidgets()
   auto* overlay_box = new QGroupBox(tr("Overlay Information"));
   auto* overlay_layout = new QGridLayout();
   overlay_box->setLayout(overlay_layout);
-  m_enable_statistics = new GraphicsBool(tr("Various Statistics"), Config::GFX_OVERLAY_STATS);
+  m_show_statistics = new GraphicsBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
 
-  overlay_layout->addWidget(m_enable_statistics);
+  overlay_layout->addWidget(m_show_statistics);
 
   auto* utility_box = new QGroupBox(tr("Utility"));
   auto* utility_layout = new QGridLayout();
@@ -156,11 +154,6 @@ void SoftwareRendererWidget::AddDescriptions()
                  "backend, so for the best emulation experience it's recommended to try both and "
                  "choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
 
-  static const char* TR_BYPASS_XFB_DESCRIPTION = QT_TR_NOOP(
-      "Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many "
-      "games "
-      "which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
-
   static const char* TR_SHOW_STATISTICS_DESCRIPTION =
       QT_TR_NOOP("Show various rendering statistics.\n\nIf unsure, leave this unchecked.");
 
@@ -169,7 +162,6 @@ void SoftwareRendererWidget::AddDescriptions()
                  "this unchecked.");
 
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
-  AddDescription(m_bypass_xfb, TR_BYPASS_XFB_DESCRIPTION);
-  AddDescription(m_enable_statistics, TR_SHOW_STATISTICS_DESCRIPTION);
+  AddDescription(m_show_statistics, TR_SHOW_STATISTICS_DESCRIPTION);
   AddDescription(m_dump_textures, TR_DUMP_TEXTURES_DESCRIPTION);
 }

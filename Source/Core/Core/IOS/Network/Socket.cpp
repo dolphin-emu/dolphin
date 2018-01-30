@@ -514,13 +514,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
                            has_destaddr ? sizeof(sockaddr) : 0);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
 
-          DEBUG_LOG(
-              IOS_NET,
-              "%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
-              has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, wii_fd, BufferIn,
-              BufferInSize, BufferIn2, BufferInSize2, local_name.sin_addr.s_addr & 0xFF,
-              (local_name.sin_addr.s_addr >> 8) & 0xFF, (local_name.sin_addr.s_addr >> 16) & 0xFF,
-              (local_name.sin_addr.s_addr >> 24) & 0xFF);
+          INFO_LOG(IOS_NET,
+                   "%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
+                   has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, wii_fd,
+                   BufferIn, BufferInSize, BufferIn2, BufferInSize2,
+                   local_name.sin_addr.s_addr & 0xFF, (local_name.sin_addr.s_addr >> 8) & 0xFF,
+                   (local_name.sin_addr.s_addr >> 16) & 0xFF,
+                   (local_name.sin_addr.s_addr >> 24) & 0xFF);
           break;
         }
         case IOCTLV_SO_RECVFROM:

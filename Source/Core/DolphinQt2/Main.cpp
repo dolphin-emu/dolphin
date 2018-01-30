@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
   QCoreApplication::setOrganizationDomain(QStringLiteral("dolphin-emu.org"));
-  QCoreApplication::setApplicationName(QStringLiteral("dolphin"));
+  QCoreApplication::setApplicationName(QStringLiteral("dolphin-emu"));
 
   QApplication app(argc, argv);
 
@@ -73,6 +73,7 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
+  Settings::Instance().SetDebugModeEnabled(options.is_set("debugger"));
 
   // Hook up alerts from core
   RegisterMsgAlertHandler(QtMsgAlertHandler);
@@ -86,7 +87,11 @@ int main(int argc, char* argv[])
                    &app, &Core::HostDispatchJobs);
 
   std::unique_ptr<BootParameters> boot;
-  if (options.is_set("nand_title"))
+  if (options.is_set("exec"))
+  {
+    boot = BootParameters::GenerateFromFile(static_cast<const char*>(options.get("exec")));
+  }
+  else if (options.is_set("nand_title"))
   {
     const std::string hex_string = static_cast<const char*>(options.get("nand_title"));
     if (hex_string.length() == 16)

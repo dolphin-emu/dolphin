@@ -4,18 +4,12 @@
 
 #pragma once
 
-#include <optional>
 #include <string>
 
 #include "Common/Config/Config.h"
 
 namespace Config
 {
-std::optional<int> ConvertFromLegacyEFBScale(int efb_scale);
-std::optional<int> ConvertFromLegacyEFBScale(const std::string& efb_scale);
-int ConvertToLegacyEFBScale(int efb_scale);
-std::optional<int> ConvertToLegacyEFBScale(const std::string& efb_scale);
-
 // Configuration Information
 
 // Graphics.Hardware
@@ -29,8 +23,6 @@ extern const ConfigInfo<bool> GFX_WIDESCREEN_HACK;
 extern const ConfigInfo<int> GFX_ASPECT_RATIO;
 extern const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO;
 extern const ConfigInfo<bool> GFX_CROP;
-extern const ConfigInfo<bool> GFX_USE_XFB;
-extern const ConfigInfo<bool> GFX_USE_REAL_XFB;
 extern const ConfigInfo<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const ConfigInfo<bool> GFX_SHOW_FPS;
 extern const ConfigInfo<bool> GFX_SHOW_NETPLAY_PING;
@@ -40,14 +32,15 @@ extern const ConfigInfo<bool> GFX_OVERLAY_STATS;
 extern const ConfigInfo<bool> GFX_OVERLAY_PROJ_STATS;
 extern const ConfigInfo<bool> GFX_DUMP_TEXTURES;
 extern const ConfigInfo<bool> GFX_HIRES_TEXTURES;
-extern const ConfigInfo<bool> GFX_CONVERT_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const ConfigInfo<bool> GFX_DUMP_EFB_TARGET;
+extern const ConfigInfo<bool> GFX_DUMP_XFB_TARGET;
 extern const ConfigInfo<bool> GFX_DUMP_FRAMES_AS_IMAGES;
 extern const ConfigInfo<bool> GFX_FREE_LOOK;
 extern const ConfigInfo<bool> GFX_USE_FFV1;
 extern const ConfigInfo<std::string> GFX_DUMP_FORMAT;
 extern const ConfigInfo<std::string> GFX_DUMP_CODEC;
+extern const ConfigInfo<std::string> GFX_DUMP_ENCODER;
 extern const ConfigInfo<std::string> GFX_DUMP_PATH;
 extern const ConfigInfo<int> GFX_BITRATE_KBPS;
 extern const ConfigInfo<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS;
@@ -106,7 +99,9 @@ extern const ConfigInfo<bool> GFX_HACK_BBOX_ENABLE;
 extern const ConfigInfo<bool> GFX_HACK_BBOX_PREFER_STENCIL_IMPLEMENTATION;
 extern const ConfigInfo<bool> GFX_HACK_FORCE_PROGRESSIVE;
 extern const ConfigInfo<bool> GFX_HACK_SKIP_EFB_COPY_TO_RAM;
-extern const ConfigInfo<bool> GFX_HACK_COPY_EFB_ENABLED;
+extern const ConfigInfo<bool> GFX_HACK_SKIP_XFB_COPY_TO_RAM;
+extern const ConfigInfo<bool> GFX_HACK_IMMEDIATE_XFB;
+extern const ConfigInfo<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const ConfigInfo<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING;
 

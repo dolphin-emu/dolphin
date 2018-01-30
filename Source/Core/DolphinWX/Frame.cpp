@@ -8,6 +8,7 @@
 #include <atomic>
 #include <cstddef>
 #include <fstream>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -72,6 +73,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -130,8 +133,9 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
       main_frame->GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(true);
     }
 
-    if (Movie::PlayInput(filepath))
-      main_frame->BootGame("");
+    std::optional<std::string> savestate_path;
+    if (Movie::PlayInput(filepath, &savestate_path))
+      main_frame->BootGame("", savestate_path);
   }
   else if (!Core::IsRunning())
   {
@@ -150,7 +154,8 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
 bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 {
   const int game_id_length = 6;
-  std::ifstream file(filepath, std::ios::in | std::ios::binary);
+  std::ifstream file;
+  File::OpenFStream(file, filepath, std::ios::in | std::ios::binary);
 
   if (!file)
     return false;
@@ -699,61 +704,13 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
-void CFrame::InhibitScreensaver()
+void CFrame::EnableScreenSaver(bool enable)
 {
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
-
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                 X11Utils::XWindowFromHandle(GetHandle()), true);
-  }
-#endif
-
-#ifdef _WIN32
-  // Prevents Windows from sleeping, turning off the display, or idling
-  EXECUTION_STATE should_screen_save =
-      SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
-  SetThreadExecutionState(ES_CONTINUOUS | should_screen_save | ES_SYSTEM_REQUIRED);
-#endif
-
-#ifdef __APPLE__
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    CFStringRef reason_for_activity = CFSTR("Emulation Running");
-    if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
-                                    kIOPMAssertionLevelOn, reason_for_activity,
-                                    &m_power_assertion) != kIOReturnSuccess)
-    {
-      m_power_assertion = kIOPMNullAssertionID;
-    }
-  }
-#endif
-}
-
-void CFrame::UninhibitScreensaver()
-{
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                 X11Utils::XWindowFromHandle(GetHandle()), false);
-  }
-#endif
-
-#ifdef _WIN32
-  // Allow windows to resume normal idling behavior
-  SetThreadExecutionState(ES_CONTINUOUS);
-#endif
-
-#ifdef __APPLE__
-  if (m_power_assertion != kIOPMNullAssertionID)
-  {
-    IOPMAssertionRelease(m_power_assertion);
-    m_power_assertion = kIOPMNullAssertionID;
-  }
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  UICommon::EnableScreenSaver(X11Utils::XDisplayFromHandle(GetHandle()),
+                              X11Utils::XWindowFromHandle(GetHandle()), enable);
+#else
+  UICommon::EnableScreenSaver(enable);
 #endif
 }
 
@@ -1484,6 +1441,20 @@ void CFrame::ParseHotkeys()
     Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
                        !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
   }
+  if (IsHotkey(HK_TOGGLE_XFBCOPIES))
+  {
+    OSDChoice = 6;
+    // Toggle XFB copies between XFB2RAM and XFB2Texture
+    Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
+                       !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
+  }
+  if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
+  {
+    OSDChoice = 6;
+    // Toggle immediate present of xfb
+    Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
+                       !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
+  }
   if (IsHotkey(HK_TOGGLE_FOG))
   {
     OSDChoice = 4;
@@ -1535,7 +1506,7 @@ void CFrame::ParseHotkeys()
 
   if (IsHotkey(HK_TOGGLE_STEREO_SBS))
   {
-    if (g_Config.iStereoMode != STEREO_SBS)
+    if (g_Config.stereo_mode != StereoMode::SBS)
     {
       // Current implementation of anaglyph stereoscopy uses a
       // post-processing shader. Thus the shader needs to be to be
@@ -1544,56 +1515,56 @@ void CFrame::ParseHotkeys()
       {
         Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_SBS));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::SBS));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_TAB))
   {
-    if (g_Config.iStereoMode != STEREO_TAB)
+    if (g_Config.stereo_mode != StereoMode::TAB)
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
         Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_TAB));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::TAB));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
   {
-    if (g_Config.iStereoMode != STEREO_ANAGLYPH)
+    if (g_Config.stereo_mode != StereoMode::Anaglyph)
     {
       // Setting the anaglyph mode also requires a specific
       // post-processing shader to be activated.
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_ANAGLYPH));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Anaglyph));
       Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
       Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
   {
-    if (g_Config.iStereoMode != STEREO_3DVISION)
+    if (g_Config.stereo_mode != StereoMode::Nvidia3DVision)
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
         Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
       }
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_3DVISION));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Nvidia3DVision));
     }
     else
     {
-      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(STEREO_OFF));
+      Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
     }
   }
 

@@ -13,6 +13,7 @@
 
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractTexture;
@@ -49,7 +50,7 @@ private:
 
   struct TextureDecodingProgramInfo
   {
-    const TextureConversionShader::DecodingShaderInfo* base_info = nullptr;
+    const TextureConversionShaderTiled::DecodingShaderInfo* base_info = nullptr;
     SHADER program;
     GLint uniform_dst_size = -1;
     GLint uniform_src_size = -1;
@@ -59,7 +60,6 @@ private:
     bool valid = false;
   };
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, const void* palette,
                       TLUTFormat format) override;
 
@@ -68,7 +68,8 @@ private:
                bool scale_by_half) override;
 
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
+                           bool scale_by_half, EFBCopyFormat dst_format,
+                           bool is_intensity) override;
 
   bool CompileShaders() override;
   void DeleteShaders() override;
@@ -79,26 +80,23 @@ private:
   void CreateTextureDecodingResources();
   void DestroyTextureDecodingResources();
 
-  SHADER m_colorCopyProgram;
-  SHADER m_colorMatrixProgram;
-  SHADER m_depthMatrixProgram;
-  GLuint m_colorMatrixUniform;
-  GLuint m_depthMatrixUniform;
-  GLuint m_colorCopyPositionUniform;
-  GLuint m_colorMatrixPositionUniform;
-  GLuint m_depthCopyPositionUniform;
+  struct EFBCopyShader
+  {
+    SHADER shader;
+    GLuint position_uniform;
+  };
 
-  u32 m_color_cbuf_id;
-  u32 m_depth_cbuf_id;
+  std::map<TextureConversionShaderGen::TCShaderUid, EFBCopyShader> m_efb_copy_programs;
+
+  SHADER m_colorCopyProgram;
+  GLuint m_colorCopyPositionUniform;
 
   std::array<PaletteShader, 3> m_palette_shaders;
   std::unique_ptr<StreamBuffer> m_palette_stream_buffer;
   GLuint m_palette_resolv_texture = 0;
 
   std::map<std::pair<u32, u32>, TextureDecodingProgramInfo> m_texture_decoding_program_info;
-  std::array<GLuint, TextureConversionShader::BUFFER_FORMAT_COUNT> m_texture_decoding_buffer_views;
+  std::array<GLuint, TextureConversionShaderTiled::BUFFER_FORMAT_COUNT>
+      m_texture_decoding_buffer_views;
 };
-
-bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width,
-                 int virtual_height, unsigned int level);
 }

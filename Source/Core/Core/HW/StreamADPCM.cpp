@@ -6,12 +6,13 @@
 
 #include "Core/HW/StreamADPCM.h"
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
 namespace StreamADPCM
 {
-// STATE_TO_SAVE (not saved yet!)
+// STATE_TO_SAVE
 static s32 histl1;
 static s32 histl2;
 static s32 histr1;
@@ -54,6 +55,14 @@ void InitFilter()
   histl2 = 0;
   histr1 = 0;
   histr2 = 0;
+}
+
+void DoState(PointerWrap& p)
+{
+  p.Do(histl1);
+  p.Do(histl2);
+  p.Do(histr1);
+  p.Do(histr2);
 }
 
 void DecodeBlock(s16* pcm, const u8* adpcm)

@@ -94,8 +94,8 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_po
                          const char* out_color_1_var)
 {
   out.Write("// Lighting\n");
-  out.Write("%sfor (uint chan = 0u; chan < xfmem_numColorChans; chan++) {\n",
-            api_type == APIType::D3D ? "[loop] " : "");
+  out.Write("%sfor (uint chan = 0u; chan < %zuu; chan++) {\n",
+            api_type == APIType::D3D ? "[loop] " : "", NUM_XF_COLOR_CHANNELS);
   out.Write("  uint colorreg = xfmem_color(chan);\n"
             "  uint alphareg = xfmem_alpha(chan);\n"
             "  int4 mat = " I_MATERIALS "[chan + 2u]; \n"
@@ -196,8 +196,5 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_po
   out.Write("  }\n"
             "}\n"
             "\n");
-
-  out.Write("if (xfmem_numColorChans < 2u && (components & %uu) == 0u)\n", VB_HAS_COL1);
-  out.Write("  %s = %s;\n\n", out_color_1_var, out_color_0_var);
 }
 }

@@ -12,24 +12,22 @@ import android.support.v17.leanback.widget.CursorObjectAdapter;
 import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
-import android.support.v17.leanback.widget.OnItemViewClickedListener;
-import android.support.v17.leanback.widget.Presenter;
-import android.support.v17.leanback.widget.Row;
-import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
@@ -57,6 +55,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 			StartupHandler.HandleInit(this);
 	}
 
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		mPresenter.addDirIfNeeded(new AddDirectoryHelper(this));
+	}
+
 	void setupUI() {
 		final FragmentManager fragmentManager = getSupportFragmentManager();
 		mBrowseFragment = new BrowseSupportFragment();
@@ -71,31 +76,27 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		buildRowsAdapter();
 
 		mBrowseFragment.setOnItemViewClickedListener(
-				new OnItemViewClickedListener()
-				{
-					@Override
-					public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row)
-					{
-						// Special case: user clicked on a settings row item.
-						if (item instanceof TvSettingsItem)
-						{
-							TvSettingsItem settingsItem = (TvSettingsItem) item;
-							mPresenter.handleOptionSelection(settingsItem.getItemId());
-						}
-						else
-						{
-							TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
+                (itemViewHolder, item, rowViewHolder, row) ->
+                {
+                    // Special case: user clicked on a settings row item.
+                    if (item instanceof TvSettingsItem)
+                    {
+                        TvSettingsItem settingsItem = (TvSettingsItem) item;
+                        mPresenter.handleOptionSelection(settingsItem.getItemId());
+                    }
+                    else
+                    {
+                        TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
-							// Start the emulation activity and send the path of the clicked ISO to it.
-							EmulationActivity.launch(TvMainActivity.this,
-									holder.path,
-									holder.title,
-									holder.screenshotPath,
-									-1,
-									holder.imageScreenshot);
-						}
-					}
-				});
+                        // Start the emulation activity and send the path of the clicked ISO to it.
+                        EmulationActivity.launch(TvMainActivity.this,
+                                holder.path,
+                                holder.title,
+                                holder.screenshotPath,
+                                -1,
+                                holder.imageScreenshot);
+                    }
+                });
 	}
 	/**
 	 * MainView
@@ -128,7 +129,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	@Override
 	public void launchFileListActivity()
 	{
-		AddDirectoryActivity.launch(this);
+		FileBrowserHelper.openDirectoryPicker(this);
 	}
 
 	@Override
@@ -153,7 +154,20 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
 	{
-		mPresenter.handleActivityResult(requestCode, resultCode);
+		switch (requestCode)
+		{
+			case MainPresenter.REQUEST_ADD_DIRECTORY:
+				// If the user picked a file, as opposed to just backing out.
+				if (resultCode == MainActivity.RESULT_OK)
+				{
+					mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+				}
+				break;
+
+			case MainPresenter.REQUEST_EMULATE_GAME:
+				mPresenter.refreshFragmentScreenshot(resultCode);
+				break;
+		}
 	}
 
 	@Override
@@ -161,7 +175,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+					DirectoryInitializationService.startService(this);
 					loadGames();
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)

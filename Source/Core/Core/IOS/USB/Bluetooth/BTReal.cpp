@@ -568,12 +568,16 @@ bool BluetoothReal::OpenDevice(libusb_device* device)
     return false;
   }
 
+// Detaching always fails as a regular user on FreeBSD
+// https://lists.freebsd.org/pipermail/freebsd-usb/2016-March/014161.html
+#ifndef __FreeBSD__
   const int result = libusb_detach_kernel_driver(m_handle, INTERFACE);
   if (result < 0 && result != LIBUSB_ERROR_NOT_FOUND && result != LIBUSB_ERROR_NOT_SUPPORTED)
   {
     PanicAlertT("Failed to detach kernel driver for BT passthrough: %s", libusb_error_name(result));
     return false;
   }
+#endif
   if (libusb_claim_interface(m_handle, INTERFACE) < 0)
   {
     PanicAlertT("Failed to claim interface for BT passthrough");

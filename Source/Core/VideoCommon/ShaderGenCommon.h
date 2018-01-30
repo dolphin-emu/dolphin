@@ -178,7 +178,8 @@ union ShaderHostConfig
     u32 backend_reversed_depth_range : 1;
     u32 backend_bitfield : 1;
     u32 backend_dynamic_sampler_indexing : 1;
-    u32 pad : 12;
+    u32 backend_shader_framebuffer_fetch : 1;
+    u32 pad : 11;
   };
 
   static ShaderHostConfig GetCurrent();

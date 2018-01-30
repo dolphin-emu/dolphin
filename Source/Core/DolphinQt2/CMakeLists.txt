@@ -18,6 +18,7 @@ set(CMAKE_AUTOMOC ON)
 
 set(SRCS
   AboutDialog.cpp
+  FIFOPlayerWindow.cpp
   HotkeyScheduler.cpp
   Host.cpp
   InDevelopmentWarning.cpp
@@ -31,6 +32,8 @@ set(SRCS
   Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/CheatCodeEditor.cpp
+  Config/ARCodeWidget.cpp
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
@@ -49,8 +52,9 @@ set(SRCS
   Config/LogConfigWidget.cpp
   Config/LogWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
+  Config/Mapping/GCMicrophone.cpp
   Config/Mapping/GCPadEmu.cpp
-  Config/Mapping/GCPadWiiU.cpp
+  Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGraphics.cpp
@@ -69,6 +73,11 @@ set(SRCS
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
+  Debugger/BreakpointWidget.cpp
+  Debugger/NewBreakpointDialog.cpp
+  Debugger/RegisterColumn.cpp
+  Debugger/RegisterWidget.cpp
+  Debugger/WatchWidget.cpp
   GameList/GameFileCache.cpp
   GameList/GameFile.cpp
   GameList/GameList.cpp
@@ -88,6 +97,7 @@ set(SRCS
   QtUtils/WindowActivationEventFilter.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
+  Settings/GameCubePane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp

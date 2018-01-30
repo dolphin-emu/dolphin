@@ -376,14 +376,16 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
 
   // Ensure any new settings are written to the SYSCONF
   if (StartUp.bWii)
-    ConfigLoaders::SaveToSYSCONF(Config::GetLayer(Config::LayerType::Meta));
+    ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
 
   const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {
-    return Core::Init(std::make_unique<BootParameters>(BootParameters::IPL{
-        StartUp.m_region, std::move(std::get<BootParameters::Disc>(boot->parameters))}));
+    return Core::Init(std::make_unique<BootParameters>(
+        BootParameters::IPL{StartUp.m_region,
+                            std::move(std::get<BootParameters::Disc>(boot->parameters))},
+        boot->savestate_path));
   }
   return Core::Init(std::move(boot));
 }
@@ -397,28 +399,31 @@ void Stop()
 // SYSCONF can be modified during emulation by the user and internally, which makes it
 // a bad idea to just always overwrite it with the settings from the base layer.
 //
-// Conversely, we also shouldn't just ignore any changes to SYSCONF, as it may cause
+// Conversely, we also shouldn't just accept any changes to SYSCONF, as it may cause
 // temporary settings (from Movie, Netplay, game INIs, etc.) to stick around.
 //
-// To avoid inconveniences in most cases, we always restore only the overridden settings.
+// To avoid inconveniences in most cases, we accept changes that aren't being overriden by a
+// non-base layer, and restore only the overriden settings.
 static void RestoreSYSCONF()
 {
   // This layer contains the new SYSCONF settings (including any temporary settings).
-  auto layer = std::make_unique<Config::Layer>(ConfigLoaders::GenerateBaseConfigLoader());
+  Config::Layer temp_layer(Config::LayerType::Base);
+  // Use a separate loader so the temp layer doesn't automatically save
+  ConfigLoaders::GenerateBaseConfigLoader()->Load(&temp_layer);
+
   for (const auto& setting : Config::SYSCONF_SETTINGS)
   {
     std::visit(
         [&](auto& info) {
           // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
           // Otherwise we leave the new value in the SYSCONF.
-          if (Config::GetActiveLayerForConfig(info) != Config::LayerType::Base)
-            layer->Set(info, Config::GetBase(info));
+          if (Config::GetActiveLayerForConfig(info) == Config::LayerType::Base)
+            Config::SetBase(info, temp_layer.Get(info));
         },
         setting.config_info);
   }
   // Save the SYSCONF.
-  layer->Save();
-  Config::AddLayer(std::move(layer));
+  Config::GetLayer(Config::LayerType::Base)->Save();
 }
 
 void RestoreConfig()

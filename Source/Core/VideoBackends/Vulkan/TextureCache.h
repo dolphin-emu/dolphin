@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureConverterShaderGen.h"
 
 namespace Vulkan
 {
@@ -31,8 +33,6 @@ public:
   bool CompileShaders() override;
   void DeleteShaders() override;
 
-  std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
-
   void ConvertTexture(TCacheEntry* destination, TCacheEntry* source, const void* palette,
                       TLUTFormat format) override;
 
@@ -48,24 +48,19 @@ public:
                           TLUTFormat palette_format) override;
 
   VkShaderModule GetCopyShader() const;
-  VkRenderPass GetTextureCopyRenderPass() const;
   StreamBuffer* GetTextureUploadBuffer() const;
 
 private:
-  bool CreateRenderPasses();
-
   void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy, const EFBRectangle& src_rect,
-                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
-
-  VkRenderPass m_render_pass = VK_NULL_HANDLE;
+                           bool scale_by_half, EFBCopyFormat dst_format,
+                           bool is_intensity) override;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
   std::unique_ptr<TextureConverter> m_texture_converter;
 
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
-  VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
-  VkShaderModule m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
+  std::map<TextureConversionShaderGen::TCShaderUid, VkShaderModule> m_efb_copy_to_tex_shaders;
 };
 
 }  // namespace Vulkan

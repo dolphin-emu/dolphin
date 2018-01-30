@@ -114,7 +114,7 @@ void IOWindow::Update()
   m_range_spinbox->setValue(m_reference->range * SLIDER_TICK_COUNT);
   m_range_slider->setValue(m_reference->range * SLIDER_TICK_COUNT);
 
-  m_devq.FromString(m_controller->default_device.ToString());
+  m_devq = m_controller->GetDefaultDevice();
 
   UpdateDeviceList();
   UpdateOptionList();
@@ -147,7 +147,7 @@ void IOWindow::AppendSelectedOption(const std::string& prefix)
   m_expression_text->insertPlainText(
       QString::fromStdString(prefix) +
       MappingCommon::GetExpressionForControl(m_option_list->currentItem()->text(), m_devq,
-                                             m_controller->default_device));
+                                             m_controller->GetDefaultDevice()));
 }
 
 void IOWindow::OnDeviceChanged(const QString& device)
@@ -183,7 +183,7 @@ void IOWindow::OnDetectButtonPressed()
     btn->setText(QStringLiteral("..."));
 
     const auto expr = MappingCommon::DetectExpression(
-        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq, m_devq);
+        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq);
 
     btn->setText(old_label);
 
@@ -237,10 +237,9 @@ void IOWindow::UpdateDeviceList()
   Core::RunAsCPUThread([&] {
     g_controller_interface.RefreshDevices();
     m_controller->UpdateReferences(g_controller_interface);
-    m_controller->UpdateDefaultDevice();
 
     // Adding default device regardless if it's currently connected or not
-    const auto default_device = m_controller->default_device.ToString();
+    const auto default_device = m_controller->GetDefaultDevice().ToString();
 
     m_devices_combo->addItem(QString::fromStdString(default_device));
 

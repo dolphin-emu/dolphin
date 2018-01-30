@@ -19,8 +19,8 @@
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
+#include "DolphinQt2/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
-#include "DolphinQt2/Config/Mapping/GCPadWiiU.h"
 #include "DolphinQt2/Config/Mapping/Hotkey3D.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGeneral.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGraphics.h"
@@ -32,12 +32,12 @@
 #include "DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
-
-MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m_port(port_num)
+MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
+    : QDialog(parent), m_port(port_num)
 {
   setWindowTitle(tr("Port %1").arg(port_num + 1));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -47,6 +47,7 @@ MappingWindow::MappingWindow(QWidget* parent, int port_num) : QDialog(parent), m
   CreateResetLayout();
   CreateMainLayout();
   ConnectWidgets();
+  SetMappingType(type);
 }
 
 void MappingWindow::CreateDevicesLayout()
@@ -210,8 +211,7 @@ void MappingWindow::OnSaveProfilePressed()
 void MappingWindow::OnDeviceChanged(int index)
 {
   const auto device = m_devices_combo->currentText().toStdString();
-  m_devq.FromString(device);
-  m_controller->default_device.FromString(device);
+  m_controller->SetDefaultDevice(device);
 }
 
 void MappingWindow::RefreshDevices()
@@ -221,9 +221,8 @@ void MappingWindow::RefreshDevices()
   Core::RunAsCPUThread([&] {
     g_controller_interface.RefreshDevices();
     m_controller->UpdateReferences(g_controller_interface);
-    m_controller->UpdateDefaultDevice();
 
-    const auto default_device = m_controller->default_device.ToString();
+    const auto default_device = m_controller->GetDefaultDevice().ToString();
 
     m_devices_combo->addItem(QString::fromStdString(default_device));
 
@@ -237,15 +236,8 @@ void MappingWindow::RefreshDevices()
   });
 }
 
-void MappingWindow::ChangeMappingType(MappingWindow::Type type)
+void MappingWindow::SetMappingType(MappingWindow::Type type)
 {
-  if (m_mapping_type == type)
-    return;
-
-  ClearWidgets();
-
-  m_controller = nullptr;
-
   MappingWidget* widget;
 
   switch (type)
@@ -263,10 +255,11 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
     setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
     AddWidget(tr("GameCube Controller"), widget);
     break;
-  case Type::MAPPING_GCPAD_WIIU:
-    widget = new GCPadWiiU(this);
-    setWindowTitle(tr("GameCube Adapter for Wii U at Port %1").arg(GetPort() + 1));
-    AddWidget(tr("GameCube Adapter for Wii U"), widget);
+  case Type::MAPPING_GC_MICROPHONE:
+    widget = new GCMicrophone(this);
+    setWindowTitle(tr("GameCube Microphone Slot %1")
+                       .arg(GetPort() == 0 ? QStringLiteral("A") : QStringLiteral("B")));
+    AddWidget(tr("Microphone"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:
   case Type::MAPPING_WIIMOTE_HYBRID:
@@ -297,50 +290,26 @@ void MappingWindow::ChangeMappingType(MappingWindow::Type type)
 
   widget->LoadSettings();
 
-  m_profiles_combo->clear();
-
   m_config = widget->GetConfig();
 
-  if (m_config)
-  {
-    m_controller = m_config->GetController(GetPort());
-    m_profiles_combo->addItem(QStringLiteral(""));
+  m_controller = m_config->GetController(GetPort());
+  m_profiles_combo->addItem(QStringLiteral(""));
 
-    const std::string profiles_path =
-        File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + m_config->GetProfileName();
-    for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
-    {
-      std::string basename;
-      SplitPath(filename, nullptr, &basename, nullptr);
-      m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
-    }
+  const std::string profiles_path =
+      File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + m_config->GetProfileName();
+  for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
+  {
+    std::string basename;
+    SplitPath(filename, nullptr, &basename, nullptr);
+    m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
 
-  SetLayoutComplex(type != Type::MAPPING_GCPAD_WIIU);
-
-  if (m_controller != nullptr)
-    RefreshDevices();
-
-  m_mapping_type = type;
-}
-
-void MappingWindow::ClearWidgets()
-{
-  m_tab_widget->clear();
+  RefreshDevices();
 }
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
   m_tab_widget->addTab(widget, name);
-}
-
-void MappingWindow::SetLayoutComplex(bool is_complex)
-{
-  m_reset_box->setHidden(!is_complex);
-  m_profiles_box->setHidden(!is_complex);
-  m_devices_box->setHidden(!is_complex);
-
-  m_is_complex = is_complex;
 }
 
 int MappingWindow::GetPort() const
@@ -353,21 +322,13 @@ ControllerEmu::EmulatedController* MappingWindow::GetController() const
   return m_controller;
 }
 
-const ciface::Core::DeviceQualifier& MappingWindow::GetDeviceQualifier() const
-{
-  return m_devq;
-}
-
 std::shared_ptr<ciface::Core::Device> MappingWindow::GetDevice() const
 {
-  return g_controller_interface.FindDevice(m_devq);
+  return g_controller_interface.FindDevice(GetController()->GetDefaultDevice());
 }
 
 void MappingWindow::OnDefaultFieldsPressed()
 {
-  if (m_controller == nullptr)
-    return;
-
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
   emit Update();

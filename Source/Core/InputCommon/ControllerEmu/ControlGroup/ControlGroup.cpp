@@ -78,7 +78,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
 
     for (auto& ai : ext->attachments)
     {
-      ai->default_device.FromString(defdev);
+      ai->SetDefaultDevice(defdev);
       ai->LoadConfig(sec, base + ai->GetName() + "/");
 
       if (ai->GetName() == extname)

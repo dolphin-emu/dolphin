@@ -5,7 +5,11 @@
 #pragma once
 
 #include <d3d11.h>
+
+#include <array>
 #include <memory>
+#include <vector>
+
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 

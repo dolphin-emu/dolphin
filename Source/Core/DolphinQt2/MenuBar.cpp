@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/MenuBar.h"
 
+#include <cinttypes>
+
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
@@ -13,6 +15,8 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
+
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -20,11 +24,15 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
+
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/WiiSaveBanner.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
@@ -43,6 +51,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
   OnEmulationStateChanged(Core::GetState());
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
@@ -76,6 +85,15 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
   UpdateStateSlotMenu();
   UpdateToolsMenu(running);
+
+  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+}
+
+void MenuBar::OnDebugModeToggled(bool enabled)
+{
+  m_show_registers->setVisible(enabled);
+  m_show_watch->setVisible(enabled);
+  m_show_breakpoints->setVisible(enabled);
 }
 
 void MenuBar::AddFileMenu()
@@ -109,12 +127,14 @@ void MenuBar::AddToolsMenu()
       AddAction(gc_ipl, tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
   AddAction(tools_menu, tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  AddAction(tools_menu, tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu =
       AddAction(tools_menu, QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
-  m_import_backup = AddAction(gc_ipl, tr("Import BootMii NAND Backup..."), this,
+  m_import_backup = AddAction(tools_menu, tr("Import BootMii NAND Backup..."), this,
                               [this] { emit ImportNANDBackup(); });
   m_check_nand = AddAction(tools_menu, tr("Check NAND..."), this, &MenuBar::CheckNAND);
   m_extract_certificates = AddAction(tools_menu, tr("Extract Certificates from NAND"), this,
@@ -137,6 +157,24 @@ void MenuBar::AddToolsMenu()
             [this] { emit PerformOnlineUpdate("KOR"); });
   AddAction(m_perform_online_update_menu, tr("United States"), this,
             [this] { emit PerformOnlineUpdate("USA"); });
+
+  QMenu* menu = new QMenu(tr("Connect Wii Remotes"));
+
+  tools_menu->addSeparator();
+  tools_menu->addMenu(menu);
+
+  for (int i = 0; i < 4; i++)
+  {
+    m_wii_remotes[i] = AddAction(menu, tr("Connect Wii Remote %1").arg(i + 1), this,
+                                 [this, i] { emit ConnectWiiRemote(i); });
+    m_wii_remotes[i]->setCheckable(true);
+  }
+
+  menu->addSeparator();
+
+  m_wii_remotes[4] =
+      AddAction(menu, tr("Connect Balance Board"), this, [this] { emit ConnectWiiRemote(4); });
+  m_wii_remotes[4]->setCheckable(true);
 }
 
 void MenuBar::AddEmulationMenu()
@@ -242,6 +280,34 @@ void MenuBar::AddViewMenu()
 
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
+          &QAction::setChecked);
+
+  view_menu->addSeparator();
+
+  m_show_registers = view_menu->addAction(tr("&Registers"));
+  m_show_registers->setCheckable(true);
+  m_show_registers->setChecked(Settings::Instance().IsRegistersVisible());
+
+  connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetRegistersVisible);
+  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
+          &QAction::setChecked);
+
+  m_show_watch = view_menu->addAction(tr("&Watch"));
+  m_show_watch->setCheckable(true);
+  m_show_watch->setChecked(Settings::Instance().IsWatchVisible());
+
+  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::SetWatchVisible);
+  connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, m_show_watch,
+          &QAction::setChecked);
+
+  m_show_breakpoints = view_menu->addAction(tr("&Breakpoints"));
+  m_show_breakpoints->setCheckable(true);
+  m_show_breakpoints->setChecked(Settings::Instance().IsBreakpointsVisible());
+
+  connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetBreakpointsVisible);
+  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
           &QAction::setChecked);
 
   view_menu->addSeparator();
@@ -399,9 +465,9 @@ void MenuBar::AddMovieMenu()
 {
   auto* movie_menu = addMenu(tr("&Movie"));
   m_recording_start =
-      AddAction(movie_menu, tr("Start Recording Input"), this, [this] { emit StartRecording(); });
+      AddAction(movie_menu, tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
-      AddAction(movie_menu, tr("Play Input Recording..."), this, [this] { emit PlayRecording(); });
+      AddAction(movie_menu, tr("P&lay Input Recording..."), this, [this] { emit PlayRecording(); });
   m_recording_stop = AddAction(movie_menu, tr("Stop Playing/Recording Input"), this,
                                [this] { emit StopRecording(); });
   m_recording_export =
@@ -412,7 +478,7 @@ void MenuBar::AddMovieMenu()
   m_recording_stop->setEnabled(false);
   m_recording_export->setEnabled(false);
 
-  m_recording_read_only = movie_menu->addAction(tr("Read-Only Mode"));
+  m_recording_read_only = movie_menu->addAction(tr("&Read-Only Mode"));
   m_recording_read_only->setCheckable(true);
   m_recording_read_only->setChecked(Movie::IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
@@ -494,6 +560,20 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
       action->setEnabled(!tmd.IsValid());
     m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
   }
+
+  const auto ios = IOS::HLE::GetIOS();
+  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
+                        nullptr;
+  bool enable_wiimotes =
+      emulation_started && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
+
+  for (int i = 0; i < 5; i++)
+  {
+    m_wii_remotes[i]->setEnabled(enable_wiimotes);
+    if (enable_wiimotes)
+      m_wii_remotes[i]->setChecked(bt->AccessWiiMote(0x0100 + i)->IsConnected());
+  }
 }
 
 void MenuBar::InstallWAD()
@@ -550,20 +630,38 @@ void MenuBar::CheckNAND()
                        "Do you want to try to repair the NAND?");
   if (!result.titles_to_remove.empty())
   {
-    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
-                  "incomplete data on the NAND, including all associated save data. "
-                  "By continuing, the following title(s) will be removed:\n\n");
+    std::string title_listings;
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
-      const std::string name = title_db.GetTitleName(title_id);
-      message += !name.empty() ?
-                     QStringLiteral("%1 (%2)")
-                         .arg(QString::fromStdString(name))
-                         .arg(title_id, 16, 16, QLatin1Char('0')) :
-                     QStringLiteral("%1").arg(title_id, 16, 16, QLatin1Char('0'));
-      message += QStringLiteral("\n");
+      title_listings += StringFromFormat("%016" PRIx64, title_id);
+
+      const std::string database_name = title_db.GetChannelName(title_id);
+      if (!database_name.empty())
+      {
+        title_listings += " - " + database_name;
+      }
+      else
+      {
+        DiscIO::WiiSaveBanner banner(title_id);
+        if (banner.IsValid())
+        {
+          title_listings += " - " + banner.GetName();
+          const std::string description = banner.GetDescription();
+          if (!StripSpaces(description).empty())
+            title_listings += " - " + description;
+        }
+      }
+
+      title_listings += "\n";
     }
+
+    message += tr("\n\nWARNING: Fixing this NAND requires the deletion of titles that have "
+                  "incomplete data on the NAND, including all associated save data. "
+                  "By continuing, the following title(s) will be removed:\n\n"
+                  "%1"
+                  "\nLaunching these titles may also fix the issues.")
+                   .arg(QString::fromStdString(title_listings));
   }
 
   if (QMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)

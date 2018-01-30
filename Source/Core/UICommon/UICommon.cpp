@@ -26,6 +26,14 @@
 #include "UICommon/UICommon.h"
 #include "UICommon/USBUtils.h"
 
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#include "UICommon/X11Utils.h"
+#endif
+
+#ifdef __APPLE__
+#include <IOKit/pwr_mgt/IOPMLib.h>
+#endif
+
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace UICommon
@@ -77,7 +85,9 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
   File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX) + ANAGLYPH_DIR DIR_SEP);
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+#ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
+#endif
 }
 
 void SetUserDirectory(const std::string& custom_path)
@@ -244,6 +254,63 @@ bool TriggerSTMPowerEvent()
   ProcessorInterface::PowerButton_Tap();
 
   return true;
+}
+
+#if defined(HAVE_XRANDR) && HAVE_X11
+void EnableScreenSaver(Display* display, Window win, bool enable)
+#else
+void EnableScreenSaver(bool enable)
+#endif
+{
+// Inhibit the screensaver. Depending on the operating system this may also
+// disable low-power states and/or screen dimming.
+
+#if defined(HAVE_X11) && HAVE_X11
+  if (SConfig::GetInstance().bDisableScreenSaver)
+  {
+    X11Utils::InhibitScreensaver(display, win, !enable);
+  }
+#endif
+
+#ifdef _WIN32
+  // Prevents Windows from sleeping, turning off the display, or idling
+  if (enable)
+  {
+    SetThreadExecutionState(ES_CONTINUOUS);
+  }
+  else
+  {
+    EXECUTION_STATE should_screen_save =
+        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
+    SetThreadExecutionState(ES_CONTINUOUS | should_screen_save | ES_SYSTEM_REQUIRED);
+  }
+#endif
+
+#ifdef __APPLE__
+  static IOPMAssertionID s_power_assertion = kIOPMNullAssertionID;
+
+  if (SConfig::GetInstance().bDisableScreenSaver)
+  {
+    if (enable)
+    {
+      if (s_power_assertion != kIOPMNullAssertionID)
+      {
+        IOPMAssertionRelease(s_power_assertion);
+        s_power_assertion = kIOPMNullAssertionID;
+      }
+    }
+    else
+    {
+      CFStringRef reason_for_activity = CFSTR("Emulation Running");
+      if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
+                                      kIOPMAssertionLevelOn, reason_for_activity,
+                                      &s_power_assertion) != kIOReturnSuccess)
+      {
+        s_power_assertion = kIOPMNullAssertionID;
+      }
+    }
+  }
+#endif
 }
 
 }  // namespace UICommon

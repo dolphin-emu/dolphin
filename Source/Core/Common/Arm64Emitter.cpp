@@ -2029,7 +2029,8 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
 
   u64 aligned_pc = (u64)GetCodePtr() & ~0xFFF;
   s64 aligned_offset = (s64)imm - (s64)aligned_pc;
-  if (upload_part.Count() > 1 && std::abs(aligned_offset) < 0xFFFFFFFFLL)
+  // The offset for ADR/ADRP is an s32, so make sure it can be represented in that
+  if (upload_part.Count() > 1 && std::abs(aligned_offset) < 0x7FFFFFFFLL)
   {
     // Immediate we are loading is within 4GB of our aligned range
     // Most likely a address that we can load in one or two instructions

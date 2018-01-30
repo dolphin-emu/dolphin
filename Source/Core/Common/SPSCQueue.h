@@ -5,7 +5,7 @@
 #pragma once
 
 // a simple lockless thread-safe,
-// single reader, single writer queue
+// single producer, single consumer queue
 
 #include <algorithm>
 #include <atomic>
@@ -16,11 +16,11 @@
 namespace Common
 {
 template <typename T, bool NeedSize = true>
-class FifoQueue
+class SPSCQueue
 {
 public:
-  FifoQueue() : m_size(0) { m_write_ptr = m_read_ptr = new ElementPtr(); }
-  ~FifoQueue()
+  SPSCQueue() : m_size(0) { m_write_ptr = m_read_ptr = new ElementPtr(); }
+  ~SPSCQueue()
   {
     // this will empty out the whole queue
     delete m_read_ptr;
@@ -28,7 +28,7 @@ public:
 
   u32 Size() const
   {
-    static_assert(NeedSize, "using Size() on FifoQueue without NeedSize");
+    static_assert(NeedSize, "using Size() on SPSCQueue without NeedSize");
     return m_size.load();
   }
 

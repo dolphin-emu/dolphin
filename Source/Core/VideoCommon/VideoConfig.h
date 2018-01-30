@@ -24,22 +24,22 @@
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
-enum AspectMode
+enum class AspectMode : int
 {
-  ASPECT_AUTO = 0,
-  ASPECT_ANALOG_WIDE = 1,
-  ASPECT_ANALOG = 2,
-  ASPECT_STRETCH = 3,
+  Auto,
+  AnalogWide,
+  Analog,
+  Stretch,
 };
 
-enum StereoMode
+enum class StereoMode : int
 {
-  STEREO_OFF = 0,
-  STEREO_SBS,
-  STEREO_TAB,
-  STEREO_ANAGLYPH,
-  STEREO_QUADBUFFER,
-  STEREO_3DVISION
+  Off,
+  SBS,
+  TAB,
+  Anaglyph,
+  QuadBuffer,
+  Nvidia3DVision
 };
 
 struct ProjectionHackConfig final
@@ -58,15 +58,13 @@ struct VideoConfig final
   void Refresh();
   void VerifyValidity();
   void UpdateProjectionHack();
-  bool IsVSync();
+  bool IsVSync() const;
 
   // General
   bool bVSync;
   bool bWidescreenHack;
-  int iAspectRatio;
+  AspectMode aspect_mode;
   bool bCrop;  // Aspect ratio controls.
-  bool bUseXFB;
-  bool bUseRealXFB;
   bool bShaderCache;
 
   // Enhancements
@@ -95,12 +93,13 @@ struct VideoConfig final
   // Utility
   bool bDumpTextures;
   bool bHiresTextures;
-  bool bConvertHiresTextures;
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
+  bool bDumpXFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
   std::string sDumpCodec;
+  std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
@@ -118,6 +117,8 @@ struct VideoConfig final
 
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
+  bool bSkipXFBCopyToRam;
+  bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
   ProjectionHackConfig phack;
@@ -129,7 +130,7 @@ struct VideoConfig final
   int iSaveTargetId;  // TODO: Should be dropped
 
   // Stereoscopy
-  int iStereoMode;
+  StereoMode stereo_mode;
   int iStereoDepth;
   int iStereoConvergence;
   int iStereoConvergencePercentage;
@@ -218,17 +219,17 @@ struct VideoConfig final
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
-    bool bSupportsInternalResolutionFrameDumps;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
+    bool bSupportsCopyToVram;
+    bool bForceCopyToRam;                  // Needed by Software Renderer
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
+    bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
   } backend_info;
 
   // Utility
-  bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
-  bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
   bool MultisamplingEnabled() const { return iMultisamples > 1; }
   bool ExclusiveFullscreenEnabled() const
   {

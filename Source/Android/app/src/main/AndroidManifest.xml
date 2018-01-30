@@ -51,11 +51,6 @@
         </activity>
 
         <activity
-            android:name=".activities.AddDirectoryActivity"
-            android:theme="@style/DolphinGamecube"
-            android:label="@string/add_directory_title"/>
-
-        <activity
             android:name=".ui.settings.SettingsActivity"
             android:theme="@style/DolphinSettingsGamecube"
             android:label="@string/preferences_settings"/>
@@ -64,14 +59,33 @@
             android:name=".activities.EmulationActivity"
             android:theme="@style/DolphinEmulationGamecube"/>
 
+        <activity
+            android:name=".activities.CustomFilePickerActivity"
+            android:label="@string/app_name"
+            android:theme="@style/FilePickerTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
 
-        <service android:name=".services.AssetCopyService"/>
+        <service android:name=".services.DirectoryInitializationService"/>
 
         <provider
             android:name=".model.GameProvider"
             android:authorities="${applicationId}.provider"
             android:enabled="true"
             android:exported="false">
+        </provider>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.filesprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/nnf_provider_paths" />
         </provider>
 
     </application>

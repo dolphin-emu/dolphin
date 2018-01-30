@@ -285,6 +285,8 @@ void DoState(PointerWrap& p)
   p.Do(s_disc_path_to_insert);
 
   DVDThread::DoState(p);
+
+  StreamADPCM::DoState(p);
 }
 
 static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data)

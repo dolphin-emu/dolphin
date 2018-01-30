@@ -88,7 +88,7 @@ unsigned int PPCDebugInterface::ReadInstruction(unsigned int address)
 
 bool PPCDebugInterface::IsAlive()
 {
-  return Core::IsRunning();
+  return Core::IsRunningAndStarted();
 }
 
 bool PPCDebugInterface::IsBreakpoint(unsigned int address)

@@ -70,7 +70,8 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
     shader = g_ActiveConfig.sPostProcessingShader;
   m_current_shader = shader;
 
-  const std::string sub_dir = (g_Config.iStereoMode == STEREO_ANAGLYPH) ? ANAGLYPH_DIR DIR_SEP : "";
+  const std::string sub_dir =
+      (g_Config.stereo_mode == StereoMode::Anaglyph) ? ANAGLYPH_DIR DIR_SEP : "";
 
   // loading shader code
   std::string code;

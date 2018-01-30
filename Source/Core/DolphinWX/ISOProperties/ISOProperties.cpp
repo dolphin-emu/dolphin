@@ -231,13 +231,17 @@ void CISOProperties::CreateGUIControls()
 {
   const int space5 = FromDIP(5);
 
-  wxButton* const edit_config = new wxButton(this, ID_EDITCONFIG, _("Edit Config"));
-  edit_config->SetToolTip(_("This will let you manually edit the INI config file."));
+  wxButton* const edit_config = new wxButton(this, ID_EDITCONFIG, _("Edit User Config"));
+  edit_config->SetToolTip(
+      _("Allows manual editing of the user configuration INI file for this "
+        "game. Settings in the user config INI override default config INI settings."));
 
   wxButton* const edit_default_config =
-      new wxButton(this, ID_SHOWDEFAULTCONFIG, _("Show Defaults"));
+      new wxButton(this, ID_SHOWDEFAULTCONFIG, _("View Default Config"));
   edit_default_config->SetToolTip(
-      _("Opens the default (read-only) configuration for this game in an external text editor."));
+      _("Displays the default configuration INI file(s) for this game. These defaults are "
+        "recommended settings from the developers to avoid known issues. Changes should be made to "
+        "the user config INI files only, not to default config INI files."));
 
   // Notebook
   wxNotebook* const notebook = new wxNotebook(this, ID_NOTEBOOK);
@@ -284,7 +288,7 @@ void CISOProperties::CreateGUIControls()
   m_fast_disc_speed->SetToolTip(
       _("Enable fast disc access. This can cause crashes and other problems "
         "in some games. (ON = Fast, OFF = Compatible)"));
-  m_dps_hle = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"),
+  m_dps_hle = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE Emulation (fast)"),
                              wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
 
   wxBoxSizer* const gpu_determinism_sizer = new wxBoxSizer(wxHORIZONTAL);

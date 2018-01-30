@@ -26,6 +26,7 @@ public:
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
+  void UpdateSurface();
 
 signals:
   void RequestTitle(const QString& title);

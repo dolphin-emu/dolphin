@@ -16,6 +16,9 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
+class AbstractTexture;
+class AbstractStagingTexture;
+
 namespace Vulkan
 {
 class StagingTexture2D;
@@ -32,8 +35,8 @@ public:
 
   // Applies palette to dst_entry, using indices from src_entry.
   void ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
-                      TextureCache::TCacheEntry* src_entry, VkRenderPass render_pass,
-                      const void* palette, TLUTFormat palette_format);
+                      TextureCache::TCacheEntry* src_entry, const void* palette,
+                      TLUTFormat palette_format);
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
@@ -58,7 +61,7 @@ public:
 private:
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
   static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
-  static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_B8G8R8A8_UNORM;
+  static const AbstractTextureFormat ENCODING_TEXTURE_FORMAT = AbstractTextureFormat::BGRA8;
   static const size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
 
   // Maximum size of a texture based on BP registers.
@@ -73,10 +76,7 @@ private:
   VkShaderModule CompileEncodingShader(const EFBCopyParams& params);
   VkShaderModule GetEncodingShader(const EFBCopyParams& params);
 
-  bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
-  bool CreateEncodingDownloadTexture();
-
   bool CreateDecodingTexture();
 
   bool CompileYUYVConversionShaders();
@@ -97,6 +97,7 @@ private:
   VkBufferView m_texel_buffer_view_r8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r32g32_uint = VK_NULL_HANDLE;
+  VkBufferView m_texel_buffer_view_rgba8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_rgba8_unorm = VK_NULL_HANDLE;
   size_t m_texel_buffer_size = 0;
 
@@ -105,15 +106,13 @@ private:
 
   // Texture encoding - RGBA8->GX format in memory
   std::map<EFBCopyParams, VkShaderModule> m_encoding_shaders;
-  VkRenderPass m_encoding_render_pass = VK_NULL_HANDLE;
-  std::unique_ptr<Texture2D> m_encoding_render_texture;
-  VkFramebuffer m_encoding_render_framebuffer = VK_NULL_HANDLE;
-  std::unique_ptr<StagingTexture2D> m_encoding_download_texture;
+  std::unique_ptr<AbstractTexture> m_encoding_render_texture;
+  std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
 
   // Texture decoding - GX format in memory->RGBA8
   struct TextureDecodingPipeline
   {
-    const TextureConversionShader::DecodingShaderInfo* base_info;
+    const TextureConversionShaderTiled::DecodingShaderInfo* base_info;
     VkShaderModule compute_shader;
     bool valid;
   };

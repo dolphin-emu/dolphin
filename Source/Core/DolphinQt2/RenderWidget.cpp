@@ -15,8 +15,16 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setAttribute(Qt::WA_NoSystemBackground, true);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
-  connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen);
-  connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle);
+
+  // We have to use Qt::DirectConnection here because we don't want those signals to get queued
+  // (which results in them not getting called)
+  connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen,
+          Qt::DirectConnection);
+  connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
+          Qt::DirectConnection);
+  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::UpdateSurface,
+          Qt::DirectConnection);
+
   emit HandleChanged((void*)winId());
 
   m_mouse_timer = new QTimer(this);
@@ -68,6 +76,9 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowDeactivate:
     Host::GetInstance()->SetRenderFocus(false);
+    break;
+  case QEvent::Resize:
+    emit SizeChanged();
     break;
   case QEvent::WindowStateChange:
     emit StateChanged(isFullScreen());

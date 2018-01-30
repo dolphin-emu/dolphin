@@ -907,12 +907,12 @@ void GekkoDisassembler::fdabc(u32 in, const char* name, int mask, unsigned char 
 
   if (mask & 4)
     m_operands += StringFromFormat("f%d,", (int)PPCGETA(in));
-  else
+  else if ((mask & 8) == 0)
     err |= (int)PPCGETA(in);
 
   if (mask & 2)
     m_operands += StringFromFormat("f%d,", (int)PPCGETC(in));
-  else if (PPCGETC(in))
+  else if (PPCGETC(in) && (mask & 8) == 0)
     err |= (int)PPCGETC(in);
 
   if (mask & 1)
@@ -2193,7 +2193,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 40:
-        fdabc(in, "neg", 10, 0);
+        fdabc(in, "neg", 9, 0);
         break;
 
       case 64:
@@ -2221,11 +2221,11 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 136:
-        fdabc(in, "nabs", 10, 0);
+        fdabc(in, "nabs", 9, 0);
         break;
 
       case 264:
-        fdabc(in, "abs", 10, 0);
+        fdabc(in, "abs", 9, 0);
         break;
 
       case 583:
@@ -2249,15 +2249,15 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         break;
 
       case 814:
-        fdabc(in, "fctid", 10, PPCF_64);
+        fdabc(in, "fctid", 9, PPCF_64);
         break;
 
       case 815:
-        fdabc(in, "fctidz", 10, PPCF_64);
+        fdabc(in, "fctidz", 9, PPCF_64);
         break;
 
       case 846:
-        fdabc(in, "fcfid", 10, PPCF_64);
+        fdabc(in, "fcfid", 9, PPCF_64);
         break;
 
       default:

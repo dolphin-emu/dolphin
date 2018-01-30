@@ -26,10 +26,10 @@ enum
 // The VI can do horizontal scaling (TODO: emulate).
 const u32 MAX_XFB_WIDTH = 720;
 
-// Although EFB height is 528, 574-line XFB's can be created either with
+// Although EFB height is 528, 576-line XFB's can be created either with
 // vertical scaling by the EFB copy operation or copying to multiple XFB's
 // that are next to each other in memory (TODO: handle that situation).
-const u32 MAX_XFB_HEIGHT = 574;
+const u32 MAX_XFB_HEIGHT = 576;
 
 // This structure should only be used to represent a rectangle in EFB
 // coordinates, where the origin is at the upper left and the frame dimensions
@@ -55,6 +55,8 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
     return (RECT*)this;
   }
 #endif
+  TargetRectangle(const MathUtil::Rectangle<int>& other) : MathUtil::Rectangle<int>(other) {}
+  TargetRectangle() = default;
 };
 
 #ifdef _WIN32

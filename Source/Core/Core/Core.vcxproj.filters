@@ -769,10 +769,10 @@
     <ClCompile Include="IOS\IOSC.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\MemoryValues.cpp">
+    <ClCompile Include="IOS\MIOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\MIOS.cpp">
+    <ClCompile Include="IOS\VersionInfo.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\MACUtils.cpp">
@@ -1511,10 +1511,10 @@
     <ClInclude Include="IOS\IOSC.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\MemoryValues.h">
+    <ClInclude Include="IOS\MIOS.h">
       <Filter>IOS</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\MIOS.h">
+    <ClInclude Include="IOS\VersionInfo.h">
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">

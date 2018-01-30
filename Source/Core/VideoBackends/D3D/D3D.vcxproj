@@ -52,11 +52,9 @@
     <ClCompile Include="PixelShaderCache.cpp" />
     <ClCompile Include="PSTextureEncoder.cpp" />
     <ClCompile Include="Render.cpp" />
-    <ClCompile Include="Television.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="VertexShaderCache.cpp" />
-    <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
@@ -73,12 +71,10 @@
     <ClInclude Include="PixelShaderCache.h" />
     <ClInclude Include="PSTextureEncoder.h" />
     <ClInclude Include="Render.h" />
-    <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VertexShaderCache.h" />
     <ClInclude Include="VideoBackend.h" />
-    <ClInclude Include="XFBEncoder.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">

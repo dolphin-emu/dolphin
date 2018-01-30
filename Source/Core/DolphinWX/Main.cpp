@@ -5,6 +5,7 @@
 #include <OptionParser.h>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <string>
 #include <utility>
 #include <wx/app.h>
@@ -165,7 +166,14 @@ bool DolphinApp::OnInit()
 void DolphinApp::ParseCommandLine()
 {
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+
+  // Manually convert each argument to a UTF-8 std::string, because the implicit
+  // conversion of wxCmdLineArgsArray to char** calls ToAscii (which is undesired).
+  std::vector<std::string> utf8_argv;
+  for (int i = 1; i < argc; ++i)
+    utf8_argv.emplace_back(argv[i].utf8_str());
+  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), utf8_argv);
+
   std::vector<std::string> args = parser->args();
 
   if (options.is_set("exec"))
@@ -249,12 +257,18 @@ void DolphinApp::AfterInit()
 
   if (m_play_movie && !m_movie_file.empty())
   {
-    if (Movie::PlayInput(WxStrToStr(m_movie_file)))
+    std::optional<std::string> savestate_path;
+    if (Movie::PlayInput(WxStrToStr(m_movie_file), &savestate_path))
     {
       if (m_boot)
+      {
+        m_boot->savestate_path = savestate_path;
         main_frame->StartGame(std::move(m_boot));
+      }
       else
-        main_frame->BootGame("");
+      {
+        main_frame->BootGame("", savestate_path);
+      }
     }
   }
   // First check if we have an exec command line.
@@ -503,7 +517,7 @@ void Host_YieldToUI()
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_PROGRESS_DIALOG);
-  event.SetString(caption);
+  event.SetString(StrToWxStr(caption));
   event.SetInt(position);
   event.SetExtraLong(total);
   main_frame->GetEventHandler()->AddPendingEvent(event);

@@ -1,14 +1,20 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import rx.functions.Action1;
 
 public final class SettingsActivityPresenter
 {
@@ -22,6 +28,10 @@ public final class SettingsActivityPresenter
 
 	private boolean mShouldSave;
 
+	private DirectoryStateReceiver directoryStateReceiver;
+
+	private String menuTag;
+
 	public SettingsActivityPresenter(SettingsActivityView view)
 	{
 		mView = view;
@@ -31,16 +41,62 @@ public final class SettingsActivityPresenter
 	{
 		if (savedInstanceState == null)
 		{
-			mView.showSettingsFragment(menuTag, false);
-
-			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
-			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
-			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
-			mView.onSettingsFileLoaded(mSettings);
+			this.menuTag = menuTag;
 		}
 		else
 		{
 			mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+		}
+	}
+
+	public void onStart()
+	{
+		prepareDolphinDirectoriesIfNeeded();
+	}
+
+	void loadSettingsUI()
+	{
+		if (mSettings.isEmpty())
+		{
+			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
+			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
+			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
+		}
+
+		mView.showSettingsFragment(menuTag, false);
+		mView.onSettingsFileLoaded(mSettings);
+	}
+
+	private void prepareDolphinDirectoriesIfNeeded()
+	{
+		if (DirectoryInitializationService.areDolphinDirectoriesReady()) {
+			loadSettingsUI();
+		} else {
+			mView.showLoading();
+			IntentFilter statusIntentFilter = new IntentFilter(
+					DirectoryInitializationService.BROADCAST_ACTION);
+
+			directoryStateReceiver =
+					new DirectoryStateReceiver(directoryInitializationState ->
+					{
+						if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+						{
+							mView.hideLoading();
+							loadSettingsUI();
+						}
+						else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
+						{
+							mView.showPermissionNeededHint();
+							mView.hideLoading();
+						}
+						else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
+						{
+							mView.showExternalStorageNotMountedHint();
+							mView.hideLoading();
+						}
+					});
+
+			mView.startDirectoryInitializationService(directoryStateReceiver, statusIntentFilter);
 		}
 	}
 
@@ -56,6 +112,12 @@ public final class SettingsActivityPresenter
 
 	public void onStop(boolean finishing)
 	{
+		if (directoryStateReceiver != null)
+		{
+			mView.stopListeningToDirectoryInitializationService(directoryStateReceiver);
+			directoryStateReceiver = null;
+		}
+
 		if (mSettings != null && finishing && mShouldSave)
 		{
 			Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");

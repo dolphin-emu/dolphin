@@ -124,7 +124,7 @@ public:
     // failed to open file for reading or bad header
     // close and recreate file
     Close();
-    m_file.open(filename, ios_base::out | ios_base::trunc | ios_base::binary);
+    File::OpenFStream(m_file, filename, ios_base::out | ios_base::trunc | ios_base::binary);
     WriteHeader();
     return 0;
   }

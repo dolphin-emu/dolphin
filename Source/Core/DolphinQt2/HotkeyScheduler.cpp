@@ -209,8 +209,8 @@ void HotkeyScheduler::Run()
         if (IsHotkey(HK_BALANCEBOARD_CONNECT))
           wiimote_id = 4;
 
-        // TODO Implement Wiimote connecting / disconnecting (Separate PR)
-        // if (wiimote_id > -1)
+        if (wiimote_id > -1)
+          emit ConnectWiiRemote(wiimote_id);
       }
 
       // Graphics
@@ -221,9 +221,16 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_TOGGLE_CROP))
         g_Config.bCrop = !g_Config.bCrop;
       if (IsHotkey(HK_TOGGLE_AR))
-        g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+      {
+        g_Config.aspect_mode =
+            static_cast<AspectMode>((static_cast<int>(g_Config.aspect_mode) + 1) & 3);
+      }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
         g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
+      if (IsHotkey(HK_TOGGLE_XFBCOPIES))
+        g_Config.bSkipXFBCopyToRam = !g_Config.bSkipXFBCopyToRam;
+      if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
+        g_Config.bImmediateXFB = !g_Config.bImmediateXFB;
       if (IsHotkey(HK_TOGGLE_FOG))
         g_Config.bDisableFog = !g_Config.bDisableFog;
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
@@ -257,46 +264,46 @@ void HotkeyScheduler::Run()
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS) || IsHotkey(HK_TOGGLE_STEREO_TAB))
       {
-        if (g_Config.iStereoMode != STEREO_SBS)
+        if (g_Config.stereo_mode != StereoMode::SBS)
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
           if (g_Config.sPostProcessingShader == DUBOIS_ALGORITHM_SHADER)
             g_Config.sPostProcessingShader = "";
 
-          g_Config.iStereoMode = IsHotkey(HK_TOGGLE_STEREO_SBS) ? STEREO_SBS : STEREO_TAB;
+          g_Config.stereo_mode = IsHotkey(HK_TOGGLE_STEREO_SBS) ? StereoMode::SBS : StereoMode::TAB;
         }
         else
         {
-          g_Config.iStereoMode = STEREO_OFF;
+          g_Config.stereo_mode = StereoMode::Off;
         }
       }
 
       if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
       {
-        if (g_Config.iStereoMode != STEREO_ANAGLYPH)
+        if (g_Config.stereo_mode != StereoMode::Anaglyph)
         {
-          g_Config.iStereoMode = STEREO_ANAGLYPH;
+          g_Config.stereo_mode = StereoMode::Anaglyph;
           g_Config.sPostProcessingShader = DUBOIS_ALGORITHM_SHADER;
         }
         else
         {
-          g_Config.iStereoMode = STEREO_OFF;
+          g_Config.stereo_mode = StereoMode::Off;
           g_Config.sPostProcessingShader = "";
         }
       }
 
       if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
       {
-        if (g_Config.iStereoMode != STEREO_3DVISION)
+        if (g_Config.stereo_mode != StereoMode::Nvidia3DVision)
         {
           if (g_Config.sPostProcessingShader == DUBOIS_ALGORITHM_SHADER)
             g_Config.sPostProcessingShader = "";
 
-          g_Config.iStereoMode = STEREO_3DVISION;
+          g_Config.stereo_mode = StereoMode::Nvidia3DVision;
         }
         else
         {
-          g_Config.iStereoMode = STEREO_OFF;
+          g_Config.stereo_mode = StereoMode::Off;
         }
       }
     }

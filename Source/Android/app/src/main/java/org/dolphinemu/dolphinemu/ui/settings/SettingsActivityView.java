@@ -1,6 +1,9 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.content.IntentFilter;
+
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
+import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -99,4 +102,39 @@ public interface SettingsActivityView
 	 * @param value New setting for the extension.
 	 */
 	void onExtensionSettingChanged(String key, int value);
+
+	/**
+	 * Show loading dialog while loading the settings
+	 */
+	void showLoading();
+
+	/**
+	 * Hide the loading the dialog
+	 */
+	void hideLoading();
+
+	/**
+	 * Show a hint to the user that the app needs write to external storage access
+	 */
+	void showPermissionNeededHint();
+
+	/**
+	 * Show a hint to the user that the app needs the external storage to be mounted
+	 */
+	void showExternalStorageNotMountedHint();
+
+	/**
+	 * Start the DirectoryInitializationService and listen for the result.
+	 *
+	 * @param receiver the broadcast receiver for the DirectoryInitializationService
+	 * @param filter the Intent broadcasts to be received.
+	 */
+	void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter);
+
+	/**
+	 * Stop listening to the DirectoryInitializationService.
+	 *
+	 * @param receiver The broadcast receiver to unregister.
+	 */
+	void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver);
 }
