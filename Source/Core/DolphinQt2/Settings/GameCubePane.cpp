@@ -149,7 +149,7 @@ void GameCubePane::OnConfigPressed(int slot)
   {
   // Memory card
   case 2:
-    filter = tr("GameCube Memory Cards (*.raw,*.gcp)");
+    filter = tr("GameCube Memory Cards (*.raw *.gcp)");
     memcard = true;
     break;
   // Advance Game Port
