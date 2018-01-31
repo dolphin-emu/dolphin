@@ -53,6 +53,7 @@
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
+#include "DolphinQt2/GCMemcardManager.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
@@ -234,6 +235,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
+  connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
@@ -1064,4 +1066,11 @@ void MainWindow::OnConnectWiiRemote(int id)
     const bool is_connected = bt && bt->AccessWiiMote(id | 0x100)->IsConnected();
     Wiimote::Connect(id, !is_connected);
   });
+}
+
+void MainWindow::ShowMemcardManager()
+{
+  GCMemcardManager manager(this);
+
+  manager.exec();
 }
