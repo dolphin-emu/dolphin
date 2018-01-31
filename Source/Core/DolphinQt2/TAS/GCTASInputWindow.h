@@ -16,7 +16,7 @@ class GCTASInputWindow : public QDialog
 {
   Q_OBJECT
 public:
-  explicit GCTASInputWindow(QWidget* parent);
+  explicit GCTASInputWindow(QWidget* parent, int num);
   void GetValues(GCPadStatus* pad);
 
 private:
@@ -32,10 +32,10 @@ private:
   QCheckBox* m_up_button;
   QCheckBox* m_down_button;
   QCheckBox* m_right_button;
-  QSpinBox* m_l_trigger_byte;
-  QSpinBox* m_r_trigger_byte;
-  QSpinBox* m_x_main_stick_byte;
-  QSpinBox* m_y_main_stick_byte;
-  QSpinBox* m_x_c_stick_byte;
-  QSpinBox* m_y_c_stick_byte;
+  QSpinBox* m_l_trigger_value;
+  QSpinBox* m_r_trigger_value;
+  QSpinBox* m_x_main_stick_value;
+  QSpinBox* m_y_main_stick_value;
+  QSpinBox* m_x_c_stick_value;
+  QSpinBox* m_y_c_stick_value;
 };

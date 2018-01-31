@@ -106,6 +106,8 @@ set(SRCS
   Settings/WiiPane.cpp
   Settings/USBDeviceAddToWhitelistDialog.cpp
   TAS/GCTASInputWindow.cpp
+  TAS/WiiTASInputWindow.cpp
+  TAS/Shared.cpp
   TAS/StickWidget.cpp
 )
 

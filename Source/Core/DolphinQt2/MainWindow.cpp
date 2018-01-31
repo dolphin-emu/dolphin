@@ -65,6 +65,7 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/TAS/GCTASInputWindow.h"
+#include "DolphinQt2/TAS/WiiTASInputWindow.h"
 #include "DolphinQt2/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -168,13 +169,20 @@ void MainWindow::CreateComponents()
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
 
-  std::generate(m_gc_tas_input_windows.begin(), m_gc_tas_input_windows.end(),
-                [this] { return new GCTASInputWindow(this); });
+  for (int i = 0; i < 4; i++)
+  {
+    m_gc_tas_input_windows[i] = new GCTASInputWindow(this, i);
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(this, i);
+  }
+
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
     m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
   });
 
-  // TODO: create wii input windows
+  Movie::SetWiiInputManip([this](u8* input_data, WiimoteEmu::ReportFeatures rptf, int controller_id,
+                                 int ext, wiimote_key key) {
+    m_wii_tas_input_windows[controller_id]->GetValues(input_data, rptf, ext, key);
+  });
 
   m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
 
@@ -1099,12 +1107,19 @@ void MainWindow::ShowTASInput()
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
       m_gc_tas_input_windows[i]->activateWindow();
-      m_gc_tas_input_windows[i]->setWindowTitle(
-          tr("TAS Input - Gamecube Controller %1").arg(i + 1));
     }
   }
 
-  // TODO: show wii input windows
+  for (int i = 0; i < 4; i++)
+  {
+    if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
+        (!Core::IsRunning() || SConfig::GetInstance().bWii))
+    {
+      m_wii_tas_input_windows[i]->show();
+      m_wii_tas_input_windows[i]->raise();
+      m_wii_tas_input_windows[i]->activateWindow();
+    }
+  }
 }
 
 void MainWindow::OnConnectWiiRemote(int id)

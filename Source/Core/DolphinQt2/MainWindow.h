@@ -35,6 +35,7 @@ class GraphicsWindow;
 class RegisterWidget;
 class WatchWidget;
 class GCTASInputWindow;
+class WiiTASInputWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -148,7 +149,10 @@ private:
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
-  std::array<GCTASInputWindow*, 4> m_gc_tas_input_windows{};
+  static constexpr int num_gc_controllers = 4;
+  std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
+  static constexpr int num_wii_controllers = 4;
+  std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
 
   BreakpointWidget* m_breakpoint_widget;
   LogWidget* m_log_widget;

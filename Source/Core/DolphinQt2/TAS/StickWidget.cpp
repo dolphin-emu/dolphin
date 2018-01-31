@@ -4,20 +4,14 @@
 
 #include "DolphinQt2/TAS/StickWidget.h"
 #include "Common/CommonTypes.h"
-#include "InputCommon/GCPadStatus.h"
 
 #include <QMouseEvent>
 #include <QPainter>
 
 #include <algorithm>
 
-StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y) : QWidget(parent)
+StickWidget::StickWidget(QWidget* parent, u16 max_x, u16 max_y) : QWidget(parent), m_max_x(max_x), m_max_y(max_y)
 {
-  m_max_x = max_x;
-  m_max_y = max_y;
-  m_x = 0;
-  m_y = 0;
-
   setMouseTracking(false);
 }
 
@@ -70,11 +64,11 @@ void StickWidget::mouseMoveEvent(QMouseEvent* event)
 void StickWidget::handleMouseEvent(QMouseEvent* event)
 {
   // convert from widget space to value space
-  int new_x = ((int)event->x() * m_max_x) / width();
-  int new_y = m_max_y - ((int)event->y() * m_max_y) / height();
+  int new_x = (event->x() * m_max_x) / width();
+  int new_y = m_max_y - (event->y() * m_max_y) / height();
 
-  m_x = std::max(0, std::min((int)m_max_x, new_x));
-  m_y = std::max(0, std::min((int)m_max_y, new_y));
+  m_x = std::max(0, std::min(static_cast<int>(m_max_x), new_x));
+  m_y = std::max(0, std::min(static_cast<int>(m_max_y), new_y));
 
   emit ChangedX(m_x);
   emit ChangedY(m_y);

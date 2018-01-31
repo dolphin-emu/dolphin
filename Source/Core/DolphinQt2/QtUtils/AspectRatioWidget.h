@@ -11,7 +11,7 @@ class QBoxLayout;
 class AspectRatioWidget : public QWidget
 {
 public:
-  AspectRatioWidget(QWidget* widget, float width, float height, QWidget* parent = 0);
+  AspectRatioWidget(QWidget* widget, float width, float height, QWidget* parent = nullptr);
   void resizeEvent(QResizeEvent* event);
 
 private:

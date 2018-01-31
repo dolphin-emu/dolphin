@@ -10,32 +10,32 @@
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QSpinBox>
 #include <QVBoxLayout>
 
-#include <algorithm>
-
-GCTASInputWindow::GCTASInputWindow(QWidget* parent) : QDialog(parent)
+GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 {
-  auto* main_stick_box = CreateStickInputs(this, tr("Main Stick ALT+F/G"), &m_x_main_stick_byte,
-                                           &m_y_main_stick_byte, 255, 255, Qt::Key_F, Qt::Key_G);
-  auto* c_stick_box = CreateStickInputs(this, tr("C Stick ALT+H/J"), &m_x_c_stick_byte,
-                                        &m_y_c_stick_byte, 255, 255, Qt::Key_H, Qt::Key_J);
+  setWindowTitle(tr("GameCube TAS Input %1").arg(num + 1));
+  auto* main_stick_box = CreateStickInputs(this, tr("Main Stick (ALT+F/G)"), m_x_main_stick_value,
+                                           m_y_main_stick_value, 255, 255, Qt::Key_F, Qt::Key_G);
+  auto* c_stick_box = CreateStickInputs(this, tr("C Stick (ALT+H/J)"), m_x_c_stick_value,
+                                        m_y_c_stick_value, 255, 255, Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(main_stick_box);
   top_layout->addWidget(c_stick_box);
 
-  auto* l_trigger_layout = new QHBoxLayout;
-  m_l_trigger_byte = CreateTriggerInputs(this, l_trigger_layout, Qt::Key_N, Qt::Horizontal);
+  auto* triggers_box = new QGroupBox(tr("Triggers"));
 
-  auto* l_trigger_box = new QGroupBox(tr("Left Trigger ALT+N"));
-  l_trigger_box->setLayout(l_trigger_layout);
+  auto* l_trigger_layout = CreateSliderValuePairLayout(this, tr("Left (ALT+N)"), m_l_trigger_value,
+                                                       255, Qt::Key_N, triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(
+      this, tr("Right (ALT+M)"), m_r_trigger_value, 255, Qt::Key_M, triggers_box);
 
-  auto* r_trigger_layout = new QHBoxLayout;
-  m_r_trigger_byte = CreateTriggerInputs(this, r_trigger_layout, Qt::Key_M, Qt::Horizontal);
-
-  auto* r_trigger_box = new QGroupBox(tr("Right Trigger ALT+M"));
-  r_trigger_box->setLayout(r_trigger_layout);
+  auto* triggers_layout = new QVBoxLayout;
+  triggers_layout->addLayout(l_trigger_layout);
+  triggers_layout->addLayout(r_trigger_layout);
+  triggers_box->setLayout(triggers_layout);
 
   m_a_button = new QCheckBox(QStringLiteral("&A"));
   m_b_button = new QCheckBox(QStringLiteral("&B"));
@@ -76,11 +76,18 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent) : QDialog(parent)
 
   auto* layout = new QVBoxLayout;
   layout->addLayout(top_layout);
-  layout->addWidget(l_trigger_box);
-  layout->addWidget(r_trigger_box);
+  layout->addWidget(triggers_box);
   layout->addWidget(buttons_box);
 
   setLayout(layout);
+}
+
+static void SetButton(QCheckBox* button, GCPadStatus* pad, u16 mask)
+{
+  if (button->isChecked())
+    pad->button |= mask;
+  else
+    pad->button &= ~mask;
 }
 
 void GCTASInputWindow::GetValues(GCPadStatus* pad)
@@ -111,11 +118,11 @@ void GCTASInputWindow::GetValues(GCPadStatus* pad)
   else
     pad->analogB = 0x00;
 
-  pad->triggerLeft = m_l_trigger_byte->value();
-  pad->triggerRight = m_r_trigger_byte->value();
+  pad->triggerLeft = m_l_trigger_value->value();
+  pad->triggerRight = m_r_trigger_value->value();
 
-  pad->stickX = m_x_main_stick_byte->value();
-  pad->stickY = m_y_main_stick_byte->value();
-  pad->substickX = m_x_c_stick_byte->value();
-  pad->substickY = m_y_c_stick_byte->value();
+  pad->stickX = m_x_main_stick_value->value();
+  pad->stickY = m_y_main_stick_value->value();
+  pad->substickX = m_x_c_stick_value->value();
+  pad->substickY = m_y_c_stick_value->value();
 }

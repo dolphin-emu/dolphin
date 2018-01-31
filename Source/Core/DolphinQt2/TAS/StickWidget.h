@@ -8,12 +8,6 @@
 
 #include "Common/CommonTypes.h"
 
-class QBoxLayout;
-class QCheckBox;
-class QGroupBox;
-class QSpinBox;
-struct GCPadStatus;
-
 class StickWidget : public QWidget
 {
   Q_OBJECT
@@ -37,6 +31,6 @@ protected:
 private:
   u16 m_max_x;
   u16 m_max_y;
-  u16 m_x;
-  u16 m_y;
+  u16 m_x = 0;
+  u16 m_y = 0;
 };
