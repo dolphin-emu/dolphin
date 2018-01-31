@@ -77,14 +77,22 @@ void NewBreakpointDialog::CreateWidgets()
   memory_layout->addWidget(m_memory_address_from, 1, 1);
   memory_layout->addWidget(m_memory_address_to_label, 1, 2);
   memory_layout->addWidget(m_memory_address_to, 1, 3);
-  memory_layout->addWidget(new QLabel(tr("Condition:")), 2, 0);
-  memory_layout->addWidget(m_memory_on_read, 2, 1);
-  memory_layout->addWidget(m_memory_on_write, 2, 2);
-  memory_layout->addWidget(m_memory_on_read_and_write, 2, 3);
-  memory_layout->addWidget(new QLabel(tr("Action:")), 3, 0);
-  memory_layout->addWidget(m_memory_do_log, 3, 1);
-  memory_layout->addWidget(m_memory_do_break, 3, 2);
-  memory_layout->addWidget(m_memory_do_log_and_break, 3, 3);
+  QGroupBox* condition_box = new QGroupBox(tr("Condition"));
+  auto* condition_layout = new QHBoxLayout;
+  condition_box->setLayout(condition_layout);
+
+  memory_layout->addWidget(condition_box, 2, 0, 1, -1);
+  condition_layout->addWidget(m_memory_on_read);
+  condition_layout->addWidget(m_memory_on_write);
+  condition_layout->addWidget(m_memory_on_read_and_write);
+
+  QGroupBox* action_box = new QGroupBox(tr("Action"));
+  auto* action_layout = new QHBoxLayout;
+  action_box->setLayout(action_layout);
+  memory_layout->addWidget(action_box, 3, 0, 1, -1);
+  action_layout->addWidget(m_memory_do_log);
+  action_layout->addWidget(m_memory_do_break);
+  action_layout->addWidget(m_memory_do_log_and_break);
 
   auto* layout = new QVBoxLayout;
 
