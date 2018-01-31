@@ -148,10 +148,12 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
 
-  DiscIO::Partition partition = GetPartitionFromID(item->data(ENTRY_PARTITION).toInt());
-  QString path = item->data(ENTRY_NAME).toString();
-
   EntryType type = item->data(ENTRY_TYPE).value<EntryType>();
+
+  DiscIO::Partition partition = type == EntryType::Disc ?
+                                    DiscIO::PARTITION_NONE :
+                                    GetPartitionFromID(item->data(ENTRY_PARTITION).toInt());
+  QString path = item->data(ENTRY_NAME).toString();
 
   if ((type == EntryType::Disc && m_volume->GetPartitions().empty()) ||
       type == EntryType::Partition)
