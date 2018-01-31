@@ -82,6 +82,7 @@ public final class SettingsFile
 	public static final String KEY_DUAL_CORE = "CPUThread";
 	public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
 	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
+	public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";

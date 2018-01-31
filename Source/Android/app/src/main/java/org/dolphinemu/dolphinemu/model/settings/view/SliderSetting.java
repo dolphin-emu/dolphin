@@ -43,7 +43,8 @@ public final class SliderSetting extends SettingsItem
 		else if (setting instanceof FloatSetting)
 		{
 			FloatSetting floatSetting = (FloatSetting) setting;
-			if (floatSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT))
+			if (floatSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
+					|| floatSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT))
 			{
 				return Math.round(floatSetting.getValue() * 100);
 			}

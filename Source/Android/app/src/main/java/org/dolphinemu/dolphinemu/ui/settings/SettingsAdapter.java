@@ -307,7 +307,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			{
 				float value;
 
-				if (sliderSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT))
+				if (sliderSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
+						|| sliderSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT))
 				{
 					value = mSeekbarProgress / 100.0f;
 				}
