@@ -439,7 +439,7 @@ IPCCommandResult SDIOSlot0::GetStatus(const IOCtlRequest& request)
   // Since IOS does the SD initialization itself, we just say we're always initialized.
   if (m_card)
   {
-    if (m_card.GetSize() < SDHC_BYTES)
+    if (m_card.GetSize() <= SDSC_MAX_SIZE)
     {
       // No further initialization required.
       m_status |= CARD_INITIALIZED;

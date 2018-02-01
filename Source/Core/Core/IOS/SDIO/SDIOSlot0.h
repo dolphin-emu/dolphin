@@ -118,8 +118,9 @@ private:
     V2,
   };
 
-  // Number of bytes to trigger using SDHC instead of SDSC
-  static constexpr u32 SDHC_BYTES = 0x80000000;
+  // Maximum number of bytes in an SDSC card
+  // Used to trigger using SDHC instead of SDSC
+  static constexpr u64 SDSC_MAX_SIZE = 0x80000000;
 
   struct Event
   {
