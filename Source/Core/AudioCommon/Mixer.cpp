@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "AudioCommon/DPL2Decoder.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
@@ -25,6 +26,13 @@ Mixer::Mixer(unsigned int BackendSampleRate)
 
 Mixer::~Mixer()
 {
+}
+
+void Mixer::DoState(PointerWrap& p)
+{
+  m_dma_mixer.DoState(p);
+  m_streaming_mixer.DoState(p);
+  m_wiimote_speaker_mixer.DoState(p);
 }
 
 // Executed from sound stream thread
@@ -345,6 +353,13 @@ void Mixer::StopLogDSPAudio()
   {
     WARN_LOG(AUDIO, "DSP Audio logging has already been stopped");
   }
+}
+
+void Mixer::MixerFifo::DoState(PointerWrap& p)
+{
+  p.Do(m_input_sample_rate);
+  p.Do(m_LVolume);
+  p.Do(m_RVolume);
 }
 
 void Mixer::MixerFifo::SetInputSampleRate(unsigned int rate)
