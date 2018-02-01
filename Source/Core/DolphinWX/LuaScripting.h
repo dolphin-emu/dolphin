@@ -62,6 +62,7 @@ private:
   void CreateGUI();
   void CreateMenuBar();
   void OnClearClicked(wxCommandEvent& event);
+  void OnClose(wxCloseEvent& event);
   void OnDocumentationClicked(wxCommandEvent& event);
   void OnAPIClicked(wxCommandEvent& event);
   void BrowseOnButtonClick(wxCommandEvent& event);

@@ -8,6 +8,7 @@
 #include <wx/button.h>
 #include <wx/filedlg.h>
 #include <wx/menu.h>
+#include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 #include <wx/settings.h>
@@ -116,6 +117,19 @@ LuaScriptFrame::~LuaScriptFrame()
   main_frame->m_lua_script_frame = nullptr;
 }
 
+void LuaScriptFrame::OnClose(wxCloseEvent& event)
+{
+	if (!m_lua_thread)
+	{
+		Destroy();
+	}
+	else
+	{		
+	    wxMessageBox(_("You must stop your script before closing this window!"));
+	}
+	return;
+}
+
 //
 // CreateGUI
 //
@@ -171,6 +185,10 @@ void LuaScriptFrame::CreateGUI()
   Bind(wxEVT_MENU, &LuaScriptFrame::OnClearClicked, this, m_clear->GetId());
   Bind(wxEVT_MENU, &LuaScriptFrame::OnDocumentationClicked, this, m_documentation->GetId());
   Bind(wxEVT_MENU, &LuaScriptFrame::OnAPIClicked, this, m_api->GetId());
+
+#ifndef __WIN32
+  Bind(wxEVT_CLOSE_WINDOW, &LuaScriptFrame::OnClose, this, wxID_ANY);
+#endif
 
   m_browse_button->Bind(wxEVT_BUTTON, &LuaScriptFrame::BrowseOnButtonClick, this,
                         m_browse_button->GetId());
