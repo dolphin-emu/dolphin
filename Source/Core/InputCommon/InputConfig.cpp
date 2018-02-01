@@ -138,7 +138,7 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
   if (static_cast<size_t>(index) >= m_controllers.size())
     return false;
 
-  const auto& controller = m_controllers.at(index).get()->default_device;
+  const auto& controller = m_controllers.at(index).get()->GetDefaultDevice();
 
   // Filter out anything which obviously not a gamepad
   return !((controller.source == "Quartz")      // OSX Quartz Keyboard/Mouse

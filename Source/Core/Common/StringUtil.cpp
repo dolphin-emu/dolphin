@@ -414,24 +414,6 @@ void StringPopBackIf(std::string* s, char c)
 
 #ifdef _WIN32
 
-std::string UTF16ToUTF8(const std::wstring& input)
-{
-  auto const size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, nullptr);
-
-  std::string output;
-  output.resize(size);
-
-  if (size == 0 ||
-      size != WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size()), nullptr, nullptr))
-  {
-    output.clear();
-  }
-
-  return output;
-}
-
 std::wstring CPToUTF16(u32 code_page, const std::string& input)
 {
   auto const size =
@@ -472,6 +454,11 @@ std::string UTF16ToCP(u32 code_page, const std::wstring& input)
 std::wstring UTF8ToUTF16(const std::string& input)
 {
   return CPToUTF16(CP_UTF8, input);
+}
+
+std::string UTF16ToUTF8(const std::wstring& input)
+{
+  return UTF16ToCP(CP_UTF8, input);
 }
 
 std::string SHIFTJISToUTF8(const std::string& input)
@@ -573,11 +560,7 @@ std::string UTF8ToSHIFTJIS(const std::string& input)
 
 std::string UTF16ToUTF8(const std::wstring& input)
 {
-  std::string result = CodeToUTF8("UTF-16LE", input);
-
-  // TODO: why is this needed?
-  result.erase(std::remove(result.begin(), result.end(), 0x00), result.end());
-  return result;
+  return CodeToUTF8("UTF-16LE", input);
 }
 
 #endif
