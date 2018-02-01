@@ -142,6 +142,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
   }
 }
 
+float Renderer::GetEFBScale() const
+{
+  return (float)m_efb_scale_numeratorX / (float)m_efb_scale_denominatorX;
+}
+
 int Renderer::EFBToScaledX(int x) const
 {
   switch (g_ActiveConfig.iEFBScale)

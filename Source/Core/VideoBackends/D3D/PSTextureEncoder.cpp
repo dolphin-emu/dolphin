@@ -135,7 +135,7 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
     // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
     //       need more complex down filtering to average all pixels and produce the correct result.
     // Also, box filtering won't be correct for anything other than 1x IR
-    if (scale_by_half || g_ActiveConfig.iEFBScale != SCALE_1X)
+    if (scale_by_half || g_renderer->GetEFBScale() != 1)
       D3D::SetLinearCopySampler();
     else
       D3D::SetPointCopySampler();
