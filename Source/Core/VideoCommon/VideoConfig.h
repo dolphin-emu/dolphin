@@ -80,7 +80,7 @@ struct VideoConfig final
   void GameIniReset();
   void VerifyValidity();
   void UpdateProjectionHack();
-  bool IsVSync();
+  bool IsVSync() const;
   bool VRSettingsModified();
 
   // General

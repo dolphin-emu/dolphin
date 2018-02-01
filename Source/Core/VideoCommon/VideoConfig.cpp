@@ -531,7 +531,7 @@ void VideoConfig::VerifyValidity()
   }
 }
 
-bool VideoConfig::IsVSync()
+bool VideoConfig::IsVSync() const
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
 }
