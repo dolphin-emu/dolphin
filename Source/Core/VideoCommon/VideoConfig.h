@@ -96,6 +96,7 @@ struct VideoConfig final
   u32 iMultisamples;
   bool bSSAA;
   int iEFBScale;
+  int iInternalResolution;
   bool bForceFiltering;
   int iMaxAnisotropy;
   std::string sPostProcessingShader;

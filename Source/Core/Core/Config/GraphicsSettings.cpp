@@ -7,8 +7,9 @@
 #include <string>
 
 #include "Common/Config/Config.h"
-#include "VideoCommon/VR.h"
+#include "Common/StringUtil.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
 
 namespace Config
 {
@@ -65,6 +66,7 @@ const ConfigInfo<u32> GFX_MSAA{{System::GFX, "Settings", "MSAA"}, 1};
 const ConfigInfo<bool> GFX_SSAA{{System::GFX, "Settings", "SSAA"}, false};
 const ConfigInfo<int> GFX_EFB_SCALE{{System::GFX, "Settings", "EFBScale"},
                                     static_cast<int>(SCALE_1X)};
+const ConfigInfo<int> GFX_INTERNAL_RESOLUTION{{System::GFX, "Settings", "InternalResolution"}, -2};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_ENABLE{{System::GFX, "Settings", "TexFmtOverlayEnable"},
                                                  false};
 const ConfigInfo<bool> GFX_TEXFMT_OVERLAY_CENTER{{System::GFX, "Settings", "TexFmtOverlayCenter"},

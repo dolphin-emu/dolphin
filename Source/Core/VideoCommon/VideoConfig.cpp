@@ -209,12 +209,18 @@ void VideoConfig::Refresh()
     iMultisamples = 0;
     bSSAA = false;
     iEFBScale = SCALE_1X;
+	iInternalResolution = 1;
   }
   else
   {
     iMultisamples = Config::Get(Config::GFX_MSAA);
     bSSAA = Config::Get(Config::GFX_SSAA);
     iEFBScale = Config::Get(Config::GFX_EFB_SCALE);
+	iInternalResolution = Config::Get(Config::GFX_INTERNAL_RESOLUTION);
+	if (iInternalResolution > -2)
+	{
+      iEFBScale = iInternalResolution + (iInternalResolution >= 0) + (iInternalResolution > 1) + (iInternalResolution > 2);
+	}
   }
 
   bTexFmtOverlayEnable = Config::Get(Config::GFX_TEXFMT_OVERLAY_ENABLE);
