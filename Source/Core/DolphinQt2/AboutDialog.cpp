@@ -54,11 +54,11 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text_label->setOpenExternalLinks(true);
 
   QLabel* copyright =
-      // i18n: This message uses curly quotes in English. If you want to use curly quotes
-      // in your translation, please use the type of curly quotes that's appropriate for
-      // your language. If you aren't sure which type is appropriate, see
-      // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
       new QLabel(small +
+                 // i18n: This message uses curly quotes in English. If you want to use curly quotes
+                 // in your translation, please use the type of curly quotes that's appropriate for
+                 // your language. If you aren't sure which type is appropriate, see
+                 // https://en.wikipedia.org/wiki/Quotation_mark#Specific_language_features
                  tr("\u00A9 2003-2015+ Dolphin Team. \u201cGameCube\u201d and \u201cWii\u201d are "
                     "trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.") +
                  QStringLiteral("</p>"));

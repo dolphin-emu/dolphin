@@ -915,7 +915,7 @@ void MainWindow::OnImportNANDBackup()
 
 void MainWindow::OnPlayRecording()
 {
-  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select The Recording File"), QString(),
+  QString dtm_file = QFileDialog::getOpenFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
   if (dtm_file.isEmpty())
@@ -985,7 +985,7 @@ void MainWindow::OnExportRecording()
   if (was_paused)
     Core::SetState(Core::State::Paused);
 
-  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select The Recording File"), QString(),
+  QString dtm_file = QFileDialog::getSaveFileName(this, tr("Select the Recording File"), QString(),
                                                   tr("Dolphin TAS Movies (*.dtm)"));
 
   if (was_paused)

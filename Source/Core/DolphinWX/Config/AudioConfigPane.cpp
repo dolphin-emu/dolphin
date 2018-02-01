@@ -36,7 +36,7 @@ void AudioConfigPane::InitializeGUI()
   m_dsp_engine_strings.Add(_("DSP LLE Interpreter (slow)"));
 
   m_dsp_engine_radiobox =
-      new wxRadioBox(this, wxID_ANY, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize,
+      new wxRadioBox(this, wxID_ANY, _("DSP Emulation Engine"), wxDefaultPosition, wxDefaultSize,
                      m_dsp_engine_strings, 0, wxRA_SPECIFY_ROWS);
   m_dpl2_decoder_checkbox = new wxCheckBox(this, wxID_ANY, _("Dolby Pro Logic II Decoder"));
   m_volume_slider = new DolphinSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize,

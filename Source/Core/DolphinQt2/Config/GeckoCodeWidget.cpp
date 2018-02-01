@@ -118,9 +118,6 @@ void GeckoCodeWidget::OnSelectionChanged()
 
   m_code_description->clear();
 
-  if (code.notes.empty())
-    m_code_description->append(tr("N/A"));
-
   for (const auto& line : code.notes)
     m_code_description->append(QString::fromStdString(line));
 
