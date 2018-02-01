@@ -32,7 +32,6 @@ private:
   // Widgets
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_speedlimit;
-  QCheckBox* m_checkbox_force_ntsc;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
   QLabel* m_label_speedlimit;

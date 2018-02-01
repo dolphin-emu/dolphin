@@ -65,7 +65,6 @@ void GeneralConfigPane::InitializeGUI()
                         "             "));  // The spaces are a lazy way to fix the panel size. They
                                             // can be removed once it's fixed in master.
   m_cheats_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
-  m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Usage Statistics Reporting"));
 #ifdef __APPLE__
@@ -91,9 +90,6 @@ void GeneralConfigPane::InitializeGUI()
         "is required by some games when using the Opcode Replay Buffer.\nIf unsure, leave this "
         "checked."));
   m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
-  m_force_ntscj_checkbox->SetToolTip(
-      _("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults "
-        "to NTSC-U and automatically enables this setting when playing Japanese games."));
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetToolTip(
       _("Enables the collection and sharing of usage statistics data with the Dolphin development "
@@ -147,8 +143,6 @@ void GeneralConfigPane::InitializeGUI()
   advanced_settings_sizer->AddSpacer(space5);
   advanced_settings_sizer->Add(m_cpu_engine_radiobox, 0, wxLEFT | wxRIGHT, space5);
   advanced_settings_sizer->AddSpacer(space5);
-  advanced_settings_sizer->Add(m_force_ntscj_checkbox, 0, wxLEFT | wxRIGHT, space5);
-  advanced_settings_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->AddSpacer(space5);
@@ -172,7 +166,6 @@ void GeneralConfigPane::LoadGUIValues()
   m_gpu_determinism->Select(startup_params.m_GPUDeterminismMode);
   m_idle_skip_checkbox->SetValue(startup_params.bSkipIdle);
   m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
-  m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetValue(startup_params.m_analytics_enabled);
@@ -203,10 +196,6 @@ void GeneralConfigPane::BindEvents()
 
   m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
   m_cheats_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
-
-  m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged,
-                               this);
-  m_force_ntscj_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnAnalyticsCheckBoxChanged, this);
@@ -244,11 +233,6 @@ void GeneralConfigPane::OnIdleSkipCheckBoxChanged(wxCommandEvent& event)
 void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().bEnableCheats = m_cheats_checkbox->IsChecked();
-}
-
-void GeneralConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bForceNTSCJ = m_force_ntscj_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)

@@ -446,7 +446,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
   display->Set("KeepWindowOnTop", bKeepWindowOnTop);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
-  display->Set("ForceNTSCJ", bForceNTSCJ);
 
 #ifdef OCULUSSDK042
   IniFile::Section* vr = ini.GetOrCreateSection("VR");
@@ -795,7 +794,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
     bRenderWindowAutoSize = false;
     bKeepWindowOnTop = false;
     bDisableScreenSaver = true;
-    bForceNTSCJ = false;
   }
   else
   {
@@ -809,7 +807,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
     display->Get("RenderWindowAutoSize", &bRenderWindowAutoSize, false);
     display->Get("KeepWindowOnTop", &bKeepWindowOnTop, false);
     display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
-    display->Get("ForceNTSCJ", &bForceNTSCJ, false);
   }
 
 #ifdef OCULUSSDK042
