@@ -35,8 +35,7 @@ enum class System
 };
 
 constexpr std::array<LayerType, 8> SEARCH_ORDER{{
-    // Skip the meta layer
-    LayerType::CurrentRun, LayerType::CommandLine, LayerType::Movie, LayerType::Netplay, LayerType::VRGame,
-    LayerType::LocalGame, LayerType::GlobalGame, LayerType::Base,
+    LayerType::CurrentRun, LayerType::CommandLine, LayerType::Movie, LayerType::Netplay,
+    LayerType::VRGame, LayerType::LocalGame, LayerType::GlobalGame, LayerType::Base,
 }};
 }

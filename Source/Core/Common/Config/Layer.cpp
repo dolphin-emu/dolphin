@@ -8,10 +8,48 @@
 
 #include "Common/Config/Config.h"
 #include "Common/Config/Layer.h"
-#include "Common/Config/Section.h"
+#include "Common/Logging/Log.h"
 
 namespace Config
 {
+namespace detail
+{
+std::string ValueToString(u16 value)
+{
+  return StringFromFormat("0x%04x", value);
+}
+
+std::string ValueToString(u32 value)
+{
+  return StringFromFormat("0x%08x", value);
+}
+
+std::string ValueToString(float value)
+{
+  return StringFromFormat("%#.9g", value);
+}
+
+std::string ValueToString(double value)
+{
+  return StringFromFormat("%#.17g", value);
+}
+
+std::string ValueToString(int value)
+{
+  return std::to_string(value);
+}
+
+std::string ValueToString(bool value)
+{
+  return StringFromBool(value);
+}
+
+std::string ValueToString(const std::string& value)
+{
+  return value;
+}
+}
+
 ConfigLayerLoader::ConfigLayerLoader(LayerType layer) : m_layer(layer)
 {
 }
@@ -38,20 +76,20 @@ Layer::~Layer()
   Save();
 }
 
-bool Layer::Exists(System system, const std::string& section_name, const std::string& key)
+bool Layer::Exists(const ConfigLocation& location) const
 {
-  Section* section = GetSection(system, section_name);
-  if (!section)
-    return false;
-  return section->Exists(key);
+  const auto iter = m_map.find(location);
+  return iter != m_map.end() && iter->second.has_value();
 }
 
-bool Layer::DeleteKey(System system, const std::string& section_name, const std::string& key)
+bool Layer::DeleteKey(const ConfigLocation& location)
 {
-  Section* section = GetSection(system, section_name);
-  if (!section)
-    return false;
-  return section->Delete(key);
+  INFO_LOG(CORE, "Delete %s %s.%s.%s", GetLayerName(m_layer).c_str(),
+           GetSystemName(location.system).c_str(), location.section.c_str(), location.key.c_str());
+  m_is_dirty = true;
+  bool had_value = m_map[location].has_value();
+  m_map[location].reset();
+  return had_value;
 }
 
 bool Layer::DeleteSection(System system, const std::string& section_name)
@@ -59,48 +97,42 @@ bool Layer::DeleteSection(System system, const std::string& section_name)
   return false;
 }
 
-Section* Layer::GetSection(System system, const std::string& section_name)
+void Layer::DeleteAllKeys()
 {
-  for (auto& section : m_sections[system])
-    if (!strcasecmp(section->m_name.c_str(), section_name.c_str()))
-      return section.get();
-  return nullptr;
+  m_is_dirty = true;
+  for (auto& pair : m_map)
+  {
+    pair.second.reset();
+  }
 }
 
-Section* Layer::GetOrCreateSection(System system, const std::string& section_name)
+Section Layer::GetSection(System system, const std::string& section)
 {
-  Section* section = GetSection(system, section_name);
-  if (!section)
-  {
-    if (m_layer == LayerType::Meta)
-    {
-      m_sections[system].emplace_back(
-          std::make_unique<RecursiveSection>(m_layer, system, section_name));
-    }
-    else
-    {
-      m_sections[system].emplace_back(std::make_unique<Section>(m_layer, system, section_name));
-    }
-    section = m_sections[system].back().get();
-  }
-  return section;
+  return Section{m_map.lower_bound(ConfigLocation{system, section, ""}),
+                 m_map.lower_bound(ConfigLocation{system, section + '\001', ""})};
+}
+
+ConstSection Layer::GetSection(System system, const std::string& section) const
+{
+  return ConstSection{m_map.lower_bound(ConfigLocation{system, section, ""}),
+                      m_map.lower_bound(ConfigLocation{system, section + '\001', ""})};
 }
 
 void Layer::Load()
 {
   if (m_loader)
     m_loader->Load(this);
-  ClearDirty();
+  m_is_dirty = false;
   InvokeConfigChangedCallbacks();
 }
 
 void Layer::Save()
 {
-  if (!m_loader || !IsDirty())
+  if (!m_loader || !m_is_dirty)
     return;
 
   m_loader->Save(this);
-  ClearDirty();
+  m_is_dirty = false;
   InvokeConfigChangedCallbacks();
 }
 
@@ -111,44 +143,6 @@ LayerType Layer::GetLayer() const
 
 const LayerMap& Layer::GetLayerMap() const
 {
-  return m_sections;
-}
-
-bool Layer::IsDirty() const
-{
-  return std::any_of(m_sections.begin(), m_sections.end(), [](const auto& system) {
-    return std::any_of(system.second.begin(), system.second.end(),
-                       [](const auto& section) { return section->IsDirty(); });
-  });
-}
-
-void Layer::ClearDirty()
-{
-  std::for_each(m_sections.begin(), m_sections.end(), [](auto& system) {
-    std::for_each(system.second.begin(), system.second.end(),
-                  [](auto& section) { section->ClearDirty(); });
-  });
-}
-
-RecursiveLayer::RecursiveLayer() : Layer(LayerType::Meta)
-{
-}
-
-Section* RecursiveLayer::GetSection(System system, const std::string& section_name)
-{
-  // Always queries backwards recursively, so it doesn't matter if it exists or not on this layer
-  return GetOrCreateSection(system, section_name);
-}
-
-Section* RecursiveLayer::GetOrCreateSection(System system, const std::string& section_name)
-{
-  Section* section = Layer::GetSection(system, section_name);
-  if (!section)
-  {
-    m_sections[system].emplace_back(
-        std::make_unique<RecursiveSection>(m_layer, system, section_name));
-    section = m_sections[system].back().get();
-  }
-  return section;
+  return m_map;
 }
 }

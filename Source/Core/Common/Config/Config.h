@@ -9,35 +9,14 @@
 #include <memory>
 #include <string>
 
+#include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
-#include "Common/Config/Section.h"
 
 namespace Config
 {
-struct ConfigLocation
-{
-  System system;
-  std::string section;
-  std::string key;
-
-  bool operator==(const ConfigLocation& other) const;
-  bool operator!=(const ConfigLocation& other) const;
-  bool operator<(const ConfigLocation& other) const;
-};
-
-template <typename T>
-struct ConfigInfo
-{
-  ConfigLocation location;
-  T default_value;
-};
-
 using Layers = std::map<LayerType, std::unique_ptr<Layer>>;
 using ConfigChangedCallback = std::function<void()>;
-
-// Common function used for getting configuration
-Section* GetOrCreateSection(System system, const std::string& section_name);
 
 // Layer management
 Layers* GetLayers();
@@ -68,16 +47,17 @@ LayerType GetActiveLayerForConfig(const ConfigLocation&);
 template <typename T>
 T Get(LayerType layer, const ConfigInfo<T>& info)
 {
+  if (layer == LayerType::Meta)
+    return Get(info);
   if (!LayerExists(layer))
     return info.default_value;
-  else
   return GetLayer(layer)->Get(info);
 }
 
 template <typename T>
 T Get(const ConfigInfo<T>& info)
 {
-  return Get(LayerType::Meta, info);
+  return GetLayer(GetActiveLayerForConfig(info.location))->Get(info);
 }
 
 template <typename T>
@@ -128,11 +108,11 @@ void ResetToGameDefault(const ConfigInfo<T>& info)
   Config::Layer* run = GetLayer(Config::LayerType::CurrentRun);
   Config::Layer* local = GetLayer(Config::LayerType::LocalGame);
   if (base)
-    base->DeleteKey(info.location.system, info.location.section, info.location.key);
+    base->DeleteKey(info.location);
   if (run)
-    run->DeleteKey(info.location.system, info.location.section, info.location.key);
+    run->DeleteKey(info.location);
   if (local)
-    local->DeleteKey(info.location.system, info.location.section, info.location.key);
+    local->DeleteKey(info.location);
 }
 
 template <typename T>
@@ -145,16 +125,16 @@ void SaveIfNotDefault(const ConfigInfo<T>& info)
     Config::Set(Config::LayerType::LocalGame, info, value);
     Config::Layer* layer = Config::GetLayer(Config::LayerType::Base);
     if (layer)
-      layer->DeleteKey(info.location.system, info.location.section, info.location.key);
+      layer->DeleteKey(info.location);
     layer = Config::GetLayer(Config::LayerType::CurrentRun);
     if (layer)
-      layer->DeleteKey(info.location.system, info.location.section, info.location.key);
+      layer->DeleteKey(info.location);
   }
   else
   {
     Config::Layer* layer = Config::GetLayer(Config::LayerType::LocalGame);
     if (layer)
-      layer->DeleteKey(info.location.system, info.location.section, info.location.key);
+      layer->DeleteKey(info.location);
   }
 }
 

@@ -41,6 +41,7 @@ ConfigInfo<u32> GetInfoForSIDevice(u32 channel);
 ConfigInfo<bool> GetInfoForAdapterRumble(u32 channel);
 ConfigInfo<bool> GetInfoForSimulateKonga(u32 channel);
 extern const ConfigInfo<bool> MAIN_WII_SD_CARD;
+extern const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE;
 extern const ConfigInfo<bool> MAIN_WII_KEYBOARD;
 extern const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING;
 extern const ConfigInfo<bool> MAIN_WIIMOTE_ENABLE_SPEAKER;

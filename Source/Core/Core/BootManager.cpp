@@ -414,7 +414,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
 
   // Ensure any new settings are written to the SYSCONF
   if (StartUp.bWii)
-    ConfigLoaders::SaveToSYSCONF(Config::GetLayer(Config::LayerType::Meta));
+    ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
 
   const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);

@@ -231,11 +231,11 @@ public:
   {
   }
 
-  void Load(Config::Layer* config_layer) override
+  void Load(Config::Layer* layer) override
   {
     INFO_LOG(CORE, "INIGameConfigLayerLoader::Load()");
     IniFile ini;
-    if (config_layer->GetLayer() == Config::LayerType::GlobalGame)
+    if (layer->GetLayer() == Config::LayerType::GlobalGame)
     {
       for (const std::string& filename : GetGameIniFilenames(m_id, m_revision))
         ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
@@ -250,21 +250,21 @@ public:
 
     for (const auto& section : system_sections)
     {
-	  std::string section_name = section.GetName();
-	  LoadFromSystemSection(config_layer, section, section_name);
-	  if (section_name.length()>3 && !strcasecmp(section_name.substr(section_name.length() - 3).c_str(), "_VR"))
-	  {
-		LoadFromSystemSection(Config::GetLayer(Config::LayerType::VRGame), section, section_name.substr(0, section_name.length()-3));
-	  }
+      std::string section_name = section.GetName();
+      LoadFromSystemSection(layer, section, section_name);
+      if (section_name.length()>3 && !strcasecmp(section_name.substr(section_name.length() - 3).c_str(), "_VR"))
+      {
+        LoadFromSystemSection(Config::GetLayer(Config::LayerType::VRGame), section, section_name.substr(0, section_name.length()-3));
+      }
     }
 
-    LoadControllerConfig(config_layer);
+    LoadControllerConfig(layer);
   }
 
-  void Save(Config::Layer* config_layer) override;
+  void Save(Config::Layer* layer) override;
 
 private:
-  void LoadControllerConfig(Config::Layer* config_layer) const
+  void LoadControllerConfig(Config::Layer* layer) const
   {
     INFO_LOG(CORE, "INIGameConfigLayerLoader::LoadControllerConfig()");
     // Game INIs can have controller profiles embedded in to them
@@ -283,81 +283,52 @@ private:
       std::string type = std::get<0>(use_data);
       std::string path = "Profiles/" + std::get<1>(use_data) + "/";
 
-      Config::Section* control_section =
-          config_layer->GetOrCreateSection(std::get<2>(use_data), "Controls");
+      const auto control_section = [&](std::string key) {
+        return Config::ConfigLocation{std::get<2>(use_data), "Controls", key};
+      };
 
       for (const char num : nums)
       {
-        bool use_profile = false;
-        std::string profile;
-        if (control_section->Exists(type + "Profile" + num))
+        if (auto profile = layer->Get<std::string>(control_section(type + "Profile" + num)))
         {
-          if (control_section->Get(type + "Profile" + num, &profile))
+          std::string ini_path = File::GetUserPath(D_CONFIG_IDX) + path + *profile + ".ini";
+          if (!File::Exists(ini_path))
           {
-            if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile + ".ini"))
-            {
-              use_profile = true;
-            }
-            else
-            {
-              // TODO: PanicAlert shouldn't be used for this.
-              PanicAlertT("Selected controller profile does not exist");
-            }
+            // TODO: PanicAlert shouldn't be used for this.
+            PanicAlertT("Selected controller profile does not exist");
+            continue;
           }
-        }
 
-        if (use_profile)
-        {
           IniFile profile_ini;
-          profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile + ".ini");
+          profile_ini.Load(ini_path);
 
           const IniFile::Section* ini_section = profile_ini.GetOrCreateSection("Profile");
           const IniFile::Section::SectionMap& section_map = ini_section->GetValues();
           for (const auto& value : section_map)
           {
-            Config::Section* section = config_layer->GetOrCreateSection(
-                std::get<2>(use_data), std::get<1>(use_data) + num);
-            section->Set(value.first, value.second);
+            Config::ConfigLocation location{std::get<2>(use_data), std::get<1>(use_data) + num,
+                                            value.first};
+            layer->Set(location, value.second);
           }
         }
       }
     }
   }
 
-  void LoadFromSystemSection(Config::Layer* config_layer, const IniFile::Section& section, const std::string& section_name) const
+  void LoadFromSystemSection(Config::Layer* layer, const IniFile::Section& section, const std::string& section_name) const
   {
-    if (section.HasLines())
-    {
-      // Trash INI File chunks
-      std::vector<std::string> chunk;
-      section.GetLines(&chunk, true);
-
-      if (chunk.size())
-      {
-        const auto mapped_config = MapINIToRealLocation(section_name, "");
-
-        if (mapped_config.section.empty() && mapped_config.key.empty())
-          return;
-
-        auto* config_section =
-            config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-        config_section->SetLines(chunk);
-      }
-    }
 
     // Regular key,value pairs
     const IniFile::Section::SectionMap& section_map = section.GetValues();
 
     for (const auto& value : section_map)
     {
-      const auto mapped_config = MapINIToRealLocation(section_name, value.first);
+      const auto location = MapINIToRealLocation(section_name, value.first);
 
-      if (mapped_config.section.empty() && mapped_config.key.empty())
+      if (location.section.empty() && location.key.empty())
         continue;
 
-      auto* config_section =
-          config_layer->GetOrCreateSection(mapped_config.system, mapped_config.section);
-      config_section->Set(mapped_config.key, value.second);
+      layer->Set(location, value.second);
     }
   }
 
@@ -365,47 +336,36 @@ private:
   const u16 m_revision;
 };
 
-void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
+void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 {
   INFO_LOG(CORE, "INIGameConfigLayerLoader::Save()");
-  if (config_layer->GetLayer() != Config::LayerType::LocalGame)
+  if (layer->GetLayer() != Config::LayerType::LocalGame)
     return;
 
   IniFile ini;
   for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
     ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
 
-  for (const auto& system : config_layer->GetLayerMap())
+  for (const auto& config : layer->GetLayerMap())
   {
-    for (const auto& section : system.second)
+    const Config::ConfigLocation& location = config.first;
+    const std::optional<std::string>& value = config.second;
+
+    if (!IsSettingSaveable(location))
+      continue;
+
+    const auto ini_location = GetINILocationFromConfig(location);
+    if (ini_location.first.empty() && ini_location.second.empty())
+      continue;
+
+    if (value)
     {
-      // Carl: Remove deleted keys from INI
-      for (const auto& deleted_key : section->GetDeletedKeys())
-      {
-        if (!IsSettingSaveableGameINI({system.first, section->GetName(), deleted_key}))
-          continue;
-
-        const auto ini_location =
-            GetINILocationFromConfig({system.first, section->GetName(), deleted_key});
-        if (ini_location.first.empty() && ini_location.second.empty())
-          continue;
-
-        IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
-        ini_section->Delete(ini_location.second);
-      }
-      for (const auto& value : section->GetValues())
-      {
-        if (!IsSettingSaveableGameINI({system.first, section->GetName(), value.first}))
-          continue;
-
-        const auto ini_location =
-            GetINILocationFromConfig({system.first, section->GetName(), value.first});
-        if (ini_location.first.empty() && ini_location.second.empty())
-          continue;
-
-        IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
-        ini_section->Set(ini_location.second, value.second);
-      }
+      IniFile::Section* ini_section = ini.GetOrCreateSection(ini_location.first);
+      ini_section->Set(ini_location.second, *value);
+    }
+    else
+    {
+      ini.DeleteKey(ini_location.first, ini_location.second);
     }
   }
 

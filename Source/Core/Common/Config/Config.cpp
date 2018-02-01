@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
+#include "Common/Logging/Log.h"
 
 namespace Config
 {
@@ -16,11 +17,6 @@ static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
 
 void InvokeConfigChangedCallbacks();
-
-Section* GetOrCreateSection(System system, const std::string& section_name)
-{
-  return s_layers[LayerType::Meta]->GetOrCreateSection(system, section_name);
-}
 
 Layers* GetLayers()
 {
@@ -83,8 +79,6 @@ void Init()
 {
   // These layers contain temporary values
   ClearCurrentRunLayer();
-  // This layer always has to exist
-  s_layers[LayerType::Meta] = std::make_unique<RecursiveLayer>();
 }
 
 void Shutdown()
@@ -105,31 +99,44 @@ void CreateVRGameLayer()
 
 bool OverrideSectionWithSection(const std::string& sectionName, const std::string& sectionName2)
 {
-  Section* section_default = s_layers[LayerType::GlobalGame] ? (s_layers[LayerType::GlobalGame]->GetOrCreateSection(Config::System::GFX, sectionName2)) : nullptr;
-  Config::SectionValueMap section_values_default;
-  if (section_default)
-	  section_values_default = section_default->GetValues();
-  Section* section_local = s_layers[LayerType::LocalGame] ? (s_layers[LayerType::LocalGame]->GetOrCreateSection(Config::System::GFX, sectionName2)) : nullptr;
-  Config::SectionValueMap section_values_local;
-  if (section_local)
-	  section_values_local = section_local->GetValues();
-  if (!section_values_default.size() && !section_values_local.size())
+  if (!s_layers[LayerType::GlobalGame] && !s_layers[LayerType::LocalGame])
     return false;
-  Section* section =
-      s_layers[LayerType::VRGame]->GetOrCreateSection(Config::System::GFX, sectionName);
+  Section section_values_default = s_layers[LayerType::GlobalGame] ? (s_layers[LayerType::GlobalGame]->GetSection(Config::System::GFX, sectionName2)) : (s_layers[LayerType::LocalGame]->GetSection(Config::System::GFX, sectionName2));
+  Section section_values_local = s_layers[LayerType::LocalGame] ? (s_layers[LayerType::LocalGame]->GetSection(Config::System::GFX, sectionName2)) : (s_layers[LayerType::GlobalGame]->GetSection(Config::System::GFX, sectionName2));
+  if (section_values_default.begin() == section_values_default.end() && section_values_local.begin() == section_values_local.end())
+    return false;
+
+  //Section* section =
+  //    s_layers[LayerType::VRGame]->GetOrCreateSection(Config::System::GFX, sectionName);
   for (const auto& value : section_values_default)
   {
-    NOTICE_LOG(VR, "Override [%s] %s with game VR default [%s] %s =\"%s\"", sectionName.c_str(),
-               value.first.c_str(), sectionName2.c_str(), value.first.c_str(),
-               value.second.c_str());
-    section->Set(value.first, value.second);
+	if (value.second)
+      NOTICE_LOG(VR, "Override [%s] %s with game VR default [%s] %s =\"%s\"", sectionName.c_str(),
+               value.first.key.c_str(), sectionName2.c_str(), value.first.key.c_str(),
+               value.second->c_str());
+	else
+		NOTICE_LOG(VR, "Override [%s] %s with game VR default [%s] %s = (deleted)", sectionName.c_str(),
+			value.first.key.c_str(), sectionName2.c_str(), value.first.key.c_str());
+
+	if (value.second)
+	  s_layers[LayerType::VRGame]->Set(value.first, *value.second);
+	else
+		s_layers[LayerType::VRGame]->DeleteKey(value.first);
   }
   for (const auto& value : section_values_local)
   {
-	  NOTICE_LOG(VR, "Override [%s] %s with game VR user setting [%s] %s =\"%s\"", sectionName.c_str(),
-		  value.first.c_str(), sectionName2.c_str(), value.first.c_str(),
-		  value.second.c_str());
-	  section->Set(value.first, value.second);
+	  if (value.second)
+		  NOTICE_LOG(VR, "Override [%s] %s with game VR user setting [%s] %s =\"%s\"", sectionName.c_str(),
+			  value.first.key.c_str(), sectionName2.c_str(), value.first.key.c_str(),
+			  value.second->c_str());
+	  else
+		  NOTICE_LOG(VR, "Override [%s] %s with game VR user setting [%s] %s = (deleted)", sectionName.c_str(),
+			  value.first.key.c_str(), sectionName2.c_str(), value.first.key.c_str());
+
+	  if (value.second)
+		  s_layers[LayerType::VRGame]->Set(value.first, *value.second);
+	  else
+		  s_layers[LayerType::VRGame]->DeleteKey(value.first);
   }
   return true;
 }
@@ -166,24 +173,8 @@ const std::string& GetLayerName(LayerType layer)
       {LayerType::Movie, "Movie"},
       {LayerType::CommandLine, "Command Line"},
       {LayerType::CurrentRun, "Current Run"},
-      {LayerType::Meta, "Top"},
   };
   return layer_to_name.at(layer);
-}
-
-bool ConfigLocation::operator==(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) == std::tie(other.system, other.section, other.key);
-}
-
-bool ConfigLocation::operator!=(const ConfigLocation& other) const
-{
-  return !(*this == other);
-}
-
-bool ConfigLocation::operator<(const ConfigLocation& other) const
-{
-  return std::tie(system, section, key) < std::tie(other.system, other.section, other.key);
 }
 
 LayerType GetActiveLayerForConfig(const ConfigLocation& config)
@@ -193,7 +184,7 @@ LayerType GetActiveLayerForConfig(const ConfigLocation& config)
     if (!LayerExists(layer))
       continue;
 
-    if (GetLayer(layer)->Exists(config.system, config.section, config.key))
+    if (GetLayer(layer)->Exists(config))
       return layer;
   }
 
