@@ -221,6 +221,7 @@
     <ClCompile Include="Debugger\RegisterColumn.cpp" />
     <ClCompile Include="Debugger\RegisterWidget.cpp" />
     <ClCompile Include="Debugger\WatchWidget.cpp" />
+    <ClCompile Include="GCMemcardManager.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
     <ClCompile Include="GameList\GameFileCache.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />

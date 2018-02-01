@@ -104,6 +104,7 @@ private:
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
+  void ShowMemcardManager();
 
   void NetPlayInit();
   bool NetPlayJoin();

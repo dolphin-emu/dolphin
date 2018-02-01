@@ -62,6 +62,7 @@ signals:
   void PerformOnlineUpdate(const std::string& region);
 
   // Tools
+  void ShowMemcardManager();
   void BootGameCubeIPL(DiscIO::Region region);
   void ShowFIFOPlayer();
   void ShowAboutDialog();
