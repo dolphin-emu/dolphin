@@ -33,6 +33,20 @@
         <item>5</item>
     </integer-array>
 
+    <!-- Slot A Device Selection -->
+    <string-array name="slotDeviceEntries" translatable="false">
+        <item>Nothing</item>
+        <item>Dummy</item>
+        <item>Memory Card</item>
+        <item>GCI Folder</item>
+    </string-array>
+    <integer-array name="slotDeviceValues" translatable="false">
+        <item>255</item>
+        <item>0</item>
+        <item>1</item>
+        <item>8</item>
+    </integer-array>
+
     <!-- Video backend selection -->
     <string-array name="videoBackendEntries" translatable="false">
         <item>OpenGL</item>
