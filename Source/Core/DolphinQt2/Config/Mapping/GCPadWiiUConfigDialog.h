@@ -4,28 +4,30 @@
 
 #pragma once
 
-#include "DolphinQt2/Config/Mapping/MappingWidget.h"
+#include <QDialog>
 
 class QCheckBox;
 class QLabel;
+class QDialogButtonBox;
 class QVBoxLayout;
 
-class GCPadWiiU final : public MappingWidget
+class GCPadWiiUConfigDialog final : public QDialog
 {
 public:
-  explicit GCPadWiiU(MappingWindow* window);
-
-  InputConfig* GetConfig() override;
+  explicit GCPadWiiUConfigDialog(int port, QWidget* parent = nullptr);
 
 private:
-  void LoadSettings() override;
-  void SaveSettings() override;
+  void LoadSettings();
+  void SaveSettings();
 
   void CreateLayout();
   void ConnectWidgets();
 
+  int m_port;
+
   QVBoxLayout* m_layout;
   QLabel* m_status_label;
+  QDialogButtonBox* m_button_box;
 
   // Checkboxes
   QCheckBox* m_rumble;
