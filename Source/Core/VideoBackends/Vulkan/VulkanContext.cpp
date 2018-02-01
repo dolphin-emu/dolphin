@@ -155,7 +155,7 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);
 #endif
 
-  auto CheckForExtension = [&](const char* name, bool required) -> bool {
+  auto SupportsExtension = [&](const char* name, bool required) {
     if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
@@ -167,36 +167,31 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
     }
 
     if (required)
-    {
       ERROR_LOG(VIDEO, "Vulkan: Missing required extension %s.", name);
-      return false;
-    }
 
-    return true;
+    return false;
   };
 
   // Common extensions
-  if (enable_surface && !CheckForExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
-  {
+  if (enable_surface && !SupportsExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
     return false;
-  }
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
-  if (enable_surface && !CheckForExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, true))
+  if (enable_surface && !SupportsExtension(VK_KHR_WIN32_SURFACE_EXTENSION_NAME, true))
     return false;
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
-  if (enable_surface && !CheckForExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
+  if (enable_surface && !SupportsExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
     return false;
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-  if (enable_surface && !CheckForExtension(VK_KHR_XCB_SURFACE_EXTENSION_NAME, true))
+  if (enable_surface && !SupportsExtension(VK_KHR_XCB_SURFACE_EXTENSION_NAME, true))
     return false;
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-  if (enable_surface && !CheckForExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
+  if (enable_surface && !SupportsExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
     return false;
 #endif
 
   // VK_EXT_debug_report
-  if (enable_debug_report && !CheckForExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, true))
+  if (enable_debug_report && !SupportsExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, false))
     WARN_LOG(VIDEO, "Vulkan: Debug report requested, but extension is not available.");
 
   return true;
@@ -407,7 +402,7 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);
 #endif
 
-  auto CheckForExtension = [&](const char* name, bool required) -> bool {
+  auto SupportsExtension = [&](const char* name, bool required) {
     if (std::find_if(available_extension_list.begin(), available_extension_list.end(),
                      [&](const VkExtensionProperties& properties) {
                        return !strcmp(name, properties.extensionName);
@@ -419,17 +414,15 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
     }
 
     if (required)
-    {
       ERROR_LOG(VIDEO, "Vulkan: Missing required extension %s.", name);
-      return false;
-    }
 
-    return true;
+    return false;
   };
 
-  if (enable_surface && !CheckForExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
+  if (enable_surface && !SupportsExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
     return false;
 
+  m_supports_nv_glsl_extension = SupportsExtension(VK_NV_GLSL_SHADER_EXTENSION_NAME, false);
   return true;
 }
 
