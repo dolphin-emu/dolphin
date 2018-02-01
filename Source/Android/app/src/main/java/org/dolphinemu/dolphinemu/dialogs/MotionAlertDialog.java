@@ -9,6 +9,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public final class MotionAlertDialog extends AlertDialog
 {
 	// The selected input preference
 	private final InputBindingSetting setting;
+	private final ControllerMappingHelper mControllerMappingHelper;
 	private boolean mWaitingForEvent = true;
 
 	/**
@@ -34,6 +36,7 @@ public final class MotionAlertDialog extends AlertDialog
 		super(context);
 
 		this.setting = setting;
+		this.mControllerMappingHelper = new ControllerMappingHelper();
 	}
 
 	public boolean onKeyEvent(int keyCode, KeyEvent event)
@@ -42,8 +45,11 @@ public final class MotionAlertDialog extends AlertDialog
 		switch (event.getAction())
 		{
 			case KeyEvent.ACTION_DOWN:
-				saveKeyInput(event);
-
+				if (!mControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
+				{
+					saveKeyInput(event);
+				}
+				// Even if we ignore the key, we still consume it. Thus return true regardless.
 				return true;
 
 			default:
@@ -69,13 +75,15 @@ public final class MotionAlertDialog extends AlertDialog
 	{
 		if ((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0)
 			return false;
-
-		Log.debug("[MotionAlertDialog] Received motion event: " + event.getAction());
+		if (event.getAction() != MotionEvent.ACTION_MOVE)
+			return false;
 
 		InputDevice input = event.getDevice();
+
 		List<InputDevice.MotionRange> motionRanges = input.getMotionRanges();
 
 		int numMovedAxis = 0;
+		float axisMoveValue = 0.0f;
 		InputDevice.MotionRange lastMovedRange = null;
 		char lastMovedDir = '?';
 		if (mWaitingForEvent)
@@ -84,12 +92,23 @@ public final class MotionAlertDialog extends AlertDialog
 			for (InputDevice.MotionRange range : motionRanges)
 			{
 				int axis = range.getAxis();
-				float value = event.getAxisValue(axis);
+				float origValue = event.getAxisValue(axis);
+				float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
 				if (Math.abs(value) > 0.5f)
 				{
-					numMovedAxis++;
-					lastMovedRange = range;
-					lastMovedDir = value < 0.0f ? '-' : '+';
+					// It is common to have multiple axis with the same physical input. For example,
+					// shoulder butters are provided as both AXIS_LTRIGGER and AXIS_BRAKE.
+					// To handle this, we ignore an axis motion that's the exact same as a motion
+					// we already saw. This way, we ignore axis with two names, but catch the case
+					// where a joystick is moved in two directions.
+					// ref: bottom of https://developer.android.com/training/game-controllers/controller-input.html
+					if (value != axisMoveValue)
+					{
+						axisMoveValue = value;
+						numMovedAxis++;
+						lastMovedRange = range;
+						lastMovedDir = value < 0.0f ? '-' : '+';
+					}
 				}
 			}
 
