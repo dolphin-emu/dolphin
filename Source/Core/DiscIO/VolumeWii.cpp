@@ -29,6 +29,7 @@
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/WiiSaveBanner.h"
 
 namespace DiscIO
 {
@@ -301,10 +302,10 @@ std::string VolumeWii::GetInternalName(const Partition& partition) const
 
 std::map<Language, std::string> VolumeWii::GetLongNames() const
 {
-  std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
-  opening_bnr.resize(ReadFile(*this, GetGamePartition(), "opening.bnr", opening_bnr.data(),
-                              opening_bnr.size(), 0x5C));
-  return ReadWiiNames(opening_bnr);
+  std::vector<char16_t> names(NAMES_TOTAL_CHARS);
+  names.resize(ReadFile(*this, GetGamePartition(), "opening.bnr",
+                        reinterpret_cast<u8*>(names.data()), NAMES_TOTAL_BYTES, 0x5C));
+  return ReadWiiNames(names);
 }
 
 std::vector<u32> VolumeWii::GetBanner(int* width, int* height) const
@@ -316,7 +317,7 @@ std::vector<u32> VolumeWii::GetBanner(int* width, int* height) const
   if (!title_id)
     return std::vector<u32>();
 
-  return GetWiiBanner(width, height, *title_id);
+  return WiiSaveBanner(*title_id).GetBanner(width, height);
 }
 
 std::string VolumeWii::GetApploaderDate(const Partition& partition) const

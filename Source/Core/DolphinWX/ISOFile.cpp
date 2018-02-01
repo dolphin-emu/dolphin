@@ -34,6 +34,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/WiiSaveBanner.h"
 
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
@@ -351,8 +352,9 @@ bool GameListItem::BannerChanged()
     return false;
 
   auto& banner = m_pending.volume_banner;
-  std::vector<u32> buffer = DiscIO::Volume::GetWiiBanner(&banner.width, &banner.height, m_title_id);
-  if (!buffer.size())
+  std::vector<u32> buffer =
+      DiscIO::WiiSaveBanner(m_title_id).GetBanner(&banner.width, &banner.height);
+  if (buffer.empty())
     return false;
 
   ReadVolumeBanner(&banner.buffer, buffer, banner.width, banner.height);

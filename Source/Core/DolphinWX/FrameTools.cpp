@@ -61,11 +61,13 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/State.h"
+#include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/VolumeWad.h"
+#include "DiscIO/WiiSaveBanner.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -1461,10 +1463,25 @@ void CFrame::OnCheckNAND(wxCommandEvent&)
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
-      const std::string name = title_db.GetTitleName(title_id);
-      title_listings += !name.empty() ?
-                            StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
-                            StringFromFormat("%016" PRIx64, title_id);
+      title_listings += StringFromFormat("%016" PRIx64, title_id);
+
+      const std::string database_name = title_db.GetChannelName(title_id);
+      if (!database_name.empty())
+      {
+        title_listings += " - " + database_name;
+      }
+      else
+      {
+        DiscIO::WiiSaveBanner banner(title_id);
+        if (banner.IsValid())
+        {
+          title_listings += " - " + banner.GetName();
+          const std::string description = banner.GetDescription();
+          if (!StripSpaces(description).empty())
+            title_listings += " - " + description;
+        }
+      }
+
       title_listings += "\n";
     }
 
@@ -1474,7 +1491,7 @@ void CFrame::OnCheckNAND(wxCommandEvent&)
           "By continuing, the following title(s) will be removed:\n\n"
           "%s"
           "\nLaunching these titles may also fix the issues."),
-        title_listings.c_str());
+        StrToWxStr(title_listings));
   }
 
   if (wxMessageBox(message, _("NAND Check"), wxYES_NO) != wxYES)

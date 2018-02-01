@@ -18,6 +18,7 @@ set(SRCS
   VolumeGC.cpp
   VolumeWad.cpp
   VolumeWii.cpp
+  WiiSaveBanner.cpp
   WiiWad.cpp
 )
 

@@ -16,6 +16,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -27,7 +28,10 @@
 #include "Core/State.h"
 #include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
+
 #include "DiscIO/NANDImporter.h"
+#include "DiscIO/WiiSaveBanner.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
@@ -557,10 +561,25 @@ void MenuBar::CheckNAND()
     Core::TitleDatabase title_db;
     for (const u64 title_id : result.titles_to_remove)
     {
-      const std::string name = title_db.GetTitleName(title_id);
-      title_listings += !name.empty() ?
-                            StringFromFormat("%s (%016" PRIx64 ")", name.c_str(), title_id) :
-                            StringFromFormat("%016" PRIx64, title_id);
+      title_listings += StringFromFormat("%016" PRIx64, title_id);
+
+      const std::string database_name = title_db.GetChannelName(title_id);
+      if (!database_name.empty())
+      {
+        title_listings += " - " + database_name;
+      }
+      else
+      {
+        DiscIO::WiiSaveBanner banner(title_id);
+        if (banner.IsValid())
+        {
+          title_listings += " - " + banner.GetName();
+          const std::string description = banner.GetDescription();
+          if (!StripSpaces(description).empty())
+            title_listings += " - " + description;
+        }
+      }
+
       title_listings += "\n";
     }
 
