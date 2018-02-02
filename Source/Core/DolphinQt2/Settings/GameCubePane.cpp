@@ -169,7 +169,7 @@ void GameCubePane::OnConfigPressed(int slot)
   if (filename.isEmpty() || !File::Exists(filename.toStdString()))
     return;
 
-  QString path_abs = QFileInfo(filename).absolutePath();
+  QString path_abs = QFileInfo(filename).absoluteFilePath();
 
   // Memcard validity checks
   if (memcard)
@@ -178,22 +178,28 @@ void GameCubePane::OnConfigPressed(int slot)
 
     if (!mc.IsValid())
     {
-      QMessageBox::critical(this, tr("Error"), tr("Cannot use that file as a memory card.\n%s\n"
+      QMessageBox::critical(this, tr("Error"), tr("Cannot use that file as a memory card.\n%1\n"
                                                   "is not a valid GameCube memory card file")
                                                    .arg(filename));
 
       return;
     }
 
-    QString path_b =
-        QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardB :
-                                                     SConfig::GetInstance().m_strMemoryCardA))
-            .absolutePath();
+    bool other_slot_memcard =
+        m_slot_combos[slot == 0 ? SLOT_B_INDEX : SLOT_A_INDEX]->currentIndex() == EXP_MEMORYCARD;
 
-    if (path_abs == path_b)
+    if (other_slot_memcard)
     {
-      QMessageBox::critical(this, tr("Error"), tr("The same file can't be used in both slots."));
-      return;
+      QString path_b =
+          QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardB :
+                                                       SConfig::GetInstance().m_strMemoryCardA))
+              .absoluteFilePath();
+
+      if (path_abs == path_b)
+      {
+        QMessageBox::critical(this, tr("Error"), tr("The same file can't be used in both slots."));
+        return;
+      }
     }
   }
 
