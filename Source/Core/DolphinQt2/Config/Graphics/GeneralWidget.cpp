@@ -69,6 +69,7 @@ void GeneralWidget::CreateWidgets()
 
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   m_video_layout->addWidget(m_backend_combo, 0, 1);
+
 #ifdef _WIN32
   m_video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
   m_video_layout->addWidget(m_adapter_combo, 1, 1);
