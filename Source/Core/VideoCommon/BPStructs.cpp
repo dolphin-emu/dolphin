@@ -252,12 +252,14 @@ static void BPWritten(const BPCmd& bp)
 
       float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
+      srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + num_xfb_lines);
+
       u32 height = static_cast<u32>(num_xfb_lines);
 
       DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
-                       "fbStride: %u | fbHeight: %u",
+                       "fbStride: %u | fbHeight: %u | yScale: %f",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
-                bpmem.copyTexSrcWH.x + 1, destStride, height);
+                bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, destStride,

@@ -89,8 +89,8 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
       group_info->Add(szr_info, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
       group_info->AddSpacer(space5);
 
-      szr_info->Add(new SettingCheckBox(page_general, _("Various Statistics"), "",
-                                        Config::GFX_OVERLAY_STATS));
+      szr_info->Add(
+          new SettingCheckBox(page_general, _("Show Statistics"), "", Config::GFX_OVERLAY_STATS));
     }
 
     // - utility

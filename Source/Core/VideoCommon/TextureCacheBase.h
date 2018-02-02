@@ -126,7 +126,6 @@ public:
                                       // content, aren't just downscaled
     bool should_force_safe_hashing = false;  // for XFB
     bool is_xfb_copy = false;
-    float y_scale = 1.0f;
     float gamma = 1.0f;
     u64 id;
 
