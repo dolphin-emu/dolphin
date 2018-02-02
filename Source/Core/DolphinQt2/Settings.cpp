@@ -72,6 +72,20 @@ void Settings::RemovePath(const QString& qpath)
   emit PathRemoved(qpath);
 }
 
+QString Settings::GetDefaultGame() const
+{
+  return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+}
+
+void Settings::SetDefaultGame(QString path)
+{
+  if (GetDefaultGame() != path)
+  {
+    SConfig::GetInstance().m_strDefaultISO = path.toStdString();
+    emit DefaultGameChanged(path);
+  }
+}
+
 bool Settings::GetPreferredView() const
 {
   return QSettings().value(QStringLiteral("PreferredView"), true).toBool();
