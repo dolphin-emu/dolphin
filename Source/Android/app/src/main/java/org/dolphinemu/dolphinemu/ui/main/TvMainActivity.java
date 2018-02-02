@@ -71,31 +71,27 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		buildRowsAdapter();
 
 		mBrowseFragment.setOnItemViewClickedListener(
-				new OnItemViewClickedListener()
-				{
-					@Override
-					public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row)
-					{
-						// Special case: user clicked on a settings row item.
-						if (item instanceof TvSettingsItem)
-						{
-							TvSettingsItem settingsItem = (TvSettingsItem) item;
-							mPresenter.handleOptionSelection(settingsItem.getItemId());
-						}
-						else
-						{
-							TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
+                (itemViewHolder, item, rowViewHolder, row) ->
+                {
+                    // Special case: user clicked on a settings row item.
+                    if (item instanceof TvSettingsItem)
+                    {
+                        TvSettingsItem settingsItem = (TvSettingsItem) item;
+                        mPresenter.handleOptionSelection(settingsItem.getItemId());
+                    }
+                    else
+                    {
+                        TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
-							// Start the emulation activity and send the path of the clicked ISO to it.
-							EmulationActivity.launch(TvMainActivity.this,
-									holder.path,
-									holder.title,
-									holder.screenshotPath,
-									-1,
-									holder.imageScreenshot);
-						}
-					}
-				});
+                        // Start the emulation activity and send the path of the clicked ISO to it.
+                        EmulationActivity.launch(TvMainActivity.this,
+                                holder.path,
+                                holder.title,
+                                holder.screenshotPath,
+                                -1,
+                                holder.imageScreenshot);
+                    }
+                });
 	}
 	/**
 	 * MainView

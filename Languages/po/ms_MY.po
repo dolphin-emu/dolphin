@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-01 20:33+0100\n"
-"PO-Revision-Date: 2017-12-01 19:33+0000\n"
+"POT-Creation-Date: 2017-12-18 20:16+0100\n"
+"PO-Revision-Date: 2017-12-18 19:16+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Malay (Malaysia) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/ms_MY/)\n"
@@ -39,7 +39,7 @@ msgstr ""
 "%1\n"
 "Pelancaran tajuk ini juga dapat menyelesaikan masalah."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1359
+#: Source/Core/DolphinWX/FrameTools.cpp:1360
 #, c-format
 msgid ""
 "\n"
@@ -124,19 +124,25 @@ msgstr "%1 %"
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:256
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:260
 msgid ""
 "%1 FIFO bytes\n"
 "%2 memory bytes\n"
 "%3 frames"
 msgstr ""
+"%1 bait FIFO\n"
+"%2 bait ingatan\n"
+"%3 bingkai"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:236
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:240
 msgid ""
 "%1 frame(s)\n"
 "%2 object(s)\n"
 "Current Frame: %3"
 msgstr ""
+"%1 bingkai(s)\n"
+"%2 objek(s)\n"
+"Bingkai Semasa: %3"
 
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:183
 #: Source/Core/DolphinQt2/Settings/AudioPane.cpp:226
@@ -761,7 +767,7 @@ msgstr "32-bit"
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:256
 #: Source/Core/DolphinQt2/Config/Mapping/Hotkey3D.cpp:22
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:276
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:275
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:123
 msgid "3D"
 msgstr "3D"
@@ -1123,7 +1129,7 @@ msgstr "Tambah alamat tertentu secara manual."
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:317
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:488
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:508
 msgid "Add to &watch"
 msgstr "Tambah untuk &dipantau"
 
@@ -1228,8 +1234,8 @@ msgstr "Semua fail GCM Gamecube (gcm)"
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "Semua Keadaan Simpan (*.sav *.s##);; Semua Fail (*)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1546
-#: Source/Core/DolphinWX/FrameTools.cpp:1558
+#: Source/Core/DolphinWX/FrameTools.cpp:1547
+#: Source/Core/DolphinWX/FrameTools.cpp:1559
 msgid "All Save States (sav, s##)"
 msgstr "Semua Keadaan Simpan (sav, s##)"
 
@@ -1245,7 +1251,7 @@ msgstr "Semua fail ISO GC/Wii termampat (gcz)"
 #. devices the user actually has plugged in
 #: Source/Core/Core/HW/GCPadEmu.cpp:89
 msgid "Always Connected"
-msgstr ""
+msgstr "Sentiasa Bersambung"
 
 #: Source/Core/DolphinQt2/Settings/InterfacePane.cpp:144
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
@@ -1598,12 +1604,12 @@ msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "Fail sandar NAND BootMii (*.bin);;Semua Fail (*)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1311
-msgid "BootMii OTP/SEEPROM dump (*.bin)"
-msgstr "Longgok BootMii OTP/SEEPROM (*.bin)"
+msgid "BootMii keys file (*.bin)"
+msgstr ""
 
 #: Source/Core/DolphinQt2/MainWindow.cpp:911
-msgid "BootMii OTP/SEEPROM dump (*.bin);;All Files (*)"
-msgstr "Longgok BootMii OTP/SEEPROM (*.bin);;Semua Fail (*)"
+msgid "BootMii keys file (*.bin);;All Files (*)"
+msgstr ""
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:95
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:894
@@ -1793,7 +1799,7 @@ msgstr ""
 msgid "Cannot boot this WAD because it could not be installed to the NAND."
 msgstr "Tidak dapat membut WAD ini kerana ia tidak dipasang dengan NAND."
 
-#: Source/Core/Core/Boot/Boot.cpp:379
+#: Source/Core/Core/Boot/Boot.cpp:398
 msgid "Cannot find the GC IPL."
 msgstr "Tidak dapat cari IPL GC."
 
@@ -1801,7 +1807,7 @@ msgstr "Tidak dapat cari IPL GC."
 msgid "Cannot set uninitialized memory."
 msgstr "Tidak dapat tetapkan ingatan tidak diawalkan."
 
-#: Source/Core/Core/Boot/Boot.cpp:377
+#: Source/Core/Core/Boot/Boot.cpp:396
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Tidak dapat memulakan permainan, kerana IPL GC tidak ditemui."
 
@@ -2024,7 +2030,7 @@ msgstr "Gabungkan Dua Fail Tandatangan..."
 msgid "Comment"
 msgstr "Ulasan"
 
-#: Source/Core/VideoBackends/D3D/PixelShaderCache.cpp:766
+#: Source/Core/VideoBackends/D3D/PixelShaderCache.cpp:607
 #: Source/Core/VideoBackends/D3D/VertexShaderCache.cpp:440
 #: Source/Core/VideoBackends/OGL/ProgramShaderCache.cpp:1051
 #: Source/Core/VideoBackends/Vulkan/ShaderCache.cpp:1216
@@ -2193,7 +2199,7 @@ msgid "Connect Wii Remotes"
 msgstr "Sambung Wii Remote"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:135
-#: Source/Core/DolphinWX/FrameTools.cpp:1483
+#: Source/Core/DolphinWX/FrameTools.cpp:1484
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "Sambung ke Internet dan lakukan kemaskini sistem atas-talian?"
 
@@ -2316,7 +2322,7 @@ msgid "Cost"
 msgstr "Kos"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:46
-#: Source/Core/DolphinWX/FrameTools.cpp:1424
+#: Source/Core/DolphinWX/FrameTools.cpp:1425
 msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
@@ -2325,7 +2331,7 @@ msgstr ""
 "sambungan Internet anda dan cuba lagi."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:41
-#: Source/Core/DolphinWX/FrameTools.cpp:1419
+#: Source/Core/DolphinWX/FrameTools.cpp:1420
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
@@ -2334,7 +2340,7 @@ msgstr ""
 "Internet anda dan cuba lagi."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:51
-#: Source/Core/DolphinWX/FrameTools.cpp:1429
+#: Source/Core/DolphinWX/FrameTools.cpp:1430
 msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
@@ -2889,6 +2895,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Papar salinan XFB sebaik sahaja ia dicipta, tanpa menunggu imbasan keluar. "
+"Boleh menyebabkan kecacatan grafik dalam sesetengah permainan jika permainan "
+"tidak menjangkakan semua salinan XFB dipaparkan. Walaubagaimanapun, "
+"hidupkannya dapat mengurangkan kependaman.\n"
+"\n"
+"Jika tidak pasti, biarkannya tidak bertanda."
 
 #: Source/Core/DolphinQt2/Main.cpp:129
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
@@ -2946,10 +2958,10 @@ msgstr "Port Konfigurasi Wii Remote Teremulasi Dolphin %i"
 msgid "Dolphin FIFO"
 msgstr "FIFO Dolphin"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:166
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:177
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:170
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:181
 msgid "Dolphin FIFO Log (*.dff)"
-msgstr ""
+msgstr "Log FIFO Dolphin (*.dff)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1063
 msgid "Dolphin Hotkeys"
@@ -3163,7 +3175,7 @@ msgstr "Longgok Tekstur"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:853
 msgid "Dump XFB Target"
-msgstr ""
+msgstr "Sasaran Longgok XFB"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:146
 #: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:161
@@ -3194,6 +3206,9 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Longgok kandungan salinan XFB ke User/Dump/Textures/.\n"
+"\n"
+"Jika tidak pasti, biarkan ia tidak bertanda."
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
@@ -3232,7 +3247,7 @@ msgstr ""
 "ini, but-semula diperlukan supaya Windows dalam melihat pemacu baharu "
 "tersebut."
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:106
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:110
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:101
 msgid "Early Memory Updates"
 msgstr "Kemaskini Ingatan Awal"
@@ -3631,7 +3646,7 @@ msgstr "Sama"
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:175
 #: Source/Core/DolphinQt2/Config/GeckoCodeWidget.cpp:181
 #: Source/Core/DolphinQt2/Config/LogConfigWidget.cpp:44
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:187
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:191
 #: Source/Core/DolphinQt2/Main.cpp:103
 #: Source/Core/DolphinQt2/MainWindow.cpp:495
 #: Source/Core/DolphinQt2/MainWindow.cpp:695
@@ -3646,7 +3661,7 @@ msgstr "Sama"
 #: Source/Core/DolphinQt2/Translation.cpp:288
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
-#: Source/Core/DolphinWX/Main.cpp:321 Source/Core/DolphinWX/Main.cpp:329
+#: Source/Core/DolphinWX/Main.cpp:328 Source/Core/DolphinWX/Main.cpp:336
 #: Source/Core/DolphinWX/MemcardManager.cpp:554
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
@@ -3654,7 +3669,7 @@ msgid "Error"
 msgstr "Ralat"
 
 #: Source/Core/DolphinQt2/Translation.cpp:289
-#: Source/Core/DolphinWX/Main.cpp:320
+#: Source/Core/DolphinWX/Main.cpp:327
 msgid "Error loading selected language. Falling back to system default."
 msgstr "Ralat memuatkan bahasa pilihan. Jatuh balik ke lalai sistem."
 
@@ -3744,7 +3759,7 @@ msgid "Export save as..."
 msgstr "Eksport simpan sebagai..."
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:266
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:265
 #: Source/Core/DolphinQt2/Config/Mapping/WiimoteEmuGeneral.cpp:40
 msgid "Extension"
 msgstr "Sambungan"
@@ -3920,7 +3935,7 @@ msgstr ""
 "Gagal memuatkan %s. Jika anda masih menggunakan Windows 7, cuba pasang pakej "
 "kemaskini KB4019990."
 
-#: Source/Core/Core/Boot/Boot.cpp:327
+#: Source/Core/Core/Boot/Boot.cpp:339
 msgid "Failed to load the executable to memory."
 msgstr "Gagal memuatkan bolehlaku ke dalam ingatan."
 
@@ -4025,9 +4040,9 @@ msgstr "Gagal membaca ID unik dari imej cakera"
 msgid "Failed to remove this title from the NAND."
 msgstr "Gagal membuang tajuk ini dari NAND."
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:187
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:191
 msgid "Failed to save FIFO log."
-msgstr ""
+msgstr "Gagal menyimpan log FIFO."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:85
 msgid "Failed to write BT.DINF to SYSCONF"
@@ -4065,7 +4080,7 @@ msgstr ""
 msgid "File"
 msgstr "Fail"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:64
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:68
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:103
 msgid "File Info"
 msgstr "Maklumat Fail"
@@ -4363,7 +4378,7 @@ msgstr "Longgok Bingkai Guna FFV1"
 msgid "Frame Info"
 msgstr "Maklumat Bingkai"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:89
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:93
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:113
 msgid "Frame Range"
 msgstr "Julat Bingkai"
@@ -4377,9 +4392,9 @@ msgstr "Imej(s) longgok bingkai '%s' sudah wujud. Tulis-ganti?"
 msgid "Frames to Record"
 msgstr "Bingkai untuk Dirakam"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:117
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:121
 msgid "Frames to Record:"
-msgstr ""
+msgstr "Bingkai untuk Dirakam:"
 
 #: Source/Core/DolphinQt2/GameList/GameFile.cpp:227
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:103
@@ -4453,10 +4468,10 @@ msgstr "Frets"
 msgid "From"
 msgstr "Dari"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:78
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:93
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:82
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:97
 msgid "From:"
-msgstr ""
+msgstr "Dari:"
 
 #: Source/Core/DolphinQt2/ToolBar.cpp:54
 #: Source/Core/DolphinWX/MainToolBar.cpp:182
@@ -4588,7 +4603,7 @@ msgstr "Penyesuai GameCube untuk Wii U"
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr "Penyesuai GameCube untuk Wii U pada port %1"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:256
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:255
 msgid "GameCube Controller"
 msgstr "Pengawal GameCube"
 
@@ -4597,7 +4612,7 @@ msgstr "Pengawal GameCube"
 msgid "GameCube Controller Configuration Port %i"
 msgstr "Port Konfigurasi Kawalan GameCube %i"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:255
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:254
 msgid "GameCube Controller at Port %1"
 msgstr "Pengawal GameCube pada Port %1"
 
@@ -4606,7 +4621,7 @@ msgstr "Pengawal GameCube pada Port %1"
 msgid "GameCube Controllers"
 msgstr "Kawalan GameCube"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:247
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:246
 msgid "GameCube Keyboard"
 msgstr "Papan Kekunci GameCube"
 
@@ -4615,7 +4630,7 @@ msgstr "Papan Kekunci GameCube"
 msgid "GameCube Keyboard Configuration Port %i"
 msgstr "Port Konfigurasi Papan Kekunci GameCube %i"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:248
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:247
 msgid "GameCube Keyboard at Port %1"
 msgstr "Papan Kekunci GameCube pada Port %1"
 
@@ -4646,7 +4661,7 @@ msgstr "Kod Gecko"
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:70
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:100
 #: Source/Core/DolphinQt2/Config/Mapping/HotkeyGeneral.cpp:23
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:272
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:271
 #: Source/Core/DolphinQt2/Config/SettingsWindow.cpp:42
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:108
@@ -4656,7 +4671,7 @@ msgstr "Kod Gecko"
 msgid "General"
 msgstr "Am"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:264
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:263
 #: Source/Core/DolphinWX/Input/WiimoteInputConfigDiag.cpp:67
 msgid "General and Options"
 msgstr "Am dan Pilihan"
@@ -4692,7 +4707,7 @@ msgid "Go to the current instruction"
 msgstr "Pergi ke arahan semasa"
 
 #: Source/Core/DolphinQt2/Config/Graphics/GraphicsWindow.cpp:28
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:275
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:274
 #: Source/Core/DolphinQt2/ToolBar.cpp:60
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:120
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
@@ -4838,7 +4853,7 @@ msgstr "Hos dengan NetPlay"
 msgid "Host with Netplay"
 msgstr "Hos dengan Netplay"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:278
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:277
 msgid "Hotkey Settings"
 msgstr "Tetapan Kekunci Panas"
 
@@ -4960,7 +4975,7 @@ msgstr ""
 "Keizinan ini juga boleh ditarik balik pada bila-bila masa menerusi tetapan "
 "Dolphin."
 
-#: Source/Core/DolphinWX/Main.cpp:226
+#: Source/Core/DolphinWX/Main.cpp:233
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -5025,7 +5040,7 @@ msgstr ""
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:72
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:761
 msgid "Immediately Present XFB"
-msgstr ""
+msgstr "Serta-Merta Hadirkan XFB"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:183
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:182
@@ -5230,7 +5245,7 @@ msgstr "Resolusi Dalaman"
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:65
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:846
 msgid "Internal Resolution Frame Dumps"
-msgstr ""
+msgstr "Longgok Bingkai Resolusi Dalaman"
 
 #: Source/Core/DolphinQt2/Config/Graphics/EnhancementsWidget.cpp:77
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:504
@@ -5709,9 +5724,9 @@ msgstr "Muat dari Slot %1 - %2"
 msgid "Load map file"
 msgstr "Muat fail peta"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:130
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:134
 msgid "Load..."
-msgstr ""
+msgstr "Muat..."
 
 #: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:387
 #, c-format
@@ -5764,7 +5779,7 @@ msgid "Logger Outputs"
 msgstr "Output Pengelog"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:131
-#: Source/Core/DolphinWX/Frame.cpp:382
+#: Source/Core/DolphinWX/Frame.cpp:383
 msgid "Logging"
 msgstr "Mengelog"
 
@@ -5992,7 +6007,7 @@ msgid "Monospaced Font"
 msgstr "Fon Monospace"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:265
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:264
 #: Source/Core/DolphinWX/Input/WiimoteInputConfigDiag.cpp:102
 msgid "Motion Controls and IR"
 msgstr "Kawalan Gerakan dan IR"
@@ -6034,10 +6049,10 @@ msgstr ""
 #: Source/Core/DolphinQt2/MenuBar.cpp:596
 #: Source/Core/DolphinQt2/MenuBar.cpp:601
 #: Source/Core/DolphinQt2/MenuBar.cpp:605
-#: Source/Core/DolphinWX/FrameTools.cpp:1323
-#: Source/Core/DolphinWX/FrameTools.cpp:1367
-#: Source/Core/DolphinWX/FrameTools.cpp:1372
-#: Source/Core/DolphinWX/FrameTools.cpp:1378
+#: Source/Core/DolphinWX/FrameTools.cpp:1324
+#: Source/Core/DolphinWX/FrameTools.cpp:1368
+#: Source/Core/DolphinWX/FrameTools.cpp:1373
+#: Source/Core/DolphinWX/FrameTools.cpp:1379
 msgid "NAND Check"
 msgstr "Semak NAND"
 
@@ -6151,9 +6166,9 @@ msgstr "Tiada sambungan dipilih"
 msgid "No file loaded"
 msgstr "Tiada fail dimuatkan"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:268
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:272
 msgid "No file loaded / recorded."
-msgstr ""
+msgstr "Tiada fail dimuatkan / dirakam."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:429
 msgid "No free directory index entries."
@@ -6164,7 +6179,7 @@ msgid "No game is running."
 msgstr "Tiada permainan berjalan."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:553
-#: Source/Core/DolphinWX/FrameTools.cpp:1323
+#: Source/Core/DolphinWX/FrameTools.cpp:1324
 msgid "No issues have been detected."
 msgstr "Tiada isu dikesan."
 
@@ -6276,7 +6291,7 @@ msgstr "Paparan Nvidia 3D"
 msgid "Object %zu"
 msgstr "Objek %zu"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:74
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:78
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:125
 msgid "Object Range"
 msgstr "Julat Objek"
@@ -6324,9 +6339,9 @@ msgstr "Buka"
 msgid "Open &containing folder"
 msgstr "Buka fail &dikandungi"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:165
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:169
 msgid "Open FIFO log"
-msgstr ""
+msgstr "Buka log FIFO"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:220
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1139
@@ -6359,7 +6374,7 @@ msgstr ""
 "Buka konfigurasi lalai (baca-sahaja) untuk permainan ini di dalam penyunting "
 "teks luar."
 
-#: Source/Core/DolphinWX/Frame.cpp:845
+#: Source/Core/DolphinWX/Frame.cpp:846
 msgid "Operation in progress..."
 msgstr "Operasi masih berlangsung..."
 
@@ -6577,7 +6592,7 @@ msgstr "Main Rakaman"
 msgid "Playable"
 msgstr "Boleh Dimain"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:104
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:108
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:137
 msgid "Playback Options"
 msgstr "Pilihan Main Balik"
@@ -6648,7 +6663,7 @@ msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "Penamatan cereka dalam PlayWiimote. %u > %zu"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:90
-#: Source/Core/DolphinWX/FrameTools.cpp:1455
+#: Source/Core/DolphinWX/FrameTools.cpp:1456
 msgid ""
 "Preparing to update...\n"
 "This can take a while."
@@ -6794,7 +6809,7 @@ msgstr ""
 msgid "Recommended for normal users"
 msgstr "Disaran untuk pengguna biasa"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:132
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:136
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:163
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:204
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:406
@@ -6811,14 +6826,14 @@ msgstr "Rakam input"
 msgid "Recording Info"
 msgstr "Maklumat Rakaman"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:114
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:118
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:187
 msgid "Recording Options"
 msgstr "Pilihan Rakaman"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:264
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:268
 msgid "Recording..."
-msgstr ""
+msgstr "Merakam..."
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:28
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:44
@@ -7093,9 +7108,9 @@ msgstr "Simpan"
 msgid "Save Code"
 msgstr "Simpan Kod"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:176
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:180
 msgid "Save FIFO log"
-msgstr ""
+msgstr "Simpan log FIFO"
 
 #: Source/Core/DolphinQt2/Config/FilesystemWidget.cpp:207
 msgid "Save File to"
@@ -7184,7 +7199,7 @@ msgstr "Simpan Keadaan..."
 msgid "Save Symbol Map &As..."
 msgstr "Simpan Peta Simbol Sebag&ai..."
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:277
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:276
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:124
 msgid "Save and Load State"
 msgstr "Simpan dan Muat Keadaan"
@@ -7257,9 +7272,9 @@ msgstr "Simpan ke Slot Terpilih"
 msgid "Save to Slot %1 - %2"
 msgstr "Simpan ke Slot %1 - %2"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:131
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:135
 msgid "Save..."
-msgstr ""
+msgstr "Simpan..."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:429
 msgid "Saved Perspectives"
@@ -7438,11 +7453,6 @@ msgstr "Pilih satu tajuk untuk dipasang ke dalam NAND"
 msgid "Select floating windows"
 msgstr "Pilih tetingkap terapung"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:909
-#: Source/Core/DolphinWX/FrameTools.cpp:1310
-msgid "Select the OTP/SEEPROM dump"
-msgstr "Pilih longgok OTP/SEEPROM"
-
 #: Source/Core/DolphinQt2/MainWindow.cpp:928
 #: Source/Core/DolphinQt2/MainWindow.cpp:998
 #: Source/Core/DolphinWX/FrameTools.cpp:501
@@ -7454,17 +7464,22 @@ msgstr "Pilih Fail Rakaman"
 msgid "Select the file to load"
 msgstr "Pilih fail untuk dimuatkan"
 
+#: Source/Core/DolphinQt2/MainWindow.cpp:909
+#: Source/Core/DolphinWX/FrameTools.cpp:1309
+msgid "Select the keys file (OTP/SEEPROM dump)"
+msgstr ""
+
 #: Source/Core/DolphinQt2/MainWindow.cpp:882
 #: Source/Core/DolphinQt2/MenuBar.cpp:534
 #: Source/Core/DolphinWX/FrameTools.cpp:1207
 msgid "Select the save file"
 msgstr "Pilih fail simpan"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1545
+#: Source/Core/DolphinWX/FrameTools.cpp:1546
 msgid "Select the state to load"
 msgstr "Pilih keadaan untuk dimuatkan"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1557
+#: Source/Core/DolphinWX/FrameTools.cpp:1558
 msgid "Select the state to save"
 msgstr "Pilih keadaan untuk disimpan"
 
@@ -7499,7 +7514,7 @@ msgstr "Pilih lokasi yang anda mahu imej tak mampat disimpankan"
 msgid "Selected Font"
 msgstr "Fon Terpilih"
 
-#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:259
+#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:260
 #: Source/Core/InputCommon/InputConfig.cpp:63
 msgid "Selected controller profile does not exist"
 msgstr "Profil pengawal terpilih tidak wujud"
@@ -7671,7 +7686,7 @@ msgstr ""
 msgid "Settings"
 msgstr "Tetapan"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:263
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:264
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Tidak dapat cipta fail setting.txt"
 
@@ -8273,25 +8288,25 @@ msgid "Stick"
 msgstr "Bidak"
 
 #: Source/Core/Core/HotkeyManager.cpp:29
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:133
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:137
 #: Source/Core/DolphinQt2/ToolBar.cpp:53
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:414
 #: Source/Core/DolphinWX/MainToolBar.cpp:181
 msgid "Stop"
 msgstr "Henti"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1764
+#: Source/Core/DolphinWX/FrameTools.cpp:1765
 msgid "Stop Playing Input"
 msgstr "Henti Memainkan Input"
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:414
-#: Source/Core/DolphinWX/FrameTools.cpp:1749
-#: Source/Core/DolphinWX/FrameTools.cpp:1766
+#: Source/Core/DolphinWX/FrameTools.cpp:1750
+#: Source/Core/DolphinWX/FrameTools.cpp:1767
 #: Source/Core/DolphinWX/MainMenuBar.cpp:148
 msgid "Stop Playing/Recording Input"
 msgstr "Henti Memainkan/Merakam Input"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1762
+#: Source/Core/DolphinWX/FrameTools.cpp:1763
 msgid "Stop Recording Input"
 msgstr "Henti Merakam Input"
 
@@ -8307,7 +8322,7 @@ msgstr "Simpan Salinan EFB ke Tekstur Sahaja"
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:70
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:755
 msgid "Store XFB Copies to Texture Only"
-msgstr ""
+msgstr "Simpan Salinan XFB ke Tekstur Sahaja"
 
 #: Source/Core/DolphinQt2/Config/Graphics/HacksWidget.cpp:165
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:201
@@ -8340,6 +8355,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Simpan Salinan XFB secara ekslusif dalam GPU, melepasi ingatan sistem. "
+"Menyebabkan kecacatan grafik dalam sebilangan kecil permainan.\n"
+"\n"
+"Dibenarkan = Salinan XFB ke Tekstur\n"
+"Dilumpuhkan = Salinan XFB ke RAM (dan Tekstur)\n"
+"\n"
+"Jika tidak pasti, biarkan ia bertanda."
 
 #: Source/Core/DolphinQt2/Config/Graphics/GeneralWidget.cpp:51
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:390
@@ -8489,7 +8511,7 @@ msgstr "Ralat sintaks"
 msgid "System Language:"
 msgstr "Bahasa Sistem:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1484
+#: Source/Core/DolphinWX/FrameTools.cpp:1485
 msgid "System Update"
 msgstr "Kemaskini Sistem"
 
@@ -8510,7 +8532,7 @@ msgstr "Input TAS - Wii Remote %d"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:273
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:272
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:112
 msgid "TAS Tools"
 msgstr "Alatan TAS"
@@ -8581,7 +8603,7 @@ msgstr ""
 "Jika tidak pasti, guna nilai paling kanan."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:606
-#: Source/Core/DolphinWX/FrameTools.cpp:1376
+#: Source/Core/DolphinWX/FrameTools.cpp:1377
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
@@ -8590,7 +8612,7 @@ msgstr ""
 "mula kembali dengan NAND yang baharu."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:601
-#: Source/Core/DolphinWX/FrameTools.cpp:1372
+#: Source/Core/DolphinWX/FrameTools.cpp:1373
 msgid "The NAND has been repaired."
 msgstr "NAND telah dibaiki."
 
@@ -8644,7 +8666,7 @@ msgid "The disc that was about to be inserted couldn't be found."
 msgstr "Cakera yang hendak dimasukkan tidak ditemui."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:557
-#: Source/Core/DolphinWX/FrameTools.cpp:1327
+#: Source/Core/DolphinWX/FrameTools.cpp:1328
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
 "Shop Channel may not work correctly.\n"
@@ -8657,12 +8679,12 @@ msgstr ""
 "Anda mahu cuba membaiki NAND?"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:31
-#: Source/Core/DolphinWX/FrameTools.cpp:1409
+#: Source/Core/DolphinWX/FrameTools.cpp:1410
 msgid "The emulated Wii console has been updated."
 msgstr "Konsol Wii teremulasi telah dikemaskinikan."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:36
-#: Source/Core/DolphinWX/FrameTools.cpp:1414
+#: Source/Core/DolphinWX/FrameTools.cpp:1415
 msgid "The emulated Wii console is already up-to-date."
 msgstr "Konsol Wii teremulasi telah dikemaskinikan."
 
@@ -8702,13 +8724,13 @@ msgid "The file %s was already open, the file header will not be written."
 msgstr "Fail %s sudah dibuka, pengepala fail tidak akan ditulis."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:69
-#: Source/Core/DolphinWX/FrameTools.cpp:1446
+#: Source/Core/DolphinWX/FrameTools.cpp:1447
 msgid "The game disc does not contain any usable update information."
 msgstr ""
 "Cakera permainan tidak mengandungi apa-apa maklumat kemaskini yang berguna."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:62
-#: Source/Core/DolphinWX/FrameTools.cpp:1439
+#: Source/Core/DolphinWX/FrameTools.cpp:1440
 msgid ""
 "The game's region does not match your console's. To avoid issues with the "
 "system menu, it is not possible to update the emulated console using this "
@@ -8753,7 +8775,7 @@ msgstr "Kod AR dinyahsulit yang terhasil tidak mengandungi sebarang baris."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "Simpan yang anda cuba salin mempunyai saiz fail tidak sah."
 
-#: Source/Core/DolphinWX/Main.cpp:328
+#: Source/Core/DolphinWX/Main.cpp:335
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -8782,12 +8804,12 @@ msgstr "Pelayan menghantar mesej ralat tidak diketahui!"
 msgid "The specified file \"%s\" does not exist"
 msgstr "Fail \"%s\" yang dinyatakan tidak wujud"
 
-#: Source/Core/DolphinWX/Main.cpp:185
+#: Source/Core/DolphinWX/Main.cpp:192
 msgid "The title ID is invalid."
 msgstr "ID tajuk tidak sah."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:57
-#: Source/Core/DolphinWX/FrameTools.cpp:1434
+#: Source/Core/DolphinWX/FrameTools.cpp:1435
 msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
@@ -9007,10 +9029,10 @@ msgstr "Tajuk"
 msgid "To"
 msgstr "Ke"
 
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:80
-#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:95
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:84
+#: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:99
 msgid "To:"
-msgstr ""
+msgstr "Ke:"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:440
 msgid "Toggle &Breakpoint"
@@ -9084,11 +9106,11 @@ msgstr "Togol Pelonggokan Tekstur"
 
 #: Source/Core/Core/HotkeyManager.cpp:75
 msgid "Toggle XFB Copies"
-msgstr ""
+msgstr "Togol Salinan XFB"
 
 #: Source/Core/Core/HotkeyManager.cpp:76
 msgid "Toggle XFB Immediate Mode"
-msgstr ""
+msgstr "Togol Mod Serta-Merta XFB"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "Toggle editing of perspectives"
@@ -9316,14 +9338,14 @@ msgid "Update Screen"
 msgstr "Kemaskini Skrin"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:56
-#: Source/Core/DolphinWX/FrameTools.cpp:1436
+#: Source/Core/DolphinWX/FrameTools.cpp:1437
 msgid "Update cancelled"
 msgstr "Kemaskini dibatalkan"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:30
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:35
-#: Source/Core/DolphinWX/FrameTools.cpp:1409
-#: Source/Core/DolphinWX/FrameTools.cpp:1414
+#: Source/Core/DolphinWX/FrameTools.cpp:1410
+#: Source/Core/DolphinWX/FrameTools.cpp:1415
 msgid "Update completed"
 msgstr "Kemaskini selesai"
 
@@ -9332,11 +9354,11 @@ msgstr "Kemaskini selesai"
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:50
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:61
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:68
-#: Source/Core/DolphinWX/FrameTools.cpp:1421
-#: Source/Core/DolphinWX/FrameTools.cpp:1426
-#: Source/Core/DolphinWX/FrameTools.cpp:1431
-#: Source/Core/DolphinWX/FrameTools.cpp:1442
-#: Source/Core/DolphinWX/FrameTools.cpp:1447
+#: Source/Core/DolphinWX/FrameTools.cpp:1422
+#: Source/Core/DolphinWX/FrameTools.cpp:1427
+#: Source/Core/DolphinWX/FrameTools.cpp:1432
+#: Source/Core/DolphinWX/FrameTools.cpp:1443
+#: Source/Core/DolphinWX/FrameTools.cpp:1448
 msgid "Update failed"
 msgstr "Kemaskini gagal"
 
@@ -9345,11 +9367,11 @@ msgid "Update the Wii system software to the latest version from Nintendo."
 msgstr "Kemaskini perisian sistem Wii ke versi terkini dari Nintendo."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:91
-#: Source/Core/DolphinWX/FrameTools.cpp:1455
+#: Source/Core/DolphinWX/FrameTools.cpp:1456
 msgid "Updating"
 msgstr "Mengemaskini"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1464
+#: Source/Core/DolphinWX/FrameTools.cpp:1465
 #, c-format
 msgid ""
 "Updating title %016<PRIx64>...\n"
@@ -9383,7 +9405,7 @@ msgstr "Wii Remote Tegak"
 msgid "Usage Statistics Reporting Settings"
 msgstr "Tetapan Pelaporan Statistik Penggunaan"
 
-#: Source/Core/DolphinWX/Main.cpp:237
+#: Source/Core/DolphinWX/Main.cpp:244
 msgid "Usage statistics reporting"
 msgstr "Pelaporan statistik penggunaan"
 
@@ -9539,11 +9561,11 @@ msgstr "Pelorek Vertex"
 msgid "Vertex Shader Constants"
 msgstr "Pemalar Pelorek Vertex"
 
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:490
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:510
 msgid "View &code"
 msgstr "Lihat &kod"
 
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:489
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:509
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:272
 msgid "View &memory"
 msgstr "Lihat &ingatan"
@@ -9553,25 +9575,25 @@ msgid "View As:"
 msgstr "Lihat Sebagai:"
 
 #. i18n: Double means double-precision floating point number
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:507
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:527
 msgid "View as double"
 msgstr "Lihat sebagai dubel"
 
 #. i18n: Float means floating point number
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:501
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:521
 msgid "View as float"
 msgstr "Lihat sebagai apung"
 
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:497
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:505
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:517
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:525
 msgid "View as hexadecimal"
 msgstr "Lihat sebagai heksadesimal"
 
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:498
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:518
 msgid "View as signed integer"
 msgstr "Lihat sebagai integer bertanda"
 
-#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:499
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:519
 msgid "View as unsigned integer"
 msgstr "Lihat sebagai integer tidak bertanda"
 
@@ -9718,6 +9740,23 @@ msgid ""
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, "
 "Connected=%d"
 msgstr ""
+"Amaran: Anda memuatkan simpan yang mana cereka tidak sepadan pada bingkai "
+"%td. Anda seharusnya memuatkan simpan lain sebelum diteruskan, atau muatkan "
+"keadaan ini dengan mod baca-sahaja dimatikan. Jika tidak anda berkemungkinan "
+"akan mendapat nyah-segerak.\n"
+"\n"
+"Maklumat lanjut: Cereka semasa panjangnya %d bingkai dan keadaan simpan "
+"cereka panjangnya %d bingkai.\n"
+"\n"
+"Pada bingkai %td, cereka semasa menekan:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, "
+"Connected=%d\n"
+"\n"
+"Pada bingkai %td, cereka keadaan simpan menekan:\n"
+"Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
+"%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, "
+"Connected=%d"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
@@ -9792,7 +9831,7 @@ msgid "Wii Remote"
 msgstr "Wii Remote"
 
 #: Source/Core/DolphinQt2/Config/ControllersWindow.cpp:187
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:263
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:262
 #: Source/Core/DolphinQt2/NetPlay/PadMappingDialog.cpp:34
 msgid "Wii Remote %1"
 msgstr "Jauh Wii %1"
@@ -9824,7 +9863,7 @@ msgstr "Port Konfigurasi Penyesuai Pengawal GameCube U Wii %i"
 msgid "Wii WAD files (*.wad)"
 msgstr "Fail WAD Wii (*.wad)"
 
-#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:274
+#: Source/Core/DolphinQt2/Config/Mapping/MappingWindow.cpp:273
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:119
 msgid "Wii and Wii Remote"
 msgstr "Wii dan Wii Remote"

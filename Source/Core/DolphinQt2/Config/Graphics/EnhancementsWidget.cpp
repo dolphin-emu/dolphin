@@ -64,7 +64,7 @@ void EnhancementsWidget::CreateWidgets()
                                   Config::GFX_ENHANCE_MAX_ANISOTROPY);
   m_pp_effect = new QComboBox();
   m_configure_pp_effect = new QPushButton(tr("Configure"));
-  m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_ENABLED);
+  m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
   m_force_texture_filtering =
