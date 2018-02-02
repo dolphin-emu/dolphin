@@ -15,6 +15,7 @@
 #include <QProgressDialog>
 
 #include <future>
+#include <optional>
 
 #include "Common/Version.h"
 
@@ -164,7 +165,7 @@ void MainWindow::CreateComponents()
   m_fifo_window = new FIFOPlayerWindow(this);
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
-          static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
+          [this](const QString& path) { StartGame(path); });
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -192,7 +193,7 @@ void MainWindow::ConnectMenuBar()
 
   // Emulation
   connect(m_menu_bar, &MenuBar::Pause, this, &MainWindow::Pause);
-  connect(m_menu_bar, &MenuBar::Play, this, &MainWindow::Play);
+  connect(m_menu_bar, &MenuBar::Play, this, [this]() { Play(); });
   connect(m_menu_bar, &MenuBar::Stop, this, &MainWindow::RequestStop);
   connect(m_menu_bar, &MenuBar::Reset, this, &MainWindow::Reset);
   connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::FullScreen);
@@ -278,7 +279,7 @@ void MainWindow::ConnectToolBar()
 {
   addToolBar(m_tool_bar);
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
-  connect(m_tool_bar, &ToolBar::PlayPressed, this, &MainWindow::Play);
+  connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
   connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::RequestStop);
   connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
@@ -290,7 +291,7 @@ void MainWindow::ConnectToolBar()
 
 void MainWindow::ConnectGameList()
 {
-  connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
+  connect(m_game_list, &GameList::GameSelected, this, [this]() { Play(); });
   connect(m_game_list, &GameList::NetPlayHost, this, &MainWindow::NetPlayHost);
 
   connect(m_game_list, &GameList::OpenGeneralSettings, this, &MainWindow::ShowGeneralWindow);
@@ -327,7 +328,7 @@ void MainWindow::Open()
     StartGame(file);
 }
 
-void MainWindow::Play()
+void MainWindow::Play(const std::optional<std::string>& savestate_path)
 {
   // If we're in a paused game, start it up again.
   // Otherwise, play the selected game, if there is one.
@@ -340,17 +341,17 @@ void MainWindow::Play()
   }
   else
   {
-    QString selection = m_game_list->GetSelectedGame()->GetFilePath();
-    if (selection.length() > 0)
+    QSharedPointer<GameFile> selection = m_game_list->GetSelectedGame();
+    if (selection)
     {
-      StartGame(selection);
+      StartGame(selection->GetFilePath(), savestate_path);
     }
     else
     {
       auto default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
-        StartGame(default_path);
+        StartGame(default_path, savestate_path);
       }
       else
       {
@@ -472,9 +473,9 @@ void MainWindow::ScreenShot()
   Core::SaveScreenShot();
 }
 
-void MainWindow::StartGame(const QString& path)
+void MainWindow::StartGame(const QString& path, const std::optional<std::string>& savestate_path)
 {
-  StartGame(BootParameters::GenerateFromFile(path.toStdString()));
+  StartGame(BootParameters::GenerateFromFile(path.toStdString(), savestate_path));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
@@ -680,7 +681,7 @@ void MainWindow::NetPlayInit()
   m_netplay_dialog = new NetPlayDialog(this);
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
-          static_cast<void (MainWindow::*)(const QString&)>(&MainWindow::StartGame));
+          [this](const QString& path) { StartGame(path); });
   connect(m_netplay_dialog, &NetPlayDialog::Stop, this, &MainWindow::RequestStop);
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
@@ -938,11 +939,12 @@ void MainWindow::OnPlayRecording()
     emit ReadOnlyModeChanged(true);
   }
 
-  if (Movie::PlayInput(dtm_file.toStdString()))
+  std::optional<std::string> savestate_path;
+  if (Movie::PlayInput(dtm_file.toStdString(), &savestate_path))
   {
     emit RecordingStatusChanged(true);
 
-    Play();
+    Play(savestate_path);
   }
 }
 

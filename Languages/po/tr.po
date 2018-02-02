@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-12-18 20:16+0100\n"
-"PO-Revision-Date: 2017-12-18 19:16+0000\n"
+"POT-Creation-Date: 2017-12-30 11:25+0100\n"
+"PO-Revision-Date: 2017-12-30 10:25+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Turkish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/tr/)\n"
@@ -36,7 +36,7 @@ msgid ""
 "Launching these titles may also fix the issues."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1360
+#: Source/Core/DolphinWX/FrameTools.cpp:1362
 #, c-format
 msgid ""
 "\n"
@@ -100,7 +100,7 @@ msgstr "\"%s\" küçültülemedi. Kalıp dosyası bozuk olabilir."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" zaten sıkıştırılmış! Daha fazla sıkıştırılamaz."
 
-#: Source/Core/Core/Boot/Boot.cpp:94
+#: Source/Core/Core/Boot/Boot.cpp:104
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
@@ -224,7 +224,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (Disk %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:244
+#: Source/Core/Core/Boot/Boot.cpp:254
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL %s konumunda bulundu. Disk tanınamayabilir."
@@ -824,8 +824,8 @@ msgid ""
 "aware of those.</p>\n"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:703
-#: Source/Core/DolphinQt2/MainWindow.cpp:760
+#: Source/Core/DolphinQt2/MainWindow.cpp:704
+#: Source/Core/DolphinQt2/MainWindow.cpp:761
 msgid "A NetPlay Session is already in progress!"
 msgstr ""
 
@@ -853,8 +853,8 @@ msgstr "Zaten bir diskin yerleştirilme işlemi sürüyor."
 msgid "A game is not currently running."
 msgstr "Şu anda bir oyun çalışmıyor."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:405
-#: Source/Core/DolphinWX/FrameTools.cpp:865
+#: Source/Core/DolphinQt2/MainWindow.cpp:406
+#: Source/Core/DolphinWX/FrameTools.cpp:867
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -1156,7 +1156,7 @@ msgstr "Gelişmiş"
 msgid "Advanced Settings"
 msgstr "Gelişmiş Ayarlar"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:324
+#: Source/Core/DolphinQt2/MainWindow.cpp:325
 #: Source/Core/DolphinQt2/Settings/PathPane.cpp:42
 msgid ""
 "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
@@ -1167,7 +1167,7 @@ msgstr ""
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 msgstr "Tüm GC/Wii dosyaları (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:351
+#: Source/Core/DolphinWX/FrameTools.cpp:352
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad, dff)"
 msgstr ""
 "Tüm GC/Wii dosyaları (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad, dff)"
@@ -1176,13 +1176,13 @@ msgstr ""
 msgid "All GameCube GCM files (gcm)"
 msgstr "Tüm GameCube GCM dosyaları (gcm)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:611
-#: Source/Core/DolphinQt2/MainWindow.cpp:618
+#: Source/Core/DolphinQt2/MainWindow.cpp:612
+#: Source/Core/DolphinQt2/MainWindow.cpp:619
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1547
-#: Source/Core/DolphinWX/FrameTools.cpp:1559
+#: Source/Core/DolphinWX/FrameTools.cpp:1549
+#: Source/Core/DolphinWX/FrameTools.cpp:1561
 msgid "All Save States (sav, s##)"
 msgstr "Tüm Kayıtlı Oyunlar (sav,s##)"
 
@@ -1532,19 +1532,19 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1298
+#: Source/Core/DolphinWX/FrameTools.cpp:1300
 msgid "BootMii NAND backup file (*.bin)"
 msgstr "BootMii NAND yedek dosyası (*.bin)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:883
+#: Source/Core/DolphinQt2/MainWindow.cpp:884
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1311
+#: Source/Core/DolphinWX/FrameTools.cpp:1313
 msgid "BootMii keys file (*.bin)"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:911
+#: Source/Core/DolphinQt2/MainWindow.cpp:912
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr ""
 
@@ -1719,8 +1719,8 @@ msgstr ""
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:696
-#: Source/Core/DolphinQt2/MainWindow.cpp:753
+#: Source/Core/DolphinQt2/MainWindow.cpp:697
+#: Source/Core/DolphinQt2/MainWindow.cpp:754
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr ""
 
@@ -1737,7 +1737,7 @@ msgstr ""
 msgid "Cannot boot this WAD because it could not be installed to the NAND."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:398
+#: Source/Core/Core/Boot/Boot.cpp:408
 msgid "Cannot find the GC IPL."
 msgstr "GC IPL bulunamadı."
 
@@ -1745,7 +1745,7 @@ msgstr "GC IPL bulunamadı."
 msgid "Cannot set uninitialized memory."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:396
+#: Source/Core/Core/Boot/Boot.cpp:406
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "GC IPL bulunamadığı için oyun başlatılamıyor."
 
@@ -1778,7 +1778,7 @@ msgstr "&Diski Değiştir"
 msgid "Change Disc"
 msgstr "Diski Değiştir"
 
-#: Source/Core/Core/Movie.cpp:1194
+#: Source/Core/Core/Movie.cpp:1192
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Diski %s olarak değiştir"
@@ -2072,8 +2072,8 @@ msgstr ""
 msgid "Configure..."
 msgstr "Yapılandır..."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:403
-#: Source/Core/DolphinQt2/MainWindow.cpp:851
+#: Source/Core/DolphinQt2/MainWindow.cpp:404
+#: Source/Core/DolphinQt2/MainWindow.cpp:852
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:134
 msgid "Confirm"
 msgstr ""
@@ -2135,7 +2135,7 @@ msgid "Connect Wii Remotes"
 msgstr "Wii Remote Bağla"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:135
-#: Source/Core/DolphinWX/FrameTools.cpp:1484
+#: Source/Core/DolphinWX/FrameTools.cpp:1486
 msgid "Connect to the Internet and perform an online system update?"
 msgstr ""
 "Gerçekten internete bağlanıp çevrimiçi sistem güncellemesi yapmak istiyor "
@@ -2253,7 +2253,7 @@ msgid "Cost"
 msgstr "Performans Maliyeti"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:46
-#: Source/Core/DolphinWX/FrameTools.cpp:1425
+#: Source/Core/DolphinWX/FrameTools.cpp:1427
 msgid ""
 "Could not download update files from Nintendo. Please check your Internet "
 "connection and try again."
@@ -2262,7 +2262,7 @@ msgstr ""
 "bağlantınızı kontrol edin ve tekrar deneyin."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:41
-#: Source/Core/DolphinWX/FrameTools.cpp:1420
+#: Source/Core/DolphinWX/FrameTools.cpp:1422
 msgid ""
 "Could not download update information from Nintendo. Please check your "
 "Internet connection and try again."
@@ -2271,7 +2271,7 @@ msgstr ""
 "bağlantınızı kontrol edin ve tekrar deneyin."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:51
-#: Source/Core/DolphinWX/FrameTools.cpp:1430
+#: Source/Core/DolphinWX/FrameTools.cpp:1432
 msgid ""
 "Could not install an update to the Wii system memory. Please refer to logs "
 "for more information."
@@ -2301,7 +2301,7 @@ msgid ""
 "The emulated software will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:86
+#: Source/Core/Core/Boot/Boot.cpp:96
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -2312,7 +2312,7 @@ msgstr ""
 "Lütfen bilgisayarların çoğunun gerçek GameCube veya Wii disklerini "
 "okuyamadıklarını unutmayın."
 
-#: Source/Core/Core/Boot/Boot.cpp:105
+#: Source/Core/Core/Boot/Boot.cpp:115
 #, c-format
 msgid "Could not recognize file %s"
 msgstr ""
@@ -2459,7 +2459,7 @@ msgstr "Geçişli"
 msgid "Current Region"
 msgstr "Mevcut Bölge"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:363
+#: Source/Core/DolphinWX/FrameTools.cpp:364
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "wxFileSelector'den sonra şu anki konum %s 'den %s'ye değiştirilmiştir."
@@ -2808,7 +2808,7 @@ msgstr ""
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:852
+#: Source/Core/DolphinQt2/MainWindow.cpp:853
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr ""
 
@@ -2816,8 +2816,8 @@ msgstr ""
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:408
-#: Source/Core/DolphinWX/FrameTools.cpp:864
+#: Source/Core/DolphinQt2/MainWindow.cpp:409
+#: Source/Core/DolphinWX/FrameTools.cpp:866
 msgid "Do you want to stop the current emulation?"
 msgstr "Emülasyonu durdurmak istiyor musunuz?"
 
@@ -2828,7 +2828,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt2/AboutDialog.cpp:23
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:690
+#: Source/Core/DolphinWX/FrameTools.cpp:692
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -2864,7 +2864,7 @@ msgstr "Dolphin FIFO"
 msgid "Dolphin FIFO Log (*.dff)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1063
+#: Source/Core/DolphinWX/FrameTools.cpp:1065
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin Kısayol Tuşları"
 
@@ -2896,10 +2896,10 @@ msgstr "Dolphin İmza Dosyası (*.dsy)"
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr "Dolphin Sembol Yeniden Adlandırma Dosyası (*.sym)"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:929
-#: Source/Core/DolphinQt2/MainWindow.cpp:999
-#: Source/Core/DolphinWX/FrameTools.cpp:502
-#: Source/Core/DolphinWX/FrameTools.cpp:998
+#: Source/Core/DolphinQt2/MainWindow.cpp:930
+#: Source/Core/DolphinQt2/MainWindow.cpp:1001
+#: Source/Core/DolphinWX/FrameTools.cpp:503
+#: Source/Core/DolphinWX/FrameTools.cpp:1000
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Filmleri (*.dtm)"
 
@@ -3194,7 +3194,7 @@ msgstr "Yerleşik Çerçeve Arabellği (EFB)"
 msgid "Empty"
 msgstr "Boş"
 
-#: Source/Core/Core/Core.cpp:232
+#: Source/Core/Core/Core.cpp:222
 msgid "Emu Thread already running"
 msgstr "Emülasyon işlemi zaten çalışıyor."
 
@@ -3531,20 +3531,20 @@ msgstr "Eşit"
 #: Source/Core/DolphinQt2/Config/LogConfigWidget.cpp:44
 #: Source/Core/DolphinQt2/FIFOPlayerWindow.cpp:191
 #: Source/Core/DolphinQt2/Main.cpp:103
-#: Source/Core/DolphinQt2/MainWindow.cpp:495
-#: Source/Core/DolphinQt2/MainWindow.cpp:695
-#: Source/Core/DolphinQt2/MainWindow.cpp:702
-#: Source/Core/DolphinQt2/MainWindow.cpp:736
-#: Source/Core/DolphinQt2/MainWindow.cpp:752
-#: Source/Core/DolphinQt2/MainWindow.cpp:759
-#: Source/Core/DolphinQt2/MainWindow.cpp:836
+#: Source/Core/DolphinQt2/MainWindow.cpp:496
+#: Source/Core/DolphinQt2/MainWindow.cpp:696
+#: Source/Core/DolphinQt2/MainWindow.cpp:703
+#: Source/Core/DolphinQt2/MainWindow.cpp:737
+#: Source/Core/DolphinQt2/MainWindow.cpp:753
+#: Source/Core/DolphinQt2/MainWindow.cpp:760
+#: Source/Core/DolphinQt2/MainWindow.cpp:837
 #: Source/Core/DolphinQt2/MenuBar.cpp:619
 #: Source/Core/DolphinQt2/NetPlay/NetPlayDialog.cpp:377
 #: Source/Core/DolphinQt2/NetPlay/NetPlaySetupDialog.cpp:235
 #: Source/Core/DolphinQt2/Translation.cpp:288
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
-#: Source/Core/DolphinWX/Main.cpp:328 Source/Core/DolphinWX/Main.cpp:336
+#: Source/Core/DolphinWX/Main.cpp:335 Source/Core/DolphinWX/Main.cpp:343
 #: Source/Core/DolphinWX/MemcardManager.cpp:554
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
@@ -3552,7 +3552,7 @@ msgid "Error"
 msgstr "Hata"
 
 #: Source/Core/DolphinQt2/Translation.cpp:289
-#: Source/Core/DolphinWX/Main.cpp:327
+#: Source/Core/DolphinWX/Main.cpp:334
 msgid "Error loading selected language. Falling back to system default."
 msgstr "Seçili dili yüklerken hata. Sistem varsayılanlarına geri dönülüyor."
 
@@ -3560,7 +3560,7 @@ msgstr "Seçili dili yüklerken hata. Sistem varsayılanlarına geri dönülüyo
 msgid "Error saving file."
 msgstr "Dosya kaydedilirken hata oluştu."
 
-#: Source/Core/Common/ChunkFile.h:250
+#: Source/Core/Common/ChunkFile.h:247
 #, c-format
 msgid ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
@@ -3730,7 +3730,7 @@ msgstr "Bağlantı başarısız!"
 msgid "Failed to claim interface for BT passthrough"
 msgstr "BT geçişi için arayüz talebi başarısız oldu"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:737
+#: Source/Core/DolphinQt2/MainWindow.cpp:738
 msgid "Failed to connect to server"
 msgstr ""
 
@@ -3780,7 +3780,7 @@ msgstr ""
 "%s\n"
 "dosyasının üzerine yazılacak"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:495
+#: Source/Core/DolphinQt2/MainWindow.cpp:496
 msgid "Failed to init core"
 msgstr ""
 
@@ -3793,7 +3793,7 @@ msgstr ""
 msgid "Failed to launch"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:786
+#: Source/Core/DolphinQt2/MainWindow.cpp:787
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -3810,11 +3810,11 @@ msgid ""
 "update package."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:339
+#: Source/Core/Core/Boot/Boot.cpp:349
 msgid "Failed to load the executable to memory."
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:836
+#: Source/Core/DolphinQt2/MainWindow.cpp:837
 msgid "Failed to open '%1'"
 msgstr ""
 
@@ -3823,7 +3823,7 @@ msgstr ""
 msgid "Failed to open Bluetooth device: %s"
 msgstr "Bluetooth cihazı açılamadı: %s"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:784
+#: Source/Core/DolphinQt2/MainWindow.cpp:785
 msgid "Failed to open server"
 msgstr ""
 
@@ -3842,7 +3842,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:936
+#: Source/Core/Core/Movie.cpp:934
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s okunamadı"
@@ -3905,7 +3905,7 @@ msgid "Failed to read unique ID from disc image"
 msgstr "Disk kalıbının özgün ID'si okunamadı."
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:365
-#: Source/Core/DolphinWX/FrameTools.cpp:1280
+#: Source/Core/DolphinWX/FrameTools.cpp:1282
 msgid "Failed to remove this title from the NAND."
 msgstr ""
 
@@ -3935,7 +3935,7 @@ msgstr "Hızlı"
 msgid "Fast Depth Calculation"
 msgstr "Hızlı Derinlik Hesaplaması"
 
-#: Source/Core/Core/Movie.cpp:1226
+#: Source/Core/Core/Movie.cpp:1224
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -4229,7 +4229,7 @@ msgstr "Çerçeve Bilgisi"
 msgid "Frame Range"
 msgstr "Çerçeve Aralığı"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:955
+#: Source/Core/VideoCommon/RenderBase.cpp:953
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr ""
@@ -4365,7 +4365,7 @@ msgstr ""
 msgid "GFX Debugger"
 msgstr "GFX Hata Ayıklayıcı"
 
-#: Source/Core/VideoCommon/CommandProcessor.cpp:492
+#: Source/Core/VideoCommon/CommandProcessor.cpp:517
 #, c-format
 msgid ""
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
@@ -4743,7 +4743,7 @@ msgstr "IP Adresi:"
 msgid "IPL Settings"
 msgstr "IPL Ayarları"
 
-#: Source/Core/Core/Boot/Boot.cpp:237
+#: Source/Core/Core/Boot/Boot.cpp:247
 #, c-format
 msgid "IPL with unknown hash %x"
 msgstr ""
@@ -4795,7 +4795,7 @@ msgid ""
 "This authorization can be revoked at any time through Dolphin's settings."
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:233
+#: Source/Core/DolphinWX/Main.cpp:234
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -4902,12 +4902,12 @@ msgstr ""
 "Alınan dosya sav uzantısına sahip\n"
 "ama başlığı düzgün değil."
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:892
-#: Source/Core/DolphinWX/FrameTools.cpp:1304
+#: Source/Core/DolphinQt2/MainWindow.cpp:893
+#: Source/Core/DolphinWX/FrameTools.cpp:1306
 msgid "Importing NAND backup"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:903
+#: Source/Core/DolphinQt2/MainWindow.cpp:904
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -4969,7 +4969,7 @@ msgstr "WAD Dosyası Yükle..."
 msgid "Install to the NAND"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1256
+#: Source/Core/DolphinWX/FrameTools.cpp:1258
 msgid "Installing WAD..."
 msgstr "WAD kuruluyor..."
 
@@ -5081,7 +5081,7 @@ msgstr "Geçersiz host"
 msgid "Invalid index"
 msgstr "Geçersiz indeks"
 
-#: Source/Core/Core/Movie.cpp:879
+#: Source/Core/Core/Movie.cpp:877
 msgid "Invalid recording file"
 msgstr "Hatalı çekim dosyası"
 
@@ -5559,7 +5559,7 @@ msgid "Logger Outputs"
 msgstr "Geçmiş Çıkışı"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:131
-#: Source/Core/DolphinWX/Frame.cpp:383
+#: Source/Core/DolphinWX/Frame.cpp:385
 msgid "Logging"
 msgstr "Geçmiş"
 
@@ -5725,8 +5725,8 @@ msgstr ""
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:874
-#: Source/Core/DolphinWX/FrameTools.cpp:1290
+#: Source/Core/DolphinQt2/MainWindow.cpp:875
+#: Source/Core/DolphinWX/FrameTools.cpp:1292
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -5819,10 +5819,10 @@ msgstr ""
 #: Source/Core/DolphinQt2/MenuBar.cpp:596
 #: Source/Core/DolphinQt2/MenuBar.cpp:601
 #: Source/Core/DolphinQt2/MenuBar.cpp:605
-#: Source/Core/DolphinWX/FrameTools.cpp:1324
-#: Source/Core/DolphinWX/FrameTools.cpp:1368
-#: Source/Core/DolphinWX/FrameTools.cpp:1373
-#: Source/Core/DolphinWX/FrameTools.cpp:1379
+#: Source/Core/DolphinWX/FrameTools.cpp:1326
+#: Source/Core/DolphinWX/FrameTools.cpp:1370
+#: Source/Core/DolphinWX/FrameTools.cpp:1375
+#: Source/Core/DolphinWX/FrameTools.cpp:1381
 msgid "NAND Check"
 msgstr ""
 
@@ -5949,7 +5949,7 @@ msgid "No game is running."
 msgstr "Herhangi bir oyun çalışmıyor."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:553
-#: Source/Core/DolphinWX/FrameTools.cpp:1324
+#: Source/Core/DolphinWX/FrameTools.cpp:1326
 msgid "No issues have been detected."
 msgstr ""
 
@@ -6140,7 +6140,7 @@ msgstr ""
 "Bu oyun için varsayılan (salt-okunur) konfigürasyon dosyasını harici metin "
 "düzenleyicisinde açar."
 
-#: Source/Core/DolphinWX/Frame.cpp:846
+#: Source/Core/DolphinWX/Frame.cpp:848
 msgid "Operation in progress..."
 msgstr ""
 
@@ -6363,7 +6363,7 @@ msgstr "Oynatma Seçenekleri"
 msgid "Players"
 msgstr "Oyuncular"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:868
+#: Source/Core/DolphinWX/FrameTools.cpp:870
 msgid "Please confirm..."
 msgstr "Lütfen onaylayın..."
 
@@ -6406,23 +6406,23 @@ msgstr "Post-Processing Efekti:"
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1117
+#: Source/Core/Core/Movie.cpp:1115
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1240
+#: Source/Core/Core/Movie.cpp:1238
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1214
+#: Source/Core/Core/Movie.cpp:1212
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:90
-#: Source/Core/DolphinWX/FrameTools.cpp:1456
+#: Source/Core/DolphinWX/FrameTools.cpp:1458
 msgid ""
 "Preparing to update...\n"
 "This can take a while."
@@ -6473,7 +6473,7 @@ msgid "Put Main Menu roms in User/GC/{region}."
 msgstr "Ana Menü rom dosyalarını Kullanıcı Adı/GC/{bölge} klasörüne atın."
 
 #: Source/Core/Common/MsgHandler.cpp:66
-#: Source/Core/DolphinQt2/MainWindow.cpp:873
+#: Source/Core/DolphinQt2/MainWindow.cpp:874
 msgid "Question"
 msgstr "Soru"
 
@@ -7024,10 +7024,10 @@ msgstr ""
 "sıfırlanabilir."
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:91
-msgid "Saved to /Wii/sd.raw (default size is 128mb)"
-msgstr "/Wii/sd.raw klasörüne kaydedilir (varsayılan boyutu 128mb)"
+msgid "Saved to /Wii/sd.raw (default size is 128mb)."
+msgstr ""
 
-#: Source/Core/Core/Movie.cpp:945
+#: Source/Core/Core/Movie.cpp:943
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Kayıtlı durum filmi %s bozuk, film çekimi duruyor..."
@@ -7153,7 +7153,7 @@ msgstr "Slot 9'u Seç"
 msgid "Select Wii NAND Root"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1297
+#: Source/Core/DolphinWX/FrameTools.cpp:1299
 msgid "Select a BootMii NAND backup to import"
 msgstr ""
 
@@ -7163,9 +7163,9 @@ msgid "Select a Directory"
 msgstr ""
 
 #: Source/Core/DolphinQt2/Config/InfoWidget.cpp:115
-#: Source/Core/DolphinQt2/MainWindow.cpp:323
-#: Source/Core/DolphinQt2/MainWindow.cpp:610
-#: Source/Core/DolphinQt2/MainWindow.cpp:617
+#: Source/Core/DolphinQt2/MainWindow.cpp:324
+#: Source/Core/DolphinQt2/MainWindow.cpp:611
+#: Source/Core/DolphinQt2/MainWindow.cpp:618
 msgid "Select a File"
 msgstr ""
 
@@ -7173,7 +7173,7 @@ msgstr ""
 msgid "Select a Game"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1246
+#: Source/Core/DolphinWX/FrameTools.cpp:1248
 msgid "Select a Wii WAD file to install"
 msgstr "Kurmak için bir Wii WAD dosyası seçin"
 
@@ -7189,33 +7189,33 @@ msgstr ""
 msgid "Select floating windows"
 msgstr "Sabit olmayan pencereyi seçin"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:928
-#: Source/Core/DolphinQt2/MainWindow.cpp:998
-#: Source/Core/DolphinWX/FrameTools.cpp:501
-#: Source/Core/DolphinWX/FrameTools.cpp:997
+#: Source/Core/DolphinQt2/MainWindow.cpp:929
+#: Source/Core/DolphinQt2/MainWindow.cpp:1000
+#: Source/Core/DolphinWX/FrameTools.cpp:502
+#: Source/Core/DolphinWX/FrameTools.cpp:999
 msgid "Select the Recording File"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:350
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 msgid "Select the file to load"
 msgstr "Yüklemek için dosyayı seçin"
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:909
-#: Source/Core/DolphinWX/FrameTools.cpp:1309
+#: Source/Core/DolphinQt2/MainWindow.cpp:910
+#: Source/Core/DolphinWX/FrameTools.cpp:1311
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr ""
 
-#: Source/Core/DolphinQt2/MainWindow.cpp:882
+#: Source/Core/DolphinQt2/MainWindow.cpp:883
 #: Source/Core/DolphinQt2/MenuBar.cpp:534
-#: Source/Core/DolphinWX/FrameTools.cpp:1207
+#: Source/Core/DolphinWX/FrameTools.cpp:1209
 msgid "Select the save file"
 msgstr "Kayıt dosyasını seçin"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1546
+#: Source/Core/DolphinWX/FrameTools.cpp:1548
 msgid "Select the state to load"
 msgstr "Yüklemek için durum seçin"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1558
+#: Source/Core/DolphinWX/FrameTools.cpp:1560
 msgid "Select the state to save"
 msgstr "Kaydetmek için durum seçin"
 
@@ -7250,7 +7250,7 @@ msgstr ""
 msgid "Selected Font"
 msgstr ""
 
-#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:260
+#: Source/Core/Core/ConfigLoaders/GameConfigLoader.cpp:217
 #: Source/Core/InputCommon/InputConfig.cpp:63
 msgid "Selected controller profile does not exist"
 msgstr "Seçilmiş kumanda profili yok."
@@ -7588,6 +7588,8 @@ msgid "Show Spain"
 msgstr "İspanya'yı Göster"
 
 #: Source/Core/DolphinQt2/Config/Graphics/AdvancedWidget.cpp:45
+#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:52
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:93
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:813
 msgid "Show Statistics"
 msgstr "İstatistikleri Göster"
@@ -8011,18 +8013,18 @@ msgstr "Çubuk"
 msgid "Stop"
 msgstr "Durdur"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1765
+#: Source/Core/DolphinWX/FrameTools.cpp:1767
 msgid "Stop Playing Input"
 msgstr ""
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:414
-#: Source/Core/DolphinWX/FrameTools.cpp:1750
-#: Source/Core/DolphinWX/FrameTools.cpp:1767
+#: Source/Core/DolphinWX/FrameTools.cpp:1752
+#: Source/Core/DolphinWX/FrameTools.cpp:1769
 #: Source/Core/DolphinWX/MainMenuBar.cpp:148
 msgid "Stop Playing/Recording Input"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1763
+#: Source/Core/DolphinWX/FrameTools.cpp:1765
 msgid "Stop Recording Input"
 msgstr ""
 
@@ -8216,7 +8218,7 @@ msgstr "Sözdizimi hatası"
 msgid "System Language:"
 msgstr "Sistem Dili:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1485
+#: Source/Core/DolphinWX/FrameTools.cpp:1487
 msgid "System Update"
 msgstr "Sistem Güncellemesi"
 
@@ -8225,12 +8227,12 @@ msgstr "Sistem Güncellemesi"
 msgid "TAS Input"
 msgstr "TAS Girişi"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:394
+#: Source/Core/DolphinWX/FrameTools.cpp:395
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
 msgstr "TAS Girişi - GameCube Kontrolcüsü %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:402
+#: Source/Core/DolphinWX/FrameTools.cpp:403
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr "TAS Girişi - Wii Remote %d"
@@ -8308,14 +8310,14 @@ msgstr ""
 "Emin değilseniz, en sağdaki değeri kullanın."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:606
-#: Source/Core/DolphinWX/FrameTools.cpp:1377
+#: Source/Core/DolphinWX/FrameTools.cpp:1379
 msgid ""
 "The NAND could not be repaired. It is recommended to back up your current "
 "data and start over with a fresh NAND."
 msgstr ""
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:601
-#: Source/Core/DolphinWX/FrameTools.cpp:1373
+#: Source/Core/DolphinWX/FrameTools.cpp:1375
 msgid "The NAND has been repaired."
 msgstr ""
 
@@ -8336,7 +8338,7 @@ msgstr "Sağlama başarıyla düzeltildi."
 msgid "The chosen directory is already in the list."
 msgstr "Seçilen klasör zaten listede."
 
-#: Source/Core/Core/Movie.cpp:363
+#: Source/Core/Core/Movie.cpp:361
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -8365,7 +8367,7 @@ msgid "The disc that was about to be inserted couldn't be found."
 msgstr "Takılacak olan disk bulunamadı."
 
 #: Source/Core/DolphinQt2/MenuBar.cpp:557
-#: Source/Core/DolphinWX/FrameTools.cpp:1328
+#: Source/Core/DolphinWX/FrameTools.cpp:1330
 msgid ""
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii "
 "Shop Channel may not work correctly.\n"
@@ -8374,12 +8376,12 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:31
-#: Source/Core/DolphinWX/FrameTools.cpp:1410
+#: Source/Core/DolphinWX/FrameTools.cpp:1412
 msgid "The emulated Wii console has been updated."
 msgstr "Sanal Wii konsolu güncellendi."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:36
-#: Source/Core/DolphinWX/FrameTools.cpp:1415
+#: Source/Core/DolphinWX/FrameTools.cpp:1417
 msgid "The emulated Wii console is already up-to-date."
 msgstr "Sanal Wii konsolu zaten güncel."
 
@@ -8419,12 +8421,12 @@ msgid "The file %s was already open, the file header will not be written."
 msgstr "Dosya %s zaten açık, dosya başlığı yazılmayacaktır."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:69
-#: Source/Core/DolphinWX/FrameTools.cpp:1447
+#: Source/Core/DolphinWX/FrameTools.cpp:1449
 msgid "The game disc does not contain any usable update information."
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:62
-#: Source/Core/DolphinWX/FrameTools.cpp:1440
+#: Source/Core/DolphinWX/FrameTools.cpp:1442
 msgid ""
 "The game's region does not match your console's. To avoid issues with the "
 "system menu, it is not possible to update the emulated console using this "
@@ -8466,7 +8468,7 @@ msgstr "Ortaya çıkan şifresi çözülmüş AR kodu herhangi bir satır içerm
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "Kopyalamaya çalıştığınız kayıdın dosya boyutu yanlış."
 
-#: Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:342
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -8490,17 +8492,17 @@ msgstr "Sunucu yanıtı: oyun şu anda çalışıyor!"
 msgid "The server sent an unknown error message!"
 msgstr "Sunucu bilinmeyen bir hata mesajı gönderdi!"
 
-#: Source/Core/Core/Boot/Boot.cpp:62
+#: Source/Core/Core/Boot/Boot.cpp:66
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Belirtilen dosya \"%s\" bulunamadı"
 
-#: Source/Core/DolphinWX/Main.cpp:192
+#: Source/Core/DolphinWX/Main.cpp:193
 msgid "The title ID is invalid."
 msgstr ""
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:57
-#: Source/Core/DolphinWX/FrameTools.cpp:1435
+#: Source/Core/DolphinWX/FrameTools.cpp:1437
 msgid ""
 "The update has been cancelled. It is strongly recommended to finish it in "
 "order to avoid inconsistent system software versions."
@@ -8936,7 +8938,7 @@ msgid "Uninstall from the NAND"
 msgstr "NAND'dan kaldır"
 
 #: Source/Core/DolphinQt2/GameList/GameList.cpp:352
-#: Source/Core/DolphinWX/FrameTools.cpp:1270
+#: Source/Core/DolphinWX/FrameTools.cpp:1272
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -9009,14 +9011,14 @@ msgid "Update Screen"
 msgstr "Ekranı Güncelle"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:56
-#: Source/Core/DolphinWX/FrameTools.cpp:1437
+#: Source/Core/DolphinWX/FrameTools.cpp:1439
 msgid "Update cancelled"
 msgstr "Güncelleştirme iptal edildi"
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:30
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:35
-#: Source/Core/DolphinWX/FrameTools.cpp:1410
-#: Source/Core/DolphinWX/FrameTools.cpp:1415
+#: Source/Core/DolphinWX/FrameTools.cpp:1412
+#: Source/Core/DolphinWX/FrameTools.cpp:1417
 msgid "Update completed"
 msgstr "Güncelleştirme tamamlandı"
 
@@ -9025,11 +9027,11 @@ msgstr "Güncelleştirme tamamlandı"
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:50
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:61
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:68
-#: Source/Core/DolphinWX/FrameTools.cpp:1422
-#: Source/Core/DolphinWX/FrameTools.cpp:1427
-#: Source/Core/DolphinWX/FrameTools.cpp:1432
-#: Source/Core/DolphinWX/FrameTools.cpp:1443
-#: Source/Core/DolphinWX/FrameTools.cpp:1448
+#: Source/Core/DolphinWX/FrameTools.cpp:1424
+#: Source/Core/DolphinWX/FrameTools.cpp:1429
+#: Source/Core/DolphinWX/FrameTools.cpp:1434
+#: Source/Core/DolphinWX/FrameTools.cpp:1445
+#: Source/Core/DolphinWX/FrameTools.cpp:1450
 msgid "Update failed"
 msgstr "Güncelleştirme başarısız oldu."
 
@@ -9038,11 +9040,11 @@ msgid "Update the Wii system software to the latest version from Nintendo."
 msgstr "Wii sistem yazılımını Nintendo'nun en yeni sürümüne güncelleyin."
 
 #: Source/Core/DolphinQt2/WiiUpdate.cpp:91
-#: Source/Core/DolphinWX/FrameTools.cpp:1456
+#: Source/Core/DolphinWX/FrameTools.cpp:1458
 msgid "Updating"
 msgstr "Güncelleştiriliyor"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1465
+#: Source/Core/DolphinWX/FrameTools.cpp:1467
 #, c-format
 msgid ""
 "Updating title %016<PRIx64>...\n"
@@ -9074,7 +9076,7 @@ msgstr ""
 msgid "Usage Statistics Reporting Settings"
 msgstr "İstatistik Raporlama Ayarları"
 
-#: Source/Core/DolphinWX/Main.cpp:244
+#: Source/Core/DolphinWX/Main.cpp:245
 msgid "Usage statistics reporting"
 msgstr "İstatistik Raporlama Programı"
 
@@ -9187,11 +9189,6 @@ msgstr "Değer:"
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:27
 msgid "Value: "
 msgstr "Değer:"
-
-#: Source/Core/DolphinQt2/Config/Graphics/SoftwareRendererWidget.cpp:52
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:92
-msgid "Various Statistics"
-msgstr "Çeşitli İstatistikler"
 
 #: Source/Core/DolphinQt2/Config/LogConfigWidget.cpp:40
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:48
@@ -9348,7 +9345,7 @@ msgid ""
 "Continue?"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:993
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9356,7 +9353,7 @@ msgid ""
 "or load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:968
+#: Source/Core/Core/Movie.cpp:966
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9364,7 +9361,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1019
+#: Source/Core/Core/Movie.cpp:1017
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9372,7 +9369,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1036
+#: Source/Core/Core/Movie.cpp:1034
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9494,7 +9491,7 @@ msgstr "Wii Remote Kontrolcüleri"
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
 msgstr "Wii U GameCube Kontrolcüsü Adaptörü Yapılandırması Port %i"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1247
+#: Source/Core/DolphinWX/FrameTools.cpp:1249
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD dosyaları (*.wad)"
 
@@ -9503,7 +9500,7 @@ msgstr "Wii WAD dosyaları (*.wad)"
 msgid "Wii and Wii Remote"
 msgstr "Wii ve Wii Remote"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1208
+#: Source/Core/DolphinWX/FrameTools.cpp:1210
 msgid "Wii save files (*.bin)"
 msgstr "Wii kayıt dosyaları (*.bin)"
 
@@ -9532,8 +9529,8 @@ msgstr "Bir dizi dahilinde"
 msgid "Word Wrap"
 msgstr "Sözcük Kaydırma"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1256
-#: Source/Core/DolphinWX/FrameTools.cpp:1304
+#: Source/Core/DolphinWX/FrameTools.cpp:1258
+#: Source/Core/DolphinWX/FrameTools.cpp:1306
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1417
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1536
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:319

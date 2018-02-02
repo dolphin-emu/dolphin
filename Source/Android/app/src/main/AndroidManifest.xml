@@ -65,7 +65,7 @@
             android:theme="@style/DolphinEmulationGamecube"/>
 
 
-        <service android:name=".services.AssetCopyService"/>
+        <service android:name=".services.DirectoryInitializationService"/>
 
         <provider
             android:name=".model.GameProvider"

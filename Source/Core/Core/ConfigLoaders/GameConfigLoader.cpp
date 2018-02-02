@@ -61,6 +61,7 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
 
 using ConfigLocation = Config::ConfigLocation;
 using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLocation>;
+using INIToSectionMap = std::map<std::string, std::pair<Config::System, std::string>>;
 
 // This is a mapping from the legacy section-key pairs to ConfigLocations.
 // New settings do not need to be added to this mapping.
@@ -68,65 +69,28 @@ using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLoc
 static const INIToLocationMap& GetINIToLocationMap()
 {
   static const INIToLocationMap ini_to_location = {
-      {{"Video_Hardware", "VSync"}, {Config::GFX_VSYNC.location}},
-
-      {{"Video_Settings", "wideScreenHack"}, {Config::GFX_WIDESCREEN_HACK.location}},
-      {{"Video_Settings", "AspectRatio"}, {Config::GFX_ASPECT_RATIO.location}},
-      {{"Video_Settings", "SuggestedAspectRatio"}, {Config::GFX_SUGGESTED_ASPECT_RATIO.location}},
-      {{"Video_Settings", "Crop"}, {Config::GFX_CROP.location}},
-      {{"Video_Settings", "SafeTextureCacheColorSamples"},
-       {Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES.location}},
-      {{"Video_Settings", "HiresTextures"}, {Config::GFX_HIRES_TEXTURES.location}},
-      {{"Video_Settings", "ConvertHiresTextures"}, {Config::GFX_CONVERT_HIRES_TEXTURES.location}},
-      {{"Video_Settings", "CacheHiresTextures"}, {Config::GFX_CACHE_HIRES_TEXTURES.location}},
-      {{"Video_Settings", "EnablePixelLighting"}, {Config::GFX_ENABLE_PIXEL_LIGHTING.location}},
-      {{"Video_Settings", "FastDepthCalc"}, {Config::GFX_FAST_DEPTH_CALC.location}},
-      {{"Video_Settings", "MSAA"}, {Config::GFX_MSAA.location}},
-      {{"Video_Settings", "SSAA"}, {Config::GFX_SSAA.location}},
-      {{"Video_Settings", "ForceTrueColor"}, {Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location}},
-      {{"Video_Settings", "InternalResolution"}, {Config::GFX_EFB_SCALE.location}},
-      {{"Video_Settings", "DisableFog"}, {Config::GFX_DISABLE_FOG.location}},
-      {{"Video_Settings", "BackendMultithreading"}, {Config::GFX_BACKEND_MULTITHREADING.location}},
-      {{"Video_Settings", "CommandBufferExecuteInterval"},
-       {Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL.location}},
-
-      {{"Video_Enhancements", "ForceFiltering"}, {Config::GFX_ENHANCE_FORCE_FILTERING.location}},
-      {{"Video_Enhancements", "MaxAnisotropy"}, {Config::GFX_ENHANCE_MAX_ANISOTROPY.location}},
-      {{"Video_Enhancements", "PostProcessingShader"}, {Config::GFX_ENHANCE_POST_SHADER.location}},
-
-      {{"Video_Stereoscopy", "StereoConvergence"}, {Config::GFX_STEREO_CONVERGENCE.location}},
-      {{"Video_Stereoscopy", "StereoEFBMonoDepth"}, {Config::GFX_STEREO_EFB_MONO_DEPTH.location}},
-      {{"Video_Stereoscopy", "StereoDepthPercentage"},
-       {Config::GFX_STEREO_DEPTH_PERCENTAGE.location}},
-
-      {{"Video_Stereoscopy", "StereoMode"}, {Config::GFX_STEREO_MODE.location}},
-      {{"Video_Stereoscopy", "StereoDepth"}, {Config::GFX_STEREO_DEPTH.location}},
-      {{"Video_Stereoscopy", "StereoSwapEyes"}, {Config::GFX_STEREO_SWAP_EYES.location}},
-
-      {{"Video_Hacks", "EFBAccessEnable"}, {Config::GFX_HACK_EFB_ACCESS_ENABLE.location}},
-      {{"Video_Hacks", "BBoxEnable"}, {Config::GFX_HACK_BBOX_ENABLE.location}},
-      {{"Video_Hacks", "ForceProgressive"}, {Config::GFX_HACK_FORCE_PROGRESSIVE.location}},
-      {{"Video_Hacks", "EFBToTextureEnable"}, {Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM.location}},
-      {{"Video_Hacks", "XFBToTextureEnable"}, {Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM.location}},
-      {{"Video_Hacks", "ImmediateXFBEnable"}, {Config::GFX_HACK_IMMEDIATE_XFB.location}},
-      {{"Video_Hacks", "EFBScaledCopy"}, {Config::GFX_EFB_SCALE.location}},
-      {{"Video_Hacks", "EFBEmulateFormatChanges"},
-       {Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location}},
-      {{"Video_Hacks", "VertexRounding"}, {Config::GFX_HACK_VERTEX_ROUDING.location}},
-
-      {{"Video", "ProjectionHack"}, {Config::GFX_PROJECTION_HACK.location}},
-      {{"Video", "PH_SZNear"}, {Config::GFX_PROJECTION_HACK_SZNEAR.location}},
-      {{"Video", "PH_SZFar"}, {Config::GFX_PROJECTION_HACK_SZFAR.location}},
-      {{"Video", "PH_ZNear"}, {Config::GFX_PROJECTION_HACK_ZNEAR.location}},
-      {{"Video", "PH_ZFar"}, {Config::GFX_PROJECTION_HACK_ZFAR.location}},
-      {{"Video", "PerfQueriesEnable"}, {Config::GFX_PERF_QUERIES_ENABLE.location}},
-
       {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.location}},
       {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.location}},
       {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.location}},
       {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.location}},
   };
   return ini_to_location;
+}
+
+// This is a mapping from the legacy section names to system + section.
+// New settings do not need to be added to this mapping.
+// See also: MapINIToRealLocation and GetINILocationFromConfig.
+static const INIToSectionMap& GetINIToSectionMap()
+{
+  static const INIToSectionMap ini_to_section = {
+      {"Video_Hardware", {Config::System::GFX, "Hardware"}},
+      {"Video_Settings", {Config::System::GFX, "Settings"}},
+      {"Video_Enhancements", {Config::System::GFX, "Enhancements"}},
+      {"Video_Stereoscopy", {Config::System::GFX, "Stereoscopy"}},
+      {"Video_Hacks", {Config::System::GFX, "Hacks"}},
+      {"Video", {Config::System::GFX, "GameSpecific"}},
+  };
+  return ini_to_section;
 }
 
 // Converts from a legacy GameINI section-key tuple to a ConfigLocation.
@@ -136,56 +100,49 @@ static const INIToLocationMap& GetINIToLocationMap()
 static ConfigLocation MapINIToRealLocation(const std::string& section, const std::string& key)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
+  const auto it = ini_to_location.find({section, key});
+  if (it != ini_to_location.end())
+    return it->second;
 
-  auto it = ini_to_location.find({section, key});
-  if (it == ini_to_location.end())
-  {
-    // Try again, but this time with an empty key
-    // Certain sections like 'Speedhacks' has keys that are variable
-    it = ini_to_location.find({section, ""});
-    if (it != ini_to_location.end())
-      return {it->second.system, it->second.section, key};
+  static const INIToSectionMap& ini_to_section = GetINIToSectionMap();
+  const auto it2 = ini_to_section.find(section);
+  if (it2 != ini_to_section.end())
+    return {it2->second.first, it2->second.second, key};
 
-    // Attempt to load it as a configuration option
-    // It will be in the format of '<System>.<Section>'
-    std::istringstream buffer(section);
-    std::string system_str, config_section;
+  // Attempt to load it as a configuration option
+  // It will be in the format of '<System>.<Section>'
+  std::istringstream buffer(section);
+  std::string system_str, config_section;
 
-    bool fail = false;
-    std::getline(buffer, system_str, '.');
-    fail |= buffer.fail();
-    std::getline(buffer, config_section, '.');
-    fail |= buffer.fail();
+  bool fail = false;
+  std::getline(buffer, system_str, '.');
+  fail |= buffer.fail();
+  std::getline(buffer, config_section, '.');
+  fail |= buffer.fail();
 
-    const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
-    if (!fail && system)
-      return {*system, config_section, key};
+  const std::optional<Config::System> system = Config::GetSystemFromName(system_str);
+  if (!fail && system)
+    return {*system, config_section, key};
 
-    WARN_LOG(CORE, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
-    return {Config::System::Main, "", ""};
-  }
-
-  return ini_to_location.at({section, key});
+  WARN_LOG(CORE, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
+  return {Config::System::Main, "", ""};
 }
 
 static std::pair<std::string, std::string> GetINILocationFromConfig(const ConfigLocation& location)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
-
-  auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
-                         [&location](const auto& entry) { return entry.second == location; });
-
+  const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
+                               [&location](const auto& entry) { return entry.second == location; });
   if (it != ini_to_location.end())
     return it->first;
 
-  // Try again, but this time with an empty key
-  // Certain sections like 'Speedhacks' have keys that are variable
-  it = std::find_if(ini_to_location.begin(), ini_to_location.end(), [&location](const auto& entry) {
-    return std::tie(entry.second.system, entry.second.section) ==
-           std::tie(location.system, location.section);
-  });
-  if (it != ini_to_location.end())
-    return {it->first.first, location.key};
+  static const INIToSectionMap& ini_to_section = GetINIToSectionMap();
+  const auto it2 =
+      std::find_if(ini_to_section.begin(), ini_to_section.end(), [&location](const auto& entry) {
+        return entry.second.first == location.system && entry.second.second == location.section;
+      });
+  if (it2 != ini_to_section.end())
+    return {it2->first, location.key};
 
   return {Config::GetSystemName(location.system) + "." + location.section, location.key};
 }

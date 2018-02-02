@@ -64,9 +64,6 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
 // This displays messages in a user-visible way.
 void DisplayMessage(const std::string& message, int time_in_ms);
 
-std::string GetStateFileName();
-void SetStateFileName(const std::string& val);
-
 void FrameUpdateOnCPUThread();
 
 bool ShouldSkipFrame(int skipped);

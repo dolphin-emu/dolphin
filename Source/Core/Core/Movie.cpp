@@ -232,8 +232,6 @@ void Init(const BootParameters& boot)
   }
 
   memset(&s_padState, 0, sizeof(s_padState));
-  if (!tmpHeader.bFromSaveState || !IsPlayingInput())
-    Core::SetStateFileName("");
 
   for (auto& disp : s_InputDisplay)
     disp.clear();
@@ -865,12 +863,12 @@ void ReadHeader()
 }
 
 // NOTE: Host Thread
-bool PlayInput(const std::string& filename)
+bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path)
 {
   if (s_playMode != MODE_NONE)
     return false;
 
-  File::IOFile recording_file(filename, "rb");
+  File::IOFile recording_file(movie_path, "rb");
   if (!recording_file.ReadArray(&tmpHeader, 1))
     return false;
 
@@ -902,13 +900,13 @@ bool PlayInput(const std::string& filename)
   recording_file.Close();
 
   // Load savestate (and skip to frame data)
-  if (tmpHeader.bFromSaveState)
+  if (tmpHeader.bFromSaveState && savestate_path)
   {
-    const std::string stateFilename = filename + ".sav";
-    if (File::Exists(stateFilename))
-      Core::SetStateFileName(stateFilename);
+    const std::string savestate_path_temp = movie_path + ".sav";
+    if (File::Exists(savestate_path_temp))
+      *savestate_path = savestate_path_temp;
     s_bRecordingFromSaveState = true;
-    Movie::LoadInput(filename);
+    Movie::LoadInput(movie_path);
   }
 
   return true;
@@ -928,12 +926,12 @@ void DoState(PointerWrap& p)
 }
 
 // NOTE: Host Thread
-void LoadInput(const std::string& filename)
+void LoadInput(const std::string& movie_path)
 {
   File::IOFile t_record;
-  if (!t_record.Open(filename, "r+b"))
+  if (!t_record.Open(movie_path, "r+b"))
   {
-    PanicAlertT("Failed to read %s", filename.c_str());
+    PanicAlertT("Failed to read %s", movie_path.c_str());
     EndPlayInput(false);
     return;
   }
@@ -942,7 +940,7 @@ void LoadInput(const std::string& filename)
 
   if (!IsMovieHeader(tmpHeader.filetype))
   {
-    PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", filename.c_str());
+    PanicAlertT("Savestate movie %s is corrupted, movie recording stopping...", movie_path.c_str());
     EndPlayInput(false);
     return;
   }

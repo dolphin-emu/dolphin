@@ -1,10 +1,12 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -12,12 +14,18 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
+
+import rx.functions.Action1;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
@@ -28,6 +36,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	private InputOverlay mInputOverlay;
 
 	private EmulationState mEmulationState;
+
+	private DirectoryStateReceiver directoryStateReceiver;
 
 	public static EmulationFragment newInstance(String gamePath)
 	{
@@ -108,12 +118,25 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	public void onResume()
 	{
 		super.onResume();
-		mEmulationState.run();
+		if (DirectoryInitializationService.areDolphinDirectoriesReady())
+		{
+			mEmulationState.run();
+		}
+		else
+		{
+			setupDolphinDirectoriesThenStartEmulation();
+		}
 	}
 
 	@Override
 	public void onPause()
 	{
+		if (directoryStateReceiver != null)
+		{
+			LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(directoryStateReceiver);
+			directoryStateReceiver = null;
+		}
+
 		mEmulationState.pause();
 		super.onPause();
 	}
@@ -123,6 +146,27 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	{
 		NativeLibrary.clearEmulationActivity();
 		super.onDetach();
+	}
+
+	private void setupDolphinDirectoriesThenStartEmulation() {
+		IntentFilter statusIntentFilter = new IntentFilter(
+				DirectoryInitializationService.BROADCAST_ACTION);
+
+		directoryStateReceiver =
+				new DirectoryStateReceiver(directoryInitializationState -> {
+					if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED) {
+						mEmulationState.run();
+					} else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED) {
+						Toast.makeText(getContext(), R.string.write_permission_needed, Toast.LENGTH_SHORT)
+								.show();
+					}
+				});
+
+		// Registers the DirectoryStateReceiver and its intent filters
+		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
+				directoryStateReceiver,
+				statusIntentFilter);
+		DirectoryInitializationService.startService(getActivity());
 	}
 
 	public void toggleInputOverlayVisibility()

@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
@@ -52,6 +53,10 @@
 // REMEMBER: strdup considered harmful!
 namespace File
 {
+#ifdef ANDROID
+static std::string s_android_sys_directory;
+#endif
+
 #ifdef _WIN32
 FileInfo::FileInfo(const std::string& path)
 {
@@ -692,10 +697,25 @@ std::string GetSysDirectory()
 {
   std::string sysDir;
 
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
+#define SYSDATA_DIR "Sys"
+#elif defined __APPLE__
+#define SYSDATA_DIR "Contents/Resources/Sys"
+#else
+#ifdef DATA_DIR
+#define SYSDATA_DIR DATA_DIR "sys"
+#else
+#define SYSDATA_DIR "sys"
+#endif
+#endif
+
 #if defined(__APPLE__)
   sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
   sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
+#elif defined ANDROID
+  sysDir = s_android_sys_directory;
+  _assert_msg_(COMMON, !sysDir.empty(), "Sys directory has not been set");
 #else
   sysDir = SYSDATA_DIR;
 #endif
@@ -704,6 +724,14 @@ std::string GetSysDirectory()
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
 }
+
+#ifdef ANDROID
+void SetSysDirectory(const std::string& path)
+{
+  INFO_LOG(COMMON, "Setting Sys directory to %s", path.c_str());
+  s_android_sys_directory = path;
+}
+#endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];
 static void RebuildUserDirectories(unsigned int dir_index)

@@ -20,6 +20,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.model.GameProvider;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
@@ -57,7 +58,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		mPresenter.onCreate();
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
-		// TODO Split some of this stuff into Application.onCreate()
 		if (savedInstanceState == null)
 			StartupHandler.HandleInit(this);
 
@@ -154,7 +154,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+					DirectoryInitializationService.startService(this);
 
 					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
 							getSupportFragmentManager(), this);
