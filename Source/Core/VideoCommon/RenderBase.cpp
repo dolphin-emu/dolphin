@@ -632,7 +632,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // behind the renderer.
   FlushFrameDump();
 
-  bool update_frame_count = false;
   if (xfbAddr && fbWidth && fbStride && fbHeight)
   {
     constexpr int force_safe_texture_cache_hash = 0;
@@ -655,26 +654,25 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
 
       m_fps_counter.Update();
-      update_frame_count = true;
 
       if (IsFrameDumping())
         DumpCurrentFrame();
+
+      frameCount++;
+      GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
+
+      // Begin new frame
+      // Set default viewport and scissor, for the clear to work correctly
+      // New frame
+      stats.ResetFrame();
+
+      Core::Callback_VideoCopiedToXFB(true);
     }
 
     // Update our last xfb values
     m_last_xfb_width = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
     m_last_xfb_height = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
   }
-
-  frameCount++;
-  GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
-
-  // Begin new frame
-  // Set default viewport and scissor, for the clear to work correctly
-  // New frame
-  stats.ResetFrame();
-
-  Core::Callback_VideoCopiedToXFB(update_frame_count);
 }
 
 bool Renderer::IsFrameDumping()

@@ -1582,10 +1582,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
   const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
 
-  unsigned int scaled_tex_w =
-      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledX(tex_w) : tex_w;
-  unsigned int scaled_tex_h =
-      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledY(tex_h) : tex_h;
+  const bool upscale = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
+  unsigned int scaled_tex_w = upscale ? g_renderer->EFBToScaledX(tex_w) : tex_w;
+  unsigned int scaled_tex_h = upscale ? g_renderer->EFBToScaledY(tex_h) : tex_h;
 
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
