@@ -24,9 +24,10 @@ struct PixelShaderConstants
   std::array<int4, 6> indtexmtx;
   int4 fogcolor;
   int4 fogi;
-  std::array<float4, 2> fogf;
+  float4 fogf;
+  std::array<float4, 3> fogrange;
   float4 zslope;
-  std::array<float, 2> efbscale;
+  std::array<float, 2> efbscale;  // .xy
 
   // Constants from here onwards are only used in ubershaders.
   u32 genmode;                  // .z
