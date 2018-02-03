@@ -21,6 +21,8 @@
 #SOFTWARE.
 
 #Based off of codehandleronly.s from Gecko OS source code.
+# Example command to build:
+# powerpc-elf-gcc -mpowerpc -mpaired -mbig codehandler.s -nostartfiles -nodefaultlibs -nostdlib -T codehandler.ld -o codehandler.bin
 
 .text
 #Register Defines
@@ -42,11 +44,11 @@ cheatdata:
 .space 39*4
 
 _start:
-	stwu	r1,-168(r1)		# stores sp
+	stwu	r1,-172(r1)		# stores sp
 	stw	r0,8(r1)		# stores r0
 
 	mflr	r0
-	stw	r0,172(r1)		# stores lr
+	stw	r0,176(r1)		# stores lr
 
 	mfcr	r0
 	stw	r0,12(r1)		# stores cr
@@ -60,6 +62,8 @@ _start:
 	stmw	r3,24(r1)		# saves r3-r31
 
 	mfmsr	r25
+	stw	r25,168(r1)		# save msr
+
 	ori	r26,r25,0x2000		#enable floating point ?
 	andi.	r26,r26,0xF9FF
 	mtmsr	r26
@@ -70,18 +74,17 @@ _start:
 
 
 
-    lis	r31,_start@h		#0x8000
+    lis	r31,cheatdata@h		#0x8000
     
     lis r20, 0xCC00
     lhz r28, 0x4010(r20)
     ori r21, r28, 0xFF
     sth r21, 0x4010(r20) # disable MP3 memory protection
 
-	mflr	r29
 	lis r15, codelist@h
 	ori	r15, r15, codelist@l
 
-	ori	r7, 31, cheatdata@l	# set pointer for storing data (before the codelist)
+	ori	r7, r31, cheatdata@l	# set pointer for storing data (before the codelist)
 
 	lis	r6,0x8000		# default base address = 0x80000000 (code handler)
 
@@ -101,17 +104,16 @@ _start:
     addi	r15,r15,8
 	b	_readcodes
 _exitcodehandler:
-	mtlr	r29
-resumegame:
 
     sth r28,0x4010(r20) # restore memory protection value
 
 	lfd	f2,152(r1)		# loads f2
 	lfd	f3,160(r1)		# loads f3
 
+	lwz	r25,168(r1)
 	mtmsr	r25
 
-	lwz	r0,172(r1)
+	lwz	r0,176(r1)
 	mtlr	r0			# restores lr
 
 	lwz	r0,12(r1)
@@ -127,7 +129,7 @@ resumegame:
 
 	lwz	r0,8(r1)		# loads r0
 
-	addi	r1,r1,168
+	addi	r1,r1,172
 
 	isync
 
