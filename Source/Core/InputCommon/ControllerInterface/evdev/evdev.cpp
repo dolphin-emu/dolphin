@@ -76,10 +76,11 @@ static void HotplugThreadFunc()
     if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
       continue;
 
-    udev_device* dev = udev_monitor_receive_device(monitor);
+    std::unique_ptr<udev_device, decltype(&udev_device_unref)> dev{
+        udev_monitor_receive_device(monitor), udev_device_unref};
 
-    const char* action = udev_device_get_action(dev);
-    const char* devnode = udev_device_get_devnode(dev);
+    const char* action = udev_device_get_action(dev.get());
+    const char* devnode = udev_device_get_devnode(dev.get());
     if (!devnode)
       continue;
 
@@ -107,7 +108,6 @@ static void HotplugThreadFunc()
         s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
       }
     }
-    udev_device_unref(dev);
   }
   NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
 }
