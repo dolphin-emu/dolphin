@@ -136,6 +136,7 @@ static void StopHotplugThread()
   {
   }
   s_hotplug_thread.join();
+  close(s_wakeup_eventfd);
 }
 
 void Init()
