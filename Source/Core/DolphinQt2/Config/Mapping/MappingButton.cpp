@@ -66,6 +66,7 @@ void MappingButton::OnButtonPressed()
     if (!expr.isEmpty())
     {
       m_reference->SetExpression(expr.toStdString());
+      m_parent->SaveSettings();
       Update();
     }
     else
