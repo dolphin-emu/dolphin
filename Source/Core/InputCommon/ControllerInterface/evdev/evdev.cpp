@@ -72,7 +72,7 @@ static void HotplugThreadFunc()
     FD_SET(monitor_fd, &fds);
     FD_SET(s_wakeup_eventfd, &fds);
 
-    int ret = select(monitor_fd + 1, &fds, nullptr, nullptr, nullptr);
+    int ret = select(std::max(monitor_fd, s_wakeup_eventfd) + 1, &fds, nullptr, nullptr, nullptr);
     if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
       continue;
 
