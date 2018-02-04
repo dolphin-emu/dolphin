@@ -224,7 +224,8 @@ void MappingWindow::RefreshDevices()
 
     const auto default_device = m_controller->GetDefaultDevice().ToString();
 
-    m_devices_combo->addItem(QString::fromStdString(default_device));
+    if (!default_device.empty())
+      m_devices_combo->addItem(QString::fromStdString(default_device));
 
     for (const auto& name : g_controller_interface.GetAllDeviceStrings())
     {
