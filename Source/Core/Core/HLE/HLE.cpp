@@ -45,8 +45,6 @@ static const SPatch OSPatches[] = {
     // Placeholder, OSPatches[0] is the "non-existent function" index
     {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
 
-    {"PanicAlert",                   HLE_Misc::HLEPanicAlert,               HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-
     // Name doesn't matter, installed in CBoot::BootUp()
     {"HBReload",                     HLE_Misc::HBReload,                    HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
 
