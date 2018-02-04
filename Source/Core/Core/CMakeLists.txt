@@ -15,6 +15,7 @@ set(SRCS
   Movie.cpp
   NetPlayClient.cpp
   NetPlayServer.cpp
+  NetworkCaptureLogger.cpp
   PatchEngine.cpp
   State.cpp
   TitleDatabase.cpp

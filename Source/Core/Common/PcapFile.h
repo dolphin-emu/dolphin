@@ -22,9 +22,18 @@
 class PCAP final
 {
 public:
+  enum class LinkType : u32
+  {
+    Ethernet = 1,  // IEEE 802.3 Ethernet
+    User = 147,    // Reserved for internal use
+  };
+
   // Takes ownership of the file object. Assumes the file object is already
   // opened in write mode.
-  explicit PCAP(File::IOFile* fp) : m_fp(fp) { AddHeader(); }
+  explicit PCAP(File::IOFile* fp, LinkType link_type = LinkType::User) : m_fp(fp)
+  {
+    AddHeader(static_cast<u32>(link_type));
+  }
   template <typename T>
   void AddPacket(const T& obj)
   {
@@ -34,7 +43,7 @@ public:
   void AddPacket(const u8* bytes, size_t size);
 
 private:
-  void AddHeader();
+  void AddHeader(u32 link_type);
 
   std::unique_ptr<File::IOFile> m_fp;
 };

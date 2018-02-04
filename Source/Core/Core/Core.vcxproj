@@ -241,6 +241,7 @@
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
+    <ClCompile Include="NetworkCaptureLogger.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="PowerPC\BreakPoints.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
@@ -492,6 +493,7 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="NetworkCaptureLogger.h" />
     <ClInclude Include="PowerPC\BreakPoints.h" />
     <ClInclude Include="PowerPC\CPUCoreBase.h" />
     <ClInclude Include="PowerPC\Gekko.h" />
