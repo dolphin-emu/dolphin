@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wregister"
 #include <X11/XKBlib.h>
+#pragma GCC diagnostic pop
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
