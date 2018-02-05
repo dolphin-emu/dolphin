@@ -23,8 +23,4 @@ set(LIBS ${LIBS}
   ${X11_LIBRARIES}
 )
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
-  set(LIBS ${LIBS} usbhid)
-endif()
-
 add_dolphin_library(videoogl "${SRCS}" "${LIBS}")
