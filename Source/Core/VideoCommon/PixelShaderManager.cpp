@@ -409,9 +409,9 @@ void PixelShaderManager::SetFogParamChanged()
 {
   if (!g_ActiveConfig.bDisableFog)
   {
-    constants.fogf[1][0] = bpmem.fog.a.GetA();
+    constants.fogf[1][0] = bpmem.fog.GetA();
     constants.fogi[1] = bpmem.fog.b_magnitude;
-    constants.fogf[1][2] = bpmem.fog.c_proj_fsel.GetC();
+    constants.fogf[1][2] = bpmem.fog.GetC();
     constants.fogi[3] = bpmem.fog.b_shift;
     constants.fogParam3 = bpmem.fog.c_proj_fsel.hex;
   }

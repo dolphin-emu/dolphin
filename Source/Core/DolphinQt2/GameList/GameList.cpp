@@ -368,7 +368,7 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame()->GetFilePath().toStdString();
+  Settings::Instance().SetDefaultGame(GetSelectedGame()->GetFilePath());
 }
 
 void GameList::OpenContainingFolder()
