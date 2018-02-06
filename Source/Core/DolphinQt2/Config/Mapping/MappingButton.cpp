@@ -7,6 +7,9 @@
 #include <QMouseEvent>
 #include <QRegExp>
 #include <QString>
+#include <QTimer>
+
+#include <iostream>
 
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 
@@ -16,6 +19,7 @@
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
+#include "DolphinQt2/Settings.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -26,11 +30,39 @@ static QString EscapeAmpersand(QString&& string)
   return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
 }
 
-MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref)
+MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator)
     : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
 {
   Connect();
+  if (!m_reference->IsInput() || !indicator)
+    return;
+
+  m_timer = new QTimer(this);
+  connect(m_timer, &QTimer::timeout, this, [this] {
+    if (!isActiveWindow())
+      return;
+
+    Settings::Instance().SetControllerStateNeeded(true);
+
+    auto state = m_reference->State();
+
+    QFont f = m_parent->font();
+    QPalette p = m_parent->palette();
+
+    if (state != 0)
+    {
+      f.setBold(true);
+      p.setColor(QPalette::ButtonText, Qt::red);
+    }
+
+    setFont(f);
+    setPalette(p);
+
+    Settings::Instance().SetControllerStateNeeded(false);
+  });
+
+  m_timer->start(1000 / 30);
 }
 
 void MappingButton::Connect()

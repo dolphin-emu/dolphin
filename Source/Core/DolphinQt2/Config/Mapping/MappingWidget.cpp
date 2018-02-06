@@ -47,9 +47,13 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   group_box->setLayout(form_layout);
 
+  bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
+                        group->type == ControllerEmu::GroupType::Stick ||
+                        group->type == ControllerEmu::GroupType::Tilt;
+
   for (auto& control : group->controls)
   {
-    auto* button = new MappingButton(this, control->control_ref.get());
+    auto* button = new MappingButton(this, control->control_ref.get(), !need_indicator);
 
     button->setMinimumWidth(100);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -86,6 +90,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     form_layout->addRow(checkbox);
     m_bools.push_back(checkbox);
   }
+
+  if (need_indicator)
+    form_layout->addRow(new MappingIndicator(group));
 
   return group_box;
 }
