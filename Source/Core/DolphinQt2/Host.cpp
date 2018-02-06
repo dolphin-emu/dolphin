@@ -10,6 +10,7 @@
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
+#include "DolphinQt2/Settings.h"
 #include "VideoCommon/RenderBase.h"
 
 Host::Host() = default;
@@ -108,7 +109,7 @@ void Host_RequestRenderWindowSize(int w, int h)
 }
 bool Host_UINeedsControllerState()
 {
-  return false;
+  return Settings::Instance().IsControllerStateNeeded();
 }
 void Host_NotifyMapLoaded()
 {
