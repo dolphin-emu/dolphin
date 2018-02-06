@@ -3,15 +3,16 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/TAS/GCTASInputWindow.h"
-#include "Common/CommonTypes.h"
-#include "DolphinQt2/TAS/Shared.h"
-#include "InputCommon/GCPadStatus.h"
 
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QSpinBox>
 #include <QVBoxLayout>
+
+#include "Common/CommonTypes.h"
+#include "DolphinQt2/TAS/Shared.h"
+#include "InputCommon/GCPadStatus.h"
 
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 {
@@ -29,8 +30,8 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
   auto* l_trigger_layout = CreateSliderValuePairLayout(this, tr("Left (ALT+N)"), m_l_trigger_value,
                                                        255, Qt::Key_N, triggers_box);
-  auto* r_trigger_layout = CreateSliderValuePairLayout(
-      this, tr("Right (ALT+M)"), m_r_trigger_value, 255, Qt::Key_M, triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(this, tr("Right (ALT+M)"), m_r_trigger_value,
+                                                       255, Qt::Key_M, triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);

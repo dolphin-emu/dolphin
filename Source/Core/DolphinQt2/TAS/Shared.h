@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
-
 #include <QWidget>
+
+#include "Common/CommonTypes.h"
 
 class QDialog;
 class QString;
@@ -19,6 +19,8 @@ struct GCPadStatus;
 QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, QSpinBox*& y_value,
                              u16 max_x, u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key);
 QBoxLayout* CreateSliderValuePairLayout(QDialog* window, QString name, QSpinBox*& value, u16 max,
-                                        Qt::Key shortcut_key, QWidget* shortcut_widget);
+                                        Qt::Key shortcut_key, QWidget* shortcut_widget,
+                                        bool invert = false);
 QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max, Qt::Key shortcut_key,
-                                Qt::Orientation orientation, QWidget* shortcut_widget);
+                                Qt::Orientation orientation, QWidget* shortcut_widget,
+                                bool invert = false);

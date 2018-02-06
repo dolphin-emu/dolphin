@@ -7,18 +7,22 @@
 #include <QDialog>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+namespace WiimoteEmu
+{
+struct ReportFeatures;
+}
 class QCheckBox;
-class QSpinBox;
 class QGroupBox;
+class QSpinBox;
+struct wiimote_key;
 
 class WiiTASInputWindow : public QDialog
 {
   Q_OBJECT
 public:
   explicit WiiTASInputWindow(QWidget* parent, int num);
-  void GetValues(u8* input_data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
+  void GetValues(u8* input_data, WiimoteEmu::ReportFeatures rptf, int ext, wiimote_key key);
 
 private:
   void UpdateExt(u8 ext);

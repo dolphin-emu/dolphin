@@ -1099,7 +1099,7 @@ void MainWindow::OnExportRecording()
 
 void MainWindow::ShowTASInput()
 {
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_gc_controllers; i++)
   {
     if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
         SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
@@ -1110,7 +1110,7 @@ void MainWindow::ShowTASInput()
     }
   }
 
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < num_wii_controllers; i++)
   {
     if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))

@@ -3,14 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/TAS/WiiTASInputWindow.h"
-#include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Core/Core.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "DolphinQt2/TAS/Shared.h"
-#include "InputCommon/InputConfig.h"
 
 #include <QCheckBox>
 #include <QGroupBox>
@@ -18,10 +10,54 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Core/Core.h"
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Encryption.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "DolphinQt2/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt2/TAS/IRWidget.h"
+#include "DolphinQt2/TAS/Shared.h"
+#include "InputCommon/InputConfig.h"
+
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent), m_num(num)
 {
-  m_ir_box = CreateStickInputs(this, tr("IR (ALT+F/G)"), m_ir_x_value, m_ir_y_value, 1023, 767,
-                               Qt::Key_F, Qt::Key_G);
+  m_ir_box = new QGroupBox(tr("IR (ALT+F/G)"));
+
+  auto* x_layout = new QHBoxLayout;
+  m_ir_x_value = CreateSliderValuePair(this, x_layout, IRWidget::max_x, Qt::Key_F, Qt::Horizontal,
+                                       m_ir_box, true);
+
+  auto* y_layout = new QVBoxLayout;
+  m_ir_y_value = CreateSliderValuePair(this, y_layout, IRWidget::max_y, Qt::Key_G, Qt::Vertical,
+                                       m_ir_box, true);
+  m_ir_y_value->setMaximumWidth(60);
+
+  auto* visual = new IRWidget(this);
+  connect(m_ir_x_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), visual,
+          &IRWidget::SetX);
+  connect(m_ir_y_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), visual,
+          &IRWidget::SetY);
+  connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
+  connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
+
+  m_ir_x_value->setValue(IRWidget::max_x / 2);
+  m_ir_y_value->setValue(IRWidget::max_y / 2);
+
+  auto* visual_ar = new AspectRatioWidget(visual, IRWidget::max_x, IRWidget::max_y);
+
+  auto* visual_layout = new QHBoxLayout;
+  visual_layout->addWidget(visual_ar);
+  visual_layout->addLayout(y_layout);
+
+  auto* ir_layout = new QVBoxLayout;
+  ir_layout->addLayout(x_layout);
+  ir_layout->addLayout(visual_layout);
+  m_ir_box->setLayout(ir_layout);
+
   m_nunchuk_stick_box =
       CreateStickInputs(this, tr("Nunchuk Stick (ALT+X/Y)"), m_nunchuk_stick_x_value,
                         m_nunchuk_stick_y_value, 255, 255, Qt::Key_X, Qt::Key_Y);
@@ -258,7 +294,8 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
   }
 }
 
-template <typename ux> static void SetButton(QCheckBox* check_box, ux* buttons, ux mask)
+template <typename UX>
+static void SetButton(QCheckBox* check_box, UX* buttons, UX mask)
 {
   if (check_box->isChecked())
     *buttons |= mask;
@@ -267,7 +304,7 @@ template <typename ux> static void SetButton(QCheckBox* check_box, ux* buttons, 
 }
 
 void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rptf, int ext,
-                                  const wiimote_key key)
+                                  wiimote_key key)
 {
   if (!isVisible())
     return;
@@ -281,7 +318,7 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
 
   if (m_remote_buttons_box->isVisible() && buttons_data)
   {
-    u16* buttons = &((wm_buttons*)buttons_data)->hex;
+    u16* buttons = &(reinterpret_cast<wm_buttons*>(buttons_data))->hex;
     SetButton<u16>(m_a_button, buttons, WiimoteEmu::Wiimote::BUTTON_A);
     SetButton<u16>(m_b_button, buttons, WiimoteEmu::Wiimote::BUTTON_B);
     SetButton<u16>(m_1_button, buttons, WiimoteEmu::Wiimote::BUTTON_ONE);
@@ -297,8 +334,8 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
 
   if (m_remote_orientation_box->isVisible() && accel_data && buttons_data)
   {
-    wm_accel& accel = *(wm_accel*)accel_data;
-    wm_buttons& buttons = *(wm_buttons*)buttons_data;
+    wm_accel& accel = *reinterpret_cast<wm_accel*>(accel_data);
+    wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
 
     accel.x = m_remote_orientation_x_value->value() >> 2;
     accel.y = m_remote_orientation_y_value->value() >> 2;
@@ -328,7 +365,7 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     if (mode == 1)
     {
       memset(ir_data, 0xFF, sizeof(wm_ir_basic) * 2);
-      wm_ir_basic* const ir_basic = (wm_ir_basic*)ir_data;
+      wm_ir_basic* const ir_basic = reinterpret_cast<wm_ir_basic*>(ir_data);
       for (int i = 0; i < 2; ++i)
       {
         if (x[i * 2] < 1024 && y < 768)
@@ -354,7 +391,7 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
       // TODO: this code doesnt work, resulting in no IR TAS inputs in e.g. wii sports menu when no
       // remote extension is used
       memset(ir_data, 0xFF, sizeof(wm_ir_extended) * 4);
-      wm_ir_extended* const ir_extended = (wm_ir_extended*)ir_data;
+      wm_ir_extended* const ir_extended = reinterpret_cast<wm_ir_extended*>(ir_data);
       for (size_t i = 0; i < x.size(); ++i)
       {
         if (x[i] < 1024 && y < 768)
@@ -373,7 +410,7 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
 
   if (ext_data && m_nunchuk_stick_box->isVisible())
   {
-    wm_nc& nunchuk = *(wm_nc*)ext_data;
+    wm_nc& nunchuk = *reinterpret_cast<wm_nc*>(ext_data);
     nunchuk.jx = m_nunchuk_stick_x_value->value();
     nunchuk.jy = m_nunchuk_stick_y_value->value();
 
@@ -388,13 +425,13 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     SetButton<u8>(m_z_button, &nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
     nunchuk.bt.hex ^= 0x3;
 
-    WiimoteEncrypt(&key, (u8*)&nunchuk, 0, sizeof(wm_nc));
+    WiimoteEncrypt(&key, reinterpret_cast<u8*>(&nunchuk), 0, sizeof(wm_nc));
   }
 
   if (m_classic_left_stick_box->isVisible())
   {
-    wm_classic_extension& cc = *(wm_classic_extension*)ext_data;
-    WiimoteDecrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
+    wm_classic_extension& cc = *reinterpret_cast<wm_classic_extension*>(ext_data);
+    WiimoteDecrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
     cc.bt.hex = 0;
 
     SetButton<u16>(m_classic_a_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_A);
@@ -426,6 +463,6 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     cc.lt1 = m_left_trigger_value->value() & 0x7;
     cc.lt2 = (m_left_trigger_value->value() >> 3) & 0x3;
 
-    WiimoteEncrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
+    WiimoteEncrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
   }
 }

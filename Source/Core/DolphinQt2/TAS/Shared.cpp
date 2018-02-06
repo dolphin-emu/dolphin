@@ -3,10 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/TAS/Shared.h"
-#include "Common/CommonTypes.h"
-#include "DolphinQt2/QtUtils/AspectRatioWidget.h"
-#include "DolphinQt2/TAS/StickWidget.h"
-#include "InputCommon/GCPadStatus.h"
 
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -15,6 +11,11 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QVBoxLayout>
+
+#include "Common/CommonTypes.h"
+#include "DolphinQt2/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt2/TAS/StickWidget.h"
+#include "InputCommon/GCPadStatus.h"
 
 QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, QSpinBox*& y_value,
                              u16 max_x, u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key)
@@ -26,7 +27,7 @@ QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, 
 
   auto* y_layout = new QVBoxLayout;
   y_value = CreateSliderValuePair(window, y_layout, max_y, y_shortcut_key, Qt::Vertical, box);
-  (y_value)->setMaximumWidth(60);
+  y_value->setMaximumWidth(60);
 
   auto* visual = new StickWidget(window, max_x, max_y);
   window->connect(x_value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), visual,
@@ -36,8 +37,8 @@ QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, 
   window->connect(visual, &StickWidget::ChangedX, x_value, &QSpinBox::setValue);
   window->connect(visual, &StickWidget::ChangedY, y_value, &QSpinBox::setValue);
 
-  (x_value)->setValue(max_x / 2);
-  (y_value)->setValue(max_y / 2);
+  x_value->setValue(max_x / 2);
+  y_value->setValue(max_y / 2);
 
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
@@ -52,16 +53,17 @@ QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, 
 
   return box;
 }
+
 QBoxLayout* CreateSliderValuePairLayout(QDialog* window, QString name, QSpinBox*& value, u16 max,
-                                        Qt::Key shortcut_key, QWidget* shortcut_widget)
+                                        Qt::Key shortcut_key, QWidget* shortcut_widget, bool invert)
 {
   auto* label = new QLabel(name);
 
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  value =
-      CreateSliderValuePair(window, layout, max, shortcut_key, Qt::Horizontal, shortcut_widget);
+  value = CreateSliderValuePair(window, layout, max, shortcut_key, Qt::Horizontal, shortcut_widget,
+                                invert);
 
   return layout;
 }
@@ -69,7 +71,7 @@ QBoxLayout* CreateSliderValuePairLayout(QDialog* window, QString name, QSpinBox*
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
 QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max, Qt::Key shortcut_key,
-                                Qt::Orientation orientation, QWidget* shortcut_widget)
+                                Qt::Orientation orientation, QWidget* shortcut_widget, bool invert)
 {
   auto* value = new QSpinBox();
   value->setRange(0, 99999);
@@ -81,6 +83,7 @@ QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max, Qt
   auto* slider = new QSlider(orientation);
   slider->setRange(0, max);
   slider->setFocusPolicy(Qt::ClickFocus);
+  slider->setInvertedAppearance(invert);
 
   window->connect(slider, &QSlider::valueChanged, value, &QSpinBox::setValue);
   window->connect(value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), slider,
