@@ -56,7 +56,7 @@ public interface SettingsFragmentView
 	 *
 	 * @param menuKey Identifier for the settings group that should be shown.
 	 */
-	void loadSubMenu(String menuKey);
+	void loadSubMenu(MenuTag menuKey);
 
 	/**
 	 * Tell the Fragment to tell the containing activity to display a toast message.
@@ -80,25 +80,24 @@ public interface SettingsFragmentView
 	/**
 	 * Have the fragment tell the containing Activity that a GCPad's setting was modified.
 	 *
-	 * @param key   Identifier for the GCPad that was modified.
+	 * @param menuTag   Identifier for the GCPad that was modified.
 	 * @param value New setting for the GCPad.
 	 */
-	void onGcPadSettingChanged(String key, int value);
+	void onGcPadSettingChanged(MenuTag menuTag, int value);
 
 	/**
 	 * Have the fragment tell the containing Activity that a Wiimote's setting was modified.
 	 *
-	 * @param section Identifier for Wiimote that was modified; Wiimotes are identified by their section,
-	 *                not their key.
+	 * @param menuTag Identifier for Wiimote that was modified.
 	 * @param value   New setting for the Wiimote.
 	 */
-	void onWiimoteSettingChanged(String section, int value);
+	void onWiimoteSettingChanged(MenuTag menuTag, int value);
 
 	/**
 	 * Have the fragment tell the containing Activity that an extension setting was modified.
 	 *
-	 * @param key   Identifier for the extension that was modified.
+	 * @param menuTag   Identifier for the extension that was modified.
 	 * @param value New setting for the extension.
 	 */
-	void onExtensionSettingChanged(String key, int value);
+	void onExtensionSettingChanged(MenuTag menuTag, int value);
 }

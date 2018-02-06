@@ -31,7 +31,7 @@ public final class SettingsActivityPresenter
 
 	private DirectoryStateReceiver directoryStateReceiver;
 
-	private String menuTag;
+	private MenuTag menuTag;
 	private String gameId;
 
 	public SettingsActivityPresenter(SettingsActivityView view)
@@ -39,7 +39,7 @@ public final class SettingsActivityPresenter
 		mView = view;
 	}
 
-	public void onCreate(Bundle savedInstanceState, String menuTag, String gameId)
+	public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId)
 	{
 		if (savedInstanceState == null)
 		{
@@ -75,7 +75,7 @@ public final class SettingsActivityPresenter
 			}
 		}
 
-		mView.showSettingsFragment(menuTag, false, gameId);
+		mView.showSettingsFragment(menuTag, null, false, gameId);
 		mView.onSettingsFileLoaded(mSettings);
 	}
 
@@ -135,11 +135,11 @@ public final class SettingsActivityPresenter
 				if (!TextUtils.isEmpty(gameId)) {
 					Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
 					// Needed workaround for now due to an odd bug in how it handles saving two different settings sections to the same file. It won't save GFX settings if it follows the normal saving pattern
-					if (menuTag.equals("Dolphin"))
+					if (menuTag.equals(MenuTag.CONFIG))
 					{
 						SettingsFile.saveFile("../GameSettings/" + gameId, mSettings.get(SettingsFile.SETTINGS_DOLPHIN), mView);
 					}
-					else if (menuTag.equals("GFX"))
+					else if (menuTag.equals(MenuTag.GRAPHICS))
 					{
 						SettingsFile.saveFile("../GameSettings/" + gameId, mSettings.get(SettingsFile.SETTINGS_GFX), mView);
 					}
@@ -194,20 +194,22 @@ public final class SettingsActivityPresenter
 		outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
 	}
 
-	public void onGcPadSettingChanged(String key, int value)
+	public void onGcPadSettingChanged(MenuTag key, int value)
 	{
 		if (value != 0) // Not disabled
 		{
-			mView.showSettingsFragment(key + (value / 6), true, gameId);
+			Bundle bundle = new Bundle();
+			bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value/6);
+			mView.showSettingsFragment(key, bundle, true, gameId);
 		}
 	}
 
-	public void onWiimoteSettingChanged(String section, int value)
+	public void onWiimoteSettingChanged(MenuTag menuTag, int value)
 	{
 		switch (value)
 		{
 			case 1:
-				mView.showSettingsFragment(section, true, gameId);
+				mView.showSettingsFragment(menuTag, null, true, gameId);
 				break;
 
 			case 2:
@@ -216,11 +218,13 @@ public final class SettingsActivityPresenter
 		}
 	}
 
-	public void onExtensionSettingChanged(String key, int value)
+	public void onExtensionSettingChanged(MenuTag menuTag, int value)
 	{
 		if (value != 0) // None
 		{
-			mView.showSettingsFragment(key + value, true, gameId);
+			Bundle bundle = new Bundle();
+			bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+			mView.showSettingsFragment(menuTag, bundle, true, gameId);
 		}
 	}
 }

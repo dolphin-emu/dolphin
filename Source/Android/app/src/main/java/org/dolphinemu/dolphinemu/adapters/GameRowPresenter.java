@@ -17,9 +17,9 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
-import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 import java.io.File;
@@ -103,10 +103,10 @@ public final class GameRowPresenter extends Presenter
 						public void onClick(DialogInterface dialog, int which) {
 							switch (which) {
 								case 0:
-									SettingsActivity.launch(activity, SettingsFile.FILE_NAME_DOLPHIN, gameId);
+									SettingsActivity.launch(activity, MenuTag.CONFIG, gameId);
 									break;
 								case 1:
-									SettingsActivity.launch(activity, SettingsFile.FILE_NAME_GFX, gameId);
+									SettingsActivity.launch(activity, MenuTag.GRAPHICS, gameId);
 									break;
 								case 2:
 									String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
