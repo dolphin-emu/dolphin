@@ -22,6 +22,7 @@ import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -127,7 +128,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	}
 
 	@Override
-	public void launchSettingsActivity(String menuTag)
+	public void launchSettingsActivity(MenuTag menuTag)
 	{
 		SettingsActivity.launch(this, menuTag);
 	}

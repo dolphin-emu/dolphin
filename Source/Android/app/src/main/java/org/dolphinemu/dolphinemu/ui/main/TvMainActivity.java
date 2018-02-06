@@ -25,6 +25,7 @@ import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -121,7 +122,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	}
 
 	@Override
-	public void launchSettingsActivity(String menuTag)
+	public void launchSettingsActivity(MenuTag menuTag)
 	{
 		SettingsActivity.launch(this, menuTag);
 	}
