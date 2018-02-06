@@ -47,6 +47,8 @@ GCMemcardManager::GCMemcardManager(QWidget* parent) : QDialog(parent)
 
   // Make the dimensions more reasonable on startup
   resize(650, 500);
+
+  setWindowTitle(tr("GameCube Memory Card Manager"));
 }
 
 GCMemcardManager::~GCMemcardManager() = default;
@@ -80,6 +82,7 @@ void GCMemcardManager::CreateWidgets()
     m_slot_table[i]->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_slot_table[i]->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_slot_table[i]->verticalHeader()->hide();
+    m_slot_table[i]->setShowGrid(false);
 
     auto* slot_layout = new QGridLayout;
     m_slot_group[i]->setLayout(slot_layout);
@@ -89,17 +92,17 @@ void GCMemcardManager::CreateWidgets()
     slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 2);
     slot_layout->addWidget(m_slot_stat_label[i], 2, 0);
 
-    layout->addWidget(m_slot_group[i], 0, i * 2, 7, 1);
+    layout->addWidget(m_slot_group[i], 0, i * 2, 9, 1);
   }
 
-  layout->addWidget(m_select_button, 0, 1);
-  layout->addWidget(m_copy_button, 1, 1);
-  layout->addWidget(m_delete_button, 2, 1);
-  layout->addWidget(m_export_button, 3, 1);
-  layout->addWidget(m_export_all_button, 4, 1);
-  layout->addWidget(m_import_button, 5, 1);
-  layout->addWidget(m_fix_checksums_button, 6, 1);
-  layout->addWidget(m_button_box, 7, 2);
+  layout->addWidget(m_select_button, 1, 1);
+  layout->addWidget(m_copy_button, 2, 1);
+  layout->addWidget(m_delete_button, 3, 1);
+  layout->addWidget(m_export_button, 4, 1);
+  layout->addWidget(m_export_all_button, 5, 1);
+  layout->addWidget(m_import_button, 6, 1);
+  layout->addWidget(m_fix_checksums_button, 7, 1);
+  layout->addWidget(m_button_box, 9, 2);
 
   setLayout(layout);
 }
@@ -162,6 +165,14 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     return item;
   };
 
+  auto strip_garbage = [](const std::string s) {
+    auto offset = s.find('\0');
+    if (offset == std::string::npos)
+      offset = s.length();
+
+    return s.substr(0, offset);
+  };
+
   for (int i = 0; i < memcard->GetNumFiles(); i++)
   {
     int file_index = memcard->GetFileIndex(i);
@@ -169,8 +180,10 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 
     auto const string_decoder = memcard->IsShiftJIS() ? SHIFTJISToUTF8 : CP1252ToUTF8;
 
-    QString title = QString::fromStdString(string_decoder(memcard->GetSaveComment1(file_index)));
-    QString comment = QString::fromStdString(string_decoder(memcard->GetSaveComment2(file_index)));
+    QString title =
+        QString::fromStdString(strip_garbage(string_decoder(memcard->GetSaveComment1(file_index))));
+    QString comment =
+        QString::fromStdString(strip_garbage(string_decoder(memcard->GetSaveComment2(file_index))));
     QString blocks = QStringLiteral("%1").arg(memcard->DEntry_BlockCount(file_index));
     QString block_count = QStringLiteral("%1").arg(memcard->DEntry_FirstBlock(file_index));
 
