@@ -1281,14 +1281,14 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
       void main()
       {
         uvec2 uv = gl_GlobalInvocationID.xy;
-        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2));
-        vec4 yuyv = texelFetch(s_input_buffer, buffer_pos);
+        int buffer_pos = int(u_src_offset + (uv.y * u_src_row_stride) + (uv.x / 2u));
+        vec4 yuyv = vec4(texelFetch(s_input_buffer, buffer_pos));
 
         float y = mix(yuyv.r, yuyv.b, (uv.x & 1u) == 1u);
 
-        float yComp = 1.164 * (y - 16);
-        float uComp = yuyv.g - 128;
-        float vComp = yuyv.a - 128;
+        float yComp = 1.164 * (y - 16.0);
+        float uComp = yuyv.g - 128.0;
+        float vComp = yuyv.a - 128.0;
 
         vec4 rgb = vec4(yComp + (1.596 * vComp),
                         yComp - (0.813 * vComp) - (0.391 * uComp),

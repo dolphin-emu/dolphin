@@ -10,10 +10,6 @@ NullTexture::NullTexture(const TextureConfig& tex_config) : AbstractTexture(tex_
 {
 }
 
-void NullTexture::Bind(unsigned int stage)
-{
-}
-
 void NullTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                            const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                            u32 src_level, const MathUtil::Rectangle<int>& dst_rect,

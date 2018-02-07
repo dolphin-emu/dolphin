@@ -38,8 +38,6 @@ const ConfigInfo<bool> GFX_OVERLAY_STATS{{System::GFX, "Settings", "OverlayStats
 const ConfigInfo<bool> GFX_OVERLAY_PROJ_STATS{{System::GFX, "Settings", "OverlayProjStats"}, false};
 const ConfigInfo<bool> GFX_DUMP_TEXTURES{{System::GFX, "Settings", "DumpTextures"}, false};
 const ConfigInfo<bool> GFX_HIRES_TEXTURES{{System::GFX, "Settings", "HiresTextures"}, false};
-const ConfigInfo<bool> GFX_CONVERT_HIRES_TEXTURES{{System::GFX, "Settings", "ConvertHiresTextures"},
-                                                  false};
 const ConfigInfo<bool> GFX_CACHE_HIRES_TEXTURES{{System::GFX, "Settings", "CacheHiresTextures"},
                                                 false};
 const ConfigInfo<bool> GFX_DUMP_EFB_TARGET{{System::GFX, "Settings", "DumpEFBTarget"}, false};
@@ -50,6 +48,7 @@ const ConfigInfo<bool> GFX_FREE_LOOK{{System::GFX, "Settings", "FreeLook"}, fals
 const ConfigInfo<bool> GFX_USE_FFV1{{System::GFX, "Settings", "UseFFV1"}, false};
 const ConfigInfo<std::string> GFX_DUMP_FORMAT{{System::GFX, "Settings", "DumpFormat"}, "avi"};
 const ConfigInfo<std::string> GFX_DUMP_CODEC{{System::GFX, "Settings", "DumpCodec"}, ""};
+const ConfigInfo<std::string> GFX_DUMP_ENCODER{{System::GFX, "Settings", "DumpEncoder"}, ""};
 const ConfigInfo<std::string> GFX_DUMP_PATH{{System::GFX, "Settings", "DumpPath"}, ""};
 const ConfigInfo<int> GFX_BITRATE_KBPS{{System::GFX, "Settings", "BitrateKbps"}, 2500};
 const ConfigInfo<bool> GFX_INTERNAL_RESOLUTION_FRAME_DUMPS{

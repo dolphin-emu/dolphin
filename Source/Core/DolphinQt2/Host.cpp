@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Host.h"
+
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 
 #include "Common/Common.h"
+#include "Core/ConfigManager.h"
 #include "Core/Host.h"
-#include "DolphinQt2/Host.h"
+#include "VideoCommon/RenderBase.h"
 
 Host::Host() = default;
 
@@ -45,6 +48,12 @@ bool Host::GetRenderFullscreen()
 void Host::SetRenderFullscreen(bool fullscreen)
 {
   m_render_fullscreen = fullscreen;
+}
+
+void Host::UpdateSurface()
+{
+  if (g_renderer)
+    g_renderer->ChangeSurface(GetRenderHandle());
 }
 
 void Host_Message(int id)

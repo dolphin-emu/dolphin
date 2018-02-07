@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include <QMenu>
@@ -61,9 +62,11 @@ signals:
   void PerformOnlineUpdate(const std::string& region);
 
   // Tools
+  void ShowMemcardManager();
   void BootGameCubeIPL(DiscIO::Region region);
   void ShowFIFOPlayer();
   void ShowAboutDialog();
+  void ConnectWiiRemote(int id);
 
   // Options
   void Configure();
@@ -119,6 +122,7 @@ private:
   void OnSelectionChanged(QSharedPointer<GameFile> game_file);
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
+  void OnDebugModeToggled(bool enabled);
 
   // File
   QAction* m_open_action;
@@ -134,6 +138,7 @@ private:
   QAction* m_import_backup;
   QAction* m_check_nand;
   QAction* m_extract_certificates;
+  std::array<QAction*, 5> m_wii_remotes;
 
   // Emulation
   QAction* m_play_action;
@@ -157,4 +162,9 @@ private:
   QAction* m_recording_start;
   QAction* m_recording_stop;
   QAction* m_recording_read_only;
+
+  // View
+  QAction* m_show_registers;
+  QAction* m_show_watch;
+  QAction* m_show_breakpoints;
 };

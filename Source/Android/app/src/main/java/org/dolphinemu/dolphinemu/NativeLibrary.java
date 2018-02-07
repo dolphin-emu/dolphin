@@ -6,6 +6,11 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -294,8 +299,19 @@ public final class NativeLibrary
 	 * Saves a game state to the slot number.
 	 *
 	 * @param slot  The slot location to save state to.
+	 * @param wait  If false, returns as early as possible.
+	 *              If true, returns once the savestate has been written to disk.
 	 */
-	public static native void SaveState(int slot);
+	public static native void SaveState(int slot, boolean wait);
+
+	/**
+	 * Saves a game state to the specified path.
+	 *
+	 * @param path  The path to save state to.
+	 * @param wait  If false, returns as early as possible.
+	 *              If true, returns once the savestate has been written to disk.
+	 */
+	public static native void SaveStateAs(String path, boolean wait);
 
 	/**
 	 * Loads a game state from the slot number.
@@ -303,6 +319,13 @@ public final class NativeLibrary
 	 * @param slot  The slot location to load state from.
 	 */
 	public static native void LoadState(int slot);
+
+	/**
+	 * Loads a game state from the specified path.
+	 *
+	 * @param path  The path to load state from.
+	 */
+	public static native void LoadStateAs(String path);
 
 	/**
 	 * Sets the current working user directory
@@ -322,6 +345,13 @@ public final class NativeLibrary
 	 */
 	public static native void Run(String path);
 
+	/**
+	 * Begins emulation from the specified savestate.
+	 */
+	public static native void Run(String path, String savestatePath, boolean deleteSavestate);
+
+	public static native void ChangeDisc(String path);
+
 	// Surface Handling
 	public static native void SurfaceChanged(Surface surf);
 	public static native void SurfaceDestroyed();
@@ -334,6 +364,9 @@ public final class NativeLibrary
 
 	/** Stops emulation. */
 	public static native void StopEmulation();
+
+	/** Returns true if emulation is running (or is paused). */
+	public static native boolean IsRunning();
 
 	/**
 	 * Enables or disables CPU block profiling
@@ -375,18 +408,81 @@ public final class NativeLibrary
 		CacheClassesAndMethods();
 	}
 
-	public static void displayAlertMsg(final String alert)
+	private static boolean alertResult = false;
+	public static boolean displayAlertMsg(final String caption, final String text, final boolean yesNo)
 	{
-		Log.error("[NativeLibrary] Alert: " + alert);
+		Log.error("[NativeLibrary] Alert: " + text);
 		final EmulationActivity emulationActivity = sEmulationActivity.get();
-		if (emulationActivity != null)
+		boolean result = false;
+		if (emulationActivity == null)
 		{
-			emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show());
+			Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic alert.");
 		}
 		else
 		{
-			Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic toast.");
+			// Create object used for waiting.
+			final Object lock = new Object();
+			AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
+				.setTitle(caption)
+				.setMessage(text);
+
+			// If not yes/no dialog just have one button that dismisses modal,
+			// otherwise have a yes and no button that sets alertResult accordingly.
+			if (!yesNo)
+			{
+				builder
+					.setCancelable(false)
+					.setPositiveButton("OK", (dialog, whichButton) ->
+					{
+						dialog.dismiss();
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					});
+			}
+			else
+			{
+				alertResult = false;
+
+				builder
+					.setPositiveButton("Yes", (dialog, whichButton) ->
+					{
+						alertResult = true;
+						dialog.dismiss();
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					})
+					.setNegativeButton("No", (dialog, whichButton) ->
+					{
+						alertResult = false;
+						dialog.dismiss();
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					});
+			}
+
+			// Show the AlertDialog on the main thread.
+			emulationActivity.runOnUiThread(() -> builder.show());
+
+			// Wait for the lock to notify that it is complete.
+			synchronized (lock)
+			{
+				try
+				{
+					lock.wait();
+				}
+				catch (Exception e) { }
+			}
+
+			if (yesNo)
+				result = alertResult;
 		}
+		return result;
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)

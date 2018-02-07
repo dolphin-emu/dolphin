@@ -19,9 +19,6 @@ namespace OGL
 {
 namespace
 {
-std::array<u32, 8> s_Textures;
-u32 s_ActiveTexture;
-
 GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool storage)
 {
   switch (format)
@@ -120,26 +117,16 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_co
     // method is in the base renderer class and can be called by VideoCommon.
     FramebufferManager::SetFramebuffer(0);
   }
-
-  SetStage();
 }
 
 OGLTexture::~OGLTexture()
 {
+  g_renderer->UnbindTexture(this);
   if (m_texId)
-  {
-    for (auto& gtex : s_Textures)
-      if (gtex == m_texId)
-        gtex = 0;
     glDeleteTextures(1, &m_texId);
-    m_texId = 0;
-  }
 
   if (m_framebuffer)
-  {
     glDeleteFramebuffers(1, &m_framebuffer);
-    m_framebuffer = 0;
-  }
 }
 
 GLuint OGLTexture::GetRawTexIdentifier() const
@@ -150,21 +137,6 @@ GLuint OGLTexture::GetRawTexIdentifier() const
 GLuint OGLTexture::GetFramebuffer() const
 {
   return m_framebuffer;
-}
-
-void OGLTexture::Bind(unsigned int stage)
-{
-  if (s_Textures[stage] != m_texId)
-  {
-    if (s_ActiveTexture != stage)
-    {
-      glActiveTexture(GL_TEXTURE0 + stage);
-      s_ActiveTexture = stage;
-    }
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, m_texId);
-    s_Textures[stage] = m_texId;
-  }
 }
 
 void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
@@ -300,19 +272,6 @@ void OGLTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8
 
   if (row_length != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-  SetStage();
-}
-
-void OGLTexture::DisableStage(unsigned int stage)
-{
-}
-
-void OGLTexture::SetStage()
-{
-  // -1 is the initial value as we don't know which texture should be bound
-  if (s_ActiveTexture != (u32)-1)
-    glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 
 OGLStagingTexture::OGLStagingTexture(StagingTextureType type, const TextureConfig& config,
@@ -444,7 +403,6 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
       glBindTexture(GL_TEXTURE_2D_ARRAY, gltex->GetRawTexIdentifier());
       glGetTexImage(GL_TEXTURE_2D_ARRAY, src_level, GetGLFormatForTextureFormat(m_config.format),
                     GetGLTypeForTextureFormat(m_config.format), nullptr);
-      OGLTexture::SetStage();
     }
   }
 
@@ -507,7 +465,6 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
                   dst_rect.GetWidth(), dst_rect.GetHeight(), 1,
                   GetGLFormatForTextureFormat(m_config.format),
                   GetGLTypeForTextureFormat(m_config.format), reinterpret_cast<void*>(src_offset));
-  OGLTexture::SetStage();
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 

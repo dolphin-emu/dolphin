@@ -6,6 +6,7 @@ import android.os.Bundle;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
@@ -40,9 +41,6 @@ public final class SettingsActivityPresenter
 	{
 		if (savedInstanceState == null)
 		{
-			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
-			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
-			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
 			this.menuTag = menuTag;
 		}
 		else
@@ -58,6 +56,13 @@ public final class SettingsActivityPresenter
 
 	void loadSettingsUI()
 	{
+		if (mSettings.isEmpty())
+		{
+			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
+			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
+			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
+		}
+
 		mView.showSettingsFragment(menuTag, false);
 		mView.onSettingsFileLoaded(mSettings);
 	}
@@ -72,12 +77,21 @@ public final class SettingsActivityPresenter
 					DirectoryInitializationService.BROADCAST_ACTION);
 
 			directoryStateReceiver =
-					new DirectoryStateReceiver(directoryInitializationState -> {
-						if (directoryInitializationState == DirectoryInitializationService.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED) {
+					new DirectoryStateReceiver(directoryInitializationState ->
+					{
+						if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+						{
 							mView.hideLoading();
 							loadSettingsUI();
-						} else if (directoryInitializationState == DirectoryInitializationService.DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED) {
+						}
+						else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
+						{
 							mView.showPermissionNeededHint();
+							mView.hideLoading();
+						}
+						else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
+						{
+							mView.showExternalStorageNotMountedHint();
 							mView.hideLoading();
 						}
 					});

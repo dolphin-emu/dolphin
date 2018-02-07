@@ -247,6 +247,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
   config->backend_info.bSupportsCopyToVram = true;           // Assumed support.
   config->backend_info.bForceCopyToRam = false;
+  config->backend_info.bSupportsFramebufferFetch = false;
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)

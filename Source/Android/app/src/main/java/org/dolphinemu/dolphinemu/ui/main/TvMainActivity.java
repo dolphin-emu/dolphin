@@ -12,17 +12,12 @@ import android.support.v17.leanback.widget.CursorObjectAdapter;
 import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
-import android.support.v17.leanback.widget.OnItemViewClickedListener;
-import android.support.v17.leanback.widget.Presenter;
-import android.support.v17.leanback.widget.Row;
-import android.support.v17.leanback.widget.RowPresenter;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
@@ -31,6 +26,8 @@ import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
@@ -56,6 +53,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
 			StartupHandler.HandleInit(this);
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		mPresenter.addDirIfNeeded(new AddDirectoryHelper(this));
 	}
 
 	void setupUI() {
@@ -125,7 +129,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	@Override
 	public void launchFileListActivity()
 	{
-		AddDirectoryActivity.launch(this);
+		FileBrowserHelper.openDirectoryPicker(this);
 	}
 
 	@Override
@@ -150,7 +154,20 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
 	{
-		mPresenter.handleActivityResult(requestCode, resultCode);
+		switch (requestCode)
+		{
+			case MainPresenter.REQUEST_ADD_DIRECTORY:
+				// If the user picked a file, as opposed to just backing out.
+				if (resultCode == MainActivity.RESULT_OK)
+				{
+					mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+				}
+				break;
+
+			case MainPresenter.REQUEST_EMULATE_GAME:
+				mPresenter.refreshFragmentScreenshot(resultCode);
+				break;
+		}
 	}
 
 	@Override

@@ -32,10 +32,14 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
+  void OnDelete();
 
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateList();
+  void AddCode();
+  void EditCode();
+  void RemoveCode();
   void DownloadCodes();
   void SaveCodes();
 
@@ -49,6 +53,9 @@ private:
   QLabel* m_creator_label;
   QTextEdit* m_code_description;
   QTextEdit* m_code_view;
+  QPushButton* m_add_code;
+  QPushButton* m_edit_code;
+  QPushButton* m_remove_code;
   QPushButton* m_download_codes;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
 };

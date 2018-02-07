@@ -1,3 +1,4 @@
+
 // Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
@@ -31,6 +32,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -46,7 +49,11 @@
 #include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Debugger/BreakpointWidget.h"
+#include "DolphinQt2/Debugger/RegisterWidget.h"
+#include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
+#include "DolphinQt2/GCMemcardManager.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
@@ -97,6 +104,8 @@ MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
   ShutdownControllers();
+
+  Config::Save();
 }
 
 void MainWindow::InitControllers()
@@ -166,6 +175,14 @@ void MainWindow::CreateComponents()
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
           [this](const QString& path) { StartGame(path); });
+  m_register_widget = new RegisterWidget(this);
+  m_watch_widget = new WatchWidget(this);
+  m_breakpoint_widget = new BreakpointWidget(this);
+
+  connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
+          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+  connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
+          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -218,12 +235,14 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
+  connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+  connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
@@ -268,6 +287,8 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::OnStartRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
+          &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
     bool read_only = !Movie::IsReadOnly();
     Movie::SetReadOnly(read_only);
@@ -314,8 +335,14 @@ void MainWindow::ConnectStack()
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
   addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
+  tabifyDockWidget(m_log_widget, m_register_widget);
+  tabifyDockWidget(m_log_widget, m_watch_widget);
+  tabifyDockWidget(m_log_widget, m_breakpoint_widget);
 }
 
 void MainWindow::Open()
@@ -338,6 +365,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   if (Core::GetState() == Core::State::Paused)
   {
     Core::SetState(Core::State::Running);
+    EnableScreenSaver(false);
   }
   else
   {
@@ -345,6 +373,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     if (selection)
     {
       StartGame(selection->GetFilePath(), savestate_path);
+      EnableScreenSaver(false);
     }
     else
     {
@@ -352,6 +381,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, savestate_path);
+        EnableScreenSaver(false);
       }
       else
       {
@@ -364,6 +394,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
 void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
+  EnableScreenSaver(true);
 }
 
 void MainWindow::OnStopComplete()
@@ -441,6 +472,7 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   BootManager::Stop();
+  EnableScreenSaver(true);
 }
 
 void MainWindow::Reset()
@@ -543,7 +575,21 @@ void MainWindow::HideRenderWidget()
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   }
+
+  // The following code works around a driver bug that would lead to Dolphin crashing when changing
+  // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely) recreated
+  disconnect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
+  disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+
   m_render_widget->hide();
+  m_render_widget->removeEventFilter(this);
+  m_render_widget->deleteLater();
+
+  m_render_widget = new RenderWidget;
+
+  m_render_widget->installEventFilter(this);
+  connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
+  connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 
 void MainWindow::ShowControllersWindow()
@@ -801,6 +847,18 @@ void MainWindow::NetPlayQuit()
   Settings::Instance().ResetNetPlayServer();
 }
 
+void MainWindow::EnableScreenSaver(bool enable)
+{
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  UICommon::EnableScreenSaver(
+      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", windowHandle())),
+      winId(), enable);
+#else
+  UICommon::EnableScreenSaver(enable);
+#endif
+}
+
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::Close)
@@ -1009,4 +1067,24 @@ void MainWindow::OnExportRecording()
   Core::SetState(Core::State::Running);
 
   Movie::SaveRecording(dtm_file.toStdString());
+}
+
+void MainWindow::OnConnectWiiRemote(int id)
+{
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
+    return;
+  Core::RunAsCPUThread([&] {
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
+    const bool is_connected = bt && bt->AccessWiiMote(id | 0x100)->IsConnected();
+    Wiimote::Connect(id, !is_connected);
+  });
+}
+
+void MainWindow::ShowMemcardManager()
+{
+  GCMemcardManager manager(this);
+
+  manager.exec();
 }

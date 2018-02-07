@@ -125,7 +125,7 @@ private:
   } m_image_indexes;
 
   // Actual backing GameListItems are maintained in a background thread and cached to file
-  std::list<std::shared_ptr<GameListItem>> m_cached_files;
+  std::vector<std::shared_ptr<GameListItem>> m_cached_files;
   // Locks the list, not the contents
   std::mutex m_cache_mutex;
   Core::TitleDatabase m_title_database;

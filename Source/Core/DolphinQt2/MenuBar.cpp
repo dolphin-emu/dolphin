@@ -24,6 +24,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/TitleDatabase.h"
@@ -50,6 +51,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
   OnEmulationStateChanged(Core::GetState());
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 
   connect(this, &MenuBar::SelectionChanged, this, &MenuBar::OnSelectionChanged);
   connect(this, &MenuBar::RecordingStatusChanged, this, &MenuBar::OnRecordingStatusChanged);
@@ -83,6 +85,15 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
   UpdateStateSlotMenu();
   UpdateToolsMenu(running);
+
+  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
+}
+
+void MenuBar::OnDebugModeToggled(bool enabled)
+{
+  m_show_registers->setVisible(enabled);
+  m_show_watch->setVisible(enabled);
+  m_show_breakpoints->setVisible(enabled);
 }
 
 void MenuBar::AddFileMenu()
@@ -97,6 +108,11 @@ void MenuBar::AddFileMenu()
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
+
+  AddAction(tools_menu, tr("&Memory Card Manager (GC)"), this,
+            [this] { emit ShowMemcardManager(); });
+
+  tools_menu->addSeparator();
 
   AddAction(tools_menu, tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
   AddAction(tools_menu, tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
@@ -146,6 +162,24 @@ void MenuBar::AddToolsMenu()
             [this] { emit PerformOnlineUpdate("KOR"); });
   AddAction(m_perform_online_update_menu, tr("United States"), this,
             [this] { emit PerformOnlineUpdate("USA"); });
+
+  QMenu* menu = new QMenu(tr("Connect Wii Remotes"));
+
+  tools_menu->addSeparator();
+  tools_menu->addMenu(menu);
+
+  for (int i = 0; i < 4; i++)
+  {
+    m_wii_remotes[i] = AddAction(menu, tr("Connect Wii Remote %1").arg(i + 1), this,
+                                 [this, i] { emit ConnectWiiRemote(i); });
+    m_wii_remotes[i]->setCheckable(true);
+  }
+
+  menu->addSeparator();
+
+  m_wii_remotes[4] =
+      AddAction(menu, tr("Connect Balance Board"), this, [this] { emit ConnectWiiRemote(4); });
+  m_wii_remotes[4]->setCheckable(true);
 }
 
 void MenuBar::AddEmulationMenu()
@@ -251,6 +285,34 @@ void MenuBar::AddViewMenu()
 
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
+          &QAction::setChecked);
+
+  view_menu->addSeparator();
+
+  m_show_registers = view_menu->addAction(tr("&Registers"));
+  m_show_registers->setCheckable(true);
+  m_show_registers->setChecked(Settings::Instance().IsRegistersVisible());
+
+  connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetRegistersVisible);
+  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
+          &QAction::setChecked);
+
+  m_show_watch = view_menu->addAction(tr("&Watch"));
+  m_show_watch->setCheckable(true);
+  m_show_watch->setChecked(Settings::Instance().IsWatchVisible());
+
+  connect(m_show_watch, &QAction::toggled, &Settings::Instance(), &Settings::SetWatchVisible);
+  connect(&Settings::Instance(), &Settings::WatchVisibilityChanged, m_show_watch,
+          &QAction::setChecked);
+
+  m_show_breakpoints = view_menu->addAction(tr("&Breakpoints"));
+  m_show_breakpoints->setCheckable(true);
+  m_show_breakpoints->setChecked(Settings::Instance().IsBreakpointsVisible());
+
+  connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetBreakpointsVisible);
+  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
           &QAction::setChecked);
 
   view_menu->addSeparator();
@@ -502,6 +564,20 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     for (QAction* action : m_perform_online_update_menu->actions())
       action->setEnabled(!tmd.IsValid());
     m_perform_online_update_for_current_region->setEnabled(tmd.IsValid());
+  }
+
+  const auto ios = IOS::HLE::GetIOS();
+  const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+                            ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
+                        nullptr;
+  bool enable_wiimotes =
+      emulation_started && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
+
+  for (int i = 0; i < 5; i++)
+  {
+    m_wii_remotes[i]->setEnabled(enable_wiimotes);
+    if (enable_wiimotes)
+      m_wii_remotes[i]->setChecked(bt->AccessWiiMote(0x0100 + i)->IsConnected());
   }
 }
 

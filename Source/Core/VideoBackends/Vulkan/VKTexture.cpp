@@ -56,11 +56,13 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
   if (tex_config.rendertarget)
   {
     VkImageView framebuffer_attachments[] = {texture->GetView()};
+    VkRenderPass render_pass = g_object_cache->GetRenderPass(
+        texture->GetFormat(), VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
     VkFramebufferCreateInfo framebuffer_info = {
         VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         nullptr,
         0,
-        TextureCache::GetInstance()->GetTextureCopyRenderPass(),
+        render_pass,
         static_cast<u32>(ArraySize(framebuffer_attachments)),
         framebuffer_attachments,
         texture->GetWidth(),
@@ -91,7 +93,7 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
 VKTexture::~VKTexture()
 {
   // Texture is automatically cleaned up, however, we don't want to leave it bound.
-  StateTracker::GetInstance()->UnbindTexture(m_texture->GetView());
+  g_renderer->UnbindTexture(this);
   if (m_framebuffer != VK_NULL_HANDLE)
     g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }
@@ -103,14 +105,6 @@ Texture2D* VKTexture::GetRawTexIdentifier() const
 VkFramebuffer VKTexture::GetFramebuffer() const
 {
   return m_framebuffer;
-}
-
-void VKTexture::Bind(unsigned int stage)
-{
-  // Texture should always be in SHADER_READ_ONLY layout prior to use.
-  // This is so we don't need to transition during render passes.
-  _assert_(m_texture->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  StateTracker::GetInstance()->SetTexture(stage, m_texture->GetView());
 }
 
 void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
@@ -175,9 +169,10 @@ void VKTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      m_texture->GetFormat(), VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         TextureCache::GetInstance()->GetTextureCopyRenderPass(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(),
                          TextureCache::GetInstance()->GetCopyShader());

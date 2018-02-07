@@ -476,8 +476,6 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   glDispatchCompute(dispatch_groups.first, dispatch_groups.second, 1);
   glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
 
-  OGLTexture::SetStage();
-
 #ifdef TIME_TEXTURE_DECODING
   WARN_LOG(VIDEO, "Decode texture format %u size %ux%u took %.4fms", static_cast<u32>(format),
            width, height, timer.GetTimeMilliseconds());

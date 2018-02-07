@@ -19,6 +19,7 @@
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
+#include "DolphinQt2/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
 #include "DolphinQt2/Config/Mapping/Hotkey3D.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGeneral.h"
@@ -223,7 +224,8 @@ void MappingWindow::RefreshDevices()
 
     const auto default_device = m_controller->GetDefaultDevice().ToString();
 
-    m_devices_combo->addItem(QString::fromStdString(default_device));
+    if (!default_device.empty())
+      m_devices_combo->addItem(QString::fromStdString(default_device));
 
     for (const auto& name : g_controller_interface.GetAllDeviceStrings())
     {
@@ -253,6 +255,12 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new GCPadEmu(this);
     setWindowTitle(tr("GameCube Controller at Port %1").arg(GetPort() + 1));
     AddWidget(tr("GameCube Controller"), widget);
+    break;
+  case Type::MAPPING_GC_MICROPHONE:
+    widget = new GCMicrophone(this);
+    setWindowTitle(tr("GameCube Microphone Slot %1")
+                       .arg(GetPort() == 0 ? QStringLiteral("A") : QStringLiteral("B")));
+    AddWidget(tr("Microphone"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:
   case Type::MAPPING_WIIMOTE_HYBRID:

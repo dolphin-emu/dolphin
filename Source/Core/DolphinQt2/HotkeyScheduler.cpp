@@ -209,8 +209,8 @@ void HotkeyScheduler::Run()
         if (IsHotkey(HK_BALANCEBOARD_CONNECT))
           wiimote_id = 4;
 
-        // TODO Implement Wiimote connecting / disconnecting (Separate PR)
-        // if (wiimote_id > -1)
+        if (wiimote_id > -1)
+          emit ConnectWiiRemote(wiimote_id);
       }
 
       // Graphics

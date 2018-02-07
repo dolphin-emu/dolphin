@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
@@ -66,6 +67,10 @@ public:
   // Dummy image for samplers that are unbound
   Texture2D* GetDummyImage() const { return m_dummy_texture.get(); }
   VkImageView GetDummyImageView() const { return m_dummy_texture->GetView(); }
+  // Render pass cache.
+  VkRenderPass GetRenderPass(VkFormat color_format, VkFormat depth_format, u32 multisamples,
+                             VkAttachmentLoadOp load_op);
+
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
 
@@ -81,6 +86,7 @@ private:
   bool CreateUtilityShaderVertexFormat();
   bool CreateStaticSamplers();
   void DestroySamplers();
+  void DestroyRenderPassCache();
 
   std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SET_LAYOUTS> m_descriptor_set_layouts = {};
   std::array<VkPipelineLayout, NUM_PIPELINE_LAYOUTS> m_pipeline_layouts = {};
@@ -96,6 +102,10 @@ private:
 
   // Dummy image for samplers that are unbound
   std::unique_ptr<Texture2D> m_dummy_texture;
+
+  // Render pass cache
+  using RenderPassCacheKey = std::tuple<VkFormat, VkFormat, u32, VkAttachmentLoadOp>;
+  std::map<RenderPassCacheKey, VkRenderPass> m_render_pass_cache;
 };
 
 extern std::unique_ptr<ObjectCache> g_object_cache;

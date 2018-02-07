@@ -12,6 +12,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
+
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -209,7 +211,8 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
-static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
+static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
+                            bool has_arbitrary_mips)
 {
   const FourTexUnits& tex = bpmem.tex[index / 4];
   const TexMode0& tm0 = tex.texMode0[index % 4];
@@ -257,8 +260,9 @@ static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
     // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
     // that have arbitrary contents, eg. are used for fog effects where the
     // distance they kick in at is important to preserve at any resolution.
-    state.lod_bias =
-        state.lod_bias + std::log2(static_cast<float>(g_renderer->GetEFBScale())) * 256.f;
+    // Correct this with the upscaling factor of custom textures.
+    s64 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
+    state.lod_bias = MathUtil::Clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
     state.anisotropic_filtering = 0;
@@ -335,7 +339,8 @@ void VertexManagerBase::Flush()
 
       if (tentry)
       {
-        SetSamplerState(i, tentry->is_custom_tex, tentry->has_arbitrary_mips);
+        float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
+        SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else

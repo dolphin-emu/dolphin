@@ -318,7 +318,7 @@ static void CPUSetInitialExecutionState()
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
-static void CpuThread(const std::optional<std::string>& savestate_path)
+static void CpuThread(const std::optional<std::string>& savestate_path, bool delete_savestate)
 {
   DeclareAsCPUThread();
 
@@ -340,9 +340,6 @@ static void CpuThread(const std::optional<std::string>& savestate_path)
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
-
-  if (savestate_path)
-    QueueHostJob([&savestate_path] { ::State::LoadAs(*savestate_path); });
 
   s_is_started = true;
   CPUSetInitialExecutionState();
@@ -368,6 +365,13 @@ static void CpuThread(const std::optional<std::string>& savestate_path)
   MemoryWatcher::Init();
 #endif
 
+  if (savestate_path)
+  {
+    ::State::LoadAs(*savestate_path);
+    if (delete_savestate)
+      File::Delete(*savestate_path);
+  }
+
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
 
@@ -380,7 +384,8 @@ static void CpuThread(const std::optional<std::string>& savestate_path)
     EMM::UninstallExceptionHandler();
 }
 
-static void FifoPlayerThread(const std::optional<std::string>& savestate_path)
+static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
+                             bool delete_savestate)
 {
   DeclareAsCPUThread();
   const SConfig& _CoreParameter = SConfig::GetInstance();
@@ -517,6 +522,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   }
 
   const std::optional<std::string> savestate_path = boot->savestate_path;
+  const bool delete_savestate = boot->delete_savestate;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
@@ -556,7 +562,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
-  void (*cpuThreadFunc)(const std::optional<std::string>& savestate_path);
+  void (*cpuThreadFunc)(const std::optional<std::string>& savestate_path, bool delete_savestate);
   if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
     cpuThreadFunc = FifoPlayerThread;
   else
@@ -597,7 +603,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     Host_Message(WM_USER_CREATE);
 
     // Spawn the CPU thread
-    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path);
+    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);
 
     // become the GPU thread
     Fifo::RunGpuLoop();
@@ -615,7 +621,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     Common::SetCurrentThreadName("Emuthread - Idle");
 
     // Spawn the CPU+GPU thread
-    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path);
+    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);
 
     while (CPU::GetState() != CPU::State::PowerDown)
     {

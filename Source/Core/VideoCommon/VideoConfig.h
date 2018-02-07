@@ -24,7 +24,7 @@
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
-enum class AspectMode
+enum class AspectMode : int
 {
   Auto,
   AnalogWide,
@@ -32,7 +32,7 @@ enum class AspectMode
   Stretch,
 };
 
-enum class StereoMode
+enum class StereoMode : int
 {
   Off,
   SBS,
@@ -93,13 +93,13 @@ struct VideoConfig final
   // Utility
   bool bDumpTextures;
   bool bHiresTextures;
-  bool bConvertHiresTextures;
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
   bool bDumpXFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
   std::string sDumpCodec;
+  std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
@@ -226,6 +226,7 @@ struct VideoConfig final
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
+    bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
   } backend_info;
 
   // Utility

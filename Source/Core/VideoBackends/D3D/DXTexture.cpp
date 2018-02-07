@@ -83,17 +83,13 @@ DXTexture::DXTexture(const TextureConfig& tex_config) : AbstractTexture(tex_conf
 
 DXTexture::~DXTexture()
 {
+  g_renderer->UnbindTexture(this);
   m_texture->Release();
 }
 
 D3DTexture2D* DXTexture::GetRawTexIdentifier() const
 {
   return m_texture;
-}
-
-void DXTexture::Bind(unsigned int stage)
-{
-  D3D::stateman->SetTexture(stage, m_texture->GetSRV());
 }
 
 void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,

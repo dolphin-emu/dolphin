@@ -654,14 +654,9 @@ union BlendMode
 
 union FogParam0
 {
-  struct
-  {
-    u32 mantissa : 11;
-    u32 exponent : 8;
-    u32 sign : 1;
-  };
-
-  float GetA() const;
+  BitField<0, 11, u32> mant;
+  BitField<11, 8, u32> exp;
+  BitField<19, 1, u32> sign;
 
   u32 hex;
 };
@@ -674,9 +669,6 @@ union FogParam3
   BitField<20, 1, u32> proj;  // 0 - perspective, 1 - orthographic
   BitField<21, 3, u32> fsel;  // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 -
                               // backward exp, 7 - backward exp2
-
-  // amount to subtract from eyespacez after range adjustment
-  float GetC() const;
 
   u32 hex;
 };
@@ -721,6 +713,13 @@ struct FogParams
   };
 
   FogColor color;  // 0:b 8:g 16:r - nice!
+
+  // Special case where a and c are infinite and the sign matches, resulting in a result of NaN.
+  bool IsNaNCase() const;
+  float GetA() const;
+
+  // amount to subtract from eyespacez after range adjustment
+  float GetC() const;
 };
 
 union ZMode

@@ -622,8 +622,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
   VertexShaderCache::RetreiveAsyncShaders();
 
-  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
-
   const bool window_resized = CheckForResize();
   const bool fullscreen = D3D::GetFullscreenState();
   const bool fs_changed = m_last_fullscreen_mode != fullscreen;
@@ -733,9 +731,22 @@ void Renderer::SetDepthState(const DepthState& state)
   m_gx_state.zmode.hex = state.hex;
 }
 
+void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+{
+  D3D::stateman->SetTexture(
+      index,
+      texture ? static_cast<const DXTexture*>(texture)->GetRawTexIdentifier()->GetSRV() : nullptr);
+}
+
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   m_gx_state.samplers[index].hex = state.hex;
+}
+
+void Renderer::UnbindTexture(const AbstractTexture* texture)
+{
+  D3D::stateman->UnsetTexture(
+      static_cast<const DXTexture*>(texture)->GetRawTexIdentifier()->GetSRV());
 }
 
 void Renderer::SetInterlacingMode()

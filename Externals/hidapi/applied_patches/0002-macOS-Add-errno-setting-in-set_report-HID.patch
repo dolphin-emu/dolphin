@@ -1,0 +1,51 @@
+From 3abc288e02089b3143547177e027d3820e5d7e59 Mon Sep 17 00:00:00 2001
+From: Vincent Duvert <vincent@duvert.net>
+Date: Sun, 7 Jan 2018 11:14:51 +0100
+Subject: [PATCH 2/2] macOS: Add errno setting in set_report (HID)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+IsDeviceUsable in IOhidapi.cpp uses errno to detect if hid_write failed because of an unconnected Wiimote on a Dolphinbar (it expects errno == EPIPE in this case).
+macOS’s implementation of hid_write detected this specific error (IOHIDDeviceSetReport returns kUSBHostReturnPipeStalled) but didn’t set errno so the check failed.
+This add errno assignment to failure cases of macOS’s hid_write.
+---
+ Externals/hidapi/mac/hid.c | 13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/Externals/hidapi/mac/hid.c b/Externals/hidapi/mac/hid.c
+index 46a97886d7..70b615d40d 100644
+--- a/Externals/hidapi/mac/hid.c
++++ b/Externals/hidapi/mac/hid.c
+@@ -773,8 +773,10 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
+ 	IOReturn res;
+ 
+ 	/* Return if the device has been disconnected. */
+-	if (dev->disconnected)
++	if (dev->disconnected) {
++		errno = ENODEV;
+ 		return -1;
++	}
+ 
+ 	if (data[0] == 0x0) {
+ 		/* Not using numbered Reports.
+@@ -797,9 +799,14 @@ static int set_report(hid_device *dev, IOHIDReportType type, const unsigned char
+ 
+ 		if (res == kIOReturnSuccess) {
+ 			return length;
+-		}
+-		else
++		} else if (res == (IOReturn)0xe0005000) {
++		  /* Kernel.framework's IOUSBHostFamily.h defines this error as kUSBHostReturnPipeStalled */
++			errno = EPIPE;
++			return -1;
++		} else {
++			errno = EBUSY;
+ 			return -1;
++		}
+ 	}
+ 
+ 	return -1;
+-- 
+2.14.3 (Apple Git-98)
+

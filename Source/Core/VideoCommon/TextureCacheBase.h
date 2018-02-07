@@ -246,9 +246,9 @@ public:
   void LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_update,
                                       const TextureLookupInformation& tex_info, bool decode_on_gpu);
   virtual void BindTextures();
-  void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 dstStride,
-                                 bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-                                 bool scaleByHalf, float y_scale, float gamma);
+  void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
+                                 u32 dstStride, bool is_depth_copy, const EFBRectangle& srcRect,
+                                 bool isIntensity, bool scaleByHalf, float y_scale, float gamma);
 
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
