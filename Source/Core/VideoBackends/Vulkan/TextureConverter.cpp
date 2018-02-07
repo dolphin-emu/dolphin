@@ -212,10 +212,12 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   draw.EndRenderPass();
 }
 
-void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr,
-                                             const EFBCopyParams& params, u32 native_width,
-                                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                                             const EFBRectangle& src_rect, bool scale_by_half)
+void TextureConverter::EncodeTextureToStagingTexture(VkImageView src_texture,
+                                                     AbstractStagingTexture* dest_tex,
+                                                     const EFBCopyParams& params, u32 native_width,
+                                                     u32 bytes_per_row, u32 num_blocks_y,
+                                                     const EFBRectangle& src_rect,
+                                                     bool scale_by_half)
 {
   VkShaderModule shader = GetEncodingShader(params);
   if (shader == VK_NULL_HANDLE)
@@ -270,9 +272,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   draw.EndRenderPass();
 
   MathUtil::Rectangle<int> copy_rect(0, 0, render_width, render_height);
-  m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
-                                               copy_rect);
-  m_encoding_readback_texture->ReadTexels(copy_rect, dest_ptr, memory_stride);
+  dest_tex->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0, copy_rect);
 }
 
 void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride,

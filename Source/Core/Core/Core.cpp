@@ -70,6 +70,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -321,6 +322,7 @@ static void CPUSetInitialExecutionState()
 static void CpuThread(const std::optional<std::string>& savestate_path, bool delete_savestate)
 {
   DeclareAsCPUThread();
+  AsyncRequests::GetInstance()->UpdateVideoThreadId();
 
   const SConfig& _CoreParameter = SConfig::GetInstance();
 
@@ -338,8 +340,8 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   // This needs to be delayed until after the video backend is ready.
   DolphinAnalytics::Instance()->ReportGameStart();
 
-  if (_CoreParameter.bFastmem)
-    EMM::InstallExceptionHandler();  // Let's run under memory watch
+  // Catching SIGSEGV/SIGBUS is required for fastmem and locking.
+  EMM::InstallExceptionHandler();
 
   s_is_started = true;
   CPUSetInitialExecutionState();
@@ -380,14 +382,14 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   if (!_CoreParameter.bCPUThread)
     g_video_backend->Video_CleanupShared();
 
-  if (_CoreParameter.bFastmem)
-    EMM::UninstallExceptionHandler();
+  EMM::UninstallExceptionHandler();
 }
 
 static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
                              bool delete_savestate)
 {
   DeclareAsCPUThread();
+  AsyncRequests::GetInstance()->UpdateVideoThreadId();
   const SConfig& _CoreParameter = SConfig::GetInstance();
 
   if (_CoreParameter.bCPUThread)
@@ -400,6 +402,8 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
     Host_Message(WM_USER_CREATE);
     Common::SetCurrentThreadName("FIFO-GPU thread");
   }
+
+  EMM::InstallExceptionHandler();  // Let's run under memory watch
 
   // Enter CPU run loop. When we leave it - we are done.
   if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
@@ -432,6 +436,8 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 
   if (!_CoreParameter.bCPUThread)
     g_video_backend->Video_CleanupShared();
+
+  EMM::UninstallExceptionHandler();
 }
 
 // Initialize and create emulation thread

@@ -29,6 +29,7 @@ private:
   void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
   void OnAnalyticsCheckBoxChanged(wxCommandEvent&);
   void OnAnalyticsNewIdButtonClick(wxCommandEvent&);
+  void OnDCacheChoiceChanged(wxCommandEvent&);
 
   wxArrayString m_throttler_array_string;
   wxArrayString m_cpu_engine_array_string;
@@ -42,4 +43,5 @@ private:
   wxChoice* m_throttler_choice;
 
   wxRadioBox* m_cpu_engine_radiobox;
+  wxCheckBox* m_dcache_checkbox;
 };

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -110,4 +111,58 @@ void CopyToEmuSwapped(u32 address, const T* data, size_t size)
   for (size_t i = 0; i < size / sizeof(T); i++)
     dest[i] = Common::FromBigEndian(data[i]);
 }
+
+// Memory range locking
+enum class LockType
+{
+  Read,
+  Write
+};
+
+enum class LockAccessType
+{
+  Read,
+  Write
+};
+
+struct Lock
+{
+  u32 guest_address;
+  u32 length;
+  void* userdata;
+  LockType type;
+
+  using Callback = std::function<void(std::shared_ptr<Lock>&, LockAccessType)>;
+  Callback callback;
+
+  using SharedPtr = std::shared_ptr<Lock>;
+};
+
+// Set locking mode.
+bool GetDCacheEmulationEnabled();
+void SetDCacheEmulationEnabled(bool enabled);
+
+// Create new memory lock on page containing (address, length)
+Lock::SharedPtr CreateLock(u32 address, u32 length, LockType type, void* userdata,
+                           const Lock::Callback& callback);
+
+// Remove memory lock on page containing (address, length)
+// Memory referenced by lock is freed by this function.
+void RemoveLock(Lock::SharedPtr& lock);
+
+// Handles access violations for locked pages, returns true if it was on a locked page and that page
+// can now be read/written.
+bool HandlePageFault(uintptr_t host_address);
+
+// Flushes all locks in place
+void FlushAllLocks(LockAccessType access_type = LockAccessType::Write);
+
+// Flush all locks matching the specified range (physical address)
+// Returns true if any locks were flushed.
+bool FlushLocksInPhysicalRange(u32 start_address, u32 length,
+                               LockAccessType access_type = LockAccessType::Write);
+
+// Flushes locks which overlap with the specified lock.
+// Assumes lock has already been removed.
+void FlushOverlappingLocks(const Lock* lock, LockAccessType access_type = LockAccessType::Write);
 }

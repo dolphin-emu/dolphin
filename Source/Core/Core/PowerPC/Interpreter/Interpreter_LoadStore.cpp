@@ -9,6 +9,7 @@
 #include "Common/Swap.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -326,6 +327,14 @@ void Interpreter::dcbf(UGeckoInstruction inst)
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+
+  // TODO: Create wrapper for this.
+  if (Memory::GetDCacheEmulationEnabled())
+  {
+    auto tr = PowerPC::JitCache_TranslateAddress(address & ~0x1f);
+    if (tr.valid)
+      Memory::FlushLocksInPhysicalRange(tr.address, 32, Memory::LockAccessType::Write);
+  }
 }
 
 void Interpreter::dcbi(UGeckoInstruction inst)
@@ -338,6 +347,14 @@ void Interpreter::dcbi(UGeckoInstruction inst)
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+
+  // TODO: Create wrapper for this.
+  if (Memory::GetDCacheEmulationEnabled())
+  {
+    auto tr = PowerPC::JitCache_TranslateAddress(address & ~0x1f);
+    if (tr.valid)
+      Memory::FlushLocksInPhysicalRange(tr.address, 32, Memory::LockAccessType::Read);
+  }
 }
 
 void Interpreter::dcbst(UGeckoInstruction inst)
@@ -350,11 +367,28 @@ void Interpreter::dcbst(UGeckoInstruction inst)
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+
+  // TODO: Create wrapper for this.
+  if (Memory::GetDCacheEmulationEnabled())
+  {
+    auto tr = PowerPC::JitCache_TranslateAddress(address & ~0x1f);
+    if (tr.valid)
+      Memory::FlushLocksInPhysicalRange(tr.address, 32, Memory::LockAccessType::Write);
+  }
 }
 
 void Interpreter::dcbt(UGeckoInstruction inst)
 {
   // TODO: Implement some sort of L2 emulation.
+  u32 address = Helper_Get_EA_X(inst);
+
+  // TODO: Create wrapper for this.
+  if (Memory::GetDCacheEmulationEnabled())
+  {
+    auto tr = PowerPC::JitCache_TranslateAddress(address & ~0x1f);
+    if (tr.valid)
+      Memory::FlushLocksInPhysicalRange(tr.address, 32, Memory::LockAccessType::Read);
+  }
 }
 
 void Interpreter::dcbtst(UGeckoInstruction inst)

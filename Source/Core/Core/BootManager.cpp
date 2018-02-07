@@ -80,6 +80,7 @@ private:
   bool bFPRF;
   bool bAccurateNaNs;
   bool bMMU;
+  bool bDCache;
   bool bDCBZOFF;
   bool bLowDCBZHack;
   bool m_EnableJIT;
@@ -111,6 +112,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
   bMMU = config.bMMU;
+  bDCache = config.bDCache;
   bDCBZOFF = config.bDCBZOFF;
   m_EnableJIT = config.m_DSPEnableJIT;
   bSyncGPU = config.bSyncGPU;
@@ -151,6 +153,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
   config->bMMU = bMMU;
+  config->bDCache = bDCache;
   config->bDCBZOFF = bDCBZOFF;
   config->bLowDCBZHack = bLowDCBZHack;
   config->m_DSPEnableJIT = m_EnableJIT;
@@ -249,6 +252,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
     core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
+    core_section->Get("DCache", &StartUp.bDCache, StartUp.bDCache);
     core_section->Get("DCBZ", &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
     core_section->Get("LowDCBZHack", &StartUp.bLowDCBZHack, StartUp.bLowDCBZHack);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);

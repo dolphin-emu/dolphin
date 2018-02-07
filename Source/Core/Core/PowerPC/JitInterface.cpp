@@ -22,6 +22,7 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -176,6 +177,9 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
 
 bool HandleFault(uintptr_t access_address, SContext* ctx)
 {
+  if (Memory::HandlePageFault(access_address))
+    return true;
+
   // Prevent nullptr dereference on a crash with no JIT present
   if (!g_jit)
   {

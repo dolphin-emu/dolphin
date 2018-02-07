@@ -270,6 +270,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 void Jit64::dcbx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
+  FALLBACK_IF(Memory::GetDCacheEmulationEnabled());
   JITDISABLE(bJITLoadStoreOff);
 
   X64Reg addr = RSCRATCH;
@@ -309,6 +310,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 void Jit64::dcbt(UGeckoInstruction inst)
 {
   INSTRUCTION_START
+  FALLBACK_IF(Memory::GetDCacheEmulationEnabled());
   JITDISABLE(bJITLoadStoreOff);
 
   // Prefetch. Since we don't emulate the data cache, we don't need to do anything.

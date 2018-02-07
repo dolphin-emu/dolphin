@@ -497,6 +497,7 @@ void VKStagingTexture::Flush()
   {
     // WaitForFence should fire the callback.
     g_command_buffer_mgr->WaitForFence(m_flush_fence);
+    m_flush_fence = VK_NULL_HANDLE;
   }
   else
   {

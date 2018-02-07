@@ -7,14 +7,11 @@
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 AsyncRequests AsyncRequests::s_singleton;
-
-AsyncRequests::AsyncRequests() : m_enable(false), m_passthrough(true)
-{
-}
 
 void AsyncRequests::PullEventsInternal()
 {
@@ -69,19 +66,16 @@ void AsyncRequests::PullEventsInternal()
 
 void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
-
-  if (m_passthrough)
+  if (std::this_thread::get_id() == m_video_thread_id)
   {
     HandleEvent(event);
     return;
   }
 
+  std::unique_lock<std::mutex> lock(m_mutex);
+
   m_empty.Clear();
   m_wake_me_up_again |= blocking;
-
-  if (!m_enable)
-    return;
 
   m_queue.push(event);
 
@@ -89,21 +83,6 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
   if (blocking)
   {
     m_cond.wait(lock, [this] { return m_queue.empty(); });
-  }
-}
-
-void AsyncRequests::SetEnable(bool enable)
-{
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_enable = enable;
-
-  if (!enable)
-  {
-    // flush the queue on disabling
-    while (!m_queue.empty())
-      m_queue.pop();
-    if (m_wake_me_up_again)
-      m_cond.notify_all();
   }
 }
 
@@ -147,11 +126,14 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::PERF_QUERY:
     g_perf_query->FlushResults();
     break;
+
+  case Event::FLUSH_EFB_COPY:
+    reinterpret_cast<TextureCacheBase::TCacheEntry*>(e.flush_efb_copy.entry)->FlushEFBCopy();
+    break;
   }
 }
 
-void AsyncRequests::SetPassthrough(bool enable)
+void AsyncRequests::UpdateVideoThreadId()
 {
-  std::unique_lock<std::mutex> lock(m_mutex);
-  m_passthrough = enable;
+  m_video_thread_id = std::this_thread::get_id();
 }

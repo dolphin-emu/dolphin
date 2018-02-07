@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/Fifo.h"
@@ -101,6 +102,11 @@ void Run()
       // Enter a fast runloop
       PowerPC::RunLoop();
 
+      // Flush memory locks before returning.
+      // Because save states happen on the main thread..
+      // TODO: Do this better.
+      Memory::FlushAllLocks(Memory::LockAccessType::Write);
+
       state_lock.lock();
       s_state_cpu_thread_active = false;
       s_state_cpu_idle_cvar.notify_all();
@@ -124,6 +130,11 @@ void Run()
       state_lock.unlock();
 
       PowerPC::SingleStep();
+
+      // Flush memory locks before returning.
+      // Because save states happen on the main thread..
+      // TODO: Do this better.
+      Memory::FlushAllLocks(Memory::LockAccessType::Write);
 
       state_lock.lock();
       s_state_cpu_thread_active = false;

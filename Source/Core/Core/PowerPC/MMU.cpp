@@ -761,6 +761,9 @@ void ClearCacheLine(u32 address)
     address = translated_address.address;
   }
 
+  if (Memory::GetDCacheEmulationEnabled())
+    Memory::FlushLocksInPhysicalRange(address, 32);
+
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 8)

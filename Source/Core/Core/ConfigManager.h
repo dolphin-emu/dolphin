@@ -114,6 +114,7 @@ struct SConfig
   bool bRunCompareClient = false;
 
   bool bMMU = false;
+  bool bDCache = false;
   bool bDCBZOFF = false;
   bool bLowDCBZHack = false;
   int iBBDumpPort = 0;
