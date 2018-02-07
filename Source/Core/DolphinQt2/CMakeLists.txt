@@ -65,6 +65,7 @@ set(SRCS
   Config/Mapping/MappingBool.cpp
   Config/Mapping/MappingButton.cpp
   Config/Mapping/MappingCommon.cpp
+  Config/Mapping/MappingIndicator.cpp
   Config/Mapping/MappingNumeric.cpp
   Config/Mapping/MappingWidget.cpp
   Config/Mapping/MappingWindow.cpp

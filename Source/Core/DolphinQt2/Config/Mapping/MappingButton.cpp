@@ -35,6 +35,8 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
       m_reference(ref)
 {
   Connect();
+  setToolTip(
+      tr("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
   if (!m_reference->IsInput() || !indicator)
     return;
 
@@ -116,6 +118,7 @@ void MappingButton::Clear()
 {
   m_reference->SetExpression("");
   m_parent->SaveSettings();
+  Update();
 }
 
 void MappingButton::Update()
@@ -136,7 +139,7 @@ void MappingButton::mouseReleaseEvent(QMouseEvent* event)
     else
       emit AdvancedPressed();
     return;
-  case Qt::MouseButton::MiddleButton:
+  case Qt::MouseButton::MidButton:
     Clear();
     return;
   case Qt::MouseButton::RightButton:

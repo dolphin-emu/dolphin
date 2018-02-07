@@ -205,6 +205,7 @@
     <ClCompile Include="Config\Mapping\MappingBool.cpp" />
     <ClCompile Include="Config\Mapping\MappingButton.cpp" />
     <ClCompile Include="Config\Mapping\MappingCommon.cpp" />
+    <ClCompile Include="Config\Mapping\MappingIndicator.cpp" />
     <ClCompile Include="Config\Mapping\MappingNumeric.cpp" />
     <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
     <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
@@ -272,6 +273,7 @@
     <ClInclude Include="Config\Mapping\HotkeyWii.h" />
     <ClInclude Include="Config\Mapping\MappingBool.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
+    <ClInclude Include="Config\Mapping\MappingIndicator.h" />
     <ClInclude Include="Config\Mapping\MappingNumeric.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuExtension.h" />
     <ClInclude Include="Config\Mapping\WiimoteEmuGeneral.h" />

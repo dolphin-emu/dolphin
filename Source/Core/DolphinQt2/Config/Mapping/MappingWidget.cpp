@@ -11,6 +11,7 @@
 #include "DolphinQt2/Config/Mapping/IOWindow.h"
 #include "DolphinQt2/Config/Mapping/MappingBool.h"
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
+#include "DolphinQt2/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt2/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -49,7 +50,8 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
                         group->type == ControllerEmu::GroupType::Stick ||
-                        group->type == ControllerEmu::GroupType::Tilt;
+                        group->type == ControllerEmu::GroupType::Tilt ||
+                        group->type == ControllerEmu::GroupType::MixedTriggers;
 
   for (auto& control : group->controls)
   {

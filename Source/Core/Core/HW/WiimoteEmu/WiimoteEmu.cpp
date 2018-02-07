@@ -292,9 +292,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
   m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
-  m_extension->boolean_settings.emplace_back(
-      m_motion_plus_setting = new ControllerEmu::BooleanSetting(_trans("Motion Plus"), false));
-
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
   m_rumble->controls.emplace_back(m_motor = new ControllerEmu::Output(_trans("Motor")));
