@@ -245,22 +245,16 @@ bool VideoBackend::Initialize(void* window_handle)
   if (g_ActiveConfig.CanPrecompileUberShaders())
     g_shader_cache->PrecompileUberShaders();
 
+  // Display the name so the user knows which device was actually created.
+  INFO_LOG(VIDEO, "Vulkan Device: %s", g_vulkan_context->GetDeviceProperties().deviceName);
   return true;
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
-  // Display the name so the user knows which device was actually created
-  OSD::AddMessage(StringFromFormat("Using physical adapter %s",
-                                   g_vulkan_context->GetDeviceProperties().deviceName)
-                      .c_str(),
-                  5000);
 }
 
 void VideoBackend::Shutdown()
 {
+  if (g_renderer)
+    g_renderer->Shutdown();
+
   if (g_command_buffer_mgr)
     g_command_buffer_mgr->WaitForGPUIdle();
 
@@ -278,16 +272,5 @@ void VideoBackend::Shutdown()
   g_vulkan_context.reset();
   ShutdownShared();
   UnloadVulkanLibrary();
-}
-
-void VideoBackend::Video_Cleanup()
-{
-  g_command_buffer_mgr->WaitForGPUIdle();
-
-  // Save all cached pipelines out to disk for next time.
-  if (g_ActiveConfig.bShaderCache)
-    g_shader_cache->SavePipelineCache();
-
-  CleanupShared();
 }
 }

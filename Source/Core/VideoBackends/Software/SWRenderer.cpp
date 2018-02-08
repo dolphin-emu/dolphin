@@ -26,15 +26,6 @@ SWRenderer::SWRenderer()
 {
 }
 
-void SWRenderer::Init()
-{
-}
-
-void SWRenderer::Shutdown()
-{
-  UpdateActiveConfig();
-}
-
 std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
 {
   return std::make_unique<SW::SWTexture>(config);

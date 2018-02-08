@@ -58,12 +58,6 @@ Make AA apply instantly during gameplay if possible
 
 namespace OGL
 {
-// Draw messages on top of the screen
-unsigned int VideoBackend::PeekMessages()
-{
-  return GLInterface->PeekMessages();
-}
-
 std::string VideoBackend::GetName() const
 {
   return "OGL";
@@ -172,23 +166,11 @@ bool VideoBackend::Initialize(void* window_handle)
   if (!GLInterface->Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer))
     return false;
 
-  return true;
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
   GLInterface->MakeCurrent();
   if (!InitializeGLExtensions() || !FillBackendInfo())
-  {
-    // TODO: Handle this better. We'll likely end up crashing anyway, but this method doesn't
-    // return anything, so we can't inform the caller that startup failed.
-    return;
-  }
+    return false;
 
   g_renderer = std::make_unique<Renderer>();
-
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();
@@ -197,21 +179,12 @@ void VideoBackend::Video_Prepare()
   static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
   BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  return true;
 }
 
 void VideoBackend::Shutdown()
 {
-  GLInterface->Shutdown();
-  GLInterface.reset();
-  ShutdownShared();
-}
-
-void VideoBackend::Video_Cleanup()
-{
-  // The following calls are NOT Thread Safe
-  // And need to be called from the video thread
-  CleanupShared();
-  static_cast<Renderer*>(g_renderer.get())->Shutdown();
+  g_renderer->Shutdown();
   BoundingBox::Shutdown();
   TextureConverter::Shutdown();
   g_sampler_cache.reset();
@@ -221,5 +194,8 @@ void VideoBackend::Video_Cleanup()
   g_vertex_manager.reset();
   g_renderer.reset();
   GLInterface->ClearCurrent();
+  GLInterface->Shutdown();
+  GLInterface.reset();
+  ShutdownShared();
 }
 }
