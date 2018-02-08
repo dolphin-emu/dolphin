@@ -803,14 +803,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
-      int type = HLE::GetFunctionTypeByIndex(function);
-      if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
+      HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
+      if (type == HLE::HookType::Start || type == HLE::HookType::Replace)
       {
-        int flags = HLE::GetFunctionFlagsByIndex(function);
+        HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
         if (HLE::IsEnabled(flags))
         {
           HLEFunction(function);
-          if (type == HLE::HLE_HOOK_REPLACE)
+          if (type == HLE::HookType::Replace)
           {
             MOV(32, R(RSCRATCH), PPCSTATE(npc));
             js.downcountAmount += js.st.numCycles;
