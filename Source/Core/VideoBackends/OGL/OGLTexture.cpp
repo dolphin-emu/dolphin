@@ -417,6 +417,7 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
 
     glMemoryBarrier(GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT);
     m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    glFlush();
   }
 
   m_needs_flush = true;
@@ -475,6 +476,7 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
       glDeleteSync(m_fence);
 
     m_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    glFlush();
   }
 
   m_needs_flush = true;
@@ -490,7 +492,7 @@ void OGLStagingTexture::Flush()
     return;
   }
 
-  glClientWaitSync(m_fence, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+  glClientWaitSync(m_fence, 0, GL_TIMEOUT_IGNORED);
   glDeleteSync(m_fence);
   m_fence = 0;
   m_needs_flush = false;
