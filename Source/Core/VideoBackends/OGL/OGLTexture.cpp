@@ -511,10 +511,8 @@ bool OGLStagingTexture::Map()
     flags = GL_MAP_READ_BIT | GL_MAP_WRITE_BIT;
   glBindBuffer(m_target, m_buffer_name);
   m_map_pointer = reinterpret_cast<char*>(glMapBufferRange(m_target, 0, m_buffer_size, flags));
-  if (!m_map_pointer)
-    return false;
-
-  return true;
+  glBindBuffer(m_target, 0);
+  return m_map_pointer != nullptr;
 }
 
 void OGLStagingTexture::Unmap()
