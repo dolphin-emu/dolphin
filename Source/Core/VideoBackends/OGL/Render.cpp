@@ -816,8 +816,6 @@ void Renderer::Shutdown()
 
   s_raster_font.reset();
   m_post_processor.reset();
-
-  OpenGL_DeleteAttributelessVAO();
 }
 
 void Renderer::Init()
@@ -828,8 +826,6 @@ void Renderer::Init()
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
   s_raster_font = std::make_unique<RasterFont>();
-
-  OpenGL_CreateAttributelessVAO();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
