@@ -8,6 +8,8 @@
 #include "DolphinWX/LuaScripting.h"
 #include "Core/Movie.h"
 
+#define COMPAT_BITLIB
+
 namespace Lua
 {
 LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
