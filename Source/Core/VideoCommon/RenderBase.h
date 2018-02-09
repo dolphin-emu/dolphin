@@ -77,6 +77,9 @@ public:
     PP_EFB_COPY_CLOCKS
   };
 
+  virtual bool Initialize();
+  virtual void Shutdown();
+
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
@@ -188,8 +191,6 @@ public:
   void ChangeSurface(void* new_surface_handle);
   void ResizeSurface(int new_width, int new_height);
   bool UseVertexDepthRange() const;
-
-  virtual void Shutdown();
 
   // Drawing utility shaders.
   virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,

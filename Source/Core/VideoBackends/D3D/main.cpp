@@ -158,7 +158,8 @@ bool VideoBackend::Initialize(void* window_handle)
   VertexShaderCache::WaitForBackgroundCompilesToComplete();
   D3D::InitUtils();
   BBox::Init();
-  return true;
+
+  return g_renderer->Initialize();
 }
 
 void VideoBackend::Shutdown()

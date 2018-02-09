@@ -67,7 +67,7 @@ bool VideoBackend::Initialize(void* window_handle)
   VertexShaderCache::s_instance = std::make_unique<VertexShaderCache>();
   GeometryShaderCache::s_instance = std::make_unique<GeometryShaderCache>();
   PixelShaderCache::s_instance = std::make_unique<PixelShaderCache>();
-  return true;
+  return g_renderer->Initialize();
 }
 
 void VideoBackend::Shutdown()

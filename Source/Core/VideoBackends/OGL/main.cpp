@@ -175,7 +175,8 @@ bool VideoBackend::Initialize(void* window_handle)
   ProgramShaderCache::Init();
   g_texture_cache = std::make_unique<TextureCache>();
   g_sampler_cache = std::make_unique<SamplerCache>();
-  static_cast<Renderer*>(g_renderer.get())->Init();
+  if (!g_renderer->Initialize())
+    return false;
   TextureConverter::Init();
   BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
   return true;

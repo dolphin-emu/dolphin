@@ -255,9 +255,6 @@ void VideoBackend::Shutdown()
   if (g_renderer)
     g_renderer->Shutdown();
 
-  if (g_command_buffer_mgr)
-    g_command_buffer_mgr->WaitForGPUIdle();
-
   g_perf_query.reset();
   g_texture_cache.reset();
   g_vertex_manager.reset();
