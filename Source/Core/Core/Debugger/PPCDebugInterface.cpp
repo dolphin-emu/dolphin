@@ -56,7 +56,7 @@ std::string PPCDebugInterface::GetRawMemoryString(int memory, unsigned int addre
     if (is_aram || PowerPC::HostIsRAMAddress(address))
       return StringFromFormat("%08X%s", ReadExtraMemory(memory, address), is_aram ? " (ARAM)" : "");
 
-    return is_aram ? "--ARAM--" : "--------";
+    return "--------";
   }
 
   return "<unknwn>";  // bad spelling - 8 chars
