@@ -79,6 +79,9 @@ public:
 
   virtual bool IsHeadless() const = 0;
 
+  virtual bool Initialize();
+  virtual void Shutdown();
+
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
@@ -187,8 +190,6 @@ public:
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
-
-  virtual void Shutdown();
 
   // Drawing utility shaders.
   virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,

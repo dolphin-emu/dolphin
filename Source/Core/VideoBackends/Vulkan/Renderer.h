@@ -37,6 +37,9 @@ public:
 
   bool IsHeadless() const override;
 
+  bool Initialize() override;
+  void Shutdown() override;
+
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
@@ -52,8 +55,6 @@ public:
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
   BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
-  bool Initialize();
-
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;

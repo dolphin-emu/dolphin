@@ -93,6 +93,11 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 
 Renderer::~Renderer() = default;
 
+bool Renderer::Initialize()
+{
+  return true;
+}
+
 void Renderer::Shutdown()
 {
   // First stop any framedumping, which might need to dump the last xfb frame. This process

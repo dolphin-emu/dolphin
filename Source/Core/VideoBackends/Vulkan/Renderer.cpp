@@ -57,13 +57,7 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
 }
 
-Renderer::~Renderer()
-{
-  UpdateActiveConfig();
-
-  DestroyShaders();
-  DestroySemaphores();
-}
+Renderer::~Renderer() = default;
 
 Renderer* Renderer::GetInstance()
 {
@@ -77,6 +71,9 @@ bool Renderer::IsHeadless() const
 
 bool Renderer::Initialize()
 {
+  if (!::Renderer::Initialize())
+    return false;
+
   BindEFBToStateTracker();
 
   if (!CreateSemaphores())
@@ -129,6 +126,18 @@ bool Renderer::Initialize()
   BeginFrame();
 
   return true;
+}
+
+void Renderer::Shutdown()
+{
+  ::Renderer::Shutdown();
+
+  // Submit the current command buffer, in case there's a partial frame.
+  StateTracker::GetInstance()->EndRenderPass();
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+
+  DestroyShaders();
+  DestroySemaphores();
 }
 
 bool Renderer::CreateSemaphores()

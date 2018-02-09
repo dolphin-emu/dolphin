@@ -811,6 +811,23 @@ bool Renderer::IsHeadless() const
   return m_main_gl_context->IsHeadless();
 }
 
+bool Renderer::Initialize()
+{
+  if (!::Renderer::Initialize())
+    return false;
+
+  // Initialize the FramebufferManager
+  g_framebuffer_manager = std::make_unique<FramebufferManager>(
+      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
+  m_current_framebuffer_width = m_target_width;
+  m_current_framebuffer_height = m_target_height;
+
+  m_post_processor = std::make_unique<OpenGLPostProcessing>();
+  s_raster_font = std::make_unique<RasterFont>();
+
+  return true;
+}
+
 void Renderer::Shutdown()
 {
   ::Renderer::Shutdown();
@@ -820,18 +837,6 @@ void Renderer::Shutdown()
 
   s_raster_font.reset();
   m_post_processor.reset();
-}
-
-void Renderer::Init()
-{
-  // Initialize the FramebufferManager
-  g_framebuffer_manager = std::make_unique<FramebufferManager>(
-      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
-  m_current_framebuffer_width = m_target_width;
-  m_current_framebuffer_height = m_target_height;
-
-  m_post_processor = std::make_unique<OpenGLPostProcessing>();
-  s_raster_font = std::make_unique<RasterFont>();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
