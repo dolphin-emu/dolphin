@@ -84,7 +84,7 @@ public:
   ~Renderer() override;
 
   void Init();
-  void Shutdown();
+  void Shutdown() override;
 
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>

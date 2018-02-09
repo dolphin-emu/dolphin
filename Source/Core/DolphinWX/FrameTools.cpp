@@ -719,6 +719,7 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     m_render_parent = new wxPanel(m_render_frame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
     m_render_frame->Show();
+    m_render_frame->Raise();
   }
 
 #if defined(__APPLE__)
@@ -726,15 +727,10 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
 #endif
 
   wxBusyCursor hourglass;
-
-  DoFullscreen(SConfig::GetInstance().bFullscreen);
-
   SetDebuggerStartupParameters();
 
   if (!BootManager::BootCore(std::move(boot)))
   {
-    DoFullscreen(false);
-
     // Destroy the renderer frame when not rendering to main
     if (!SConfig::GetInstance().bRenderToMain)
       m_render_frame->Destroy();

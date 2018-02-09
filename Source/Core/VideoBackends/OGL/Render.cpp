@@ -809,6 +809,7 @@ Renderer::~Renderer() = default;
 
 void Renderer::Shutdown()
 {
+  ::Renderer::Shutdown();
   g_framebuffer_manager.reset();
 
   UpdateActiveConfig();

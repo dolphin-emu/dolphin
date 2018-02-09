@@ -759,10 +759,6 @@ if(ENABLE_WX)
   endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
-  set(LIBS ${LIBS} usbhid)
-endif()
-
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header
 #

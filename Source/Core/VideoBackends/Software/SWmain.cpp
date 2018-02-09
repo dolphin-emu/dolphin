@@ -88,38 +88,8 @@ bool VideoSoftware::Initialize(void* window_handle)
 
   Clipper::Init();
   Rasterizer::Init();
-  SWRenderer::Init();
   DebugUtil::Init();
 
-  return true;
-}
-
-void VideoSoftware::Shutdown()
-{
-  SWOGLWindow::Shutdown();
-
-  ShutdownShared();
-}
-
-void VideoSoftware::Video_Cleanup()
-{
-  CleanupShared();
-
-  SWRenderer::Shutdown();
-  DebugUtil::Shutdown();
-  // The following calls are NOT Thread Safe
-  // And need to be called from the video thread
-  SWRenderer::Shutdown();
-  g_framebuffer_manager.reset();
-  g_texture_cache.reset();
-  g_perf_query.reset();
-  g_vertex_manager.reset();
-  g_renderer.reset();
-}
-
-// This is called after Video_Initialize() from the Core
-void VideoSoftware::Video_Prepare()
-{
   GLInterface->MakeCurrent();
   SWOGLWindow::s_instance->Prepare();
 
@@ -127,11 +97,21 @@ void VideoSoftware::Video_Prepare()
   g_vertex_manager = std::make_unique<SWVertexLoader>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
-  SWRenderer::Init();
+  return true;
 }
 
-unsigned int VideoSoftware::PeekMessages()
+void VideoSoftware::Shutdown()
 {
-  return SWOGLWindow::s_instance->PeekMessages();
+  if (g_renderer)
+    g_renderer->Shutdown();
+
+  DebugUtil::Shutdown();
+  SWOGLWindow::Shutdown();
+  g_framebuffer_manager.reset();
+  g_texture_cache.reset();
+  g_perf_query.reset();
+  g_vertex_manager.reset();
+  g_renderer.reset();
+  ShutdownShared();
 }
 }

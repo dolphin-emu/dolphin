@@ -202,7 +202,8 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
     // Image was being used as a depthstencil attachment, so ensure all writes have completed.
     barrier.srcAccessMask =
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    srcStageMask =
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
@@ -238,19 +239,19 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
     barrier.dstAccessMask =
         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
     barrier.dstAccessMask =
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    dstStageMask =
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-    // TODO: Can we use FRAGMENT_SHADER here? We don't sample textures in the earlier stages.
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
@@ -264,7 +265,6 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
     break;
 
   case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-    barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
     srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
     dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     break;
@@ -347,7 +347,8 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageL
     // Image was being used as a depthstencil attachment, so ensure all writes have completed.
     barrier.srcAccessMask =
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    srcStageMask =
+        VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:

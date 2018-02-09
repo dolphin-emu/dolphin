@@ -16,11 +16,6 @@ public:
 
   std::string GetName() const override { return "Vulkan"; }
   std::string GetDisplayName() const override { return "Vulkan (experimental)"; }
-  void Video_Prepare() override;
-  void Video_Cleanup() override;
-
   void InitBackendInfo() override;
-
-  unsigned int PeekMessages() override { return 0; }
 };
 }

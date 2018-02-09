@@ -101,6 +101,13 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 
 Renderer::~Renderer() = default;
 
+void Renderer::Shutdown()
+{
+  // First stop any framedumping, which might need to dump the last xfb frame. This process
+  // can require additional graphics sub-systems so it needs to be done first
+  ShutdownFrameDumping();
+}
+
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
                            float Gamma)
 {

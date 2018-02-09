@@ -142,7 +142,10 @@ void BreakpointWidget::Update()
   for (const auto& mbp : PowerPC::memchecks.GetMemChecks())
   {
     m_table->setRowCount(i + 1);
-    m_table->setItem(i, 0, create_item(mbp.break_on_hit || mbp.log_on_hit ? tr("on") : QString()));
+    auto* active = create_item(mbp.break_on_hit || mbp.log_on_hit ? tr("on") : QString());
+    active->setData(Qt::UserRole, mbp.start_address);
+
+    m_table->setItem(i, 0, active);
     m_table->setItem(i, 1, create_item(QStringLiteral("MBP")));
 
     if (g_symbolDB.GetSymbolFromAddr(mbp.start_address))

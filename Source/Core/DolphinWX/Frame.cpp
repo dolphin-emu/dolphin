@@ -761,6 +761,8 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   case WM_USER_CREATE:
     if (SConfig::GetInstance().bHideCursor)
       m_render_parent->SetCursor(wxCURSOR_BLANK);
+    if (SConfig::GetInstance().bFullscreen)
+      DoFullscreen(true);
     break;
 
   case IDM_PANIC:
