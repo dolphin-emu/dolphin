@@ -117,6 +117,14 @@ public:
     m_pending.geometryConstants = buffer;
   }
 
+  void SetComputeConstants(ID3D11Buffer* buffer)
+  {
+    if (m_current.computeConstants != buffer)
+      m_dirtyFlags |= DirtyFlag_ComputeConstants;
+
+    m_pending.computeConstants = buffer;
+  }
+
   void SetVertexBuffer(ID3D11Buffer* buffer, u32 stride, u32 offset)
   {
     if (m_current.vertexBuffer != buffer || m_current.vertexBufferStride != stride ||
@@ -184,6 +192,14 @@ public:
     m_pending.geometryShader = shader;
   }
 
+  void SetComputeShader(ID3D11ComputeShader* shader)
+  {
+    if (m_current.computeShader != shader)
+      m_dirtyFlags |= DirtyFlag_ComputeShader;
+
+    m_pending.computeShader = shader;
+  }
+
   // removes currently set texture from all slots, returns mask of previously bound slots
   u32 UnsetTexture(ID3D11ShaderResourceView* srv);
   void SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceView* srv);
@@ -224,15 +240,17 @@ private:
     DirtyFlag_PixelConstants = 1 << 16,
     DirtyFlag_VertexConstants = 1 << 17,
     DirtyFlag_GeometryConstants = 1 << 18,
+    DirtyFlag_ComputeConstants = 1 << 19,
 
-    DirtyFlag_VertexBuffer = 1 << 19,
-    DirtyFlag_IndexBuffer = 1 << 20,
+    DirtyFlag_VertexBuffer = 1 << 20,
+    DirtyFlag_IndexBuffer = 1 << 21,
 
-    DirtyFlag_PixelShader = 1 << 21,
-    DirtyFlag_VertexShader = 1 << 22,
-    DirtyFlag_GeometryShader = 1 << 23,
+    DirtyFlag_PixelShader = 1 << 22,
+    DirtyFlag_VertexShader = 1 << 23,
+    DirtyFlag_GeometryShader = 1 << 24,
+    DirtyFlag_ComputeShader = 1 << 25,
 
-    DirtyFlag_InputAssembler = 1 << 24,
+    DirtyFlag_InputAssembler = 1 << 26,
   };
 
   u32 m_dirtyFlags;
@@ -244,6 +262,7 @@ private:
     std::array<ID3D11Buffer*, 2> pixelConstants;
     ID3D11Buffer* vertexConstants;
     ID3D11Buffer* geometryConstants;
+    ID3D11Buffer* computeConstants;
     ID3D11Buffer* vertexBuffer;
     ID3D11Buffer* indexBuffer;
     u32 vertexBufferStride;
@@ -253,6 +272,7 @@ private:
     ID3D11PixelShader* pixelShader;
     ID3D11VertexShader* vertexShader;
     ID3D11GeometryShader* geometryShader;
+    ID3D11ComputeShader* computeShader;
   };
 
   Resources m_pending;
