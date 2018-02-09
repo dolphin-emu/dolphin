@@ -485,8 +485,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
   GLsizei length = 0;
   glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-  if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
+  if (compileStatus != GL_TRUE || length > 1)
   {
     std::string info_log;
     info_log.resize(length);
@@ -509,7 +508,10 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
       break;
     }
 
-    ERROR_LOG(VIDEO, "%s Shader info log:\n%s", prefix, info_log.c_str());
+    if (compileStatus != GL_TRUE)
+      ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
+    else
+      WARN_LOG(VIDEO, "%s compiled with warnings:\n%s", prefix, info_log.c_str());
 
     std::string filename = StringFromFormat(
         "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
@@ -543,12 +545,16 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vc
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
   GLsizei length = 0;
   glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
-  if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
+  if (linkStatus != GL_TRUE || length > 1)
   {
     std::string info_log;
     info_log.resize(length);
     glGetProgramInfoLog(id, length, &length, &info_log[0]);
-    ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
+
+    if (linkStatus != GL_TRUE)
+      ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
+    else
+      WARN_LOG(VIDEO, "Program linked with warnings:\n%s", info_log.c_str());
 
     std::string filename =
         StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
