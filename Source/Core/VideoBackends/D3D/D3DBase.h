@@ -69,6 +69,7 @@ D3DTexture2D* GetBackBuffer();
 const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
+const char* ComputeShaderVersionString();
 bool BGRATexturesSupported();
 bool AllowTearingSupported();
 
