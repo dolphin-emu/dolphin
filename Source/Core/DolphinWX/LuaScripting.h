@@ -40,6 +40,7 @@ public:
   void GetValues(GCPadStatus* status);
   bool m_destruction_flag = false;
   GCPadStatus m_pad_status;
+  GCPadStatus m_last_pad_status;
 private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
@@ -55,6 +56,7 @@ public:
   void Log(const wxString& message);
   void NullifyLuaThread();
   GCPadStatus& GetPadStatus();
+  GCPadStatus GetLastPadStatus();
   LuaThread* GetLuaThread();
   static LuaScriptFrame* GetCurrentInstance();
 

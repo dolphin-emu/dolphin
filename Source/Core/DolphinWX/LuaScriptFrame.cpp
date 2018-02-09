@@ -31,6 +31,8 @@ namespace Lua
 {
 std::map<const char*, LuaFunction> m_registered_functions;
 
+static int band(lua_State* L);
+
 static int printToTextCtrl(lua_State* L);
 static int frameAdvance(lua_State* L);
 static int getFrameCount(lua_State* L);
@@ -75,6 +77,7 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
   // Create function map if it doesn't already exist
   if (m_registered_functions.size() == 0)
   {
+    m_registered_functions.emplace("band", band);
     m_registered_functions.emplace("print", printToTextCtrl);
     m_registered_functions.emplace("frameAdvance", frameAdvance);
     m_registered_functions.emplace("getFrameCount", getFrameCount);
@@ -278,6 +281,11 @@ GCPadStatus& LuaScriptFrame::GetPadStatus()
   return m_lua_thread->m_pad_status;
 }
 
+GCPadStatus LuaScriptFrame::GetLastPadStatus()
+{
+  return m_lua_thread->m_last_pad_status;
+}
+
 LuaThread* LuaScriptFrame::GetLuaThread()
 {
   return m_lua_thread;
@@ -292,6 +300,12 @@ LuaScriptFrame* LuaScriptFrame::GetCurrentInstance()
 
 // Functions to register with Lua
 #pragma region Lua_Functs
+
+static int band(lua_State* L)
+{
+  lua_pushinteger(L, lua_tointeger(L, 1) & lua_tointeger(L, 2));
+  return 1;
+}
 
 // Prints a string to the text control of this frame
 static int printToTextCtrl(lua_State* L)
@@ -357,8 +371,8 @@ static int loadState(lua_State* L)
 
 static int getAnalog(lua_State* L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().stickX);
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().stickY);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().stickX);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().stickY);
 
   return 2;
 }
@@ -403,8 +417,8 @@ static int setAnalogPolar(lua_State* L)
 
 static int getCStick(lua_State* L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().substickX);
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().substickY);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().substickX);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().substickY);
 
   return 2;
 }
@@ -438,7 +452,7 @@ static int setCStickPolar(lua_State* L)
 
 static int getButtons(lua_State* L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().button);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().button);
   return 1;
 }
 
@@ -516,8 +530,8 @@ static int setEmulatorSpeed(lua_State* L)
 
 static int getTriggers(lua_State* L)
 {
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().triggerLeft);
-  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetPadStatus().triggerRight);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().triggerLeft);
+  lua_pushinteger(L, LuaScriptFrame::GetCurrentInstance()->GetLastPadStatus().triggerRight);
 
   return 2;
 }

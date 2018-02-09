@@ -8,8 +8,6 @@
 #include "DolphinWX/LuaScripting.h"
 #include "Core/Movie.h"
 
-#define COMPAT_BITLIB
-
 namespace Lua
 {
 LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
@@ -97,6 +95,9 @@ void LuaThread::GetValues(GCPadStatus* status)
     status->substickY = LuaThread::m_pad_status.substickY;
 
   status->button |= LuaThread::m_pad_status.button;
+
+  //Update internal gamepad representation with the same struct we're sending out
+  m_last_pad_status = *status;
 }
 
 void HookFunction(lua_State* L, lua_Debug* ar)
