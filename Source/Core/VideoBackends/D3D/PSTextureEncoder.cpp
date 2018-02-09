@@ -131,8 +131,6 @@ void PSTextureEncoder::Encode(u8* dst, const EFBCopyParams& params, u32 native_w
     }
   }
 
-  // Restore API
-  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 

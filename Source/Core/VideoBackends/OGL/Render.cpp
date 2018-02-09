@@ -1416,9 +1416,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   g_texture_cache->Cleanup(frameCount);
   ProgramShaderCache::RetrieveAsyncShaders();
 
-  // Render to the framebuffer.
-  FramebufferManager::SetFramebuffer(0);
-
   RestoreAPIState();
 
   g_Config.iSaveTargetId = 0;
@@ -1499,6 +1496,8 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
+  FramebufferManager::SetFramebuffer(0);
+
   // Gets us back into a more game-like state.
   glEnable(GL_SCISSOR_TEST);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)

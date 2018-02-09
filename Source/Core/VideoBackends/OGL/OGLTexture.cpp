@@ -219,7 +219,6 @@ void OGLTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
   glUniform4f(TextureCache::GetInstance()->GetColorCopyPositionUniform(), float(srcrect.left),
               float(srcrect.top), float(srcrect.GetWidth()), float(srcrect.GetHeight()));
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
 }
 

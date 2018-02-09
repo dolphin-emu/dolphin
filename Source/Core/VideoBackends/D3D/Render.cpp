@@ -450,7 +450,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
                          VertexShaderCache::GetSimpleInputLayout());
 
   // Restore expected game state.
-  FramebufferManager::BindEFBRenderTarget();
   RestoreAPIState();
 
   // Copy the pixel from the renderable to cpu-readable buffer.
@@ -525,7 +524,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
     D3D::context->RSSetViewports(1, &vp);
-    FramebufferManager::BindEFBRenderTarget(false);
   }
   else  // if (type == EFBAccessType::PokeZ)
   {
@@ -536,7 +534,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
 
     D3D::context->RSSetViewports(1, &vp);
-    FramebufferManager::BindEFBRenderTarget();
   }
 
   D3D::DrawEFBPokeQuads(type, points, num_points);
@@ -627,10 +624,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
       GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
       VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
-  RestoreAPIState();
-
   FramebufferManager::SwapReinterpretTexture();
-  FramebufferManager::BindEFBRenderTarget();
+  RestoreAPIState();
 }
 
 void Renderer::SetBlendingState(const BlendingState& state)
@@ -707,7 +702,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // begin next frame
   RestoreAPIState();
-  FramebufferManager::BindEFBRenderTarget();
 }
 
 void Renderer::CheckForSurfaceChange()
@@ -769,6 +763,7 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
   // Gets us back into a more game-like state.
+  FramebufferManager::BindEFBRenderTarget();
   BPFunctions::SetViewport();
   BPFunctions::SetScissor();
 }

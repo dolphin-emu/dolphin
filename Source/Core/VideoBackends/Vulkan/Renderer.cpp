@@ -1036,6 +1036,9 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
+  StateTracker::GetInstance()->EndRenderPass();
+  BindEFBToStateTracker();
+
   // Instruct the state tracker to re-bind everything before the next draw
   StateTracker::GetInstance()->SetPendingRebind();
 }

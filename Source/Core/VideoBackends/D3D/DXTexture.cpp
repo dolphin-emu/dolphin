@@ -144,7 +144,6 @@ void DXTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
                          VertexShaderCache::GetSimpleInputLayout(),
                          GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
-  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 
