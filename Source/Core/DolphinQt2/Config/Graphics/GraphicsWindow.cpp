@@ -42,7 +42,7 @@ void GraphicsWindow::CreateMainLayout()
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
 
   description_box->setLayout(description_layout);
-  description_box->setMinimumHeight(205);
+  description_box->setMinimumHeight(230);
 
   m_description->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_description->setWordWrap(true);
