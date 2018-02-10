@@ -81,10 +81,7 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
   m_lua_thread = nullptr;
 
   //Create array of libs
-  m_libs[1] =
-  {
-    bit
-  };
+  m_libs.emplace("bit", bit);
 
   // Create function map if it doesn't already exist
   if (m_registered_functions.size() == 0)
