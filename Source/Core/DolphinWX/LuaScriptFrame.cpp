@@ -4,6 +4,7 @@
 
 #include "DolphinWX/LuaScripting.h"
 #include <lua5.3/include/lua.hpp>
+#include <lua5.3/include/lauxlib.h>
 
 #include <wx/button.h>
 #include <wx/filedlg.h>
@@ -32,6 +33,11 @@ namespace Lua
 std::map<const char*, LuaFunction> m_registered_functions;
 
 static int band(lua_State* L);
+
+static struct luaL_Reg bit[] {
+  { "band", band },
+  { NULL, NULL }  /* sentinel */
+};
 
 static int printToTextCtrl(lua_State* L);
 static int frameAdvance(lua_State* L);
@@ -73,6 +79,12 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
 
   m_current_instance = this;
   m_lua_thread = nullptr;
+
+  //Create array of libs
+  m_libs[1] =
+  {
+    bit
+  };
 
   // Create function map if it doesn't already exist
   if (m_registered_functions.size() == 0)
@@ -258,7 +270,7 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 {
   if (m_lua_thread == nullptr)
   {
-    m_lua_thread = new LuaThread(this, m_file_path->GetValue());
+    m_lua_thread = new LuaThread(this, m_file_path->GetValue(), m_libs);
     m_lua_thread->Run();
   }
 }

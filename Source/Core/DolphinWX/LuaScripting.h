@@ -21,6 +21,7 @@ class wxMenu;
 class wxButton;
 struct lua_State;
 struct lua_Debug;
+struct luaL_Reg;
 
 namespace Lua
 {
@@ -35,7 +36,7 @@ void HookFunction(lua_State*, lua_Debug*);
 class LuaThread final : public wxThread
 {
 public:
-  LuaThread(LuaScriptFrame* p, const wxString& file);
+  LuaThread(LuaScriptFrame* p, const wxString& file, luaL_Reg** libs);
   ~LuaThread();
   void GetValues(GCPadStatus* status);
   bool m_destruction_flag = false;
@@ -45,6 +46,7 @@ private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
+  luaL_Reg** m_libs;
 };
 
 class LuaScriptFrame final : public wxFrame
@@ -85,5 +87,6 @@ private:
   wxTextCtrl* m_output_console;
   LuaThread* m_lua_thread;
   static LuaScriptFrame* m_current_instance;
+  luaL_Reg** m_libs;
 };
 }  // namespace Lua
