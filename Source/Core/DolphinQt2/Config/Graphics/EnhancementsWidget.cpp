@@ -62,6 +62,11 @@ void EnhancementsWidget::CreateWidgets()
   m_aa_combo = new QComboBox();
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
                                   Config::GFX_ENHANCE_MAX_ANISOTROPY);
+
+  m_ubershader_combo = new QComboBox;
+  for (const auto& option : {tr("Disabled"), tr("Hybrid"), tr("Exclusive")})
+    m_ubershader_combo->addItem(option);
+
   m_pp_effect = new QComboBox();
   m_configure_pp_effect = new QPushButton(tr("Configure"));
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
@@ -80,16 +85,20 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
   enhancements_layout->addWidget(m_af_combo, 2, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 3, 0);
-  enhancements_layout->addWidget(m_pp_effect, 3, 1);
-  enhancements_layout->addWidget(m_configure_pp_effect, 3, 2);
 
-  enhancements_layout->addWidget(m_scaled_efb_copy, 4, 0);
-  enhancements_layout->addWidget(m_per_pixel_lighting, 4, 1);
-  enhancements_layout->addWidget(m_force_texture_filtering, 5, 0);
-  enhancements_layout->addWidget(m_widescreen_hack, 5, 1);
-  enhancements_layout->addWidget(m_disable_fog, 6, 0);
-  enhancements_layout->addWidget(m_force_24bit_color, 6, 1);
+  enhancements_layout->addWidget(new QLabel(tr("Ubershaders:")), 3, 0);
+  enhancements_layout->addWidget(m_ubershader_combo, 3, 1, 1, -1);
+
+  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 4, 0);
+  enhancements_layout->addWidget(m_pp_effect, 4, 1);
+  enhancements_layout->addWidget(m_configure_pp_effect, 4, 2);
+
+  enhancements_layout->addWidget(m_scaled_efb_copy, 5, 0);
+  enhancements_layout->addWidget(m_per_pixel_lighting, 5, 1);
+  enhancements_layout->addWidget(m_force_texture_filtering, 6, 0);
+  enhancements_layout->addWidget(m_widescreen_hack, 6, 1);
+  enhancements_layout->addWidget(m_disable_fog, 7, 0);
+  enhancements_layout->addWidget(m_force_24bit_color, 7, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -122,6 +131,9 @@ void EnhancementsWidget::ConnectWidgets()
 {
   connect(m_aa_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
+  connect(m_ubershader_combo,
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+          [this](int) { SaveSettings(); });
   connect(m_pp_effect, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -143,6 +155,13 @@ void EnhancementsWidget::LoadSettings()
   m_aa_combo->setCurrentText(
       QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
   m_aa_combo->setEnabled(m_aa_combo->count() > 1);
+
+  if (Config::GetBase(Config::GFX_DISABLE_SPECIALIZED_SHADERS))
+    m_ubershader_combo->setCurrentIndex(2);
+  else if (Config::GetBase(Config::GFX_BACKGROUND_SHADER_COMPILING))
+    m_ubershader_combo->setCurrentIndex(1);
+  else
+    m_ubershader_combo->setCurrentIndex(0);
 
   // Post Processing Shader
   std::vector<std::string> shaders =
@@ -201,6 +220,10 @@ void EnhancementsWidget::SaveSettings()
 
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
+  int us_value = m_ubershader_combo->currentIndex();
+  Config::SetBaseOrCurrent(Config::GFX_BACKGROUND_SHADER_COMPILING, us_value == 1);
+  Config::SetBaseOrCurrent(Config::GFX_DISABLE_SPECIALIZED_SHADERS, us_value == 2);
+
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
                            m_pp_effect->currentText().toStdString());
 
@@ -234,6 +257,15 @@ void EnhancementsWidget::AddDescriptions()
   static const char* TR_ANISOTROPIC_FILTERING_DESCRIPTION = QT_TR_NOOP(
       "Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique "
       "viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
+
+  static const char* TR_UBERSHADER_DESCRIPTION =
+      QT_TR_NOOP("Disabled: Ubershaders are never used. Stuttering will occur during shader "
+                 "compilation, but GPU demands are low. Recommended for low-end hardware.\n\n"
+                 "Hybrid: Ubershaders will be used to prevent stuttering during shader "
+                 "compilation, but traditional shaders will be used when they will not cause "
+                 "stuttering. Balances performance and smoothness.\n\n"
+                 "Exclusive: Ubershaders will always be used. Only recommended for high-end "
+                 "systems.");
 
   static const char* TR_POSTPROCESSING_DESCRIPTION = QT_TR_NOOP(
       "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
@@ -286,6 +318,7 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
   AddDescription(m_af_combo, TR_ANISOTROPIC_FILTERING_DESCRIPTION);
+  AddDescription(m_ubershader_combo, TR_UBERSHADER_DESCRIPTION);
   AddDescription(m_pp_effect, TR_POSTPROCESSING_DESCRIPTION);
   AddDescription(m_scaled_efb_copy, TR_SCALED_EFB_COPY_DESCRIPTION);
   AddDescription(m_per_pixel_lighting, TR_PER_PIXEL_LIGHTING_DESCRIPTION);
