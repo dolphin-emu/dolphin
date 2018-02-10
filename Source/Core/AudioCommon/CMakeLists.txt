@@ -47,6 +47,7 @@ else()
 endif()
 
 if(WIN32)
+  target_sources(audiocommon PRIVATE WASAPIStream.cpp)
   target_sources(audiocommon PRIVATE XAudio2Stream.cpp)
 
   add_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp")

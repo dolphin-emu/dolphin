@@ -22,14 +22,14 @@ enum class Language;
 enum class Region;
 struct Partition;
 class Volume;
-}
+}  // namespace DiscIO
 namespace IOS
 {
 namespace ES
 {
 class TMDReader;
 }
-}
+}  // namespace IOS
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No Audio Output")
@@ -39,6 +39,7 @@ class TMDReader;
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
+#define BACKEND_WASAPI "WASAPI (Exclusive Mode)"
 
 enum GPUDeterminismMode
 {
@@ -297,6 +298,11 @@ struct SConfig
   bool m_DumpUCode;
   int m_Volume;
   std::string sBackend;
+
+#ifdef _WIN32
+  // WSAPI settings
+  std::string sWASAPIDevice;
+#endif
 
   // Input settings
   bool m_BackgroundInput;

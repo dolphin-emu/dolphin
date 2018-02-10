@@ -10,6 +10,7 @@
 #include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/OpenSLESStream.h"
 #include "AudioCommon/PulseAudioStream.h"
+#include "AudioCommon/WASAPIStream.h"
 #include "AudioCommon/XAudio2Stream.h"
 #include "AudioCommon/XAudio2_7Stream.h"
 #include "Common/Common.h"
@@ -50,6 +51,8 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
     g_sound_stream = std::make_unique<OpenSLESStream>();
+  else if (backend == BACKEND_WASAPI && WASAPIStream::isValid())
+    g_sound_stream = std::make_unique<WASAPIStream>();
 
   if (!g_sound_stream || !g_sound_stream->Init())
   {
@@ -110,6 +113,9 @@ std::vector<std::string> GetSoundBackends()
     backends.push_back(BACKEND_OPENAL);
   if (OpenSLESStream::isValid())
     backends.push_back(BACKEND_OPENSLES);
+  if (WASAPIStream::isValid())
+    backends.push_back(BACKEND_WASAPI);
+
   return backends;
 }
 
@@ -128,7 +134,7 @@ bool SupportsDPL2Decoder(const std::string& backend)
 
 bool SupportsLatencyControl(const std::string& backend)
 {
-  return backend == BACKEND_OPENAL;
+  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 }
 
 bool SupportsVolumeChanges(const std::string& backend)
@@ -136,7 +142,8 @@ bool SupportsVolumeChanges(const std::string& backend)
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2;
+  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2 ||
+         backend == BACKEND_WASAPI;
 }
 
 void UpdateSoundStream()
@@ -231,4 +238,4 @@ void ToggleMuteVolume()
   isMuted = !isMuted;
   UpdateSoundStream();
 }
-}
+}  // namespace AudioCommon

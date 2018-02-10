@@ -52,6 +52,10 @@ private:
   QCheckBox* m_dolby_pro_logic;
   QLabel* m_latency_label;
   QSpinBox* m_latency_spin;
+#ifdef _WIN32
+  QLabel* m_wasapi_device_label;
+  QComboBox* m_wasapi_device_combo;
+#endif
 
   // Audio Stretching
   QCheckBox* m_stretching_enable;
