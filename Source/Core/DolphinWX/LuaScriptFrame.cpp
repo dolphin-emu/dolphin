@@ -34,11 +34,6 @@ std::map<const char*, LuaFunction> m_registered_functions;
 
 static int band(lua_State* L);
 
-static struct luaL_Reg bit[] {
-  { "band", band },
-  { NULL, NULL }  /* sentinel */
-};
-
 static int printToTextCtrl(lua_State* L);
 static int frameAdvance(lua_State* L);
 static int getFrameCount(lua_State* L);
@@ -79,9 +74,6 @@ LuaScriptFrame::LuaScriptFrame(wxWindow* parent)
 
   m_current_instance = this;
   m_lua_thread = nullptr;
-
-  //Create array of libs
-  m_libs.emplace("bit", bit);
 
   // Create function map if it doesn't already exist
   if (m_registered_functions.size() == 0)
@@ -267,7 +259,7 @@ void LuaScriptFrame::RunOnButtonClick(wxCommandEvent& event)
 {
   if (m_lua_thread == nullptr)
   {
-    m_lua_thread = new LuaThread(this, m_file_path->GetValue(), m_libs);
+    m_lua_thread = new LuaThread(this, m_file_path->GetValue());
     m_lua_thread->Run();
   }
 }
@@ -551,6 +543,19 @@ static int setTriggers(lua_State* L)
   LuaScriptFrame::GetCurrentInstance()->GetPadStatus().triggerRight = lua_tointeger(L, 2);
 
   return 0;
+}
+
+int luaopen_libs(lua_State* L)
+{
+  static const luaL_Reg bit[] =
+  {
+    {"band", band},
+    {nullptr, nullptr}
+  };
+
+  luaL_newlib(L, bit);
+  lua_setglobal(L, "bit");
+  return 1;
 }
 #pragma endregion
 }  // namespace Lua

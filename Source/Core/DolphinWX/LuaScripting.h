@@ -29,14 +29,15 @@ using LuaFunction = int (*)(lua_State* L);
 
 class LuaScriptFrame;
 
-extern std::map<const char*, LuaFunction> m_registered_functions;
+extern std::map<const char*, LuaFunction> m_registered_functions; //Should probably pass this to LuaThread during construction
 
 void HookFunction(lua_State*, lua_Debug*);
+int luaopen_libs(lua_State* L);
 
 class LuaThread final : public wxThread
 {
 public:
-  LuaThread(LuaScriptFrame* p, const wxString& file, std::map<const char*, luaL_Reg*> libs);
+  LuaThread(LuaScriptFrame* p, const wxString& file);
   ~LuaThread();
   void GetValues(GCPadStatus* status);
   bool m_destruction_flag = false;
@@ -46,7 +47,6 @@ private:
   LuaScriptFrame* m_parent = nullptr;
   wxString m_file_path;
   wxThread::ExitCode Entry() override;
-  std::map<const char*, luaL_Reg*> m_libs;
 };
 
 class LuaScriptFrame final : public wxFrame
@@ -87,6 +87,5 @@ private:
   wxTextCtrl* m_output_console;
   LuaThread* m_lua_thread;
   static LuaScriptFrame* m_current_instance;
-  std::map<const char*, luaL_Reg*> m_libs;
 };
 }  // namespace Lua

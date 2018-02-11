@@ -11,8 +11,8 @@
 namespace Lua
 {
 
-LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file, std::map<const char*, luaL_Reg*> libs)
-    : m_parent(p), m_file_path(file), m_libs(libs), wxThread()
+LuaThread::LuaThread(LuaScriptFrame* p, const wxString& file)
+    : m_parent(p), m_file_path(file), wxThread()
 {
   // Zero out controller
   m_pad_status.button = 0;
@@ -47,21 +47,7 @@ wxThread::ExitCode LuaThread::Entry()
 
   // Make standard libraries available to loaded script
   luaL_openlibs(state.get());
-
-  //Load custom libraries
-
-  //luaL_newmetatable(state.get(), "bit");
-  //luaL_newlib(state.get(), m_libs["bit"]);
-
-  luaL_Reg* temp = m_libs["bit"];
-  luaL_newlibtable(state.get(), temp);
-  luaL_setfuncs(state.get(), m_libs["bit"], 0);
-  
-  /*for (const auto& x : m_libs)
-  {
-    luaL_newmetatable(state.get(), x.first);
-    luaL_newlib(state.get(), x.second);
-  }*/
+  luaopen_libs(state.get());
 
   // Register additinal functions with Lua
   for (const auto& entry : m_registered_functions)
