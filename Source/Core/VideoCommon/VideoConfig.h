@@ -118,6 +118,7 @@ struct VideoConfig final
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
   bool bSkipXFBCopyToRam;
+  bool bDisableCopyToVRAM;
   bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
