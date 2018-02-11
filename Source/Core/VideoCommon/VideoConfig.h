@@ -118,6 +118,7 @@ struct VideoConfig final
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
   bool bSkipXFBCopyToRam;
+  bool bDisableCopyToVRAM;
   bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
@@ -222,7 +223,6 @@ struct VideoConfig final
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
     bool bSupportsCopyToVram;
-    bool bForceCopyToRam;                  // Needed by Software Renderer
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
