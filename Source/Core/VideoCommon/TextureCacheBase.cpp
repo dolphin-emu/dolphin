@@ -1557,16 +1557,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   //
   // Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush
   // which stalls any further CPU processing.
-  //
-  // For historical reasons, Dolphin doesn't actually implement "pure" EFB to RAM emulation, but
-  // only EFB to texture and hybrid EFB copies.
-
-  bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
-
-  bool copy_to_vram = g_ActiveConfig.backend_info.bSupportsCopyToVram;
+  const bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
+  bool copy_to_vram =
+      g_ActiveConfig.backend_info.bSupportsCopyToVram && !g_ActiveConfig.bDisableCopyToVRAM;
   bool copy_to_ram =
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
-      g_ActiveConfig.backend_info.bForceCopyToRam;
+      !copy_to_vram;
 
   u8* dst = Memory::GetPointer(dstAddr);
   if (dst == nullptr)
