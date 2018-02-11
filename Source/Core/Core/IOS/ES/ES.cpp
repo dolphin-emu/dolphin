@@ -26,6 +26,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
+#include "Core/IOS/VersionInfo.h"
 #include "Core/ec_wii.h"
 
 namespace IOS
@@ -585,6 +586,10 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 
   INFO_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
            TitleID, view, ticketid, devicetype, titleid, access);
+
+  // Prevent loading installed IOSes that are not emulated.
+  if (!IOS::HLE::IsEmulated(TitleID))
+    return GetDefaultReply(FS_ENOENT);
 
   // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
   // Note: Launch will potentially reset the whole IOS state -- including this ES instance.

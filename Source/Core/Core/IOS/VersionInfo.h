@@ -83,5 +83,7 @@ constexpr bool HasFeature(Feature features, Feature feature)
 
 bool HasFeature(u32 major_version, Feature feature);
 Feature GetFeatures(u32 major_version);
+bool IsEmulated(u32 major_version);
+bool IsEmulated(u64 title_id);
 }
 }
