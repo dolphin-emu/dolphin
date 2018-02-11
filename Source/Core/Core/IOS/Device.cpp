@@ -184,10 +184,10 @@ IPCCommandResult Device::Unsupported(const Request& request)
   return GetDefaultReply(IPC_EINVAL);
 }
 
-// Returns an IPCCommandResult for a reply that takes 250 us (arbitrarily chosen value)
+// Returns an IPCCommandResult for a reply that takes 25 us (based on ES::GetTicketViews)
 IPCCommandResult Device::GetDefaultReply(const s32 return_value)
 {
-  return {return_value, true, SystemTimers::GetTicksPerSecond() / 4000};
+  return {return_value, true, SystemTimers::GetTicksPerSecond() / 40000};
 }
 
 // Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply
