@@ -1566,7 +1566,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   bool copy_to_vram = g_ActiveConfig.backend_info.bSupportsCopyToVram;
   bool copy_to_ram =
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
-      g_ActiveConfig.backend_info.bForceCopyToRam;
+      !g_ActiveConfig.backend_info.bSupportsCopyToVram;
 
   u8* dst = Memory::GetPointer(dstAddr);
   if (dst == nullptr)
