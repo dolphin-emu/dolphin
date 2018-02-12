@@ -271,7 +271,7 @@ void MainWindow::ConnectMenuBar()
 void MainWindow::ConnectHotkeys()
 {
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
-  connect(m_hotkey_scheduler, &HotkeyScheduler::PauseHotkey, this, &MainWindow::Pause);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::TogglePauseHotkey, this, &MainWindow::TogglePause);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
@@ -322,7 +322,6 @@ void MainWindow::ConnectRenderWidget()
 {
   m_rendering_to_main = false;
   m_render_widget->hide();
-  connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 
@@ -395,6 +394,18 @@ void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
   EnableScreenSaver(true);
+}
+
+void MainWindow::TogglePause()
+{
+  if (Core::GetState() == Core::State::Paused)
+  {
+    Play();
+  }
+  else
+  {
+    Pause();
+  }
 }
 
 void MainWindow::OnStopComplete()
@@ -577,8 +588,8 @@ void MainWindow::HideRenderWidget()
   }
 
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
-  // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely) recreated
-  disconnect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
+  // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely)
+  // recreated
   disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 
   m_render_widget->hide();
@@ -588,7 +599,6 @@ void MainWindow::HideRenderWidget()
   m_render_widget = new RenderWidget;
 
   m_render_widget->installEventFilter(this);
-  connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 

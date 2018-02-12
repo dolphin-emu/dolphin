@@ -89,14 +89,16 @@ static void HandleFrameskipHotkeys()
     if (frame_step_delay_count < frame_step_delay && frame_step_hold)
       frame_step_delay_count++;
 
-    // TODO GUI Update (Depends on an unimplemented feature)
-    // if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
+    if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
+    {
+      Core::DoFrameStep();
+      frame_step_hold = true;
+    }
 
     if (frame_step_count < FRAME_STEP_DELAY)
     {
-      ++frame_step_count;
-      if (frame_step_hold)
-        frame_step_hold = false;
+      frame_step_count++;
+      frame_step_hold = false;
     }
 
     if (frame_step_count == FRAME_STEP_DELAY && frame_step_hold &&
@@ -108,8 +110,7 @@ static void HandleFrameskipHotkeys()
 
     return;
   }
-
-  if (frame_step_count > 0)
+  else if (frame_step_count > 0)
   {
     // Reset frame advance
     frame_step_count = 0;
@@ -143,7 +144,7 @@ void HotkeyScheduler::Run()
 
       // Pause and Unpause
       if (IsHotkey(HK_PLAY_PAUSE))
-        emit PauseHotkey();
+        emit TogglePauseHotkey();
 
       // Stop
       if (IsHotkey(HK_STOP))

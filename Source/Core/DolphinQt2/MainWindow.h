@@ -53,6 +53,7 @@ private:
   void Open();
   void Play(const std::optional<std::string>& savestate_path = {});
   void Pause();
+  void TogglePause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
   bool RequestStop();
