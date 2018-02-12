@@ -18,14 +18,14 @@ IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
 
 void IRWidget::SetX(u16 x)
 {
-  m_x = std::min(max_x, x);
+  m_x = std::min(ir_max_x, x);
 
   update();
 }
 
 void IRWidget::SetY(u16 y)
 {
-  m_y = std::min(max_y, y);
+  m_y = std::min(ir_max_y, y);
 
   update();
 }
@@ -41,8 +41,8 @@ void IRWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(width() / 2, 0, width() / 2, height());
 
   // convert from value space to widget space
-  u16 x = width() - (m_x * width()) / max_x;
-  u16 y = (m_y * height()) / max_y;
+  u16 x = width() - (m_x * width()) / ir_max_x;
+  u16 y = (m_y * height()) / ir_max_y;
 
   painter.drawLine(width() / 2, height() / 2, x, y);
 
@@ -65,11 +65,11 @@ void IRWidget::mouseMoveEvent(QMouseEvent* event)
 void IRWidget::handleMouseEvent(QMouseEvent* event)
 {
   // convert from widget space to value space
-  int new_x = max_x - (event->x() * max_x) / width();
-  int new_y = (event->y() * max_y) / height();
+  int new_x = ir_max_x - (event->x() * ir_max_x) / width();
+  int new_y = (event->y() * ir_max_y) / height();
 
-  m_x = std::max(0, std::min(static_cast<int>(max_x), new_x));
-  m_y = std::max(0, std::min(static_cast<int>(max_y), new_y));
+  m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
+  m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));
 
   emit ChangedX(m_x);
   emit ChangedY(m_y);

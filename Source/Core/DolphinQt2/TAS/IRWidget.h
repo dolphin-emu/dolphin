@@ -28,11 +28,11 @@ protected:
   void mouseMoveEvent(QMouseEvent* event) override;
   void handleMouseEvent(QMouseEvent* event);
 
-public:
-  static constexpr u16 max_x = 1023;
-  static constexpr u16 max_y = 767;
-
 private:
   u16 m_x = 0;
   u16 m_y = 0;
 };
+
+// Should be part of class but fails to compile on mac os
+static const u16 ir_max_x = 1023;
+static const u16 ir_max_y = 767;

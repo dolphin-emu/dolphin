@@ -28,11 +28,11 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   m_ir_box = new QGroupBox(tr("IR (ALT+F/G)"));
 
   auto* x_layout = new QHBoxLayout;
-  m_ir_x_value = CreateSliderValuePair(this, x_layout, IRWidget::max_x, Qt::Key_F, Qt::Horizontal,
+  m_ir_x_value = CreateSliderValuePair(this, x_layout, ir_max_x, Qt::Key_F, Qt::Horizontal,
                                        m_ir_box, true);
 
   auto* y_layout = new QVBoxLayout;
-  m_ir_y_value = CreateSliderValuePair(this, y_layout, IRWidget::max_y, Qt::Key_G, Qt::Vertical,
+  m_ir_y_value = CreateSliderValuePair(this, y_layout, ir_max_y, Qt::Key_G, Qt::Vertical,
                                        m_ir_box, true);
   m_ir_y_value->setMaximumWidth(60);
 
@@ -44,10 +44,10 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
   connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
 
-  m_ir_x_value->setValue(IRWidget::max_x / 2);
-  m_ir_y_value->setValue(IRWidget::max_y / 2);
+  m_ir_x_value->setValue(ir_max_x / 2);
+  m_ir_y_value->setValue(ir_max_y / 2);
 
-  auto* visual_ar = new AspectRatioWidget(visual, IRWidget::max_x, IRWidget::max_y);
+  auto* visual_ar = new AspectRatioWidget(visual, ir_max_x, ir_max_y);
 
   auto* visual_layout = new QHBoxLayout;
   visual_layout->addWidget(visual_ar);
