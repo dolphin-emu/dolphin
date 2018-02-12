@@ -389,8 +389,10 @@ bool IsEmulated(u64 title_id)
 {
   const bool ios =
       IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != Titles::SYSTEM_MENU;
+  if (!ios)
+    return true;
   const u32 version = static_cast<u32>(title_id);
-  return ios && IsEmulated(version);
+  return IsEmulated(version);
 }
 }
 }
