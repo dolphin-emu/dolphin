@@ -343,7 +343,8 @@ public final class SettingsFragmentPresenter
 		Setting forceFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_FORCE_FILTERING);
 		Setting disableFog = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_FOG);
 		Setting disableCopyFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_COPY_FILTER);
-        Setting force24BitColor = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
+		Setting wideScreenHack = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
+		Setting force24BitColor = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.internal_resolution, R.string.internal_resolution_description, R.array.internalResolutionEntries, R.array.internalResolutionValues, 1, resolution));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
@@ -364,6 +365,7 @@ public final class SettingsFragmentPresenter
         sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.force_24bit_color, R.string.force_24bit_color_description, true, force24BitColor));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_description, false, disableFog));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_copy_filter, R.string.disable_copy_filter_description, false, disableCopyFilter));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.wide_screen_hack, R.string.wide_screen_hack_description, false, wideScreenHack));
 
 		 /*
 		 Check if we support stereo

@@ -171,6 +171,8 @@
     <string name="disable_copy_filter_description">Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". Disabling the filter is usually safe, and may result in a sharper image.</string>
     <string name="stereoscopy_submenu">Stereoscopy</string>
     <string name="stereoscopy_submenu_description">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
+    <string name="wide_screen_hack">Widescreen Hack</string>
+    <string name="wide_screen_hack_description">Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9. Rarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches. If unsure, leave this unchecked.</string>
     <string name="stereoscopy_mode">Stereoscopy Mode</string>
     <string name="stereoscopy_mode_description">Select the stereoscopic 3D mode.</string>
     <string name="stereoscopy_depth">Depth</string>

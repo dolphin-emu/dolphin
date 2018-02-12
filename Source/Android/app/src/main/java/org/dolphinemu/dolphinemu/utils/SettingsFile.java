@@ -101,6 +101,7 @@ public final class SettingsFile
 	public static final String KEY_FORCE_FILTERING = "ForceFiltering";
 	public static final String KEY_DISABLE_FOG = "DisableFog";
 	public static final String KEY_DISABLE_COPY_FILTER = "DisableCopyFilter";
+	public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
 	public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
 
 	public static final String KEY_STEREO_MODE = "StereoMode";
