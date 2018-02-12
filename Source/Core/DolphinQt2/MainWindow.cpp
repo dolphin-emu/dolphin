@@ -64,6 +64,8 @@
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/TAS/GCTASInputWindow.h"
+#include "DolphinQt2/TAS/WiiTASInputWindow.h"
 #include "DolphinQt2/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -167,6 +169,21 @@ void MainWindow::CreateComponents()
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
 
+  for (int i = 0; i < 4; i++)
+  {
+    m_gc_tas_input_windows[i] = new GCTASInputWindow(this, i);
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(this, i);
+  }
+
+  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
+    m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
+  });
+
+  Movie::SetWiiInputManip([this](u8* input_data, WiimoteEmu::ReportFeatures rptf, int controller_id,
+                                 int ext, wiimote_key key) {
+    m_wii_tas_input_windows[controller_id]->GetValues(input_data, rptf, ext, key);
+  });
+
   m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
 
   m_log_widget = new LogWidget(this);
@@ -249,6 +266,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::StartRecording, this, &MainWindow::OnStartRecording);
   connect(m_menu_bar, &MenuBar::StopRecording, this, &MainWindow::OnStopRecording);
   connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
+  connect(m_menu_bar, &MenuBar::ShowTASInput, this, &MainWindow::ShowTASInput);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
@@ -1077,6 +1095,31 @@ void MainWindow::OnExportRecording()
   Core::SetState(Core::State::Running);
 
   Movie::SaveRecording(dtm_file.toStdString());
+}
+
+void MainWindow::ShowTASInput()
+{
+  for (int i = 0; i < num_gc_controllers; i++)
+  {
+    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
+        SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
+    {
+      m_gc_tas_input_windows[i]->show();
+      m_gc_tas_input_windows[i]->raise();
+      m_gc_tas_input_windows[i]->activateWindow();
+    }
+  }
+
+  for (int i = 0; i < num_wii_controllers; i++)
+  {
+    if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
+        (!Core::IsRunning() || SConfig::GetInstance().bWii))
+    {
+      m_wii_tas_input_windows[i]->show();
+      m_wii_tas_input_windows[i]->raise();
+      m_wii_tas_input_windows[i]->activateWindow();
+    }
+  }
 }
 
 void MainWindow::OnConnectWiiRemote(int id)
