@@ -23,7 +23,7 @@ signals:
   void ExitHotkey();
   void FullScreenHotkey();
   void StopHotkey();
-  void PauseHotkey();
+  void TogglePauseHotkey();
   void ScreenShotHotkey();
   void SetStateSlotHotkey(int slot);
   void StateLoadSlotHotkey();

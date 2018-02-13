@@ -34,6 +34,8 @@ class DragEnterEvent;
 class GraphicsWindow;
 class RegisterWidget;
 class WatchWidget;
+class GCTASInputWindow;
+class WiiTASInputWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -53,6 +55,7 @@ private:
   void Open();
   void Play(const std::optional<std::string>& savestate_path = {});
   void Pause();
+  void TogglePause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
   bool RequestStop();
@@ -119,6 +122,7 @@ private:
   void OnStartRecording();
   void OnStopRecording();
   void OnExportRecording();
+  void ShowTASInput();
 
   void EnableScreenSaver(bool enable);
 
@@ -145,6 +149,10 @@ private:
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
+  static constexpr int num_gc_controllers = 4;
+  std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
+  static constexpr int num_wii_controllers = 4;
+  std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
 
   BreakpointWidget* m_breakpoint_widget;
   LogWidget* m_log_widget;

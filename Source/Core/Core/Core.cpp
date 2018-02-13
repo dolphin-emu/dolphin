@@ -629,7 +629,7 @@ State GetState()
 
   if (s_hardware_initialized)
   {
-    if (CPU::IsStepping())
+    if (CPU::IsStepping() || s_frame_step)
       return State::Paused;
 
     return State::Running;

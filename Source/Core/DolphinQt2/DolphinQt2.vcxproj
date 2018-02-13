@@ -47,7 +47,7 @@
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt2.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -86,6 +86,10 @@
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="FIFOPlayerWindow.h" />
+    <QtMoc Include="TAS\GCTASInputWindow.h" />
+    <QtMoc Include="TAS\WiiTASInputWindow.h" />
+    <QtMoc Include="TAS\StickWidget.h" />
+    <QtMoc Include="TAS\IRWidget.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
@@ -101,7 +105,9 @@
     <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="Settings\AudioPane.h" />
-    <QtMoc Include="MainWindow.h" />
+    <QtMoc Include="Settings\WiiPane.h" />
+    <QtMoc Include="Settings\USBDeviceAddToWhitelistDialog.h" />
+	<QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="NetPlay\GameListDialog.h" />
     <QtMoc Include="NetPlay\MD5Dialog.h" />
@@ -110,6 +116,7 @@
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
+    <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
@@ -129,6 +136,10 @@
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOPlayerWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GCTASInputWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiiTASInputWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)StickWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)IRWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
@@ -137,6 +148,7 @@
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeckoCodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiiPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsChoice.cpp" />
@@ -173,6 +185,7 @@
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WatchWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
@@ -216,6 +229,11 @@
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="FIFOPlayerWindow.cpp" />
+    <ClCompile Include="TAS\GCTASInputWindow.cpp" />
+    <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
+    <ClCompile Include="TAS\StickWidget.cpp" />
+    <ClCompile Include="TAS\IRWidget.cpp" />
+    <ClCompile Include="TAS\Shared.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\NewBreakpointDialog.cpp" />
     <ClCompile Include="Debugger\RegisterColumn.cpp" />
@@ -245,6 +263,7 @@
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
+    <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Settings.cpp" />
@@ -254,6 +273,8 @@
     <ClCompile Include="Settings\GeneralPane.cpp" />
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
+    <ClCompile Include="Settings\WiiPane.cpp" />
+	<ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Translation.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
@@ -269,6 +290,7 @@
     <ClInclude Include="Config\Mapping\HotkeyGraphics.h" />
     <ClInclude Include="Config\Mapping\HotkeyStates.h" />
     <ClInclude Include="Config\Mapping\HotkeyTAS.h" />
+    <ClInclude Include="TAS\Shared.h" />
     <ClInclude Include="Config\Mapping\HotkeyWii.h" />
     <ClInclude Include="Config\Mapping\MappingBool.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />

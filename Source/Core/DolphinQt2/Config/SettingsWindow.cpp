@@ -16,6 +16,9 @@
 #include "DolphinQt2/Settings/GeneralPane.h"
 #include "DolphinQt2/Settings/InterfacePane.h"
 #include "DolphinQt2/Settings/PathPane.h"
+#include "DolphinQt2/Settings/WiiPane.h"
+
+#include "Core/Core.h"
 
 static int AddTab(ListTabWidget* tab_widget, const QString& label, QWidget* widget,
                   const char* icon_name)
@@ -45,6 +48,14 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_audio_pane_index = AddTab(m_tabs, tr("Audio"), new AudioPane(), "play");
   AddTab(m_tabs, tr("GameCube"), new GameCubePane(), "gcpad");
   AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
+
+  auto* wii_pane = new WiiPane;
+  AddTab(m_tabs, tr("Wii"), wii_pane, "wiimote");
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [wii_pane](Core::State state) {
+    wii_pane->OnEmulationStateChanged(state != Core::State::Uninitialized);
+  });
+
   AddTab(m_tabs, tr("Advanced"), new AdvancedPane(), "config");
 
   // Dialog box buttons

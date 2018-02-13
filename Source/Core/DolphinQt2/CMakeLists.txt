@@ -96,12 +96,20 @@ set(SRCS
   QtUtils/ElidedButton.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  QtUtils/AspectRatioWidget.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GameCubePane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp
+  Settings/WiiPane.cpp
+  Settings/USBDeviceAddToWhitelistDialog.cpp
+  TAS/GCTASInputWindow.cpp
+  TAS/WiiTASInputWindow.cpp
+  TAS/Shared.cpp
+  TAS/StickWidget.cpp
+  TAS/IRWidget.cpp
 )
 
 list(APPEND LIBS core uicommon)

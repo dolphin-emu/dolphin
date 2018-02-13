@@ -819,7 +819,9 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext,
       }
       else
       {
-        memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
+        // TODO: this code doesnt work, resulting in no IR TAS inputs in e.g. wii sports menu when
+        // no remote extension is used
+        memset(irData, 0xFF, sizeof(wm_ir_extended) * 4);
         wm_ir_extended* const ir_data = (wm_ir_extended*)irData;
         for (size_t i = 0; i < x.size(); ++i)
         {

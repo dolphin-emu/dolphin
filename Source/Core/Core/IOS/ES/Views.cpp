@@ -17,6 +17,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/VersionInfo.h"
 
 namespace IOS
 {
@@ -51,7 +52,12 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
   const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
   u32 view_count = ticket.IsValid() ? static_cast<u32>(ticket.GetNumberOfTickets()) : 0;
 
-  if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
+  if (!IOS::HLE::IsEmulated(TitleID))
+  {
+    view_count = 0;
+    ERROR_LOG(IOS_ES, "GetViewCount: Dolphin doesn't emulate IOS title %016" PRIx64, TitleID);
+  }
+  else if (ShouldReturnFakeViewsForIOSes(TitleID, m_title_context))
   {
     view_count = 1;
     WARN_LOG(IOS_ES, "GetViewCount: Faking IOS title %016" PRIx64 " being present", TitleID);
@@ -74,7 +80,11 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
 
   const IOS::ES::TicketReader ticket = FindSignedTicket(TitleID);
 
-  if (ticket.IsValid())
+  if (!IOS::HLE::IsEmulated(TitleID))
+  {
+    ERROR_LOG(IOS_ES, "GetViews: Dolphin doesn't emulate IOS title %016" PRIx64, TitleID);
+  }
+  else if (ticket.IsValid())
   {
     u32 number_of_views = std::min(maxViews, static_cast<u32>(ticket.GetNumberOfTickets()));
     for (u32 view = 0; view < number_of_views; ++view)
