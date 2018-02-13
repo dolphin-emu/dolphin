@@ -47,13 +47,9 @@ wxThread::ExitCode LuaThread::Entry()
 
   // Make standard libraries available to loaded script
   luaL_openlibs(state.get());
-  luaopen_libs(state.get());
 
-  // Register additinal functions with Lua
-  for (const auto& entry : m_registered_functions)
-  {
-    lua_register(state.get(), entry.first, entry.second);
-  }
+  //Make custom libraries available to loaded script
+  luaopen_libs(state.get());
 
   if (luaL_loadfile(state.get(), m_file_path) != LUA_OK)
   {

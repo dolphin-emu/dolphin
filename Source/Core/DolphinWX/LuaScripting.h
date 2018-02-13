@@ -29,8 +29,6 @@ using LuaFunction = int (*)(lua_State* L);
 
 class LuaScriptFrame;
 
-extern std::map<const char*, LuaFunction> m_registered_functions; //Should probably pass this to LuaThread during construction
-
 void HookFunction(lua_State*, lua_Debug*);
 int luaopen_libs(lua_State* L);
 
