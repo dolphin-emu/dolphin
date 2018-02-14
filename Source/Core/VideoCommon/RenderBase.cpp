@@ -49,7 +49,6 @@
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Debugger.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -255,7 +254,10 @@ void Renderer::DrawDebugText()
   if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
   {
     if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
+    {
+      const Core::PerformanceStatistics& pstats = Core::GetPerformanceStatistics();
+      final_cyan += StringFromFormat("FPS: %.0f - VPS: %.0f", pstats.FPS, pstats.VPS);
+    }
 
     if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
       final_cyan += " - ";
@@ -662,8 +664,6 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // Update the window size based on the frame that was just rendered.
       // Due to depending on guest state, we need to call this every frame.
       SetWindowSize(texture_config.width, texture_config.height);
-
-      m_fps_counter.Update();
 
       if (IsFrameDumping())
         DumpCurrentFrame();

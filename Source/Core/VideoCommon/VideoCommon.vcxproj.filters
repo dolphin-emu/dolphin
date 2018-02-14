@@ -98,9 +98,6 @@
     <ClCompile Include="AVIDump.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="FPSCounter.cpp">
-      <Filter>Util</Filter>
-    </ClCompile>
     <ClCompile Include="HiresTextures.cpp">
       <Filter>Util</Filter>
     </ClCompile>
@@ -174,9 +171,6 @@
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="AbstractTexture.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="AbstractRawTexture.cpp">
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="ShaderGenCommon.cpp">
@@ -266,9 +260,6 @@
     <ClInclude Include="TextureConversionShader.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
-    <ClInclude Include="TextureConvertionShaderGen.h">
-      <Filter>Shader Generators</Filter>
-    </ClInclude>
     <ClInclude Include="VertexShaderGen.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
@@ -279,9 +270,6 @@
       <Filter>Shader Managers</Filter>
     </ClInclude>
     <ClInclude Include="AVIDump.h">
-      <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="FPSCounter.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="HiresTextures.h">
@@ -356,9 +344,6 @@
     <ClInclude Include="AbstractTexture.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractRawTexture.h">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="AsyncShaderCompiler.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -374,6 +359,7 @@
     <ClInclude Include="AbstractStagingTexture.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="TextureConverterShaderGen.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

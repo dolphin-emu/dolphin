@@ -28,7 +28,6 @@
 #include "Common/MathUtil.h"
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -179,8 +178,6 @@ protected:
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
   TargetRectangle m_target_rectangle = {};
-
-  FPSCounter m_fps_counter;
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
