@@ -71,11 +71,6 @@ TextureConverter::~TextureConverter()
     if (it.second.compute_shader != VK_NULL_HANDLE)
       vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second.compute_shader, nullptr);
   }
-
-  if (m_rgb_to_yuyv_shader != VK_NULL_HANDLE)
-    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_rgb_to_yuyv_shader, nullptr);
-  if (m_yuyv_to_rgb_shader != VK_NULL_HANDLE)
-    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_yuyv_to_rgb_shader, nullptr);
 }
 
 bool TextureConverter::Initialize()
@@ -101,12 +96,6 @@ bool TextureConverter::Initialize()
   if (!CreateDecodingTexture())
   {
     PanicAlert("Failed to create decoding texture");
-    return false;
-  }
-
-  if (!CompileYUYVConversionShaders())
-  {
-    PanicAlert("Failed to compile YUYV conversion shaders");
     return false;
   }
 
@@ -273,113 +262,6 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
                                                copy_rect);
   m_encoding_readback_texture->ReadTexels(copy_rect, dest_ptr, memory_stride);
-}
-
-void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride,
-                                                 u32 dst_height, Texture2D* src_texture,
-                                                 const MathUtil::Rectangle<int>& src_rect)
-{
-  StateTracker::GetInstance()->EndRenderPass();
-
-  // Borrow framebuffer from EFB2RAM encoder.
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  static_cast<VKTexture*>(m_encoding_render_texture.get())
-      ->GetRawTexIdentifier()
-      ->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-  // Use fragment shader to convert RGBA to YUYV.
-  // Use linear sampler for downscaling. This texture is in BGRA order, so the data is already in
-  // the order the guest is expecting and we don't have to swap it at readback time. The width
-  // is halved because we're using an RGBA8 texture, but the YUYV data is two bytes per pixel.
-  u32 output_width = dst_width / 2;
-  VkRenderPass render_pass = g_object_cache->GetRenderPass(
-      Util::GetVkFormatForHostTextureFormat(m_encoding_render_texture->GetConfig().format),
-      VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-  UtilityShaderDraw draw(
-      command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
-      g_shader_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE, m_rgb_to_yuyv_shader);
-  VkRect2D region = {{0, 0}, {output_width, dst_height}};
-  draw.BeginRenderPass(static_cast<VKTexture*>(m_encoding_render_texture.get())->GetFramebuffer(),
-                       region);
-  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
-  draw.DrawQuad(0, 0, static_cast<int>(output_width), static_cast<int>(dst_height), src_rect.left,
-                src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
-                static_cast<int>(src_texture->GetWidth()),
-                static_cast<int>(src_texture->GetHeight()));
-  draw.EndRenderPass();
-
-  // Copy from encoding texture to download buffer.
-  MathUtil::Rectangle<int> copy_rect(0, 0, output_width, dst_height);
-  m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
-                                               copy_rect);
-  m_encoding_readback_texture->ReadTexels(copy_rect, dst_ptr, dst_stride);
-}
-
-void TextureConverter::DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr,
-                                                   u32 src_width, u32 src_stride, u32 src_height)
-{
-  // Copies (and our decoding step) cannot be done inside a render pass.
-  StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->SetPendingRebind();
-
-  // Pack each row without any padding in the texel buffer.
-  size_t upload_stride = src_width * sizeof(u16);
-  size_t upload_size = upload_stride * src_height;
-
-  // Reserve space in the texel buffer for storing the raw image.
-  if (!ReserveTexelBufferStorage(upload_size, sizeof(u16)))
-    return;
-
-  // Handle pitch differences here.
-  if (src_stride != upload_stride)
-  {
-    const u8* src_row_ptr = reinterpret_cast<const u8*>(src_ptr);
-    u8* dst_row_ptr = m_texel_buffer->GetCurrentHostPointer();
-    size_t copy_size = std::min(upload_stride, static_cast<size_t>(src_stride));
-    for (u32 row = 0; row < src_height; row++)
-    {
-      std::memcpy(dst_row_ptr, src_row_ptr, copy_size);
-      src_row_ptr += src_stride;
-      dst_row_ptr += upload_stride;
-    }
-  }
-  else
-  {
-    std::memcpy(m_texel_buffer->GetCurrentHostPointer(), src_ptr, upload_size);
-  }
-
-  VkDeviceSize texel_buffer_offset = m_texel_buffer->GetCurrentOffset();
-  m_texel_buffer->CommitMemory(upload_size);
-
-  dst_texture->GetRawTexIdentifier()->TransitionToLayout(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-  // We divide the offset by 4 here because we're fetching RGBA8 elements.
-  // The stride is in RGBA8 elements, so we divide by two because our data is two bytes per pixel.
-  struct PSUniformBlock
-  {
-    int buffer_offset;
-    int src_stride;
-  };
-  PSUniformBlock push_constants = {static_cast<int>(texel_buffer_offset / sizeof(u32)),
-                                   static_cast<int>(src_width / 2)};
-
-  // Convert from the YUYV data now in the intermediate texture to RGBA in the destination.
-  VkRenderPass render_pass = g_object_cache->GetRenderPass(
-      dst_texture->GetRawTexIdentifier()->GetFormat(), VK_FORMAT_UNDEFINED,
-      dst_texture->GetRawTexIdentifier()->GetSamples(), VK_ATTACHMENT_LOAD_OP_DONT_CARE);
-  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
-                         render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                         m_yuyv_to_rgb_shader);
-  VkRect2D region = {{0, 0}, {src_width, src_height}};
-  draw.BeginRenderPass(dst_texture->GetFramebuffer(), region);
-  draw.SetViewportAndScissor(0, 0, static_cast<int>(src_width), static_cast<int>(src_height));
-  draw.SetPSTexelBuffer(m_texel_buffer_view_rgba8_unorm);
-  draw.SetPushConstants(&push_constants, sizeof(push_constants));
-  draw.DrawWithoutVertexBuffer(4);
-  draw.EndRenderPass();
 }
 
 bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format)
@@ -743,67 +625,4 @@ bool TextureConverter::CreateDecodingTexture()
                        &clear_value, 1, &clear_range);
   return true;
 }
-
-bool TextureConverter::CompileYUYVConversionShaders()
-{
-  static const char RGB_TO_YUYV_SHADER_SOURCE[] = R"(
-    SAMPLER_BINDING(0) uniform sampler2DArray source;
-    layout(location = 0) in vec3 uv0;
-    layout(location = 1) in vec4 col0;
-    layout(location = 0) out vec4 ocol0;
-
-    const vec3 y_const = vec3(0.257,0.504,0.098);
-    const vec3 u_const = vec3(-0.148,-0.291,0.439);
-    const vec3 v_const = vec3(0.439,-0.368,-0.071);
-    const vec4 const3 = vec4(0.0625,0.5,0.0625,0.5);
-
-    void main()
-    {
-      vec3 c0 = texture(source, vec3(uv0.xy - dFdx(uv0.xy) * 0.25, 0.0)).rgb;
-      vec3 c1 = texture(source, vec3(uv0.xy + dFdx(uv0.xy) * 0.25, 0.0)).rgb;
-      vec3 c01 = (c0 + c1) * 0.5;
-      ocol0 = vec4(dot(c1, y_const),
-                   dot(c01,u_const),
-                   dot(c0,y_const),
-                   dot(c01, v_const)) + const3;
-    }
-  )";
-
-  static const char YUYV_TO_RGB_SHADER_SOURCE[] = R"(
-    layout(std140, push_constant) uniform PCBlock
-    {
-      int buffer_offset;
-      int src_stride;
-    } PC;
-
-    TEXEL_BUFFER_BINDING(0) uniform samplerBuffer source;
-    layout(location = 0) in vec3 uv0;
-    layout(location = 0) out vec4 ocol0;
-
-    void main()
-    {
-      ivec2 uv = ivec2(gl_FragCoord.xy);
-      int buffer_pos = PC.buffer_offset + uv.y * PC.src_stride + (uv.x / 2);
-      vec4 c0 = texelFetch(source, buffer_pos);
-
-      float y = mix(c0.r, c0.b, (uv.x & 1) == 1);
-      float yComp = 1.164 * (y - 0.0625);
-      float uComp = c0.g - 0.5;
-      float vComp = c0.a - 0.5;
-      ocol0 = vec4(yComp + (1.596 * vComp),
-                   yComp - (0.813 * vComp) - (0.391 * uComp),
-                   yComp + (2.018 * uComp),
-                   1.0);
-    }
-  )";
-
-  std::string header = g_shader_cache->GetUtilityShaderHeader();
-  std::string source = header + RGB_TO_YUYV_SHADER_SOURCE;
-  m_rgb_to_yuyv_shader = Util::CompileAndCreateFragmentShader(source);
-  source = header + YUYV_TO_RGB_SHADER_SOURCE;
-  m_yuyv_to_rgb_shader = Util::CompileAndCreateFragmentShader(source);
-
-  return m_rgb_to_yuyv_shader != VK_NULL_HANDLE && m_yuyv_to_rgb_shader != VK_NULL_HANDLE;
-}
-
 }  // namespace Vulkan
