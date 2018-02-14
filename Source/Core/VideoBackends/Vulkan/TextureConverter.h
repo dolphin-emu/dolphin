@@ -44,14 +44,6 @@ public:
                              u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                              u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half);
 
-  // Encodes texture to guest memory in XFB (YUYV) format.
-  void EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
-                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
-
-  // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
-  void DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr, u32 src_width,
-                                   u32 src_stride, u32 src_height);
-
   bool SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,
                      u32 dst_level, const u8* data, size_t data_size, TextureFormat format,
@@ -78,8 +70,6 @@ private:
 
   bool CreateEncodingTexture();
   bool CreateDecodingTexture();
-
-  bool CompileYUYVConversionShaders();
 
   // Allocates storage in the texel command buffer of the specified size.
   // If the buffer does not have enough space, executes the current command buffer and tries again.
@@ -118,10 +108,6 @@ private:
   };
   std::map<std::pair<TextureFormat, TLUTFormat>, TextureDecodingPipeline> m_decoding_pipelines;
   std::unique_ptr<Texture2D> m_decoding_texture;
-
-  // XFB encoding/decoding shaders
-  VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
-  VkShaderModule m_yuyv_to_rgb_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan
