@@ -50,6 +50,7 @@
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
+#include "DolphinQt2/Debugger/CodeWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
@@ -93,6 +94,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   ConnectRenderWidget();
   ConnectStack();
   ConnectMenuBar();
+  ConnectHotkeys();
 
   InitCoreCallbacks();
 
@@ -121,8 +123,6 @@ void MainWindow::InitControllers()
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
-
-  ConnectHotkeys();
 }
 
 void MainWindow::ShutdownControllers()
@@ -195,11 +195,14 @@ void MainWindow::CreateComponents()
   m_register_widget = new RegisterWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
+  m_code_widget = new CodeWidget(this);
 
   connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+  connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
+          &BreakpointWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -312,11 +315,27 @@ void MainWindow::ConnectHotkeys()
     Movie::SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StepOver, m_code_widget, &CodeWidget::StepOver);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StepOut, m_code_widget, &CodeWidget::StepOut);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::Skip, m_code_widget, &CodeWidget::Skip);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ShowPC, m_code_widget, &CodeWidget::ShowPC);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::SetPC, m_code_widget, &CodeWidget::SetPC);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleBreakpoint, m_code_widget,
+          &CodeWidget::ToggleBreakpoint);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::AddBreakpoint, m_code_widget,
+          &CodeWidget::AddBreakpoint);
 }
 
 void MainWindow::ConnectToolBar()
 {
   addToolBar(m_tool_bar);
+
+  connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
+
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
   connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
@@ -326,6 +345,13 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
+
+  connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
+  connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
+  connect(m_tool_bar, &ToolBar::StepOutPressed, m_code_widget, &CodeWidget::StepOut);
+  connect(m_tool_bar, &ToolBar::SkipPressed, m_code_widget, &CodeWidget::Skip);
+  connect(m_tool_bar, &ToolBar::ShowPCPressed, m_code_widget, &CodeWidget::ShowPC);
+  connect(m_tool_bar, &ToolBar::SetPCPressed, m_code_widget, &CodeWidget::SetPC);
 }
 
 void MainWindow::ConnectGameList()
@@ -352,11 +378,13 @@ void MainWindow::ConnectStack()
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
   addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_code_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
+  tabifyDockWidget(m_log_widget, m_code_widget);
   tabifyDockWidget(m_log_widget, m_register_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);

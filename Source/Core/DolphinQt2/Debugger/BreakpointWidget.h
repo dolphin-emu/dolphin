@@ -25,6 +25,7 @@ public:
                      bool do_break = true);
   void AddRangedMBP(u32 from, u32 to, bool do_read = true, bool do_write = true, bool do_log = true,
                     bool do_break = true);
+  void Update();
 
 protected:
   void closeEvent(QCloseEvent*) override;
@@ -37,8 +38,6 @@ private:
   void OnNewBreakpoint();
   void OnLoad();
   void OnSave();
-
-  void Update();
 
   QToolBar* m_toolbar;
   QTableWidget* m_table;

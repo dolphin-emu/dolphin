@@ -9,7 +9,10 @@
 
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
 #include "VideoCommon/RenderBase.h"
 
@@ -90,10 +93,16 @@ bool Host_RendererIsFullscreen()
 {
   return Host::GetInstance()->GetRenderFullscreen();
 }
+
 void Host_YieldToUI()
 {
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 }
+
+void Host_UpdateDisasmDialog()
+{
+}
+
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
 }
@@ -112,9 +121,6 @@ bool Host_UINeedsControllerState()
   return Settings::Instance().IsControllerStateNeeded();
 }
 void Host_NotifyMapLoaded()
-{
-}
-void Host_UpdateDisasmDialog()
 {
 }
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)

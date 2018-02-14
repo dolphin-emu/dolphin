@@ -9,6 +9,8 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QFileDialog>
+#include <QFontDialog>
+#include <QInputDialog>
 #include <QMap>
 #include <QMessageBox>
 #include <QUrl>
@@ -17,15 +19,22 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Debugger/RSO.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/WiiSaveCrypted.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/State.h"
 #include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
@@ -46,6 +55,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddOptionsMenu();
   AddToolsMenu();
   AddViewMenu();
+  AddSymbolsMenu();
   AddHelpMenu();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
@@ -83,6 +93,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_stop->setEnabled(false);
   m_recording_play->setEnabled(!running);
 
+  // Symbols
+  m_symbols->setEnabled(running);
+
   UpdateStateSlotMenu();
   UpdateToolsMenu(running);
 
@@ -91,9 +104,21 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
 
 void MenuBar::OnDebugModeToggled(bool enabled)
 {
+  // Options
+  m_boot_to_pause->setVisible(enabled);
+  m_automatic_start->setVisible(enabled);
+  m_change_font->setVisible(enabled);
+
+  // View
+  m_show_code->setVisible(enabled);
   m_show_registers->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
+
+  if (enabled)
+    addMenu(m_symbols);
+  else
+    removeAction(m_symbols->menuAction());
 }
 
 void MenuBar::AddFileMenu()
@@ -289,6 +314,14 @@ void MenuBar::AddViewMenu()
 
   view_menu->addSeparator();
 
+  m_show_code = view_menu->addAction(tr("&Code"));
+  m_show_code->setCheckable(true);
+  m_show_code->setChecked(Settings::Instance().IsCodeVisible());
+
+  connect(m_show_code, &QAction::toggled, &Settings::Instance(), &Settings::SetCodeVisible);
+  connect(&Settings::Instance(), &Settings::CodeVisibilityChanged, m_show_code,
+          &QAction::setChecked);
+
   m_show_registers = view_menu->addAction(tr("&Registers"));
   m_show_registers->setCheckable(true);
   m_show_registers->setChecked(Settings::Instance().IsRegistersVisible());
@@ -334,6 +367,25 @@ void MenuBar::AddOptionsMenu()
   AddAction(options_menu, tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
   AddAction(options_menu, tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   AddAction(options_menu, tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+
+  options_menu->addSeparator();
+
+  // Debugging mode only
+  m_boot_to_pause = options_menu->addAction(tr("Boot To Pause"));
+  m_boot_to_pause->setCheckable(true);
+  m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);
+
+  connect(m_boot_to_pause, &QAction::toggled, this,
+          [this](bool enable) { SConfig::GetInstance().bBootToPause = enable; });
+
+  m_automatic_start = options_menu->addAction(tr("&Automatic Start"));
+  m_automatic_start->setCheckable(true);
+  m_automatic_start->setChecked(SConfig::GetInstance().bAutomaticStart);
+
+  connect(m_automatic_start, &QAction::toggled, this,
+          [this](bool enable) { SConfig::GetInstance().bAutomaticStart = enable; });
+
+  m_change_font = AddAction(options_menu, tr("Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
 void MenuBar::AddHelpMenu()
@@ -537,6 +589,35 @@ void MenuBar::AddMovieMenu()
           [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
 }
 
+void MenuBar::AddSymbolsMenu()
+{
+  m_symbols = addMenu(tr("Symbols"));
+
+  AddAction(m_symbols, tr("&Clear Symbols"), this, &MenuBar::ClearSymbols);
+
+  auto* generate = m_symbols->addMenu(tr("Generate Symbols From"));
+  AddAction(generate, tr("Address"), this, &MenuBar::GenerateSymbolsFromAddress);
+  AddAction(generate, tr("Signature Database"), this, &MenuBar::GenerateSymbolsFromSignatureDB);
+  AddAction(generate, tr("RSO Modules"), this, &MenuBar::GenerateSymbolsFromRSO);
+  m_symbols->addSeparator();
+
+  AddAction(m_symbols, tr("&Load Symbol Map"), this, &MenuBar::LoadSymbolMap);
+  AddAction(m_symbols, tr("&Save Symbol Map"), this, &MenuBar::SaveSymbolMap);
+  m_symbols->addSeparator();
+
+  AddAction(m_symbols, tr("&Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
+  AddAction(m_symbols, tr("Save Symbol Map &As..."), this, &MenuBar::SaveSymbolMapAs);
+  m_symbols->addSeparator();
+
+  AddAction(m_symbols, tr("Save Code"), this, &MenuBar::SaveCode);
+  m_symbols->addSeparator();
+
+  AddAction(m_symbols, tr("&Create Signature File..."), this, &MenuBar::CreateSignatureFile);
+  m_symbols->addSeparator();
+
+  AddAction(m_symbols, tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
+}
+
 void MenuBar::UpdateToolsMenu(bool emulation_started)
 {
   m_boot_sysmenu->setEnabled(!emulation_started);
@@ -715,4 +796,182 @@ void MenuBar::OnRecordingStatusChanged(bool recording)
 void MenuBar::OnReadOnlyModeChanged(bool read_only)
 {
   m_recording_read_only->setChecked(read_only);
+}
+
+void MenuBar::ChangeDebugFont()
+{
+  bool okay;
+  QFont font = QFontDialog::getFont(&okay, Settings::Instance().GetDebugFont(), this,
+                                    tr("Pick a debug font"));
+
+  if (okay)
+    Settings::Instance().SetDebugFont(font);
+}
+
+void MenuBar::ClearSymbols()
+{
+  auto result = QMessageBox::warning(this, tr("Confirmation"),
+                                     tr("Do you want to clear the list of symbol names?"),
+                                     QMessageBox::Yes | QMessageBox::Cancel);
+
+  if (result == QMessageBox::Cancel)
+    return;
+
+  g_symbolDB.Clear();
+  Host_NotifyMapLoaded();
+}
+
+void MenuBar::GenerateSymbolsFromAddress()
+{
+  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  Host_NotifyMapLoaded();
+}
+
+void MenuBar::GenerateSymbolsFromSignatureDB()
+{
+  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  SignatureDB db(SignatureDB::HandlerType::DSY);
+  if (db.Load(File::GetSysDirectory() + TOTALDB))
+  {
+    db.Apply(&g_symbolDB);
+    QMessageBox::information(
+        this, tr("Information"),
+        tr("Generated symbol names from '%1'").arg(QString::fromStdString(TOTALDB)));
+    db.List();
+  }
+  else
+  {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("'%1' not found, no symbol names generated").arg(QString::fromStdString(TOTALDB)));
+  }
+
+  Host_NotifyMapLoaded();
+}
+
+void MenuBar::GenerateSymbolsFromRSO()
+{
+  QString text = QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"));
+  bool good;
+  uint address = text.toUInt(&good, 16);
+
+  if (!good)
+  {
+    QMessageBox::warning(this, tr("Error"), tr("Invalid RSO module address: %1").arg(text));
+    return;
+  }
+
+  RSOChainView rso_chain;
+  if (rso_chain.Load(static_cast<u32>(address)))
+  {
+    rso_chain.Apply(&g_symbolDB);
+    Host_NotifyMapLoaded();
+  }
+  else
+  {
+    QMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(text));
+  }
+}
+
+void MenuBar::LoadSymbolMap()
+{
+  std::string existing_map_file, writable_map_file;
+  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+
+  if (!map_exists)
+  {
+    g_symbolDB.Clear();
+    PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
+    SignatureDB db(SignatureDB::HandlerType::DSY);
+    if (db.Load(File::GetSysDirectory() + TOTALDB))
+      db.Apply(&g_symbolDB);
+
+    QMessageBox::warning(this, tr("Warning"),
+                         tr("'%1' not found, scanning for common functions instead")
+                             .arg(QString::fromStdString(writable_map_file)));
+  }
+  else
+  {
+    g_symbolDB.LoadMap(existing_map_file);
+    QMessageBox::information(
+        this, tr("Information"),
+        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file.c_str())));
+  }
+
+  HLE::PatchFunctions();
+  Host_NotifyMapLoaded();
+}
+
+void MenuBar::SaveSymbolMap()
+{
+  std::string existing_map_file, writable_map_file;
+  CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+
+  g_symbolDB.SaveSymbolMap(writable_map_file);
+}
+
+void MenuBar::LoadOtherSymbolMap()
+{
+  QString file = QFileDialog::getOpenFileName(this, tr("Load map file"),
+                                              QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+                                              tr("Dolphin Map File (*.map)"));
+
+  if (file.isEmpty())
+    return;
+
+  g_symbolDB.LoadMap(file.toStdString());
+  HLE::PatchFunctions();
+  Host_NotifyMapLoaded();
+}
+
+void MenuBar::SaveSymbolMapAs()
+{
+  const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
+  QString file = QFileDialog::getSaveFileName(
+      this, tr("Save map file"),
+      QString::fromStdString(File::GetUserPath(D_MAPS_IDX) + "/" + title_id_str + ".map"),
+      tr("Dolphin Map File (*.map)"));
+
+  if (file.isEmpty())
+    return;
+
+  g_symbolDB.SaveSymbolMap(file.toStdString());
+}
+
+void MenuBar::SaveCode()
+{
+  std::string existing_map_file, writable_map_file;
+  CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+
+  const std::string path =
+      writable_map_file.substr(0, writable_map_file.find_last_of(".")) + "_code.map";
+
+  g_symbolDB.SaveCodeMap(path);
+}
+
+void MenuBar::CreateSignatureFile()
+{
+  QString text = QInputDialog::getText(
+      this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
+
+  if (text.isEmpty())
+    return;
+
+  std::string prefix = text.toStdString();
+
+  QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"));
+
+  if (file.isEmpty())
+    return;
+
+  std::string save_path = file.toStdString();
+  SignatureDB db(save_path);
+  db.Populate(&g_symbolDB, prefix);
+  db.Save(save_path);
+  db.List();
+}
+
+void MenuBar::PatchHLEFunctions()
+{
+  HLE::PatchFunctions();
 }

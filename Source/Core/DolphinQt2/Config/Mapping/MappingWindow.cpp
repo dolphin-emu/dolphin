@@ -22,6 +22,7 @@
 #include "DolphinQt2/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
 #include "DolphinQt2/Config/Mapping/Hotkey3D.h"
+#include "DolphinQt2/Config/Mapping/HotkeyDebugging.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGeneral.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGraphics.h"
 #include "DolphinQt2/Config/Mapping/HotkeyStates.h"
@@ -278,6 +279,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new HotkeyGeneral(this);
     AddWidget(tr("General"), widget);
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
+    AddWidget(tr("Debugging"), new HotkeyDebugging(this));
     AddWidget(tr("Wii and Wii Remote"), new HotkeyWii(this));
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
     AddWidget(tr("3D"), new Hotkey3D(this));

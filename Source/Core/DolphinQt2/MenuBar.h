@@ -113,12 +113,27 @@ private:
   void AddToolsMenu();
   void AddHelpMenu();
   void AddMovieMenu();
+  void AddSymbolsMenu();
 
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
   void CheckNAND();
   void NANDExtractCertificates();
+  void ChangeDebugFont();
+
+  // Debugging UI
+  void ClearSymbols();
+  void GenerateSymbolsFromAddress();
+  void GenerateSymbolsFromSignatureDB();
+  void GenerateSymbolsFromRSO();
+  void LoadSymbolMap();
+  void LoadOtherSymbolMap();
+  void SaveSymbolMap();
+  void SaveSymbolMapAs();
+  void SaveCode();
+  void CreateSignatureFile();
+  void PatchHLEFunctions();
 
   void OnSelectionChanged(QSharedPointer<GameFile> game_file);
   void OnRecordingStatusChanged(bool recording);
@@ -164,8 +179,17 @@ private:
   QAction* m_recording_stop;
   QAction* m_recording_read_only;
 
+  // Options
+  QAction* m_boot_to_pause;
+  QAction* m_automatic_start;
+  QAction* m_change_font;
+
   // View
+  QAction* m_show_code;
   QAction* m_show_registers;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
+
+  // Symbols
+  QMenu* m_symbols;
 };

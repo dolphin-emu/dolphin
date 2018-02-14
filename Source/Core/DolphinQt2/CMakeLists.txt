@@ -56,6 +56,7 @@ set(SRCS
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
+  Config/Mapping/HotkeyDebugging.cpp
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGraphics.cpp
   Config/Mapping/HotkeyStates.cpp
@@ -75,6 +76,8 @@ set(SRCS
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
   Debugger/BreakpointWidget.cpp
+  Debugger/CodeViewWidget.cpp
+  Debugger/CodeWidget.cpp
   Debugger/NewBreakpointDialog.cpp
   Debugger/RegisterColumn.cpp
   Debugger/RegisterWidget.cpp

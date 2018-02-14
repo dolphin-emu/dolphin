@@ -19,6 +19,7 @@
 
 class BreakpointWidget;
 struct BootParameters;
+class CodeWidget;
 class FIFOPlayerWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
@@ -155,6 +156,7 @@ private:
   std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
 
   BreakpointWidget* m_breakpoint_widget;
+  CodeWidget* m_code_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   FIFOPlayerWindow* m_fifo_window;
