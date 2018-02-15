@@ -397,7 +397,8 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "\tint4 " I_INDTEXMTX "[6];\n"
             "\tint4 " I_FOGCOLOR ";\n"
             "\tint4 " I_FOGI ";\n"
-            "\tfloat4 " I_FOGF "[2];\n"
+            "\tfloat4 " I_FOGF ";\n"
+            "\tfloat4 " I_FOGRANGE "[3];\n"
             "\tfloat4 " I_ZSLOPE ";\n"
             "\tfloat2 " I_EFBSCALE ";\n"
             "\tuint  bpmem_genmode;\n"
@@ -1331,30 +1332,33 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     // renderer)
     //       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
     //       That's equivalent, but keeps the lower bits of Zs.
-    out.Write("\tfloat ze = (" I_FOGF "[1].x * 16777216.0) / float(" I_FOGI
-              ".y - (zCoord >> " I_FOGI ".w));\n");
+    out.Write("\tfloat ze = (" I_FOGF ".x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
+              ".w));\n");
   }
   else
   {
     // orthographic
     // ze = a*Zs    (here, no B_SHF)
-    out.Write("\tfloat ze = " I_FOGF "[1].x * float(zCoord) / 16777216.0;\n");
+    out.Write("\tfloat ze = " I_FOGF ".x * float(zCoord) / 16777216.0;\n");
   }
 
   // x_adjust = sqrt((x-center)^2 + k^2)/k
   // ze *= x_adjust
-  // TODO Instead of this theoretical calculation, we should use the
-  //      coefficient table given in the fog range BP registers!
   if (uid_data->fog_RangeBaseEnabled)
   {
     out.SetConstantsUsed(C_FOGF, C_FOGF);
-    out.Write("\tfloat x_adjust = (2.0 * (rawpos.x / " I_FOGF "[0].y)) - 1.0 - " I_FOGF "[0].x;\n");
-    out.Write("\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOGF "[0].z * " I_FOGF "[0].z) / " I_FOGF
-              "[0].z;\n");
+    out.Write("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n");
+    out.Write("\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n");
+    out.Write("\tuint indexlower = uint(floor(floatindex));\n");
+    out.Write("\tuint indexupper = indexlower + 1u;\n");
+    out.Write("\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n");
+    out.Write("\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n");
+    out.Write("\tfloat k = lerp(klower, kupper, frac(floatindex));\n");
+    out.Write("\tfloat x_adjust = sqrt(offset * offset + k * k) / k;\n");
     out.Write("\tze *= x_adjust;\n");
   }
 
-  out.Write("\tfloat fog = clamp(ze - " I_FOGF "[1].z, 0.0, 1.0);\n");
+  out.Write("\tfloat fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n");
 
   if (uid_data->fog_fsel > 3)
   {

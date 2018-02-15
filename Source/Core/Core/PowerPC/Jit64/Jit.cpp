@@ -923,10 +923,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           fprToFlush[js.revertFprLoad] = false;
         gpr.Flush(RegCache::FlushMode::MaintainState, gprToFlush);
         fpr.Flush(RegCache::FlushMode::MaintainState, fprToFlush);
-
-        // If a memory exception occurs, the exception handler will read
-        // from PC.  Update PC with the latest value in case that happens.
-        MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
         WriteExceptionExit();
         SwitchToNearCode();
       }

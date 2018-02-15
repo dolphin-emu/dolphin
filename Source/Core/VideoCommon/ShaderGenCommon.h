@@ -301,6 +301,7 @@ inline const char* GetInterpolationQualifier(bool msaa, bool ssaa,
 #define I_FOGCOLOR "cfogcolor"
 #define I_FOGI "cfogi"
 #define I_FOGF "cfogf"
+#define I_FOGRANGE "cfogrange"
 #define I_ZSLOPE "czslope"
 #define I_EFBSCALE "cefbscale"
 
