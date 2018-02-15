@@ -26,6 +26,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+  void UpdateIR(int value);
 
   // Enhancements
   QSpinBox* m_ir_spin;

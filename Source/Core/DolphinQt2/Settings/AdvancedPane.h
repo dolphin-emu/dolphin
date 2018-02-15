@@ -27,6 +27,9 @@ private:
   QLabel* m_cpu_clock_override_slider_label;
   QLabel* m_cpu_clock_override_description;
 
+  QSlider* m_gpu_clock_override_slider;
+  QLabel* m_gpu_clock_override_slider_label;
+
   QCheckBox* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;
 };

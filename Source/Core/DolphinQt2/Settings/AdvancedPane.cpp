@@ -62,6 +62,22 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_description->setWordWrap(true);
   cpu_options_layout->addWidget(cpu_clock_override_description);
 
+  auto* gpu_options = new QGroupBox(tr("GPU Speed"));
+  auto* gpu_options_layout = new QVBoxLayout();
+  gpu_options->setLayout(gpu_options_layout);
+  main_layout->addWidget(gpu_options);
+
+  auto* gpu_clock_override_slider_layout = new QHBoxLayout();
+  gpu_clock_override_slider_layout->setContentsMargins(0, 0, 0, 0);
+  gpu_options_layout->addLayout(gpu_clock_override_slider_layout);
+
+  m_gpu_clock_override_slider = new QSlider(Qt::Horizontal);
+  m_gpu_clock_override_slider->setRange(1, 150);
+  gpu_clock_override_slider_layout->addWidget(m_gpu_clock_override_slider);
+
+  m_gpu_clock_override_slider_label = new QLabel();
+  gpu_clock_override_slider_layout->addWidget(m_gpu_clock_override_slider_label);
+
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));
   rtc_options->setLayout(new QVBoxLayout());
   main_layout->addWidget(rtc_options);
@@ -91,6 +107,7 @@ void AdvancedPane::CreateLayout()
 
 void AdvancedPane::ConnectLayout()
 {
+  // CPU
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
     SConfig::GetInstance().m_OCEnable = enable_clock_override;
@@ -103,6 +120,20 @@ void AdvancedPane::ConnectLayout()
     // Vaguely exponential scaling?
     SConfig::GetInstance().m_OCFactor =
         std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
+    Update();
+  });
+
+  m_custom_rtc_checkbox->setChecked(SConfig::GetInstance().bEnableCustomRTC);
+  connect(m_custom_rtc_checkbox, &QCheckBox::toggled, [this](bool enable_custom_rtc) {
+    SConfig::GetInstance().bEnableCustomRTC = enable_custom_rtc;
+    Update();
+  });
+
+  // GPU
+  m_gpu_clock_override_slider->setValue(static_cast<int>(
+      std::ceil(std::log2f(SConfig::GetInstance().fSyncGpuOverclock) * 25.f + 100.f + 0.5f)));
+  connect(m_gpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
+    SConfig::GetInstance().fSyncGpuOverclock = std::exp2f((oc_factor - 100.f) / 25.f);
     Update();
   });
 
@@ -136,6 +167,9 @@ void AdvancedPane::Update()
     int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
     return tr("%1 % (%2 MHz)").arg(QString::number(percent), QString::number(clock));
   }());
+
+  m_gpu_clock_override_slider_label->setText(
+      tr("%1 %").arg(std::round(SConfig::GetInstance().fSyncGpuOverclock * 100.f)));
 
   m_custom_rtc_checkbox->setEnabled(!running);
   m_custom_rtc_datetime->setEnabled(enable_custom_rtc_widgets);

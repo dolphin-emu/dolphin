@@ -31,6 +31,7 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
+  UpdateIR(m_ir_spin->value());
   connect(parent, &GraphicsWindow::BackendChanged,
           [this](const QString& backend) { LoadSettings(); });
 }
@@ -46,11 +47,6 @@ void EnhancementsWidget::CreateWidgets()
 
   m_ir_spin = new GraphicsSpinBox(0, 1000, Config::GFX_EFB_SCALE);
   m_ir_spin->setSpecialValueText(tr("Auto"));
-
-  connect(m_ir_spin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
-          [this](int value) {
-            m_ir_spin->setSuffix(QStringLiteral("x (%1x%2)").arg(640 * value).arg(528 * value));
-          });
 
   m_aa_combo = new QComboBox();
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
@@ -131,6 +127,8 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
+  connect(m_ir_spin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+          &EnhancementsWidget::UpdateIR);
 }
 
 void EnhancementsWidget::LoadSettings()
@@ -323,4 +321,9 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_3d_depth, TR_3D_DEPTH_DESCRIPTION);
   AddDescription(m_3d_convergence, TR_3D_CONVERGENCE_DESCRIPTION);
   AddDescription(m_3d_swap_eyes, TR_3D_SWAP_EYES_DESCRIPTION);
+}
+
+void EnhancementsWidget::UpdateIR(int value)
+{
+  m_ir_spin->setSuffix(QStringLiteral("x (%1x%2)").arg(640 * value).arg(528 * value));
 }
