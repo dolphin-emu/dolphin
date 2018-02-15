@@ -17,6 +17,7 @@
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
+#include "DolphinQt2/Config/Graphics/GraphicsSpinBox.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/VideoUtils.h"
@@ -43,21 +44,13 @@ void EnhancementsWidget::CreateWidgets()
   auto* enhancements_layout = new QGridLayout();
   enhancements_box->setLayout(enhancements_layout);
 
-  m_ir_combo = new GraphicsChoice({tr("Auto (Multiple of 640x528)"), tr("Native (640x528)"),
-                                   tr("2x Native (1280x1056) for 720p"),
-                                   tr("3x Native (1920x1584) for 1080p"),
-                                   tr("4x Native (2560x2112) for 1440p"),
-                                   tr("5x Native (3200x2640)"), tr("6x Native (3840x3168) for 4K"),
-                                   tr("7x Native (4480x3696)"), tr("8x Native (5120x4224) for 5K")},
-                                  Config::GFX_EFB_SCALE);
+  m_ir_spin = new GraphicsSpinBox(0, 1000, Config::GFX_EFB_SCALE);
+  m_ir_spin->setSpecialValueText(tr("Auto"));
 
-  if (g_Config.iEFBScale > 8)
-  {
-    m_ir_combo->addItem(tr("Custom"));
-    m_ir_combo->setCurrentIndex(m_ir_combo->count() - 1);
-  }
-
-  m_ir_combo->setMaxVisibleItems(m_ir_combo->count());
+  connect(m_ir_spin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+          [this](int value) {
+            m_ir_spin->setSuffix(QStringLiteral("x (%1x%2)").arg(640 * value).arg(528 * value));
+          });
 
   m_aa_combo = new QComboBox();
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
@@ -80,7 +73,7 @@ void EnhancementsWidget::CreateWidgets()
       new GraphicsBool(tr("Force 24-bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
 
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
-  enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
+  enhancements_layout->addWidget(m_ir_spin, 0, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
   enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
@@ -245,7 +238,7 @@ void EnhancementsWidget::AddDescriptions()
       QT_TR_NOOP("Specifies the resolution used to render at. A high resolution greatly improves "
                  "visual quality, but also greatly increases GPU load and can cause issues in "
                  "certain games. Generally speaking, the lower the internal resolution is, the "
-                 "better your performance will be.\n\nIf unsure, select Native.");
+                 "better your performance will be.\n\nIf unsure, select 1x.");
 
   static const char* TR_ANTIALIAS_DESCRIPTION =
       QT_TR_NOOP("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths "
@@ -315,7 +308,7 @@ void EnhancementsWidget::AddDescriptions()
                  "unfiltered.\nMay improve quality of certain textures in some games, but will "
                  "cause issues in others.\n\nIf unsure, leave this unchecked.");
 
-  AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
+  AddDescription(m_ir_spin, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
   AddDescription(m_af_combo, TR_ANISOTROPIC_FILTERING_DESCRIPTION);
   AddDescription(m_ubershader_combo, TR_UBERSHADER_DESCRIPTION);
