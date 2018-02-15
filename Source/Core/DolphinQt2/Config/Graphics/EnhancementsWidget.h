@@ -11,6 +11,7 @@ class QCheckBox;
 class QComboBox;
 class QPushButton;
 class QSlider;
+class QSpinBox;
 
 class EnhancementsWidget final : public GraphicsWidget
 {
@@ -25,9 +26,10 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+  void UpdateIR(int value);
 
   // Enhancements
-  QComboBox* m_ir_combo;
+  QSpinBox* m_ir_spin;
   QComboBox* m_aa_combo;
   QComboBox* m_af_combo;
   QComboBox* m_ubershader_combo;
