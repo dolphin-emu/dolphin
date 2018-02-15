@@ -376,6 +376,10 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
       exit = J(true);
     SetJumpTarget(slow);
   }
+
+  // Helps external systems know which instruction triggered the read.
+  MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
   switch (accessSize)
@@ -435,6 +439,9 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
                   signExtend);
     return;
   }
+
+  // Helps external systems know which instruction triggered the read.
+  MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
 
   // Fall back to general-case code.
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
