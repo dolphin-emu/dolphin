@@ -1157,28 +1157,30 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             BitfieldExtract("bpmem_fogParam3", FogParam3().proj).c_str());
   out.Write("      // perspective\n"
             "      // ze = A/(B - (Zs >> B_SHF)\n"
-            "      ze = (" I_FOGF "[1].x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
+            "      ze = (" I_FOGF ".x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
             ".w));\n"
             "    } else {\n"
             "      // orthographic\n"
             "      // ze = a*Zs    (here, no B_SHF)\n"
-            "      ze = " I_FOGF "[1].x * float(zCoord) / 16777216.0;\n"
+            "      ze = " I_FOGF ".z * float(zCoord) / 16777216.0;\n"
             "    }\n"
             "\n"
             "    if (bool(%s)) {\n",
             BitfieldExtract("bpmem_fogRangeBase", FogRangeParams::RangeBase().Enabled).c_str());
   out.Write("      // x_adjust = sqrt((x-center)^2 + k^2)/k\n"
             "      // ze *= x_adjust\n"
-            "      // TODO Instead of this theoretical calculation, we should use the\n"
-            "      //      coefficient table given in the fog range BP registers!\n"
-            "      float x_adjust = (2.0 * (rawpos.x / " I_FOGF "[0].y)) - 1.0 - " I_FOGF
-            "[0].x; \n"
-            "      x_adjust = sqrt(x_adjust * x_adjust + " I_FOGF "[0].z * " I_FOGF
-            "[0].z) / " I_FOGF "[0].z;\n"
+            "      float offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
+            "      float floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
+            "      uint indexlower = uint(floor(floatindex));\n"
+            "      uint indexupper = indexlower + 1u;\n"
+            "      float klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
+            "      float kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
+            "      float k = lerp(klower, kupper, frac(floatindex));\n"
+            "      float x_adjust = sqrt(offset * offset + k * k) / k;\n"
             "      ze *= x_adjust;\n"
             "    }\n"
             "\n"
-            "    float fog = clamp(ze - " I_FOGF "[1].z, 0.0, 1.0);\n"
+            "    float fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n"
             "\n"
             "    if (fog_function > 3u) {\n"
             "      switch (fog_function) {\n"
