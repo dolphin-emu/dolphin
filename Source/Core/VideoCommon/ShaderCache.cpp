@@ -928,6 +928,7 @@ std::string ShaderCache::GetUtilityShaderHeader() const
   ss << "#define API_D3D " << (m_api_type == APIType::D3D ? 1 : 0) << "\n";
   ss << "#define API_OPENGL " << (m_api_type == APIType::OpenGL ? 1 : 0) << "\n";
   ss << "#define API_VULKAN " << (m_api_type == APIType::Vulkan ? 1 : 0) << "\n";
+  ss << "#define API_METAL " << (m_api_type == APIType::Metal ? 1 : 0) << "\n";
 
   if (m_efb_multisamples > 1)
   {

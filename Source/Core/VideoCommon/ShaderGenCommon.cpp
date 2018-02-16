@@ -56,6 +56,9 @@ std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool 
     case APIType::Vulkan:
       filename += "Vulkan";
       break;
+    case APIType::Metal:
+      filename += "Metal";
+      break;
     default:
       break;
     }
