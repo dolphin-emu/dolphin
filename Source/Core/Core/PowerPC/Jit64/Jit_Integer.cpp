@@ -352,7 +352,7 @@ bool Jit64::CheckMergedBranch(u32 crf)
            ((next.OPCD == 19) && (next.SUBOP10 == 528) /* bcctrx */) ||
            ((next.OPCD == 19) && (next.SUBOP10 == 16) /* bclrx */)) &&
           (next.BO & BO_DONT_DECREMENT_FLAG) && !(next.BO & BO_DONT_CHECK_CONDITION) &&
-          (next.BI >> 2) == crf);
+          (u32)(next.BI >> 2) == crf);
 }
 
 void Jit64::DoMergedBranch()
