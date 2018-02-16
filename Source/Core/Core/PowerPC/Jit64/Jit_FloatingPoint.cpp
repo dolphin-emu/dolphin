@@ -493,7 +493,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   UGeckoInstruction next = js.op[1].inst;
   if (analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE) &&
       CanMergeNextInstructions(1) && next.OPCD == 19 && next.SUBOP10 == 449 &&
-      (u32)(next.CRBA >> 2) == crf && (u32)(next.CRBB >> 2) == crf && (u32)(next.CRBD >> 2) == crf)
+      static_cast<u32>(next.CRBA >> 2) == crf && static_cast<u32>(next.CRBB >> 2) == crf && static_cast<u32>(next.CRBD >> 2) == crf)
   {
     js.skipInstructions = 1;
     js.downcountAmount++;
