@@ -30,6 +30,7 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -638,6 +639,57 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(J
                                                                                jint api)
 {
   eglBindAPI(api);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitGameIni(JNIEnv* env,
+                                                                                jobject obj,
+                                                                                jstring jGameID)
+{
+  // Initialize an empty INI file
+  IniFile ini;
+  std::string gameid = GetJString(env, jGameID);
+
+  __android_log_print(ANDROID_LOG_DEBUG, "InitGameIni", "Initializing base game config file");
+  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + gameid + ".ini");
+}
+
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserSetting(
+    JNIEnv* env, jobject obj, jstring jGameID, jstring jSection, jstring jKey)
+{
+  IniFile ini;
+  std::string gameid = GetJString(env, jGameID);
+  std::string section = GetJString(env, jSection);
+  std::string key = GetJString(env, jKey);
+
+  ini = SConfig::GetInstance().LoadGameIni(gameid, 0);
+  std::string value;
+
+  ini.GetOrCreateSection(section)->Get(key, &value, "-1");
+
+  return env->NewStringUTF(value.c_str());
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserSetting(
+    JNIEnv* env, jobject obj, jstring jGameID, jstring jSection, jstring jKey, jstring jValue)
+{
+  IniFile ini;
+  std::string gameid = GetJString(env, jGameID);
+  std::string section = GetJString(env, jSection);
+  std::string key = GetJString(env, jKey);
+  std::string val = GetJString(env, jValue);
+
+  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + gameid + ".ini");
+
+  if (val != "-1")
+  {
+    ini.GetOrCreateSection(section)->Set(key, val);
+  }
+  else
+  {
+    ini.GetOrCreateSection(section)->Delete(key);
+  }
+
+  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + gameid + ".ini");
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(

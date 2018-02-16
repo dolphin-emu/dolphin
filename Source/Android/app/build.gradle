@@ -96,7 +96,6 @@ dependencies {
 
     // Allows FRP-style asynchronous operations in Android.
     implementation 'io.reactivex:rxandroid:1.2.1'
-
     implementation 'com.nononsenseapps:filepicker:4.1.0'
 }
 
