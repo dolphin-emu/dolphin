@@ -551,6 +551,10 @@ include_directories(Externals/Bochs_disasm)
 
 add_subdirectory(Externals/glslang)
 
+if(ENABLE_METAL)
+  add_subdirectory(Externals/mtlpp EXCLUDE_FROM_ALL)
+endif()
+
 add_subdirectory(Externals/pugixml)
 
 add_subdirectory(Externals/cpp-optparse)
