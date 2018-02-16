@@ -23,6 +23,15 @@ option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 
+# The Metal backend will not build on any platform other than macOS.
+# As it is still experimental, we support building without it.
+if(APPLE)
+  set(ENABLE_METAL_DEFAULT ON)
+else()
+  set(ENABLE_METAL_DEFAULT OFF)
+endif()
+option(ENABLE_METAL "Enable experimental Metal graphics backend" ${ENABLE_METAL_DEFAULT})
+
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
 #  * No data is being sent without explicit user approval (pop up box at first

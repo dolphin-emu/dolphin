@@ -85,3 +85,8 @@ if(FFmpeg_FOUND)
     FFmpeg::swscale
   )
 endif()
+
+# VideoBackendBase.cpp needs to know if the Metal backend is being compiled or not.
+if(ENABLE_METAL)
+  target_compile_definitions(videocommon PRIVATE "HAS_METAL_BACKEND=1")
+endif()

@@ -9,3 +9,8 @@ endif()
 if(NOT APPLE)
   add_subdirectory(Vulkan)
 endif()
+
+if(APPLE)
+  add_subdirectory(Metal)
+endif()
+
