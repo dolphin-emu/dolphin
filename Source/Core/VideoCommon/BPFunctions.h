@@ -17,6 +17,7 @@ namespace BPFunctions
 void FlushPipeline();
 void SetGenerationMode();
 void SetScissor();
+void SetViewport();
 void SetDepthMode();
 void SetBlendMode();
 void ClearScreen(const EFBRectangle& rc);

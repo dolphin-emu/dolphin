@@ -12,6 +12,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace BPFunctions
 {
@@ -48,24 +49,82 @@ void SetScissor()
   const int xoff = bpmem.scissorOffset.x * 2;
   const int yoff = bpmem.scissorOffset.y * 2;
 
-  EFBRectangle rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff, bpmem.scissorBR.x - xoff + 1,
-                  bpmem.scissorBR.y - yoff + 1);
+  EFBRectangle native_rc(bpmem.scissorTL.x - xoff, bpmem.scissorTL.y - yoff,
+                         bpmem.scissorBR.x - xoff + 1, bpmem.scissorBR.y - yoff + 1);
+  native_rc.ClampUL(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
-  if (rc.left < 0)
-    rc.left = 0;
-  if (rc.top < 0)
-    rc.top = 0;
-  if (rc.right > EFB_WIDTH)
-    rc.right = EFB_WIDTH;
-  if (rc.bottom > EFB_HEIGHT)
-    rc.bottom = EFB_HEIGHT;
+  TargetRectangle target_rc = g_renderer->ConvertEFBRectangle(native_rc);
+  g_renderer->SetScissorRect(target_rc);
+}
 
-  if (rc.left > rc.right)
-    rc.right = rc.left;
-  if (rc.top > rc.bottom)
-    rc.bottom = rc.top;
+void SetViewport()
+{
+  int scissor_x_off = bpmem.scissorOffset.x * 2;
+  int scissor_y_off = bpmem.scissorOffset.y * 2;
+  float x = g_renderer->EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissor_x_off);
+  float y = g_renderer->EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_off);
 
-  g_renderer->SetScissorRect(rc);
+  float width = g_renderer->EFBToScaledXf(2.0f * xfmem.viewport.wd);
+  float height = g_renderer->EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+  float max_depth = xfmem.viewport.farZ / 16777216.0f;
+  if (width < 0.f)
+  {
+    x += width;
+    width *= -1;
+  }
+  if (height < 0.f)
+  {
+    y += height;
+    height *= -1;
+  }
+
+  // The maximum depth that is written to the depth buffer should never exceed this value.
+  // This is necessary because we use a 2^24 divisor for all our depth values to prevent
+  // floating-point round-trip errors. However the console GPU doesn't ever write a value
+  // to the depth buffer that exceeds 2^24 - 1.
+  constexpr float GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
+  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    // There's no way to support oversized depth ranges in this situation. Let's just clamp the
+    // range to the maximum value supported by the console GPU and hope for the best.
+    min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
+    max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
+  }
+
+  if (g_renderer->UseVertexDepthRange())
+  {
+    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
+    // Taking into account whether the depth range is inverted or not.
+    if (xfmem.viewport.zRange < 0.0f && g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    {
+      min_depth = GX_MAX_DEPTH;
+      max_depth = 0.0f;
+    }
+    else
+    {
+      min_depth = 0.0f;
+      max_depth = GX_MAX_DEPTH;
+    }
+  }
+
+  float near_depth, far_depth;
+  if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+  {
+    // Set the reversed depth range.
+    near_depth = max_depth;
+    far_depth = min_depth;
+  }
+  else
+  {
+    // We use an inverted depth range here to apply the Reverse Z trick.
+    // This trick makes sure we match the precision provided by the 1:0
+    // clipping depth range on the hardware.
+    near_depth = 1.0f - max_depth;
+    far_depth = 1.0f - min_depth;
+  }
+
+  g_renderer->SetViewport(x, y, width, height, near_depth, far_depth);
 }
 
 void SetDepthMode()

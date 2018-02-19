@@ -70,14 +70,17 @@ public:
   };
 
   virtual void SetBlendingState(const BlendingState& state) {}
-  virtual void SetScissorRect(const EFBRectangle& rc) {}
+  virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetRasterizationState(const RasterizationState& state) {}
   virtual void SetDepthState(const DepthState& state) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
   virtual void SetInterlacingMode() {}
-  virtual void SetViewport() {}
+  virtual void SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
+  {
+  }
   virtual void SetFullscreen(bool enable_fullscreen) {}
   virtual bool IsFullscreen() const { return false; }
   virtual void ApplyState() {}
@@ -183,8 +186,6 @@ protected:
   FPSCounter m_fps_counter;
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
-
-  static const float GX_MAX_DEPTH;
 
   void* m_surface_handle = nullptr;
   void* m_new_surface_handle = nullptr;

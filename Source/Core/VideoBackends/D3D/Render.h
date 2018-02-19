@@ -27,14 +27,15 @@ public:
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
 
   void SetBlendingState(const BlendingState& state) override;
-  void SetScissorRect(const EFBRectangle& rc) override;
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
-  void SetViewport() override;
+  void SetViewport(float x, float y, float width, float height, float near_depth,
+                   float far_depth) override;
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 

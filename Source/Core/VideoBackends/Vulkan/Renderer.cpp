@@ -810,7 +810,7 @@ void Renderer::RecreateEFBFramebuffer()
   BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.
-  SetViewport();
+  BPFunctions::SetViewport();
   BPFunctions::SetScissor();
 }
 
@@ -899,53 +899,18 @@ void Renderer::SetInterlacingMode()
 {
 }
 
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle target_rc = ConvertEFBRectangle(rc);
-
-  VkRect2D scissor = {
-      {target_rc.left, target_rc.top},
-      {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
-
+  VkRect2D scissor = {{rc.left, rc.top},
+                      {static_cast<u32>(rc.GetWidth()), static_cast<u32>(rc.GetHeight())}};
   StateTracker::GetInstance()->SetScissor(scissor);
 }
 
-void Renderer::SetViewport()
+void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
 {
-  int scissor_x_offset = bpmem.scissorOffset.x * 2;
-  int scissor_y_offset = bpmem.scissorOffset.y * 2;
-
-  float x = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissor_x_offset);
-  float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
-  float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
-  if (width < 0.0f)
-  {
-    x += width;
-    width = -width;
-  }
-  if (height < 0.0f)
-  {
-    y += height;
-    height = -height;
-  }
-
-  // If an oversized or inverted depth range is used, we need to calculate the depth range in the
-  // vertex shader.
-  // TODO: Inverted depth ranges are bugged in all drivers, which should be added to DriverDetails.
-  if (UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    min_depth = 0.0f;
-    max_depth = GX_MAX_DEPTH;
-  }
-
-  // We use an inverted depth range here to apply the Reverse Z trick.
-  // This trick makes sure we match the precision provided by the 1:0
-  // clipping depth range on the hardware.
-  VkViewport viewport = {x, y, width, height, 1.0f - max_depth, 1.0f - min_depth};
+  VkViewport viewport = {x,          y,        std::max(width, 1.0f), std::max(height, 1.0f),
+                         near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 

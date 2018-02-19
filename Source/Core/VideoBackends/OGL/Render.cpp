@@ -863,20 +863,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-// Function: This function handles the OpenGL glScissor() function
-// ----------------------------
-// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-//		case 0x52 > SetScissorRect()
-// ----------------------------
-// bpmem.scissorTL.x, y = 342x342
-// bpmem.scissorBR.x, y = 981x821
-// Renderer::GetTargetHeight() = the fixed ini file setting
-// donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
-// therefore the width and height are (scissorBR + 1) - scissorTL
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle trc = ConvertEFBRectangle(rc);
-  glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
+  glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
 void ClearEFBCache()
@@ -1136,75 +1125,23 @@ void Renderer::BBoxWrite(int index, u16 _value)
   BoundingBox::Set(index, value);
 }
 
-void Renderer::SetViewport()
+void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
 {
-  // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-  // [0] = width/2
-  // [1] = height/2
-  // [2] = 16777215 * (farz - nearz)
-  // [3] = xorig + width/2 + 342
-  // [4] = yorig + height/2 + 342
-  // [5] = 16777215 * farz
-
-  int scissorXOff = bpmem.scissorOffset.x * 2;
-  int scissorYOff = bpmem.scissorOffset.y * 2;
-
-  // TODO: ceil, floor or just cast to int?
-  float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
-  float Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht +
-                          (float)scissorYOff);
-  float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
-  if (Width < 0)
-  {
-    X += Width;
-    Width *= -1;
-  }
-  if (Height < 0)
-  {
-    Y += Height;
-    Height *= -1;
-  }
-
-  // Update the view port
+  // The x/y parameters here assume a upper-left origin. glViewport takes an offset from the
+  // lower-left of the framebuffer, so we must set y to the distance from the lower-left.
+  y = static_cast<float>(m_target_height) - y - height;
   if (g_ogl_config.bSupportViewportFloat)
   {
-    glViewportIndexedf(0, X, Y, Width, Height);
+    glViewportIndexedf(0, x, y, width, height);
   }
   else
   {
-    auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
-    glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
+    auto iceilf = [](float f) { return static_cast<GLint>(std::ceil(f)); };
+    glViewport(iceilf(x), iceilf(y), iceilf(width), iceilf(height));
   }
 
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    // There's no way to support oversized depth ranges in this situation. Let's just clamp the
-    // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-    max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
-  }
-
-  if (UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    // Taking into account whether the depth range is inverted or not.
-    if (xfmem.viewport.zRange < 0.0f)
-    {
-      min_depth = GX_MAX_DEPTH;
-      max_depth = 0.0f;
-    }
-    else
-    {
-      min_depth = 0.0f;
-      max_depth = GX_MAX_DEPTH;
-    }
-  }
-
-  // Set the reversed depth range.
-  glDepthRangef(max_depth, min_depth);
+  glDepthRangef(near_depth, far_depth);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -1563,9 +1500,9 @@ void Renderer::RestoreAPIState()
   }
   BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
+  BPFunctions::SetViewport();
   BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
-  SetViewport();
 
   ProgramShaderCache::BindLastVertexFormat();
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());

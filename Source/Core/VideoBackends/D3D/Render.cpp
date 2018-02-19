@@ -258,10 +258,10 @@ bool Renderer::CheckForResize()
   return false;
 }
 
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle trc = ConvertEFBRectangle(rc);
-  D3D::context->RSSetScissorRects(1, trc.AsRECT());
+  const RECT rect = {rc.left, rc.top, rc.right, rc.bottom};
+  D3D::context->RSSetScissorRects(1, &rect);
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -445,59 +445,17 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   RestoreAPIState();
 }
 
-void Renderer::SetViewport()
+void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
 {
-  // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-  // [0] = width/2
-  // [1] = height/2
-  // [2] = 16777215 * (farz - nearz)
-  // [3] = xorig + width/2 + 342
-  // [4] = yorig + height/2 + 342
-  // [5] = 16777215 * farz
-
-  // D3D crashes for zero viewports
-  if (xfmem.viewport.wd == 0 || xfmem.viewport.ht == 0)
-    return;
-
-  int scissorXOff = bpmem.scissorOffset.x * 2;
-  int scissorYOff = bpmem.scissorOffset.y * 2;
-
-  float X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
-  float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
-  float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
-  if (Wd < 0.0f)
-  {
-    X += Wd;
-    Wd = -Wd;
-  }
-  if (Ht < 0.0f)
-  {
-    Y += Ht;
-    Ht = -Ht;
-  }
-
-  // If an inverted or oversized depth range is used, we need to calculate the depth range in the
-  // vertex shader.
-  if (UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    min_depth = 0.0f;
-    max_depth = GX_MAX_DEPTH;
-  }
-
   // In D3D, the viewport rectangle must fit within the render target.
-  X = (X >= 0.f) ? X : 0.f;
-  Y = (Y >= 0.f) ? Y : 0.f;
-  Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
-  Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
-
-  // We use an inverted depth range here to apply the Reverse Z trick.
-  // This trick makes sure we match the precision provided by the 1:0
-  // clipping depth range on the hardware.
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - max_depth, 1.0f - min_depth);
+  D3D11_VIEWPORT vp;
+  vp.TopLeftX = MathUtil::Clamp(x, 0.0f, static_cast<float>(m_target_width - 1));
+  vp.TopLeftY = MathUtil::Clamp(y, 0.0f, static_cast<float>(m_target_height - 1));
+  vp.Width = MathUtil::Clamp(width, 1.0f, static_cast<float>(m_target_width) - vp.TopLeftX);
+  vp.Height = MathUtil::Clamp(height, 1.0f, static_cast<float>(m_target_height) - vp.TopLeftY);
+  vp.MinDepth = near_depth;
+  vp.MaxDepth = far_depth;
   D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -673,7 +631,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // begin next frame
   RestoreAPIState();
   FramebufferManager::BindEFBRenderTarget();
-  SetViewport();
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -690,7 +647,7 @@ void Renderer::RestoreAPIState()
   D3D::stateman->PopBlendState();
   D3D::stateman->PopDepthState();
   D3D::stateman->PopRasterizerState();
-  SetViewport();
+  BPFunctions::SetViewport();
   BPFunctions::SetScissor();
 }
 
