@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.os.Bundle;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
@@ -24,7 +26,8 @@ public final class SettingsFragmentPresenter
 {
 	private SettingsFragmentView mView;
 
-	private String mMenuTag;
+	public static final String ARG_CONTROLLER_TYPE = "controller_type";
+	private MenuTag mMenuTag;
 
 	private ArrayList<HashMap<String, SettingSection>> mSettings;
 	private ArrayList<SettingsItem> mSettingsList;
@@ -37,24 +40,17 @@ public final class SettingsFragmentPresenter
 		mView = view;
 	}
 
-	public void onCreate(String menuTag)
+	public void onCreate(MenuTag menuTag, Bundle extras)
 	{
-		if (menuTag.startsWith(SettingsFile.KEY_GCPAD_TYPE))
+		this.mMenuTag = menuTag;
+		if (menuTag.isGCPadMenu() || menuTag.isWiimoteExtensionMenu())
 		{
-			mMenuTag = SettingsFile.KEY_GCPAD_TYPE;
-			mControllerNumber = Character.getNumericValue(menuTag.charAt(menuTag.length() - 2));
-			mControllerType = Character.getNumericValue(menuTag.charAt(menuTag.length() - 1));
+			mControllerNumber = menuTag.getSubType();
+			mControllerType = extras.getInt(ARG_CONTROLLER_TYPE);
 		}
-		else if (menuTag.startsWith(SettingsFile.SECTION_WIIMOTE) && !menuTag.equals(SettingsFile.FILE_NAME_WIIMOTE))
+		else if (menuTag.isWiimoteMenu())
 		{
-			mMenuTag = SettingsFile.SECTION_WIIMOTE;
-			mControllerNumber = Character.getNumericValue(menuTag.charAt(menuTag.length() - 1)) + 3;
-		}
-		else if (menuTag.startsWith(SettingsFile.KEY_WIIMOTE_EXTENSION))
-		{
-			mMenuTag = SettingsFile.KEY_WIIMOTE_EXTENSION;
-			mControllerNumber = Character.getNumericValue(menuTag.charAt(menuTag.length() - 2)) + 3;
-			mControllerType = Character.getNumericValue(menuTag.charAt(menuTag.length() - 1));
+			mControllerNumber = menuTag.getSubType();
 		}
 		else
 		{
@@ -110,43 +106,52 @@ public final class SettingsFragmentPresenter
 
 		switch (mMenuTag)
 		{
-			case SettingsFile.FILE_NAME_DOLPHIN:
+			case CORE:
 				addCoreSettings(sl);
 				break;
 
-			case SettingsFile.FILE_NAME_GFX:
+			case GRAPHICS:
 				addGraphicsSettings(sl);
 				break;
 
-			case SettingsFile.FILE_NAME_GCPAD:
+			case GCPAD_TYPE:
 				addGcPadSettings(sl);
 				break;
 
-			case SettingsFile.FILE_NAME_WIIMOTE:
+			case WIIMOTE:
 				addWiimoteSettings(sl);
 				break;
 
-			case SettingsFile.SECTION_GFX_ENHANCEMENTS:
+			case ENHANCEMENTS:
 				addEnhanceSettings(sl);
 				break;
 
-			case SettingsFile.SECTION_GFX_HACKS:
+			case HACKS:
 				addHackSettings(sl);
 				break;
 
-			case SettingsFile.KEY_GCPAD_TYPE:
+			case GCPAD_1:
+			case GCPAD_2:
+			case GCPAD_3:
+			case GCPAD_4:
 				addGcPadSubSettings(sl, mControllerNumber, mControllerType);
 				break;
 
-			case SettingsFile.SECTION_WIIMOTE:
+			case WIIMOTE_1:
+			case WIIMOTE_2:
+			case WIIMOTE_3:
+			case WIIMOTE_4:
 				addWiimoteSubSettings(sl, mControllerNumber);
 				break;
 
-			case SettingsFile.KEY_WIIMOTE_EXTENSION:
+			case WIIMOTE_EXTENSION_1:
+			case WIIMOTE_EXTENSION_2:
+			case WIIMOTE_EXTENSION_3:
+			case WIIMOTE_EXTENSION_4:
 				addExtensionTypeSettings(sl, mControllerNumber, mControllerType);
 				break;
 
-			case SettingsFile.SECTION_STEREOSCOPY:
+			case STEREOSCOPY:
 				addStereoSettings(sl);
 				break;
 
@@ -228,7 +233,7 @@ public final class SettingsFragmentPresenter
 			{
 				// TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
 				Setting gcPadSetting = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
-				sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0, gcPadSetting));
+				sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0, gcPadSetting, MenuTag.getGCPadMenuTag(i)));
 			}
 		}
 	}
@@ -241,7 +246,7 @@ public final class SettingsFragmentPresenter
 			{
 				// TODO This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
 				Setting wiimoteSetting = mSettings.get(SettingsFile.SETTINGS_WIIMOTE).get(SettingsFile.SECTION_WIIMOTE + i).getSetting(SettingsFile.KEY_WIIMOTE_TYPE);
-				sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_TYPE, SettingsFile.SECTION_WIIMOTE + i, SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_0 + i - 1, 0, R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, 0, wiimoteSetting));
+				sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_TYPE, SettingsFile.SECTION_WIIMOTE + i, SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_0 + i - 1, 0, R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, 0, wiimoteSetting, MenuTag.getWiimoteMenuTag(i)));
 			}
 		}
 	}
@@ -268,8 +273,8 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_descrip, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, 0, false, showFps));
 
-		sl.add(new SubmenuSetting(null, null, R.string.enhancements, 0, SettingsFile.SECTION_GFX_ENHANCEMENTS));
-		sl.add(new SubmenuSetting(null, null, R.string.hacks, 0, SettingsFile.SECTION_GFX_HACKS));
+		sl.add(new SubmenuSetting(null, null, R.string.enhancements, 0, MenuTag.ENHANCEMENTS));
+		sl.add(new SubmenuSetting(null, null, R.string.hacks, 0, MenuTag.HACKS));
 	}
 
 	private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -309,7 +314,7 @@ public final class SettingsFragmentPresenter
 		if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
 				(helper.supportsGLES3() && helper.GetVersion() >= 310 && helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
 		{
-			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy, R.string.stereoscopy_descrip, SettingsFile.SECTION_STEREOSCOPY));
+			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy, R.string.stereoscopy_descrip, MenuTag.STEREOSCOPY));
 		}
 	}
 
@@ -427,7 +432,7 @@ public final class SettingsFragmentPresenter
 	private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
 	{
 		// Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
-		IntSetting extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, getExtensionValue(wiimoteNumber - 3));
+		IntSetting extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + wiimoteNumber, SettingsFile.SETTINGS_WIIMOTE, getExtensionValue(wiimoteNumber), MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
 		Setting bindA = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber);
 		Setting bindB = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_B + wiimoteNumber);
 		Setting bind1 = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_1 + wiimoteNumber);
@@ -461,7 +466,7 @@ public final class SettingsFragmentPresenter
 		Setting bindDPadLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber);
 		Setting bindDPadRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_extensions, R.string.wiimote_extensions_descrip, R.array.wiimoteExtensionsEntries, R.array.wiimoteExtensionsValues, 0, extension));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + wiimoteNumber, SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_extensions, R.string.wiimote_extensions_descrip, R.array.wiimoteExtensionsEntries, R.array.wiimoteExtensionsValues, 0, extension, MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
 
 		sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
 		sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber, SettingsFile.SECTION_BINDINGS, SettingsFile.SETTINGS_DOLPHIN, R.string.button_a, bindA));

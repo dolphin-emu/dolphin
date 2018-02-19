@@ -6,8 +6,8 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
-import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -41,19 +41,19 @@ public final class MainPresenter
 		switch (itemId)
 		{
 			case R.id.menu_settings_core:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_DOLPHIN);
+				mView.launchSettingsActivity(MenuTag.CORE);
 				return true;
 
 			case R.id.menu_settings_video:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_GFX);
+				mView.launchSettingsActivity(MenuTag.GRAPHICS);
 				return true;
 
 			case R.id.menu_settings_gcpad:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_GCPAD);
+				mView.launchSettingsActivity(MenuTag.GCPAD_TYPE);
 				return true;
 
 			case R.id.menu_settings_wiimote:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_WIIMOTE);
+				mView.launchSettingsActivity(MenuTag.WIIMOTE);
 				return true;
 
 			case R.id.menu_refresh:

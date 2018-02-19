@@ -234,20 +234,23 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			SingleChoiceSetting scSetting = (SingleChoiceSetting) mClickedItem;
 
 			int value = getValueForSingleChoiceSelection(scSetting, which);
-
-			if (scSetting.getKey().startsWith(SettingsFile.KEY_GCPAD_TYPE))
+			MenuTag menuTag = scSetting.getMenuTag();
+			if(menuTag != null)
 			{
-				mView.onGcPadSettingChanged(scSetting.getKey(), value);
-			}
+				if (menuTag.isGCPadMenu())
+				{
+					mView.onGcPadSettingChanged(menuTag, value);
+				}
 
-			if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_TYPE))
-			{
-				mView.onWiimoteSettingChanged(scSetting.getSection(), value);
-			}
+				if (menuTag.isWiimoteMenu())
+				{
+					mView.onWiimoteSettingChanged(menuTag, value);
+				}
 
-			if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
-			{
-				mView.onExtensionSettingChanged(scSetting.getKey() + Character.getNumericValue(scSetting.getSection().charAt(scSetting.getSection().length() - 1)), value);
+				if (menuTag.isWiimoteExtensionMenu())
+				{
+					mView.onExtensionSettingChanged(menuTag, value);
+				}
 			}
 
 			// Get the backing Setting, which may be null (if for example it was missing from the file)

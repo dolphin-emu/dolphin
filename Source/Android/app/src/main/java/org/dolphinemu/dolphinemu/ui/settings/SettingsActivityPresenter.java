@@ -30,14 +30,14 @@ public final class SettingsActivityPresenter
 
 	private DirectoryStateReceiver directoryStateReceiver;
 
-	private String menuTag;
+	private MenuTag menuTag;
 
 	public SettingsActivityPresenter(SettingsActivityView view)
 	{
 		mView = view;
 	}
 
-	public void onCreate(Bundle savedInstanceState, String menuTag)
+	public void onCreate(Bundle savedInstanceState, MenuTag menuTag)
 	{
 		if (savedInstanceState == null)
 		{
@@ -63,7 +63,7 @@ public final class SettingsActivityPresenter
 			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
 		}
 
-		mView.showSettingsFragment(menuTag, false);
+		mView.showSettingsFragment(menuTag, null, false);
 		mView.onSettingsFileLoaded(mSettings);
 	}
 
@@ -168,20 +168,22 @@ public final class SettingsActivityPresenter
 		outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
 	}
 
-	public void onGcPadSettingChanged(String key, int value)
+	public void onGcPadSettingChanged(MenuTag key, int value)
 	{
 		if (value != 0) // Not disabled
 		{
-			mView.showSettingsFragment(key + (value / 6), true);
+			Bundle bundle = new Bundle();
+			bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value/6);
+			mView.showSettingsFragment(key, bundle, true);
 		}
 	}
 
-	public void onWiimoteSettingChanged(String section, int value)
+	public void onWiimoteSettingChanged(MenuTag menuTag, int value)
 	{
 		switch (value)
 		{
 			case 1:
-				mView.showSettingsFragment(section, true);
+				mView.showSettingsFragment(menuTag, null, true);
 				break;
 
 			case 2:
@@ -190,11 +192,13 @@ public final class SettingsActivityPresenter
 		}
 	}
 
-	public void onExtensionSettingChanged(String key, int value)
+	public void onExtensionSettingChanged(MenuTag menuTag, int value)
 	{
 		if (value != 0) // None
 		{
-			mView.showSettingsFragment(key + value, true);
+			Bundle bundle = new Bundle();
+			bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+			mView.showSettingsFragment(menuTag, bundle, true);
 		}
 	}
 }

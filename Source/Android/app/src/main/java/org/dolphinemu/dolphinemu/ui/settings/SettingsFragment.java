@@ -24,18 +24,22 @@ import java.util.HashMap;
 public final class SettingsFragment extends Fragment implements SettingsFragmentView
 {
 	private static final String ARGUMENT_MENU_TAG = "menu_tag";
-
 	private SettingsFragmentPresenter mPresenter = new SettingsFragmentPresenter(this);
 	private SettingsActivityView mActivity;
 
 	private SettingsAdapter mAdapter;
 
-	public static Fragment newInstance(String menuTag)
+	public static Fragment newInstance(MenuTag menuTag, Bundle extras)
 	{
 		SettingsFragment fragment = new SettingsFragment();
 
 		Bundle arguments = new Bundle();
-		arguments.putString(ARGUMENT_MENU_TAG, menuTag);
+		if(extras != null)
+		{
+			arguments.putAll(extras);
+		}
+
+		arguments.putSerializable(ARGUMENT_MENU_TAG, menuTag);
 
 		fragment.setArguments(arguments);
 		return fragment;
@@ -70,11 +74,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		super.onCreate(savedInstanceState);
 
 		setRetainInstance(true);
-		String menuTag = getArguments().getString(ARGUMENT_MENU_TAG);
+		Bundle args = getArguments();
+		MenuTag menuTag = (MenuTag) args.getSerializable(ARGUMENT_MENU_TAG);
 
 		mAdapter = new SettingsAdapter(this, getActivity());
 
-		mPresenter.onCreate(menuTag);
+		mPresenter.onCreate(menuTag, args);
 	}
 
 	@Nullable
@@ -145,9 +150,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
-	public void loadSubMenu(String menuKey)
+	public void loadSubMenu(MenuTag menuKey)
 	{
-		mActivity.showSettingsFragment(menuKey, true);
+		mActivity.showSettingsFragment(menuKey, null, true);
 	}
 
 	@Override
@@ -169,21 +174,21 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
-	public void onGcPadSettingChanged(String key, int value)
+	public void onGcPadSettingChanged(MenuTag menuTag, int value)
 	{
-		mActivity.onGcPadSettingChanged(key, value);
+		mActivity.onGcPadSettingChanged(menuTag, value);
 	}
 
 	@Override
-	public void onWiimoteSettingChanged(String section, int value)
+	public void onWiimoteSettingChanged(MenuTag menuTag, int value)
 	{
-		mActivity.onWiimoteSettingChanged(section, value);
+		mActivity.onWiimoteSettingChanged(menuTag, value);
 	}
 
 	@Override
-	public void onExtensionSettingChanged(String key, int value)
+	public void onExtensionSettingChanged(MenuTag menuTag, int value)
 	{
-		mActivity.onExtensionSettingChanged(key, value);
+		mActivity.onExtensionSettingChanged(menuTag, value);
 	}
 
 }
