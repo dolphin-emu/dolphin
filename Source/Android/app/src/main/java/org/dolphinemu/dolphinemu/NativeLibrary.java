@@ -11,6 +11,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.content.res.AssetManager;
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -230,6 +231,12 @@ public final class NativeLibrary
 	 * @param Value  The value of the axis represented by the given ID.
 	 */
 	public static native void onGamePadMoveEvent(String Device, int Axis, float Value);
+
+	public static native String GetUserSetting(String gameID, String Section, String Key);
+
+	public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
+
+	public static native void InitGameIni(String gameID);
 
 	/**
 	 * Gets a value from a key in the given ini-based config file.
