@@ -18,7 +18,7 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer();
+  Renderer(int backbuffer_width, int backbuffer_height);
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
@@ -63,8 +63,6 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  bool CheckForResize();
-
 private:
   struct GXPipelineState
   {
@@ -77,6 +75,9 @@ private:
   void SetupDeviceObjects();
   void TeardownDeviceObjects();
   void Create3DVisionTexture(int width, int height);
+  void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
+  void UpdateBackbufferSize();
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
@@ -95,6 +96,6 @@ private:
 
   u32 m_last_multisamples = 1;
   bool m_last_stereo_mode = false;
-  bool m_last_fullscreen_mode = false;
+  bool m_last_fullscreen_state = false;
 };
 }

@@ -37,9 +37,9 @@ namespace D3D
 ID3D11Device* device = nullptr;
 ID3D11Device1* device1 = nullptr;
 ID3D11DeviceContext* context = nullptr;
-HWND hWnd;
+IDXGISwapChain1* swapchain = nullptr;
 
-static IDXGISwapChain1* s_swapchain;
+static IDXGIFactory2* s_dxgi_factory;
 static ID3D11Debug* s_debug;
 static D3D_FEATURE_LEVEL s_featlevel;
 static D3DTexture2D* s_backbuf;
@@ -48,9 +48,6 @@ static std::vector<DXGI_SAMPLE_DESC> s_aa_modes;  // supported AA modes of the c
 
 static bool s_bgra_textures_supported;
 static bool s_allow_tearing_supported;
-
-static unsigned int s_xres;
-static unsigned int s_yres;
 
 constexpr UINT NUM_SUPPORTED_FEATURE_LEVELS = 3;
 constexpr D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
@@ -247,17 +244,74 @@ static bool SupportsBPTCTextures(ID3D11Device* dev)
   return (bc7_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
 }
 
+static bool CreateSwapChainTextures()
+{
+  ID3D11Texture2D* buf;
+  HRESULT hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
+  CHECK(SUCCEEDED(hr), "GetBuffer for swap chain failed with HRESULT %08X", hr);
+  if (FAILED(hr))
+    return false;
+
+  s_backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
+  SAFE_RELEASE(buf);
+  SetDebugObjectName(s_backbuf->GetTex(), "backbuffer texture");
+  SetDebugObjectName(s_backbuf->GetRTV(), "backbuffer render target view");
+  return true;
+}
+
+static bool CreateSwapChain(HWND hWnd)
+{
+  DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
+  swap_chain_desc.BufferCount = 2;
+  swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  swap_chain_desc.SampleDesc.Count = 1;
+  swap_chain_desc.SampleDesc.Quality = 0;
+  swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
+  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+  swap_chain_desc.Stereo = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer;
+
+  // This flag is necessary if we want to use a flip-model swapchain without locking the framerate
+  swap_chain_desc.Flags = s_allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+
+  HRESULT hr = s_dxgi_factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr,
+                                                      nullptr, &swapchain);
+  if (FAILED(hr))
+  {
+    // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
+    // a sequential swapchain
+    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    hr = s_dxgi_factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                                &swapchain);
+  }
+
+  if (FAILED(hr))
+  {
+    // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
+    // BitBlt-model swapchain
+    swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+    hr = s_dxgi_factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
+                                                &swapchain);
+  }
+
+  if (FAILED(hr))
+  {
+    ERROR_LOG(VIDEO, "Failed to create swap chain with HRESULT %08X", hr);
+    return false;
+  }
+
+  if (!CreateSwapChainTextures())
+  {
+    SAFE_RELEASE(swapchain);
+    return false;
+  }
+
+  return true;
+}
+
 HRESULT Create(HWND wnd)
 {
-  hWnd = wnd;
-  HRESULT hr;
-
-  RECT client;
-  GetClientRect(hWnd, &client);
-  s_xres = client.right - client.left;
-  s_yres = client.bottom - client.top;
-
-  hr = LoadDXGI();
+  HRESULT hr = LoadDXGI();
   if (SUCCEEDED(hr))
     hr = LoadD3D();
   if (SUCCEEDED(hr))
@@ -270,18 +324,17 @@ HRESULT Create(HWND wnd)
     return hr;
   }
 
-  IDXGIFactory2* factory;
-  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&factory);
+  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory2), (void**)&s_dxgi_factory);
   if (FAILED(hr))
     MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"),
                MB_OK | MB_ICONERROR);
 
   IDXGIAdapter* adapter;
-  hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
+  hr = s_dxgi_factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
   if (FAILED(hr))
   {
     // try using the first one
-    hr = factory->EnumAdapters(0, &adapter);
+    hr = s_dxgi_factory->EnumAdapters(0, &adapter);
     if (FAILED(hr))
       MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 11 backend"),
                  MB_OK | MB_ICONERROR);
@@ -301,7 +354,7 @@ HRESULT Create(HWND wnd)
   // Check support for allow tearing, we query the interface for backwards compatibility
   UINT allow_tearing = FALSE;
   IDXGIFactory5* factory5;
-  hr = factory->QueryInterface(&factory5);
+  hr = s_dxgi_factory->QueryInterface(&factory5);
   if (SUCCEEDED(hr))
   {
     hr = factory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &allow_tearing,
@@ -309,21 +362,6 @@ HRESULT Create(HWND wnd)
     factory5->Release();
   }
   s_allow_tearing_supported = SUCCEEDED(hr) && allow_tearing;
-
-  DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
-  swap_chain_desc.BufferCount = 2;
-  swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-  swap_chain_desc.SampleDesc.Count = 1;
-  swap_chain_desc.SampleDesc.Quality = 0;
-  swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
-  swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-  swap_chain_desc.Width = s_xres;
-  swap_chain_desc.Height = s_yres;
-  swap_chain_desc.Stereo = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer;
-
-  // This flag is necessary if we want to use a flip-model swapchain without locking the framerate
-  swap_chain_desc.Flags = s_allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
 
   // Creating debug devices can sometimes fail if the user doesn't have the correct
   // version of the DirectX SDK. If it does, simply fallback to a non-debug device.
@@ -360,30 +398,9 @@ HRESULT Create(HWND wnd)
                                D3D11_SDK_VERSION, &device, &s_featlevel, &context);
   }
 
-  if (SUCCEEDED(hr))
-  {
-    hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
-                                         &s_swapchain);
-    if (FAILED(hr))
-    {
-      // Flip-model discard swapchains aren't supported on Windows 8, so here we fall back to
-      // a sequential swapchain
-      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
-                                           &s_swapchain);
-    }
+  SAFE_RELEASE(adapter);
 
-    if (FAILED(hr))
-    {
-      // Flip-model swapchains aren't supported on Windows 7, so here we fall back to a legacy
-      // BitBlt-model swapchain
-      swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-      hr = factory->CreateSwapChainForHwnd(device, hWnd, &swap_chain_desc, nullptr, nullptr,
-                                           &s_swapchain);
-    }
-  }
-
-  if (FAILED(hr))
+  if (FAILED(hr) || (wnd && !CreateSwapChain(wnd)))
   {
     MessageBox(
         wnd,
@@ -391,7 +408,7 @@ HRESULT Create(HWND wnd)
         _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
     SAFE_RELEASE(device);
     SAFE_RELEASE(context);
-    SAFE_RELEASE(s_swapchain);
+    SAFE_RELEASE(s_dxgi_factory);
     return E_FAIL;
   }
 
@@ -399,51 +416,22 @@ HRESULT Create(HWND wnd)
   if (FAILED(hr))
     WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
 
-  // prevent DXGI from responding to Alt+Enter, unfortunately DXGI_MWA_NO_ALT_ENTER
-  // does not work so we disable all monitoring of window messages. However this
-  // may make it more difficult for DXGI to handle display mode changes.
-  hr = factory->MakeWindowAssociation(wnd, DXGI_MWA_NO_WINDOW_CHANGES);
-  if (FAILED(hr))
-    MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"),
-               MB_OK | MB_ICONERROR);
-
-  SetDebugObjectName(context, "device context");
-  SAFE_RELEASE(factory);
-  SAFE_RELEASE(adapter);
-
-  if (SConfig::GetInstance().bFullscreen && !g_ActiveConfig.bBorderlessFullscreen)
-  {
-    s_swapchain->SetFullscreenState(true, nullptr);
-    s_swapchain->ResizeBuffers(0, s_xres, s_yres, DXGI_FORMAT_R8G8B8A8_UNORM,
-                               swap_chain_desc.Flags);
-  }
-
-  ID3D11Texture2D* buf;
-  hr = s_swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
-  if (FAILED(hr))
-  {
-    MessageBox(wnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"),
-               MB_OK | MB_ICONERROR);
-    SAFE_RELEASE(device);
-    SAFE_RELEASE(context);
-    SAFE_RELEASE(s_swapchain);
-    return E_FAIL;
-  }
-  s_backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-  SAFE_RELEASE(buf);
-  CHECK(s_backbuf != nullptr, "Create back buffer texture");
-  SetDebugObjectName(s_backbuf->GetTex(), "backbuffer texture");
-  SetDebugObjectName(s_backbuf->GetRTV(), "backbuffer render target view");
-
-  context->OMSetRenderTargets(1, &s_backbuf->GetRTV(), nullptr);
-
-  // BGRA textures are easier to deal with in TextureCache, but might not be supported by the
-  // hardware
+  // BGRA textures are easier to deal with in TextureCache, but might not be supported
   UINT format_support;
   device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
   s_bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
   g_Config.backend_info.bSupportsST3CTextures = SupportsS3TCTextures(device);
   g_Config.backend_info.bSupportsBPTCTextures = SupportsBPTCTextures(device);
+
+  // prevent DXGI from responding to Alt+Enter, unfortunately DXGI_MWA_NO_ALT_ENTER
+  // does not work so we disable all monitoring of window messages. However this
+  // may make it more difficult for DXGI to handle display mode changes.
+  hr = s_dxgi_factory->MakeWindowAssociation(wnd, DXGI_MWA_NO_WINDOW_CHANGES);
+  if (FAILED(hr))
+    MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"),
+               MB_OK | MB_ICONERROR);
+
+  SetDebugObjectName(context, "device context");
 
   stateman = new StateManager;
   return S_OK;
@@ -452,12 +440,13 @@ HRESULT Create(HWND wnd)
 void Close()
 {
   // we can't release the swapchain while in fullscreen.
-  s_swapchain->SetFullscreenState(false, nullptr);
+  if (swapchain)
+    swapchain->SetFullscreenState(false, nullptr);
 
   // release all bound resources
   context->ClearState();
   SAFE_RELEASE(s_backbuf);
-  SAFE_RELEASE(s_swapchain);
+  SAFE_RELEASE(swapchain);
   SAFE_DELETE(stateman);
   context->Flush();  // immediately destroy device objects
 
@@ -465,7 +454,6 @@ void Close()
   SAFE_RELEASE(device1);
   ULONG references = device->Release();
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
   if (s_debug)
   {
     --references;  // the debug interface increases the refcount of the device, subtract that.
@@ -477,7 +465,6 @@ void Close()
     }
     SAFE_RELEASE(s_debug)
   }
-#endif
 
   if (references)
   {
@@ -524,19 +511,10 @@ const char* PixelShaderVersionString()
     return "ps_4_0";
 }
 
-D3DTexture2D*& GetBackBuffer()
+D3DTexture2D* GetBackBuffer()
 {
   return s_backbuf;
 }
-unsigned int GetBackBufferWidth()
-{
-  return s_xres;
-}
-unsigned int GetBackBufferHeight()
-{
-  return s_yres;
-}
-
 bool BGRATexturesSupported()
 {
   return s_bgra_textures_supported;
@@ -572,37 +550,31 @@ u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level)
   }
 }
 
-void Reset()
+void Reset(HWND new_wnd)
 {
-  // release all back buffer references
   SAFE_RELEASE(s_backbuf);
 
-  UINT swap_chain_flags = AllowTearingSupported() ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
-
-  // resize swapchain buffers
-  RECT client;
-  GetClientRect(hWnd, &client);
-  s_xres = client.right - client.left;
-  s_yres = client.bottom - client.top;
-  s_swapchain->ResizeBuffers(0, s_xres, s_yres, DXGI_FORMAT_R8G8B8A8_UNORM, swap_chain_flags);
-
-  // recreate back buffer texture
-  ID3D11Texture2D* buf;
-  HRESULT hr = s_swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
-  if (FAILED(hr))
+  if (swapchain)
   {
-    MessageBox(hWnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"),
-               MB_OK | MB_ICONERROR);
-    SAFE_RELEASE(device);
-    SAFE_RELEASE(context);
-    SAFE_RELEASE(s_swapchain);
-    return;
+    if (GetFullscreenState())
+      swapchain->SetFullscreenState(FALSE, nullptr);
+    SAFE_RELEASE(swapchain);
   }
-  s_backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-  SAFE_RELEASE(buf);
-  CHECK(s_backbuf != nullptr, "Create back buffer texture");
-  SetDebugObjectName(s_backbuf->GetTex(), "backbuffer texture");
-  SetDebugObjectName(s_backbuf->GetRTV(), "backbuffer render target view");
+
+  if (new_wnd)
+    CreateSwapChain(new_wnd);
+}
+
+void ResizeSwapChain()
+{
+  SAFE_RELEASE(s_backbuf);
+  const UINT swap_chain_flags = AllowTearingSupported() ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+  swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, swap_chain_flags);
+  if (!CreateSwapChainTextures())
+  {
+    PanicAlert("Failed to get swap chain textures");
+    SAFE_RELEASE(swapchain);
+  }
 }
 
 void Present()
@@ -616,25 +588,24 @@ void Present()
   if (AllowTearingSupported() && !g_ActiveConfig.IsVSync() && !GetFullscreenState())
     present_flags |= DXGI_PRESENT_ALLOW_TEARING;
 
-  if (s_swapchain->IsTemporaryMonoSupported() &&
-      g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
+  if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
   {
     present_flags |= DXGI_PRESENT_STEREO_TEMPORARY_MONO;
   }
 
   // TODO: Is 1 the correct value for vsyncing?
-  s_swapchain->Present((UINT)g_ActiveConfig.IsVSync(), present_flags);
+  swapchain->Present(static_cast<UINT>(g_ActiveConfig.IsVSync()), present_flags);
 }
 
 HRESULT SetFullscreenState(bool enable_fullscreen)
 {
-  return s_swapchain->SetFullscreenState(enable_fullscreen, nullptr);
+  return swapchain->SetFullscreenState(enable_fullscreen, nullptr);
 }
 
 bool GetFullscreenState()
 {
   BOOL state = FALSE;
-  s_swapchain->GetFullscreenState(&state, nullptr);
+  swapchain->GetFullscreenState(&state, nullptr);
   return !!state;
 }
 

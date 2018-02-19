@@ -321,12 +321,8 @@ class PlatformX11 : public Platform
           {
             last_window_width = event.xconfigure.width;
             last_window_height = event.xconfigure.height;
-
-            // We call Renderer::ChangeSurface here to indicate the size has changed,
-            // but pass the same window handle. This is needed for the Vulkan backend,
-            // otherwise it cannot tell that the window has been resized on some drivers.
             if (g_renderer)
-              g_renderer->ChangeSurface(s_window_handle);
+              g_renderer->ResizeSurface(last_window_width, last_window_height);
           }
         }
         break;

@@ -121,8 +121,6 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  void ChangeSurface(void* new_surface_handle) override;
-
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
@@ -132,6 +130,9 @@ private:
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
                   int src_height);
+
+  void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
 
   std::array<const AbstractTexture*, 8> m_bound_textures{};
 };
