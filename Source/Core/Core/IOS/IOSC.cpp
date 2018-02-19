@@ -27,7 +27,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
-#include "Core/ec_wii.h"
 
 namespace
 {
@@ -442,6 +441,11 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
     return IOSC_EACCES;
   entry->owner_mask = (new_owner & ~7) | mask;
   return IPC_SUCCESS;
+}
+
+bool IOSC::IsUsingDefaultId() const
+{
+  return GetDeviceId() == DEFAULT_DEVICE_ID;
 }
 
 u32 IOSC::GetDeviceId() const

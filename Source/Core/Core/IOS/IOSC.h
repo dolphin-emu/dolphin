@@ -200,6 +200,7 @@ public:
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
   ReturnCode SetOwnership(Handle handle, u32 owner, u32 pid);
 
+  bool IsUsingDefaultId() const;
   u32 GetDeviceId() const;
   Certificate GetDeviceCertificate() const;
   void Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const;
