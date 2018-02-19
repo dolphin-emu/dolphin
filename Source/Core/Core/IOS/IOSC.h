@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -201,6 +202,7 @@ public:
 
   u32 GetDeviceId() const;
   Certificate GetDeviceCertificate() const;
+  void Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const;
 
   void DoState(PointerWrap& p);
 

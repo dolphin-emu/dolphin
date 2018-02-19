@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -475,6 +476,29 @@ Certificate IOSC::GetDeviceCertificate() const
                                  m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
   std::copy(m_console_signature.begin(), m_console_signature.end(), cert.begin() + 4);
   return cert;
+}
+
+void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const
+{
+  std::array<u8, 20> hash{};
+  std::array<u8, 30> ap_priv{};
+
+  ap_priv[0x1d] = 1;
+  // setup random ap_priv here if desired
+  // get_rand_bytes(ap_priv, 0x1e);
+  // ap_priv[0] &= 1;
+
+  const std::string signer = StringFromFormat("Root-CA00000001-MS00000002-NG%08x", GetDeviceId());
+  const std::string name = StringFromFormat("AP%016" PRIx64, title_id);
+  const auto cert = MakeBlankSigECCert(signer.c_str(), name.c_str(), ap_priv.data(), 0);
+  std::copy(cert.begin(), cert.end(), ap_cert_out);
+
+  mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash.data());
+  generate_ecdsa(ap_cert_out + 4, ap_cert_out + 34, m_key_entries[HANDLE_CONSOLE_KEY].data.data(),
+                 hash.data());
+
+  mbedtls_sha1(data, data_size, hash.data());
+  generate_ecdsa(sig_out, sig_out + 30, ap_priv.data(), hash.data());
 }
 
 constexpr std::array<u8, 512> ROOT_PUBLIC_KEY = {
