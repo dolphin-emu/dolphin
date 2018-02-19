@@ -96,6 +96,8 @@ union Cert
 };
 #pragma pack(pop)
 
+using ECCSignature = std::array<u8, 60>;
+
 namespace HLE
 {
 enum ReturnCode : s32;
@@ -224,6 +226,7 @@ private:
   };
 
   void LoadDefaultEntries(ConsoleType console_type);
+  void LoadEntries();
 
   KeyEntries::iterator FindFreeEntry();
   KeyEntry* FindEntry(Handle handle);
@@ -237,6 +240,8 @@ private:
 
   KeyEntries m_key_entries;
   KeyEntry m_root_key_entry;
+  ECCSignature m_console_signature{};
+  u32 m_console_key_id = 0;
 };
 }  // namespace HLE
 }  // namespace IOS
