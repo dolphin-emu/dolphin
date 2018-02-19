@@ -133,7 +133,7 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
   if (dest_entry->subtype == SUBTYPE_RSA2048 || dest_entry->subtype == SUBTYPE_RSA4096)
   {
     _assert_(public_key_exponent);
-    std::copy_n(public_key_exponent, 4, dest_entry->misc_data.begin());
+    std::memcpy(&dest_entry->misc_data, public_key_exponent, 4);
   }
   return IPC_SUCCESS;
 }
@@ -232,7 +232,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     Common::ScopeGuard context_guard{[&rsa] { mbedtls_rsa_free(&rsa); }};
 
     mbedtls_mpi_read_binary(&rsa.N, entry->data.data(), entry->data.size());
-    mbedtls_mpi_read_binary(&rsa.E, entry->misc_data.data(), entry->misc_data.size());
+    mbedtls_mpi_read_binary(&rsa.E, reinterpret_cast<const u8*>(&entry->misc_data), 4);
     rsa.len = entry->data.size();
 
     const int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC,
@@ -452,18 +452,17 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
                                             0xf2, 0xfe, 0xfb, 0xba, 0x4c, 0x9b, 0x7e}},
                                           3};
 
-  std::array<u8, 4> root_exponent = {{0x0, 0x1, 0x0, 0x1}};
   m_root_key_entry = {TYPE_PUBLIC_KEY, SUBTYPE_RSA4096,
                       std::vector<u8>(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
-                      std::move(root_exponent), 0};
+                      Common::swap32(0x00010001), 0};
 }
 
 IOSC::KeyEntry::KeyEntry() = default;
 
 IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
-                         std::array<u8, 4>&& misc_data_, u32 owner_mask_)
-    : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)),
-      misc_data(std::move(misc_data_)), owner_mask(owner_mask_)
+                         u32 misc_data_, u32 owner_mask_)
+    : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)), misc_data(misc_data_),
+      owner_mask(owner_mask_)
 {
 }
 
