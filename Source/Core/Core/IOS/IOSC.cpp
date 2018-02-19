@@ -23,6 +23,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
 #include "Core/ec_wii.h"
@@ -440,6 +441,40 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
     return IOSC_EACCES;
   entry->owner_mask = (new_owner & ~7) | mask;
   return IPC_SUCCESS;
+}
+
+u32 IOSC::GetDeviceId() const
+{
+  return m_key_entries[HANDLE_CONSOLE_ID].misc_data;
+}
+
+// Based off of twintig http://git.infradead.org/?p=users/segher/wii.git
+// Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
+// Licensed under the terms of the GNU GPL, version 2
+// http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+static Certificate MakeBlankSigECCert(const char* signer, const char* name, const u8* private_key,
+                                      u32 key_id)
+{
+  Certificate cert_out{};
+  const u32 type = Common::swap32(static_cast<u32>(SignatureType::ECC));
+  std::memcpy(cert_out.data(), &type, sizeof(type));
+  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0x80, signer, 0x40);
+  const u32 two = Common::swap32(2);
+  std::memcpy(cert_out.data() + 0xc0, &two, sizeof(two));
+  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name, 0x40);
+  const u32 swapped_key_id = Common::swap32(key_id);
+  std::memcpy(cert_out.data() + 0x104, &swapped_key_id, sizeof(swapped_key_id));
+  ec_priv_to_pub(private_key, cert_out.data() + 0x108);
+  return cert_out;
+}
+
+Certificate IOSC::GetDeviceCertificate() const
+{
+  const std::string name = StringFromFormat("NG%08x", GetDeviceId());
+  auto cert = MakeBlankSigECCert("Root-CA00000001-MS00000002", name.c_str(),
+                                 m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
+  std::copy(m_console_signature.begin(), m_console_signature.end(), cert.begin() + 4);
+  return cert;
 }
 
 constexpr std::array<u8, 512> ROOT_PUBLIC_KEY = {

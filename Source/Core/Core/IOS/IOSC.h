@@ -21,7 +21,7 @@ enum class SignatureType : u32
 {
   RSA4096 = 0x00010000,
   RSA2048 = 0x00010001,
-  // XXX: Add support for ECC (0x00010002).
+  ECC = 0x00010002,
 };
 
 enum class PublicKeyType : u32
@@ -97,6 +97,7 @@ union Cert
 #pragma pack(pop)
 
 using ECCSignature = std::array<u8, 60>;
+using Certificate = std::array<u8, 0x180>;
 
 namespace HLE
 {
@@ -197,6 +198,9 @@ public:
   // Ownership
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
   ReturnCode SetOwnership(Handle handle, u32 owner, u32 pid);
+
+  u32 GetDeviceId() const;
+  Certificate GetDeviceCertificate() const;
 
   void DoState(PointerWrap& p);
 
