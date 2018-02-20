@@ -53,12 +53,12 @@ typedef struct _Nv_Stereo_Image_Header
 
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
-Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight())
+Renderer::Renderer(int backbuffer_width, int backbuffer_height)
+    : ::Renderer(backbuffer_width, backbuffer_height)
 {
   m_last_multisamples = g_ActiveConfig.iMultisamples;
   m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
-  m_last_fullscreen_mode = D3D::GetFullscreenState();
-
+  m_last_fullscreen_state = D3D::GetFullscreenState();
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
   SetupDeviceObjects();
 
@@ -239,29 +239,10 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-// With D3D, we have to resize the backbuffer if the window changed
-// size.
-bool Renderer::CheckForResize()
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  RECT rcWindow;
-  GetClientRect(D3D::hWnd, &rcWindow);
-  int client_width = rcWindow.right - rcWindow.left;
-  int client_height = rcWindow.bottom - rcWindow.top;
-
-  // Sanity check
-  if ((client_width != GetBackbufferWidth() || client_height != GetBackbufferHeight()) &&
-      client_width >= 4 && client_height >= 4)
-  {
-    return true;
-  }
-
-  return false;
-}
-
-void Renderer::SetScissorRect(const EFBRectangle& rc)
-{
-  TargetRectangle trc = ConvertEFBRectangle(rc);
-  D3D::context->RSSetScissorRects(1, trc.AsRECT());
+  const RECT rect = {rc.left, rc.top, rc.right, rc.bottom};
+  D3D::context->RSSetScissorRects(1, &rect);
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -445,59 +426,17 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   RestoreAPIState();
 }
 
-void Renderer::SetViewport()
+void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
 {
-  // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-  // [0] = width/2
-  // [1] = height/2
-  // [2] = 16777215 * (farz - nearz)
-  // [3] = xorig + width/2 + 342
-  // [4] = yorig + height/2 + 342
-  // [5] = 16777215 * farz
-
-  // D3D crashes for zero viewports
-  if (xfmem.viewport.wd == 0 || xfmem.viewport.ht == 0)
-    return;
-
-  int scissorXOff = bpmem.scissorOffset.x * 2;
-  int scissorYOff = bpmem.scissorOffset.y * 2;
-
-  float X = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissorXOff);
-  float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
-  float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
-  if (Wd < 0.0f)
-  {
-    X += Wd;
-    Wd = -Wd;
-  }
-  if (Ht < 0.0f)
-  {
-    Y += Ht;
-    Ht = -Ht;
-  }
-
-  // If an inverted or oversized depth range is used, we need to calculate the depth range in the
-  // vertex shader.
-  if (UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    min_depth = 0.0f;
-    max_depth = GX_MAX_DEPTH;
-  }
-
   // In D3D, the viewport rectangle must fit within the render target.
-  X = (X >= 0.f) ? X : 0.f;
-  Y = (Y >= 0.f) ? Y : 0.f;
-  Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
-  Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
-
-  // We use an inverted depth range here to apply the Reverse Z trick.
-  // This trick makes sure we match the precision provided by the 1:0
-  // clipping depth range on the hardware.
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - max_depth, 1.0f - min_depth);
+  D3D11_VIEWPORT vp;
+  vp.TopLeftX = MathUtil::Clamp(x, 0.0f, static_cast<float>(m_target_width - 1));
+  vp.TopLeftY = MathUtil::Clamp(y, 0.0f, static_cast<float>(m_target_height - 1));
+  vp.Width = MathUtil::Clamp(width, 1.0f, static_cast<float>(m_target_width) - vp.TopLeftX);
+  vp.Height = MathUtil::Clamp(height, 1.0f, static_cast<float>(m_target_height) - vp.TopLeftY);
+  vp.MinDepth = near_depth;
+  vp.MaxDepth = far_depth;
   D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -591,12 +530,13 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   ResetAPIState();
 
   // Prepare to copy the XFBs to our backbuffer
+  CheckForSurfaceChange();
+  CheckForSurfaceResize();
   UpdateDrawRectangle();
+
   TargetRectangle targetRc = GetTargetRectangle();
-
+  static constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
   D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
-
-  constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
   D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), clear_color.data());
 
   // activate linear filtering for the buffer copies
@@ -607,8 +547,8 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
              xfb_texture->GetConfig().width, xfb_texture->GetConfig().height, Gamma);
 
   // Reset viewport for drawing text
-  D3D11_VIEWPORT vp =
-      CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
+                                      static_cast<float>(m_backbuffer_height));
   D3D::context->RSSetViewports(1, &vp);
 
   Renderer::DrawDebugText();
@@ -622,41 +562,21 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
   VertexShaderCache::RetreiveAsyncShaders();
 
-  const bool window_resized = CheckForResize();
-  const bool fullscreen = D3D::GetFullscreenState();
-  const bool fs_changed = m_last_fullscreen_mode != fullscreen;
-
   // Flip/present backbuffer to frontbuffer here
-  D3D::Present();
+  if (D3D::swapchain)
+    D3D::Present();
 
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize() || window_resized || fs_changed ||
-      m_last_multisamples != g_ActiveConfig.iMultisamples ||
+  if (CalculateTargetSize() || m_last_multisamples != g_ActiveConfig.iMultisamples ||
       m_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off))
   {
     m_last_multisamples = g_ActiveConfig.iMultisamples;
-    m_last_fullscreen_mode = fullscreen;
-    PixelShaderCache::InvalidateMSAAShaders();
-
-    if (window_resized || fs_changed)
-    {
-      // TODO: Aren't we still holding a reference to the back buffer right now?
-      D3D::Reset();
-      SAFE_RELEASE(m_screenshot_texture);
-      SAFE_RELEASE(m_3d_vision_texture);
-      m_backbuffer_width = D3D::GetBackBufferWidth();
-      m_backbuffer_height = D3D::GetBackBufferHeight();
-    }
-
-    UpdateDrawRectangle();
-
     m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
-
-    D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+    PixelShaderCache::InvalidateMSAAShaders();
+    UpdateDrawRectangle();
 
     g_framebuffer_manager.reset();
     g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
-
     D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                         clear_color.data());
     D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(),
@@ -673,7 +593,54 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // begin next frame
   RestoreAPIState();
   FramebufferManager::BindEFBRenderTarget();
-  SetViewport();
+}
+
+void Renderer::CheckForSurfaceChange()
+{
+  if (!m_surface_changed.TestAndClear())
+    return;
+
+  m_surface_handle = m_new_surface_handle;
+  m_new_surface_handle = nullptr;
+
+  SAFE_RELEASE(m_screenshot_texture);
+  SAFE_RELEASE(m_3d_vision_texture);
+  D3D::Reset(reinterpret_cast<HWND>(m_new_surface_handle));
+  UpdateBackbufferSize();
+}
+
+void Renderer::CheckForSurfaceResize()
+{
+  const bool fullscreen_state = D3D::GetFullscreenState();
+  const bool exclusive_fullscreen_changed = fullscreen_state != m_last_fullscreen_state;
+  if (!m_surface_resized.TestAndClear() && !exclusive_fullscreen_changed)
+    return;
+
+  m_backbuffer_width = m_new_backbuffer_width;
+  m_backbuffer_height = m_new_backbuffer_height;
+
+  SAFE_RELEASE(m_screenshot_texture);
+  SAFE_RELEASE(m_3d_vision_texture);
+  m_last_fullscreen_state = fullscreen_state;
+  if (D3D::swapchain)
+    D3D::ResizeSwapChain();
+  UpdateBackbufferSize();
+}
+
+void Renderer::UpdateBackbufferSize()
+{
+  if (D3D::swapchain)
+  {
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    D3D::swapchain->GetDesc1(&desc);
+    m_backbuffer_width = std::max(desc.Width, 1u);
+    m_backbuffer_height = std::max(desc.Height, 1u);
+  }
+  else
+  {
+    m_backbuffer_width = 1;
+    m_backbuffer_height = 1;
+  }
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
@@ -690,7 +657,7 @@ void Renderer::RestoreAPIState()
   D3D::stateman->PopBlendState();
   D3D::stateman->PopDepthState();
   D3D::stateman->PopRasterizerState();
-  SetViewport();
+  BPFunctions::SetViewport();
   BPFunctions::SetScissor();
 }
 

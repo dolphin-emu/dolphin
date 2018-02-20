@@ -22,7 +22,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           Qt::DirectConnection);
   connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
           Qt::DirectConnection);
-  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::UpdateSurface,
+  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
           Qt::DirectConnection);
 
   emit HandleChanged((void*)winId());
@@ -84,8 +84,12 @@ bool RenderWidget::event(QEvent* event)
     Host::GetInstance()->SetRenderFocus(false);
     break;
   case QEvent::Resize:
-    emit SizeChanged();
+  {
+    const QResizeEvent* se = static_cast<QResizeEvent*>(event);
+    QSize new_size = se->size();
+    emit SizeChanged(new_size.width(), new_size.height());
     break;
+  }
   case QEvent::WindowStateChange:
     emit StateChanged(isFullScreen());
     break;

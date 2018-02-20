@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.settings;
 
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
@@ -31,17 +32,19 @@ public final class SettingsActivityPresenter
 	private DirectoryStateReceiver directoryStateReceiver;
 
 	private String menuTag;
+	private String gameId;
 
 	public SettingsActivityPresenter(SettingsActivityView view)
 	{
 		mView = view;
 	}
 
-	public void onCreate(Bundle savedInstanceState, String menuTag)
+	public void onCreate(Bundle savedInstanceState, String menuTag, String gameId)
 	{
 		if (savedInstanceState == null)
 		{
 			this.menuTag = menuTag;
+			this.gameId = gameId;
 		}
 		else
 		{
@@ -58,12 +61,21 @@ public final class SettingsActivityPresenter
 	{
 		if (mSettings.isEmpty())
 		{
-			mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
-			mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
-			mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
+			if (!TextUtils.isEmpty(gameId))
+			{
+				mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile("../GameSettings/" + gameId, mView));
+				mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile("../GameSettings/" + gameId, mView));
+				mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile("../GameSettings/" + gameId, mView));
+			}
+			else
+			{
+				mSettings.add(SettingsFile.SETTINGS_DOLPHIN, SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView));
+				mSettings.add(SettingsFile.SETTINGS_GFX, SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView));
+				mSettings.add(SettingsFile.SETTINGS_WIIMOTE, SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView));
+			}
 		}
 
-		mView.showSettingsFragment(menuTag, false);
+		mView.showSettingsFragment(menuTag, false, gameId);
 		mView.onSettingsFileLoaded(mSettings);
 	}
 
@@ -120,11 +132,25 @@ public final class SettingsActivityPresenter
 
 		if (mSettings != null && finishing && mShouldSave)
 		{
-			Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-			SettingsFile.saveFile(SettingsFile.FILE_NAME_DOLPHIN, mSettings.get(SettingsFile.SETTINGS_DOLPHIN), mView);
-			SettingsFile.saveFile(SettingsFile.FILE_NAME_GFX, mSettings.get(SettingsFile.SETTINGS_GFX), mView);
-			SettingsFile.saveFile(SettingsFile.FILE_NAME_WIIMOTE, mSettings.get(SettingsFile.SETTINGS_WIIMOTE), mView);
-			mView.showToastMessage("Saved settings to INI files");
+				if (!TextUtils.isEmpty(gameId)) {
+					Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
+					// Needed workaround for now due to an odd bug in how it handles saving two different settings sections to the same file. It won't save GFX settings if it follows the normal saving pattern
+					if (menuTag.equals("Dolphin"))
+					{
+						SettingsFile.saveFile("../GameSettings/" + gameId, mSettings.get(SettingsFile.SETTINGS_DOLPHIN), mView);
+					}
+					else if (menuTag.equals("GFX"))
+					{
+						SettingsFile.saveFile("../GameSettings/" + gameId, mSettings.get(SettingsFile.SETTINGS_GFX), mView);
+					}
+					mView.showToastMessage("Saved settings for " + gameId);
+				} else {
+					Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
+					SettingsFile.saveFile(SettingsFile.FILE_NAME_DOLPHIN, mSettings.get(SettingsFile.SETTINGS_DOLPHIN), mView);
+					SettingsFile.saveFile(SettingsFile.FILE_NAME_GFX, mSettings.get(SettingsFile.SETTINGS_GFX), mView);
+					SettingsFile.saveFile(SettingsFile.FILE_NAME_WIIMOTE, mSettings.get(SettingsFile.SETTINGS_WIIMOTE), mView);
+					mView.showToastMessage("Saved settings to INI files");
+				}
 		}
 	}
 
@@ -172,7 +198,7 @@ public final class SettingsActivityPresenter
 	{
 		if (value != 0) // Not disabled
 		{
-			mView.showSettingsFragment(key + (value / 6), true);
+			mView.showSettingsFragment(key + (value / 6), true, gameId);
 		}
 	}
 
@@ -181,7 +207,7 @@ public final class SettingsActivityPresenter
 		switch (value)
 		{
 			case 1:
-				mView.showSettingsFragment(section, true);
+				mView.showSettingsFragment(section, true, gameId);
 				break;
 
 			case 2:
@@ -194,7 +220,7 @@ public final class SettingsActivityPresenter
 	{
 		if (value != 0) // None
 		{
-			mView.showSettingsFragment(key + value, true);
+			mView.showSettingsFragment(key + value, true, gameId);
 		}
 	}
 }

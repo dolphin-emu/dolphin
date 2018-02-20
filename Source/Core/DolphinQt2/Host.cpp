@@ -10,6 +10,7 @@
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
+#include "DolphinQt2/Settings.h"
 #include "VideoCommon/RenderBase.h"
 
 Host::Host() = default;
@@ -50,10 +51,10 @@ void Host::SetRenderFullscreen(bool fullscreen)
   m_render_fullscreen = fullscreen;
 }
 
-void Host::UpdateSurface()
+void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
-    g_renderer->ChangeSurface(GetRenderHandle());
+    g_renderer->ResizeSurface(new_width, new_height);
 }
 
 void Host_Message(int id)
@@ -108,7 +109,7 @@ void Host_RequestRenderWindowSize(int w, int h)
 }
 bool Host_UINeedsControllerState()
 {
-  return false;
+  return Settings::Instance().IsControllerStateNeeded();
 }
 void Host_NotifyMapLoaded()
 {

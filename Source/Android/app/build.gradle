@@ -25,8 +25,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 25
 
-        // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
-        versionCode 13
+        versionCode(getBuildVersionCode())
 
         versionName "${getVersion()}"
     }
@@ -96,7 +95,6 @@ dependencies {
 
     // Allows FRP-style asynchronous operations in Android.
     implementation 'io.reactivex:rxandroid:1.2.1'
-
     implementation 'com.nononsenseapps:filepicker:4.1.0'
 }
 
@@ -112,4 +110,17 @@ def getVersion() {
     }
 
     return versionNumber
+}
+
+
+def getBuildVersionCode() {
+    try {
+        def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
+                .trim()
+        return Integer.valueOf(versionNumber);
+    } catch (Exception e) {
+        logger.error('Cannot find git, defaulting to dummy version number')
+    }
+
+    return 0;
 }

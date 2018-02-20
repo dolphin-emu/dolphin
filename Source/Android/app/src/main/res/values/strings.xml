@@ -211,6 +211,7 @@
     <!-- Preferences Screen -->
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>
+    <string name="preferences_game_settings">Game Settings</string>
     <string name="preferences_extensions">Extension Bindings</string>
 
     <!-- Emulation Menu -->
@@ -247,9 +248,7 @@
     <string name="header_controllers">Controllers</string>
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
-
     <string name="load_settings">Loading Settings...</string>
-
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>

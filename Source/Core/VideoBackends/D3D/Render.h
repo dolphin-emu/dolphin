@@ -18,7 +18,7 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer();
+  Renderer(int backbuffer_width, int backbuffer_height);
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
@@ -27,14 +27,15 @@ public:
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
 
   void SetBlendingState(const BlendingState& state) override;
-  void SetScissorRect(const EFBRectangle& rc) override;
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
   void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
-  void SetViewport() override;
+  void SetViewport(float x, float y, float width, float height, float near_depth,
+                   float far_depth) override;
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 
@@ -62,8 +63,6 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  bool CheckForResize();
-
 private:
   struct GXPipelineState
   {
@@ -76,6 +75,9 @@ private:
   void SetupDeviceObjects();
   void TeardownDeviceObjects();
   void Create3DVisionTexture(int width, int height);
+  void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
+  void UpdateBackbufferSize();
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
@@ -94,6 +96,6 @@ private:
 
   u32 m_last_multisamples = 1;
   bool m_last_stereo_mode = false;
-  bool m_last_fullscreen_mode = false;
+  bool m_last_fullscreen_state = false;
 };
 }

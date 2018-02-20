@@ -46,6 +46,8 @@ public:
   void SetLogVisible(bool visible);
   bool IsLogConfigVisible() const;
   void SetLogConfigVisible(bool visible);
+  bool IsControllerStateNeeded() const;
+  void SetControllerStateNeeded(bool needed);
 
   // GameList
   QStringList GetPaths() const;
@@ -111,6 +113,7 @@ signals:
   void DebugModeToggled(bool enabled);
 
 private:
+  bool m_controller_state_needed = false;
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
   Settings();

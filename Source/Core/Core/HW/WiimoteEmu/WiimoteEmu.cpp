@@ -207,8 +207,6 @@ void Wiimote::Reset()
 
   m_rumble_on = false;
   m_speaker_mute = false;
-  m_motion_plus_present = false;
-  m_motion_plus_active = false;
 
   // will make the first Update() call send a status request
   // the first call to RequestStatus() will then set up the status struct extension bit
@@ -291,9 +289,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_extension->attachments.emplace_back(new WiimoteEmu::Guitar(m_reg_ext));
   m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
   m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
-
-  m_extension->boolean_settings.emplace_back(
-      m_motion_plus_setting = new ControllerEmu::BooleanSetting(_trans("Motion Plus"), false));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
@@ -398,8 +393,6 @@ ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
 
 bool Wiimote::Step()
 {
-  m_motion_plus_present = m_motion_plus_setting->GetValue();
-
   m_motor->control_ref->State(m_rumble_on);
 
   // when a movie is active, this button status update is disabled (moved), because movies only
@@ -663,13 +656,6 @@ void Wiimote::GetExtData(u8* const data)
   // commercial games don't do this.
   // i think it should be unencrpyted in the register, encrypted when read.
   memcpy(m_reg_ext.controller_data, data, sizeof(wm_nc));  // TODO: Should it be nc specific?
-
-  if (m_motion_plus_active)
-  {
-    reinterpret_cast<wm_motionplus_data*>(data)->is_mp_data = 0;
-    reinterpret_cast<wm_motionplus_data*>(data)->extension_connected =
-        m_extension->active_extension;
-  }
 
   if (0xAA == m_reg_ext.encryption)
     WiimoteEncrypt(&m_ext_key, data, 0x00, sizeof(wm_nc));

@@ -23,7 +23,7 @@ signals:
   void Closed();
   void HandleChanged(void* handle);
   void StateChanged(bool fullscreen);
-  void SizeChanged();
+  void SizeChanged(int new_width, int new_height);
 
 private:
   void HandleCursorTimer();

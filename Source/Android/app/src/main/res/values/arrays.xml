@@ -286,4 +286,9 @@
         <item>Right Stick</item>
     </string-array>
 
+    <string-array name="gameSettingsMenus">
+        <item>Core Settings</item>
+        <item>GFX Settings</item>
+        <item>Clear Game Settings</item>
+    </string-array>
 </resources>

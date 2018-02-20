@@ -16,6 +16,7 @@
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/RenderBase.h"
@@ -420,8 +421,7 @@ void VertexShaderManager::SetConstants()
     }
 
     dirty = true;
-    // This is so implementation-dependent that we can't have it here.
-    g_renderer->SetViewport();
+    BPFunctions::SetViewport();
 
     // Update projection if the viewport isn't 1:1 useable
     if (!g_ActiveConfig.backend_info.bSupportsOversizedViewports)

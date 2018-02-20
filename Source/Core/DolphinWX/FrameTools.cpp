@@ -605,21 +605,18 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
   if (Core::GetState() != Core::State::Uninitialized)
   {
     int width, height;
+    m_render_frame->GetClientSize(&width, &height);
     if (!SConfig::GetInstance().bRenderToMain && !RendererIsFullscreen() &&
         !m_render_frame->IsMaximized() && !m_render_frame->IsIconized())
     {
-      m_render_frame->GetClientSize(&width, &height);
       SConfig::GetInstance().iRenderWindowWidth = width;
       SConfig::GetInstance().iRenderWindowHeight = height;
     }
     m_log_window->Refresh();
     m_log_window->Update();
 
-    // We call Renderer::ChangeSurface here to indicate the size has changed,
-    // but pass the same window handle. This is needed for the Vulkan backend,
-    // otherwise it cannot tell that the window has been resized on some drivers.
     if (g_renderer)
-      g_renderer->ChangeSurface(GetRenderHandle());
+      g_renderer->ResizeSurface(width, height);
   }
   event.Skip();
 }

@@ -137,7 +137,17 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
   }
 
-  g_renderer = std::make_unique<Renderer>();
+  int backbuffer_width = 1, backbuffer_height = 1;
+  if (D3D::swapchain)
+  {
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    D3D::swapchain->GetDesc1(&desc);
+    backbuffer_width = std::max(desc.Width, 1u);
+    backbuffer_height = std::max(desc.Height, 1u);
+  }
+
+  // internal interfaces
+  g_renderer = std::make_unique<Renderer>(backbuffer_width, backbuffer_height);
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();

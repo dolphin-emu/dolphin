@@ -845,12 +845,10 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  u32 backbuffer_width = std::max(GLInterface->GetBackBufferWidth(), 1u);
-  u32 backbuffer_height = std::max(GLInterface->GetBackBufferHeight(), 1u);
-
-  s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(backbuffer_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(backbuffer_height), 0,
-                                    backbuffer_width, backbuffer_height, color);
+  s_raster_font->printMultilineText(text,
+                                    left * 2.0f / static_cast<float>(m_backbuffer_width) - 1.0f,
+                                    1.0f - top * 2.0f / static_cast<float>(m_backbuffer_height), 0,
+                                    m_backbuffer_width, m_backbuffer_height, color);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -863,20 +861,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-// Function: This function handles the OpenGL glScissor() function
-// ----------------------------
-// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-//		case 0x52 > SetScissorRect()
-// ----------------------------
-// bpmem.scissorTL.x, y = 342x342
-// bpmem.scissorBR.x, y = 981x821
-// Renderer::GetTargetHeight() = the fixed ini file setting
-// donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
-// therefore the width and height are (scissorBR + 1) - scissorTL
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle trc = ConvertEFBRectangle(rc);
-  glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
+  glScissor(rc.left, rc.bottom, rc.GetWidth(), rc.GetHeight());
 }
 
 void ClearEFBCache()
@@ -1136,75 +1123,23 @@ void Renderer::BBoxWrite(int index, u16 _value)
   BoundingBox::Set(index, value);
 }
 
-void Renderer::SetViewport()
+void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
 {
-  // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-  // [0] = width/2
-  // [1] = height/2
-  // [2] = 16777215 * (farz - nearz)
-  // [3] = xorig + width/2 + 342
-  // [4] = yorig + height/2 + 342
-  // [5] = 16777215 * farz
-
-  int scissorXOff = bpmem.scissorOffset.x * 2;
-  int scissorYOff = bpmem.scissorOffset.y * 2;
-
-  // TODO: ceil, floor or just cast to int?
-  float X = EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - (float)scissorXOff);
-  float Y = EFBToScaledYf((float)EFB_HEIGHT - xfmem.viewport.yOrig + xfmem.viewport.ht +
-                          (float)scissorYOff);
-  float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
-  if (Width < 0)
-  {
-    X += Width;
-    Width *= -1;
-  }
-  if (Height < 0)
-  {
-    Y += Height;
-    Height *= -1;
-  }
-
-  // Update the view port
+  // The x/y parameters here assume a upper-left origin. glViewport takes an offset from the
+  // lower-left of the framebuffer, so we must set y to the distance from the lower-left.
+  y = static_cast<float>(m_target_height) - y - height;
   if (g_ogl_config.bSupportViewportFloat)
   {
-    glViewportIndexedf(0, X, Y, Width, Height);
+    glViewportIndexedf(0, x, y, width, height);
   }
   else
   {
-    auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
-    glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
+    auto iceilf = [](float f) { return static_cast<GLint>(std::ceil(f)); };
+    glViewport(iceilf(x), iceilf(y), iceilf(width), iceilf(height));
   }
 
-  if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    // There's no way to support oversized depth ranges in this situation. Let's just clamp the
-    // range to the maximum value supported by the console GPU and hope for the best.
-    min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-    max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
-  }
-
-  if (UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    // Taking into account whether the depth range is inverted or not.
-    if (xfmem.viewport.zRange < 0.0f)
-    {
-      min_depth = GX_MAX_DEPTH;
-      max_depth = 0.0f;
-    }
-    else
-    {
-      min_depth = 0.0f;
-      max_depth = GX_MAX_DEPTH;
-    }
-  }
-
-  // Set the reversed depth range.
-  glDepthRangef(max_depth, min_depth);
+  glDepthRangef(near_depth, far_depth);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -1382,33 +1317,36 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   ResetAPIState();
 
-  UpdateDrawRectangle();
-  TargetRectangle flipped_trc = GetTargetRectangle();
-
-  // Flip top and bottom for some reason; TODO: Fix the code to suck less?
-  std::swap(flipped_trc.top, flipped_trc.bottom);
-
   // Do our OSD callbacks
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
+
+  // Check if we need to render to a new surface.
+  CheckForSurfaceChange();
+  CheckForSurfaceResize();
+  UpdateDrawRectangle();
+  TargetRectangle flipped_trc = GetTargetRectangle();
+  std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Skip screen rendering when running in headless mode.
   if (!IsHeadless())
   {
-    // Copy the framebuffer to screen.
+    // Clear the framebuffer before drawing anything.
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Copy the framebuffer to screen.
     BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
                xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
-    // Finish up the current frame, print some stats
+    // Render OSD messages.
+    glViewport(0, 0, m_backbuffer_width, m_backbuffer_height);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Reset viewport for drawing text
-    glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
     DrawDebugText();
     OSD::DrawMessages();
 
-    // Copy the rendered frame to the real window.
+    // Swap the back and front buffers, presenting the image.
     GLInterface->Swap();
   }
   else
@@ -1418,32 +1356,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     glFlush();
   }
 
-#ifdef ANDROID
-  // Handle surface changes on Android.
-  if (m_surface_needs_change.IsSet())
-  {
-    GLInterface->UpdateHandle(m_new_surface_handle);
-    GLInterface->UpdateSurface();
-    m_surface_handle = m_new_surface_handle;
-    m_new_surface_handle = nullptr;
-    m_surface_needs_change.Clear();
-    m_surface_changed.Set();
-  }
-#endif
-
-  GLInterface->Update();
-
   // Was the size changed since the last frame?
-  bool window_resized = false;
-  int window_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
-  int window_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
-  if (window_width != m_backbuffer_width || window_height != m_backbuffer_height)
-  {
-    window_resized = true;
-    m_backbuffer_width = window_width;
-    m_backbuffer_height = window_height;
-  }
-
   bool target_size_changed = CalculateTargetSize();
   bool stencil_buffer_enabled =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get())->HasStencilBuffer();
@@ -1453,10 +1366,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
                          stencil_buffer_enabled != BoundingBox::NeedsStencilBuffer() ||
                          s_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off);
 
-  if (window_resized || fb_needs_update)
-  {
-    UpdateDrawRectangle();
-  }
   if (fb_needs_update)
   {
     s_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
@@ -1476,13 +1385,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_framebuffer_manager = std::make_unique<FramebufferManager>(
         m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
     BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
-  }
-
-  // Clear framebuffer
-  if (!IsHeadless())
-  {
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    UpdateDrawRectangle();
   }
 
   if (s_vsync != g_ActiveConfig.IsVSync())
@@ -1521,6 +1424,30 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // Invalidate EFB cache
   ClearEFBCache();
+}
+
+void Renderer::CheckForSurfaceChange()
+{
+  if (!m_surface_changed.TestAndClear())
+    return;
+
+  m_surface_handle = m_new_surface_handle;
+  m_new_surface_handle = nullptr;
+  GLInterface->UpdateHandle(m_surface_handle);
+  GLInterface->UpdateSurface();
+
+  // With a surface change, the window likely has new dimensions.
+  m_backbuffer_width = GLInterface->GetBackBufferWidth();
+  m_backbuffer_height = GLInterface->GetBackBufferHeight();
+}
+
+void Renderer::CheckForSurfaceResize()
+{
+  if (!m_surface_resized.TestAndClear())
+    return;
+
+  m_backbuffer_width = m_new_backbuffer_width;
+  m_backbuffer_height = m_new_backbuffer_height;
 }
 
 void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
@@ -1563,9 +1490,9 @@ void Renderer::RestoreAPIState()
   }
   BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
+  BPFunctions::SetViewport();
   BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
-  SetViewport();
 
   ProgramShaderCache::BindLastVertexFormat();
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
@@ -1639,17 +1566,5 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 void Renderer::SetInterlacingMode()
 {
   // TODO
-}
-
-void Renderer::ChangeSurface(void* new_surface_handle)
-{
-// Win32 polls the window size when redrawing, X11 runs an event loop in another thread.
-// This is only necessary for Android at this point, although handling resizes here
-// would be more efficient than polling.
-#ifdef ANDROID
-  m_new_surface_handle = new_surface_handle;
-  m_surface_needs_change.Set();
-  m_surface_changed.Wait();
-#endif
 }
 }

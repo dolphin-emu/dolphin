@@ -129,7 +129,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void launchSettingsActivity(String menuTag)
 	{
-		SettingsActivity.launch(this, menuTag);
+		SettingsActivity.launch(this, menuTag, "");
 	}
 
 	@Override

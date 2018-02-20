@@ -205,7 +205,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs)
   HandleExtensionSwap();
 
   // update status struct
-  m_status.extension = (m_extension->active_extension || m_motion_plus_active) ? 1 : 0;
+  m_status.extension = m_extension->active_extension ? 1 : 0;
 
   // set up report
   u8 data[8];
@@ -299,17 +299,14 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 
     // extension register
     case 0xa4:
-      region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+      region_ptr = (void*)&m_reg_ext;
       region_size = WIIMOTE_REG_EXT_SIZE;
       break;
 
     // motion plus
     case 0xa6:
-      if (false == m_motion_plus_active)
-      {
-        region_ptr = &m_reg_motion_plus;
-        region_size = WIIMOTE_REG_EXT_SIZE;
-      }
+      region_ptr = &m_reg_motion_plus;
+      region_size = WIIMOTE_REG_EXT_SIZE;
       break;
 
     // ir
@@ -340,7 +337,6 @@ void Wiimote::WriteData(const wm_write_data* const wd)
       {
         // maybe hacky
         m_reg_motion_plus.activated = 0;
-        m_motion_plus_active ^= 1;
 
         RequestStatus();
       }
@@ -434,18 +430,15 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 
     // extension
     case 0xa4:
-      region_ptr = m_motion_plus_active ? (void*)&m_reg_motion_plus : (void*)&m_reg_ext;
+      region_ptr = (void*)&m_reg_ext;
       region_size = WIIMOTE_REG_EXT_SIZE;
       break;
 
     // motion plus
     case 0xa6:
       // reading from 0xa6 returns error when mplus is activated
-      if (false == m_motion_plus_active)
-      {
-        region_ptr = &m_reg_motion_plus;
-        region_size = WIIMOTE_REG_EXT_SIZE;
-      }
+      region_ptr = &m_reg_motion_plus;
+      region_size = WIIMOTE_REG_EXT_SIZE;
       break;
 
     // ir
@@ -556,8 +549,6 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(ir_cos);
   p.Do(m_rumble_on);
   p.Do(m_speaker_mute);
-  p.Do(m_motion_plus_present);
-  p.Do(m_motion_plus_active);
   p.Do(m_reporting_auto);
   p.Do(m_reporting_mode);
   p.Do(m_reporting_channel);

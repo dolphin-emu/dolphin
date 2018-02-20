@@ -19,7 +19,7 @@ public interface SettingsActivityView
 	 * @param menuTag    Identifier for the settings group that should be displayed.
 	 * @param addToStack Whether or not this fragment should replace a previous one.
 	 */
-	void showSettingsFragment(String menuTag, boolean addToStack);
+	void showSettingsFragment(String menuTag, boolean addToStack, String gameId);
 
 	/**
 	 * Called by a contained Fragment to get access to the Setting HashMap

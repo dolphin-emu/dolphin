@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.text.TextUtils;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
@@ -25,6 +27,7 @@ public final class SettingsFragmentPresenter
 	private SettingsFragmentView mView;
 
 	private String mMenuTag;
+	private String mGameID;
 
 	private ArrayList<HashMap<String, SettingSection>> mSettings;
 	private ArrayList<SettingsItem> mSettingsList;
@@ -37,8 +40,10 @@ public final class SettingsFragmentPresenter
 		mView = view;
 	}
 
-	public void onCreate(String menuTag)
+	public void onCreate(String menuTag, String gameId)
 	{
+		mGameID = gameId;
+
 		if (menuTag.startsWith(SettingsFile.KEY_GCPAD_TYPE))
 		{
 			mMenuTag = SettingsFile.KEY_GCPAD_TYPE;
@@ -106,6 +111,10 @@ public final class SettingsFragmentPresenter
 
 	private void loadSettingsList()
 	{
+		if (!TextUtils.isEmpty(mGameID))
+		{
+			mView.getActivity().setTitle("Game Settings: " + mGameID);
+		}
 		ArrayList<SettingsItem> sl = new ArrayList<>();
 
 		switch (mMenuTag)
@@ -151,7 +160,7 @@ public final class SettingsFragmentPresenter
 				break;
 
 			default:
-				mView.showToastMessage("Unimplemented menu.");
+				mView.showToastMessage("Unimplemented menu");
 				return;
 		}
 
