@@ -10,8 +10,6 @@
 #include <QPushButton>
 #include <QStyle>
 
-#include <iostream>
-
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Settings.h"
@@ -23,10 +21,8 @@ CheatWarningWidget::CheatWarningWidget(const std::string& game_id) : m_game_id(g
 
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged,
           [this] { Update(Core::IsRunning()); });
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
-    std::cout << (state == Core::State::Running) << std::endl;
-    Update(state == Core::State::Running);
-  });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged,
+          [this](Core::State state) { Update(state == Core::State::Running); });
 
   Update(Core::IsRunning());
 }
