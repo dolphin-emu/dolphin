@@ -9,8 +9,6 @@
 #include <QString>
 #include <QTimer>
 
-#include <iostream>
-
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 
 #include "Common/Thread.h"
