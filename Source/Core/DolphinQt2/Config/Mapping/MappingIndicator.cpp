@@ -233,12 +233,12 @@ void MappingIndicator::DrawMixedTriggers()
   double r_bar_percent = r_analog;
   double l_bar_percent = l_analog;
 
-  if (r_button && (r_button != r_analog) || (r_button == r_analog) && (r_analog > threshold))
+  if ((r_button && r_button != r_analog) || (r_button == r_analog && r_analog > threshold))
     r_bar_percent = 1;
   else
     r_bar_percent *= 0.8;
 
-  if (l_button && (l_button != l_analog) || (l_button == l_analog) && (l_analog > threshold))
+  if ((l_button && l_button != l_analog) || (l_button == l_analog && l_analog > threshold))
     l_bar_percent = 1;
   else
     l_bar_percent *= 0.8;
