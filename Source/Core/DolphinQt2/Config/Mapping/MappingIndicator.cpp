@@ -171,7 +171,7 @@ void MappingIndicator::DrawStick()
   // Emulated cursor position
   float virt_curx, virt_cury;
 
-  if (abs(curx) < deadzone && abs(cury) < deadzone)
+  if (std::abs(curx) < deadzone && std::abs(cury) < deadzone)
   {
     virt_curx = virt_cury = 0;
   }
