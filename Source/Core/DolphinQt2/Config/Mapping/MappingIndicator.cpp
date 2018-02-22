@@ -182,7 +182,7 @@ void MappingIndicator::DrawStick()
   }
 
   // Coordinates for an octagon
-  std::array<QPointF, 8> radius_octagon = {
+  std::array<QPointF, 8> radius_octagon = {{
       QPointF(centerx, centery + stick_size),                                   // Bottom
       QPointF(centerx + stick_size / sqrt(2), centery + stick_size / sqrt(2)),  // Bottom Right
       QPointF(centerx + stick_size, centery),                                   // Right
@@ -191,7 +191,7 @@ void MappingIndicator::DrawStick()
       QPointF(centerx - stick_size / sqrt(2), centery - stick_size / sqrt(2)),  // Top Left
       QPointF(centerx - stick_size, centery),                                   // Left
       QPointF(centerx - stick_size / sqrt(2), centery + stick_size / sqrt(2))   // Bottom Left
-  };
+  }};
 
   QPainter p(this);
 
