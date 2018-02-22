@@ -405,8 +405,8 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
   else  // if (type == EFBAccessType::PokeZ)
   {
-    D3D::stateman->PushBlendState(m_clear_blend_states[3]);
-    D3D::stateman->PushDepthState(m_clear_depth_states[1]);
+    D3D::stateman->SetBlendState(m_clear_blend_states[3]);
+    D3D::stateman->SetDepthState(m_clear_depth_states[1]);
 
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
@@ -416,12 +416,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
 
   D3D::DrawEFBPokeQuads(type, points, num_points);
-
-  if (type == EFBAccessType::PokeZ)
-  {
-    D3D::stateman->PopDepthState();
-    D3D::stateman->PopBlendState();
-  }
 
   RestoreAPIState();
 }
@@ -446,21 +440,21 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   ResetAPIState();
 
   if (colorEnable && alphaEnable)
-    D3D::stateman->PushBlendState(m_clear_blend_states[0]);
+    D3D::stateman->SetBlendState(m_clear_blend_states[0]);
   else if (colorEnable)
-    D3D::stateman->PushBlendState(m_clear_blend_states[1]);
+    D3D::stateman->SetBlendState(m_clear_blend_states[1]);
   else if (alphaEnable)
-    D3D::stateman->PushBlendState(m_clear_blend_states[2]);
+    D3D::stateman->SetBlendState(m_clear_blend_states[2]);
   else
-    D3D::stateman->PushBlendState(m_clear_blend_states[3]);
+    D3D::stateman->SetBlendState(m_clear_blend_states[3]);
 
   // TODO: Should we enable Z testing here?
   // if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(s_clear_depth_states[0]);
   // else
   if (zEnable)
-    D3D::stateman->PushDepthState(m_clear_depth_states[1]);
+    D3D::stateman->SetDepthState(m_clear_depth_states[1]);
   else /*if (!zEnable)*/
-    D3D::stateman->PushDepthState(m_clear_depth_states[2]);
+    D3D::stateman->SetDepthState(m_clear_depth_states[2]);
 
   // Update the view port for clearing the picture
   TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
@@ -473,9 +467,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   // Color is passed in bgra mode so we need to convert it to rgba
   u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
   D3D::drawClearQuad(rgbaColor, 1.0f - (z & 0xFFFFFF) / 16777216.0f);
-
-  D3D::stateman->PopDepthState();
-  D3D::stateman->PopBlendState();
 
   RestoreAPIState();
 }
@@ -646,26 +637,23 @@ void Renderer::UpdateBackbufferSize()
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
 void Renderer::ResetAPIState()
 {
-  D3D::stateman->PushBlendState(m_reset_blend_state);
-  D3D::stateman->PushDepthState(m_reset_depth_state);
-  D3D::stateman->PushRasterizerState(m_reset_rast_state);
+  D3D::stateman->SetBlendState(m_reset_blend_state);
+  D3D::stateman->SetDepthState(m_reset_depth_state);
+  D3D::stateman->SetRasterizerState(m_reset_rast_state);
 }
 
 void Renderer::RestoreAPIState()
 {
   // Gets us back into a more game-like state.
-  D3D::stateman->PopBlendState();
-  D3D::stateman->PopDepthState();
-  D3D::stateman->PopRasterizerState();
   BPFunctions::SetViewport();
   BPFunctions::SetScissor();
 }
 
 void Renderer::ApplyState()
 {
-  D3D::stateman->PushBlendState(m_state_cache.Get(m_gx_state.blend));
-  D3D::stateman->PushDepthState(m_state_cache.Get(m_gx_state.zmode));
-  D3D::stateman->PushRasterizerState(m_state_cache.Get(m_gx_state.raster));
+  D3D::stateman->SetBlendState(m_state_cache.Get(m_gx_state.blend));
+  D3D::stateman->SetDepthState(m_state_cache.Get(m_gx_state.zmode));
+  D3D::stateman->SetRasterizerState(m_state_cache.Get(m_gx_state.raster));
   D3D::stateman->SetPrimitiveTopology(
       StateCache::GetPrimitiveTopology(m_gx_state.raster.primitive));
   FramebufferManager::SetIntegerEFBRenderTarget(m_gx_state.blend.logicopenable);
@@ -683,9 +671,6 @@ void Renderer::ApplyState()
 
 void Renderer::RestoreState()
 {
-  D3D::stateman->PopBlendState();
-  D3D::stateman->PopDepthState();
-  D3D::stateman->PopRasterizerState();
 }
 
 void Renderer::SetRasterizationState(const RasterizationState& state)

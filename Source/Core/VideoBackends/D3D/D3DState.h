@@ -6,17 +6,12 @@
 
 #include <array>
 #include <cstddef>
-#include <stack>
 #include <unordered_map>
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoCommon/RenderState.h"
-
-struct ID3D11BlendState;
-struct ID3D11DepthStencilState;
-struct ID3D11RasterizerState;
 
 namespace DX11
 {
@@ -44,37 +39,35 @@ private:
 
 namespace D3D
 {
-template <typename T>
-class AutoState
-{
-public:
-  AutoState(const T* object);
-  AutoState(const AutoState<T>& source);
-  ~AutoState();
-
-  const inline T* GetPtr() const { return state; }
-private:
-  const T* state;
-};
-
-typedef AutoState<ID3D11BlendState> AutoBlendState;
-typedef AutoState<ID3D11DepthStencilState> AutoDepthStencilState;
-typedef AutoState<ID3D11RasterizerState> AutoRasterizerState;
-
 class StateManager
 {
 public:
   StateManager();
+  ~StateManager();
 
-  // call any of these to change the affected states
-  void PushBlendState(const ID3D11BlendState* state);
-  void PushDepthState(const ID3D11DepthStencilState* state);
-  void PushRasterizerState(const ID3D11RasterizerState* state);
+  void SetBlendState(ID3D11BlendState* state)
+  {
+    if (m_current.blendState != state)
+      m_dirtyFlags |= DirtyFlag_BlendState;
 
-  // call these after drawing
-  void PopBlendState();
-  void PopDepthState();
-  void PopRasterizerState();
+    m_pending.blendState = state;
+  }
+
+  void SetDepthState(ID3D11DepthStencilState* state)
+  {
+    if (m_current.depthState != state)
+      m_dirtyFlags |= DirtyFlag_DepthState;
+
+    m_pending.depthState = state;
+  }
+
+  void SetRasterizerState(ID3D11RasterizerState* state)
+  {
+    if (m_current.rasterizerState != state)
+      m_dirtyFlags |= DirtyFlag_RasterizerState;
+
+    m_pending.rasterizerState = state;
+  }
 
   void SetTexture(size_t index, ID3D11ShaderResourceView* texture)
   {
@@ -209,14 +202,6 @@ public:
   void Apply();
 
 private:
-  std::stack<AutoBlendState> m_blendStates;
-  std::stack<AutoDepthStencilState> m_depthStates;
-  std::stack<AutoRasterizerState> m_rasterizerStates;
-
-  ID3D11BlendState* m_currentBlendState;
-  ID3D11DepthStencilState* m_currentDepthState;
-  ID3D11RasterizerState* m_currentRasterizerState;
-
   enum DirtyFlags
   {
     DirtyFlag_Texture0 = 1 << 0,
@@ -251,9 +236,12 @@ private:
     DirtyFlag_ComputeShader = 1 << 25,
 
     DirtyFlag_InputAssembler = 1 << 26,
+    DirtyFlag_BlendState = 1 << 27,
+    DirtyFlag_DepthState = 1 << 28,
+    DirtyFlag_RasterizerState = 1 << 29,
   };
 
-  u32 m_dirtyFlags;
+  u32 m_dirtyFlags = ~0u;
 
   struct Resources
   {
@@ -273,10 +261,13 @@ private:
     ID3D11VertexShader* vertexShader;
     ID3D11GeometryShader* geometryShader;
     ID3D11ComputeShader* computeShader;
+    ID3D11BlendState* blendState;
+    ID3D11DepthStencilState* depthState;
+    ID3D11RasterizerState* rasterizerState;
   };
 
-  Resources m_pending;
-  Resources m_current;
+  Resources m_pending = {};
+  Resources m_current = {};
 };
 
 extern StateManager* stateman;

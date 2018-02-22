@@ -406,8 +406,8 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
   pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
 
   // set general pipeline state
-  D3D::stateman->PushBlendState(m_blendstate);
-  D3D::stateman->PushRasterizerState(m_raststate);
+  D3D::stateman->SetBlendState(m_blendstate);
+  D3D::stateman->SetRasterizerState(m_raststate);
 
   D3D::stateman->SetPixelShader(m_pshader);
   D3D::stateman->SetVertexShader(m_vshader);
@@ -478,8 +478,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
     D3D::stateman->Apply();
     D3D::context->Draw(3 * dwNumTriangles, 0);
   }
-  D3D::stateman->PopBlendState();
-  D3D::stateman->PopRasterizerState();
   return S_OK;
 }
 
