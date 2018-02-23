@@ -14,6 +14,7 @@ struct XFBSourceBase;
 
 namespace OGL
 {
+class OGLPipeline;
 void ClearEFBCache();
 
 enum GlslVersion
@@ -89,7 +90,13 @@ public:
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
 
+  void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
@@ -121,6 +128,12 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
+  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                           u32 vertex_stride, u32 num_vertices) override;
+
+  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
+                             u32 groups_x, u32 groups_y, u32 groups_z) override;
+
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
@@ -134,6 +147,12 @@ private:
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
 
+  void ApplyBlendingState(const BlendingState& state);
+  void ApplyRasterizationState(const RasterizationState& state);
+  void ApplyDepthState(const DepthState& state);
+  void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
+
   std::array<const AbstractTexture*, 8> m_bound_textures{};
+  const OGLPipeline* m_graphics_pipeline = nullptr;
 };
 }

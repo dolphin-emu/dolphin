@@ -111,8 +111,6 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   FramebufferManager::SetFramebuffer(
       static_cast<OGLTexture*>(s_encoding_render_texture.get())->GetFramebuffer());
 
-  OpenGL_BindAttributelessVAO();
-
   // set source texture
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D_ARRAY, srcTexture);
@@ -128,6 +126,7 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
 
   glViewport(0, 0, (GLsizei)(dst_line_size / 4), (GLsizei)dstHeight);
 
+  ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   MathUtil::Rectangle<int> copy_rect(0, 0, dst_line_size / 4, dstHeight);

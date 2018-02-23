@@ -374,6 +374,12 @@
     <ClInclude Include="AbstractStagingTexture.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractShader.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractPipeline.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

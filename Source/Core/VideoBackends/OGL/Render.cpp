@@ -13,6 +13,7 @@
 #include <tuple>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
@@ -27,11 +28,14 @@
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/OGLPipeline.h"
+#include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/RasterFont.h"
 #include "VideoBackends/OGL/SamplerCache.h"
+#include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
@@ -816,8 +820,6 @@ void Renderer::Shutdown()
 
   s_raster_font.reset();
   m_post_processor.reset();
-
-  OpenGL_DeleteAttributelessVAO();
 }
 
 void Renderer::Init()
@@ -828,8 +830,6 @@ void Renderer::Init()
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
   s_raster_font = std::make_unique<RasterFont>();
-
-  OpenGL_CreateAttributelessVAO();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -849,6 +849,23 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
                                     left * 2.0f / static_cast<float>(m_backbuffer_width) - 1.0f,
                                     1.0f - top * 2.0f / static_cast<float>(m_backbuffer_height), 0,
                                     m_backbuffer_width, m_backbuffer_height, color);
+}
+
+std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
+                                                                 const char* source, size_t length)
+{
+  return OGLShader::CreateFromSource(stage, source, length);
+}
+
+std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
+                                                                 const void* data, size_t length)
+{
+  return nullptr;
+}
+
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+{
+  return OGLPipeline::Create(config);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -1221,7 +1238,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   }
 }
 
-void Renderer::SetBlendingState(const BlendingState& state)
+void Renderer::ApplyBlendingState(const BlendingState& state)
 {
   bool useDualSource =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
@@ -1494,13 +1511,9 @@ void Renderer::RestoreAPIState()
   BPFunctions::SetViewport();
   BPFunctions::SetDepthMode();
   BPFunctions::SetBlendMode();
-
-  ProgramShaderCache::BindLastVertexFormat();
-  const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
-  glBindBuffer(GL_ARRAY_BUFFER, vm->GetVertexBufferHandle());
 }
 
-void Renderer::SetRasterizationState(const RasterizationState& state)
+void Renderer::ApplyRasterizationState(const RasterizationState& state)
 {
   // none, ccw, cw, ccw
   if (state.cullmode != GenMode::CULL_NONE)
@@ -1515,7 +1528,7 @@ void Renderer::SetRasterizationState(const RasterizationState& state)
   }
 }
 
-void Renderer::SetDepthState(const DepthState& state)
+void Renderer::ApplyDepthState(const DepthState& state)
 {
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
@@ -1534,6 +1547,33 @@ void Renderer::SetDepthState(const DepthState& state)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
+}
+
+void Renderer::SetRasterizationState(const RasterizationState& state)
+{
+  ApplyRasterizationState(state);
+}
+
+void Renderer::SetDepthState(const DepthState& state)
+{
+  ApplyDepthState(state);
+}
+
+void Renderer::SetBlendingState(const BlendingState& state)
+{
+  ApplyBlendingState(state);
+}
+
+void Renderer::SetPipeline(const AbstractPipeline* pipeline)
+{
+  // Not all shader changes currently go through SetPipeline, so we can't
+  // test if the pipeline hasn't changed and skip these applications. Yet.
+  m_graphics_pipeline = static_cast<const OGLPipeline*>(pipeline);
+  ApplyRasterizationState(m_graphics_pipeline->GetRasterizationState());
+  ApplyDepthState(m_graphics_pipeline->GetDepthState());
+  ApplyBlendingState(m_graphics_pipeline->GetBlendingState());
+  ProgramShaderCache::BindVertexFormat(m_graphics_pipeline->GetVertexFormat());
+  m_graphics_pipeline->GetProgram()->shader.Bind();
 }
 
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
@@ -1567,5 +1607,53 @@ void Renderer::UnbindTexture(const AbstractTexture* texture)
 void Renderer::SetInterlacingMode()
 {
   // TODO
+}
+
+void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                                   u32 vertex_stride, u32 num_vertices)
+{
+  // Copy in uniforms.
+  if (uniforms_size > 0)
+    UploadUtilityUniforms(uniforms, uniforms_size);
+
+  // Draw from base index if there is vertex data.
+  if (vertices)
+  {
+    StreamBuffer* vbuf = static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBuffer();
+    auto buf = vbuf->Map(vertex_stride * num_vertices, vertex_stride);
+    std::memcpy(buf.first, vertices, vertex_stride * num_vertices);
+    vbuf->Unmap(vertex_stride * num_vertices);
+    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), buf.second / vertex_stride, num_vertices);
+  }
+  else
+  {
+    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), 0, num_vertices);
+  }
+}
+
+void Renderer::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
+{
+  _dbg_assert_(VIDEO, uniforms_size > 0);
+
+  auto buf = ProgramShaderCache::GetUniformBuffer()->Map(
+      uniforms_size, ProgramShaderCache::GetUniformBufferAlignment());
+  std::memcpy(buf.first, uniforms, uniforms_size);
+  ProgramShaderCache::GetUniformBuffer()->Unmap(uniforms_size);
+  glBindBufferRange(GL_UNIFORM_BUFFER, 1, ProgramShaderCache::GetUniformBuffer()->m_buffer,
+                    buf.second, uniforms_size);
+
+  // This is rather horrible, but because of how the UBOs are bound, this forces it to rebind.
+  ProgramShaderCache::InvalidateConstants();
+}
+
+void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
+                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
+{
+  glUseProgram(static_cast<const OGLShader*>(shader)->GetGLComputeProgramID());
+  if (uniforms_size > 0)
+    UploadUtilityUniforms(uniforms, uniforms_size);
+
+  glDispatchCompute(groups_x, groups_y, groups_z);
+  ProgramShaderCache::InvalidateLastProgram();
 }
 }

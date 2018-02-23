@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/GL/GLInterfaceBase.h"
@@ -20,6 +21,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
+#include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/VertexManager.h"
@@ -40,13 +42,14 @@
 namespace OGL
 {
 static constexpr u32 UBO_LENGTH = 32 * 1024 * 1024;
-static constexpr u32 INVALID_VAO = std::numeric_limits<u32>::max();
 
 std::unique_ptr<ProgramShaderCache::SharedContextAsyncShaderCompiler>
     ProgramShaderCache::s_async_compiler;
 u32 ProgramShaderCache::s_ubo_buffer_size;
 s32 ProgramShaderCache::s_ubo_align;
-u32 ProgramShaderCache::s_last_VAO = INVALID_VAO;
+GLuint ProgramShaderCache::s_attributeless_VBO = 0;
+GLuint ProgramShaderCache::s_attributeless_VAO = 0;
+GLuint ProgramShaderCache::s_last_VAO = 0;
 
 static std::unique_ptr<StreamBuffer> s_buffer;
 static int num_failures = 0;
@@ -56,6 +59,7 @@ static LinearDiskCache<UBERSHADERUID, u8> s_uber_program_disk_cache;
 static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::UberPCache ProgramShaderCache::ubershaders;
+ProgramShaderCache::PipelineProgramMap ProgramShaderCache::pipelineprograms;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_uber_entry;
 SHADERUID ProgramShaderCache::last_uid;
@@ -185,6 +189,47 @@ void SHADER::DestroyShaders()
     glDeleteShader(psid);
     psid = 0;
   }
+}
+
+bool PipelineProgramKey::operator!=(const PipelineProgramKey& rhs) const
+{
+  return !operator==(rhs);
+}
+
+bool PipelineProgramKey::operator==(const PipelineProgramKey& rhs) const
+{
+  return std::tie(vertex_shader, geometry_shader, pixel_shader) ==
+         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+}
+
+bool PipelineProgramKey::operator<(const PipelineProgramKey& rhs) const
+{
+  return std::tie(vertex_shader, geometry_shader, pixel_shader) <
+         std::tie(rhs.vertex_shader, rhs.geometry_shader, rhs.pixel_shader);
+}
+
+std::size_t PipelineProgramKeyHash::operator()(const PipelineProgramKey& key) const
+{
+  // We would really want std::hash_combine for this..
+  std::hash<const void*> hasher;
+  return hasher(key.vertex_shader) + hasher(key.geometry_shader) + hasher(key.pixel_shader);
+}
+
+StreamBuffer* ProgramShaderCache::GetUniformBuffer()
+{
+  return s_buffer.get();
+}
+
+u32 ProgramShaderCache::GetUniformBufferAlignment()
+{
+  return s_ubo_align;
+}
+
+void ProgramShaderCache::InvalidateConstants()
+{
+  VertexShaderManager::dirty = true;
+  GeometryShaderManager::dirty = true;
+  PixelShaderManager::dirty = true;
 }
 
 void ProgramShaderCache::UploadConstants()
@@ -484,8 +529,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
   glGetShaderiv(id, GL_COMPILE_STATUS, &compileStatus);
   GLsizei length = 0;
   glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-
-  if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
+  if (compileStatus != GL_TRUE || length > 1)
   {
     std::string info_log;
     info_log.resize(length);
@@ -508,7 +552,10 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
       break;
     }
 
-    ERROR_LOG(VIDEO, "%s Shader info log:\n%s", prefix, info_log.c_str());
+    if (compileStatus != GL_TRUE)
+      ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
+    else
+      WARN_LOG(VIDEO, "%s compiled with warnings:\n%s", prefix, info_log.c_str());
 
     std::string filename = StringFromFormat(
         "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
@@ -542,12 +589,16 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vc
   glGetProgramiv(id, GL_LINK_STATUS, &linkStatus);
   GLsizei length = 0;
   glGetProgramiv(id, GL_INFO_LOG_LENGTH, &length);
-  if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
+  if (linkStatus != GL_TRUE || length > 1)
   {
     std::string info_log;
     info_log.resize(length);
     glGetProgramInfoLog(id, length, &length, &info_log[0]);
-    ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
+
+    if (linkStatus != GL_TRUE)
+      ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
+    else
+      WARN_LOG(VIDEO, "Program linked with warnings:\n%s", info_log.c_str());
 
     std::string filename =
         StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
@@ -608,6 +659,7 @@ void ProgramShaderCache::Init()
     LoadProgramBinaries();
 
   CreateHeader();
+  CreateAttributelessVAO();
 
   CurrentProgram = 0;
   last_entry = nullptr;
@@ -657,7 +709,6 @@ void ProgramShaderCache::Reload()
   if (g_ActiveConfig.CanPrecompileUberShaders())
     PrecompileUberShaders();
 
-  InvalidateVertexFormat();
   CurrentProgram = 0;
   last_entry = nullptr;
   last_uber_entry = nullptr;
@@ -681,14 +732,42 @@ void ProgramShaderCache::Shutdown()
   s_program_disk_cache.Close();
   s_uber_program_disk_cache.Close();
 
-  InvalidateVertexFormat();
   DestroyShaders();
   s_buffer.reset();
+
+  glBindVertexArray(0);
+  glDeleteBuffers(1, &s_attributeless_VBO);
+  glDeleteVertexArrays(1, &s_attributeless_VAO);
+  s_attributeless_VBO = 0;
+  s_attributeless_VAO = 0;
+  s_last_VAO = 0;
+
+  // All pipeline programs should have been released.
+  _dbg_assert_(VIDEO, pipelineprograms.empty());
+  pipelineprograms.clear();
+}
+
+void ProgramShaderCache::CreateAttributelessVAO()
+{
+  glGenVertexArrays(1, &s_attributeless_VAO);
+
+  // In a compatibility context, we require a valid, bound array buffer.
+  glGenBuffers(1, &s_attributeless_VBO);
+
+  // Initialize the buffer with nothing. 16 floats is an arbitrary size that may work around driver
+  // issues.
+  glBindBuffer(GL_ARRAY_BUFFER, s_attributeless_VBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, nullptr, GL_STATIC_DRAW);
+
+  // We must also define vertex attribute 0.
+  glBindVertexArray(s_attributeless_VAO);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+  glEnableVertexAttribArray(0);
 }
 
 void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 {
-  u32 new_VAO = vertex_format ? vertex_format->VAO : 0;
+  u32 new_VAO = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
   if (s_last_VAO == new_VAO)
     return;
 
@@ -698,15 +777,12 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
 
 void ProgramShaderCache::InvalidateVertexFormat()
 {
-  s_last_VAO = INVALID_VAO;
+  s_last_VAO = 0;
 }
 
-void ProgramShaderCache::BindLastVertexFormat()
+void ProgramShaderCache::InvalidateLastProgram()
 {
-  if (s_last_VAO != INVALID_VAO)
-    glBindVertexArray(s_last_VAO);
-  else
-    glBindVertexArray(0);
+  CurrentProgram = 0;
 }
 
 GLuint ProgramShaderCache::CreateProgramFromBinary(const u8* value, u32 value_size)
@@ -835,6 +911,58 @@ void ProgramShaderCache::DestroyShaders()
   for (auto& entry : ubershaders)
     entry.second.Destroy();
   ubershaders.clear();
+}
+
+const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* vertex_shader,
+                                                              const OGLShader* geometry_shader,
+                                                              const OGLShader* pixel_shader)
+{
+  PipelineProgramKey key = {vertex_shader, geometry_shader, pixel_shader};
+  auto iter = pipelineprograms.find(key);
+  if (iter != pipelineprograms.end())
+  {
+    iter->second->reference_count++;
+    return iter->second.get();
+  }
+
+  std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
+  prog->key = key;
+
+  // Attach shaders.
+  _assert_(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
+  _assert_(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
+  prog->shader.glprogid = glCreateProgram();
+  glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
+  glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
+  if (geometry_shader)
+  {
+    _assert_(geometry_shader->GetStage() == ShaderStage::Geometry);
+    glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
+  }
+
+  // Link program.
+  prog->shader.SetProgramBindings(false);
+  glLinkProgram(prog->shader.glprogid);
+  if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
+  {
+    prog->shader.Destroy();
+    return nullptr;
+  }
+
+  auto ip = pipelineprograms.emplace(key, std::move(prog));
+  return ip.first->second.get();
+}
+
+void ProgramShaderCache::ReleasePipelineProgram(const PipelineProgram* prog)
+{
+  auto iter = pipelineprograms.find(prog->key);
+  _assert_(iter != pipelineprograms.end() && prog == iter->second.get());
+
+  if (--iter->second->reference_count == 0)
+  {
+    iter->second->shader.Destroy();
+    pipelineprograms.erase(iter);
+  }
 }
 
 void ProgramShaderCache::CreateHeader()
@@ -1345,5 +1473,4 @@ void ProgramShaderCache::DrawPrerenderArray(const SHADER& shader, PrimitiveType 
   glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
   glDeleteSync(sync);
 }
-
 }  // namespace OGL

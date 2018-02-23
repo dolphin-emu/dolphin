@@ -511,6 +511,16 @@ const char* PixelShaderVersionString()
     return "ps_4_0";
 }
 
+const char* ComputeShaderVersionString()
+{
+  if (s_featlevel == D3D_FEATURE_LEVEL_11_0)
+    return "cs_5_0";
+  else if (s_featlevel == D3D_FEATURE_LEVEL_10_1)
+    return "cs_4_1";
+  else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/
+    return "cs_4_0";
+}
+
 D3DTexture2D* GetBackBuffer()
 {
   return s_backbuf;

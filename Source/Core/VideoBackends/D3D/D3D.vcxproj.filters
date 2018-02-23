@@ -64,6 +64,12 @@
     <ClCompile Include="DXTexture.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="DXShader.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="DXPipeline.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -116,6 +122,12 @@
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="DXTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="DXShader.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="DXPipeline.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

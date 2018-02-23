@@ -1043,7 +1043,7 @@ bool StateTracker::UpdateDescriptorSet()
       m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS] == VK_NULL_HANDLE)
   {
     VkDescriptorSetLayout layout =
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS);
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS);
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;

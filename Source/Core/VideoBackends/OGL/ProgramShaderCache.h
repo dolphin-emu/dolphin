@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <tuple>
+#include <unordered_map>
 
 #include "Common/GL/GLUtil.h"
 #include "Common/LinearDiskCache.h"
@@ -21,7 +23,9 @@ class cInterfaceBase;
 
 namespace OGL
 {
+class OGLShader;
 class GLVertexFormat;
+class StreamBuffer;
 
 class SHADERUID
 {
@@ -81,6 +85,29 @@ struct SHADER
   void DestroyShaders();
 };
 
+struct PipelineProgramKey
+{
+  const OGLShader* vertex_shader;
+  const OGLShader* geometry_shader;
+  const OGLShader* pixel_shader;
+
+  bool operator==(const PipelineProgramKey& rhs) const;
+  bool operator!=(const PipelineProgramKey& rhs) const;
+  bool operator<(const PipelineProgramKey& rhs) const;
+};
+
+struct PipelineProgramKeyHash
+{
+  std::size_t operator()(const PipelineProgramKey& key) const;
+};
+
+struct PipelineProgram
+{
+  PipelineProgramKey key;
+  SHADER shader;
+  std::atomic_size_t reference_count{1};
+};
+
 class ProgramShaderCache
 {
 public:
@@ -98,7 +125,7 @@ public:
   static SHADER* SetUberShader(PrimitiveType primitive_type, const GLVertexFormat* vertex_format);
   static void BindVertexFormat(const GLVertexFormat* vertex_format);
   static void InvalidateVertexFormat();
-  static void BindLastVertexFormat();
+  static void InvalidateLastProgram();
 
   static bool CompileShader(SHADER& shader, const std::string& vcode, const std::string& pcode,
                             const std::string& gcode = "");
@@ -107,6 +134,9 @@ public:
   static bool CheckShaderCompileResult(GLuint id, GLenum type, const std::string& code);
   static bool CheckProgramLinkResult(GLuint id, const std::string& vcode, const std::string& pcode,
                                      const std::string& gcode);
+  static StreamBuffer* GetUniformBuffer();
+  static u32 GetUniformBufferAlignment();
+  static void InvalidateConstants();
   static void UploadConstants();
 
   static void Init();
@@ -115,6 +145,11 @@ public:
   static void CreateHeader();
   static void RetrieveAsyncShaders();
   static void PrecompileUberShaders();
+
+  static const PipelineProgram* GetPipelineProgram(const OGLShader* vertex_shader,
+                                                   const OGLShader* geometry_shader,
+                                                   const OGLShader* pixel_shader);
+  static void ReleasePipelineProgram(const PipelineProgram* prog);
 
 private:
   template <typename UIDType>
@@ -190,7 +225,11 @@ private:
 
   typedef std::map<SHADERUID, PCacheEntry> PCache;
   typedef std::map<UBERSHADERUID, PCacheEntry> UberPCache;
+  typedef std::unordered_map<PipelineProgramKey, std::unique_ptr<PipelineProgram>,
+                             PipelineProgramKeyHash>
+      PipelineProgramMap;
 
+  static void CreateAttributelessVAO();
   static GLuint CreateProgramFromBinary(const u8* value, u32 value_size);
   static bool CreateCacheEntryFromBinary(PCacheEntry* entry, const u8* value, u32 value_size);
   static void LoadProgramBinaries();
@@ -202,6 +241,7 @@ private:
 
   static PCache pshaders;
   static UberPCache ubershaders;
+  static PipelineProgramMap pipelineprograms;
   static PCacheEntry* last_entry;
   static PCacheEntry* last_uber_entry;
   static SHADERUID last_uid;
@@ -210,7 +250,10 @@ private:
   static std::unique_ptr<SharedContextAsyncShaderCompiler> s_async_compiler;
   static u32 s_ubo_buffer_size;
   static s32 s_ubo_align;
-  static u32 s_last_VAO;
+
+  static GLuint s_attributeless_VBO;
+  static GLuint s_attributeless_VAO;
+  static GLuint s_last_VAO;
 };
 
 }  // namespace OGL
