@@ -1446,6 +1446,7 @@ void Renderer::CheckForSurfaceResize()
   if (!m_surface_resized.TestAndClear())
     return;
 
+  GLInterface->Update();
   m_backbuffer_width = m_new_backbuffer_width;
   m_backbuffer_height = m_new_backbuffer_height;
 }
