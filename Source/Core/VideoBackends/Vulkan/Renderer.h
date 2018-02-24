@@ -77,10 +77,7 @@ public:
   void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
                               const ClearColor& color_value = {},
                               float depth_value = 0.0f) override;
-  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
@@ -135,6 +132,5 @@ private:
 
   // Shaders used for clear/blit.
   VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
-  const VKPipeline* m_graphics_pipeline = nullptr;
 };
 }

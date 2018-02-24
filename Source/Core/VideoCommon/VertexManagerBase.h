@@ -10,6 +10,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/ShaderCache.h"
 
 class DataReader;
 class NativeVertexFormat;
@@ -58,6 +59,16 @@ public:
 
   std::pair<size_t, size_t> ResetFlushAspectRatioCount();
 
+  // State setters, called from register update functions.
+  void SetRasterizationStateChanged() { m_rasterization_state_changed = true; }
+  void SetDepthStateChanged() { m_depth_state_changed = true; }
+  void SetBlendingStateChanged() { m_blending_state_changed = true; }
+  void InvalidatePipelineObject()
+  {
+    m_current_pipeline_object = nullptr;
+    m_pipeline_config_changed = true;
+  }
+
 protected:
   virtual void vDoState(PointerWrap& p) {}
   virtual void ResetBuffer(u32 stride) = 0;
@@ -72,8 +83,15 @@ protected:
   Slope m_zslope = {};
   void CalculateZSlope(NativeVertexFormat* format);
 
-  bool m_cull_all = false;
+  VideoCommon::GXPipelineConfig m_current_pipeline_config = {};
+  VideoCommon::GXUberPipelineConfig m_current_uber_pipeline_config = {};
+  const AbstractPipeline* m_current_pipeline_object = nullptr;
   PrimitiveType m_current_primitive_type = PrimitiveType::Points;
+  bool m_pipeline_config_changed = true;
+  bool m_rasterization_state_changed = true;
+  bool m_depth_state_changed = true;
+  bool m_blending_state_changed = true;
+  bool m_cull_all = false;
 
 private:
   bool m_is_flushed = true;
@@ -84,6 +102,8 @@ private:
 
   virtual void CreateDeviceObjects() {}
   virtual void DestroyDeviceObjects() {}
+  void UpdatePipelineConfig();
+  void UpdatePipelineObject();
 };
 
 extern std::unique_ptr<VertexManagerBase> g_vertex_manager;

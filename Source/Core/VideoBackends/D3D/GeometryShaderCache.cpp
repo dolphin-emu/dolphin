@@ -6,7 +6,6 @@
 
 #include "Common/Align.h"
 #include "Common/FileUtil.h"
-#include "Common/LinearDiskCache.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -25,15 +24,8 @@
 
 namespace DX11
 {
-GeometryShaderCache::GSCache GeometryShaderCache::GeometryShaders;
-const GeometryShaderCache::GSCacheEntry* GeometryShaderCache::last_entry;
-GeometryShaderUid GeometryShaderCache::last_uid;
-const GeometryShaderCache::GSCacheEntry GeometryShaderCache::pass_entry;
-
 ID3D11GeometryShader* ClearGeometryShader = nullptr;
 ID3D11GeometryShader* CopyGeometryShader = nullptr;
-
-LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
 ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader()
 {
@@ -62,16 +54,6 @@ ID3D11Buffer*& GeometryShaderCache::GetConstantBuffer()
   }
   return gscbuf;
 }
-
-// this class will load the precompiled shaders into our cache
-class GeometryShaderCacheInserter : public LinearDiskCacheReader<GeometryShaderUid, u8>
-{
-public:
-  void Read(const GeometryShaderUid& key, const u8* value, u32 value_size)
-  {
-    GeometryShaderCache::InsertByteCode(key, value, value_size);
-  }
-};
 
 const char clear_shader_code[] = {
     "struct VSOUTPUT\n"
@@ -155,44 +137,6 @@ void GeometryShaderCache::Init()
   CopyGeometryShader = D3D::CompileAndCreateGeometryShader(copy_shader_code);
   CHECK(CopyGeometryShader != nullptr, "Create copy geometry shader");
   D3D::SetDebugObjectName(CopyGeometryShader, "copy geometry shader");
-
-  Clear();
-
-  if (g_ActiveConfig.bShaderCache)
-    LoadShaderCache();
-
-  if (g_ActiveConfig.CanPrecompileUberShaders())
-    PrecompileShaders();
-}
-
-void GeometryShaderCache::LoadShaderCache()
-{
-  GeometryShaderCacheInserter inserter;
-  g_gs_disk_cache.OpenAndRead(GetDiskShaderCacheFileName(APIType::D3D, "GS", true, true), inserter);
-}
-
-void GeometryShaderCache::Reload()
-{
-  g_gs_disk_cache.Sync();
-  g_gs_disk_cache.Close();
-  Clear();
-
-  if (g_ActiveConfig.bShaderCache)
-    LoadShaderCache();
-
-  if (g_ActiveConfig.CanPrecompileUberShaders())
-    PrecompileShaders();
-}
-
-// ONLY to be used during shutdown.
-void GeometryShaderCache::Clear()
-{
-  for (auto& iter : GeometryShaders)
-    iter.second.Destroy();
-  GeometryShaders.clear();
-
-  last_entry = nullptr;
-  last_uid = {};
 }
 
 void GeometryShaderCache::Shutdown()
@@ -201,83 +145,5 @@ void GeometryShaderCache::Shutdown()
 
   SAFE_RELEASE(ClearGeometryShader);
   SAFE_RELEASE(CopyGeometryShader);
-
-  Clear();
-  g_gs_disk_cache.Sync();
-  g_gs_disk_cache.Close();
 }
-
-bool GeometryShaderCache::SetShader(PrimitiveType primitive_type)
-{
-  GeometryShaderUid uid = GetGeometryShaderUid(primitive_type);
-  if (last_entry && uid == last_uid)
-  {
-    GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
-    D3D::stateman->SetGeometryShader(last_entry->shader);
-    return true;
-  }
-
-  // Check if the shader is a pass-through shader
-  if (uid.GetUidData()->IsPassthrough())
-  {
-    // Return the default pass-through shader
-    last_uid = uid;
-    last_entry = &pass_entry;
-    D3D::stateman->SetGeometryShader(last_entry->shader);
-    return true;
-  }
-
-  // Check if the shader is already in the cache
-  auto iter = GeometryShaders.find(uid);
-  if (iter != GeometryShaders.end())
-  {
-    const GSCacheEntry& entry = iter->second;
-    last_uid = uid;
-    last_entry = &entry;
-    D3D::stateman->SetGeometryShader(last_entry->shader);
-    return (entry.shader != nullptr);
-  }
-
-  // Need to compile a new shader
-  if (CompileShader(uid))
-    return SetShader(primitive_type);
-  else
-    return false;
-}
-
-bool GeometryShaderCache::CompileShader(const GeometryShaderUid& uid)
-{
-  D3DBlob* bytecode;
-  ShaderCode code =
-      GenerateGeometryShaderCode(APIType::D3D, ShaderHostConfig::GetCurrent(), uid.GetUidData());
-  if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode) ||
-      !InsertByteCode(uid, bytecode ? bytecode->Data() : nullptr, bytecode ? bytecode->Size() : 0))
-  {
-    SAFE_RELEASE(bytecode);
-    return false;
-  }
-
-  // Insert the bytecode into the caches
-  g_gs_disk_cache.Append(uid, bytecode->Data(), bytecode->Size());
-  return true;
-}
-
-bool GeometryShaderCache::InsertByteCode(const GeometryShaderUid& uid, const u8* bytecode,
-                                         size_t len)
-{
-  GSCacheEntry& newentry = GeometryShaders[uid];
-  newentry.shader = bytecode ? D3D::CreateGeometryShaderFromByteCode(bytecode, len) : nullptr;
-  return newentry.shader != nullptr;
-}
-
-void GeometryShaderCache::PrecompileShaders()
-{
-  EnumerateGeometryShaderUids([](const GeometryShaderUid& uid) {
-    if (GeometryShaders.find(uid) != GeometryShaders.end())
-      return;
-
-    CompileShader(uid);
-  });
-}
-
 }  // DX11

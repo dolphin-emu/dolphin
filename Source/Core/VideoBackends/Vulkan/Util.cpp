@@ -592,16 +592,19 @@ void UtilityShaderDraw::BindDescriptors()
                                                          &dummy_uniform_buffer,
         nullptr};
 
-    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                    nullptr,
-                                    set,
-                                    UBO_DESCRIPTOR_SET_BINDING_GS,
-                                    0,
-                                    1,
-                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-                                    nullptr,
-                                    &dummy_uniform_buffer,
-                                    nullptr};
+    if (g_vulkan_context->SupportsGeometryShaders())
+    {
+      set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      set,
+                                      UBO_DESCRIPTOR_SET_BINDING_GS,
+                                      0,
+                                      1,
+                                      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                                      nullptr,
+                                      &dummy_uniform_buffer,
+                                      nullptr};
+    }
 
     set_writes[num_set_writes++] = {
         VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set, UBO_DESCRIPTOR_SET_BINDING_PS, 0, 1,

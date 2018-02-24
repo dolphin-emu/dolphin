@@ -96,11 +96,15 @@ bool VideoSoftware::Initialize(void* window_handle)
   g_vertex_manager = std::make_unique<SWVertexLoader>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
-  return true;
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  return g_shader_cache->Initialize();
 }
 
 void VideoSoftware::Shutdown()
 {
+  if (g_shader_cache)
+    g_shader_cache->Shutdown();
+
   if (g_renderer)
     g_renderer->Shutdown();
 

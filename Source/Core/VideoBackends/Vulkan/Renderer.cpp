@@ -224,7 +224,7 @@ std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* unifo
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
-  m_graphics_pipeline = static_cast<const VKPipeline*>(pipeline);
+  StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
 void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
@@ -305,7 +305,7 @@ void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, cons
   // Build commands.
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    m_graphics_pipeline->GetPipeline());
+                    StateTracker::GetInstance()->GetPipeline()->GetVkPipeline());
   if (vertex_buffer != VK_NULL_HANDLE)
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &vertex_buffer_offset);
 
@@ -759,9 +759,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
-
-  // Pull in now-ready async shaders.
-  g_shader_cache->RetrieveAsyncShaders();
 }
 
 void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
@@ -975,10 +972,8 @@ void Renderer::CheckForConfigChanges()
     RecreateEFBFramebuffer();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
-    g_shader_cache->ReloadShaderAndPipelineCaches();
+    g_shader_cache->ReloadPipelineCache();
     g_shader_cache->RecompileSharedShaders();
-    StateTracker::GetInstance()->InvalidateShaderPointers();
-    StateTracker::GetInstance()->ReloadPipelineUIDCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1021,8 +1016,6 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(
       FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
-  StateTracker::GetInstance()->SetMultisamplingstate(
-      FramebufferManager::GetInstance()->GetEFBMultisamplingState());
   m_current_framebuffer = nullptr;
   m_current_framebuffer_width = FramebufferManager::GetInstance()->GetEFBWidth();
   m_current_framebuffer_height = FramebufferManager::GetInstance()->GetEFBHeight();
@@ -1123,21 +1116,6 @@ void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
   }
   StateTracker::GetInstance()->BeginClearRenderPass(render_area, clear_values.data(),
                                                     num_clear_values);
-}
-
-void Renderer::SetRasterizationState(const RasterizationState& state)
-{
-  StateTracker::GetInstance()->SetRasterizationState(state);
-}
-
-void Renderer::SetDepthState(const DepthState& state)
-{
-  StateTracker::GetInstance()->SetDepthState(state);
-}
-
-void Renderer::SetBlendingState(const BlendingState& state)
-{
-  StateTracker::GetInstance()->SetBlendState(state);
 }
 
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)

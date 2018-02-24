@@ -175,17 +175,20 @@ bool VideoBackend::Initialize(void* window_handle)
   ProgramShaderCache::Init();
   g_texture_cache = std::make_unique<TextureCache>();
   g_sampler_cache = std::make_unique<SamplerCache>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
   BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
-  return true;
+  return g_shader_cache->Initialize();
 }
 
 void VideoBackend::Shutdown()
 {
+  g_shader_cache->Shutdown();
   g_renderer->Shutdown();
   BoundingBox::Shutdown();
   TextureConverter::Shutdown();
+  g_shader_cache.reset();
   g_sampler_cache.reset();
   g_texture_cache.reset();
   ProgramShaderCache::Shutdown();
