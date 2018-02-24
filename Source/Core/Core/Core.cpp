@@ -96,7 +96,6 @@ static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
-static std::string s_state_filename;
 static std::thread s_emu_thread;
 static StateChangedCallbackFunc s_on_state_changed_callback;
 
@@ -134,15 +133,6 @@ bool GetIsThrottlerTempDisabled()
 void SetIsThrottlerTempDisabled(bool disable)
 {
   s_is_throttler_temp_disabled = disable;
-}
-
-std::string GetStateFileName()
-{
-  return s_state_filename;
-}
-void SetStateFileName(const std::string& val)
-{
-  s_state_filename = val;
 }
 
 void FrameUpdateOnCPUThread()
@@ -328,7 +318,7 @@ static void CPUSetInitialExecutionState()
 }
 
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
-static void CpuThread()
+static void CpuThread(const std::optional<std::string>& savestate_path)
 {
   DeclareAsCPUThread();
 
@@ -351,17 +341,8 @@ static void CpuThread()
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
 
-  if (!s_state_filename.empty())
-  {
-    // Needs to PauseAndLock the Core
-    // NOTE: EmuThread should have left us in State::Stepping so nothing will happen
-    //   until after the job is serviced.
-    QueueHostJob([] {
-      // Recheck in case Movie cleared it since.
-      if (!s_state_filename.empty())
-        ::State::LoadAs(s_state_filename);
-    });
-  }
+  if (savestate_path)
+    QueueHostJob([&savestate_path] { ::State::LoadAs(*savestate_path); });
 
   s_is_started = true;
   CPUSetInitialExecutionState();
@@ -399,7 +380,7 @@ static void CpuThread()
     EMM::UninstallExceptionHandler();
 }
 
-static void FifoPlayerThread()
+static void FifoPlayerThread(const std::optional<std::string>& savestate_path)
 {
   DeclareAsCPUThread();
   const SConfig& _CoreParameter = SConfig::GetInstance();
@@ -535,15 +516,20 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     Keyboard::LoadConfig();
   }
 
+  const std::optional<std::string> savestate_path = boot->savestate_path;
+
   // Load and Init Wiimotes - only if we are booting in Wii mode
   if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     if (init_controllers)
-      Wiimote::Initialize(!s_state_filename.empty() ?
-                              Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
-                              Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+    {
+      Wiimote::Initialize(savestate_path ? Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
+                                           Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+    }
     else
+    {
       Wiimote::LoadConfig();
+    }
   }
 
   Common::ScopeGuard controller_guard{[init_controllers] {
@@ -570,7 +556,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
 
   // Determine the CPU thread function
-  void (*cpuThreadFunc)();
+  void (*cpuThreadFunc)(const std::optional<std::string>& savestate_path);
   if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
     cpuThreadFunc = FifoPlayerThread;
   else
@@ -611,7 +597,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     Host_Message(WM_USER_CREATE);
 
     // Spawn the CPU thread
-    s_cpu_thread = std::thread(cpuThreadFunc);
+    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path);
 
     // become the GPU thread
     Fifo::RunGpuLoop();
@@ -629,7 +615,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     Common::SetCurrentThreadName("Emuthread - Idle");
 
     // Spawn the CPU+GPU thread
-    s_cpu_thread = std::thread(cpuThreadFunc);
+    s_cpu_thread = std::thread(cpuThreadFunc, savestate_path);
 
     while (CPU::GetState() != CPU::State::PowerDown)
     {

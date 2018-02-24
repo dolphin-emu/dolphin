@@ -96,14 +96,6 @@ public final class MainPresenter
 		databaseHelper.getGamesForPlatform(platform)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
-				.subscribe(new Action1<Cursor>()
-						   {
-							   @Override
-							   public void call(Cursor games)
-							   {
-								   mView.showGames(platform, games);
-							   }
-						   }
-				);
+				.subscribe(games -> mView.showGames(platform, games));
 	}
 }

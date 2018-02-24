@@ -582,7 +582,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     wxGridSizer* const cb_szr = new wxGridSizer(2, space5, space5);
     cb_szr->Add(CreateCheckBox(page_enh, _("Scaled EFB Copy"),
                                wxGetTranslation(scaled_efb_copy_desc),
-                               Config::GFX_HACK_COPY_EFB_ENABLED));
+                               Config::GFX_HACK_COPY_EFB_SCALED));
     cb_szr->Add(CreateCheckBox(page_enh, _("Per-Pixel Lighting"),
                                wxGetTranslation(pixel_lighting_desc),
                                Config::GFX_ENABLE_PIXEL_LIGHTING));

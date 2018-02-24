@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <future>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 #include <wx/app.h>
@@ -96,6 +97,10 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+
+#include "NetcoreClient.h"
+
 
 class InputConfig;
 class wxFrame;
@@ -301,7 +306,7 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 // 1. Show the game list and boot the selected game.
 // 2. Default ISO
 // 3. Boot last selected game
-void CFrame::BootGame(const std::string& filename)
+void CFrame::BootGame(const std::string& filename, const std::optional<std::string>& savestate_path)
 {
   std::string bootfile = filename;
   SConfig& StartUp = SConfig::GetInstance();
@@ -331,7 +336,7 @@ void CFrame::BootGame(const std::string& filename)
   }
   if (!bootfile.empty())
   {
-    StartGame(BootParameters::GenerateFromFile(bootfile));
+    StartGame(BootParameters::GenerateFromFile(bootfile, savestate_path));
   }
 }
 
@@ -513,8 +518,9 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED(event))
     GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check();
   }
 
-  if (Movie::PlayInput(WxStrToStr(path)))
-    BootGame("");
+  std::optional<std::string> savestate_path;
+  if (Movie::PlayInput(WxStrToStr(path), &savestate_path))
+    BootGame("", savestate_path);
 }
 
 void CFrame::OnStopRecording(wxCommandEvent& WXUNUSED(event))
@@ -715,6 +721,9 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     m_render_parent = new wxPanel(m_render_frame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
     m_render_frame->Show();
+
+    //NARRYSMOD_HIJACK
+    NetcoreClientInitializer::isWii();
   }
 
 #if defined(__APPLE__)

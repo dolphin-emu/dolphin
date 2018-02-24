@@ -88,7 +88,7 @@ void WiiConfigPane::InitializeGUI()
                                       "(576i) for PAL games.\nMay not work for all games."));
   m_screensaver_checkbox->SetToolTip(_("Dims the screen after five minutes of inactivity."));
   m_system_language_choice->SetToolTip(_("Sets the Wii system language."));
-  m_sd_card_checkbox->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)"));
+  m_sd_card_checkbox->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)."));
   m_connect_keyboard_checkbox->SetToolTip(_("May cause slow down in Wii Menu and some games."));
   m_bt_wiimote_motor_checkbox->SetToolTip(_("Enables Wii Remote vibration."));
 

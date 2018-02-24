@@ -5,6 +5,7 @@
 #include <OptionParser.h>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <string>
 #include <utility>
 #include <wx/app.h>
@@ -56,6 +57,8 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+
+#include "NetcoreClient.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
@@ -226,6 +229,10 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 
 void DolphinApp::AfterInit()
 {
+  //std::thread netcorethread(Test::CommandTest);
+  //NARRYSMOD_HIJACK
+  NetcoreClientInitializer::Initialize();
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
@@ -256,12 +263,18 @@ void DolphinApp::AfterInit()
 
   if (m_play_movie && !m_movie_file.empty())
   {
-    if (Movie::PlayInput(WxStrToStr(m_movie_file)))
+    std::optional<std::string> savestate_path;
+    if (Movie::PlayInput(WxStrToStr(m_movie_file), &savestate_path))
     {
       if (m_boot)
+      {
+        m_boot->savestate_path = savestate_path;
         main_frame->StartGame(std::move(m_boot));
+      }
       else
-        main_frame->BootGame("");
+      {
+        main_frame->BootGame("", savestate_path);
+      }
     }
   }
   // First check if we have an exec command line.

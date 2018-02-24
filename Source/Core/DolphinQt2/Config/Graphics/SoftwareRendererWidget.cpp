@@ -49,9 +49,9 @@ void SoftwareRendererWidget::CreateWidgets()
   auto* overlay_box = new QGroupBox(tr("Overlay Information"));
   auto* overlay_layout = new QGridLayout();
   overlay_box->setLayout(overlay_layout);
-  m_enable_statistics = new GraphicsBool(tr("Various Statistics"), Config::GFX_OVERLAY_STATS);
+  m_show_statistics = new GraphicsBool(tr("Show Statistics"), Config::GFX_OVERLAY_STATS);
 
-  overlay_layout->addWidget(m_enable_statistics);
+  overlay_layout->addWidget(m_show_statistics);
 
   auto* utility_box = new QGroupBox(tr("Utility"));
   auto* utility_layout = new QGridLayout();
@@ -162,6 +162,6 @@ void SoftwareRendererWidget::AddDescriptions()
                  "this unchecked.");
 
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
-  AddDescription(m_enable_statistics, TR_SHOW_STATISTICS_DESCRIPTION);
+  AddDescription(m_show_statistics, TR_SHOW_STATISTICS_DESCRIPTION);
   AddDescription(m_dump_textures, TR_DUMP_TEXTURES_DESCRIPTION);
 }

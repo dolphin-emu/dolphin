@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -71,31 +72,27 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		buildRowsAdapter();
 
 		mBrowseFragment.setOnItemViewClickedListener(
-				new OnItemViewClickedListener()
-				{
-					@Override
-					public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item, RowPresenter.ViewHolder rowViewHolder, Row row)
-					{
-						// Special case: user clicked on a settings row item.
-						if (item instanceof TvSettingsItem)
-						{
-							TvSettingsItem settingsItem = (TvSettingsItem) item;
-							mPresenter.handleOptionSelection(settingsItem.getItemId());
-						}
-						else
-						{
-							TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
+                (itemViewHolder, item, rowViewHolder, row) ->
+                {
+                    // Special case: user clicked on a settings row item.
+                    if (item instanceof TvSettingsItem)
+                    {
+                        TvSettingsItem settingsItem = (TvSettingsItem) item;
+                        mPresenter.handleOptionSelection(settingsItem.getItemId());
+                    }
+                    else
+                    {
+                        TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
-							// Start the emulation activity and send the path of the clicked ISO to it.
-							EmulationActivity.launch(TvMainActivity.this,
-									holder.path,
-									holder.title,
-									holder.screenshotPath,
-									-1,
-									holder.imageScreenshot);
-						}
-					}
-				});
+                        // Start the emulation activity and send the path of the clicked ISO to it.
+                        EmulationActivity.launch(TvMainActivity.this,
+                                holder.path,
+                                holder.title,
+                                holder.screenshotPath,
+                                -1,
+                                holder.imageScreenshot);
+                    }
+                });
 	}
 	/**
 	 * MainView
@@ -161,7 +158,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+					DirectoryInitializationService.startService(this);
 					loadGames();
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)

@@ -8,6 +8,7 @@
 #include <atomic>
 #include <cstddef>
 #include <fstream>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -130,8 +131,9 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
       main_frame->GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Check(true);
     }
 
-    if (Movie::PlayInput(filepath))
-      main_frame->BootGame("");
+    std::optional<std::string> savestate_path;
+    if (Movie::PlayInput(filepath, &savestate_path))
+      main_frame->BootGame("", savestate_path);
   }
   else if (!Core::IsRunning())
   {
@@ -282,6 +284,7 @@ bool CFrame::InitControllers()
     Keyboard::Initialize();
     Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     HotkeyManagerEmu::Initialize();
+
 
     return true;
   }
@@ -760,6 +763,7 @@ void CFrame::UninhibitScreensaver()
 
 void CFrame::UpdateTitle(const wxString& str)
 {
+
   const wxString revision_string = StrToWxStr(Common::scm_rev_str);
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
   {

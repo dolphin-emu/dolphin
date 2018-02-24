@@ -1250,8 +1250,7 @@ TextureCacheBase::GetXFBFromCache(const TextureLookupInformation& tex_info)
 
     if ((entry->is_xfb_copy || entry->format.texfmt == TextureFormat::XFB) &&
         entry->native_width == tex_info.native_width &&
-        static_cast<unsigned int>(entry->native_height * entry->y_scale) ==
-            tex_info.native_height &&
+        entry->native_height == tex_info.native_height &&
         entry->memory_stride == entry->BytesPerRow() && !entry->may_have_overlapping_textures)
     {
       if (tex_info.base_hash == entry->hash && !entry->reference_changed)
@@ -1340,21 +1339,18 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
         u32 copy_width =
             std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
         u32 copy_height =
-            std::min((entry->native_height * entry->y_scale) - src_y,
-                     (entry_to_update->native_height * entry_to_update->y_scale) - dst_y);
+            std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
 
         // If one of the textures is scaled, scale both with the current efb scaling factor
         if (entry_to_update->native_width != entry_to_update->GetWidth() ||
-            (entry_to_update->native_height * entry_to_update->y_scale) !=
-                entry_to_update->GetHeight() ||
-            entry->native_width != entry->GetWidth() ||
-            (entry->native_height * entry->y_scale) != entry->GetHeight())
+            entry_to_update->native_height != entry_to_update->GetHeight() ||
+            entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
         {
-          ScaleTextureCacheEntryTo(
-              entry_to_update, g_renderer->EFBToScaledX(entry_to_update->native_width),
-              g_renderer->EFBToScaledY(entry_to_update->native_height * entry_to_update->y_scale));
+          ScaleTextureCacheEntryTo(entry_to_update,
+                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
+                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
           ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-                                   g_renderer->EFBToScaledY(entry->native_height * entry->y_scale));
+                                   g_renderer->EFBToScaledY(entry->native_height));
 
           src_x = g_renderer->EFBToScaledX(src_x);
           src_y = g_renderer->EFBToScaledY(src_y);
@@ -1582,10 +1578,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
   const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
 
-  unsigned int scaled_tex_w =
-      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledX(tex_w) : tex_w;
-  unsigned int scaled_tex_h =
-      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledY(tex_h) : tex_h;
+  const bool upscale = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
+  unsigned int scaled_tex_w = upscale ? g_renderer->EFBToScaledX(tex_w) : tex_w;
+  unsigned int scaled_tex_h = upscale ? g_renderer->EFBToScaledY(tex_h) : tex_h;
 
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
@@ -1594,7 +1589,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(baseFormat);
 
   // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(static_cast<unsigned int>(tex_h * y_scale), blockH);
+  u32 actualHeight = Common::AlignUp(tex_h, blockH);
   const u32 actualWidth = Common::AlignUp(tex_w, blockW);
 
   u32 num_blocks_y = actualHeight / blockH;
@@ -1729,7 +1724,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     {
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
       entry->SetDimensions(tex_w, tex_h, 1);
-      entry->y_scale = y_scale;
       entry->gamma = gamma;
 
       entry->frameCount = FRAMECOUNT_INVALID;
@@ -1745,7 +1739,13 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity);
+      // For XFB, the resulting XFB copy texture is the height of the actual texture + the y-scaling
+      // however, the actual Wii/GC texture that we want to "stretch" to this copy is without the
+      // y-scaling so we need to remove it here
+      // The best use-case for this is PAL games which have a different aspect ratio
+      EFBRectangle unscaled_rect = srcRect;
+      unscaled_rect.bottom /= y_scale;
+      CopyEFBToCacheEntry(entry, is_depth_copy, unscaled_rect, scaleByHalf, dstFormat, isIntensity);
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);
@@ -1934,7 +1934,7 @@ u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
 {
   u32 blockH = TexDecoder_GetBlockHeightInTexels(format.texfmt);
   // Round up source height to multiple of block size
-  u32 actualHeight = Common::AlignUp(static_cast<unsigned int>(native_height * y_scale), blockH);
+  u32 actualHeight = Common::AlignUp(native_height, blockH);
 
   return actualHeight / blockH;
 }

@@ -38,6 +38,8 @@ struct SCPFifoStruct
 
   volatile u32 bFF_LoWatermark;
   volatile u32 bFF_HiWatermark;
+
+  void DoState(PointerWrap& p);
 };
 
 // This one is shared between gfx thread and emulator thread.

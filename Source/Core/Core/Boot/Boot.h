@@ -67,12 +67,15 @@ struct BootParameters
     std::string dff_path;
   };
 
-  static std::unique_ptr<BootParameters> GenerateFromFile(const std::string& path);
+  static std::unique_ptr<BootParameters>
+  GenerateFromFile(const std::string& boot_path,
+                   const std::optional<std::string>& savestate_path = {});
 
   using Parameters = std::variant<Disc, Executable, DiscIO::WiiWAD, NANDTitle, IPL, DFF>;
-  BootParameters(Parameters&& parameters_);
+  BootParameters(Parameters&& parameters_, const std::optional<std::string>& savestate_path_ = {});
 
   Parameters parameters;
+  std::optional<std::string> savestate_path;
 };
 
 class CBoot

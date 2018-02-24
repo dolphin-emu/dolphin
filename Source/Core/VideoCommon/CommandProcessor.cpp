@@ -50,6 +50,31 @@ static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)
   UpdateInterrupts(userdata);
 }
 
+void SCPFifoStruct::DoState(PointerWrap& p)
+{
+  p.Do(CPBase);
+  p.Do(CPEnd);
+  p.Do(CPHiWatermark);
+  p.Do(CPLoWatermark);
+  p.Do(CPReadWriteDistance);
+  p.Do(CPWritePointer);
+  p.Do(CPReadPointer);
+  p.Do(CPBreakpoint);
+  p.Do(SafeCPReadPointer);
+
+  p.Do(bFF_GPLinkEnable);
+  p.Do(bFF_GPReadEnable);
+  p.Do(bFF_BPEnable);
+  p.Do(bFF_BPInt);
+  p.Do(bFF_Breakpoint);
+
+  p.Do(bFF_LoWatermarkInt);
+  p.Do(bFF_HiWatermarkInt);
+
+  p.Do(bFF_LoWatermark);
+  p.Do(bFF_HiWatermark);
+}
+
 void DoState(PointerWrap& p)
 {
   p.DoPOD(m_CPStatusReg);
@@ -60,7 +85,7 @@ void DoState(PointerWrap& p)
   p.Do(m_bboxright);
   p.Do(m_bboxbottom);
   p.Do(m_tokenReg);
-  p.Do(fifo);
+  fifo.DoState(p);
 
   p.Do(s_interrupt_set);
   p.Do(s_interrupt_waiting);

@@ -68,19 +68,15 @@ public final class GameDetailsDialog extends DialogFragment
 		textCountry.setText(country);
 		textDate.setText(getArguments().getString(ARG_GAME_DATE));
 
-		buttonLaunch.setOnClickListener(new View.OnClickListener()
+		buttonLaunch.setOnClickListener(view ->
 		{
-			@Override
-			public void onClick(View view)
-			{
-				// Start the emulation activity and send the path of the clicked ROM to it.
-				EmulationActivity.launch(getActivity(),
-						getArguments().getString(ARG_GAME_PATH),
-						getArguments().getString(ARG_GAME_TITLE),
-						getArguments().getString(ARG_GAME_SCREENSHOT_PATH),
-						-1,
-						imageGameScreen);
-			}
+			// Start the emulation activity and send the path of the clicked ROM to it.
+			EmulationActivity.launch(getActivity(),
+					getArguments().getString(ARG_GAME_PATH),
+					getArguments().getString(ARG_GAME_TITLE),
+					getArguments().getString(ARG_GAME_SCREENSHOT_PATH),
+					-1,
+					imageGameScreen);
 		});
 
 		// Fill in the view contents.
