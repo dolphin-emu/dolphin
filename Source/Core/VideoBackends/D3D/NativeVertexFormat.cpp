@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <mutex>
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
@@ -13,6 +14,8 @@
 
 namespace DX11
 {
+std::mutex s_input_layout_lock;
+
 std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
@@ -123,6 +126,11 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(D3DBlob* vs_bytecode)
 {
   if (m_layout)
     return m_layout;
+
+  // Check the pointer again after accessing the lock, as another thread may have created it.
+  std::lock_guard<std::mutex> guard(s_input_layout_lock);
+  if (m_layout)
+    return m_layout;  
 
   // CreateInputLayout requires a shader input, but it only looks at the
   // signature of the shader, so we don't need to recompute it if the shader
