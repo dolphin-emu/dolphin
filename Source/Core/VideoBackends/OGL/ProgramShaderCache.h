@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <tuple>
 #include <unordered_map>
 
@@ -242,6 +243,7 @@ private:
   static PCache pshaders;
   static UberPCache ubershaders;
   static PipelineProgramMap pipelineprograms;
+  static std::mutex pipelineprogramlock;
   static PCacheEntry* last_entry;
   static PCacheEntry* last_uber_entry;
   static SHADERUID last_uid;
