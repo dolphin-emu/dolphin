@@ -1622,6 +1622,9 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   // Not all shader changes currently go through SetPipeline, so we can't
   // test if the pipeline hasn't changed and skip these applications. Yet.
   m_graphics_pipeline = static_cast<const OGLPipeline*>(pipeline);
+  if (!m_graphics_pipeline)
+    return;
+
   ApplyRasterizationState(m_graphics_pipeline->GetRasterizationState());
   ApplyDepthState(m_graphics_pipeline->GetDepthState());
   ApplyBlendingState(m_graphics_pipeline->GetBlendingState());
