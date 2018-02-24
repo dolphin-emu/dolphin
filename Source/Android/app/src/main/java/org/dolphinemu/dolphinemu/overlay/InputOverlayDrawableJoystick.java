@@ -12,7 +12,6 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
-import android.view.View;
 
 /**
  * Custom {@link BitmapDrawable} that is capable
@@ -28,9 +27,12 @@ public final class InputOverlayDrawableJoystick
 	private int mPreviousTouchX, mPreviousTouchY;
 	private int mWidth;
 	private int mHeight;
+	private Rect mVirtBounds;
+	private Rect mOrigBounds;
 	private BitmapDrawable mOuterBitmap;
 	private BitmapDrawable mDefaultStateInnerBitmap;
 	private BitmapDrawable mPressedStateInnerBitmap;
+	private BitmapDrawable mBoundsBoxBitmap;
 	private boolean mPressedState = false;
 
 	/**
@@ -57,12 +59,17 @@ public final class InputOverlayDrawableJoystick
 		mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
 		mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
 		mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
+		mBoundsBoxBitmap = new BitmapDrawable(res, bitmapOuter);
 		mWidth = bitmapOuter.getWidth();
 		mHeight = bitmapOuter.getHeight();
 
 		setBounds(rectOuter);
 		mDefaultStateInnerBitmap.setBounds(rectInner);
 		mPressedStateInnerBitmap.setBounds(rectInner);
+		mVirtBounds = getBounds();
+		mOrigBounds = mOuterBitmap.copyBounds();
+		mBoundsBoxBitmap.setAlpha(0);
+		mBoundsBoxBitmap.setBounds(getVirtBounds());
 		SetInnerBounds();
 	}
 
@@ -80,6 +87,7 @@ public final class InputOverlayDrawableJoystick
 	{
 		mOuterBitmap.draw(canvas);
 		getCurrentStateBitmapDrawable().draw(canvas);
+		mBoundsBoxBitmap.draw(canvas);
 	}
 
 	public void TrackEvent(MotionEvent event)
@@ -93,6 +101,10 @@ public final class InputOverlayDrawableJoystick
 			if (getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
 			{
 				mPressedState = true;
+				mOuterBitmap.setAlpha(0);
+				mBoundsBoxBitmap.setAlpha(255);
+				getVirtBounds().offset((int)event.getX(pointerIndex) - getVirtBounds().centerX(), (int)event.getY(pointerIndex) - getVirtBounds().centerY());
+				mBoundsBoxBitmap.setBounds(getVirtBounds());
 				trackId = event.getPointerId(pointerIndex);
 			}
 			break;
@@ -102,6 +114,10 @@ public final class InputOverlayDrawableJoystick
 			{
 				mPressedState = false;
 				axises[0] = axises[1] = 0.0f;
+				mOuterBitmap.setAlpha(255);
+				mBoundsBoxBitmap.setAlpha(0);
+				setVirtBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right, mOrigBounds.bottom));
+				setBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right, mOrigBounds.bottom));
 				SetInnerBounds();
 				trackId = -1;
 			}
@@ -117,12 +133,12 @@ public final class InputOverlayDrawableJoystick
 			{
 				float touchX = event.getX(i);
 				float touchY = event.getY(i);
-				float maxY = getBounds().bottom;
-				float maxX = getBounds().right;
-				touchX -= getBounds().centerX();
-				maxX -= getBounds().centerX();
-				touchY -= getBounds().centerY();
-				maxY -= getBounds().centerY();
+				float maxY = getVirtBounds().bottom;
+				float maxX = getVirtBounds().right;
+				touchX -= getVirtBounds().centerX();
+				maxX -= getVirtBounds().centerX();
+				touchY -= getVirtBounds().centerY();
+				maxY -= getVirtBounds().centerY();
 				final float AxisX = touchX / maxX;
 				final float AxisY = touchY / maxY;
 				axises[0] = AxisY;
@@ -152,7 +168,13 @@ public final class InputOverlayDrawableJoystick
 				setBounds(new Rect(mControlPositionX, mControlPositionY,
 						   mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
 						   mOuterBitmap.getIntrinsicHeight() + mControlPositionY));
+				setVirtBounds(new Rect(mControlPositionX, mControlPositionY,
+					mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
+					mOuterBitmap.getIntrinsicHeight() + mControlPositionY));
 				SetInnerBounds();
+				setOrigBounds(new Rect(new Rect(mControlPositionX, mControlPositionY,
+					mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
+					mOuterBitmap.getIntrinsicHeight() + mControlPositionY)));
 				mPreviousTouchX = fingerPositionX;
 				mPreviousTouchY = fingerPositionY;
 				break;
@@ -178,17 +200,17 @@ public final class InputOverlayDrawableJoystick
 
 	private void SetInnerBounds()
 	{
-		int X = getBounds().centerX() + (int)((axises[1]) * (getBounds().width() / 2));
-		int Y = getBounds().centerY() + (int)((axises[0]) * (getBounds().height() / 2));
+		int X = getVirtBounds().centerX() + (int)((axises[1]) * (getVirtBounds().width() / 2));
+		int Y = getVirtBounds().centerY() + (int)((axises[0]) * (getVirtBounds().height() / 2));
 
-		if (X > getBounds().centerX() + (getBounds().width() / 2))
-			X = getBounds().centerX() + (getBounds().width() / 2);
-		if (X < getBounds().centerX() - (getBounds().width() / 2))
-			X = getBounds().centerX() - (getBounds().width() / 2);
-		if (Y > getBounds().centerY() + (getBounds().height() / 2))
-			Y = getBounds().centerY() + (getBounds().height() / 2);
-		if (Y < getBounds().centerY() - (getBounds().height() / 2))
-			Y = getBounds().centerY() - (getBounds().height() / 2);
+		if (X > getVirtBounds().centerX() + (getVirtBounds().width() / 2))
+			X = getVirtBounds().centerX() + (getVirtBounds().width() / 2);
+		if (X < getVirtBounds().centerX() - (getVirtBounds().width() / 2))
+			X = getVirtBounds().centerX() - (getVirtBounds().width() / 2);
+		if (Y > getVirtBounds().centerY() + (getVirtBounds().height() / 2))
+			Y = getVirtBounds().centerY() + (getVirtBounds().height() / 2);
+		if (Y < getVirtBounds().centerY() - (getVirtBounds().height() / 2))
+			Y = getVirtBounds().centerY() - (getVirtBounds().height() / 2);
 
 		int width = mPressedStateInnerBitmap.getBounds().width() / 2;
 		int height = mPressedStateInnerBitmap.getBounds().height() / 2;
@@ -216,6 +238,12 @@ public final class InputOverlayDrawableJoystick
 	{
 		return mOuterBitmap.getBounds();
 	}
+
+	private void setVirtBounds(Rect bounds) { mVirtBounds = bounds; }
+
+	private void setOrigBounds(Rect bounds) { mOrigBounds = bounds; }
+
+	private Rect getVirtBounds() { return mVirtBounds; }
 
 	public int getWidth()
 	{
