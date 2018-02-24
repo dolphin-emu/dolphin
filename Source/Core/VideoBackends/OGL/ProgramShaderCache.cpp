@@ -60,6 +60,7 @@ static GLuint CurrentProgram = 0;
 ProgramShaderCache::PCache ProgramShaderCache::pshaders;
 ProgramShaderCache::UberPCache ProgramShaderCache::ubershaders;
 ProgramShaderCache::PipelineProgramMap ProgramShaderCache::pipelineprograms;
+std::mutex ProgramShaderCache::pipelineprogramlock;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_entry;
 ProgramShaderCache::PCacheEntry* ProgramShaderCache::last_uber_entry;
 SHADERUID ProgramShaderCache::last_uid;
@@ -909,12 +910,15 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* v
                                                               const OGLShader* geometry_shader,
                                                               const OGLShader* pixel_shader)
 {
-  PipelineProgramKey key = {vertex_shader, geometry_shader, pixel_shader};
-  auto iter = pipelineprograms.find(key);
-  if (iter != pipelineprograms.end())
+  PipelineProgramKey key = { vertex_shader, geometry_shader, pixel_shader };
   {
-    iter->second->reference_count++;
-    return iter->second.get();
+    std::lock_guard<std::mutex> guard(pipelineprogramlock);
+    auto iter = pipelineprograms.find(key);
+    if (iter != pipelineprograms.end())
+    {
+      iter->second->reference_count++;
+      return iter->second.get();
+    }
   }
 
   std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
@@ -939,6 +943,17 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* v
   {
     prog->shader.Destroy();
     return nullptr;
+  }
+
+  // Lock to insert. A duplicate program may have been created in the meantime.
+  std::lock_guard<std::mutex> guard(pipelineprogramlock);
+  auto iter = pipelineprograms.find(key);
+  if (iter != pipelineprograms.end())
+  {
+    // Destroy this program, and use the one which was created first.
+    prog->shader.Destroy();
+    iter->second->reference_count++;
+    return iter->second.get();
   }
 
   auto ip = pipelineprograms.emplace(key, std::move(prog));
