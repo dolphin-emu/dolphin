@@ -299,6 +299,8 @@ void Renderer::UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
   const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
+  if (!dx_pipeline)
+    return;
 
   D3D::stateman->SetRasterizerState(dx_pipeline->GetRasterizerState());
   D3D::stateman->SetDepthState(dx_pipeline->GetDepthState());
