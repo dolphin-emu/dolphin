@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <mutex>
 #include <unordered_map>
 
 #include "Common/BitField.h"
@@ -35,6 +36,7 @@ private:
   std::unordered_map<u32, ID3D11RasterizerState*> m_raster;
   std::unordered_map<u32, ID3D11BlendState*> m_blend;
   std::unordered_map<SamplerState::StorageType, ID3D11SamplerState*> m_sampler;
+  std::mutex m_lock;
 };
 
 namespace D3D
