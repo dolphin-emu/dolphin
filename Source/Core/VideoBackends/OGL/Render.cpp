@@ -1465,7 +1465,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
   g_texture_cache->Cleanup(frameCount);
-  ProgramShaderCache::RetrieveAsyncShaders();
 
   RestoreAPIState();
 
@@ -1479,8 +1478,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_sampler_cache->Clear();
 
   // Invalidate shader cache when the host config changes.
-  if (CheckForHostConfigChanges())
-    ProgramShaderCache::Reload();
+  CheckForHostConfigChanges();
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();
@@ -1600,21 +1598,6 @@ void Renderer::ApplyDepthState(const DepthState& state)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
-}
-
-void Renderer::SetRasterizationState(const RasterizationState& state)
-{
-  ApplyRasterizationState(state);
-}
-
-void Renderer::SetDepthState(const DepthState& state)
-{
-  ApplyDepthState(state);
-}
-
-void Renderer::SetBlendingState(const BlendingState& state)
-{
-  ApplyBlendingState(state);
 }
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)

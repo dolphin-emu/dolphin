@@ -105,10 +105,11 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
     Flush();
 
     // Have to update the rasterization state for point/line cull modes.
+    m_current_primitive_type = new_primitive_type;
     RasterizationState raster_state = {};
     raster_state.Generate(bpmem, new_primitive_type);
     g_renderer->SetRasterizationState(raster_state);
-    m_current_primitive_type = new_primitive_type;
+    SetRasterizationStateChanged();
   }
 
   // Check for size in buffer, if the buffer gets full, call Flush()
@@ -386,6 +387,10 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
+    // Update the pipeline, or compile one if needed.
+    UpdatePipelineConfig();
+    UpdatePipelineObject();
+
     // set the rest of the global constants
     GeometryShaderManager::SetConstants();
     PixelShaderManager::SetConstants();
@@ -476,4 +481,115 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   m_zslope.dfdy = -b / c;
   m_zslope.f0 = out[2] - (out[0] * m_zslope.dfdx + out[1] * m_zslope.dfdy);
   m_zslope.dirty = true;
+}
+
+void VertexManagerBase::UpdatePipelineConfig()
+{
+  NativeVertexFormat* vertex_format = VertexLoaderManager::GetCurrentVertexFormat();
+  if (vertex_format != m_current_pipeline_config.vertex_format)
+  {
+    m_current_pipeline_config.vertex_format = vertex_format;
+    m_current_uber_pipeline_config.vertex_format =
+        VertexLoaderManager::GetUberVertexFormat(vertex_format->GetVertexDeclaration());
+    m_pipeline_config_changed = true;
+  }
+
+  VertexShaderUid vs_uid = GetVertexShaderUid();
+  if (vs_uid != m_current_pipeline_config.vs_uid)
+  {
+    m_current_pipeline_config.vs_uid = vs_uid;
+    m_current_uber_pipeline_config.vs_uid = UberShader::GetVertexShaderUid();
+    m_pipeline_config_changed = true;
+  }
+
+  PixelShaderUid ps_uid = GetPixelShaderUid();
+  if (ps_uid != m_current_pipeline_config.ps_uid)
+  {
+    m_current_pipeline_config.ps_uid = ps_uid;
+    m_current_uber_pipeline_config.ps_uid = UberShader::GetPixelShaderUid();
+    m_pipeline_config_changed = true;
+  }
+
+  GeometryShaderUid gs_uid = GetGeometryShaderUid(GetCurrentPrimitiveType());
+  if (gs_uid != m_current_pipeline_config.gs_uid)
+  {
+    m_current_pipeline_config.gs_uid = gs_uid;
+    m_current_uber_pipeline_config.gs_uid = gs_uid;
+    m_pipeline_config_changed = true;
+  }
+
+  if (m_rasterization_state_changed)
+  {
+    m_rasterization_state_changed = false;
+
+    RasterizationState new_rs = {};
+    new_rs.Generate(bpmem, m_current_primitive_type);
+    if (new_rs != m_current_pipeline_config.rasterization_state)
+    {
+      m_current_pipeline_config.rasterization_state = new_rs;
+      m_current_uber_pipeline_config.rasterization_state = new_rs;
+      m_pipeline_config_changed = true;
+    }
+  }
+
+  if (m_depth_state_changed)
+  {
+    m_depth_state_changed = false;
+
+    DepthState new_ds = {};
+    new_ds.Generate(bpmem);
+    if (new_ds != m_current_pipeline_config.depth_state)
+    {
+      m_current_pipeline_config.depth_state = new_ds;
+      m_current_uber_pipeline_config.depth_state = new_ds;
+      m_pipeline_config_changed = true;
+    }
+  }
+
+  if (m_blending_state_changed)
+  {
+    m_blending_state_changed = false;
+
+    BlendingState new_bs = {};
+    new_bs.Generate(bpmem);
+    if (new_bs != m_current_pipeline_config.blending_state)
+    {
+      m_current_pipeline_config.blending_state = new_bs;
+      m_current_uber_pipeline_config.blending_state = new_bs;
+      m_pipeline_config_changed = true;
+    }
+  }
+}
+
+void VertexManagerBase::UpdatePipelineObject()
+{
+  if (!m_pipeline_config_changed)
+    return;
+
+  m_current_pipeline_object = nullptr;
+  m_pipeline_config_changed = false;
+
+  // Try for specialized shaders.
+  if (!g_ActiveConfig.bDisableSpecializedShaders)
+  {
+    // Can we background compile shaders? If so, get the pipeline asynchronously.
+    if (g_ActiveConfig.bBackgroundShaderCompiling)
+    {
+      auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config);
+      if (res)
+      {
+        // Specialized shaders are ready.
+        m_current_pipeline_object = *res;
+        return;
+      }
+    }
+    else
+    {
+      m_current_pipeline_object = g_shader_cache->GetPipelineForUid(m_current_pipeline_config);
+      return;
+    }
+  }
+
+  // Fallback to ubershaders.
+  m_current_pipeline_object = g_shader_cache->GetUberPipelineForUid(m_current_uber_pipeline_config);
 }

@@ -243,6 +243,7 @@ protected:
   std::mutex m_swap_mutex;
 
   u32 m_last_host_config_bits = 0;
+  u32 m_last_efb_multisamples = 1;
 
 private:
   void RunFrameDumps();

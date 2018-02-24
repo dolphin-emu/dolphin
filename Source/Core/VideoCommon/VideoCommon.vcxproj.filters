@@ -197,6 +197,9 @@
     <ClCompile Include="AbstractFramebuffer.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderCache.cpp">
+      <Filter>Shader Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -377,6 +380,9 @@
     <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="AbstractFramebuffer.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCache.h">
+      <Filter>Shader Managers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

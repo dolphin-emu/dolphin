@@ -9,7 +9,6 @@
 
 #include "VideoBackends/Null/PerfQuery.h"
 #include "VideoBackends/Null/Render.h"
-#include "VideoBackends/Null/ShaderCache.h"
 #include "VideoBackends/Null/TextureCache.h"
 #include "VideoBackends/Null/VertexManager.h"
 #include "VideoBackends/Null/VideoBackend.h"
@@ -63,20 +62,14 @@ bool VideoBackend::Initialize(void* window_handle)
   g_perf_query = std::make_unique<PerfQuery>();
   g_framebuffer_manager = std::make_unique<FramebufferManagerBase>();
   g_texture_cache = std::make_unique<TextureCache>();
-
-  VertexShaderCache::s_instance = std::make_unique<VertexShaderCache>();
-  GeometryShaderCache::s_instance = std::make_unique<GeometryShaderCache>();
-  PixelShaderCache::s_instance = std::make_unique<PixelShaderCache>();
-  return true;
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  return g_shader_cache->Initialize();
 }
 
 void VideoBackend::Shutdown()
 {
+  g_shader_cache->Shutdown();
   g_renderer->Shutdown();
-
-  PixelShaderCache::s_instance.reset();
-  VertexShaderCache::s_instance.reset();
-  GeometryShaderCache::s_instance.reset();
 
   g_texture_cache.reset();
   g_perf_query.reset();

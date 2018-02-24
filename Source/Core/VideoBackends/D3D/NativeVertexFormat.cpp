@@ -130,7 +130,7 @@ ID3D11InputLayout* D3DVertexFormat::GetInputLayout(D3DBlob* vs_bytecode)
   // Check the pointer again after accessing the lock, as another thread may have created it.
   std::lock_guard<std::mutex> guard(s_input_layout_lock);
   if (m_layout)
-    return m_layout;  
+    return m_layout;
 
   // CreateInputLayout requires a shader input, but it only looks at the
   // signature of the shader, so we don't need to recompute it if the shader

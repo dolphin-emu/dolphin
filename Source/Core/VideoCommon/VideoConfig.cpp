@@ -187,6 +187,10 @@ static u32 GetNumAutoShaderCompilerThreads()
 
 u32 VideoConfig::GetShaderCompilerThreads() const
 {
+  // videocommon shader cache is currently broken on OGL, needs multiple contexts.
+  if (backend_info.api_type == APIType::OpenGL)
+    return 0;
+
   if (iShaderCompilerThreads >= 0)
     return static_cast<u32>(iShaderCompilerThreads);
   else
@@ -195,6 +199,10 @@ u32 VideoConfig::GetShaderCompilerThreads() const
 
 u32 VideoConfig::GetShaderPrecompilerThreads() const
 {
+  // videocommon shader cache is currently broken on OGL, needs multiple contexts.
+  if (backend_info.api_type == APIType::OpenGL)
+    return 0;
+
   if (iShaderPrecompilerThreads >= 0)
     return static_cast<u32>(iShaderPrecompilerThreads);
   else

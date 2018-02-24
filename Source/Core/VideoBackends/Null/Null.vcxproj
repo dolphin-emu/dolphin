@@ -39,14 +39,12 @@
     <ClCompile Include="NullBackend.cpp" />
     <ClCompile Include="NullTexture.cpp" />
     <ClCompile Include="Render.cpp" />
-    <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NullTexture.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="Render.h" />
-    <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />

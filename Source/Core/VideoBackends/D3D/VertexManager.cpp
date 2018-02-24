@@ -11,6 +11,7 @@
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
@@ -135,42 +136,23 @@ void VertexManager::Draw(u32 stride)
 
 void VertexManager::vFlush()
 {
-  if (!PixelShaderCache::SetShader())
-  {
-    GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
-    return;
-  }
-
-  D3DVertexFormat* vertex_format =
-      static_cast<D3DVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
-  if (!VertexShaderCache::SetShader(vertex_format))
-  {
-    GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
-    return;
-  }
-
-  if (!GeometryShaderCache::SetShader(m_current_primitive_type))
-  {
-    GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
-    return;
-  }
-
-  if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
-  {
-    D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
-        D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(),
-        nullptr);
-  }
-
   u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
-
   PrepareDrawBuffers(stride);
 
-  g_renderer->ApplyState();
+  if (!m_current_pipeline_object)
+    return;
+
+  FramebufferManager::SetIntegerEFBRenderTarget(
+      m_current_pipeline_config.blending_state.logicopenable);
+  g_renderer->SetPipeline(m_current_pipeline_object);
+
+  ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
+  D3D::stateman->SetPixelConstants(PixelShaderCache::GetConstantBuffer(),
+                                   g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
+  D3D::stateman->SetVertexConstants(vertexConstants);
+  D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
 
   Draw(stride);
-
-  g_renderer->RestoreState();
 }
 
 void VertexManager::ResetBuffer(u32 stride)

@@ -21,6 +21,7 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/VideoBackend.h"
 
+#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -148,6 +149,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // internal interfaces
   g_renderer = std::make_unique<Renderer>(backbuffer_width, backbuffer_height);
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
@@ -155,7 +157,9 @@ bool VideoBackend::Initialize(void* window_handle)
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();
-  VertexShaderCache::WaitForBackgroundCompilesToComplete();
+  if (!g_shader_cache->Initialize())
+    return false;
+
   D3D::InitUtils();
   BBox::Init();
   return true;
@@ -163,6 +167,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
 void VideoBackend::Shutdown()
 {
+  g_shader_cache->Shutdown();
   g_renderer->Shutdown();
 
   D3D::ShutdownUtils();
@@ -174,6 +179,7 @@ void VideoBackend::Shutdown()
   g_perf_query.reset();
   g_vertex_manager.reset();
   g_texture_cache.reset();
+  g_shader_cache.reset();
   g_renderer.reset();
 
   ShutdownShared();
