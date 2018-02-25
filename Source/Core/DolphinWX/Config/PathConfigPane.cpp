@@ -23,6 +23,14 @@
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
+//Narrysmod_Hijack
+#include <windows.h>
+#include <string>
+#include <shlobj.h>
+#include <iostream>
+#include <sstream>
+//Hijack_End
+
 PathConfigPane::PathConfigPane(wxWindow* panel, wxWindowID id) : wxPanel(panel, id)
 {
   InitializeGUI();
@@ -146,24 +154,25 @@ void PathConfigPane::OnRecursiveISOCheckBoxChanged(wxCommandEvent& event)
   AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
 }
 
+//NARRYSMOD_HIJACK
 void PathConfigPane::OnAddISOPath(wxCommandEvent& event)
 {
-  wxDirDialog dialog(this, _("Choose a directory to add"), wxGetHomeDir(),
-                     wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-
-  if (dialog.ShowModal() == wxID_OK)
-  {
-    if (m_iso_paths_listbox->FindString(dialog.GetPath()) != wxNOT_FOUND)
-    {
-      WxUtils::ShowErrorDialog(_("The chosen directory is already in the list."));
-    }
-    else
-    {
       AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_RESCAN_LIST));
-      m_iso_paths_listbox->Append(dialog.GetPath());
-    }
-  }
 
+      BROWSEINFO bi = {0};
+      bi.lpszTitle = _T("Browse for Folder");
+      LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+      if (pidl != NULL)
+      {
+        TCHAR tszPath[MAX_PATH] = _T("\0");
+
+        if (SHGetPathFromIDList(pidl, tszPath) == TRUE)
+        {
+          m_iso_paths_listbox->Append(tszPath);
+        }
+        //Free pidl
+        CoTaskMemFree(pidl);
+      }
   SaveISOPathChanges();
 }
 
@@ -221,3 +230,4 @@ void PathConfigPane::SaveISOPathChanges()
   for (unsigned int i = 0; i < m_iso_paths_listbox->GetCount(); i++)
     SConfig::GetInstance().m_ISOFolder.push_back(WxStrToStr(m_iso_paths_listbox->GetStrings()[i]));
 }
+

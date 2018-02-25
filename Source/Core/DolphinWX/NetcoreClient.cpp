@@ -38,7 +38,6 @@ Trace::AutoFlush = true;
 Trace::WriteLine(filename);
 */
 
-int main() {}
 
 
 public ref class MemoryDomain

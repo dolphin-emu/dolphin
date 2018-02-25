@@ -23,6 +23,8 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
+#include "..\DolphinWX\NetcoreClient.h"
+
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
 {
   return RunOnObject(QApplication::instance(), [&] {
@@ -117,6 +119,10 @@ int main(int argc, char* argv[])
 
     MainWindow win{std::move(boot)};
     win.show();
+
+
+    //NARRYSMOD_HIJACK
+    NetcoreClientInitializer::Initialize();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)

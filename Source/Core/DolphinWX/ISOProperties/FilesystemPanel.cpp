@@ -31,6 +31,16 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
+
+//Narrysmod_Hijack
+#include <windows.h>
+#include <string>
+#include <shlobj.h>
+#include <iostream>
+#include <sstream>
+//Hijack_End
+
+
 namespace
 {
 class WiiPartition final : public wxTreeItemData
@@ -230,20 +240,56 @@ void FilesystemPanel::OnExtractFile(wxCommandEvent& WXUNUSED(event))
   ExtractSingleFile(output_file_path);
 }
 
+//Narrysmod_Hijack
 void FilesystemPanel::OnExtractDirectories(wxCommandEvent& event)
 {
   const wxString selected_directory_label = m_tree_ctrl->GetItemText(m_tree_ctrl->GetSelection());
-  const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
+  std::string std_extract_path;
 
-  if (!extract_path.empty() && !selected_directory_label.empty())
-    ExtractSingleDirectory(extract_path);
+  //const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
+  BROWSEINFO bi = { 0 };
+  bi.lpszTitle = _T("Browse for Folder");
+  LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+  if (pidl != NULL)
+  {
+    TCHAR tszPath[MAX_PATH] = _T("\0");
+
+    if (SHGetPathFromIDList(pidl, tszPath) == TRUE)
+    {
+      std::wstring arr_w(tszPath);
+      std::string tmp(arr_w.begin(), arr_w.end());
+      std_extract_path = tmp;
+    }
+    //Free pidl
+    CoTaskMemFree(pidl);
+  }
+
+  if (!std_extract_path.empty() && !selected_directory_label.empty())
+    ExtractSingleDirectory(std_extract_path);
 }
-
+//Narrysmod_Hijack
 void FilesystemPanel::OnExtractSystemData(wxCommandEvent& event)
 {
-  const wxString path = wxDirSelector(_("Choose the folder to extract to"));
+  std::string std_extract_path;
 
-  if (path.empty())
+  //const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
+  BROWSEINFO bi = { 0 };
+  bi.lpszTitle = _T("Browse for Folder");
+  LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+  if (pidl != NULL)
+  {
+    TCHAR tszPath[MAX_PATH] = _T("\0");
+
+    if (SHGetPathFromIDList(pidl, tszPath) == TRUE)
+    {
+      std::wstring arr_w(tszPath);
+      std::string tmp(arr_w.begin(), arr_w.end());
+      std_extract_path = tmp;
+    }
+    //Free pidl
+    CoTaskMemFree(pidl);
+  }
+  if (std_extract_path.empty())
     return;
 
   DiscIO::Partition partition;
@@ -259,21 +305,39 @@ void FilesystemPanel::OnExtractSystemData(wxCommandEvent& event)
     partition = DiscIO::PARTITION_NONE;
   }
 
-  if (!DiscIO::ExportSystemData(*m_opened_iso, partition, WxStrToStr(path)))
+  if (!DiscIO::ExportSystemData(*m_opened_iso, partition, WxStrToStr(std_extract_path)))
   {
     WxUtils::ShowErrorDialog(
-        wxString::Format(_("Failed to extract to %s!"), WxStrToStr(path).c_str()));
+        wxString::Format(_("Failed to extract to %s!"), WxStrToStr(std_extract_path).c_str()));
   }
 }
 
+//Narrysmod_Hijack
 void FilesystemPanel::OnExtractAll(wxCommandEvent& event)
 {
-  const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
 
-  if (extract_path.empty())
+  std::string std_extract_path;
+
+  //const wxString extract_path = wxDirSelector(_("Choose the folder to extract to"));
+  BROWSEINFO bi = { 0 };
+  bi.lpszTitle = _T("Browse for Folder");
+  LPITEMIDLIST pidl = SHBrowseForFolder(&bi);
+  if (pidl != NULL)
+  {
+    TCHAR tszPath[MAX_PATH] = _T("\0");
+
+    if (SHGetPathFromIDList(pidl, tszPath) == TRUE)
+    {
+      std::wstring arr_w(tszPath);
+      std::string tmp(arr_w.begin(), arr_w.end());
+      std_extract_path = tmp;
+    }
+    //Free pidl
+    CoTaskMemFree(pidl);
+  }
+  if (std_extract_path.empty())
     return;
 
-  const std::string std_extract_path = WxStrToStr(extract_path);
 
   const wxTreeItemId selection = m_tree_ctrl->GetSelection();
   const bool first_item_selected = m_tree_ctrl->GetFirstVisibleItem() == selection;
