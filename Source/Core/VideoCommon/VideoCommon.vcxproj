@@ -99,6 +99,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractStagingTexture.h" />
+    <ClInclude Include="AbstractPipeline.h" />
+    <ClInclude Include="AbstractShader.h" />
     <ClInclude Include="AbstractTexture.h" />
     <ClInclude Include="AsyncRequests.h" />
     <ClInclude Include="AsyncShaderCompiler.h" />

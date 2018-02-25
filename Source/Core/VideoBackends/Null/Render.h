@@ -18,6 +18,12 @@ public:
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
 
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
+
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override { return 0; }
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}

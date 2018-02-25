@@ -171,7 +171,7 @@ void MappingIndicator::DrawStick()
   // Emulated cursor position
   float virt_curx, virt_cury;
 
-  if (abs(curx) < deadzone && abs(cury) < deadzone)
+  if (std::abs(curx) < deadzone && std::abs(cury) < deadzone)
   {
     virt_curx = virt_cury = 0;
   }
@@ -182,7 +182,7 @@ void MappingIndicator::DrawStick()
   }
 
   // Coordinates for an octagon
-  std::array<QPointF, 8> radius_octagon = {
+  std::array<QPointF, 8> radius_octagon = {{
       QPointF(centerx, centery + stick_size),                                   // Bottom
       QPointF(centerx + stick_size / sqrt(2), centery + stick_size / sqrt(2)),  // Bottom Right
       QPointF(centerx + stick_size, centery),                                   // Right
@@ -191,7 +191,7 @@ void MappingIndicator::DrawStick()
       QPointF(centerx - stick_size / sqrt(2), centery - stick_size / sqrt(2)),  // Top Left
       QPointF(centerx - stick_size, centery),                                   // Left
       QPointF(centerx - stick_size / sqrt(2), centery + stick_size / sqrt(2))   // Bottom Left
-  };
+  }};
 
   QPainter p(this);
 
@@ -233,12 +233,12 @@ void MappingIndicator::DrawMixedTriggers()
   double r_bar_percent = r_analog;
   double l_bar_percent = l_analog;
 
-  if (r_button && (r_button != r_analog) || (r_button == r_analog) && (r_analog > threshold))
+  if ((r_button && r_button != r_analog) || (r_button == r_analog && r_analog > threshold))
     r_bar_percent = 1;
   else
     r_bar_percent *= 0.8;
 
-  if (l_button && (l_button != l_analog) || (l_button == l_analog) && (l_analog > threshold))
+  if ((l_button && l_button != l_analog) || (l_button == l_analog && l_analog > threshold))
     l_bar_percent = 1;
   else
     l_bar_percent *= 0.8;

@@ -43,6 +43,8 @@
     <ClCompile Include="D3DState.cpp" />
     <ClCompile Include="D3DTexture.cpp" />
     <ClCompile Include="D3DUtil.cpp" />
+    <ClCompile Include="DXPipeline.cpp" />
+    <ClCompile Include="DXShader.cpp" />
     <ClCompile Include="DXTexture.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="GeometryShaderCache.cpp" />
@@ -64,6 +66,8 @@
     <ClInclude Include="D3DState.h" />
     <ClInclude Include="D3DTexture.h" />
     <ClInclude Include="D3DUtil.h" />
+    <ClInclude Include="DXPipeline.h" />
+    <ClInclude Include="DXShader.h" />
     <ClInclude Include="DXTexture.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="GeometryShaderCache.h" />

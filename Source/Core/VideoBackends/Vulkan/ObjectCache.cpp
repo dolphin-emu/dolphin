@@ -106,7 +106,10 @@ void ObjectCache::DestroySamplers()
 
 bool ObjectCache::CreateDescriptorSetLayouts()
 {
-  static const VkDescriptorSetLayoutBinding ubo_set_bindings[] = {
+  static const VkDescriptorSetLayoutBinding single_ubo_set_bindings[] = {
+      0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT};
+  static const VkDescriptorSetLayoutBinding per_stage_ubo_set_bindings[] = {
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
@@ -138,7 +141,9 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 
   static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(ubo_set_bindings)), ubo_set_bindings},
+       static_cast<u32>(ArraySize(single_ubo_set_bindings)), single_ubo_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(per_stage_ubo_set_bindings)), per_stage_ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(sampler_set_bindings)), sampler_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
@@ -177,16 +182,19 @@ bool ObjectCache::CreatePipelineLayouts()
 
   // Descriptor sets for each pipeline layout
   VkDescriptorSetLayout standard_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS]};
   VkDescriptorSetLayout bbox_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS]};
   VkDescriptorSetLayout texture_conversion_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS]};
+  VkDescriptorSetLayout utility_sets[] = {
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS]};
   VkDescriptorSetLayout compute_sets[] = {m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_COMPUTE]};
   VkPushConstantRange push_constant_range = {
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
@@ -211,6 +219,10 @@ bool ObjectCache::CreatePipelineLayouts()
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(texture_conversion_sets)), texture_conversion_sets, 1,
        &push_constant_range},
+
+      // Texture Conversion
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(utility_sets)), utility_sets, 0, nullptr},
 
       // Compute
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,

@@ -173,10 +173,18 @@ if(APPLE)
   target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
   set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+  # Copy icon into the bundle
+  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
+  set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
   # Copy Qt plugins into the bundle
   get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
   target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
+
+  get_target_property(qtmacstyle_location Qt5::QMacStylePlugin LOCATION)
+  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtmacstyle_location}")
+  set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 
   # Copy resources into the bundle
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")

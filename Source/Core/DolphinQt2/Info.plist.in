@@ -28,7 +28,7 @@
     <key>CFBundleExecutable</key>
     <string>dolphin-emu-qt2</string>
     <key>CFBundleIconFile</key>
-    <string>Resources/Dolphin.icns</string>
+    <string>Dolphin.icns</string>
     <key>CFBundleIdentifier</key>
     <string>org.dolphin-emu.dolphin</string>
     <key>CFBundleDevelopmentRegion</key>

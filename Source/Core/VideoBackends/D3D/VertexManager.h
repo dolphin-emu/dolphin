@@ -23,7 +23,7 @@ class D3DVertexFormat : public NativeVertexFormat
 public:
   D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
   ~D3DVertexFormat();
-  void SetInputLayout(D3DBlob* vs_bytecode);
+  ID3D11InputLayout* GetInputLayout(D3DBlob* vs_bytecode);
 
 private:
   std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};

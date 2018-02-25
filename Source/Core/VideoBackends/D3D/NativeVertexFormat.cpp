@@ -119,20 +119,20 @@ D3DVertexFormat::~D3DVertexFormat()
   SAFE_RELEASE(m_layout);
 }
 
-void D3DVertexFormat::SetInputLayout(D3DBlob* vs_bytecode)
+ID3D11InputLayout* D3DVertexFormat::GetInputLayout(D3DBlob* vs_bytecode)
 {
-  if (!m_layout)
-  {
-    // CreateInputLayout requires a shader input, but it only looks at the
-    // signature of the shader, so we don't need to recompute it if the shader
-    // changes.
-    HRESULT hr = DX11::D3D::device->CreateInputLayout(
-        m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
-    if (FAILED(hr))
-      PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-    DX11::D3D::SetDebugObjectName(m_layout, "input layout used to emulate the GX pipeline");
-  }
-  DX11::D3D::stateman->SetInputLayout(m_layout);
+  if (m_layout)
+    return m_layout;
+
+  // CreateInputLayout requires a shader input, but it only looks at the
+  // signature of the shader, so we don't need to recompute it if the shader
+  // changes.
+  HRESULT hr = DX11::D3D::device->CreateInputLayout(
+      m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
+  if (FAILED(hr))
+    PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
+  DX11::D3D::SetDebugObjectName(m_layout, "input layout used to emulate the GX pipeline");
+  return m_layout;
 }
 
 }  // namespace DX11

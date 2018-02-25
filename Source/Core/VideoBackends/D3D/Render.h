@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <d3d11.h>
 #include <string>
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/RenderBase.h"
@@ -25,7 +26,13 @@ public:
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
 
+  void SetPipeline(const AbstractPipeline* pipeline) override;
   void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
   void SetRasterizationState(const RasterizationState& state) override;
@@ -63,6 +70,11 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
+  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                           u32 vertex_stride, u32 num_vertices) override;
+  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
+                             u32 groups_x, u32 groups_y, u32 groups_z) override;
+
 private:
   struct GXPipelineState
   {
@@ -82,6 +94,9 @@ private:
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
 
+  void UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
+  void UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices);
+
   StateCache m_state_cache;
   GXPipelineState m_gx_state;
 
@@ -93,6 +108,9 @@ private:
 
   ID3D11Texture2D* m_screenshot_texture = nullptr;
   D3DTexture2D* m_3d_vision_texture = nullptr;
+
+  ID3D11Buffer* m_utility_vertex_buffer = nullptr;
+  ID3D11Buffer* m_utility_uniform_buffer = nullptr;
 
   u32 m_last_multisamples = 1;
   bool m_last_stereo_mode = false;

@@ -13,6 +13,10 @@ set(SRCS
   D3DTexture.h
   D3DUtil.cpp
   D3DUtil.h
+  DXPipeline.cpp
+  DXPipeline.h
+  DXShader.cpp
+  DXShader.h
   DXTexture.cpp
   DXTexture.h
   FramebufferManager.cpp

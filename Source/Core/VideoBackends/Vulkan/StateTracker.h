@@ -41,6 +41,10 @@ public:
   }
   const DepthState& GetDepthStencilState() const { return m_pipeline_state.depth_state; }
   const BlendingState& GetBlendState() const { return m_pipeline_state.blend_state; }
+  const std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS>& GetPSSamplerBindings() const
+  {
+    return m_bindings.ps_samplers;
+  }
   void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 

@@ -3,6 +3,8 @@ set(SRCS
   FramebufferManager.cpp
   main.cpp
   NativeVertexFormat.cpp
+  OGLPipeline.cpp
+  OGLShader.cpp
   OGLTexture.cpp
   PerfQuery.cpp
   PostProcessing.cpp

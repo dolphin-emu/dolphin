@@ -19,6 +19,7 @@
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
+#include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VertexShaderGen.h"
@@ -395,6 +396,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   glEnableVertexAttribArray(SHADER_COLOR1_ATTRIB);
   glVertexAttribIPointer(SHADER_COLOR1_ATTRIB, 1, GL_INT, sizeof(EfbPokeData),
                          (void*)offsetof(EfbPokeData, data));
+  glBindBuffer(GL_ARRAY_BUFFER,
+               static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBufferHandle());
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
     glEnable(GL_PROGRAM_POINT_SIZE);
@@ -563,8 +566,6 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
 {
   g_renderer->ResetAPIState();
 
-  OpenGL_BindAttributelessVAO();
-
   GLuint src_texture = 0;
 
   // We aren't allowed to render and sample the same texture in one draw call,
@@ -582,6 +583,7 @@ void FramebufferManager::ReinterpretPixelData(unsigned int convtype)
   g_sampler_cache->BindNearestSampler(9);
 
   m_pixel_format_shaders[convtype ? 1 : 0].Bind();
+  ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindTexture(m_textureType, 0);
 
@@ -607,6 +609,8 @@ void FramebufferManager::PokeEFB(EFBAccessType type, const EfbPokeData* points, 
   glViewport(0, 0, m_targetWidth, m_targetHeight);
   glDrawArrays(GL_POINTS, 0, (GLsizei)num_points);
 
+  glBindBuffer(GL_ARRAY_BUFFER,
+               static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBufferHandle());
   g_renderer->RestoreAPIState();
 
   // TODO: Could just update the EFB cache with the new value
