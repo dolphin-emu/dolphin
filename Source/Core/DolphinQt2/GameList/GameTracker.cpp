@@ -25,6 +25,10 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   cache.Load();
 
+  // Since QFileSystemWatcher is useless at watching network drives of any kind when the native
+  // detection method is used, we have to force it to use polling.
+  setObjectName(QStringLiteral("_qt_autotest_force_engine_poller"));
+
   m_load_thread.Reset([this](const QString& path) { LoadGame(path); });
 }
 
