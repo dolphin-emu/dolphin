@@ -622,8 +622,6 @@ void Kernel::HandleIPCEvent(u64 userdata)
   UpdateIPC();
 }
 
-// This is called every IPC_HLE_PERIOD from SystemTimers.cpp
-// Takes care of routing ipc <-> ipc HLE
 void Kernel::UpdateIPC()
 {
   if (!IsReady())
