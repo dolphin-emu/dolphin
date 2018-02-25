@@ -139,6 +139,8 @@ public:
   void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
                              u32 groups_x, u32 groups_y, u32 groups_z) override;
 
+  std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
+
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);

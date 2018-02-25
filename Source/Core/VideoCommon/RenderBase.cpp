@@ -1027,3 +1027,8 @@ bool Renderer::UseVertexDepthRange() const
   // in the vertex shader.
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
 }
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<VideoCommon::AsyncShaderCompiler>();
+}

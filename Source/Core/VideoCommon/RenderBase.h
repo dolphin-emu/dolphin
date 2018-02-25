@@ -28,6 +28,7 @@
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
@@ -188,6 +189,8 @@ public:
   void ChangeSurface(void* new_surface_handle);
   void ResizeSurface(int new_width, int new_height);
   bool UseVertexDepthRange() const;
+
+  virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
 
   virtual void Shutdown();
 

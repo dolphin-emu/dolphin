@@ -70,6 +70,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
+  g_Config.backend_info.bSupportsBackgroundCompiling = true;
 
   IDXGIFactory2* factory;
   IDXGIAdapter* ad;

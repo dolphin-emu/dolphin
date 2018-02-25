@@ -81,8 +81,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                   GLsizei length, const char* message, const void* userParam)
+void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                            const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;
@@ -676,6 +676,14 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsGPUTextureDecoding =
       g_Config.backend_info.bSupportsPaletteConversion &&
       g_Config.backend_info.bSupportsComputeShaders && g_ogl_config.bSupportsImageLoadStore;
+
+  // The GPU shader code appears to be context-specific on Mesa/i965.
+  // This means that if we compiled the ubershaders asynchronously, they will be recompiled
+  // on the main thread the first time they are used, causing stutter. Nouveau has been
+  // reported to crash if draw calls are invoked on the shared context threads. For now,
+  // disable asynchronous compilation on Mesa.
+  g_Config.backend_info.bSupportsBackgroundCompiling =
+      !DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
 
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1694,5 +1702,10 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
 
   glDispatchCompute(groups_x, groups_y, groups_z);
   ProgramShaderCache::InvalidateLastProgram();
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
 }

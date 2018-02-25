@@ -51,9 +51,10 @@ static std::unique_ptr<StreamBuffer> s_buffer;
 static int num_failures = 0;
 
 static GLuint CurrentProgram = 0;
-ProgramShaderCache::PipelineProgramMap ProgramShaderCache::pipelineprograms;
-std::mutex ProgramShaderCache::pipelineprogramlock;
+ProgramShaderCache::PipelineProgramMap ProgramShaderCache::s_pipeline_programs;
+std::mutex ProgramShaderCache::s_pipeline_program_lock;
 static std::string s_glsl_header = "";
+static thread_local bool s_is_shared_context = false;
 
 static std::string GetGLSLVersionString()
 {
@@ -505,8 +506,8 @@ void ProgramShaderCache::Shutdown()
   s_last_VAO = 0;
 
   // All pipeline programs should have been released.
-  _dbg_assert_(VIDEO, pipelineprograms.empty());
-  pipelineprograms.clear();
+  _dbg_assert_(VIDEO, s_pipeline_programs.empty());
+  s_pipeline_programs.clear();
 }
 
 void ProgramShaderCache::CreateAttributelessVAO()
@@ -547,20 +548,27 @@ void ProgramShaderCache::InvalidateLastProgram()
   CurrentProgram = 0;
 }
 
-const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* vertex_shader,
+const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* vertex_format,
+                                                              const OGLShader* vertex_shader,
                                                               const OGLShader* geometry_shader,
                                                               const OGLShader* pixel_shader)
 {
   PipelineProgramKey key = {vertex_shader, geometry_shader, pixel_shader};
   {
-    std::lock_guard<std::mutex> guard(pipelineprogramlock);
-    auto iter = pipelineprograms.find(key);
-    if (iter != pipelineprograms.end())
+    std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
+    auto iter = s_pipeline_programs.find(key);
+    if (iter != s_pipeline_programs.end())
     {
       iter->second->reference_count++;
       return iter->second.get();
     }
   }
+
+  // We temporarily change the vertex array to the pipeline's vertex format.
+  // This can prevent the NVIDIA OpenGL driver from recompiling on first use.
+  GLuint vao = vertex_format ? vertex_format->VAO : s_attributeless_VAO;
+  if (s_is_shared_context || vao != s_last_VAO)
+    glBindVertexArray(vao);
 
   std::unique_ptr<PipelineProgram> prog = std::make_unique<PipelineProgram>();
   prog->key = key;
@@ -580,6 +588,11 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* v
   // Link program.
   prog->shader.SetProgramBindings(false);
   glLinkProgram(prog->shader.glprogid);
+
+  // Restore VAO binding after linking.
+  if (!s_is_shared_context && vao != s_last_VAO)
+    glBindVertexArray(s_last_VAO);
+
   if (!ProgramShaderCache::CheckProgramLinkResult(prog->shader.glprogid, {}, {}, {}))
   {
     prog->shader.Destroy();
@@ -587,9 +600,9 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* v
   }
 
   // Lock to insert. A duplicate program may have been created in the meantime.
-  std::lock_guard<std::mutex> guard(pipelineprogramlock);
-  auto iter = pipelineprograms.find(key);
-  if (iter != pipelineprograms.end())
+  std::lock_guard<std::mutex> guard(s_pipeline_program_lock);
+  auto iter = s_pipeline_programs.find(key);
+  if (iter != s_pipeline_programs.end())
   {
     // Destroy this program, and use the one which was created first.
     prog->shader.Destroy();
@@ -600,19 +613,19 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* v
   // Set program variables on the shader which will be returned.
   // This is only needed for drivers which don't support binding layout.
   prog->shader.SetProgramVariables();
-  auto ip = pipelineprograms.emplace(key, std::move(prog));
+  auto ip = s_pipeline_programs.emplace(key, std::move(prog));
   return ip.first->second.get();
 }
 
 void ProgramShaderCache::ReleasePipelineProgram(const PipelineProgram* prog)
 {
-  auto iter = pipelineprograms.find(prog->key);
-  _assert_(iter != pipelineprograms.end() && prog == iter->second.get());
+  auto iter = s_pipeline_programs.find(prog->key);
+  _assert_(iter != s_pipeline_programs.end() && prog == iter->second.get());
 
   if (--iter->second->reference_count == 0)
   {
     iter->second->shader.Destroy();
-    pipelineprograms.erase(iter);
+    s_pipeline_programs.erase(iter);
   }
 }
 
@@ -781,5 +794,56 @@ void ProgramShaderCache::CreateHeader()
           "",
       v > GlslEs300 ? "precision highp sampler2DMS;" : "",
       v >= GlslEs310 ? "precision highp image2DArray;" : "");
+}
+
+bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
+{
+  std::unique_ptr<cInterfaceBase> context = GLInterface->CreateSharedContext();
+  if (!context)
+  {
+    PanicAlert("Failed to create shared context for shader compiling.");
+    return false;
+  }
+
+  *param = context.release();
+  return true;
+}
+
+bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
+{
+  cInterfaceBase* context = static_cast<cInterfaceBase*>(param);
+  if (!context->MakeCurrent())
+    return false;
+
+  s_is_shared_context = true;
+  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
+  {
+    if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+    {
+      glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+    }
+    else
+    {
+      if (GLExtensions::Version() >= 310)
+      {
+        glEnable(GL_PRIMITIVE_RESTART);
+        glPrimitiveRestartIndex(65535);
+      }
+      else
+      {
+        glEnableClientState(GL_PRIMITIVE_RESTART_NV);
+        glPrimitiveRestartIndexNV(65535);
+      }
+    }
+  }
+
+  return true;
+}
+
+void SharedContextAsyncShaderCompiler::WorkerThreadExit(void* param)
+{
+  cInterfaceBase* context = static_cast<cInterfaceBase*>(param);
+  context->ClearCurrent();
+  delete context;
 }
 }  // namespace OGL

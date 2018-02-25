@@ -73,6 +73,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsCopyToVram = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
+  g_Config.backend_info.bSupportsBackgroundCompiling = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

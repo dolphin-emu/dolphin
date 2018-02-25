@@ -227,6 +227,7 @@ struct VideoConfig final
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
     bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
+    bool bSupportsBackgroundCompiling;
   } backend_info;
 
   // Utility

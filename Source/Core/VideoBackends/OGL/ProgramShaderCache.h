@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "Common/GL/GLUtil.h"
+#include "VideoCommon/AsyncShaderCompiler.h"
 
 namespace OGL
 {
@@ -87,7 +88,8 @@ public:
   static void Shutdown();
   static void CreateHeader();
 
-  static const PipelineProgram* GetPipelineProgram(const OGLShader* vertex_shader,
+  static const PipelineProgram* GetPipelineProgram(const GLVertexFormat* vertex_format,
+                                                   const OGLShader* vertex_shader,
                                                    const OGLShader* geometry_shader,
                                                    const OGLShader* pixel_shader);
   static void ReleasePipelineProgram(const PipelineProgram* prog);
@@ -99,8 +101,8 @@ private:
 
   static void CreateAttributelessVAO();
 
-  static PipelineProgramMap pipelineprograms;
-  static std::mutex pipelineprogramlock;
+  static PipelineProgramMap s_pipeline_programs;
+  static std::mutex s_pipeline_program_lock;
 
   static u32 s_ubo_buffer_size;
   static s32 s_ubo_align;
@@ -108,6 +110,14 @@ private:
   static GLuint s_attributeless_VBO;
   static GLuint s_attributeless_VAO;
   static GLuint s_last_VAO;
+};
+
+class SharedContextAsyncShaderCompiler : public VideoCommon::AsyncShaderCompiler
+{
+protected:
+  bool WorkerThreadInitMainThread(void** param) override;
+  bool WorkerThreadInitWorkerThread(void* param) override;
+  void WorkerThreadExit(void* param) override;
 };
 
 }  // namespace OGL
