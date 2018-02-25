@@ -553,30 +553,25 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, const 
     }
 
     if (compileStatus != GL_TRUE)
-      ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
-    else
-      WARN_LOG(VIDEO, "%s compiled with warnings:\n%s", prefix, info_log.c_str());
-
-    std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
-    std::ofstream file;
-    File::OpenFStream(file, filename, std::ios_base::out);
-    file << s_glsl_header << code << info_log;
-    file.close();
-
-    if (compileStatus != GL_TRUE)
     {
+      ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
+
+      std::string filename = StringFromFormat(
+          "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
+      std::ofstream file;
+      File::OpenFStream(file, filename, std::ios_base::out);
+      file << s_glsl_header << code << info_log;
+      file.close();
+
       PanicAlert("Failed to compile %s shader: %s\n"
                  "Debug info (%s, %s, %s):\n%s",
                  prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
                  g_ogl_config.gl_version, info_log.c_str());
+
+      return false;
     }
-  }
-  if (compileStatus != GL_TRUE)
-  {
-    // Compile failed
-    ERROR_LOG(VIDEO, "Shader compilation failed; see info log");
-    return false;
+
+    WARN_LOG(VIDEO, "%s compiled with warnings:\n%s", prefix, info_log.c_str());
   }
 
   return true;
@@ -594,24 +589,19 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vc
     std::string info_log;
     info_log.resize(length);
     glGetProgramInfoLog(id, length, &length, &info_log[0]);
-
-    if (linkStatus != GL_TRUE)
-      ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
-    else
-      WARN_LOG(VIDEO, "Program linked with warnings:\n%s", info_log.c_str());
-
-    std::string filename =
-        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
-    std::ofstream file;
-    File::OpenFStream(file, filename, std::ios_base::out);
-    file << s_glsl_header << vcode << s_glsl_header << pcode;
-    if (!gcode.empty())
-      file << s_glsl_header << gcode;
-    file << info_log;
-    file.close();
-
     if (linkStatus != GL_TRUE)
     {
+      ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
+      std::string filename =
+          StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+      std::ofstream file;
+      File::OpenFStream(file, filename, std::ios_base::out);
+      file << s_glsl_header << vcode << s_glsl_header << pcode;
+      if (!gcode.empty())
+        file << s_glsl_header << gcode;
+      file << info_log;
+      file.close();
+
       PanicAlert("Failed to link shaders: %s\n"
                  "Debug info (%s, %s, %s):\n%s",
                  filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
@@ -619,6 +609,8 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, const std::string& vc
 
       return false;
     }
+
+    WARN_LOG(VIDEO, "Program linked with warnings:\n%s", info_log.c_str());
   }
 
   return true;
