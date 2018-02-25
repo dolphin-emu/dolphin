@@ -4,6 +4,8 @@
 
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QFont>
+#include <QFontInfo>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QMessageBox>
@@ -48,6 +50,10 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   CreateMainLayout();
   ConnectWidgets();
   SetMappingType(type);
+
+  QFont reasonable = font();
+  reasonable.setPointSizeF(QFontInfo(reasonable).pointSizeF() * 0.75);
+  setFont(reasonable);
 }
 
 void MappingWindow::CreateDevicesLayout()
