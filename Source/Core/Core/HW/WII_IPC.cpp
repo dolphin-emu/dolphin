@@ -213,7 +213,9 @@ void GenerateAck(u32 _Address)
   ctrl.Y2 = 1;
   DEBUG_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]", ppc_msg, _Address, ctrl.Y1,
             ctrl.Y2, ctrl.X1);
-  CoreTiming::ScheduleEvent(1000, updateInterrupts, 0);
+  // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
+  // after Y2 is seen in the control register.
+  CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
 }
 
 void GenerateReply(u32 _Address)
@@ -222,7 +224,9 @@ void GenerateReply(u32 _Address)
   ctrl.Y1 = 1;
   DEBUG_LOG(WII_IPC, "GenerateReply: %08x | %08x [R:%i A:%i E:%i]", ppc_msg, _Address, ctrl.Y1,
             ctrl.Y2, ctrl.X1);
-  UpdateInterrupts();
+  // Based on a hardware test, the IPC interrupt takes approximately 100 TB ticks to fire
+  // after Y1 is seen in the control register.
+  CoreTiming::ScheduleEvent(100 * SystemTimers::TIMER_RATIO, updateInterrupts);
 }
 
 bool IsReady()

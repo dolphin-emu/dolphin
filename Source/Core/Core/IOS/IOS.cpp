@@ -475,7 +475,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG(IOS, "Couldn't get a free fd, too many open files");
-    return Device::Device::GetDefaultReply(FS_EFDEXHAUSTED);
+    return IPCCommandResult{FS_EFDEXHAUSTED, true, 5000 * SystemTimers::TIMER_RATIO};
   }
   request.fd = new_fd;
 
@@ -497,7 +497,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   if (!device)
   {
     ERROR_LOG(IOS, "Unknown device: %s", request.path.c_str());
-    return Device::Device::GetDefaultReply(IPC_ENOENT);
+    return {IPC_ENOENT, true, 3700 * SystemTimers::TIMER_RATIO};
   }
 
   IPCCommandResult result = device->Open(request);
@@ -511,6 +511,9 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
 
 IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
 {
+  if (request.command < IPC_CMD_OPEN || request.command > IPC_CMD_IOCTLV)
+    return IPCCommandResult{IPC_EINVAL, true, 978 * SystemTimers::TIMER_RATIO};
+
   if (request.command == IPC_CMD_OPEN)
   {
     OpenRequest open_request{request.address};
@@ -519,7 +522,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
 
   const auto device = (request.fd < IPC_MAX_FDS) ? m_fdmap[request.fd] : nullptr;
   if (!device)
-    return Device::Device::GetDefaultReply(IPC_EINVAL);
+    return IPCCommandResult{IPC_EINVAL, true, 550 * SystemTimers::TIMER_RATIO};
 
   IPCCommandResult ret;
   u64 wall_time_before = Common::Timer::GetTimeUs();
@@ -547,7 +550,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
     break;
   default:
     ASSERT_MSG(IOS, false, "Unexpected command: %x", request.command);
-    ret = Device::Device::GetDefaultReply(IPC_EINVAL);
+    ret = IPCCommandResult{IPC_EINVAL, true, 978 * SystemTimers::TIMER_RATIO};
     break;
   }
 
@@ -582,7 +585,11 @@ void Kernel::ExecuteIPCCommand(const u32 address)
 // Happens AS SOON AS IPC gets a new pointer!
 void Kernel::EnqueueIPCRequest(u32 address)
 {
-  CoreTiming::ScheduleEvent(1000, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
+  // Based on hardware tests, IOS takes between 5µs and 10µs to acknowledge an IPC request.
+  // Console 1: 456 TB ticks before ACK
+  // Console 2: 658 TB ticks before ACK
+  CoreTiming::ScheduleEvent(500 * SystemTimers::TIMER_RATIO, s_event_enqueue,
+                            address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called to send a reply to an IOS syscall
