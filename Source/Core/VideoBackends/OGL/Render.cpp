@@ -81,8 +81,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                   GLsizei length, const char* message, const void* userParam)
+void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                            const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;
@@ -676,6 +676,10 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsGPUTextureDecoding =
       g_Config.backend_info.bSupportsPaletteConversion &&
       g_Config.backend_info.bSupportsComputeShaders && g_ogl_config.bSupportsImageLoadStore;
+
+  // Background compiling is supported only when shared contexts aren't broken.
+  g_Config.backend_info.bSupportsBackgroundCompiling =
+      !DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
 
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1694,5 +1698,10 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
 
   glDispatchCompute(groups_x, groups_y, groups_z);
   ProgramShaderCache::InvalidateLastProgram();
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
 }

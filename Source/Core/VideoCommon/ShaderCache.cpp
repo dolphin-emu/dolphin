@@ -27,7 +27,7 @@ bool ShaderCache::Initialize()
   m_efb_multisamples = g_ActiveConfig.iMultisamples;
 
   // Create the async compiler, and start the worker threads.
-  m_async_shader_compiler = std::make_unique<VideoCommon::AsyncShaderCompiler>();
+  m_async_shader_compiler = g_renderer->CreateAsyncShaderCompiler();
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
 
   // Load shader and UID caches.
