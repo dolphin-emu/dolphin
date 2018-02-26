@@ -102,6 +102,7 @@ static StateChangedCallbackFunc s_on_state_changed_callback;
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
+static bool s_is_audio_stretch_temp_enabled = false;
 static bool s_frame_step = false;
 
 struct HostJob
@@ -133,6 +134,16 @@ bool GetIsThrottlerTempDisabled()
 void SetIsThrottlerTempDisabled(bool disable)
 {
   s_is_throttler_temp_disabled = disable;
+}
+
+bool GetIsAudioStretchTempEnabled()
+{
+  return s_is_audio_stretch_temp_enabled;
+}
+
+void SetIsAudioStretchTempEnabled(bool enable)
+{
+  s_is_audio_stretch_temp_enabled = enable;
 }
 
 void FrameUpdateOnCPUThread()

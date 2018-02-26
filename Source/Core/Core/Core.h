@@ -24,6 +24,9 @@ namespace Core
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
+bool GetIsAudioStretchTempEnabled();
+void SetIsAudioStretchTempEnabled(bool enable);
+
 void Callback_VideoCopiedToXFB(bool video_update);
 
 enum class State

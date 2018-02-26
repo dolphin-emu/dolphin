@@ -1471,6 +1471,7 @@ void CFrame::ParseHotkeys()
     Config::SetCurrent(Config::GFX_HIRES_TEXTURES, !Config::Get(Config::GFX_HIRES_TEXTURES));
   }
   Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
+  Core::SetIsAudioStretchTempEnabled(IsHotkey(HK_TOGGLE_AUDIO_STRETCHING, true));
   if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
   {
     OSDChoice = 5;

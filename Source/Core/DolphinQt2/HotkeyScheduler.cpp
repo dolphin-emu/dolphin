@@ -241,6 +241,8 @@ void HotkeyScheduler::Run()
 
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 
+      Core::SetIsAudioStretchTempEnabled(IsHotkey(HK_TOGGLE_AUDIO_STRETCHING, true));
+
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
         auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
