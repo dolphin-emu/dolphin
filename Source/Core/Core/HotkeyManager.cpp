@@ -45,6 +45,7 @@ constexpr std::array<const char*, 125> s_hotkey_labels{{
     _trans("Decrease Emulation Speed"),
     _trans("Increase Emulation Speed"),
     _trans("Disable Emulation Speed Limit"),
+    _trans("Enable Audio Stretching"),
 
     _trans("Frame Advance"),
     _trans("Frame Advance Decrease Speed"),
@@ -312,7 +313,7 @@ struct HotkeyGroupInfo
 constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
     {{_trans("General"), HK_OPEN, HK_REQUEST_GOLF_CONTROL},
      {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
-     {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
+     {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_AUDIO_STRETCHING},
      {_trans("Frame Advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
      {_trans("Movie"), HK_START_RECORDING, HK_READ_ONLY_MODE},
      {_trans("Stepping"), HK_STEP, HK_SKIP},

@@ -409,6 +409,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples, bool surround)
   // Stop using emulation speed, start using actual speed for audio playback, if we fell behind enough
   // Filter out small inaccuracies (samples aren't submitted with perfect timing)
   else
+  if (SConfig::GetInstance().m_audio_stretch || Core::GetIsAudioStretchTempEnabled())
   {
     const double audio_emu_speed_tolerance =
         SConfig::GetInstance().m_audio_emu_speed_tolerance / 1000.0;
