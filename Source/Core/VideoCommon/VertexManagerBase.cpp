@@ -106,9 +106,6 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
 
     // Have to update the rasterization state for point/line cull modes.
     m_current_primitive_type = new_primitive_type;
-    RasterizationState raster_state = {};
-    raster_state.Generate(bpmem, new_primitive_type);
-    g_renderer->SetRasterizationState(raster_state);
     SetRasterizationStateChanged();
   }
 

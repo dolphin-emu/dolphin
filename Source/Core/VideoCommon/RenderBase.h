@@ -79,10 +79,7 @@ public:
   };
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
-  virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
-  virtual void SetRasterizationState(const RasterizationState& state) {}
-  virtual void SetDepthState(const DepthState& state) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
