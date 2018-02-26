@@ -154,12 +154,15 @@ private:
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
 
-  void ApplyBlendingState(const BlendingState& state);
-  void ApplyRasterizationState(const RasterizationState& state);
-  void ApplyDepthState(const DepthState& state);
+  void ApplyBlendingState(const BlendingState state, bool force = false);
+  void ApplyRasterizationState(const RasterizationState state, bool force = false);
+  void ApplyDepthState(const DepthState state, bool force = false);
   void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
 
   std::array<const AbstractTexture*, 8> m_bound_textures{};
   const OGLPipeline* m_graphics_pipeline = nullptr;
+  RasterizationState m_current_rasterization_state = {};
+  DepthState m_current_depth_state = {};
+  BlendingState m_current_blend_state = {};
 };
 }
