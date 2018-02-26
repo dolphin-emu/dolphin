@@ -1294,8 +1294,11 @@ void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
   glClear(clear_mask);
 }
 
-void Renderer::ApplyBlendingState(const BlendingState& state)
+void Renderer::ApplyBlendingState(const BlendingState state, bool force)
 {
+  if (!force && m_current_blend_state == state)
+    return;
+
   bool useDualSource =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
@@ -1368,6 +1371,7 @@ void Renderer::ApplyBlendingState(const BlendingState& state)
   }
 
   glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
+  m_current_blend_state = state;
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -1565,15 +1569,19 @@ void Renderer::RestoreAPIState()
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
   }
-  BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
   BPFunctions::SetViewport();
-  BPFunctions::SetDepthMode();
-  BPFunctions::SetBlendMode();
+
+  ApplyRasterizationState(m_current_rasterization_state, true);
+  ApplyDepthState(m_current_depth_state, true);
+  ApplyBlendingState(m_current_blend_state, true);
 }
 
-void Renderer::ApplyRasterizationState(const RasterizationState& state)
+void Renderer::ApplyRasterizationState(const RasterizationState state, bool force)
 {
+  if (!force && m_current_rasterization_state == state)
+    return;
+
   // none, ccw, cw, ccw
   if (state.cullmode != GenMode::CULL_NONE)
   {
@@ -1585,10 +1593,15 @@ void Renderer::ApplyRasterizationState(const RasterizationState& state)
   {
     glDisable(GL_CULL_FACE);
   }
+
+  m_current_rasterization_state = state;
 }
 
-void Renderer::ApplyDepthState(const DepthState& state)
+void Renderer::ApplyDepthState(const DepthState state, bool force)
 {
+  if (!force && m_current_depth_state == state)
+    return;
+
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
@@ -1606,6 +1619,8 @@ void Renderer::ApplyDepthState(const DepthState& state)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
+
+  m_current_depth_state = state;
 }
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
