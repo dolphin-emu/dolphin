@@ -603,7 +603,7 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
   if (Core::GetState() != Core::State::Uninitialized)
   {
     int width, height;
-    m_render_frame->GetClientSize(&width, &height);
+    m_render_parent->GetClientSize(&width, &height);
     if (!SConfig::GetInstance().bRenderToMain && !RendererIsFullscreen() &&
         !m_render_frame->IsMaximized() && !m_render_frame->IsIconized())
     {
