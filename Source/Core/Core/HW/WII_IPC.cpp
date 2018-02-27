@@ -153,6 +153,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | IPC_PPCCTRL, MMIO::ComplexRead<u32>([](u32) { return ctrl.ppc(); }),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    ctrl.ppc(val);
+                   // The IPC interrupt is triggered when IY1/IY2 is set and
+                   // Y1/Y2 is written to -- even when this results in clearing the bit.
+                   if ((val >> 2 & 1 && ctrl.IY1) || (val >> 1 & 1 && ctrl.IY2))
+                     ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
                    if (ctrl.X1)
                      HLE::GetIOS()->EnqueueIPCRequest(ppc_msg);
                    HLE::GetIOS()->UpdateIPC();
