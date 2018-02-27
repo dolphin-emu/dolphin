@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <cstring>
 #include <map>
 #include <memory>
 #include <optional>
@@ -42,19 +43,23 @@ struct GXPipelineConfig
   DepthState depth_state;
   BlendingState blending_state;
 
+  // We use memcmp() for comparing pipelines as std::tie generates a large number of instructions,
+  // and this map lookup can happen every draw call. However, as using memcmp() will also compare
+  // any padding bytes, we have to ensure these are zeroed out.
+  GXPipelineConfig() { std::memset(this, 0, sizeof(*this)); }
+  GXPipelineConfig(const GXPipelineConfig& rhs) { std::memcpy(this, &rhs, sizeof(*this)); }
+  GXPipelineConfig& operator=(const GXPipelineConfig& rhs)
+  {
+    std::memcpy(this, &rhs, sizeof(*this));
+    return *this;
+  }
   bool operator<(const GXPipelineConfig& rhs) const
   {
-    return std::tie(vertex_format, vs_uid, gs_uid, ps_uid, rasterization_state.hex, depth_state.hex,
-                    blending_state.hex) < std::tie(rhs.vertex_format, rhs.vs_uid, rhs.gs_uid,
-                                                   rhs.ps_uid, rhs.rasterization_state.hex,
-                                                   rhs.depth_state.hex, rhs.blending_state.hex);
+    return std::memcmp(this, &rhs, sizeof(*this)) < 0;
   }
   bool operator==(const GXPipelineConfig& rhs) const
   {
-    return std::tie(vertex_format, vs_uid, gs_uid, ps_uid, rasterization_state.hex, depth_state.hex,
-                    blending_state.hex) == std::tie(rhs.vertex_format, rhs.vs_uid, rhs.gs_uid,
-                                                    rhs.ps_uid, rhs.rasterization_state.hex,
-                                                    rhs.depth_state.hex, rhs.blending_state.hex);
+    return std::memcmp(this, &rhs, sizeof(*this)) == 0;
   }
   bool operator!=(const GXPipelineConfig& rhs) const { return !operator==(rhs); }
 };
@@ -68,19 +73,20 @@ struct GXUberPipelineConfig
   DepthState depth_state;
   BlendingState blending_state;
 
+  GXUberPipelineConfig() { std::memset(this, 0, sizeof(*this)); }
+  GXUberPipelineConfig(const GXUberPipelineConfig& rhs) { std::memcpy(this, &rhs, sizeof(*this)); }
+  GXUberPipelineConfig& operator=(const GXUberPipelineConfig& rhs)
+  {
+    std::memcpy(this, &rhs, sizeof(*this));
+    return *this;
+  }
   bool operator<(const GXUberPipelineConfig& rhs) const
   {
-    return std::tie(vertex_format, vs_uid, gs_uid, ps_uid, rasterization_state.hex, depth_state.hex,
-                    blending_state.hex) < std::tie(rhs.vertex_format, rhs.vs_uid, rhs.gs_uid,
-                                                   rhs.ps_uid, rhs.rasterization_state.hex,
-                                                   rhs.depth_state.hex, rhs.blending_state.hex);
+    return std::memcmp(this, &rhs, sizeof(*this)) < 0;
   }
   bool operator==(const GXUberPipelineConfig& rhs) const
   {
-    return std::tie(vertex_format, vs_uid, gs_uid, ps_uid, rasterization_state.hex, depth_state.hex,
-                    blending_state.hex) == std::tie(rhs.vertex_format, rhs.vs_uid, rhs.gs_uid,
-                                                    rhs.ps_uid, rhs.rasterization_state.hex,
-                                                    rhs.depth_state.hex, rhs.blending_state.hex);
+    return std::memcmp(this, &rhs, sizeof(*this)) == 0;
   }
   bool operator!=(const GXUberPipelineConfig& rhs) const { return !operator==(rhs); }
 };
