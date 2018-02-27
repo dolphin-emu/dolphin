@@ -380,6 +380,9 @@ bool HasFeature(u32 major_version, Feature feature)
 
 bool IsEmulated(u32 major_version)
 {
+  if (major_version == static_cast<u32>(Titles::BC & 0xffffffff))
+    return true;
+
   return std::any_of(
       ios_memory_values.begin(), ios_memory_values.end(),
       [major_version](const MemoryValues& values) { return values.ios_number == major_version; });
