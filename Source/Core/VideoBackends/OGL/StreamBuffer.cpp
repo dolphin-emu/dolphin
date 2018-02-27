@@ -376,7 +376,12 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
 
     // don't fall back to MapAnd* for Nvidia drivers
     if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UNSYNC_MAPPING))
-      return std::make_unique<BufferSubData>(type, size);
+    {
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STREAM))
+        return std::make_unique<BufferData>(type, size);
+      else
+        return std::make_unique<BufferSubData>(type, size);
+    }
 
     // mapping fallback
     if (g_ogl_config.bSupportsGLSync)
