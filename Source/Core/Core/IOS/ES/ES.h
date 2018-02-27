@@ -46,8 +46,8 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  ReturnCode Open(const OpenRequest& request) override;
-  ReturnCode Close(u32 fd) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
+  IPCCommandResult Close(u32 fd) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   struct TitleImportExportContext

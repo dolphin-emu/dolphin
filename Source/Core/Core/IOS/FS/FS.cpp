@@ -138,12 +138,6 @@ void FS::DoState(PointerWrap& p)
   }
 }
 
-ReturnCode FS::Open(const OpenRequest& request)
-{
-  m_is_active = true;
-  return IPC_SUCCESS;
-}
-
 // Get total filesize of contents of a directory (recursive)
 // Only used for ES_GetUsage atm, could be useful elsewhere?
 static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)

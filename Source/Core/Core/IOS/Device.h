@@ -188,8 +188,8 @@ public:
   const std::string& GetDeviceName() const { return m_name; }
   // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
   // not by the devices themselves.
-  virtual ReturnCode Open(const OpenRequest& request);
-  virtual ReturnCode Close(u32 fd);
+  virtual IPCCommandResult Open(const OpenRequest& request);
+  virtual IPCCommandResult Close(u32 fd);
   virtual IPCCommandResult Seek(const SeekRequest& seek) { return Unsupported(seek); }
   virtual IPCCommandResult Read(const ReadWriteRequest& read) { return Unsupported(read); }
   virtual IPCCommandResult Write(const ReadWriteRequest& write) { return Unsupported(write); }

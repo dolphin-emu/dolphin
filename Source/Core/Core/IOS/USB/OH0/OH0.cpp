@@ -35,10 +35,10 @@ OH0::~OH0()
   StopThreads();
 }
 
-ReturnCode OH0::Open(const OpenRequest& request)
+IPCCommandResult OH0::Open(const OpenRequest& request)
 {
   if (HasFeature(m_ios.GetVersion(), Feature::NewUSB))
-    return IPC_EACCES;
+    return GetDefaultReply(IPC_EACCES);
   return USBHost::Open(request);
 }
 

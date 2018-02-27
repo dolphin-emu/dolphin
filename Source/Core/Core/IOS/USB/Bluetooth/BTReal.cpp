@@ -86,10 +86,10 @@ BluetoothReal::~BluetoothReal()
   SaveLinkKeys();
 }
 
-ReturnCode BluetoothReal::Open(const OpenRequest& request)
+IPCCommandResult BluetoothReal::Open(const OpenRequest& request)
 {
   if (!m_libusb_context)
-    return IPC_EACCES;
+    return GetDefaultReply(IPC_EACCES);
 
   libusb_device** list;
   const ssize_t cnt = libusb_get_device_list(m_libusb_context, &list);
@@ -97,7 +97,7 @@ ReturnCode BluetoothReal::Open(const OpenRequest& request)
   {
     ERROR_LOG(IOS_WIIMOTE, "Couldn't get device list: %s",
               libusb_error_name(static_cast<int>(cnt)));
-    return IPC_ENOENT;
+    return GetDefaultReply(IPC_ENOENT);
   }
 
   for (ssize_t i = 0; i < cnt; ++i)
@@ -142,16 +142,15 @@ ReturnCode BluetoothReal::Open(const OpenRequest& request)
     PanicAlertT("Bluetooth passthrough mode is enabled, "
                 "but no usable Bluetooth USB device was found. Aborting.");
     Core::QueueHostJob(Core::Stop);
-    return IPC_ENOENT;
+    return GetDefaultReply(IPC_ENOENT);
   }
 
   StartTransferThread();
 
-  m_is_active = true;
-  return IPC_SUCCESS;
+  return Device::Open(request);
 }
 
-ReturnCode BluetoothReal::Close(u32 fd)
+IPCCommandResult BluetoothReal::Close(u32 fd)
 {
   if (m_handle)
   {

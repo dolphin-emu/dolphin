@@ -80,17 +80,17 @@ void SDIOSlot0::OpenInternal()
   }
 }
 
-ReturnCode SDIOSlot0::Open(const OpenRequest& request)
+IPCCommandResult SDIOSlot0::Open(const OpenRequest& request)
 {
   OpenInternal();
   m_registers.fill(0);
 
   m_is_active = true;
 
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode SDIOSlot0::Close(u32 fd)
+IPCCommandResult SDIOSlot0::Close(u32 fd)
 {
   m_card.Close();
   m_block_length = 0;
