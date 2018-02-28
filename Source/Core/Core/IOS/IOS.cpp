@@ -629,6 +629,7 @@ void Kernel::UpdateIPC()
 
   if (m_request_queue.size())
   {
+    ClearX1();
     GenerateAck(m_request_queue.front());
     u32 command = m_request_queue.front();
     m_request_queue.pop_front();

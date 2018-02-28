@@ -211,6 +211,11 @@ static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
                                    !!(ppc_irq_flags & ppc_irq_masks));
 }
 
+void ClearX1()
+{
+  ctrl.X1 = 0;
+}
+
 void GenerateAck(u32 _Address)
 {
   ctrl.Y2 = 1;
