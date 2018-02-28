@@ -475,7 +475,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG(IOS, "Couldn't get a free fd, too many open files");
-    return IPCCommandResult{FS_EFDEXHAUSTED, true, 5000 * SystemTimers::TIMER_RATIO};
+    return IPCCommandResult{IPC_EMAX, true, 5000 * SystemTimers::TIMER_RATIO};
   }
   request.fd = new_fd;
 
