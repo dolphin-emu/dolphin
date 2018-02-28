@@ -13,6 +13,8 @@
 #include <byteswap.h>
 #elif defined(__FreeBSD__)
 #include <sys/endian.h>
+#elif defined(__OpenBSD__)
+#include <endian.h>
 #endif
 
 #include "Common/CommonTypes.h"
