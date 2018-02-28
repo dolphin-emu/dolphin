@@ -66,7 +66,7 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-ReturnCode STMEventHook::Close(u32 fd)
+IPCCommandResult STMEventHook::Close(u32 fd)
 {
   s_event_hook_request.reset();
   return Device::Close(fd);

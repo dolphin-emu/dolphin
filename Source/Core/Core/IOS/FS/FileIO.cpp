@@ -79,7 +79,7 @@ FileIO::FileIO(Kernel& ios, const std::string& device_name)
 {
 }
 
-ReturnCode FileIO::Close(u32 fd)
+IPCCommandResult FileIO::Close(u32 fd)
 {
   INFO_LOG(IOS_FILEIO, "FileIO: Close %s", m_name.c_str());
   m_Mode = 0;
@@ -89,10 +89,10 @@ ReturnCode FileIO::Close(u32 fd)
   m_file.reset();
 
   m_is_active = false;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode FileIO::Open(const OpenRequest& request)
+IPCCommandResult FileIO::Open(const OpenRequest& request)
 {
   m_Mode = request.flags;
 
@@ -106,14 +106,14 @@ ReturnCode FileIO::Open(const OpenRequest& request)
   {
     WARN_LOG(IOS_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[m_Mode],
              m_filepath.c_str());
-    return FS_ENOENT;
+    return GetDefaultReply(FS_ENOENT);
   }
 
   INFO_LOG(IOS_FILEIO, "FileIO: Open %s (%s == %08X)", m_name.c_str(), Modes[m_Mode], m_Mode);
   OpenFile();
 
   m_is_active = true;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 // This isn't theadsafe, but it's only called from the CPU thread.

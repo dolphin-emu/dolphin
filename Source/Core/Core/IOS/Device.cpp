@@ -161,16 +161,16 @@ void Device::DoStateShared(PointerWrap& p)
   p.Do(m_is_active);
 }
 
-ReturnCode Device::Open(const OpenRequest& request)
+IPCCommandResult Device::Open(const OpenRequest& request)
 {
   m_is_active = true;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode Device::Close(u32 fd)
+IPCCommandResult Device::Close(u32 fd)
 {
   m_is_active = false;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult Device::Unsupported(const Request& request)

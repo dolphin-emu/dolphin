@@ -36,7 +36,7 @@ public:
   USBHost(Kernel& ios, const std::string& device_name);
   virtual ~USBHost();
 
-  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
 
   void UpdateWantDeterminism(bool new_want_determinism) override;
   void DoState(PointerWrap& p) override;

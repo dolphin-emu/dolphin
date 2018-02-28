@@ -372,11 +372,11 @@ ES::ContextArray::iterator ES::FindInactiveContext()
                       [](const auto& context) { return !context.active; });
 }
 
-ReturnCode ES::Open(const OpenRequest& request)
+IPCCommandResult ES::Open(const OpenRequest& request)
 {
   auto context = FindInactiveContext();
   if (context == m_contexts.end())
-    return ES_FD_EXHAUSTED;
+    return GetDefaultReply(ES_FD_EXHAUSTED);
 
   context->active = true;
   context->uid = request.uid;
@@ -385,18 +385,18 @@ ReturnCode ES::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-ReturnCode ES::Close(u32 fd)
+IPCCommandResult ES::Close(u32 fd)
 {
   auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
-    return ES_EINVAL;
+    return GetDefaultReply(ES_EINVAL);
 
   context->active = false;
   context->ipc_fd = -1;
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
