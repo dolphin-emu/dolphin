@@ -13,6 +13,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
+#include "Core/Core.h"
 #include "Core/ConfigManager.h"
 
 Mixer::Mixer(unsigned int BackendSampleRate)
@@ -132,7 +133,7 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
-  if (SConfig::GetInstance().m_audio_stretch)
+  if (SConfig::GetInstance().m_audio_stretch || Core::GetIsAudioStretchTempEnabled())
   {
     unsigned int available_samples =
         std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
