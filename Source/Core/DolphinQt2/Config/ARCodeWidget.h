@@ -43,7 +43,7 @@ private:
 
   const GameFile& m_game;
   std::string m_game_id;
-  u8 m_game_revision;
+  u16 m_game_revision;
 
   CheatWarningWidget* m_warning;
   QListWidget* m_code_list;
