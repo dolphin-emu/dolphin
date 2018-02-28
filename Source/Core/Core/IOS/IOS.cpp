@@ -500,9 +500,12 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
     return Device::Device::GetDefaultReply(IPC_ENOENT);
   }
 
-  const IPCCommandResult result = device->Open(request);
+  IPCCommandResult result = device->Open(request);
   if (result.return_value >= IPC_SUCCESS)
+  {
     m_fdmap[new_fd] = device;
+    result.return_value = new_fd;
+  }
   return result;
 }
 
