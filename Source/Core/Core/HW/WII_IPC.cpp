@@ -213,7 +213,6 @@ static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
 
 void GenerateAck(u32 _Address)
 {
-  arm_msg = _Address;  // dunno if it's really set here, but HLE needs to stay in context
   ctrl.Y2 = 1;
   DEBUG_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]", ppc_msg, _Address, ctrl.Y1,
             ctrl.Y2, ctrl.X1);
