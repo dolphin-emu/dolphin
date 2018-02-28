@@ -24,7 +24,6 @@
 
 AudioPane::AudioPane()
 {
-  CheckNeedForLatencyControl();
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
@@ -72,22 +71,10 @@ void AudioPane::CreateWidgets()
   m_backend_combo = new QComboBox();
   m_dolby_pro_logic = new QCheckBox(tr("Dolby Pro Logic II Decoder"));
 
-  if (m_latency_control_supported)
-  {
-    m_latency_label = new QLabel(tr("Latency:"));
-    m_latency_spin = new QSpinBox();
-    m_latency_spin->setMinimum(0);
-    m_latency_spin->setMaximum(200);
-    m_latency_spin->setToolTip(tr("Sets the latency (in ms). Higher values may reduce audio "
-                                  "crackling. Certain backends only."));
-  }
-
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
 
   backend_layout->addRow(m_backend_label, m_backend_combo);
-  if (m_latency_control_supported)
-    backend_layout->addRow(m_latency_label, m_latency_spin);
   backend_layout->addRow(m_dolby_pro_logic);
 
   auto* stretching_box = new QGroupBox(tr("Audio Stretching Settings"));
@@ -127,11 +114,6 @@ void AudioPane::ConnectWidgets()
   connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &AudioPane::SaveSettings);
   connect(m_volume_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
-  if (m_latency_control_supported)
-  {
-    connect(m_latency_spin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
-            &AudioPane::SaveSettings);
-  }
   connect(m_stretching_buffer_slider, &QSlider::valueChanged, this, &AudioPane::SaveSettings);
   connect(m_dolby_pro_logic, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
   connect(m_stretching_enable, &QCheckBox::toggled, this, &AudioPane::SaveSettings);
@@ -172,10 +154,6 @@ void AudioPane::LoadSettings()
   // DPL2
   m_dolby_pro_logic->setChecked(SConfig::GetInstance().bDPL2Decoder);
 
-  // Latency
-  if (m_latency_control_supported)
-    m_latency_spin->setValue(SConfig::GetInstance().iLatency);
-
   // Stretch
   m_stretching_enable->setChecked(SConfig::GetInstance().m_audio_stretch);
   m_stretching_buffer_slider->setValue(SConfig::GetInstance().m_audio_stretch_max_latency);
@@ -212,10 +190,6 @@ void AudioPane::SaveSettings()
   // DPL2
   SConfig::GetInstance().bDPL2Decoder = m_dolby_pro_logic->isChecked();
 
-  // Latency
-  if (m_latency_control_supported)
-    SConfig::GetInstance().iLatency = m_latency_spin->value();
-
   // Stretch
   SConfig::GetInstance().m_audio_stretch = m_stretching_enable->isChecked();
   SConfig::GetInstance().m_audio_stretch_max_latency = m_stretching_buffer_slider->value();
@@ -233,11 +207,6 @@ void AudioPane::OnBackendChanged()
   const auto backend = SConfig::GetInstance().sBackend;
 
   m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend));
-  if (m_latency_control_supported)
-  {
-    m_latency_label->setEnabled(AudioCommon::SupportsLatencyControl(backend));
-    m_latency_spin->setEnabled(AudioCommon::SupportsLatencyControl(backend));
-  }
   m_volume_slider->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
   m_volume_indicator->setEnabled(AudioCommon::SupportsVolumeChanges(backend));
 }
@@ -250,22 +219,10 @@ void AudioPane::OnEmulationStateChanged(bool running)
   m_dolby_pro_logic->setEnabled(!running);
   m_backend_label->setEnabled(!running);
   m_backend_combo->setEnabled(!running);
-  if (m_latency_control_supported)
-  {
-    m_latency_label->setEnabled(!running);
-    m_latency_spin->setEnabled(!running);
-  }
 }
 
 void AudioPane::OnVolumeChanged(int volume)
 {
   m_volume_slider->setValue(volume);
   m_volume_indicator->setText(tr("%1 %").arg(volume));
-}
-
-void AudioPane::CheckNeedForLatencyControl()
-{
-  std::vector<std::string> backends = AudioCommon::GetSoundBackends();
-  m_latency_control_supported =
-      std::any_of(backends.cbegin(), backends.cend(), AudioCommon::SupportsLatencyControl);
 }

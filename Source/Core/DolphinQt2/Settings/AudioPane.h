@@ -32,9 +32,6 @@ private:
   void OnBackendChanged();
   void OnVolumeChanged(int volume);
 
-  void CheckNeedForLatencyControl();
-  bool m_latency_control_supported;
-
   QGridLayout* m_main_layout;
 
   // DSP Engine

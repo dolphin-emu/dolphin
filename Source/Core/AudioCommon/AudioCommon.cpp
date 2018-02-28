@@ -7,7 +7,6 @@
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/NullSoundStream.h"
-#include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/OpenSLESStream.h"
 #include "AudioCommon/PulseAudioStream.h"
 #include "AudioCommon/XAudio2Stream.h"
@@ -33,8 +32,6 @@ void InitSoundStream()
   std::string backend = SConfig::GetInstance().sBackend;
   if (backend == BACKEND_CUBEB)
     g_sound_stream = std::make_unique<CubebStream>();
-  else if (backend == BACKEND_OPENAL && OpenALStream::isValid())
-    g_sound_stream = std::make_unique<OpenALStream>();
   else if (backend == BACKEND_NULLSOUND)
     g_sound_stream = std::make_unique<NullSound>();
   else if (backend == BACKEND_XAUDIO2)
@@ -106,8 +103,6 @@ std::vector<std::string> GetSoundBackends()
     backends.push_back(BACKEND_ALSA);
   if (PulseAudio::isValid())
     backends.push_back(BACKEND_PULSEAUDIO);
-  if (OpenALStream::isValid())
-    backends.push_back(BACKEND_OPENAL);
   if (OpenSLESStream::isValid())
     backends.push_back(BACKEND_OPENSLES);
   return backends;
@@ -115,10 +110,6 @@ std::vector<std::string> GetSoundBackends()
 
 bool SupportsDPL2Decoder(const std::string& backend)
 {
-#ifndef __APPLE__
-  if (backend == BACKEND_OPENAL)
-    return true;
-#endif
   if (backend == BACKEND_CUBEB)
     return true;
   if (backend == BACKEND_PULSEAUDIO)
@@ -126,17 +117,12 @@ bool SupportsDPL2Decoder(const std::string& backend)
   return false;
 }
 
-bool SupportsLatencyControl(const std::string& backend)
-{
-  return backend == BACKEND_OPENAL;
-}
-
 bool SupportsVolumeChanges(const std::string& backend)
 {
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2;
+  return backend == BACKEND_CUBEB || backend == BACKEND_XAUDIO2;
 }
 
 void UpdateSoundStream()
