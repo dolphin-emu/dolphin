@@ -102,6 +102,7 @@ void VideoConfig::Refresh()
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
+  bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
   iUberShaderMode = static_cast<UberShaderMode>(Config::Get(Config::GFX_UBERSHADER_MODE));
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
@@ -196,6 +197,10 @@ u32 VideoConfig::GetShaderCompilerThreads() const
 
 u32 VideoConfig::GetShaderPrecompilerThreads() const
 {
+  // When using background compilation, always keep the same thread count.
+  if (bWaitForShadersBeforeStarting)
+    return GetShaderCompilerThreads();
+
   if (!backend_info.bSupportsBackgroundCompiling)
     return 0;
 

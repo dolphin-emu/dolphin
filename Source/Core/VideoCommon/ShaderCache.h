@@ -122,7 +122,7 @@ public:
   std::optional<const AbstractPipeline*> GetPipelineForUidAsync(const GXPipelineConfig& uid);
 
 private:
-  void WaitForAsyncCompiler(const std::string& msg);
+  void WaitForAsyncCompiler();
   void LoadShaderCaches();
   void ClearShaderCaches();
   void LoadPipelineUIDCache();

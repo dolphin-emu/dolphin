@@ -317,6 +317,12 @@ static wxString ubershader_desc =
                 "stuttering. Balances performance and smoothness.\n\n"
                 "Exclusive: Ubershaders will always be used. Only recommended for high-end "
                 "systems.");
+static wxString wait_for_shaders_desc =
+    wxTRANSLATE("When disabled, compiles shaders in the background while Dolphin starts, instead "
+                "of waiting for all shaders to finish compiling. Can significantly reduce startup "
+                "times at the cost of potential stuttering or hitching for a short time after "
+                "starting. If your system has two or fewer cores, it is recommended to enable "
+                "this option.\n\nIf unsure, leave this unchecked.");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
@@ -442,6 +448,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                         wxGetTranslation(backend_multithreading_desc),
                                         Config::GFX_BACKEND_MULTITHREADING));
         }
+
+        szr_other->Add(CreateCheckBox(page_general, _("Immediately Compile Shaders"),
+                                      wxGetTranslation(wait_for_shaders_desc),
+                                      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING));
       }
 
       wxStaticBoxSizer* const group_basic =

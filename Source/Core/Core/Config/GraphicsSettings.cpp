@@ -76,6 +76,8 @@ const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING{
 const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
     {System::GFX, "Settings", "CommandBufferExecuteInterval"}, 100};
 const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};
+const ConfigInfo<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING{
+    {System::GFX, "Settings", "WaitForShadersBeforeStarting"}, false};
 const ConfigInfo<int> GFX_UBERSHADER_MODE{{System::GFX, "Settings", "UberShaderMode"},
                                           static_cast<int>(UberShaderMode::Disabled)};
 const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
