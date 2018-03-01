@@ -198,7 +198,7 @@
       <Filter>Base</Filter>
     </ClCompile>
     <ClCompile Include="ShaderCache.cpp">
-      <Filter>Shader Managers</Filter>
+      <Filter>Shader Generators</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -381,8 +381,11 @@
     <ClInclude Include="AbstractFramebuffer.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="GXPipelineTypes.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
     <ClInclude Include="ShaderCache.h">
-      <Filter>Shader Managers</Filter>
+      <Filter>Shader Generators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

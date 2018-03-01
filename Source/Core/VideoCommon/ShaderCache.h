@@ -19,10 +19,10 @@
 
 #include "VideoCommon/AbstractPipeline.h"
 #include "VideoCommon/AbstractShader.h"
-#include "VideoCommon/NativeVertexFormat.h"
-
 #include "VideoCommon/AsyncShaderCompiler.h"
+#include "VideoCommon/GXPipelineTypes.h"
 #include "VideoCommon/GeometryShaderGen.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/UberShaderPixel.h"
@@ -33,64 +33,6 @@ class NativeVertexFormat;
 
 namespace VideoCommon
 {
-struct GXPipelineConfig
-{
-  const NativeVertexFormat* vertex_format;
-  VertexShaderUid vs_uid;
-  GeometryShaderUid gs_uid;
-  PixelShaderUid ps_uid;
-  RasterizationState rasterization_state;
-  DepthState depth_state;
-  BlendingState blending_state;
-
-  // We use memcmp() for comparing pipelines as std::tie generates a large number of instructions,
-  // and this map lookup can happen every draw call. However, as using memcmp() will also compare
-  // any padding bytes, we have to ensure these are zeroed out.
-  GXPipelineConfig() { std::memset(this, 0, sizeof(*this)); }
-  GXPipelineConfig(const GXPipelineConfig& rhs) { std::memcpy(this, &rhs, sizeof(*this)); }
-  GXPipelineConfig& operator=(const GXPipelineConfig& rhs)
-  {
-    std::memcpy(this, &rhs, sizeof(*this));
-    return *this;
-  }
-  bool operator<(const GXPipelineConfig& rhs) const
-  {
-    return std::memcmp(this, &rhs, sizeof(*this)) < 0;
-  }
-  bool operator==(const GXPipelineConfig& rhs) const
-  {
-    return std::memcmp(this, &rhs, sizeof(*this)) == 0;
-  }
-  bool operator!=(const GXPipelineConfig& rhs) const { return !operator==(rhs); }
-};
-struct GXUberPipelineConfig
-{
-  const NativeVertexFormat* vertex_format;
-  UberShader::VertexShaderUid vs_uid;
-  GeometryShaderUid gs_uid;
-  UberShader::PixelShaderUid ps_uid;
-  RasterizationState rasterization_state;
-  DepthState depth_state;
-  BlendingState blending_state;
-
-  GXUberPipelineConfig() { std::memset(this, 0, sizeof(*this)); }
-  GXUberPipelineConfig(const GXUberPipelineConfig& rhs) { std::memcpy(this, &rhs, sizeof(*this)); }
-  GXUberPipelineConfig& operator=(const GXUberPipelineConfig& rhs)
-  {
-    std::memcpy(this, &rhs, sizeof(*this));
-    return *this;
-  }
-  bool operator<(const GXUberPipelineConfig& rhs) const
-  {
-    return std::memcmp(this, &rhs, sizeof(*this)) < 0;
-  }
-  bool operator==(const GXUberPipelineConfig& rhs) const
-  {
-    return std::memcmp(this, &rhs, sizeof(*this)) == 0;
-  }
-  bool operator!=(const GXUberPipelineConfig& rhs) const { return !operator==(rhs); }
-};
-
 class ShaderCache final
 {
 public:
@@ -114,15 +56,15 @@ public:
   std::string GetUtilityShaderHeader() const;
 
   // Accesses ShaderGen shader caches
-  const AbstractPipeline* GetPipelineForUid(const GXPipelineConfig& uid);
-  const AbstractPipeline* GetUberPipelineForUid(const GXUberPipelineConfig& uid);
+  const AbstractPipeline* GetPipelineForUid(const GXPipelineUid& uid);
+  const AbstractPipeline* GetUberPipelineForUid(const GXUberPipelineUid& uid);
 
   // Accesses ShaderGen shader caches asynchronously.
   // The optional will be empty if this pipeline is now background compiling.
-  std::optional<const AbstractPipeline*> GetPipelineForUidAsync(const GXPipelineConfig& uid);
+  std::optional<const AbstractPipeline*> GetPipelineForUidAsync(const GXPipelineUid& uid);
 
 private:
-  void WaitForAsyncCompiler(const std::string& msg);
+  void WaitForAsyncCompiler();
   void LoadShaderCaches();
   void ClearShaderCaches();
   void LoadPipelineUIDCache();
@@ -155,21 +97,21 @@ private:
                       const AbstractShader* geometry_shader, const AbstractShader* pixel_shader,
                       const RasterizationState& rasterization_state, const DepthState& depth_state,
                       const BlendingState& blending_state);
-  std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXPipelineConfig& uid);
-  std::optional<AbstractPipelineConfig> GetGXUberPipelineConfig(const GXUberPipelineConfig& uid);
-  const AbstractPipeline* InsertGXPipeline(const GXPipelineConfig& config,
+  std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXPipelineUid& uid);
+  std::optional<AbstractPipelineConfig> GetGXUberPipelineConfig(const GXUberPipelineUid& uid);
+  const AbstractPipeline* InsertGXPipeline(const GXPipelineUid& config,
                                            std::unique_ptr<AbstractPipeline> pipeline);
-  const AbstractPipeline* InsertGXUberPipeline(const GXUberPipelineConfig& config,
+  const AbstractPipeline* InsertGXUberPipeline(const GXUberPipelineUid& config,
                                                std::unique_ptr<AbstractPipeline> pipeline);
-  void AppendGXPipelineUID(const GXPipelineConfig& config);
+  void AppendGXPipelineUID(const GXPipelineUid& config);
 
   // ASync Compiler Methods
   void QueueVertexShaderCompile(const VertexShaderUid& uid);
   void QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid);
   void QueuePixelShaderCompile(const PixelShaderUid& uid);
   void QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid);
-  void QueuePipelineCompile(const GXPipelineConfig& uid);
-  void QueueUberPipelineCompile(const GXUberPipelineConfig& uid);
+  void QueuePipelineCompile(const GXPipelineUid& uid);
+  void QueueUberPipelineCompile(const GXUberPipelineUid& uid);
 
   // Configuration bits.
   APIType m_api_type = APIType::Nothing;
@@ -196,10 +138,8 @@ private:
   ShaderModuleCache<UberShader::PixelShaderUid> m_uber_ps_cache;
 
   // GX Pipeline Caches - .first - pipeline, .second - pending
-  // TODO: Use unordered_map for speed.
-  std::map<GXPipelineConfig, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
-      m_gx_pipeline_cache;
-  std::map<GXUberPipelineConfig, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
+  std::map<GXPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>> m_gx_pipeline_cache;
+  std::map<GXUberPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
       m_gx_uber_pipeline_cache;
 
   // Disk cache of pipeline UIDs

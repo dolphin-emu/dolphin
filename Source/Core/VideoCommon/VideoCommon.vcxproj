@@ -120,6 +120,7 @@
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="GXPipelineTypes.h" />
     <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />

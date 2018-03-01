@@ -83,8 +83,8 @@ protected:
   Slope m_zslope = {};
   void CalculateZSlope(NativeVertexFormat* format);
 
-  VideoCommon::GXPipelineConfig m_current_pipeline_config;
-  VideoCommon::GXUberPipelineConfig m_current_uber_pipeline_config;
+  VideoCommon::GXPipelineUid m_current_pipeline_config;
+  VideoCommon::GXUberPipelineUid m_current_uber_pipeline_config;
   const AbstractPipeline* m_current_pipeline_object = nullptr;
   PrimitiveType m_current_primitive_type = PrimitiveType::Points;
   bool m_pipeline_config_changed = true;
