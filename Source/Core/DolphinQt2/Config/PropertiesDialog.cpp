@@ -8,6 +8,7 @@
 
 #include "DolphinQt2/Config/ARCodeWidget.h"
 #include "DolphinQt2/Config/FilesystemWidget.h"
+#include "DolphinQt2/Config/GameConfigWidget.h"
 #include "DolphinQt2/Config/GeckoCodeWidget.h"
 #include "DolphinQt2/Config/InfoWidget.h"
 #include "DolphinQt2/Config/PatchesWidget.h"
@@ -25,16 +26,18 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDia
   ARCodeWidget* ar = new ARCodeWidget(game);
   GeckoCodeWidget* gecko = new GeckoCodeWidget(game);
   PatchesWidget* patches = new PatchesWidget(game);
+  GameConfigWidget* game_config = new GameConfigWidget(game);
 
   connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
           &PropertiesDialog::OpenGeneralSettings);
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
-  tab_widget->addTab(info, tr("Info"));
+  tab_widget->addTab(game_config, tr("Game Config"));
   tab_widget->addTab(patches, tr("Patches"));
   tab_widget->addTab(ar, tr("AR Codes"));
   tab_widget->addTab(gecko, tr("Gecko Codes"));
+  tab_widget->addTab(info, tr("Info"));
 
   if (DiscIO::IsDisc(game.GetPlatformID()))
   {

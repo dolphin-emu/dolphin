@@ -37,6 +37,7 @@ set(SRCS
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GameConfigWidget.cpp
   Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/EnhancementsWidget.cpp
