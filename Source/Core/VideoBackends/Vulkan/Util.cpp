@@ -595,7 +595,7 @@ void UtilityShaderDraw::BindDescriptors()
                                                          &dummy_uniform_buffer,
         nullptr};
 
-    bind_descriptor_sets[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS] = set;
+    bind_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS] = set;
   }
 
   // PS samplers
