@@ -263,6 +263,7 @@
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
+    <ClCompile Include="QtUtils\VerticalScrollArea.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
@@ -306,6 +307,7 @@
     <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />
+    <ClInclude Include="QtUtils\VerticalScrollArea.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings\GameCubePane.h" />
     <ClInclude Include="Settings\PathPane.h" />

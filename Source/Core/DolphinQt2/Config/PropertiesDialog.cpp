@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Config/PropertiesDialog.h"
+
 #include <QDialogButtonBox>
 #include <QTabWidget>
 #include <QVBoxLayout>
@@ -10,7 +12,7 @@
 #include "DolphinQt2/Config/FilesystemWidget.h"
 #include "DolphinQt2/Config/GeckoCodeWidget.h"
 #include "DolphinQt2/Config/InfoWidget.h"
-#include "DolphinQt2/Config/PropertiesDialog.h"
+#include "DolphinQt2/QtUtils/VerticalScrollArea.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDialog(parent)
 {
@@ -45,5 +47,5 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const GameFile& game) : QDia
   connect(ok_box, &QDialogButtonBox::accepted, this, &PropertiesDialog::accept);
   layout->addWidget(ok_box);
 
-  setLayout(layout);
+  setLayout(WrapInVerticalScrollArea(layout));
 }
