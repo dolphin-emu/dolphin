@@ -102,9 +102,7 @@ void VideoConfig::Refresh()
   bBackendMultithreading = Config::Get(Config::GFX_BACKEND_MULTITHREADING);
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
-  bBackgroundShaderCompiling = Config::Get(Config::GFX_BACKGROUND_SHADER_COMPILING);
-  bDisableSpecializedShaders = Config::Get(Config::GFX_DISABLE_SPECIALIZED_SHADERS);
-  bPrecompileUberShaders = Config::Get(Config::GFX_PRECOMPILE_UBER_SHADERS);
+  iUberShaderMode = static_cast<UberShaderMode>(Config::Get(Config::GFX_UBERSHADER_MODE));
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
@@ -205,16 +203,4 @@ u32 VideoConfig::GetShaderPrecompilerThreads() const
     return static_cast<u32>(iShaderPrecompilerThreads);
   else
     return GetNumAutoShaderCompilerThreads();
-}
-
-bool VideoConfig::CanPrecompileUberShaders() const
-{
-  // We don't want to precompile ubershaders if they're never going to be used.
-  return bPrecompileUberShaders && (bBackgroundShaderCompiling || bDisableSpecializedShaders);
-}
-
-bool VideoConfig::CanBackgroundCompileShaders() const
-{
-  // We require precompiled ubershaders to background compile shaders.
-  return bBackgroundShaderCompiling && bPrecompileUberShaders;
 }

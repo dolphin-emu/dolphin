@@ -38,7 +38,7 @@ bool ShaderCache::Initialize()
   }
 
   // Queue ubershader precompiling if required.
-  if (g_ActiveConfig.CanPrecompileUberShaders())
+  if (g_ActiveConfig.UsingUberShaders())
     PrecompileUberShaders();
 
   // Compile all known UIDs.

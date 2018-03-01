@@ -534,24 +534,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     // ubershaders
     {
       const std::array<wxString, 3> mode_choices = {{_("Disabled"), _("Hybrid"), _("Exclusive")}};
-
-      wxChoice* const choice_mode =
-          new wxChoice(page_enh, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                       static_cast<int>(mode_choices.size()), mode_choices.data());
-      RegisterControl(choice_mode, wxGetTranslation(ubershader_desc));
       szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Ubershaders:")), wxGBPosition(row, 0),
                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-      szr_enh->Add(choice_mode, wxGBPosition(row, 1), span2, wxALIGN_CENTER_VERTICAL);
+      szr_enh->Add(CreateChoice(page_enh, Config::GFX_UBERSHADER_MODE,
+                                wxGetTranslation(ubershader_desc), mode_choices.size(),
+                                mode_choices.data()),
+                   wxGBPosition(row, 1), span2, wxALIGN_CENTER_VERTICAL);
       row += 1;
-
-      // Determine ubershader mode
-      choice_mode->Bind(wxEVT_CHOICE, &VideoConfigDiag::OnUberShaderModeChanged, this);
-      if (Config::GetBase(Config::GFX_DISABLE_SPECIALIZED_SHADERS))
-        choice_mode->SetSelection(2);
-      else if (Config::GetBase(Config::GFX_BACKGROUND_SHADER_COMPILING))
-        choice_mode->SetSelection(1);
-      else
-        choice_mode->SetSelection(0);
     }
 
     // postproc shader
@@ -1289,14 +1278,4 @@ void VideoConfigDiag::OnAAChanged(wxCommandEvent& ev)
     return;
 
   Config::SetBaseOrCurrent(Config::GFX_MSAA, vconfig.backend_info.AAModes[mode]);
-}
-
-void VideoConfigDiag::OnUberShaderModeChanged(wxCommandEvent& ev)
-{
-  // 0: No ubershaders
-  // 1: Hybrid ubershaders
-  // 2: Only ubershaders
-  int mode = ev.GetInt();
-  Config::SetBaseOrCurrent(Config::GFX_BACKGROUND_SHADER_COMPILING, mode == 1);
-  Config::SetBaseOrCurrent(Config::GFX_DISABLE_SPECIALIZED_SHADERS, mode == 2);
 }
