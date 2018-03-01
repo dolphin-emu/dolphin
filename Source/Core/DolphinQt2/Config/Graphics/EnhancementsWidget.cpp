@@ -63,9 +63,8 @@ void EnhancementsWidget::CreateWidgets()
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
                                   Config::GFX_ENHANCE_MAX_ANISOTROPY);
 
-  m_ubershader_combo = new QComboBox;
-  for (const auto& option : {tr("Disabled"), tr("Hybrid"), tr("Exclusive")})
-    m_ubershader_combo->addItem(option);
+  m_ubershader_combo = new GraphicsChoice({tr("Disabled"), tr("Hybrid"), tr("Exclusive")},
+                                          Config::GFX_UBERSHADER_MODE);
 
   m_pp_effect = new QComboBox();
   m_configure_pp_effect = new QPushButton(tr("Configure"));
@@ -131,9 +130,6 @@ void EnhancementsWidget::ConnectWidgets()
 {
   connect(m_aa_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_ubershader_combo,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
   connect(m_pp_effect, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -155,13 +151,6 @@ void EnhancementsWidget::LoadSettings()
   m_aa_combo->setCurrentText(
       QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
   m_aa_combo->setEnabled(m_aa_combo->count() > 1);
-
-  if (Config::GetBase(Config::GFX_DISABLE_SPECIALIZED_SHADERS))
-    m_ubershader_combo->setCurrentIndex(2);
-  else if (Config::GetBase(Config::GFX_BACKGROUND_SHADER_COMPILING))
-    m_ubershader_combo->setCurrentIndex(1);
-  else
-    m_ubershader_combo->setCurrentIndex(0);
 
   // Post Processing Shader
   std::vector<std::string> shaders =
@@ -219,10 +208,6 @@ void EnhancementsWidget::SaveSettings()
   Config::SetBaseOrCurrent(Config::GFX_MSAA, static_cast<unsigned int>(aa_value));
 
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
-
-  int us_value = m_ubershader_combo->currentIndex();
-  Config::SetBaseOrCurrent(Config::GFX_BACKGROUND_SHADER_COMPILING, us_value == 1);
-  Config::SetBaseOrCurrent(Config::GFX_DISABLE_SPECIALIZED_SHADERS, us_value == 2);
 
   Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
                            m_pp_effect->currentText().toStdString());
