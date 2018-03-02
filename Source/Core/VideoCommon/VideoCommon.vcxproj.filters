@@ -384,6 +384,9 @@
     <ClInclude Include="ShaderCache.h">
       <Filter>Shader Managers</Filter>
     </ClInclude>
+    <ClInclude Include="UtilityShaders.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

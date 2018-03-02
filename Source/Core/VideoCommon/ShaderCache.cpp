@@ -10,6 +10,8 @@
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/UtilityShaders.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -29,6 +31,14 @@ bool ShaderCache::Initialize()
   // Create the async compiler, and start the worker threads.
   m_async_shader_compiler = g_renderer->CreateAsyncShaderCompiler();
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
+
+  // Compile utility shaders.
+  CreateUtilityVertexFormat();
+  if (!CompileUtilityShaders())
+  {
+    PanicAlert("Failed to compile utility shaders.");
+    return false;
+  }
 
   // Load shader and UID caches.
   if (g_ActiveConfig.bShaderCache)
@@ -88,8 +98,8 @@ void ShaderCache::Shutdown()
   // This may leave shaders uncommitted to the cache, but it's better than blocking shutdown
   // until everything has finished compiling.
   m_async_shader_compiler->StopWorkerThreads();
-  ClearShaderCaches();
   ClearPipelineCaches();
+  ClearShaderCaches();
 }
 
 const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineConfig& uid)
@@ -261,6 +271,13 @@ void ShaderCache::ClearShaderCaches()
   ClearShaderCache(m_uber_vs_cache);
   ClearShaderCache(m_uber_ps_cache);
 
+  m_utility_vertex_format.reset();
+  m_screen_quad_vertex_shader.reset();
+  m_passthrough_vertex_shader.reset();
+  m_stereo_expand_geometry_shader.reset();
+  m_clear_pixel_shader.reset();
+  m_blit_pixel_shader.reset();
+
   SETSTAT(stats.numPixelShadersCreated, 0);
   SETSTAT(stats.numPixelShadersAlive, 0);
   SETSTAT(stats.numVertexShadersCreated, 0);
@@ -332,12 +349,19 @@ void ShaderCache::InvalidateCachedPipelines()
     it.second.first.reset();
     it.second.second = false;
   }
+
+  // Invalidate utility pipelines which use the EFB.
+  m_efb_clear_pipelines.clear();
 }
 
 void ShaderCache::ClearPipelineCaches()
 {
   m_gx_pipeline_cache.clear();
   m_gx_uber_pipeline_cache.clear();
+  m_efb_to_texture_pipelines.clear();
+  m_efb_to_ram_pipelines.clear();
+  m_efb_clear_pipelines.clear();
+  m_blit_pipelines.clear();
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexShaderUid& uid) const
@@ -917,4 +941,205 @@ std::string ShaderCache::GetUtilityShaderHeader() const
 
   return ss.str();
 }
+
+void ShaderCache::CreateUtilityVertexFormat()
+{
+  PortableVertexDeclaration utility_vdecl = {};
+  utility_vdecl.position = {VAR_FLOAT, 4, offsetof(UtilityVertex, position[0]), true, false};
+  utility_vdecl.texcoords[0] = {VAR_FLOAT, 2, offsetof(UtilityVertex, uv[0]), true, false};
+  utility_vdecl.colors[0] = {VAR_UNSIGNED_BYTE, 4, offsetof(UtilityVertex, color), true, false};
+  utility_vdecl.stride = sizeof(UtilityVertex);
+  m_utility_vertex_format = g_vertex_manager->CreateNativeVertexFormat(utility_vdecl);
+}
+
+bool ShaderCache::CompileUtilityShaders()
+{
+  std::string header = GetUtilityShaderHeader();
+  auto CompileShader = [this, &header](ShaderStage stage, const char* source) {
+    std::string code = header + source;
+    return g_renderer->CreateShaderFromSource(stage, code.c_str(), code.size());
+  };
+
+  m_screen_quad_vertex_shader =
+      CompileShader(ShaderStage::Vertex, SCREEN_QUAD_VERTEX_SHADER_SOURCE);
+  m_passthrough_vertex_shader =
+      CompileShader(ShaderStage::Vertex, PASSTHROUGH_VERTEX_SHADER_SOURCE);
+  if (!m_screen_quad_vertex_shader || !m_passthrough_vertex_shader)
+    return false;
+
+  if (m_host_config.backend_geometry_shaders)
+  {
+    m_stereo_expand_geometry_shader =
+        CompileShader(ShaderStage::Geometry, STEREO_EXPAND_GEOMETRY_SHADER_SOURCE);
+    if (!m_stereo_expand_geometry_shader)
+      return false;
+  }
+
+  m_clear_pixel_shader = CompileShader(ShaderStage::Pixel, CLEAR_PIXEL_SHADER_SOURCE);
+  m_blit_pixel_shader = CompileShader(ShaderStage::Pixel, BLIT_PIXEL_SHADER_SOURCE);
+  if (!m_clear_pixel_shader || !m_blit_pixel_shader)
+    return false;
+
+  return true;
+}
+
+const AbstractPipeline*
+ShaderCache::GetEFBToTexturePipeline(const TextureConversionShaderGen::TCShaderUid& uid)
+{
+  auto iter = m_efb_to_texture_pipelines.find(uid);
+  if (iter != m_efb_to_texture_pipelines.end())
+    return iter->second.get();
+
+  auto ip = m_efb_to_texture_pipelines.emplace(uid, CreateEFBToTexturePipeline(uid));
+  return ip.first->second.get();
+}
+
+std::unique_ptr<AbstractPipeline>
+ShaderCache::CreateEFBToTexturePipeline(const TextureConversionShaderGen::TCShaderUid& uid) const
+{
+  ShaderCode code = TextureConversionShaderGen::GenerateShader(m_api_type, uid.GetUidData());
+  std::unique_ptr<AbstractShader> shader = g_renderer->CreateShaderFromSource(
+      ShaderStage::Pixel, code.GetBuffer().c_str(), code.GetBuffer().size());
+  if (!shader)
+  {
+    ERROR_LOG(VIDEO, "Failed to compile pixel shader for EFB-to-Texture.");
+    return nullptr;
+  }
+
+  AbstractPipelineConfig config = {};
+  config.usage = AbstractPipelineUsage::Utility;
+  config.vertex_format = m_utility_vertex_format.get();
+  config.vertex_shader = m_passthrough_vertex_shader.get();
+  config.geometry_shader = m_host_config.stereo ? m_stereo_expand_geometry_shader.get() : nullptr;
+  config.pixel_shader = shader.get();
+  config.rasterization_state.cullmode = GenMode::CULL_BACK;
+  config.rasterization_state.primitive = PrimitiveType::TriangleStrip;
+  config.depth_state = RenderState::GetNoDepthTestingDepthStencilState();
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.framebuffer_state.color_texture_format = AbstractTextureFormat::RGBA8;
+  config.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
+  config.framebuffer_state.samples = 1;
+
+  auto pipeline = g_renderer->CreatePipeline(config);
+  if (!pipeline)
+    ERROR_LOG(VIDEO, "Failed to compile pipeline for EFB-to-Texture.");
+
+  return pipeline;
+}
+
+const AbstractPipeline* ShaderCache::GetEFBToRAMPipeline(const EFBCopyParams& uid)
+{
+  auto iter = m_efb_to_ram_pipelines.find(uid);
+  if (iter != m_efb_to_ram_pipelines.end())
+    return iter->second.get();
+
+  auto ip = m_efb_to_ram_pipelines.emplace(uid, CreateEFBToRAMPipeline(uid));
+  return ip.first->second.get();
+}
+
+std::unique_ptr<AbstractPipeline>
+ShaderCache::CreateEFBToRAMPipeline(const EFBCopyParams& uid) const
+{
+  std::string code = TextureConversionShaderTiled::GenerateEncodingShader(uid, m_api_type);
+  std::unique_ptr<AbstractShader> shader =
+      g_renderer->CreateShaderFromSource(ShaderStage::Pixel, code.c_str(), code.size());
+  if (!shader)
+  {
+    ERROR_LOG(VIDEO, "Failed to compile pixel shader for EFB-to-RAM.");
+    return nullptr;
+  }
+
+  AbstractPipelineConfig config = {};
+  config.usage = AbstractPipelineUsage::Utility;
+  config.vertex_shader = m_screen_quad_vertex_shader.get();
+  config.pixel_shader = shader.get();
+  config.rasterization_state.cullmode = GenMode::CULL_BACK;
+  config.rasterization_state.primitive = PrimitiveType::TriangleStrip;
+  config.depth_state = RenderState::GetNoDepthTestingDepthStencilState();
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.framebuffer_state.color_texture_format = AbstractTextureFormat::BGRA8;
+  config.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
+  config.framebuffer_state.samples = 1;
+
+  auto pipeline = g_renderer->CreatePipeline(config);
+  if (!pipeline)
+    ERROR_LOG(VIDEO, "Failed to compile pipeline for EFB-to-RAM.");
+
+  return pipeline;
+}
+
+const AbstractPipeline* ShaderCache::GetEFBClearPipeline(const EFBClearPipelineConfig& uid)
+{
+  auto iter = m_efb_clear_pipelines.find(uid);
+  if (iter != m_efb_clear_pipelines.end())
+    return iter->second.get();
+
+  auto ip = m_efb_clear_pipelines.emplace(uid, CreateEFBClearPipeline(uid));
+  return ip.first->second.get();
+}
+
+std::unique_ptr<AbstractPipeline>
+ShaderCache::CreateEFBClearPipeline(const EFBClearPipelineConfig& uid) const
+{
+  AbstractPipelineConfig config = {};
+  config.usage = AbstractPipelineUsage::Utility;
+  config.vertex_format = m_utility_vertex_format.get();
+  config.vertex_shader = m_passthrough_vertex_shader.get();
+  config.geometry_shader = m_host_config.stereo ? m_stereo_expand_geometry_shader.get() : nullptr;
+  config.pixel_shader = m_clear_pixel_shader.get();
+  config.rasterization_state.cullmode = GenMode::CULL_BACK;
+  config.rasterization_state.primitive = PrimitiveType::TriangleStrip;
+  config.depth_state.testenable = uid.depth_enable;
+  config.depth_state.updateenable = uid.depth_enable;
+  config.depth_state.func = ZMode::ALWAYS;
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.blending_state.colorupdate = uid.color_enable;
+  config.blending_state.alphaupdate = uid.alpha_enable;
+  config.framebuffer_state.color_texture_format = AbstractTextureFormat::RGBA8;
+  config.framebuffer_state.depth_texture_format = AbstractTextureFormat::D32F;
+  config.framebuffer_state.per_sample_shading = m_host_config.ssaa;
+  config.framebuffer_state.samples = m_efb_multisamples;
+
+  auto pipeline = g_renderer->CreatePipeline(config);
+  if (!pipeline)
+    ERROR_LOG(VIDEO, "Failed to compile pipeline for EFB clear.");
+
+  return pipeline;
+}
+
+const AbstractPipeline* ShaderCache::GetBlitPipeline(const BlitPipelineConfig& uid)
+{
+  auto iter = m_blit_pipelines.find(uid);
+  if (iter != m_blit_pipelines.end())
+    return iter->second.get();
+
+  auto ip = m_blit_pipelines.emplace(uid, CreateBlitPipeline(uid));
+  return ip.first->second.get();
+}
+
+std::unique_ptr<AbstractPipeline>
+ShaderCache::CreateBlitPipeline(const BlitPipelineConfig& uid) const
+{
+  AbstractPipelineConfig config = {};
+  config.usage = AbstractPipelineUsage::Utility;
+  config.vertex_format = m_utility_vertex_format.get();
+  config.vertex_shader = m_passthrough_vertex_shader.get();
+  config.geometry_shader = uid.stereo ? m_stereo_expand_geometry_shader.get() : nullptr;
+  config.pixel_shader = m_blit_pixel_shader.get();
+  config.rasterization_state.cullmode = GenMode::CULL_BACK;
+  config.rasterization_state.primitive = PrimitiveType::TriangleStrip;
+  config.depth_state = RenderState::GetNoDepthTestingDepthStencilState();
+  config.blending_state = RenderState::GetNoBlendingBlendState();
+  config.framebuffer_state.color_texture_format = uid.dst_format;
+  config.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
+  config.framebuffer_state.per_sample_shading = false;
+  config.framebuffer_state.samples = 1;
+
+  auto pipeline = g_renderer->CreatePipeline(config);
+  if (!pipeline)
+    ERROR_LOG(VIDEO, "Failed to compile pipeline for blit.");
+
+  return pipeline;
+}
+
 }  // namespace VideoCommon

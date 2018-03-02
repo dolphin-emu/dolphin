@@ -149,6 +149,7 @@
     <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="TextureDecoder.h" />
     <ClInclude Include="UberShaderVertex.h" />
+    <ClInclude Include="UtilityShaders.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderBase.h" />
     <ClInclude Include="VertexLoaderManager.h" />
