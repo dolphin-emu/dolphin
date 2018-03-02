@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -20,15 +21,98 @@
 #include "Common/ChunkFile.h"
 #include "Common/Crypto/AES.h"
 #include "Common/Crypto/ec.h"
+#include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
-#include "Core/ec_wii.h"
+
+namespace
+{
+#pragma pack(push, 1)
+/*
+ * Structs for keys.bin taken from:
+ *
+ * mini - a Free Software replacement for the Nintendo/BroadOn IOS.
+ * crypto hardware support
+ *
+ * Copyright (C) 2008, 2009 Haxx Enterprises <bushing@gmail.com>
+ * Copyright (C) 2008, 2009 Sven Peter <svenpeter@gmail.com>
+ * Copyright (C) 2008, 2009 Hector Martin "marcan" <marcan@marcansoft.com>
+ *
+ * # This code is licensed to you under the terms of the GNU GPL, version 2;
+ * # see file COPYING or http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+ */
+struct BootMiiKeyDump
+{
+  std::array<char, 256> creator;
+  std::array<u8, 20> boot1_hash;  // 0x100
+  std::array<u8, 16> common_key;  // 0x114
+  u32 ng_id;                      // 0x124
+  union
+  {
+    struct
+    {
+      std::array<u8, 0x1e> ng_priv;  // 0x128
+      std::array<u8, 0x12> pad1;
+    };
+    struct
+    {
+      std::array<u8, 0x1c> pad2;
+      std::array<u8, 0x14> nand_hmac;  // 0x144
+    };
+  };
+  std::array<u8, 16> nand_key;      // 0x158
+  std::array<u8, 16> backup_key;    // 0x168
+  u32 unk1;                         // 0x178
+  u32 unk2;                         // 0x17C
+  std::array<u8, 0x80> eeprom_pad;  // 0x180
+
+  u32 ms_id;                 // 0x200
+  u32 ca_id;                 // 0x204
+  u32 ng_key_id;             // 0x208
+  IOS::ECCSignature ng_sig;  // 0x20c
+  struct Counter
+  {
+    u8 boot2version;
+    u8 unknown1;
+    u8 unknown2;
+    u8 pad;
+    u32 update_tag;
+    u16 checksum;
+  };
+  std::array<Counter, 2> counters;  // 0x248
+  std::array<u8, 0x18> fill;        // 0x25c
+  std::array<u8, 16> korean_key;    // 0x274
+  std::array<u8, 0x74> pad3;        // 0x284
+  std::array<u16, 2> prng_seed;     // 0x2F8
+  std::array<u8, 4> pad4;           // 0x2FC
+  std::array<u8, 0x100> crack_pad;  // 0x300
+};
+static_assert(sizeof(BootMiiKeyDump) == 0x400, "Wrong size");
+#pragma pack(pop)
+}  // end of anonymous namespace
 
 namespace IOS
 {
 namespace HLE
 {
+constexpr u32 DEFAULT_DEVICE_ID = 0x0403AC68;
+constexpr u32 DEFAULT_KEY_ID = 0x6AAB8C59;
+constexpr std::array<u8, 30> DEFAULT_PRIVATE_KEY = {{
+    0x00, 0xAB, 0xEE, 0xC1, 0xDD, 0xB4, 0xA6, 0x16, 0x6B, 0x70, 0xFD, 0x7E, 0x56, 0x67, 0x70,
+    0x57, 0x55, 0x27, 0x38, 0xA3, 0x26, 0xC5, 0x46, 0x16, 0xF7, 0x62, 0xC9, 0xED, 0x73, 0xF2,
+}};
+constexpr ECCSignature DEFAULT_SIGNATURE = {{
+    // R
+    0x00, 0xD8, 0x81, 0x63, 0xB2, 0x00, 0x6B, 0x0B, 0x54, 0x82, 0x88, 0x63, 0x81, 0x1C, 0x00, 0x71,
+    0x12, 0xED, 0xB7, 0xFD, 0x21, 0xAB, 0x0E, 0x50, 0x0E, 0x1F, 0xBF, 0x78, 0xAD, 0x37,
+    // S
+    0x00, 0x71, 0x8D, 0x82, 0x41, 0xEE, 0x45, 0x11, 0xC7, 0x3B, 0xAC, 0x08, 0xB6, 0x83, 0xDC, 0x05,
+    0xB8, 0xA8, 0x90, 0x1F, 0xA8, 0x2A, 0x0E, 0x4E, 0x76, 0xEF, 0x44, 0x72, 0x99, 0xF8,
+}};
+
 const std::map<std::pair<IOSC::ObjectType, IOSC::ObjectSubType>, size_t> s_type_to_size_map = {{
     {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128}, 16},
     {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_MAC}, 20},
@@ -49,6 +133,7 @@ static size_t GetSizeForType(IOSC::ObjectType type, IOSC::ObjectSubType subtype)
 IOSC::IOSC(ConsoleType console_type)
 {
   LoadDefaultEntries(console_type);
+  LoadEntries();
 }
 
 IOSC::~IOSC() = default;
@@ -133,7 +218,7 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
   if (dest_entry->subtype == SUBTYPE_RSA2048 || dest_entry->subtype == SUBTYPE_RSA4096)
   {
     _assert_(public_key_exponent);
-    std::copy_n(public_key_exponent, 4, dest_entry->misc_data.begin());
+    std::memcpy(&dest_entry->misc_data, public_key_exponent, 4);
   }
   return IPC_SUCCESS;
 }
@@ -232,7 +317,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     Common::ScopeGuard context_guard{[&rsa] { mbedtls_rsa_free(&rsa); }};
 
     mbedtls_mpi_read_binary(&rsa.N, entry->data.data(), entry->data.size());
-    mbedtls_mpi_read_binary(&rsa.E, entry->misc_data.data(), entry->misc_data.size());
+    mbedtls_mpi_read_binary(&rsa.E, reinterpret_cast<const u8*>(&entry->misc_data), 4);
     rsa.len = entry->data.size();
 
     const int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC,
@@ -358,6 +443,68 @@ ReturnCode IOSC::SetOwnership(Handle handle, u32 new_owner, u32 pid)
   return IPC_SUCCESS;
 }
 
+bool IOSC::IsUsingDefaultId() const
+{
+  return GetDeviceId() == DEFAULT_DEVICE_ID;
+}
+
+u32 IOSC::GetDeviceId() const
+{
+  return m_key_entries[HANDLE_CONSOLE_ID].misc_data;
+}
+
+// Based off of twintig http://git.infradead.org/?p=users/segher/wii.git
+// Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
+// Licensed under the terms of the GNU GPL, version 2
+// http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+static Certificate MakeBlankSigECCert(const char* signer, const char* name, const u8* private_key,
+                                      u32 key_id)
+{
+  Certificate cert_out{};
+  const u32 type = Common::swap32(static_cast<u32>(SignatureType::ECC));
+  std::memcpy(cert_out.data(), &type, sizeof(type));
+  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0x80, signer, 0x40);
+  const u32 two = Common::swap32(2);
+  std::memcpy(cert_out.data() + 0xc0, &two, sizeof(two));
+  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name, 0x40);
+  const u32 swapped_key_id = Common::swap32(key_id);
+  std::memcpy(cert_out.data() + 0x104, &swapped_key_id, sizeof(swapped_key_id));
+  ec_priv_to_pub(private_key, cert_out.data() + 0x108);
+  return cert_out;
+}
+
+Certificate IOSC::GetDeviceCertificate() const
+{
+  const std::string name = StringFromFormat("NG%08x", GetDeviceId());
+  auto cert = MakeBlankSigECCert("Root-CA00000001-MS00000002", name.c_str(),
+                                 m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
+  std::copy(m_console_signature.begin(), m_console_signature.end(), cert.begin() + 4);
+  return cert;
+}
+
+void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const
+{
+  std::array<u8, 20> hash{};
+  std::array<u8, 30> ap_priv{};
+
+  ap_priv[0x1d] = 1;
+  // setup random ap_priv here if desired
+  // get_rand_bytes(ap_priv, 0x1e);
+  // ap_priv[0] &= 1;
+
+  const std::string signer = StringFromFormat("Root-CA00000001-MS00000002-NG%08x", GetDeviceId());
+  const std::string name = StringFromFormat("AP%016" PRIx64, title_id);
+  const auto cert = MakeBlankSigECCert(signer.c_str(), name.c_str(), ap_priv.data(), 0);
+  std::copy(cert.begin(), cert.end(), ap_cert_out);
+
+  mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash.data());
+  generate_ecdsa(ap_cert_out + 4, ap_cert_out + 34, m_key_entries[HANDLE_CONSOLE_KEY].data.data(),
+                 hash.data());
+
+  mbedtls_sha1(data, data_size, hash.data());
+  generate_ecdsa(sig_out, sig_out + 30, ap_priv.data(), hash.data());
+}
+
 constexpr std::array<u8, 512> ROOT_PUBLIC_KEY = {
     {0xF8, 0x24, 0x6C, 0x58, 0xBA, 0xE7, 0x50, 0x03, 0x01, 0xFB, 0xB7, 0xC2, 0xEB, 0xE0, 0x01,
      0x05, 0x71, 0xDA, 0x92, 0x23, 0x78, 0xF0, 0x51, 0x4E, 0xC0, 0x03, 0x1D, 0xD0, 0xD2, 0x1E,
@@ -397,15 +544,11 @@ constexpr std::array<u8, 512> ROOT_PUBLIC_KEY = {
 
 void IOSC::LoadDefaultEntries(ConsoleType console_type)
 {
-  // TODO: add support for loading and writing to a BootMii / SEEPROM and OTP dump.
-
-  const EcWii& ec = EcWii::GetInstance();
-
-  m_key_entries[HANDLE_CONSOLE_KEY] = {TYPE_SECRET_KEY, SUBTYPE_ECC233,
-                                       std::vector<u8>(ec.GetNGPriv(), ec.GetNGPriv() + 30), 3};
-
-  // Unimplemented.
-  m_key_entries[HANDLE_CONSOLE_ID] = {TYPE_DATA, SUBTYPE_DATA, std::vector<u8>(4), 0xFFFFFFF};
+  m_key_entries[HANDLE_CONSOLE_KEY] = {
+      TYPE_SECRET_KEY, SUBTYPE_ECC233, {DEFAULT_PRIVATE_KEY.begin(), DEFAULT_PRIVATE_KEY.end()}, 3};
+  m_console_signature = DEFAULT_SIGNATURE;
+  m_console_key_id = DEFAULT_KEY_ID;
+  m_key_entries[HANDLE_CONSOLE_ID] = {TYPE_DATA, SUBTYPE_DATA, {}, DEFAULT_DEVICE_ID, 0xFFFFFFF};
   m_key_entries[HANDLE_FS_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128, std::vector<u8>(16), 5};
   m_key_entries[HANDLE_FS_MAC] = {TYPE_SECRET_KEY, SUBTYPE_MAC, std::vector<u8>(20), 5};
 
@@ -430,9 +573,8 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
     break;
   }
 
-  m_key_entries[HANDLE_PRNG_KEY] = {
-      TYPE_SECRET_KEY, SUBTYPE_AES128,
-      std::vector<u8>(ec.GetBackupKey(), ec.GetBackupKey() + AES128_KEY_SIZE), 3};
+  m_key_entries[HANDLE_PRNG_KEY] = {TYPE_SECRET_KEY, SUBTYPE_AES128,
+                                    std::vector<u8>(AES128_KEY_SIZE), 3};
 
   m_key_entries[HANDLE_SD_KEY] = {TYPE_SECRET_KEY,
                                   SUBTYPE_AES128,
@@ -440,11 +582,10 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
                                     0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d}},
                                   3};
 
-  // Unimplemented.
-  m_key_entries[HANDLE_BOOT2_VERSION] = {TYPE_DATA, SUBTYPE_VERSION, std::vector<u8>(4), 3};
-  m_key_entries[HANDLE_UNKNOWN_8] = {TYPE_DATA, SUBTYPE_VERSION, std::vector<u8>(4), 3};
-  m_key_entries[HANDLE_UNKNOWN_9] = {TYPE_DATA, SUBTYPE_VERSION, std::vector<u8>(4), 3};
-  m_key_entries[HANDLE_FS_VERSION] = {TYPE_DATA, SUBTYPE_VERSION, std::vector<u8>(4), 3};
+  m_key_entries[HANDLE_BOOT2_VERSION] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
+  m_key_entries[HANDLE_UNKNOWN_8] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
+  m_key_entries[HANDLE_UNKNOWN_9] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
+  m_key_entries[HANDLE_FS_VERSION] = {TYPE_DATA, SUBTYPE_VERSION, {}, 3};
 
   m_key_entries[HANDLE_NEW_COMMON_KEY] = {TYPE_SECRET_KEY,
                                           SUBTYPE_AES128,
@@ -452,18 +593,43 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
                                             0xf2, 0xfe, 0xfb, 0xba, 0x4c, 0x9b, 0x7e}},
                                           3};
 
-  std::array<u8, 4> root_exponent = {{0x0, 0x1, 0x0, 0x1}};
   m_root_key_entry = {TYPE_PUBLIC_KEY, SUBTYPE_RSA4096,
                       std::vector<u8>(ROOT_PUBLIC_KEY.begin(), ROOT_PUBLIC_KEY.end()),
-                      std::move(root_exponent), 0};
+                      Common::swap32(0x00010001), 0};
+}
+
+void IOSC::LoadEntries()
+{
+  File::IOFile file{File::GetUserPath(D_WIIROOT_IDX) + "/keys.bin", "rb"};
+  if (!file)
+  {
+    WARN_LOG(IOS, "keys.bin could not be found. Default values will be used.");
+    return;
+  }
+
+  BootMiiKeyDump dump;
+  if (!file.ReadBytes(&dump, sizeof(dump)))
+  {
+    ERROR_LOG(IOS, "Failed to read from keys.bin.");
+    return;
+  }
+
+  m_key_entries[HANDLE_CONSOLE_KEY].data = {dump.ng_priv.begin(), dump.ng_priv.end()};
+  m_console_signature = dump.ng_sig;
+  m_console_key_id = Common::swap32(dump.ng_key_id);
+  m_key_entries[HANDLE_CONSOLE_ID].misc_data = Common::swap32(dump.ng_id);
+  m_key_entries[HANDLE_FS_KEY].data = {dump.nand_key.begin(), dump.nand_key.end()};
+  m_key_entries[HANDLE_FS_MAC].data = {dump.nand_hmac.begin(), dump.nand_hmac.end()};
+  m_key_entries[HANDLE_PRNG_KEY].data = {dump.backup_key.begin(), dump.backup_key.end()};
+  m_key_entries[HANDLE_BOOT2_VERSION].misc_data = dump.counters[0].boot2version;
 }
 
 IOSC::KeyEntry::KeyEntry() = default;
 
 IOSC::KeyEntry::KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
-                         std::array<u8, 4>&& misc_data_, u32 owner_mask_)
-    : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)),
-      misc_data(std::move(misc_data_)), owner_mask(owner_mask_)
+                         u32 misc_data_, u32 owner_mask_)
+    : in_use(true), type(type_), subtype(subtype_), data(std::move(data_)), misc_data(misc_data_),
+      owner_mask(owner_mask_)
 {
 }
 

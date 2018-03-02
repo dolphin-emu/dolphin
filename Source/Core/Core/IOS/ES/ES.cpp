@@ -27,7 +27,6 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/VersionInfo.h"
-#include "Core/ec_wii.h"
 
 namespace IOS
 {
@@ -218,9 +217,7 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  u32 device_id;
-  if (title_id == Titles::SHOP &&
-      (GetDeviceId(&device_id) != IPC_SUCCESS || device_id == DEFAULT_WII_DEVICE_ID))
+  if (title_id == Titles::SHOP && m_ios.GetIOSC().IsUsingDefaultId())
   {
     ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
     CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."
