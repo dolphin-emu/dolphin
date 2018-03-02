@@ -72,6 +72,8 @@ set(SRCS
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuMotionControl.cpp
+  Config/NewPatchDialog.cpp
+  Config/PatchesWidget.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
   Debugger/BreakpointWidget.cpp
