@@ -82,10 +82,8 @@ bool ReadAnnotatedAssembly(const std::string& filename)
 {
   File::IOFile f(filename, "r");
   if (!f)
-  {
-    ERROR_LOG(DSPLLE, "Bah! ReadAnnotatedAssembly couldn't find the file %s", filename.c_str());
     return false;
-  }
+
   char line[512];
 
   int last_addr = 0;
