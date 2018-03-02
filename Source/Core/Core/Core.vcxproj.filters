@@ -1404,6 +1404,9 @@
     <ClInclude Include="IOS\FS\FileIO.h">
       <Filter>IOS\FS</Filter>
     </ClInclude>
+    <ClInclude Include="IOS\FS\FileSystem.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\ES\Formats.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
