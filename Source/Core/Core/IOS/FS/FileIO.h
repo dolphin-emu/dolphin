@@ -23,7 +23,6 @@ namespace IOS
 namespace HLE
 {
 std::string BuildFilename(const std::string& wii_path);
-void CreateVirtualFATFilesystem();
 
 namespace Device
 {
