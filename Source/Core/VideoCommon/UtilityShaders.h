@@ -28,7 +28,7 @@ VS_OUTPUT main(VS_INPUT vin)
   return vout;
 }
 
-#elif API_OPENGL || API_VULKAN
+#elif API_OPENGL || API_VULKAN || API_METAL
 ATTRIBUTE_LOCATION(0) in vec4 ipos;
 ATTRIBUTE_LOCATION(5) in vec4 icol0;
 ATTRIBUTE_LOCATION(8) in vec3 itex0;
@@ -64,14 +64,14 @@ VS_OUTPUT main(uint vid : SV_VertexID)
   return vout;
 }
 
-#elif API_OPENGL || API_VULKAN
+#elif API_OPENGL || API_VULKAN || API_METAL
 VARYING_LOCATION(0) out vec3 otex0;
 VARYING_LOCATION(1) out vec4 ocol0;
 
 void main()
 {
   float2 rawpos = float2(float(gl_VertexID & 1), clamp(float(gl_VertexID & 2), 0.0, 1.0));
-#if API_OPENGL
+#if API_OPENGL || API_METAL
   gl_Position = float4(rawpos * float2(2.0, -2.0) + float2(-1.0, 1.0), 0.0, 1.0);
 #else
   gl_Position = vec4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
@@ -160,7 +160,7 @@ float4 main(VS_OUTPUT pin) : SV_Target
   return pin.col0;
 }
 
-#elif API_OPENGL || API_VULKAN
+#elif API_OPENGL || API_VULKAN || API_METAL
 VARYING_LOCATION(0) in float3 tex0;
 VARYING_LOCATION(1) in float4 col0;
 FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;
@@ -190,7 +190,7 @@ float4 main(VS_OUTPUT pin) : SV_Target
   return tex0.Sample(samp0, pin.tex0);
 }
 
-#elif API_OPENGL || API_VULKAN
+#elif API_OPENGL || API_VULKAN || API_METAL
 VARYING_LOCATION(0) in float3 tex0;
 VARYING_LOCATION(1) in float4 col0;
 FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;

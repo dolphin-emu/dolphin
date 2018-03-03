@@ -46,7 +46,7 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
               "  vec4 texcol = texture(samp0, %s);\n",
               mono_depth ? "vec3(uv0.xy, 0.0)" : "uv0");
   }
-  else if (api_type == APIType::Vulkan)
+  else if (api_type == APIType::Vulkan || api_type == APIType::Metal)
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
               "layout(location = 0) in vec3 uv0;\n"

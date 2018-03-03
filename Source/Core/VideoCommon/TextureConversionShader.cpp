@@ -65,8 +65,17 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   if (ApiType == APIType::Vulkan)
+  {
     WRITE(p,
           "layout(std140, push_constant) uniform PCBlock { int4 position; float y_scale; } PC;\n");
+  }
+  else if (ApiType == APIType::Metal)
+  {
+    WRITE(p, "UBO_BINDING(std140, 1) uniform PSBlock {\n"
+             "  int4 position;\n"
+             "  float y_scale;\n"
+             "};\n");
+  }
   else
   {
     WRITE(p, "uniform int4 position;\n");
@@ -113,7 +122,7 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n");
   }
-  else if (ApiType == APIType::Vulkan)
+  else if (ApiType == APIType::Vulkan || ApiType == APIType::Metal)
   {
     WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
     WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
@@ -121,9 +130,12 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
     WRITE(p, "void main()\n");
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
-             "  int2 uv1 = int2(gl_FragCoord.xy);\n"
-             "  int4 position = PC.position;\n"
-             "  float y_scale = PC.y_scale;\n");
+             "  int2 uv1 = int2(gl_FragCoord.xy);\n");
+    if (ApiType == APIType::Vulkan)
+    {
+      WRITE(p, "  int4 position = PC.position;\n"
+               "  float y_scale = PC.y_scale;\n");
+    }
   }
   else  // D3D
   {
@@ -203,7 +215,7 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
       WRITE(p, "(");
   }
 
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan || ApiType == APIType::Metal)
   {
     WRITE(p, "texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0))).%s;\n", xoffset,
           colorComp);
