@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
@@ -26,6 +28,8 @@ public:
   void ScaleRectangleFromTexture(const AbstractTexture* source,
                                  const MathUtil::Rectangle<int>& srcrect,
                                  const MathUtil::Rectangle<int>& dstrect) override;
+  void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                          u32 layer, u32 level) override;
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
 
@@ -55,6 +59,17 @@ public:
 
 private:
   std::vector<u8> m_data;
+};
+
+class SWFramebuffer final : public AbstractFramebuffer
+{
+public:
+  explicit SWFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+                         u32 width, u32 height, u32 layers, u32 samples);
+  ~SWFramebuffer() override = default;
+
+  static std::unique_ptr<SWFramebuffer> Create(const SWTexture* color_attachment,
+                                               const SWTexture* depth_attachment);
 };
 
 }  // namespace SW

@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <array>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -27,12 +28,13 @@
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
-class AbstractRawTexture;
+class AbstractFramebuffer;
 class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
@@ -64,6 +66,8 @@ public:
   Renderer(int backbuffer_width, int backbuffer_height);
   virtual ~Renderer();
 
+  using ClearColor = std::array<float, 4>;
+
   enum PixelPerfQuery
   {
     PP_ZCOMP_INPUT_ZCOMPLOC,
@@ -75,10 +79,7 @@ public:
   };
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
-  virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
-  virtual void SetRasterizationState(const RasterizationState& state) {}
-  virtual void SetDepthState(const DepthState& state) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
@@ -96,6 +97,17 @@ public:
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(const AbstractTexture* color_attachment,
+                    const AbstractTexture* depth_attachment) = 0;
+
+  // Framebuffer operations.
+  virtual void SetFramebuffer(const AbstractFramebuffer* framebuffer) {}
+  virtual void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) {}
+  virtual void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value = {}, float depth_value = 0.0f)
+  {
+  }
 
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader>
@@ -105,6 +117,9 @@ public:
   virtual std::unique_ptr<AbstractPipeline>
   CreatePipeline(const AbstractPipelineConfig& config) = 0;
 
+  const AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
+  u32 GetCurrentFramebufferWidth() const { return m_current_framebuffer_width; }
+  u32 GetCurrentFramebufferHeight() const { return m_current_framebuffer_height; }
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
@@ -172,6 +187,8 @@ public:
   void ResizeSurface(int new_width, int new_height);
   bool UseVertexDepthRange() const;
 
+  virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
+
   virtual void Shutdown();
 
   // Drawing utility shaders.
@@ -192,6 +209,11 @@ protected:
 
   void CheckFifoRecording();
   void RecordVideoMemory();
+
+  // TODO: Remove the width/height parameters once we make the EFB an abstract framebuffer.
+  const AbstractFramebuffer* m_current_framebuffer = nullptr;
+  u32 m_current_framebuffer_width = 1;
+  u32 m_current_framebuffer_height = 1;
 
   Common::Flag m_screenshot_request;
   Common::Event m_screenshot_completed;
@@ -221,6 +243,7 @@ protected:
   std::mutex m_swap_mutex;
 
   u32 m_last_host_config_bits = 0;
+  u32 m_last_efb_multisamples = 1;
 
 private:
   void RunFrameDumps();

@@ -180,13 +180,16 @@ void DolphinAnalytics::MakeBaseBuilder()
 
 static const char* GetUbershaderMode(const VideoConfig& video_config)
 {
-  if (video_config.bDisableSpecializedShaders)
+  switch (video_config.iUberShaderMode)
+  {
+  case UberShaderMode::Exclusive:
     return "exclusive";
-
-  if (video_config.bBackgroundShaderCompiling)
+  case UberShaderMode::Hybrid:
     return "hybrid";
-
-  return "disabled";
+  case UberShaderMode::Disabled:
+  default:
+    return "disabled";
+  }
 }
 
 void DolphinAnalytics::MakePerGameBuilder()

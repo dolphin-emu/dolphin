@@ -86,7 +86,7 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 
 void Init()
 {
-  TextureConfig config(renderBufferWidth, renderBufferHeight, 1, 1, AbstractTextureFormat::BGRA8,
+  TextureConfig config(renderBufferWidth, renderBufferHeight, 1, 1, 1, AbstractTextureFormat::BGRA8,
                        true);
   s_encoding_render_texture = g_renderer->CreateTexture(config);
   s_encoding_readback_texture =
@@ -133,8 +133,6 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   s_encoding_readback_texture->CopyFromTexture(s_encoding_render_texture.get(), copy_rect, 0, 0,
                                                copy_rect);
   s_encoding_readback_texture->ReadTexels(copy_rect, destAddr, writeStride);
-
-  FramebufferManager::SetFramebuffer(0);
 }
 
 void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
@@ -157,7 +155,6 @@ void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 nativ
   EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
                          scale_by_half && !params.depth, params.y_scale);
 
-  FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
 }
 

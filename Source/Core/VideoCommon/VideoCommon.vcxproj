@@ -36,6 +36,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="AbstractFramebuffer.cpp" />
     <ClCompile Include="AbstractStagingTexture.cpp" />
     <ClCompile Include="AbstractTexture.cpp" />
     <ClCompile Include="AsyncRequests.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
+    <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="ShaderGenCommon.cpp" />
     <ClCompile Include="UberShaderCommon.cpp" />
     <ClCompile Include="UberShaderPixel.cpp" />
@@ -98,6 +100,7 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractFramebuffer.h" />
     <ClInclude Include="AbstractStagingTexture.h" />
     <ClInclude Include="AbstractPipeline.h" />
     <ClInclude Include="AbstractShader.h" />
@@ -117,6 +120,7 @@
     <ClInclude Include="Fifo.h" />
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManagerBase.h" />
+    <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="UberShaderCommon.h" />
     <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />
@@ -145,6 +149,7 @@
     <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="TextureDecoder.h" />
     <ClInclude Include="UberShaderVertex.h" />
+    <ClInclude Include="UtilityShaders.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderBase.h" />
     <ClInclude Include="VertexLoaderManager.h" />

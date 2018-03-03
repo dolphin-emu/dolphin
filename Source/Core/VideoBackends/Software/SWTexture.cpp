@@ -86,6 +86,10 @@ void SWTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
     memcpy(GetData(), destination_pixels.data(), destination_pixels.size());
   }
 }
+void SWTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                                   u32 layer, u32 level)
+{
+}
 
 void SWTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
                      size_t buffer_size)
@@ -148,4 +152,31 @@ void SWStagingTexture::Flush()
 {
   m_needs_flush = false;
 }
+
+SWFramebuffer::SWFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+                             u32 width, u32 height, u32 layers, u32 samples)
+    : AbstractFramebuffer(color_format, depth_format, width, height, layers, samples)
+{
+}
+
+std::unique_ptr<SWFramebuffer> SWFramebuffer::Create(const SWTexture* color_attachment,
+                                                     const SWTexture* depth_attachment)
+{
+  if (!ValidateConfig(color_attachment, depth_attachment))
+    return nullptr;
+
+  const AbstractTextureFormat color_format =
+      color_attachment ? color_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const AbstractTextureFormat depth_format =
+      depth_attachment ? depth_attachment->GetFormat() : AbstractTextureFormat::Undefined;
+  const SWTexture* either_attachment = color_attachment ? color_attachment : depth_attachment;
+  const u32 width = either_attachment->GetWidth();
+  const u32 height = either_attachment->GetHeight();
+  const u32 layers = either_attachment->GetLayers();
+  const u32 samples = either_attachment->GetSamples();
+
+  return std::make_unique<SWFramebuffer>(color_format, depth_format, width, height, layers,
+                                         samples);
+}
+
 }  // namespace SW

@@ -14,7 +14,9 @@
 
 namespace Vulkan
 {
-VKPipeline::VKPipeline(VkPipeline pipeline) : m_pipeline(pipeline)
+VKPipeline::VKPipeline(VkPipeline pipeline, VkPipelineLayout pipeline_layout,
+                       AbstractPipelineUsage usage)
+    : m_pipeline(pipeline), m_pipeline_layout(pipeline_layout), m_usage(usage)
 {
 }
 
@@ -30,7 +32,8 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   // Get render pass for config.
   VkRenderPass render_pass = g_object_cache->GetRenderPass(
       Util::GetVkFormatForHostTextureFormat(config.framebuffer_state.color_texture_format),
-      VK_FORMAT_UNDEFINED, config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD);
+      Util::GetVkFormatForHostTextureFormat(config.framebuffer_state.depth_texture_format),
+      config.framebuffer_state.samples, VK_ATTACHMENT_LOAD_OP_LOAD);
 
   // Get pipeline layout.
   VkPipelineLayout pipeline_layout;
@@ -68,6 +71,6 @@ std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& con
   if (pipeline == VK_NULL_HANDLE)
     return nullptr;
 
-  return std::make_unique<VKPipeline>(pipeline);
+  return std::make_unique<VKPipeline>(pipeline, pipeline_layout, config.usage);
 }
 }  // namespace Vulkan

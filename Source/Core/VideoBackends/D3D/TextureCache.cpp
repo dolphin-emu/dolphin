@@ -160,7 +160,6 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
-  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 
@@ -275,7 +274,6 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
       pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
       VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
-  FramebufferManager::BindEFBRenderTarget();
   g_renderer->RestoreAPIState();
 }
 

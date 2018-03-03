@@ -104,18 +104,21 @@ std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const vo
                                                      size_t length)
 {
   ShaderCompiler::SPIRVCodeVector spv;
-  const size_t size_in_words = sizeof(length) / sizeof(ShaderCompiler::SPIRVCodeType);
+  const size_t size_in_words = length / sizeof(ShaderCompiler::SPIRVCodeType);
   if (size_in_words > 0)
   {
-    spv.resize(length / size_in_words);
-    std::memcpy(spv.data(), data, size_in_words);
+    spv.resize(size_in_words);
+    std::memcpy(spv.data(), data, size_in_words * sizeof(ShaderCompiler::SPIRVCodeType));
   }
 
   // Non-aligned code sizes, unlikely (unless using VK_NV_glsl).
   if ((length % sizeof(ShaderCompiler::SPIRVCodeType)) != 0)
   {
+    const u8* unaligned_start =
+        reinterpret_cast<const u8*>(data) + (size_in_words * sizeof(ShaderCompiler::SPIRVCodeType));
     spv.resize(size_in_words + 1);
-    std::memcpy(&spv[size_in_words], data, (length % sizeof(ShaderCompiler::SPIRVCodeType)));
+    std::memcpy(&spv[size_in_words], unaligned_start,
+                (length % sizeof(ShaderCompiler::SPIRVCodeType)));
   }
 
   return CreateShaderObject(stage, std::move(spv));
