@@ -166,10 +166,9 @@ add_library(core
   IOS/ES/TitleManagement.cpp
   IOS/ES/Views.cpp
   IOS/FS/FileSystem.cpp
+  IOS/FS/FileSystemProxy.cpp
   IOS/FS/HostBackend/File.cpp
   IOS/FS/HostBackend/FS.cpp
-  IOS/FS/FileIO.cpp
-  IOS/FS/FS.cpp
   IOS/Network/ICMPLin.cpp
   IOS/Network/MACUtils.cpp
   IOS/Network/Socket.cpp

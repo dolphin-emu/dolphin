@@ -12,4 +12,10 @@ std::unique_ptr<FileSystem> MakeFileSystem()
 {
   return std::make_unique<HostFileSystem>();
 }
+
+void FileSystem::Init()
+{
+  if (Delete(0, 0, "/tmp") == ResultCode::Success)
+    CreateDirectory(0, 0, "/tmp", 0, Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite);
+}
 }  // namespace IOS::HLE::FS

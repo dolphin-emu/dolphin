@@ -45,7 +45,10 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parent_entry)
   return sizeOfFiles;
 }
 
-HostFileSystem::HostFileSystem() = default;
+HostFileSystem::HostFileSystem()
+{
+  Init();
+}
 
 HostFileSystem::~HostFileSystem() = default;
 

@@ -32,6 +32,7 @@ enum LOG_TYPE
   IOS_DI,
   IOS_ES,
   IOS_FILEIO,
+  IOS_FS,
   IOS_NET,
   IOS_SD,
   IOS_SSL,

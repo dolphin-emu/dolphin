@@ -166,4 +166,16 @@ inline T FromBigEndian(T data)
   swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
   return data;
 }
+
+template <typename value_type>
+struct BigEndianValue
+{
+  static_assert(std::is_arithmetic<value_type>(), "value_type must be an arithmetic type");
+  BigEndianValue() = default;
+  explicit BigEndianValue(value_type val) { *this = val; }
+  operator value_type() const { return FromBigEndian(raw); }
+  void operator=(value_type v) { raw = FromBigEndian(v); }
+private:
+  value_type raw;
+};
 }  // Namespace Common

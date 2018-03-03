@@ -31,9 +31,8 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/DeviceStub.h"
 #include "Core/IOS/ES/ES.h"
-#include "Core/IOS/FS/FS.h"
-#include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/MIOS.h"
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/KD/NetKDRequest.h"
@@ -495,7 +494,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   }
   else if (request.path.find('/') == 0)
   {
-    device = std::make_shared<Device::FileIO>(*this, request.path);
+    device = GetDeviceByName("/dev/fs");
   }
 
   if (!device)
@@ -730,10 +729,6 @@ void Kernel::DoState(PointerWrap& p)
           m_fdmap[i] = GetDeviceByName(device_name);
           break;
         }
-        case Device::Device::DeviceType::FileIO:
-          m_fdmap[i] = std::make_shared<Device::FileIO>(*this, "");
-          m_fdmap[i]->DoState(p);
-          break;
         case Device::Device::DeviceType::OH0:
           m_fdmap[i] = std::make_shared<Device::OH0Device>(*this, "");
           m_fdmap[i]->DoState(p);

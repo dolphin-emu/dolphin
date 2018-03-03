@@ -173,7 +173,6 @@ public:
   enum class DeviceType : u32
   {
     Static,  // Devices which appear in s_device_map.
-    FileIO,  // FileIO devices which are created dynamically.
     OH0,     // OH0 child devices which are created dynamically.
   };
 
