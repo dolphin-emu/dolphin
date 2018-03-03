@@ -735,6 +735,9 @@
     <ClCompile Include="IOS\FS\FileIO.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\FS\FileSystem.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\FS\HostBackend\FS.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>

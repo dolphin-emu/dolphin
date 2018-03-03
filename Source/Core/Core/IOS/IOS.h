@@ -23,11 +23,15 @@ namespace IOS
 {
 namespace HLE
 {
+namespace FS
+{
+class FileSystem;
+}
+
 namespace Device
 {
 class Device;
 class ES;
-class FS;
 }
 
 struct Request;
@@ -94,7 +98,7 @@ public:
 
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
-  std::shared_ptr<Device::FS> GetFS();
+  std::shared_ptr<FS::FileSystem> GetFS();
   std::shared_ptr<Device::ES> GetES();
 
   void SDIO_EventNotify();
@@ -146,6 +150,7 @@ protected:
   u64 m_last_reply_time = 0;
 
   IOSC m_iosc;
+  std::shared_ptr<FS::FileSystem> m_fs;
 };
 
 // HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.

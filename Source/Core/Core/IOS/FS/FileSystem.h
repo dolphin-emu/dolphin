@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -169,5 +170,7 @@ public:
   /// Get usage information about a directory (used cluster and inode counts).
   virtual Result<DirectoryStats> GetDirectoryStats(const std::string& path) = 0;
 };
+
+std::unique_ptr<FileSystem> MakeFileSystem();
 
 }  // namespace IOS::HLE::FS

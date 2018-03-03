@@ -197,6 +197,7 @@
     <ClCompile Include="IOS\ES\Views.cpp" />
     <ClCompile Include="IOS\FS\FileIO.cpp" />
     <ClCompile Include="IOS\FS\FS.cpp" />
+    <ClCompile Include="IOS\FS\FileSystem.cpp" />
     <ClCompile Include="IOS\FS\HostBackend\FS.cpp" />
     <ClCompile Include="IOS\FS\HostBackend\File.cpp" />
     <ClCompile Include="IOS\Network\ICMPLin.cpp" />
