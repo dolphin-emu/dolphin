@@ -98,37 +98,40 @@ static std::string GetGLSLVersionString()
 
 void SHADER::SetProgramVariables()
 {
+  if (g_ActiveConfig.backend_info.bSupportsBindingLayout)
+    return;
+
+  // To set uniform blocks/uniforms, the program must be active. We restore the
+  // current binding at the end of this method to maintain the invariant.
+  glUseProgram(glprogid);
+
   // Bind UBO and texture samplers
-  if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
+  GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
+  GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
+  GLint GSBlock_id = glGetUniformBlockIndex(glprogid, "GSBlock");
+  GLint UBERBlock_id = glGetUniformBlockIndex(glprogid, "UBERBlock");
+  if (PSBlock_id != -1)
+    glUniformBlockBinding(glprogid, PSBlock_id, 1);
+  if (VSBlock_id != -1)
+    glUniformBlockBinding(glprogid, VSBlock_id, 2);
+  if (GSBlock_id != -1)
+    glUniformBlockBinding(glprogid, GSBlock_id, 3);
+  if (UBERBlock_id != -1)
+    glUniformBlockBinding(glprogid, UBERBlock_id, 4);
+
+  // Bind Texture Samplers
+  for (int a = 0; a < 10; ++a)
   {
-    // glsl shader must be bind to set samplers if we don't support binding layout
-    Bind();
+    std::string name = StringFromFormat(a < 8 ? "samp[%d]" : "samp%d", a);
 
-    GLint PSBlock_id = glGetUniformBlockIndex(glprogid, "PSBlock");
-    GLint VSBlock_id = glGetUniformBlockIndex(glprogid, "VSBlock");
-    GLint GSBlock_id = glGetUniformBlockIndex(glprogid, "GSBlock");
-    GLint UBERBlock_id = glGetUniformBlockIndex(glprogid, "UBERBlock");
-
-    if (PSBlock_id != -1)
-      glUniformBlockBinding(glprogid, PSBlock_id, 1);
-    if (VSBlock_id != -1)
-      glUniformBlockBinding(glprogid, VSBlock_id, 2);
-    if (GSBlock_id != -1)
-      glUniformBlockBinding(glprogid, GSBlock_id, 3);
-    if (UBERBlock_id != -1)
-      glUniformBlockBinding(glprogid, UBERBlock_id, 4);
-
-    // Bind Texture Samplers
-    for (int a = 0; a <= 9; ++a)
-    {
-      std::string name = StringFromFormat(a < 8 ? "samp[%d]" : "samp%d", a);
-
-      // Still need to get sampler locations since we aren't binding them statically in the shaders
-      int loc = glGetUniformLocation(glprogid, name.c_str());
-      if (loc != -1)
-        glUniform1i(loc, a);
-    }
+    // Still need to get sampler locations since we aren't binding them statically in the shaders
+    int loc = glGetUniformLocation(glprogid, name.c_str());
+    if (loc != -1)
+      glUniform1i(loc, a);
   }
+
+  // Restore previous program binding.
+  glUseProgram(CurrentProgram);
 }
 
 void SHADER::SetProgramBindings(bool is_compute)
@@ -956,6 +959,9 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const OGLShader* v
     return iter->second.get();
   }
 
+  // Set program variables on the shader which will be returned.
+  // This is only needed for drivers which don't support binding layout.
+  prog->shader.SetProgramVariables();
   auto ip = pipelineprograms.emplace(key, std::move(prog));
   return ip.first->second.get();
 }
