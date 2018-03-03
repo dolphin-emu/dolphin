@@ -735,6 +735,12 @@
     <ClCompile Include="IOS\FS\FileIO.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\FS.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\File.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\ES\ES.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
@@ -1405,6 +1411,12 @@
       <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\FS\FileSystem.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\File.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\FS.h">
       <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\ES\Formats.h">
