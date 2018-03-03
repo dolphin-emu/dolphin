@@ -68,3 +68,6 @@ endif()
 endif()
 
 add_library(glslang STATIC ${SRCS})
+target_include_directories(glslang SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/glslang/Public)
+target_include_directories(glslang SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/SPIRV)
+
