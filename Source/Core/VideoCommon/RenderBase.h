@@ -31,7 +31,9 @@
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/RasterFont.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractFramebuffer;
@@ -39,6 +41,7 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
+class NativeVertexFormat;
 class PostProcessingShaderImplementation;
 struct TextureConfig;
 struct ComputePipelineConfig;
@@ -63,7 +66,7 @@ extern int OSDChoice;
 class Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height);
+  Renderer(int backbuffer_width, int backbuffer_height, AbstractTextureFormat backbuffer_format);
   virtual ~Renderer();
 
   using ClearColor = std::array<float, 4>;
@@ -77,6 +80,9 @@ public:
     PP_BLEND_INPUT,
     PP_EFB_COPY_CLOCKS
   };
+
+  virtual bool Initialize();
+  virtual void Shutdown();
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
@@ -158,7 +164,7 @@ public:
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
 
-  virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
+  void RenderText(const std::string& text, int left, int top, u32 color);
 
   virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z) = 0;
@@ -188,8 +194,6 @@ public:
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
-
-  virtual void Shutdown();
 
   // Drawing utility shaders.
   virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
@@ -230,8 +234,11 @@ protected:
   int m_backbuffer_height = 0;
   int m_new_backbuffer_width = 0;
   int m_new_backbuffer_height = 0;
+  AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
 
+  // Shared resources - raster font
+  std::unique_ptr<VideoCommon::RasterFont> m_raster_font;
   FPSCounter m_fps_counter;
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;

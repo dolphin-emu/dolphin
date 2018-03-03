@@ -246,9 +246,6 @@ bool VideoBackend::Initialize(void* window_handle)
 
 void VideoBackend::Shutdown()
 {
-  if (g_command_buffer_mgr)
-    g_command_buffer_mgr->WaitForGPUIdle();
-
   if (::g_shader_cache)
     ::g_shader_cache->Shutdown();
 

@@ -200,6 +200,9 @@
     <ClCompile Include="ShaderCache.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
+    <ClCompile Include="RasterFont.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -386,6 +389,9 @@
     </ClInclude>
     <ClInclude Include="UtilityShaders.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="RasterFont.h">
+      <Filter>Util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

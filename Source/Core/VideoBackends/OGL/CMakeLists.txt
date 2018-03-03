@@ -9,7 +9,6 @@ set(SRCS
   PerfQuery.cpp
   PostProcessing.cpp
   ProgramShaderCache.cpp
-  RasterFont.cpp
   Render.cpp
   SamplerCache.cpp
   StreamBuffer.cpp

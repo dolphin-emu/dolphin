@@ -21,7 +21,6 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PostProcessing.h"
-#include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -49,7 +48,8 @@ namespace Vulkan
 {
 Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
-                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0,
+                 swap_chain ? swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined),
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
@@ -57,13 +57,7 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
 }
 
-Renderer::~Renderer()
-{
-  UpdateActiveConfig();
-
-  DestroyShaders();
-  DestroySemaphores();
-}
+Renderer::~Renderer() = default;
 
 Renderer* Renderer::GetInstance()
 {
@@ -72,6 +66,9 @@ Renderer* Renderer::GetInstance()
 
 bool Renderer::Initialize()
 {
+  if (!::Renderer::Initialize())
+    return false;
+
   BindEFBToStateTracker();
 
   if (!CreateSemaphores())
@@ -86,11 +83,38 @@ bool Renderer::Initialize()
     return false;
   }
 
-  m_raster_font = std::make_unique<RasterFont>();
-  if (!m_raster_font->Initialize())
+  // Swap chain render pass.
+  if (m_swap_chain)
   {
-    PanicAlert("Failed to initialize raster font.");
-    return false;
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
+  }
+
+  // Swap chain render pass.
+  if (m_swap_chain)
+  {
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
   }
 
   m_bounding_box = std::make_unique<BoundingBox>();
@@ -110,8 +134,7 @@ bool Renderer::Initialize()
 
   // Initialize post processing.
   m_post_processor = std::make_unique<VulkanPostProcessing>();
-  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())
-           ->Initialize(m_raster_font->GetTexture()))
+  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())->Initialize())
   {
     PanicAlert("failed to initialize post processor.");
     return false;
@@ -124,6 +147,18 @@ bool Renderer::Initialize()
   BeginFrame();
 
   return true;
+}
+
+void Renderer::Shutdown()
+{
+  ::Renderer::Shutdown();
+
+  // Submit the current command buffer, in case there's a partial frame.
+  StateTracker::GetInstance()->EndRenderPass();
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+
+  DestroyShaders();
+  DestroySemaphores();
 }
 
 bool Renderer::CreateSemaphores()
@@ -377,17 +412,6 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
   vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout, 0, 1,
                           &dset, 1, &uniform_buffer_offset);
   vkCmdDispatch(command_buffer, groups_x, groups_y, groups_z);
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  u32 backbuffer_width = m_swap_chain->GetWidth();
-  u32 backbuffer_height = m_swap_chain->GetHeight();
-
-  m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(), text,
-                                    left * 2.0f / static_cast<float>(backbuffer_width) - 1,
-                                    1 - top * 2.0f / static_cast<float>(backbuffer_height),
-                                    backbuffer_width, backbuffer_height, color);
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
@@ -810,20 +834,18 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   m_current_framebuffer_width = backbuffer->GetWidth();
   m_current_framebuffer_height = backbuffer->GetHeight();
 
+  // Draw to the backbuffer.
+  VkRect2D region = {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}};
+  StateTracker::GetInstance()->SetRenderPass(m_swap_chain_render_pass,
+                                             m_swap_chain_clear_render_pass);
+  StateTracker::GetInstance()->SetFramebuffer(m_swap_chain->GetCurrentFramebuffer(), region);
+
   // Begin render pass for rendering to the swap chain.
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-  VkRenderPassBeginInfo info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                nullptr,
-                                m_swap_chain->GetRenderPass(),
-                                m_swap_chain->GetCurrentFramebuffer(),
-                                {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}},
-                                1,
-                                &clear_value};
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
-                       VK_SUBPASS_CONTENTS_INLINE);
+  StateTracker::GetInstance()->BeginClearRenderPass(region, &clear_value, 1);
 
   // Draw
-  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
+  BlitScreen(m_swap_chain_render_pass, GetTargetRectangle(), xfb_region,
              xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
@@ -834,7 +856,8 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   OSD::DrawMessages();
 
   // End drawing to backbuffer
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+  StateTracker::GetInstance()->EndRenderPass();
+  BindEFBToStateTracker();
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.

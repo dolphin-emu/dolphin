@@ -5,7 +5,6 @@ set(SRCS
   ObjectCache.cpp
   PerfQuery.cpp
   PostProcessing.cpp
-  RasterFont.cpp
   Renderer.cpp
   ShaderCache.cpp
   ShaderCompiler.cpp

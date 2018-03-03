@@ -33,7 +33,6 @@
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/RasterFont.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/TextureCache.h"
@@ -62,8 +61,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static std::unique_ptr<RasterFont> s_raster_font;
-
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static u32 s_last_multisamples = 1;
@@ -360,7 +357,8 @@ static void InitDriverInfo()
 // Init functions
 Renderer::Renderer()
     : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
+                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)),
+                 AbstractTextureFormat::RGBA8)
 {
   bool bSuccess = true;
 
@@ -819,19 +817,11 @@ Renderer::Renderer()
 
 Renderer::~Renderer() = default;
 
-void Renderer::Shutdown()
+bool Renderer::Initialize()
 {
-  ::Renderer::Shutdown();
-  g_framebuffer_manager.reset();
+  if (!::Renderer::Initialize())
+    return false;
 
-  UpdateActiveConfig();
-
-  s_raster_font.reset();
-  m_post_processor.reset();
-}
-
-void Renderer::Init()
-{
   // Initialize the FramebufferManager
   g_framebuffer_manager = std::make_unique<FramebufferManager>(
       m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
@@ -839,7 +829,18 @@ void Renderer::Init()
   m_current_framebuffer_height = m_target_height;
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
-  s_raster_font = std::make_unique<RasterFont>();
+
+  return true;
+}
+
+void Renderer::Shutdown()
+{
+  ::Renderer::Shutdown();
+  g_framebuffer_manager.reset();
+
+  UpdateActiveConfig();
+
+  m_post_processor.reset();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -859,14 +860,6 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 {
   return OGLFramebuffer::Create(static_cast<const OGLTexture*>(color_attachment),
                                 static_cast<const OGLTexture*>(depth_attachment));
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  s_raster_font->printMultilineText(text,
-                                    left * 2.0f / static_cast<float>(m_backbuffer_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(m_backbuffer_height), 0,
-                                    m_backbuffer_width, m_backbuffer_height, color);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
@@ -1421,8 +1414,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
     // Render OSD messages.
     glViewport(0, 0, m_backbuffer_width, m_backbuffer_height);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     DrawDebugText();
     OSD::DrawMessages();
 

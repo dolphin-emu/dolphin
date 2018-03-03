@@ -32,10 +32,10 @@ enum class MessageType
 
 namespace Color
 {
-constexpr u32 CYAN = 0xFF00FFFF;
+constexpr u32 CYAN = 0xFFFFFF00;
 constexpr u32 GREEN = 0xFF00FF00;
-constexpr u32 RED = 0xFFFF0000;
-constexpr u32 YELLOW = 0xFFFFFF30;
+constexpr u32 RED = 0xFF0000FF;
+constexpr u32 YELLOW = 0xFF30FFFF;
 };
 
 namespace Duration

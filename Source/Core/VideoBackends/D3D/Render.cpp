@@ -63,7 +63,7 @@ typedef struct _Nv_Stereo_Image_Header
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : ::Renderer(backbuffer_width, backbuffer_height)
+    : ::Renderer(backbuffer_width, backbuffer_height, AbstractTextureFormat::RGBA8)
 {
   m_last_multisamples = g_ActiveConfig.iMultisamples;
   m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
@@ -242,13 +242,6 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 {
   return DXFramebuffer::Create(static_cast<const DXTexture*>(color_attachment),
                                static_cast<const DXTexture*>(depth_attachment));
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  D3D::DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f,
-                      color & 0xFF000000, text);
-  D3D::DrawTextScaled(static_cast<float>(left), static_cast<float>(top), 20.f, 0.0f, color, text);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
@@ -653,9 +646,11 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
              xfb_texture->GetConfig().width, xfb_texture->GetConfig().height, Gamma);
 
   // Reset viewport for drawing text
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
-                                      static_cast<float>(m_backbuffer_height));
+  CD3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
+                                       static_cast<float>(m_backbuffer_height));
+  CD3D11_RECT scissor(0, 0, m_backbuffer_width, m_backbuffer_height);
   D3D::context->RSSetViewports(1, &vp);
+  D3D::context->RSSetScissorRects(1, &scissor);
 
   Renderer::DrawDebugText();
 
