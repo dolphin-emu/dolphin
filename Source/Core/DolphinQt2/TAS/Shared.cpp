@@ -20,13 +20,21 @@
 QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, QSpinBox*& y_value,
                              u16 max_x, u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key)
 {
-  auto* box = new QGroupBox(name);
+  const QKeySequence x_shortcut_key_sequence = QKeySequence(Qt::ALT + x_shortcut_key);
+  const QKeySequence y_shortcut_key_sequence = QKeySequence(Qt::ALT + y_shortcut_key);
+
+  auto* box =
+      new QGroupBox(QStringLiteral("%1 (%2/%3)")
+                        .arg(name, x_shortcut_key_sequence.toString(QKeySequence::NativeText),
+                             y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   auto* x_layout = new QHBoxLayout;
-  x_value = CreateSliderValuePair(window, x_layout, max_x, x_shortcut_key, Qt::Horizontal, box);
+  x_value =
+      CreateSliderValuePair(window, x_layout, max_x, x_shortcut_key_sequence, Qt::Horizontal, box);
 
   auto* y_layout = new QVBoxLayout;
-  y_value = CreateSliderValuePair(window, y_layout, max_y, y_shortcut_key, Qt::Vertical, box);
+  y_value =
+      CreateSliderValuePair(window, y_layout, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
   y_value->setMaximumWidth(60);
 
   auto* visual = new StickWidget(window, max_x, max_y);
@@ -57,21 +65,25 @@ QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, 
 QBoxLayout* CreateSliderValuePairLayout(QDialog* window, QString name, QSpinBox*& value, u16 max,
                                         Qt::Key shortcut_key, QWidget* shortcut_widget, bool invert)
 {
-  auto* label = new QLabel(name);
+  const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT + shortcut_key);
+
+  auto* label = new QLabel(QStringLiteral("%1 (%2)").arg(
+      name, shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  value = CreateSliderValuePair(window, layout, max, shortcut_key, Qt::Horizontal, shortcut_widget,
-                                invert);
+  value = CreateSliderValuePair(window, layout, max, shortcut_key_sequence, Qt::Horizontal,
+                                shortcut_widget, invert);
 
   return layout;
 }
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
-QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max, Qt::Key shortcut_key,
-                                Qt::Orientation orientation, QWidget* shortcut_widget, bool invert)
+QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max,
+                                QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
+                                QWidget* shortcut_widget, bool invert)
 {
   auto* value = new QSpinBox();
   value->setRange(0, 99999);
@@ -89,7 +101,7 @@ QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max, Qt
   window->connect(value, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), slider,
                   &QSlider::setValue);
 
-  auto* shortcut = new QShortcut(QKeySequence(Qt::ALT + shortcut_key), shortcut_widget);
+  auto* shortcut = new QShortcut(shortcut_key_sequence, shortcut_widget);
   window->connect(shortcut, &QShortcut::activated, [value] {
     value->setFocus();
     value->selectAll();

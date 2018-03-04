@@ -17,12 +17,10 @@
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 {
   setWindowTitle(tr("GameCube TAS Input %1").arg(num + 1));
-  auto* main_stick_box =
-      CreateStickInputs(this, tr("Main Stick") + QStringLiteral(" (ALT+F/G)"), m_x_main_stick_value,
-                        m_y_main_stick_value, 255, 255, Qt::Key_F, Qt::Key_G);
-  auto* c_stick_box =
-      CreateStickInputs(this, tr("C Stick") + QStringLiteral(" (ALT+H/J)"), m_x_c_stick_value,
-                        m_y_c_stick_value, 255, 255, Qt::Key_H, Qt::Key_J);
+  auto* main_stick_box = CreateStickInputs(this, tr("Main Stick"), m_x_main_stick_value,
+                                           m_y_main_stick_value, 255, 255, Qt::Key_F, Qt::Key_G);
+  auto* c_stick_box = CreateStickInputs(this, tr("C Stick"), m_x_c_stick_value, m_y_c_stick_value,
+                                        255, 255, Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
   top_layout->addWidget(main_stick_box);
@@ -30,12 +28,10 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
   auto* triggers_box = new QGroupBox(tr("Triggers"));
 
-  auto* l_trigger_layout =
-      CreateSliderValuePairLayout(this, tr("Left") + QStringLiteral(" (ALT+N)"), m_l_trigger_value,
-                                  255, Qt::Key_N, triggers_box);
-  auto* r_trigger_layout =
-      CreateSliderValuePairLayout(this, tr("Right") + QStringLiteral(" (ALT+M)"), m_r_trigger_value,
-                                  255, Qt::Key_M, triggers_box);
+  auto* l_trigger_layout = CreateSliderValuePairLayout(this, tr("Left"), m_l_trigger_value, 255,
+                                                       Qt::Key_N, triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(this, tr("Right"), m_r_trigger_value, 255,
+                                                       Qt::Key_M, triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);

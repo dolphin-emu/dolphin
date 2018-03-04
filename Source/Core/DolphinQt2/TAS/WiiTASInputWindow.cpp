@@ -25,15 +25,21 @@
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent), m_num(num)
 {
-  m_ir_box = new QGroupBox(tr("IR") + QStringLiteral(" (ALT+F/G)"));
+  const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_F);
+  const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_G);
+
+  m_ir_box = new QGroupBox(QStringLiteral("%1 (%2/%3)")
+                               .arg(tr("IR"),
+                                    ir_x_shortcut_key_sequence.toString(QKeySequence::NativeText),
+                                    ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   auto* x_layout = new QHBoxLayout;
-  m_ir_x_value = CreateSliderValuePair(this, x_layout, ir_max_x, Qt::Key_F, Qt::Horizontal,
-                                       m_ir_box, true);
+  m_ir_x_value = CreateSliderValuePair(this, x_layout, ir_max_x, ir_x_shortcut_key_sequence,
+                                       Qt::Horizontal, m_ir_box, true);
 
   auto* y_layout = new QVBoxLayout;
-  m_ir_y_value = CreateSliderValuePair(this, y_layout, ir_max_y, Qt::Key_G, Qt::Vertical,
-                                       m_ir_box, true);
+  m_ir_y_value = CreateSliderValuePair(this, y_layout, ir_max_y, ir_y_shortcut_key_sequence,
+                                       Qt::Vertical, m_ir_box, true);
   m_ir_y_value->setMaximumWidth(60);
 
   auto* visual = new IRWidget(this);
@@ -58,17 +64,16 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   ir_layout->addLayout(visual_layout);
   m_ir_box->setLayout(ir_layout);
 
-  m_nunchuk_stick_box = CreateStickInputs(this, tr("Nunchuk Stick") + QStringLiteral(" (ALT+X/Y)"),
-                                          m_nunchuk_stick_x_value, m_nunchuk_stick_y_value, 255,
-                                          255, Qt::Key_X, Qt::Key_Y);
+  m_nunchuk_stick_box = CreateStickInputs(this, tr("Nunchuk Stick"), m_nunchuk_stick_x_value,
+                                          m_nunchuk_stick_y_value, 255, 255, Qt::Key_X, Qt::Key_Y);
 
-  m_classic_left_stick_box = CreateStickInputs(
-      this, tr("Left Stick") + QStringLiteral(" (ALT+F/G)"), m_classic_left_stick_x_value,
-      m_classic_left_stick_y_value, 63, 63, Qt::Key_F, Qt::Key_G);
+  m_classic_left_stick_box =
+      CreateStickInputs(this, tr("Left Stick"), m_classic_left_stick_x_value,
+                        m_classic_left_stick_y_value, 63, 63, Qt::Key_F, Qt::Key_G);
 
-  m_classic_right_stick_box = CreateStickInputs(
-      this, tr("Right Stick") + QStringLiteral(" (ALT+Q/W)"), m_classic_right_stick_x_value,
-      m_classic_right_stick_y_value, 31, 31, Qt::Key_Q, Qt::Key_W);
+  m_classic_right_stick_box =
+      CreateStickInputs(this, tr("Right Stick"), m_classic_right_stick_x_value,
+                        m_classic_right_stick_y_value, 31, 31, Qt::Key_Q, Qt::Key_W);
 
   // Need to enforce the same minimum width because otherwise the different lengths in the labels
   // used on the QGroupBox will cause the StickWidgets to have different sizes.
@@ -85,18 +90,15 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
   auto* remote_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("X") + QStringLiteral(" (ALT+Q)"),
-                                  m_remote_orientation_x_value, 1023, Qt::Key_Q,
+      CreateSliderValuePairLayout(this, tr("X"), m_remote_orientation_x_value, 1023, Qt::Key_Q,
                                   m_remote_orientation_box);
   auto* remote_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Y") + QStringLiteral(" (ALT+W)"),
-                                  m_remote_orientation_y_value, 1023, Qt::Key_W,
+      CreateSliderValuePairLayout(this, tr("Y"), m_remote_orientation_y_value, 1023, Qt::Key_W,
                                   m_remote_orientation_box);
   auto* remote_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Z") + QStringLiteral(" (ALT+E)"),
-                                  m_remote_orientation_z_value, 1023, Qt::Key_E,
+      CreateSliderValuePairLayout(this, tr("Z"), m_remote_orientation_z_value, 1023, Qt::Key_E,
                                   m_remote_orientation_box);
 
   auto* remote_orientation_layout = new QVBoxLayout;
@@ -109,18 +111,15 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
   auto* nunchuk_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("X") + QStringLiteral(" (ALT+I)"),
-                                  m_nunchuk_orientation_x_value, 1023, Qt::Key_I,
+      CreateSliderValuePairLayout(this, tr("X"), m_nunchuk_orientation_x_value, 1023, Qt::Key_I,
                                   m_nunchuk_orientation_box);
   auto* nunchuk_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Y") + QStringLiteral(" (ALT+O)"),
-                                  m_nunchuk_orientation_y_value, 1023, Qt::Key_O,
+      CreateSliderValuePairLayout(this, tr("Y"), m_nunchuk_orientation_y_value, 1023, Qt::Key_O,
                                   m_nunchuk_orientation_box);
   auto* nunchuk_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Z") + QStringLiteral(" (ALT+P)"),
-                                  m_nunchuk_orientation_z_value, 1023, Qt::Key_P,
+      CreateSliderValuePairLayout(this, tr("Z"), m_nunchuk_orientation_z_value, 1023, Qt::Key_P,
                                   m_nunchuk_orientation_box);
 
   auto* nunchuk_orientation_layout = new QVBoxLayout;
@@ -130,12 +129,10 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   m_nunchuk_orientation_box->setLayout(nunchuk_orientation_layout);
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
-  auto* l_trigger_layout =
-      CreateSliderValuePairLayout(this, tr("Left") + QStringLiteral(" (ALT+N)"),
-                                  m_left_trigger_value, 31, Qt::Key_N, m_triggers_box);
-  auto* r_trigger_layout =
-      CreateSliderValuePairLayout(this, tr("Right") + QStringLiteral(" (ALT+M)"),
-                                  m_right_trigger_value, 31, Qt::Key_M, m_triggers_box);
+  auto* l_trigger_layout = CreateSliderValuePairLayout(this, tr("Left"), m_left_trigger_value, 31,
+                                                       Qt::Key_N, m_triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(this, tr("Right"), m_right_trigger_value, 31,
+                                                       Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);
