@@ -93,9 +93,9 @@ QGroupBox* NewPatchDialog::CreateEntry(int index)
   auto* type_layout = new QHBoxLayout;
   auto* remove = new QPushButton(tr("Remove"));
 
-  auto* byte = new QRadioButton(tr("byte"));
-  auto* word = new QRadioButton(tr("word"));
-  auto* dword = new QRadioButton(tr("dword"));
+  auto* byte = new QRadioButton(tr("8-bit"));
+  auto* word = new QRadioButton(tr("16-bit"));
+  auto* dword = new QRadioButton(tr("32-bit"));
 
   type_layout->addWidget(byte);
   type_layout->addWidget(word);
