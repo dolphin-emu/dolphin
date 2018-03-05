@@ -173,7 +173,7 @@ ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAtt
   // check if the file already exist
   if (File::Exists(file_name))
   {
-    INFO_LOG(IOS_FILEIO, "\tresult = FS_EEXIST");
+    INFO_LOG(IOS_FS, "\tresult = FS_EEXIST");
     return ResultCode::AlreadyExists;
   }
 
@@ -181,11 +181,11 @@ ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAtt
   File::CreateFullPath(file_name);  // just to be sure
   if (!File::CreateEmptyFile(file_name))
   {
-    ERROR_LOG(IOS_FILEIO, "couldn't create new file");
+    ERROR_LOG(IOS_FS, "couldn't create new file");
     return ResultCode::Invalid;
   }
 
-  INFO_LOG(IOS_FILEIO, "\tresult = IPC_SUCCESS");
+  INFO_LOG(IOS_FS, "\tresult = IPC_SUCCESS");
   return ResultCode::Success;
 }
 
@@ -195,7 +195,7 @@ ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path,
 {
   if (!IsValidWiiPath(path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
   }
 
@@ -203,7 +203,7 @@ ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path,
 
   name += "/";
   File::CreateFullPath(name);
-  DEBUG_ASSERT_MSG(IOS_FILEIO, File::IsDirectory(name), "CREATE_DIR %s failed", name.c_str());
+  DEBUG_ASSERT_MSG(IOS_FS, File::IsDirectory(name), "CREATE_DIR %s failed", name.c_str());
 
   return ResultCode::Success;
 }
@@ -212,17 +212,17 @@ ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
 {
   if (!IsValidWiiPath(path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
   }
 
   const std::string file_name = BuildFilename(path);
   if (File::Delete(file_name))
-    INFO_LOG(IOS_FILEIO, "DeleteFile %s", file_name.c_str());
+    INFO_LOG(IOS_FS, "DeleteFile %s", file_name.c_str());
   else if (File::DeleteDirRecursively(file_name))
-    INFO_LOG(IOS_FILEIO, "DeleteDir %s", file_name.c_str());
+    INFO_LOG(IOS_FS, "DeleteDir %s", file_name.c_str());
   else
-    WARN_LOG(IOS_FILEIO, "DeleteFile %s - failed!!!", file_name.c_str());
+    WARN_LOG(IOS_FS, "DeleteFile %s - failed!!!", file_name.c_str());
 
   return ResultCode::Success;
 }
@@ -232,14 +232,14 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
 {
   if (!IsValidWiiPath(old_path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", old_path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", old_path.c_str());
     return ResultCode::Invalid;
   }
   std::string old_name = BuildFilename(old_path);
 
   if (!IsValidWiiPath(new_path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", new_path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", new_path.c_str());
     return ResultCode::Invalid;
   }
 
@@ -257,11 +257,11 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
   // finally try to rename the file
   if (File::Rename(old_name, new_name))
   {
-    INFO_LOG(IOS_FILEIO, "Rename %s to %s", old_name.c_str(), new_name.c_str());
+    INFO_LOG(IOS_FS, "Rename %s to %s", old_name.c_str(), new_name.c_str());
   }
   else
   {
-    ERROR_LOG(IOS_FILEIO, "Rename %s to %s - failed", old_name.c_str(), new_name.c_str());
+    ERROR_LOG(IOS_FS, "Rename %s to %s - failed", old_name.c_str(), new_name.c_str());
     return ResultCode::NotFound;
   }
 
@@ -272,20 +272,20 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const s
 {
   if (!IsValidWiiPath(path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
   }
 
   // the Wii uses this function to define the type (dir or file)
   const std::string dir_name(BuildFilename(path));
 
-  INFO_LOG(IOS_FILEIO, "IOCTL_READ_DIR %s", dir_name.c_str());
+  INFO_LOG(IOS_FS, "IOCTL_READ_DIR %s", dir_name.c_str());
 
   const File::FileInfo file_info(dir_name);
 
   if (!file_info.Exists())
   {
-    WARN_LOG(IOS_FILEIO, "Search not found: %s", dir_name.c_str());
+    WARN_LOG(IOS_FS, "Search not found: %s", dir_name.c_str());
     return ResultCode::NotFound;
   }
 
@@ -294,7 +294,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const s
     // It's not a directory, so error.
     // Games don't usually seem to care WHICH error they get, as long as it's <
     // Well the system menu CARES!
-    WARN_LOG(IOS_FILEIO, "\tNot a directory - return FS_EINVAL");
+    WARN_LOG(IOS_FS, "\tNot a directory - return FS_EINVAL");
     return ResultCode::Invalid;
   }
 
@@ -318,7 +318,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const s
   for (File::FSTEntry& child : entry.children)
   {
     output.emplace_back(child.virtualName);
-    INFO_LOG(IOS_FILEIO, "\tFound: %s", child.virtualName.c_str());
+    INFO_LOG(IOS_FS, "\tFound: %s", child.virtualName.c_str());
   }
   return output;
 }
@@ -332,7 +332,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
 
   if (!IsValidWiiPath(path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
   }
 
@@ -357,17 +357,17 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
   metadata.size = info.GetSize();
   if (info.IsDirectory())
   {
-    INFO_LOG(IOS_FILEIO, "GET_ATTR Directory %s - all permission flags are set", file_name.c_str());
+    INFO_LOG(IOS_FS, "GET_ATTR Directory %s - all permission flags are set", file_name.c_str());
   }
   else
   {
     if (info.Exists())
     {
-      INFO_LOG(IOS_FILEIO, "GET_ATTR %s - all permission flags are set", file_name.c_str());
+      INFO_LOG(IOS_FS, "GET_ATTR %s - all permission flags are set", file_name.c_str());
     }
     else
     {
-      INFO_LOG(IOS_FILEIO, "GET_ATTR unknown %s", file_name.c_str());
+      INFO_LOG(IOS_FS, "GET_ATTR unknown %s", file_name.c_str());
       return ResultCode::NotFound;
     }
   }
@@ -380,7 +380,7 @@ ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, 
 {
   if (!IsValidWiiPath(path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
   }
   return ResultCode::Success;
@@ -388,7 +388,7 @@ ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, 
 
 Result<NandStats> HostFileSystem::GetNandStats()
 {
-  WARN_LOG(IOS_FILEIO, "GET STATS - returning static values for now");
+  WARN_LOG(IOS_FS, "GET STATS - returning static values for now");
 
   // TODO: scrape the real amounts from somewhere...
   NandStats stats{};
@@ -407,13 +407,13 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
 {
   if (!IsValidWiiPath(wii_path))
   {
-    WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
+    WARN_LOG(IOS_FS, "Not a valid path: %s", wii_path.c_str());
     return ResultCode::Invalid;
   }
 
   DirectoryStats stats{};
   std::string path(BuildFilename(wii_path));
-  INFO_LOG(IOS_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
+  INFO_LOG(IOS_FS, "IOCTL_GETUSAGE %s", path.c_str());
   if (File::IsDirectory(path))
   {
     File::FSTEntry parent_dir = File::ScanDirectoryTree(path, true);
@@ -424,11 +424,11 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
 
     stats.used_clusters = (u32)(total_size / (16 * 1024));  // one block is 16kb
 
-    INFO_LOG(IOS_FILEIO, "fsBlock: %i, inodes: %i", stats.used_clusters, stats.used_inodes);
+    INFO_LOG(IOS_FS, "fsBlock: %i, inodes: %i", stats.used_clusters, stats.used_inodes);
   }
   else
   {
-    WARN_LOG(IOS_FILEIO, "fsBlock failed, cannot find directory: %s", path.c_str());
+    WARN_LOG(IOS_FS, "fsBlock failed, cannot find directory: %s", path.c_str());
   }
   return stats;
 }
