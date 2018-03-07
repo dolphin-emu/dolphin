@@ -61,4 +61,29 @@ void FileSystem::Init()
   if (Delete(0, 0, "/tmp") == ResultCode::Success)
     CreateDirectory(0, 0, "/tmp", 0, Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite);
 }
+
+ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
+                                      FileAttribute attribute, Mode owner, Mode group, Mode other)
+{
+  std::string::size_type position = 1;
+  while (true)
+  {
+    position = path.find('/', position);
+    if (position == std::string::npos)
+      return ResultCode::Success;
+
+    const std::string subpath = path.substr(0, position);
+    const Result<Metadata> metadata = GetMetadata(uid, gid, subpath);
+    if (!metadata && metadata.Error() != ResultCode::NotFound)
+      return metadata.Error();
+    if (metadata && metadata->is_file)
+      return ResultCode::Invalid;
+
+    const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, owner, group, other);
+    if (result != ResultCode::Success && result != ResultCode::AlreadyExists)
+      return result;
+
+    ++position;
+  }
+}
 }  // namespace IOS::HLE::FS
