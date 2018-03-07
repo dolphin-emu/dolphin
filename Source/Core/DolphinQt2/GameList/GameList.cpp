@@ -109,13 +109,13 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Interactive);
+  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
 
   m_list->verticalHeader()->hide();
   m_list->setFrameStyle(QFrame::NoFrame);
