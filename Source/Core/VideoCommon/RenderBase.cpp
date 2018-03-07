@@ -43,6 +43,9 @@
 #include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractPipeline.h"
+#include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
@@ -52,9 +55,12 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/RasterFont.h"
+#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -76,8 +82,10 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height)
+Renderer::Renderer(int backbuffer_width, int backbuffer_height,
+                   AbstractTextureFormat backbuffer_format)
+    : m_backbuffer_width(backbuffer_width), m_backbuffer_height(backbuffer_height),
+      m_backbuffer_format(backbuffer_format)
 {
   UpdateActiveConfig();
   UpdateDrawRectangle();
@@ -91,15 +99,32 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 
   m_surface_handle = Host_GetRenderHandle();
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
+  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
 }
 
 Renderer::~Renderer() = default;
+
+bool Renderer::Initialize()
+{
+  if (m_backbuffer_format != AbstractTextureFormat::Undefined)
+  {
+    m_raster_font = std::make_unique<VideoCommon::RasterFont>();
+    if (!m_raster_font->Initialize(m_backbuffer_format))
+    {
+      PanicAlert("Failed to create raster font for OSD.");
+      return false;
+    }
+  }
+
+  return true;
+}
 
 void Renderer::Shutdown()
 {
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
+  m_raster_font.reset();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
@@ -233,11 +258,20 @@ void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_complet
 bool Renderer::CheckForHostConfigChanges()
 {
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
-  if (new_host_config.bits == m_last_host_config_bits)
+  if (new_host_config.bits == m_last_host_config_bits &&
+      m_last_efb_multisamples == g_ActiveConfig.iMultisamples)
+  {
     return false;
+  }
 
-  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
   m_last_host_config_bits = new_host_config.bits;
+  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
+
+  // Reload shaders.
+  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+  SetPipeline(nullptr);
+  g_vertex_manager->InvalidatePipelineObject();
+  g_shader_cache->SetHostConfig(new_host_config, g_ActiveConfig.iMultisamples);
   return true;
 }
 
@@ -371,8 +405,31 @@ void Renderer::DrawDebugText()
     final_cyan += Statistics::ToStringProj();
 
   // and then the text
-  RenderText(final_cyan, 20, 20, 0xFF00FFFF);
-  RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+  RenderText(final_cyan, 20, 20, OSD::Color::CYAN);
+  RenderText(final_yellow, 20, 20, OSD::Color::YELLOW);
+}
+
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
+{
+  u32 target_width, target_height;
+  AbstractTextureFormat target_format;
+  if (m_current_framebuffer)
+  {
+    target_width = m_current_framebuffer->GetWidth();
+    target_height = m_current_framebuffer->GetHeight();
+    target_format = m_current_framebuffer->GetColorFormat();
+  }
+  else
+  {
+    target_width = m_backbuffer_width;
+    target_height = m_backbuffer_height;
+    target_format = m_backbuffer_format;
+  }
+  if (!m_raster_font || !m_raster_font->SetFramebufferFormat(target_format))
+    return;
+
+  m_raster_font->RenderText(text, static_cast<float>(left), static_cast<float>(top), color,
+                            target_width, target_height, true);
 }
 
 float Renderer::CalculateDrawAspectRatio() const
@@ -665,6 +722,11 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
       m_last_xfb_region = xfb_rect;
 
+      // Since we use the common pipelines here and draw vertices if a batch is currently being
+      // built by the vertex loader, we end up trampling over its pointer, as we share the buffer
+      // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
+      g_vertex_manager->Flush();
+
       // TODO: merge more generic parts into VideoCommon
       {
         std::lock_guard<std::mutex> guard(m_swap_mutex);
@@ -687,6 +749,13 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // Set default viewport and scissor, for the clear to work correctly
       // New frame
       stats.ResetFrame();
+      g_shader_cache->RetrieveAsyncShaders();
+
+      // We invalidate the pipeline object at the start of the frame.
+      // This is for the rare case where only a single pipeline configuration is used,
+      // and hybrid ubershaders have compiled the specialized shader, but without any
+      // state changes the specialized shader will not take over.
+      g_vertex_manager->InvalidatePipelineObject();
 
       Core::Callback_VideoCopiedToXFB(true);
     }
@@ -739,7 +808,7 @@ void Renderer::RenderFrameDump()
       m_frame_dump_render_texture->GetConfig().height == static_cast<u32>(target_height))
   {
     // Recreate texture objects. Release before creating so we don't temporarily use twice the RAM.
-    TextureConfig config(target_width, target_height, 1, 1, AbstractTextureFormat::RGBA8, true);
+    TextureConfig config(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, true);
     m_frame_dump_render_texture.reset();
     m_frame_dump_render_texture = CreateTexture(config);
     _assert_(m_frame_dump_render_texture);
@@ -1007,4 +1076,9 @@ bool Renderer::UseVertexDepthRange() const
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<VideoCommon::AsyncShaderCompiler>();
 }

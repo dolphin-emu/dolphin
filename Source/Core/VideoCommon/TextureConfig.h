@@ -18,6 +18,11 @@ enum class AbstractTextureFormat : u32
   DXT3,
   DXT5,
   BPTC,
+  R16,
+  D16,
+  R32F,
+  D32F,
+  D32F_S8,
   Undefined
 };
 
@@ -31,10 +36,10 @@ enum class StagingTextureType
 struct TextureConfig
 {
   constexpr TextureConfig() = default;
-  constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_,
+  constexpr TextureConfig(u32 width_, u32 height_, u32 levels_, u32 layers_, u32 samples_,
                           AbstractTextureFormat format_, bool rendertarget_)
-      : width(width_), height(height_), levels(levels_), layers(layers_), format(format_),
-        rendertarget(rendertarget_)
+      : width(width_), height(height_), levels(levels_), layers(layers_), samples(samples_),
+        format(format_), rendertarget(rendertarget_)
   {
   }
 
@@ -44,11 +49,13 @@ struct TextureConfig
   MathUtil::Rectangle<int> GetMipRect(u32 level) const;
   size_t GetStride() const;
   size_t GetMipStride(u32 level) const;
+  bool IsMultisampled() const;
 
   u32 width = 0;
   u32 height = 0;
   u32 levels = 1;
   u32 layers = 1;
+  u32 samples = 1;
   AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
   bool rendertarget = false;
 };

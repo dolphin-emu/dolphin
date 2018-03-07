@@ -24,7 +24,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 SWRenderer::SWRenderer()
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT))
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT),
+                 AbstractTextureFormat::RGBA8)
 {
 }
 
@@ -39,9 +40,12 @@ SWRenderer::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
   return std::make_unique<SW::SWStagingTexture>(type, config);
 }
 
-void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
+std::unique_ptr<AbstractFramebuffer>
+SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                              const AbstractTexture* depth_attachment)
 {
-  SWOGLWindow::s_instance->PrintText(pstr, left, top, color);
+  return SW::SWFramebuffer::Create(static_cast<const SW::SWTexture*>(color_attachment),
+                                   static_cast<const SW::SWTexture*>(depth_attachment));
 }
 
 class SWShader final : public AbstractShader

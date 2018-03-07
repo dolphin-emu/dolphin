@@ -87,6 +87,8 @@ void GeneralWidget::CreateWidgets()
   m_keep_window_top = new QCheckBox(tr("Keep Window on Top"));
   m_hide_cursor = new QCheckBox(tr("Hide Mouse Cursor"));
   m_render_main_window = new QCheckBox(tr("Render to Main Window"));
+  m_wait_for_shaders =
+      new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
 
   m_options_box->setLayout(m_options_layout);
 
@@ -101,6 +103,7 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_hide_cursor, 3, 0);
   m_options_layout->addWidget(m_render_main_window, 3, 1);
+  m_options_layout->addWidget(m_wait_for_shaders, 4, 0);
 
   main_layout->addWidget(m_video_box);
   main_layout->addWidget(m_options_box);

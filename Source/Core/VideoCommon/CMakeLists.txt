@@ -1,4 +1,5 @@
 set(SRCS
+  AbstractFramebuffer.cpp
   AbstractStagingTexture.cpp
   AbstractTexture.cpp
   AsyncRequests.cpp
@@ -29,8 +30,10 @@ set(SRCS
   PixelShaderGen.cpp
   PixelShaderManager.cpp
   PostProcessing.cpp
+  RasterFont.cpp
   RenderBase.cpp
   RenderState.cpp
+  ShaderCache.cpp
   ShaderGenCommon.cpp
   Statistics.cpp
   UberShaderCommon.cpp
@@ -81,4 +84,9 @@ if(FFmpeg_FOUND)
     FFmpeg::avutil
     FFmpeg::swscale
   )
+endif()
+
+# VideoBackendBase.cpp needs to know if the Metal backend is being compiled or not.
+if(ENABLE_METAL)
+  target_compile_definitions(videocommon PRIVATE "HAS_METAL_BACKEND=1")
 endif()

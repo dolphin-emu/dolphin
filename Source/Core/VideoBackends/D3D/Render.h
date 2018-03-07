@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <d3d11.h>
 #include <string>
 #include "VideoBackends/D3D/D3DState.h"
@@ -31,12 +30,17 @@ public:
   std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
                                                          size_t length) override;
   std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
+  std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(const AbstractTexture* color_attachment,
+                    const AbstractTexture* depth_attachment) override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
-  void SetBlendingState(const BlendingState& state) override;
+  void SetFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                              const ClearColor& color_value = {},
+                              float depth_value = 0.0f) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
@@ -45,12 +49,6 @@ public:
                    float far_depth) override;
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
-
-  // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-  void ApplyState() override;
-  void RestoreState() override;
-
-  void RenderText(const std::string& text, int left, int top, u32 color) override;
 
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
@@ -76,14 +74,6 @@ public:
                              u32 groups_x, u32 groups_y, u32 groups_z) override;
 
 private:
-  struct GXPipelineState
-  {
-    std::array<SamplerState, 8> samplers;
-    BlendingState blend;
-    DepthState zmode;
-    RasterizationState raster;
-  };
-
   void SetupDeviceObjects();
   void TeardownDeviceObjects();
   void Create3DVisionTexture(int width, int height);
@@ -98,7 +88,6 @@ private:
   void UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices);
 
   StateCache m_state_cache;
-  GXPipelineState m_gx_state;
 
   std::array<ID3D11BlendState*, 4> m_clear_blend_states{};
   std::array<ID3D11DepthStencilState*, 3> m_clear_depth_states{};

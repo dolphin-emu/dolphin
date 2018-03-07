@@ -33,7 +33,6 @@
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/RasterFont.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/TextureCache.h"
@@ -62,8 +61,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static std::unique_ptr<RasterFont> s_raster_font;
-
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static u32 s_last_multisamples = 1;
@@ -81,8 +78,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                   GLsizei length, const char* message, const void* userParam)
+void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                            const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;
@@ -360,7 +357,8 @@ static void InitDriverInfo()
 // Init functions
 Renderer::Renderer()
     : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
+                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)),
+                 AbstractTextureFormat::RGBA8)
 {
   bool bSuccess = true;
 
@@ -677,6 +675,14 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsPaletteConversion &&
       g_Config.backend_info.bSupportsComputeShaders && g_ogl_config.bSupportsImageLoadStore;
 
+  // The GPU shader code appears to be context-specific on Mesa/i965.
+  // This means that if we compiled the ubershaders asynchronously, they will be recompiled
+  // on the main thread the first time they are used, causing stutter. Nouveau has been
+  // reported to crash if draw calls are invoked on the shared context threads. For now,
+  // disable asynchronous compilation on Mesa.
+  g_Config.backend_info.bSupportsBackgroundCompiling =
+      !DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
+
   if (g_ogl_config.bSupportsDebug)
   {
     if (GLExtensions::Supports("GL_KHR_debug"))
@@ -811,6 +817,22 @@ Renderer::Renderer()
 
 Renderer::~Renderer() = default;
 
+bool Renderer::Initialize()
+{
+  if (!::Renderer::Initialize())
+    return false;
+
+  // Initialize the FramebufferManager
+  g_framebuffer_manager = std::make_unique<FramebufferManager>(
+      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
+  m_current_framebuffer_width = m_target_width;
+  m_current_framebuffer_height = m_target_height;
+
+  m_post_processor = std::make_unique<OpenGLPostProcessing>();
+
+  return true;
+}
+
 void Renderer::Shutdown()
 {
   ::Renderer::Shutdown();
@@ -818,18 +840,7 @@ void Renderer::Shutdown()
 
   UpdateActiveConfig();
 
-  s_raster_font.reset();
   m_post_processor.reset();
-}
-
-void Renderer::Init()
-{
-  // Initialize the FramebufferManager
-  g_framebuffer_manager = std::make_unique<FramebufferManager>(
-      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
-
-  m_post_processor = std::make_unique<OpenGLPostProcessing>();
-  s_raster_font = std::make_unique<RasterFont>();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -843,12 +854,12 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
   return OGLStagingTexture::Create(type, config);
 }
 
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                            const AbstractTexture* depth_attachment)
 {
-  s_raster_font->printMultilineText(text,
-                                    left * 2.0f / static_cast<float>(m_backbuffer_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(m_backbuffer_height), 0,
-                                    m_backbuffer_width, m_backbuffer_height, color);
+  return OGLFramebuffer::Create(static_cast<const OGLTexture*>(color_attachment),
+                                static_cast<const OGLTexture*>(depth_attachment));
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
@@ -1145,7 +1156,7 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
 {
   // The x/y parameters here assume a upper-left origin. glViewport takes an offset from the
   // lower-left of the framebuffer, so we must set y to the distance from the lower-left.
-  y = static_cast<float>(m_target_height) - y - height;
+  y = static_cast<float>(m_current_framebuffer_height) - y - height;
   if (g_ogl_config.bSupportViewportFloat)
   {
     glViewportIndexedf(0, x, y, width, height);
@@ -1238,8 +1249,49 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   }
 }
 
-void Renderer::ApplyBlendingState(const BlendingState& state)
+void Renderer::SetFramebuffer(const AbstractFramebuffer* framebuffer)
 {
+  glBindFramebuffer(GL_FRAMEBUFFER, static_cast<const OGLFramebuffer*>(framebuffer)->GetFBO());
+  m_current_framebuffer = framebuffer;
+  m_current_framebuffer_width = framebuffer->GetWidth();
+  m_current_framebuffer_height = framebuffer->GetHeight();
+}
+
+void Renderer::SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer)
+{
+  // EXT_discard_framebuffer could be used here to save bandwidth on tilers.
+  SetFramebuffer(framebuffer);
+}
+
+void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value, float depth_value)
+{
+  SetFramebuffer(framebuffer);
+
+  // NOTE: This disturbs the current scissor/mask setting.
+  // This won't be an issue when we implement proper state tracking.
+  glDisable(GL_SCISSOR_TEST);
+  GLbitfield clear_mask = 0;
+  if (framebuffer->HasColorBuffer())
+  {
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glClearColor(color_value[0], color_value[1], color_value[2], color_value[3]);
+    clear_mask |= GL_COLOR_BUFFER_BIT;
+  }
+  if (framebuffer->HasDepthBuffer())
+  {
+    glDepthMask(GL_TRUE);
+    glClearDepth(depth_value);
+    clear_mask |= GL_DEPTH_BUFFER_BIT;
+  }
+  glClear(clear_mask);
+}
+
+void Renderer::ApplyBlendingState(const BlendingState state, bool force)
+{
+  if (!force && m_current_blend_state == state)
+    return;
+
   bool useDualSource =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
@@ -1312,6 +1364,7 @@ void Renderer::ApplyBlendingState(const BlendingState& state)
   }
 
   glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
+  m_current_blend_state = state;
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -1351,6 +1404,9 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    m_current_framebuffer = nullptr;
+    m_current_framebuffer_width = m_backbuffer_width;
+    m_current_framebuffer_height = m_backbuffer_height;
 
     // Copy the framebuffer to screen.
     BlitScreen(sourceRc, flipped_trc, xfb_texture->GetRawTexIdentifier(),
@@ -1358,8 +1414,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
     // Render OSD messages.
     glViewport(0, 0, m_backbuffer_width, m_backbuffer_height);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     DrawDebugText();
     OSD::DrawMessages();
 
@@ -1414,10 +1468,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
   g_texture_cache->Cleanup(frameCount);
-  ProgramShaderCache::RetrieveAsyncShaders();
-
-  // Render to the framebuffer.
-  FramebufferManager::SetFramebuffer(0);
 
   RestoreAPIState();
 
@@ -1431,8 +1481,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_sampler_cache->Clear();
 
   // Invalidate shader cache when the host config changes.
-  if (CheckForHostConfigChanges())
-    ProgramShaderCache::Reload();
+  CheckForHostConfigChanges();
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();
@@ -1499,6 +1548,11 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = m_target_width;
+  m_current_framebuffer_height = m_target_height;
+  FramebufferManager::SetFramebuffer(0);
+
   // Gets us back into a more game-like state.
   glEnable(GL_SCISSOR_TEST);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
@@ -1506,15 +1560,19 @@ void Renderer::RestoreAPIState()
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
   }
-  BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
   BPFunctions::SetViewport();
-  BPFunctions::SetDepthMode();
-  BPFunctions::SetBlendMode();
+
+  ApplyRasterizationState(m_current_rasterization_state, true);
+  ApplyDepthState(m_current_depth_state, true);
+  ApplyBlendingState(m_current_blend_state, true);
 }
 
-void Renderer::ApplyRasterizationState(const RasterizationState& state)
+void Renderer::ApplyRasterizationState(const RasterizationState state, bool force)
 {
+  if (!force && m_current_rasterization_state == state)
+    return;
+
   // none, ccw, cw, ccw
   if (state.cullmode != GenMode::CULL_NONE)
   {
@@ -1526,10 +1584,15 @@ void Renderer::ApplyRasterizationState(const RasterizationState& state)
   {
     glDisable(GL_CULL_FACE);
   }
+
+  m_current_rasterization_state = state;
 }
 
-void Renderer::ApplyDepthState(const DepthState& state)
+void Renderer::ApplyDepthState(const DepthState state, bool force)
 {
+  if (!force && m_current_depth_state == state)
+    return;
+
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
@@ -1547,21 +1610,8 @@ void Renderer::ApplyDepthState(const DepthState& state)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
-}
 
-void Renderer::SetRasterizationState(const RasterizationState& state)
-{
-  ApplyRasterizationState(state);
-}
-
-void Renderer::SetDepthState(const DepthState& state)
-{
-  ApplyDepthState(state);
-}
-
-void Renderer::SetBlendingState(const BlendingState& state)
-{
-  ApplyBlendingState(state);
+  m_current_depth_state = state;
 }
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
@@ -1569,6 +1619,9 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   // Not all shader changes currently go through SetPipeline, so we can't
   // test if the pipeline hasn't changed and skip these applications. Yet.
   m_graphics_pipeline = static_cast<const OGLPipeline*>(pipeline);
+  if (!m_graphics_pipeline)
+    return;
+
   ApplyRasterizationState(m_graphics_pipeline->GetRasterizationState());
   ApplyDepthState(m_graphics_pipeline->GetDepthState());
   ApplyBlendingState(m_graphics_pipeline->GetBlendingState());
@@ -1655,5 +1708,10 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
 
   glDispatchCompute(groups_x, groups_y, groups_z);
   ProgramShaderCache::InvalidateLastProgram();
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
 }

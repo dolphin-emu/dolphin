@@ -223,6 +223,7 @@ bool VideoBackend::Initialize(void* window_handle)
   g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
   g_vertex_manager = std::make_unique<VertexManager>();
   g_texture_cache = std::make_unique<TextureCache>();
+  ::g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   g_perf_query = std::make_unique<PerfQuery>();
 
   // Invoke init methods on main wrapper classes.
@@ -230,20 +231,13 @@ bool VideoBackend::Initialize(void* window_handle)
   // for the remaining classes may call methods on these.
   if (!StateTracker::CreateInstance() || !FramebufferManager::GetInstance()->Initialize() ||
       !Renderer::GetInstance()->Initialize() || !VertexManager::GetInstance()->Initialize() ||
-      !TextureCache::GetInstance()->Initialize() || !PerfQuery::GetInstance()->Initialize())
+      !TextureCache::GetInstance()->Initialize() || !PerfQuery::GetInstance()->Initialize() ||
+      !::g_shader_cache->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
     Shutdown();
     return false;
   }
-
-  // Ensure all pipelines previously used by the game have been created.
-  StateTracker::GetInstance()->ReloadPipelineUIDCache();
-
-  // Lastly, precompile ubershaders, if requested.
-  // This has to be done after the texture cache and shader cache are initialized.
-  if (g_ActiveConfig.CanPrecompileUberShaders())
-    g_shader_cache->PrecompileUberShaders();
 
   // Display the name so the user knows which device was actually created.
   INFO_LOG(VIDEO, "Vulkan Device: %s", g_vulkan_context->GetDeviceProperties().deviceName);
@@ -252,13 +246,14 @@ bool VideoBackend::Initialize(void* window_handle)
 
 void VideoBackend::Shutdown()
 {
+  if (::g_shader_cache)
+    ::g_shader_cache->Shutdown();
+
   if (g_renderer)
     g_renderer->Shutdown();
 
-  if (g_command_buffer_mgr)
-    g_command_buffer_mgr->WaitForGPUIdle();
-
   g_perf_query.reset();
+  ::g_shader_cache.reset();
   g_texture_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();

@@ -89,7 +89,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan || api_type == APIType::Metal)
     out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
   else
     out.Write("cbuffer VSBlock {\n");
@@ -101,7 +101,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, per_pixel_lighting, "");
   out.Write("};\n");
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan || api_type == APIType::Metal)
   {
     out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
@@ -129,7 +129,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
 
     // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
-    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan ||
+        api_type == APIType::Metal)
     {
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, per_pixel_lighting,
@@ -483,9 +484,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("}\n");
   }
 
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan || api_type == APIType::Metal)
   {
-    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders || api_type == APIType::Vulkan ||
+        api_type == APIType::Metal)
     {
       AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, per_pixel_lighting);
     }

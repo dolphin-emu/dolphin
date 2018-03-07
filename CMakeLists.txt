@@ -7,7 +7,7 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # This is inserted into the Info.plist as well.
 # Note that the SDK determines the maximum version of which optional
 # features can be used, not the minimum required version to run.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
 
 project(dolphin-emu)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
@@ -22,6 +22,15 @@ option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
+
+# The Metal backend will not build on any platform other than macOS.
+# As it is still experimental, we support building without it.
+if(APPLE)
+  set(ENABLE_METAL_DEFAULT ON)
+else()
+  set(ENABLE_METAL_DEFAULT OFF)
+endif()
+option(ENABLE_METAL "Enable experimental Metal graphics backend" ${ENABLE_METAL_DEFAULT})
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -549,7 +558,12 @@ endif()
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
 
-add_subdirectory(Externals/glslang)
+add_subdirectory(Externals/glslang EXCLUDE_FROM_ALL)
+add_subdirectory(Externals/spirv-cross EXCLUDE_FROM_ALL)
+
+if(ENABLE_METAL)
+  add_subdirectory(Externals/mtlpp EXCLUDE_FROM_ALL)
+endif()
 
 add_subdirectory(Externals/pugixml)
 

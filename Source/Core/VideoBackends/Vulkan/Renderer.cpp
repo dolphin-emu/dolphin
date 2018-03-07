@@ -21,7 +21,6 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PostProcessing.h"
-#include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -49,7 +48,8 @@ namespace Vulkan
 {
 Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
-                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0,
+                 swap_chain ? swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined),
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
@@ -57,13 +57,7 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
 }
 
-Renderer::~Renderer()
-{
-  UpdateActiveConfig();
-
-  DestroyShaders();
-  DestroySemaphores();
-}
+Renderer::~Renderer() = default;
 
 Renderer* Renderer::GetInstance()
 {
@@ -72,6 +66,9 @@ Renderer* Renderer::GetInstance()
 
 bool Renderer::Initialize()
 {
+  if (!::Renderer::Initialize())
+    return false;
+
   BindEFBToStateTracker();
 
   if (!CreateSemaphores())
@@ -86,11 +83,38 @@ bool Renderer::Initialize()
     return false;
   }
 
-  m_raster_font = std::make_unique<RasterFont>();
-  if (!m_raster_font->Initialize())
+  // Swap chain render pass.
+  if (m_swap_chain)
   {
-    PanicAlert("Failed to initialize raster font.");
-    return false;
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
+  }
+
+  // Swap chain render pass.
+  if (m_swap_chain)
+  {
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
   }
 
   m_bounding_box = std::make_unique<BoundingBox>();
@@ -110,8 +134,7 @@ bool Renderer::Initialize()
 
   // Initialize post processing.
   m_post_processor = std::make_unique<VulkanPostProcessing>();
-  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())
-           ->Initialize(m_raster_font->GetTexture()))
+  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())->Initialize())
   {
     PanicAlert("failed to initialize post processor.");
     return false;
@@ -124,6 +147,18 @@ bool Renderer::Initialize()
   BeginFrame();
 
   return true;
+}
+
+void Renderer::Shutdown()
+{
+  ::Renderer::Shutdown();
+
+  // Submit the current command buffer, in case there's a partial frame.
+  StateTracker::GetInstance()->EndRenderPass();
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+
+  DestroyShaders();
+  DestroySemaphores();
 }
 
 bool Renderer::CreateSemaphores()
@@ -192,6 +227,14 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return VKPipeline::Create(config);
 }
 
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                            const AbstractTexture* depth_attachment)
+{
+  return VKFramebuffer::Create(static_cast<const VKTexture*>(color_attachment),
+                               static_cast<const VKTexture*>(depth_attachment));
+}
+
 std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* uniforms,
                                                                u32 uniforms_size)
 {
@@ -216,7 +259,7 @@ std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* unifo
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
-  m_graphics_pipeline = static_cast<const VKPipeline*>(pipeline);
+  StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
 void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
@@ -297,7 +340,7 @@ void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, cons
   // Build commands.
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    m_graphics_pipeline->GetPipeline());
+                    StateTracker::GetInstance()->GetPipeline()->GetVkPipeline());
   if (vertex_buffer != VK_NULL_HANDLE)
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &vertex_buffer_offset);
 
@@ -371,17 +414,6 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
   vkCmdDispatch(command_buffer, groups_x, groups_y, groups_z);
 }
 
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  u32 backbuffer_width = m_swap_chain->GetWidth();
-  u32 backbuffer_height = m_swap_chain->GetHeight();
-
-  m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(), text,
-                                    left * 2.0f / static_cast<float>(backbuffer_width) - 1,
-                                    1 - top * 2.0f / static_cast<float>(backbuffer_height),
-                                    backbuffer_width, backbuffer_height, color);
-}
-
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
   if (type == EFBAccessType::PeekColor)
@@ -423,9 +455,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   else  // if (type == EFBAccessType::PeekZ)
   {
     // Depth buffer is inverted for improved precision near far plane
-    float depth = 1.0f - FramebufferManager::GetInstance()->PeekEFBDepth(x, y);
-    u32 ret = 0;
+    float depth = FramebufferManager::GetInstance()->PeekEFBDepth(x, y);
+    if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      depth = 1.0f - depth;
 
+    u32 ret = 0;
     if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
     {
       // if Z is in 16 bit format you must return a 16 bit integer
@@ -460,7 +494,10 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     {
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
-      float depth = (1.0f - float(point.data & 0xFFFFFF) / 16777216.0f);
+      float depth = float(point.data & 0xFFFFFF) / 16777216.0f;
+      if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+        depth = 1.0f - depth;
+
       FramebufferManager::GetInstance()->PokeEFBDepth(point.x, point.y, depth);
     }
   }
@@ -568,7 +605,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
   clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
   clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-  clear_depth_value.depthStencil.depth = (1.0f - (static_cast<float>(z & 0xFFFFFF) / 16777216.0f));
+  clear_depth_value.depthStencil.depth = static_cast<float>(z & 0xFFFFFF) / 16777216.0f;
+  if (!g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    clear_depth_value.depthStencil.depth = 1.0f - clear_depth_value.depthStencil.depth;
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.
@@ -593,8 +632,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // Fastest path: Use a render pass to clear the buffers.
   if (use_clear_render_pass)
   {
-    VkClearValue clear_values[2] = {clear_color_value, clear_depth_value};
-    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values);
+    const std::array<VkClearValue, 2> clear_values = {{clear_color_value, clear_depth_value}};
+    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values.data(),
+                                                      static_cast<u32>(clear_values.size()));
     return;
   }
 
@@ -743,15 +783,13 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
   FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  RestoreAPIState();
 
   // Determine what (if anything) has changed in the config.
   CheckForConfigChanges();
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
-
-  // Pull in now-ready async shaders.
-  g_shader_cache->RetrieveAsyncShaders();
 }
 
 void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
@@ -792,21 +830,22 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   backbuffer->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
   backbuffer->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = backbuffer->GetWidth();
+  m_current_framebuffer_height = backbuffer->GetHeight();
+
+  // Draw to the backbuffer.
+  VkRect2D region = {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}};
+  StateTracker::GetInstance()->SetRenderPass(m_swap_chain_render_pass,
+                                             m_swap_chain_clear_render_pass);
+  StateTracker::GetInstance()->SetFramebuffer(m_swap_chain->GetCurrentFramebuffer(), region);
 
   // Begin render pass for rendering to the swap chain.
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-  VkRenderPassBeginInfo info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                nullptr,
-                                m_swap_chain->GetRenderPass(),
-                                m_swap_chain->GetCurrentFramebuffer(),
-                                {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}},
-                                1,
-                                &clear_value};
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
-                       VK_SUBPASS_CONTENTS_INLINE);
+  StateTracker::GetInstance()->BeginClearRenderPass(region, &clear_value, 1);
 
   // Draw
-  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
+  BlitScreen(m_swap_chain_render_pass, GetTargetRectangle(), xfb_region,
              xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
@@ -817,7 +856,8 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   OSD::DrawMessages();
 
   // End drawing to backbuffer
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+  StateTracker::GetInstance()->EndRenderPass();
+  BindEFBToStateTracker();
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.
@@ -962,10 +1002,8 @@ void Renderer::CheckForConfigChanges()
     RecreateEFBFramebuffer();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
-    g_shader_cache->ReloadShaderAndPipelineCaches();
+    g_shader_cache->ReloadPipelineCache();
     g_shader_cache->RecompileSharedShaders();
-    StateTracker::GetInstance()->InvalidateShaderPointers();
-    StateTracker::GetInstance()->ReloadPipelineUIDCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1008,8 +1046,9 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(
       FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
-  StateTracker::GetInstance()->SetMultisamplingstate(
-      FramebufferManager::GetInstance()->GetEFBMultisamplingState());
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = FramebufferManager::GetInstance()->GetEFBWidth();
+  m_current_framebuffer_height = FramebufferManager::GetInstance()->GetEFBHeight();
 }
 
 void Renderer::RecreateEFBFramebuffer()
@@ -1036,23 +1075,77 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
+  StateTracker::GetInstance()->EndRenderPass();
+  if (m_current_framebuffer)
+    static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
+
+  BindEFBToStateTracker();
+
   // Instruct the state tracker to re-bind everything before the next draw
   StateTracker::GetInstance()->SetPendingRebind();
 }
 
-void Renderer::SetRasterizationState(const RasterizationState& state)
+void Renderer::BindFramebuffer(const VKFramebuffer* fb)
 {
-  StateTracker::GetInstance()->SetRasterizationState(state);
+  const VkRect2D render_area = {static_cast<int>(fb->GetWidth()),
+                                static_cast<int>(fb->GetHeight())};
+
+  StateTracker::GetInstance()->EndRenderPass();
+  if (m_current_framebuffer)
+    static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
+
+  fb->TransitionForRender();
+  StateTracker::GetInstance()->SetFramebuffer(fb->GetFB(), render_area);
+  StateTracker::GetInstance()->SetRenderPass(fb->GetLoadRenderPass(), fb->GetClearRenderPass());
+  m_current_framebuffer = fb;
+  m_current_framebuffer_width = fb->GetWidth();
+  m_current_framebuffer_height = fb->GetHeight();
 }
 
-void Renderer::SetDepthState(const DepthState& state)
+void Renderer::SetFramebuffer(const AbstractFramebuffer* framebuffer)
 {
-  StateTracker::GetInstance()->SetDepthState(state);
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+  StateTracker::GetInstance()->BeginRenderPass();
 }
 
-void Renderer::SetBlendingState(const BlendingState& state)
+void Renderer::SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer)
 {
-  StateTracker::GetInstance()->SetBlendState(state);
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+
+  // If we're discarding, begin the discard pass, then switch to a load pass.
+  // This way if the command buffer is flushed, we don't start another discard pass.
+  StateTracker::GetInstance()->SetRenderPass(vkfb->GetDiscardRenderPass(),
+                                             vkfb->GetClearRenderPass());
+  StateTracker::GetInstance()->BeginRenderPass();
+  StateTracker::GetInstance()->SetRenderPass(vkfb->GetLoadRenderPass(), vkfb->GetClearRenderPass());
+}
+
+void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value, float depth_value)
+{
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+
+  const VkRect2D render_area = {static_cast<int>(vkfb->GetWidth()),
+                                static_cast<int>(vkfb->GetHeight())};
+  std::array<VkClearValue, 2> clear_values;
+  u32 num_clear_values = 0;
+  if (vkfb->GetColorFormat() != AbstractTextureFormat::Undefined)
+  {
+    std::memcpy(clear_values[num_clear_values].color.float32, color_value.data(),
+                sizeof(clear_values[num_clear_values].color.float32));
+    num_clear_values++;
+  }
+  if (vkfb->GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    clear_values[num_clear_values].depthStencil.depth = depth_value;
+    clear_values[num_clear_values].depthStencil.stencil = 0;
+    num_clear_values++;
+  }
+  StateTracker::GetInstance()->BeginClearRenderPass(render_area, clear_values.data(),
+                                                    num_clear_values);
 }
 
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)

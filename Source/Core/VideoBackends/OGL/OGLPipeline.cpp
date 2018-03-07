@@ -46,10 +46,11 @@ OGLPipeline::~OGLPipeline()
 
 std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& config)
 {
-  const PipelineProgram* program =
-      ProgramShaderCache::GetPipelineProgram(static_cast<const OGLShader*>(config.vertex_shader),
-                                             static_cast<const OGLShader*>(config.geometry_shader),
-                                             static_cast<const OGLShader*>(config.pixel_shader));
+  const PipelineProgram* program = ProgramShaderCache::GetPipelineProgram(
+      static_cast<const GLVertexFormat*>(config.vertex_format),
+      static_cast<const OGLShader*>(config.vertex_shader),
+      static_cast<const OGLShader*>(config.geometry_shader),
+      static_cast<const OGLShader*>(config.pixel_shader));
   if (!program)
     return nullptr;
 

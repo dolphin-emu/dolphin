@@ -22,7 +22,7 @@ class FramebufferManager;
 class SwapChain;
 class StagingTexture2D;
 class Texture2D;
-class RasterFont;
+class VKFramebuffer;
 class VKPipeline;
 class VKTexture;
 
@@ -34,9 +34,15 @@ public:
 
   static Renderer* GetInstance();
 
+  bool Initialize() override;
+  void Shutdown() override;
+
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(const AbstractTexture* color_attachment,
+                    const AbstractTexture* depth_attachment) override;
 
   std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
                                                          size_t length) override;
@@ -46,9 +52,6 @@ public:
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
   BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
-  bool Initialize();
-
-  void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
   u16 BBoxRead(int index) override;
@@ -68,10 +71,12 @@ public:
   void RestoreAPIState() override;
 
   void SetPipeline(const AbstractPipeline* pipeline) override;
-  void SetBlendingState(const BlendingState& state) override;
+  void SetFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                              const ClearColor& color_value = {},
+                              float depth_value = 0.0f) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
@@ -99,6 +104,7 @@ private:
   void OnSwapChainResized();
   void BindEFBToStateTracker();
   void RecreateEFBFramebuffer();
+  void BindFramebuffer(const VKFramebuffer* fb);
 
   void RecompileShaders();
   bool CompileShaders();
@@ -115,16 +121,16 @@ private:
 
   VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
   VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;
+  VkRenderPass m_swap_chain_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_swap_chain_clear_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<BoundingBox> m_bounding_box;
-  std::unique_ptr<RasterFont> m_raster_font;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
 
   // Shaders used for clear/blit.
   VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
-  const VKPipeline* m_graphics_pipeline = nullptr;
 };
 }

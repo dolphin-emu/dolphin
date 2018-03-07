@@ -108,6 +108,10 @@ static BugInfo m_known_bugs[] = {
      -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_CLEAR_LOADOP_RENDERPASS, -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_BROKEN_REVERSED_DEPTH_RANGE,
+     -1.0, -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN, BUG_BROKEN_REVERSED_DEPTH_RANGE,
+     -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;
@@ -166,35 +170,5 @@ bool HasBug(Bug bug)
   if (it == m_bugs.end())
     return false;
   return it->second.m_hasbug;
-}
-
-Vendor TranslatePCIVendorID(u32 vendor_id)
-{
-  switch (vendor_id)
-  {
-  case 0x10DE:
-    return VENDOR_NVIDIA;
-
-  case 0x1002:
-  case 0x1022:
-    return VENDOR_ATI;
-
-  case 0x8086:
-  case 0x8087:
-    return VENDOR_INTEL;
-
-  // TODO: Is this correct for Mali?
-  case 0x13B6:
-    return VENDOR_ARM;
-
-  case 0x5143:
-    return VENDOR_QUALCOMM;
-
-  case 0x1010:
-    return VENDOR_IMGTEC;
-
-  default:
-    return VENDOR_UNKNOWN;
-  }
 }
 }

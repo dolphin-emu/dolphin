@@ -187,7 +187,7 @@ union ShaderHostConfig
 
 // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
 std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config);
+                                       bool include_host_config, bool include_api = true);
 
 template <class T>
 inline void DefineOutputMember(T& object, APIType api_type, const char* qualifier, const char* type,
