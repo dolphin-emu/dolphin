@@ -5,6 +5,7 @@
 #include "DolphinWX/ISOProperties/InfoPanel.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <iterator>
 #include <optional>
 #include <string>
@@ -190,7 +191,11 @@ void InfoPanel::LoadISODetails()
   {
     const IOS::ES::TMDReader tmd = m_opened_iso->GetTMD(m_opened_iso->GetGamePartition());
     if (tmd.IsValid())
+    {
       m_ios_version->SetValue(StringFromFormat("IOS%u", static_cast<u32>(tmd.GetIOSId())));
+      m_game_id->SetValue(StrToWxStr(StringFromFormat(
+          "%s (%016" PRIx64 ")", m_opened_iso->GetGameID().c_str(), tmd.GetTitleId())));
+    }
   }
 }
 

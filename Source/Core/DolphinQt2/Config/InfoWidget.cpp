@@ -32,7 +32,10 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* file_path = CreateValueDisplay(m_game.GetFilePath());
   QLineEdit* internal_name = CreateValueDisplay(m_game.GetInternalName());
-  QLineEdit* game_id = CreateValueDisplay(m_game.GetGameID());
+  QString game_id_string = m_game.GetGameID();
+  if (const u64 title_id = m_game.GetTitleID())
+    game_id_string += QStringLiteral(" (%1)").arg(title_id, 16, 16, QLatin1Char('0'));
+  QLineEdit* game_id = CreateValueDisplay(game_id_string);
   QLineEdit* country = CreateValueDisplay(m_game.GetCountry());
   QLineEdit* maker = CreateValueDisplay(m_game.GetMaker());
   QLineEdit* maker_id = CreateValueDisplay(QStringLiteral("0x") + m_game.GetMakerID());
