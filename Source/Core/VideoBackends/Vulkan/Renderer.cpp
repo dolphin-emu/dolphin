@@ -192,6 +192,14 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return VKPipeline::Create(config);
 }
 
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                            const AbstractTexture* depth_attachment)
+{
+  return VKFramebuffer::Create(static_cast<const VKTexture*>(color_attachment),
+                               static_cast<const VKTexture*>(depth_attachment));
+}
+
 std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* uniforms,
                                                                u32 uniforms_size)
 {
@@ -593,8 +601,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // Fastest path: Use a render pass to clear the buffers.
   if (use_clear_render_pass)
   {
-    VkClearValue clear_values[2] = {clear_color_value, clear_depth_value};
-    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values);
+    const std::array<VkClearValue, 2> clear_values = {{clear_color_value, clear_depth_value}};
+    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values.data(),
+                                                      static_cast<u32>(clear_values.size()));
     return;
   }
 
@@ -743,6 +752,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
   FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  RestoreAPIState();
 
   // Determine what (if anything) has changed in the config.
   CheckForConfigChanges();
@@ -792,6 +802,9 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   backbuffer->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
   backbuffer->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = backbuffer->GetWidth();
+  m_current_framebuffer_height = backbuffer->GetHeight();
 
   // Begin render pass for rendering to the swap chain.
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -1010,6 +1023,9 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
   StateTracker::GetInstance()->SetMultisamplingstate(
       FramebufferManager::GetInstance()->GetEFBMultisamplingState());
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = FramebufferManager::GetInstance()->GetEFBWidth();
+  m_current_framebuffer_height = FramebufferManager::GetInstance()->GetEFBHeight();
 }
 
 void Renderer::RecreateEFBFramebuffer()
@@ -1036,8 +1052,77 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
+  StateTracker::GetInstance()->EndRenderPass();
+  if (m_current_framebuffer)
+    static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
+
+  BindEFBToStateTracker();
+
   // Instruct the state tracker to re-bind everything before the next draw
   StateTracker::GetInstance()->SetPendingRebind();
+}
+
+void Renderer::BindFramebuffer(const VKFramebuffer* fb)
+{
+  const VkRect2D render_area = {static_cast<int>(fb->GetWidth()),
+                                static_cast<int>(fb->GetHeight())};
+
+  StateTracker::GetInstance()->EndRenderPass();
+  if (m_current_framebuffer)
+    static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
+
+  fb->TransitionForRender();
+  StateTracker::GetInstance()->SetFramebuffer(fb->GetFB(), render_area);
+  StateTracker::GetInstance()->SetRenderPass(fb->GetLoadRenderPass(), fb->GetClearRenderPass());
+  m_current_framebuffer = fb;
+  m_current_framebuffer_width = fb->GetWidth();
+  m_current_framebuffer_height = fb->GetHeight();
+}
+
+void Renderer::SetFramebuffer(const AbstractFramebuffer* framebuffer)
+{
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+  StateTracker::GetInstance()->BeginRenderPass();
+}
+
+void Renderer::SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer)
+{
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+
+  // If we're discarding, begin the discard pass, then switch to a load pass.
+  // This way if the command buffer is flushed, we don't start another discard pass.
+  StateTracker::GetInstance()->SetRenderPass(vkfb->GetDiscardRenderPass(),
+                                             vkfb->GetClearRenderPass());
+  StateTracker::GetInstance()->BeginRenderPass();
+  StateTracker::GetInstance()->SetRenderPass(vkfb->GetLoadRenderPass(), vkfb->GetClearRenderPass());
+}
+
+void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value, float depth_value)
+{
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+
+  const VkRect2D render_area = {static_cast<int>(vkfb->GetWidth()),
+                                static_cast<int>(vkfb->GetHeight())};
+  std::array<VkClearValue, 2> clear_values;
+  u32 num_clear_values = 0;
+  if (vkfb->GetColorFormat() != AbstractTextureFormat::Undefined)
+  {
+    std::memcpy(clear_values[num_clear_values].color.float32, color_value.data(),
+                sizeof(clear_values[num_clear_values].color.float32));
+    num_clear_values++;
+  }
+  if (vkfb->GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    clear_values[num_clear_values].depthStencil.depth = depth_value;
+    clear_values[num_clear_values].depthStencil.stencil = 0;
+    num_clear_values++;
+  }
+  StateTracker::GetInstance()->BeginClearRenderPass(render_area, clear_values.data(),
+                                                    num_clear_values);
 }
 
 void Renderer::SetRasterizationState(const RasterizationState& state)

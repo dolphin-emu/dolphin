@@ -36,6 +36,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="AbstractFramebuffer.cpp" />
     <ClCompile Include="AbstractStagingTexture.cpp" />
     <ClCompile Include="AbstractTexture.cpp" />
     <ClCompile Include="AsyncRequests.cpp" />
@@ -98,6 +99,7 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractFramebuffer.h" />
     <ClInclude Include="AbstractStagingTexture.h" />
     <ClInclude Include="AbstractPipeline.h" />
     <ClInclude Include="AbstractShader.h" />

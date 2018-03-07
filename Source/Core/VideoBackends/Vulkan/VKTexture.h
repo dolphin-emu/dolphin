@@ -7,6 +7,7 @@
 #include <memory>
 #include <vulkan/vulkan.h>
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
@@ -28,6 +29,8 @@ public:
   void ScaleRectangleFromTexture(const AbstractTexture* source,
                                  const MathUtil::Rectangle<int>& src_rect,
                                  const MathUtil::Rectangle<int>& dst_rect) override;
+  void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                          u32 layer, u32 level) override;
 
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
@@ -76,6 +79,34 @@ private:
 
   std::unique_ptr<StagingBuffer> m_staging_buffer;
   VkFence m_flush_fence = VK_NULL_HANDLE;
+};
+
+class VKFramebuffer final : public AbstractFramebuffer
+{
+public:
+  VKFramebuffer(const VKTexture* color_attachment, const VKTexture* depth_attachment, u32 width,
+                u32 height, u32 layers, u32 samples, VkFramebuffer fb,
+                VkRenderPass load_render_pass, VkRenderPass discard_render_pass,
+                VkRenderPass clear_render_pass);
+  ~VKFramebuffer() override;
+
+  VkFramebuffer GetFB() const { return m_fb; }
+  VkRenderPass GetLoadRenderPass() const { return m_load_render_pass; }
+  VkRenderPass GetDiscardRenderPass() const { return m_discard_render_pass; }
+  VkRenderPass GetClearRenderPass() const { return m_clear_render_pass; }
+  void TransitionForRender() const;
+  void TransitionForSample() const;
+
+  static std::unique_ptr<VKFramebuffer> Create(const VKTexture* color_attachments,
+                                               const VKTexture* depth_attachment);
+
+protected:
+  const VKTexture* m_color_attachment;
+  const VKTexture* m_depth_attachment;
+  VkFramebuffer m_fb;
+  VkRenderPass m_load_render_pass;
+  VkRenderPass m_discard_render_pass;
+  VkRenderPass m_clear_render_pass;
 };
 
 }  // namespace Vulkan

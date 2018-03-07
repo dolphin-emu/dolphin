@@ -323,7 +323,6 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
 }
 
@@ -540,7 +539,6 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
 }
 }

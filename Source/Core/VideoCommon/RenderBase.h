@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include <array>
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -32,7 +33,7 @@
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/VideoCommon.h"
 
-class AbstractRawTexture;
+class AbstractFramebuffer;
 class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
@@ -63,6 +64,8 @@ class Renderer
 public:
   Renderer(int backbuffer_width, int backbuffer_height);
   virtual ~Renderer();
+
+  using ClearColor = std::array<float, 4>;
 
   enum PixelPerfQuery
   {
@@ -96,6 +99,17 @@ public:
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
   virtual std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) = 0;
+  virtual std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(const AbstractTexture* color_attachment,
+                    const AbstractTexture* depth_attachment) = 0;
+
+  // Framebuffer operations.
+  virtual void SetFramebuffer(const AbstractFramebuffer* framebuffer) {}
+  virtual void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) {}
+  virtual void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value = {}, float depth_value = 0.0f)
+  {
+  }
 
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader>
@@ -105,6 +119,9 @@ public:
   virtual std::unique_ptr<AbstractPipeline>
   CreatePipeline(const AbstractPipelineConfig& config) = 0;
 
+  const AbstractFramebuffer* GetCurrentFramebuffer() const { return m_current_framebuffer; }
+  u32 GetCurrentFramebufferWidth() const { return m_current_framebuffer_width; }
+  u32 GetCurrentFramebufferHeight() const { return m_current_framebuffer_height; }
   // Ideal internal resolution - multiple of the native EFB resolution
   int GetTargetWidth() const { return m_target_width; }
   int GetTargetHeight() const { return m_target_height; }
@@ -192,6 +209,11 @@ protected:
 
   void CheckFifoRecording();
   void RecordVideoMemory();
+
+  // TODO: Remove the width/height parameters once we make the EFB an abstract framebuffer.
+  const AbstractFramebuffer* m_current_framebuffer = nullptr;
+  u32 m_current_framebuffer_width = 1;
+  u32 m_current_framebuffer_height = 1;
 
   Common::Flag m_screenshot_request;
   Common::Event m_screenshot_completed;
