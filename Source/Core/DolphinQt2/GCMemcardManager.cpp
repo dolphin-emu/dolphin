@@ -299,10 +299,9 @@ void GCMemcardManager::ExportFiles(bool prompt)
     }
   }
 
-  QMessageBox::information(this, tr("Success"),
-                           tr("Successfully exported %1 %2")
-                               .arg(count)
-                               .arg(count == 1 ? tr("save file") : tr("save files")));
+  QString text = count == 1 ? tr("Successfully exported the save file.") :
+                              tr("Successfully exported the %1 save files.");
+  QMessageBox::information(this, tr("Success"), text);
 }
 
 void GCMemcardManager::ExportAllFiles()
@@ -362,11 +361,10 @@ void GCMemcardManager::DeleteFiles()
   // Ask for confirmation if we are to delete multiple files
   if (count > 1)
   {
-    auto response = QMessageBox::warning(this, tr("Question"),
-                                         tr("Do you want to delete the %1 selected %2?")
-                                             .arg(count)
-                                             .arg(count == 1 ? tr("save file") : tr("save files")),
-                                         QMessageBox::Yes | QMessageBox::Abort);
+    QString text = count == 1 ? tr("Do you want to delete the selected save file?") :
+                                tr("Do you want to delete the %1 selected save files?").arg(count);
+    auto response =
+        QMessageBox::warning(this, tr("Question"), text, QMessageBox::Yes | QMessageBox::Abort);
 
     if (response == QMessageBox::Abort)
       return;

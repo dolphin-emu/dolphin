@@ -87,7 +87,11 @@ void PatchesWidget::OnEdit()
   auto patch = m_patches[m_list->row(item)];
 
   if (!patch.user_defined)
-    patch.name += tr(" (Copy)").toStdString();
+  {
+    // i18n: If there is a pre-defined patch with the name %1 and the user wants to edit it,
+    // a copy of it gets created with this name
+    patch.name = tr("%1 (Copy)").arg(QString::fromStdString(patch.name)).toStdString();
+  }
 
   if (NewPatchDialog(patch).exec())
   {
