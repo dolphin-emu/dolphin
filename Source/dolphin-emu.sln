@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.12
+VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinWX\DolphinWX.vcxproj", "{47411FDB-1BF2-48D0-AB4E-C7C41160F898}"
 EndProject
@@ -72,8 +72,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enet", "..\Externals\enet\enet.vcxproj", "{CBC76802-C128-4B17-BF6C-23B08C313E5E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "curl", "..\Externals\curl\curl.vcxproj", "{BB00605C-125F-4A21-B33B-7BF418322DCB}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinQt2", "Core\DolphinQt2\DolphinQt2.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang", "..\Externals\glslang\glslang.vcxproj", "{D178061B-84D3-44F9-BEED-EFD18D9033F0}"
 EndProject
@@ -217,10 +215,6 @@ Global
 		{BB00605C-125F-4A21-B33B-7BF418322DCB}.Debug|x64.Build.0 = Debug|x64
 		{BB00605C-125F-4A21-B33B-7BF418322DCB}.Release|x64.ActiveCfg = Release|x64
 		{BB00605C-125F-4A21-B33B-7BF418322DCB}.Release|x64.Build.0 = Release|x64
-		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Debug|x64.ActiveCfg = Debug|x64
-		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Debug|x64.Build.0 = Debug|x64
-		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Release|x64.ActiveCfg = Release|x64
-		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Release|x64.Build.0 = Release|x64
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0}.Debug|x64.ActiveCfg = Debug|x64
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0}.Debug|x64.Build.0 = Debug|x64
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0}.Release|x64.ActiveCfg = Release|x64
@@ -274,5 +268,8 @@ Global
 		{C636D9D1-82FE-42B5-9987-63B7D4836341} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{8EA11166-6512-44FC-B7A5-A4D1ECC81170} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{38FEE76F-F347-484B-949C-B4649381CFFB} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BFB296A6-91E4-4E56-A973-90FDDCA7656A}
 	EndGlobalSection
 EndGlobal

@@ -70,6 +70,8 @@ set(SRCS
   ISOFile.cpp
   LogConfigWindow.cpp
   LogWindow.cpp
+  LuaScriptFrame.cpp
+  LuaThread.cpp
   Main.cpp
   MainMenuBar.cpp
   MainToolBar.cpp
@@ -89,6 +91,7 @@ set(LIBS
   uicommon
   cpp-optparse
   wxWidgets::wxWidgets
+  lua53
 )
 
 if(APPLE)

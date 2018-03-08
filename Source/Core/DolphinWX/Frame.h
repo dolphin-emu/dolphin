@@ -48,6 +48,11 @@ class wxListEvent;
 class wxMenuItem;
 class wxProgressDialog;
 
+namespace Lua
+{
+class LuaScriptFrame;
+}
+
 class CRenderFrame : public wxFrame
 {
 public:
@@ -93,6 +98,7 @@ public:
   // These have to be public
   CCodeWindow* m_code_window = nullptr;
   NetPlaySetupFrame* m_netplay_setup_frame = nullptr;
+  Lua::LuaScriptFrame* m_lua_script_frame = nullptr;
 
   void DoStop();
   void UpdateGUI();
@@ -352,6 +358,8 @@ private:
   void OnSelectSlot(wxCommandEvent& event);
   void OnSaveCurrentSlot(wxCommandEvent& event);
   void OnLoadCurrentSlot(wxCommandEvent& event);
+
+  void OnLua(wxCommandEvent& event);
 
   void PollHotkeys(wxTimerEvent&);
   void ParseHotkeys();

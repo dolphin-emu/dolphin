@@ -81,6 +81,7 @@
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
+#include "DolphinWX/LuaScripting.h"
 #include "DolphinWX/MainMenuBar.h"
 #include "DolphinWX/MainToolBar.h"
 #include "DolphinWX/MemcardManager.h"
@@ -120,7 +121,7 @@ wxMenuBar* CFrame::CreateMenuBar() const
 {
   const auto menu_type =
       m_use_debugger ? MainMenuBar::MenuType::Debug : MainMenuBar::MenuType::Regular;
-
+  
   return new MainMenuBar{menu_type};
 }
 
@@ -189,6 +190,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
   Bind(wxEVT_MENU, &CFrame::OnCheckNAND, this, IDM_CHECK_NAND);
   Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
+  Bind(wxEVT_MENU, &CFrame::OnLua, this, IDM_LUA_SCRIPT);
   for (const int idm : {IDM_PERFORM_ONLINE_UPDATE_CURRENT, IDM_PERFORM_ONLINE_UPDATE_EUR,
                         IDM_PERFORM_ONLINE_UPDATE_JPN, IDM_PERFORM_ONLINE_UPDATE_KOR,
                         IDM_PERFORM_ONLINE_UPDATE_USA})
@@ -856,10 +858,11 @@ void CFrame::DoStop()
       }
 
       wxMessageDialog m_StopDlg(
-          this, !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
-                                             _("A shutdown is already in progress. Unsaved data "
-                                               "may be lost if you stop the current emulation "
-                                               "before it completes. Force stop?"),
+          this,
+          !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
+                                       _("A shutdown is already in progress. Unsaved data "
+                                         "may be lost if you stop the current emulation "
+                                         "before it completes. Force stop?"),
           _("Please confirm..."), wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
 
       HotkeyManagerEmu::Enable(false);
@@ -1165,6 +1168,18 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED(event))
   else
   {
     m_netplay_setup_frame->Raise();
+  }
+}
+
+void CFrame::OnLua(wxCommandEvent& WXUNUSED(event))
+{
+  if (!m_lua_script_frame)
+  {
+    m_lua_script_frame = Lua::LuaScriptFrame::GetCurrentInstance();
+  }
+  else
+  {
+    m_lua_script_frame->Raise();
   }
 }
 
