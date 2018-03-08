@@ -289,7 +289,7 @@
     <ClCompile Include="Translation.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
   </ItemGroup>
-  <!--Put standard C/C++ headers here-->
+  <!--Put standard C/C++ headers here. Headers that are listed in the QtMoc ItemGroup must NOT be listed here.-->
   <ItemGroup>
     <ClInclude Include="Config\Mapping\GCKeyboardEmu.h" />
     <ClInclude Include="Config\Mapping\GCMicrophone.h" />
@@ -311,7 +311,6 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <ClInclude Include="Config\RegisterColumn.h" />
     <ClInclude Include="Config\RegisterWidget.h" />
-    <ClInclude Include="Config\GameConfigWidget.h" />
     <ClInclude Include="GameList\GameFileCache.h" />
     <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
