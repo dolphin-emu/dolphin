@@ -65,6 +65,7 @@
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Mapping\IOWindow.h" />
     <QtMoc Include="Config\Mapping\MappingButton.h" />
@@ -109,7 +110,7 @@
     <QtMoc Include="Settings\AudioPane.h" />
     <QtMoc Include="Settings\WiiPane.h" />
     <QtMoc Include="Settings\USBDeviceAddToWhitelistDialog.h" />
-	<QtMoc Include="MainWindow.h" />
+    <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="NetPlay\GameListDialog.h" />
     <QtMoc Include="NetPlay\MD5Dialog.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="$(QtMocOutPrefix)IRWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GameConfigWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
@@ -196,6 +198,7 @@
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\GameConfigWidget.cpp" />
     <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
@@ -308,6 +311,7 @@
     <ClInclude Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <ClInclude Include="Config\RegisterColumn.h" />
     <ClInclude Include="Config\RegisterWidget.h" />
+    <ClInclude Include="Config\GameConfigWidget.h" />
     <ClInclude Include="GameList\GameFileCache.h" />
     <ClInclude Include="QtUtils\BlockUserInputFilter.h" />
     <ClInclude Include="QtUtils\ElidedButton.h" />
