@@ -15,10 +15,16 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#ifdef HAVE_LIBSYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include "Common/TraversalProto.h"
 
 #define DEBUG 0
 #define NUMBER_OF_TRIES 5
+#define PORT 6262
 
 static u64 currentTime;
 
@@ -397,7 +403,7 @@ int main()
   addr.sin6_len = sizeof(addr);
 #endif
   addr.sin6_family = AF_INET6;
-  addr.sin6_port = htons(6262);
+  addr.sin6_port = htons(PORT);
   addr.sin6_flowinfo = 0;
   addr.sin6_addr = any;
   addr.sin6_scope_id = 0;
@@ -418,6 +424,10 @@ int main()
     perror("setsockopt SO_RCVTIMEO");
     return 1;
   }
+
+#ifdef HAVE_LIBSYSTEMD
+  sd_notifyf(0, "READY=1\nSTATUS=Listening on port %d", PORT);
+#endif
 
   while (true)
   {
@@ -450,5 +460,8 @@ int main()
       HandlePacket(&packet, &raddr);
     }
     ResendPackets();
+#ifdef HAVE_LIBSYSTEMD
+    sd_notify(0, "WATCHDOG=1");
+#endif
   }
 }
