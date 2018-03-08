@@ -138,6 +138,7 @@ struct SConfig
   std::string theme_name;
 
   // Display settings
+  bool m_fullscreen_mode_override;
   std::string strFullscreenResolution;
   int iRenderWindowXPos = std::numeric_limits<int>::min();
   int iRenderWindowYPos = std::numeric_limits<int>::min();

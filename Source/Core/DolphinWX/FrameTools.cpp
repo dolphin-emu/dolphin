@@ -621,14 +621,17 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 
 void CFrame::ToggleDisplayMode(bool bFullscreen)
 {
+  const SConfig& config = SConfig::GetInstance();
+  const bool change_display_mode =
+      config.m_fullscreen_mode_override && config.strFullscreenResolution != "Auto";
 #ifdef _WIN32
-  if (bFullscreen && SConfig::GetInstance().strFullscreenResolution != "Auto")
+  if (bFullscreen && change_display_mode)
   {
     DEVMODE dmScreenSettings;
     memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
     dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-    sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(), "%dx%d",
-           &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
+    sscanf(config.strFullscreenResolution.c_str(), "%dx%d", &dmScreenSettings.dmPelsWidth,
+           &dmScreenSettings.dmPelsHeight);
     dmScreenSettings.dmBitsPerPel = 32;
     dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
@@ -641,7 +644,7 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
     ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
   }
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-  if (SConfig::GetInstance().strFullscreenResolution != "Auto")
+  if (change_display_mode)
     m_xrr_config->ToggleDisplayMode(bFullscreen);
 #endif
 }
