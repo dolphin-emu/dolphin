@@ -49,7 +49,6 @@ static void CreateVirtualFATFilesystem(std::shared_ptr<IOS::HLE::FS::FileSystem>
   // write the final 0 to 0 file from the second FAT to 20 MiB
   data[CDB_SIZE - 1] = 0;
   fs->WriteFile(*fd, data.data(), static_cast<u32>(data.size()));
-  fs->Close(*fd);
 }
 
 bool CBoot::BootNANDTitle(const u64 title_id)

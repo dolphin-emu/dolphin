@@ -57,7 +57,7 @@ std::shared_ptr<File::IOFile> HostFileSystem::OpenHostFile(const std::string& ho
   return file;
 }
 
-Result<Fd> HostFileSystem::OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode)
+Result<FileHandle> HostFileSystem::OpenFile(Uid, Gid, const std::string& path, Mode mode)
 {
   Handle* handle = AssignFreeHandle();
   if (!handle)
@@ -74,7 +74,7 @@ Result<Fd> HostFileSystem::OpenFile(Uid uid, Gid gid, const std::string& path, M
   handle->wii_path = path;
   handle->mode = mode;
   handle->file_offset = 0;
-  return ConvertHandleToFd(handle);
+  return FileHandle{this, ConvertHandleToFd(handle)};
 }
 
 ResultCode HostFileSystem::Close(Fd fd)

@@ -4,6 +4,7 @@
 
 #include "Core/IOS/FS/FileSystem.h"
 
+#include "Common/Assert.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 namespace IOS::HLE::FS
@@ -11,6 +12,35 @@ namespace IOS::HLE::FS
 std::unique_ptr<FileSystem> MakeFileSystem()
 {
   return std::make_unique<HostFileSystem>();
+}
+
+FileHandle::FileHandle(FileSystem* fs, Fd fd) : m_fs{fs}, m_fd{fd}
+{
+}
+
+FileHandle::FileHandle(FileHandle&& other) : m_fs{other.m_fs}, m_fd{other.m_fd}
+{
+  other.m_fd.reset();
+}
+
+FileHandle& FileHandle::operator=(FileHandle&& other)
+{
+  if (*this != other)
+    *this = std::move(other);
+  return *this;
+}
+
+FileHandle::~FileHandle()
+{
+  if (m_fd && m_fs)
+    ASSERT(m_fs->Close(*m_fd) == FS::ResultCode::Success);
+}
+
+Fd FileHandle::Release()
+{
+  const Fd fd = m_fd.value();
+  m_fd.reset();
+  return fd;
 }
 
 void FileSystem::Init()

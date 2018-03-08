@@ -30,7 +30,7 @@ public:
 
   ResultCode Format(Uid uid) override;
 
-  Result<Fd> OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode) override;
+  Result<FileHandle> OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode) override;
   ResultCode Close(Fd fd) override;
   Result<u32> ReadBytesFromFile(Fd fd, u8* ptr, u32 size) override;
   Result<u32> WriteBytesToFile(Fd fd, const u8* ptr, u32 size) override;

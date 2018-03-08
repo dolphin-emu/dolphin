@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -96,6 +97,26 @@ struct FileStatus
   u32 size;
 };
 
+class FileSystem;
+class FileHandle final
+{
+public:
+  FileHandle(FileSystem* fs, Fd fd);
+  FileHandle(FileHandle&&);
+  ~FileHandle();
+  FileHandle(const FileHandle&) = delete;
+  FileHandle& operator=(const FileHandle&) = delete;
+  FileHandle& operator=(FileHandle&&);
+
+  operator Fd() const { return m_fd.value(); }
+  /// Release the FD so that it is not automatically closed.
+  Fd Release();
+
+private:
+  FileSystem* m_fs;
+  std::optional<Fd> m_fd;
+};
+
 class FileSystem
 {
 public:
@@ -106,8 +127,8 @@ public:
   /// Format the file system.
   virtual ResultCode Format(Uid uid) = 0;
 
-  /// Get a file descriptor for accessing a file.
-  virtual Result<Fd> OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode) = 0;
+  /// Get a file descriptor for accessing a file. The FD will be automatically closed after use.
+  virtual Result<FileHandle> OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode) = 0;
   /// Close a file descriptor.
   virtual ResultCode Close(Fd fd) = 0;
   /// Read `size` bytes from the file descriptor. Returns the number of bytes read.

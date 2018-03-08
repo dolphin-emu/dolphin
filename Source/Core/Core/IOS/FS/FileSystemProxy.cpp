@@ -70,13 +70,13 @@ IPCCommandResult FS::Open(const OpenRequest& request)
     return GetDefaultReply(IPC_SUCCESS);
   }
 
-  const auto backend_fd = m_ios.GetFS()->OpenFile(request.uid, request.gid, request.path,
-                                                  static_cast<Mode>(request.flags & 3));
+  auto backend_fd = m_ios.GetFS()->OpenFile(request.uid, request.gid, request.path,
+                                            static_cast<Mode>(request.flags & 3));
   LogResult(StringFromFormat("OpenFile(%s)", request.path.c_str()), backend_fd);
   if (!backend_fd)
     return GetFSReply(ConvertResult(backend_fd.Error()));
 
-  m_fd_map[request.fd] = {request.gid, request.uid, *backend_fd};
+  m_fd_map[request.fd] = {request.gid, request.uid, backend_fd->Release()};
   std::strncpy(m_fd_map[request.fd].name.data(), request.path.c_str(), 64);
   return GetFSReply(IPC_SUCCESS);
 }
