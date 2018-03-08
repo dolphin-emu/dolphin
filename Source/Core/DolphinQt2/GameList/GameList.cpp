@@ -104,7 +104,6 @@ void GameList::MakeListView()
   connect(hor_header, &QHeaderView::sectionMoved, this, &GameList::OnHeaderViewChanged);
 
   hor_header->setSectionsMovable(true);
-  hor_header->restoreState(QSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
@@ -116,6 +115,8 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
+
+  hor_header->restoreState(QSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
   m_list->verticalHeader()->hide();
   m_list->setFrameStyle(QFrame::NoFrame);
