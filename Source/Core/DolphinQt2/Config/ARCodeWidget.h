@@ -12,8 +12,12 @@
 #include "Common/CommonTypes.h"
 #include "Core/ActionReplay.h"
 
-class CheatWarningWidget;
+namespace UICommon
+{
 class GameFile;
+}
+
+class CheatWarningWidget;
 class QLabel;
 class QListWidget;
 class QListWidgetItem;
@@ -23,7 +27,7 @@ class ARCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit ARCodeWidget(const GameFile& game);
+  explicit ARCodeWidget(const UICommon::GameFile& game);
 
 signals:
   void OpenGeneralSettings();
@@ -41,7 +45,7 @@ private:
   void OnCodeEditPressed();
   void OnCodeRemovePressed();
 
-  const GameFile& m_game;
+  const UICommon::GameFile& m_game;
   std::string m_game_id;
   u16 m_game_revision;
 

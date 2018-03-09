@@ -10,7 +10,6 @@
 #include <QWidget>
 
 #include "Core/PatchEngine.h"
-#include "DolphinQt2/GameList/GameFile.h"
 
 class QDialogButtonBox;
 class QGroupBox;

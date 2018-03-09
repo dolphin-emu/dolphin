@@ -51,7 +51,7 @@ void GameListDialog::PopulateGameList()
 
   for (int i = 0; i < game_list_model->rowCount(QModelIndex()); i++)
   {
-    auto* item = new QListWidgetItem(game_list_model->GetUniqueID(i));
+    auto* item = new QListWidgetItem(game_list_model->GetUniqueIdentifier(i));
     m_game_list->addItem(item);
   }
 

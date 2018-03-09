@@ -5,6 +5,7 @@
 
 #include <QApplication>
 #include <QCloseEvent>
+#include <QDateTime>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -386,7 +387,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   }
   else
   {
-    QSharedPointer<GameFile> selection = m_game_list->GetSelectedGame();
+    std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
       StartGame(selection->GetFilePath(), savestate_path);
@@ -394,7 +395,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     }
     else
     {
-      auto default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+      QString default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, savestate_path);
@@ -536,7 +537,13 @@ void MainWindow::ScreenShot()
 
 void MainWindow::StartGame(const QString& path, const std::optional<std::string>& savestate_path)
 {
-  StartGame(BootParameters::GenerateFromFile(path.toStdString(), savestate_path));
+  StartGame(path.toStdString(), savestate_path);
+}
+
+void MainWindow::StartGame(const std::string& path,
+                           const std::optional<std::string>& savestate_path)
+{
+  StartGame(BootParameters::GenerateFromFile(path, savestate_path));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)

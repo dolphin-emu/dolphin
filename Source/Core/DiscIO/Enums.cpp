@@ -5,12 +5,112 @@
 #include <map>
 #include <string>
 
+#include "Common/Assert.h"
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "DiscIO/Enums.h"
 
 namespace DiscIO
 {
+std::string GetName(Country country, bool translate)
+{
+  std::string name;
+
+  switch (country)
+  {
+  case Country::COUNTRY_EUROPE:
+    name = _trans("Europe");
+    break;
+  case Country::COUNTRY_JAPAN:
+    name = _trans("Japan");
+    break;
+  case Country::COUNTRY_USA:
+    name = _trans("USA");
+    break;
+  case Country::COUNTRY_AUSTRALIA:
+    name = _trans("Australia");
+    break;
+  case Country::COUNTRY_FRANCE:
+    name = _trans("France");
+    break;
+  case Country::COUNTRY_GERMANY:
+    name = _trans("Germany");
+    break;
+  case Country::COUNTRY_ITALY:
+    name = _trans("Italy");
+    break;
+  case Country::COUNTRY_KOREA:
+    name = _trans("Korea");
+    break;
+  case Country::COUNTRY_NETHERLANDS:
+    name = _trans("Netherlands");
+    break;
+  case Country::COUNTRY_RUSSIA:
+    name = _trans("Russia");
+    break;
+  case Country::COUNTRY_SPAIN:
+    name = _trans("Spain");
+    break;
+  case Country::COUNTRY_TAIWAN:
+    name = _trans("Taiwan");
+    break;
+  case Country::COUNTRY_WORLD:
+    name = _trans("World");
+    break;
+  default:
+    name = _trans("Unknown");
+    break;
+  }
+
+  return translate ? GetStringT(name.c_str()) : name;
+}
+
+std::string GetName(Language language, bool translate)
+{
+  std::string name;
+
+  switch (language)
+  {
+  case Language::LANGUAGE_JAPANESE:
+    name = _trans("Japanese");
+    break;
+  case Language::LANGUAGE_ENGLISH:
+    name = _trans("English");
+    break;
+  case Language::LANGUAGE_GERMAN:
+    name = _trans("German");
+    break;
+  case Language::LANGUAGE_FRENCH:
+    name = _trans("French");
+    break;
+  case Language::LANGUAGE_SPANISH:
+    name = _trans("Spanish");
+    break;
+  case Language::LANGUAGE_ITALIAN:
+    name = _trans("Italian");
+    break;
+  case Language::LANGUAGE_DUTCH:
+    name = _trans("Dutch");
+    break;
+  case Language::LANGUAGE_SIMPLIFIED_CHINESE:
+    name = _trans("Simplified Chinese");
+    break;
+  case Language::LANGUAGE_TRADITIONAL_CHINESE:
+    name = _trans("Traditional Chinese");
+    break;
+  case Language::LANGUAGE_KOREAN:
+    name = _trans("Korean");
+    break;
+  default:
+    name = _trans("Unknown");
+    break;
+  }
+
+  return translate ? GetStringT(name.c_str()) : name;
+}
+
 bool IsDisc(Platform volume_type)
 {
   return volume_type == Platform::GAMECUBE_DISC || volume_type == Platform::WII_DISC;
@@ -26,7 +126,7 @@ bool IsNTSC(Region region)
   return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
 }
 
-// Increment CACHE_REVISION (GameListCtrl.cpp) if the code below is modified
+// Increment CACHE_REVISION (GameFileCache.cpp) if the code below is modified
 
 Country TypicalCountryForRegion(Region region)
 {
@@ -230,7 +330,7 @@ std::string GetSysMenuVersionString(u16 title_version)
   }
 }
 
-std::string GetCompanyFromID(const std::string& company_id)
+const std::string& GetCompanyFromID(const std::string& company_id)
 {
   static const std::map<std::string, std::string> companies = {
       {"01", "Nintendo"},
@@ -517,10 +617,11 @@ std::string GetCompanyFromID(const std::string& company_id)
       {"ZW", "Judo Baby"},
       {"ZX", "TopWare Interactive"}};
 
+  static const std::string EMPTY_STRING;
   auto iterator = companies.find(company_id);
   if (iterator != companies.end())
     return iterator->second;
   else
-    return "";
+    return EMPTY_STRING;
 }
 }

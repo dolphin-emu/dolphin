@@ -245,7 +245,7 @@ void NetPlaySetupDialog::PopulateGameList()
   m_host_games->clear();
   for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
   {
-    auto title = m_game_list_model->GetUniqueID(i);
+    auto title = m_game_list_model->GetUniqueIdentifier(i);
     auto path = m_game_list_model->GetPath(i);
 
     auto* item = new QListWidgetItem(title);

@@ -4,14 +4,17 @@
 
 #pragma once
 
+#include <memory>
+
 #include <QLabel>
 #include <QListView>
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>
 #include <QTableView>
 
-#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameListModel.h"
+
+#include "UICommon/GameFile.h"
 
 class GameList final : public QStackedWidget
 {
@@ -19,7 +22,7 @@ class GameList final : public QStackedWidget
 
 public:
   explicit GameList(QWidget* parent = nullptr);
-  QSharedPointer<GameFile> GetSelectedGame() const;
+  std::shared_ptr<const UICommon::GameFile> GetSelectedGame() const;
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
@@ -30,7 +33,7 @@ public:
 signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);
-  void SelectionChanged(QSharedPointer<GameFile> game_file);
+  void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OpenGeneralSettings();
 
 private:

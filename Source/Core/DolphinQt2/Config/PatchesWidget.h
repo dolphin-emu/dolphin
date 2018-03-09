@@ -10,7 +10,7 @@
 #include <QWidget>
 
 #include "Core/PatchEngine.h"
-#include "DolphinQt2/GameList/GameFile.h"
+#include "UICommon/GameFile.h"
 
 class QListWidget;
 class QListWidgetItem;
@@ -19,7 +19,7 @@ class QPushButton;
 class PatchesWidget : public QWidget
 {
 public:
-  explicit PatchesWidget(const GameFile& game);
+  explicit PatchesWidget(const UICommon::GameFile& game);
 
 private:
   void CreateWidgets();
@@ -39,7 +39,7 @@ private:
   QPushButton* m_remove_button;
 
   std::vector<PatchEngine::Patch> m_patches;
-  const GameFile& m_game;
+  const UICommon::GameFile& m_game;
   std::string m_game_id;
   u16 m_game_revision;
 };

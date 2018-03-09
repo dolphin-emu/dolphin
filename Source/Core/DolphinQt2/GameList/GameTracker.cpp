@@ -7,7 +7,6 @@
 #include <QFile>
 
 #include "DiscIO/DirectoryBlob.h"
-#include "DolphinQt2/GameList/GameFileCache.h"
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
@@ -19,13 +18,15 @@ static const QStringList game_filters{
 
 GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 {
-  qRegisterMetaType<QSharedPointer<GameFile>>();
+  qRegisterMetaType<std::shared_ptr<const UICommon::GameFile>>();
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
 
-  cache.Load();
+  m_cache.Load();
 
   m_load_thread.Reset([this](const QString& path) { LoadGame(path); });
+
+  // TODO: When language changes, reload m_title_database and call m_cache.UpdateAdditionalMetadata
 }
 
 void GameTracker::AddDirectory(const QString& dir)
@@ -130,25 +131,12 @@ void GameTracker::UpdateFile(const QString& file)
 
 void GameTracker::LoadGame(const QString& path)
 {
-  if (!DiscIO::ShouldHideFromGameList(path.toStdString()))
+  const std::string converted_path = path.toStdString();
+  if (!DiscIO::ShouldHideFromGameList(converted_path))
   {
-    if (cache.IsCached(path))
-    {
-      const QDateTime last_modified = QFileInfo(path).lastModified();
-      auto cached_file = cache.GetFile(path);
-      if (cached_file.GetLastModified() >= last_modified)
-      {
-        emit GameLoaded(QSharedPointer<GameFile>::create(cached_file));
-        return;
-      }
-    }
-
-    auto game = QSharedPointer<GameFile>::create(path);
-    if (game->IsValid())
-    {
-      emit GameLoaded(game);
-      cache.Update(*game);
-      cache.Save();
-    }
+    bool cache_changed = false;
+    emit GameLoaded(m_cache.AddOrGet(converted_path, &cache_changed, m_title_database));
+    if (cache_changed)
+      m_cache.Save();
   }
 }

@@ -54,12 +54,12 @@
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties/FilesystemPanel.h"
 #include "DolphinWX/ISOProperties/InfoPanel.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
+#include "UICommon/GameFile.h"
 
 // A warning message displayed on the ARCodes and GeckoCodes pages when cheats are
 // disabled globally to explain why turning cheats on does not work.
@@ -190,15 +190,15 @@ EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_REMOVEPATCH, CISOProperties::PatchButtonClicked)
 END_EVENT_TABLE()
 
-CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id,
-                               const wxString& title, const wxPoint& position, const wxSize& size,
-                               long style)
+CISOProperties::CISOProperties(const UICommon::GameFile& game_list_item, wxWindow* parent,
+                               wxWindowID id, const wxString& title, const wxPoint& position,
+                               const wxSize& size, long style)
     : wxDialog(parent, id, title, position, size, style), m_open_gamelist_item(game_list_item)
 {
   Bind(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, &CISOProperties::OnChangeTitle, this);
 
   // Load ISO data
-  m_open_iso = DiscIO::CreateVolumeFromFilename(m_open_gamelist_item.GetFileName());
+  m_open_iso = DiscIO::CreateVolumeFromFilename(m_open_gamelist_item.GetFilePath());
 
   m_game_id = m_open_iso->GetGameID();
 
