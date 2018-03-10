@@ -45,15 +45,23 @@ std::string StripQuotes(const std::string& s);
 template <typename I>
 std::string ThousandSeparate(I value, int spaces = 0)
 {
-  std::ostringstream oss;
+#ifdef _WIN32
+  std::wostringstream stream;
+#else
+  std::ostringstream stream;
+#endif
 
 // std::locale("") seems to be broken on many platforms
 #if defined _WIN32 || (defined __linux__ && !defined __clang__)
-  oss.imbue(std::locale(""));
+  stream.imbue(std::locale(""));
 #endif
-  oss << std::setw(spaces) << value;
+  stream << std::setw(spaces) << value;
 
-  return oss.str();
+#ifdef _WIN32
+  return UTF16ToUTF8(stream.str());
+#else
+  return stream.str();
+#endif
 }
 
 std::string StringFromBool(bool value);

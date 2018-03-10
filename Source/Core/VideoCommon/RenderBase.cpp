@@ -43,6 +43,7 @@
 #include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
@@ -55,6 +56,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -91,6 +93,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 
   m_surface_handle = Host_GetRenderHandle();
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
+  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
 }
 
 Renderer::~Renderer() = default;
@@ -233,11 +236,20 @@ void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_complet
 bool Renderer::CheckForHostConfigChanges()
 {
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
-  if (new_host_config.bits == m_last_host_config_bits)
+  if (new_host_config.bits == m_last_host_config_bits &&
+      m_last_efb_multisamples == g_ActiveConfig.iMultisamples)
+  {
     return false;
+  }
 
-  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
   m_last_host_config_bits = new_host_config.bits;
+  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
+
+  // Reload shaders.
+  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+  SetPipeline(nullptr);
+  g_vertex_manager->InvalidatePipelineObject();
+  g_shader_cache->SetHostConfig(new_host_config, g_ActiveConfig.iMultisamples);
   return true;
 }
 
@@ -687,6 +699,13 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // Set default viewport and scissor, for the clear to work correctly
       // New frame
       stats.ResetFrame();
+      g_shader_cache->RetrieveAsyncShaders();
+
+      // We invalidate the pipeline object at the start of the frame.
+      // This is for the rare case where only a single pipeline configuration is used,
+      // and hybrid ubershaders have compiled the specialized shader, but without any
+      // state changes the specialized shader will not take over.
+      g_vertex_manager->InvalidatePipelineObject();
 
       Core::Callback_VideoCopiedToXFB(true);
     }
@@ -739,7 +758,7 @@ void Renderer::RenderFrameDump()
       m_frame_dump_render_texture->GetConfig().height == static_cast<u32>(target_height))
   {
     // Recreate texture objects. Release before creating so we don't temporarily use twice the RAM.
-    TextureConfig config(target_width, target_height, 1, 1, AbstractTextureFormat::RGBA8, true);
+    TextureConfig config(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, true);
     m_frame_dump_render_texture.reset();
     m_frame_dump_render_texture = CreateTexture(config);
     _assert_(m_frame_dump_render_texture);
@@ -1007,4 +1026,9 @@ bool Renderer::UseVertexDepthRange() const
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<VideoCommon::AsyncShaderCompiler>();
 }

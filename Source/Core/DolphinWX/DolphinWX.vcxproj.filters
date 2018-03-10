@@ -19,9 +19,6 @@
     <Filter Include="GUI\Video">
       <UniqueIdentifier>{80626e3b-e13b-41c3-bd63-4ef1faf92924}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Misc">
-      <UniqueIdentifier>{4352dc64-398e-4a96-ba4a-824dffa2004c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resources">
       <UniqueIdentifier>{d6bc4dd6-06ed-46ad-b327-04afb26e10ec}</UniqueIdentifier>
     </Filter>
@@ -153,9 +150,6 @@
     </ClCompile>
     <ClCompile Include="VideoConfigDiag.cpp">
       <Filter>GUI\Video</Filter>
-    </ClCompile>
-    <ClCompile Include="ISOFile.cpp">
-      <Filter>Misc</Filter>
     </ClCompile>
     <ClCompile Include="AboutDolphin.cpp">
       <Filter>GUI</Filter>
@@ -380,9 +374,6 @@
     </ClInclude>
     <ClInclude Include="VideoConfigDiag.h">
       <Filter>GUI\Video</Filter>
-    </ClInclude>
-    <ClInclude Include="ISOFile.h">
-      <Filter>Misc</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resources</Filter>

@@ -10,7 +10,7 @@
 
 namespace DiscIO
 {
-// Increment CACHE_REVISION (GameListCtrl.cpp) if these enums are modified
+// Increment CACHE_REVISION (GameFileCache.cpp) if these enums are modified
 
 enum class Platform
 {
@@ -68,6 +68,9 @@ enum class Language
   LANGUAGE_UNKNOWN
 };
 
+std::string GetName(Country country, bool translate);
+std::string GetName(Language language, bool translate);
+
 bool IsDisc(Platform volume_type);
 bool IsWii(Platform volume_type);
 bool IsNTSC(Region region);
@@ -82,5 +85,5 @@ Country CountrySwitch(u8 country_code);
 Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);
 
-std::string GetCompanyFromID(const std::string& company_id);
+const std::string& GetCompanyFromID(const std::string& company_id);
 }

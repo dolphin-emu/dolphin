@@ -37,6 +37,7 @@ set(SRCS
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GameConfigWidget.cpp
   Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/EnhancementsWidget.cpp
@@ -72,6 +73,8 @@ set(SRCS
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuMotionControl.cpp
+  Config/NewPatchDialog.cpp
+  Config/PatchesWidget.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
   Debugger/BreakpointWidget.cpp
@@ -79,8 +82,6 @@ set(SRCS
   Debugger/RegisterColumn.cpp
   Debugger/RegisterWidget.cpp
   Debugger/WatchWidget.cpp
-  GameList/GameFileCache.cpp
-  GameList/GameFile.cpp
   GameList/GameList.cpp
   GameList/GameListModel.cpp
   GameList/GameTracker.cpp
@@ -95,6 +96,7 @@ set(SRCS
   NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/ImageConverter.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/AspectRatioWidget.cpp

@@ -13,6 +13,8 @@
 
 namespace DX11
 {
+std::mutex s_input_layout_lock;
+
 std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
@@ -116,23 +118,34 @@ D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 
 D3DVertexFormat::~D3DVertexFormat()
 {
-  SAFE_RELEASE(m_layout);
+  ID3D11InputLayout* layout = m_layout.load();
+  SAFE_RELEASE(layout);
 }
 
 ID3D11InputLayout* D3DVertexFormat::GetInputLayout(D3DBlob* vs_bytecode)
 {
-  if (m_layout)
-    return m_layout;
+  // CreateInputLayout requires a shader input, but it only looks at the signature of the shader,
+  // so we don't need to recompute it if the shader changes.
+  ID3D11InputLayout* layout = m_layout.load();
+  if (layout)
+    return layout;
 
-  // CreateInputLayout requires a shader input, but it only looks at the
-  // signature of the shader, so we don't need to recompute it if the shader
-  // changes.
   HRESULT hr = DX11::D3D::device->CreateInputLayout(
-      m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
+      m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &layout);
   if (FAILED(hr))
     PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
   DX11::D3D::SetDebugObjectName(m_layout, "input layout used to emulate the GX pipeline");
-  return m_layout;
+
+  // This method can be called from multiple threads, so ensure that only one thread sets the
+  // cached input layout pointer. If another thread beats this thread, use the existing layout.
+  ID3D11InputLayout* expected = nullptr;
+  if (!m_layout.compare_exchange_strong(expected, layout))
+  {
+    SAFE_RELEASE(layout);
+    layout = expected;
+  }
+
+  return layout;
 }
 
 }  // namespace DX11

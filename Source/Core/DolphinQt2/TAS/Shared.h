@@ -21,6 +21,6 @@ QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, 
 QBoxLayout* CreateSliderValuePairLayout(QDialog* window, QString name, QSpinBox*& value, u16 max,
                                         Qt::Key shortcut_key, QWidget* shortcut_widget,
                                         bool invert = false);
-QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max, Qt::Key shortcut_key,
-                                Qt::Orientation orientation, QWidget* shortcut_widget,
-                                bool invert = false);
+QSpinBox* CreateSliderValuePair(QDialog* window, QBoxLayout* layout, u16 max,
+                                QKeySequence shortcut_key_sequence, Qt::Orientation orientation,
+                                QWidget* shortcut_widget, bool invert = false);

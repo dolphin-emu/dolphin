@@ -42,6 +42,13 @@ enum class StereoMode : int
   Nvidia3DVision
 };
 
+enum class UberShaderMode : int
+{
+  Disabled,
+  Hybrid,
+  Exclusive
+};
+
 struct ProjectionHackConfig final
 {
   bool m_enable;
@@ -161,25 +168,9 @@ struct VideoConfig final
   // Currently only supported with Vulkan.
   int iCommandBufferExecuteInterval;
 
-  // The following options determine the ubershader mode:
-  //   No ubershaders:
-  //     - bBackgroundShaderCompiling = false
-  //     - bDisableSpecializedShaders = false
-  //   Hybrid/background compiling:
-  //     - bBackgroundShaderCompiling = true
-  //     - bDisableSpecializedShaders = false
-  //   Ubershaders only:
-  //     - bBackgroundShaderCompiling = false
-  //     - bDisableSpecializedShaders = true
-
-  // Enable background shader compiling, use ubershaders while waiting.
-  bool bBackgroundShaderCompiling;
-
-  // Use ubershaders only, don't compile specialized shaders.
-  bool bDisableSpecializedShaders;
-
-  // Precompile ubershader variants at boot/config reload time.
-  bool bPrecompileUberShaders;
+  // Shader compilation settings.
+  bool bWaitForShadersBeforeStarting;
+  UberShaderMode iUberShaderMode;
 
   // Number of shader compiler threads.
   // 0 disables background compilation.
@@ -227,6 +218,7 @@ struct VideoConfig final
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
     bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
+    bool bSupportsBackgroundCompiling;
   } backend_info;
 
   // Utility
@@ -246,10 +238,9 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+  bool UsingUberShaders() const { return iUberShaderMode != UberShaderMode::Disabled; }
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
-  bool CanPrecompileUberShaders() const;
-  bool CanBackgroundCompileShaders() const;
 };
 
 extern VideoConfig g_Config;

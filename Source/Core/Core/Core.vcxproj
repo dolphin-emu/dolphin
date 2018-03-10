@@ -92,7 +92,6 @@
     <ClCompile Include="DSP\Jit\DSPJitRegCache.cpp" />
     <ClCompile Include="DSP\Jit\DSPJitUtil.cpp" />
     <ClCompile Include="DSP\LabelMap.cpp" />
-    <ClCompile Include="ec_wii.cpp" />
     <ClCompile Include="FifoPlayer\FifoAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoDataFile.cpp" />
     <ClCompile Include="FifoPlayer\FifoPlaybackAnalyzer.cpp" />
@@ -343,7 +342,6 @@
     <ClInclude Include="DSP\Jit\DSPEmitter.h" />
     <ClInclude Include="DSP\Jit\DSPJitRegCache.h" />
     <ClInclude Include="DSP\LabelMap.h" />
-    <ClInclude Include="ec_wii.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoDataFile.h" />
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h" />

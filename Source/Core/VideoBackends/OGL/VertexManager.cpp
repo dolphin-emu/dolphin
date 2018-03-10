@@ -162,8 +162,6 @@ void VertexManager::vFlush()
   GLVertexFormat* nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
   u32 stride = nativeVertexFmt->GetVertexStride();
 
-  ProgramShaderCache::SetShader(m_current_primitive_type, nativeVertexFmt);
-
   PrepareDrawBuffers(stride);
 
   // upload global constants
@@ -174,7 +172,11 @@ void VertexManager::vFlush()
     glEnable(GL_STENCIL_TEST);
   }
 
-  Draw(stride);
+  if (m_current_pipeline_object)
+  {
+    g_renderer->SetPipeline(m_current_pipeline_object);
+    Draw(stride);
+  }
 
   if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {

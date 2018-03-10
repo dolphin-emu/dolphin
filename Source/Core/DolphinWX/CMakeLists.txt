@@ -67,7 +67,6 @@ set(SRCS
   FrameAui.cpp
   FrameTools.cpp
   GameListCtrl.cpp
-  ISOFile.cpp
   LogConfigWindow.cpp
   LogWindow.cpp
   Main.cpp

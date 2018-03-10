@@ -133,7 +133,7 @@ bool BluetoothEmu::RemoteDisconnect(u16 _connectionHandle)
   return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
-ReturnCode BluetoothEmu::Close(u32 fd)
+IPCCommandResult BluetoothEmu::Close(u32 fd)
 {
   // Clean up state
   m_ScanEnable = 0;

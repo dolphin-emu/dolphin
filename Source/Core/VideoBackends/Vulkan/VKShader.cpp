@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
@@ -103,20 +104,11 @@ std::unique_ptr<VKShader> VKShader::CreateFromSource(ShaderStage stage, const ch
 std::unique_ptr<VKShader> VKShader::CreateFromBinary(ShaderStage stage, const void* data,
                                                      size_t length)
 {
-  ShaderCompiler::SPIRVCodeVector spv;
-  const size_t size_in_words = sizeof(length) / sizeof(ShaderCompiler::SPIRVCodeType);
-  if (size_in_words > 0)
-  {
-    spv.resize(length / size_in_words);
-    std::memcpy(spv.data(), data, size_in_words);
-  }
-
-  // Non-aligned code sizes, unlikely (unless using VK_NV_glsl).
-  if ((length % sizeof(ShaderCompiler::SPIRVCodeType)) != 0)
-  {
-    spv.resize(size_in_words + 1);
-    std::memcpy(&spv[size_in_words], data, (length % sizeof(ShaderCompiler::SPIRVCodeType)));
-  }
+  const size_t size_in_words = Common::AlignUp(length, sizeof(ShaderCompiler::SPIRVCodeType)) /
+                               sizeof(ShaderCompiler::SPIRVCodeType);
+  ShaderCompiler::SPIRVCodeVector spv(size_in_words);
+  if (length > 0)
+    std::memcpy(spv.data(), data, length);
 
   return CreateShaderObject(stage, std::move(spv));
 }

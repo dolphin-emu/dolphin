@@ -77,7 +77,6 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
@@ -92,6 +91,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -318,7 +318,7 @@ void CFrame::BootGame(const std::string& filename, const std::optional<std::stri
     if (m_game_list_ctrl->GetSelectedISO() != nullptr)
     {
       if (m_game_list_ctrl->GetSelectedISO()->IsValid())
-        bootfile = m_game_list_ctrl->GetSelectedISO()->GetFileName();
+        bootfile = m_game_list_ctrl->GetSelectedISO()->GetFilePath();
     }
     else if (!StartUp.m_strDefaultISO.empty() && File::Exists(StartUp.m_strDefaultISO))
     {
@@ -1229,10 +1229,10 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   {
   case IDM_LIST_INSTALL_WAD:
   {
-    const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+    const UICommon::GameFile* iso = m_game_list_ctrl->GetSelectedISO();
     if (!iso)
       return;
-    fileName = iso->GetFileName();
+    fileName = iso->GetFilePath();
     break;
   }
   case IDM_MENU_INSTALL_WAD:
@@ -1258,7 +1258,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 void CFrame::OnUninstallWAD(wxCommandEvent&)
 {
-  const GameListItem* file = m_game_list_ctrl->GetSelectedISO();
+  const UICommon::GameFile* file = m_game_list_ctrl->GetSelectedISO();
   if (!file)
     return;
 
@@ -1268,9 +1268,8 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
     return;
   }
 
-  u64 title_id = file->GetTitleID();
-  IOS::HLE::Kernel ios;
-  if (ios.GetES()->DeleteTitleContent(title_id) < 0)
+  const u64 title_id = file->GetTitleID();
+  if (!WiiUtils::UninstallTitle(title_id))
   {
     PanicAlertT("Failed to remove this title from the NAND.");
     return;
@@ -1490,11 +1489,11 @@ void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
 
 void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
 {
-  const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+  const UICommon::GameFile* iso = m_game_list_ctrl->GetSelectedISO();
   if (!iso)
     return;
 
-  const std::string file_name = iso->GetFileName();
+  const std::string file_name = iso->GetFilePath();
 
   const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoDiscUpdate, file_name);
   ShowUpdateResult(result);

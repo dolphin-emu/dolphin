@@ -38,6 +38,10 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType ty
 // and does a permanent install.
 bool InstallWAD(const std::string& wad_path);
 
+bool UninstallTitle(u64 title_id);
+
+bool IsTitleInstalled(u64 title_id);
+
 enum class UpdateResult
 {
   Succeeded,

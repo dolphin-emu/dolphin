@@ -2,16 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cmath>
 #include <memory>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 #endif
 
+#include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -311,6 +315,23 @@ void EnableScreenSaver(bool enable)
     }
   }
 #endif
+}
+
+std::string FormatSize(u64 bytes)
+{
+  // i18n: The symbol for the unit "bytes"
+  const char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
+                                      _trans("TiB"), _trans("PiB"), _trans("EiB")};
+
+  // Find largest power of 2 less than size.
+  // div 10 to get largest named unit less than size
+  // 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
+  // Max value is 63 / 10 = 6
+  const int unit = IntLog2(std::max<u64>(bytes, 1)) / 10;
+
+  // Don't need exact values, only 5 most significant digits
+  const double unit_size = std::pow(2, unit * 10);
+  return StringFromFormat("%.2f %s", bytes / unit_size, GetStringT(unit_symbols[unit]).c_str());
 }
 
 }  // namespace UICommon

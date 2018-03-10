@@ -87,9 +87,7 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
         PixelShaderCache::GetDepthResolveProgram(), VertexShaderCache::GetSimpleVertexShader(),
         VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
-    BindEFBRenderTarget();
     g_renderer->RestoreAPIState();
-
     return m_efb.resolved_depth_tex;
   }
   else

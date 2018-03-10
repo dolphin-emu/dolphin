@@ -5,6 +5,7 @@
 #pragma once
 
 #include <QList>
+#include <QPixmap>
 
 // Store for various QPixmaps that will be used repeatedly.
 class Resources final

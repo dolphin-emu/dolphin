@@ -22,7 +22,7 @@ class BluetoothStub final : public BluetoothBase
 {
 public:
   using BluetoothBase::BluetoothBase;
-  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
 }  // namespace Device

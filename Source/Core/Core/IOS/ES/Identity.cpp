@@ -10,7 +10,6 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/ec_wii.h"
 
 namespace IOS
 {
@@ -20,8 +19,7 @@ namespace Device
 {
 ReturnCode ES::GetDeviceId(u32* device_id) const
 {
-  const EcWii& ec = EcWii::GetInstance();
-  *device_id = ec.GetNGID();
+  *device_id = m_ios.GetIOSC().GetDeviceId();
   INFO_LOG(IOS_ES, "GetDeviceId: %08X", *device_id);
   return IPC_SUCCESS;
 }
@@ -92,10 +90,9 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
     return GetDefaultReply(ES_EINVAL);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
-  u8* destination = Memory::GetPointer(request.io_vectors[0].address);
 
-  const EcWii& ec = EcWii::GetInstance();
-  MakeNGCert(destination, ec.GetNGID(), ec.GetNGKeyID(), ec.GetNGPriv(), ec.GetNGSig());
+  const auto cert = m_ios.GetIOSC().GetDeviceCertificate();
+  Memory::CopyToEmu(request.io_vectors[0].address, cert.data(), cert.size());
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -113,10 +110,7 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
-  const EcWii& ec = EcWii::GetInstance();
-  MakeAPSigAndCert(sig_out, ap_cert_out, m_title_context.tmd.GetTitleId(), data, data_size,
-                   ec.GetNGPriv(), ec.GetNGID());
-
+  m_ios.GetIOSC().Sign(sig_out, ap_cert_out, m_title_context.tmd.GetTitleId(), data, data_size);
   return GetDefaultReply(IPC_SUCCESS);
 }
 }  // namespace Device

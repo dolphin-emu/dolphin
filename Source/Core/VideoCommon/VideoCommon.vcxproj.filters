@@ -176,9 +176,6 @@
     <ClCompile Include="AbstractTexture.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="AbstractRawTexture.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="ShaderGenCommon.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
@@ -196,6 +193,12 @@
     </ClCompile>
     <ClCompile Include="AbstractStagingTexture.cpp">
       <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractFramebuffer.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderCache.cpp">
+      <Filter>Shader Generators</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -264,9 +267,6 @@
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="TextureConversionShader.h">
-      <Filter>Shader Generators</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureConvertionShaderGen.h">
       <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="VertexShaderGen.h">
@@ -356,9 +356,6 @@
     <ClInclude Include="AbstractTexture.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="AbstractRawTexture.h">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="AsyncShaderCompiler.h">
       <Filter>Util</Filter>
     </ClInclude>
@@ -379,6 +376,16 @@
     </ClInclude>
     <ClInclude Include="AbstractPipeline.h">
       <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConverterShaderGen.h" />
+    <ClInclude Include="AbstractFramebuffer.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="GXPipelineTypes.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderCache.h">
+      <Filter>Shader Generators</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

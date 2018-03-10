@@ -126,7 +126,7 @@ protected:
   void AddStaticDevices();
   std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
   s32 GetFreeDeviceID();
-  s32 OpenDevice(OpenRequest& request);
+  IPCCommandResult OpenDevice(OpenRequest& request);
 
   bool m_is_responsible_for_nand_root = false;
   u64 m_title_id = 0;

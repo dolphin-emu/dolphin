@@ -252,8 +252,10 @@ enum Bug
   // the negated value to a temporary variable then using that in the bitwise op.
   BUG_BROKEN_BITWISE_OP_NEGATION,
 
-  // Bug: Shaders are recompiled on the main thread after being previously compiled on
-  // a worker thread on Mesa i965.
+  // BUG: The GPU shader code appears to be context-specific on Mesa/i965.
+  // This means that if we compiled the ubershaders asynchronously, they will be recompiled
+  // on the main thread the first time they are used, causing stutter. For now, disable
+  // asynchronous compilation on Mesa i965.
   // Started version: -1
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,

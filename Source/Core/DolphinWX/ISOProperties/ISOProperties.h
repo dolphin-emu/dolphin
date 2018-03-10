@@ -15,8 +15,8 @@
 #include <wx/treebase.h>
 
 #include "Common/IniFile.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
+#include "UICommon/GameFile.h"
 
 class ActionReplayCodesPanel;
 class CheatWarningMessage;
@@ -52,9 +52,9 @@ wxDECLARE_EVENT(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, wxCommandEvent);
 class CISOProperties : public wxDialog
 {
 public:
-  CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id = wxID_ANY,
-                 const wxString& title = _("Properties"), const wxPoint& pos = wxDefaultPosition,
-                 const wxSize& size = wxDefaultSize,
+  CISOProperties(const UICommon::GameFile& game_list_item, wxWindow* parent,
+                 wxWindowID id = wxID_ANY, const wxString& title = _("Properties"),
+                 const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
                  long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
   virtual ~CISOProperties();
 
@@ -141,7 +141,7 @@ private:
   void OnCheatCodeToggled(wxCommandEvent& event);
   void OnChangeTitle(wxCommandEvent& event);
 
-  const GameListItem m_open_gamelist_item;
+  const UICommon::GameFile m_open_gamelist_item;
 
   IniFile m_gameini_default;
   IniFile m_gameini_local;

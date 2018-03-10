@@ -13,18 +13,22 @@
 #include "Core/GeckoCode.h"
 
 class CheatWarningWidget;
-class GameFile;
 class QLabel;
 class QListWidget;
 class QListWidgetItem;
 class QTextEdit;
 class QPushButton;
 
+namespace UICommon
+{
+class GameFile;
+}
+
 class GeckoCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeckoCodeWidget(const GameFile& game);
+  explicit GeckoCodeWidget(const UICommon::GameFile& game);
 
 signals:
   void OpenGeneralSettings();
@@ -43,9 +47,9 @@ private:
   void DownloadCodes();
   void SaveCodes();
 
-  const GameFile& m_game;
+  const UICommon::GameFile& m_game;
   std::string m_game_id;
-  u8 m_game_revision;
+  u16 m_game_revision;
 
   CheatWarningWidget* m_warning;
   QListWidget* m_code_list;
