@@ -24,7 +24,6 @@
 
 AudioConfigPane::AudioConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
-  CheckNeedForLatencyControl();
   InitializeGUI();
   LoadGUIValues();
   BindEvents();
@@ -45,12 +44,6 @@ void AudioConfigPane::InitializeGUI()
   m_volume_text = new wxStaticText(this, wxID_ANY, "");
   m_audio_backend_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
-  if (m_latency_control_supported)
-  {
-    m_audio_latency_spinctrl = new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize,
-                                              wxSP_ARROW_KEYS, 0, 200);
-    m_audio_latency_label = new wxStaticText(this, wxID_ANY, _("Latency (ms):"));
-  }
 
   m_stretch_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Audio Stretching"));
   m_stretch_label = new wxStaticText(this, wxID_ANY, _("Buffer Size:"));
@@ -58,12 +51,6 @@ void AudioConfigPane::InitializeGUI()
       new DolphinSlider(this, wxID_ANY, 80, 5, 300, wxDefaultPosition, wxDefaultSize);
   m_stretch_text = new wxStaticText(this, wxID_ANY, "");
 
-  if (m_latency_control_supported)
-  {
-    m_audio_latency_spinctrl->SetToolTip(
-        _("Sets the latency (in ms). Higher values may reduce audio "
-          "crackling. Certain backends only."));
-  }
   m_dpl2_decoder_checkbox->SetToolTip(
       _("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
   m_stretch_checkbox->SetToolTip(_("Enables stretching of the audio to match emulation speed."));
@@ -84,13 +71,6 @@ void AudioConfigPane::InitializeGUI()
                           wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2),
                           wxALIGN_CENTER_VERTICAL);
-  if (m_latency_control_supported)
-  {
-    backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(2, 0), wxDefaultSpan,
-                            wxALIGN_CENTER_VERTICAL);
-    backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(2, 1), wxDefaultSpan,
-                            wxALIGN_CENTER_VERTICAL);
-  }
 
   wxStaticBoxSizer* const backend_static_box_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Backend Settings"));
@@ -150,10 +130,6 @@ void AudioConfigPane::LoadGUIValues()
   m_volume_slider->SetValue(SConfig::GetInstance().m_Volume);
   m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
   m_dpl2_decoder_checkbox->SetValue(startup_params.bDPL2Decoder);
-  if (m_latency_control_supported)
-  {
-    m_audio_latency_spinctrl->SetValue(startup_params.iLatency);
-  }
   m_stretch_checkbox->SetValue(startup_params.m_audio_stretch);
   m_stretch_slider->Enable(startup_params.m_audio_stretch);
   m_stretch_slider->SetValue(startup_params.m_audio_stretch_max_latency);
@@ -165,13 +141,6 @@ void AudioConfigPane::LoadGUIValues()
 void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
 {
   m_dpl2_decoder_checkbox->Enable(AudioCommon::SupportsDPL2Decoder(backend));
-
-  if (m_latency_control_supported)
-  {
-    bool supports_latency_control = AudioCommon::SupportsLatencyControl(backend);
-    m_audio_latency_spinctrl->Enable(supports_latency_control);
-    m_audio_latency_label->Enable(supports_latency_control);
-  }
 
   bool supports_volume_changes = AudioCommon::SupportsVolumeChanges(backend);
   m_volume_slider->Enable(supports_volume_changes);
@@ -191,13 +160,6 @@ void AudioConfigPane::BindEvents()
 
   m_audio_backend_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioBackendChanged, this);
   m_audio_backend_choice->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
-
-  if (m_latency_control_supported)
-  {
-    m_audio_latency_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnLatencySpinCtrlChanged,
-                                   this);
-    m_audio_latency_spinctrl->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
-  }
 
   m_stretch_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnStretchCheckBoxChanged, this);
   m_stretch_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnStretchSliderChanged, this);
@@ -261,11 +223,4 @@ void AudioConfigPane::PopulateBackendChoiceBox()
 
   int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
   m_audio_backend_choice->SetSelection(num);
-}
-
-void AudioConfigPane::CheckNeedForLatencyControl()
-{
-  std::vector<std::string> backends = AudioCommon::GetSoundBackends();
-  m_latency_control_supported =
-      std::any_of(backends.cbegin(), backends.cend(), AudioCommon::SupportsLatencyControl);
 }
