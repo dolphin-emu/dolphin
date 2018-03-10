@@ -51,10 +51,6 @@ std::string ThousandSeparate(I value, int spaces = 0)
   std::ostringstream stream;
 #endif
 
-// std::locale("") seems to be broken on many platforms
-#if defined _WIN32 || (defined __linux__ && !defined __clang__)
-  stream.imbue(std::locale(""));
-#endif
   stream << std::setw(spaces) << value;
 
 #ifdef _WIN32
