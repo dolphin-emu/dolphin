@@ -32,6 +32,7 @@ set(SRCS
   PostProcessing.cpp
   RenderBase.cpp
   RenderState.cpp
+  ShaderCache.cpp
   ShaderGenCommon.cpp
   Statistics.cpp
   UberShaderCommon.cpp

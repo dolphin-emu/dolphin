@@ -11,12 +11,14 @@
 
 std::unique_ptr<cInterfaceBase> GLInterface;
 
+namespace GLUtil
+{
 void InitInterface()
 {
   GLInterface = HostGL_CreateGLInterface();
 }
 
-GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
+GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
 {
   // generate objects
   GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -99,4 +101,28 @@ GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string&
   glDeleteShader(fragmentShaderID);
 
   return programID;
+}
+
+void EnablePrimitiveRestart()
+{
+  constexpr GLuint PRIMITIVE_RESTART_INDEX = 65535;
+
+  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  {
+    glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
+  }
+  else
+  {
+    if (GLExtensions::Version() >= 310)
+    {
+      glEnable(GL_PRIMITIVE_RESTART);
+      glPrimitiveRestartIndex(PRIMITIVE_RESTART_INDEX);
+    }
+    else
+    {
+      glEnableClientState(GL_PRIMITIVE_RESTART_NV);
+      glPrimitiveRestartIndexNV(PRIMITIVE_RESTART_INDEX);
+    }
+  }
+}
 }

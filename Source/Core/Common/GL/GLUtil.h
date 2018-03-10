@@ -8,12 +8,9 @@
 
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#ifndef _WIN32
-
-#include <sys/types.h>
-
-#endif
+namespace GLUtil
+{
 void InitInterface();
-
-// Helpers
-GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
+GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
+void EnablePrimitiveRestart();
+}

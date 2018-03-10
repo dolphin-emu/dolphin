@@ -139,8 +139,6 @@ void VertexManager::vFlush()
   u32 index_count = IndexGenerator::GetIndexLen();
 
   // Update tracked state
-  StateTracker::GetInstance()->SetVertexFormat(vertex_format);
-  StateTracker::GetInstance()->CheckForShaderChanges();
   StateTracker::GetInstance()->UpdateVertexShaderConstants();
   StateTracker::GetInstance()->UpdateGeometryShaderConstants();
   StateTracker::GetInstance()->UpdatePixelShaderConstants();
@@ -165,12 +163,10 @@ void VertexManager::vFlush()
       bounding_box->Flush();
       bounding_box->Invalidate();
     }
-
-    // Update which descriptor set/pipeline layout to use.
-    StateTracker::GetInstance()->SetBBoxEnable(bounding_box_enabled);
   }
 
   // Bind all pending state to the command buffer
+  g_renderer->SetPipeline(m_current_pipeline_object);
   if (!StateTracker::GetInstance()->Bind())
   {
     WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);

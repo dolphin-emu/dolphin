@@ -109,6 +109,9 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   static const VkDescriptorSetLayoutBinding single_ubo_set_bindings[] = {
       0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT};
+
+  // The geometry shader buffer must be last in this binding set, as we don't include it
+  // if geometry shaders are not supported by the device. See the decrement below.
   static const VkDescriptorSetLayoutBinding per_stage_ubo_set_bindings[] = {
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
@@ -139,7 +142,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {7, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   };
 
-  static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
+  VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(single_ubo_set_bindings)), single_ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
@@ -152,6 +155,10 @@ bool ObjectCache::CreateDescriptorSetLayouts()
        static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(compute_set_bindings)), compute_set_bindings}};
+
+  // Don't set the GS bit if geometry shaders aren't available.
+  if (!g_vulkan_context->SupportsGeometryShaders())
+    create_infos[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS].bindingCount--;
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SET_LAYOUTS; i++)
   {
@@ -180,11 +187,10 @@ bool ObjectCache::CreatePipelineLayouts()
 {
   VkResult res;
 
-  // Descriptor sets for each pipeline layout
+  // Descriptor sets for each pipeline layout.
+  // In the standard set, the SSBO must be the last descriptor, as we do not include it
+  // when fragment stores and atomics are not supported by the device.
   VkDescriptorSetLayout standard_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS]};
-  VkDescriptorSetLayout bbox_sets[] = {
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS]};
@@ -207,10 +213,6 @@ bool ObjectCache::CreatePipelineLayouts()
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(standard_sets)), standard_sets, 0, nullptr},
 
-      // BBox
-      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(bbox_sets)), bbox_sets, 0, nullptr},
-
       // Push Constant
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(standard_sets)), standard_sets, 1, &push_constant_range},
@@ -227,6 +229,10 @@ bool ObjectCache::CreatePipelineLayouts()
       // Compute
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(compute_sets)), compute_sets, 1, &compute_push_constant_range}};
+
+  // If bounding box is unsupported, don't bother with the SSBO descriptor set.
+  if (!g_vulkan_context->SupportsBoundingBox())
+    pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
 
   for (size_t i = 0; i < NUM_PIPELINE_LAYOUTS; i++)
   {

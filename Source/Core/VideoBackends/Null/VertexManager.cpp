@@ -4,8 +4,6 @@
 
 #include "VideoBackends/Null/VertexManager.h"
 
-#include "VideoBackends/Null/ShaderCache.h"
-
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -41,9 +39,6 @@ void VertexManager::ResetBuffer(u32 stride)
 
 void VertexManager::vFlush()
 {
-  VertexShaderCache::s_instance->SetShader(m_current_primitive_type);
-  GeometryShaderCache::s_instance->SetShader(m_current_primitive_type);
-  PixelShaderCache::s_instance->SetShader(m_current_primitive_type);
 }
 
 }  // namespace

@@ -7,6 +7,7 @@
 #include <d3d11.h>
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -29,7 +30,7 @@ private:
   std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
   UINT m_num_elems = 0;
 
-  ID3D11InputLayout* m_layout = nullptr;
+  std::atomic<ID3D11InputLayout*> m_layout{nullptr};
 };
 
 class VertexManager : public VertexManagerBase

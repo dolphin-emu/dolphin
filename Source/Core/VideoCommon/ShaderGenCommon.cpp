@@ -37,28 +37,31 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
 }
 
 std::string GetDiskShaderCacheFileName(APIType api_type, const char* type, bool include_gameid,
-                                       bool include_host_config)
+                                       bool include_host_config, bool include_api)
 {
   if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
     File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
   std::string filename = File::GetUserPath(D_SHADERCACHE_IDX);
-  switch (api_type)
+  if (include_api)
   {
-  case APIType::D3D:
-    filename += "D3D";
-    break;
-  case APIType::OpenGL:
-    filename += "OpenGL";
-    break;
-  case APIType::Vulkan:
-    filename += "Vulkan";
-    break;
-  default:
-    break;
+    switch (api_type)
+    {
+    case APIType::D3D:
+      filename += "D3D";
+      break;
+    case APIType::OpenGL:
+      filename += "OpenGL";
+      break;
+    case APIType::Vulkan:
+      filename += "Vulkan";
+      break;
+    default:
+      break;
+    }
+    filename += '-';
   }
 
-  filename += '-';
   filename += type;
 
   if (include_gameid)

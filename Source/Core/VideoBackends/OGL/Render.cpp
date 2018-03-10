@@ -81,8 +81,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                   GLsizei length, const char* message, const void* userParam)
+void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                            const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;
@@ -677,6 +677,10 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsPaletteConversion &&
       g_Config.backend_info.bSupportsComputeShaders && g_ogl_config.bSupportsImageLoadStore;
 
+  // Background compiling is supported only when shared contexts aren't broken.
+  g_Config.backend_info.bSupportsBackgroundCompiling =
+      !DriverDetails::HasBug(DriverDetails::BUG_SHARED_CONTEXT_SHADER_COMPILATION);
+
   if (g_ogl_config.bSupportsDebug)
   {
     if (GLExtensions::Supports("GL_KHR_debug"))
@@ -784,25 +788,7 @@ Renderer::Renderer()
   glClearDepthf(1.0f);
 
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-  {
-    if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-    {
-      glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    }
-    else
-    {
-      if (GLExtensions::Version() >= 310)
-      {
-        glEnable(GL_PRIMITIVE_RESTART);
-        glPrimitiveRestartIndex(65535);
-      }
-      else
-      {
-        glEnableClientState(GL_PRIMITIVE_RESTART_NV);
-        glPrimitiveRestartIndexNV(65535);
-      }
-    }
-  }
+    GLUtil::EnablePrimitiveRestart();
   IndexGenerator::Init();
 
   UpdateActiveConfig();
@@ -1286,8 +1272,11 @@ void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
   glClear(clear_mask);
 }
 
-void Renderer::ApplyBlendingState(const BlendingState& state)
+void Renderer::ApplyBlendingState(const BlendingState state, bool force)
 {
+  if (!force && m_current_blend_state == state)
+    return;
+
   bool useDualSource =
       state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
@@ -1360,6 +1349,7 @@ void Renderer::ApplyBlendingState(const BlendingState& state)
   }
 
   glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
+  m_current_blend_state = state;
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -1465,7 +1455,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
   g_texture_cache->Cleanup(frameCount);
-  ProgramShaderCache::RetrieveAsyncShaders();
 
   RestoreAPIState();
 
@@ -1479,8 +1468,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     g_sampler_cache->Clear();
 
   // Invalidate shader cache when the host config changes.
-  if (CheckForHostConfigChanges())
-    ProgramShaderCache::Reload();
+  CheckForHostConfigChanges();
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();
@@ -1559,15 +1547,19 @@ void Renderer::RestoreAPIState()
     glEnable(GL_CLIP_DISTANCE0);
     glEnable(GL_CLIP_DISTANCE1);
   }
-  BPFunctions::SetGenerationMode();
   BPFunctions::SetScissor();
   BPFunctions::SetViewport();
-  BPFunctions::SetDepthMode();
-  BPFunctions::SetBlendMode();
+
+  ApplyRasterizationState(m_current_rasterization_state, true);
+  ApplyDepthState(m_current_depth_state, true);
+  ApplyBlendingState(m_current_blend_state, true);
 }
 
-void Renderer::ApplyRasterizationState(const RasterizationState& state)
+void Renderer::ApplyRasterizationState(const RasterizationState state, bool force)
 {
+  if (!force && m_current_rasterization_state == state)
+    return;
+
   // none, ccw, cw, ccw
   if (state.cullmode != GenMode::CULL_NONE)
   {
@@ -1579,10 +1571,15 @@ void Renderer::ApplyRasterizationState(const RasterizationState& state)
   {
     glDisable(GL_CULL_FACE);
   }
+
+  m_current_rasterization_state = state;
 }
 
-void Renderer::ApplyDepthState(const DepthState& state)
+void Renderer::ApplyDepthState(const DepthState state, bool force)
 {
+  if (!force && m_current_depth_state == state)
+    return;
+
   const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
                                 GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
 
@@ -1600,21 +1597,8 @@ void Renderer::ApplyDepthState(const DepthState& state)
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
-}
 
-void Renderer::SetRasterizationState(const RasterizationState& state)
-{
-  ApplyRasterizationState(state);
-}
-
-void Renderer::SetDepthState(const DepthState& state)
-{
-  ApplyDepthState(state);
-}
-
-void Renderer::SetBlendingState(const BlendingState& state)
-{
-  ApplyBlendingState(state);
+  m_current_depth_state = state;
 }
 
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
@@ -1622,6 +1606,9 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   // Not all shader changes currently go through SetPipeline, so we can't
   // test if the pipeline hasn't changed and skip these applications. Yet.
   m_graphics_pipeline = static_cast<const OGLPipeline*>(pipeline);
+  if (!m_graphics_pipeline)
+    return;
+
   ApplyRasterizationState(m_graphics_pipeline->GetRasterizationState());
   ApplyDepthState(m_graphics_pipeline->GetDepthState());
   ApplyBlendingState(m_graphics_pipeline->GetBlendingState());
@@ -1708,5 +1695,10 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
 
   glDispatchCompute(groups_x, groups_y, groups_z);
   ProgramShaderCache::InvalidateLastProgram();
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
 }

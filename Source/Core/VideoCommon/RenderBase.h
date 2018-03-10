@@ -28,6 +28,7 @@
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
@@ -78,10 +79,7 @@ public:
   };
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
-  virtual void SetBlendingState(const BlendingState& state) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
-  virtual void SetRasterizationState(const RasterizationState& state) {}
-  virtual void SetDepthState(const DepthState& state) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
   virtual void SetSamplerState(u32 index, const SamplerState& state) {}
   virtual void UnbindTexture(const AbstractTexture* texture) {}
@@ -189,6 +187,8 @@ public:
   void ResizeSurface(int new_width, int new_height);
   bool UseVertexDepthRange() const;
 
+  virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
+
   virtual void Shutdown();
 
   // Drawing utility shaders.
@@ -243,6 +243,7 @@ protected:
   std::mutex m_swap_mutex;
 
   u32 m_last_host_config_bits = 0;
+  u32 m_last_efb_multisamples = 1;
 
 private:
   void RunFrameDumps();

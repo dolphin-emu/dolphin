@@ -105,10 +105,7 @@ public:
   void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
                               const ClearColor& color_value = {},
                               float depth_value = 0.0f) override;
-  void SetBlendingState(const BlendingState& state) override;
   void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
   void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
   void UnbindTexture(const AbstractTexture* texture) override;
@@ -142,6 +139,8 @@ public:
   void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
                              u32 groups_x, u32 groups_y, u32 groups_z) override;
 
+  std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
+
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
@@ -155,12 +154,15 @@ private:
   void CheckForSurfaceChange();
   void CheckForSurfaceResize();
 
-  void ApplyBlendingState(const BlendingState& state);
-  void ApplyRasterizationState(const RasterizationState& state);
-  void ApplyDepthState(const DepthState& state);
+  void ApplyBlendingState(const BlendingState state, bool force = false);
+  void ApplyRasterizationState(const RasterizationState state, bool force = false);
+  void ApplyDepthState(const DepthState state, bool force = false);
   void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
 
   std::array<const AbstractTexture*, 8> m_bound_textures{};
   const OGLPipeline* m_graphics_pipeline = nullptr;
+  RasterizationState m_current_rasterization_state = {};
+  DepthState m_current_depth_state = {};
+  BlendingState m_current_blend_state = {};
 };
 }

@@ -48,8 +48,7 @@ enum DESCRIPTOR_SET_BIND_POINT
 //   - Standard
 //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
 //       - 8 combined image samplers (accessible from PS)
-//   - BBox Enabled
-//       - Same as standard, plus a single SSBO accessible from PS
+//       - 1 SSBO accessible from PS if supported
 //   - Push Constant
 //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
 //   - Texture Decoding
@@ -67,7 +66,6 @@ enum DESCRIPTOR_SET_BIND_POINT
 enum PIPELINE_LAYOUT
 {
   PIPELINE_LAYOUT_STANDARD,
-  PIPELINE_LAYOUT_BBOX,
   PIPELINE_LAYOUT_PUSH_CONSTANT,
   PIPELINE_LAYOUT_TEXTURE_CONVERSION,
   PIPELINE_LAYOUT_UTILITY,

@@ -71,15 +71,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
   SetupDeviceObjects();
 
-  // Setup GX pipeline state
-  for (auto& sampler : m_gx_state.samplers)
-    sampler.hex = RenderState::GetPointSamplerState().hex;
-
-  m_gx_state.zmode.testenable = false;
-  m_gx_state.zmode.updateenable = false;
-  m_gx_state.zmode.func = ZMode::NEVER;
-  m_gx_state.raster.cullmode = GenMode::CULL_NONE;
-
   // Clear EFB textures
   constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
   D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(),
@@ -299,6 +290,8 @@ void Renderer::UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
   const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
+  if (!dx_pipeline)
+    return;
 
   D3D::stateman->SetRasterizerState(dx_pipeline->GetRasterizerState());
   D3D::stateman->SetDepthState(dx_pipeline->GetDepthState());
@@ -313,11 +306,6 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
                                    u32 vertex_stride, u32 num_vertices)
 {
-  // Textures are fine, they're set directly via SetTexture.
-  // Since samplers are set via gx_state, we need to fix this up here.
-  for (size_t stage = 0; stage < m_gx_state.samplers.size(); stage++)
-    D3D::stateman->SetSampler(stage, m_state_cache.Get(m_gx_state.samplers[stage]));
-
   // Copy in uniforms.
   if (uniforms_size > 0)
   {
@@ -638,11 +626,6 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   RestoreAPIState();
 }
 
-void Renderer::SetBlendingState(const BlendingState& state)
-{
-  m_gx_state.blend.hex = state.hex;
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
                         float Gamma)
@@ -683,7 +666,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Enable configuration changes
   UpdateActiveConfig();
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
-  VertexShaderCache::RetreiveAsyncShaders();
 
   // Flip/present backbuffer to frontbuffer here
   if (D3D::swapchain)
@@ -706,12 +688,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
                                         D3D11_CLEAR_DEPTH, 0.f, 0);
   }
 
-  if (CheckForHostConfigChanges())
-  {
-    VertexShaderCache::Reload();
-    GeometryShaderCache::Reload();
-    PixelShaderCache::Reload();
-  }
+  CheckForHostConfigChanges();
 
   // begin next frame
   RestoreAPIState();
@@ -784,30 +761,6 @@ void Renderer::RestoreAPIState()
   BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState()
-{
-  D3D::stateman->SetBlendState(m_state_cache.Get(m_gx_state.blend));
-  D3D::stateman->SetDepthState(m_state_cache.Get(m_gx_state.zmode));
-  D3D::stateman->SetRasterizerState(m_state_cache.Get(m_gx_state.raster));
-  D3D::stateman->SetPrimitiveTopology(
-      StateCache::GetPrimitiveTopology(m_gx_state.raster.primitive));
-  FramebufferManager::SetIntegerEFBRenderTarget(m_gx_state.blend.logicopenable);
-
-  for (u32 stage = 0; stage < static_cast<u32>(m_gx_state.samplers.size()); stage++)
-    D3D::stateman->SetSampler(stage, m_state_cache.Get(m_gx_state.samplers[stage]));
-
-  ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
-
-  D3D::stateman->SetPixelConstants(PixelShaderCache::GetConstantBuffer(),
-                                   g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
-  D3D::stateman->SetVertexConstants(vertexConstants);
-  D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
-}
-
-void Renderer::RestoreState()
-{
-}
-
 void Renderer::SetFramebuffer(const AbstractFramebuffer* framebuffer)
 {
   const DXFramebuffer* fb = static_cast<const DXFramebuffer*>(framebuffer);
@@ -838,16 +791,6 @@ void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
   }
 }
 
-void Renderer::SetRasterizationState(const RasterizationState& state)
-{
-  m_gx_state.raster.hex = state.hex;
-}
-
-void Renderer::SetDepthState(const DepthState& state)
-{
-  m_gx_state.zmode.hex = state.hex;
-}
-
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
 {
   D3D::stateman->SetTexture(
@@ -857,7 +800,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
 
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
-  m_gx_state.samplers[index].hex = state.hex;
+  D3D::stateman->SetSampler(index, m_state_cache.Get(state));
 }
 
 void Renderer::UnbindTexture(const AbstractTexture* texture)
