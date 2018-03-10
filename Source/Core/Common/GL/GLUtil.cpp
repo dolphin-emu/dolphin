@@ -11,12 +11,14 @@
 
 std::unique_ptr<cInterfaceBase> GLInterface;
 
+namespace GLUtil
+{
 void InitInterface()
 {
   GLInterface = HostGL_CreateGLInterface();
 }
 
-GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
+GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
 {
   // generate objects
   GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -99,4 +101,5 @@ GLuint OpenGL_CompileProgram(const std::string& vertexShader, const std::string&
   glDeleteShader(fragmentShaderID);
 
   return programID;
+}
 }

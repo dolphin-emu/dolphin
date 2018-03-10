@@ -160,7 +160,7 @@ bool VideoBackend::Initialize(void* window_handle)
   InitBackendInfo();
   InitializeShared();
 
-  InitInterface();
+  GLUtil::InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
   if (!GLInterface->Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer))
     return false;
