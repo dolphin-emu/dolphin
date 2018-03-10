@@ -824,25 +824,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 
   s_is_shared_context = true;
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-  {
-    if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-    {
-      glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
-    }
-    else
-    {
-      if (GLExtensions::Version() >= 310)
-      {
-        glEnable(GL_PRIMITIVE_RESTART);
-        glPrimitiveRestartIndex(65535);
-      }
-      else
-      {
-        glEnableClientState(GL_PRIMITIVE_RESTART_NV);
-        glPrimitiveRestartIndexNV(65535);
-      }
-    }
-  }
+    GLUtil::EnablePrimitiveRestart();
 
   return true;
 }

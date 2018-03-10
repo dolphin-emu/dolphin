@@ -12,4 +12,5 @@ namespace GLUtil
 {
 void InitInterface();
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
+void EnablePrimitiveRestart();
 }
