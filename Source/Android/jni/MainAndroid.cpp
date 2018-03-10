@@ -193,7 +193,7 @@ static bool LoadBanner(std::string filename, u32* Banner)
 
   if (pVolume != nullptr)
   {
-    int Width, Height;
+    u32 Width, Height;
     std::vector<u32> BannerVec = pVolume->GetBanner(&Width, &Height);
     // This code (along with above inlines) is moved from
     // elsewhere.  Someone who knows anything about Android

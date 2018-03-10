@@ -28,7 +28,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 9;  // Last changed in PR 6569
+static constexpr u32 CACHE_REVISION = 10;  // Last changed in PR 6429
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -138,17 +138,20 @@ bool GameFileCache::UpdateAdditionalMetadata(const Core::TitleDatabase& title_da
 bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file,
                                              const Core::TitleDatabase& title_database)
 {
-  const bool banner_changed = (*game_file)->BannerChanged();
+  const bool wii_banner_changed = (*game_file)->WiiBannerChanged();
+  const bool custom_banner_changed = (*game_file)->CustomBannerChanged();
   const bool custom_title_changed = (*game_file)->CustomNameChanged(title_database);
-  if (!banner_changed && !custom_title_changed)
+  if (!wii_banner_changed && !custom_banner_changed && !custom_title_changed)
     return false;
 
   // If a cached file needs an update, apply the updates to a copy and delete the original.
   // This makes the usage of cached files in other threads safe.
 
   std::shared_ptr<GameFile> copy = std::make_shared<GameFile>(**game_file);
-  if (banner_changed)
-    copy->BannerCommit();
+  if (wii_banner_changed)
+    copy->WiiBannerCommit();
+  if (custom_banner_changed)
+    copy->CustomBannerCommit();
   if (custom_title_changed)
     copy->CustomNameCommit();
   *game_file = std::move(copy);

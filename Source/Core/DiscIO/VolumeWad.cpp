@@ -144,7 +144,7 @@ std::map<Language, std::string> VolumeWAD::GetLongNames() const
   return ReadWiiNames(names);
 }
 
-std::vector<u32> VolumeWAD::GetBanner(int* width, int* height) const
+std::vector<u32> VolumeWAD::GetBanner(u32* width, u32* height) const
 {
   *width = 0;
   *height = 0;
