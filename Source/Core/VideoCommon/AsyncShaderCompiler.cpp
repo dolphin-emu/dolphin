@@ -57,6 +57,12 @@ bool AsyncShaderCompiler::HasPendingWork()
   return !m_pending_work.empty() || m_busy_workers.load() != 0;
 }
 
+bool AsyncShaderCompiler::HasCompletedWork()
+{
+  std::lock_guard<std::mutex> guard(m_completed_work_lock);
+  return !m_completed_work.empty();
+}
+
 void AsyncShaderCompiler::WaitUntilCompletion()
 {
   while (HasPendingWork())

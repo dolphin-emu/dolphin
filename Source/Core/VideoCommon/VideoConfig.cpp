@@ -198,7 +198,7 @@ u32 VideoConfig::GetShaderCompilerThreads() const
 u32 VideoConfig::GetShaderPrecompilerThreads() const
 {
   // When using background compilation, always keep the same thread count.
-  if (bWaitForShadersBeforeStarting)
+  if (!bWaitForShadersBeforeStarting)
     return GetShaderCompilerThreads();
 
   if (!backend_info.bSupportsBackgroundCompiling)

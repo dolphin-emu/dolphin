@@ -45,6 +45,7 @@ public:
   void QueueWorkItem(WorkItemPtr item);
   void RetrieveWorkItems();
   bool HasPendingWork();
+  bool HasCompletedWork();
 
   // Simpler version without progress updates.
   void WaitUntilCompletion();
