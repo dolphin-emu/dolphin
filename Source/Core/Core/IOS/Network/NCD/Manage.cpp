@@ -21,6 +21,7 @@ namespace Device
 {
 NetNCDManage::NetNCDManage(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
+  config.ReadConfig(ios.GetFS().get());
 }
 
 IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
@@ -51,14 +52,14 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
 
   case IOCTLV_NCD_READCONFIG:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
-    config.ReadConfig();
+    config.ReadConfig(m_ios.GetFS().get());
     config.WriteToMem(request.io_vectors.at(0).address);
     break;
 
   case IOCTLV_NCD_WRITECONFIG:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
     config.ReadFromMem(request.in_vectors.at(0).address);
-    config.WriteConfig();
+    config.WriteConfig(m_ios.GetFS().get());
     break;
 
   case IOCTLV_NCD_GETLINKSTATUS:
