@@ -15,6 +15,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/LinearDiskCache.h"
 
 #include "VideoCommon/AbstractPipeline.h"
@@ -22,7 +23,6 @@
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/GXPipelineTypes.h"
 #include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/UberShaderPixel.h"
@@ -68,6 +68,7 @@ private:
   void LoadShaderCaches();
   void ClearShaderCaches();
   void LoadPipelineUIDCache();
+  void ClosePipelineUIDCache();
   void CompileMissingPipelines();
   void InvalidateCachedPipelines();
   void ClearPipelineCaches();
@@ -103,6 +104,7 @@ private:
                                            std::unique_ptr<AbstractPipeline> pipeline);
   const AbstractPipeline* InsertGXUberPipeline(const GXUberPipelineUid& config,
                                                std::unique_ptr<AbstractPipeline> pipeline);
+  void AddSerializedGXPipelineUID(const SerializedGXPipelineUid& uid);
   void AppendGXPipelineUID(const GXPipelineUid& config);
 
   // ASync Compiler Methods
@@ -141,20 +143,7 @@ private:
   std::map<GXPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>> m_gx_pipeline_cache;
   std::map<GXUberPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
       m_gx_uber_pipeline_cache;
-
-  // Disk cache of pipeline UIDs
-  // We can't use the whole UID as a type
-  struct GXPipelineDiskCacheUid
-  {
-    PortableVertexDeclaration vertex_decl;
-    VertexShaderUid vs_uid;
-    GeometryShaderUid gs_uid;
-    PixelShaderUid ps_uid;
-    u32 rasterization_state_bits;
-    u32 depth_state_bits;
-    u32 blending_state_bits;
-  };
-  LinearDiskCache<GXPipelineDiskCacheUid, u8> m_gx_pipeline_uid_disk_cache;
+  File::IOFile m_gx_pipeline_uid_cache_file;
 };
 
 }  // namespace VideoCommon

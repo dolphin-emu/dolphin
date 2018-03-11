@@ -5,7 +5,9 @@
 #include "VideoCommon/ShaderCache.h"
 
 #include "Common/Assert.h"
+#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -64,6 +66,7 @@ void ShaderCache::SetHostConfig(const ShaderHostConfig& host_config, u32 efb_mul
 void ShaderCache::Reload()
 {
   WaitForAsyncCompiler();
+  ClosePipelineUIDCache();
   InvalidateCachedPipelines();
   ClearShaderCaches();
 
@@ -92,6 +95,7 @@ void ShaderCache::Shutdown()
   // This may leave shaders uncommitted to the cache, but it's better than blocking shutdown
   // until everything has finished compiling.
   m_async_shader_compiler->StopWorkerThreads();
+  ClosePipelineUIDCache();
   ClearShaderCaches();
   ClearPipelineCaches();
 }
@@ -268,43 +272,6 @@ void ShaderCache::ClearShaderCaches()
   SETSTAT(stats.numPixelShadersAlive, 0);
   SETSTAT(stats.numVertexShadersCreated, 0);
   SETSTAT(stats.numVertexShadersAlive, 0);
-}
-
-void ShaderCache::LoadPipelineUIDCache()
-{
-  // We use the async compiler here to speed up startup time.
-  class CacheReader : public LinearDiskCacheReader<GXPipelineDiskCacheUid, u8>
-  {
-  public:
-    CacheReader(ShaderCache* shader_cache_) : shader_cache(shader_cache_) {}
-    void Read(const GXPipelineDiskCacheUid& key, const u8* data, u32 data_size)
-    {
-      GXPipelineUid config = {};
-      config.vertex_format = VertexLoaderManager::GetOrCreateMatchingFormat(key.vertex_decl);
-      config.vs_uid = key.vs_uid;
-      config.gs_uid = key.gs_uid;
-      config.ps_uid = key.ps_uid;
-      config.rasterization_state.hex = key.rasterization_state_bits;
-      config.depth_state.hex = key.depth_state_bits;
-      config.blending_state.hex = key.blending_state_bits;
-
-      auto iter = shader_cache->m_gx_pipeline_cache.find(config);
-      if (iter != shader_cache->m_gx_pipeline_cache.end())
-        return;
-
-      auto& entry = shader_cache->m_gx_pipeline_cache[config];
-      entry.second = false;
-    }
-
-  private:
-    ShaderCache* shader_cache;
-  };
-
-  std::string filename = GetDiskShaderCacheFileName(m_api_type, "pipeline-uid", true, false, false);
-  CacheReader reader(this);
-  u32 count = m_gx_pipeline_uid_disk_cache.OpenAndRead(filename, reader);
-  INFO_LOG(VIDEO, "Read %u pipeline UIDs from %s", count, filename.c_str());
-  CompileMissingPipelines();
 }
 
 void ShaderCache::CompileMissingPipelines()
@@ -605,10 +572,106 @@ ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
   return entry.first.get();
 }
 
+void ShaderCache::LoadPipelineUIDCache()
+{
+  constexpr u32 CACHE_FILE_MAGIC = 0x44495550;  // PUID
+  constexpr size_t CACHE_HEADER_SIZE = sizeof(u32) + sizeof(u32);
+  std::string filename =
+      File::GetUserPath(D_CACHE_IDX) + SConfig::GetInstance().GetGameID() + ".uidcache";
+  if (m_gx_pipeline_uid_cache_file.Open(filename, "rb+"))
+  {
+    // If an existing case exists, validate the version before reading entries.
+    u32 existing_magic;
+    u32 existing_version;
+    if (m_gx_pipeline_uid_cache_file.ReadBytes(&existing_magic, sizeof(existing_magic)) &&
+        m_gx_pipeline_uid_cache_file.ReadBytes(&existing_version, sizeof(existing_version)) &&
+        existing_magic == CACHE_FILE_MAGIC && existing_version == GX_PIPELINE_UID_VERSION)
+    {
+      // Ensure the expected size matches the actual size of the file. If it doesn't, it means
+      // the cache file may be corrupted, and we should not proceed with loading potentially
+      // garbage or invalid UIDs.
+      const u64 file_size = m_gx_pipeline_uid_cache_file.GetSize();
+      const size_t uid_count =
+          static_cast<size_t>(file_size - CACHE_HEADER_SIZE) / sizeof(SerializedGXPipelineUid);
+      const size_t expected_size = uid_count * sizeof(SerializedGXPipelineUid) + CACHE_HEADER_SIZE;
+      bool uid_file_valid = file_size == expected_size;
+      if (uid_file_valid)
+      {
+        for (size_t i = 0; i < uid_count; i++)
+        {
+          SerializedGXPipelineUid serialized_uid;
+          if (m_gx_pipeline_uid_cache_file.ReadBytes(&serialized_uid, sizeof(serialized_uid)))
+          {
+            // This just adds the pipeline to the map, it is compiled later.
+            AddSerializedGXPipelineUID(serialized_uid);
+          }
+          else
+          {
+            uid_file_valid = false;
+            break;
+          }
+        }
+      }
+
+      // We open the file for reading and writing, so we must seek to the end before writing.
+      if (!uid_file_valid || !m_gx_pipeline_uid_cache_file.Seek(expected_size, SEEK_SET))
+      {
+        // Close the file. We re-open and truncate it below.
+        m_gx_pipeline_uid_cache_file.Close();
+      }
+    }
+  }
+
+  // If the file is not open, it means it was either corrupted or didn't exist.
+  if (!m_gx_pipeline_uid_cache_file.IsOpen())
+  {
+    if (m_gx_pipeline_uid_cache_file.Open(filename, "wb"))
+    {
+      // Write the version identifier.
+      m_gx_pipeline_uid_cache_file.WriteBytes(&CACHE_FILE_MAGIC, sizeof(GX_PIPELINE_UID_VERSION));
+      m_gx_pipeline_uid_cache_file.WriteBytes(&GX_PIPELINE_UID_VERSION,
+                                              sizeof(GX_PIPELINE_UID_VERSION));
+    }
+  }
+
+  INFO_LOG(VIDEO, "Read %u pipeline UIDs from %s",
+           static_cast<unsigned>(m_gx_pipeline_cache.size()), filename.c_str());
+}
+
+void ShaderCache::ClosePipelineUIDCache()
+{
+  // This is left as a method in case we need to append extra data to the file in the future.
+  m_gx_pipeline_uid_cache_file.Close();
+}
+
+void ShaderCache::AddSerializedGXPipelineUID(const SerializedGXPipelineUid& uid)
+{
+  GXPipelineUid real_uid = {};
+  real_uid.vertex_format = VertexLoaderManager::GetOrCreateMatchingFormat(uid.vertex_decl);
+  real_uid.vs_uid = uid.vs_uid;
+  real_uid.gs_uid = uid.gs_uid;
+  real_uid.ps_uid = uid.ps_uid;
+  real_uid.rasterization_state.hex = uid.rasterization_state_bits;
+  real_uid.depth_state.hex = uid.depth_state_bits;
+  real_uid.blending_state.hex = uid.blending_state_bits;
+
+  auto iter = m_gx_pipeline_cache.find(real_uid);
+  if (iter != m_gx_pipeline_cache.end())
+    return;
+
+  // Flag it as empty with a null pipeline object, for later compilation.
+  auto& entry = m_gx_pipeline_cache[real_uid];
+  entry.second = false;
+}
+
 void ShaderCache::AppendGXPipelineUID(const GXPipelineUid& config)
 {
-  // Convert to disk format.
-  GXPipelineDiskCacheUid disk_uid = {};
+  if (!m_gx_pipeline_uid_cache_file.IsOpen())
+    return;
+
+  // Convert to disk format. Ensure all padding bytes are zero.
+  SerializedGXPipelineUid disk_uid;
+  std::memset(&disk_uid, 0, sizeof(disk_uid));
   disk_uid.vertex_decl = config.vertex_format->GetVertexDeclaration();
   disk_uid.vs_uid = config.vs_uid;
   disk_uid.gs_uid = config.gs_uid;
@@ -616,7 +679,11 @@ void ShaderCache::AppendGXPipelineUID(const GXPipelineUid& config)
   disk_uid.rasterization_state_bits = config.rasterization_state.hex;
   disk_uid.depth_state_bits = config.depth_state.hex;
   disk_uid.blending_state_bits = config.blending_state.hex;
-  m_gx_pipeline_uid_disk_cache.Append(disk_uid, nullptr, 0);
+  if (!m_gx_pipeline_uid_cache_file.WriteBytes(&disk_uid, sizeof(disk_uid)))
+  {
+    WARN_LOG(VIDEO, "Writing pipeline UID to cache failed, closing file.");
+    m_gx_pipeline_uid_cache_file.Close();
+  }
 }
 
 void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid)
