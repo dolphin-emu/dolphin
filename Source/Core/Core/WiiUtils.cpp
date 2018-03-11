@@ -136,7 +136,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
   }
 
   // Delete a previous temporary title, if it exists.
-  SysConf sysconf{Common::FROM_SESSION_ROOT};
+  SysConf sysconf{ios.GetFS()};
   SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
   if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);

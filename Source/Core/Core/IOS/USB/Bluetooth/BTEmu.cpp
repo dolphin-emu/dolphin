@@ -42,8 +42,7 @@ namespace Device
 BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
     : BluetoothBase(ios, device_name)
 {
-  SysConf sysconf{Core::WantsDeterminism() ? Common::FromWhichRoot::FROM_SESSION_ROOT :
-                                             Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{ios.GetFS()};
   if (!Core::WantsDeterminism())
     BackUpBTInfoSection(&sysconf);
 
