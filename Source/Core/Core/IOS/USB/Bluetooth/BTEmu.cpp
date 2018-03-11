@@ -15,7 +15,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/SysConf.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -25,6 +24,7 @@
 #include "Core/Host.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/SysConf.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS

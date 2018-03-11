@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/SysConf.h"
+#include "Core/SysConf.h"
 
 #include <algorithm>
 #include <array>
