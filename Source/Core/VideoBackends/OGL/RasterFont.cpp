@@ -157,6 +157,7 @@ RasterFont::RasterFont()
     }
   }
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CHARACTER_WIDTH * CHARACTER_COUNT, CHARACTER_HEIGHT, 0,
                GL_RGBA, GL_UNSIGNED_BYTE, texture_data.data());
 
