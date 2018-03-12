@@ -195,6 +195,12 @@ protected:
   void Init();
 };
 
-std::unique_ptr<FileSystem> MakeFileSystem();
+enum class Location
+{
+  Configured,
+  Session,
+};
+
+std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session);
 
 }  // namespace IOS::HLE::FS

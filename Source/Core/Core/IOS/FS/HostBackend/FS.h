@@ -23,7 +23,7 @@ namespace IOS::HLE::FS
 class HostFileSystem final : public FileSystem
 {
 public:
-  HostFileSystem();
+  HostFileSystem(const std::string& root_path);
   ~HostFileSystem();
 
   void DoState(PointerWrap& p) override;
@@ -73,9 +73,10 @@ private:
   Handle* GetHandleFromFd(Fd fd);
   Fd ConvertHandleToFd(const Handle* handle) const;
 
-  std::string BuildFilename(const std::string& wii_path);
+  std::string BuildFilename(const std::string& wii_path) const;
   std::shared_ptr<File::IOFile> OpenHostFile(const std::string& host_path);
 
+  std::string m_root_path;
   std::array<Handle, 16> m_handles{};
   std::map<std::string, std::weak_ptr<File::IOFile>> m_open_files;
 };

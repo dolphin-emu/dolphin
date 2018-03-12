@@ -20,14 +20,13 @@ static bool IsValidWiiPath(const std::string& path)
   return path.compare(0, 1, "/") == 0;
 }
 
-std::string HostFileSystem::BuildFilename(const std::string& wii_path)
+std::string HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
-  std::string nand_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
   if (wii_path.compare(0, 1, "/") == 0)
-    return nand_path + Common::EscapePath(wii_path);
+    return m_root_path + Common::EscapePath(wii_path);
 
   ASSERT(false);
-  return nand_path;
+  return m_root_path;
 }
 
 // Get total filesize of contents of a directory (recursive)
@@ -45,7 +44,7 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parent_entry)
   return sizeOfFiles;
 }
 
-HostFileSystem::HostFileSystem()
+HostFileSystem::HostFileSystem(const std::string& root_path) : m_root_path{root_path}
 {
   Init();
 }
@@ -54,6 +53,8 @@ HostFileSystem::~HostFileSystem() = default;
 
 void HostFileSystem::DoState(PointerWrap& p)
 {
+  p.Do(m_root_path);
+
   // Temporarily close the file, to prevent any issues with the savestating of /tmp
   for (Handle& handle : m_handles)
     handle.host_file.reset();
