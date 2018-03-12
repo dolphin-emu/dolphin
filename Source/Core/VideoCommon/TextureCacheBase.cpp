@@ -8,6 +8,9 @@
 #include <memory>
 #include <string>
 #include <utility>
+#if defined(_M_X86) || defined(_M_X86_64)
+#include <pmmintrin.h>
+#endif
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -1783,24 +1786,40 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
                                              u32 num_blocks_y)
 {
-  // Originally, we planned on using a 'key color'
-  // for alpha to address partial xfbs (Mario Strikers / Chicken Little).
-  // This work was removed since it was unfinished but there
-  // was still a desire to differentiate between the old and the new approach
-  // which is why we still set uninitialized xfb memory to fuchsia
-  // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
-  // like is done in the EFB path.
+// Originally, we planned on using a 'key color'
+// for alpha to address partial xfbs (Mario Strikers / Chicken Little).
+// This work was removed since it was unfinished but there
+// was still a desire to differentiate between the old and the new approach
+// which is why we still set uninitialized xfb memory to fuchsia
+// (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
+// like is done in the EFB path.
+// This comment is indented wrong because of the silly linter, btw.
+
+#if defined(_M_X86) || defined(_M_X86_64)
+  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
+#endif
+
   for (u32 i = 0; i < num_blocks_y; i++)
   {
-    for (u32 offset = 0; offset < bytes_per_row; offset++)
+    u32 size = bytes_per_row;
+    u8* rowdst = dst;
+#if defined(_M_X86) || defined(_M_X86_64)
+    while (size >= 16)
     {
-      if (offset % 2)
+      _mm_storeu_si128((__m128i*)rowdst, sixteenBytes);
+      size -= 16;
+      rowdst += 16;
+    }
+#endif
+    for (u32 offset = 0; offset < size; offset++)
+    {
+      if (offset & 1)
       {
-        dst[offset] = 254;
+        rowdst[offset] = 254;
       }
       else
       {
-        dst[offset] = 1;
+        rowdst[offset] = 1;
       }
     }
     dst += stride;
