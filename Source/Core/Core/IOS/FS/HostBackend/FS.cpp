@@ -172,10 +172,7 @@ ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAtt
   std::string file_name(BuildFilename(path));
   // check if the file already exist
   if (File::Exists(file_name))
-  {
-    INFO_LOG(IOS_FS, "\tresult = FS_EEXIST");
     return ResultCode::AlreadyExists;
-  }
 
   // create the file
   File::CreateFullPath(file_name);  // just to be sure
@@ -185,7 +182,6 @@ ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAtt
     return ResultCode::Invalid;
   }
 
-  INFO_LOG(IOS_FS, "\tresult = IPC_SUCCESS");
   return ResultCode::Success;
 }
 
@@ -194,10 +190,7 @@ ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path,
                                            Mode group_mode, Mode other_mode)
 {
   if (!IsValidWiiPath(path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
-  }
 
   std::string name(BuildFilename(path));
 
@@ -211,10 +204,7 @@ ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path,
 ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
 {
   if (!IsValidWiiPath(path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
-  }
 
   const std::string file_name = BuildFilename(path);
   if (File::Delete(file_name))
@@ -231,19 +221,12 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
                                   const std::string& new_path)
 {
   if (!IsValidWiiPath(old_path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", old_path.c_str());
     return ResultCode::Invalid;
-  }
-  std::string old_name = BuildFilename(old_path);
+  const std::string old_name = BuildFilename(old_path);
 
   if (!IsValidWiiPath(new_path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", new_path.c_str());
     return ResultCode::Invalid;
-  }
-
-  std::string new_name = BuildFilename(new_path);
+  const std::string new_name = BuildFilename(new_path);
 
   // try to make the basis directory
   File::CreateFullPath(new_name);
@@ -255,11 +238,7 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
   }
 
   // finally try to rename the file
-  if (File::Rename(old_name, new_name))
-  {
-    INFO_LOG(IOS_FS, "Rename %s to %s", old_name.c_str(), new_name.c_str());
-  }
-  else
+  if (!File::Rename(old_name, new_name))
   {
     ERROR_LOG(IOS_FS, "Rename %s to %s - failed", old_name.c_str(), new_name.c_str());
     return ResultCode::NotFound;
@@ -271,15 +250,10 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
 Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const std::string& path)
 {
   if (!IsValidWiiPath(path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
-  }
 
   // the Wii uses this function to define the type (dir or file)
   const std::string dir_name(BuildFilename(path));
-
-  INFO_LOG(IOS_FS, "IOCTL_READ_DIR %s", dir_name.c_str());
 
   const File::FileInfo file_info(dir_name);
 
@@ -292,9 +266,6 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const s
   if (!file_info.IsDirectory())
   {
     // It's not a directory, so error.
-    // Games don't usually seem to care WHICH error they get, as long as it's <
-    // Well the system menu CARES!
-    WARN_LOG(IOS_FS, "\tNot a directory - return FS_EINVAL");
     return ResultCode::Invalid;
   }
 
@@ -316,10 +287,7 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const s
 
   std::vector<std::string> output;
   for (File::FSTEntry& child : entry.children)
-  {
     output.emplace_back(child.virtualName);
-    INFO_LOG(IOS_FS, "\tFound: %s", child.virtualName.c_str());
-  }
   return output;
 }
 
@@ -331,10 +299,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
                           // (0x3038) for MH3 etc
 
   if (!IsValidWiiPath(path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
-  }
 
   std::string file_name = BuildFilename(path);
   metadata.owner_mode = Mode::ReadWrite;
@@ -355,22 +320,8 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
   const File::FileInfo info{file_name};
   metadata.is_file = info.IsFile();
   metadata.size = info.GetSize();
-  if (info.IsDirectory())
-  {
-    INFO_LOG(IOS_FS, "GET_ATTR Directory %s - all permission flags are set", file_name.c_str());
-  }
-  else
-  {
-    if (info.Exists())
-    {
-      INFO_LOG(IOS_FS, "GET_ATTR %s - all permission flags are set", file_name.c_str());
-    }
-    else
-    {
-      INFO_LOG(IOS_FS, "GET_ATTR unknown %s", file_name.c_str());
-      return ResultCode::NotFound;
-    }
-  }
+  if (!info.Exists())
+    return ResultCode::NotFound;
   return metadata;
 }
 
@@ -379,10 +330,7 @@ ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, 
                                        Mode other_mode)
 {
   if (!IsValidWiiPath(path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", path.c_str());
     return ResultCode::Invalid;
-  }
   return ResultCode::Success;
 }
 
@@ -406,14 +354,10 @@ Result<NandStats> HostFileSystem::GetNandStats()
 Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_path)
 {
   if (!IsValidWiiPath(wii_path))
-  {
-    WARN_LOG(IOS_FS, "Not a valid path: %s", wii_path.c_str());
     return ResultCode::Invalid;
-  }
 
   DirectoryStats stats{};
   std::string path(BuildFilename(wii_path));
-  INFO_LOG(IOS_FS, "IOCTL_GETUSAGE %s", path.c_str());
   if (File::IsDirectory(path))
   {
     File::FSTEntry parent_dir = File::ScanDirectoryTree(path, true);
@@ -423,8 +367,6 @@ Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_
     u64 total_size = ComputeTotalFileSize(parent_dir);  // "Real" size to convert to nand blocks
 
     stats.used_clusters = (u32)(total_size / (16 * 1024));  // one block is 16kb
-
-    INFO_LOG(IOS_FS, "fsBlock: %i, inodes: %i", stats.used_clusters, stats.used_inodes);
   }
   else
   {
