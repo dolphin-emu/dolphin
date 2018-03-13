@@ -12,7 +12,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 class DSPEmitter;
 
@@ -185,6 +185,6 @@ private:
   int m_use_ctr;
 };
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

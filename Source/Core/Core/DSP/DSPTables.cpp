@@ -18,7 +18,7 @@
 
 namespace DSP
 {
-using JIT::x86::DSPEmitter;
+using JIT::x64::DSPEmitter;
 
 // clang-format off
 const std::array<DSPOPCTemplate, 214> s_opcodes =

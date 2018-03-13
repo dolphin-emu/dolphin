@@ -16,7 +16,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 // CLR $acR
 // 1000 r001 xxxx xxxx
@@ -1676,6 +1676,6 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
   }
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

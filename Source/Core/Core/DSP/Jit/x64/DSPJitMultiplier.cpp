@@ -19,7 +19,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 // Returns s64 in RAX
 // In: RCX = s16 a, RAX = s16 b
@@ -778,6 +778,6 @@ void DSPEmitter::msub(const UDSPInstruction opc)
   set_long_prod();
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

@@ -29,7 +29,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 // DR $arR
 // xxxx xxxx 0000 01rr
@@ -698,6 +698,6 @@ void DSPEmitter::popExtValueToReg()
   m_store_index2 = -1;
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

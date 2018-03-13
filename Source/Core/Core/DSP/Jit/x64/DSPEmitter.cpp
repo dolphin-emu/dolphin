@@ -26,7 +26,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 constexpr size_t COMPILED_CODE_SIZE = 2097152;
 constexpr size_t MAX_BLOCK_SIZE = 250;
@@ -485,6 +485,6 @@ Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptr(size_t index)
   return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptr[index])));
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

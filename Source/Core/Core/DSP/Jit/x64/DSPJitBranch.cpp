@@ -16,7 +16,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
                                   void (DSPEmitter::*conditional_fn)(UDSPInstruction))
@@ -462,6 +462,6 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
   }
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

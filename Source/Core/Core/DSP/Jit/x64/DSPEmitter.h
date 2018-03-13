@@ -24,7 +24,7 @@ enum class StackRegister;
 
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 class DSPEmitter : public Gen::X64CodeBlock
 {
@@ -321,6 +321,6 @@ private:
   const u8* m_stub_entry_point;
 };
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

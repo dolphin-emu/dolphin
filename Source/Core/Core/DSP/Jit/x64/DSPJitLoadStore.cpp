@@ -16,7 +16,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
@@ -355,6 +355,6 @@ void DSPEmitter::ilrrn(const UDSPInstruction opc)
   increase_addr_reg(reg, reg);
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP

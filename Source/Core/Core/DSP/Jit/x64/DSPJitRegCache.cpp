@@ -20,7 +20,7 @@ namespace DSP
 {
 namespace JIT
 {
-namespace x86
+namespace x64
 {
 // Ordered in order of prefered use.
 // Not all of these are actually available
@@ -993,6 +993,6 @@ void DSPJitRegCache::PutXReg(X64Reg reg)
   m_xregs[reg].guest_reg = DSP_REG_NONE;
 }
 
-}  // namespace x86
+}  // namespace x64
 }  // namespace JIT
 }  // namespace DSP
