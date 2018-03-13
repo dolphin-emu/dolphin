@@ -21,7 +21,7 @@
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 #include "Core/HW/DSP.h"
 
 namespace DSP

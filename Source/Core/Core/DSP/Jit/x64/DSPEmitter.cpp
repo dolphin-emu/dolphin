@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 #include <algorithm>
 #include <cstddef>

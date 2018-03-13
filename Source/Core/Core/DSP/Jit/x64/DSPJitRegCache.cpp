@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/Jit/DSPJitRegCache.h"
+#include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
 #include <cinttypes>
 #include <cstddef>
@@ -12,7 +12,7 @@
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 

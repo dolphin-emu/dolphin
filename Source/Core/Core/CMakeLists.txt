@@ -57,16 +57,16 @@ set(SRCS
   DSP/Interpreter/DSPIntLoadStore.cpp
   DSP/Interpreter/DSPIntMisc.cpp
   DSP/Interpreter/DSPIntMultiplier.cpp
-  DSP/Jit/DSPEmitter.cpp
-  DSP/Jit/DSPJitRegCache.cpp
-  DSP/Jit/DSPJitExtOps.cpp
-  DSP/Jit/DSPJitBranch.cpp
-  DSP/Jit/DSPJitCCUtil.cpp
-  DSP/Jit/DSPJitArithmetic.cpp
-  DSP/Jit/DSPJitLoadStore.cpp
-  DSP/Jit/DSPJitMultiplier.cpp
-  DSP/Jit/DSPJitUtil.cpp
-  DSP/Jit/DSPJitMisc.cpp
+  DSP/Jit/x64/DSPEmitter.cpp
+  DSP/Jit/x64/DSPJitRegCache.cpp
+  DSP/Jit/x64/DSPJitExtOps.cpp
+  DSP/Jit/x64/DSPJitBranch.cpp
+  DSP/Jit/x64/DSPJitCCUtil.cpp
+  DSP/Jit/x64/DSPJitArithmetic.cpp
+  DSP/Jit/x64/DSPJitLoadStore.cpp
+  DSP/Jit/x64/DSPJitMultiplier.cpp
+  DSP/Jit/x64/DSPJitUtil.cpp
+  DSP/Jit/x64/DSPJitMisc.cpp
   FifoPlayer/FifoAnalyzer.cpp
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoPlaybackAnalyzer.cpp

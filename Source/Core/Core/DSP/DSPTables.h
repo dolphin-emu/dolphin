@@ -11,7 +11,7 @@
 #include <string>
 
 #include "Core/DSP/DSPCommon.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 namespace DSP
 {

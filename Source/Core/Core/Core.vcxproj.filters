@@ -47,7 +47,10 @@
       <UniqueIdentifier>{6204f663-bbd0-4eb5-bc15-e3778d8b6091}</UniqueIdentifier>
     </Filter>
     <Filter Include="DSPCore\Jit">
-      <UniqueIdentifier>{7042fb6f-9284-4469-bc7c-9302e0d984aa}</UniqueIdentifier>
+      <UniqueIdentifier>{5377680f-d667-4f1a-aa86-b616c19a5cd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DSPCore\Jit\x64">
+      <UniqueIdentifier>{712e3a61-b818-434e-a724-ef8de1f09027}</UniqueIdentifier>
     </Filter>
     <Filter Include="HW %28Flipper/Hollywood%29\AI - Audio Interface">
       <UniqueIdentifier>{d657188a-426d-46c8-af0a-caa148c6ed1b}</UniqueIdentifier>
@@ -236,35 +239,35 @@
     <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPEmitter.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitRegCache.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitMultiplier.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitBranch.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitMisc.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitCCUtil.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitLoadStore.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitExtOps.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitExtOps.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitLoadStore.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitCCUtil.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitMisc.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitArithmetic.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitMultiplier.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitBranch.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitRegCache.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPEmitter.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
-    <ClCompile Include="DSP\Jit\DSPJitUtil.cpp">
-      <Filter>DSPCore\Jit</Filter>
+    <ClCompile Include="DSP\Jit\x64\DSPJitUtil.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
     <ClCompile Include="FifoPlayer\FifoAnalyzer.cpp">
       <Filter>FifoPlayer</Filter>
@@ -952,11 +955,11 @@
     <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Jit\DSPEmitter.h">
-      <Filter>DSPCore\Jit</Filter>
+    <ClInclude Include="DSP\Jit\x64\DSPJitRegCache.h">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
-      <Filter>DSPCore\Jit</Filter>
+    <ClInclude Include="DSP\Jit\x64\DSPEmitter.h">
+      <Filter>DSPCore\Jit\x64</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h">
       <Filter>FifoPlayer</Filter>

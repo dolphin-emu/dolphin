@@ -14,7 +14,7 @@
 #include "Common/x64Emitter.h"
 
 #include "Core/DSP/DSPCommon.h"
-#include "Core/DSP/Jit/DSPJitRegCache.h"
+#include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
 class PointerWrap;
 
