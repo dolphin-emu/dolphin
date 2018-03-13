@@ -730,6 +730,16 @@ Renderer::Renderer()
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
 
+  if (!g_ogl_config.bSupportsGLBufferStorage && !g_ogl_config.bSupportsGLPinnedMemory)
+  {
+    OSD::AddMessage(
+        StringFromFormat("Your OpenGL driver does not support %s_buffer_storage.",
+                         GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 ? "EXT" : "ARB"),
+        60000);
+    OSD::AddMessage("This device's performance will be terrible.", 60000);
+    OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
+  }
+
   WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
            g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
@@ -841,10 +851,17 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  s_raster_font->printMultilineText(text,
-                                    left * 2.0f / static_cast<float>(m_backbuffer_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(m_backbuffer_height), 0,
-                                    m_backbuffer_width, m_backbuffer_height, color);
+  int screen_width = m_backbuffer_width;
+  int screen_height = m_backbuffer_height;
+  if (screen_width >= 2000)
+  {
+    screen_width /= 2;
+    screen_height /= 2;
+  }
+
+  s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(screen_width) - 1.0f,
+                                    1.0f - top * 2.0f / static_cast<float>(screen_height), 0,
+                                    screen_width, screen_height, color);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
