@@ -12,11 +12,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
                                   void (DSPEmitter::*conditional_fn)(UDSPInstruction))
@@ -462,6 +458,4 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
   }
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

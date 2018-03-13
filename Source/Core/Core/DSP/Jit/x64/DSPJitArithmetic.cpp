@@ -12,11 +12,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 // CLR $acR
 // 1000 r001 xxxx xxxx
@@ -1676,6 +1672,4 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
   }
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

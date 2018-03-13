@@ -8,11 +8,7 @@
 
 #include "Common/x64Emitter.h"
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 class DSPEmitter;
 
@@ -185,6 +181,4 @@ private:
   int m_use_ctr;
 };
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

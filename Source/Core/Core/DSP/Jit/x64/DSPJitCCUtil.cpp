@@ -9,11 +9,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 // In: val: s64 _Value
 // Clobbers scratch
@@ -168,6 +164,4 @@ void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
   Update_SR_Register16(val);
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

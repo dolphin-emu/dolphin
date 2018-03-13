@@ -16,11 +16,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 // Ordered in order of prefered use.
 // Not all of these are actually available
@@ -993,6 +989,4 @@ void DSPJitRegCache::PutXReg(X64Reg reg)
   m_xregs[reg].guest_reg = DSP_REG_NONE;
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

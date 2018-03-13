@@ -10,11 +10,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 // clobbers:
 // EAX = (s8)g_dsp.reg_stack_ptr[reg_index]
@@ -811,6 +807,4 @@ void DSPEmitter::get_ax_h(int _reg, X64Reg axh)
   m_gpr.ReadReg(_reg + DSP_REG_AXH0, axh, RegisterExtension::Sign);
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

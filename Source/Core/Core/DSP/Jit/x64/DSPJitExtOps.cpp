@@ -25,11 +25,7 @@ using namespace Gen;
    sign extension.
  */
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 // DR $arR
 // xxxx xxxx 0000 01rr
@@ -698,6 +694,4 @@ void DSPEmitter::popExtValueToReg()
   m_store_index2 = -1;
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

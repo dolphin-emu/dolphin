@@ -10,11 +10,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x64
+namespace DSP::JIT::x64
 {
 // MRR $D, $S
 // 0001 11dd ddds ssss
@@ -195,6 +191,4 @@ void DSPEmitter::srbith(const UDSPInstruction opc)
   }
 }
 
-}  // namespace x64
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64
