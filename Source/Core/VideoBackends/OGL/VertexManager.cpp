@@ -86,6 +86,10 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
   u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
   u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
 
+  // The index buffer is part of the VAO state, therefore we need to bind it first.
+  const GLVertexFormat* vertex_format =
+      static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+  ProgramShaderCache::BindVertexFormat(vertex_format);
   s_vertexBuffer->Unmap(vertex_data_size);
   s_indexBuffer->Unmap(index_data_size);
 
