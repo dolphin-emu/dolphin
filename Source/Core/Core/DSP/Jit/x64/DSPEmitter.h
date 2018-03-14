@@ -14,7 +14,7 @@
 #include "Common/x64Emitter.h"
 
 #include "Core/DSP/DSPCommon.h"
-#include "Core/DSP/Jit/DSPJitRegCache.h"
+#include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
 class PointerWrap;
 
@@ -22,9 +22,7 @@ namespace DSP
 {
 enum class StackRegister;
 
-namespace JIT
-{
-namespace x86
+namespace JIT::x64
 {
 class DSPEmitter : public Gen::X64CodeBlock
 {
@@ -321,6 +319,5 @@ private:
   const u8* m_stub_entry_point;
 };
 
-}  // namespace x86
-}  // namespace JIT
+}  // namespace JIT::x64
 }  // namespace DSP

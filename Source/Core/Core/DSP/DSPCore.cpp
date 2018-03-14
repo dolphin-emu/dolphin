@@ -21,7 +21,7 @@
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 #include "Core/HW/DSP.h"
 
 namespace DSP
@@ -30,7 +30,7 @@ SDSP g_dsp;
 DSPBreakpoints g_dsp_breakpoints;
 static State core_state = State::Stopped;
 bool g_init_hax = false;
-std::unique_ptr<JIT::x86::DSPEmitter> g_dsp_jit;
+std::unique_ptr<JIT::x64::DSPEmitter> g_dsp_jit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 static Common::Event step_event;
 
@@ -171,7 +171,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CORE_JIT)
-    g_dsp_jit = std::make_unique<JIT::x86::DSPEmitter>();
+    g_dsp_jit = std::make_unique<JIT::x64::DSPEmitter>();
 
   g_dsp_cap.reset(opts.capture_logger);
 

@@ -6,15 +6,11 @@
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x86
+namespace DSP::JIT::x64
 {
 // clobbers:
 // EAX = (s8)g_dsp.reg_stack_ptr[reg_index]
@@ -811,6 +807,4 @@ void DSPEmitter::get_ax_h(int _reg, X64Reg axh)
   m_gpr.ReadReg(_reg + DSP_REG_AXH0, axh, RegisterExtension::Sign);
 }
 
-}  // namespace x86
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

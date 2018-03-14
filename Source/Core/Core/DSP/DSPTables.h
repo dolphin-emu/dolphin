@@ -11,7 +11,7 @@
 #include <string>
 
 #include "Core/DSP/DSPCommon.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 namespace DSP
 {
@@ -69,7 +69,7 @@ struct param2_t
 struct DSPOPCTemplate
 {
   using InterpreterFunction = void (*)(UDSPInstruction);
-  using JITFunction = void (DSP::JIT::x86::DSPEmitter::*)(UDSPInstruction);
+  using JITFunction = void (JIT::x64::DSPEmitter::*)(UDSPInstruction);
 
   const char* name;
   u16 opcode;

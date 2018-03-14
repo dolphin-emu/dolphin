@@ -8,15 +8,11 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x86
+namespace DSP::JIT::x64
 {
 void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
                                   void (DSPEmitter::*conditional_fn)(UDSPInstruction))
@@ -462,6 +458,4 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
   }
 }
 
-}  // namespace x86
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

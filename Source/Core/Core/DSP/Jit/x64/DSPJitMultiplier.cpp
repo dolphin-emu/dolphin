@@ -11,15 +11,11 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x86
+namespace DSP::JIT::x64
 {
 // Returns s64 in RAX
 // In: RCX = s16 a, RAX = s16 b
@@ -778,6 +774,4 @@ void DSPEmitter::msub(const UDSPInstruction opc)
   set_long_prod();
 }
 
-}  // namespace x86
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

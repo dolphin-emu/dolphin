@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 #include <algorithm>
 #include <cstddef>
@@ -22,11 +22,7 @@
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x86
+namespace DSP::JIT::x64
 {
 constexpr size_t COMPILED_CODE_SIZE = 2097152;
 constexpr size_t MAX_BLOCK_SIZE = 250;
@@ -485,6 +481,4 @@ Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptr(size_t index)
   return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptr[index])));
 }
 
-}  // namespace x86
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

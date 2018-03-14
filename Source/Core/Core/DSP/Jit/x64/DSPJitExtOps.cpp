@@ -5,7 +5,7 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
@@ -25,11 +25,7 @@ using namespace Gen;
    sign extension.
  */
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x86
+namespace DSP::JIT::x64
 {
 // DR $arR
 // xxxx xxxx 0000 01rr
@@ -698,6 +694,4 @@ void DSPEmitter::popExtValueToReg()
   m_store_index2 = -1;
 }
 
-}  // namespace x86
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64

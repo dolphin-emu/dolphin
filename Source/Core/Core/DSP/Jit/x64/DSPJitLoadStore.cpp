@@ -8,15 +8,11 @@
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 using namespace Gen;
 
-namespace DSP
-{
-namespace JIT
-{
-namespace x86
+namespace DSP::JIT::x64
 {
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
@@ -355,6 +351,4 @@ void DSPEmitter::ilrrn(const UDSPInstruction opc)
   increase_addr_reg(reg, reg);
 }
 
-}  // namespace x86
-}  // namespace JIT
-}  // namespace DSP
+}  // namespace DSP::JIT::x64
