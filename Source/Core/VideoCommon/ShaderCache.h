@@ -72,7 +72,7 @@ private:
   void CompileMissingPipelines();
   void InvalidateCachedPipelines();
   void ClearPipelineCaches();
-  void PrecompileUberShaders();
+  void QueueUberShaderPipelines();
 
   // GX shader compiler methods
   std::unique_ptr<AbstractShader> CompileVertexShader(const VertexShaderUid& uid) const;
