@@ -84,12 +84,6 @@ Result<FileStatus> FileHandle::GetStatus() const
   return m_fs->GetFileStatus(*m_fd);
 }
 
-void FileSystem::Init()
-{
-  if (Delete(0, 0, "/tmp") == ResultCode::Success)
-    CreateDirectory(0, 0, "/tmp", 0, {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite});
-}
-
 Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
                                                  Modes modes)
 {

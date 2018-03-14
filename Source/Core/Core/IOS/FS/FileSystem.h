@@ -216,9 +216,6 @@ public:
   virtual Result<NandStats> GetNandStats() = 0;
   /// Get usage information about a directory (used cluster and inode counts).
   virtual Result<DirectoryStats> GetDirectoryStats(const std::string& path) = 0;
-
-protected:
-  void Init();
 };
 
 template <typename T>
