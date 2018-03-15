@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include <QFont>
 #include <QObject>
 #include <QVector>
 
@@ -24,6 +25,7 @@ enum class Language;
 
 class GameListModel;
 class InputConfig;
+class QFont;
 
 // UI settings to be stored in the config directory.
 class Settings final : public QObject
@@ -91,6 +93,10 @@ public:
   bool IsWatchVisible() const;
   void SetBreakpointsVisible(bool enabled);
   bool IsBreakpointsVisible() const;
+  void SetCodeVisible(bool enabled);
+  bool IsCodeVisible() const;
+  QFont GetDebugFont() const;
+  void SetDebugFont(QFont font);
 
   // Other
   GameListModel* GetGameListModel() const;
@@ -110,7 +116,9 @@ signals:
   void EnableCheatsChanged(bool enabled);
   void WatchVisibilityChanged(bool visible);
   void BreakpointsVisibilityChanged(bool visible);
+  void CodeVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
+  void DebugFontChanged(QFont font);
 
 private:
   bool m_controller_state_needed = false;

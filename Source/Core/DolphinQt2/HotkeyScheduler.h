@@ -33,6 +33,17 @@ signals:
   void ToggleReadOnlyMode();
   void ConnectWiiRemote(int id);
 
+  void Step();
+  void StepOver();
+  void StepOut();
+  void Skip();
+
+  void ShowPC();
+  void SetPC();
+
+  void ToggleBreakpoint();
+  void AddBreakpoint();
+
 private:
   void Run();
 

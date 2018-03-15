@@ -32,8 +32,16 @@ signals:
   void ControllersPressed();
   void GraphicsPressed();
 
+  void StepPressed();
+  void StepOverPressed();
+  void StepOutPressed();
+  void SkipPressed();
+  void ShowPCPressed();
+  void SetPCPressed();
+
 private:
   void OnEmulationStateChanged(Core::State state);
+  void OnDebugModeToggled(bool enabled);
 
   void MakeActions();
   void UpdateIcons();
@@ -47,4 +55,11 @@ private:
   QAction* m_config_action;
   QAction* m_controllers_action;
   QAction* m_graphics_action;
+
+  QAction* m_step_action;
+  QAction* m_step_over_action;
+  QAction* m_step_out_action;
+  QAction* m_skip_action;
+  QAction* m_show_pc_action;
+  QAction* m_set_pc_action;
 };

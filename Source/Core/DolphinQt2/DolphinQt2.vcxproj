@@ -94,6 +94,8 @@
     <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="TAS\IRWidget.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
+    <QtMoc Include="Debugger\CodeWidget.h" />
+    <QtMoc Include="Debugger\CodeViewWidget.h" />
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
     <QtMoc Include="Debugger\WatchWidget.h" />
@@ -135,6 +137,8 @@
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BreakpointWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOPlayerWindow.cpp" />
@@ -215,6 +219,7 @@
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
@@ -237,6 +242,8 @@
     <ClCompile Include="Config\PatchesWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
+    <ClCompile Include="Debugger\CodeViewWidget.cpp" />
+    <ClCompile Include="Debugger\CodeWidget.cpp" />
     <ClCompile Include="FIFOPlayerWindow.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
@@ -282,7 +289,7 @@
     <ClCompile Include="Settings\InterfacePane.cpp" />
     <ClCompile Include="Settings\PathPane.cpp" />
     <ClCompile Include="Settings\WiiPane.cpp" />
-	<ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
+    <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Translation.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
@@ -298,6 +305,8 @@
     <ClInclude Include="Config\Mapping\HotkeyGraphics.h" />
     <ClInclude Include="Config\Mapping\HotkeyStates.h" />
     <ClInclude Include="Config\Mapping\HotkeyTAS.h" />
+    <ClInclude Include="Debugger\CodeViewWidget.h" />
+    <ClInclude Include="Debugger\CodeWidget.h" />
     <ClInclude Include="TAS\Shared.h" />
     <ClInclude Include="Config\Mapping\HotkeyWii.h" />
     <ClInclude Include="Config\Mapping\MappingBool.h" />

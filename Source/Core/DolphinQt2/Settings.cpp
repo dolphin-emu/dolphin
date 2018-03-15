@@ -279,3 +279,36 @@ void Settings::SetControllerStateNeeded(bool needed)
 {
   m_controller_state_needed = needed;
 }
+
+void Settings::SetCodeVisible(bool enabled)
+{
+  if (IsCodeVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showcode"), enabled);
+
+    emit CodeVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsCodeVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showcode")).toBool();
+}
+
+void Settings::SetDebugFont(QFont font)
+{
+  if (GetDebugFont() != font)
+  {
+    QSettings().setValue(QStringLiteral("debugger/font"), font);
+
+    emit DebugFontChanged(font);
+  }
+}
+
+QFont Settings::GetDebugFont() const
+{
+  QFont default_font = QFont(QStringLiteral("Monospace"));
+  default_font.setStyleHint(QFont::TypeWriter);
+
+  return QSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
+}
