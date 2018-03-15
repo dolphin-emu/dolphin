@@ -109,7 +109,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
       *ptr = Common::swap64(static_cast<u64>(*ptr));
       break;
     default:
-      _dbg_assert_(DYNA_REC, 0);
+      DEBUG_ASSERT(DYNA_REC, 0);
       break;
     }
   }

@@ -210,7 +210,7 @@ void Interpreter::Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW)
   case QUANTIZE_INVALID1:
   case QUANTIZE_INVALID2:
   case QUANTIZE_INVALID3:
-    _assert_msg_(POWERPC, 0, "PS dequantize - unknown type to read");
+    ASSERT_MSG(POWERPC, 0, "PS dequantize - unknown type to read");
     break;
   }
 }
@@ -280,7 +280,7 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
   case QUANTIZE_INVALID1:
   case QUANTIZE_INVALID2:
   case QUANTIZE_INVALID3:
-    _assert_msg_(POWERPC, 0, "PS dequantize - unknown type to read");
+    ASSERT_MSG(POWERPC, 0, "PS dequantize - unknown type to read");
     ps0 = 0.f;
     ps1 = 0.f;
     break;

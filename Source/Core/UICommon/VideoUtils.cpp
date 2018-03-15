@@ -54,7 +54,7 @@ std::vector<std::string> GetAvailableAntialiasingModes(int& msaa_modes)
     if (mode == 1)
     {
       modes.push_back("None");
-      _assert_msg_(VIDEO, !supports_ssaa || msaa_modes == 0, "SSAA setting won't work correctly");
+      ASSERT_MSG(VIDEO, !supports_ssaa || msaa_modes == 0, "SSAA setting won't work correctly");
     }
     else
     {

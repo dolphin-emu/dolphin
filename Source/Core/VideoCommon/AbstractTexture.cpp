@@ -20,8 +20,8 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level)
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
   // framebuffer, and saving that). TextureCache does not call Save for custom textures
   // anyway, so this is fine for now.
-  _assert_(!IsCompressedFormat(m_config.format));
-  _assert_(level < m_config.levels);
+  ASSERT(!IsCompressedFormat(m_config.format));
+  ASSERT(level < m_config.levels);
 
   // Determine dimensions of image we want to save.
   u32 level_width = std::max(1u, m_config.width >> level);

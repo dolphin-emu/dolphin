@@ -197,8 +197,8 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
   FALLBACK_IF(!(inst.BO_2 & BO_DONT_CHECK_CONDITION));
 
   // bcctrx doesn't decrement and/or test CTR
-  _assert_msg_(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
-               "bcctrx with decrement and test CTR option is invalid!");
+  ASSERT_MSG(DYNA_REC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+             "bcctrx with decrement and test CTR option is invalid!");
 
   // BO_2 == 1z1zz -> b always
 

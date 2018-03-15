@@ -340,16 +340,16 @@ OnlineSystemUpdater::Response OnlineSystemUpdater::GetSystemTitles()
   // Construct the request by loading the template first, then updating some fields.
   pugi::xml_document doc;
   pugi::xml_parse_result result = doc.load_string(GET_SYSTEM_TITLES_REQUEST_PAYLOAD);
-  _assert_(result);
+  ASSERT(result);
 
   // Nintendo does not really care about the device ID or verify that we *are* that device,
   // as long as it is a valid Wii device ID.
   const std::string device_id = GetDeviceId();
-  _assert_(doc.select_node("//DeviceId").node().text().set(device_id.c_str()));
+  ASSERT(doc.select_node("//DeviceId").node().text().set(device_id.c_str()));
 
   // Write the correct device region.
   const std::string region = m_requested_region.empty() ? GetDeviceRegion() : m_requested_region;
-  _assert_(doc.select_node("//RegionId").node().text().set(region.c_str()));
+  ASSERT(doc.select_node("//RegionId").node().text().set(region.c_str()));
 
   std::ostringstream stream;
   doc.save(stream);

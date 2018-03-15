@@ -28,7 +28,7 @@ namespace DiscIO
 {
 VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(reader))
 {
-  _assert_(m_reader);
+  ASSERT(m_reader);
 
   // Source: http://wiibrew.org/wiki/WAD_files
   m_hdr_size = m_reader->ReadSwapped<u32>(0x00).value_or(0);

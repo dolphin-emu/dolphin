@@ -715,7 +715,7 @@ std::string GetSysDirectory()
   sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
 #elif defined ANDROID
   sysDir = s_android_sys_directory;
-  _assert_msg_(COMMON, !sysDir.empty(), "Sys directory has not been set");
+  ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
 #else
   sysDir = SYSDATA_DIR;
 #endif

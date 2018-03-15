@@ -741,7 +741,7 @@ void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
 
 void ClearCacheLine(u32 address)
 {
-  _dbg_assert_(POWERPC, (address & 0x1F) == 0);
+  DEBUG_ASSERT(POWERPC, (address & 0x1F) == 0);
   if (UReg_MSR(MSR).DR)
   {
     auto translated_address = TranslateAddress<FLAG_WRITE>(address);

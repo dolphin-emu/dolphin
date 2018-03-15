@@ -313,7 +313,7 @@ void Interpreter::stwu(UGeckoInstruction inst)
 
 void Interpreter::dcba(UGeckoInstruction inst)
 {
-  _assert_msg_(POWERPC, 0, "dcba - Not implemented - not a Gekko instruction");
+  ASSERT_MSG(POWERPC, 0, "dcba - Not implemented - not a Gekko instruction");
 }
 
 void Interpreter::dcbf(UGeckoInstruction inst)
@@ -391,9 +391,6 @@ void Interpreter::eciwx(UGeckoInstruction inst)
   if (EA & 3)
     PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
 
-  // _assert_msg_(POWERPC,0,"eciwx - fill r%i with word @ %08x from device %02x",
-  //              inst.RS, EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
-
   rGPR[inst.RD] = PowerPC::Read_U32(EA);
 }
 
@@ -407,9 +404,6 @@ void Interpreter::ecowx(UGeckoInstruction inst)
   }
   if (EA & 3)
     PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
-
-  // _assert_msg_(POWERPC,0,"ecowx - send stw request (%08x@%08x) to device %02x",
-  //              rGPR[_inst.RS], EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
 
   PowerPC::Write_U32(rGPR[inst.RS], EA);
 }

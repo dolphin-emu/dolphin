@@ -107,7 +107,7 @@ void Start()
 
 static void StartDVDThread()
 {
-  _assert_(!s_dvd_thread.joinable());
+  ASSERT(!s_dvd_thread.joinable());
   s_dvd_thread_exiting.Clear();
   s_dvd_thread = std::thread(DVDThread);
 }
@@ -120,7 +120,7 @@ void Stop()
 
 static void StopDVDThread()
 {
-  _assert_(s_dvd_thread.joinable());
+  ASSERT(s_dvd_thread.joinable());
 
   // By setting s_DVD_thread_exiting, we ask the DVD thread to cleanly exit.
   // In case the request queue is empty, we need to set s_request_queue_expanded
@@ -224,7 +224,7 @@ bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, std::optional
 
 void WaitUntilIdle()
 {
-  _assert_(Core::IsCPUThread());
+  ASSERT(Core::IsCPUThread());
 
   while (!s_request_queue.Empty())
     s_result_queue_expanded.Wait();
@@ -251,7 +251,7 @@ static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offs
                               const DiscIO::Partition& partition,
                               DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
 {
-  _assert_(Core::IsCPUThread());
+  ASSERT(Core::IsCPUThread());
 
   ReadRequest request;
 

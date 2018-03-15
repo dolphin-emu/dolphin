@@ -507,7 +507,7 @@ void ProgramShaderCache::Shutdown()
   s_last_VAO = 0;
 
   // All pipeline programs should have been released.
-  _dbg_assert_(VIDEO, s_pipeline_programs.empty());
+  DEBUG_ASSERT(VIDEO, s_pipeline_programs.empty());
   s_pipeline_programs.clear();
 }
 
@@ -575,14 +575,14 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
   prog->key = key;
 
   // Attach shaders.
-  _assert_(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
-  _assert_(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
+  ASSERT(vertex_shader && vertex_shader->GetStage() == ShaderStage::Vertex);
+  ASSERT(pixel_shader && pixel_shader->GetStage() == ShaderStage::Pixel);
   prog->shader.glprogid = glCreateProgram();
   glAttachShader(prog->shader.glprogid, vertex_shader->GetGLShaderID());
   glAttachShader(prog->shader.glprogid, pixel_shader->GetGLShaderID());
   if (geometry_shader)
   {
-    _assert_(geometry_shader->GetStage() == ShaderStage::Geometry);
+    ASSERT(geometry_shader->GetStage() == ShaderStage::Geometry);
     glAttachShader(prog->shader.glprogid, geometry_shader->GetGLShaderID());
   }
 
@@ -627,7 +627,7 @@ const PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexForm
 void ProgramShaderCache::ReleasePipelineProgram(const PipelineProgram* prog)
 {
   auto iter = s_pipeline_programs.find(prog->key);
-  _assert_(iter != s_pipeline_programs.end() && prog == iter->second.get());
+  ASSERT(iter != s_pipeline_programs.end() && prog == iter->second.get());
 
   if (--iter->second->reference_count == 0)
   {

@@ -148,7 +148,7 @@ private:
   std::function<T(u32)> InvalidReadLambda() const
   {
     return [](u32) {
-      _dbg_assert_msg_(MEMMAP, 0, "Called the read lambda on a write "
+      DEBUG_ASSERT_MSG(MEMMAP, 0, "Called the read lambda on a write "
                                   "complex handler.");
       return 0;
     };
@@ -157,7 +157,7 @@ private:
   std::function<void(u32, T)> InvalidWriteLambda() const
   {
     return [](u32, T) {
-      _dbg_assert_msg_(MEMMAP, 0, "Called the write lambda on a read "
+      DEBUG_ASSERT_MSG(MEMMAP, 0, "Called the write lambda on a read "
                                   "complex handler.");
     };
   }

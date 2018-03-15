@@ -216,7 +216,7 @@ s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
     length -= extra;
 
     // verify that we haven't calculated a length beyond BLOCK_SIZE
-    _dbg_assert_msg_(EXPANSIONINTERFACE, (src_address + length) % BLOCK_SIZE == 0,
+    DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (src_address + length) % BLOCK_SIZE == 0,
                      "Memcard directory Read Logic Error");
   }
 
@@ -276,7 +276,7 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
     length -= extra;
 
     // verify that we haven't calculated a length beyond BLOCK_SIZE
-    _dbg_assert_msg_(EXPANSIONINTERFACE, (dest_address + length) % BLOCK_SIZE == 0,
+    DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (dest_address + length) % BLOCK_SIZE == 0,
                      "Memcard directory Write Logic Error");
   }
   if (m_last_block != block)

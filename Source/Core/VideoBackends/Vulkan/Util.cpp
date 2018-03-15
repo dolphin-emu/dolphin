@@ -397,7 +397,7 @@ void UtilityShaderDraw::CommitPSUniforms(size_t size)
 
 void UtilityShaderDraw::SetPushConstants(const void* data, size_t data_size)
 {
-  _assert_(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
+  ASSERT(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
 
   vkCmdPushConstants(m_command_buffer, m_pipeline_info.pipeline_layout,
                      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
@@ -414,8 +414,8 @@ void UtilityShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler s
 void UtilityShaderDraw::SetPSTexelBuffer(VkBufferView view)
 {
   // Should only be used with the texture conversion pipeline layout.
-  _assert_(m_pipeline_info.pipeline_layout ==
-           g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION));
+  ASSERT(m_pipeline_info.pipeline_layout ==
+         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION));
 
   m_ps_texel_buffer = view;
 }
@@ -765,7 +765,7 @@ void ComputeShaderDispatcher::CommitUniformBuffer(size_t size)
 
 void ComputeShaderDispatcher::SetPushConstants(const void* data, size_t data_size)
 {
-  _assert_(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
+  ASSERT(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
 
   vkCmdPushConstants(m_command_buffer, m_pipeline_info.pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT,
                      0, static_cast<u32>(data_size), data);

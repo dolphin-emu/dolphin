@@ -393,9 +393,9 @@ Texture2D* FramebufferManager::ResolveEFBColorTexture(const VkRect2D& region)
 
   // It's not valid to resolve out-of-bounds coordinates.
   // Ensuring the region is within the image is the caller's responsibility.
-  _assert_(region.offset.x >= 0 && region.offset.y >= 0 &&
-           (static_cast<u32>(region.offset.x) + region.extent.width) <= GetEFBWidth() &&
-           (static_cast<u32>(region.offset.y) + region.extent.height) <= GetEFBHeight());
+  ASSERT(region.offset.x >= 0 && region.offset.y >= 0 &&
+         (static_cast<u32>(region.offset.x) + region.extent.width) <= GetEFBWidth() &&
+         (static_cast<u32>(region.offset.y) + region.extent.height) <= GetEFBHeight());
 
   // Resolving is considered to be a transfer operation.
   m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),

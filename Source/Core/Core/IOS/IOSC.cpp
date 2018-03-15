@@ -217,7 +217,7 @@ ReturnCode IOSC::ImportPublicKey(Handle dest_handle, const u8* public_key,
 
   if (dest_entry->subtype == SUBTYPE_RSA2048 || dest_entry->subtype == SUBTYPE_RSA4096)
   {
-    _assert_(public_key_exponent);
+    ASSERT(public_key_exponent);
     std::memcpy(&dest_entry->misc_data, public_key_exponent, 4);
   }
   return IPC_SUCCESS;
@@ -310,7 +310,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
   case SUBTYPE_RSA4096:
   {
     const size_t expected_key_size = entry->subtype == SUBTYPE_RSA2048 ? 0x100 : 0x200;
-    _assert_(entry->data.size() == expected_key_size);
+    ASSERT(entry->data.size() == expected_key_size);
 
     mbedtls_rsa_context rsa;
     mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
@@ -569,7 +569,7 @@ void IOSC::LoadDefaultEntries(ConsoleType console_type)
                                         3};
     break;
   default:
-    _assert_msg_(IOS, false, "Unknown console type");
+    ASSERT_MSG(IOS, false, "Unknown console type");
     break;
   }
 
@@ -658,7 +658,7 @@ const IOSC::KeyEntry* IOSC::FindEntry(Handle handle, SearchMode mode) const
 
 IOSC::Handle IOSC::GetHandleFromIterator(IOSC::KeyEntries::iterator iterator) const
 {
-  _assert_(iterator != m_key_entries.end());
+  ASSERT(iterator != m_key_entries.end());
   return static_cast<Handle>(iterator - m_key_entries.begin());
 }
 

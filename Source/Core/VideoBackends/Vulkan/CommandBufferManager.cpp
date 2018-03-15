@@ -226,7 +226,7 @@ void CommandBufferManager::WaitForFence(VkFence fence)
     if (m_frame_resources[command_buffer_index].fence == fence)
       break;
   }
-  _assert_(command_buffer_index < m_frame_resources.size());
+  ASSERT(command_buffer_index < m_frame_resources.size());
 
   // Has this command buffer already been waited for?
   if (!m_frame_resources[command_buffer_index].needs_fence_wait)
@@ -342,7 +342,7 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
   if (present_swap_chain != VK_NULL_HANDLE)
   {
     // Should have a signal semaphore.
-    _assert_(signal_semaphore != VK_NULL_HANDLE);
+    ASSERT(signal_semaphore != VK_NULL_HANDLE);
     VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
                                      nullptr,
                                      1,
@@ -489,14 +489,14 @@ void CommandBufferManager::AddFencePointCallback(
     const CommandBufferExecutedCallback& executed_callback)
 {
   // Shouldn't be adding twice.
-  _assert_(m_fence_point_callbacks.find(key) == m_fence_point_callbacks.end());
+  ASSERT(m_fence_point_callbacks.find(key) == m_fence_point_callbacks.end());
   m_fence_point_callbacks.emplace(key, std::make_pair(queued_callback, executed_callback));
 }
 
 void CommandBufferManager::RemoveFencePointCallback(const void* key)
 {
   auto iter = m_fence_point_callbacks.find(key);
-  _assert_(iter != m_fence_point_callbacks.end());
+  ASSERT(iter != m_fence_point_callbacks.end());
   m_fence_point_callbacks.erase(iter);
 }
 

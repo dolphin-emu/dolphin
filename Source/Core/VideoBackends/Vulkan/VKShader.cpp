@@ -34,7 +34,7 @@ VKShader::~VKShader()
 
 bool VKShader::HasBinary() const
 {
-  _assert_(!m_spv.empty());
+  ASSERT(!m_spv.empty());
   return true;
 }
 

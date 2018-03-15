@@ -333,16 +333,16 @@ void GatherPipeBursted()
 
   Fifo::RunGpu();
 
-  _assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,
-               "FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");
+  ASSERT_MSG(COMMANDPROCESSOR, fifo.CPReadWriteDistance <= fifo.CPEnd - fifo.CPBase,
+             "FIFO is overflowed by GatherPipe !\nCPU thread is too fast!");
 
   // check if we are in sync
-  _assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer == ProcessorInterface::Fifo_CPUWritePointer,
-               "FIFOs linked but out of sync");
-  _assert_msg_(COMMANDPROCESSOR, fifo.CPBase == ProcessorInterface::Fifo_CPUBase,
-               "FIFOs linked but out of sync");
-  _assert_msg_(COMMANDPROCESSOR, fifo.CPEnd == ProcessorInterface::Fifo_CPUEnd,
-               "FIFOs linked but out of sync");
+  ASSERT_MSG(COMMANDPROCESSOR, fifo.CPWritePointer == ProcessorInterface::Fifo_CPUWritePointer,
+             "FIFOs linked but out of sync");
+  ASSERT_MSG(COMMANDPROCESSOR, fifo.CPBase == ProcessorInterface::Fifo_CPUBase,
+             "FIFOs linked but out of sync");
+  ASSERT_MSG(COMMANDPROCESSOR, fifo.CPEnd == ProcessorInterface::Fifo_CPUEnd,
+             "FIFOs linked but out of sync");
 }
 
 void UpdateInterrupts(u64 userdata)

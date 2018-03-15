@@ -183,7 +183,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
   JITDISABLE(bJITBranchOff);
 
   // bcctrx doesn't decrement and/or test CTR
-  _dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+  DEBUG_ASSERT_MSG(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
                    "bcctrx with decrement and test CTR option is invalid!");
 
   if (inst.BO_2 & BO_DONT_CHECK_CONDITION)

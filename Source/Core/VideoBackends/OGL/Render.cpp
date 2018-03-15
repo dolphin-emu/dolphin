@@ -1690,7 +1690,7 @@ void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, cons
 
 void Renderer::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
 {
-  _dbg_assert_(VIDEO, uniforms_size > 0);
+  DEBUG_ASSERT(VIDEO, uniforms_size > 0);
 
   auto buf = ProgramShaderCache::GetUniformBuffer()->Map(
       uniforms_size, ProgramShaderCache::GetUniformBufferAlignment());

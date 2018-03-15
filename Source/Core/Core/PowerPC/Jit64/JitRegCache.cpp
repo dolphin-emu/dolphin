@@ -98,7 +98,7 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
       }
       else
       {
-        _assert_msg_(DYNA_REC, 0, "Jit64 - Flush unhandled case, reg %u PC: %08x", i, PC);
+        ASSERT_MSG(DYNA_REC, 0, "Jit64 - Flush unhandled case, reg %u PC: %08x", i, PC);
       }
     }
   }
@@ -313,7 +313,7 @@ X64Reg RegCache::GetFreeXReg()
   }
 
   // Still no dice? Die!
-  _assert_msg_(DYNA_REC, 0, "Regcache ran out of regs");
+  ASSERT_MSG(DYNA_REC, 0, "Regcache ran out of regs");
   return INVALID_REG;
 }
 

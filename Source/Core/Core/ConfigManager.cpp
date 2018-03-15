@@ -843,7 +843,7 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
     return EUR_DIR;
 
   case DiscIO::Region::NTSC_K:
-    _assert_msg_(BOOT, false, "NTSC-K is not a valid GameCube region");
+    ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
     return nullptr;
 
   default:

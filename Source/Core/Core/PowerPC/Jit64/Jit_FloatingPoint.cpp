@@ -83,7 +83,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
     return;
   }
 
-  _assert_(xmm != clobber);
+  ASSERT(xmm != clobber);
 
   std::vector<u32> inputs;
   u32 a = inst.FA, b = inst.FB, c = inst.FC;
@@ -126,7 +126,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       FixupBranch handle_nan = J_CC(CC_NZ, true);
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
-      _assert_msg_(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
+      ASSERT_MSG(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
       for (u32 x : inputs)
       {
@@ -221,7 +221,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
                      round_input);
     break;
   default:
-    _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+    ASSERT_MSG(DYNA_REC, 0, "fp_arith WTF!!!");
   }
   HandleNaNs(inst, fpr.RX(d), dest);
   if (single)

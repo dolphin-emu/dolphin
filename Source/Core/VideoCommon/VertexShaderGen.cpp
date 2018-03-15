@@ -21,8 +21,8 @@ VertexShaderUid GetVertexShaderUid()
   vertex_shader_uid_data* uid_data = out.GetUidData<vertex_shader_uid_data>();
   memset(uid_data, 0, sizeof(*uid_data));
 
-  _assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
-  _assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
+  ASSERT(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
+  ASSERT(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
 
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
@@ -262,8 +262,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       break;
     case XF_SRCCOLORS_INROW:
-      _assert_(texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 ||
-               texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1);
+      ASSERT(texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 ||
+             texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1);
       break;
     case XF_SRCBINORMAL_T_INROW:
       if (uid_data->components & VB_HAS_NRM1)
@@ -278,7 +278,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       }
       break;
     default:
-      _assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
+      ASSERT(texinfo.sourcerow <= XF_SRCTEX7_INROW);
       if (uid_data->components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW)))
         out.Write("coord = float4(rawtex%d.x, rawtex%d.y, 1.0, 1.0);\n",
                   texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
@@ -307,7 +307,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       {
         // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue
         // Squadron 2
-        //_assert_(0); // should have normals
+        // ASSERT(0); // should have normals
         out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
       }
 

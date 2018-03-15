@@ -57,7 +57,7 @@ void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
                                          u32 dst_layer, u32 dst_level)
 {
-  _assert_(src_level == 0 && src_layer == 0 && dst_layer == 0 && dst_level == 0);
+  ASSERT(src_level == 0 && src_layer == 0 && dst_layer == 0 && dst_level == 0);
   CopyTextureData(src->GetConfig(), static_cast<const SWTexture*>(src)->m_data.data(),
                   src_rect.left, src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), m_config,
                   m_data.data(), dst_rect.left, dst_rect.top);
@@ -121,7 +121,7 @@ void SWStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  _assert_(src_level == 0 && src_layer == 0);
+  ASSERT(src_level == 0 && src_layer == 0);
   CopyTextureData(src->GetConfig(), static_cast<const SWTexture*>(src)->GetData(), src_rect.left,
                   src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), m_config, m_data.data(),
                   dst_rect.left, dst_rect.top);
@@ -132,7 +132,7 @@ void SWStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                      u32 dst_level)
 {
-  _assert_(dst_level == 0 && dst_layer == 0);
+  ASSERT(dst_level == 0 && dst_layer == 0);
   CopyTextureData(m_config, m_data.data(), src_rect.left, src_rect.top, src_rect.GetWidth(),
                   src_rect.GetHeight(), dst->GetConfig(), static_cast<SWTexture*>(dst)->GetData(),
                   dst_rect.left, dst_rect.top);

@@ -104,10 +104,10 @@ EventType* RegisterEvent(const std::string& name, TimedCallback callback)
 {
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
-  _assert_msg_(POWERPC, s_event_types.find(name) == s_event_types.end(),
-               "CoreTiming Event \"%s\" is already registered. Events should only be registered "
-               "during Init to avoid breaking save states.",
-               name.c_str());
+  ASSERT_MSG(POWERPC, s_event_types.find(name) == s_event_types.end(),
+             "CoreTiming Event \"%s\" is already registered. Events should only be registered "
+             "during Init to avoid breaking save states.",
+             name.c_str());
 
   auto info = s_event_types.emplace(name, EventType{callback, nullptr});
   EventType* event_type = &info.first->second;
@@ -117,7 +117,7 @@ EventType* RegisterEvent(const std::string& name, TimedCallback callback)
 
 void UnregisterAllEvents()
 {
-  _assert_msg_(POWERPC, s_event_queue.empty(), "Cannot unregister events with events pending");
+  ASSERT_MSG(POWERPC, s_event_queue.empty(), "Cannot unregister events with events pending");
   s_event_types.clear();
 }
 
@@ -230,7 +230,7 @@ void ClearPendingEvents()
 
 void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, FromThread from)
 {
-  _assert_msg_(POWERPC, event_type, "Event type is nullptr, will crash now.");
+  ASSERT_MSG(POWERPC, event_type, "Event type is nullptr, will crash now.");
 
   bool from_cpu_thread;
   if (from == FromThread::ANY)
@@ -240,9 +240,9 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
   else
   {
     from_cpu_thread = from == FromThread::CPU;
-    _assert_msg_(POWERPC, from_cpu_thread == Core::IsCPUThread(),
-                 "A \"%s\" event was scheduled from the wrong thread (%s)",
-                 event_type->name->c_str(), from_cpu_thread ? "CPU" : "non-CPU");
+    ASSERT_MSG(POWERPC, from_cpu_thread == Core::IsCPUThread(),
+               "A \"%s\" event was scheduled from the wrong thread (%s)", event_type->name->c_str(),
+               from_cpu_thread ? "CPU" : "non-CPU");
   }
 
   if (from_cpu_thread)

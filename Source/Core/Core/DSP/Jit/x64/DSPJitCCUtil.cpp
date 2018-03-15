@@ -15,7 +15,7 @@ namespace DSP::JIT::x64
 // Clobbers scratch
 void DSPEmitter::Update_SR_Register(Gen::X64Reg val, Gen::X64Reg scratch)
 {
-  _assert_(val != scratch);
+  ASSERT(val != scratch);
 
   const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   //	// 0x04

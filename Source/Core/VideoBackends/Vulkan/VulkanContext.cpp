@@ -59,7 +59,7 @@ bool VulkanContext::CheckValidationLayerAvailablility()
 
   std::vector<VkExtensionProperties> extension_list(extension_count);
   res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extension_list.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   u32 layer_count = 0;
   res = vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
@@ -71,7 +71,7 @@ bool VulkanContext::CheckValidationLayerAvailablility()
 
   std::vector<VkLayerProperties> layer_list(layer_count);
   res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   // Check for both VK_EXT_debug_report and VK_LAYER_LUNARG_standard_validation
   return (std::find_if(extension_list.begin(), extension_list.end(),
@@ -148,7 +148,7 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
   std::vector<VkExtensionProperties> available_extension_list(extension_count);
   res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count,
                                                available_extension_list.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);
@@ -391,7 +391,7 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   std::vector<VkExtensionProperties> available_extension_list(extension_count);
   res = vkEnumerateDeviceExtensionProperties(m_physical_device, nullptr, &extension_count,
                                              available_extension_list.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   for (const auto& extension_properties : available_extension_list)
     INFO_LOG(VIDEO, "Available extension: %s", extension_properties.extensionName);

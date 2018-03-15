@@ -194,7 +194,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 
 bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
 {
-  _assert_msg_(OSHLE, func.analyzed, "The function wasn't previously analyzed!");
+  ASSERT_MSG(OSHLE, func.analyzed, "The function wasn't previously analyzed!");
 
   func.analyzed = false;
   return AnalyzeFunction(start_addr, func, max_size);

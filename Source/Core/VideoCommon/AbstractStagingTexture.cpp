@@ -35,12 +35,12 @@ void AbstractStagingTexture::CopyToTexture(AbstractTexture* dst, u32 dst_layer, 
 void AbstractStagingTexture::ReadTexels(const MathUtil::Rectangle<int>& rect, void* out_ptr,
                                         u32 out_stride)
 {
-  _assert_(m_type != StagingTextureType::Upload);
+  ASSERT(m_type != StagingTextureType::Upload);
   if (!PrepareForAccess())
     return;
 
-  _assert_(rect.left >= 0 && static_cast<u32>(rect.right) <= m_config.width && rect.top >= 0 &&
-           static_cast<u32>(rect.bottom) <= m_config.height);
+  ASSERT(rect.left >= 0 && static_cast<u32>(rect.right) <= m_config.width && rect.top >= 0 &&
+         static_cast<u32>(rect.bottom) <= m_config.height);
 
   // Offset pointer to point to start of region being copied out.
   const char* current_ptr = m_map_pointer;
@@ -68,11 +68,11 @@ void AbstractStagingTexture::ReadTexels(const MathUtil::Rectangle<int>& rect, vo
 
 void AbstractStagingTexture::ReadTexel(u32 x, u32 y, void* out_ptr)
 {
-  _assert_(m_type != StagingTextureType::Upload);
+  ASSERT(m_type != StagingTextureType::Upload);
   if (!PrepareForAccess())
     return;
 
-  _assert_(x < m_config.width && y < m_config.height);
+  ASSERT(x < m_config.width && y < m_config.height);
   const char* src_ptr = m_map_pointer + y * m_map_stride + x * m_texel_size;
   std::memcpy(out_ptr, src_ptr, m_texel_size);
 }
@@ -80,12 +80,12 @@ void AbstractStagingTexture::ReadTexel(u32 x, u32 y, void* out_ptr)
 void AbstractStagingTexture::WriteTexels(const MathUtil::Rectangle<int>& rect, const void* in_ptr,
                                          u32 in_stride)
 {
-  _assert_(m_type != StagingTextureType::Readback);
+  ASSERT(m_type != StagingTextureType::Readback);
   if (!PrepareForAccess())
     return;
 
-  _assert_(rect.left >= 0 && static_cast<u32>(rect.right) <= m_config.width && rect.top >= 0 &&
-           static_cast<u32>(rect.bottom) <= m_config.height);
+  ASSERT(rect.left >= 0 && static_cast<u32>(rect.right) <= m_config.width && rect.top >= 0 &&
+         static_cast<u32>(rect.bottom) <= m_config.height);
 
   // Offset pointer to point to start of region being copied to.
   char* current_ptr = m_map_pointer;
@@ -112,11 +112,11 @@ void AbstractStagingTexture::WriteTexels(const MathUtil::Rectangle<int>& rect, c
 
 void AbstractStagingTexture::WriteTexel(u32 x, u32 y, const void* in_ptr)
 {
-  _assert_(m_type != StagingTextureType::Readback);
+  ASSERT(m_type != StagingTextureType::Readback);
   if (!PrepareForAccess())
     return;
 
-  _assert_(x < m_config.width && y < m_config.height);
+  ASSERT(x < m_config.width && y < m_config.height);
   char* dest_ptr = m_map_pointer + y * m_map_stride + x * m_texel_size;
   std::memcpy(dest_ptr, in_ptr, m_texel_size);
 }

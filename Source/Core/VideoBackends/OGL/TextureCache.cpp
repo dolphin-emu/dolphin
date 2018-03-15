@@ -132,7 +132,7 @@ GLuint TextureCache::GetColorCopyPositionUniform() const
 bool TextureCache::CompilePaletteShader(TLUTFormat tlutfmt, const std::string& vcode,
                                         const std::string& pcode, const std::string& gcode)
 {
-  _assert_(IsValidTLUTFormat(tlutfmt));
+  ASSERT(IsValidTLUTFormat(tlutfmt));
   PaletteShader& shader = m_palette_shaders[static_cast<int>(tlutfmt)];
 
   if (!ProgramShaderCache::CompileShader(shader.shader, vcode, pcode, gcode))
@@ -289,7 +289,7 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   if (!g_ActiveConfig.backend_info.bSupportsPaletteConversion)
     return;
 
-  _assert_(IsValidTLUTFormat(tlutfmt));
+  ASSERT(IsValidTLUTFormat(tlutfmt));
   const PaletteShader& palette_shader = m_palette_shaders[static_cast<int>(tlutfmt)];
 
   g_renderer->ResetAPIState();

@@ -1245,7 +1245,7 @@ void VideoConfigDiag::PopulateAAList()
     if (mode == 1)
     {
       choice_aamode->AppendString(_("None"));
-      _assert_msg_(VIDEO, !supports_ssaa || m_msaa_modes == 0, "SSAA setting won't work correctly");
+      ASSERT_MSG(VIDEO, !supports_ssaa || m_msaa_modes == 0, "SSAA setting won't work correctly");
     }
     else
     {

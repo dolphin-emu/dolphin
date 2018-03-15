@@ -55,7 +55,7 @@ public:
     template <typename T>
     void SetData(T value)
     {
-      _assert_(sizeof(value) == bytes.size());
+      ASSERT(sizeof(value) == bytes.size());
       std::memcpy(bytes.data(), &value, bytes.size());
     }
 
