@@ -52,7 +52,6 @@ private:
   // Core
   QCheckBox* m_enable_dual_core;
   QCheckBox* m_enable_mmu;
-  QCheckBox* m_skip_dcbz;
   QCheckBox* m_enable_fprf;
   QCheckBox* m_sync_gpu;
   QCheckBox* m_enable_fast_disc;
