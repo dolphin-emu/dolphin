@@ -566,13 +566,25 @@ void VertexManagerBase::UpdatePipelineObject()
   m_current_pipeline_object = nullptr;
   m_pipeline_config_changed = false;
 
-  if (g_ActiveConfig.iUberShaderMode == UberShaderMode::Disabled)
+  switch (g_ActiveConfig.iShaderCompilationMode)
+  {
+  case ShaderCompilationMode::Synchronous:
   {
     // Ubershaders disabled? Block and compile the specialized shader.
     m_current_pipeline_object = g_shader_cache->GetPipelineForUid(m_current_pipeline_config);
-    return;
   }
-  else if (g_ActiveConfig.iUberShaderMode == UberShaderMode::Hybrid)
+  break;
+
+  case ShaderCompilationMode::SynchronousUberShaders:
+  {
+    // Exclusive ubershader mode, always use ubershaders.
+    m_current_pipeline_object =
+        g_shader_cache->GetUberPipelineForUid(m_current_uber_pipeline_config);
+  }
+  break;
+
+  case ShaderCompilationMode::AsynchronousUberShaders:
+  case ShaderCompilationMode::AsynchronousSkipRendering:
   {
     // Can we background compile shaders? If so, get the pipeline asynchronously.
     auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config);
@@ -582,8 +594,20 @@ void VertexManagerBase::UpdatePipelineObject()
       m_current_pipeline_object = *res;
       return;
     }
-  }
 
-  // Exclusive ubershader mode, or hybrid and shaders are still compiling.
-  m_current_pipeline_object = g_shader_cache->GetUberPipelineForUid(m_current_uber_pipeline_config);
+    if (g_ActiveConfig.iShaderCompilationMode == ShaderCompilationMode::AsynchronousUberShaders)
+    {
+      // Specialized shaders not ready, use the ubershaders.
+      m_current_pipeline_object =
+          g_shader_cache->GetUberPipelineForUid(m_current_uber_pipeline_config);
+    }
+    else
+    {
+      // Ensure we try again next draw. Otherwise, if no registers change between frames, the
+      // object will never be drawn, even when the shader is ready.
+      m_pipeline_config_changed = true;
+    }
+  }
+  break;
+  }
 }

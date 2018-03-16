@@ -79,6 +79,7 @@
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsBool.h" />
     <QtMoc Include="Config\Graphics\GraphicsChoice.h" />
+    <QtMoc Include="Config\Graphics\GraphicsRadio.h" />
     <QtMoc Include="Config\Graphics\GraphicsSlider.h" />
     <QtMoc Include="Config\Graphics\GraphicsWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsWindow.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsChoice.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GraphicsRadio.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsSlider.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsWindow.cpp" />
@@ -212,6 +214,7 @@
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsChoice.cpp" />
+    <ClCompile Include="Config\Graphics\GraphicsRadio.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
