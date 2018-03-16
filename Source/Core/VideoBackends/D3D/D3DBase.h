@@ -35,7 +35,7 @@ namespace DX11
 #define CHECK(cond, Message, ...)                                                                  \
   if (!(cond))                                                                                     \
   {                                                                                                \
-    PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__,              \
+    PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__,               \
                __VA_ARGS__);                                                                       \
   }
 
