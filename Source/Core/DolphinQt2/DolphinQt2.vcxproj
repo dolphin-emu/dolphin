@@ -305,8 +305,6 @@
     <ClInclude Include="Config\Mapping\HotkeyGraphics.h" />
     <ClInclude Include="Config\Mapping\HotkeyStates.h" />
     <ClInclude Include="Config\Mapping\HotkeyTAS.h" />
-    <ClInclude Include="Debugger\CodeViewWidget.h" />
-    <ClInclude Include="Debugger\CodeWidget.h" />
     <ClInclude Include="TAS\Shared.h" />
     <ClInclude Include="Config\Mapping\HotkeyWii.h" />
     <ClInclude Include="Config\Mapping\MappingBool.h" />
