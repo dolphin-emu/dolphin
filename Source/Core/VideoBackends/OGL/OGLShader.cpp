@@ -30,7 +30,8 @@ OGLShader::OGLShader(ShaderStage stage, GLenum gl_type, GLuint shader_id)
 }
 
 OGLShader::OGLShader(GLuint compute_program_id)
-    : AbstractShader(ShaderStage::Compute), m_type(GL_COMPUTE_SHADER), m_id(compute_program_id)
+    : AbstractShader(ShaderStage::Compute), m_type(GL_COMPUTE_SHADER),
+      m_compute_program_id(compute_program_id)
 {
 }
 
