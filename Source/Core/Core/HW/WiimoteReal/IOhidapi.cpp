@@ -134,7 +134,7 @@ int WiimoteHidapi::IORead(u8* buf)
 
 int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
 {
-  DEBUG_ASSERT(WIIMOTE, buf[0] == (WR_SET_REPORT | BT_OUTPUT));
+  DEBUG_ASSERT(buf[0] == (WR_SET_REPORT | BT_OUTPUT));
   int result = hid_write(m_handle, buf + 1, len - 1);
   if (result == -1)
   {

@@ -1123,7 +1123,7 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
   // Texture should always be in SHADER_READ_ONLY layout prior to use.
   // This is so we don't need to transition during render passes.
   auto* tex = texture ? static_cast<const VKTexture*>(texture)->GetRawTexIdentifier() : nullptr;
-  DEBUG_ASSERT(VIDEO, !tex || tex->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  DEBUG_ASSERT(!tex || tex->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   StateTracker::GetInstance()->SetTexture(index, tex ? tex->GetView() : VK_NULL_HANDLE);
 }
 

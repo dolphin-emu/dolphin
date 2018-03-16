@@ -171,8 +171,8 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
       const auto* acl_header =
           reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(ctrl.data_address));
 
-      DEBUG_ASSERT(IOS_WIIMOTE, HCI_BC_FLAG(acl_header->con_handle) == HCI_POINT2POINT);
-      DEBUG_ASSERT(IOS_WIIMOTE, HCI_PB_FLAG(acl_header->con_handle) == HCI_PACKET_START);
+      DEBUG_ASSERT(HCI_BC_FLAG(acl_header->con_handle) == HCI_POINT2POINT);
+      DEBUG_ASSERT(HCI_PB_FLAG(acl_header->con_handle) == HCI_PACKET_START);
 
       SendToDevice(HCI_CON_HANDLE(acl_header->con_handle),
                    Memory::GetPointer(ctrl.data_address + sizeof(hci_acldata_hdr_t)),
@@ -437,9 +437,9 @@ bool BluetoothEmu::SendEventInquiryResponse()
   if (m_WiiMotes.empty())
     return false;
 
-  DEBUG_ASSERT(IOS_WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 +
-                                    (m_WiiMotes.size() * sizeof(hci_inquiry_response)) <
-                                256);
+  DEBUG_ASSERT(sizeof(SHCIEventInquiryResult) - 2 +
+                   (m_WiiMotes.size() * sizeof(hci_inquiry_response)) <
+               256);
 
   SQueuedEvent Event(static_cast<u32>(sizeof(SHCIEventInquiryResult) +
                                       m_WiiMotes.size() * sizeof(hci_inquiry_response)),
@@ -701,7 +701,7 @@ bool BluetoothEmu::SendEventReadRemoteVerInfo(u16 _connectionHandle)
 
 void BluetoothEmu::SendEventCommandComplete(u16 opcode, const void* data, u32 data_size)
 {
-  DEBUG_ASSERT(IOS_WIIMOTE, (sizeof(SHCIEventCommand) - 2 + data_size) < 256);
+  DEBUG_ASSERT((sizeof(SHCIEventCommand) - 2 + data_size) < 256);
 
   SQueuedEvent event(sizeof(SHCIEventCommand) + data_size, 0);
 

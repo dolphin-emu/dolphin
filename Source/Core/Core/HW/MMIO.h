@@ -210,13 +210,13 @@ private:
 template <>
 inline u64 Mapping::Read<u64>(u32 addr)
 {
-  DEBUG_ASSERT(MEMMAP, 0);
+  DEBUG_ASSERT(0);
   return 0;
 }
 
 template <>
 inline void Mapping::Write(u32 addr, u64 val)
 {
-  DEBUG_ASSERT(MEMMAP, 0);
+  DEBUG_ASSERT(0);
 }
 }

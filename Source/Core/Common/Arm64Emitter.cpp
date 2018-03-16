@@ -210,8 +210,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
 
   // Ensure that the index to the multipliers array is within bounds.
-  DEBUG_ASSERT(DYNA_REC,
-               (multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
+  DEBUG_ASSERT((multiplier_idx >= 0) && (static_cast<size_t>(multiplier_idx) < multipliers.size()));
 
   uint64_t multiplier = multipliers[multiplier_idx];
   uint64_t candidate = (b - a) * multiplier;

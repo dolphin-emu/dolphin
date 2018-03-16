@@ -62,7 +62,7 @@ public:
 
   int BeginAppendData(void** write_ptr, unsigned int size, unsigned int vertex_size)
   {
-    DEBUG_ASSERT(VIDEO, size < max_size);
+    DEBUG_ASSERT(size < max_size);
 
     D3D11_MAPPED_SUBRESOURCE map;
     unsigned int aligned_offset = Common::AlignUp(offset, vertex_size);

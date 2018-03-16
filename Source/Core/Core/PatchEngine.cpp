@@ -194,7 +194,7 @@ static void ApplyPatches(const std::vector<Patch>& patches)
 // We require at least 2 stack frames, if the stack is shallower than that then it won't work.
 static bool IsStackSane()
 {
-  DEBUG_ASSERT(ACTIONREPLAY, UReg_MSR(MSR).DR && UReg_MSR(MSR).IR);
+  DEBUG_ASSERT(UReg_MSR(MSR).DR && UReg_MSR(MSR).IR);
 
   // Check the stack pointer
   u32 SP = GPR(1);

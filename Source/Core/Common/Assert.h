@@ -61,7 +61,7 @@
                __LINE__, __FILE__);                                                                \
   } while (0)
 
-#define DEBUG_ASSERT(_t_, _a_)                                                                     \
+#define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
     if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)                                              \

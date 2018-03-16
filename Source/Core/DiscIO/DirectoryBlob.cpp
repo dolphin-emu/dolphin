@@ -92,7 +92,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   if (m_size == 0)
     return true;
 
-  DEBUG_ASSERT(DISCIO, *offset >= m_offset);
+  DEBUG_ASSERT(*offset >= m_offset);
   const u64 offset_in_content = *offset - m_offset;
 
   if (offset_in_content < m_size)
@@ -160,7 +160,7 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
       return false;
 
     ++it;
-    DEBUG_ASSERT(DISCIO, it == m_contents.end() || it->GetOffset() >= offset);
+    DEBUG_ASSERT(it == m_contents.end() || it->GetOffset() >= offset);
   }
 
   // Zero fill if we went beyond the last DiscContent

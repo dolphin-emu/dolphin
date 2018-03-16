@@ -172,7 +172,7 @@ void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
                             bool notify_presence_changed)
 {
-  DEBUG_ASSERT(EXPANSIONINTERFACE, device_num < NUM_DEVICES);
+  DEBUG_ASSERT(device_num < NUM_DEVICES);
 
   // Replace it with the new one
   m_devices[device_num] = std::move(device);
