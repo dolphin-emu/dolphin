@@ -5,6 +5,7 @@
 #include "DolphinWX/ISOProperties/InfoPanel.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <iterator>
 #include <optional>
 #include <string>
@@ -31,9 +32,9 @@
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
+#include "UICommon/GameFile.h"
 
 namespace
 {
@@ -141,7 +142,7 @@ int FindPreferredLanguageIndex(DiscIO::Language preferred_language,
 }
 }  // Anonymous namespace
 
-InfoPanel::InfoPanel(wxWindow* parent, wxWindowID id, const GameListItem& item,
+InfoPanel::InfoPanel(wxWindow* parent, wxWindowID id, const UICommon::GameFile& item,
                      const std::unique_ptr<DiscIO::Volume>& opened_iso)
     : wxPanel{parent, id}, m_game_list_item{item}, m_opened_iso{opened_iso}
 {
@@ -190,7 +191,11 @@ void InfoPanel::LoadISODetails()
   {
     const IOS::ES::TMDReader tmd = m_opened_iso->GetTMD(m_opened_iso->GetGamePartition());
     if (tmd.IsValid())
+    {
       m_ios_version->SetValue(StringFromFormat("IOS%u", static_cast<u32>(tmd.GetIOSId())));
+      m_game_id->SetValue(StrToWxStr(StringFromFormat(
+          "%s (%016" PRIx64 ")", m_opened_iso->GetGameID().c_str(), tmd.GetTitleId())));
+    }
   }
 }
 
@@ -204,8 +209,8 @@ void InfoPanel::LoadBannerDetails()
 
 void InfoPanel::LoadBannerImage()
 {
-  const auto& banner_image = m_game_list_item.GetBannerImage();
-  const auto banner_min_size = m_banner->GetMinSize();
+  const wxImage banner_image = WxUtils::ToWxImage(m_game_list_item.GetBannerImage());
+  const wxSize banner_min_size = m_banner->GetMinSize();
 
   if (banner_image.IsOk())
   {
@@ -332,7 +337,7 @@ void InfoPanel::OnComputeMD5(wxCommandEvent& WXUNUSED(event))
                                        wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
                                        wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
-  const auto result = MD5::MD5Sum(m_game_list_item.GetFileName(), [&progress_dialog](int progress) {
+  const auto result = MD5::MD5Sum(m_game_list_item.GetFilePath(), [&progress_dialog](int progress) {
     return progress_dialog.Update(progress);
   });
 
@@ -362,7 +367,7 @@ void InfoPanel::OnSaveBannerImage(wxCommandEvent& WXUNUSED(event))
 
   if (dialog.ShowModal() == wxID_OK)
   {
-    m_game_list_item.GetBannerImage().SaveFile(dialog.GetPath());
+    WxUtils::ToWxImage(m_game_list_item.GetBannerImage()).SaveFile(dialog.GetPath());
   }
 
   Raise();
@@ -370,16 +375,16 @@ void InfoPanel::OnSaveBannerImage(wxCommandEvent& WXUNUSED(event))
 
 void InfoPanel::ChangeBannerDetails(DiscIO::Language language)
 {
-  const auto name = StrToWxStr(m_game_list_item.GetName(language));
+  const auto name = StrToWxStr(m_game_list_item.GetLongName(language));
   const auto comment = StrToWxStr(m_game_list_item.GetDescription(language));
-  const auto maker = StrToWxStr(m_game_list_item.GetCompany());
+  const auto maker = StrToWxStr(m_game_list_item.GetLongMaker(language));
 
   m_name->SetValue(name);
   m_comment->SetValue(comment);
   m_maker->SetValue(maker);
 
   std::string path, filename, extension;
-  SplitPath(m_game_list_item.GetFileName(), &path, &filename, &extension);
+  SplitPath(m_game_list_item.GetFilePath(), &path, &filename, &extension);
 
   // Real disk drives don't have filenames on Windows
   if (filename.empty() && extension.empty())

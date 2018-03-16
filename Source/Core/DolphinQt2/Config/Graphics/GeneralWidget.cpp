@@ -87,6 +87,8 @@ void GeneralWidget::CreateWidgets()
   m_keep_window_top = new QCheckBox(tr("Keep Window on Top"));
   m_hide_cursor = new QCheckBox(tr("Hide Mouse Cursor"));
   m_render_main_window = new QCheckBox(tr("Render to Main Window"));
+  m_wait_for_shaders = new GraphicsBool(tr("Immediately Compile Shaders"),
+                                        Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
 
   m_options_box->setLayout(m_options_layout);
 
@@ -101,6 +103,7 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_hide_cursor, 3, 0);
   m_options_layout->addWidget(m_render_main_window, 3, 1);
+  m_options_layout->addWidget(m_wait_for_shaders, 4, 0);
 
   main_layout->addWidget(m_video_box);
   main_layout->addWidget(m_options_box);
@@ -265,6 +268,12 @@ void GeneralWidget::AddDescriptions()
   static const char* TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION =
       QT_TR_NOOP("When playing on NetPlay, show chat messages, buffer changes and "
                  "desync alerts.\n\nIf unsure, leave this unchecked.");
+  static const char* TR_WAIT_FOR_SHADERS_DESCRIPTION = QT_TR_NOOP(
+      "Waits for all shaders to finish compiling before starting a game. Enabling this "
+      "option may reduce stuttering or hitching for a short time after the game is "
+      "started, at the cost of a longer delay before the game starts.\n\nFor systems "
+      "with two or fewer cores, it is recommended to enable this option, as a large "
+      "shader queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
 
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
 #ifdef _WIN32
@@ -282,6 +291,7 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_show_messages, TR_SHOW_FPS_DESCRIPTION);
   AddDescription(m_keep_window_top, TR_KEEP_WINDOW_ON_TOP_DESCRIPTION);
   AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);
+  AddDescription(m_wait_for_shaders, TR_WAIT_FOR_SHADERS_DESCRIPTION);
 }
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
 {

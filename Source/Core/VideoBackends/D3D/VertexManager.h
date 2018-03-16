@@ -7,6 +7,7 @@
 #include <d3d11.h>
 
 #include <array>
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -23,13 +24,13 @@ class D3DVertexFormat : public NativeVertexFormat
 public:
   D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
   ~D3DVertexFormat();
-  void SetInputLayout(D3DBlob* vs_bytecode);
+  ID3D11InputLayout* GetInputLayout(D3DBlob* vs_bytecode);
 
 private:
   std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
   UINT m_num_elems = 0;
 
-  ID3D11InputLayout* m_layout = nullptr;
+  std::atomic<ID3D11InputLayout*> m_layout{nullptr};
 };
 
 class VertexManager : public VertexManagerBase

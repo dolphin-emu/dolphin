@@ -237,10 +237,12 @@ QStringList FindPossibleLanguageCodes(const QString& exact_language_code)
   // On macOS, Chinese (Simplified) and Chinese (Traditional) are represented as zh-Hans and
   // zh-Hant, but on Linux they're represented as zh-CN and zh-TW. Qt should probably include the
   // script subtags on Linux, but it doesn't.
-  if (possible_language_codes.contains(QStringLiteral("zh_Hans")))
-    possible_language_codes << QStringLiteral("zh_CN");
-  if (possible_language_codes.contains(QStringLiteral("zh_Hant")))
-    possible_language_codes << QStringLiteral("zh_TW");
+  const int hans_index = possible_language_codes.indexOf(QStringLiteral("zh_Hans"));
+  if (hans_index != -1)
+    possible_language_codes.insert(hans_index + 1, QStringLiteral("zh_CN"));
+  const int hant_index = possible_language_codes.indexOf(QStringLiteral("zh_Hant"));
+  if (hant_index != -1)
+    possible_language_codes.insert(hant_index + 1, QStringLiteral("zh_TW"));
 
   return possible_language_codes;
 }

@@ -56,6 +56,12 @@
     <ClCompile Include="OGLTexture.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="OGLShader.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="OGLPipeline.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexManager.h">
@@ -97,6 +103,12 @@
       <Filter>GLUtil</Filter>
     </ClInclude>
     <ClInclude Include="OGLTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="OGLShader.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="OGLPipeline.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

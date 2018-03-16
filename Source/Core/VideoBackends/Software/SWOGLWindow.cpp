@@ -15,7 +15,7 @@ std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
 
 void SWOGLWindow::Init(void* window_handle)
 {
-  InitInterface();
+  GLUtil::InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
   if (!GLInterface->Create(window_handle))
   {
@@ -71,7 +71,7 @@ void SWOGLWindow::Prepare()
                            "#version 300 es\n"
                            "precision highp float;\n";
 
-  m_image_program = OpenGL_CompileProgram(header + vertex_shader, header + frag_shader);
+  m_image_program = GLUtil::CompileProgram(header + vertex_shader, header + frag_shader);
 
   glUseProgram(m_image_program);
 

@@ -52,6 +52,7 @@ private:
   QCheckBox* m_keep_window_top;
   QCheckBox* m_hide_cursor;
   QCheckBox* m_render_main_window;
+  QCheckBox* m_wait_for_shaders;
 
   X11Utils::XRRConfiguration* m_xrr_config;
 };

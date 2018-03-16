@@ -18,7 +18,6 @@ AsyncShaderCompiler::~AsyncShaderCompiler()
   // Pending work can be left at shutdown.
   // The work item classes are expected to clean up after themselves.
   _assert_(!HasWorkerThreads());
-  _assert_(m_completed_work.empty());
 }
 
 void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item)
@@ -56,6 +55,12 @@ bool AsyncShaderCompiler::HasPendingWork()
 {
   std::lock_guard<std::mutex> guard(m_pending_work_lock);
   return !m_pending_work.empty() || m_busy_workers.load() != 0;
+}
+
+bool AsyncShaderCompiler::HasCompletedWork()
+{
+  std::lock_guard<std::mutex> guard(m_completed_work_lock);
+  return !m_completed_work.empty();
 }
 
 void AsyncShaderCompiler::WaitUntilCompletion()

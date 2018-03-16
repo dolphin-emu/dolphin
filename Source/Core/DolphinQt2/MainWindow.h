@@ -11,13 +11,16 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+class BreakpointWidget;
 struct BootParameters;
+class CodeWidget;
 class FIFOPlayerWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
@@ -31,6 +34,10 @@ class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
 class GraphicsWindow;
+class RegisterWidget;
+class WatchWidget;
+class GCTASInputWindow;
+class WiiTASInputWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -50,6 +57,7 @@ private:
   void Open();
   void Play(const std::optional<std::string>& savestate_path = {});
   void Pause();
+  void TogglePause();
 
   // May ask for confirmation. Returns whether or not it actually stopped.
   bool RequestStop();
@@ -88,6 +96,7 @@ private:
   void InitCoreCallbacks();
 
   void StartGame(const QString& path, const std::optional<std::string>& savestate_path = {});
+  void StartGame(const std::string& path, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
   void HideRenderWidget();
@@ -101,6 +110,7 @@ private:
   void ShowHotkeyDialog();
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
+  void ShowMemcardManager();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -109,11 +119,15 @@ private:
 
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
+  void OnConnectWiiRemote(int id);
 
   void OnPlayRecording();
   void OnStartRecording();
   void OnStopRecording();
   void OnExportRecording();
+  void ShowTASInput();
+
+  void EnableScreenSaver(bool enable);
 
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
@@ -138,7 +152,16 @@ private:
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
+  static constexpr int num_gc_controllers = 4;
+  std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
+  static constexpr int num_wii_controllers = 4;
+  std::array<WiiTASInputWindow*, num_wii_controllers> m_wii_tas_input_windows{};
+
+  BreakpointWidget* m_breakpoint_widget;
+  CodeWidget* m_code_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   FIFOPlayerWindow* m_fifo_window;
+  RegisterWidget* m_register_widget;
+  WatchWidget* m_watch_widget;
 };

@@ -67,7 +67,6 @@ set(SRCS
   FrameAui.cpp
   FrameTools.cpp
   GameListCtrl.cpp
-  ISOFile.cpp
   LogConfigWindow.cpp
   LogWindow.cpp
   Main.cpp
@@ -93,7 +92,7 @@ set(LIBS
 
 if(APPLE)
   # Add resource files to application bundle.
-  set(RESOURCES resources/Dolphin.icns)
+  set(RESOURCES "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
   list(APPEND SRCS ${RESOURCES})
   set_source_files_properties(${RESOURCES} PROPERTIES
     MACOSX_PACKAGE_LOCATION Resources)

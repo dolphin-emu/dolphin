@@ -45,15 +45,6 @@ void VideoBackendBase::Video_ExitLoop()
   s_FifoShuttingDown.Set();
 }
 
-void VideoBackendBase::Video_CleanupShared()
-{
-  // First stop any framedumping, which might need to dump the last xfb frame. This process
-  // can require additional graphics sub-systems so it needs to be done first
-  g_renderer->ShutdownFrameDumping();
-
-  Video_Cleanup();
-}
-
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                         u64 ticks)
@@ -211,12 +202,8 @@ void VideoBackendBase::ShutdownShared()
 
   m_initialized = false;
 
-  Fifo::Shutdown();
-}
-
-void VideoBackendBase::CleanupShared()
-{
   VertexLoaderManager::Clear();
+  Fifo::Shutdown();
 }
 
 // Run from the CPU thread

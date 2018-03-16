@@ -14,11 +14,11 @@
 
 #include "Core/DSP/Interpreter/DSPIntExtOps.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
-#include "Core/DSP/Jit/DSPEmitter.h"
+#include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 namespace DSP
 {
-using JIT::x86::DSPEmitter;
+using JIT::x64::DSPEmitter;
 
 // clang-format off
 const std::array<DSPOPCTemplate, 214> s_opcodes =

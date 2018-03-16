@@ -61,6 +61,16 @@ void VertexManager::DestroyDeviceObjects()
   s_indexBuffer.reset();
 }
 
+StreamBuffer* VertexManager::GetVertexBuffer() const
+{
+  return s_vertexBuffer.get();
+}
+
+OGL::StreamBuffer* VertexManager::GetIndexBuffer() const
+{
+  return s_indexBuffer.get();
+}
+
 GLuint VertexManager::GetVertexBufferHandle() const
 {
   return m_vertex_buffers;
@@ -76,6 +86,10 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
   u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
   u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
 
+  // The index buffer is part of the VAO state, therefore we need to bind it first.
+  const GLVertexFormat* vertex_format =
+      static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+  ProgramShaderCache::BindVertexFormat(vertex_format);
   s_vertexBuffer->Unmap(vertex_data_size);
   s_indexBuffer->Unmap(index_data_size);
 
@@ -95,6 +109,11 @@ void VertexManager::ResetBuffer(u32 stride)
   }
   else
   {
+    // The index buffer is part of the VAO state, therefore we need to bind it first.
+    const GLVertexFormat* vertex_format =
+        static_cast<GLVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+    ProgramShaderCache::BindVertexFormat(vertex_format);
+
     auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
     m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
     m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;
@@ -147,8 +166,6 @@ void VertexManager::vFlush()
   GLVertexFormat* nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
   u32 stride = nativeVertexFmt->GetVertexStride();
 
-  ProgramShaderCache::SetShader(m_current_primitive_type, nativeVertexFmt);
-
   PrepareDrawBuffers(stride);
 
   // upload global constants
@@ -159,7 +176,11 @@ void VertexManager::vFlush()
     glEnable(GL_STENCIL_TEST);
   }
 
-  Draw(stride);
+  if (m_current_pipeline_object)
+  {
+    g_renderer->SetPipeline(m_current_pipeline_object);
+    Draw(stride);
+  }
 
   if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,15 +26,19 @@ import java.util.HashMap;
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
 	private static final String ARG_FILE_NAME = "file_name";
+	private static final String ARG_GAME_ID = "game_id";
+
 	private static final String FRAGMENT_TAG = "settings";
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
 
 	private ProgressDialog dialog;
 
-	public static void launch(Context context, String menuTag)
+	public static void launch(Context context, String menuTag, String gameId)
 	{
 		Intent settings = new Intent(context, SettingsActivity.class);
 		settings.putExtra(ARG_FILE_NAME, menuTag);
+		settings.putExtra(ARG_GAME_ID, gameId);
+
 		context.startActivity(settings);
 	}
 
@@ -45,8 +51,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 		Intent launcher = getIntent();
 		String filename = launcher.getStringExtra(ARG_FILE_NAME);
+		String gameID = launcher.getStringExtra(ARG_GAME_ID);
 
-		mPresenter.onCreate(savedInstanceState, filename);
+		mPresenter.onCreate(savedInstanceState, filename, gameID);
 	}
 
 	@Override
@@ -100,24 +107,38 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 
 	@Override
-	public void showSettingsFragment(String menuTag, boolean addToStack)
+	public void showSettingsFragment(String menuTag, boolean addToStack, String gameID)
 	{
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
 		if (addToStack)
 		{
-			transaction.setCustomAnimations(
-					R.animator.settings_enter,
-					R.animator.settings_exit,
-					R.animator.settings_pop_enter,
-					R.animator.setttings_pop_exit);
+			if (areSystemAnimationsEnabled())
+			{
+				transaction.setCustomAnimations(
+						R.animator.settings_enter,
+						R.animator.settings_exit,
+						R.animator.settings_pop_enter,
+						R.animator.setttings_pop_exit);
+			}
 
 			transaction.addToBackStack(null);
 			mPresenter.addToStack();
 		}
-		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), FRAGMENT_TAG);
+		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID), FRAGMENT_TAG);
 
 		transaction.commit();
+	}
+
+	private boolean areSystemAnimationsEnabled()
+	{
+		float duration = Settings.Global.getFloat(
+				getContentResolver(),
+				Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+		float transition = Settings.Global.getFloat(
+				getContentResolver(),
+				Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
+		return duration != 0 && transition != 0;
 	}
 
 	@Override
@@ -158,6 +179,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	public void showPermissionNeededHint()
 	{
 		Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+				.show();
+	}
+
+	@Override
+	public void showExternalStorageNotMountedHint()
+	{
+		Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
 				.show();
 	}
 

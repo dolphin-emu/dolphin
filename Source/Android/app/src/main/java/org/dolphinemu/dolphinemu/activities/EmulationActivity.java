@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
@@ -15,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -36,13 +36,14 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
-import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.lang.annotation.Retention;
 import java.util.List;
@@ -53,6 +54,8 @@ public final class EmulationActivity extends AppCompatActivity
 {
 	private static final String BACKSTACK_NAME_MENU = "menu";
 	private static final String BACKSTACK_NAME_SUBMENU = "submenu";
+	public static final int REQUEST_CHANGE_DISC = 1;
+
 	private View mDecorView;
 	private ImageView mImageView;
 	private EmulationFragment mEmulationFragment;
@@ -68,8 +71,15 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private static boolean sIsGameCubeGame;
 
+	private boolean activityRecreated;
 	private String mScreenPath;
 	private String mSelectedTitle;
+	private String mPath;
+
+	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
+	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
+	public static final String EXTRA_SCREEN_PATH = "ScreenPath";
+	public static final String EXTRA_GRID_POSITION = "GridPosition";
 
 	@Retention(SOURCE)
 	@IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -79,7 +89,7 @@ public final class EmulationActivity extends AppCompatActivity
 			MENU_ACTION_SAVE_SLOT3, MENU_ACTION_SAVE_SLOT4, MENU_ACTION_SAVE_SLOT5,
 			MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
 			MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
-			MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT})
+			MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC})
 	public @interface MenuAction {
 	}
 
@@ -106,6 +116,7 @@ public final class EmulationActivity extends AppCompatActivity
 	public static final int MENU_ACTION_LOAD_SLOT5 = 20;
 	public static final int MENU_ACTION_LOAD_SLOT6 = 21;
 	public static final int MENU_ACTION_EXIT = 22;
+	public static final int MENU_ACTION_CHANGE_DISC = 23;
 
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -131,6 +142,7 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
 		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
+		buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
 	}
 
@@ -138,10 +150,10 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		Intent launcher = new Intent(activity, EmulationActivity.class);
 
-		launcher.putExtra("SelectedGame", path);
-		launcher.putExtra("SelectedTitle", title);
-		launcher.putExtra("ScreenPath", screenshotPath);
-		launcher.putExtra("GridPosition", position);
+		launcher.putExtra(EXTRA_SELECTED_GAME, path);
+		launcher.putExtra(EXTRA_SELECTED_TITLE, title);
+		launcher.putExtra(EXTRA_SCREEN_PATH, screenshotPath);
+		launcher.putExtra(EXTRA_GRID_POSITION, position);
 
 		ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
 				activity,
@@ -158,13 +170,23 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		super.onCreate(savedInstanceState);
 
-		// Get params we were passed
-		Intent gameToEmulate = getIntent();
-		String path = gameToEmulate.getStringExtra("SelectedGame");
-		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(path)) == Platform.GAMECUBE;
-		mSelectedTitle = gameToEmulate.getStringExtra("SelectedTitle");
-		mScreenPath = gameToEmulate.getStringExtra("ScreenPath");
-		mPosition = gameToEmulate.getIntExtra("GridPosition", -1);
+		if (savedInstanceState == null)
+		{
+			// Get params we were passed
+			Intent gameToEmulate = getIntent();
+			mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
+			mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
+			mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
+			mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
+			activityRecreated = false;
+		}
+		else
+		{
+			activityRecreated = true;
+			restoreState(savedInstanceState);
+		}
+
+		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(mPath)) == Platform.GAMECUBE;
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 		mControllerMappingHelper = new ControllerMappingHelper();
 
@@ -206,7 +228,7 @@ public final class EmulationActivity extends AppCompatActivity
 				.findFragmentById(R.id.frame_emulation_fragment);
 		if (mEmulationFragment == null)
 		{
-			mEmulationFragment = EmulationFragment.newInstance(path);
+			mEmulationFragment = EmulationFragment.newInstance(mPath);
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.frame_emulation_fragment, mEmulationFragment)
 					.commit();
@@ -257,6 +279,25 @@ public final class EmulationActivity extends AppCompatActivity
 	}
 
 	@Override
+	protected void onSaveInstanceState(Bundle outState)
+	{
+		mEmulationFragment.saveTemporaryState();
+		outState.putString(EXTRA_SELECTED_GAME, mPath);
+		outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
+		outState.putString(EXTRA_SCREEN_PATH, mScreenPath);
+		outState.putInt(EXTRA_GRID_POSITION, mPosition);
+		super.onSaveInstanceState(outState);
+	}
+
+	protected void restoreState(Bundle savedInstanceState)
+	{
+		mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
+		mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
+		mScreenPath = savedInstanceState.getString(EXTRA_SCREEN_PATH);
+		mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
+	}
+
+	@Override
 	public void onBackPressed()
 	{
 		if (!mDeviceHasTouchScreen)
@@ -274,6 +315,25 @@ public final class EmulationActivity extends AppCompatActivity
 			exitWithAnimation();
 		}
 
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent result)
+	{
+		switch (requestCode)
+		{
+			case REQUEST_CHANGE_DISC:
+				// If the user picked a file, as opposed to just backing out.
+				if (resultCode == MainActivity.RESULT_OK)
+				{
+					String newDiscPath = FileBrowserHelper.getSelectedDirectory(result);
+					if (!TextUtils.isEmpty(newDiscPath))
+					{
+						NativeLibrary.ChangeDisc(newDiscPath);
+					}
+				}
+				break;
+		}
 	}
 
 	private void enableFullscreenImmersive()
@@ -412,7 +472,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Quick save / load
 			case MENU_ACTION_QUICK_SAVE:
-				NativeLibrary.SaveState(9);
+				NativeLibrary.SaveState(9, false);
 				return;
 
 			case MENU_ACTION_QUICK_LOAD:
@@ -436,27 +496,27 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// Save state slots
 			case MENU_ACTION_SAVE_SLOT1:
-				NativeLibrary.SaveState(0);
+				NativeLibrary.SaveState(0, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT2:
-				NativeLibrary.SaveState(1);
+				NativeLibrary.SaveState(1, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT3:
-				NativeLibrary.SaveState(2);
+				NativeLibrary.SaveState(2, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT4:
-				NativeLibrary.SaveState(3);
+				NativeLibrary.SaveState(3, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT5:
-				NativeLibrary.SaveState(4);
+				NativeLibrary.SaveState(4, false);
 				return;
 
 			case MENU_ACTION_SAVE_SLOT6:
-				NativeLibrary.SaveState(5);
+				NativeLibrary.SaveState(5, false);
 				return;
 
 			// Load state slots
@@ -482,6 +542,10 @@ public final class EmulationActivity extends AppCompatActivity
 
 			case MENU_ACTION_LOAD_SLOT6:
 				NativeLibrary.LoadState(5);
+				return;
+
+			case MENU_ACTION_CHANGE_DISC:
+				FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
 				return;
 
 			case MENU_ACTION_EXIT:
@@ -715,5 +779,10 @@ public final class EmulationActivity extends AppCompatActivity
 	public static boolean isGameCubeGame()
 	{
 		return sIsGameCubeGame;
+	}
+
+	public boolean isActivityRecreated()
+	{
+		return activityRecreated;
 	}
 }

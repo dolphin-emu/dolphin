@@ -130,6 +130,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_SCISSORBR:      // Scissor Rectable Bottom, Right
   case BPMEM_SCISSOROFFSET:  // Scissor Offset
     SetScissor();
+    SetViewport();
     VertexShaderManager::SetViewportChanged();
     GeometryShaderManager::SetViewportChanged();
     return;
@@ -153,9 +154,7 @@ static void BPWritten(const BPCmd& bp)
 
       SetBlendMode();
 
-      // Dither
-      if (bp.changes & 0x04)
-        PixelShaderManager::SetBlendModeChanged();
+      PixelShaderManager::SetBlendModeChanged();
     }
     return;
   case BPMEM_CONSTANTALPHA:  // Set Destination Alpha
@@ -231,9 +230,9 @@ static void BPWritten(const BPCmd& bp)
       // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
-                                                 is_depth_copy, srcRect, !!PE_copy.intensity_fmt,
-                                                 !!PE_copy.half_scale, 1.0f, 1.0f);
+      g_texture_cache->CopyRenderTargetToTexture(
+          destAddr, PE_copy.tp_realFormat(), srcRect.GetWidth(), srcRect.GetHeight(), destStride,
+          is_depth_copy, srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f);
     }
     else
     {
@@ -252,8 +251,6 @@ static void BPWritten(const BPCmd& bp)
 
       float num_xfb_lines = 1.0f + bpmem.copyTexSrcWH.y * yScale;
 
-      srcRect.bottom = static_cast<int>(bpmem.copyTexSrcXY.y + num_xfb_lines);
-
       u32 height = static_cast<u32>(num_xfb_lines);
 
       DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
@@ -262,9 +259,9 @@ static void BPWritten(const BPCmd& bp)
                 bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, destStride,
-                                                 is_depth_copy, srcRect, false, false, yScale,
-                                                 s_gammaLUT[PE_copy.gamma]);
+      g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, srcRect.GetWidth(),
+                                                 height, destStride, is_depth_copy, srcRect, false,
+                                                 false, yScale, s_gammaLUT[PE_copy.gamma]);
 
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
@@ -1419,6 +1416,7 @@ void BPReload()
   // note that PixelShaderManager is already covered since it has its own DoState.
   SetGenerationMode();
   SetScissor();
+  SetViewport();
   SetDepthMode();
   SetBlendMode();
   OnPixelFormatChange();

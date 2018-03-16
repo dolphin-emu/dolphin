@@ -59,17 +59,17 @@ void Close();
 extern ID3D11Device* device;
 extern ID3D11Device1* device1;
 extern ID3D11DeviceContext* context;
-extern HWND hWnd;
+extern IDXGISwapChain1* swapchain;
 
-void Reset();
+void Reset(HWND new_wnd);
+void ResizeSwapChain();
 void Present();
 
-unsigned int GetBackBufferWidth();
-unsigned int GetBackBufferHeight();
-D3DTexture2D*& GetBackBuffer();
+D3DTexture2D* GetBackBuffer();
 const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
+const char* ComputeShaderVersionString();
 bool BGRATexturesSupported();
 bool AllowTearingSupported();
 

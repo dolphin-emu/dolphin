@@ -757,8 +757,12 @@ if(ENABLE_WX)
   endif()
 endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
-  set(LIBS ${LIBS} usbhid)
+find_package(Libsystemd)
+if(SYSTEMD_FOUND)
+  message(STATUS "libsystemd found, enabling traversal server watchdog support")
+  add_definitions(-DHAVE_LIBSYSTEMD)
+else()
+  message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
 ########################################

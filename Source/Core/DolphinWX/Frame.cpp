@@ -73,6 +73,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -703,61 +705,13 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
-void CFrame::InhibitScreensaver()
+void CFrame::EnableScreenSaver(bool enable)
 {
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
-
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                 X11Utils::XWindowFromHandle(GetHandle()), true);
-  }
-#endif
-
-#ifdef _WIN32
-  // Prevents Windows from sleeping, turning off the display, or idling
-  EXECUTION_STATE should_screen_save =
-      SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
-  SetThreadExecutionState(ES_CONTINUOUS | should_screen_save | ES_SYSTEM_REQUIRED);
-#endif
-
-#ifdef __APPLE__
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    CFStringRef reason_for_activity = CFSTR("Emulation Running");
-    if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
-                                    kIOPMAssertionLevelOn, reason_for_activity,
-                                    &m_power_assertion) != kIOReturnSuccess)
-    {
-      m_power_assertion = kIOPMNullAssertionID;
-    }
-  }
-#endif
-}
-
-void CFrame::UninhibitScreensaver()
-{
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-  {
-    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                 X11Utils::XWindowFromHandle(GetHandle()), false);
-  }
-#endif
-
-#ifdef _WIN32
-  // Allow windows to resume normal idling behavior
-  SetThreadExecutionState(ES_CONTINUOUS);
-#endif
-
-#ifdef __APPLE__
-  if (m_power_assertion != kIOPMNullAssertionID)
-  {
-    IOPMAssertionRelease(m_power_assertion);
-    m_power_assertion = kIOPMNullAssertionID;
-  }
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  UICommon::EnableScreenSaver(X11Utils::XDisplayFromHandle(GetHandle()),
+                              X11Utils::XWindowFromHandle(GetHandle()), enable);
+#else
+  UICommon::EnableScreenSaver(enable);
 #endif
 }
 
@@ -809,6 +763,8 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   case WM_USER_CREATE:
     if (SConfig::GetInstance().bHideCursor)
       m_render_parent->SetCursor(wxCURSOR_BLANK);
+    if (SConfig::GetInstance().bFullscreen)
+      DoFullscreen(true);
     break;
 
   case IDM_PANIC:
@@ -860,6 +816,10 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     }
   }
   break;
+
+  case IDM_UPDATE_BREAKPOINTS:
+    m_code_window->GetEventHandler()->AddPendingEvent(event);
+    break;
   }
 }
 

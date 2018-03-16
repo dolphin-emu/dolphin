@@ -24,9 +24,10 @@ struct PixelShaderConstants
   std::array<int4, 6> indtexmtx;
   int4 fogcolor;
   int4 fogi;
-  std::array<float4, 2> fogf;
+  float4 fogf;
+  std::array<float4, 3> fogrange;
   float4 zslope;
-  std::array<float, 2> efbscale;
+  std::array<float, 2> efbscale;  // .xy
 
   // Constants from here onwards are only used in ubershaders.
   u32 genmode;                  // .z
@@ -42,6 +43,14 @@ struct PixelShaderConstants
   std::array<uint4, 16> pack1;  // .xy - combiners, .z - tevind, .w - iref
   std::array<uint4, 8> pack2;   // .x - tevorder, .y - tevksel
   std::array<int4, 32> konst;   // .rgba
+  // The following are used in ubershaders when using shader_framebuffer_fetch blending
+  u32 blend_enable;
+  u32 blend_src_factor;
+  u32 blend_src_factor_alpha;
+  u32 blend_dst_factor;
+  u32 blend_dst_factor_alpha;
+  u32 blend_subtract;
+  u32 blend_subtract_alpha;
 };
 
 struct VertexShaderConstants

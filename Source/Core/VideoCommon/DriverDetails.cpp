@@ -82,6 +82,8 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_UNSYNC_MAPPING, -1.0, -1.0, true},
     {API_OPENGL, OS_LINUX, VENDOR_NVIDIA, DRIVER_NVIDIA, Family::UNKNOWN, BUG_BROKEN_UNSYNC_MAPPING,
      -1.0, -1.0, true},
+    {API_OPENGL, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_BROKEN_UNSYNC_MAPPING, -1.0,
+     -1.0, true},
     {API_OPENGL, OS_WINDOWS, VENDOR_INTEL, DRIVER_INTEL, Family::UNKNOWN,
      BUG_INTEL_BROKEN_BUFFER_STORAGE, 101810.3907, 101810.3960, true},
     {API_OPENGL, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_SLOW_GETBUFFERSUBDATA, -1.0,
@@ -98,9 +100,9 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, 108.4693462, true},
     {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
      true},
+    {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
+     true},
     {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN,
-     BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
-    {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_NOUVEAU, Family::UNKNOWN,
      BUG_SHARED_CONTEXT_SHADER_COMPILATION, -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_NVIDIA, DRIVER_NVIDIA, Family::UNKNOWN, BUG_BROKEN_MSAA_CLEAR, -1.0,
      -1.0, true},
@@ -164,35 +166,5 @@ bool HasBug(Bug bug)
   if (it == m_bugs.end())
     return false;
   return it->second.m_hasbug;
-}
-
-Vendor TranslatePCIVendorID(u32 vendor_id)
-{
-  switch (vendor_id)
-  {
-  case 0x10DE:
-    return VENDOR_NVIDIA;
-
-  case 0x1002:
-  case 0x1022:
-    return VENDOR_ATI;
-
-  case 0x8086:
-  case 0x8087:
-    return VENDOR_INTEL;
-
-  // TODO: Is this correct for Mali?
-  case 0x13B6:
-    return VENDOR_ARM;
-
-  case 0x5143:
-    return VENDOR_QUALCOMM;
-
-  case 0x1010:
-    return VENDOR_IMGTEC;
-
-  default:
-    return VENDOR_UNKNOWN;
-  }
 }
 }

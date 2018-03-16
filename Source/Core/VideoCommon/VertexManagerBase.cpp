@@ -12,6 +12,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
+
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -103,10 +105,8 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
     Flush();
 
     // Have to update the rasterization state for point/line cull modes.
-    RasterizationState raster_state = {};
-    raster_state.Generate(bpmem, new_primitive_type);
-    g_renderer->SetRasterizationState(raster_state);
     m_current_primitive_type = new_primitive_type;
+    SetRasterizationStateChanged();
   }
 
   // Check for size in buffer, if the buffer gets full, call Flush()
@@ -209,7 +209,8 @@ std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
   return val;
 }
 
-static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
+static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
+                            bool has_arbitrary_mips)
 {
   const FourTexUnits& tex = bpmem.tex[index / 4];
   const TexMode0& tm0 = tex.texMode0[index % 4];
@@ -257,8 +258,9 @@ static void SetSamplerState(u32 index, bool custom_tex, bool has_arbitrary_mips)
     // Apply a secondary bias calculated from the IR scale to pull inwards mipmaps
     // that have arbitrary contents, eg. are used for fog effects where the
     // distance they kick in at is important to preserve at any resolution.
-    state.lod_bias =
-        state.lod_bias + std::log2(static_cast<float>(g_renderer->GetEFBScale())) * 256.f;
+    // Correct this with the upscaling factor of custom textures.
+    s64 lod_offset = std::log2(g_renderer->GetEFBScale() / custom_tex_scale) * 256.f;
+    state.lod_bias = MathUtil::Clamp<s64>(state.lod_bias + lod_offset, -32768, 32767);
 
     // Anisotropic also pushes mips farther away so it cannot be used either
     state.anisotropic_filtering = 0;
@@ -335,7 +337,8 @@ void VertexManagerBase::Flush()
 
       if (tentry)
       {
-        SetSamplerState(i, tentry->is_custom_tex, tentry->has_arbitrary_mips);
+        float custom_tex_scale = tentry->GetWidth() / float(tentry->native_width);
+        SetSamplerState(i, custom_tex_scale, tentry->is_custom_tex, tentry->has_arbitrary_mips);
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else
@@ -381,6 +384,10 @@ void VertexManagerBase::Flush()
 
   if (!m_cull_all)
   {
+    // Update the pipeline, or compile one if needed.
+    UpdatePipelineConfig();
+    UpdatePipelineObject();
+
     // set the rest of the global constants
     GeometryShaderManager::SetConstants();
     PixelShaderManager::SetConstants();
@@ -471,4 +478,112 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   m_zslope.dfdy = -b / c;
   m_zslope.f0 = out[2] - (out[0] * m_zslope.dfdx + out[1] * m_zslope.dfdy);
   m_zslope.dirty = true;
+}
+
+void VertexManagerBase::UpdatePipelineConfig()
+{
+  NativeVertexFormat* vertex_format = VertexLoaderManager::GetCurrentVertexFormat();
+  if (vertex_format != m_current_pipeline_config.vertex_format)
+  {
+    m_current_pipeline_config.vertex_format = vertex_format;
+    m_current_uber_pipeline_config.vertex_format =
+        VertexLoaderManager::GetUberVertexFormat(vertex_format->GetVertexDeclaration());
+    m_pipeline_config_changed = true;
+  }
+
+  VertexShaderUid vs_uid = GetVertexShaderUid();
+  if (vs_uid != m_current_pipeline_config.vs_uid)
+  {
+    m_current_pipeline_config.vs_uid = vs_uid;
+    m_current_uber_pipeline_config.vs_uid = UberShader::GetVertexShaderUid();
+    m_pipeline_config_changed = true;
+  }
+
+  PixelShaderUid ps_uid = GetPixelShaderUid();
+  if (ps_uid != m_current_pipeline_config.ps_uid)
+  {
+    m_current_pipeline_config.ps_uid = ps_uid;
+    m_current_uber_pipeline_config.ps_uid = UberShader::GetPixelShaderUid();
+    m_pipeline_config_changed = true;
+  }
+
+  GeometryShaderUid gs_uid = GetGeometryShaderUid(GetCurrentPrimitiveType());
+  if (gs_uid != m_current_pipeline_config.gs_uid)
+  {
+    m_current_pipeline_config.gs_uid = gs_uid;
+    m_current_uber_pipeline_config.gs_uid = gs_uid;
+    m_pipeline_config_changed = true;
+  }
+
+  if (m_rasterization_state_changed)
+  {
+    m_rasterization_state_changed = false;
+
+    RasterizationState new_rs = {};
+    new_rs.Generate(bpmem, m_current_primitive_type);
+    if (new_rs != m_current_pipeline_config.rasterization_state)
+    {
+      m_current_pipeline_config.rasterization_state = new_rs;
+      m_current_uber_pipeline_config.rasterization_state = new_rs;
+      m_pipeline_config_changed = true;
+    }
+  }
+
+  if (m_depth_state_changed)
+  {
+    m_depth_state_changed = false;
+
+    DepthState new_ds = {};
+    new_ds.Generate(bpmem);
+    if (new_ds != m_current_pipeline_config.depth_state)
+    {
+      m_current_pipeline_config.depth_state = new_ds;
+      m_current_uber_pipeline_config.depth_state = new_ds;
+      m_pipeline_config_changed = true;
+    }
+  }
+
+  if (m_blending_state_changed)
+  {
+    m_blending_state_changed = false;
+
+    BlendingState new_bs = {};
+    new_bs.Generate(bpmem);
+    if (new_bs != m_current_pipeline_config.blending_state)
+    {
+      m_current_pipeline_config.blending_state = new_bs;
+      m_current_uber_pipeline_config.blending_state = new_bs;
+      m_pipeline_config_changed = true;
+    }
+  }
+}
+
+void VertexManagerBase::UpdatePipelineObject()
+{
+  if (!m_pipeline_config_changed)
+    return;
+
+  m_current_pipeline_object = nullptr;
+  m_pipeline_config_changed = false;
+
+  if (g_ActiveConfig.iUberShaderMode == UberShaderMode::Disabled)
+  {
+    // Ubershaders disabled? Block and compile the specialized shader.
+    m_current_pipeline_object = g_shader_cache->GetPipelineForUid(m_current_pipeline_config);
+    return;
+  }
+  else if (g_ActiveConfig.iUberShaderMode == UberShaderMode::Hybrid)
+  {
+    // Can we background compile shaders? If so, get the pipeline asynchronously.
+    auto res = g_shader_cache->GetPipelineForUidAsync(m_current_pipeline_config);
+    if (res)
+    {
+      // Specialized shaders are ready, prefer these.
+      m_current_pipeline_object = *res;
+      return;
+    }
+  }
+
+  // Exclusive ubershader mode, or hybrid and shaders are still compiling.
+  m_current_pipeline_object = g_shader_cache->GetUberPipelineForUid(m_current_uber_pipeline_config);
 }

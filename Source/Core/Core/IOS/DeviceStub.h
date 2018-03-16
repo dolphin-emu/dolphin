@@ -21,7 +21,7 @@ class Stub final : public Device
 public:
   // Inherit the constructor from the Device class, since we don't need to do anything special.
   using Device::Device;
-  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 };

@@ -16,6 +16,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -319,6 +320,21 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj;
   uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
 
+  BlendingState state = {};
+  state.Generate(bpmem);
+
+  if (state.usedualsrc && state.dstalpha && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
+      !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  {
+    uid_data->blend_enable = state.blendenable;
+    uid_data->blend_src_factor = state.srcfactor;
+    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
+    uid_data->blend_dst_factor = state.dstfactor;
+    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
+    uid_data->blend_subtract = state.subtract;
+    uid_data->blend_subtract_alpha = state.subtractAlpha;
+  }
+
   return out;
 }
 
@@ -381,7 +397,8 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "\tint4 " I_INDTEXMTX "[6];\n"
             "\tint4 " I_FOGCOLOR ";\n"
             "\tint4 " I_FOGI ";\n"
-            "\tfloat4 " I_FOGF "[2];\n"
+            "\tfloat4 " I_FOGF ";\n"
+            "\tfloat4 " I_FOGRANGE "[3];\n"
             "\tfloat4 " I_ZSLOPE ";\n"
             "\tfloat2 " I_EFBSCALE ";\n"
             "\tuint  bpmem_genmode;\n"
@@ -397,6 +414,13 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
             "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
             "\tint4  konstLookup[32];\n"
+            "\tbool  blend_enable;\n"
+            "\tuint  blend_src_factor;\n"
+            "\tuint  blend_src_factor_alpha;\n"
+            "\tuint  blend_dst_factor;\n"
+            "\tuint  blend_dst_factor_alpha;\n"
+            "\tbool  blend_subtract;\n"
+            "\tbool  blend_subtract_alpha;\n"
             "};\n\n");
   out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
             "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
@@ -447,6 +471,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid_data* uid_data,
                        bool use_dual_source);
+static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data)
@@ -519,6 +544,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       host_config.backend_dual_source_blend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
+  const bool use_shader_blend =
+      !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -533,6 +560,21 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       {
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
         out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      }
+    }
+    else if (use_shader_blend)
+    {
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so pull out the "real" output value
+      // and use a temporary for calculations, then set the output value once at the end of the
+      // shader
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+      }
+      else
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
       }
     }
     else
@@ -575,6 +617,13 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
     out.Write("void main()\n{\n");
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
+    if (use_shader_blend)
+    {
+      // Store off a copy of the initial fb value for blending
+      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
+      out.Write("\tfloat4 ocol0;\n");
+      out.Write("\tfloat4 ocol1;\n");
+    }
   }
   else  // D3D
   {
@@ -710,7 +759,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   // testing result)
   if (uid_data->Pretest == AlphaTest::UNDETERMINED ||
       (uid_data->Pretest == AlphaTest::FAIL && uid_data->late_ztest))
-    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth, use_dual_source);
+    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth,
+                   use_dual_source || use_shader_blend);
 
   if (uid_data->zfreeze)
   {
@@ -793,7 +843,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   WriteFog(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
-  WriteColor(out, ApiType, uid_data, use_dual_source);
+  // If using shader blend, we still use the separate alpha
+  WriteColor(out, ApiType, uid_data, use_dual_source || use_shader_blend);
+
+  if (use_shader_blend)
+    WriteBlend(out, uid_data);
 
   if (uid_data->bounding_box)
   {
@@ -1278,30 +1332,33 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     // renderer)
     //       Maybe we want to use "ze = (A << B_SHF)/((B << B_SHF) - Zs)" instead?
     //       That's equivalent, but keeps the lower bits of Zs.
-    out.Write("\tfloat ze = (" I_FOGF "[1].x * 16777216.0) / float(" I_FOGI
-              ".y - (zCoord >> " I_FOGI ".w));\n");
+    out.Write("\tfloat ze = (" I_FOGF ".x * 16777216.0) / float(" I_FOGI ".y - (zCoord >> " I_FOGI
+              ".w));\n");
   }
   else
   {
     // orthographic
     // ze = a*Zs    (here, no B_SHF)
-    out.Write("\tfloat ze = " I_FOGF "[1].x * float(zCoord) / 16777216.0;\n");
+    out.Write("\tfloat ze = " I_FOGF ".x * float(zCoord) / 16777216.0;\n");
   }
 
   // x_adjust = sqrt((x-center)^2 + k^2)/k
   // ze *= x_adjust
-  // TODO Instead of this theoretical calculation, we should use the
-  //      coefficient table given in the fog range BP registers!
   if (uid_data->fog_RangeBaseEnabled)
   {
     out.SetConstantsUsed(C_FOGF, C_FOGF);
-    out.Write("\tfloat x_adjust = (2.0 * (rawpos.x / " I_FOGF "[0].y)) - 1.0 - " I_FOGF "[0].x;\n");
-    out.Write("\tx_adjust = sqrt(x_adjust * x_adjust + " I_FOGF "[0].z * " I_FOGF "[0].z) / " I_FOGF
-              "[0].z;\n");
+    out.Write("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n");
+    out.Write("\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n");
+    out.Write("\tuint indexlower = uint(floor(floatindex));\n");
+    out.Write("\tuint indexupper = indexlower + 1u;\n");
+    out.Write("\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n");
+    out.Write("\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n");
+    out.Write("\tfloat k = lerp(klower, kupper, frac(floatindex));\n");
+    out.Write("\tfloat x_adjust = sqrt(offset * offset + k * k) / k;\n");
     out.Write("\tze *= x_adjust;\n");
   }
 
-  out.Write("\tfloat fog = clamp(ze - " I_FOGF "[1].z, 0.0, 1.0);\n");
+  out.Write("\tfloat fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n");
 
   if (uid_data->fog_fsel > 3)
   {
@@ -1357,4 +1414,80 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
         out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");
     }
   }
+}
+
+static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+{
+  if (uid_data->blend_enable)
+  {
+    static const std::array<const char*, 8> blendSrcFactor = {
+        "float3(0,0,0);",                      // ZERO
+        "float3(1,1,1);",                      // ONE
+        "initial_ocol0.rgb;",                  // DSTCLR
+        "float3(1,1,1) - initial_ocol0.rgb;",  // INVDSTCLR
+        "ocol1.aaa;",                          // SRCALPHA
+        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "initial_ocol0.aaa;",                  // DSTALPHA
+        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static const std::array<const char*, 8> blendSrcFactorAlpha = {
+        "0.0;",                    // ZERO
+        "1.0;",                    // ONE
+        "initial_ocol0.a;",        // DSTCLR
+        "1.0 - initial_ocol0.a;",  // INVDSTCLR
+        "ocol1.a;",                // SRCALPHA
+        "1.0 - ocol1.a;",          // INVSRCALPHA
+        "initial_ocol0.a;",        // DSTALPHA
+        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
+    static const std::array<const char*, 8> blendDstFactor = {
+        "float3(0,0,0);",                      // ZERO
+        "float3(1,1,1);",                      // ONE
+        "ocol0.rgb;",                          // SRCCLR
+        "float3(1,1,1) - ocol0.rgb;",          // INVSRCCLR
+        "ocol1.aaa;",                          // SRCALHA
+        "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
+        "initial_ocol0.aaa;",                  // DSTALPHA
+        "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
+    };
+    static const std::array<const char*, 8> blendDstFactorAlpha = {
+        "0.0;",                    // ZERO
+        "1.0;",                    // ONE
+        "ocol0.a;",                // SRCCLR
+        "1.0 - ocol0.a;",          // INVSRCCLR
+        "ocol1.a;",                // SRCALPHA
+        "1.0 - ocol1.a;",          // INVSRCALPHA
+        "initial_ocol0.a;",        // DSTALPHA
+        "1.0 - initial_ocol0.a;",  // INVDSTALPHA
+    };
+    out.Write("\tfloat4 blend_src;\n");
+    out.Write("\tblend_src.rgb = %s\n", blendSrcFactor[uid_data->blend_src_factor]);
+    out.Write("\tblend_src.a = %s\n", blendSrcFactorAlpha[uid_data->blend_src_factor_alpha]);
+    out.Write("\tfloat4 blend_dst;\n");
+    out.Write("\tblend_dst.rgb = %s\n", blendDstFactor[uid_data->blend_dst_factor]);
+    out.Write("\tblend_dst.a = %s\n", blendDstFactorAlpha[uid_data->blend_dst_factor_alpha]);
+
+    out.Write("\tfloat4 blend_result;\n");
+    if (uid_data->blend_subtract)
+    {
+      out.Write("\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * "
+                "blend_src.rgb;\n");
+    }
+    else
+    {
+      out.Write(
+          "\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb + ocol0.rgb * blend_src.rgb;\n");
+    }
+
+    if (uid_data->blend_subtract_alpha)
+      out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a - ocol0.a * blend_src.a;\n");
+    else
+      out.Write("\tblend_result.a = initial_ocol0.a * blend_dst.a + ocol0.a * blend_src.a;\n");
+  }
+  else
+  {
+    out.Write("\tfloat4 blend_result = ocol0;\n");
+  }
+
+  out.Write("\treal_ocol0 = blend_result;\n");
 }

@@ -35,22 +35,14 @@ public:
 
   // Applies palette to dst_entry, using indices from src_entry.
   void ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
-                      TextureCache::TCacheEntry* src_entry, VkRenderPass render_pass,
-                      const void* palette, TLUTFormat palette_format);
+                      TextureCache::TCacheEntry* src_entry, const void* palette,
+                      TLUTFormat palette_format);
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
   void EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params,
                              u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                              u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half);
-
-  // Encodes texture to guest memory in XFB (YUYV) format.
-  void EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
-                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
-
-  // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
-  void DecodeYUYVTextureFromMemory(VKTexture* dst_texture, const void* src_ptr, u32 src_width,
-                                   u32 src_stride, u32 src_height);
 
   bool SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,
@@ -76,11 +68,8 @@ private:
   VkShaderModule CompileEncodingShader(const EFBCopyParams& params);
   VkShaderModule GetEncodingShader(const EFBCopyParams& params);
 
-  bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
   bool CreateDecodingTexture();
-
-  bool CompileYUYVConversionShaders();
 
   // Allocates storage in the texel command buffer of the specified size.
   // If the buffer does not have enough space, executes the current command buffer and tries again.
@@ -109,7 +98,6 @@ private:
   std::map<EFBCopyParams, VkShaderModule> m_encoding_shaders;
   std::unique_ptr<AbstractTexture> m_encoding_render_texture;
   std::unique_ptr<AbstractStagingTexture> m_encoding_readback_texture;
-  VkRenderPass m_encoding_render_pass = VK_NULL_HANDLE;
 
   // Texture decoding - GX format in memory->RGBA8
   struct TextureDecodingPipeline
@@ -120,10 +108,6 @@ private:
   };
   std::map<std::pair<TextureFormat, TLUTFormat>, TextureDecodingPipeline> m_decoding_pipelines;
   std::unique_ptr<Texture2D> m_decoding_texture;
-
-  // XFB encoding/decoding shaders
-  VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
-  VkShaderModule m_yuyv_to_rgb_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan

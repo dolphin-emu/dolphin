@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -21,7 +22,7 @@ enum class SignatureType : u32
 {
   RSA4096 = 0x00010000,
   RSA2048 = 0x00010001,
-  // XXX: Add support for ECC (0x00010002).
+  ECC = 0x00010002,
 };
 
 enum class PublicKeyType : u32
@@ -95,6 +96,9 @@ union Cert
   CertRSA2048 rsa2048;
 };
 #pragma pack(pop)
+
+using ECCSignature = std::array<u8, 60>;
+using Certificate = std::array<u8, 0x180>;
 
 namespace HLE
 {
@@ -196,6 +200,11 @@ public:
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
   ReturnCode SetOwnership(Handle handle, u32 owner, u32 pid);
 
+  bool IsUsingDefaultId() const;
+  u32 GetDeviceId() const;
+  Certificate GetDeviceCertificate() const;
+  void Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const;
+
   void DoState(PointerWrap& p);
 
 private:
@@ -203,15 +212,15 @@ private:
   {
     KeyEntry();
     KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_, u32 owner_mask_);
-    KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_,
-             std::array<u8, 4>&& misc_data_, u32 owner_mask_);
+    KeyEntry(ObjectType type_, ObjectSubType subtype_, std::vector<u8>&& data_, u32 misc_data_,
+             u32 owner_mask_);
     void DoState(PointerWrap& p);
 
     bool in_use = false;
     ObjectType type;
     ObjectSubType subtype;
     std::vector<u8> data;
-    std::array<u8, 4> misc_data{};
+    u32 misc_data = 0;
     u32 owner_mask = 0;
   };
   // The Wii's IOSC is limited to 32 entries, including 12 built-in entries.
@@ -224,6 +233,7 @@ private:
   };
 
   void LoadDefaultEntries(ConsoleType console_type);
+  void LoadEntries();
 
   KeyEntries::iterator FindFreeEntry();
   KeyEntry* FindEntry(Handle handle);
@@ -237,6 +247,8 @@ private:
 
   KeyEntries m_key_entries;
   KeyEntry m_root_key_entry;
+  ECCSignature m_console_signature{};
+  u32 m_console_key_id = 0;
 };
 }  // namespace HLE
 }  // namespace IOS

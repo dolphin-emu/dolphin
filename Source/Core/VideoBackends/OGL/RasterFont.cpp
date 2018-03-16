@@ -9,6 +9,7 @@
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/RasterFont.h"
+#include "VideoBackends/OGL/VertexManager.h"
 
 // globals
 
@@ -156,6 +157,7 @@ RasterFont::RasterFont()
     }
   }
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, CHARACTER_WIDTH * CHARACTER_COUNT, CHARACTER_HEIGHT, 0,
                GL_RGBA, GL_UNSIGNED_BYTE, texture_data.data());
 
@@ -181,6 +183,9 @@ RasterFont::RasterFont()
   glEnableVertexAttribArray(SHADER_TEXTURE0_ATTRIB);
   glVertexAttribPointer(SHADER_TEXTURE0_ATTRIB, 2, GL_FLOAT, 0, sizeof(GLfloat) * 4,
                         (GLfloat*)nullptr + 2);
+  glBindBuffer(GL_ARRAY_BUFFER,
+               static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBufferHandle());
+  ProgramShaderCache::InvalidateVertexFormat();
 }
 
 RasterFont::~RasterFont()
@@ -278,5 +283,9 @@ void RasterFont::printMultilineText(const std::string& text, double start_x, dou
               GLfloat((color >> 8) & 0xff) / 255.f, GLfloat((color >> 0) & 0xff) / 255.f,
               GLfloat((color >> 24) & 0xff) / 255.f);
   glDrawArrays(GL_TRIANGLES, 0, usage / 4);
+
+  glBindBuffer(GL_ARRAY_BUFFER,
+               static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBufferHandle());
+  ProgramShaderCache::InvalidateVertexFormat();
 }
 }

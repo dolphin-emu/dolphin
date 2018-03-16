@@ -37,6 +37,7 @@ ObjectCache::~ObjectCache()
   DestroySamplers();
   DestroyPipelineLayouts();
   DestroyDescriptorSetLayouts();
+  DestroyRenderPassCache();
 }
 
 bool ObjectCache::Initialize()
@@ -105,7 +106,13 @@ void ObjectCache::DestroySamplers()
 
 bool ObjectCache::CreateDescriptorSetLayouts()
 {
-  static const VkDescriptorSetLayoutBinding ubo_set_bindings[] = {
+  static const VkDescriptorSetLayoutBinding single_ubo_set_bindings[] = {
+      0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_GEOMETRY_BIT | VK_SHADER_STAGE_FRAGMENT_BIT};
+
+  // The geometry shader buffer must be last in this binding set, as we don't include it
+  // if geometry shaders are not supported by the device. See the decrement below.
+  static const VkDescriptorSetLayoutBinding per_stage_ubo_set_bindings[] = {
       {UBO_DESCRIPTOR_SET_BINDING_PS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
        VK_SHADER_STAGE_FRAGMENT_BIT},
       {UBO_DESCRIPTOR_SET_BINDING_VS, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1,
@@ -135,9 +142,11 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {7, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
   };
 
-  static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
+  VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(ubo_set_bindings)), ubo_set_bindings},
+       static_cast<u32>(ArraySize(single_ubo_set_bindings)), single_ubo_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(per_stage_ubo_set_bindings)), per_stage_ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(sampler_set_bindings)), sampler_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
@@ -146,6 +155,10 @@ bool ObjectCache::CreateDescriptorSetLayouts()
        static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(compute_set_bindings)), compute_set_bindings}};
+
+  // Don't set the GS bit if geometry shaders aren't available.
+  if (!g_vulkan_context->SupportsGeometryShaders())
+    create_infos[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS].bindingCount--;
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SET_LAYOUTS; i++)
   {
@@ -174,18 +187,20 @@ bool ObjectCache::CreatePipelineLayouts()
 {
   VkResult res;
 
-  // Descriptor sets for each pipeline layout
+  // Descriptor sets for each pipeline layout.
+  // In the standard set, the SSBO must be the last descriptor, as we do not include it
+  // when fragment stores and atomics are not supported by the device.
   VkDescriptorSetLayout standard_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS]};
-  VkDescriptorSetLayout bbox_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS]};
   VkDescriptorSetLayout texture_conversion_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS]};
+  VkDescriptorSetLayout utility_sets[] = {
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS]};
   VkDescriptorSetLayout compute_sets[] = {m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_COMPUTE]};
   VkPushConstantRange push_constant_range = {
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
@@ -198,10 +213,6 @@ bool ObjectCache::CreatePipelineLayouts()
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(standard_sets)), standard_sets, 0, nullptr},
 
-      // BBox
-      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(bbox_sets)), bbox_sets, 0, nullptr},
-
       // Push Constant
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(standard_sets)), standard_sets, 1, &push_constant_range},
@@ -211,9 +222,17 @@ bool ObjectCache::CreatePipelineLayouts()
        static_cast<u32>(ArraySize(texture_conversion_sets)), texture_conversion_sets, 1,
        &push_constant_range},
 
+      // Texture Conversion
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(utility_sets)), utility_sets, 0, nullptr},
+
       // Compute
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(compute_sets)), compute_sets, 1, &compute_push_constant_range}};
+
+  // If bounding box is unsupported, don't bother with the SSBO descriptor set.
+  if (!g_vulkan_context->SupportsBoundingBox())
+    pipeline_layout_info[PIPELINE_LAYOUT_STANDARD].setLayoutCount--;
 
   for (size_t i = 0; i < NUM_PIPELINE_LAYOUTS; i++)
   {
@@ -357,5 +376,91 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   // Store it even if it failed
   m_sampler_cache.emplace(info, sampler);
   return sampler;
+}
+
+VkRenderPass ObjectCache::GetRenderPass(VkFormat color_format, VkFormat depth_format,
+                                        u32 multisamples, VkAttachmentLoadOp load_op)
+{
+  auto key = std::tie(color_format, depth_format, multisamples, load_op);
+  auto it = m_render_pass_cache.find(key);
+  if (it != m_render_pass_cache.end())
+    return it->second;
+
+  VkAttachmentReference color_reference;
+  VkAttachmentReference* color_reference_ptr = nullptr;
+  VkAttachmentReference depth_reference;
+  VkAttachmentReference* depth_reference_ptr = nullptr;
+  std::array<VkAttachmentDescription, 2> attachments;
+  u32 num_attachments = 0;
+  if (color_format != VK_FORMAT_UNDEFINED)
+  {
+    attachments[num_attachments] = {0,
+                                    color_format,
+                                    static_cast<VkSampleCountFlagBits>(multisamples),
+                                    load_op,
+                                    VK_ATTACHMENT_STORE_OP_STORE,
+                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+    color_reference.attachment = num_attachments;
+    color_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    color_reference_ptr = &color_reference;
+    num_attachments++;
+  }
+  if (depth_format != VK_FORMAT_UNDEFINED)
+  {
+    attachments[num_attachments] = {0,
+                                    depth_format,
+                                    static_cast<VkSampleCountFlagBits>(multisamples),
+                                    load_op,
+                                    VK_ATTACHMENT_STORE_OP_STORE,
+                                    VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                    VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+    depth_reference.attachment = num_attachments;
+    depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    depth_reference_ptr = &depth_reference;
+    num_attachments++;
+  }
+
+  VkSubpassDescription subpass = {0,
+                                  VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                  0,
+                                  nullptr,
+                                  color_reference_ptr ? 1u : 0u,
+                                  color_reference_ptr ? color_reference_ptr : nullptr,
+                                  nullptr,
+                                  depth_reference_ptr,
+                                  0,
+                                  nullptr};
+  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                      nullptr,
+                                      0,
+                                      num_attachments,
+                                      attachments.data(),
+                                      1,
+                                      &subpass,
+                                      0,
+                                      nullptr};
+
+  VkRenderPass pass;
+  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &pass);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  m_render_pass_cache.emplace(key, pass);
+  return pass;
+}
+
+void ObjectCache::DestroyRenderPassCache()
+{
+  for (auto& it : m_render_pass_cache)
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), it.second, nullptr);
+  m_render_pass_cache.clear();
 }
 }

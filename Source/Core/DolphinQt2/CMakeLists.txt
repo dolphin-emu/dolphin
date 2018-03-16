@@ -32,9 +32,12 @@ set(SRCS
   Translation.cpp
   WiiUpdate.cpp
   WiiUpdate.h
+  Config/CheatCodeEditor.cpp
+  Config/ARCodeWidget.cpp
   Config/CheatWarningWidget.cpp
   Config/ControllersWindow.cpp
   Config/FilesystemWidget.cpp
+  Config/GameConfigWidget.cpp
   Config/GeckoCodeWidget.cpp
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/EnhancementsWidget.cpp
@@ -50,9 +53,11 @@ set(SRCS
   Config/LogConfigWidget.cpp
   Config/LogWidget.cpp
   Config/Mapping/GCKeyboardEmu.cpp
+  Config/Mapping/GCMicrophone.cpp
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
+  Config/Mapping/HotkeyDebugging.cpp
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGraphics.cpp
   Config/Mapping/HotkeyStates.cpp
@@ -62,21 +67,30 @@ set(SRCS
   Config/Mapping/MappingBool.cpp
   Config/Mapping/MappingButton.cpp
   Config/Mapping/MappingCommon.cpp
+  Config/Mapping/MappingIndicator.cpp
   Config/Mapping/MappingNumeric.cpp
   Config/Mapping/MappingWidget.cpp
   Config/Mapping/MappingWindow.cpp
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuMotionControl.cpp
+  Config/NewPatchDialog.cpp
+  Config/PatchesWidget.cpp
   Config/PropertiesDialog.cpp
   Config/SettingsWindow.cpp
-  GameList/GameFileCache.cpp
-  GameList/GameFile.cpp
+  Debugger/BreakpointWidget.cpp
+  Debugger/CodeViewWidget.cpp
+  Debugger/CodeWidget.cpp
+  Debugger/NewBreakpointDialog.cpp
+  Debugger/RegisterColumn.cpp
+  Debugger/RegisterWidget.cpp
+  Debugger/WatchWidget.cpp
   GameList/GameList.cpp
   GameList/GameListModel.cpp
   GameList/GameTracker.cpp
   GameList/GridProxyModel.cpp
   GameList/ListProxyModel.cpp
+  GCMemcardManager.cpp
   QtUtils/BlockUserInputFilter.cpp
   NetPlay/GameListDialog.cpp
   NetPlay/MD5Dialog.cpp
@@ -85,13 +99,23 @@ set(SRCS
   NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/ImageConverter.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  QtUtils/AspectRatioWidget.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
+  Settings/GameCubePane.cpp
   Settings/GeneralPane.cpp
   Settings/InterfacePane.cpp
   Settings/PathPane.cpp
+  Settings/WiiPane.cpp
+  Settings/USBDeviceAddToWhitelistDialog.cpp
+  TAS/GCTASInputWindow.cpp
+  TAS/WiiTASInputWindow.cpp
+  TAS/Shared.cpp
+  TAS/StickWidget.cpp
+  TAS/IRWidget.cpp
 )
 
 list(APPEND LIBS core uicommon)
@@ -154,10 +178,18 @@ if(APPLE)
   target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
   set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
+  # Copy icon into the bundle
+  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
+  set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
   # Copy Qt plugins into the bundle
   get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
   target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
+
+  get_target_property(qtmacstyle_location Qt5::QMacStylePlugin LOCATION)
+  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtmacstyle_location}")
+  set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 
   # Copy resources into the bundle
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")

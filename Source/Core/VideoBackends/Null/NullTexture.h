@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 
@@ -19,8 +21,6 @@ public:
   explicit NullTexture(const TextureConfig& config);
   ~NullTexture() = default;
 
-  void Bind(unsigned int stage) override;
-
   void CopyRectangleFromTexture(const AbstractTexture* src,
                                 const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                 u32 src_level, const MathUtil::Rectangle<int>& dst_rect,
@@ -28,6 +28,8 @@ public:
   void ScaleRectangleFromTexture(const AbstractTexture* source,
                                  const MathUtil::Rectangle<int>& srcrect,
                                  const MathUtil::Rectangle<int>& dstrect) override;
+  void ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
+                          u32 layer, u32 level) override;
   void Load(u32 level, u32 width, u32 height, u32 row_length, const u8* buffer,
             size_t buffer_size) override;
 };
@@ -51,6 +53,17 @@ public:
 
 private:
   std::vector<u8> m_texture_buf;
+};
+
+class NullFramebuffer final : public AbstractFramebuffer
+{
+public:
+  explicit NullFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+                           u32 width, u32 height, u32 layers, u32 samples);
+  ~NullFramebuffer() override = default;
+
+  static std::unique_ptr<NullFramebuffer> Create(const NullTexture* color_attachment,
+                                                 const NullTexture* depth_attachment);
 };
 
 }  // namespace Null

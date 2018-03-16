@@ -8,7 +8,12 @@ void NullSound::SoundLoop()
 {
 }
 
-bool NullSound::Start()
+bool NullSound::Init()
+{
+  return true;
+}
+
+bool NullSound::SetRunning(bool running)
 {
   return true;
 }
@@ -18,9 +23,5 @@ void NullSound::SetVolume(int volume)
 }
 
 void NullSound::Update()
-{
-}
-
-void NullSound::Stop()
 {
 }

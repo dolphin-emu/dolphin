@@ -7,6 +7,7 @@
 #include <array>
 #include <cstddef>
 #include <memory>
+#include <tuple>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
@@ -22,6 +23,8 @@ class SwapChain;
 class StagingTexture2D;
 class Texture2D;
 class RasterFont;
+class VKFramebuffer;
+class VKPipeline;
 class VKTexture;
 
 class Renderer : public ::Renderer
@@ -35,6 +38,15 @@ public:
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(const AbstractTexture* color_attachment,
+                    const AbstractTexture* depth_attachment) override;
+
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
   BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
@@ -59,15 +71,24 @@ public:
   void ResetAPIState() override;
   void RestoreAPIState() override;
 
-  void SetBlendingState(const BlendingState& state) override;
-  void SetScissorRect(const EFBRectangle& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
+  void SetPipeline(const AbstractPipeline* pipeline) override;
+  void SetFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                              const ClearColor& color_value = {},
+                              float depth_value = 0.0f) override;
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
+  void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
+  void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
-  void SetViewport() override;
+  void SetViewport(float x, float y, float width, float height, float near_depth,
+                   float far_depth) override;
 
-  void ChangeSurface(void* new_surface_handle) override;
+  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                           u32 vertex_stride, u32 num_vertices) override;
+  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
+                             u32 groups_x, u32 groups_y, u32 groups_z) override;
 
 private:
   bool CreateSemaphores();
@@ -76,13 +97,15 @@ private:
   void BeginFrame();
 
   void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
   void CheckForConfigChanges();
 
   void ResetSamplerStates();
 
   void OnSwapChainResized();
   void BindEFBToStateTracker();
-  void ResizeEFBTextures();
+  void RecreateEFBFramebuffer();
+  void BindFramebuffer(const VKFramebuffer* fb);
 
   void RecompileShaders();
   bool CompileShaders();
@@ -94,6 +117,8 @@ private:
   // Copies/scales an image to the currently-bound framebuffer.
   void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
                   const TargetRectangle& src_rect, const Texture2D* src_tex);
+
+  std::tuple<VkBuffer, u32> UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
 
   VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
   VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;

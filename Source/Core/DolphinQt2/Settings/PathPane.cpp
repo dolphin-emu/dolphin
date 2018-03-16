@@ -97,9 +97,11 @@ QGridLayout* PathPane::MakePathsLayout()
   QGridLayout* layout = new QGridLayout;
   layout->setColumnStretch(1, 1);
 
-  m_game_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_strDefaultISO));
+  m_game_edit = new QLineEdit(Settings::Instance().GetDefaultGame());
   connect(m_game_edit, &QLineEdit::editingFinished,
-          [=] { SConfig::GetInstance().m_strDefaultISO = m_game_edit->text().toStdString(); });
+          [this] { Settings::Instance().SetDefaultGame(m_game_edit->text()); });
+  connect(&Settings::Instance(), &Settings::DefaultGameChanged,
+          [this](const QString& path) { m_game_edit->setText(path); });
   QPushButton* game_open = new QPushButton;
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);
   layout->addWidget(new QLabel(tr("Default ISO:")), 0, 0);

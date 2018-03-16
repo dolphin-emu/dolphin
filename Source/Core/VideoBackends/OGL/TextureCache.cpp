@@ -320,10 +320,9 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   glBindTexture(GL_TEXTURE_BUFFER, m_palette_resolv_texture);
   g_sampler_cache->BindNearestSampler(10);
 
-  OpenGL_BindAttributelessVAO();
+  ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
 }
 
@@ -476,8 +475,6 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
   glDispatchCompute(dispatch_groups.first, dispatch_groups.second, 1);
   glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
 
-  OGLTexture::SetStage();
-
 #ifdef TIME_TEXTURE_DECODING
   WARN_LOG(VIDEO, "Decode texture format %u size %ux%u took %.4fms", static_cast<u32>(format),
            width, height, timer.GetTimeMilliseconds());
@@ -497,8 +494,6 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                   FramebufferManager::ResolveAndGetRenderTarget(src_rect);
 
   FramebufferManager::SetFramebuffer(destination_texture->GetFramebuffer());
-
-  OpenGL_BindAttributelessVAO();
 
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
@@ -541,9 +536,9 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   glUniform4f(shader.position_uniform, static_cast<float>(R.left), static_cast<float>(R.top),
               static_cast<float>(R.right), static_cast<float>(R.bottom));
 
+  ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-  FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
 }
 }

@@ -17,7 +17,6 @@
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
-#include "Core/ec_wii.h"
 
 namespace IOS
 {
@@ -101,8 +100,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
         u8 id_ctr = config.IdGen();
         u8 hardware_model = GetHardwareModel(model);
 
-        const EcWii& ec = EcWii::GetInstance();
-        u32 HollywoodID = ec.GetNGID();
+        u32 HollywoodID = m_ios.GetIOSC().GetDeviceId();
         u64 UserID = 0;
 
         s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);

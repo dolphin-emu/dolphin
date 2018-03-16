@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdio>
 #include <limits>
 #include <string>
 #include <tuple>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -22,9 +24,12 @@
 #include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VKPipeline.h"
+#include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -168,6 +173,210 @@ std::unique_ptr<AbstractStagingTexture> Renderer::CreateStagingTexture(StagingTe
                                                                        const TextureConfig& config)
 {
   return VKStagingTexture::Create(type, config);
+}
+
+std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
+                                                                 const char* source, size_t length)
+{
+  return VKShader::CreateFromSource(stage, source, length);
+}
+
+std::unique_ptr<AbstractShader> Renderer::CreateShaderFromBinary(ShaderStage stage,
+                                                                 const void* data, size_t length)
+{
+  return VKShader::CreateFromBinary(stage, data, length);
+}
+
+std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelineConfig& config)
+{
+  return VKPipeline::Create(config);
+}
+
+std::unique_ptr<AbstractFramebuffer>
+Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                            const AbstractTexture* depth_attachment)
+{
+  return VKFramebuffer::Create(static_cast<const VKTexture*>(color_attachment),
+                               static_cast<const VKTexture*>(depth_attachment));
+}
+
+std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* uniforms,
+                                                               u32 uniforms_size)
+{
+  StreamBuffer* ubo_buf = g_object_cache->GetUtilityShaderUniformBuffer();
+  if (!ubo_buf->ReserveMemory(uniforms_size, g_vulkan_context->GetUniformBufferAlignment()))
+  {
+    Util::ExecuteCurrentCommandsAndRestoreState(false, true);
+    if (!ubo_buf->ReserveMemory(uniforms_size, g_vulkan_context->GetUniformBufferAlignment()))
+    {
+      PanicAlert("Failed to reserve uniform buffer space for utility draw.");
+      return {};
+    }
+  }
+
+  VkBuffer ubo = ubo_buf->GetBuffer();
+  u32 ubo_offset = static_cast<u32>(ubo_buf->GetCurrentOffset());
+  std::memcpy(ubo_buf->GetCurrentHostPointer(), uniforms, uniforms_size);
+  ubo_buf->CommitMemory(uniforms_size);
+
+  return std::tie(ubo, ubo_offset);
+}
+
+void Renderer::SetPipeline(const AbstractPipeline* pipeline)
+{
+  StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
+}
+
+void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                                   u32 vertex_stride, u32 num_vertices)
+{
+  // Binding the utility pipeline layout breaks the standard layout.
+  StateTracker::GetInstance()->SetPendingRebind();
+
+  // Upload uniforms.
+  VkBuffer uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+  u32 uniform_buffer_offset = 0;
+  if (uniforms_size > 0)
+    std::tie(uniform_buffer, uniform_buffer_offset) =
+        UpdateUtilityUniformBuffer(uniforms, uniforms_size);
+
+  // Upload vertices.
+  VkBuffer vertex_buffer = VK_NULL_HANDLE;
+  VkDeviceSize vertex_buffer_offset = 0;
+  if (vertices)
+  {
+    u32 vertices_size = vertex_stride * num_vertices;
+    StreamBuffer* vbo_buf = g_object_cache->GetUtilityShaderVertexBuffer();
+    if (!vbo_buf->ReserveMemory(vertices_size, vertex_stride))
+    {
+      Util::ExecuteCurrentCommandsAndRestoreState(true);
+      if (!vbo_buf->ReserveMemory(vertices_size, vertex_stride))
+      {
+        PanicAlert("Failed to reserve vertex buffer space for utility draw.");
+        return;
+      }
+    }
+
+    vertex_buffer = vbo_buf->GetBuffer();
+    vertex_buffer_offset = vbo_buf->GetCurrentOffset();
+    std::memcpy(vbo_buf->GetCurrentHostPointer(), vertices, vertices_size);
+    vbo_buf->CommitMemory(vertices_size);
+  }
+
+  // Allocate descriptor sets.
+  std::array<VkDescriptorSet, 2> dsets;
+  dsets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
+  dsets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
+
+  // Flush first if failed.
+  if (dsets[0] == VK_NULL_HANDLE || dsets[1] == VK_NULL_HANDLE)
+  {
+    Util::ExecuteCurrentCommandsAndRestoreState(true);
+    dsets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
+    dsets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
+
+    if (dsets[0] == VK_NULL_HANDLE || dsets[1] == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to allocate descriptor sets in utility draw.");
+      return;
+    }
+  }
+
+  // Build UBO descriptor set.
+  std::array<VkWriteDescriptorSet, 2> dswrites;
+  VkDescriptorBufferInfo dsbuffer = {uniform_buffer, 0, std::max(uniforms_size, 4u)};
+  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,    nullptr, dsets[0],  0,      0, 1,
+                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &dsbuffer, nullptr};
+  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                 nullptr,
+                 dsets[1],
+                 0,
+                 0,
+                 NUM_PIXEL_SHADER_SAMPLERS,
+                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                 StateTracker::GetInstance()->GetPSSamplerBindings().data(),
+                 nullptr,
+                 nullptr};
+
+  // Build commands.
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    StateTracker::GetInstance()->GetPipeline()->GetVkPipeline());
+  if (vertex_buffer != VK_NULL_HANDLE)
+    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &vertex_buffer_offset);
+
+  // Update and bind descriptors.
+  VkPipelineLayout pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
+  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
+                         dswrites.data(), 0, nullptr);
+  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
+                          static_cast<u32>(dsets.size()), dsets.data(), 1, &uniform_buffer_offset);
+
+  // Ensure we're in a render pass before drawing, just in case we had to flush.
+  StateTracker::GetInstance()->BeginRenderPass();
+  vkCmdDraw(command_buffer, num_vertices, 1, 0, 0);
+}
+
+void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
+                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
+{
+  // Binding the utility pipeline layout breaks the standard layout.
+  StateTracker::GetInstance()->SetPendingRebind();
+  StateTracker::GetInstance()->EndRenderPass();
+
+  // Upload uniforms.
+  VkBuffer uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+  u32 uniform_buffer_offset = 0;
+  if (uniforms_size > 0)
+    std::tie(uniform_buffer, uniform_buffer_offset) =
+        UpdateUtilityUniformBuffer(uniforms, uniforms_size);
+
+  // Flush first if failed.
+  VkDescriptorSet dset = g_command_buffer_mgr->AllocateDescriptorSet(
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
+  if (dset == VK_NULL_HANDLE)
+  {
+    Util::ExecuteCurrentCommandsAndRestoreState(true);
+    dset = g_command_buffer_mgr->AllocateDescriptorSet(
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
+    if (dset == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to allocate descriptor sets in utility dispatch.");
+      return;
+    }
+  }
+
+  std::array<VkWriteDescriptorSet, 2> dswrites;
+  VkDescriptorBufferInfo dsbuffer = {uniform_buffer, 0, std::max(uniforms_size, 4u)};
+  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,    nullptr, dset,      0,      0, 1,
+                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &dsbuffer, nullptr};
+  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                 nullptr,
+                 dset,
+                 1,
+                 0,
+                 NUM_PIXEL_SHADER_SAMPLERS,
+                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                 StateTracker::GetInstance()->GetPSSamplerBindings().data(),
+                 nullptr,
+                 nullptr};
+
+  // TODO: Texel buffers, storage images.
+
+  // Build commands.
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  VkPipelineLayout pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                    static_cast<const VKShader*>(shader)->GetComputePipeline());
+  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
+                         dswrites.data(), 0, nullptr);
+  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout, 0, 1,
+                          &dset, 1, &uniform_buffer_offset);
+  vkCmdDispatch(command_buffer, groups_x, groups_y, groups_z);
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
@@ -392,8 +601,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // Fastest path: Use a render pass to clear the buffers.
   if (use_clear_render_pass)
   {
-    VkClearValue clear_values[2] = {clear_color_value, clear_depth_value};
-    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values);
+    const std::array<VkClearValue, 2> clear_values = {{clear_color_value, clear_depth_value}};
+    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values.data(),
+                                                      static_cast<u32>(clear_values.size()));
     return;
   }
 
@@ -499,6 +709,10 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->OnEndFrame();
 
+  // Handle host window resizes.
+  CheckForSurfaceChange();
+  CheckForSurfaceResize();
+
   // There are a few variables which can alter the final window draw rectangle, and some of them
   // are determined by guest state. Currently, the only way to catch these is to update every frame.
   UpdateDrawRectangle();
@@ -538,25 +752,13 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
   FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  RestoreAPIState();
 
   // Determine what (if anything) has changed in the config.
   CheckForConfigChanges();
 
-  // Handle host window resizes.
-  CheckForSurfaceChange();
-
-  if (CalculateTargetSize())
-    ResizeEFBTextures();
-
-  // Update the window size based on the frame that was just rendered.
-  // Due to depending on guest state, we need to call this every frame.
-  SetWindowSize(xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
-
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
-
-  // Pull in now-ready async shaders.
-  g_shader_cache->RetrieveAsyncShaders();
 }
 
 void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
@@ -597,6 +799,9 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   backbuffer->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
   backbuffer->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = backbuffer->GetWidth();
+  m_current_framebuffer_height = backbuffer->GetHeight();
 
   // Begin render pass for rendering to the swap chain.
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -656,77 +861,88 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!m_surface_needs_change.IsSet())
+  if (!m_surface_changed.TestAndClear())
     return;
 
-  // Wait for the GPU to catch up since we're going to destroy the swap chain.
+  m_surface_handle = m_new_surface_handle;
+  m_new_surface_handle = nullptr;
+
+  // Submit the current draws up until rendering the XFB.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, false);
   g_command_buffer_mgr->WaitForGPUIdle();
 
   // Clear the present failed flag, since we don't want to resize after recreating.
   g_command_buffer_mgr->CheckLastPresentFail();
 
-  // Fast path, if the surface handle is the same, the window has just been resized.
-  if (m_swap_chain && m_new_surface_handle == m_swap_chain->GetNativeHandle())
+  // Did we previously have a swap chain?
+  if (m_swap_chain)
   {
-    INFO_LOG(VIDEO, "Detected window resize.");
-    m_swap_chain->RecreateSwapChain();
-
-    // Notify the main thread we are done.
-    m_surface_needs_change.Clear();
-    m_new_surface_handle = nullptr;
-    m_surface_changed.Set();
-  }
-  else
-  {
-    // Did we previously have a swap chain?
-    if (m_swap_chain)
+    if (!m_surface_handle)
     {
-      if (!m_new_surface_handle)
-      {
-        // If there is no surface now, destroy the swap chain.
-        m_swap_chain.reset();
-      }
-      else
-      {
-        // Recreate the surface. If this fails we're in trouble.
-        if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
-          PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
-      }
+      // If there is no surface now, destroy the swap chain.
+      m_swap_chain.reset();
     }
     else
     {
-      // Previously had no swap chain. So create one.
-      VkSurfaceKHR surface = SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(),
-                                                            m_new_surface_handle);
-      if (surface != VK_NULL_HANDLE)
-      {
-        m_swap_chain = SwapChain::Create(m_new_surface_handle, surface, g_ActiveConfig.IsVSync());
-        if (!m_swap_chain)
-          PanicAlert("Failed to create swap chain.");
-      }
-      else
-      {
-        PanicAlert("Failed to create surface.");
-      }
+      // Recreate the surface. If this fails we're in trouble.
+      if (!m_swap_chain->RecreateSurface(m_surface_handle))
+        PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
     }
-
-    // Notify calling thread.
-    m_surface_needs_change.Clear();
-    m_surface_handle = m_new_surface_handle;
-    m_new_surface_handle = nullptr;
-    m_surface_changed.Set();
+  }
+  else
+  {
+    // Previously had no swap chain. So create one.
+    VkSurfaceKHR surface =
+        SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_surface_handle);
+    if (surface != VK_NULL_HANDLE)
+    {
+      m_swap_chain = SwapChain::Create(m_surface_handle, surface, g_ActiveConfig.IsVSync());
+      if (!m_swap_chain)
+        PanicAlert("Failed to create swap chain.");
+    }
+    else
+    {
+      PanicAlert("Failed to create surface.");
+    }
   }
 
   // Handle case where the dimensions are now different.
   OnSwapChainResized();
 }
 
+void Renderer::CheckForSurfaceResize()
+{
+  if (!m_surface_resized.TestAndClear())
+    return;
+
+  m_backbuffer_width = m_new_backbuffer_width;
+  m_backbuffer_height = m_new_backbuffer_height;
+
+  // If we don't have a surface, how can we resize the swap chain?
+  // CheckForSurfaceChange should handle this case.
+  if (!m_swap_chain)
+  {
+    WARN_LOG(VIDEO, "Surface resize event received without active surface, ignoring");
+    return;
+  }
+
+  // Wait for the GPU to catch up since we're going to destroy the swap chain.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, false);
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  // Clear the present failed flag, since we don't want to resize after recreating.
+  g_command_buffer_mgr->CheckLastPresentFail();
+
+  // Resize the swap chain.
+  m_swap_chain->RecreateSwapChain();
+  OnSwapChainResized();
+}
+
 void Renderer::CheckForConfigChanges()
 {
   // Save the video config so we can compare against to determine which settings have changed.
+  const u32 old_multisamples = g_ActiveConfig.iMultisamples;
   const int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  const AspectMode old_aspect_mode = g_ActiveConfig.aspect_mode;
-  const int old_efb_scale = g_ActiveConfig.iEFBScale;
   const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
 
   // Copy g_Config to g_ActiveConfig.
@@ -735,21 +951,17 @@ void Renderer::CheckForConfigChanges()
   UpdateActiveConfig();
 
   // Determine which (if any) settings have changed.
+  const bool multisamples_changed = old_multisamples != g_ActiveConfig.iMultisamples;
   const bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   const bool force_texture_filtering_changed =
       old_force_filtering != g_ActiveConfig.bForceFiltering;
-  const bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
-  const bool aspect_changed = old_aspect_mode != g_ActiveConfig.aspect_mode;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
 
-  // Handle settings that can cause the target rectangle to change.
-  if (efb_scale_changed || aspect_changed)
-  {
-    if (CalculateTargetSize())
-      ResizeEFBTextures();
-  }
+  // Handle settings that can cause the EFB framebuffer to change.
+  if (CalculateTargetSize() || multisamples_changed)
+    RecreateEFBFramebuffer();
 
   // MSAA samples changed, we need to recreate the EFB render pass.
   // If the stereoscopy mode changed, we need to recreate the buffers as well.
@@ -757,16 +969,11 @@ void Renderer::CheckForConfigChanges()
   // Changing stereoscopy from off<->on also requires shaders to be recompiled.
   if (CheckForHostConfigChanges())
   {
-    g_command_buffer_mgr->WaitForGPUIdle();
-    FramebufferManager::GetInstance()->RecreateRenderPass();
-    FramebufferManager::GetInstance()->ResizeEFBTextures();
-    BindEFBToStateTracker();
+    RecreateEFBFramebuffer();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
-    g_shader_cache->ReloadShaderAndPipelineCaches();
+    g_shader_cache->ReloadPipelineCache();
     g_shader_cache->RecompileSharedShaders();
-    StateTracker::GetInstance()->InvalidateShaderPointers();
-    StateTracker::GetInstance()->ReloadPipelineUIDCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -796,9 +1003,6 @@ void Renderer::OnSwapChainResized()
 {
   m_backbuffer_width = m_swap_chain->GetWidth();
   m_backbuffer_height = m_swap_chain->GetHeight();
-  UpdateDrawRectangle();
-  if (CalculateTargetSize())
-    ResizeEFBTextures();
 }
 
 void Renderer::BindEFBToStateTracker()
@@ -812,19 +1016,20 @@ void Renderer::BindEFBToStateTracker()
       FramebufferManager::GetInstance()->GetEFBClearRenderPass());
   StateTracker::GetInstance()->SetFramebuffer(
       FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
-  StateTracker::GetInstance()->SetMultisamplingstate(
-      FramebufferManager::GetInstance()->GetEFBMultisamplingState());
+  m_current_framebuffer = nullptr;
+  m_current_framebuffer_width = FramebufferManager::GetInstance()->GetEFBWidth();
+  m_current_framebuffer_height = FramebufferManager::GetInstance()->GetEFBHeight();
 }
 
-void Renderer::ResizeEFBTextures()
+void Renderer::RecreateEFBFramebuffer()
 {
   // Ensure the GPU is finished with the current EFB textures.
   g_command_buffer_mgr->WaitForGPUIdle();
-  FramebufferManager::GetInstance()->ResizeEFBTextures();
+  FramebufferManager::GetInstance()->RecreateEFBFramebuffer();
   BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.
-  SetViewport();
+  BPFunctions::SetViewport();
   BPFunctions::SetScissor();
 }
 
@@ -840,23 +1045,86 @@ void Renderer::ResetAPIState()
 
 void Renderer::RestoreAPIState()
 {
+  StateTracker::GetInstance()->EndRenderPass();
+  if (m_current_framebuffer)
+    static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
+
+  BindEFBToStateTracker();
+
   // Instruct the state tracker to re-bind everything before the next draw
   StateTracker::GetInstance()->SetPendingRebind();
 }
 
-void Renderer::SetRasterizationState(const RasterizationState& state)
+void Renderer::BindFramebuffer(const VKFramebuffer* fb)
 {
-  StateTracker::GetInstance()->SetRasterizationState(state);
+  const VkRect2D render_area = {static_cast<int>(fb->GetWidth()),
+                                static_cast<int>(fb->GetHeight())};
+
+  StateTracker::GetInstance()->EndRenderPass();
+  if (m_current_framebuffer)
+    static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
+
+  fb->TransitionForRender();
+  StateTracker::GetInstance()->SetFramebuffer(fb->GetFB(), render_area);
+  StateTracker::GetInstance()->SetRenderPass(fb->GetLoadRenderPass(), fb->GetClearRenderPass());
+  m_current_framebuffer = fb;
+  m_current_framebuffer_width = fb->GetWidth();
+  m_current_framebuffer_height = fb->GetHeight();
 }
 
-void Renderer::SetDepthState(const DepthState& state)
+void Renderer::SetFramebuffer(const AbstractFramebuffer* framebuffer)
 {
-  StateTracker::GetInstance()->SetDepthState(state);
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+  StateTracker::GetInstance()->BeginRenderPass();
 }
 
-void Renderer::SetBlendingState(const BlendingState& state)
+void Renderer::SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer)
 {
-  StateTracker::GetInstance()->SetBlendState(state);
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+
+  // If we're discarding, begin the discard pass, then switch to a load pass.
+  // This way if the command buffer is flushed, we don't start another discard pass.
+  StateTracker::GetInstance()->SetRenderPass(vkfb->GetDiscardRenderPass(),
+                                             vkfb->GetClearRenderPass());
+  StateTracker::GetInstance()->BeginRenderPass();
+  StateTracker::GetInstance()->SetRenderPass(vkfb->GetLoadRenderPass(), vkfb->GetClearRenderPass());
+}
+
+void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                                      const ClearColor& color_value, float depth_value)
+{
+  const VKFramebuffer* vkfb = static_cast<const VKFramebuffer*>(framebuffer);
+  BindFramebuffer(vkfb);
+
+  const VkRect2D render_area = {static_cast<int>(vkfb->GetWidth()),
+                                static_cast<int>(vkfb->GetHeight())};
+  std::array<VkClearValue, 2> clear_values;
+  u32 num_clear_values = 0;
+  if (vkfb->GetColorFormat() != AbstractTextureFormat::Undefined)
+  {
+    std::memcpy(clear_values[num_clear_values].color.float32, color_value.data(),
+                sizeof(clear_values[num_clear_values].color.float32));
+    num_clear_values++;
+  }
+  if (vkfb->GetDepthFormat() != AbstractTextureFormat::Undefined)
+  {
+    clear_values[num_clear_values].depthStencil.depth = depth_value;
+    clear_values[num_clear_values].depthStencil.stencil = 0;
+    num_clear_values++;
+  }
+  StateTracker::GetInstance()->BeginClearRenderPass(render_area, clear_values.data(),
+                                                    num_clear_values);
+}
+
+void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
+{
+  // Texture should always be in SHADER_READ_ONLY layout prior to use.
+  // This is so we don't need to transition during render passes.
+  auto* tex = texture ? static_cast<const VKTexture*>(texture)->GetRawTexIdentifier() : nullptr;
+  _dbg_assert_(VIDEO, !tex || tex->GetLayout() == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  StateTracker::GetInstance()->SetTexture(index, tex ? tex->GetView() : VK_NULL_HANDLE);
 }
 
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
@@ -875,6 +1143,12 @@ void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 
   StateTracker::GetInstance()->SetSampler(index, sampler);
   m_sampler_states[index].hex = state.hex;
+}
+
+void Renderer::UnbindTexture(const AbstractTexture* texture)
+{
+  StateTracker::GetInstance()->UnbindTexture(
+      static_cast<const VKTexture*>(texture)->GetRawTexIdentifier()->GetView());
 }
 
 void Renderer::ResetSamplerStates()
@@ -898,62 +1172,19 @@ void Renderer::SetInterlacingMode()
 {
 }
 
-void Renderer::SetScissorRect(const EFBRectangle& rc)
+void Renderer::SetScissorRect(const MathUtil::Rectangle<int>& rc)
 {
-  TargetRectangle target_rc = ConvertEFBRectangle(rc);
-
-  VkRect2D scissor = {
-      {target_rc.left, target_rc.top},
-      {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
-
+  VkRect2D scissor = {{rc.left, rc.top},
+                      {static_cast<u32>(rc.GetWidth()), static_cast<u32>(rc.GetHeight())}};
   StateTracker::GetInstance()->SetScissor(scissor);
 }
 
-void Renderer::SetViewport()
+void Renderer::SetViewport(float x, float y, float width, float height, float near_depth,
+                           float far_depth)
 {
-  int scissor_x_offset = bpmem.scissorOffset.x * 2;
-  int scissor_y_offset = bpmem.scissorOffset.y * 2;
-
-  float x = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissor_x_offset);
-  float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
-  float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
-  float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-  float max_depth = xfmem.viewport.farZ / 16777216.0f;
-  if (width < 0.0f)
-  {
-    x += width;
-    width = -width;
-  }
-  if (height < 0.0f)
-  {
-    y += height;
-    height = -height;
-  }
-
-  // If an oversized or inverted depth range is used, we need to calculate the depth range in the
-  // vertex shader.
-  // TODO: Inverted depth ranges are bugged in all drivers, which should be added to DriverDetails.
-  if (UseVertexDepthRange())
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    min_depth = 0.0f;
-    max_depth = GX_MAX_DEPTH;
-  }
-
-  // We use an inverted depth range here to apply the Reverse Z trick.
-  // This trick makes sure we match the precision provided by the 1:0
-  // clipping depth range on the hardware.
-  VkViewport viewport = {x, y, width, height, 1.0f - max_depth, 1.0f - min_depth};
+  VkViewport viewport = {x,          y,        std::max(width, 1.0f), std::max(height, 1.0f),
+                         near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
-}
-
-void Renderer::ChangeSurface(void* new_surface_handle)
-{
-  // Called by the main thread when the window is resized.
-  m_new_surface_handle = new_surface_handle;
-  m_surface_needs_change.Set();
-  m_surface_changed.Set();
 }
 
 void Renderer::RecompileShaders()

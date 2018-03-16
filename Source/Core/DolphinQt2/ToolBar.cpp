@@ -28,7 +28,11 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this](Core::State state) { OnEmulationStateChanged(state); });
+
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
+
   OnEmulationStateChanged(Core::GetState());
+  OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
 }
 
 void ToolBar::OnEmulationStateChanged(Core::State state)
@@ -45,8 +49,25 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_pause_action->setVisible(playing);
 }
 
+void ToolBar::OnDebugModeToggled(bool enabled)
+{
+  m_step_action->setVisible(enabled);
+  m_step_over_action->setVisible(enabled);
+  m_step_out_action->setVisible(enabled);
+  m_skip_action->setVisible(enabled);
+  m_show_pc_action->setVisible(enabled);
+  m_set_pc_action->setVisible(enabled);
+}
+
 void ToolBar::MakeActions()
 {
+  m_step_action = AddAction(this, tr("Step"), this, &ToolBar::StepPressed);
+  m_step_over_action = AddAction(this, tr("Step Over"), this, &ToolBar::StepOverPressed);
+  m_step_out_action = AddAction(this, tr("Step Out"), this, &ToolBar::StepOutPressed);
+  m_skip_action = AddAction(this, tr("Skip"), this, &ToolBar::SkipPressed);
+  m_show_pc_action = AddAction(this, tr("Show PC"), this, &ToolBar::ShowPCPressed);
+  m_set_pc_action = AddAction(this, tr("Set PC"), this, &ToolBar::SetPCPressed);
+
   m_open_action = AddAction(this, tr("Open"), this, &ToolBar::OpenPressed);
   m_play_action = AddAction(this, tr("Play"), this, &ToolBar::PlayPressed);
   m_pause_action = AddAction(this, tr("Pause"), this, &ToolBar::PausePressed);
@@ -63,9 +84,11 @@ void ToolBar::MakeActions()
 
   // Ensure every button has about the same width
   std::vector<QWidget*> items;
-  for (const auto& action : {m_open_action, m_play_action, m_pause_action, m_stop_action,
-                             m_stop_action, m_fullscreen_action, m_screenshot_action,
-                             m_config_action, m_graphics_action, m_controllers_action})
+  for (const auto& action :
+       {m_open_action, m_play_action, m_pause_action, m_stop_action, m_stop_action,
+        m_fullscreen_action, m_screenshot_action, m_config_action, m_graphics_action,
+        m_controllers_action, m_step_action, m_step_over_action, m_step_out_action, m_skip_action,
+        m_show_pc_action, m_set_pc_action})
   {
     items.emplace_back(widgetForAction(action));
   }

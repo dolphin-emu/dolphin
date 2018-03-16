@@ -26,7 +26,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOSC.h"
-#include "Core/ec_wii.h"
+#include "Core/IOS/VersionInfo.h"
 
 namespace IOS
 {
@@ -217,9 +217,7 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  u32 device_id;
-  if (title_id == Titles::SHOP &&
-      (GetDeviceId(&device_id) != IPC_SUCCESS || device_id == DEFAULT_WII_DEVICE_ID))
+  if (title_id == Titles::SHOP && m_ios.GetIOSC().IsUsingDefaultId())
   {
     ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
     CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."
@@ -371,11 +369,11 @@ ES::ContextArray::iterator ES::FindInactiveContext()
                       [](const auto& context) { return !context.active; });
 }
 
-ReturnCode ES::Open(const OpenRequest& request)
+IPCCommandResult ES::Open(const OpenRequest& request)
 {
   auto context = FindInactiveContext();
   if (context == m_contexts.end())
-    return ES_FD_EXHAUSTED;
+    return GetDefaultReply(ES_FD_EXHAUSTED);
 
   context->active = true;
   context->uid = request.uid;
@@ -384,18 +382,18 @@ ReturnCode ES::Open(const OpenRequest& request)
   return Device::Open(request);
 }
 
-ReturnCode ES::Close(u32 fd)
+IPCCommandResult ES::Close(u32 fd)
 {
   auto context = FindActiveContext(fd);
   if (context == m_contexts.end())
-    return ES_EINVAL;
+    return GetDefaultReply(ES_EINVAL);
 
   context->active = false;
   context->ipc_fd = -1;
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
@@ -585,6 +583,10 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 
   INFO_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
            TitleID, view, ticketid, devicetype, titleid, access);
+
+  // Prevent loading installed IOSes that are not emulated.
+  if (!IOS::HLE::IsEmulated(TitleID))
+    return GetDefaultReply(FS_ENOENT);
 
   // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
   // Note: Launch will potentially reset the whole IOS state -- including this ES instance.

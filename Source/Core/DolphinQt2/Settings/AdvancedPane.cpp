@@ -124,10 +124,9 @@ void AdvancedPane::ConnectLayout()
 void AdvancedPane::Update()
 {
   const bool running = Core::GetState() != Core::State::Uninitialized;
-  const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable && !running;
+  const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
 
-  m_cpu_clock_override_checkbox->setEnabled(!running);
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
 

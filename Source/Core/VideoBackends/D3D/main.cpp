@@ -21,24 +21,12 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/VideoBackend.h"
 
+#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
-unsigned int VideoBackend::PeekMessages()
-{
-  MSG msg;
-  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-  {
-    if (msg.message == WM_QUIT)
-      return FALSE;
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-  return TRUE;
-}
-
 std::string VideoBackend::GetName() const
 {
   return "D3D";
@@ -78,10 +66,11 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsGPUTextureDecoding = false;
   g_Config.backend_info.bSupportsST3CTextures = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
-  g_Config.backend_info.bForceCopyToRam = false;
   g_Config.backend_info.bSupportsBitfield = false;
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
+  g_Config.backend_info.bSupportsFramebufferFetch = false;
+  g_Config.backend_info.bSupportsBackgroundCompiling = true;
 
   IDXGIFactory2* factory;
   IDXGIAdapter* ad;
@@ -144,32 +133,44 @@ bool VideoBackend::Initialize(void* window_handle)
   InitBackendInfo();
   InitializeShared();
 
-  m_window_handle = window_handle;
-
-  return true;
-}
-
-void VideoBackend::Video_Prepare()
-{
-  if (FAILED(D3D::Create(reinterpret_cast<HWND>(m_window_handle))))
+  if (FAILED(D3D::Create(reinterpret_cast<HWND>(window_handle))))
+  {
     PanicAlert("Failed to create D3D device.");
+    return false;
+  }
+
+  int backbuffer_width = 1, backbuffer_height = 1;
+  if (D3D::swapchain)
+  {
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    D3D::swapchain->GetDesc1(&desc);
+    backbuffer_width = std::max(desc.Width, 1u);
+    backbuffer_height = std::max(desc.Height, 1u);
+  }
 
   // internal interfaces
-  g_renderer = std::make_unique<Renderer>();
+  g_renderer = std::make_unique<Renderer>(backbuffer_width, backbuffer_height);
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
+
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();
-  VertexShaderCache::WaitForBackgroundCompilesToComplete();
+  if (!g_shader_cache->Initialize())
+    return false;
+
   D3D::InitUtils();
   BBox::Init();
+  return true;
 }
 
 void VideoBackend::Shutdown()
 {
-  // TODO: should be in Video_Cleanup
+  g_shader_cache->Shutdown();
+  g_renderer->Shutdown();
+
   D3D::ShutdownUtils();
   PixelShaderCache::Shutdown();
   VertexShaderCache::Shutdown();
@@ -179,15 +180,11 @@ void VideoBackend::Shutdown()
   g_perf_query.reset();
   g_vertex_manager.reset();
   g_texture_cache.reset();
+  g_shader_cache.reset();
   g_renderer.reset();
 
-  D3D::Close();
-
   ShutdownShared();
-}
 
-void VideoBackend::Video_Cleanup()
-{
-  CleanupShared();
+  D3D::Close();
 }
 }

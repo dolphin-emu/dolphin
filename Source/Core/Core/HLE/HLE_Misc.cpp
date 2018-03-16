@@ -6,7 +6,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
@@ -18,14 +17,6 @@ namespace HLE_Misc
 // According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction()
 {
-  NPC = LR;
-}
-
-// If you want a function to panic, you can rename it PanicAlert :p
-// Don't know if this is worth keeping.
-void HLEPanicAlert()
-{
-  ::PanicAlert("HLE: PanicAlert %08x", LR);
   NPC = LR;
 }
 

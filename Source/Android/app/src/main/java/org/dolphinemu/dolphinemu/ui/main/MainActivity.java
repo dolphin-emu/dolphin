@@ -17,13 +17,14 @@ import android.view.View;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
@@ -69,6 +70,13 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		} else {
 			mViewPager.setVisibility(View.INVISIBLE);
 		}
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		mPresenter.addDirIfNeeded(new AddDirectoryHelper(this));
 	}
 
 	// TODO: Replace with a ButterKnife injection.
@@ -121,13 +129,13 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void launchSettingsActivity(String menuTag)
 	{
-		SettingsActivity.launch(this, menuTag);
+		SettingsActivity.launch(this, menuTag, "");
 	}
 
 	@Override
 	public void launchFileListActivity()
 	{
-		AddDirectoryActivity.launch(this);
+		FileBrowserHelper.openDirectoryPicker(this);
 	}
 
 	@Override
@@ -137,8 +145,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	}
 
 	/**
-	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
-	 *
 	 * @param requestCode An int describing whether the Activity that is returning did so successfully.
 	 * @param resultCode  An int describing what Activity is giving us this callback.
 	 * @param result      The information the returning Activity is providing us.
@@ -146,7 +152,20 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent result)
 	{
-		mPresenter.handleActivityResult(requestCode, resultCode);
+		switch (requestCode)
+		{
+			case MainPresenter.REQUEST_ADD_DIRECTORY:
+				// If the user picked a file, as opposed to just backing out.
+				if (resultCode == MainActivity.RESULT_OK)
+				{
+					mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+				}
+				break;
+
+			case MainPresenter.REQUEST_EMULATE_GAME:
+				mPresenter.refreshFragmentScreenshot(resultCode);
+				break;
+		}
 	}
 
 	@Override
@@ -198,7 +217,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Nullable
 	private PlatformGamesView getPlatformGamesView(Platform platform)
 	{
-		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform;
+		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform.toInt();
 
 		return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
 	}

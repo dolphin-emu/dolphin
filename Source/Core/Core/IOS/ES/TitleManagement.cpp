@@ -21,7 +21,6 @@
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/ec_wii.h"
 
 namespace IOS
 {
@@ -63,7 +62,7 @@ ReturnCode ES::ImportTicket(const std::vector<u8>& ticket_bytes, const std::vect
     return ES_EINVAL;
 
   const u32 ticket_device_id = ticket.GetDeviceId();
-  const u32 device_id = EcWii::GetInstance().GetNGID();
+  const u32 device_id = m_ios.GetIOSC().GetDeviceId();
   if (type == TicketImportType::PossiblyPersonalised && ticket_device_id != 0)
   {
     if (device_id != ticket_device_id)

@@ -23,7 +23,7 @@ signals:
   void ExitHotkey();
   void FullScreenHotkey();
   void StopHotkey();
-  void PauseHotkey();
+  void TogglePauseHotkey();
   void ScreenShotHotkey();
   void SetStateSlotHotkey(int slot);
   void StateLoadSlotHotkey();
@@ -31,6 +31,18 @@ signals:
   void StartRecording();
   void ExportRecording();
   void ToggleReadOnlyMode();
+  void ConnectWiiRemote(int id);
+
+  void Step();
+  void StepOver();
+  void StepOut();
+  void Skip();
+
+  void ShowPC();
+  void SetPC();
+
+  void ToggleBreakpoint();
+  void AddBreakpoint();
 
 private:
   void Run();

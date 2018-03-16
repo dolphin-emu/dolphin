@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <array>
+#include <d3d11.h>
 #include <string>
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoCommon/RenderBase.h"
@@ -18,27 +18,37 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer();
+  Renderer(int backbuffer_width, int backbuffer_height);
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromSource(ShaderStage stage, const char* source,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractShader> CreateShaderFromBinary(ShaderStage stage, const void* data,
+                                                         size_t length) override;
+  std::unique_ptr<AbstractPipeline> CreatePipeline(const AbstractPipelineConfig& config) override;
+  std::unique_ptr<AbstractFramebuffer>
+  CreateFramebuffer(const AbstractTexture* color_attachment,
+                    const AbstractTexture* depth_attachment) override;
 
-  void SetBlendingState(const BlendingState& state) override;
-  void SetScissorRect(const EFBRectangle& rc) override;
-  void SetRasterizationState(const RasterizationState& state) override;
-  void SetDepthState(const DepthState& state) override;
+  void SetPipeline(const AbstractPipeline* pipeline) override;
+  void SetFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndDiscardFramebuffer(const AbstractFramebuffer* framebuffer) override;
+  void SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
+                              const ClearColor& color_value = {},
+                              float depth_value = 0.0f) override;
+  void SetScissorRect(const MathUtil::Rectangle<int>& rc) override;
+  void SetTexture(u32 index, const AbstractTexture* texture) override;
   void SetSamplerState(u32 index, const SamplerState& state) override;
+  void UnbindTexture(const AbstractTexture* texture) override;
   void SetInterlacingMode() override;
-  void SetViewport() override;
+  void SetViewport(float x, float y, float width, float height, float near_depth,
+                   float far_depth) override;
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
-
-  // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-  void ApplyState() override;
-  void RestoreState() override;
 
   void RenderText(const std::string& text, int left, int top, u32 color) override;
 
@@ -60,26 +70,26 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  bool CheckForResize();
+  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
+                           u32 vertex_stride, u32 num_vertices) override;
+  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
+                             u32 groups_x, u32 groups_y, u32 groups_z) override;
 
 private:
-  struct GXPipelineState
-  {
-    std::array<SamplerState, 8> samplers;
-    BlendingState blend;
-    DepthState zmode;
-    RasterizationState raster;
-  };
-
   void SetupDeviceObjects();
   void TeardownDeviceObjects();
   void Create3DVisionTexture(int width, int height);
+  void CheckForSurfaceChange();
+  void CheckForSurfaceResize();
+  void UpdateBackbufferSize();
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height, float Gamma);
 
+  void UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
+  void UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices);
+
   StateCache m_state_cache;
-  GXPipelineState m_gx_state;
 
   std::array<ID3D11BlendState*, 4> m_clear_blend_states{};
   std::array<ID3D11DepthStencilState*, 3> m_clear_depth_states{};
@@ -90,8 +100,11 @@ private:
   ID3D11Texture2D* m_screenshot_texture = nullptr;
   D3DTexture2D* m_3d_vision_texture = nullptr;
 
+  ID3D11Buffer* m_utility_vertex_buffer = nullptr;
+  ID3D11Buffer* m_utility_uniform_buffer = nullptr;
+
   u32 m_last_multisamples = 1;
   bool m_last_stereo_mode = false;
-  bool m_last_fullscreen_mode = false;
+  bool m_last_fullscreen_state = false;
 };
 }

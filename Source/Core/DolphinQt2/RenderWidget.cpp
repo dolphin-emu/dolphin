@@ -22,6 +22,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           Qt::DirectConnection);
   connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
           Qt::DirectConnection);
+  connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
+          Qt::DirectConnection);
 
   emit HandleChanged((void*)winId());
 
@@ -56,6 +58,12 @@ bool RenderWidget::event(QEvent* event)
     QKeyEvent* ke = static_cast<QKeyEvent*>(event);
     if (ke->key() == Qt::Key_Escape)
       emit EscapePressed();
+
+    // The render window might flicker on some platforms because Qt tries to change focus to a new
+    // element when there is none (?) Handling this event before it reaches QWidget fixes the issue.
+    if (ke->key() == Qt::Key_Tab)
+      return true;
+
     break;
   }
   case QEvent::MouseMove:
@@ -75,6 +83,13 @@ bool RenderWidget::event(QEvent* event)
   case QEvent::WindowDeactivate:
     Host::GetInstance()->SetRenderFocus(false);
     break;
+  case QEvent::Resize:
+  {
+    const QResizeEvent* se = static_cast<QResizeEvent*>(event);
+    QSize new_size = se->size();
+    emit SizeChanged(new_size.width(), new_size.height());
+    break;
+  }
   case QEvent::WindowStateChange:
     emit StateChanged(isFullScreen());
     break;

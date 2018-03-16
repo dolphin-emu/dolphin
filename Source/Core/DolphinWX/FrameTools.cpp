@@ -77,7 +77,6 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
@@ -92,12 +91,12 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
-
 
 #include "NetcoreClient.h"
 
@@ -322,7 +321,7 @@ void CFrame::BootGame(const std::string& filename, const std::optional<std::stri
     if (m_game_list_ctrl->GetSelectedISO() != nullptr)
     {
       if (m_game_list_ctrl->GetSelectedISO()->IsValid())
-        bootfile = m_game_list_ctrl->GetSelectedISO()->GetFileName();
+        bootfile = m_game_list_ctrl->GetSelectedISO()->GetFilePath();
     }
     else if (!StartUp.m_strDefaultISO.empty() && File::Exists(StartUp.m_strDefaultISO))
     {
@@ -607,21 +606,18 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
   if (Core::GetState() != Core::State::Uninitialized)
   {
     int width, height;
+    m_render_parent->GetClientSize(&width, &height);
     if (!SConfig::GetInstance().bRenderToMain && !RendererIsFullscreen() &&
         !m_render_frame->IsMaximized() && !m_render_frame->IsIconized())
     {
-      m_render_frame->GetClientSize(&width, &height);
       SConfig::GetInstance().iRenderWindowWidth = width;
       SConfig::GetInstance().iRenderWindowHeight = height;
     }
     m_log_window->Refresh();
     m_log_window->Update();
 
-    // We call Renderer::ChangeSurface here to indicate the size has changed,
-    // but pass the same window handle. This is needed for the Vulkan backend,
-    // otherwise it cannot tell that the window has been resized on some drivers.
     if (g_renderer)
-      g_renderer->ChangeSurface(GetRenderHandle());
+      g_renderer->ResizeSurface(width, height);
   }
   event.Skip();
 }
@@ -721,25 +717,20 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
     m_render_parent = new wxPanel(m_render_frame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
     m_render_frame->Show();
-
-    //NARRYSMOD_HIJACK
-    NetcoreClientInitializer::isWii();
+    m_render_frame->Raise();
   }
+  //NARRYSMOD_HIJACK
+  NetcoreClientInitializer::isWii();
 
 #if defined(__APPLE__)
   m_render_frame->EnableFullScreenView(true);
 #endif
 
   wxBusyCursor hourglass;
-
-  DoFullscreen(SConfig::GetInstance().bFullscreen);
-
   SetDebuggerStartupParameters();
 
   if (!BootManager::BootCore(std::move(boot)))
   {
-    DoFullscreen(false);
-
     // Destroy the renderer frame when not rendering to main
     if (!SConfig::GetInstance().bRenderToMain)
       m_render_frame->Destroy();
@@ -751,7 +742,7 @@ void CFrame::StartGame(std::unique_ptr<BootParameters> boot)
   }
   else
   {
-    InhibitScreensaver();
+    EnableScreenSaver(false);
 
     // We need this specifically to support setting the focus properly when using
     // the 'render to main window' feature on Windows
@@ -938,7 +929,7 @@ void CFrame::OnStopped()
   m_tried_graceful_shutdown = false;
   wxPostEvent(GetMenuBar(), wxCommandEvent{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM});
 
-  UninhibitScreensaver();
+  EnableScreenSaver(true);
 
   m_render_frame->SetTitle(StrToWxStr(Common::scm_rev_str));
 
@@ -1243,10 +1234,10 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   {
   case IDM_LIST_INSTALL_WAD:
   {
-    const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+    const UICommon::GameFile* iso = m_game_list_ctrl->GetSelectedISO();
     if (!iso)
       return;
-    fileName = iso->GetFileName();
+    fileName = iso->GetFilePath();
     break;
   }
   case IDM_MENU_INSTALL_WAD:
@@ -1272,7 +1263,7 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
 
 void CFrame::OnUninstallWAD(wxCommandEvent&)
 {
-  const GameListItem* file = m_game_list_ctrl->GetSelectedISO();
+  const UICommon::GameFile* file = m_game_list_ctrl->GetSelectedISO();
   if (!file)
     return;
 
@@ -1282,9 +1273,8 @@ void CFrame::OnUninstallWAD(wxCommandEvent&)
     return;
   }
 
-  u64 title_id = file->GetTitleID();
-  IOS::HLE::Kernel ios;
-  if (ios.GetES()->DeleteTitleContent(title_id) < 0)
+  const u64 title_id = file->GetTitleID();
+  if (!WiiUtils::UninstallTitle(title_id))
   {
     PanicAlertT("Failed to remove this title from the NAND.");
     return;
@@ -1504,11 +1494,11 @@ void CFrame::OnPerformOnlineWiiUpdate(wxCommandEvent& event)
 
 void CFrame::OnPerformDiscWiiUpdate(wxCommandEvent&)
 {
-  const GameListItem* iso = m_game_list_ctrl->GetSelectedISO();
+  const UICommon::GameFile* iso = m_game_list_ctrl->GetSelectedISO();
   if (!iso)
     return;
 
-  const std::string file_name = iso->GetFileName();
+  const std::string file_name = iso->GetFilePath();
 
   const WiiUtils::UpdateResult result = ShowUpdateProgress(this, WiiUtils::DoDiscUpdate, file_name);
   ShowUpdateResult(result);

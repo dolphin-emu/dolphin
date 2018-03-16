@@ -89,14 +89,16 @@ static void HandleFrameskipHotkeys()
     if (frame_step_delay_count < frame_step_delay && frame_step_hold)
       frame_step_delay_count++;
 
-    // TODO GUI Update (Depends on an unimplemented feature)
-    // if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
+    if ((frame_step_count == 0 || frame_step_count == FRAME_STEP_DELAY) && !frame_step_hold)
+    {
+      Core::DoFrameStep();
+      frame_step_hold = true;
+    }
 
     if (frame_step_count < FRAME_STEP_DELAY)
     {
-      ++frame_step_count;
-      if (frame_step_hold)
-        frame_step_hold = false;
+      frame_step_count++;
+      frame_step_hold = false;
     }
 
     if (frame_step_count == FRAME_STEP_DELAY && frame_step_hold &&
@@ -108,8 +110,7 @@ static void HandleFrameskipHotkeys()
 
     return;
   }
-
-  if (frame_step_count > 0)
+  else if (frame_step_count > 0)
   {
     // Reset frame advance
     frame_step_count = 0;
@@ -143,7 +144,7 @@ void HotkeyScheduler::Run()
 
       // Pause and Unpause
       if (IsHotkey(HK_PLAY_PAUSE))
-        emit PauseHotkey();
+        emit TogglePauseHotkey();
 
       // Stop
       if (IsHotkey(HK_STOP))
@@ -193,7 +194,31 @@ void HotkeyScheduler::Run()
               IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
       }
 
-      // TODO Debugging shortcuts (Separate PR)
+      if (IsHotkey(HK_STEP))
+        emit Step();
+
+      if (IsHotkey(HK_STEP_OVER))
+        emit StepOver();
+
+      if (IsHotkey(HK_STEP_OUT))
+        emit StepOut();
+
+      if (IsHotkey(HK_SKIP))
+        emit Skip();
+
+      if (IsHotkey(HK_SHOW_PC))
+        emit ShowPC();
+
+      if (IsHotkey(HK_SET_PC))
+        emit Skip();
+
+      if (IsHotkey(HK_BP_TOGGLE))
+        emit ToggleBreakpoint();
+
+      if (IsHotkey(HK_BP_ADD))
+        emit AddBreakpoint();
+
+      // TODO: HK_MBP_ADD
 
       if (SConfig::GetInstance().bWii)
       {
@@ -209,8 +234,8 @@ void HotkeyScheduler::Run()
         if (IsHotkey(HK_BALANCEBOARD_CONNECT))
           wiimote_id = 4;
 
-        // TODO Implement Wiimote connecting / disconnecting (Separate PR)
-        // if (wiimote_id > -1)
+        if (wiimote_id > -1)
+          emit ConnectWiiRemote(wiimote_id);
       }
 
       // Graphics

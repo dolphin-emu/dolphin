@@ -24,8 +24,8 @@ class OH0Device final : public Device
 public:
   OH0Device(Kernel& ios, const std::string& device_name);
 
-  ReturnCode Open(const OpenRequest& request) override;
-  ReturnCode Close(u32 fd) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
+  IPCCommandResult Close(u32 fd) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
   void DoState(PointerWrap& p) override;

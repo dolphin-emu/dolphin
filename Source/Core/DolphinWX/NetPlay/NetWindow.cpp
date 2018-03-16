@@ -47,11 +47,12 @@
 
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
-#include "DolphinWX/ISOFile.h"
 #include "DolphinWX/NetPlay/ChangeGameDialog.h"
+#include "DolphinWX/NetPlay/MD5Dialog.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 #include "DolphinWX/WxUtils.h"
-#include "MD5Dialog.h"
+
+#include "UICommon/GameFile.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -335,7 +336,7 @@ std::string NetPlayDialog::FindGame(const std::string& target_game)
   // find path for selected game, sloppy..
   for (u32 i = 0; auto game = m_game_list->GetISO(i); ++i)
     if (target_game == game->GetUniqueIdentifier())
-      return game->GetFileName();
+      return game->GetFilePath();
 
   return "";
 }

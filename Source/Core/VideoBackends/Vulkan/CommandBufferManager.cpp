@@ -377,9 +377,6 @@ void CommandBufferManager::OnCommandBufferExecuted(size_t index)
     backup_iter->second.second(resources.fence);
   }
 
-  for (const auto& iter : m_fence_point_callbacks)
-    iter.second.second(resources.fence);
-
   // Clean up all objects pending destruction on this command buffer
   for (auto& it : resources.cleanup_resources)
     it();

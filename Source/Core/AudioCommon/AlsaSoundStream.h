@@ -21,12 +21,12 @@ class AlsaSound final : public SoundStream
 #if defined(HAVE_ALSA) && HAVE_ALSA
 public:
   AlsaSound();
+  ~AlsaSound() override;
 
-  bool Start() override;
+  bool Init() override;
   void SoundLoop() override;
-  void Stop() override;
   void Update() override;
-  void SetRunning(bool running) override;
+  bool SetRunning(bool running) override;
 
   static bool isValid() { return true; }
 private:

@@ -188,6 +188,66 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
   return SUCCEEDED(hr);
 }
 
+// bytecode->shader
+ID3D11ComputeShader* CreateComputeShaderFromByteCode(const void* bytecode, size_t len)
+{
+  ID3D11ComputeShader* shader;
+  HRESULT hr = D3D::device->CreateComputeShader(bytecode, len, nullptr, &shader);
+  if (FAILED(hr))
+  {
+    PanicAlert("CreateComputeShaderFromByteCode failed at %s %d\n", __FILE__, __LINE__);
+    return nullptr;
+  }
+  return shader;
+}
+
+// code->bytecode
+bool CompileComputeShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MACRO* pDefines)
+{
+  ID3D10Blob* shaderBuffer = nullptr;
+  ID3D10Blob* errorBuffer = nullptr;
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+  UINT flags = D3D10_SHADER_DEBUG;
+#else
+  UINT flags = D3D10_SHADER_OPTIMIZATION_LEVEL3;
+#endif
+  HRESULT hr =
+      PD3DCompile(code.c_str(), code.length(), nullptr, pDefines, nullptr, "main",
+                  D3D::ComputeShaderVersionString(), flags, 0, &shaderBuffer, &errorBuffer);
+
+  if (errorBuffer)
+  {
+    INFO_LOG(VIDEO, "Compute shader compiler messages:\n%s",
+             (const char*)errorBuffer->GetBufferPointer());
+  }
+
+  if (FAILED(hr))
+  {
+    static int num_failures = 0;
+    std::string filename = StringFromFormat("%sbad_cs_%04i.txt",
+                                            File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+    std::ofstream file;
+    File::OpenFStream(file, filename, std::ios_base::out);
+    file << code;
+    file.close();
+
+    PanicAlert("Failed to compile compute shader: %s\nDebug info (%s):\n%s", filename.c_str(),
+               D3D::ComputeShaderVersionString(),
+               reinterpret_cast<const char*>(errorBuffer->GetBufferPointer()));
+
+    *blob = nullptr;
+    errorBuffer->Release();
+  }
+  else
+  {
+    *blob = new D3DBlob(shaderBuffer);
+    shaderBuffer->Release();
+  }
+
+  return SUCCEEDED(hr);
+}
+
 ID3D11VertexShader* CompileAndCreateVertexShader(const std::string& code)
 {
   D3DBlob* blob = nullptr;
@@ -222,6 +282,19 @@ ID3D11PixelShader* CompileAndCreatePixelShader(const std::string& code)
     ID3D11PixelShader* p_shader = CreatePixelShaderFromByteCode(blob);
     blob->Release();
     return p_shader;
+  }
+  return nullptr;
+}
+
+ID3D11ComputeShader* CompileAndCreateComputeShader(const std::string& code)
+{
+  D3DBlob* blob = nullptr;
+  CompileComputeShader(code, &blob);
+  if (blob)
+  {
+    ID3D11ComputeShader* shader = CreateComputeShaderFromByteCode(blob);
+    blob->Release();
+    return shader;
   }
   return nullptr;
 }

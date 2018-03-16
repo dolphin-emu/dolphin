@@ -16,6 +16,8 @@
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWTexture.h"
 
+#include "VideoCommon/AbstractPipeline.h"
+#include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -24,15 +26,6 @@
 SWRenderer::SWRenderer()
     : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT))
 {
-}
-
-void SWRenderer::Init()
-{
-}
-
-void SWRenderer::Shutdown()
-{
-  UpdateActiveConfig();
 }
 
 std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
@@ -46,9 +39,51 @@ SWRenderer::CreateStagingTexture(StagingTextureType type, const TextureConfig& c
   return std::make_unique<SW::SWStagingTexture>(type, config);
 }
 
+std::unique_ptr<AbstractFramebuffer>
+SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
+                              const AbstractTexture* depth_attachment)
+{
+  return SW::SWFramebuffer::Create(static_cast<const SW::SWTexture*>(color_attachment),
+                                   static_cast<const SW::SWTexture*>(depth_attachment));
+}
+
 void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
 {
   SWOGLWindow::s_instance->PrintText(pstr, left, top, color);
+}
+
+class SWShader final : public AbstractShader
+{
+public:
+  explicit SWShader(ShaderStage stage) : AbstractShader(stage) {}
+  ~SWShader() = default;
+
+  bool HasBinary() const override { return false; }
+  BinaryData GetBinary() const override { return {}; }
+};
+
+std::unique_ptr<AbstractShader>
+SWRenderer::CreateShaderFromSource(ShaderStage stage, const char* source, size_t length)
+{
+  return std::make_unique<SWShader>(stage);
+}
+
+std::unique_ptr<AbstractShader> SWRenderer::CreateShaderFromBinary(ShaderStage stage,
+                                                                   const void* data, size_t length)
+{
+  return std::make_unique<SWShader>(stage);
+}
+
+class SWPipeline final : public AbstractPipeline
+{
+public:
+  SWPipeline() : AbstractPipeline() {}
+  ~SWPipeline() override = default;
+};
+
+std::unique_ptr<AbstractPipeline> SWRenderer::CreatePipeline(const AbstractPipelineConfig& config)
+{
+  return std::make_unique<SWPipeline>();
 }
 
 // Called on the GPU thread

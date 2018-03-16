@@ -134,7 +134,6 @@
     <ClCompile Include="Input\GuitarInputConfigDiag.cpp" />
     <ClCompile Include="Input\DrumsInputConfigDiag.cpp" />
     <ClCompile Include="Input\TurntableInputConfigDiag.cpp" />
-    <ClCompile Include="ISOFile.cpp" />
     <ClCompile Include="LogConfigWindow.cpp" />
     <ClCompile Include="LogWindow.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -219,7 +218,6 @@
     <ClInclude Include="Input\GuitarInputConfigDiag.h" />
     <ClInclude Include="Input\DrumsInputConfigDiag.h" />
     <ClInclude Include="Input\TurntableInputConfigDiag.h" />
-    <ClInclude Include="ISOFile.h" />
     <ClInclude Include="LogConfigWindow.h" />
     <ClInclude Include="LogWindow.h" />
     <ClInclude Include="Main.h" />

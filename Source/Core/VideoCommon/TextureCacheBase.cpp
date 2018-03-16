@@ -8,6 +8,9 @@
 #include <memory>
 #include <string>
 #include <utility>
+#if defined(_M_X86) || defined(_M_X86_64)
+#include <pmmintrin.h>
+#endif
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -470,10 +473,10 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 
 void TextureCacheBase::BindTextures()
 {
-  for (size_t i = 0; i < bound_textures.size(); ++i)
+  for (u32 i = 0; i < bound_textures.size(); i++)
   {
-    if (IsValidBindPoint(static_cast<u32>(i)) && bound_textures[i])
-      bound_textures[i]->texture->Bind(static_cast<u32>(i));
+    if (IsValidBindPoint(i) && bound_textures[i])
+      g_renderer->SetTexture(i, bound_textures[i]->texture.get());
   }
 }
 
@@ -718,9 +721,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     return nullptr;
   }
 
-  // If we are recording a FifoLog, keep track of what memory we read.
-  // FifiRecorder does it's own memory modification tracking independant of the texture hashing
-  // below.
+  // If we are recording a FifoLog, keep track of what memory we read. FifoRecorder does
+  // its own memory modification tracking independent of the texture hashing below.
   if (g_bRecordFifoData && !from_tmem)
     FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size,
                                           MemoryUpdate::TEXTURE_MAP);
@@ -1088,7 +1090,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     }
   }
 
-  entry->has_arbitrary_mips = arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
+  entry->has_arbitrary_mips = hires_tex ? hires_tex->HasArbitraryMipmaps() :
+                                          arbitrary_mip_detector.HasArbitraryMipmaps(dst_buffer);
 
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
   {
@@ -1494,8 +1497,8 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
   }
 }
 
-void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat,
-                                                 u32 dstStride, bool is_depth_copy,
+void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width,
+                                                 u32 height, u32 dstStride, bool is_depth_copy,
                                                  const EFBRectangle& srcRect, bool isIntensity,
                                                  bool scaleByHalf, float y_scale, float gamma)
 {
@@ -1557,16 +1560,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   //
   // Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush
   // which stalls any further CPU processing.
-  //
-  // For historical reasons, Dolphin doesn't actually implement "pure" EFB to RAM emulation, but
-  // only EFB to texture and hybrid EFB copies.
-
-  bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
-
-  bool copy_to_vram = g_ActiveConfig.backend_info.bSupportsCopyToVram;
+  const bool is_xfb_copy = !is_depth_copy && !isIntensity && dstFormat == EFBCopyFormat::XFB;
+  bool copy_to_vram =
+      g_ActiveConfig.backend_info.bSupportsCopyToVram && !g_ActiveConfig.bDisableCopyToVRAM;
   bool copy_to_ram =
       !(is_xfb_copy ? g_ActiveConfig.bSkipXFBCopyToRam : g_ActiveConfig.bSkipEFBCopyToRam) ||
-      g_ActiveConfig.backend_info.bForceCopyToRam;
+      !copy_to_vram;
 
   u8* dst = Memory::GetPointer(dstAddr);
   if (dst == nullptr)
@@ -1575,12 +1574,29 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     return;
   }
 
-  const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
-  const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
+  // tex_w and tex_h are the native size of the texture in the GC memory.
+  // The size scaled_* represents the emulated texture. Those differ
+  // because of upscaling and because of yscaling of XFB copies.
+  // For the latter, we keep the EFB resolution for the virtual XFB blit.
+  u32 tex_w = width;
+  u32 tex_h = height;
+  u32 scaled_tex_w = g_renderer->EFBToScaledX(srcRect.GetWidth());
+  u32 scaled_tex_h = g_renderer->EFBToScaledY(srcRect.GetHeight());
 
-  const bool upscale = is_xfb_copy || g_ActiveConfig.bCopyEFBScaled;
-  unsigned int scaled_tex_w = upscale ? g_renderer->EFBToScaledX(tex_w) : tex_w;
-  unsigned int scaled_tex_h = upscale ? g_renderer->EFBToScaledY(tex_h) : tex_h;
+  if (scaleByHalf)
+  {
+    tex_w /= 2;
+    tex_h /= 2;
+    scaled_tex_w /= 2;
+    scaled_tex_h /= 2;
+  }
+
+  if (!is_xfb_copy && !g_ActiveConfig.bCopyEFBScaled)
+  {
+    // No upscaling
+    scaled_tex_w = tex_w;
+    scaled_tex_h = tex_h;
+  }
 
   // Get the base (in memory) format of this efb copy.
   TextureFormat baseFormat = TexDecoder_GetEFBCopyBaseFormat(dstFormat);
@@ -1739,13 +1755,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      // For XFB, the resulting XFB copy texture is the height of the actual texture + the y-scaling
-      // however, the actual Wii/GC texture that we want to "stretch" to this copy is without the
-      // y-scaling so we need to remove it here
-      // The best use-case for this is PAL games which have a different aspect ratio
-      EFBRectangle unscaled_rect = srcRect;
-      unscaled_rect.bottom /= y_scale;
-      CopyEFBToCacheEntry(entry, is_depth_copy, unscaled_rect, scaleByHalf, dstFormat, isIntensity);
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity);
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);
@@ -1776,24 +1786,40 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
                                              u32 num_blocks_y)
 {
-  // Originally, we planned on using a 'key color'
-  // for alpha to address partial xfbs (Mario Strikers / Chicken Little).
-  // This work was removed since it was unfinished but there
-  // was still a desire to differentiate between the old and the new approach
-  // which is why we still set uninitialized xfb memory to fuchsia
-  // (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
-  // like is done in the EFB path.
+// Originally, we planned on using a 'key color'
+// for alpha to address partial xfbs (Mario Strikers / Chicken Little).
+// This work was removed since it was unfinished but there
+// was still a desire to differentiate between the old and the new approach
+// which is why we still set uninitialized xfb memory to fuchsia
+// (Y=1,U=254,V=254) instead of dark green (Y=0,U=0,V=0) in YUV
+// like is done in the EFB path.
+// This comment is indented wrong because of the silly linter, btw.
+
+#if defined(_M_X86) || defined(_M_X86_64)
+  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
+#endif
+
   for (u32 i = 0; i < num_blocks_y; i++)
   {
-    for (u32 offset = 0; offset < bytes_per_row; offset++)
+    u32 size = bytes_per_row;
+    u8* rowdst = dst;
+#if defined(_M_X86) || defined(_M_X86_64)
+    while (size >= 16)
     {
-      if (offset % 2)
+      _mm_storeu_si128((__m128i*)rowdst, sixteenBytes);
+      size -= 16;
+      rowdst += 16;
+    }
+#endif
+    for (u32 offset = 0; offset < size; offset++)
+    {
+      if (offset & 1)
       {
-        dst[offset] = 254;
+        rowdst[offset] = 254;
       }
       else
       {
-        dst[offset] = 1;
+        rowdst[offset] = 1;
       }
     }
     dst += stride;

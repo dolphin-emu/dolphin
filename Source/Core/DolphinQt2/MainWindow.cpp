@@ -1,9 +1,11 @@
+
 // Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <QApplication>
 #include <QCloseEvent>
+#include <QDateTime>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDropEvent>
@@ -31,6 +33,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -46,7 +50,12 @@
 #include "DolphinQt2/Config/LogWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Debugger/BreakpointWidget.h"
+#include "DolphinQt2/Debugger/CodeWidget.h"
+#include "DolphinQt2/Debugger/RegisterWidget.h"
+#include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
+#include "DolphinQt2/GCMemcardManager.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"
 #include "DolphinQt2/MainWindow.h"
@@ -57,6 +66,8 @@
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/TAS/GCTASInputWindow.h"
+#include "DolphinQt2/TAS/WiiTASInputWindow.h"
 #include "DolphinQt2/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -84,6 +95,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   ConnectRenderWidget();
   ConnectStack();
   ConnectMenuBar();
+  ConnectHotkeys();
 
   InitCoreCallbacks();
 
@@ -97,6 +109,8 @@ MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
   ShutdownControllers();
+
+  Config::Save();
 }
 
 void MainWindow::InitControllers()
@@ -110,8 +124,6 @@ void MainWindow::InitControllers()
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
-
-  ConnectHotkeys();
 }
 
 void MainWindow::ShutdownControllers()
@@ -158,6 +170,21 @@ void MainWindow::CreateComponents()
   m_controllers_window = new ControllersWindow(this);
   m_settings_window = new SettingsWindow(this);
 
+  for (int i = 0; i < 4; i++)
+  {
+    m_gc_tas_input_windows[i] = new GCTASInputWindow(this, i);
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(this, i);
+  }
+
+  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
+    m_gc_tas_input_windows[controller_id]->GetValues(pad_status);
+  });
+
+  Movie::SetWiiInputManip([this](u8* input_data, WiimoteEmu::ReportFeatures rptf, int controller_id,
+                                 int ext, wiimote_key key) {
+    m_wii_tas_input_windows[controller_id]->GetValues(input_data, rptf, ext, key);
+  });
+
   m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
 
   m_log_widget = new LogWidget(this);
@@ -166,6 +193,17 @@ void MainWindow::CreateComponents()
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
           [this](const QString& path) { StartGame(path); });
+  m_register_widget = new RegisterWidget(this);
+  m_watch_widget = new WatchWidget(this);
+  m_breakpoint_widget = new BreakpointWidget(this);
+  m_code_widget = new CodeWidget(this);
+
+  connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
+          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+  connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
+          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+  connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
+          &BreakpointWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -218,18 +256,21 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
 
   // Tools
+  connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
   connect(m_menu_bar, &MenuBar::BootWiiSystemMenu, this, &MainWindow::BootWiiSystemMenu);
   connect(m_menu_bar, &MenuBar::StartNetPlay, this, &MainWindow::ShowNetPlaySetupDialog);
   connect(m_menu_bar, &MenuBar::ShowFIFOPlayer, this, &MainWindow::ShowFIFOPlayer);
+  connect(m_menu_bar, &MenuBar::ConnectWiiRemote, this, &MainWindow::OnConnectWiiRemote);
 
   // Movie
   connect(m_menu_bar, &MenuBar::PlayRecording, this, &MainWindow::OnPlayRecording);
   connect(m_menu_bar, &MenuBar::StartRecording, this, &MainWindow::OnStartRecording);
   connect(m_menu_bar, &MenuBar::StopRecording, this, &MainWindow::OnStopRecording);
   connect(m_menu_bar, &MenuBar::ExportRecording, this, &MainWindow::OnExportRecording);
+  connect(m_menu_bar, &MenuBar::ShowTASInput, this, &MainWindow::ShowTASInput);
 
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
@@ -252,7 +293,7 @@ void MainWindow::ConnectMenuBar()
 void MainWindow::ConnectHotkeys()
 {
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExitHotkey, this, &MainWindow::close);
-  connect(m_hotkey_scheduler, &HotkeyScheduler::PauseHotkey, this, &MainWindow::Pause);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::TogglePauseHotkey, this, &MainWindow::TogglePause);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StopHotkey, this, &MainWindow::RequestStop);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
@@ -268,16 +309,34 @@ void MainWindow::ConnectHotkeys()
           &MainWindow::OnStartRecording);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ExportRecording, this,
           &MainWindow::OnExportRecording);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ConnectWiiRemote, this,
+          &MainWindow::OnConnectWiiRemote);
   connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleReadOnlyMode, [this] {
     bool read_only = !Movie::IsReadOnly();
     Movie::SetReadOnly(read_only);
     emit ReadOnlyModeChanged(read_only);
   });
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::Step, m_code_widget, &CodeWidget::Step);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StepOver, m_code_widget, &CodeWidget::StepOver);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StepOut, m_code_widget, &CodeWidget::StepOut);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::Skip, m_code_widget, &CodeWidget::Skip);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ShowPC, m_code_widget, &CodeWidget::ShowPC);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::SetPC, m_code_widget, &CodeWidget::SetPC);
+
+  connect(m_hotkey_scheduler, &HotkeyScheduler::ToggleBreakpoint, m_code_widget,
+          &CodeWidget::ToggleBreakpoint);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::AddBreakpoint, m_code_widget,
+          &CodeWidget::AddBreakpoint);
 }
 
 void MainWindow::ConnectToolBar()
 {
   addToolBar(m_tool_bar);
+
+  connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
+
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
   connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
@@ -287,6 +346,13 @@ void MainWindow::ConnectToolBar()
   connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
   connect(m_tool_bar, &ToolBar::ControllersPressed, this, &MainWindow::ShowControllersWindow);
   connect(m_tool_bar, &ToolBar::GraphicsPressed, this, &MainWindow::ShowGraphicsWindow);
+
+  connect(m_tool_bar, &ToolBar::StepPressed, m_code_widget, &CodeWidget::Step);
+  connect(m_tool_bar, &ToolBar::StepOverPressed, m_code_widget, &CodeWidget::StepOver);
+  connect(m_tool_bar, &ToolBar::StepOutPressed, m_code_widget, &CodeWidget::StepOut);
+  connect(m_tool_bar, &ToolBar::SkipPressed, m_code_widget, &CodeWidget::Skip);
+  connect(m_tool_bar, &ToolBar::ShowPCPressed, m_code_widget, &CodeWidget::ShowPC);
+  connect(m_tool_bar, &ToolBar::SetPCPressed, m_code_widget, &CodeWidget::SetPC);
 }
 
 void MainWindow::ConnectGameList()
@@ -301,7 +367,6 @@ void MainWindow::ConnectRenderWidget()
 {
   m_rendering_to_main = false;
   m_render_widget->hide();
-  connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::RequestStop);
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 
@@ -314,8 +379,16 @@ void MainWindow::ConnectStack()
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
   addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_code_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
+  tabifyDockWidget(m_log_widget, m_code_widget);
+  tabifyDockWidget(m_log_widget, m_register_widget);
+  tabifyDockWidget(m_log_widget, m_watch_widget);
+  tabifyDockWidget(m_log_widget, m_breakpoint_widget);
 }
 
 void MainWindow::Open()
@@ -338,20 +411,23 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   if (Core::GetState() == Core::State::Paused)
   {
     Core::SetState(Core::State::Running);
+    EnableScreenSaver(false);
   }
   else
   {
-    QSharedPointer<GameFile> selection = m_game_list->GetSelectedGame();
+    std::shared_ptr<const UICommon::GameFile> selection = m_game_list->GetSelectedGame();
     if (selection)
     {
       StartGame(selection->GetFilePath(), savestate_path);
+      EnableScreenSaver(false);
     }
     else
     {
-      auto default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+      QString default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, savestate_path);
+        EnableScreenSaver(false);
       }
       else
       {
@@ -364,6 +440,19 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
 void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
+  EnableScreenSaver(true);
+}
+
+void MainWindow::TogglePause()
+{
+  if (Core::GetState() == Core::State::Paused)
+  {
+    Play();
+  }
+  else
+  {
+    Pause();
+  }
 }
 
 void MainWindow::OnStopComplete()
@@ -441,6 +530,7 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   BootManager::Stop();
+  EnableScreenSaver(true);
 }
 
 void MainWindow::Reset()
@@ -475,7 +565,13 @@ void MainWindow::ScreenShot()
 
 void MainWindow::StartGame(const QString& path, const std::optional<std::string>& savestate_path)
 {
-  StartGame(BootParameters::GenerateFromFile(path.toStdString(), savestate_path));
+  StartGame(path.toStdString(), savestate_path);
+}
+
+void MainWindow::StartGame(const std::string& path,
+                           const std::optional<std::string>& savestate_path)
+{
+  StartGame(BootParameters::GenerateFromFile(path, savestate_path));
 }
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
@@ -543,7 +639,20 @@ void MainWindow::HideRenderWidget()
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   }
+
+  // The following code works around a driver bug that would lead to Dolphin crashing when changing
+  // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely)
+  // recreated
+  disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+
   m_render_widget->hide();
+  m_render_widget->removeEventFilter(this);
+  m_render_widget->deleteLater();
+
+  m_render_widget = new RenderWidget;
+
+  m_render_widget->installEventFilter(this);
+  connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 
 void MainWindow::ShowControllersWindow()
@@ -801,6 +910,18 @@ void MainWindow::NetPlayQuit()
   Settings::Instance().ResetNetPlayServer();
 }
 
+void MainWindow::EnableScreenSaver(bool enable)
+{
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  UICommon::EnableScreenSaver(
+      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", windowHandle())),
+      winId(), enable);
+#else
+  UICommon::EnableScreenSaver(enable);
+#endif
+}
+
 bool MainWindow::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::Close)
@@ -1009,4 +1130,49 @@ void MainWindow::OnExportRecording()
   Core::SetState(Core::State::Running);
 
   Movie::SaveRecording(dtm_file.toStdString());
+}
+
+void MainWindow::ShowTASInput()
+{
+  for (int i = 0; i < num_gc_controllers; i++)
+  {
+    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
+        SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
+    {
+      m_gc_tas_input_windows[i]->show();
+      m_gc_tas_input_windows[i]->raise();
+      m_gc_tas_input_windows[i]->activateWindow();
+    }
+  }
+
+  for (int i = 0; i < num_wii_controllers; i++)
+  {
+    if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
+        (!Core::IsRunning() || SConfig::GetInstance().bWii))
+    {
+      m_wii_tas_input_windows[i]->show();
+      m_wii_tas_input_windows[i]->raise();
+      m_wii_tas_input_windows[i]->activateWindow();
+    }
+  }
+}
+
+void MainWindow::OnConnectWiiRemote(int id)
+{
+  const auto ios = IOS::HLE::GetIOS();
+  if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
+    return;
+  Core::RunAsCPUThread([&] {
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
+    const bool is_connected = bt && bt->AccessWiiMote(id | 0x100)->IsConnected();
+    Wiimote::Connect(id, !is_connected);
+  });
+}
+
+void MainWindow::ShowMemcardManager()
+{
+  GCMemcardManager manager(this);
+
+  manager.exec();
 }

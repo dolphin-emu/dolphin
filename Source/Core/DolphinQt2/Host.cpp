@@ -2,12 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Host.h"
+
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 
 #include "Common/Common.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/Host.h"
-#include "DolphinQt2/Host.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "DolphinQt2/Settings.h"
+#include "VideoCommon/RenderBase.h"
 
 Host::Host() = default;
 
@@ -47,6 +54,12 @@ void Host::SetRenderFullscreen(bool fullscreen)
   m_render_fullscreen = fullscreen;
 }
 
+void Host::ResizeSurface(int new_width, int new_height)
+{
+  if (g_renderer)
+    g_renderer->ResizeSurface(new_width, new_height);
+}
+
 void Host_Message(int id)
 {
   if (id == WM_USER_STOP)
@@ -80,10 +93,16 @@ bool Host_RendererIsFullscreen()
 {
   return Host::GetInstance()->GetRenderFullscreen();
 }
+
 void Host_YieldToUI()
 {
   qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 }
+
+void Host_UpdateDisasmDialog()
+{
+}
+
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
 }
@@ -99,12 +118,9 @@ void Host_RequestRenderWindowSize(int w, int h)
 }
 bool Host_UINeedsControllerState()
 {
-  return false;
+  return Settings::Instance().IsControllerStateNeeded();
 }
 void Host_NotifyMapLoaded()
-{
-}
-void Host_UpdateDisasmDialog()
 {
 }
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)

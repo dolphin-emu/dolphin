@@ -72,6 +72,20 @@ void Settings::RemovePath(const QString& qpath)
   emit PathRemoved(qpath);
 }
 
+QString Settings::GetDefaultGame() const
+{
+  return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+}
+
+void Settings::SetDefaultGame(QString path)
+{
+  if (GetDefaultGame() != path)
+  {
+    SConfig::GetInstance().m_strDefaultISO = path.toStdString();
+    emit DefaultGameChanged(path);
+  }
+}
+
 bool Settings::GetPreferredView() const
 {
   return QSettings().value(QStringLiteral("PreferredView"), true).toBool();
@@ -195,4 +209,106 @@ void Settings::SetCheatsEnabled(bool enabled)
     SConfig::GetInstance().bEnableCheats = enabled;
     emit EnableCheatsChanged(enabled);
   }
+}
+
+void Settings::SetDebugModeEnabled(bool enabled)
+{
+  if (IsDebugModeEnabled() != enabled)
+  {
+    SConfig::GetInstance().bEnableDebugging = enabled;
+    emit DebugModeToggled(enabled);
+  }
+}
+
+bool Settings::IsDebugModeEnabled() const
+{
+  return SConfig::GetInstance().bEnableDebugging;
+}
+
+void Settings::SetRegistersVisible(bool enabled)
+{
+  if (IsRegistersVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showregisters"), enabled);
+
+    emit RegistersVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsRegistersVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showregisters")).toBool();
+}
+
+void Settings::SetWatchVisible(bool enabled)
+{
+  if (IsWatchVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showwatch"), enabled);
+
+    emit WatchVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsWatchVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showwatch")).toBool();
+}
+
+void Settings::SetBreakpointsVisible(bool enabled)
+{
+  if (IsBreakpointsVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showbreakpoints"), enabled);
+
+    emit BreakpointsVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsBreakpointsVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
+}
+
+bool Settings::IsControllerStateNeeded() const
+{
+  return m_controller_state_needed;
+}
+
+void Settings::SetControllerStateNeeded(bool needed)
+{
+  m_controller_state_needed = needed;
+}
+
+void Settings::SetCodeVisible(bool enabled)
+{
+  if (IsCodeVisible() != enabled)
+  {
+    QSettings().setValue(QStringLiteral("debugger/showcode"), enabled);
+
+    emit CodeVisibilityChanged(enabled);
+  }
+}
+
+bool Settings::IsCodeVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showcode")).toBool();
+}
+
+void Settings::SetDebugFont(QFont font)
+{
+  if (GetDebugFont() != font)
+  {
+    QSettings().setValue(QStringLiteral("debugger/font"), font);
+
+    emit DebugFontChanged(font);
+  }
+}
+
+QFont Settings::GetDebugFont() const
+{
+  QFont default_font = QFont(QStringLiteral("Monospace"));
+  default_font.setStyleHint(QFont::TypeWriter);
+
+  return QSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }

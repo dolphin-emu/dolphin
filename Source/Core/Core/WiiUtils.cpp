@@ -160,6 +160,28 @@ bool InstallWAD(const std::string& wad_path)
   return InstallWAD(ios, DiscIO::WiiWAD{wad_path}, InstallType::Permanent);
 }
 
+bool UninstallTitle(u64 title_id)
+{
+  IOS::HLE::Kernel ios;
+  return ios.GetES()->DeleteTitleContent(title_id) == IOS::HLE::IPC_SUCCESS;
+}
+
+bool IsTitleInstalled(u64 title_id)
+{
+  const std::string content_dir =
+      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+
+  if (!File::IsDirectory(content_dir))
+    return false;
+
+  // Since this isn't IOS and we only need a simple way to figure out if a title is installed,
+  // we make the (reasonable) assumption that having more than just the TMD in the content
+  // directory means that the title is installed.
+  const auto entries = File::ScanDirectoryTree(content_dir, false);
+  return std::any_of(entries.children.begin(), entries.children.end(),
+                     [](const auto& file) { return file.virtualName != "title.tmd"; });
+}
+
 // Common functionality for system updaters.
 class SystemUpdater
 {

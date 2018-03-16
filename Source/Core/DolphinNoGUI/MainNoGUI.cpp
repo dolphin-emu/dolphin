@@ -83,10 +83,9 @@ static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
   if (Id == WM_USER_STOP)
-  {
     s_running.Clear();
+  if (Id == WM_USER_JOB_DISPATCH || Id == WM_USER_STOP)
     updateMainFrameEvent.Set();
-  }
 }
 
 static void* s_window_handle = nullptr;
@@ -141,9 +140,14 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
 }
 
 #if HAVE_X11
+#include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include "UICommon/X11Utils.h"
+#ifndef HOST_NAME_MAX
+#include <climits>
+#define HOST_NAME_MAX _POSIX_HOST_NAME_MAX
+#endif
 
 class PlatformX11 : public Platform
 {
@@ -172,6 +176,16 @@ class PlatformX11 : public Platform
     Atom wmProtocols[1];
     wmProtocols[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
     XSetWMProtocols(dpy, win, wmProtocols, 1);
+    pid_t pid = getpid();
+    XChangeProperty(dpy, win, XInternAtom(dpy, "_NET_WM_PID", False), XA_CARDINAL, 32,
+                    PropModeReplace, reinterpret_cast<unsigned char*>(&pid), 1);
+    char host_name[HOST_NAME_MAX] = "";
+    if (!gethostname(host_name, sizeof(host_name)))
+    {
+      XTextProperty wmClientMachine = {reinterpret_cast<unsigned char*>(host_name), XA_STRING, 8,
+                                       strlen(host_name)};
+      XSetWMClientMachine(dpy, win, &wmClientMachine);
+    }
     XMapRaised(dpy, win);
     XFlush(dpy);
     s_window_handle = (void*)win;
@@ -307,12 +321,8 @@ class PlatformX11 : public Platform
           {
             last_window_width = event.xconfigure.width;
             last_window_height = event.xconfigure.height;
-
-            // We call Renderer::ChangeSurface here to indicate the size has changed,
-            // but pass the same window handle. This is needed for the Vulkan backend,
-            // otherwise it cannot tell that the window has been resized on some drivers.
             if (g_renderer)
-              g_renderer->ChangeSurface(s_window_handle);
+              g_renderer->ResizeSurface(last_window_width, last_window_height);
           }
         }
         break;

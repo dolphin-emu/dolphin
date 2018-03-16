@@ -208,15 +208,15 @@ void CachedInterpreter::Jit(u32 address)
     u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
-      int type = HLE::GetFunctionTypeByIndex(function);
-      if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
+      HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
+      if (type == HLE::HookType::Start || type == HLE::HookType::Replace)
       {
-        int flags = HLE::GetFunctionFlagsByIndex(function);
+        HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
         if (HLE::IsEnabled(flags))
         {
           m_code.emplace_back(WritePC, ops[i].address);
           m_code.emplace_back(Interpreter::HLEFunction, function);
-          if (type == HLE::HLE_HOOK_REPLACE)
+          if (type == HLE::HookType::Replace)
           {
             m_code.emplace_back(EndBlock, js.downcountAmount);
             m_code.emplace_back();

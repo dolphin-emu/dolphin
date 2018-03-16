@@ -468,14 +468,14 @@ std::shared_ptr<Device::Device> EmulationKernel::GetDeviceByName(const std::stri
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
-s32 Kernel::OpenDevice(OpenRequest& request)
+IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
   INFO_LOG(IOS, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG(IOS, "Couldn't get a free fd, too many open files");
-    return FS_EFDEXHAUSTED;
+    return Device::Device::GetDefaultReply(FS_EFDEXHAUSTED);
   }
   request.fd = new_fd;
 
@@ -497,14 +497,16 @@ s32 Kernel::OpenDevice(OpenRequest& request)
   if (!device)
   {
     ERROR_LOG(IOS, "Unknown device: %s", request.path.c_str());
-    return IPC_ENOENT;
+    return Device::Device::GetDefaultReply(IPC_ENOENT);
   }
 
-  const ReturnCode code = device->Open(request);
-  if (code < IPC_SUCCESS)
-    return code;
-  m_fdmap[new_fd] = device;
-  return new_fd;
+  IPCCommandResult result = device->Open(request);
+  if (result.return_value >= IPC_SUCCESS)
+  {
+    m_fdmap[new_fd] = device;
+    result.return_value = new_fd;
+  }
+  return result;
 }
 
 IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
@@ -512,8 +514,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
   if (request.command == IPC_CMD_OPEN)
   {
     OpenRequest open_request{request.address};
-    const s32 new_fd = OpenDevice(open_request);
-    return Device::Device::GetDefaultReply(new_fd);
+    return OpenDevice(open_request);
   }
 
   const auto device = (request.fd < IPC_MAX_FDS) ? m_fdmap[request.fd] : nullptr;
@@ -527,7 +528,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
   {
   case IPC_CMD_CLOSE:
     m_fdmap[request.fd].reset();
-    ret = Device::Device::GetDefaultReply(device->Close(request.fd));
+    ret = device->Close(request.fd);
     break;
   case IPC_CMD_READ:
     ret = device->Read(ReadWriteRequest{request.address});

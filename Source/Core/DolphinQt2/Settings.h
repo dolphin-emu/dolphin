@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include <QFont>
 #include <QObject>
 #include <QVector>
 
@@ -24,6 +25,7 @@ enum class Language;
 
 class GameListModel;
 class InputConfig;
+class QFont;
 
 // UI settings to be stored in the config directory.
 class Settings final : public QObject
@@ -46,6 +48,8 @@ public:
   void SetLogVisible(bool visible);
   bool IsLogConfigVisible() const;
   void SetLogConfigVisible(bool visible);
+  bool IsControllerStateNeeded() const;
+  void SetControllerStateNeeded(bool needed);
 
   // GameList
   QStringList GetPaths() const;
@@ -53,6 +57,8 @@ public:
   void RemovePath(const QString& path);
   bool GetPreferredView() const;
   void SetPreferredView(bool list);
+  QString GetDefaultGame() const;
+  void SetDefaultGame(QString path);
 
   // Emulation
   int GetStateSlot() const;
@@ -78,23 +84,44 @@ public:
   bool GetCheatsEnabled() const;
   void SetCheatsEnabled(bool enabled);
 
+  // Debug
+  void SetDebugModeEnabled(bool enabled);
+  bool IsDebugModeEnabled() const;
+  void SetRegistersVisible(bool enabled);
+  bool IsRegistersVisible() const;
+  void SetWatchVisible(bool enabled);
+  bool IsWatchVisible() const;
+  void SetBreakpointsVisible(bool enabled);
+  bool IsBreakpointsVisible() const;
+  void SetCodeVisible(bool enabled);
+  bool IsCodeVisible() const;
+  QFont GetDebugFont() const;
+  void SetDebugFont(QFont font);
+
   // Other
   GameListModel* GetGameListModel() const;
-
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);
   void ThemeChanged();
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
+  void DefaultGameChanged(const QString&);
   void HideCursorChanged();
   void VolumeChanged(int volume);
   void NANDRefresh();
+  void RegistersVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void EnableCheatsChanged(bool enabled);
+  void WatchVisibilityChanged(bool visible);
+  void BreakpointsVisibilityChanged(bool visible);
+  void CodeVisibilityChanged(bool visible);
+  void DebugModeToggled(bool enabled);
+  void DebugFontChanged(QFont font);
 
 private:
+  bool m_controller_state_needed = false;
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
   Settings();

@@ -33,13 +33,17 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
-static std::unordered_map<std::string, std::string> s_textureMap;
+struct DiskTexture
+{
+  std::string path;
+  bool has_arbitrary_mipmaps;
+};
+
+static std::unordered_map<std::string, DiskTexture> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static std::mutex s_textureCacheAquireMutex;  // for high priority access
 static Common::Flag s_textureCacheAbortLoading;
-static bool s_check_native_format;
-static bool s_check_new_format;
 
 static std::thread s_prefetcher;
 
@@ -51,9 +55,6 @@ HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
 
 void HiresTexture::Init()
 {
-  s_check_native_format = false;
-  s_check_new_format = false;
-
   Update();
 }
 
@@ -96,26 +97,23 @@ void HiresTexture::Update()
       ".jpg"  // Why not? Could be useful for large photo-like textures
   };
 
-  std::vector<std::string> filenames =
+  const std::vector<std::string> texture_paths =
       Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
 
   const std::string code = game_id + "_";
 
-  for (auto& rFilename : filenames)
+  for (auto& path : texture_paths)
   {
-    std::string FileName;
-    SplitPath(rFilename, nullptr, &FileName, nullptr);
+    std::string filename;
+    SplitPath(path, nullptr, &filename, nullptr);
 
-    if (FileName.substr(0, code.length()) == code)
+    if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
     {
-      s_textureMap[FileName] = rFilename;
-      s_check_native_format = true;
-    }
-
-    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
-    {
-      s_textureMap[FileName] = rFilename;
-      s_check_new_format = true;
+      const size_t arb_index = filename.rfind("_arb");
+      const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
+      if (has_arbitrary_mipmaps)
+        filename.erase(arb_index, 4);
+      s_textureMap[filename] = {path, has_arbitrary_mipmaps};
     }
   }
 
@@ -218,154 +216,64 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
                                       size_t tlut_size, u32 width, u32 height, TextureFormat format,
                                       bool has_mipmaps, bool dump)
 {
-  std::string name = "";
-  bool convert = false;
-  if (!dump && s_check_native_format)
+  if (!dump && s_textureMap.empty())
+    return "";
+
+  // checking for min/max on paletted textures
+  u32 min = 0xffff;
+  u32 max = 0;
+  switch (tlut_size)
   {
-    // try to load the old format first
-    u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size,
-                                       g_ActiveConfig.iSafeTextureCache_ColorSamples);
-    u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size,
-                                                    g_ActiveConfig.iSafeTextureCache_ColorSamples) :
-                                0;
-    name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().GetGameID().c_str(),
-                            (u32)(tex_hash ^ tlut_hash), (u16)format);
-    if (s_textureMap.find(name) != s_textureMap.end())
+  case 0:
+    break;
+  case 16 * 2:
+    for (size_t i = 0; i < texture_size; i++)
     {
-      if (g_ActiveConfig.bConvertHiresTextures)
-        convert = true;
-      else
-        return name;
+      min = std::min<u32>(min, texture[i] & 0xf);
+      min = std::min<u32>(min, texture[i] >> 4);
+      max = std::max<u32>(max, texture[i] & 0xf);
+      max = std::max<u32>(max, texture[i] >> 4);
     }
+    break;
+  case 256 * 2:
+    for (size_t i = 0; i < texture_size; i++)
+    {
+      min = std::min<u32>(min, texture[i]);
+      max = std::max<u32>(max, texture[i]);
+    }
+    break;
+  case 16384 * 2:
+    for (size_t i = 0; i < texture_size / 2; i++)
+    {
+      min = std::min<u32>(min, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+      max = std::max<u32>(max, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+    }
+    break;
+  }
+  if (tlut_size > 0)
+  {
+    tlut_size = 2 * (max + 1 - min);
+    tlut += 2 * min;
   }
 
-  if (dump || s_check_new_format || convert)
-  {
-    // checking for min/max on paletted textures
-    u32 min = 0xffff;
-    u32 max = 0;
-    switch (tlut_size)
-    {
-    case 0:
-      break;
-    case 16 * 2:
-      for (size_t i = 0; i < texture_size; i++)
-      {
-        min = std::min<u32>(min, texture[i] & 0xf);
-        min = std::min<u32>(min, texture[i] >> 4);
-        max = std::max<u32>(max, texture[i] & 0xf);
-        max = std::max<u32>(max, texture[i] >> 4);
-      }
-      break;
-    case 256 * 2:
-      for (size_t i = 0; i < texture_size; i++)
-      {
-        min = std::min<u32>(min, texture[i]);
-        max = std::max<u32>(max, texture[i]);
-      }
-      break;
-    case 16384 * 2:
-      for (size_t i = 0; i < texture_size / 2; i++)
-      {
-        min = std::min<u32>(min, Common::swap16(((u16*)texture)[i]) & 0x3fff);
-        max = std::max<u32>(max, Common::swap16(((u16*)texture)[i]) & 0x3fff);
-      }
-      break;
-    }
-    if (tlut_size > 0)
-    {
-      tlut_size = 2 * (max + 1 - min);
-      tlut += 2 * min;
-    }
+  u64 tex_hash = XXH64(texture, texture_size, 0);
+  u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
-    u64 tex_hash = XXH64(texture, texture_size, 0);
-    u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
+  std::string basename = s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height,
+                                                            has_mipmaps ? "_m" : "", tex_hash);
+  std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
+  std::string formatname = StringFromFormat("_%d", static_cast<int>(format));
+  std::string fullname = basename + tlutname + formatname;
 
-    std::string basename = s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height,
-                                                              has_mipmaps ? "_m" : "", tex_hash);
-    std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
-    std::string formatname = StringFromFormat("_%d", static_cast<int>(format));
-    std::string fullname = basename + tlutname + formatname;
+  // try to match a wildcard template
+  if (!dump && s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
+    return basename + "_*" + formatname;
 
-    for (int level = 0; level < 10 && convert; level++)
-    {
-      std::string oldname = name;
-      if (level)
-        oldname += StringFromFormat("_mip%d", level);
+  // else generate the complete texture
+  if (dump || s_textureMap.find(fullname) != s_textureMap.end())
+    return fullname;
 
-      // skip not existing levels
-      if (s_textureMap.find(oldname) == s_textureMap.end())
-        continue;
-
-      for (int i = 0;; i++)
-      {
-        // for hash collisions, padd with an integer
-        std::string newname = fullname;
-        if (level)
-          newname += StringFromFormat("_mip%d", level);
-        if (i)
-          newname += StringFromFormat(".%d", i);
-
-        // new texture
-        if (s_textureMap.find(newname) == s_textureMap.end())
-        {
-          std::string src = s_textureMap[oldname];
-          size_t postfix = src.find_last_of('.');
-          std::string dst = src.substr(0, postfix - oldname.length()) + newname +
-                            src.substr(postfix, src.length() - postfix);
-          if (File::Rename(src, dst))
-          {
-            s_textureMap.erase(oldname);
-            s_textureMap[newname] = dst;
-            s_check_new_format = true;
-            OSD::AddMessage(StringFromFormat("Rename custom texture %s to %s", oldname.c_str(),
-                                             newname.c_str()),
-                            5000);
-          }
-          else
-          {
-            ERROR_LOG(VIDEO, "rename failed");
-          }
-          break;
-        }
-        else
-        {
-          // dst fail already exist, compare content
-          std::string a, b;
-          File::ReadFileToString(s_textureMap[oldname], a);
-          File::ReadFileToString(s_textureMap[newname], b);
-
-          if (a == b && a != "")
-          {
-            // equal, so remove
-            if (File::Delete(s_textureMap[oldname]))
-            {
-              s_textureMap.erase(oldname);
-              OSD::AddMessage(
-                  StringFromFormat("Delete double old custom texture %s", oldname.c_str()), 5000);
-            }
-            else
-            {
-              ERROR_LOG(VIDEO, "delete failed");
-            }
-            break;
-          }
-
-          // else continue in this loop with the next higher padding variable
-        }
-      }
-    }
-
-    // try to match a wildcard template
-    if (!dump && s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
-      return basename + "_*" + formatname;
-
-    // else generate the complete texture
-    if (dump || s_textureMap.find(fullname) != s_textureMap.end())
-      return fullname;
-  }
-
-  return name;
+  return "";
 }
 
 u32 HiresTexture::CalculateMipCount(u32 width, u32 height)
@@ -422,8 +330,9 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   // If this fails, it's fine, we'll just load level0 again using SOIL.
   // Can't use make_unique due to private constructor.
   std::unique_ptr<HiresTexture> ret = std::unique_ptr<HiresTexture>(new HiresTexture());
-  const std::string& first_mip_filename = filename_iter->second;
-  LoadDDSTexture(ret.get(), first_mip_filename);
+  const DiskTexture& first_mip_file = filename_iter->second;
+  ret->m_has_arbitrary_mipmaps = first_mip_file.has_arbitrary_mipmaps;
+  LoadDDSTexture(ret.get(), first_mip_file.path);
 
   // Load remaining mip levels, or from the start if it's not a DDS texture.
   for (u32 mip_level = static_cast<u32>(ret->m_levels.size());; mip_level++)
@@ -439,10 +348,10 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     // Try loading DDS textures first, that way we maintain compression of DXT formats.
     // TODO: Reduce the number of open() calls here. We could use one fd.
     Level level;
-    if (!LoadDDSTexture(level, filename_iter->second))
+    if (!LoadDDSTexture(level, filename_iter->second.path))
     {
       File::IOFile file;
-      file.Open(filename_iter->second, "rb");
+      file.Open(filename_iter->second.path, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
       if (!LoadTexture(level, buffer))
@@ -465,7 +374,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   {
     ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
                      "from the native size %ux%u.",
-              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+              first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
@@ -473,7 +382,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   {
     ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
                      "upscaling factor based on the native size %ux%u.",
-              first_mip.width, first_mip.height, first_mip_filename.c_str(), width, height);
+              first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 
   // Verify that each mip level is the correct size (divide by 2 each time).
@@ -492,14 +401,14 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
       ERROR_LOG(VIDEO,
                 "Invalid custom texture size %dx%d for texture %s. Mipmap level %u must be %dx%d.",
-                level.width, level.height, first_mip_filename.c_str(), mip_level, current_mip_width,
-                current_mip_height);
+                level.width, level.height, first_mip_file.path.c_str(), mip_level,
+                current_mip_width, current_mip_height);
     }
     else
     {
       // It is invalid to have more than a single 1x1 mipmap.
       ERROR_LOG(VIDEO, "Custom texture %s has too many 1x1 mipmaps. Skipping extra levels.",
-                first_mip_filename.c_str());
+                first_mip_file.path.c_str());
     }
 
     // Drop this mip level and any others after it.
@@ -512,7 +421,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
                   [&ret](const Level& l) { return l.format != ret->m_levels[0].format; }))
   {
     ERROR_LOG(VIDEO, "Custom texture %s has inconsistent formats across mip levels.",
-              first_mip_filename.c_str());
+              first_mip_file.path.c_str());
 
     return nullptr;
   }
@@ -559,4 +468,9 @@ HiresTexture::~HiresTexture()
 AbstractTextureFormat HiresTexture::GetFormat() const
 {
   return m_levels.at(0).format;
+}
+
+bool HiresTexture::HasArbitraryMipmaps() const
+{
+  return m_has_arbitrary_mipmaps;
 }

@@ -6,13 +6,16 @@
 
 #include <QDialog>
 
-#include "DolphinQt2/GameList/GameFile.h"
+namespace UICommon
+{
+class GameFile;
+}
 
 class PropertiesDialog final : public QDialog
 {
   Q_OBJECT
 public:
-  explicit PropertiesDialog(QWidget* parent, const GameFile& game);
+  explicit PropertiesDialog(QWidget* parent, const UICommon::GameFile& game);
 
 signals:
   void OpenGeneralSettings();

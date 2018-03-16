@@ -125,13 +125,17 @@ enum Bug
   // Intel HD 4000 series isn't affected by the bug
   BUG_PRIMITIVE_RESTART,
   // Bug: unsync mapping doesn't work fine
-  // Affected devices: Nvidia driver
+  // Affected devices: Nvidia driver, ARM Mali
   // Started Version: -1
   // Ended Version: -1
   // The Nvidia driver (both Windows + Linux) doesn't like unsync mapping performance wise.
   // Because of their threaded behavior, they seem not to handle unsync mapping complete unsync,
   // in fact, they serialize the driver which adds a much bigger overhead.
   // Workaround: Use BufferSubData
+  // The Mali behavior is even worse: They just ignore the unsychronized flag and stall the GPU.
+  // Workaround: As they were even too lazy to implement asynchronous buffer updates,
+  //             BufferSubData stalls as well, so we have to use the slowest possible path:
+  //             Alloc one buffer per draw call with BufferData.
   // TODO: some Windows AMD driver/GPU combination seems also affected
   //       but as they all support pinned memory, it doesn't matter
   BUG_BROKEN_UNSYNC_MAPPING,
@@ -248,8 +252,10 @@ enum Bug
   // the negated value to a temporary variable then using that in the bitwise op.
   BUG_BROKEN_BITWISE_OP_NEGATION,
 
-  // Bug: Shaders are recompiled on the main thread after being previously compiled on
-  // a worker thread on Mesa i965.
+  // BUG: The GPU shader code appears to be context-specific on Mesa/i965.
+  // This means that if we compiled the ubershaders asynchronously, they will be recompiled
+  // on the main thread the first time they are used, causing stutter. For now, disable
+  // asynchronous compilation on Mesa i965.
   // Started version: -1
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,
@@ -279,7 +285,4 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.
 bool HasBug(Bug bug);
-
-// Attempts to map a PCI vendor ID to our Vendor enumeration
-Vendor TranslatePCIVendorID(u32 vendor_id);
 }

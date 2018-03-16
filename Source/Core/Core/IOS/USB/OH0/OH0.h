@@ -41,7 +41,7 @@ public:
   OH0(Kernel& ios, const std::string& device_name);
   ~OH0() override;
 
-  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Open(const OpenRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 

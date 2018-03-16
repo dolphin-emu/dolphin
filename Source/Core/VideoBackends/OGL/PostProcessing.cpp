@@ -5,7 +5,6 @@
 #include "VideoBackends/OGL/PostProcessing.h"
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
@@ -47,7 +46,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 
   glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 
-  OpenGL_BindAttributelessVAO();
+  ProgramShaderCache::BindVertexFormat(nullptr);
 
   m_shader.Bind();
 
@@ -122,7 +121,6 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
   glBindTexture(GL_TEXTURE_2D_ARRAY, src_texture);
   g_sampler_cache->BindLinearSampler(9);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  OGLTexture::SetStage();
 }
 
 void OpenGLPostProcessing::ApplyShader()

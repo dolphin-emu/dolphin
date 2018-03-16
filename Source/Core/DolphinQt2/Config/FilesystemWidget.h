@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "DiscIO/Volume.h"
-#include "DolphinQt2/GameList/GameFile.h"
+#include "UICommon/GameFile.h"
 
 class QStandardItem;
 class QStandardItemModel;
@@ -24,7 +24,7 @@ class FilesystemWidget final : public QWidget
 {
   Q_OBJECT
 public:
-  explicit FilesystemWidget(const GameFile& game);
+  explicit FilesystemWidget(const UICommon::GameFile& game);
 
 private:
   void CreateWidgets();
@@ -46,6 +46,6 @@ private:
   QStandardItemModel* m_tree_model;
   QTreeView* m_tree_view;
 
-  GameFile m_game;
+  UICommon::GameFile m_game;
   std::unique_ptr<DiscIO::Volume> m_volume;
 };

@@ -4,12 +4,12 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
 #include <string>
 
 #include <QMenu>
 #include <QMenuBar>
-
-#include "DolphinQt2/GameList/GameFile.h"
 
 namespace Core
 {
@@ -20,6 +20,11 @@ namespace DiscIO
 {
 enum class Region;
 };
+
+namespace UICommon
+{
+class GameFile;
+}
 
 class MenuBar final : public QMenuBar
 {
@@ -61,9 +66,11 @@ signals:
   void PerformOnlineUpdate(const std::string& region);
 
   // Tools
+  void ShowMemcardManager();
   void BootGameCubeIPL(DiscIO::Region region);
   void ShowFIFOPlayer();
   void ShowAboutDialog();
+  void ConnectWiiRemote(int id);
 
   // Options
   void Configure();
@@ -84,8 +91,9 @@ signals:
   void StartRecording();
   void StopRecording();
   void ExportRecording();
+  void ShowTASInput();
 
-  void SelectionChanged(QSharedPointer<GameFile> game_file);
+  void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void RecordingStatusChanged(bool recording);
   void ReadOnlyModeChanged(bool read_only);
 
@@ -109,16 +117,32 @@ private:
   void AddToolsMenu();
   void AddHelpMenu();
   void AddMovieMenu();
+  void AddSymbolsMenu();
 
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
   void CheckNAND();
   void NANDExtractCertificates();
+  void ChangeDebugFont();
 
-  void OnSelectionChanged(QSharedPointer<GameFile> game_file);
+  // Debugging UI
+  void ClearSymbols();
+  void GenerateSymbolsFromAddress();
+  void GenerateSymbolsFromSignatureDB();
+  void GenerateSymbolsFromRSO();
+  void LoadSymbolMap();
+  void LoadOtherSymbolMap();
+  void SaveSymbolMap();
+  void SaveSymbolMapAs();
+  void SaveCode();
+  void CreateSignatureFile();
+  void PatchHLEFunctions();
+
+  void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
+  void OnDebugModeToggled(bool enabled);
 
   // File
   QAction* m_open_action;
@@ -134,6 +158,7 @@ private:
   QAction* m_import_backup;
   QAction* m_check_nand;
   QAction* m_extract_certificates;
+  std::array<QAction*, 5> m_wii_remotes;
 
   // Emulation
   QAction* m_play_action;
@@ -157,4 +182,18 @@ private:
   QAction* m_recording_start;
   QAction* m_recording_stop;
   QAction* m_recording_read_only;
+
+  // Options
+  QAction* m_boot_to_pause;
+  QAction* m_automatic_start;
+  QAction* m_change_font;
+
+  // View
+  QAction* m_show_code;
+  QAction* m_show_registers;
+  QAction* m_show_watch;
+  QAction* m_show_breakpoints;
+
+  // Symbols
+  QMenu* m_symbols;
 };

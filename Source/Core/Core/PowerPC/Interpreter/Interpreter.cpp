@@ -105,14 +105,14 @@ int Interpreter::SingleStepInner()
   u32 function = HLE::GetFirstFunctionIndex(PC);
   if (function != 0)
   {
-    int type = HLE::GetFunctionTypeByIndex(function);
-    if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
+    HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
+    if (type == HLE::HookType::Start || type == HLE::HookType::Replace)
     {
-      int flags = HLE::GetFunctionFlagsByIndex(function);
+      HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
       if (HLE::IsEnabled(flags))
       {
         HLEFunction(function);
-        if (type == HLE::HLE_HOOK_START)
+        if (type == HLE::HookType::Start)
         {
           // Run the original.
           function = 0;

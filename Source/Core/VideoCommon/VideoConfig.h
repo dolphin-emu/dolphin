@@ -24,7 +24,7 @@
 
 constexpr int EFB_SCALE_AUTO_INTEGRAL = 0;
 
-enum class AspectMode
+enum class AspectMode : int
 {
   Auto,
   AnalogWide,
@@ -32,7 +32,7 @@ enum class AspectMode
   Stretch,
 };
 
-enum class StereoMode
+enum class StereoMode : int
 {
   Off,
   SBS,
@@ -40,6 +40,13 @@ enum class StereoMode
   Anaglyph,
   QuadBuffer,
   Nvidia3DVision
+};
+
+enum class UberShaderMode : int
+{
+  Disabled,
+  Hybrid,
+  Exclusive
 };
 
 struct ProjectionHackConfig final
@@ -93,13 +100,13 @@ struct VideoConfig final
   // Utility
   bool bDumpTextures;
   bool bHiresTextures;
-  bool bConvertHiresTextures;
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
   bool bDumpXFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
   std::string sDumpCodec;
+  std::string sDumpEncoder;
   std::string sDumpFormat;
   std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
@@ -118,6 +125,7 @@ struct VideoConfig final
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
   bool bSkipXFBCopyToRam;
+  bool bDisableCopyToVRAM;
   bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
@@ -160,25 +168,9 @@ struct VideoConfig final
   // Currently only supported with Vulkan.
   int iCommandBufferExecuteInterval;
 
-  // The following options determine the ubershader mode:
-  //   No ubershaders:
-  //     - bBackgroundShaderCompiling = false
-  //     - bDisableSpecializedShaders = false
-  //   Hybrid/background compiling:
-  //     - bBackgroundShaderCompiling = true
-  //     - bDisableSpecializedShaders = false
-  //   Ubershaders only:
-  //     - bBackgroundShaderCompiling = false
-  //     - bDisableSpecializedShaders = true
-
-  // Enable background shader compiling, use ubershaders while waiting.
-  bool bBackgroundShaderCompiling;
-
-  // Use ubershaders only, don't compile specialized shaders.
-  bool bDisableSpecializedShaders;
-
-  // Precompile ubershader variants at boot/config reload time.
-  bool bPrecompileUberShaders;
+  // Shader compilation settings.
+  bool bWaitForShadersBeforeStarting;
+  UberShaderMode iUberShaderMode;
 
   // Number of shader compiler threads.
   // 0 disables background compilation.
@@ -222,10 +214,11 @@ struct VideoConfig final
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
     bool bSupportsCopyToVram;
-    bool bForceCopyToRam;                  // Needed by Software Renderer
     bool bSupportsBitfield;                // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsDynamicSamplerIndexing;  // Needed by UberShaders, so must stay in VideoCommon
     bool bSupportsBPTCTextures;
+    bool bSupportsFramebufferFetch;  // Used as an alternative to dual-source blend on GLES
+    bool bSupportsBackgroundCompiling;
   } backend_info;
 
   // Utility
@@ -245,10 +238,9 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
+  bool UsingUberShaders() const { return iUberShaderMode != UberShaderMode::Disabled; }
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
-  bool CanPrecompileUberShaders() const;
-  bool CanBackgroundCompileShaders() const;
 };
 
 extern VideoConfig g_Config;

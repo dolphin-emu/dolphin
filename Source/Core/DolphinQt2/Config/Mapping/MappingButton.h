@@ -11,12 +11,13 @@ class ControlReference;
 class MappingWidget;
 class QEvent;
 class QMouseEvent;
+class QTimer;
 
 class MappingButton : public ElidedButton
 {
   Q_OBJECT
 public:
-  MappingButton(MappingWidget* widget, ControlReference* ref);
+  MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator);
 
   void Clear();
   void Update();
@@ -33,4 +34,5 @@ private:
 
   MappingWidget* m_parent;
   ControlReference* m_reference;
+  QTimer* m_timer;
 };

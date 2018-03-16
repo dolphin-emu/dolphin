@@ -161,16 +161,16 @@ void Device::DoStateShared(PointerWrap& p)
   p.Do(m_is_active);
 }
 
-ReturnCode Device::Open(const OpenRequest& request)
+IPCCommandResult Device::Open(const OpenRequest& request)
 {
   m_is_active = true;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
-ReturnCode Device::Close(u32 fd)
+IPCCommandResult Device::Close(u32 fd)
 {
   m_is_active = false;
-  return IPC_SUCCESS;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult Device::Unsupported(const Request& request)
@@ -184,10 +184,10 @@ IPCCommandResult Device::Unsupported(const Request& request)
   return GetDefaultReply(IPC_EINVAL);
 }
 
-// Returns an IPCCommandResult for a reply that takes 250 us (arbitrarily chosen value)
+// Returns an IPCCommandResult for a reply that takes 25 us (based on ES::GetTicketViews)
 IPCCommandResult Device::GetDefaultReply(const s32 return_value)
 {
-  return {return_value, true, SystemTimers::GetTicksPerSecond() / 4000};
+  return {return_value, true, SystemTimers::GetTicksPerSecond() / 40000};
 }
 
 // Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply

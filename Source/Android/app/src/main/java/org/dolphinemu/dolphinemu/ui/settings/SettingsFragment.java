@@ -24,18 +24,20 @@ import java.util.HashMap;
 public final class SettingsFragment extends Fragment implements SettingsFragmentView
 {
 	private static final String ARGUMENT_MENU_TAG = "menu_tag";
+	private static final String ARGUMENT_GAME_ID = "game_id";
 
 	private SettingsFragmentPresenter mPresenter = new SettingsFragmentPresenter(this);
 	private SettingsActivityView mActivity;
 
 	private SettingsAdapter mAdapter;
 
-	public static Fragment newInstance(String menuTag)
+	public static Fragment newInstance(String menuTag, String gameId)
 	{
 		SettingsFragment fragment = new SettingsFragment();
 
 		Bundle arguments = new Bundle();
 		arguments.putString(ARGUMENT_MENU_TAG, menuTag);
+		arguments.putString(ARGUMENT_GAME_ID, gameId);
 
 		fragment.setArguments(arguments);
 		return fragment;
@@ -71,10 +73,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
 		setRetainInstance(true);
 		String menuTag = getArguments().getString(ARGUMENT_MENU_TAG);
+		String gameId = getArguments().getString(ARGUMENT_GAME_ID);
 
 		mAdapter = new SettingsAdapter(this, getActivity());
 
-		mPresenter.onCreate(menuTag);
+		mPresenter.onCreate(menuTag, gameId);
 	}
 
 	@Nullable
@@ -147,7 +150,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	@Override
 	public void loadSubMenu(String menuKey)
 	{
-		mActivity.showSettingsFragment(menuKey, true);
+		mActivity.showSettingsFragment(menuKey, true, getArguments().getString(ARGUMENT_GAME_ID));
 	}
 
 	@Override

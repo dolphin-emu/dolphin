@@ -43,6 +43,7 @@
 #include "Core/Movie.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
@@ -55,6 +56,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -70,12 +72,6 @@ int OSDChoice;
 static int OSDTime;
 
 std::unique_ptr<Renderer> g_renderer;
-
-// The maximum depth that is written to the depth buffer should never exceed this value.
-// This is necessary because we use a 2^24 divisor for all our depth values to prevent
-// floating-point round-trip errors. However the console GPU doesn't ever write a value
-// to the depth buffer that exceeds 2^24 - 1.
-const float Renderer::GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
 
 static float AspectToWidescreen(float aspect)
 {
@@ -97,9 +93,17 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 
   m_surface_handle = Host_GetRenderHandle();
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
+  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
 }
 
 Renderer::~Renderer() = default;
+
+void Renderer::Shutdown()
+{
+  // First stop any framedumping, which might need to dump the last xfb frame. This process
+  // can require additional graphics sub-systems so it needs to be done first
+  ShutdownFrameDumping();
+}
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
                            float Gamma)
@@ -232,11 +236,20 @@ void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_complet
 bool Renderer::CheckForHostConfigChanges()
 {
   ShaderHostConfig new_host_config = ShaderHostConfig::GetCurrent();
-  if (new_host_config.bits == m_last_host_config_bits)
+  if (new_host_config.bits == m_last_host_config_bits &&
+      m_last_efb_multisamples == g_ActiveConfig.iMultisamples)
+  {
     return false;
+  }
 
-  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
   m_last_host_config_bits = new_host_config.bits;
+  m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
+
+  // Reload shaders.
+  OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
+  SetPipeline(nullptr);
+  g_vertex_manager->InvalidatePipelineObject();
+  g_shader_cache->SetHostConfig(new_host_config, g_ActiveConfig.iMultisamples);
   return true;
 }
 
@@ -307,9 +320,6 @@ void Renderer::DrawDebugText()
     const char* ar_text = "";
     switch (g_ActiveConfig.aspect_mode)
     {
-    case AspectMode::Auto:
-      ar_text = "Auto";
-      break;
     case AspectMode::Stretch:
       ar_text = "Stretch";
       break;
@@ -318,6 +328,10 @@ void Renderer::DrawDebugText()
       break;
     case AspectMode::AnalogWide:
       ar_text = "Force 16:9";
+      break;
+    case AspectMode::Auto:
+    default:
+      ar_text = "Auto";
       break;
     }
 
@@ -398,6 +412,21 @@ bool Renderer::IsHeadless() const
   return !m_surface_handle;
 }
 
+void Renderer::ChangeSurface(void* new_surface_handle)
+{
+  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  m_new_surface_handle = new_surface_handle;
+  m_surface_changed.Set();
+}
+
+void Renderer::ResizeSurface(int new_width, int new_height)
+{
+  std::lock_guard<std::mutex> lock(m_swap_mutex);
+  m_new_backbuffer_width = new_width;
+  m_new_backbuffer_height = new_height;
+  m_surface_resized.Set();
+}
+
 std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
                                                              const int height) const
 {
@@ -441,6 +470,7 @@ void Renderer::UpdateDrawRectangle()
       target_aspect = AspectToWidescreen(VideoInterface::GetAspectRatio());
       break;
     case AspectMode::Auto:
+    default:
       target_aspect = source_aspect;
       break;
     }
@@ -521,10 +551,6 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  // Scale the window size by the EFB scale.
-  if (g_ActiveConfig.iEFBScale != EFB_SCALE_AUTO_INTEGRAL)
-    std::tie(width, height) = CalculateTargetScale(width, height);
-
   std::tie(width, height) = CalculateOutputDimensions(width, height);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
@@ -641,17 +667,25 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
     if (xfb_entry && xfb_entry->id != m_last_xfb_id)
     {
+      const TextureConfig& texture_config = xfb_entry->texture->GetConfig();
       m_last_xfb_texture = xfb_entry->texture.get();
       m_last_xfb_id = xfb_entry->id;
       m_last_xfb_ticks = ticks;
 
-      auto xfb_rect = xfb_entry->texture->GetConfig().GetRect();
+      auto xfb_rect = texture_config.GetRect();
       xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
 
       m_last_xfb_region = xfb_rect;
 
       // TODO: merge more generic parts into VideoCommon
-      g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+      {
+        std::lock_guard<std::mutex> guard(m_swap_mutex);
+        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+      }
+
+      // Update the window size based on the frame that was just rendered.
+      // Due to depending on guest state, we need to call this every frame.
+      SetWindowSize(texture_config.width, texture_config.height);
 
       m_fps_counter.Update();
 
@@ -665,6 +699,13 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // Set default viewport and scissor, for the clear to work correctly
       // New frame
       stats.ResetFrame();
+      g_shader_cache->RetrieveAsyncShaders();
+
+      // We invalidate the pipeline object at the start of the frame.
+      // This is for the rare case where only a single pipeline configuration is used,
+      // and hybrid ubershaders have compiled the specialized shader, but without any
+      // state changes the specialized shader will not take over.
+      g_vertex_manager->InvalidatePipelineObject();
 
       Core::Callback_VideoCopiedToXFB(true);
     }
@@ -717,7 +758,7 @@ void Renderer::RenderFrameDump()
       m_frame_dump_render_texture->GetConfig().height == static_cast<u32>(target_height))
   {
     // Recreate texture objects. Release before creating so we don't temporarily use twice the RAM.
-    TextureConfig config(target_width, target_height, 1, 1, AbstractTextureFormat::RGBA8, true);
+    TextureConfig config(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, true);
     m_frame_dump_render_texture.reset();
     m_frame_dump_render_texture = CreateTexture(config);
     _assert_(m_frame_dump_render_texture);
@@ -798,6 +839,9 @@ void Renderer::ShutdownFrameDumping()
   m_frame_dump_start.Set();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();
+  m_frame_dump_render_texture.reset();
+  for (auto& tex : m_frame_dump_readback_textures)
+    tex.reset();
 }
 
 void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state)
@@ -982,4 +1026,9 @@ bool Renderer::UseVertexDepthRange() const
   // If an oversized depth range or a ztexture is used, we need to calculate the depth range
   // in the vertex shader.
   return fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f;
+}
+
+std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
+{
+  return std::make_unique<VideoCommon::AsyncShaderCompiler>();
 }

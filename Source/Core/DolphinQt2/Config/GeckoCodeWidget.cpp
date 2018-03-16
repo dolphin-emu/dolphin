@@ -6,6 +6,7 @@
 
 #include <QFontDatabase>
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
@@ -17,11 +18,12 @@
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCodeConfig.h"
+#include "DolphinQt2/Config/CheatCodeEditor.h"
 #include "DolphinQt2/Config/CheatWarningWidget.h"
-#include "DolphinQt2/GameList/GameFile.h"
+#include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(const GameFile& game)
-    : m_game(game), m_game_id(game.GetGameID().toStdString()), m_game_revision(game.GetRevision())
+GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game)
+    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
 {
   CreateWidgets();
   ConnectWidgets();
@@ -59,9 +61,14 @@ void GeckoCodeWidget::CreateWidgets()
   m_code_view->setReadOnly(true);
   m_code_view->setFixedHeight(line_height * 10);
 
+  m_add_code = new QPushButton(tr("&Add New Code..."));
+  m_edit_code = new QPushButton(tr("&Edit Code..."));
+  m_remove_code = new QPushButton(tr("&Remove Code"));
   m_download_codes = new QPushButton(tr("Download Codes (WiiRD Database)"));
+
   m_download_codes->setEnabled(!m_game_id.empty());
-  m_download_codes->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  m_edit_code->setEnabled(false);
+  m_remove_code->setEnabled(false);
 
   auto* layout = new QVBoxLayout;
 
@@ -85,7 +92,15 @@ void GeckoCodeWidget::CreateWidgets()
   layout->addLayout(info_layout);
   layout->addWidget(m_code_description);
   layout->addWidget(m_code_view);
-  layout->addWidget(m_download_codes, 0, Qt::AlignRight);
+
+  QHBoxLayout* btn_layout = new QHBoxLayout;
+
+  btn_layout->addWidget(m_add_code);
+  btn_layout->addWidget(m_edit_code);
+  btn_layout->addWidget(m_remove_code);
+  btn_layout->addWidget(m_download_codes);
+
+  layout->addLayout(btn_layout);
 
   setLayout(layout);
 }
@@ -96,6 +111,8 @@ void GeckoCodeWidget::ConnectWidgets()
           &GeckoCodeWidget::OnSelectionChanged);
   connect(m_code_list, &QListWidget::itemChanged, this, &GeckoCodeWidget::OnItemChanged);
 
+  connect(m_add_code, &QPushButton::pressed, this, &GeckoCodeWidget::AddCode);
+  connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
 
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
@@ -105,6 +122,9 @@ void GeckoCodeWidget::ConnectWidgets()
 void GeckoCodeWidget::OnSelectionChanged()
 {
   auto items = m_code_list->selectedItems();
+
+  m_edit_code->setEnabled(!items.empty());
+  m_remove_code->setEnabled(!items.empty());
 
   if (items.empty())
     return;
@@ -133,6 +153,55 @@ void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
 {
   m_gecko_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
 
+  SaveCodes();
+}
+
+void GeckoCodeWidget::AddCode()
+{
+  Gecko::GeckoCode code;
+  code.enabled = true;
+
+  CheatCodeEditor ed;
+  ed.SetGeckoCode(&code);
+
+  if (ed.exec())
+  {
+    m_gecko_codes.push_back(std::move(code));
+    SaveCodes();
+    UpdateList();
+  }
+}
+
+void GeckoCodeWidget::EditCode()
+{
+  const auto* item = m_code_list->currentItem();
+
+  if (item == nullptr)
+    return;
+
+  int row = m_code_list->row(item);
+
+  CheatCodeEditor ed;
+
+  ed.SetGeckoCode(&m_gecko_codes[row]);
+
+  if (ed.exec())
+  {
+    SaveCodes();
+    UpdateList();
+  }
+}
+
+void GeckoCodeWidget::RemoveCode()
+{
+  const auto* item = m_code_list->currentItem();
+
+  if (item == nullptr)
+    return;
+
+  m_gecko_codes.erase(m_gecko_codes.begin() + m_code_list->row(item));
+
+  UpdateList();
   SaveCodes();
 }
 

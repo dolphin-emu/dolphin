@@ -25,8 +25,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 25
 
-        // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
-        versionCode 13
+        versionCode(getBuildVersionCode())
 
         versionName "${getVersion()}"
     }
@@ -80,22 +79,23 @@ ext {
 }
 
 dependencies {
-    api "com.android.support:support-v13:$androidSupportVersion"
-    api "com.android.support:cardview-v7:$androidSupportVersion"
-    api "com.android.support:recyclerview-v7:$androidSupportVersion"
-    api "com.android.support:design:$androidSupportVersion"
+    implementation "com.android.support:support-v13:$androidSupportVersion"
+    implementation "com.android.support:cardview-v7:$androidSupportVersion"
+    implementation "com.android.support:recyclerview-v7:$androidSupportVersion"
+    implementation "com.android.support:design:$androidSupportVersion"
 
     // Android TV UI libraries.
-    api "com.android.support:leanback-v17:$androidSupportVersion"
+    implementation "com.android.support:leanback-v17:$androidSupportVersion"
 
     // For showing the banner as a circle a-la Material Design Guidelines
-    api 'de.hdodenhof:circleimageview:2.1.0'
+    implementation 'de.hdodenhof:circleimageview:2.1.0'
 
     // For loading huge screenshots from the disk.
-    api 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
 
     // Allows FRP-style asynchronous operations in Android.
-    api 'io.reactivex:rxandroid:1.2.1'
+    implementation 'io.reactivex:rxandroid:1.2.1'
+    implementation 'com.nononsenseapps:filepicker:4.1.0'
 }
 
 def getVersion() {
@@ -110,4 +110,17 @@ def getVersion() {
     }
 
     return versionNumber
+}
+
+
+def getBuildVersionCode() {
+    try {
+        def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
+                .trim()
+        return Integer.valueOf(versionNumber);
+    } catch (Exception e) {
+        logger.error('Cannot find git, defaulting to dummy version number')
+    }
+
+    return 0;
 }

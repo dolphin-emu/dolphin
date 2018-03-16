@@ -26,7 +26,8 @@ enum STAGING_BUFFER_TYPE
 // Descriptor set layouts
 enum DESCRIPTOR_SET_LAYOUT
 {
-  DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS,
+  DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER,
+  DESCRIPTOR_SET_LAYOUT_PER_STAGE_UNIFORM_BUFFERS,
   DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS,
   DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS,
   DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS,
@@ -47,8 +48,7 @@ enum DESCRIPTOR_SET_BIND_POINT
 //   - Standard
 //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
 //       - 8 combined image samplers (accessible from PS)
-//   - BBox Enabled
-//       - Same as standard, plus a single SSBO accessible from PS
+//       - 1 SSBO accessible from PS if supported
 //   - Push Constant
 //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
 //   - Texture Decoding
@@ -66,9 +66,9 @@ enum DESCRIPTOR_SET_BIND_POINT
 enum PIPELINE_LAYOUT
 {
   PIPELINE_LAYOUT_STANDARD,
-  PIPELINE_LAYOUT_BBOX,
   PIPELINE_LAYOUT_PUSH_CONSTANT,
   PIPELINE_LAYOUT_TEXTURE_CONVERSION,
+  PIPELINE_LAYOUT_UTILITY,
   PIPELINE_LAYOUT_COMPUTE,
   NUM_PIPELINE_LAYOUTS
 };
@@ -128,7 +128,7 @@ constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 union MultisamplingState
 {
   BitField<0, 5, u32> samples;             // 1-16
-  BitField<0, 1, u32> per_sample_shading;  // SSAA
+  BitField<5, 1, u32> per_sample_shading;  // SSAA
   u32 hex;
 };
 

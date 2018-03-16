@@ -299,8 +299,6 @@ void RunGpuLoop()
       [] {
         const SConfig& param = SConfig::GetInstance();
 
-        g_video_backend->PeekMessages();
-
         // Do nothing while paused
         if (!s_emu_running_state.IsSet())
           return;

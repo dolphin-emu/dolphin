@@ -21,6 +21,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/WiiUtils.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
@@ -109,13 +111,13 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
-  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Interactive);
+  hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
 
   m_list->verticalHeader()->hide();
   m_list->setFrameStyle(QFrame::NoFrame);
@@ -157,11 +159,11 @@ void GameList::MakeGridView()
 void GameList::ShowContextMenu(const QPoint&)
 {
   const auto game = GetSelectedGame();
-  if (game.isNull())
+  if (!game)
     return;
 
   QMenu* menu = new QMenu(this);
-  DiscIO::Platform platform = game->GetPlatformID();
+  DiscIO::Platform platform = game->GetPlatform();
   AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
   AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
@@ -188,7 +190,7 @@ void GameList::ShowContextMenu(const QPoint&)
   if (platform == DiscIO::Platform::WII_DISC)
   {
     auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
-      WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath().toStdString(), this);
+      WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
     });
     perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
   }
@@ -209,7 +211,8 @@ void GameList::ShowContextMenu(const QPoint&)
 
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       wad_install_action->setEnabled(state == Core::State::Uninitialized);
-      wad_uninstall_action->setEnabled(state == Core::State::Uninitialized && game->IsInstalled());
+      wad_uninstall_action->setEnabled(state == Core::State::Uninitialized &&
+                                       WiiUtils::IsTitleInstalled(game->GetTitleID()));
     });
 
     menu->addSeparator();
@@ -228,7 +231,7 @@ void GameList::ShowContextMenu(const QPoint&)
   QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
   connect(netplay_host, &QAction::triggered,
-          [this, game] { emit NetPlayHost(game->GetUniqueID()); });
+          [this, game] { emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier())); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
     netplay_host->setEnabled(state == Core::State::Uninitialized);
@@ -253,7 +256,7 @@ void GameList::ExportWiiSave()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = GetSelectedGame()->ExportWiiSave();
+  const bool success = CWiiSaveCrypted::ExportWiiSave(GetSelectedGame()->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully exported save files") :
@@ -263,7 +266,7 @@ void GameList::ExportWiiSave()
 
 void GameList::OpenWiki()
 {
-  QString game_id = GetSelectedGame()->GetGameID();
+  QString game_id = QString::fromStdString(GetSelectedGame()->GetGameID());
   QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }
@@ -275,7 +278,7 @@ void GameList::CompressISO()
 
   const bool compressed = (file->GetBlobType() == DiscIO::BlobType::GCZ);
 
-  if (!compressed && file->GetPlatformID() == DiscIO::Platform::WII_DISC)
+  if (!compressed && file->GetPlatform() == DiscIO::Platform::WII_DISC)
   {
     QMessageBox wii_warning(this);
     wii_warning.setIcon(QMessageBox::Warning);
@@ -292,9 +295,9 @@ void GameList::CompressISO()
   QString dst_path = QFileDialog::getSaveFileName(
       this, compressed ? tr("Select where you want to save the decompressed image") :
                          tr("Select where you want to save the compressed image"),
-      QFileInfo(GetSelectedGame()->GetFilePath())
+      QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
           .dir()
-          .absoluteFilePath(file->GetGameID())
+          .absoluteFilePath(QString::fromStdString(file->GetGameID()))
           .append(compressed ? QStringLiteral(".gcm") : QStringLiteral(".gcz")),
       compressed ? tr("Uncompressed GC/Wii images (*.iso *.gcm)") :
                    tr("Compressed GC/Wii images (*.gcz)"));
@@ -310,13 +313,13 @@ void GameList::CompressISO()
 
   if (compressed)
   {
-    good = DiscIO::DecompressBlobToFile(original_path.toStdString(), dst_path.toStdString(),
-                                        &CompressCB, &progress_dialog);
+    good = DiscIO::DecompressBlobToFile(original_path, dst_path.toStdString(), &CompressCB,
+                                        &progress_dialog);
   }
   else
   {
-    good = DiscIO::CompressFileToBlob(original_path.toStdString(), dst_path.toStdString(),
-                                      file->GetPlatformID() == DiscIO::Platform::WII_DISC ? 1 : 0,
+    good = DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
+                                      file->GetPlatform() == DiscIO::Platform::WII_DISC ? 1 : 0,
                                       16384, &CompressCB, &progress_dialog);
   }
 
@@ -336,7 +339,7 @@ void GameList::InstallWAD()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = GetSelectedGame()->Install();
+  const bool success = WiiUtils::InstallWAD(GetSelectedGame()->GetFilePath());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
@@ -358,7 +361,7 @@ void GameList::UninstallWAD()
 
   QMessageBox result_dialog(this);
 
-  const bool success = GetSelectedGame()->Uninstall();
+  const bool success = WiiUtils::UninstallTitle(GetSelectedGame()->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
@@ -368,24 +371,25 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame()->GetFilePath().toStdString();
+  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame()->GetFilePath();
 }
 
 void GameList::OpenContainingFolder()
 {
-  QUrl url = QUrl::fromLocalFile(QFileInfo(GetSelectedGame()->GetFilePath()).dir().absolutePath());
+  QUrl url = QUrl::fromLocalFile(
+      QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath())).dir().absolutePath());
   QDesktopServices::openUrl(url);
 }
 
 void GameList::OpenSaveFolder()
 {
-  QUrl url = QUrl::fromLocalFile(GetSelectedGame()->GetWiiFSPath());
+  QUrl url = QUrl::fromLocalFile(QString::fromStdString(GetSelectedGame()->GetWiiFSPath()));
   QDesktopServices::openUrl(url);
 }
 
 void GameList::DeleteFile()
 {
-  const auto game = GetSelectedGame()->GetFilePath();
+  const std::string game = GetSelectedGame()->GetFilePath();
   QMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
@@ -399,7 +403,7 @@ void GameList::DeleteFile()
 
     while (!deletion_successful)
     {
-      deletion_successful = File::Delete(game.toStdString());
+      deletion_successful = File::Delete(game);
 
       if (deletion_successful)
       {
@@ -424,11 +428,10 @@ void GameList::DeleteFile()
 
 void GameList::ChangeDisc()
 {
-  Core::RunAsCPUThread(
-      [this] { DVDInterface::ChangeDisc(GetSelectedGame()->GetFilePath().toStdString()); });
+  Core::RunAsCPUThread([this] { DVDInterface::ChangeDisc(GetSelectedGame()->GetFilePath()); });
 }
 
-QSharedPointer<GameFile> GameList::GetSelectedGame() const
+std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
 {
   QAbstractItemView* view;
   QSortFilterProxyModel* proxy;

@@ -58,12 +58,6 @@ Make AA apply instantly during gameplay if possible
 
 namespace OGL
 {
-// Draw messages on top of the screen
-unsigned int VideoBackend::PeekMessages()
-{
-  return GLInterface->PeekMessages();
-}
-
 std::string VideoBackend::GetName() const
 {
   return "OGL";
@@ -91,7 +85,6 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsReversedDepthRange = true;
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
-  g_Config.backend_info.bForceCopyToRam = false;
 
   // TODO: There is a bug here, if texel buffers are not supported the graphics options
   // will show the option when it is not supported. The only way around this would be
@@ -167,53 +160,35 @@ bool VideoBackend::Initialize(void* window_handle)
   InitBackendInfo();
   InitializeShared();
 
-  InitInterface();
+  GLUtil::InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
   if (!GLInterface->Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer))
     return false;
 
-  return true;
-}
-
-// This is called after Initialize() from the Core
-// Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
   GLInterface->MakeCurrent();
   if (!InitializeGLExtensions() || !FillBackendInfo())
-  {
-    // TODO: Handle this better. We'll likely end up crashing anyway, but this method doesn't
-    // return anything, so we can't inform the caller that startup failed.
-    return;
-  }
+    return false;
 
   g_renderer = std::make_unique<Renderer>();
-
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();
   g_texture_cache = std::make_unique<TextureCache>();
   g_sampler_cache = std::make_unique<SamplerCache>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
   static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
   BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  return g_shader_cache->Initialize();
 }
 
 void VideoBackend::Shutdown()
 {
-  GLInterface->Shutdown();
-  GLInterface.reset();
-  ShutdownShared();
-}
-
-void VideoBackend::Video_Cleanup()
-{
-  // The following calls are NOT Thread Safe
-  // And need to be called from the video thread
-  CleanupShared();
-  static_cast<Renderer*>(g_renderer.get())->Shutdown();
+  g_shader_cache->Shutdown();
+  g_renderer->Shutdown();
   BoundingBox::Shutdown();
   TextureConverter::Shutdown();
+  g_shader_cache.reset();
   g_sampler_cache.reset();
   g_texture_cache.reset();
   ProgramShaderCache::Shutdown();
@@ -221,5 +196,8 @@ void VideoBackend::Video_Cleanup()
   g_vertex_manager.reset();
   g_renderer.reset();
   GLInterface->ClearCurrent();
+  GLInterface->Shutdown();
+  GLInterface.reset();
+  ShutdownShared();
 }
 }
