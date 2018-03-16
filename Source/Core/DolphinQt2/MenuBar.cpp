@@ -120,6 +120,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_registers->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
+  m_show_memory->setVisible(enabled);
 
   if (enabled)
     addMenu(m_symbols);
@@ -375,6 +376,14 @@ void MenuBar::AddViewMenu()
   connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
           &Settings::SetBreakpointsVisible);
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
+          &QAction::setChecked);
+
+  m_show_memory = view_menu->addAction(tr("&Memory"));
+  m_show_memory->setCheckable(true);
+  m_show_memory->setChecked(Settings::Instance().IsMemoryVisible());
+
+  connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::SetMemoryVisible);
+  connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
           &QAction::setChecked);
 
   view_menu->addSeparator();

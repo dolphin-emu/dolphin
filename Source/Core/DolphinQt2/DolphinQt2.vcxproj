@@ -96,6 +96,8 @@
     <QtMoc Include="Debugger\BreakpointWidget.h" />
     <QtMoc Include="Debugger\CodeWidget.h" />
     <QtMoc Include="Debugger\CodeViewWidget.h" />
+    <QtMoc Include="Debugger\MemoryWidget.h" />
+    <QtMoc Include="Debugger\MemoryViewWidget.h" />
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
     <QtMoc Include="Debugger\WatchWidget.h" />
@@ -179,6 +181,8 @@
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MD5Dialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MemoryWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MemoryViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
@@ -247,6 +251,8 @@
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
+    <ClCompile Include="Debugger\MemoryWidget.cpp" />
+    <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="FIFOPlayerWindow.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />

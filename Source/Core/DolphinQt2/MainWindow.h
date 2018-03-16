@@ -32,6 +32,7 @@ class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
+class MemoryWidget;
 class NetPlayClient;
 class NetPlayDialog;
 class NetPlayServer;
@@ -174,6 +175,7 @@ private:
   CodeWidget* m_code_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  MemoryWidget* m_memory_widget;
   FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;
