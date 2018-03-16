@@ -490,7 +490,7 @@ public:
       return (m_shifttype << 22) | (m_shift << 10);
       break;
     default:
-      _dbg_assert_msg_(DYNA_REC, false, "Invalid type in GetData");
+      DEBUG_ASSERT_MSG(DYNA_REC, false, "Invalid type in GetData");
       break;
     }
     return 0;
@@ -846,7 +846,7 @@ public:
   template <class P>
   void MOVP2R(ARM64Reg Rd, P* ptr)
   {
-    _assert_msg_(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
+    ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
     MOVI2R(Rd, (uintptr_t)ptr);
   }
 

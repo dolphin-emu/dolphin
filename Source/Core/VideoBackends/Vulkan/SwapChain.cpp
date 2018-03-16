@@ -155,7 +155,7 @@ bool SwapChain::SelectSurfaceFormat()
   std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
   res = vkGetPhysicalDeviceSurfaceFormatsKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
                                              &format_count, surface_formats.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   // If there is a single undefined surface format, the device doesn't care, so we'll just use RGBA
   if (surface_formats[0].format == VK_FORMAT_UNDEFINED)
@@ -189,7 +189,7 @@ bool SwapChain::SelectPresentMode()
   std::vector<VkPresentModeKHR> present_modes(mode_count);
   res = vkGetPhysicalDeviceSurfacePresentModesKHR(g_vulkan_context->GetPhysicalDevice(), m_surface,
                                                   &mode_count, present_modes.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   // Checks if a particular mode is supported, if it is, returns that mode.
   auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
@@ -341,7 +341,7 @@ bool SwapChain::CreateSwapChain()
 
 bool SwapChain::SetupSwapChainImages()
 {
-  _assert_(m_swap_chain_images.empty());
+  ASSERT(m_swap_chain_images.empty());
 
   uint32_t image_count;
   VkResult res =
@@ -355,7 +355,7 @@ bool SwapChain::SetupSwapChainImages()
   std::vector<VkImage> images(image_count);
   res = vkGetSwapchainImagesKHR(g_vulkan_context->GetDevice(), m_swap_chain, &image_count,
                                 images.data());
-  _assert_(res == VK_SUCCESS);
+  ASSERT(res == VK_SUCCESS);
 
   m_swap_chain_images.reserve(image_count);
   for (uint32_t i = 0; i < image_count; i++)

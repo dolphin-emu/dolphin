@@ -171,8 +171,8 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
       const auto* acl_header =
           reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(ctrl.data_address));
 
-      _dbg_assert_(IOS_WIIMOTE, HCI_BC_FLAG(acl_header->con_handle) == HCI_POINT2POINT);
-      _dbg_assert_(IOS_WIIMOTE, HCI_PB_FLAG(acl_header->con_handle) == HCI_PACKET_START);
+      DEBUG_ASSERT(IOS_WIIMOTE, HCI_BC_FLAG(acl_header->con_handle) == HCI_POINT2POINT);
+      DEBUG_ASSERT(IOS_WIIMOTE, HCI_PB_FLAG(acl_header->con_handle) == HCI_PACKET_START);
 
       SendToDevice(HCI_CON_HANDLE(acl_header->con_handle),
                    Memory::GetPointer(ctrl.data_address + sizeof(hci_acldata_hdr_t)),
@@ -187,7 +187,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
       break;
     }
     default:
-      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: %x", ctrl.endpoint);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: %x", ctrl.endpoint);
     }
     break;
   }
@@ -203,7 +203,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
     }
     else
     {
-      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: %x", ctrl.endpoint);
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: %x", ctrl.endpoint);
     }
     break;
   }
@@ -382,7 +382,7 @@ void BluetoothEmu::ACLPool::Store(const u8* data, const u16 size, const u16 conn
     return;
   }
 
-  _dbg_assert_msg_(IOS_WIIMOTE, size < ACL_PKT_SIZE, "ACL packet too large for pool");
+  DEBUG_ASSERT_MSG(IOS_WIIMOTE, size < ACL_PKT_SIZE, "ACL packet too large for pool");
 
   m_queue.push_back(Packet());
   auto& packet = m_queue.back();
@@ -437,7 +437,7 @@ bool BluetoothEmu::SendEventInquiryResponse()
   if (m_WiiMotes.empty())
     return false;
 
-  _dbg_assert_(IOS_WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 +
+  DEBUG_ASSERT(IOS_WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 +
                                     (m_WiiMotes.size() * sizeof(hci_inquiry_response)) <
                                 256);
 
@@ -701,7 +701,7 @@ bool BluetoothEmu::SendEventReadRemoteVerInfo(u16 _connectionHandle)
 
 void BluetoothEmu::SendEventCommandComplete(u16 opcode, const void* data, u32 data_size)
 {
-  _dbg_assert_(IOS_WIIMOTE, (sizeof(SHCIEventCommand) - 2 + data_size) < 256);
+  DEBUG_ASSERT(IOS_WIIMOTE, (sizeof(SHCIEventCommand) - 2 + data_size) < 256);
 
   SQueuedEvent event(sizeof(SHCIEventCommand) + data_size, 0);
 
@@ -1117,7 +1117,7 @@ void BluetoothEmu::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_messa
     }
     else
     {
-      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USB_IOCTL_CTRLMSG: 0x%04X (ocf: 0x%x  ogf 0x%x)",
+      DEBUG_ASSERT_MSG(IOS_WIIMOTE, 0, "Unknown USB_IOCTL_CTRLMSG: 0x%04X (ocf: 0x%x  ogf 0x%x)",
                        pMsg->Opcode, ocf, ogf);
     }
     break;

@@ -115,7 +115,7 @@ void BoundingBox::Invalidate()
 
 s32 BoundingBox::Get(size_t index)
 {
-  _assert_(index < NUM_VALUES);
+  ASSERT(index < NUM_VALUES);
 
   if (!m_valid)
     Readback();
@@ -127,7 +127,7 @@ s32 BoundingBox::Get(size_t index)
 
 void BoundingBox::Set(size_t index, s32 value)
 {
-  _assert_(index < NUM_VALUES);
+  ASSERT(index < NUM_VALUES);
 
   // If we're currently valid, update the stored value in both our cache and the GPU buffer.
   if (m_valid)

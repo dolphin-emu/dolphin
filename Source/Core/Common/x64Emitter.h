@@ -156,64 +156,64 @@ struct OpArg
 
   u64 Imm64() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM64);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM64);
     return (u64)offset;
   }
   u32 Imm32() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM32);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM32);
     return (u32)offset;
   }
   u16 Imm16() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM16);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM16);
     return (u16)offset;
   }
   u8 Imm8() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM8);
     return (u8)offset;
   }
 
   s64 SImm64() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM64);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM64);
     return (s64)offset;
   }
   s32 SImm32() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM32);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM32);
     return (s32)offset;
   }
   s16 SImm16() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM16);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM16);
     return (s16)offset;
   }
   s8 SImm8() const
   {
-    _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);
+    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM8);
     return (s8)offset;
   }
 
   OpArg AsImm64() const
   {
-    _dbg_assert_(DYNA_REC, IsImm());
+    DEBUG_ASSERT(DYNA_REC, IsImm());
     return OpArg((u64)offset, SCALE_IMM64);
   }
   OpArg AsImm32() const
   {
-    _dbg_assert_(DYNA_REC, IsImm());
+    DEBUG_ASSERT(DYNA_REC, IsImm());
     return OpArg((u32)offset, SCALE_IMM32);
   }
   OpArg AsImm16() const
   {
-    _dbg_assert_(DYNA_REC, IsImm());
+    DEBUG_ASSERT(DYNA_REC, IsImm());
     return OpArg((u16)offset, SCALE_IMM16);
   }
   OpArg AsImm8() const
   {
-    _dbg_assert_(DYNA_REC, IsImm());
+    DEBUG_ASSERT(DYNA_REC, IsImm());
     return OpArg((u8)offset, SCALE_IMM8);
   }
 
@@ -253,7 +253,7 @@ struct OpArg
 
   void AddMemOffset(int val)
   {
-    _dbg_assert_msg_(DYNA_REC, scale == SCALE_RIP || (scale <= SCALE_ATREG && scale > SCALE_NONE),
+    DEBUG_ASSERT_MSG(DYNA_REC, scale == SCALE_RIP || (scale <= SCALE_ATREG && scale > SCALE_NONE),
                      "Tried to increment an OpArg which doesn't have an offset");
     offset += val;
   }
@@ -329,7 +329,7 @@ inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
   s64 distance = (s64)ptr - (s64)base;
   if (distance >= 0x80000000LL || distance < -0x80000000LL)
   {
-    _assert_msg_(DYNA_REC, 0, "pointer offset out of range");
+    ASSERT_MSG(DYNA_REC, 0, "pointer offset out of range");
     return 0;
   }
 

@@ -285,7 +285,7 @@ private:
       break;
 
     case MODE_VERIFY:
-      _dbg_assert_msg_(COMMON, !memcmp(data, *ptr, size),
+      DEBUG_ASSERT_MSG(COMMON, !memcmp(data, *ptr, size),
                        "Savestate verification failure: buf %p != %p (size %u).\n", data, *ptr,
                        size);
       break;

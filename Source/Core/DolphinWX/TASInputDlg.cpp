@@ -1200,8 +1200,8 @@ void TASInputDlg::InvalidateExtension()
 void TASInputDlg::UpdateFromInvalidatedButton(wxCommandEvent& event)
 {
   auto* button = static_cast<Button*>(event.GetClientData());
-  _assert_msg_(PAD, button->id == button->checkbox->GetId(), "Button ids do not match: %i != %i",
-               button->id, button->checkbox->GetId());
+  ASSERT_MSG(PAD, button->id == button->checkbox->GetId(), "Button ids do not match: %i != %i",
+             button->id, button->checkbox->GetId());
   button->checkbox->SetValue(button->value);
   button->is_checked = button->value;
 }
@@ -1209,8 +1209,8 @@ void TASInputDlg::UpdateFromInvalidatedButton(wxCommandEvent& event)
 void TASInputDlg::UpdateFromInvalidatedControl(wxCommandEvent& event)
 {
   auto* control = static_cast<Control*>(event.GetClientData());
-  _assert_msg_(PAD, control->text_id == control->text->GetId(),
-               "Control ids do not match: %i != %i", control->text_id, control->text->GetId());
+  ASSERT_MSG(PAD, control->text_id == control->text->GetId(), "Control ids do not match: %i != %i",
+             control->text_id, control->text->GetId());
   control->text->SetValue(std::to_string(control->value));
 }
 

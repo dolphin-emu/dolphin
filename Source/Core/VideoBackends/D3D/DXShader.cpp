@@ -43,31 +43,31 @@ D3DBlob* DXShader::GetByteCode() const
 
 ID3D11VertexShader* DXShader::GetD3DVertexShader() const
 {
-  _dbg_assert_(VIDEO, m_stage == ShaderStage::Vertex);
+  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Vertex);
   return static_cast<ID3D11VertexShader*>(m_shader);
 }
 
 ID3D11GeometryShader* DXShader::GetD3DGeometryShader() const
 {
-  _dbg_assert_(VIDEO, m_stage == ShaderStage::Geometry);
+  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Geometry);
   return static_cast<ID3D11GeometryShader*>(m_shader);
 }
 
 ID3D11PixelShader* DXShader::GetD3DPixelShader() const
 {
-  _dbg_assert_(VIDEO, m_stage == ShaderStage::Pixel);
+  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Pixel);
   return static_cast<ID3D11PixelShader*>(m_shader);
 }
 
 ID3D11ComputeShader* DXShader::GetD3DComputeShader() const
 {
-  _dbg_assert_(VIDEO, m_stage == ShaderStage::Compute);
+  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Compute);
   return static_cast<ID3D11ComputeShader*>(m_shader);
 }
 
 bool DXShader::HasBinary() const
 {
-  _assert_(m_bytecode);
+  ASSERT(m_bytecode);
   return true;
 }
 

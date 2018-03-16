@@ -222,7 +222,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   framebuffer_mgr->FlushEFBPokes();
 
   // Has to be flagged as a render target.
-  _assert_(texture->GetFramebuffer() != VK_NULL_HANDLE);
+  ASSERT(texture->GetFramebuffer() != VK_NULL_HANDLE);
 
   // Can't be done in a render pass, since we're doing our own render pass!
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();

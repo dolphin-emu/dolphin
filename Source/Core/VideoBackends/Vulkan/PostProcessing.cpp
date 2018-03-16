@@ -117,13 +117,13 @@ void VulkanPostProcessing::FillUniformBuffer(u8* buf, const TargetRectangle& src
       break;
 
     case PostProcessingShaderConfiguration::ConfigurationOption::OptionType::OPTION_INTEGER:
-      _assert_(it.second.m_integer_values.size() < 4);
+      ASSERT(it.second.m_integer_values.size() < 4);
       std::copy_n(it.second.m_integer_values.begin(), it.second.m_integer_values.size(),
                   value.as_int);
       break;
 
     case PostProcessingShaderConfiguration::ConfigurationOption::OptionType::OPTION_FLOAT:
-      _assert_(it.second.m_float_values.size() < 4);
+      ASSERT(it.second.m_float_values.size() < 4);
       std::copy_n(it.second.m_float_values.begin(), it.second.m_float_values.size(),
                   value.as_float);
       break;

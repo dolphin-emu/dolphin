@@ -42,7 +42,7 @@ static VkFormat VarToVkFormat(VarType t, uint32_t components, bool integer)
        VK_FORMAT_R32G32B32A32_SFLOAT}  // VAR_FLOAT
   };
 
-  _assert_(components > 0 && components <= 4);
+  ASSERT(components > 0 && components <= 4);
   return integer ? integer_type_lookup[t][components - 1] : float_type_lookup[t][components - 1];
 }
 
@@ -120,7 +120,7 @@ void VertexFormat::SetupInputState()
 void VertexFormat::AddAttribute(uint32_t location, uint32_t binding, VkFormat format,
                                 uint32_t offset)
 {
-  _assert_(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
+  ASSERT(m_num_attributes < MAX_VERTEX_ATTRIBUTES);
 
   m_attribute_descriptions[m_num_attributes].location = location;
   m_attribute_descriptions[m_num_attributes].binding = binding;

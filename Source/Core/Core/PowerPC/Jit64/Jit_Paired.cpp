@@ -134,7 +134,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
     avx_op(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, fpr.RX(d), fpr.R(a), fpr.R(b));
     break;  // 11
   default:
-    _assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
+    ASSERT_MSG(DYNA_REC, 0, "ps_merge - invalid op");
   }
   fpr.UnlockAll();
 }

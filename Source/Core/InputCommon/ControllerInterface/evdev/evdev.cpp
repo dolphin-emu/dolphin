@@ -56,7 +56,7 @@ static void HotplugThreadFunc()
   NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread started");
 
   udev* udev = udev_new();
-  _assert_msg_(PAD, udev != nullptr, "Couldn't initialize libudev.");
+  ASSERT_MSG(PAD, udev != nullptr, "Couldn't initialize libudev.");
 
   // Set up monitoring
   udev_monitor* monitor = udev_monitor_new_from_netlink(udev, "udev");
@@ -120,7 +120,7 @@ static void StartHotplugThread()
     return;
 
   s_wakeup_eventfd = eventfd(0, 0);
-  _assert_msg_(PAD, s_wakeup_eventfd != -1, "Couldn't create eventfd.");
+  ASSERT_MSG(PAD, s_wakeup_eventfd != -1, "Couldn't create eventfd.");
   s_hotplug_thread = std::thread(HotplugThreadFunc);
 }
 
@@ -152,7 +152,7 @@ void PopulateDevices()
   // this ever changes, hopefully udev will take care of this.
 
   udev* udev = udev_new();
-  _assert_msg_(PAD, udev != nullptr, "Couldn't initialize libudev.");
+  ASSERT_MSG(PAD, udev != nullptr, "Couldn't initialize libudev.");
 
   // List all input devices
   udev_enumerate* enumerate = udev_enumerate_new(udev);

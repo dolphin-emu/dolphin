@@ -373,7 +373,7 @@ u16 DSPCore_ReadRegister(size_t reg)
   case DSP_REG_ACM1:
     return g_dsp.r.ac[reg - DSP_REG_ACM0].m;
   default:
-    _assert_msg_(DSP_CORE, 0, "cannot happen");
+    ASSERT_MSG(DSP_CORE, 0, "cannot happen");
     return 0;
   }
 }

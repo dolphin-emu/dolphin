@@ -140,7 +140,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
 
   // Fall back to interpreter
   m_gpr.PushRegs();
-  _assert_msg_(DSPLLE, op_template->intFunc, "No function for %04x", inst);
+  ASSERT_MSG(DSPLLE, op_template->intFunc, "No function for %04x", inst);
   ABI_CallFunctionC16(op_template->intFunc, inst);
   m_gpr.PopRegs();
 }

@@ -947,7 +947,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       }
       else if (tevind.mid <= 7 && bHasTexCoord)
       {  // s matrix
-        _assert_(tevind.mid >= 5);
+        ASSERT(tevind.mid >= 5);
         int mtxidx = 2 * (tevind.mid - 5);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
@@ -969,7 +969,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       }
       else if (tevind.mid <= 11 && bHasTexCoord)
       {  // t matrix
-        _assert_(tevind.mid >= 9);
+        ASSERT(tevind.mid >= 9);
         int mtxidx = 2 * (tevind.mid - 9);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 

@@ -39,7 +39,7 @@ VolumeWii::VolumeWii(std::unique_ptr<BlobReader> reader)
     : m_pReader(std::move(reader)), m_game_partition(PARTITION_NONE),
       m_last_decrypted_block(UINT64_MAX)
 {
-  _assert_(m_pReader);
+  ASSERT(m_pReader);
 
   if (m_pReader->ReadSwapped<u32>(0x60) != u32(0))
   {

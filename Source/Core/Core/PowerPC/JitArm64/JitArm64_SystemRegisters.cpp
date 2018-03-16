@@ -29,7 +29,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
   case CR_LT_BIT:  // check bit 62 set
     return jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
   default:
-    _assert_msg_(DYNA_REC, false, "Invalid CR bit");
+    ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
   }
 }
 
@@ -532,7 +532,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       break;
 
     default:
-      _assert_msg_(DYNA_REC, false, "Invalid CR bit");
+      ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
     }
   }
 

@@ -342,10 +342,10 @@ void RunGpuLoop()
             else
               readPtr += 32;
 
-            _assert_msg_(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0,
-                         "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
-                         "instability in the game. Please report it.",
-                         fifo.CPReadWriteDistance - 32);
+            ASSERT_MSG(COMMANDPROCESSOR, (s32)fifo.CPReadWriteDistance - 32 >= 0,
+                       "Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce "
+                       "instability in the game. Please report it.",
+                       fifo.CPReadWriteDistance - 32);
 
             u8* write_ptr = s_video_buffer_write_ptr;
             s_video_buffer_read_ptr = OpcodeDecoder::Run(

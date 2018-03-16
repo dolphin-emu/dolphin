@@ -81,7 +81,7 @@ std::unique_ptr<DXPipeline> DXPipeline::Create(const AbstractPipelineConfig& con
   const DXShader* vertex_shader = static_cast<const DXShader*>(config.vertex_shader);
   const DXShader* geometry_shader = static_cast<const DXShader*>(config.geometry_shader);
   const DXShader* pixel_shader = static_cast<const DXShader*>(config.pixel_shader);
-  _assert_(vertex_shader != nullptr && pixel_shader != nullptr);
+  ASSERT(vertex_shader != nullptr && pixel_shader != nullptr);
 
   ID3D11InputLayout* input_layout =
       const_cast<D3DVertexFormat*>(static_cast<const D3DVertexFormat*>(config.vertex_format))

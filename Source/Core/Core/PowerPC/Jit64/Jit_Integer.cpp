@@ -142,7 +142,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // LT/GT either.
 void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 {
-  _assert_msg_(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
+  ASSERT_MSG(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
   if (arg.IsImm())
   {
     MOV(64, PPCSTATE(cr_val[0]), Imm32(arg.SImm32()));
@@ -269,7 +269,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
   }
   else
   {
-    _assert_msg_(DYNA_REC, 0, "WTF regimmop");
+    ASSERT_MSG(DYNA_REC, 0, "WTF regimmop");
   }
   if (Rc)
     ComputeRC(gpr.R(d), needs_test, doop != And || (value & 0x80000000));
@@ -598,7 +598,7 @@ void Jit64::boolX(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, s = inst.RS, b = inst.RB;
   bool needs_test = false;
-  _dbg_assert_msg_(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
+  DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
 
   if (gpr.R(s).IsImm() && gpr.R(b).IsImm())
   {

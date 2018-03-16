@@ -17,7 +17,7 @@ AsyncShaderCompiler::~AsyncShaderCompiler()
 {
   // Pending work can be left at shutdown.
   // The work item classes are expected to clean up after themselves.
-  _assert_(!HasWorkerThreads());
+  ASSERT(!HasWorkerThreads());
 }
 
 void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item)

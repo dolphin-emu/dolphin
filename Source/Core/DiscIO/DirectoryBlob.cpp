@@ -92,7 +92,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
   if (m_size == 0)
     return true;
 
-  _dbg_assert_(DISCIO, *offset >= m_offset);
+  DEBUG_ASSERT(DISCIO, *offset >= m_offset);
   const u64 offset_in_content = *offset - m_offset;
 
   if (offset_in_content < m_size)
@@ -160,7 +160,7 @@ bool DiscContentContainer::Read(u64 offset, u64 length, u8* buffer) const
       return false;
 
     ++it;
-    _dbg_assert_(DISCIO, it == m_contents.end() || it->GetOffset() >= offset);
+    DEBUG_ASSERT(DISCIO, it == m_contents.end() || it->GetOffset() >= offset);
   }
 
   // Zero fill if we went beyond the last DiscContent
@@ -688,7 +688,7 @@ void DirectoryBlobPartition::BuildFST(u64 fst_address)
                  name_table_offset);
 
   // overflow check, compare the aligned name offset with the aligned name table size
-  _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
+  ASSERT(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
   Write32((u32)(fst_address >> m_address_shift), 0x0424, &m_disc_header);

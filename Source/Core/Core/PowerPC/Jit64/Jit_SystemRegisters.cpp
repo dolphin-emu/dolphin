@@ -40,7 +40,7 @@ void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
     break;
 
   default:
-    _assert_msg_(DYNA_REC, false, "Invalid CR bit");
+    ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
   }
 }
 
@@ -173,7 +173,7 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
     return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
   default:
-    _assert_msg_(DYNA_REC, false, "Invalid CR bit");
+    ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
   }
 
   // Should never happen.
@@ -548,7 +548,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  _dbg_assert_msg_(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
+  DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
   // Special case: crclr
   if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)

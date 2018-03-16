@@ -180,7 +180,7 @@ Kernel::Kernel()
 {
   // Until the Wii root and NAND path stuff is entirely managed by IOS and made non-static,
   // using more than one IOS instance at a time is not supported.
-  _assert_(GetIOS() == nullptr);
+  ASSERT(GetIOS() == nullptr);
   Core::InitializeWiiRoot(false);
   m_is_responsible_for_nand_root = true;
   AddCoreDevices();
@@ -362,7 +362,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
 
 void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
 {
-  _assert_(device->GetDeviceType() == Device::Device::DeviceType::Static);
+  ASSERT(device->GetDeviceType() == Device::Device::DeviceType::Static);
   m_device_map[device->GetDeviceName()] = std::move(device);
 }
 
@@ -546,7 +546,7 @@ IPCCommandResult Kernel::HandleIPCCommand(const Request& request)
     ret = device->IOCtlV(IOCtlVRequest{request.address});
     break;
   default:
-    _assert_msg_(IOS, false, "Unexpected command: %x", request.command);
+    ASSERT_MSG(IOS, false, "Unexpected command: %x", request.command);
     ret = Device::Device::GetDefaultReply(IPC_EINVAL);
     break;
   }

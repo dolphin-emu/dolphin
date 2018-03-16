@@ -382,7 +382,7 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
 void Init()
 {
-  _assert_(!IsDiscInside());
+  ASSERT(!IsDiscInside());
 
   DVDThread::Start();
 
@@ -535,7 +535,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    if (s_DISR.BREAK)
                    {
-                     _dbg_assert_(DVDINTERFACE, 0);
+                     DEBUG_ASSERT(DVDINTERFACE, 0);
                    }
 
                    UpdateInterrupts();

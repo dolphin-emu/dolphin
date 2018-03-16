@@ -320,9 +320,9 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   for (int i = 0; i < 32; i += 4)
     NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
                rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
-  _assert_msg_(POWERPC, 0,
-               "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-               inst.hex, PC, last_pc, LR);
+  ASSERT_MSG(POWERPC, 0,
+             "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
+             inst.hex, PC, last_pc, LR);
 }
 
 void Interpreter::ClearCache()

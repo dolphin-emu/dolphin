@@ -67,7 +67,7 @@ public:
   // Call this when shutting down. Don't rely on the destructor, even though it'll do the job.
   void FreeCodeSpace()
   {
-    _assert_(!m_is_child);
+    ASSERT(!m_is_child);
     Common::FreeMemoryPages(region, total_region_size);
     region = nullptr;
     region_size = 0;
@@ -87,7 +87,7 @@ public:
   void ResetCodePtr() { T::SetCodePtr(region); }
   size_t GetSpaceLeft() const
   {
-    _assert_(static_cast<size_t>(T::GetCodePtr() - region) < region_size);
+    ASSERT(static_cast<size_t>(T::GetCodePtr() - region) < region_size);
     return region_size - (T::GetCodePtr() - region);
   }
 
@@ -100,7 +100,7 @@ public:
   bool HasChildren() const { return region_size != total_region_size; }
   u8* AllocChildCodeSpace(size_t child_size)
   {
-    _assert_msg_(DYNA_REG, child_size < GetSpaceLeft(), "Insufficient space for child allocation.");
+    ASSERT_MSG(DYNA_REG, child_size < GetSpaceLeft(), "Insufficient space for child allocation.");
     u8* child_region = region + region_size - child_size;
     region_size -= child_size;
     return child_region;

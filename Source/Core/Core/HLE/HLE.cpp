@@ -181,9 +181,6 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
   {
     PanicAlert("HLE system tried to call an undefined HLE function %i.", FunctionIndex);
   }
-
-  // _dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)",
-  // OSPatches[pos].m_szPatchName);
 }
 
 u32 GetFunctionIndex(u32 address)

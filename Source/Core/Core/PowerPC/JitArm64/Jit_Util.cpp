@@ -45,7 +45,7 @@ private:
       m_emit->STR(INDEX_UNSIGNED, reg, X0, 0);
       break;
     default:
-      _assert_msg_(DYNA_REC, false, "Unknown size %d passed to MMIOWriteCodeGenerator!", sbits);
+      ASSERT_MSG(DYNA_REC, false, "Unknown size %d passed to MMIOWriteCodeGenerator!", sbits);
       break;
     }
   }
@@ -138,7 +138,7 @@ private:
       m_emit->LDR(INDEX_UNSIGNED, m_dst_reg, X0, 0);
       break;
     default:
-      _assert_msg_(DYNA_REC, false, "Unknown size %d passed to MMIOReadCodeGenerator!", sbits);
+      ASSERT_MSG(DYNA_REC, false, "Unknown size %d passed to MMIOReadCodeGenerator!", sbits);
       break;
     }
   }

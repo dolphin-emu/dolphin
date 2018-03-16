@@ -99,11 +99,9 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
       break;
 
     case XFMEM_SETMATRIXINDA:
-      //_assert_msg_(GX_XF, 0, "XF matrixindex0");
       VertexShaderManager::SetTexMatrixChangedA(newValue);
       break;
     case XFMEM_SETMATRIXINDB:
-      //_assert_msg_(GX_XF, 0, "XF matrixindex1");
       VertexShaderManager::SetTexMatrixChangedB(newValue);
       break;
 

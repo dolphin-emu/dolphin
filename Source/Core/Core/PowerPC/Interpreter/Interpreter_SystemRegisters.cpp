@@ -195,7 +195,7 @@ void Interpreter::mtsrin(UGeckoInstruction inst)
 void Interpreter::mftb(UGeckoInstruction inst)
 {
   int iIndex = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
-  _dbg_assert_msg_(POWERPC, (iIndex == SPR_TL) || (iIndex == SPR_TU), "Invalid mftb");
+  DEBUG_ASSERT_MSG(POWERPC, (iIndex == SPR_TL) || (iIndex == SPR_TU), "Invalid mftb");
   (void)iIndex;
   mfspr(inst);
 }
@@ -313,7 +313,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_WPAR:
-    _assert_msg_(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
+    ASSERT_MSG(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
     GPFifo::ResetGatherPipe();
     break;
 

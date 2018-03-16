@@ -318,7 +318,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   for (int i = 0; i + 3 <= numIndices; i += 3)
   {
-    _assert_(i < NUM_INDICES);
+    ASSERT(i < NUM_INDICES);
     if (indices[i] != SKIP_FLAG)
     {
       PerspectiveDivide(Vertices[indices[i]]);

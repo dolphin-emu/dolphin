@@ -401,7 +401,7 @@ void Jit64::stX(UGeckoInstruction inst)
     accessSize = 8;
     break;
   default:
-    _assert_msg_(DYNA_REC, 0, "stX: Invalid access size.");
+    ASSERT_MSG(DYNA_REC, 0, "stX: Invalid access size.");
     return;
   }
 

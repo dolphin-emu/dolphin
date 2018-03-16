@@ -38,8 +38,8 @@ bool StagingBuffer::Map(VkDeviceSize offset, VkDeviceSize size)
   else
     m_map_size = size;
 
-  _assert_(!m_map_pointer);
-  _assert_(m_map_offset + m_map_size <= m_size);
+  ASSERT(!m_map_pointer);
+  ASSERT(m_map_offset + m_map_size <= m_size);
 
   void* map_pointer;
   VkResult res = vkMapMemory(g_vulkan_context->GetDevice(), m_memory, m_map_offset, m_map_size, 0,
@@ -56,7 +56,7 @@ bool StagingBuffer::Map(VkDeviceSize offset, VkDeviceSize size)
 
 void StagingBuffer::Unmap()
 {
-  _assert_(m_map_pointer);
+  ASSERT(m_map_pointer);
 
   vkUnmapMemory(g_vulkan_context->GetDevice(), m_memory);
   m_map_pointer = nullptr;
@@ -66,7 +66,7 @@ void StagingBuffer::Unmap()
 
 void StagingBuffer::FlushCPUCache(VkDeviceSize offset, VkDeviceSize size)
 {
-  _assert_(offset >= m_map_offset);
+  ASSERT(offset >= m_map_offset);
   if (m_coherent)
     return;
 
@@ -83,7 +83,7 @@ void StagingBuffer::InvalidateGPUCache(VkCommandBuffer command_buffer,
   if (m_coherent)
     return;
 
-  _assert_((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
+  ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   Util::BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_HOST_WRITE_BIT, dest_access_flags,
                             offset, size, VK_PIPELINE_STAGE_HOST_BIT, dest_pipeline_stage);
 }
@@ -96,7 +96,7 @@ void StagingBuffer::PrepareForGPUWrite(VkCommandBuffer command_buffer,
   if (m_coherent)
     return;
 
-  _assert_((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
+  ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   Util::BufferMemoryBarrier(command_buffer, m_buffer, 0, dst_access_flags, offset, size,
                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, dst_pipeline_stage);
 }
@@ -108,14 +108,14 @@ void StagingBuffer::FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBi
   if (m_coherent)
     return;
 
-  _assert_((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
+  ASSERT((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   Util::BufferMemoryBarrier(command_buffer, m_buffer, src_access_flags, VK_ACCESS_HOST_READ_BIT,
                             offset, size, src_pipeline_stage, VK_PIPELINE_STAGE_HOST_BIT);
 }
 
 void StagingBuffer::InvalidateCPUCache(VkDeviceSize offset, VkDeviceSize size)
 {
-  _assert_(offset >= m_map_offset);
+  ASSERT(offset >= m_map_offset);
   if (m_coherent)
     return;
 
@@ -126,8 +126,8 @@ void StagingBuffer::InvalidateCPUCache(VkDeviceSize offset, VkDeviceSize size)
 
 void StagingBuffer::Read(VkDeviceSize offset, void* data, size_t size, bool invalidate_caches)
 {
-  _assert_((offset + size) <= m_size);
-  _assert_(offset >= m_map_offset && size <= (m_map_size + (offset - m_map_offset)));
+  ASSERT((offset + size) <= m_size);
+  ASSERT(offset >= m_map_offset && size <= (m_map_size + (offset - m_map_offset)));
   if (invalidate_caches)
     InvalidateCPUCache(offset, size);
 
@@ -137,8 +137,8 @@ void StagingBuffer::Read(VkDeviceSize offset, void* data, size_t size, bool inva
 void StagingBuffer::Write(VkDeviceSize offset, const void* data, size_t size,
                           bool invalidate_caches)
 {
-  _assert_((offset + size) <= m_size);
-  _assert_(offset >= m_map_offset && size <= (m_map_size + (offset - m_map_offset)));
+  ASSERT((offset + size) <= m_size);
+  ASSERT(offset >= m_map_offset && size <= (m_map_size + (offset - m_map_offset)));
 
   memcpy(m_map_pointer + (offset - m_map_offset), data, size);
   if (invalidate_caches)

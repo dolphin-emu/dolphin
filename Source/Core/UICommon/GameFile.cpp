@@ -305,7 +305,7 @@ std::string GameFile::GetUniqueIdentifier() const
 
 std::string GameFile::GetWiiFSPath() const
 {
-  _assert_(DiscIO::IsWii(m_platform));
+  ASSERT(DiscIO::IsWii(m_platform));
   return Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
 }
 

@@ -761,7 +761,7 @@ void Renderer::RenderFrameDump()
     TextureConfig config(target_width, target_height, 1, 1, 1, AbstractTextureFormat::RGBA8, true);
     m_frame_dump_render_texture.reset();
     m_frame_dump_render_texture = CreateTexture(config);
-    _assert_(m_frame_dump_render_texture);
+    ASSERT(m_frame_dump_render_texture);
   }
 
   // Scaling is likely to occur here, but if possible, do a bit-for-bit copy.

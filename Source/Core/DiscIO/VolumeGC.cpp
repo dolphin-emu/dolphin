@@ -30,7 +30,7 @@ namespace DiscIO
 {
 VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_pReader(std::move(reader))
 {
-  _assert_(m_pReader);
+  ASSERT(m_pReader);
 
   m_file_system = [this]() -> std::unique_ptr<FileSystem> {
     auto file_system = std::make_unique<FileSystemGCWii>(this, PARTITION_NONE);

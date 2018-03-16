@@ -131,13 +131,13 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 {
   Texture2D* src_texture = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
 
-  _assert_msg_(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
-                          static_cast<u32>(src_rect.GetHeight()) <= src_texture->GetHeight(),
-               "Source rect is too large for CopyRectangleFromTexture");
+  ASSERT_MSG(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
+                        static_cast<u32>(src_rect.GetHeight()) <= src_texture->GetHeight(),
+             "Source rect is too large for CopyRectangleFromTexture");
 
-  _assert_msg_(VIDEO, static_cast<u32>(dst_rect.GetWidth()) <= m_config.width &&
-                          static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
-               "Dest rect is too large for CopyRectangleFromTexture");
+  ASSERT_MSG(VIDEO, static_cast<u32>(dst_rect.GetWidth()) <= m_config.width &&
+                        static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
+             "Dest rect is too large for CopyRectangleFromTexture");
 
   VkImageCopy image_copy = {
       {VK_IMAGE_ASPECT_COLOR_BIT, src_level, src_layer, src_texture->GetLayers()},
@@ -176,8 +176,8 @@ void VKTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
   StateTracker::GetInstance()->SetPendingRebind();
 
   // Can't render to a non-rendertarget (no framebuffer).
-  _assert_msg_(VIDEO, m_config.rendertarget,
-               "Destination texture for partial copy is not a rendertarget");
+  ASSERT_MSG(VIDEO, m_config.rendertarget,
+             "Destination texture for partial copy is not a rendertarget");
 
   // Render pass expects dst_texture to be in COLOR_ATTACHMENT_OPTIMAL state.
   // src_texture should already be in SHADER_READ_ONLY state, but transition in case (XFB).
@@ -216,10 +216,10 @@ void VKTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
                                    u32 layer, u32 level)
 {
   const VKTexture* srcentry = static_cast<const VKTexture*>(src);
-  _dbg_assert_(VIDEO, m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
+  DEBUG_ASSERT(VIDEO, m_config.samples == 1 && m_config.width == srcentry->m_config.width &&
                           m_config.height == srcentry->m_config.height &&
                           srcentry->m_config.samples > 1);
-  _dbg_assert_(VIDEO,
+  DEBUG_ASSERT(VIDEO,
                rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
                    rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
@@ -407,13 +407,13 @@ void VKStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  _assert_(m_type == StagingTextureType::Readback);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
-  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
-           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
-  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
-           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
+  ASSERT(m_type == StagingTextureType::Readback);
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
 
   Texture2D* src_tex = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
   CopyFromTexture(src_tex, src_rect, src_layer, src_level, dst_rect);
@@ -458,7 +458,7 @@ void VKStagingTexture::CopyFromTexture(Texture2D* src, const MathUtil::Rectangle
   m_needs_flush = true;
   g_command_buffer_mgr->AddFencePointCallback(this,
                                               [this](VkCommandBuffer buf, VkFence fence) {
-                                                _assert_(m_needs_flush);
+                                                ASSERT(m_needs_flush);
                                                 m_flush_fence = fence;
                                               },
                                               [this](VkFence fence) {
@@ -473,13 +473,13 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                      u32 dst_level)
 {
-  _assert_(m_type == StagingTextureType::Upload);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
-  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
-           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
-  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
-           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
+  ASSERT(m_type == StagingTextureType::Upload);
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
 
   if (m_needs_flush)
   {
@@ -518,7 +518,7 @@ void VKStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
   m_needs_flush = true;
   g_command_buffer_mgr->AddFencePointCallback(this,
                                               [this](VkCommandBuffer buf, VkFence fence) {
-                                                _assert_(m_needs_flush);
+                                                ASSERT(m_needs_flush);
                                                 m_flush_fence = fence;
                                               },
                                               [this](VkFence fence) {

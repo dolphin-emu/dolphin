@@ -10,14 +10,14 @@
 #include "Common/MsgHandler.h"
 
 #ifdef _WIN32
-#define _assert_msg_(_t_, _a_, _fmt_, ...)                                                         \
+#define ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                           \
   if (!(_a_))                                                                                      \
   {                                                                                                \
     if (!PanicYesNo(_fmt_ "\n\nIgnore and continue?", __VA_ARGS__))                                \
       Crash();                                                                                     \
   }
 
-#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)                                                     \
+#define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_))                                      \
   {                                                                                                \
     ERROR_LOG(_t_, _msg_, __VA_ARGS__);                                                            \
@@ -25,14 +25,14 @@
       Crash();                                                                                     \
   }
 #else
-#define _assert_msg_(_t_, _a_, _fmt_, ...)                                                         \
+#define ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                           \
   if (!(_a_))                                                                                      \
   {                                                                                                \
     if (!PanicYesNo(_fmt_, ##__VA_ARGS__))                                                         \
       Crash();                                                                                     \
   }
 
-#define _dbg_assert_msg_(_t_, _a_, _msg_, ...)                                                     \
+#define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_))                                      \
   {                                                                                                \
     ERROR_LOG(_t_, _msg_, ##__VA_ARGS__);                                                          \
@@ -41,11 +41,11 @@
   }
 #endif
 
-#define _assert_(_a_)                                                                              \
-  _assert_msg_(MASTER_LOG, _a_,                                                                    \
-               _trans("An error occurred.\n\n  Line: %d\n  File: %s\n\nIgnore and continue?"),     \
-               __LINE__, __FILE__)
+#define ASSERT(_a_)                                                                                \
+  ASSERT_MSG(MASTER_LOG, _a_,                                                                      \
+             _trans("An error occurred.\n\n  Line: %d\n  File: %s\n\nIgnore and continue?"),       \
+             __LINE__, __FILE__)
 
-#define _dbg_assert_(_t_, _a_)                                                                     \
+#define DEBUG_ASSERT(_t_, _a_)                                                                     \
   if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)                                                \
-  _assert_(_a_)
+  ASSERT(_a_)
