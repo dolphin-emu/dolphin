@@ -73,4 +73,4 @@ private:
   void Detect();
 };
 
-extern CPUInfo cpu_info;
+extern const CPUInfo cpu_info;

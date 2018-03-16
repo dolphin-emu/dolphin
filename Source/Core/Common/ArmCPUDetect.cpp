@@ -41,7 +41,7 @@ static std::string GetCPUString()
   return cpu_string;
 }
 
-CPUInfo cpu_info;
+const CPUInfo cpu_info;
 
 CPUInfo::CPUInfo()
 {

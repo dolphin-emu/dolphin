@@ -4,7 +4,7 @@
 
 #include "Common/CPUDetect.h"
 
-CPUInfo cpu_info;
+const CPUInfo cpu_info;
 
 CPUInfo::CPUInfo()
 {

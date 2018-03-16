@@ -47,7 +47,7 @@ static u64 _xgetbv(u32 index)
 
 #endif  // ifndef _WIN32
 
-CPUInfo cpu_info;
+const CPUInfo cpu_info;
 
 CPUInfo::CPUInfo()
 {
