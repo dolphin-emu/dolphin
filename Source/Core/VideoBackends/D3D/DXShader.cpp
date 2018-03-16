@@ -43,25 +43,25 @@ D3DBlob* DXShader::GetByteCode() const
 
 ID3D11VertexShader* DXShader::GetD3DVertexShader() const
 {
-  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Vertex);
+  DEBUG_ASSERT(m_stage == ShaderStage::Vertex);
   return static_cast<ID3D11VertexShader*>(m_shader);
 }
 
 ID3D11GeometryShader* DXShader::GetD3DGeometryShader() const
 {
-  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Geometry);
+  DEBUG_ASSERT(m_stage == ShaderStage::Geometry);
   return static_cast<ID3D11GeometryShader*>(m_shader);
 }
 
 ID3D11PixelShader* DXShader::GetD3DPixelShader() const
 {
-  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Pixel);
+  DEBUG_ASSERT(m_stage == ShaderStage::Pixel);
   return static_cast<ID3D11PixelShader*>(m_shader);
 }
 
 ID3D11ComputeShader* DXShader::GetD3DComputeShader() const
 {
-  DEBUG_ASSERT(VIDEO, m_stage == ShaderStage::Compute);
+  DEBUG_ASSERT(m_stage == ShaderStage::Compute);
   return static_cast<ID3D11ComputeShader*>(m_shader);
 }
 

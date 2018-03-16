@@ -94,7 +94,7 @@ const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size)
 
   if (serviceHandle == 0x10001)
   {
-    DEBUG_ASSERT(IOS_WIIMOTE, cont == 0x00);
+    DEBUG_ASSERT(cont == 0x00);
     _size = sizeof(packet4_0x10001);
     return packet4_0x10001;
   }

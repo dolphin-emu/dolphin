@@ -230,7 +230,7 @@ IPCCommandResult FS::GetStats(const IOCtlRequest& request)
 
 IPCCommandResult FS::CreateDirectory(const IOCtlRequest& request)
 {
-  DEBUG_ASSERT(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
   u32 Addr = request.buffer_in;
 
   u32 OwnerID = Memory::Read_U32(Addr);
@@ -377,7 +377,7 @@ IPCCommandResult FS::GetAttribute(const IOCtlRequest& request)
 
 IPCCommandResult FS::DeleteFile(const IOCtlRequest& request)
 {
-  DEBUG_ASSERT(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
   int Offset = 0;
 
   const std::string wii_path = Memory::GetString(request.buffer_in + Offset, 64);
@@ -407,7 +407,7 @@ IPCCommandResult FS::DeleteFile(const IOCtlRequest& request)
 
 IPCCommandResult FS::RenameFile(const IOCtlRequest& request)
 {
-  DEBUG_ASSERT(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
   int Offset = 0;
 
   const std::string wii_path = Memory::GetString(request.buffer_in + Offset, 64);
@@ -454,7 +454,7 @@ IPCCommandResult FS::RenameFile(const IOCtlRequest& request)
 
 IPCCommandResult FS::CreateFile(const IOCtlRequest& request)
 {
-  DEBUG_ASSERT(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
 
   u32 Addr = request.buffer_in;
   u32 OwnerID = Memory::Read_U32(Addr);
@@ -600,9 +600,9 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
 
 IPCCommandResult FS::GetUsage(const IOCtlVRequest& request)
 {
-  DEBUG_ASSERT(IOS_FILEIO, request.io_vectors.size() == 2);
-  DEBUG_ASSERT(IOS_FILEIO, request.io_vectors[0].size == 4);
-  DEBUG_ASSERT(IOS_FILEIO, request.io_vectors[1].size == 4);
+  DEBUG_ASSERT(request.io_vectors.size() == 2);
+  DEBUG_ASSERT(request.io_vectors[0].size == 4);
+  DEBUG_ASSERT(request.io_vectors[1].size == 4);
 
   // this command sucks because it asks of the number of used
   // fsBlocks and inodes

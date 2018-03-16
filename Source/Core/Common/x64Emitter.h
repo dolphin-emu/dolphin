@@ -156,64 +156,64 @@ struct OpArg
 
   u64 Imm64() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM64);
+    DEBUG_ASSERT(scale == SCALE_IMM64);
     return (u64)offset;
   }
   u32 Imm32() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM32);
+    DEBUG_ASSERT(scale == SCALE_IMM32);
     return (u32)offset;
   }
   u16 Imm16() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM16);
+    DEBUG_ASSERT(scale == SCALE_IMM16);
     return (u16)offset;
   }
   u8 Imm8() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM8);
+    DEBUG_ASSERT(scale == SCALE_IMM8);
     return (u8)offset;
   }
 
   s64 SImm64() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM64);
+    DEBUG_ASSERT(scale == SCALE_IMM64);
     return (s64)offset;
   }
   s32 SImm32() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM32);
+    DEBUG_ASSERT(scale == SCALE_IMM32);
     return (s32)offset;
   }
   s16 SImm16() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM16);
+    DEBUG_ASSERT(scale == SCALE_IMM16);
     return (s16)offset;
   }
   s8 SImm8() const
   {
-    DEBUG_ASSERT(DYNA_REC, scale == SCALE_IMM8);
+    DEBUG_ASSERT(scale == SCALE_IMM8);
     return (s8)offset;
   }
 
   OpArg AsImm64() const
   {
-    DEBUG_ASSERT(DYNA_REC, IsImm());
+    DEBUG_ASSERT(IsImm());
     return OpArg((u64)offset, SCALE_IMM64);
   }
   OpArg AsImm32() const
   {
-    DEBUG_ASSERT(DYNA_REC, IsImm());
+    DEBUG_ASSERT(IsImm());
     return OpArg((u32)offset, SCALE_IMM32);
   }
   OpArg AsImm16() const
   {
-    DEBUG_ASSERT(DYNA_REC, IsImm());
+    DEBUG_ASSERT(IsImm());
     return OpArg((u16)offset, SCALE_IMM16);
   }
   OpArg AsImm8() const
   {
-    DEBUG_ASSERT(DYNA_REC, IsImm());
+    DEBUG_ASSERT(IsImm());
     return OpArg((u8)offset, SCALE_IMM8);
   }
 

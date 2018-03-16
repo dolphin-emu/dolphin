@@ -193,11 +193,10 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
                                    u32 layer, u32 level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
-  DEBUG_ASSERT(VIDEO, m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
-                          m_config.height == srcentry->m_config.height && m_config.samples == 1);
-  DEBUG_ASSERT(VIDEO,
-               rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
-                   rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
+  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
+               rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
   D3D::context->ResolveSubresource(
       m_texture->GetTex(), D3D11CalcSubresource(level, layer, m_config.levels),

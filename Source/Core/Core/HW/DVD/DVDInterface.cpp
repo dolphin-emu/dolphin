@@ -535,7 +535,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
                    if (s_DISR.BREAK)
                    {
-                     DEBUG_ASSERT(DVDINTERFACE, 0);
+                     DEBUG_ASSERT(0);
                    }
 
                    UpdateInterrupts();

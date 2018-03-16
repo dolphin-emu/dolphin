@@ -187,8 +187,8 @@ void OpArg::WriteREX(XEmitter* emit, int opBits, int bits, int customOp) const
   {
     emit->Write8(op);
     // Check the operation doesn't access AH, BH, CH, or DH.
-    DEBUG_ASSERT(DYNA_REC, (offsetOrBaseReg & 0x100) == 0);
-    DEBUG_ASSERT(DYNA_REC, (customOp & 0x100) == 0);
+    DEBUG_ASSERT((offsetOrBaseReg & 0x100) == 0);
+    DEBUG_ASSERT((customOp & 0x100) == 0);
   }
 }
 
@@ -553,7 +553,7 @@ void XEmitter::RET_FAST()
 // The first sign of decadence: optimized NOPs.
 void XEmitter::NOP(size_t size)
 {
-  DEBUG_ASSERT(DYNA_REC, (int)size > 0);
+  DEBUG_ASSERT((int)size > 0);
   while (true)
   {
     switch (size)
@@ -1587,7 +1587,7 @@ void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
 void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
 {
   // This stomps on flags, so ensure they aren't locked
-  DEBUG_ASSERT(DYNA_REC, !flags_locked);
+  DEBUG_ASSERT(!flags_locked);
 
   // Zero shortcuts (note that this can generate no code in the case where a1 == dest && a2 == zero
   // or a2 == dest && a1 == zero)

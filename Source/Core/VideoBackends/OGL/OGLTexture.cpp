@@ -279,11 +279,10 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
                                     const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
-  DEBUG_ASSERT(VIDEO, m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
-                          m_config.height == srcentry->m_config.height && m_config.samples == 1);
-  DEBUG_ASSERT(VIDEO,
-               rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
-                   rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
+  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
+               rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
   BlitFramebuffer(const_cast<OGLTexture*>(srcentry), rect, layer, level, rect, layer, level);
 }
 
@@ -655,7 +654,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(const OGLTexture* color_a
     }
   }
 
-  DEBUG_ASSERT(VIDEO, glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+  DEBUG_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   FramebufferManager::SetFramebuffer(0);
   return std::make_unique<OGLFramebuffer>(color_format, depth_format, width, height, layers,
                                           samples, fbo);

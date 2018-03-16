@@ -507,7 +507,7 @@ void ProgramShaderCache::Shutdown()
   s_last_VAO = 0;
 
   // All pipeline programs should have been released.
-  DEBUG_ASSERT(VIDEO, s_pipeline_programs.empty());
+  DEBUG_ASSERT(s_pipeline_programs.empty());
   s_pipeline_programs.clear();
 }
 
