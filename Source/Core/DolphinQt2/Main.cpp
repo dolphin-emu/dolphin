@@ -104,6 +104,10 @@ int main(int argc, char* argv[])
       QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
     }
   }
+  else if (!args.empty())
+  {
+    boot = BootParameters::GenerateFromFile(args.front());
+  }
 
   int retval = 0;
 
