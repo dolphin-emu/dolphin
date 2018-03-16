@@ -10,7 +10,7 @@ CPUInfo::CPUInfo()
 {
 }
 
-std::string CPUInfo::Summarize()
+std::string CPUInfo::Summarize() const
 {
   return "Generic";
 }

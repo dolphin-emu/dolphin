@@ -218,7 +218,7 @@ void CPUInfo::Detect()
 }
 
 // Turn the CPU info into a string we can show
-std::string CPUInfo::Summarize()
+std::string CPUInfo::Summarize() const
 {
   std::string sum(cpu_string);
   sum += " (";

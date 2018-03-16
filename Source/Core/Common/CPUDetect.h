@@ -66,7 +66,7 @@ struct CPUInfo
   explicit CPUInfo();
 
   // Turn the CPU info into a string we can show
-  std::string Summarize();
+  std::string Summarize() const;
 
 private:
   // Detects the various CPU features
