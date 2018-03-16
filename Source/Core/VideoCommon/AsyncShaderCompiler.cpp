@@ -20,7 +20,7 @@ AsyncShaderCompiler::~AsyncShaderCompiler()
   _assert_(!HasWorkerThreads());
 }
 
-void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item)
+void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item, u32 priority)
 {
   // If no worker threads are available, compile synchronously.
   if (!HasWorkerThreads())
@@ -31,7 +31,7 @@ void AsyncShaderCompiler::QueueWorkItem(WorkItemPtr item)
   else
   {
     std::lock_guard<std::mutex> guard(m_pending_work_lock);
-    m_pending_work.push_back(std::move(item));
+    m_pending_work.emplace(priority, std::move(item));
     m_worker_thread_wake.notify_one();
   }
 }
@@ -219,8 +219,9 @@ void AsyncShaderCompiler::WorkerThreadRun()
     while (!m_pending_work.empty() && !m_exit_flag.IsSet())
     {
       m_busy_workers++;
-      WorkItemPtr item(std::move(m_pending_work.front()));
-      m_pending_work.pop_front();
+      auto iter = m_pending_work.begin();
+      WorkItemPtr item(std::move(iter->second));
+      m_pending_work.erase(iter);
       pending_lock.unlock();
 
       if (item->Compile())

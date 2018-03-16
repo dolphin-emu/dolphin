@@ -108,12 +108,23 @@ private:
   void AppendGXPipelineUID(const GXPipelineUid& config);
 
   // ASync Compiler Methods
-  void QueueVertexShaderCompile(const VertexShaderUid& uid);
-  void QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid);
-  void QueuePixelShaderCompile(const PixelShaderUid& uid);
-  void QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid);
-  void QueuePipelineCompile(const GXPipelineUid& uid);
-  void QueueUberPipelineCompile(const GXUberPipelineUid& uid);
+  void QueueVertexShaderCompile(const VertexShaderUid& uid, u32 priority);
+  void QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid, u32 priority);
+  void QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priority);
+  void QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid, u32 priority);
+  void QueuePipelineCompile(const GXPipelineUid& uid, u32 priority);
+  void QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority);
+
+  // Priorities for compiling. The lower the value, the sooner the pipeline is compiled.
+  // The shader cache is compiled last, as it is the least likely to be required. On demand
+  // shaders are always compiled before pending ubershaders, as we want to use the ubershader
+  // for as few frames as possible, otherwise we risk framerate drops.
+  enum : u32
+  {
+    COMPILE_PRIORITY_ONDEMAND_PIPELINE = 100,
+    COMPILE_PRIORITY_UBERSHADER_PIPELINE = 200,
+    COMPILE_PRIORITY_SHADERCACHE_PIPELINE = 300
+  };
 
   // Configuration bits.
   APIType m_api_type = APIType::Nothing;
