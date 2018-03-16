@@ -47,7 +47,7 @@ static u64 _xgetbv(u32 index)
 
 #endif  // ifndef _WIN32
 
-CPUInfo cpu_info;
+const CPUInfo cpu_info;
 
 CPUInfo::CPUInfo()
 {
@@ -218,7 +218,7 @@ void CPUInfo::Detect()
 }
 
 // Turn the CPU info into a string we can show
-std::string CPUInfo::Summarize()
+std::string CPUInfo::Summarize() const
 {
   std::string sum(cpu_string);
   sum += " (";

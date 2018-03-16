@@ -4,13 +4,13 @@
 
 #include "Common/CPUDetect.h"
 
-CPUInfo cpu_info;
+const CPUInfo cpu_info;
 
 CPUInfo::CPUInfo()
 {
 }
 
-std::string CPUInfo::Summarize()
+std::string CPUInfo::Summarize() const
 {
   return "Generic";
 }
