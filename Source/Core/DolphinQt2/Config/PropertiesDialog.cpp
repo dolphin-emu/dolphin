@@ -13,6 +13,7 @@
 #include "DolphinQt2/Config/InfoWidget.h"
 #include "DolphinQt2/Config/PatchesWidget.h"
 #include "DolphinQt2/Config/PropertiesDialog.h"
+#include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 #include "UICommon/GameFile.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)
@@ -37,11 +38,11 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
-  tab_widget->addTab(game_config, tr("Game Config"));
-  tab_widget->addTab(patches, tr("Patches"));
-  tab_widget->addTab(ar, tr("AR Codes"));
-  tab_widget->addTab(gecko, tr("Gecko Codes"));
-  tab_widget->addTab(info, tr("Info"));
+  tab_widget->addTab(GetWrappedWidget(game_config, this), tr("Game Config"));
+  tab_widget->addTab(GetWrappedWidget(patches, this), tr("Patches"));
+  tab_widget->addTab(GetWrappedWidget(ar, this), tr("AR Codes"));
+  tab_widget->addTab(GetWrappedWidget(gecko, this), tr("Gecko Codes"));
+  tab_widget->addTab(GetWrappedWidget(info, this), tr("Info"));
 
   if (DiscIO::IsDisc(game.GetPlatform()))
   {

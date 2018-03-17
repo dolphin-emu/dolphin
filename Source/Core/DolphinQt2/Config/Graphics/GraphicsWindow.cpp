@@ -18,6 +18,7 @@
 #include "DolphinQt2/Config/Graphics/HacksWidget.h"
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
+#include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
@@ -67,14 +68,14 @@ void GraphicsWindow::CreateMainLayout()
 
   if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
   {
-    m_tab_widget->addTab(m_general_widget, tr("General"));
-    m_tab_widget->addTab(m_enhancements_widget, tr("Enhancements"));
-    m_tab_widget->addTab(m_hacks_widget, tr("Hacks"));
-    m_tab_widget->addTab(m_advanced_widget, tr("Advanced"));
+    m_tab_widget->addTab(GetWrappedWidget(m_general_widget, this, 250), tr("General"));
+    m_tab_widget->addTab(GetWrappedWidget(m_enhancements_widget, this, 250), tr("Enhancements"));
+    m_tab_widget->addTab(GetWrappedWidget(m_hacks_widget, this, 250), tr("Hacks"));
+    m_tab_widget->addTab(GetWrappedWidget(m_advanced_widget, this, 250), tr("Advanced"));
   }
   else
   {
-    m_tab_widget->addTab(m_software_renderer, tr("Software Renderer"));
+    m_tab_widget->addTab(GetWrappedWidget(m_software_renderer, this, 250), tr("Software Renderer"));
   }
 
   setLayout(main_layout);

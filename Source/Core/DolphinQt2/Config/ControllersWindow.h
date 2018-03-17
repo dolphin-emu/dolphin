@@ -47,7 +47,6 @@ private:
   void LoadSettings();
 
   // Main
-  QVBoxLayout* m_main_layout;
   QDialogButtonBox* m_button_box;
 
   // Gamecube

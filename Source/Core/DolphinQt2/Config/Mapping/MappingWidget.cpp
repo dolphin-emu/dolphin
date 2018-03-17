@@ -80,7 +80,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& numeric : group->numeric_settings)
   {
     auto* spinbox = new MappingNumeric(this, numeric.get());
-    spinbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     form_layout->addRow(QString::fromStdString(numeric->m_name), spinbox);
     m_numerics.push_back(spinbox);
   }
@@ -88,7 +87,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& boolean : group->boolean_settings)
   {
     auto* checkbox = new MappingBool(this, boolean.get());
-    checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     form_layout->addRow(checkbox);
     m_bools.push_back(checkbox);
   }
