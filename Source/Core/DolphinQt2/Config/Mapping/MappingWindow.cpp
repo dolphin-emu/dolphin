@@ -313,7 +313,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
-  m_tab_widget->addTab(GetWrappedWidget(widget, this, 150), name);
+  m_tab_widget->addTab(GetWrappedWidget(widget, this, 150, 150), name);
 }
 
 int MappingWindow::GetPort() const

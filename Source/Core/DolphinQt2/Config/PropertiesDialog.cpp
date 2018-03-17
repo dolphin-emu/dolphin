@@ -38,16 +38,16 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
-  tab_widget->addTab(GetWrappedWidget(game_config, this), tr("Game Config"));
-  tab_widget->addTab(GetWrappedWidget(patches, this), tr("Patches"));
-  tab_widget->addTab(GetWrappedWidget(ar, this), tr("AR Codes"));
-  tab_widget->addTab(GetWrappedWidget(gecko, this), tr("Gecko Codes"));
-  tab_widget->addTab(GetWrappedWidget(info, this), tr("Info"));
+  tab_widget->addTab(GetWrappedWidget(game_config, this, 50, 80), tr("Game Config"));
+  tab_widget->addTab(GetWrappedWidget(patches, this, 50, 80), tr("Patches"));
+  tab_widget->addTab(GetWrappedWidget(ar, this, 50, 80), tr("AR Codes"));
+  tab_widget->addTab(GetWrappedWidget(gecko, this, 50, 80), tr("Gecko Codes"));
+  tab_widget->addTab(GetWrappedWidget(info, this, 50, 80), tr("Info"));
 
   if (DiscIO::IsDisc(game.GetPlatform()))
   {
     FilesystemWidget* filesystem = new FilesystemWidget(game);
-    tab_widget->addTab(filesystem, tr("Filesystem"));
+    tab_widget->addTab(GetWrappedWidget(filesystem, this, 50, 80), tr("Filesystem"));
   }
 
   layout->addWidget(tab_widget);
