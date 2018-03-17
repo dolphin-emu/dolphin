@@ -31,6 +31,7 @@
 #include "DolphinQt2/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt2/Config/Mapping/WiimoteEmuGeneral.h"
 #include "DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.h"
+#include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -312,7 +313,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
-  m_tab_widget->addTab(widget, name);
+  m_tab_widget->addTab(GetWrappedWidget(widget, this, 150), name);
 }
 
 int MappingWindow::GetPort() const

@@ -120,6 +120,7 @@
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
+    <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="RenderWidget.h" />
     <QtMoc Include="Settings.h" />
@@ -278,6 +279,7 @@
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
+    <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
@@ -320,6 +322,7 @@
     <ClInclude Include="QtUtils\ElidedButton.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\ListTabWidget.h" />
+    <ClInclude Include="QtUtils\WrapInScrollArea.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Settings\GameCubePane.h" />
     <ClInclude Include="Settings\PathPane.h" />

@@ -63,6 +63,10 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
   });
 
   m_timer->start(1000 / 30);
+
+  setMaximumHeight(24);
+  setMaximumWidth(200);
+  setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 }
 
 void MappingButton::Connect()
