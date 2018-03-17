@@ -87,6 +87,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "picojson", "..\Externals\pi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ed25519", "..\externals\ed25519\ed25519.vcxproj", "{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Core\Updater\Updater.vcxproj", "{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -249,6 +251,10 @@ Global
 		{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}.Debug|x64.Build.0 = Debug|x64
 		{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}.Release|x64.ActiveCfg = Release|x64
 		{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}.Release|x64.Build.0 = Release|x64
+		{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}.Debug|x64.ActiveCfg = Debug|x64
+		{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}.Debug|x64.Build.0 = Debug|x64
+		{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}.Release|x64.ActiveCfg = Release|x64
+		{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
