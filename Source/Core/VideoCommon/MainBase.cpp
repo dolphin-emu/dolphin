@@ -7,7 +7,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Core/Host.h"
 #include "VideoCommon/AsyncRequests.h"
@@ -29,12 +28,9 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
-static Common::Flag s_FifoShuttingDown;
-
 void VideoBackendBase::Video_ExitLoop()
 {
   Fifo::ExitGpuLoop();
-  s_FifoShuttingDown.Set();
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -166,7 +162,6 @@ void VideoBackendBase::InitializeShared()
   // do not initialize again for the config window
   m_initialized = true;
 
-  s_FifoShuttingDown.Clear();
   m_invalid = false;
   frameCount = 0;
 
