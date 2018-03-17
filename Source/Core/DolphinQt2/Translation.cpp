@@ -53,7 +53,10 @@ public:
   // boost::iterator_facade library, which nicely separates out application logic from
   // iterator-concept logic.
   void advance(difference_type n) { m_index += n; }
-  difference_type distance_to(const MoIterator& other) const { return other.m_index - m_index; }
+  difference_type distance_to(const MoIterator& other) const
+  {
+    return static_cast<difference_type>(other.m_index) - m_index;
+  }
   reference dereference() const
   {
     u32 offset = ReadU32(&m_data[m_table_offset + m_index * 8 + 4]);
@@ -177,7 +180,7 @@ public:
     auto iter = std::lower_bound(begin, end, original_string,
                                  [](const char* a, const char* b) { return strcmp(a, b) < 0; });
 
-    if (strcmp(*iter, original_string) != 0)
+    if (iter == end || strcmp(*iter, original_string) != 0)
       return original_string;
 
     u32 offset = ReadU32(&m_data[m_offset_translation_table + std::distance(begin, iter) * 8 + 4]);
