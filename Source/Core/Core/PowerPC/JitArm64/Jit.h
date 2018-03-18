@@ -152,8 +152,8 @@ public:
 private:
   struct SlowmemHandler
   {
-    ARM64Reg dest_reg;
-    ARM64Reg addr_reg;
+    Arm64Gen::ARM64Reg dest_reg;
+    Arm64Gen::ARM64Reg addr_reg;
     BitSet32 gprs;
     BitSet32 fprs;
     u32 flags;
@@ -224,7 +224,7 @@ private:
   void FakeLKExit(u32 exit_address_after_return);
   void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
-  FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
+  Arm64Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
   void ComputeRC0(Arm64Gen::ARM64Reg reg);
   void ComputeRC0(u64 imm);
@@ -233,7 +233,9 @@ private:
   void FlushCarry();
 
   void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
-               void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);
+               void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, u64,
+                                         Arm64Gen::ARM64Reg),
+               bool Rc = false);
 
   // <Fastmem fault location, slowmem handler location>
   std::map<const u8*, FastmemArea> m_fault_to_handler;
@@ -245,7 +247,7 @@ private:
 
   PPCAnalyst::CodeBuffer code_buffer;
 
-  ARM64FloatEmitter m_float_emit;
+  Arm64Gen::ARM64FloatEmitter m_float_emit;
 
   Arm64Gen::ARM64CodeBlock farcode;
   u8* nearcode;  // Backed up when we switch to far code.

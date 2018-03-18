@@ -12,6 +12,8 @@
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 
+using namespace Arm64Gen;
+
 FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
   ARM64Reg XA = gpr.CR(field);

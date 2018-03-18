@@ -9,6 +9,9 @@
 
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/Jit_Util.h"
+
+using namespace Arm64Gen;
+
 template <typename T>
 class MMIOWriteCodeGenerator : public MMIO::WriteHandlingMethodVisitor<T>
 {
