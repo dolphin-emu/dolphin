@@ -13,16 +13,16 @@
 class DataReader
 {
 public:
-  __forceinline DataReader() = default;
-  __forceinline DataReader(u8* src, u8* end_) : buffer(src), end(end_) {}
-  __forceinline u8* GetPointer() { return buffer; }
-  __forceinline u8* operator=(u8* src)
+  DataReader() = default;
+  DataReader(u8* src, u8* end_) : buffer(src), end(end_) {}
+  u8* GetPointer() { return buffer; }
+  u8* operator=(u8* src)
   {
     buffer = src;
     return src;
   }
 
-  __forceinline size_t size() const { return end - buffer; }
+  size_t size() const { return end - buffer; }
   template <typename T, bool swapped = true>
   __forceinline T Peek(int offset = 0) const
   {
@@ -54,7 +54,7 @@ public:
   }
 
   template <typename T = u8>
-  __forceinline void Skip(size_t data = 1)
+  void Skip(size_t data = 1)
   {
     buffer += sizeof(T) * data;
   }
