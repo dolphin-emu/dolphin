@@ -35,9 +35,6 @@
     <ClCompile Include="FramebufferManagerBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
-    <ClCompile Include="MainBase.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="PerfQueryBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>

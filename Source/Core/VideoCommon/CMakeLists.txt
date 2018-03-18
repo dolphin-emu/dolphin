@@ -22,7 +22,6 @@ set(SRCS
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
-  MainBase.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
   PerfQueryBase.cpp
