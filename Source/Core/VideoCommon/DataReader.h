@@ -16,10 +16,10 @@ public:
   DataReader() = default;
   DataReader(u8* src, u8* end_) : buffer(src), end(end_) {}
   u8* GetPointer() { return buffer; }
-  u8* operator=(u8* src)
+  DataReader& operator=(u8* src)
   {
     buffer = src;
-    return src;
+    return *this;
   }
 
   size_t size() const { return end - buffer; }
