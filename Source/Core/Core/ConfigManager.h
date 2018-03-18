@@ -316,6 +316,10 @@ struct SConfig
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
 
+  // Auto-update settings
+  std::string m_auto_update_track;
+  std::string m_auto_update_hash_override;
+
   SConfig(const SConfig&) = delete;
   SConfig& operator=(const SConfig&) = delete;
   SConfig(SConfig&&) = delete;
@@ -349,6 +353,7 @@ private:
   void SaveAnalyticsSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
+  void SaveAutoUpdateSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
@@ -363,6 +368,7 @@ private:
   void LoadAnalyticsSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
+  void LoadAutoUpdateSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
                               Core::TitleDatabase::TitleType type);

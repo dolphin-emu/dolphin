@@ -1,4 +1,5 @@
 set(SRCS
+  AutoUpdate.cpp
   CommandLineParse.cpp
   Disassembler.cpp
   GameFile.cpp
