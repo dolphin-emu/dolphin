@@ -22,9 +22,9 @@ public:
     return src;
   }
 
-  __forceinline size_t size() { return end - buffer; }
+  __forceinline size_t size() const { return end - buffer; }
   template <typename T, bool swapped = true>
-  __forceinline T Peek(int offset = 0)
+  __forceinline T Peek(int offset = 0) const
   {
     T data;
     std::memcpy(&data, &buffer[offset], sizeof(T));
