@@ -76,6 +76,32 @@ enum NormalSSEOps
   sseMOVNTP = 0x2B,
 };
 
+enum NormalOp : int
+{
+  nrmADD,
+  nrmADC,
+  nrmSUB,
+  nrmSBB,
+  nrmAND,
+  nrmOR,
+  nrmXOR,
+  nrmMOV,
+  nrmTEST,
+  nrmCMP,
+  nrmXCHG,
+};
+
+enum FloatOp : int
+{
+  floatLD = 0,
+  floatST = 2,
+  floatSTP = 3,
+  floatLD80 = 5,
+  floatSTP80 = 7,
+
+  floatINVALID = -1,
+};
+
 void XEmitter::SetCodePtr(u8* ptr)
 {
   code = ptr;

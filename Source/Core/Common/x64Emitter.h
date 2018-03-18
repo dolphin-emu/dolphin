@@ -78,21 +78,6 @@ enum
   SCALE_IMM64 = 0xF3,
 };
 
-enum NormalOp
-{
-  nrmADD,
-  nrmADC,
-  nrmSUB,
-  nrmSBB,
-  nrmAND,
-  nrmOR,
-  nrmXOR,
-  nrmMOV,
-  nrmTEST,
-  nrmCMP,
-  nrmXCHG,
-};
-
 enum SSECompare
 {
   CMP_EQ = 0,
@@ -105,18 +90,9 @@ enum SSECompare
   CMP_ORD = 7,
 };
 
-enum FloatOp
-{
-  floatLD = 0,
-  floatST = 2,
-  floatSTP = 3,
-  floatLD80 = 5,
-  floatSTP80 = 7,
-
-  floatINVALID = -1,
-};
-
 class XEmitter;
+enum FloatOp : int;
+enum NormalOp : int;
 
 // Information about a generated MOV op
 struct MovInfo final
@@ -130,7 +106,9 @@ struct MovInfo final
 // RIP addressing does not benefit from micro op fusion on Core arch
 struct OpArg
 {
-  friend class XEmitter;  // For accessing offset and operandReg
+  // For accessing offset and operandReg.
+  // This also allows us to keep the op writing functions private.
+  friend class XEmitter;
 
   OpArg() {}  // dummy op arg, used for storage
   OpArg(u64 _offset, int _scale, X64Reg rmReg = RAX, X64Reg scaledReg = RAX)
@@ -147,13 +125,6 @@ struct OpArg
     return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
            indexReg == b.indexReg && offset == b.offset;
   }
-  void WriteREX(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
-  void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm,
-                int W = 0) const;
-  void WriteRest(XEmitter* emit, int extraBytes = 0, X64Reg operandReg = INVALID_REG,
-                 bool warn_64bit_offset = true) const;
-  void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
-
   u64 Imm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);
@@ -217,7 +188,6 @@ struct OpArg
     return OpArg((u8)offset, SCALE_IMM8);
   }
 
-  void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
   bool IsImm() const
   {
     return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 ||
@@ -259,6 +229,14 @@ struct OpArg
   }
 
 private:
+  void WriteREX(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
+  void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm,
+                int W = 0) const;
+  void WriteRest(XEmitter* emit, int extraBytes = 0, X64Reg operandReg = INVALID_REG,
+                 bool warn_64bit_offset = true) const;
+  void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
+  void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
+
   u8 scale;
   u16 offsetOrBaseReg;
   u16 indexReg;
