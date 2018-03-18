@@ -13,8 +13,8 @@
 class DataReader
 {
 public:
-  __forceinline DataReader() : buffer(nullptr), end(nullptr) {}
-  __forceinline DataReader(u8* src, u8* _end) : buffer(src), end(_end) {}
+  __forceinline DataReader() = default;
+  __forceinline DataReader(u8* src, u8* end_) : buffer(src), end(end_) {}
   __forceinline u8* GetPointer() { return buffer; }
   __forceinline u8* operator=(u8* src)
   {
@@ -60,6 +60,6 @@ public:
   }
 
 private:
-  u8* __restrict buffer;
-  u8* end;
+  u8* __restrict buffer = nullptr;
+  u8* end = nullptr;
 };
