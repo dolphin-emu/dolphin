@@ -76,30 +76,30 @@ enum NormalSSEOps
   sseMOVNTP = 0x2B,
 };
 
-enum NormalOp : int
+enum class NormalOp
 {
-  nrmADD,
-  nrmADC,
-  nrmSUB,
-  nrmSBB,
-  nrmAND,
-  nrmOR,
-  nrmXOR,
-  nrmMOV,
-  nrmTEST,
-  nrmCMP,
-  nrmXCHG,
+  ADD,
+  ADC,
+  SUB,
+  SBB,
+  AND,
+  OR,
+  XOR,
+  MOV,
+  TEST,
+  CMP,
+  XCHG,
 };
 
-enum FloatOp : int
+enum class FloatOp
 {
-  floatLD = 0,
-  floatST = 2,
-  floatSTP = 3,
-  floatLD80 = 5,
-  floatSTP80 = 7,
+  LD = 0,
+  ST = 2,
+  STP = 3,
+  LD80 = 5,
+  STP80 = 7,
 
-  floatINVALID = -1,
+  Invalid = -1,
 };
 
 void XEmitter::SetCodePtr(u8* ptr)
@@ -1379,6 +1379,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
     emit->Write8(0x66);
 
   int immToWrite = 0;
+  const NormalOpDef& op_def = normalops[static_cast<int>(op)];
 
   if (operand.IsImm())
   {
@@ -1392,21 +1393,21 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
     if (operand.scale == SCALE_IMM8 && bits == 8)
     {
       // op al, imm8
-      if (!scale && offsetOrBaseReg == AL && normalops[op].eaximm8 != 0xCC)
+      if (!scale && offsetOrBaseReg == AL && op_def.eaximm8 != 0xCC)
       {
-        emit->Write8(normalops[op].eaximm8);
+        emit->Write8(op_def.eaximm8);
         emit->Write8((u8)operand.offset);
         return;
       }
       // mov reg, imm8
-      if (!scale && op == nrmMOV)
+      if (!scale && op == NormalOp::MOV)
       {
         emit->Write8(0xB0 + (offsetOrBaseReg & 7));
         emit->Write8((u8)operand.offset);
         return;
       }
       // op r/m8, imm8
-      emit->Write8(normalops[op].imm8);
+      emit->Write8(op_def.imm8);
       immToWrite = 8;
     }
     else if ((operand.scale == SCALE_IMM16 && bits == 16) ||
@@ -1416,17 +1417,17 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
       // Try to save immediate size if we can, but first check to see
       // if the instruction supports simm8.
       // op r/m, imm8
-      if (normalops[op].simm8 != 0xCC &&
+      if (op_def.simm8 != 0xCC &&
           ((operand.scale == SCALE_IMM16 && (s16)operand.offset == (s8)operand.offset) ||
            (operand.scale == SCALE_IMM32 && (s32)operand.offset == (s8)operand.offset)))
       {
-        emit->Write8(normalops[op].simm8);
+        emit->Write8(op_def.simm8);
         immToWrite = 8;
       }
       else
       {
         // mov reg, imm
-        if (!scale && op == nrmMOV && bits != 64)
+        if (!scale && op == NormalOp::MOV && bits != 64)
         {
           emit->Write8(0xB8 + (offsetOrBaseReg & 7));
           if (bits == 16)
@@ -1436,9 +1437,9 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
           return;
         }
         // op eax, imm
-        if (!scale && offsetOrBaseReg == EAX && normalops[op].eaximm32 != 0xCC)
+        if (!scale && offsetOrBaseReg == EAX && op_def.eaximm32 != 0xCC)
         {
-          emit->Write8(normalops[op].eaximm32);
+          emit->Write8(op_def.eaximm32);
           if (bits == 16)
             emit->Write16((u16)operand.offset);
           else
@@ -1446,7 +1447,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
           return;
         }
         // op r/m, imm
-        emit->Write8(normalops[op].imm32);
+        emit->Write8(op_def.imm32);
         immToWrite = bits == 16 ? 16 : 32;
       }
     }
@@ -1455,7 +1456,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
              (operand.scale == SCALE_IMM8 && bits == 64))
     {
       // op r/m, imm8
-      emit->Write8(normalops[op].simm8);
+      emit->Write8(op_def.simm8);
       immToWrite = 8;
     }
     else if (operand.scale == SCALE_IMM64 && bits == 64)
@@ -1466,7 +1467,7 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
                    "WriteNormalOp - MOV with 64-bit imm requires register destination");
       }
       // mov reg64, imm64
-      else if (op == nrmMOV)
+      else if (op == NormalOp::MOV)
       {
         emit->Write8(0xB8 + (offsetOrBaseReg & 7));
         emit->Write64((u64)operand.offset);
@@ -1478,7 +1479,9 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
     {
       ASSERT_MSG(DYNA_REC, 0, "WriteNormalOp - Unhandled case %d %d", operand.scale, bits);
     }
-    _operandReg = (X64Reg)normalops[op].ext;  // pass extension in REG of ModRM
+
+    // pass extension in REG of ModRM
+    _operandReg = static_cast<X64Reg>(op_def.ext);
   }
   else
   {
@@ -1487,12 +1490,12 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
     // op r/m, reg
     if (toRM)
     {
-      emit->Write8(bits == 8 ? normalops[op].toRm8 : normalops[op].toRm32);
+      emit->Write8(bits == 8 ? op_def.toRm8 : op_def.toRm32);
     }
     // op reg, r/m
     else
     {
-      emit->Write8(bits == 8 ? normalops[op].fromRm8 : normalops[op].fromRm32);
+      emit->Write8(bits == 8 ? op_def.fromRm8 : op_def.fromRm32);
     }
   }
   WriteRest(emit, immToWrite >> 3, _operandReg);
@@ -1544,57 +1547,57 @@ void XEmitter::WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg
 void XEmitter::ADD(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmADD, a1, a2);
+  WriteNormalOp(bits, NormalOp::ADD, a1, a2);
 }
 void XEmitter::ADC(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmADC, a1, a2);
+  WriteNormalOp(bits, NormalOp::ADC, a1, a2);
 }
 void XEmitter::SUB(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmSUB, a1, a2);
+  WriteNormalOp(bits, NormalOp::SUB, a1, a2);
 }
 void XEmitter::SBB(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmSBB, a1, a2);
+  WriteNormalOp(bits, NormalOp::SBB, a1, a2);
 }
 void XEmitter::AND(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmAND, a1, a2);
+  WriteNormalOp(bits, NormalOp::AND, a1, a2);
 }
 void XEmitter::OR(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmOR, a1, a2);
+  WriteNormalOp(bits, NormalOp::OR, a1, a2);
 }
 void XEmitter::XOR(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmXOR, a1, a2);
+  WriteNormalOp(bits, NormalOp::XOR, a1, a2);
 }
 void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
 {
   if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
     ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
-  WriteNormalOp(bits, nrmMOV, a1, a2);
+  WriteNormalOp(bits, NormalOp::MOV, a1, a2);
 }
 void XEmitter::TEST(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmTEST, a1, a2);
+  WriteNormalOp(bits, NormalOp::TEST, a1, a2);
 }
 void XEmitter::CMP(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, nrmCMP, a1, a2);
+  WriteNormalOp(bits, NormalOp::CMP, a1, a2);
 }
 void XEmitter::XCHG(int bits, const OpArg& a1, const OpArg& a2)
 {
-  WriteNormalOp(bits, nrmXCHG, a1, a2);
+  WriteNormalOp(bits, NormalOp::XCHG, a1, a2);
 }
 void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
 {
@@ -1602,11 +1605,11 @@ void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
   if (a1.IsSimpleReg() && a2.IsImm() &&
       a2.offset == 0)  // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
   {
-    WriteNormalOp(bits, nrmTEST, a1, a1);
+    WriteNormalOp(bits, NormalOp::TEST, a1, a1);
   }
   else
   {
-    WriteNormalOp(bits, nrmCMP, a1, a2);
+    WriteNormalOp(bits, NormalOp::CMP, a1, a2);
   }
 }
 
@@ -3274,7 +3277,7 @@ void XEmitter::FWAIT()
 void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, const OpArg& arg)
 {
   int mf = 0;
-  ASSERT_MSG(DYNA_REC, !(bits == 80 && op_80b == floatINVALID),
+  ASSERT_MSG(DYNA_REC, !(bits == 80 && op_80b == FloatOp::Invalid),
              "WriteFloatLoadStore: 80 bits not supported for this instruction");
   switch (bits)
   {
@@ -3294,20 +3297,20 @@ void XEmitter::WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, const O
   // x87 instructions use the reg field of the ModR/M byte as opcode:
   if (bits == 80)
     op = op_80b;
-  arg.WriteRest(this, 0, (X64Reg)op);
+  arg.WriteRest(this, 0, static_cast<X64Reg>(op));
 }
 
 void XEmitter::FLD(int bits, const OpArg& src)
 {
-  WriteFloatLoadStore(bits, floatLD, floatLD80, src);
+  WriteFloatLoadStore(bits, FloatOp::LD, FloatOp::LD80, src);
 }
 void XEmitter::FST(int bits, const OpArg& dest)
 {
-  WriteFloatLoadStore(bits, floatST, floatINVALID, dest);
+  WriteFloatLoadStore(bits, FloatOp::ST, FloatOp::Invalid, dest);
 }
 void XEmitter::FSTP(int bits, const OpArg& dest)
 {
-  WriteFloatLoadStore(bits, floatSTP, floatSTP80, dest);
+  WriteFloatLoadStore(bits, FloatOp::STP, FloatOp::STP80, dest);
 }
 void XEmitter::FNSTSW_AX()
 {

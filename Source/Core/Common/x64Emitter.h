@@ -91,8 +91,8 @@ enum SSECompare
 };
 
 class XEmitter;
-enum FloatOp : int;
-enum NormalOp : int;
+enum class FloatOp;
+enum class NormalOp;
 
 // Information about a generated MOV op
 struct MovInfo final
