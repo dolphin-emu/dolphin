@@ -16,6 +16,7 @@ public:
   DataReader() = default;
   DataReader(u8* src, u8* end_) : buffer(src), end(end_) {}
   u8* GetPointer() { return buffer; }
+  const u8* GetPointer() const { return buffer; }
   DataReader& operator=(u8* src)
   {
     buffer = src;
