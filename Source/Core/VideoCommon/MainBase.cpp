@@ -7,7 +7,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Core/Host.h"
 #include "VideoCommon/AsyncRequests.h"
@@ -29,20 +28,9 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
-static Common::Flag s_FifoShuttingDown;
-
-static volatile struct
-{
-  u32 xfbAddr;
-  u32 fbWidth;
-  u32 fbStride;
-  u32 fbHeight;
-} s_beginFieldArgs;
-
 void VideoBackendBase::Video_ExitLoop()
 {
   Fifo::ExitGpuLoop();
-  s_FifoShuttingDown.Set();
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
@@ -174,8 +162,6 @@ void VideoBackendBase::InitializeShared()
   // do not initialize again for the config window
   m_initialized = true;
 
-  s_FifoShuttingDown.Clear();
-  memset((void*)&s_beginFieldArgs, 0, sizeof(s_beginFieldArgs));
   m_invalid = false;
   frameCount = 0;
 
@@ -220,9 +206,6 @@ void VideoBackendBase::DoState(PointerWrap& p)
 
   VideoCommon_DoState(p);
   p.DoMarker("VideoCommon");
-
-  p.Do(s_beginFieldArgs);
-  p.DoMarker("VideoBackendBase");
 
   // Refresh state.
   if (p.GetMode() == PointerWrap::MODE_READ)
