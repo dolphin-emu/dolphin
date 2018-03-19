@@ -417,14 +417,25 @@ inline void SetXER(UReg_XER new_xer)
   PowerPC::ppcState.xer_so_ov = (new_xer.SO << 1) + new_xer.OV;
 }
 
-inline int GetXER_SO()
+inline u32 GetXER_SO()
 {
   return PowerPC::ppcState.xer_so_ov >> 1;
 }
 
-inline void SetXER_SO(int value)
+inline void SetXER_SO(bool value)
 {
-  PowerPC::ppcState.xer_so_ov |= value << 1;
+  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value) << 1;
+}
+
+inline u32 GetXER_OV()
+{
+  return PowerPC::ppcState.xer_so_ov & 1;
+}
+
+inline void SetXER_OV(bool value)
+{
+  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value);
+  SetXER_SO(value);
 }
 
 void UpdateFPRF(double dvalue);
