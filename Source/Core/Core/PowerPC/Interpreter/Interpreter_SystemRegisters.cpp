@@ -56,7 +56,7 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    PanicAlert("mtfsb0x: inst.Rc");
+    Helper_UpdateCR1();
 }
 
 void Interpreter::mtfsb1x(UGeckoInstruction inst)
@@ -70,7 +70,7 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    PanicAlert("mtfsb1x: inst.Rc");
+    Helper_UpdateCR1();
 }
 
 void Interpreter::mtfsfix(UGeckoInstruction inst)
@@ -87,7 +87,7 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    PanicAlert("mtfsfix: inst.Rc");
+    Helper_UpdateCR1();
 }
 
 void Interpreter::mtfsfx(UGeckoInstruction inst)
@@ -108,7 +108,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
-    PanicAlert("mtfsfx: inst.Rc");
+    Helper_UpdateCR1();
 }
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
@@ -517,5 +517,5 @@ void Interpreter::mffsx(UGeckoInstruction inst)
   riPS0(inst.FD) = 0xFFF8000000000000 | FPSCR.Hex;
 
   if (inst.Rc)
-    PanicAlert("mffsx: inst_.Rc");
+    Helper_UpdateCR1();
 }
