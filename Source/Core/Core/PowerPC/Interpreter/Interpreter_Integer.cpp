@@ -499,8 +499,7 @@ void Interpreter::divwx(UGeckoInstruction inst)
   {
     if (inst.OE)
     {
-      // should set OV
-      PanicAlert("OE: divwx");
+      SetXER_OV(true);
     }
 
     if (((u32)a & 0x80000000) && b == 0)
@@ -526,8 +525,7 @@ void Interpreter::divwux(UGeckoInstruction inst)
   {
     if (inst.OE)
     {
-      // should set OV
-      PanicAlert("OE: divwux");
+      SetXER_OV(true);
     }
 
     rGPR[inst.RD] = 0;
