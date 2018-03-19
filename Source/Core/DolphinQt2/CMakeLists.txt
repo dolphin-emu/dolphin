@@ -21,7 +21,6 @@ set(SRCS
   FIFOPlayerWindow.cpp
   HotkeyScheduler.cpp
   Host.cpp
-  InDevelopmentWarning.cpp
   Main.cpp
   MainWindow.cpp
   MenuBar.cpp

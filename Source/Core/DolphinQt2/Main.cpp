@@ -14,7 +14,6 @@
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
-#include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/Resources.h"
@@ -111,11 +110,6 @@ int main(int argc, char* argv[])
 
   int retval = 0;
 
-  if (SConfig::GetInstance().m_show_development_warning)
-  {
-    InDevelopmentWarning warning_box;
-    retval = warning_box.exec() == QDialog::Rejected;
-  }
   if (!retval)
   {
     DolphinAnalytics::Instance()->ReportDolphinStart("qt");
