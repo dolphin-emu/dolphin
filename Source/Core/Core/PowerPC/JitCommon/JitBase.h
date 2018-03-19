@@ -110,8 +110,8 @@ protected:
 
 public:
   // This should probably be removed from public:
-  JitOptions jo;
-  JitState js;
+  JitOptions jo{};
+  JitState js{};
 
   JitBase();
   ~JitBase() override;
