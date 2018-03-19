@@ -580,16 +580,15 @@ void Interpreter::mullwx(UGeckoInstruction inst)
 
 void Interpreter::negx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = (~rGPR[inst.RA]) + 1;
+  const u32 a = rGPR[inst.RA];
 
-  if (rGPR[inst.RD] == 0x80000000)
-  {
-    if (inst.OE)
-      PanicAlert("OE: negx");
-  }
+  rGPR[inst.RD] = (~a) + 1;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
+
+  if (inst.OE && a == 0x80000000)
+    SetXER_OV(true);
 }
 
 void Interpreter::subfx(UGeckoInstruction inst)
