@@ -241,8 +241,8 @@ void CompileExceptionCheck(ExceptionType type)
     if (type == ExceptionType::FIFOWrite)
     {
       // Check in case the code has been replaced since: do we need to do this?
-      int optype = GetOpInfo(PowerPC::HostRead_U32(PC))->type;
-      if (optype != OPTYPE_STORE && optype != OPTYPE_STOREFP && (optype != OPTYPE_STOREPS))
+      const ::OpType optype = GetOpInfo(PowerPC::HostRead_U32(PC))->type;
+      if (optype != ::OpType::Store && optype != ::OpType::StoreFP && optype != ::OpType::StorePS)
         return;
     }
     exception_addresses->insert(PC);

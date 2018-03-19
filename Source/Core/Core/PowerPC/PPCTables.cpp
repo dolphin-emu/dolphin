@@ -41,7 +41,7 @@ const std::array<u64, 16> m_crTable = {{
 GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
 {
   GekkoOPInfo* info = m_infoTable[_inst.OPCD];
-  if (info->type == OPTYPE_SUBTABLE)
+  if (info->type == OpType::Subtable)
   {
     switch (_inst.OPCD)
     {
@@ -62,7 +62,7 @@ GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
   }
   else
   {
-    if (info->type == OPTYPE_INVALID)
+    if (info->type == OpType::Invalid)
     {
       ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
       return nullptr;
@@ -74,7 +74,7 @@ GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
 Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
 {
   const GekkoOPInfo* info = m_infoTable[_inst.OPCD];
-  if (info->type == OPTYPE_SUBTABLE)
+  if (info->type == OpType::Subtable)
   {
     switch (_inst.OPCD)
     {
@@ -95,7 +95,7 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
   }
   else
   {
-    if (info->type == OPTYPE_INVALID)
+    if (info->type == OpType::Invalid)
     {
       ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
       return nullptr;
@@ -131,7 +131,7 @@ const char* GetInstructionName(UGeckoInstruction _inst)
 bool IsValidInstruction(UGeckoInstruction _inst)
 {
   const GekkoOPInfo* info = GetOpInfo(_inst);
-  return info != nullptr && info->type != OPTYPE_UNKNOWN;
+  return info != nullptr && info->type != OpType::Unknown;
 }
 
 void CountInstruction(UGeckoInstruction _inst)

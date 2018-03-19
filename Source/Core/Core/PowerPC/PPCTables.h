@@ -61,34 +61,34 @@ enum
   FL_INOUT_FLOAT_D = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
 };
 
-enum
+enum class OpType
 {
-  OPTYPE_INVALID,
-  OPTYPE_SUBTABLE,
-  OPTYPE_INTEGER,
-  OPTYPE_CR,
-  OPTYPE_SPR,
-  OPTYPE_SYSTEM,
-  OPTYPE_SYSTEMFP,
-  OPTYPE_LOAD,
-  OPTYPE_STORE,
-  OPTYPE_LOADFP,
-  OPTYPE_STOREFP,
-  OPTYPE_DOUBLEFP,
-  OPTYPE_SINGLEFP,
-  OPTYPE_LOADPS,
-  OPTYPE_STOREPS,
-  OPTYPE_PS,
-  OPTYPE_DCACHE,
-  OPTYPE_ICACHE,
-  OPTYPE_BRANCH,
-  OPTYPE_UNKNOWN,
+  Invalid,
+  Subtable,
+  Integer,
+  CR,
+  SPR,
+  System,
+  SystemFP,
+  Load,
+  Store,
+  LoadFP,
+  StoreFP,
+  DoubleFP,
+  SingleFP,
+  LoadPS,
+  StorePS,
+  PS,
+  DataCache,
+  InstructionCache,
+  Branch,
+  Unknown,
 };
 
 struct GekkoOPInfo
 {
   const char* opname;
-  int type;
+  OpType type;
   int flags;
   int numCycles;
   u64 runCount;

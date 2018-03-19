@@ -56,7 +56,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
+  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == ::OpType::Integer)
   {
     return;
   }
