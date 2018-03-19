@@ -7,6 +7,8 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
+using namespace Arm64Gen;
+
 JitArm64BlockCache::JitArm64BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
 {
 }

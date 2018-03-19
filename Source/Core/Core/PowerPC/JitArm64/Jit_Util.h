@@ -10,7 +10,7 @@
 #include "Core/HW/MMIO.h"
 
 void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
-                   BitSet32 fprs_in_use, ARM64Reg dst_reg, u32 address, u32 flags);
+                   BitSet32 fprs_in_use, Arm64Gen::ARM64Reg dst_reg, u32 address, u32 flags);
 
 void MMIOWriteRegToAddr(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 gprs_in_use,
-                        BitSet32 fprs_in_use, ARM64Reg src_reg, u32 address, u32 flags);
+                        BitSet32 fprs_in_use, Arm64Gen::ARM64Reg src_reg, u32 address, u32 flags);
