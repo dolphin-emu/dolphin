@@ -62,28 +62,30 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
 
 void BreakPoints::Add(const TBreakPoint& bp)
 {
-  if (!IsAddressBreakPoint(bp.address))
-  {
-    m_breakpoints.push_back(bp);
-    if (g_jit)
-      g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
-  }
+  if (IsAddressBreakPoint(bp.address))
+    return;
+
+  m_breakpoints.push_back(bp);
+
+  if (g_jit)
+    g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
 }
 
 void BreakPoints::Add(u32 address, bool temp)
 {
-  if (!IsAddressBreakPoint(address))  // only add new addresses
-  {
-    TBreakPoint bp;  // breakpoint settings
-    bp.is_enabled = true;
-    bp.is_temporary = temp;
-    bp.address = address;
+  // Only add new addresses
+  if (IsAddressBreakPoint(address))
+    return;
 
-    m_breakpoints.push_back(bp);
+  TBreakPoint bp;  // breakpoint settings
+  bp.is_enabled = true;
+  bp.is_temporary = temp;
+  bp.address = address;
 
-    if (g_jit)
-      g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
-  }
+  m_breakpoints.push_back(bp);
+
+  if (g_jit)
+    g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Remove(u32 address)
@@ -170,18 +172,18 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 
 void MemChecks::Add(const TMemCheck& memory_check)
 {
-  if (GetMemCheck(memory_check.start_address) == nullptr)
-  {
-    bool had_any = HasAny();
-    Core::RunAsCPUThread([&] {
-      m_mem_checks.push_back(memory_check);
-      // If this is the first one, clear the JIT cache so it can switch to
-      // watchpoint-compatible code.
-      if (!had_any && g_jit)
-        g_jit->ClearCache();
-      PowerPC::DBATUpdated();
-    });
-  }
+  if (GetMemCheck(memory_check.start_address) != nullptr)
+    return;
+
+  bool had_any = HasAny();
+  Core::RunAsCPUThread([&] {
+    m_mem_checks.push_back(memory_check);
+    // If this is the first one, clear the JIT cache so it can switch to
+    // watchpoint-compatible code.
+    if (!had_any && g_jit)
+      g_jit->ClearCache();
+    PowerPC::DBATUpdated();
+  });
 }
 
 void MemChecks::Remove(u32 address)
@@ -284,22 +286,23 @@ void Watches::AddFromStrings(const TWatchesStr& watch_strings)
 
 void Watches::Add(const TWatch& watch)
 {
-  if (!IsAddressWatch(watch.address))
-  {
-    m_watches.push_back(watch);
-  }
+  if (IsAddressWatch(watch.address))
+    return;
+
+  m_watches.push_back(watch);
 }
 
 void Watches::Add(u32 address)
 {
-  if (!IsAddressWatch(address))  // only add new addresses
-  {
-    TWatch watch;  // watch settings
-    watch.is_enabled = true;
-    watch.address = address;
+  // Only add new addresses
+  if (IsAddressWatch(address))
+    return;
 
-    m_watches.push_back(watch);
-  }
+  TWatch watch;  // watch settings
+  watch.is_enabled = true;
+  watch.address = address;
+
+  m_watches.push_back(watch);
 }
 
 void Watches::Update(int count, u32 address)
