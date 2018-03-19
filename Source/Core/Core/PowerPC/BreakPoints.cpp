@@ -88,16 +88,15 @@ void BreakPoints::Add(u32 address, bool temp)
 
 void BreakPoints::Remove(u32 address)
 {
-  for (auto i = m_breakpoints.begin(); i != m_breakpoints.end(); ++i)
-  {
-    if (i->address == address)
-    {
-      m_breakpoints.erase(i);
-      if (g_jit)
-        g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
-      return;
-    }
-  }
+  const auto iter = std::find_if(m_breakpoints.begin(), m_breakpoints.end(),
+                                 [address](const auto& bp) { return bp.address == address; });
+
+  if (iter == m_breakpoints.cend())
+    return;
+
+  m_breakpoints.erase(iter);
+  if (g_jit)
+    g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Clear()
@@ -187,52 +186,49 @@ void MemChecks::Add(const TMemCheck& memory_check)
 
 void MemChecks::Remove(u32 address)
 {
-  for (auto i = m_mem_checks.begin(); i != m_mem_checks.end(); ++i)
-  {
-    if (i->start_address == address)
-    {
-      Core::RunAsCPUThread([&] {
-        m_mem_checks.erase(i);
-        if (!HasAny() && g_jit)
-          g_jit->ClearCache();
-        PowerPC::DBATUpdated();
-      });
-      return;
-    }
-  }
+  const auto iter =
+      std::find_if(m_mem_checks.cbegin(), m_mem_checks.cend(),
+                   [address](const auto& check) { return check.start_address == address; });
+
+  if (iter == m_mem_checks.cend())
+    return;
+
+  Core::RunAsCPUThread([&] {
+    m_mem_checks.erase(iter);
+    if (!HasAny() && g_jit)
+      g_jit->ClearCache();
+    PowerPC::DBATUpdated();
+  });
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
-  for (TMemCheck& mc : m_mem_checks)
-  {
-    if (mc.end_address >= address && address + size - 1 >= mc.start_address)
-    {
-      return &mc;
-    }
-  }
+  const auto iter =
+      std::find_if(m_mem_checks.begin(), m_mem_checks.end(), [address, size](const auto& mc) {
+        return mc.end_address >= address && address + size - 1 >= mc.start_address;
+      });
 
-  // none found
-  return nullptr;
+  // None found
+  if (iter == m_mem_checks.cend())
+    return nullptr;
+
+  return &*iter;
 }
 
 bool MemChecks::OverlapsMemcheck(u32 address, u32 length)
 {
   if (!HasAny())
     return false;
-  u32 page_end_suffix = length - 1;
-  u32 page_end_address = address | page_end_suffix;
-  for (TMemCheck memcheck : m_mem_checks)
-  {
-    if (((memcheck.start_address | page_end_suffix) == page_end_address ||
-         (memcheck.end_address | page_end_suffix) == page_end_address) ||
-        ((memcheck.start_address | page_end_suffix) < page_end_address &&
-         (memcheck.end_address | page_end_suffix) > page_end_address))
-    {
-      return true;
-    }
-  }
-  return false;
+
+  const u32 page_end_suffix = length - 1;
+  const u32 page_end_address = address | page_end_suffix;
+
+  return std::any_of(m_mem_checks.cbegin(), m_mem_checks.cend(), [&](const auto& mc) {
+    return ((mc.start_address | page_end_suffix) == page_end_address ||
+            (mc.end_address | page_end_suffix) == page_end_address) ||
+           ((mc.start_address | page_end_suffix) < page_end_address &&
+            (mc.end_address | page_end_suffix) > page_end_address);
+  });
 }
 
 bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write,
@@ -318,14 +314,13 @@ void Watches::UpdateName(int count, const std::string name)
 
 void Watches::Remove(u32 address)
 {
-  for (auto i = m_watches.begin(); i != m_watches.end(); ++i)
-  {
-    if (i->address == address)
-    {
-      m_watches.erase(i);
-      return;
-    }
-  }
+  const auto iter = std::find_if(m_watches.cbegin(), m_watches.cend(),
+                                 [address](const auto& watch) { return watch.address == address; });
+
+  if (iter == m_watches.cend())
+    return;
+
+  m_watches.erase(iter);
 }
 
 void Watches::Clear()
