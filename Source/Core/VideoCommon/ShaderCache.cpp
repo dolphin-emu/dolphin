@@ -129,7 +129,7 @@ std::optional<const AbstractPipeline*> ShaderCache::GetPipelineForUidAsync(const
   }
 
   AppendGXPipelineUID(uid);
-  QueuePipelineCompile(uid);
+  QueuePipelineCompile(uid, COMPILE_PRIORITY_ONDEMAND_PIPELINE);
   return {};
 }
 
@@ -249,12 +249,12 @@ void ShaderCache::CompileMissingPipelines()
   for (auto& it : m_gx_pipeline_cache)
   {
     if (!it.second.second)
-      QueuePipelineCompile(it.first);
+      QueuePipelineCompile(it.first, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
   }
   for (auto& it : m_gx_uber_pipeline_cache)
   {
     if (!it.second.second)
-      QueueUberPipelineCompile(it.first);
+      QueueUberPipelineCompile(it.first, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
   }
 }
 
@@ -655,7 +655,7 @@ void ShaderCache::AppendGXPipelineUID(const GXPipelineUid& config)
   }
 }
 
-void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid)
+void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, u32 priority)
 {
   class VertexShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -680,10 +680,10 @@ void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid)
 
   m_vs_cache.shader_map[uid].pending = true;
   auto wi = m_async_shader_compiler->CreateWorkItem<VertexShaderWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi));
+  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid)
+void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid, u32 priority)
 {
   class VertexUberShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -708,10 +708,10 @@ void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid
 
   m_uber_vs_cache.shader_map[uid].pending = true;
   auto wi = m_async_shader_compiler->CreateWorkItem<VertexUberShaderWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi));
+  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid)
+void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priority)
 {
   class PixelShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -736,10 +736,10 @@ void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid)
 
   m_ps_cache.shader_map[uid].pending = true;
   auto wi = m_async_shader_compiler->CreateWorkItem<PixelShaderWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi));
+  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid)
+void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid, u32 priority)
 {
   class PixelUberShaderWorkItem final : public AsyncShaderCompiler::WorkItem
   {
@@ -764,16 +764,16 @@ void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& 
 
   m_uber_ps_cache.shader_map[uid].pending = true;
   auto wi = m_async_shader_compiler->CreateWorkItem<PixelUberShaderWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi));
+  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid)
+void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
 {
   class PipelineWorkItem final : public AsyncShaderCompiler::WorkItem
   {
   public:
-    PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_)
-        : shader_cache(shader_cache_), uid(uid_)
+    PipelineWorkItem(ShaderCache* shader_cache_, const GXPipelineUid& uid_, u32 priority_)
+        : shader_cache(shader_cache_), uid(uid_), priority(priority_)
     {
       // Check if all the stages required for this pipeline have been compiled.
       // If not, this work item becomes a no-op, and re-queues the pipeline for the next frame.
@@ -788,12 +788,12 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid)
       auto vs_it = shader_cache->m_vs_cache.shader_map.find(uid.vs_uid);
       stages_ready &= vs_it != shader_cache->m_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
-        shader_cache->QueueVertexShaderCompile(uid.vs_uid);
+        shader_cache->QueueVertexShaderCompile(uid.vs_uid, priority);
 
       auto ps_it = shader_cache->m_ps_cache.shader_map.find(uid.ps_uid);
       stages_ready &= ps_it != shader_cache->m_ps_cache.shader_map.end() && !ps_it->second.pending;
       if (ps_it == shader_cache->m_ps_cache.shader_map.end())
-        shader_cache->QueuePixelShaderCompile(uid.ps_uid);
+        shader_cache->QueuePixelShaderCompile(uid.ps_uid, priority);
 
       return stages_ready;
     }
@@ -815,8 +815,8 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid)
       {
         // Re-queue for next frame.
         auto wi = shader_cache->m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(
-            shader_cache, uid);
-        shader_cache->m_async_shader_compiler->QueueWorkItem(std::move(wi));
+            shader_cache, uid, priority);
+        shader_cache->m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
       }
     }
 
@@ -824,22 +824,23 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid)
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractPipeline> pipeline;
     GXPipelineUid uid;
+    u32 priority;
     std::optional<AbstractPipelineConfig> config;
     bool stages_ready;
   };
 
-  auto wi = m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi));
+  auto wi = m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(this, uid, priority);
+  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
   m_gx_pipeline_cache[uid].second = true;
 }
 
-void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid)
+void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority)
 {
   class UberPipelineWorkItem final : public AsyncShaderCompiler::WorkItem
   {
   public:
-    UberPipelineWorkItem(ShaderCache* shader_cache_, const GXUberPipelineUid& uid_)
-        : shader_cache(shader_cache_), uid(uid_)
+    UberPipelineWorkItem(ShaderCache* shader_cache_, const GXUberPipelineUid& uid_, u32 priority_)
+        : shader_cache(shader_cache_), uid(uid_), priority(priority_)
     {
       // Check if all the stages required for this UberPipeline have been compiled.
       // If not, this work item becomes a no-op, and re-queues the UberPipeline for the next frame.
@@ -855,13 +856,13 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid)
       stages_ready &=
           vs_it != shader_cache->m_uber_vs_cache.shader_map.end() && !vs_it->second.pending;
       if (vs_it == shader_cache->m_uber_vs_cache.shader_map.end())
-        shader_cache->QueueVertexUberShaderCompile(uid.vs_uid);
+        shader_cache->QueueVertexUberShaderCompile(uid.vs_uid, priority);
 
       auto ps_it = shader_cache->m_uber_ps_cache.shader_map.find(uid.ps_uid);
       stages_ready &=
           ps_it != shader_cache->m_uber_ps_cache.shader_map.end() && !ps_it->second.pending;
       if (ps_it == shader_cache->m_uber_ps_cache.shader_map.end())
-        shader_cache->QueuePixelUberShaderCompile(uid.ps_uid);
+        shader_cache->QueuePixelUberShaderCompile(uid.ps_uid, priority);
 
       return stages_ready;
     }
@@ -883,8 +884,8 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid)
       {
         // Re-queue for next frame.
         auto wi = shader_cache->m_async_shader_compiler->CreateWorkItem<UberPipelineWorkItem>(
-            shader_cache, uid);
-        shader_cache->m_async_shader_compiler->QueueWorkItem(std::move(wi));
+            shader_cache, uid, priority);
+        shader_cache->m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
       }
     }
 
@@ -892,12 +893,13 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid)
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractPipeline> UberPipeline;
     GXUberPipelineUid uid;
+    u32 priority;
     std::optional<AbstractPipelineConfig> config;
     bool stages_ready;
   };
 
-  auto wi = m_async_shader_compiler->CreateWorkItem<UberPipelineWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi));
+  auto wi = m_async_shader_compiler->CreateWorkItem<UberPipelineWorkItem>(this, uid, priority);
+  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
   m_gx_uber_pipeline_cache[uid].second = true;
 }
 
