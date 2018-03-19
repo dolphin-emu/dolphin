@@ -372,7 +372,7 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
 
   // Debugging mode only
-  m_boot_to_pause = options_menu->addAction(tr("Boot To Pause"));
+  m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
   m_boot_to_pause->setCheckable(true);
   m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);
 
@@ -386,7 +386,7 @@ void MenuBar::AddOptionsMenu()
   connect(m_automatic_start, &QAction::toggled, this,
           [this](bool enable) { SConfig::GetInstance().bAutomaticStart = enable; });
 
-  m_change_font = AddAction(options_menu, tr("Font..."), this, &MenuBar::ChangeDebugFont);
+  m_change_font = AddAction(options_menu, tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
 void MenuBar::AddHelpMenu()
@@ -596,7 +596,7 @@ void MenuBar::AddSymbolsMenu()
 
   AddAction(m_symbols, tr("&Clear Symbols"), this, &MenuBar::ClearSymbols);
 
-  auto* generate = m_symbols->addMenu(tr("Generate Symbols From"));
+  auto* generate = m_symbols->addMenu(tr("&Generate Symbols From"));
   AddAction(generate, tr("Address"), this, &MenuBar::GenerateSymbolsFromAddress);
   AddAction(generate, tr("Signature Database"), this, &MenuBar::GenerateSymbolsFromSignatureDB);
   AddAction(generate, tr("RSO Modules"), this, &MenuBar::GenerateSymbolsFromRSO);
@@ -606,7 +606,7 @@ void MenuBar::AddSymbolsMenu()
   AddAction(m_symbols, tr("&Save Symbol Map"), this, &MenuBar::SaveSymbolMap);
   m_symbols->addSeparator();
 
-  AddAction(m_symbols, tr("&Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
+  AddAction(m_symbols, tr("Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
   AddAction(m_symbols, tr("Save Symbol Map &As..."), this, &MenuBar::SaveSymbolMapAs);
   m_symbols->addSeparator();
 
