@@ -12,9 +12,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
@@ -67,8 +67,7 @@ void BreakPoints::Add(const TBreakPoint& bp)
 
   m_breakpoints.push_back(bp);
 
-  if (g_jit)
-    g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
+  JitInterface::InvalidateICache(bp.address, 4, true);
 }
 
 void BreakPoints::Add(u32 address, bool temp)
@@ -84,8 +83,7 @@ void BreakPoints::Add(u32 address, bool temp)
 
   m_breakpoints.push_back(bp);
 
-  if (g_jit)
-    g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
+  JitInterface::InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Remove(u32 address)
@@ -97,18 +95,14 @@ void BreakPoints::Remove(u32 address)
     return;
 
   m_breakpoints.erase(iter);
-  if (g_jit)
-    g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
+  JitInterface::InvalidateICache(address, 4, true);
 }
 
 void BreakPoints::Clear()
 {
-  if (g_jit)
+  for (const TBreakPoint& bp : m_breakpoints)
   {
-    for (const TBreakPoint& bp : m_breakpoints)
-    {
-      g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
-    }
+    JitInterface::InvalidateICache(bp.address, 4, true);
   }
 
   m_breakpoints.clear();
@@ -121,8 +115,7 @@ void BreakPoints::ClearAllTemporary()
   {
     if (bp->is_temporary)
     {
-      if (g_jit)
-        g_jit->GetBlockCache()->InvalidateICache(bp->address, 4, true);
+      JitInterface::InvalidateICache(bp->address, 4, true);
       bp = m_breakpoints.erase(bp);
     }
     else
@@ -180,8 +173,8 @@ void MemChecks::Add(const TMemCheck& memory_check)
     m_mem_checks.push_back(memory_check);
     // If this is the first one, clear the JIT cache so it can switch to
     // watchpoint-compatible code.
-    if (!had_any && g_jit)
-      g_jit->ClearCache();
+    if (!had_any)
+      JitInterface::ClearCache();
     PowerPC::DBATUpdated();
   });
 }
@@ -197,8 +190,8 @@ void MemChecks::Remove(u32 address)
 
   Core::RunAsCPUThread([&] {
     m_mem_checks.erase(iter);
-    if (!HasAny() && g_jit)
-      g_jit->ClearCache();
+    if (!HasAny())
+      JitInterface::ClearCache();
     PowerPC::DBATUpdated();
   });
 }
