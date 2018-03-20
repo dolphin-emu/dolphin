@@ -124,6 +124,7 @@ void JitArm64::GenerateAsm()
 
   // Call C version of Dispatch().
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+  MOVP2R(X0, this);
   MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
   BLR(X30);
 
@@ -141,7 +142,8 @@ void JitArm64::GenerateAsm()
   // Call JIT
   SetJumpTarget(no_block_available);
   ResetStack();
-  MOV(W0, DISPATCHER_PC);
+  MOVP2R(X0, this);
+  MOV(W1, DISPATCHER_PC);
   MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
   BLR(X30);
   LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));

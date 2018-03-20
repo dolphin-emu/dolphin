@@ -12,9 +12,14 @@
 
 JitBase* g_jit;
 
-void JitTrampoline(u32 em_address)
+const u8* JitBase::Dispatch(JitBase& jit)
 {
-  g_jit->Jit(em_address);
+  return jit.GetBlockCache()->Dispatch();
+}
+
+void JitTrampoline(JitBase& jit, u32 em_address)
+{
+  jit.Jit(em_address);
 }
 
 u32 Helper_Mask(u8 mb, u8 me)
