@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QDialogButtonBox>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/SettingsWindow.h"
@@ -59,9 +60,11 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   AddTab(m_tabs, tr("Advanced"), new AdvancedPane(), "config");
 
   // Dialog box buttons
-  QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(ok_box, &QDialogButtonBox::accepted, this, &SettingsWindow::accept);
-  layout->addWidget(ok_box);
+  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  layout->addWidget(close_box);
 
   setLayout(layout);
 }

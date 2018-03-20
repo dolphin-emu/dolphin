@@ -24,7 +24,6 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
     : QDialog(parent), m_xrr_config(xrr_config)
 {
   CreateMainLayout();
-  ConnectWidgets();
 
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -40,7 +39,9 @@ void GraphicsWindow::CreateMainLayout()
   m_description =
       new QLabel(tr("Move the mouse pointer over an option to display a detailed description."));
   m_tab_widget = new QTabWidget();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   description_box->setLayout(description_layout);
   description_box->setMinimumHeight(230);
@@ -79,11 +80,6 @@ void GraphicsWindow::CreateMainLayout()
   }
 
   setLayout(main_layout);
-}
-
-void GraphicsWindow::ConnectWidgets()
-{
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
 }
 
 void GraphicsWindow::OnBackendChanged(const QString& backend)

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QDialogButtonBox>
+#include <QPushButton>
 #include <QTabWidget>
 #include <QVBoxLayout>
 
@@ -52,9 +53,11 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
 
   layout->addWidget(tab_widget);
 
-  QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(ok_box, &QDialogButtonBox::accepted, this, &PropertiesDialog::accept);
-  layout->addWidget(ok_box);
+  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  layout->addWidget(close_box);
 
   setLayout(layout);
 }

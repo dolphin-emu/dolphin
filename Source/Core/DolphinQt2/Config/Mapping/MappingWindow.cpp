@@ -109,7 +109,7 @@ void MappingWindow::CreateMainLayout()
   m_main_layout = new QVBoxLayout();
   m_config_layout = new QHBoxLayout();
   m_tab_widget = new QTabWidget();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   m_config_layout->addWidget(m_devices_box);
   m_config_layout->addWidget(m_reset_box);
@@ -124,6 +124,7 @@ void MappingWindow::CreateMainLayout()
 
 void MappingWindow::ConnectWidgets()
 {
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_devices_refresh, &QPushButton::clicked, this, &MappingWindow::RefreshDevices);
   connect(m_devices_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &MappingWindow::OnDeviceChanged);
@@ -132,7 +133,6 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &MappingWindow::accept);
 }
 
 void MappingWindow::OnDeleteProfilePressed()
