@@ -555,7 +555,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
   core->Get("RunCompareServer", &bRunCompareServer, false);
   core->Get("RunCompareClient", &bRunCompareClient, false);
-  core->Get("MMU", &bMMU, false);
+  core->Get("MMU", &bMMU, bMMU);
   core->Get("BBDumpPort", &iBBDumpPort, -1);
   core->Get("SyncGPU", &bSyncGPU, false);
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
@@ -770,7 +770,11 @@ void SConfig::LoadDefaults()
   bFastmem = true;
   bFPRF = false;
   bAccurateNaNs = false;
+#ifdef _M_X86_64
+  bMMU = true;
+#else
   bMMU = false;
+#endif
   bDCBZOFF = false;
   bLowDCBZHack = false;
   iBBDumpPort = -1;
