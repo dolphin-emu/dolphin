@@ -499,8 +499,7 @@ void Interpreter::divwx(UGeckoInstruction inst)
   {
     if (inst.OE)
     {
-      // should set OV
-      PanicAlert("OE: divwx");
+      SetXER_OV(true);
     }
 
     if (((u32)a & 0x80000000) && b == 0)
@@ -526,8 +525,7 @@ void Interpreter::divwux(UGeckoInstruction inst)
   {
     if (inst.OE)
     {
-      // should set OV
-      PanicAlert("OE: divwux");
+      SetXER_OV(true);
     }
 
     rGPR[inst.RD] = 0;
@@ -582,16 +580,15 @@ void Interpreter::mullwx(UGeckoInstruction inst)
 
 void Interpreter::negx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = (~rGPR[inst.RA]) + 1;
+  const u32 a = rGPR[inst.RA];
 
-  if (rGPR[inst.RD] == 0x80000000)
-  {
-    if (inst.OE)
-      PanicAlert("OE: negx");
-  }
+  rGPR[inst.RD] = (~a) + 1;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
+
+  if (inst.OE && a == 0x80000000)
+    SetXER_OV(true);
 }
 
 void Interpreter::subfx(UGeckoInstruction inst)
