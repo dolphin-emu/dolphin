@@ -10,8 +10,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="picojson.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="picojson.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{604C8368-F34A-4D55-82C8-CC92A0C13254}</ProjectGuid>
+    <ProjectGuid>{2C0D058E-DE35-4471-AD99-E68A2CAF9E18}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -31,47 +37,10 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PCHUse.props" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
-      <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">
-      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AutoUpdate.cpp" />
-    <ClCompile Include="CommandLineParse.cpp" />
-    <ClCompile Include="UICommon.cpp" />
-    <ClCompile Include="Disassembler.cpp" />
-    <ClCompile Include="USBUtils.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
-    <ClCompile Include="VideoUtils.cpp" />
-    <ClCompile Include="GameFile.cpp" />
-    <ClCompile Include="GameFileCache.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AutoUpdate.h" />
-    <ClInclude Include="CommandLineParse.h" />
-    <ClInclude Include="UICommon.h" />
-    <ClInclude Include="Disassembler.h" />
-    <ClInclude Include="USBUtils.h" />
-    <ClInclude Include="GameFile.h" />
-    <ClInclude Include="GameFileCache.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
-      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -23,6 +23,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/scmrev.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
@@ -90,6 +91,7 @@ void SConfig::SaveSettings()
   SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
+  SaveAutoUpdateSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -369,6 +371,14 @@ void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
   section->Set("Devices", devices_string);
 }
 
+void SConfig::SaveAutoUpdateSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
+
+  section->Set("TrackForTesting", m_auto_update_track);
+  section->Set("HashOverride", m_auto_update_hash_override);
+}
+
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -390,6 +400,7 @@ void SConfig::LoadSettings()
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
+  LoadAutoUpdateSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -667,6 +678,15 @@ void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
     if (vid && pid)
       m_usb_passthrough_devices.emplace(vid, pid);
   }
+}
+
+void SConfig::LoadAutoUpdateSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
+
+  // TODO: Rename and default to SCM_UPDATE_TRACK_STR when ready for general consumption.
+  section->Get("TrackForTesting", &m_auto_update_track, "");
+  section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
 void SConfig::ResetRunningGameMetadata()

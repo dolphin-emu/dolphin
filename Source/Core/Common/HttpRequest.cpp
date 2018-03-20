@@ -7,6 +7,7 @@
 #include <chrono>
 #include <cstddef>
 #include <curl/curl.h>
+#include <mutex>
 
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -30,8 +31,13 @@ public:
                  size_t size);
 
 private:
-  std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{curl_easy_init(), curl_easy_cleanup};
+  static std::mutex s_curl_was_inited_mutex;
+  static bool s_curl_was_inited;
+  std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{nullptr, curl_easy_cleanup};
 };
+
+std::mutex HttpRequest::Impl::s_curl_was_inited_mutex;
+bool HttpRequest::Impl::s_curl_was_inited = false;
 
 HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms)
     : m_impl(std::make_unique<Impl>(timeout_ms))
@@ -65,6 +71,16 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::strin
 
 HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms)
 {
+  {
+    std::lock_guard<std::mutex> lk(s_curl_was_inited_mutex);
+    if (!s_curl_was_inited)
+    {
+      curl_global_init(CURL_GLOBAL_DEFAULT);
+      s_curl_was_inited = true;
+    }
+  }
+
+  m_curl.reset(curl_easy_init());
   if (!m_curl)
     return;
 

@@ -10,8 +10,29 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="add_scalar.c" />
+    <ClCompile Include="fe.c" />
+    <ClCompile Include="ge.c" />
+    <ClCompile Include="keypair.c" />
+    <ClCompile Include="key_exchange.c" />
+    <ClCompile Include="sc.c" />
+    <ClCompile Include="seed.c" />
+    <ClCompile Include="sha512.c" />
+    <ClCompile Include="sign.c" />
+    <ClCompile Include="verify.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ed25519.h" />
+    <ClInclude Include="fe.h" />
+    <ClInclude Include="fixedint.h" />
+    <ClInclude Include="ge.h" />
+    <ClInclude Include="precomp_data.h" />
+    <ClInclude Include="sc.h" />
+    <ClInclude Include="sha512.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{604C8368-F34A-4D55-82C8-CC92A0C13254}</ProjectGuid>
+    <ProjectGuid>{5BDF4B91-1491-4FB0-BC27-78E9A8E97DC3}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -31,47 +52,10 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PCHUse.props" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
-      <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">
-      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="AutoUpdate.cpp" />
-    <ClCompile Include="CommandLineParse.cpp" />
-    <ClCompile Include="UICommon.cpp" />
-    <ClCompile Include="Disassembler.cpp" />
-    <ClCompile Include="USBUtils.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
-    <ClCompile Include="VideoUtils.cpp" />
-    <ClCompile Include="GameFile.cpp" />
-    <ClCompile Include="GameFileCache.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AutoUpdate.h" />
-    <ClInclude Include="CommandLineParse.h" />
-    <ClInclude Include="UICommon.h" />
-    <ClInclude Include="Disassembler.h" />
-    <ClInclude Include="USBUtils.h" />
-    <ClInclude Include="GameFile.h" />
-    <ClInclude Include="GameFileCache.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
-      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

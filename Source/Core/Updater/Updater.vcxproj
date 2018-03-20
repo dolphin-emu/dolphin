@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{604C8368-F34A-4D55-82C8-CC92A0C13254}</ProjectGuid>
+    <ProjectGuid>{E4BECBAB-9C6E-41AB-BB56-F9D70AB6BE03}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -35,44 +35,44 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <Link>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
-      <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
+    <ProjectReference Include="..\..\..\Externals\cpp-optparse\cpp-optparse.vcxproj">
+      <Project>{c636d9d1-82fe-42b5-9987-63b7d4836341}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">
-      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
+    <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
+      <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\externals\ed25519\ed25519.vcxproj">
+      <Project>{5bdf4b91-1491-4fb0-bc27-78e9a8e97dc3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\mbedtls\mbedTLS.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.vcxproj">
+      <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AutoUpdate.cpp" />
-    <ClCompile Include="CommandLineParse.cpp" />
-    <ClCompile Include="UICommon.cpp" />
-    <ClCompile Include="Disassembler.cpp" />
-    <ClCompile Include="USBUtils.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
-    <ClCompile Include="VideoUtils.cpp" />
-    <ClCompile Include="GameFile.cpp" />
-    <ClCompile Include="GameFileCache.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AutoUpdate.h" />
-    <ClInclude Include="CommandLineParse.h" />
-    <ClInclude Include="UICommon.h" />
-    <ClInclude Include="Disassembler.h" />
-    <ClInclude Include="USBUtils.h" />
-    <ClInclude Include="GameFile.h" />
-    <ClInclude Include="GameFileCache.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
-      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
-    </ProjectReference>
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <!--Copy the .exe to binary output folder-->
+  <ItemGroup>
+    <SourceFiles Include="$(TargetPath)" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
+    <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
 </Project>
