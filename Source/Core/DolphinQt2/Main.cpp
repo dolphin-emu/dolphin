@@ -108,9 +108,8 @@ int main(int argc, char* argv[])
     boot = BootParameters::GenerateFromFile(args.front());
   }
 
-  int retval = 0;
+  int retval;
 
-  if (!retval)
   {
     DolphinAnalytics::Instance()->ReportDolphinStart("qt");
 
