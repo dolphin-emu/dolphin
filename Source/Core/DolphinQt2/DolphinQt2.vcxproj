@@ -106,7 +106,6 @@
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
-    <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="Settings\AudioPane.h" />
     <QtMoc Include="Settings\WiiPane.h" />
@@ -166,7 +165,6 @@
     <ClCompile Include="$(QtMocOutPrefix)HacksWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyScheduler.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
@@ -264,7 +262,6 @@
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
-    <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />

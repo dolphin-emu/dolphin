@@ -243,7 +243,6 @@ struct SConfig
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
   bool m_use_builtin_title_database = true;
-  bool m_show_development_warning;
 
   bool m_ListDrives;
   bool m_ListWad;
