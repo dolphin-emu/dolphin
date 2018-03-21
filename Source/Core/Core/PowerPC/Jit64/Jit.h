@@ -243,7 +243,7 @@ private:
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
   PPCAnalyst::CodeBuffer code_buffer;
-  Jit64AsmRoutineManager asm_routines;
+  Jit64AsmRoutineManager asm_routines{*this};
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault;
