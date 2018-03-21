@@ -1,0 +1,144 @@
+; Check (A)RAM read/write access through DSP accelerator
+; See https://github.com/dolphin-emu/dolphin/pull/6368
+; REALRAM_SIZE  = 0x01800000
+; RAM_SIZE      = 0x02000000
+
+incdir  "tests"
+include "dsp_base.inc"
+jmp test_main
+
+; Write "WARK" at address($AC0.M << 16 | $AC0.L)
+; 57 41 52 4B | WARK
+write_d3_wark:
+  ; Set the sample format to u16 write
+  si @0xffd1, #0x0A
+
+  ; Set the accelerator start and current address.
+  srs @ACSAH, $AC0.M
+  srs @ACCAH, $AC0.M
+  srs @ACSAL, $AC0.L
+  srs @ACCAL, $AC0.L
+  ; Set the accelerator end address to current address + 4
+  lri $AC0.H, #0
+  lri $AC1.H, #0
+  lri $AC1.M, #0
+  lri $AC1.L, #4
+  add $ACC1, $ACC0
+  ; Set the accelerator end address.
+  srs @ACEAH, $AC1.M
+  srs @ACEAL, $AC1.L
+
+  ; Move the values back to registers that can be printed by dspspy.
+  ; AC1 -> old position
+  lri $AC1.H, #0
+  lrs $AC1.M, @ACSAH
+  lrs $AC1.L, @ACSAL
+  ; AX0 -> Write WARK
+  lri $AX0.H, #0x5741
+  lri $AX0.L, #0x524B
+  sr @0xffd3, $AX0.H
+  sr @0xffd3, $AX0.L
+  ; AX1 -> current position
+  lrs $AX1.H, @ACSAH
+  lrs $AX1.L, @ACSAL
+
+  call send_back
+  ret
+
+; Read 32-bit value at address($AC0.M << 16 | $AC0.L)
+read_d3_wark:
+  ; Set the sample format to u16 read
+  si @0xffd1, #0x06
+
+  ; Set the accelerator start and current address.
+  srs @ACSAH, $AC0.M
+  srs @ACCAH, $AC0.M
+  srs @ACSAL, $AC0.L
+  srs @ACCAL, $AC0.L
+  ; Set the accelerator end address to current address + 4
+  lri $AC0.H, #0
+  lri $AC1.H, #0
+  lri $AC1.M, #0
+  lri $AC1.L, #4
+  add $ACC1, $ACC0
+  ; Set the accelerator end address.
+  srs @ACEAH, $AC1.M
+  srs @ACEAL, $AC1.L
+
+  ; Move the values back to registers that can be printed by dspspy.
+  ; AC1 -> old position
+  lri $AC1.H, #0
+  lrs $AC1.M, @ACSAH
+  lrs $AC1.L, @ACSAL
+  ; AX0 -> read 4 bytes
+  lrs $AX0.H, @0xffd3  ; --- Causes exception 3 on real hardware
+  lrs $AX0.L, @0xffd3  ; ---
+  ; AX1 -> current position
+  lrs $AX1.H, @ACSAH
+  lrs $AX1.L, @ACSAL
+
+  call send_back
+  ret
+
+
+; Read memory at:
+; - address($AC0.M << 16 + $AC0.L)
+; - address + REALRAM_SIZE(0x01800000)
+; - address + RAM_SIZE(0x02000000)
+test_read:
+  ; Current address
+  ; divided by 2 (16-bit read)
+  lsr $ACC0, #1
+  call read_d3_wark
+
+  ; REALRAM_SIZE
+  ; Add 0x0180/2 to mid accumulator (i.e. address += 0x01800000)
+  addi $AC0.M, #0x00c0
+  call read_d3_wark
+
+  ; RAM_SIZE
+  ; Add 0x0020/2 to mid accumulator (i.e. address += 0x00200000)
+  addi $AC0.M, #0x0010
+  call read_d3_wark
+  ret
+
+test_main:
+  ; --- Test 1
+  ; Read before writing
+  lri $AC0.M, #0x0000
+  lri $AC0.L, #0x0000
+  call test_read
+
+  ; Write WARK at 0x00000000
+  lri $AC0.M, #0x0000
+  lri $AC0.L, #0x0000
+  call write_d3_wark
+
+  ; Read back from 0x00000000, 0x01800000, 0x02000000
+  lri $AC0.M, #0x0000
+  lri $AC0.L, #0x0000
+  call test_read
+
+  ; --- Test 2
+  ; Write WARK at 0x01800004
+  lri $AC0.M, #0x0180
+  lri $AC0.L, #0x0004
+  call write_d3_wark
+
+  ; Read back from 0x00000004, 0x01800004, 0x02000004
+  lri $AC0.M, #0x0000
+  lri $AC0.L, #0x0004
+  call test_read
+
+  ; --- Test 3
+  ; Write WARK at 0x02000008
+  lri $AC0.M, #0x0200
+  lri $AC0.L, #0x0008
+  call write_d3_wark
+
+  ; Read back from 0x00000008, 0x01800008, 0x02000008
+  lri $AC0.M, #0x0000
+  lri $AC0.L, #0x0008
+  call test_read
+
+  jmp end_of_test
