@@ -566,13 +566,14 @@ void Interpreter::mulhwux(UGeckoInstruction inst)
 
 void Interpreter::mullwx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  u32 d = (u32)((s32)a * (s32)b);
-  rGPR[inst.RD] = d;
+  const s64 a = static_cast<s32>(rGPR[inst.RA]);
+  const s64 b = static_cast<s32>(rGPR[inst.RB]);
+  const s64 result = a * b;
 
-  if (inst.OE)
-    PanicAlert("OE: mullwx");
+  rGPR[inst.RD] = static_cast<u32>(result);
+
+  if (inst.OE && (result < -0x80000000LL || result > 0x7FFFFFFFLL))
+    SetXER_OV(true);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
