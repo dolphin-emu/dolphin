@@ -36,6 +36,8 @@ public:
     return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
   }
   bool ShouldDisplayGameListItem(int index) const;
+  void SetSearchTerm(const QString& term);
+
   enum
   {
     COL_PLATFORM = 0,
@@ -60,4 +62,5 @@ private:
 
   GameTracker m_tracker;
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
+  QString m_term;
 };

@@ -122,6 +122,7 @@
     <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="RenderWidget.h" />
+    <QtMoc Include="SearchBar.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RegisterWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)SearchBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
@@ -280,6 +282,7 @@
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="SearchBar.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />

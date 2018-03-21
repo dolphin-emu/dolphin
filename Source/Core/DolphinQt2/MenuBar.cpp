@@ -357,6 +357,10 @@ void MenuBar::AddViewMenu()
   view_menu->addSeparator();
   AddShowPlatformsMenu(view_menu);
   AddShowRegionsMenu(view_menu);
+
+  view_menu->addSeparator();
+  AddAction(view_menu, tr("Search"), this, &MenuBar::ToggleSearch,
+            QKeySequence(QStringLiteral("Ctrl+F")));
 }
 
 void MenuBar::AddOptionsMenu()

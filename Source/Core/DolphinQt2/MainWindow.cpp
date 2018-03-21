@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QVBoxLayout>
 
 #include <future>
 #include <optional>
@@ -65,6 +66,7 @@
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/SearchBar.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/TAS/GCTASInputWindow.h"
 #include "DolphinQt2/TAS/WiiTASInputWindow.h"
@@ -164,6 +166,7 @@ void MainWindow::CreateComponents()
 {
   m_menu_bar = new MenuBar(this);
   m_tool_bar = new ToolBar(this);
+  m_search_bar = new SearchBar(this);
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
@@ -275,6 +278,8 @@ void MainWindow::ConnectMenuBar()
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
   connect(m_menu_bar, &MenuBar::ShowGrid, m_game_list, &GameList::SetGridView);
+  connect(m_menu_bar, &MenuBar::ToggleSearch, m_search_bar, &SearchBar::Toggle);
+
   connect(m_menu_bar, &MenuBar::ColumnVisibilityToggled, m_game_list,
           &GameList::OnColumnVisibilityToggled);
 
@@ -372,7 +377,16 @@ void MainWindow::ConnectRenderWidget()
 
 void MainWindow::ConnectStack()
 {
-  m_stack->addWidget(m_game_list);
+  auto* widget = new QWidget;
+  auto* layout = new QVBoxLayout;
+  widget->setLayout(layout);
+
+  layout->addWidget(m_game_list);
+  layout->addWidget(m_search_bar);
+
+  connect(m_search_bar, &SearchBar::Search, m_game_list, &GameList::SetSearchTerm);
+
+  m_stack->addWidget(widget);
 
   setCentralWidget(m_stack);
 
