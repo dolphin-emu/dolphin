@@ -150,6 +150,10 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
 {
   const UICommon::GameFile& game = *m_games[index];
 
+  if (!m_term.isEmpty() &&
+      !QString::fromStdString(game.GetName()).contains(m_term, Qt::CaseInsensitive))
+    return false;
+
   const bool show_platform = [&game] {
     switch (game.GetPlatform())
     {
@@ -243,4 +247,9 @@ int GameListModel::FindGame(const std::string& path) const
       return i;
   }
   return -1;
+}
+
+void GameListModel::SetSearchTerm(const QString& term)
+{
+  m_term = term;
 }

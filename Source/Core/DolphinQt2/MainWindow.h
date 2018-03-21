@@ -30,6 +30,7 @@ class NetPlayClient;
 class NetPlayDialog;
 class NetPlayServer;
 class NetPlaySetupDialog;
+class SearchBar;
 class SettingsWindow;
 class ControllersWindow;
 class DragEnterEvent;
@@ -137,6 +138,7 @@ private:
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
   MenuBar* m_menu_bar;
+  SearchBar* m_search_bar;
   GameList* m_game_list;
   RenderWidget* m_render_widget;
   bool m_rendering_to_main;

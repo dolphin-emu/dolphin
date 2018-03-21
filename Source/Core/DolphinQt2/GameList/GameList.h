@@ -27,9 +27,10 @@ public:
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
   void SetViewColumn(int col, bool view) { m_list->setColumnHidden(col, !view); }
+  void SetSearchTerm(const QString& term);
+
   void OnColumnVisibilityToggled(const QString& row, bool visible);
   void OnGameListVisibilityChanged();
-
 signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);

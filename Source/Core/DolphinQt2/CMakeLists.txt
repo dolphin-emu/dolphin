@@ -26,6 +26,7 @@ set(SRCS
   MenuBar.cpp
   RenderWidget.cpp
   Resources.cpp
+  SearchBar.cpp
   Settings.cpp
   ToolBar.cpp
   Translation.cpp

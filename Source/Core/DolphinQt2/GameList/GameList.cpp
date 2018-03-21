@@ -521,3 +521,11 @@ void GameList::OnHeaderViewChanged()
   QSettings().setValue(QStringLiteral("tableheader/state"),
                        m_list->horizontalHeader()->saveState());
 }
+
+void GameList::SetSearchTerm(const QString& term)
+{
+  m_model->SetSearchTerm(term);
+
+  m_list_proxy->invalidate();
+  m_grid_proxy->invalidate();
+}

@@ -82,6 +82,7 @@ signals:
   // View
   void ShowList();
   void ShowGrid();
+  void ToggleSearch();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
