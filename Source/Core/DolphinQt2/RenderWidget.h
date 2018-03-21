@@ -17,6 +17,7 @@ public:
   explicit RenderWidget(QWidget* parent = nullptr);
 
   bool event(QEvent* event) override;
+  void showFullScreen();
 
 signals:
   void EscapePressed();

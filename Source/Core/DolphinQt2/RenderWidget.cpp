@@ -49,6 +49,12 @@ void RenderWidget::HandleCursorTimer()
     setCursor(Qt::BlankCursor);
 }
 
+void RenderWidget::showFullScreen()
+{
+  QWidget::showFullScreen();
+  emit SizeChanged(width(), height());
+}
+
 bool RenderWidget::event(QEvent* event)
 {
   switch (event->type())

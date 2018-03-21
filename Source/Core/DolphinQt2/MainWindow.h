@@ -100,7 +100,7 @@ private:
   void StartGame(const std::string& path, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
-  void HideRenderWidget();
+  void HideRenderWidget(bool reinit = true);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();

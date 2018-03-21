@@ -565,7 +565,7 @@ void MainWindow::FullScreen()
   // settings. If it's set to be fullscreen then it just remakes the window,
   // which probably isn't ideal.
   bool was_fullscreen = m_render_widget->isFullScreen();
-  HideRenderWidget();
+  HideRenderWidget(false);
   if (was_fullscreen)
     ShowRenderWidget();
   else
@@ -629,7 +629,7 @@ void MainWindow::ShowRenderWidget()
   {
     // Otherwise, just show it.
     m_rendering_to_main = false;
-    if (SConfig::GetInstance().bFullscreen)
+    if (SConfig::GetInstance().bFullscreen && !m_render_widget->isFullScreen())
     {
       m_render_widget->showFullScreen();
     }
@@ -641,7 +641,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget()
+void MainWindow::HideRenderWidget(bool reinit)
 {
   if (m_rendering_to_main)
   {
@@ -654,19 +654,23 @@ void MainWindow::HideRenderWidget()
     setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   }
 
+  m_render_widget->hide();
+
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
   // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely)
   // recreated
-  disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+  if (reinit)
+  {
+    disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 
-  m_render_widget->hide();
-  m_render_widget->removeEventFilter(this);
-  m_render_widget->deleteLater();
+    m_render_widget->removeEventFilter(this);
+    m_render_widget->deleteLater();
 
-  m_render_widget = new RenderWidget;
+    m_render_widget = new RenderWidget;
 
-  m_render_widget->installEventFilter(this);
-  connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+    m_render_widget->installEventFilter(this);
+    connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+  }
 }
 
 void MainWindow::ShowControllersWindow()
