@@ -15,7 +15,7 @@ public:
   void Shutdown() override;
 
   std::string GetName() const override { return "Vulkan"; }
-  std::string GetDisplayName() const override { return "Vulkan (experimental)"; }
+  std::string GetDisplayName() const override { return "Vulkan"; }
   void InitBackendInfo() override;
 };
 }
