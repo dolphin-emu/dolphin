@@ -655,13 +655,12 @@ void MainWindow::HideRenderWidget(bool reinit)
     setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   }
 
-  m_render_widget->hide();
-
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
   // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely)
   // recreated
   if (reinit)
   {
+    m_render_widget->hide();
     disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 
     m_render_widget->removeEventFilter(this);
