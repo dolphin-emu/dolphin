@@ -326,11 +326,19 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     regimmop(a, s, true, inst.UIMM << 16, And, &XEmitter::AND, true);
     break;
   case 26:  // xori
-    regimmop(a, s, true, inst.UIMM, Xor, &XEmitter::XOR, false);
-    break;
   case 27:  // xoris
-    regimmop(a, s, true, inst.UIMM << 16, Xor, &XEmitter::XOR, false);
+  {
+    if (s == a && inst.UIMM == 0)
+    {
+      // Make the nop visible in the generated code.
+      NOP();
+      return;
+    }
+
+    const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
+    regimmop(a, s, true, immediate, Xor, &XEmitter::XOR, false);
     break;
+  }
   case 12:  // addic
     regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true);
     break;

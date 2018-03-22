@@ -142,11 +142,18 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
     reg_imm(a, s, inst.UIMM << 16, BitAND, &ARM64XEmitter::ANDI2R, true);
     break;
   case 26:  // xori
-    reg_imm(a, s, inst.UIMM, BitXOR, &ARM64XEmitter::EORI2R);
-    break;
   case 27:  // xoris
-    reg_imm(a, s, inst.UIMM << 16, BitXOR, &ARM64XEmitter::EORI2R);
+  {
+    if (a == s && inst.UIMM == 0)
+    {
+      // NOP
+      return;
+    }
+
+    const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
+    reg_imm(a, s, immediate, BitXOR, &ARM64XEmitter::EORI2R);
     break;
+  }
   }
 }
 
