@@ -121,8 +121,9 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
 
   switch (inst.OPCD)
   {
-  case 24:                                               // ori
-    if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  // check for nop
+  case 24:  // ori
+    // check for nop
+    if (a == s && inst.UIMM == 0)
     {
       // NOP
       return;

@@ -304,8 +304,8 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   case 15:  // addis
     regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
     break;
-  case 24:                                               // ori
-    if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  // check for nop
+  case 24:                         // ori
+    if (a == s && inst.UIMM == 0)  // check for nop
     {
       // Make the nop visible in the generated code. not much use but interesting if we see one.
       NOP();
