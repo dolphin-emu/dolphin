@@ -304,18 +304,21 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   case 15:  // addis
     regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
     break;
-  case 24:                         // ori
-    if (a == s && inst.UIMM == 0)  // check for nop
+  case 24:  // ori
+  case 25:  // oris
+  {
+    // check for nop
+    if (a == s && inst.UIMM == 0)
     {
       // Make the nop visible in the generated code. not much use but interesting if we see one.
       NOP();
       return;
     }
-    regimmop(a, s, true, inst.UIMM, Or, &XEmitter::OR);
+
+    const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
+    regimmop(a, s, true, immediate, Or, &XEmitter::OR);
     break;
-  case 25:  // oris
-    regimmop(a, s, true, inst.UIMM << 16, Or, &XEmitter::OR, false);
-    break;
+  }
   case 28:  // andi
     regimmop(a, s, true, inst.UIMM, And, &XEmitter::AND, true);
     break;

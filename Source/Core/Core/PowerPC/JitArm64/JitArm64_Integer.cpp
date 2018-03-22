@@ -122,17 +122,19 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
   switch (inst.OPCD)
   {
   case 24:  // ori
+  case 25:  // oris
+  {
     // check for nop
     if (a == s && inst.UIMM == 0)
     {
       // NOP
       return;
     }
-    reg_imm(a, s, inst.UIMM, BitOR, &ARM64XEmitter::ORRI2R);
+
+    const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
+    reg_imm(a, s, immediate, BitOR, &ARM64XEmitter::ORRI2R);
     break;
-  case 25:  // oris
-    reg_imm(a, s, inst.UIMM << 16, BitOR, &ARM64XEmitter::ORRI2R);
-    break;
+  }
   case 28:  // andi
     reg_imm(a, s, inst.UIMM, BitAND, &ARM64XEmitter::ANDI2R, true);
     break;
