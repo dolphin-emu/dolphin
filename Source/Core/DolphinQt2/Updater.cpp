@@ -80,7 +80,8 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 
   if (choice == QDialog::Accepted)
   {
-    TriggerUpdate(info);
+    TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
+                                AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
 
     if (!later)
       m_parent->close();

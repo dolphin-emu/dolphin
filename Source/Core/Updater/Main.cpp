@@ -47,6 +47,7 @@ struct Options
   std::string next_manifest_url;
   std::string content_store_url;
   std::string install_base_path;
+  std::optional<std::string> binary_to_restart;
   std::optional<DWORD> parent_pid;
   std::optional<std::string> log_file;
 };
@@ -90,6 +91,10 @@ std::optional<Options> ParseCommandLine(PCWSTR command_line)
       .dest("install-base-path")
       .help("Base path of the Dolphin install to be updated.")
       .metavar("PATH");
+  parser.add_option("--binary-to-restart")
+      .dest("binary-to-restart")
+      .help("Binary to restart after the update is over.")
+      .metavar("PATH");
   parser.add_option("--log-file")
       .dest("log-file")
       .help("File where to log updater debug output.")
@@ -123,6 +128,8 @@ std::optional<Options> ParseCommandLine(PCWSTR command_line)
   opts.install_base_path = options["install-base-path"];
 
   // Optional arguments.
+  if (options.is_set("binary-to-restart"))
+    opts.binary_to_restart = options["binary-to-restart"];
   if (options.is_set("parent-pid"))
     opts.parent_pid = (DWORD)options.get("parent-pid");
   if (options.is_set("log-file"))
@@ -685,5 +692,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     fprintf(log_fp, "Failed to apply the update.\n");
 
   CleanUpTempDir(temp_dir, todo);
+
+  if (opts.binary_to_restart)
+  {
+    ShellExecuteW(nullptr, L"open", UTF8ToUTF16(*opts.binary_to_restart).c_str(), L"", nullptr,
+                  SW_SHOW);
+  }
   return !ok;
 }

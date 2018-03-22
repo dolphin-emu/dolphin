@@ -111,7 +111,8 @@ void AutoUpdateChecker::CheckForUpdate()
   OnUpdateAvailable(nvi);
 }
 
-void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info)
+void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInformation& info,
+                                      AutoUpdateChecker::RestartMode restart_mode)
 {
 #ifdef _WIN32
   std::map<std::string, std::string> updater_flags;
@@ -121,6 +122,9 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   updater_flags["parent-pid"] = std::to_string(GetCurrentProcessId());
   updater_flags["install-base-path"] = File::GetExeDirectory();
   updater_flags["log-file"] = File::GetExeDirectory() + DIR_SEP + UPDATER_LOG_FILE;
+
+  if (restart_mode == RestartMode::RESTART_AFTER_UPDATE)
+    updater_flags["binary-to-restart"] = File::GetExePath();
 
   // Copy the updater so it can update itself if needed.
   std::string updater_path = File::GetExeDirectory() + DIR_SEP + UPDATER_FILENAME;
