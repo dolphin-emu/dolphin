@@ -24,6 +24,7 @@ private:
   void CreateLayout();
   void ConnectLayout();
   void CreateBasic();
+  void CreateAutoUpdate();
   void CreateAdvanced();
 
   void LoadConfig();
@@ -32,6 +33,7 @@ private:
   // Widgets
   QVBoxLayout* m_main_layout;
   QComboBox* m_combobox_speedlimit;
+  QComboBox* m_combobox_update_track;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
   QLabel* m_label_speedlimit;

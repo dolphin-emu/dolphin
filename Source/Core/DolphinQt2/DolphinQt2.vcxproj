@@ -127,6 +127,7 @@
     <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="ToolBar.h" />
+    <QtMoc Include="Updater.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
@@ -196,6 +197,7 @@
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WatchWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)USBDeviceAddToWhitelistDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)Updater.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
@@ -294,6 +296,7 @@
     <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Translation.cpp" />
+    <ClCompile Include="Updater.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
   </ItemGroup>
   <!--Put standard C/C++ headers here. Headers that are listed in the QtMoc ItemGroup must NOT be listed here.-->

@@ -21,7 +21,7 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Translation.h"
-#include "UICommon/AutoUpdate.h"
+#include "DolphinQt2/Updater.h"
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
@@ -62,35 +62,6 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
     return false;
   });
 }
-
-// TODO: This should be replaced with something in a background thread, it performs a blocking
-// HTTP query. It also needs a proper UI, and many other things. But right now it needs to be
-// manually enabled through INI, so all these problems are ignored :)
-class QtAutoUpdateChecker : public AutoUpdateChecker
-{
-public:
-  explicit QtAutoUpdateChecker(QWidget* parent) : m_parent(parent) {}
-protected:
-  void OnUpdateAvailable(const NewVersionInformation& info) override
-  {
-    QMessageBox prompt(m_parent);
-
-    prompt.setIcon(QMessageBox::Question);
-    prompt.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    prompt.setText(QString::fromUtf8("Update Dolphin to version %1?")
-                       .arg(QString::fromStdString(info.new_shortrev)));
-
-    const int answer = prompt.exec();
-    if (answer == QMessageBox::Yes)
-    {
-      TriggerUpdate(info);
-      m_parent->close();
-    }
-  }
-
-private:
-  QWidget* m_parent;
-};
 
 // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
 // /SubSystem:Windows
@@ -188,8 +159,8 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    QtAutoUpdateChecker updater(&win);
-    updater.CheckForUpdate();
+    auto* updater = new Updater(&win);
+    updater->start();
 
     retval = app.exec();
   }

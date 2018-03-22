@@ -98,6 +98,10 @@ public:
   QFont GetDebugFont() const;
   void SetDebugFont(QFont font);
 
+  // Auto-Update
+  QString GetAutoUpdateTrack() const;
+  void SetAutoUpdateTrack(const QString& mode);
+
   // Other
   GameListModel* GetGameListModel() const;
 signals:
@@ -119,6 +123,7 @@ signals:
   void CodeVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
+  void AutoUpdateTrackChanged(const QString& mode);
 
 private:
   bool m_controller_state_needed = false;
