@@ -134,6 +134,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   // Run the updater!
   std::wstring command_line = MakeUpdaterCommandLine(updater_flags);
   STARTUPINFO sinfo = {sizeof(info)};
+  sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
   INFO_LOG(COMMON, "Updater command line: %s", UTF16ToUTF8(command_line).c_str());
   if (!CreateProcessW(UTF8ToUTF16(reloc_updater_path).c_str(),
