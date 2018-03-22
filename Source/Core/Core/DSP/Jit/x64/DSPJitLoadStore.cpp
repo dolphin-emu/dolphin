@@ -16,7 +16,7 @@ namespace DSP::JIT::x64
 {
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
-// Move value from register $(0x18+D) to data memory pointed by address
+// Move value from register $(0x18+S) to data memory pointed by address
 // CR[0-7] | M. That is, the upper 8 bits of the address are the
 // bottom 8 bits from CR, and the lower 8 bits are from the 8-bit immediate.
 // Note: pc+=2 in duddie's doc seems wrong
@@ -128,7 +128,7 @@ void DSPEmitter::lrr(const UDSPInstruction opc)
 
 // LRRD $D, @$S
 // 0001 1000 1ssd dddd
-// Move value from data memory pointed by addressing register $S toregister $D.
+// Move value from data memory pointed by addressing register $S to register $D.
 // Decrement register $S.
 void DSPEmitter::lrrd(const UDSPInstruction opc)
 {
