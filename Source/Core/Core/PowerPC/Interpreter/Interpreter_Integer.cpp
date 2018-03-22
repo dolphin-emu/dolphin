@@ -612,70 +612,83 @@ void Interpreter::negx(UGeckoInstruction inst)
 
 void Interpreter::subfx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = rGPR[inst.RB] - rGPR[inst.RA];
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b + 1;
+
+  rGPR[inst.RD] = result;
 
   if (inst.OE)
-    PanicAlert("OE: subfx");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::subfcx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  rGPR[inst.RD] = b - a;
-  SetCarry(a == 0 || Helper_Carry(b, 0 - a));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b + 1;
+
+  rGPR[inst.RD] = result;
+  SetCarry(a == 0xFFFFFFFF || Helper_Carry(b, a + 1));
 
   if (inst.OE)
-    PanicAlert("OE: subfcx");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::subfex(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  int carry = GetCarry();
-  rGPR[inst.RD] = (~a) + b + carry;
-  SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 carry = GetCarry();
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
+  SetCarry(Helper_Carry(a, b) || Helper_Carry(a + b, carry));
 
   if (inst.OE)
-    PanicAlert("OE: subfex");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 // sub from minus one
 void Interpreter::subfmex(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  int carry = GetCarry();
-  rGPR[inst.RD] = (~a) + carry - 1;
-  SetCarry(Helper_Carry(~a, carry - 1));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = 0xFFFFFFFF;
+  const u32 carry = GetCarry();
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
+  SetCarry(Helper_Carry(a, carry - 1));
 
   if (inst.OE)
-    PanicAlert("OE: subfmex");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 // sub from zero
 void Interpreter::subfzex(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  int carry = GetCarry();
-  rGPR[inst.RD] = (~a) + carry;
-  SetCarry(Helper_Carry(~a, carry));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 carry = GetCarry();
+  const u32 result = a + carry;
+
+  rGPR[inst.RD] = result;
+  SetCarry(Helper_Carry(a, carry));
 
   if (inst.OE)
-    PanicAlert("OE: subfzex");
+    SetXER_OV(HasAddOverflowed(a, 0, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
