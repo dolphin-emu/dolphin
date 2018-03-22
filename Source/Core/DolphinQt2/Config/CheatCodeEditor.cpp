@@ -148,7 +148,7 @@ bool CheatCodeEditor::AcceptAR()
       QStringList blocks = line.split(QStringLiteral("-"));
 
       if (blocks.size() == 3 && blocks[0].size() == 4 && blocks[1].size() == 4 &&
-          blocks[2].size() == 4)
+          blocks[2].size() == 5)
       {
         encrypted_lines.emplace_back(blocks[0].toStdString() + blocks[1].toStdString() +
                                      blocks[2].toStdString());
