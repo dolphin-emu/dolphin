@@ -55,12 +55,18 @@ public:
 private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
+  ControllerEmu::Force* m_swing_slow;
+  ControllerEmu::Force* m_swing_fast;
 
   ControllerEmu::Buttons* m_shake;
+  ControllerEmu::Buttons* m_shake_soft;
+  ControllerEmu::Buttons* m_shake_hard;
 
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_stick;
 
   std::array<u8, 3> m_shake_step{};
+  std::array<u8, 3> m_shake_soft_step{};
+  std::array<u8, 3> m_shake_hard_step{};
 };
 }
