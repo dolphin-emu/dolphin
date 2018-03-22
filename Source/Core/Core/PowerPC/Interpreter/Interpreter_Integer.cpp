@@ -492,16 +492,12 @@ void Interpreter::addzex(UGeckoInstruction inst)
 
 void Interpreter::divwx(UGeckoInstruction inst)
 {
-  s32 a = rGPR[inst.RA];
-  s32 b = rGPR[inst.RB];
+  const s32 a = rGPR[inst.RA];
+  const s32 b = rGPR[inst.RB];
+  const bool overflow = b == 0 || ((u32)a == 0x80000000 && b == -1);
 
-  if (b == 0 || ((u32)a == 0x80000000 && b == -1))
+  if (overflow)
   {
-    if (inst.OE)
-    {
-      SetXER_OV(true);
-    }
-
     if (((u32)a & 0x80000000) && b == 0)
       rGPR[inst.RD] = UINT32_MAX;
     else
@@ -512,28 +508,30 @@ void Interpreter::divwx(UGeckoInstruction inst)
     rGPR[inst.RD] = (u32)(a / b);
   }
 
+  if (inst.OE)
+    SetXER_OV(overflow);
+
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
 }
 
 void Interpreter::divwux(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const bool overflow = b == 0;
 
-  if (b == 0)
+  if (overflow)
   {
-    if (inst.OE)
-    {
-      SetXER_OV(true);
-    }
-
     rGPR[inst.RD] = 0;
   }
   else
   {
     rGPR[inst.RD] = a / b;
   }
+
+  if (inst.OE)
+    SetXER_OV(overflow);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
@@ -572,8 +570,8 @@ void Interpreter::mullwx(UGeckoInstruction inst)
 
   rGPR[inst.RD] = static_cast<u32>(result);
 
-  if (inst.OE && (result < -0x80000000LL || result > 0x7FFFFFFFLL))
-    SetXER_OV(true);
+  if (inst.OE)
+    SetXER_OV(result < -0x80000000LL || result > 0x7FFFFFFFLL);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
@@ -588,8 +586,8 @@ void Interpreter::negx(UGeckoInstruction inst)
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
 
-  if (inst.OE && a == 0x80000000)
-    SetXER_OV(true);
+  if (inst.OE)
+    SetXER_OV(a == 0x80000000);
 }
 
 void Interpreter::subfx(UGeckoInstruction inst)

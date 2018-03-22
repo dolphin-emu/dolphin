@@ -434,7 +434,7 @@ inline u32 GetXER_OV()
 
 inline void SetXER_OV(bool value)
 {
-  PowerPC::ppcState.xer_so_ov |= static_cast<u32>(value);
+  PowerPC::ppcState.xer_so_ov = (PowerPC::ppcState.xer_so_ov & 0xFE) | static_cast<u32>(value);
   SetXER_SO(value);
 }
 
