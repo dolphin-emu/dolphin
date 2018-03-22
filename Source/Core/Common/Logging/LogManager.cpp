@@ -120,6 +120,7 @@ LogManager::LogManager()
   m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
   m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface (SI)"};
   m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
+  m_log[LogTypes::SYMBOLS] = {"SYMBOLS", "Symbols"};
   m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
   m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface (VI)"};
   m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};

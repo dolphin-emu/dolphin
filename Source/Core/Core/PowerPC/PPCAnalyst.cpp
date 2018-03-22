@@ -194,7 +194,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 
 bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
 {
-  ASSERT_MSG(OSHLE, func.analyzed, "The function wasn't previously analyzed!");
+  ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
   func.analyzed = false;
   return AnalyzeFunction(start_addr, func, max_size);
@@ -399,7 +399,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   {
     if (func.second.address == 4)
     {
-      WARN_LOG(OSHLE, "Weird function");
+      WARN_LOG(SYMBOLS, "Weird function");
       continue;
     }
     AnalyzeFunction2(&(func.second));
@@ -449,10 +449,11 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   else
     unniceSize /= numUnNice;
 
-  INFO_LOG(OSHLE, "Functions analyzed. %i leafs, %i nice, %i unnice."
-                  "%i timer, %i rfi. %i are branchless leafs.",
+  INFO_LOG(SYMBOLS, "Functions analyzed. %i leafs, %i nice, %i unnice."
+                    "%i timer, %i rfi. %i are branchless leafs.",
            numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
-  INFO_LOG(OSHLE, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize, unniceSize);
+  INFO_LOG(SYMBOLS, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize,
+           unniceSize);
 }
 
 static bool isCmp(const CodeOp& a)

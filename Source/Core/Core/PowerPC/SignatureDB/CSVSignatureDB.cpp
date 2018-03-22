@@ -50,7 +50,7 @@ bool CSVSignatureDB::Load(const std::string& file_path)
     }
     else
     {
-      WARN_LOG(OSHLE, "CSV database failed to parse line %zu", i);
+      WARN_LOG(SYMBOLS, "CSV database failed to parse line %zu", i);
     }
   }
 
@@ -63,7 +63,7 @@ bool CSVSignatureDB::Save(const std::string& file_path) const
 
   if (!f)
   {
-    ERROR_LOG(OSHLE, "CSV database save failed");
+    ERROR_LOG(SYMBOLS, "CSV database save failed");
     return false;
   }
   for (const auto& func : m_database)
@@ -75,6 +75,6 @@ bool CSVSignatureDB::Save(const std::string& file_path) const
             func.second.object_name.c_str());
   }
 
-  INFO_LOG(OSHLE, "CSV database save successful");
+  INFO_LOG(SYMBOLS, "CSV database save successful");
   return true;
 }
