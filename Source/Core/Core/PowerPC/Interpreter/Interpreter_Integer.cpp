@@ -422,72 +422,92 @@ void Interpreter::xorx(UGeckoInstruction inst)
     Helper_UpdateCR0(rGPR[inst.RA]);
 }
 
+static bool HasAddOverflowed(u32 x, u32 y, u32 result)
+{
+  // If x and y have the same sign, but the result is different
+  // then an overflow has occurred.
+  return (((x ^ result) & (y ^ result)) >> 31) != 0;
+}
+
 void Interpreter::addx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = rGPR[inst.RA] + rGPR[inst.RB];
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b;
+
+  rGPR[inst.RD] = result;
 
   if (inst.OE)
-    PanicAlert("OE: addx");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addcx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  rGPR[inst.RD] = a + b;
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b;
+
+  rGPR[inst.RD] = result;
   SetCarry(Helper_Carry(a, b));
 
   if (inst.OE)
-    PanicAlert("OE: addcx");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addex(UGeckoInstruction inst)
 {
-  int carry = GetCarry();
-  int a = rGPR[inst.RA];
-  int b = rGPR[inst.RB];
-  rGPR[inst.RD] = a + b + carry;
+  const u32 carry = GetCarry();
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
   SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
 
   if (inst.OE)
-    PanicAlert("OE: addex");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addmex(UGeckoInstruction inst)
 {
-  int carry = GetCarry();
-  int a = rGPR[inst.RA];
-  rGPR[inst.RD] = a + carry - 1;
+  const u32 carry = GetCarry();
+  const u32 a = rGPR[inst.RA];
+  const u32 b = 0xFFFFFFFF;
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
   SetCarry(Helper_Carry(a, carry - 1));
 
   if (inst.OE)
-    PanicAlert("OE: addmex");
+    SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addzex(UGeckoInstruction inst)
 {
-  int carry = GetCarry();
-  int a = rGPR[inst.RA];
-  rGPR[inst.RD] = a + carry;
+  const u32 carry = GetCarry();
+  const u32 a = rGPR[inst.RA];
+  const u32 result = a + carry;
+
+  rGPR[inst.RD] = result;
   SetCarry(Helper_Carry(a, carry));
 
   if (inst.OE)
-    PanicAlert("OE: addzex");
+    SetXER_OV(HasAddOverflowed(a, 0, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::divwx(UGeckoInstruction inst)
