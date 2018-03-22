@@ -312,7 +312,6 @@ inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
   *address = (bat_result & BAT_RESULT_MASK) | (*address & (BAT_PAGE_SIZE - 1));
   return true;
 }
-}  // namespace
 
 enum CRBits
 {
@@ -439,3 +438,5 @@ inline void SetXER_OV(bool value)
 }
 
 void UpdateFPRF(double dvalue);
+
+}  // namespace PowerPC

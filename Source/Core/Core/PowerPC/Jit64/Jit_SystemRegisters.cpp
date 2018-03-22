@@ -19,22 +19,22 @@ void Jit64::GetCRFieldBit(int field, int bit, X64Reg out, bool negate)
 {
   switch (bit)
   {
-  case CR_SO_BIT:  // check bit 61 set
+  case PowerPC::CR_SO_BIT:  // check bit 61 set
     BT(64, PPCSTATE(cr_val[field]), Imm8(61));
     SETcc(negate ? CC_NC : CC_C, R(out));
     break;
 
-  case CR_EQ_BIT:  // check bits 31-0 == 0
+  case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     CMP(32, PPCSTATE(cr_val[field]), Imm8(0));
     SETcc(negate ? CC_NZ : CC_Z, R(out));
     break;
 
-  case CR_GT_BIT:  // check val > 0
+  case PowerPC::CR_GT_BIT:  // check val > 0
     CMP(64, PPCSTATE(cr_val[field]), Imm8(0));
     SETcc(negate ? CC_NG : CC_G, R(out));
     break;
 
-  case CR_LT_BIT:  // check bit 62 set
+  case PowerPC::CR_LT_BIT:  // check bit 62 set
     BT(64, PPCSTATE(cr_val[field]), Imm8(62));
     SETcc(negate ? CC_NC : CC_C, R(out));
     break;
@@ -52,7 +52,7 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
   // Gross but necessary; if the input is totally zero and we set SO or LT,
   // or even just add the (1<<32), GT will suddenly end up set without us
   // intending to. This can break actual games, so fix it up.
-  if (bit != CR_GT_BIT)
+  if (bit != PowerPC::CR_GT_BIT)
   {
     TEST(64, R(RSCRATCH2), R(RSCRATCH2));
     FixupBranch dont_clear_gt = J_CC(CC_NZ);
@@ -62,27 +62,27 @@ void Jit64::SetCRFieldBit(int field, int bit, X64Reg in)
 
   switch (bit)
   {
-  case CR_SO_BIT:  // set bit 61 to input
+  case PowerPC::CR_SO_BIT:  // set bit 61 to input
     BTR(64, R(RSCRATCH2), Imm8(61));
     SHL(64, R(in), Imm8(61));
     OR(64, R(RSCRATCH2), R(in));
     break;
 
-  case CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
+  case PowerPC::CR_EQ_BIT:  // clear low 32 bits, set bit 0 to !input
     SHR(64, R(RSCRATCH2), Imm8(32));
     SHL(64, R(RSCRATCH2), Imm8(32));
     XOR(32, R(in), Imm8(1));
     OR(64, R(RSCRATCH2), R(in));
     break;
 
-  case CR_GT_BIT:  // set bit 63 to !input
+  case PowerPC::CR_GT_BIT:  // set bit 63 to !input
     BTR(64, R(RSCRATCH2), Imm8(63));
     NOT(32, R(in));
     SHL(64, R(in), Imm8(63));
     OR(64, R(RSCRATCH2), R(in));
     break;
 
-  case CR_LT_BIT:  // set bit 62 to input
+  case PowerPC::CR_LT_BIT:  // set bit 62 to input
     BTR(64, R(RSCRATCH2), Imm8(62));
     SHL(64, R(in), Imm8(62));
     OR(64, R(RSCRATCH2), R(in));
@@ -97,19 +97,19 @@ void Jit64::ClearCRFieldBit(int field, int bit)
 {
   switch (bit)
   {
-  case CR_SO_BIT:
+  case PowerPC::CR_SO_BIT:
     BTR(64, PPCSTATE(cr_val[field]), Imm8(61));
     break;
 
-  case CR_EQ_BIT:
+  case PowerPC::CR_EQ_BIT:
     OR(64, PPCSTATE(cr_val[field]), Imm8(1));
     break;
 
-  case CR_GT_BIT:
+  case PowerPC::CR_GT_BIT:
     BTS(64, PPCSTATE(cr_val[field]), Imm8(63));
     break;
 
-  case CR_LT_BIT:
+  case PowerPC::CR_LT_BIT:
     BTR(64, PPCSTATE(cr_val[field]), Imm8(62));
     break;
   }
@@ -120,7 +120,7 @@ void Jit64::ClearCRFieldBit(int field, int bit)
 void Jit64::SetCRFieldBit(int field, int bit)
 {
   MOV(64, R(RSCRATCH), PPCSTATE(cr_val[field]));
-  if (bit != CR_GT_BIT)
+  if (bit != PowerPC::CR_GT_BIT)
   {
     TEST(64, R(RSCRATCH), R(RSCRATCH));
     FixupBranch dont_clear_gt = J_CC(CC_NZ);
@@ -130,20 +130,20 @@ void Jit64::SetCRFieldBit(int field, int bit)
 
   switch (bit)
   {
-  case CR_SO_BIT:
+  case PowerPC::CR_SO_BIT:
     BTS(64, PPCSTATE(cr_val[field]), Imm8(61));
     break;
 
-  case CR_EQ_BIT:
+  case PowerPC::CR_EQ_BIT:
     SHR(64, R(RSCRATCH), Imm8(32));
     SHL(64, R(RSCRATCH), Imm8(32));
     break;
 
-  case CR_GT_BIT:
+  case PowerPC::CR_GT_BIT:
     BTR(64, PPCSTATE(cr_val[field]), Imm8(63));
     break;
 
-  case CR_LT_BIT:
+  case PowerPC::CR_LT_BIT:
     BTS(64, PPCSTATE(cr_val[field]), Imm8(62));
     break;
   }
@@ -156,19 +156,19 @@ FixupBranch Jit64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
   switch (bit)
   {
-  case CR_SO_BIT:  // check bit 61 set
+  case PowerPC::CR_SO_BIT:  // check bit 61 set
     BT(64, PPCSTATE(cr_val[field]), Imm8(61));
     return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
-  case CR_EQ_BIT:  // check bits 31-0 == 0
+  case PowerPC::CR_EQ_BIT:  // check bits 31-0 == 0
     CMP(32, PPCSTATE(cr_val[field]), Imm8(0));
     return J_CC(jump_if_set ? CC_Z : CC_NZ, true);
 
-  case CR_GT_BIT:  // check val > 0
+  case PowerPC::CR_GT_BIT:  // check val > 0
     CMP(64, PPCSTATE(cr_val[field]), Imm8(0));
     return J_CC(jump_if_set ? CC_G : CC_LE, true);
 
-  case CR_LT_BIT:  // check bit 62 set
+  case PowerPC::CR_LT_BIT:  // check bit 62 set
     BT(64, PPCSTATE(cr_val[field]), Imm8(62));
     return J_CC(jump_if_set ? CC_C : CC_NC, true);
 
@@ -473,7 +473,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
         if ((crm & (0x80 >> i)) != 0)
         {
           u8 newcr = (gpr.R(inst.RS).Imm32() >> (28 - (i * 4))) & 0xF;
-          u64 newcrval = PPCCRToInternal(newcr);
+          u64 newcrval = PowerPC::PPCCRToInternal(newcr);
           if ((s64)newcrval == (s32)newcrval)
           {
             MOV(64, PPCSTATE(cr_val[i]), Imm32((s32)newcrval));
@@ -488,7 +488,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
     }
     else
     {
-      MOV(64, R(RSCRATCH2), ImmPtr(m_crTable.data()));
+      MOV(64, R(RSCRATCH2), ImmPtr(PowerPC::m_crTable.data()));
       gpr.Lock(inst.RS);
       gpr.BindToRegister(inst.RS, true, false);
       for (int i = 0; i < 8; i++)
@@ -535,7 +535,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   SHL(32, R(RSCRATCH), Imm8(4));
 
-  MOV(64, R(RSCRATCH2), ImmPtr(m_crTable.data()));
+  MOV(64, R(RSCRATCH2), ImmPtr(PowerPC::m_crTable.data()));
   MOV(64, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 
@@ -627,7 +627,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   }
   AND(32, R(RSCRATCH), Imm32(mask));
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
-  LEA(64, RSCRATCH, MConst(m_crTable));
+  LEA(64, RSCRATCH, MConst(PowerPC::m_crTable));
   MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 }
