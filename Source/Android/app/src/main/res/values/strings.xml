@@ -131,6 +131,8 @@
     <string name="interface_submenu">Interface</string>
     <string name="panic_handlers">Use Panic Handlers</string>
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
+    <string name="osd_messages">Show On-Screen Display Messages</string>
+    <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
