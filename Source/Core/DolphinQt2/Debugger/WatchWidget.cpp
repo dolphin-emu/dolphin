@@ -15,7 +15,6 @@
 #include <QHeaderView>
 #include <QMenu>
 #include <QMessageBox>
-#include <QSettings>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -27,7 +26,7 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Watch"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("watchwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("watchwidget/floating")).toBool());
@@ -59,7 +58,7 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
 WatchWidget::~WatchWidget()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("watchwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("watchwidget/floating"), isFloating());

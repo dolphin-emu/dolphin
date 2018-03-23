@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QSettings>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QWidget>
@@ -30,7 +29,7 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Code"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
@@ -58,7 +57,7 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
 CodeWidget::~CodeWidget()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("codewidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("codewidget/floating"), isFloating());

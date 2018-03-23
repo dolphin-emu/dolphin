@@ -12,7 +12,6 @@
 
 #include <QHeaderView>
 #include <QMenu>
-#include <QSettings>
 #include <QTableWidget>
 #include <QVBoxLayout>
 
@@ -21,7 +20,7 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Registers"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("registerwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("registerwidget/floating")).toBool());
@@ -54,7 +53,7 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 
 RegisterWidget::~RegisterWidget()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("registerwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("registerwidget/floating"), isFloating());

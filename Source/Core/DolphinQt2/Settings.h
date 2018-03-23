@@ -8,6 +8,7 @@
 
 #include <QFont>
 #include <QObject>
+#include <QSettings>
 #include <QVector>
 
 #include "Core/NetPlayClient.h"
@@ -39,6 +40,7 @@ public:
   Settings& operator=(Settings&&) = delete;
 
   static Settings& Instance();
+  static QSettings& GetQSettings();
 
   // UI
   void SetThemeName(const QString& theme_name);

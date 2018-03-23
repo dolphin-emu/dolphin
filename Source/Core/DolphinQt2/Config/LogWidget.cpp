@@ -11,7 +11,6 @@
 #include <QGroupBox>
 #include <QPushButton>
 #include <QScrollBar>
-#include <QSettings>
 #include <QTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -146,7 +145,7 @@ void LogWidget::ConnectWidgets()
 
 void LogWidget::LoadSettings()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("logwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("logwidget/floating")).toBool());
@@ -163,7 +162,7 @@ void LogWidget::LoadSettings()
 
 void LogWidget::SaveSettings()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("logwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("logwidget/floating"), isFloating());
