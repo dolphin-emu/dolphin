@@ -1,15 +1,13 @@
-set(SRCS
+add_library(audiocommon
   AudioCommon.cpp
   AudioStretcher.cpp
   CubebStream.cpp
   CubebUtils.cpp
   DPL2Decoder.cpp
   Mixer.cpp
-  WaveFile.cpp
   NullSoundStream.cpp
+  WaveFile.cpp
 )
-
-add_dolphin_library(audiocommon "${SRCS}" "")
 
 find_package(OpenSLES)
 if(OPENSLES_FOUND)
@@ -51,7 +49,7 @@ endif()
 if(WIN32)
   target_sources(audiocommon PRIVATE XAudio2Stream.cpp)
 
-  add_dolphin_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp" "${LIBS}")
+  add_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp")
   target_include_directories(audiocommon_xaudio27 PRIVATE
     ${PROJECT_SOURCE_DIR}/Externals
     ${PROJECT_SOURCE_DIR}/Externals/XAudio2_7
