@@ -38,8 +38,6 @@ static uint64_t LargestPowerOf2Divisor(uint64_t value)
   return value & -(int64_t)value;
 }
 
-#define V8_UINT64_C(x) ((uint64_t)(x))
-
 bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
 {
   if (input < 4096)
@@ -151,7 +149,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
     clz_a = CountLeadingZeros(a, kXRegSizeInBits);
     int clz_c = CountLeadingZeros(c, kXRegSizeInBits);
     d = clz_a - clz_c;
-    mask = ((V8_UINT64_C(1) << d) - 1);
+    mask = ((UINT64_C(1) << d) - 1);
     out_n = 0;
   }
   else
@@ -177,7 +175,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
       // the general case above, and set the N bit in the output.
       clz_a = CountLeadingZeros(a, kXRegSizeInBits);
       d = 64;
-      mask = ~V8_UINT64_C(0);
+      mask = ~UINT64_C(0);
       out_n = 1;
     }
   }
