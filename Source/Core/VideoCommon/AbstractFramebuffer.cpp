@@ -29,7 +29,7 @@ bool AbstractFramebuffer::ValidateConfig(const AbstractTexture* color_attachment
     return tex->GetConfig().rendertarget && tex->GetConfig().levels == 1;
   };
   if ((color_attachment && !CheckAttachment(color_attachment)) ||
-      depth_attachment && !CheckAttachment(depth_attachment))
+      (depth_attachment && !CheckAttachment(depth_attachment)))
   {
     return false;
   }
