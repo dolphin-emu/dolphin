@@ -1,4 +1,4 @@
-set(SRCS
+add_library(common
   Analytics.cpp
   CDUtils.cpp
   ColorUtil.cpp
@@ -44,82 +44,90 @@ set(SRCS
   x64Emitter.cpp
 )
 
-set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
+target_link_libraries(common PUBLIC
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${CURL_LIBRARIES}
+  enet
+  ${MBEDTLS_LIBRARIES}
+  ${VTUNE_LIBRARIES}
+)
 
 if(ANDROID)
-  set(SRCS ${SRCS}
-    Logging/ConsoleListenerDroid.cpp)
+  target_sources(common PRIVATE
+    Logging/ConsoleListenerDroid.cpp
+  )
+  target_link_libraries(common PRIVATE iconv)
 elseif(WIN32)
-  set(SRCS ${SRCS}
-    Logging/ConsoleListenerWin.cpp)
+  target_sources(common PRIVATE
+    Logging/ConsoleListenerWin.cpp
+  )
 else()
-  set(SRCS ${SRCS}
-    Logging/ConsoleListenerNix.cpp)
+  target_sources(common PRIVATE
+    Logging/ConsoleListenerNix.cpp
+  )
 endif()
 
-list(APPEND LIBS enet ${CURL_LIBRARIES})
 if(_M_ARM_64)
-  set(SRCS ${SRCS}
+  target_sources(common PRIVATE
     Arm64Emitter.cpp
     ArmCPUDetect.cpp
     GenericFPURoundMode.cpp
   )
 else()
   if(_M_X86) #X86
-    set(SRCS ${SRCS}
+    target_sources(common PRIVATE
       x64FPURoundMode.cpp
       x64CPUDetect.cpp
     )
   else() # Generic
-    set(SRCS ${SRCS}
+    target_sources(common PRIVATE
       GenericFPURoundMode.cpp
       GenericCPUDetect.cpp
     )
   endif()
 endif()
 
-list(APPEND LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
-
 # OpenGL Interface
-set(SRCS ${SRCS}
+target_sources(common PRIVATE
   GL/GLUtil.cpp
   GL/GLExtensions/GLExtensions.cpp
   GL/GLInterface/GLInterface.cpp
 )
 
 if(USE_EGL)
-  set(SRCS ${SRCS} GL/GLInterface/EGL.cpp)
+  target_sources(common PRIVATE GL/GLInterface/EGL.cpp)
   if(ANDROID)
-    set(SRCS ${SRCS} GL/GLInterface/EGLAndroid.cpp)
+    target_sources(common PRIVATE GL/GLInterface/EGLAndroid.cpp)
   elseif(USE_X11)
-    set(SRCS ${SRCS} GL/GLInterface/EGLX11.cpp)
+    target_sources(common PRIVATE GL/GLInterface/EGLX11.cpp)
   endif()
-  set(LIBS ${LIBS} EGL)
+  target_link_libraries(common PUBLIC EGL)
 endif()
 
 if(WIN32)
-  set(SRCS ${SRCS} GL/GLInterface/WGL.cpp CompatPatches.cpp)
+  target_sources(common PRIVATE
+    CompatPatches.cpp
+    GL/GLInterface/WGL.cpp
+  )
 elseif(APPLE)
-  set(SRCS ${SRCS} GL/GLInterface/AGL.mm)
+  target_sources(common PRIVATE GL/GLInterface/AGL.mm)
 elseif(HAIKU)
-  set(SRCS ${SRCS} GL/GLInterface/BGL.cpp)
-  set(LIBS ${LIBS} be GL)
+  target_sources(common PRIVATE GL/GLInterface/BGL.cpp)
+  target_link_libraries(common PUBLIC be GL)
 elseif(USE_X11)
   if (NOT USE_EGL)
-    set(SRCS ${SRCS} GL/GLInterface/GLX.cpp)
+    target_sources(common PRIVATE GL/GLInterface/GLX.cpp)
     # GLX has a hard dependency on libGL.
     # Make sure to link to it if using GLX.
-    set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
+    target_link_libraries(common PUBLIC ${OPENGL_LIBRARIES})
   endif()
-  set(SRCS ${SRCS} GL/GLInterface/X11_Util.cpp)
-  set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
+  target_sources(common PRIVATE GL/GLInterface/X11_Util.cpp)
+  target_link_libraries(common PUBLIC ${XRANDR_LIBRARIES})
 endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  set(LIBS ${LIBS} dl)
+  target_link_libraries(common PUBLIC dl rt)
 endif()
-
-add_dolphin_library(common "${SRCS}" "${LIBS}")
 
 if(USE_UPNP)
   target_link_libraries(common PRIVATE Miniupnpc::miniupnpc)
