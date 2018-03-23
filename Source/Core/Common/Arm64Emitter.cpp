@@ -12,6 +12,7 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 
 namespace Arm64Gen
 {
@@ -35,11 +36,6 @@ static int CountLeadingZeros(uint64_t value, int width)
 static uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
   return value & -(int64_t)value;
-}
-
-static bool IsPowerOfTwo(uint64_t x)
-{
-  return (x != 0) && ((x & (x - 1)) == 0);
 }
 
 #define V8_UINT64_C(x) ((uint64_t)(x))
@@ -187,7 +183,7 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   }
 
   // If the repeat period d is not a power of two, it can't be encoded.
-  if (!IsPowerOfTwo(d))
+  if (!MathUtil::IsPow2<u64>(d))
     return false;
 
   // If the bit stretch (b - a) does not fit within the mask derived from the
