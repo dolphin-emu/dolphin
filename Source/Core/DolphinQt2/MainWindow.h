@@ -128,6 +128,11 @@ private:
   void OnExportRecording();
   void ShowTASInput();
 
+  void ChangeDisc();
+  void EjectDisc();
+
+  QString PromptFileName();
+
   void EnableScreenSaver(bool enable);
 
   void OnStopComplete();
