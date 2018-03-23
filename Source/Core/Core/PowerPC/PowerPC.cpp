@@ -556,8 +556,6 @@ void CheckBreakPoints()
   }
 }
 
-}  // namespace
-
 // FPSCR update functions
 
 void UpdateFPRF(double dvalue)
@@ -566,3 +564,5 @@ void UpdateFPRF(double dvalue)
   // if (FPSCR.FPRF == 0x11)
   //	PanicAlert("QNAN alert");
 }
+
+}  // namespace PowerPC

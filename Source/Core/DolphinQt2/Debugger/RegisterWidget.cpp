@@ -283,12 +283,12 @@ void RegisterWidget::PopulateTable()
               [](u64 value) { PowerPC::ppcState.spr[SPR_CTR] = value; });
 
   // CR
-  AddRegister(20, 5, RegisterType::cr, "CR", [] { return GetCR(); },
-              [](u64 value) { SetCR(value); });
+  AddRegister(20, 5, RegisterType::cr, "CR", [] { return PowerPC::GetCR(); },
+              [](u64 value) { PowerPC::SetCR(value); });
 
   // XER
-  AddRegister(21, 5, RegisterType::xer, "XER", [] { return GetXER().Hex; },
-              [](u64 value) { SetXER(UReg_XER(value)); });
+  AddRegister(21, 5, RegisterType::xer, "XER", [] { return PowerPC::GetXER().Hex; },
+              [](u64 value) { PowerPC::SetXER(UReg_XER(value)); });
 
   // FPSCR
   AddRegister(22, 5, RegisterType::fpscr, "FPSCR", [] { return PowerPC::ppcState.fpscr; },

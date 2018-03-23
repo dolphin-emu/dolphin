@@ -113,14 +113,14 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
 
 void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  SetCRField(inst.CRFD, GetXER().Hex >> 28);
+  PowerPC::SetCRField(inst.CRFD, PowerPC::GetXER().Hex >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
 
 void Interpreter::mfcr(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = GetCR();
+  rGPR[inst.RD] = PowerPC::GetCR();
 }
 
 void Interpreter::mtcrf(UGeckoInstruction inst)
@@ -128,7 +128,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
   u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
-    SetCR(rGPR[inst.RS]);
+    PowerPC::SetCR(rGPR[inst.RS]);
   }
   else
   {
@@ -140,7 +140,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
         mask |= 0xF << (i * 4);
     }
 
-    SetCR((GetCR() & ~mask) | (rGPR[inst.RS] & mask));
+    PowerPC::SetCR((PowerPC::GetCR() & ~mask) | (rGPR[inst.RS] & mask));
   }
 }
 
@@ -238,7 +238,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   }
   break;
   case SPR_XER:
-    rSPR(iIndex) = GetXER().Hex;
+    rSPR(iIndex) = PowerPC::GetXER().Hex;
     break;
   }
   rGPR[inst.RD] = rSPR(iIndex);
@@ -367,7 +367,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    SetXER(rSPR(iIndex));
+    PowerPC::SetXER(rSPR(iIndex));
     break;
 
   case SPR_DBAT0L:
@@ -420,48 +420,48 @@ void Interpreter::mtspr(UGeckoInstruction inst)
 
 void Interpreter::crand(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, GetCRBit(inst.CRBA) & GetCRBit(inst.CRBB));
+  PowerPC::SetCRBit(inst.CRBD, PowerPC::GetCRBit(inst.CRBA) & PowerPC::GetCRBit(inst.CRBB));
 }
 
 void Interpreter::crandc(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, GetCRBit(inst.CRBA) & (1 ^ GetCRBit(inst.CRBB)));
+  PowerPC::SetCRBit(inst.CRBD, PowerPC::GetCRBit(inst.CRBA) & (1 ^ PowerPC::GetCRBit(inst.CRBB)));
 }
 
 void Interpreter::creqv(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, 1 ^ (GetCRBit(inst.CRBA) ^ GetCRBit(inst.CRBB)));
+  PowerPC::SetCRBit(inst.CRBD, 1 ^ (PowerPC::GetCRBit(inst.CRBA) ^ PowerPC::GetCRBit(inst.CRBB)));
 }
 
 void Interpreter::crnand(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, 1 ^ (GetCRBit(inst.CRBA) & GetCRBit(inst.CRBB)));
+  PowerPC::SetCRBit(inst.CRBD, 1 ^ (PowerPC::GetCRBit(inst.CRBA) & PowerPC::GetCRBit(inst.CRBB)));
 }
 
 void Interpreter::crnor(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, 1 ^ (GetCRBit(inst.CRBA) | GetCRBit(inst.CRBB)));
+  PowerPC::SetCRBit(inst.CRBD, 1 ^ (PowerPC::GetCRBit(inst.CRBA) | PowerPC::GetCRBit(inst.CRBB)));
 }
 
 void Interpreter::cror(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, (GetCRBit(inst.CRBA) | GetCRBit(inst.CRBB)));
+  PowerPC::SetCRBit(inst.CRBD, (PowerPC::GetCRBit(inst.CRBA) | PowerPC::GetCRBit(inst.CRBB)));
 }
 
 void Interpreter::crorc(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, (GetCRBit(inst.CRBA) | (1 ^ GetCRBit(inst.CRBB))));
+  PowerPC::SetCRBit(inst.CRBD, (PowerPC::GetCRBit(inst.CRBA) | (1 ^ PowerPC::GetCRBit(inst.CRBB))));
 }
 
 void Interpreter::crxor(UGeckoInstruction inst)
 {
-  SetCRBit(inst.CRBD, (GetCRBit(inst.CRBA) ^ GetCRBit(inst.CRBB)));
+  PowerPC::SetCRBit(inst.CRBD, (PowerPC::GetCRBit(inst.CRBA) ^ PowerPC::GetCRBit(inst.CRBB)));
 }
 
 void Interpreter::mcrf(UGeckoInstruction inst)
 {
-  int cr_f = GetCRField(inst.CRFS);
-  SetCRField(inst.CRFD, cr_f);
+  int cr_f = PowerPC::GetCRField(inst.CRFS);
+  PowerPC::SetCRField(inst.CRFD, cr_f);
 }
 
 void Interpreter::isync(UGeckoInstruction inst)
@@ -505,7 +505,7 @@ void Interpreter::mcrfs(UGeckoInstruction inst)
     FPSCR.VXCVI = 0;
     break;
   }
-  SetCRField(inst.CRFD, fpflags);
+  PowerPC::SetCRField(inst.CRFD, fpflags);
 }
 
 void Interpreter::mffsx(UGeckoInstruction inst)
