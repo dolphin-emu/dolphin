@@ -277,15 +277,6 @@ constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)
   return static_cast<ARM64Reg>(reg | 0xC0);
 }
 
-// For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s,
-                  unsigned int* imm_r);
-// For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32* val, bool* shift);
-
-float FPImm8ToFloat(uint8_t bits);
-bool FPImm8FromFloat(float value, uint8_t* immOut);
-
 enum OpType
 {
   TYPE_IMM = 0,

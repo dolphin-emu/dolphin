@@ -16,11 +16,13 @@
 
 namespace Arm64Gen
 {
+namespace
+{
 const int kWRegSizeInBits = 32;
 const int kXRegSizeInBits = 64;
 
 // The below few functions are taken from V8.
-static int CountLeadingZeros(uint64_t value, int width)
+int CountLeadingZeros(uint64_t value, int width)
 {
   // TODO(jbramley): Optimize this for ARM64 hosts.
   int count = 0;
@@ -33,11 +35,12 @@ static int CountLeadingZeros(uint64_t value, int width)
   return count;
 }
 
-static uint64_t LargestPowerOf2Divisor(uint64_t value)
+uint64_t LargestPowerOf2Divisor(uint64_t value)
 {
   return value & -(int64_t)value;
 }
 
+// For ADD/SUB
 bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
 {
   if (input < 4096)
@@ -55,6 +58,7 @@ bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
   return false;
 }
 
+// For AND/TST/ORR/EOR etc
 bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s,
                   unsigned int* imm_r)
 {
@@ -259,6 +263,39 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
 
   return true;
 }
+
+float FPImm8ToFloat(uint8_t bits)
+{
+  int sign = bits >> 7;
+  uint32_t f = (sign << 31);
+  int bit6 = (bits >> 6) & 1;
+  uint32_t exp = ((!bit6) << 7) | (0x7C * bit6) | ((bits >> 4) & 3);
+  uint32_t mantissa = (bits & 0xF) << 19;
+  f |= exp << 23;
+  f |= mantissa;
+  float fl;
+  memcpy(&fl, &f, sizeof(float));
+  return fl;
+}
+
+bool FPImm8FromFloat(float value, uint8_t* immOut)
+{
+  uint32_t f;
+  memcpy(&f, &value, sizeof(float));
+  uint32_t mantissa4 = (f & 0x7FFFFF) >> 19;
+  uint32_t exponent = (f >> 23) & 0xFF;
+  uint32_t sign = f >> 31;
+  if ((exponent >> 7) == ((exponent >> 6) & 1))
+    return false;
+  uint8_t imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
+  float newFloat = FPImm8ToFloat(imm8);
+  if (newFloat == value)
+    *immOut = imm8;
+  else
+    return false;
+  return true;
+}
+}  // Anonymous namespace
 
 void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr)
 {
@@ -4284,38 +4321,6 @@ bool ARM64XEmitter::TryEORI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
   else
     return false;
 
-  return true;
-}
-
-float FPImm8ToFloat(uint8_t bits)
-{
-  int sign = bits >> 7;
-  uint32_t f = (sign << 31);
-  int bit6 = (bits >> 6) & 1;
-  uint32_t exp = ((!bit6) << 7) | (0x7C * bit6) | ((bits >> 4) & 3);
-  uint32_t mantissa = (bits & 0xF) << 19;
-  f |= exp << 23;
-  f |= mantissa;
-  float fl;
-  memcpy(&fl, &f, sizeof(float));
-  return fl;
-}
-
-bool FPImm8FromFloat(float value, uint8_t* immOut)
-{
-  uint32_t f;
-  memcpy(&f, &value, sizeof(float));
-  uint32_t mantissa4 = (f & 0x7FFFFF) >> 19;
-  uint32_t exponent = (f >> 23) & 0xFF;
-  uint32_t sign = f >> 31;
-  if ((exponent >> 7) == ((exponent >> 6) & 1))
-    return false;
-  uint8_t imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
-  float newFloat = FPImm8ToFloat(imm8);
-  if (newFloat == value)
-    *immOut = imm8;
-  else
-    return false;
   return true;
 }
 
