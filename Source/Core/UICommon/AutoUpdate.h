@@ -15,6 +15,8 @@ public:
   // update is available, does "nothing" otherwise.
   void CheckForUpdate();
 
+  static bool SystemSupportsAutoUpdates();
+
   struct NewVersionInformation
   {
     // Name (5.0-1234) and revision hash of the new version.

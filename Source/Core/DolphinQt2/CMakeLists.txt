@@ -117,6 +117,7 @@ set(SRCS
   TAS/Shared.cpp
   TAS/StickWidget.cpp
   TAS/IRWidget.cpp
+  Updater.cpp
 )
 
 list(APPEND LIBS core uicommon)

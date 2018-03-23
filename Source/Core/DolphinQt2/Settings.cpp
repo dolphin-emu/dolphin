@@ -312,3 +312,18 @@ QFont Settings::GetDebugFont() const
 
   return QSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
+
+void Settings::SetAutoUpdateTrack(const QString& mode)
+{
+  if (mode == GetAutoUpdateTrack())
+    return;
+
+  SConfig::GetInstance().m_auto_update_track = mode.toStdString();
+
+  emit AutoUpdateTrackChanged(mode);
+}
+
+QString Settings::GetAutoUpdateTrack() const
+{
+  return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
+}

@@ -20,15 +20,6 @@
 
 namespace
 {
-bool SystemSupportsAutoUpdates()
-{
-#ifdef _WIN32
-  return true;
-#else
-  return false;
-#endif
-}
-
 #ifdef _WIN32
 
 const char UPDATER_FILENAME[] = "Updater.exe";
@@ -57,10 +48,19 @@ void CleanupFromPreviousUpdate()
 #endif
 }  // namespace
 
+bool AutoUpdateChecker::SystemSupportsAutoUpdates()
+{
+#ifdef _WIN32
+  return true;
+#else
+  return false;
+#endif
+}
+
 void AutoUpdateChecker::CheckForUpdate()
 {
   // Don't bother checking if updates are not supported or not enabled.
-  if (SConfig::GetInstance().m_auto_update_track.empty() || !SystemSupportsAutoUpdates())
+  if (!SystemSupportsAutoUpdates() || SConfig::GetInstance().m_auto_update_track.empty())
     return;
 
 #ifdef _WIN32
@@ -104,7 +104,10 @@ void AutoUpdateChecker::CheckForUpdate()
   nvi.content_store_url = obj["content-store"].get<std::string>();
   nvi.new_shortrev = obj["new"].get<picojson::object>()["name"].get<std::string>();
   nvi.new_hash = obj["new"].get<picojson::object>()["hash"].get<std::string>();
+
   // TODO: generate the HTML changelog from the JSON information.
+  nvi.changelog_html = "<h2>TBD</h2>";
+
   OnUpdateAvailable(nvi);
 }
 
