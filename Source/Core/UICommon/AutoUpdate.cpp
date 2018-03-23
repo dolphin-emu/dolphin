@@ -5,6 +5,7 @@
 #include "UICommon/AutoUpdate.h"
 
 #include <picojson/picojson.h>
+#include <string>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -46,6 +47,48 @@ void CleanupFromPreviousUpdate()
   File::Delete(reloc_updater_path);
 }
 #endif
+
+// This ignores i18n because most of the text in there (change descriptions) is only going to be
+// written in english anyway.
+std::string GenerateChangelog(const picojson::array& versions)
+{
+  std::string changelog;
+  for (const auto& ver : versions)
+  {
+    if (!ver.is<picojson::object>())
+      continue;
+    picojson::object ver_obj = ver.get<picojson::object>();
+
+    if (ver_obj["changelog_html"].is<picojson::null>())
+    {
+      if (!changelog.empty())
+        changelog += "<div style=\"margin-top: 0.4em;\"></div>";  // Vertical spacing.
+
+      // Try to link to the PR if we have this info. Otherwise just show shortrev.
+      if (ver_obj["pr_url"].is<std::string>())
+      {
+        changelog += "<a href=\"" + ver_obj["pr_url"].get<std::string>() + "\">" +
+                     ver_obj["shortrev"].get<std::string>() + "</a>";
+      }
+      else
+      {
+        changelog += ver_obj["shortrev"].get<std::string>();
+      }
+
+      changelog += " by <a href = \"" + ver_obj["author_url"].get<std::string>() + "\">" +
+                   ver_obj["author"].get<std::string>() + "</a> &mdash; " +
+                   ver_obj["short_descr"].get<std::string>();
+    }
+    else
+    {
+      if (!changelog.empty())
+        changelog += "<hr>";
+      changelog += "<b>Dolphin " + ver_obj["shortrev"].get<std::string>() + "</b>";
+      changelog += "<p>" + ver_obj["changelog_html"].get<std::string>() + "</p>";
+    }
+  }
+  return changelog;
+}
 }  // namespace
 
 bool AutoUpdateChecker::SystemSupportsAutoUpdates()
@@ -106,7 +149,7 @@ void AutoUpdateChecker::CheckForUpdate()
   nvi.new_hash = obj["new"].get<picojson::object>()["hash"].get<std::string>();
 
   // TODO: generate the HTML changelog from the JSON information.
-  nvi.changelog_html = "<h2>TBD</h2>";
+  nvi.changelog_html = GenerateChangelog(obj["changelog"].get<picojson::array>());
 
   OnUpdateAvailable(nvi);
 }
