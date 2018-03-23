@@ -125,6 +125,8 @@
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
+    <string name="panic_handlers">Use Panic Handlers</string>
+    <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>

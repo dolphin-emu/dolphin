@@ -28,6 +28,7 @@ extern const ConfigInfo<bool> MAIN_DPL2_DECODER;
 extern const ConfigInfo<int> MAIN_AUDIO_LATENCY;
 extern const ConfigInfo<bool> MAIN_AUDIO_STRETCH;
 extern const ConfigInfo<int> MAIN_AUDIO_STRETCH_LATENCY;
+extern const ConfigInfo<bool> MAIN_USE_PANIC_HANDLERS;
 extern const ConfigInfo<std::string> MAIN_MEMCARD_A_PATH;
 extern const ConfigInfo<std::string> MAIN_MEMCARD_B_PATH;
 extern const ConfigInfo<std::string> MAIN_AGP_CART_A_PATH;

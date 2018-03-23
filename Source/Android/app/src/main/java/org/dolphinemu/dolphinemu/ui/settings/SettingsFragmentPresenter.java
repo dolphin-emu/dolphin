@@ -179,6 +179,7 @@ public final class SettingsFragmentPresenter
 		Setting continuousScan = null;
 		Setting wiimoteSpeaker = null;
 		Setting audioStretch = null;
+		Setting usePanicHandlers = null;
 
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
@@ -191,6 +192,7 @@ public final class SettingsFragmentPresenter
 			continuousScan = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
 			wiimoteSpeaker = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 			audioStretch = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+			usePanicHandlers = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
 		}
 		else
 		{
@@ -227,6 +229,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.panic_handlers, R.string.panic_handlers_description, true, usePanicHandlers));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl)
