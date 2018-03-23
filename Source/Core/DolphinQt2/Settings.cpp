@@ -335,3 +335,18 @@ QString Settings::GetAutoUpdateTrack() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
 }
+
+void Settings::SetAnalyticsEnabled(bool enabled)
+{
+  if (enabled == IsAnalyticsEnabled())
+    return;
+
+  SConfig::GetInstance().m_analytics_enabled = enabled;
+
+  emit AnalyticsToggled(enabled);
+}
+
+bool Settings::IsAnalyticsEnabled() const
+{
+  return SConfig::GetInstance().m_analytics_enabled;
+}

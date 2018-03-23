@@ -104,6 +104,10 @@ public:
   QString GetAutoUpdateTrack() const;
   void SetAutoUpdateTrack(const QString& mode);
 
+  // Analytics
+  bool IsAnalyticsEnabled() const;
+  void SetAnalyticsEnabled(bool enabled);
+
   // Other
   GameListModel* GetGameListModel() const;
 signals:
@@ -126,6 +130,7 @@ signals:
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);
+  void AnalyticsToggled(bool enabled);
 
 private:
   bool m_controller_state_needed = false;
