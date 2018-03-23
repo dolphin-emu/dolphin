@@ -120,7 +120,15 @@ public final class SettingsFragmentPresenter
 		switch (mMenuTag)
 		{
 			case SettingsFile.FILE_NAME_DOLPHIN:
-				addCoreSettings(sl);
+				addConfigSettings(sl);
+				break;
+
+			case SettingsFile.SECTION_CONFIG_GENERAL:
+				addGeneralSettings(sl);
+				break;
+
+			case SettingsFile.SECTION_CONFIG_INTERFACE:
+				addInterfaceSettings(sl);
 				break;
 
 			case SettingsFile.FILE_NAME_GFX:
@@ -168,7 +176,13 @@ public final class SettingsFragmentPresenter
 		mView.showSettingsList(mSettingsList);
 	}
 
-	private void addCoreSettings(ArrayList<SettingsItem> sl)
+	private void addConfigSettings(ArrayList<SettingsItem> sl)
+	{
+		sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, SettingsFile.SECTION_CONFIG_GENERAL));
+		sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, SettingsFile.SECTION_CONFIG_INTERFACE));
+	}
+
+	private void addGeneralSettings(ArrayList<SettingsItem> sl)
 	{
 		Setting cpuCore = null;
 		Setting dualCore = null;
@@ -229,6 +243,17 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 	}
 
+	private void addInterfaceSettings(ArrayList<SettingsItem> sl)
+	{
+		Setting usePanicHandlers = null;
+
+		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
+		{
+			usePanicHandlers = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INTERFACE).getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
+		}
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, SettingsFile.SECTION_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.panic_handlers, R.string.panic_handlers_description, true, usePanicHandlers));
+	}
+
 	private void addGcPadSettings(ArrayList<SettingsItem> sl)
 	{
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
@@ -283,8 +308,8 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.shader_compilation_mode, R.string.shader_compilation_mode_descrip, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.wait_for_shaders, 0, false, waitForShaders));
 
-		sl.add(new SubmenuSetting(null, null, R.string.enhancements, 0, SettingsFile.SECTION_GFX_ENHANCEMENTS));
-		sl.add(new SubmenuSetting(null, null, R.string.hacks, 0, SettingsFile.SECTION_GFX_HACKS));
+		sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, SettingsFile.SECTION_GFX_ENHANCEMENTS));
+		sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, SettingsFile.SECTION_GFX_HACKS));
 	}
 
 	private void addEnhanceSettings(ArrayList<SettingsItem> sl)

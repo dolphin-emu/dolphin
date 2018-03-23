@@ -108,7 +108,8 @@
     <string name="turntable_effect_dial">Dial</string>
     <string name="turntable_crossfade">Crossfade</string>
 
-    <!-- CPU Preference Fragment -->
+    <!-- General Preference Fragment -->
+    <string name="general_submenu">General</string>
     <string name="cpu_core">CPU Core</string>
     <string name="cpu_core_desc">%s</string>
     <string name="dual_core">Dual Core</string>
@@ -126,13 +127,18 @@
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
 
+    <!-- Interface Preference Fragment -->
+    <string name="interface_submenu">Interface</string>
+    <string name="panic_handlers">Use Panic Handlers</string>
+    <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
+
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_descrip">Select the API used for graphics rendering.</string>
     <string name="show_fps">Show FPS</string>
     <string name="show_fps_descrip">Show the number of frames rendered per second as a measure of emulation speed.</string>
 
-    <string name="enhancements">Enhancements</string>
+    <string name="enhancements_submenu">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>
     <string name="internal_resolution_descrip">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
     <string name="FSAA">Full-scene Anti-aliasing</string>
@@ -162,7 +168,7 @@
     <string name="sterescopy_swap_eyes">Swap Eyes</string>
     <string name="sterescopy_swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
 
-    <string name="hacks">Hacks</string>
+    <string name="hacks_submenu">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
     <string name="skip_efb_access">Skip EFB Access from CPU</string>
     <string name="skip_efb_access_descrip">Ignore any requests from the CPU to read/write to the EFB.</string>

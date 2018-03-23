@@ -63,6 +63,10 @@ public final class SettingsFile
 	public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
 
 	public static final String SECTION_CORE = "Core";
+	public static final String SECTION_INTERFACE = "Interface";
+
+	public static final String SECTION_CONFIG_GENERAL = "General";
+	public static final String SECTION_CONFIG_INTERFACE = "Interface";
 
 	public static final String SECTION_GFX_SETTINGS = "Settings";
 	public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
@@ -82,6 +86,8 @@ public final class SettingsFile
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";
 	public static final String KEY_SLOT_B_DEVICE = "SlotB";
+
+	public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
 	public static final String KEY_INTERNAL_RES = "InternalResolution";
