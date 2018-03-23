@@ -7,6 +7,7 @@
 #include <OptionParser.h>
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstdio>
 #include <ed25519/ed25519.h>
 #include <mbedtls/base64.h>
@@ -471,7 +472,7 @@ Manifest::Hash ComputeHash(const std::string& contents)
 bool DownloadContent(const std::vector<Manifest::Hash>& to_download,
                      const std::string& content_base_url, const std::string& temp_path)
 {
-  Common::HttpRequest req;
+  Common::HttpRequest req(std::chrono::seconds(30));
   for (const auto& h : to_download)
   {
     std::string hash_filename = HexEncode(h.data(), h.size());
