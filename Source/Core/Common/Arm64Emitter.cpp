@@ -3771,8 +3771,7 @@ void ARM64FloatEmitter::UXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, bool upper)
 // vector x indexed element
 void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index)
 {
-  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!", __func__);
 
   bool L = false;
   bool H = false;
@@ -3791,8 +3790,7 @@ void ARM64FloatEmitter::FMUL(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 
 
 void ARM64FloatEmitter::FMLA(u8 size, ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, u8 index)
 {
-  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!",
-             __func__);
+  ASSERT_MSG(DYNA_REC, size == 32 || size == 64, "%s only supports 32bit or 64bit size!", __func__);
 
   bool L = false;
   bool H = false;
