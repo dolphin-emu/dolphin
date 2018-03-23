@@ -14,7 +14,6 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QSettings>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
@@ -106,7 +105,8 @@ void GameList::MakeListView()
   connect(hor_header, &QHeaderView::sectionMoved, this, &GameList::OnHeaderViewChanged);
 
   hor_header->setSectionsMovable(true);
-  hor_header->restoreState(QSettings().value(QStringLiteral("tableheader/state")).toByteArray());
+  hor_header->restoreState(
+      Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
@@ -518,8 +518,8 @@ static bool CompressCB(const std::string& text, float percent, void* ptr)
 
 void GameList::OnHeaderViewChanged()
 {
-  QSettings().setValue(QStringLiteral("tableheader/state"),
-                       m_list->horizontalHeader()->saveState());
+  Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
+                                    m_list->horizontalHeader()->saveState());
 }
 
 void GameList::SetSearchTerm(const QString& term)

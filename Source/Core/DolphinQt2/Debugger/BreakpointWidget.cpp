@@ -5,7 +5,6 @@
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
 
 #include <QHeaderView>
-#include <QSettings>
 #include <QTableWidget>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -26,7 +25,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Breakpoints"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
@@ -56,7 +55,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 
 BreakpointWidget::~BreakpointWidget()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("breakpointwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("breakpointwidget/floating"), isFloating());
