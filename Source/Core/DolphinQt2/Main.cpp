@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
       const int answer = analytics_prompt.exec();
 
       SConfig::GetInstance().m_analytics_permission_asked = true;
-      SConfig::GetInstance().m_analytics_enabled = (answer == QMessageBox::Yes);
+      Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
       DolphinAnalytics::Instance()->ReloadConfig();
     }

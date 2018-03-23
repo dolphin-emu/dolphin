@@ -82,6 +82,7 @@ void GeneralPane::ConnectLayout()
   connect(m_radio_jit, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
+  connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
   connect(m_checkbox_enable_analytics, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
   connect(m_button_generate_new_identity, &QPushButton::clicked, this,
           &GeneralPane::GenerateNewIdentity);
@@ -191,7 +192,7 @@ void GeneralPane::LoadConfig()
   }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  m_checkbox_enable_analytics->setChecked(SConfig::GetInstance().m_analytics_enabled);
+  m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
@@ -251,7 +252,7 @@ void GeneralPane::OnSaveConfig()
   }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  SConfig::GetInstance().m_analytics_enabled = m_checkbox_enable_analytics->isChecked();
+  Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
 #endif
   SConfig::GetInstance().bCPUThread = m_checkbox_dualcore->isChecked();
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
