@@ -49,9 +49,10 @@ constexpr T Clamp(const T val, const T& min, const T& max)
   return std::max(min, std::min(max, val));
 }
 
-constexpr bool IsPow2(u32 imm)
+template <typename T>
+constexpr bool IsPow2(T imm)
 {
-  return (imm & (imm - 1)) == 0;
+  return imm > 0 && (imm & (imm - 1)) == 0;
 }
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
