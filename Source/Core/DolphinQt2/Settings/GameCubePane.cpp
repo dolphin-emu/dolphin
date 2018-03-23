@@ -240,9 +240,9 @@ void GameCubePane::LoadSettings()
 
   for (const std::string& dir : {USA_DIR, JAP_DIR, EUR_DIR})
   {
-    const auto& path = DIR_SEP + dir + DIR_SEP GC_IPL;
+    const auto path = DIR_SEP + dir + DIR_SEP GC_IPL;
     if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + path) ||
-        File::Exists(File::GetUserPath(D_GCUSER_IDX) + path))
+        File::Exists(File::GetSysDirectory() + GC_SYS_DIR + path))
     {
       have_menu = true;
       break;
