@@ -191,7 +191,8 @@ void SetSysDirectory(const std::string& path);
 std::string GetBundleDirectory();
 #endif
 
-std::string& GetExeDirectory();
+std::string GetExePath();
+std::string GetExeDirectory();
 
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
