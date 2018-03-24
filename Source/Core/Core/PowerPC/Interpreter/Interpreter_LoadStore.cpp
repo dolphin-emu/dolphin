@@ -621,7 +621,6 @@ void Interpreter::sthx(UGeckoInstruction inst)
   PowerPC::Write_U16((u16)rGPR[inst.RS], Helper_Get_EA_X(inst));
 }
 
-// __________________________________________________________________________________________________
 // lswi - bizarro string instruction
 // FIXME: Should rollback if a DSI occurs
 void Interpreter::lswi(UGeckoInstruction inst)
@@ -667,7 +666,6 @@ void Interpreter::lswi(UGeckoInstruction inst)
 }
 
 // todo : optimize ?
-// __________________________________________________________________________________________________
 // stswi - bizarro string instruction
 // FIXME: Should rollback if a DSI occurs
 void Interpreter::stswi(UGeckoInstruction inst)
@@ -804,5 +802,5 @@ void Interpreter::tlbie(UGeckoInstruction inst)
 
 void Interpreter::tlbsync(UGeckoInstruction inst)
 {
-  // MessageBox(0,"TLBsync","TLBsyncE",0);
+  // Ignored
 }

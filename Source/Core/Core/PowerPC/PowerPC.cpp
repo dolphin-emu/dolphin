@@ -561,8 +561,6 @@ void CheckBreakPoints()
 void UpdateFPRF(double dvalue)
 {
   FPSCR.FPRF = MathUtil::ClassifyDouble(dvalue);
-  // if (FPSCR.FPRF == 0x11)
-  //	PanicAlert("QNAN alert");
 }
 
 }  // namespace PowerPC

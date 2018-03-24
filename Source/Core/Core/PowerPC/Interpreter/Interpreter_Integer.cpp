@@ -137,18 +137,6 @@ void Interpreter::oris(UGeckoInstruction inst)
 
 void Interpreter::subfic(UGeckoInstruction inst)
 {
-  /*	u32 rra = ~rGPR[inst.RA];
-    s32 immediate = (s16)inst.SIMM_16 + 1;
-
-  //	#define CALC_XER_CA(X,Y) (((X) + (Y) < X) ? SET_XER_CA : CLEAR_XER_CA)
-    if ((rra + immediate) < rra)
-      PowerPC::SetCarry(1);
-    else
-      PowerPC::SetCarry(0);
-
-    rGPR[inst.RD] = rra - immediate;
-  */
-
   s32 immediate = inst.SIMM_16;
   rGPR[inst.RD] = immediate - (int)rGPR[inst.RA];
   PowerPC::SetCarry((rGPR[inst.RA] == 0) || (Helper_Carry(0 - rGPR[inst.RA], immediate)));
