@@ -304,18 +304,21 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   case 15:  // addis
     regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
     break;
-  case 24:                                               // ori
-    if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  // check for nop
+  case 24:  // ori
+  case 25:  // oris
+  {
+    // check for nop
+    if (a == s && inst.UIMM == 0)
     {
       // Make the nop visible in the generated code. not much use but interesting if we see one.
       NOP();
       return;
     }
-    regimmop(a, s, true, inst.UIMM, Or, &XEmitter::OR);
+
+    const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
+    regimmop(a, s, true, immediate, Or, &XEmitter::OR);
     break;
-  case 25:  // oris
-    regimmop(a, s, true, inst.UIMM << 16, Or, &XEmitter::OR, false);
-    break;
+  }
   case 28:  // andi
     regimmop(a, s, true, inst.UIMM, And, &XEmitter::AND, true);
     break;
@@ -323,11 +326,19 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     regimmop(a, s, true, inst.UIMM << 16, And, &XEmitter::AND, true);
     break;
   case 26:  // xori
-    regimmop(a, s, true, inst.UIMM, Xor, &XEmitter::XOR, false);
-    break;
   case 27:  // xoris
-    regimmop(a, s, true, inst.UIMM << 16, Xor, &XEmitter::XOR, false);
+  {
+    if (s == a && inst.UIMM == 0)
+    {
+      // Make the nop visible in the generated code.
+      NOP();
+      return;
+    }
+
+    const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
+    regimmop(a, s, true, immediate, Xor, &XEmitter::XOR, false);
     break;
+  }
   case 12:  // addic
     regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true);
     break;
