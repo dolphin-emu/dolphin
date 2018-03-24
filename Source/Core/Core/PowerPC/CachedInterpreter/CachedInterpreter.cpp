@@ -241,7 +241,7 @@ void CachedInterpreter::Jit(u32 address)
 
       if (endblock || memcheck)
         m_code.emplace_back(WritePC, ops[i].address);
-      m_code.emplace_back(GetInterpreterOp(ops[i].inst), ops[i].inst);
+      m_code.emplace_back(PPCTables::GetInterpreterOp(ops[i].inst), ops[i].inst);
       if (memcheck)
         m_code.emplace_back(CheckDSI, js.downcountAmount);
       if (endblock)

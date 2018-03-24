@@ -193,7 +193,7 @@ int Interpreter::SingleStepInner()
   last_pc = PC;
   PC = NPC;
 
-  GekkoOPInfo* opinfo = GetOpInfo(instCode);
+  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(instCode);
   return opinfo->numCycles;
 }
 
