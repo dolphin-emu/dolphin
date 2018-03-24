@@ -3,17 +3,20 @@
 // Refer to the license.txt file included.
 
 #include <QKeyEvent>
+#include <QPalette>
 #include <QTimer>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Settings.h"
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
-  setAttribute(Qt::WA_OpaquePaintEvent, true);
-  setAttribute(Qt::WA_NoSystemBackground, true);
+  QPalette p;
+  p.setColor(QPalette::Background, Qt::black);
+  setPalette(p);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
   connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
@@ -21,6 +24,10 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
       return;
 
     resize(w, h);
+  });
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    SetFillBackground(SConfig::GetInstance().bRenderToMain && state == Core::State::Uninitialized);
   });
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
@@ -43,6 +50,15 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           &RenderWidget::OnHideCursorChanged);
   OnHideCursorChanged();
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
+
+  SetFillBackground(true);
+}
+
+void RenderWidget::SetFillBackground(bool fill)
+{
+  setAttribute(Qt::WA_OpaquePaintEvent, !fill);
+  setAttribute(Qt::WA_NoSystemBackground, !fill);
+  setAutoFillBackground(fill);
 }
 
 void RenderWidget::OnHideCursorChanged()

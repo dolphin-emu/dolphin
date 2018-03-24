@@ -29,6 +29,7 @@ signals:
 private:
   void HandleCursorTimer();
   void OnHideCursorChanged();
+  void SetFillBackground(bool fill);
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;
