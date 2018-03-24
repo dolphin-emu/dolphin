@@ -116,6 +116,8 @@ void GameCubePane::CreateWidgets()
   layout->addWidget(ipl_box);
   layout->addWidget(device_box);
 
+  layout->addStretch();
+
   setLayout(layout);
 }
 
