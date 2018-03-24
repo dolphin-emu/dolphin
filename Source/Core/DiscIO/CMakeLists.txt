@@ -1,4 +1,4 @@
-set(SRCS
+add_library(discio
   Blob.cpp
   CISOBlob.cpp
   WbfsBlob.cpp
@@ -21,5 +21,3 @@ set(SRCS
   WiiSaveBanner.cpp
   WiiWad.cpp
 )
-
-add_dolphin_library(discio "${SRCS}" "")
