@@ -30,7 +30,7 @@ public:
   void ClearCache() override {}
   void Run() override {}
   void SingleStep() override {}
-  const char* GetName() override { return nullptr; }
+  const char* GetName() const override { return nullptr; }
   // JitBase methods
   JitBaseBlockCache* GetBlockCache() override { return nullptr; }
   void Jit(u32 em_address) override {}

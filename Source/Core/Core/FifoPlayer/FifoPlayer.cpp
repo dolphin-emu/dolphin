@@ -102,7 +102,7 @@ public:
     PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 
-  const char* GetName() override { return "FifoPlayer"; }
+  const char* GetName() const override { return "FifoPlayer"; }
   void Run() override
   {
     while (CPU::GetState() == CPU::State::Running)

@@ -20,7 +20,7 @@ public:
 
   void Run() override;
   void ClearCache() override;
-  const char* GetName() override;
+  const char* GetName() const override;
 
   static void unknown_instruction(UGeckoInstruction inst);
 
