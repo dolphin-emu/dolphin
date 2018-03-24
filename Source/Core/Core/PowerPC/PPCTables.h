@@ -107,14 +107,14 @@ extern size_t m_numInstructions;
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst);
-Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst);
+GekkoOPInfo* GetOpInfo(UGeckoInstruction inst);
+Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst);
 
-bool IsValidInstruction(UGeckoInstruction _instCode);
-bool UsesFPU(UGeckoInstruction _inst);
+bool IsValidInstruction(UGeckoInstruction inst);
+bool UsesFPU(UGeckoInstruction inst);
 
-void CountInstruction(UGeckoInstruction _inst);
+void CountInstruction(UGeckoInstruction inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
-const char* GetInstructionName(UGeckoInstruction _inst);
+const char* GetInstructionName(UGeckoInstruction inst);
 }  // namespace PPCTables
