@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <QTimer>
 
+#include "Core/ConfigManager.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Settings.h"
@@ -15,6 +16,12 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   setAttribute(Qt::WA_NoSystemBackground, true);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
+  connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
+    if (!SConfig::GetInstance().bRenderWindowAutoSize || isFullScreen() || isMaximized())
+      return;
+
+    resize(w, h);
+  });
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
   // (which results in them not getting called)

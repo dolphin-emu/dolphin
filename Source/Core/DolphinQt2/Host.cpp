@@ -115,9 +115,12 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
 void Host_UpdateMainFrame()
 {
 }
+
 void Host_RequestRenderWindowSize(int w, int h)
 {
+  emit Host::GetInstance()->RequestRenderSize(w, h);
 }
+
 bool Host_UINeedsControllerState()
 {
   return Settings::Instance().IsControllerStateNeeded();
