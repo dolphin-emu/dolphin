@@ -19,6 +19,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
@@ -74,6 +75,10 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   bool running = state != Core::State::Uninitialized;
   bool playing = running && state != Core::State::Paused;
 
+  // File
+  m_eject_disc->setEnabled(running);
+  m_change_disc->setEnabled(running);
+
   // Emulation
   m_play_action->setEnabled(!playing);
   m_play_action->setVisible(!playing);
@@ -122,11 +127,34 @@ void MenuBar::OnDebugModeToggled(bool enabled)
     removeAction(m_symbols->menuAction());
 }
 
+void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
+{
+  m_backup_menu = file_menu->addMenu(tr("Boot from DVD Backup"));
+
+  const std::vector<std::string> drives = cdio_get_devices();
+  // Windows Limitation of 24 character drives
+  for (size_t i = 0; i < drives.size() && i < 24; i++)
+  {
+    auto drive = QString::fromStdString(drives[i]);
+    AddAction(m_backup_menu, drive, this, [this, drive] { emit BootDVDBackup(drive); });
+  }
+}
+
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
   m_open_action = AddAction(file_menu, tr("&Open..."), this, &MenuBar::Open,
                             QKeySequence(QStringLiteral("Ctrl+O")));
+
+  file_menu->addSeparator();
+
+  m_change_disc = AddAction(file_menu, tr("Change &Disc..."), this, &MenuBar::ChangeDisc);
+  m_eject_disc = AddAction(file_menu, tr("&Eject Disc"), this, &MenuBar::EjectDisc);
+
+  AddDVDBackupMenu(file_menu);
+
+  file_menu->addSeparator();
+
   m_exit_action = AddAction(file_menu, tr("E&xit"), this, &MenuBar::Exit,
                             QKeySequence(QStringLiteral("Alt+F4")));
 }

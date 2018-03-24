@@ -28,6 +28,7 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -232,6 +233,10 @@ void MainWindow::ConnectMenuBar()
   // File
   connect(m_menu_bar, &MenuBar::Open, this, &MainWindow::Open);
   connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
+  connect(m_menu_bar, &MenuBar::EjectDisc, this, &MainWindow::EjectDisc);
+  connect(m_menu_bar, &MenuBar::ChangeDisc, this, &MainWindow::ChangeDisc);
+  connect(m_menu_bar, &MenuBar::BootDVDBackup, this,
+          [this](const QString& drive) { StartGame(drive); });
 
   // Emulation
   connect(m_menu_bar, &MenuBar::Pause, this, &MainWindow::Pause);
@@ -413,12 +418,30 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
 }
 
-void MainWindow::Open()
+QString MainWindow::PromptFileName()
 {
-  QString file = QFileDialog::getOpenFileName(
+  return QFileDialog::getOpenFileName(
       this, tr("Select a File"), QDir::currentPath(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
          "All Files (*)"));
+}
+
+void MainWindow::ChangeDisc()
+{
+  QString file = PromptFileName();
+
+  if (!file.isEmpty())
+    Core::RunAsCPUThread([&file] { DVDInterface::ChangeDisc(file.toStdString()); });
+}
+
+void MainWindow::EjectDisc()
+{
+  Core::RunAsCPUThread(DVDInterface::EjectDisc);
+}
+
+void MainWindow::Open()
+{
+  QString file = PromptFileName();
   if (!file.isEmpty())
     StartGame(file);
 }
