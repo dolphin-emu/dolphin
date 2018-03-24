@@ -149,7 +149,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
     gpr.Unlock(WA);
   }
 
-  Interpreter::Instruction instr = GetInterpreterOp(inst);
+  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   MOVI2R(W0, inst.hex);
   MOVP2R(X30, instr);
   BLR(X30);

@@ -287,7 +287,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
   }
-  Interpreter::Instruction instr = GetInterpreterOp(inst);
+  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);

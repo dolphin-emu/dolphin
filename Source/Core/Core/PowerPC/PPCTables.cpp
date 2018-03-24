@@ -41,6 +41,8 @@ const std::array<u64, 16> m_crTable = {{
 }};
 }  // namespace PowerPC
 
+namespace PPCTables
+{
 GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
 {
   GekkoOPInfo* info = m_infoTable[_inst.OPCD];
@@ -106,8 +108,7 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
     return Interpreter::m_op_table[_inst.OPCD];
   }
 }
-namespace PPCTables
-{
+
 bool UsesFPU(UGeckoInstruction inst)
 {
   GekkoOPInfo* const info = GetOpInfo(inst);

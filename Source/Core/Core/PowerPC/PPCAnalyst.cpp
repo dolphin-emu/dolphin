@@ -726,7 +726,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
 
     num_inst++;
     memset(&code[i], 0, sizeof(CodeOp));
-    GekkoOPInfo* opinfo = GetOpInfo(inst);
+    GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
 
     code[i].opinfo = opinfo;
     code[i].address = address;

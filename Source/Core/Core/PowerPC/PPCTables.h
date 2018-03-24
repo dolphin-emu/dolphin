@@ -105,11 +105,11 @@ extern std::array<GekkoOPInfo*, 1024> m_infoTable63;
 extern std::array<GekkoOPInfo*, 512> m_allInstructions;
 extern size_t m_numInstructions;
 
+namespace PPCTables
+{
 GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst);
 Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst);
 
-namespace PPCTables
-{
 bool IsValidInstruction(UGeckoInstruction _instCode);
 bool UsesFPU(UGeckoInstruction _inst);
 
