@@ -226,6 +226,8 @@ void Settings::SetDebugModeEnabled(bool enabled)
     SConfig::GetInstance().bEnableDebugging = enabled;
     emit DebugModeToggled(enabled);
   }
+  if (enabled)
+    SetCodeVisible(true);
 }
 
 bool Settings::IsDebugModeEnabled() const
