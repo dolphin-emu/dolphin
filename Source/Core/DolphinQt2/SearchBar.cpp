@@ -30,7 +30,7 @@ void SearchBar::CreateWidgets()
 
   layout->addWidget(m_search_edit);
   layout->addWidget(m_close_button);
-  layout->setMargin(0);
+  layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
   setLayout(layout);
 }
