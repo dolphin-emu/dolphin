@@ -93,6 +93,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   CreateComponents();
 
   ConnectGameList();
+  ConnectHost();
   ConnectToolBar();
   ConnectRenderWidget();
   ConnectStack();
@@ -373,6 +374,12 @@ void MainWindow::ConnectRenderWidget()
   m_rendering_to_main = false;
   m_render_widget->hide();
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+}
+
+void MainWindow::ConnectHost()
+{
+  connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
+          &MainWindow::OnUpdateProgressDialog);
 }
 
 void MainWindow::ConnectStack()
@@ -1193,4 +1200,25 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
+{
+  if (!m_progress_dialog)
+  {
+    m_progress_dialog = new QProgressDialog(m_render_widget);
+    m_progress_dialog->show();
+  }
+
+  m_progress_dialog->setValue(progress);
+  m_progress_dialog->setLabelText(title);
+  m_progress_dialog->setWindowTitle(title);
+  m_progress_dialog->setMaximum(total);
+
+  if (total < 0 || progress >= total)
+  {
+    m_progress_dialog->hide();
+    m_progress_dialog->deleteLater();
+    m_progress_dialog = nullptr;
+  }
 }

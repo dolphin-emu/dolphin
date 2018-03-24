@@ -18,10 +18,16 @@
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+class QProgressDialog;
+
 class BreakpointWidget;
 struct BootParameters;
 class CodeWidget;
+class ControllersWindow;
+class DragEnterEvent;
 class FIFOPlayerWindow;
+class GCTASInputWindow;
+class GraphicsWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
@@ -30,14 +36,10 @@ class NetPlayClient;
 class NetPlayDialog;
 class NetPlayServer;
 class NetPlaySetupDialog;
+class RegisterWidget;
 class SearchBar;
 class SettingsWindow;
-class ControllersWindow;
-class DragEnterEvent;
-class GraphicsWindow;
-class RegisterWidget;
 class WatchWidget;
-class GCTASInputWindow;
 class WiiTASInputWindow;
 
 class MainWindow final : public QMainWindow
@@ -85,6 +87,7 @@ private:
   void CreateComponents();
 
   void ConnectGameList();
+  void ConnectHost();
   void ConnectHotkeys();
   void ConnectMenuBar();
   void ConnectRenderWidget();
@@ -122,6 +125,8 @@ private:
   void OnImportNANDBackup();
   void OnConnectWiiRemote(int id);
 
+  void OnUpdateProgressDialog(QString label, int progress, int total);
+
   void OnPlayRecording();
   void OnStartRecording();
   void OnStopRecording();
@@ -135,6 +140,7 @@ private:
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
 
+  QProgressDialog* m_progress_dialog = nullptr;
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
   MenuBar* m_menu_bar;
