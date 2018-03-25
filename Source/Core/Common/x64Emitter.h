@@ -187,15 +187,15 @@ struct OpArg
     return OpArg((u8)offset, SCALE_IMM8);
   }
 
-  bool IsImm() const
+  constexpr bool IsImm() const
   {
     return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 ||
            scale == SCALE_IMM64;
   }
-  bool IsSimpleReg() const { return scale == SCALE_NONE; }
-  bool IsSimpleReg(X64Reg reg) const { return IsSimpleReg() && GetSimpleReg() == reg; }
-  bool IsZero() const { return IsImm() && offset == 0; }
-  int GetImmBits() const
+  constexpr bool IsSimpleReg() const { return scale == SCALE_NONE; }
+  constexpr bool IsSimpleReg(X64Reg reg) const { return IsSimpleReg() && GetSimpleReg() == reg; }
+  constexpr bool IsZero() const { return IsImm() && offset == 0; }
+  constexpr int GetImmBits() const
   {
     switch (scale)
     {
@@ -212,12 +212,12 @@ struct OpArg
     }
   }
 
-  X64Reg GetSimpleReg() const
+  constexpr X64Reg GetSimpleReg() const
   {
     if (scale == SCALE_NONE)
-      return (X64Reg)offsetOrBaseReg;
-    else
-      return INVALID_REG;
+      return static_cast<X64Reg>(offsetOrBaseReg);
+
+    return INVALID_REG;
   }
 
   void AddMemOffset(int val)
