@@ -248,57 +248,57 @@ inline OpArg M(const T* ptr)
 {
   return OpArg((u64)(const void*)ptr, (int)SCALE_RIP);
 }
-inline OpArg R(X64Reg value)
+constexpr OpArg R(X64Reg value)
 {
   return OpArg(0, SCALE_NONE, value);
 }
-inline OpArg MatR(X64Reg value)
+constexpr OpArg MatR(X64Reg value)
 {
   return OpArg(0, SCALE_ATREG, value);
 }
 
-inline OpArg MDisp(X64Reg value, int offset)
+constexpr OpArg MDisp(X64Reg value, int offset)
 {
-  return OpArg((u32)offset, SCALE_ATREG, value);
+  return OpArg(static_cast<u32>(offset), SCALE_ATREG, value);
 }
 
-inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
+constexpr OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
 {
   return OpArg(offset, scale, base, scaled);
 }
 
-inline OpArg MScaled(X64Reg scaled, int scale, int offset)
+constexpr OpArg MScaled(X64Reg scaled, int scale, int offset)
 {
   if (scale == SCALE_1)
     return OpArg(offset, SCALE_ATREG, scaled);
-  else
-    return OpArg(offset, scale | 0x20, RAX, scaled);
+
+  return OpArg(offset, scale | 0x20, RAX, scaled);
 }
 
-inline OpArg MRegSum(X64Reg base, X64Reg offset)
+constexpr OpArg MRegSum(X64Reg base, X64Reg offset)
 {
   return MComplex(base, offset, 1, 0);
 }
 
-inline OpArg Imm8(u8 imm)
+constexpr OpArg Imm8(u8 imm)
 {
   return OpArg(imm, SCALE_IMM8);
 }
-inline OpArg Imm16(u16 imm)
+constexpr OpArg Imm16(u16 imm)
 {
   return OpArg(imm, SCALE_IMM16);
 }  // rarely used
-inline OpArg Imm32(u32 imm)
+constexpr OpArg Imm32(u32 imm)
 {
   return OpArg(imm, SCALE_IMM32);
 }
-inline OpArg Imm64(u64 imm)
+constexpr OpArg Imm64(u64 imm)
 {
   return OpArg(imm, SCALE_IMM64);
 }
 inline OpArg ImmPtr(const void* imm)
 {
-  return Imm64((u64)imm);
+  return Imm64(reinterpret_cast<u64>(imm));
 }
 
 inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
