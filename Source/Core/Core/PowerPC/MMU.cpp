@@ -960,11 +960,11 @@ void SDRUpdated()
   PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
 
-enum TLBLookupResult
+enum class TLBLookupResult
 {
-  TLB_FOUND,
-  TLB_NOTFOUND,
-  TLB_UPDATE_C
+  Found,
+  NotFound,
+  UpdateC
 };
 
 static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
@@ -983,7 +983,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       {
         PTE2.C = 1;
         tlbe.pte[0] = PTE2.Hex;
-        return TLB_UPDATE_C;
+        return TLBLookupResult::UpdateC;
       }
     }
 
@@ -992,7 +992,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
 
-    return TLB_FOUND;
+    return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
@@ -1005,7 +1005,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       {
         PTE2.C = 1;
         tlbe.pte[1] = PTE2.Hex;
-        return TLB_UPDATE_C;
+        return TLBLookupResult::UpdateC;
       }
     }
 
@@ -1014,9 +1014,9 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
 
-    return TLB_FOUND;
+    return TLBLookupResult::Found;
   }
-  return TLB_NOTFOUND;
+  return TLBLookupResult::NotFound;
 }
 
 static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
@@ -1055,7 +1055,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   // much from optimization.
   u32 translatedAddress = 0;
   TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress);
-  if (res == TLB_FOUND)
+  if (res == TLBLookupResult::Found)
     return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED, translatedAddress};
 
   u32 sr = PowerPC::ppcState.sr[EA_SR(address)];
@@ -1125,7 +1125,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
-        if (res != TLB_UPDATE_C)
+        if (res != TLBLookupResult::UpdateC)
           UpdateTLBEntry(flag, PTE2, address);
 
         return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED,
