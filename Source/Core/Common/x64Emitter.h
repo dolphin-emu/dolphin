@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstring>
 #include <functional>
+#include <tuple>
 #include <type_traits>
 
 #include "Common/Assert.h"
@@ -117,11 +118,12 @@ struct OpArg
         indexReg{static_cast<u16>(scaled_reg)}, offset{offset_}
   {
   }
-  bool operator==(const OpArg& b) const
+  constexpr bool operator==(const OpArg& b) const
   {
-    return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
-           indexReg == b.indexReg && offset == b.offset;
+    return std::tie(scale, offsetOrBaseReg, indexReg, offset, operandReg) ==
+           std::tie(b.scale, b.offsetOrBaseReg, b.indexReg, b.offset, b.operandReg);
   }
+  constexpr bool operator!=(const OpArg& b) const { return !operator==(b); }
   u64 Imm64() const
   {
     DEBUG_ASSERT(scale == SCALE_IMM64);
