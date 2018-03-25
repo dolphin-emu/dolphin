@@ -110,15 +110,12 @@ struct OpArg
   // This also allows us to keep the op writing functions private.
   friend class XEmitter;
 
-  OpArg() {}  // dummy op arg, used for storage
-  OpArg(u64 _offset, int _scale, X64Reg rmReg = RAX, X64Reg scaledReg = RAX)
+  // dummy op arg, used for storage
+  constexpr OpArg() = default;
+  constexpr OpArg(u64 offset_, int scale_, X64Reg rm_reg = RAX, X64Reg scaled_reg = RAX)
+      : scale{static_cast<u8>(scale_)}, offsetOrBaseReg{static_cast<u16>(rm_reg)},
+        indexReg{static_cast<u16>(scaled_reg)}, offset{offset_}
   {
-    operandReg = 0;
-    scale = (u8)_scale;
-    offsetOrBaseReg = (u16)rmReg;
-    indexReg = (u16)scaledReg;
-    // if scale == 0 never mind offsetting
-    offset = _offset;
   }
   bool operator==(const OpArg& b) const
   {
@@ -237,11 +234,11 @@ private:
   void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
   void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
 
-  u8 scale;
-  u16 offsetOrBaseReg;
-  u16 indexReg;
-  u64 offset;  // Also used to store immediates.
-  u16 operandReg;
+  u8 scale = 0;
+  u16 offsetOrBaseReg = 0;
+  u16 indexReg = 0;
+  u64 offset = 0;  // Also used to store immediates.
+  u16 operandReg = 0;
 };
 
 template <typename T>
