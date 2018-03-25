@@ -17,8 +17,8 @@
 
 struct CachedInterpreter::Instruction
 {
-  typedef void (*CommonCallback)(UGeckoInstruction);
-  typedef bool (*ConditionalCallback)(u32 data);
+  using CommonCallback = void (*)(UGeckoInstruction);
+  using ConditionalCallback = bool (*)(u32);
 
   Instruction() {}
   Instruction(const CommonCallback c, UGeckoInstruction i)
