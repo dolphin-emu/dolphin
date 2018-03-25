@@ -329,8 +329,8 @@ class XEmitter
 {
   friend struct OpArg;  // for Write8 etc
 private:
-  u8* code;
-  bool flags_locked;
+  u8* code = nullptr;
+  bool flags_locked = false;
 
   void CheckFlags();
 
@@ -377,17 +377,9 @@ protected:
   void Write64(u64 value);
 
 public:
-  XEmitter()
-  {
-    code = nullptr;
-    flags_locked = false;
-  }
-  explicit XEmitter(u8* code_ptr)
-  {
-    code = code_ptr;
-    flags_locked = false;
-  }
-  virtual ~XEmitter() {}
+  XEmitter() = default;
+  explicit XEmitter(u8* code_ptr) : code{code_ptr} {}
+  virtual ~XEmitter() = default;
   void SetCodePtr(u8* ptr);
   void ReserveCodeSpace(int bytes);
   const u8* AlignCodeTo(size_t alignment);
