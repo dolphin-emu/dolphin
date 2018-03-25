@@ -591,11 +591,11 @@ void Interpreter::negx(UGeckoInstruction inst)
 
   rGPR[inst.RD] = (~a) + 1;
 
-  if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
-
   if (inst.OE)
     PowerPC::SetXER_OV(a == 0x80000000);
+
+  if (inst.Rc)
+    Helper_UpdateCR0(rGPR[inst.RD]);
 }
 
 void Interpreter::subfx(UGeckoInstruction inst)
