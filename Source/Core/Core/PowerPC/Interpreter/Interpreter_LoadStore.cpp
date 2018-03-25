@@ -39,7 +39,7 @@ u32 Interpreter::Helper_Get_EA_UX(const UGeckoInstruction inst)
 
 void Interpreter::lbz(UGeckoInstruction inst)
 {
-  u32 temp = (u32)PowerPC::Read_U8(Helper_Get_EA(inst));
+  u32 temp = PowerPC::Read_U8(Helper_Get_EA(inst));
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
     rGPR[inst.RD] = temp;
 }
@@ -47,7 +47,7 @@ void Interpreter::lbz(UGeckoInstruction inst)
 void Interpreter::lbzu(UGeckoInstruction inst)
 {
   u32 uAddress = Helper_Get_EA_U(inst);
-  u32 temp = (u32)PowerPC::Read_U8(uAddress);
+  u32 temp = PowerPC::Read_U8(uAddress);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -161,7 +161,7 @@ void Interpreter::lhau(UGeckoInstruction inst)
 
 void Interpreter::lhz(UGeckoInstruction inst)
 {
-  u32 temp = (u32)(u16)PowerPC::Read_U16(Helper_Get_EA(inst));
+  u32 temp = PowerPC::Read_U16(Helper_Get_EA(inst));
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -171,7 +171,7 @@ void Interpreter::lhz(UGeckoInstruction inst)
 void Interpreter::lhzu(UGeckoInstruction inst)
 {
   u32 uAddress = Helper_Get_EA_U(inst);
-  u32 temp = (u32)(u16)PowerPC::Read_U16(uAddress);
+  u32 temp = PowerPC::Read_U16(uAddress);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -426,7 +426,7 @@ void Interpreter::icbi(UGeckoInstruction inst)
 void Interpreter::lbzux(UGeckoInstruction inst)
 {
   u32 uAddress = Helper_Get_EA_UX(inst);
-  u32 temp = (u32)PowerPC::Read_U8(uAddress);
+  u32 temp = PowerPC::Read_U8(uAddress);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -436,7 +436,7 @@ void Interpreter::lbzux(UGeckoInstruction inst)
 
 void Interpreter::lbzx(UGeckoInstruction inst)
 {
-  u32 temp = (u32)PowerPC::Read_U8(Helper_Get_EA_X(inst));
+  u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(inst));
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -465,7 +465,7 @@ void Interpreter::lhax(UGeckoInstruction inst)
 
 void Interpreter::lhbrx(UGeckoInstruction inst)
 {
-  u32 temp = (u32)Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(inst)));
+  u32 temp = Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(inst)));
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -475,7 +475,7 @@ void Interpreter::lhbrx(UGeckoInstruction inst)
 void Interpreter::lhzux(UGeckoInstruction inst)
 {
   u32 uAddress = Helper_Get_EA_UX(inst);
-  u32 temp = (u32)PowerPC::Read_U16(uAddress);
+  u32 temp = PowerPC::Read_U16(uAddress);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
