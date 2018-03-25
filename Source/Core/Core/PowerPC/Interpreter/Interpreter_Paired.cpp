@@ -10,8 +10,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
-using namespace MathUtil;
-
 // These "binary instructions" do not alter FPSCR.
 void Interpreter::ps_sel(UGeckoInstruction inst)
 {
@@ -125,8 +123,8 @@ void Interpreter::ps_res(UGeckoInstruction inst)
     SetFPException(FPSCR_ZX);
   }
 
-  rPS0(inst.FD) = ApproximateReciprocal(a);
-  rPS1(inst.FD) = ApproximateReciprocal(b);
+  rPS0(inst.FD) = MathUtil::ApproximateReciprocal(a);
+  rPS1(inst.FD) = MathUtil::ApproximateReciprocal(b);
   PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
@@ -145,8 +143,8 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
     SetFPException(FPSCR_VXSQRT);
   }
 
-  rPS0(inst.FD) = ForceSingle(ApproximateReciprocalSquareRoot(rPS0(inst.FB)));
-  rPS1(inst.FD) = ForceSingle(ApproximateReciprocalSquareRoot(rPS1(inst.FB)));
+  rPS0(inst.FD) = ForceSingle(MathUtil::ApproximateReciprocalSquareRoot(rPS0(inst.FB)));
+  rPS1(inst.FD) = ForceSingle(MathUtil::ApproximateReciprocalSquareRoot(rPS1(inst.FB)));
 
   PowerPC::UpdateFPRF(rPS0(inst.FD));
 
