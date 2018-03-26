@@ -160,6 +160,7 @@ void SetUserDirectory(const std::string& custom_path)
   // Make sure it ends in DIR_SEP.
   if (*user_path.rbegin() != DIR_SEP_CHR)
     user_path += DIR_SEP;
+
 #else
   if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
   {
@@ -167,6 +168,7 @@ void SetUserDirectory(const std::string& custom_path)
   }
   else
   {
+    const char* env_path = getenv("DOLPHIN_EMU_USERPATH");
     const char* home = getenv("HOME");
     if (!home)
       home = getenv("PWD");
@@ -175,14 +177,23 @@ void SetUserDirectory(const std::string& custom_path)
     std::string home_path = std::string(home) + DIR_SEP;
 
 #if defined(__APPLE__) || defined(ANDROID)
-    user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+    if (env_path)
+    {
+      user_path = env_path;
+    }
+    else
+    {
+      user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+    }
 #else
-    // We are on a non-Apple and non-Android POSIX system, there are 3 cases:
+    // We are on a non-Apple and non-Android POSIX system, there are 4 cases:
     // 1. GetExeDirectory()/portable.txt exists
-    //    -> Use GetExeDirectory/User
-    // 2. ~/.dolphin-emu directory exists
+    //    -> Use GetExeDirectory()/User
+    // 2. $DOLPHIN_EMU_USERPATH is set
+    //    -> Use $DOLPHIN_EMU_USERPATH
+    // 3. ~/.dolphin-emu directory exists
     //    -> Use ~/.dolphin-emu
-    // 3. Default
+    // 4. Default
     //    -> Use XDG basedir, see
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
@@ -190,6 +201,10 @@ void SetUserDirectory(const std::string& custom_path)
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
       user_path = exe_path + DIR_SEP "User" DIR_SEP;
+    }
+    else if (env_path)
+    {
+      user_path = env_path;
     }
     else if (!File::Exists(user_path))
     {
