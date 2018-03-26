@@ -88,8 +88,6 @@ struct DSPOPCTemplate
   bool updates_sr;
 };
 
-typedef DSPOPCTemplate opc_t;
-
 // Opcodes
 extern const DSPOPCTemplate cw;
 

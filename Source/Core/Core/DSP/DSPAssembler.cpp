@@ -430,7 +430,7 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const opc_t* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
+const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
 {
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
@@ -467,7 +467,8 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type)
+bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count,
+                                OpcodeType type)
 {
   for (size_t i = 0; i < count; i++)
   {
@@ -713,7 +714,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, Op
 }
 
 // Merge opcode with params.
-void DSPAssembler::BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf)
+void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_count, u16* outbuf)
 {
   outbuf[m_cur_addr] |= opc->opcode;
   for (u32 i = 0; i < par_count; i++)
@@ -994,7 +995,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       continue;
     }
 
-    const opc_t* opc = FindOpcode(opcode, params_count, OpcodeType::Primary);
+    const DSPOPCTemplate* opc = FindOpcode(opcode, params_count, OpcodeType::Primary);
     if (!opc)
       opc = &cw;
 
@@ -1002,7 +1003,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 
     VerifyParams(opc, params, params_count, OpcodeType::Primary);
 
-    const opc_t* opc_ext = nullptr;
+    const DSPOPCTemplate* opc_ext = nullptr;
     // Check for opcode extensions.
     if (opc->extended)
     {
