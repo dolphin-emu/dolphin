@@ -14,6 +14,10 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
+#ifdef _WIN32
+#include "DolphinQt2/QtUtils/WinIconHelper.h"
+#endif
+
 QList<QPixmap> Resources::m_platforms;
 QList<QPixmap> Resources::m_countries;
 QList<QPixmap> Resources::m_ratings;
@@ -127,4 +131,18 @@ QPixmap Resources::GetRating(int rating)
 QPixmap Resources::GetMisc(int id)
 {
   return m_misc[id];
+}
+
+QIcon Resources::GetAppIcon()
+{
+  QIcon icon;
+
+#ifdef _WIN32
+  icon = WinIconHelper::GetNativeIcon();
+#else
+  icon.addPixmap(GetScaledPixmap("dolphin_logo"));
+  icon.addPixmap(GetScaledPixmap("Dolphin"));
+#endif
+
+  return icon;
 }

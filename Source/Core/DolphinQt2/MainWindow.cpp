@@ -85,7 +85,7 @@
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
-  setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
+  setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
 

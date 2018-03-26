@@ -102,6 +102,7 @@ set(SRCS
   QtUtils/ImageConverter.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
   QtUtils/AspectRatioWidget.cpp
   Settings/AdvancedPane.cpp
