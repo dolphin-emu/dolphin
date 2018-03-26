@@ -22,6 +22,7 @@ class QProgressDialog;
 
 class BreakpointWidget;
 struct BootParameters;
+class CheatsManager;
 class CodeWidget;
 class ControllersWindow;
 class DragEnterEvent;
@@ -121,6 +122,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
+  void ShowCheatsManager();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -188,4 +190,5 @@ private:
   FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;
+  CheatsManager* m_cheats_manager;
 };

@@ -46,6 +46,7 @@
 #include "DiscIO/NANDImporter.h"
 
 #include "DolphinQt2/AboutDialog.h"
+#include "DolphinQt2/CheatsManager.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt2/Config/LogConfigWidget.h"
@@ -204,6 +205,7 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
+  m_cheats_manager = new CheatsManager(this);
 
   connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
@@ -275,6 +277,7 @@ void MainWindow::ConnectMenuBar()
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
+  connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
@@ -1231,6 +1234,11 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::ShowCheatsManager()
+{
+  m_cheats_manager->show();
 }
 
 void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)

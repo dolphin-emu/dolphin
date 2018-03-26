@@ -18,8 +18,9 @@
 #include "DolphinQt2/Config/CheatWarningWidget.h"
 #include "UICommon/GameFile.h"
 
-ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
+ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game, bool restart_required)
+    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision()),
+      m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -39,7 +40,7 @@ ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game)
 
 void ARCodeWidget::CreateWidgets()
 {
-  m_warning = new CheatWarningWidget(m_game_id);
+  m_warning = new CheatWarningWidget(m_game_id, m_restart_required);
   m_code_list = new QListWidget;
   m_code_add = new QPushButton(tr("&Add New Code..."));
   m_code_edit = new QPushButton(tr("&Edit Code..."));
@@ -75,6 +76,10 @@ void ARCodeWidget::ConnectWidgets()
 void ARCodeWidget::OnItemChanged(QListWidgetItem* item)
 {
   m_ar_codes[m_code_list->row(item)].active = (item->checkState() == Qt::Checked);
+
+  if (!m_restart_required)
+    ActionReplay::ApplyCodes(m_ar_codes);
+
   SaveCodes();
 }
 
@@ -117,6 +122,14 @@ void ARCodeWidget::SaveCodes()
   ActionReplay::SaveCodes(&game_ini_local, m_ar_codes);
 
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+}
+
+void ARCodeWidget::AddCode(ActionReplay::ARCode code)
+{
+  m_ar_codes.push_back(std::move(code));
+
+  UpdateList();
+  SaveCodes();
 }
 
 void ARCodeWidget::OnCodeAddPressed()

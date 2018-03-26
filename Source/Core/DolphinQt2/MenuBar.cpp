@@ -99,6 +99,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_stop->setEnabled(false);
   m_recording_play->setEnabled(!running);
 
+  // Tools
+  m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled());
+
   // Symbols
   m_symbols->setEnabled(running);
 
@@ -166,6 +169,13 @@ void MenuBar::AddToolsMenu()
 
   AddAction(tools_menu, tr("&Memory Card Manager (GC)"), this,
             [this] { emit ShowMemcardManager(); });
+
+  m_show_cheat_manager =
+      AddAction(tools_menu, tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
+
+  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
+    m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
+  });
 
   tools_menu->addSeparator();
 
