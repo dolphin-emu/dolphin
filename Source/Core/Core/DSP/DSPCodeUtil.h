@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -16,11 +17,11 @@ bool Disassemble(const std::vector<u16>& code, bool line_numbers, std::string& t
 bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2);
 
 // Big-endian, for writing straight to file using File::WriteStringToFile.
-void CodeToBinaryStringBE(const std::vector<u16>& code, std::string& str);
-void BinaryStringBEToCode(const std::string& str, std::vector<u16>& code);
+std::string CodeToBinaryStringBE(const std::vector<u16>& code);
+std::vector<u16> BinaryStringBEToCode(const std::string& str);
 
 // Load code (big endian binary).
-bool LoadBinary(const std::string& filename, std::vector<u16>& code);
+std::optional<std::vector<u16>> LoadBinary(const std::string& filename);
 bool SaveBinary(const std::vector<u16>& code, const std::string& filename);
 
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc);

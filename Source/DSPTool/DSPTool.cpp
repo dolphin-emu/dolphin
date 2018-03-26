@@ -212,24 +212,25 @@ int main(int argc, const char* argv[])
   {
     // Two binary inputs, let's diff.
     std::string binary_code;
-    std::vector<u16> code1, code2;
+
     File::ReadFileToString(input_name, binary_code);
-    DSP::BinaryStringBEToCode(binary_code, code1);
+    const std::vector<u16> code1 = DSP::BinaryStringBEToCode(binary_code);
+
     File::ReadFileToString(output_name, binary_code);
-    DSP::BinaryStringBEToCode(binary_code, code2);
+    const std::vector<u16> code2 = DSP::BinaryStringBEToCode(binary_code);
+
     DSP::Compare(code1, code2);
     return 0;
   }
 
   if (print_results)
   {
-    std::string dumpfile, results;
-    std::vector<u16> reg_vector;
+    std::string dumpfile;
 
     File::ReadFileToString(input_name, dumpfile);
-    DSP::BinaryStringBEToCode(dumpfile, reg_vector);
+    const std::vector<u16> reg_vector = DSP::BinaryStringBEToCode(dumpfile);
 
-    results.append("Start:\n");
+    std::string results("Start:\n");
     for (int initial_reg = 0; initial_reg < 32; initial_reg++)
     {
       results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
@@ -314,9 +315,8 @@ int main(int argc, const char* argv[])
       return 1;
     }
     std::string binary_code;
-    std::vector<u16> code;
     File::ReadFileToString(input_name, binary_code);
-    DSP::BinaryStringBEToCode(binary_code, code);
+    const std::vector<u16> code = DSP::BinaryStringBEToCode(binary_code);
     std::string text;
     DSP::Disassemble(code, true, text);
     if (!output_name.empty())
@@ -408,8 +408,7 @@ int main(int argc, const char* argv[])
 
         if (!output_name.empty())
         {
-          std::string binary_code;
-          DSP::CodeToBinaryStringBE(code, binary_code);
+          const std::string binary_code = DSP::CodeToBinaryStringBE(code);
           File::WriteStringToFile(binary_code, output_name);
         }
         if (!output_header_name.empty())
