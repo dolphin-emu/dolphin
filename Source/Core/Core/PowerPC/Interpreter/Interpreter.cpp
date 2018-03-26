@@ -101,7 +101,6 @@ static void Trace(UGeckoInstruction& inst)
 
 int Interpreter::SingleStepInner()
 {
-  static UGeckoInstruction instCode;
   u32 function = HLE::GetFirstFunctionIndex(PC);
   if (function != 0)
   {
@@ -138,7 +137,7 @@ int Interpreter::SingleStepInner()
 #endif
 
     NPC = PC + sizeof(UGeckoInstruction);
-    instCode.hex = PowerPC::Read_Opcode(PC);
+    m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
     // Uncomment to trace the interpreter
     // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
@@ -148,15 +147,15 @@ int Interpreter::SingleStepInner()
 
     if (startTrace)
     {
-      Trace(instCode);
+      Trace(m_prev_inst);
     }
 
-    if (instCode.hex != 0)
+    if (m_prev_inst.hex != 0)
     {
       UReg_MSR& msr = (UReg_MSR&)MSR;
       if (msr.FP)  // If FPU is enabled, just execute
       {
-        m_op_table[instCode.OPCD](instCode);
+        m_op_table[m_prev_inst.OPCD](m_prev_inst);
         if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
         {
           PowerPC::CheckExceptions();
@@ -166,9 +165,9 @@ int Interpreter::SingleStepInner()
       else
       {
         // check if we have to generate a FPU unavailable exception
-        if (!PPCTables::UsesFPU(instCode))
+        if (!PPCTables::UsesFPU(m_prev_inst))
         {
-          m_op_table[instCode.OPCD](instCode);
+          m_op_table[m_prev_inst.OPCD](m_prev_inst);
           if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
           {
             PowerPC::CheckExceptions();
@@ -193,7 +192,7 @@ int Interpreter::SingleStepInner()
   last_pc = PC;
   PC = NPC;
 
-  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(instCode);
+  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
   return opinfo->numCycles;
 }
 
