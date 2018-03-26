@@ -40,7 +40,7 @@ void WrapInScrollArea(QWidget* parent, QLayout* wrapped_layout, QWidget* to_resi
   auto* widget = new QWidget;
   widget->setLayout(wrapped_layout);
 
-  auto* scroll_area = GetWrappedWidget(widget, to_resize);
+  auto* scroll_area = GetWrappedWidget(widget, to_resize, 0, 0);
 
   auto* scroll_layout = new QVBoxLayout;
   scroll_layout->addWidget(scroll_area);
