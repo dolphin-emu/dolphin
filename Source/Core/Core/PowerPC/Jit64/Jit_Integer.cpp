@@ -1354,8 +1354,6 @@ void Jit64::arithXex(UGeckoInstruction inst)
   {
     if (!js.carryFlagInverted)
       CMC();
-    if (d != b)
-      MOV(32, gpr.R(d), gpr.R(b));
     SBB(32, gpr.R(d), gpr.R(a));
     invertedCarry = true;
   }
