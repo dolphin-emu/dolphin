@@ -173,7 +173,11 @@ std::string StringFromFormatV(const char* format, va_list args)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
+  {
     ERROR_LOG(COMMON, "Unable to allocate memory for string");
+    buf = nullptr;
+  }
+
 #if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
