@@ -304,6 +304,8 @@ private:
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
 
+  UGeckoInstruction m_prev_inst{};
+
   static bool m_end_block;
 
   // TODO: These should really be in the save state, although it's unlikely to matter much.
