@@ -42,11 +42,12 @@ enum class StereoMode : int
   Nvidia3DVision
 };
 
-enum class UberShaderMode : int
+enum class ShaderCompilationMode : int
 {
-  Disabled,
-  Hybrid,
-  Exclusive
+  Synchronous,
+  SynchronousUberShaders,
+  AsynchronousUberShaders,
+  AsynchronousSkipRendering
 };
 
 struct ProjectionHackConfig final
@@ -170,7 +171,7 @@ struct VideoConfig final
 
   // Shader compilation settings.
   bool bWaitForShadersBeforeStarting;
-  UberShaderMode iUberShaderMode;
+  ShaderCompilationMode iShaderCompilationMode;
 
   // Number of shader compiler threads.
   // 0 disables background compilation.
@@ -238,7 +239,7 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
-  bool UsingUberShaders() const { return iUberShaderMode != UberShaderMode::Disabled; }
+  bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
 };

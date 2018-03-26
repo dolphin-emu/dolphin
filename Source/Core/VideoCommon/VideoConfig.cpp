@@ -103,7 +103,8 @@ void VideoConfig::Refresh()
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
   bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
-  iUberShaderMode = static_cast<UberShaderMode>(Config::Get(Config::GFX_UBERSHADER_MODE));
+  iShaderCompilationMode =
+      static_cast<ShaderCompilationMode>(Config::Get(Config::GFX_SHADER_COMPILATION_MODE));
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
@@ -176,6 +177,12 @@ void VideoConfig::VerifyValidity()
 bool VideoConfig::IsVSync() const
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
+}
+
+bool VideoConfig::UsingUberShaders() const
+{
+  return iShaderCompilationMode == ShaderCompilationMode::SynchronousUberShaders ||
+         iShaderCompilationMode == ShaderCompilationMode::AsynchronousUberShaders;
 }
 
 static u32 GetNumAutoShaderCompilerThreads()

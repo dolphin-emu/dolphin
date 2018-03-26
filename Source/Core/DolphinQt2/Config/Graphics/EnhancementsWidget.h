@@ -30,7 +30,6 @@ private:
   QComboBox* m_ir_combo;
   QComboBox* m_aa_combo;
   QComboBox* m_af_combo;
-  QComboBox* m_ubershader_combo;
   QComboBox* m_pp_effect;
   QPushButton* m_configure_pp_effect;
   QCheckBox* m_scaled_efb_copy;

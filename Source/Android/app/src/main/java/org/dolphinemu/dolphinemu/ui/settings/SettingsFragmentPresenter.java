@@ -259,10 +259,14 @@ public final class SettingsFragmentPresenter
 	{
 		IntSetting videoBackend = new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, getVideoBackendValue());
 		Setting showFps = null;
+		Setting shaderCompilationMode = null;
+		Setting waitForShaders = null;
 
 		if (!mSettings.get(SettingsFile.SETTINGS_GFX).isEmpty())
 		{
 			showFps = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_SHOW_FPS);
+			shaderCompilationMode = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
+			waitForShaders = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
 		}
 		else
 		{
@@ -276,6 +280,8 @@ public final class SettingsFragmentPresenter
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_descrip, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, 0, false, showFps));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.shader_compilation_mode, R.string.shader_compilation_mode_descrip, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.wait_for_shaders, 0, false, waitForShaders));
 
 		sl.add(new SubmenuSetting(null, null, R.string.enhancements, 0, SettingsFile.SECTION_GFX_ENHANCEMENTS));
 		sl.add(new SubmenuSetting(null, null, R.string.hacks, 0, SettingsFile.SECTION_GFX_HACKS));
@@ -290,7 +296,8 @@ public final class SettingsFragmentPresenter
 		Setting perPixel = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_PER_PIXEL);
 		Setting forceFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_FORCE_FILTERING);
 		Setting disableFog = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_FOG);
-		Setting uberShaderMode = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_UBERSHADER_MODE);
+		Setting shaderCompilationMode = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
+        Setting waitForShaders = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.internal_resolution, R.string.internal_resolution_descrip, R.array.internalResolutionEntries, R.array.internalResolutionValues, 0, resolution));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_descrip, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
@@ -304,7 +311,6 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_descrip, false, perPixel));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.force_texture_filtering, R.string.force_texture_filtering_descrip, false, forceFilter));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_descrip, false, disableFog));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_UBERSHADER_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.ubershader_mode, R.string.ubershader_mode_descrip, R.array.uberShaderModeEntries, R.array.uberShaderModeValues, 0, uberShaderMode));
 
 		 /*
 		 Check if we support stereo

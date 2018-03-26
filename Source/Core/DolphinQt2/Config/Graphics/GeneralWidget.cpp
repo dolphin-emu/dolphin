@@ -11,6 +11,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
+#include <QRadioButton>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -18,6 +19,7 @@
 #include "Core/Core.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt2/Config/Graphics/GraphicsRadio.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/VideoUtils.h"
@@ -87,8 +89,6 @@ void GeneralWidget::CreateWidgets()
   m_keep_window_top = new QCheckBox(tr("Keep Window on Top"));
   m_hide_cursor = new QCheckBox(tr("Hide Mouse Cursor"));
   m_render_main_window = new QCheckBox(tr("Render to Main Window"));
-  m_wait_for_shaders = new GraphicsBool(tr("Immediately Compile Shaders"),
-                                        Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
 
   m_options_box->setLayout(m_options_layout);
 
@@ -103,10 +103,30 @@ void GeneralWidget::CreateWidgets()
 
   m_options_layout->addWidget(m_hide_cursor, 3, 0);
   m_options_layout->addWidget(m_render_main_window, 3, 1);
-  m_options_layout->addWidget(m_wait_for_shaders, 4, 0);
+
+  // Other
+  auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
+  auto* shader_compilation_layout = new QGridLayout();
+
+  const std::array<const char*, 4> modes = {{
+      "Synchronous", "Synchronous (Ubershaders)", "Asynchronous (Ubershaders)",
+      "Asynchronous (Skip Drawing)",
+  }};
+  for (size_t i = 0; i < modes.size(); i++)
+  {
+    m_shader_compilation_mode[i] = new GraphicsRadioInt(
+        tr(modes[i]), Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i));
+    shader_compilation_layout->addWidget(m_shader_compilation_mode[i], static_cast<int>(i / 2),
+                                         static_cast<int>(i % 2));
+  }
+  m_wait_for_shaders = new GraphicsBool(tr("Compile Shaders Before Starting"),
+                                        Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
+  shader_compilation_layout->addWidget(m_wait_for_shaders);
+  shader_compilation_box->setLayout(shader_compilation_layout);
 
   main_layout->addWidget(m_video_box);
   main_layout->addWidget(m_options_box);
+  main_layout->addWidget(shader_compilation_box);
   main_layout->addStretch();
 
   setLayout(main_layout);
@@ -268,12 +288,27 @@ void GeneralWidget::AddDescriptions()
   static const char* TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION =
       QT_TR_NOOP("When playing on NetPlay, show chat messages, buffer changes and "
                  "desync alerts.\n\nIf unsure, leave this unchecked.");
-  static const char* TR_WAIT_FOR_SHADERS_DESCRIPTION = QT_TR_NOOP(
-      "Waits for all shaders to finish compiling before starting a game. Enabling this "
-      "option may reduce stuttering or hitching for a short time after the game is "
-      "started, at the cost of a longer delay before the game starts.\n\nFor systems "
-      "with two or fewer cores, it is recommended to enable this option, as a large "
-      "shader queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
+  static const char* TR_SHADER_COMPILE_SYNC_DESCRIPTION =
+      QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
+                 "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
+                 "unsure, select this mode.");
+  static const char* TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION =
+      QT_TR_NOOP("Ubershaders will always be used. Provides a near stutter-free experience at the "
+                 "cost of high GPU requirements. Only recommended for high-end systems.");
+  static const char* TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION =
+      QT_TR_NOOP("Ubershaders will be used to prevent stuttering during shader compilation, but "
+                 "specialized shaders will be used when they will not cause stuttering.");
+  static const char* TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION =
+      QT_TR_NOOP("Instead of using ubershaders during shader compilation, objects which use these "
+                 "shaders will be not be rendered. This can further reduce stuttering and "
+                 "performance requirements, compared to ubershaders, at the cost of introducing "
+                 "visual glitches and broken effects. Not recommended.");
+  static const char* TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION =
+      QT_TR_NOOP("Waits for all shaders to finish compiling before starting a game. Enabling this "
+                 "option may reduce stuttering or hitching for a short time after the game is "
+                 "started, at the cost of a longer delay before the game starts. For systems with "
+                 "two or fewer cores, it is recommended to enable this option, as a large shader "
+                 "queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
 
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
 #ifdef _WIN32
@@ -291,7 +326,11 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_show_messages, TR_SHOW_FPS_DESCRIPTION);
   AddDescription(m_keep_window_top, TR_KEEP_WINDOW_ON_TOP_DESCRIPTION);
   AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);
-  AddDescription(m_wait_for_shaders, TR_WAIT_FOR_SHADERS_DESCRIPTION);
+  AddDescription(m_shader_compilation_mode[0], TR_SHADER_COMPILE_SYNC_DESCRIPTION);
+  AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION);
+  AddDescription(m_shader_compilation_mode[2], TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION);
+  AddDescription(m_shader_compilation_mode[3], TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION);
+  AddDescription(m_wait_for_shaders, TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION);
 }
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
 {
