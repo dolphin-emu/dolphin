@@ -7,6 +7,7 @@
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -16,6 +17,10 @@ AsyncRequests::AsyncRequests() = default;
 
 void AsyncRequests::PullEventsInternal()
 {
+  // This is only called if the queue isn't empty.
+  // So just flush the pipeline to get accurate results.
+  g_vertex_manager->Flush();
+
   std::unique_lock<std::mutex> lock(m_mutex);
   m_empty.Set();
 
