@@ -55,7 +55,7 @@ GCMemcardManager::~GCMemcardManager() = default;
 
 void GCMemcardManager::CreateWidgets()
 {
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   // Actions
   m_select_button = new QPushButton;
@@ -109,7 +109,7 @@ void GCMemcardManager::CreateWidgets()
 
 void GCMemcardManager::ConnectWidgets()
 {
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_select_button, &QPushButton::pressed, this, [this] { SetActiveSlot(!m_active_slot); });
   connect(m_export_button, &QPushButton::pressed, this, [this] { ExportFiles(true); });
   connect(m_export_all_button, &QPushButton::pressed, this, &GCMemcardManager::ExportAllFiles);
@@ -252,7 +252,6 @@ void GCMemcardManager::SetSlotFileInteractive(int slot)
                                                      tr("Set memory card file for Slot B"),
                                    QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
                                    tr("GameCube Memory Cards (*.raw *.gcp)"));
-
   if (!path.isEmpty())
     m_slot_file_edit[slot]->setText(path);
 }

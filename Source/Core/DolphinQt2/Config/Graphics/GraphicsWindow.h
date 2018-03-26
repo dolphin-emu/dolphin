@@ -36,7 +36,6 @@ signals:
 
 private:
   void CreateMainLayout();
-  void ConnectWidgets();
   void OnBackendChanged(const QString& backend);
   void OnDescriptionAdded(QWidget* widget, const char* description);
 

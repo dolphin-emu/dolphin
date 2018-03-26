@@ -223,7 +223,7 @@ void ControllersWindow::CreateAdvancedLayout()
 void ControllersWindow::CreateMainLayout()
 {
   auto* layout = new QVBoxLayout();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
   layout->addWidget(m_gc_box);
   layout->addWidget(m_wiimote_box);
@@ -235,6 +235,7 @@ void ControllersWindow::CreateMainLayout()
 
 void ControllersWindow::ConnectWidgets()
 {
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 
@@ -253,7 +254,6 @@ void ControllersWindow::ConnectWidgets()
           &ControllersWindow::OnBluetoothPassthroughResetPressed);
   connect(m_wiimote_refresh, &QPushButton::clicked, this,
           &ControllersWindow::OnWiimoteRefreshPressed);
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &ControllersWindow::accept);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
