@@ -152,7 +152,7 @@ int Interpreter::SingleStepInner()
 
     if (m_prev_inst.hex != 0)
     {
-      UReg_MSR& msr = (UReg_MSR&)MSR;
+      const UReg_MSR msr{MSR};
       if (msr.FP)  // If FPU is enabled, just execute
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
