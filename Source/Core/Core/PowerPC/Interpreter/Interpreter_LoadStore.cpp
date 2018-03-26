@@ -39,64 +39,71 @@ u32 Interpreter::Helper_Get_EA_UX(const UGeckoInstruction inst)
 
 void Interpreter::lbz(UGeckoInstruction inst)
 {
-  u32 temp = PowerPC::Read_U8(Helper_Get_EA(inst));
+  const u32 temp = PowerPC::Read_U8(Helper_Get_EA(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
     rGPR[inst.RD] = temp;
 }
 
 void Interpreter::lbzu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  u32 temp = PowerPC::Read_U8(uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+  const u32 temp = PowerPC::Read_U8(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lfd(UGeckoInstruction inst)
 {
-  u64 temp = PowerPC::Read_U64(Helper_Get_EA(inst));
+  const u64 temp = PowerPC::Read_U64(Helper_Get_EA(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
     riPS0(inst.FD) = temp;
 }
 
 void Interpreter::lfdu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  u64 temp = PowerPC::Read_U64(uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+  const u64 temp = PowerPC::Read_U64(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     riPS0(inst.FD) = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lfdux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  u64 temp = PowerPC::Read_U64(uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+  const u64 temp = PowerPC::Read_U64(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     riPS0(inst.FD) = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lfdx(UGeckoInstruction inst)
 {
-  u64 temp = PowerPC::Read_U64(Helper_Get_EA_X(inst));
+  const u64 temp = PowerPC::Read_U64(Helper_Get_EA_X(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
     riPS0(inst.FD) = temp;
 }
 
 void Interpreter::lfs(UGeckoInstruction inst)
 {
-  u32 uTemp = PowerPC::Read_U32(Helper_Get_EA(inst));
+  const u32 temp = PowerPC::Read_U32(Helper_Get_EA(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    u64 value = ConvertToDouble(uTemp);
+    const u64 value = ConvertToDouble(temp);
     riPS0(inst.FD) = value;
     riPS1(inst.FD) = value;
   }
@@ -104,36 +111,39 @@ void Interpreter::lfs(UGeckoInstruction inst)
 
 void Interpreter::lfsu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  u32 uTemp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    u64 value = ConvertToDouble(uTemp);
+    const u64 value = ConvertToDouble(temp);
     riPS0(inst.FD) = value;
     riPS1(inst.FD) = value;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lfsux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  u32 uTemp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    u64 value = ConvertToDouble(uTemp);
+    u64 value = ConvertToDouble(temp);
     riPS0(inst.FD) = value;
     riPS1(inst.FD) = value;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lfsx(UGeckoInstruction inst)
 {
-  u32 uTemp = PowerPC::Read_U32(Helper_Get_EA_X(inst));
+  const u32 temp = PowerPC::Read_U32(Helper_Get_EA_X(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    u64 value = ConvertToDouble(uTemp);
+    const u64 value = ConvertToDouble(temp);
     riPS0(inst.FD) = value;
     riPS1(inst.FD) = value;
   }
@@ -141,7 +151,8 @@ void Interpreter::lfsx(UGeckoInstruction inst)
 
 void Interpreter::lha(UGeckoInstruction inst)
 {
-  u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(Helper_Get_EA(inst));
+  const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(Helper_Get_EA(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -150,18 +161,20 @@ void Interpreter::lha(UGeckoInstruction inst)
 
 void Interpreter::lhau(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+  const u32 temp = (u32)(s32)(s16)PowerPC::Read_U16(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lhz(UGeckoInstruction inst)
 {
-  u32 temp = PowerPC::Read_U16(Helper_Get_EA(inst));
+  const u32 temp = PowerPC::Read_U16(Helper_Get_EA(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -170,22 +183,25 @@ void Interpreter::lhz(UGeckoInstruction inst)
 
 void Interpreter::lhzu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  u32 temp = PowerPC::Read_U16(uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+  const u32 temp = PowerPC::Read_U16(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 // FIXME: lmw should do a total rollback if a DSI occurs
 void Interpreter::lmw(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA(inst);
-  for (int iReg = inst.RD; iReg <= 31; iReg++, uAddress += 4)
+  u32 address = Helper_Get_EA(inst);
+
+  for (int i = inst.RD; i <= 31; i++, address += 4)
   {
-    u32 TempReg = PowerPC::Read_U32(uAddress);
+    const u32 temp_reg = PowerPC::Read_U32(address);
+
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
       PanicAlert("DSI exception in lmw");
@@ -194,7 +210,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
     }
     else
     {
-      rGPR[iReg] = TempReg;
+      rGPR[i] = temp_reg;
     }
   }
 }
@@ -202,10 +218,11 @@ void Interpreter::lmw(UGeckoInstruction inst)
 // FIXME: stmw should do a total rollback if a DSI occurs
 void Interpreter::stmw(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA(inst);
-  for (int iReg = inst.RS; iReg <= 31; iReg++, uAddress += 4)
+  u32 address = Helper_Get_EA(inst);
+
+  for (int i = inst.RS; i <= 31; i++, address += 4)
   {
-    PowerPC::Write_U32(rGPR[iReg], uAddress);
+    PowerPC::Write_U32(rGPR[i], address);
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
       PanicAlert("DSI exception in stmw");
@@ -217,8 +234,9 @@ void Interpreter::stmw(UGeckoInstruction inst)
 
 void Interpreter::lwz(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA(inst);
-  u32 temp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -227,12 +245,13 @@ void Interpreter::lwz(UGeckoInstruction inst)
 
 void Interpreter::lwzu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  u32 temp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -243,11 +262,12 @@ void Interpreter::stb(UGeckoInstruction inst)
 
 void Interpreter::stbu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  PowerPC::Write_U8((u8)rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+
+  PowerPC::Write_U8((u8)rGPR[inst.RS], address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -258,11 +278,12 @@ void Interpreter::stfd(UGeckoInstruction inst)
 
 void Interpreter::stfdu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  PowerPC::Write_U64(riPS0(inst.FS), uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+
+  PowerPC::Write_U64(riPS0(inst.FS), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -273,11 +294,12 @@ void Interpreter::stfs(UGeckoInstruction inst)
 
 void Interpreter::stfsu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+
+  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -288,11 +310,12 @@ void Interpreter::sth(UGeckoInstruction inst)
 
 void Interpreter::sthu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  PowerPC::Write_U16((u16)rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+
+  PowerPC::Write_U16((u16)rGPR[inst.RS], address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -303,11 +326,12 @@ void Interpreter::stw(UGeckoInstruction inst)
 
 void Interpreter::stwu(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_U(inst);
-  PowerPC::Write_U32(rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_U(inst);
+
+  PowerPC::Write_U32(rGPR[inst.RS], address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -324,7 +348,7 @@ void Interpreter::dcbf(UGeckoInstruction inst)
   // Invalidate the JIT cache here as a heuristic to compensate for
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
-  u32 address = Helper_Get_EA_X(inst);
+  const u32 address = Helper_Get_EA_X(inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
 }
 
@@ -336,7 +360,7 @@ void Interpreter::dcbi(UGeckoInstruction inst)
   // Invalidate the JIT cache here as a heuristic to compensate for
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
-  u32 address = Helper_Get_EA_X(inst);
+  const u32 address = Helper_Get_EA_X(inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
 }
 
@@ -348,7 +372,7 @@ void Interpreter::dcbst(UGeckoInstruction inst)
   // Invalidate the JIT cache here as a heuristic to compensate for
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
-  u32 address = Helper_Get_EA_X(inst);
+  const u32 address = Helper_Get_EA_X(inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
 }
 
@@ -369,7 +393,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
   if (SConfig::GetInstance().bDCBZOFF)
     return;
 
-  u32 dcbz_addr = Helper_Get_EA_X(inst);
+  const u32 dcbz_addr = Helper_Get_EA_X(inst);
   // Hack to stop dcbz/dcbi over low MEM1 trashing memory.
   if (SConfig::GetInstance().bLowDCBZHack && (dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000))
     return;
@@ -382,7 +406,7 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 // We just do it instantly from ppc...and hey, it works! :D
 void Interpreter::eciwx(UGeckoInstruction inst)
 {
-  u32 EA = Helper_Get_EA_X(inst);
+  const u32 EA = Helper_Get_EA_X(inst);
 
   if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
   {
@@ -396,7 +420,7 @@ void Interpreter::eciwx(UGeckoInstruction inst)
 
 void Interpreter::ecowx(UGeckoInstruction inst)
 {
-  u32 EA = Helper_Get_EA_X(inst);
+  const u32 EA = Helper_Get_EA_X(inst);
 
   if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
   {
@@ -419,24 +443,26 @@ void Interpreter::eieio(UGeckoInstruction inst)
 void Interpreter::icbi(UGeckoInstruction inst)
 {
   // TODO: Raise DSI if translation fails (except for direct-store segments).
-  u32 address = Helper_Get_EA_X(inst);
+  const u32 address = Helper_Get_EA_X(inst);
   PowerPC::ppcState.iCache.Invalidate(address);
 }
 
 void Interpreter::lbzux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  u32 temp = PowerPC::Read_U8(uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+  const u32 temp = PowerPC::Read_U8(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lbzx(UGeckoInstruction inst)
 {
-  u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(inst));
+  const u32 temp = PowerPC::Read_U8(Helper_Get_EA_X(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -445,18 +471,20 @@ void Interpreter::lbzx(UGeckoInstruction inst)
 
 void Interpreter::lhaux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  s32 temp = (s32)(s16)PowerPC::Read_U16(uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+  const s32 temp = (s32)(s16)PowerPC::Read_U16(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lhax(UGeckoInstruction inst)
 {
-  s32 temp = (s32)(s16)PowerPC::Read_U16(Helper_Get_EA_X(inst));
+  const s32 temp = (s32)(s16)PowerPC::Read_U16(Helper_Get_EA_X(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -465,7 +493,8 @@ void Interpreter::lhax(UGeckoInstruction inst)
 
 void Interpreter::lhbrx(UGeckoInstruction inst)
 {
-  u32 temp = Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(inst)));
+  const u32 temp = Common::swap16(PowerPC::Read_U16(Helper_Get_EA_X(inst)));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -474,18 +503,20 @@ void Interpreter::lhbrx(UGeckoInstruction inst)
 
 void Interpreter::lhzux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  u32 temp = PowerPC::Read_U16(uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+  const u32 temp = PowerPC::Read_U16(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lhzx(UGeckoInstruction inst)
 {
-  u32 temp = (u32)PowerPC::Read_U16(Helper_Get_EA_X(inst));
+  const u32 temp = (u32)PowerPC::Read_U16(Helper_Get_EA_X(inst));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -500,19 +531,20 @@ void Interpreter::lswx(UGeckoInstruction inst)
   // Confirmed by hardware test that the zero case doesn't zero rGPR[r]
   for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer_stringctrl); n++)
   {
-    int reg = (inst.RD + (n >> 2)) & 0x1f;
-    int offset = (n & 3) << 3;
+    const int reg = (inst.RD + (n >> 2)) & 0x1f;
+    const int offset = (n & 3) << 3;
+
     if ((n & 3) == 0)
       rGPR[reg] = 0;
 
-    u32 TempValue = PowerPC::Read_U8(EA) << (24 - offset);
+    const u32 temp_value = PowerPC::Read_U8(EA) << (24 - offset);
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
       PanicAlert("DSI exception in lswx.");
       NOTICE_LOG(POWERPC, "DSI exception in lswx");
       return;
     }
-    rGPR[reg] |= TempValue;
+    rGPR[reg] |= temp_value;
 
     EA++;
   }
@@ -520,7 +552,8 @@ void Interpreter::lswx(UGeckoInstruction inst)
 
 void Interpreter::lwbrx(UGeckoInstruction inst)
 {
-  u32 temp = Common::swap32(PowerPC::Read_U32(Helper_Get_EA_X(inst)));
+  const u32 temp = Common::swap32(PowerPC::Read_U32(Helper_Get_EA_X(inst)));
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -529,19 +562,21 @@ void Interpreter::lwbrx(UGeckoInstruction inst)
 
 void Interpreter::lwzux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  u32 temp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::lwzx(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_X(inst);
-  u32 temp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA_X(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
@@ -550,11 +585,12 @@ void Interpreter::lwzx(UGeckoInstruction inst)
 
 void Interpreter::stbux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  PowerPC::Write_U8((u8)rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+
+  PowerPC::Write_U8((u8)rGPR[inst.RS], address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -565,11 +601,12 @@ void Interpreter::stbx(UGeckoInstruction inst)
 
 void Interpreter::stfdux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  PowerPC::Write_U64(riPS0(inst.FS), uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+
+  PowerPC::Write_U64(riPS0(inst.FS), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -581,18 +618,19 @@ void Interpreter::stfdx(UGeckoInstruction inst)
 // Stores Floating points into Integers indeXed
 void Interpreter::stfiwx(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_X(inst);
+  const u32 address = Helper_Get_EA_X(inst);
 
-  PowerPC::Write_U32((u32)riPS0(inst.FS), uAddress);
+  PowerPC::Write_U32((u32)riPS0(inst.FS), address);
 }
 
 void Interpreter::stfsux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+
+  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -608,11 +646,12 @@ void Interpreter::sthbrx(UGeckoInstruction inst)
 
 void Interpreter::sthux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  PowerPC::Write_U16((u16)rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+
+  PowerPC::Write_U16((u16)rGPR[inst.RS], address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
@@ -648,14 +687,14 @@ void Interpreter::lswi(UGeckoInstruction inst)
       rGPR[r] = 0;
     }
 
-    u32 TempValue = PowerPC::Read_U8(EA) << (24 - i);
+    const u32 temp_value = PowerPC::Read_U8(EA) << (24 - i);
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
       PanicAlert("DSI exception in lsw.");
       return;
     }
 
-    rGPR[r] |= TempValue;
+    rGPR[r] |= temp_value;
 
     i += 8;
     if (i == 32)
@@ -730,8 +769,9 @@ void Interpreter::stswx(UGeckoInstruction inst)
 
 void Interpreter::stwbrx(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_X(inst);
-  PowerPC::Write_U32(Common::swap32(rGPR[inst.RS]), uAddress);
+  const u32 address = Helper_Get_EA_X(inst);
+
+  PowerPC::Write_U32(Common::swap32(rGPR[inst.RS]), address);
 }
 
 // The following two instructions are for SMP communications. On a single
@@ -739,27 +779,27 @@ void Interpreter::stwbrx(UGeckoInstruction inst)
 
 void Interpreter::lwarx(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_X(inst);
-  u32 temp = PowerPC::Read_U32(uAddress);
+  const u32 address = Helper_Get_EA_X(inst);
+  const u32 temp = PowerPC::Read_U32(address);
+
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
     m_reserve = true;
-    m_reserve_address = uAddress;
+    m_reserve_address = address;
   }
 }
 
 void Interpreter::stwcxd(UGeckoInstruction inst)
 {
   // Stores Word Conditional indeXed
-  u32 uAddress;
   if (m_reserve)
   {
-    uAddress = Helper_Get_EA_X(inst);
+    const u32 address = Helper_Get_EA_X(inst);
 
-    if (uAddress == m_reserve_address)
+    if (address == m_reserve_address)
     {
-      PowerPC::Write_U32(rGPR[inst.RS], uAddress);
+      PowerPC::Write_U32(rGPR[inst.RS], address);
       if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
       {
         m_reserve = false;
@@ -774,18 +814,20 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
 
 void Interpreter::stwux(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_UX(inst);
-  PowerPC::Write_U32(rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_UX(inst);
+
+  PowerPC::Write_U32(rGPR[inst.RS], address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
-    rGPR[inst.RA] = uAddress;
+    rGPR[inst.RA] = address;
   }
 }
 
 void Interpreter::stwx(UGeckoInstruction inst)
 {
-  u32 uAddress = Helper_Get_EA_X(inst);
-  PowerPC::Write_U32(rGPR[inst.RS], uAddress);
+  const u32 address = Helper_Get_EA_X(inst);
+
+  PowerPC::Write_U32(rGPR[inst.RS], address);
 }
 
 void Interpreter::sync(UGeckoInstruction inst)
@@ -796,8 +838,9 @@ void Interpreter::sync(UGeckoInstruction inst)
 void Interpreter::tlbie(UGeckoInstruction inst)
 {
   // Invalidate TLB entry
-  u32 _Address = rGPR[inst.RB];
-  PowerPC::InvalidateTLBEntry(_Address);
+  const u32 address = rGPR[inst.RB];
+
+  PowerPC::InvalidateTLBEntry(address);
 }
 
 void Interpreter::tlbsync(UGeckoInstruction inst)
