@@ -13,10 +13,12 @@
 
 typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(Display*, GLXFBConfig, GLXContext, Bool,
                                                      const int*);
-typedef int (*PFNGLXSWAPINTERVALSGIPROC)(int interval);
+typedef void (*PFNGLXSWAPINTERVALEXTPROC)(Display*, GLXDrawable, int);
+typedef int (*PFNGLXSWAPINTERVALMESAPROC)(unsigned int);
 
 static PFNGLXCREATECONTEXTATTRIBSPROC glXCreateContextAttribs = nullptr;
-static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
+static PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXTPtr = nullptr;
+static PFNGLXSWAPINTERVALMESAPROC glXSwapIntervalMESAPtr = nullptr;
 
 static PFNGLXCREATEGLXPBUFFERSGIXPROC glXCreateGLXPbufferSGIX = nullptr;
 static PFNGLXDESTROYGLXPBUFFERSGIXPROC glXDestroyGLXPbufferSGIX = nullptr;
@@ -30,11 +32,18 @@ static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
 
 void cInterfaceGLX::SwapInterval(int Interval)
 {
-  if (glXSwapIntervalSGI && m_has_handle)
-    glXSwapIntervalSGI(Interval);
+  if (!m_has_handle)
+    return;
+
+  // Try EXT_swap_control, then MESA_swap_control.
+  if (glXSwapIntervalEXTPtr)
+    glXSwapIntervalEXTPtr(dpy, win, Interval);
+  else if (glXSwapIntervalMESAPtr)
+    glXSwapIntervalMESAPtr(static_cast<unsigned int>(Interval));
   else
     ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
 }
+
 void* cInterfaceGLX::GetFuncAddress(const std::string& name)
 {
   return (void*)glXGetProcAddress((const GLubyte*)name.c_str());
@@ -152,21 +161,34 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
     return false;
   }
 
+  glXSwapIntervalEXTPtr = nullptr;
+  glXSwapIntervalMESAPtr = nullptr;
+  glXCreateGLXPbufferSGIX = nullptr;
+  glXDestroyGLXPbufferSGIX = nullptr;
+  m_supports_pbuffer = false;
+
   std::string tmp;
   std::istringstream buffer(glXQueryExtensionsString(dpy, screen));
   while (buffer >> tmp)
   {
     if (tmp == "GLX_SGIX_pbuffer")
-      m_supports_pbuffer = true;
-  }
-
-  if (m_supports_pbuffer)
-  {
-    // Get the function pointers we require
-    glXCreateGLXPbufferSGIX =
-        (PFNGLXCREATEGLXPBUFFERSGIXPROC)GetFuncAddress("glXCreateGLXPbufferSGIX");
-    glXDestroyGLXPbufferSGIX =
-        (PFNGLXDESTROYGLXPBUFFERSGIXPROC)GetFuncAddress("glXDestroyGLXPbufferSGIX");
+    {
+      glXCreateGLXPbufferSGIX = reinterpret_cast<PFNGLXCREATEGLXPBUFFERSGIXPROC>(
+          GetFuncAddress("glXCreateGLXPbufferSGIX"));
+      glXDestroyGLXPbufferSGIX = reinterpret_cast<PFNGLXDESTROYGLXPBUFFERSGIXPROC>(
+          GetFuncAddress("glXDestroyGLXPbufferSGIX"));
+      m_supports_pbuffer = glXCreateGLXPbufferSGIX && glXDestroyGLXPbufferSGIX;
+    }
+    else if (tmp == "GLX_EXT_swap_control")
+    {
+      glXSwapIntervalEXTPtr =
+          reinterpret_cast<PFNGLXSWAPINTERVALEXTPROC>(GetFuncAddress("glXSwapIntervalEXT"));
+    }
+    else if (tmp == "GLX_MESA_swap_control")
+    {
+      glXSwapIntervalMESAPtr =
+          reinterpret_cast<PFNGLXSWAPINTERVALMESAPROC>(GetFuncAddress("glXSwapIntervalMESA"));
+    }
   }
 
   if (!CreateWindowSurface())
@@ -267,14 +289,7 @@ void cInterfaceGLX::DestroyWindowSurface()
 
 bool cInterfaceGLX::MakeCurrent()
 {
-  bool success = glXMakeCurrent(dpy, win, ctx);
-  if (success && !glXSwapIntervalSGI)
-  {
-    // load this function based on the current bound context
-    glXSwapIntervalSGI =
-        (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetFuncAddress("glXSwapIntervalSGI");
-  }
-  return success;
+  return glXMakeCurrent(dpy, win, ctx);
 }
 
 bool cInterfaceGLX::ClearCurrent()
