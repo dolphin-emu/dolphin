@@ -250,6 +250,8 @@ static void ResetRumble()
   GCAdapter::ResetRumble();
 #endif
 #if defined(CIFACE_USE_XINPUT) || defined(CIFACE_USE_DINPUT)
+  if (!Pad::IsInitialized())
+    return;
   for (int i = 0; i < 4; ++i)
     Pad::ResetRumble(i);
 #endif
