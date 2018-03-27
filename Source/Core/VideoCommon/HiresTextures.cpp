@@ -12,6 +12,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -229,25 +230,23 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   case 16 * 2:
     for (size_t i = 0; i < texture_size; i++)
     {
-      min = std::min<u32>(min, texture[i] & 0xf);
-      min = std::min<u32>(min, texture[i] >> 4);
-      max = std::max<u32>(max, texture[i] & 0xf);
-      max = std::max<u32>(max, texture[i] >> 4);
+      const u32 low_nibble = texture[i] & 0xf;
+      const u32 high_nibble = texture[i] >> 4;
+      std::tie(min, max) = std::minmax({min, max, low_nibble, high_nibble});
     }
     break;
   case 256 * 2:
-    for (size_t i = 0; i < texture_size; i++)
-    {
-      min = std::min<u32>(min, texture[i]);
-      max = std::max<u32>(max, texture[i]);
-    }
+  {
+    const auto minmax = std::minmax_element(texture, texture + texture_size);
+    min = *minmax.first;
+    max = *minmax.second;
     break;
+  }
   case 16384 * 2:
     for (size_t i = 0; i < texture_size; i += sizeof(u16))
     {
-      const u16 texture_halfword = Common::swap16(texture[i]) & 0x3fff;
-      min = std::min<u32>(min, texture_halfword);
-      max = std::max<u32>(max, texture_halfword);
+      const u32 texture_halfword = Common::swap16(texture[i]) & 0x3fff;
+      std::tie(min, max) = std::minmax({min, max, texture_halfword});
     }
     break;
   }
