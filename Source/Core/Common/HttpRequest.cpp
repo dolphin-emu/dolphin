@@ -6,8 +6,9 @@
 
 #include <chrono>
 #include <cstddef>
-#include <curl/curl.h>
 #include <mutex>
+
+#include <curl/curl.h>
 
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
@@ -24,23 +25,27 @@ public:
     POST,
   };
 
-  explicit Impl(std::chrono::milliseconds timeout_ms);
+  explicit Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback);
 
   bool IsValid() const;
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size);
 
+  static int CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
+                                  double ultotal);
+
 private:
   static std::mutex s_curl_was_inited_mutex;
   static bool s_curl_was_inited;
+  ProgressCallback m_callback;
   std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> m_curl{nullptr, curl_easy_cleanup};
 };
 
 std::mutex HttpRequest::Impl::s_curl_was_inited_mutex;
 bool HttpRequest::Impl::s_curl_was_inited = false;
 
-HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms)
-    : m_impl(std::make_unique<Impl>(timeout_ms))
+HttpRequest::HttpRequest(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
+    : m_impl(std::make_unique<Impl>(timeout_ms, callback))
 {
 }
 
@@ -69,7 +74,15 @@ HttpRequest::Response HttpRequest::Post(const std::string& url, const std::strin
                        reinterpret_cast<const u8*>(payload.data()), payload.size());
 }
 
-HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms)
+int HttpRequest::Impl::CurlProgressCallback(Impl* impl, double dlnow, double dltotal, double ulnow,
+                                            double ultotal)
+{
+  // Abort if callback isn't true
+  return !impl->m_callback(dlnow, dltotal, ulnow, ultotal);
+}
+
+HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback)
+    : m_callback(callback)
 {
   {
     std::lock_guard<std::mutex> lk(s_curl_was_inited_mutex);
@@ -83,6 +96,14 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms)
   m_curl.reset(curl_easy_init());
   if (!m_curl)
     return;
+
+  curl_easy_setopt(m_curl.get(), CURLOPT_NOPROGRESS, m_callback == nullptr);
+
+  if (m_callback)
+  {
+    curl_easy_setopt(m_curl.get(), CURLOPT_PROGRESSDATA, this);
+    curl_easy_setopt(m_curl.get(), CURLOPT_PROGRESSFUNCTION, CurlProgressCallback);
+  }
 
   // libcurl may not have been built with async DNS support, so we disable
   // signal handlers to avoid a possible and likely crash if a resolve times out.
@@ -99,7 +120,7 @@ bool HttpRequest::Impl::IsValid() const
   return m_curl != nullptr;
 }
 
-static size_t CurlCallback(char* data, size_t size, size_t nmemb, void* userdata)
+static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* userdata)
 {
   auto* buffer = static_cast<std::vector<u8>*>(userdata);
   const size_t actual_size = size * nmemb;
@@ -133,7 +154,7 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   curl_easy_setopt(m_curl.get(), CURLOPT_HTTPHEADER, list);
 
   std::vector<u8> buffer;
-  curl_easy_setopt(m_curl.get(), CURLOPT_WRITEFUNCTION, CurlCallback);
+  curl_easy_setopt(m_curl.get(), CURLOPT_WRITEFUNCTION, CurlWriteCallback);
   curl_easy_setopt(m_curl.get(), CURLOPT_WRITEDATA, &buffer);
 
   const char* type = method == Method::POST ? "POST" : "GET";
