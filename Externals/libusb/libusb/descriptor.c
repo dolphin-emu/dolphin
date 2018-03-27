@@ -333,7 +333,7 @@ static int parse_interface(libusb_context *ctx,
 					goto err;
 				if (r == 0) {
 					ifp->bNumEndpoints = (uint8_t)i;
-					break;;
+					break;
 				}
 
 				buffer += r;
@@ -513,7 +513,7 @@ int usbi_device_cache_descriptor(libusb_device *dev)
 {
 	int r, host_endian = 0;
 
-	r = usbi_backend->get_device_descriptor(dev, (unsigned char *) &dev->device_descriptor,
+	r = usbi_backend.get_device_descriptor(dev, (unsigned char *) &dev->device_descriptor,
 						&host_endian);
 	if (r < 0)
 		return r;
@@ -572,7 +572,7 @@ int API_EXPORTED libusb_get_active_config_descriptor(libusb_device *dev,
 	int host_endian = 0;
 	int r;
 
-	r = usbi_backend->get_active_config_descriptor(dev, tmp,
+	r = usbi_backend.get_active_config_descriptor(dev, tmp,
 		LIBUSB_DT_CONFIG_SIZE, &host_endian);
 	if (r < 0)
 		return r;
@@ -587,7 +587,7 @@ int API_EXPORTED libusb_get_active_config_descriptor(libusb_device *dev,
 	if (!buf)
 		return LIBUSB_ERROR_NO_MEM;
 
-	r = usbi_backend->get_active_config_descriptor(dev, buf,
+	r = usbi_backend.get_active_config_descriptor(dev, buf,
 		_config.wTotalLength, &host_endian);
 	if (r >= 0)
 		r = raw_desc_to_config(dev->ctx, buf, r, host_endian, config);
@@ -625,7 +625,7 @@ int API_EXPORTED libusb_get_config_descriptor(libusb_device *dev,
 	if (config_index >= dev->num_configurations)
 		return LIBUSB_ERROR_NOT_FOUND;
 
-	r = usbi_backend->get_config_descriptor(dev, config_index, tmp,
+	r = usbi_backend.get_config_descriptor(dev, config_index, tmp,
 		LIBUSB_DT_CONFIG_SIZE, &host_endian);
 	if (r < 0)
 		return r;
@@ -640,7 +640,7 @@ int API_EXPORTED libusb_get_config_descriptor(libusb_device *dev,
 	if (!buf)
 		return LIBUSB_ERROR_NO_MEM;
 
-	r = usbi_backend->get_config_descriptor(dev, config_index, buf,
+	r = usbi_backend.get_config_descriptor(dev, config_index, buf,
 		_config.wTotalLength, &host_endian);
 	if (r >= 0)
 		r = raw_desc_to_config(dev->ctx, buf, r, host_endian, config);
@@ -663,7 +663,7 @@ int usbi_get_config_index_by_value(struct libusb_device *dev,
 	for (i = 0; i < dev->num_configurations; i++) {
 		unsigned char tmp[6];
 		int host_endian;
-		int r = usbi_backend->get_config_descriptor(dev, i, tmp, sizeof(tmp),
+		int r = usbi_backend.get_config_descriptor(dev, i, tmp, sizeof(tmp),
 			&host_endian);
 		if (r < 0) {
 			*idx = -1;
@@ -702,8 +702,8 @@ int API_EXPORTED libusb_get_config_descriptor_by_value(libusb_device *dev,
 	int r, idx, host_endian;
 	unsigned char *buf = NULL;
 
-	if (usbi_backend->get_config_descriptor_by_value) {
-		r = usbi_backend->get_config_descriptor_by_value(dev,
+	if (usbi_backend.get_config_descriptor_by_value) {
+		r = usbi_backend.get_config_descriptor_by_value(dev,
 			bConfigurationValue, &buf, &host_endian);
 		if (r < 0)
 			return r;
@@ -1176,7 +1176,8 @@ int API_EXPORTED libusb_get_string_descriptor_ascii(libusb_device_handle *dev_ha
 	if (tbuf[0] > r)
 		return LIBUSB_ERROR_IO;
 
-	for (di = 0, si = 2; si < tbuf[0]; si += 2) {
+	di = 0;
+	for (si = 2; si < tbuf[0]; si += 2) {
 		if (di >= (length - 1))
 			break;
 

@@ -31,8 +31,7 @@
 #include "wince_usb.h"
 
 // Global variables
-const uint64_t epoch_time = UINT64_C(116444736000000000); // 1970.01.01 00:00:000 in MS Filetime
-int windows_version = WINDOWS_CE;
+int errno = 0;
 static uint64_t hires_frequency, hires_ticks_to_ps;
 static HANDLE driver_handle = INVALID_HANDLE_VALUE;
 static int concurrent_usage = -1;
@@ -42,38 +41,39 @@ static int concurrent_usage = -1;
  * uses retval as errorcode, or, if 0, use GetLastError()
  */
 #if defined(ENABLE_LOGGING)
-static const char *windows_error_str(DWORD retval)
+static const char *windows_error_str(DWORD error_code)
 {
 	static TCHAR wErr_string[ERR_BUFFER_SIZE];
 	static char err_string[ERR_BUFFER_SIZE];
 
-	DWORD error_code, format_error;
 	DWORD size;
-	size_t i;
+	int len;
 
-	error_code = retval ? retval : GetLastError();
+	if (error_code == 0)
+		error_code = GetLastError();
 
-	safe_stprintf(wErr_string, ERR_BUFFER_SIZE, _T("[%u] "), (unsigned int)error_code);
+	len = sprintf(err_string, "[%u] ", (unsigned int)error_code);
 
-	size = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error_code,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), &wErr_string[safe_tcslen(wErr_string)],
-		ERR_BUFFER_SIZE - (DWORD)safe_tcslen(wErr_string), NULL);
+	size = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL, error_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		wErr_string, ERR_BUFFER_SIZE, NULL);
 	if (size == 0) {
-		format_error = GetLastError();
+		DWORD format_error = GetLastError();
 		if (format_error)
-			safe_stprintf(wErr_string, ERR_BUFFER_SIZE,
-				_T("Windows error code %u (FormatMessage error code %u)"),
+			snprintf(err_string, ERR_BUFFER_SIZE,
+				"Windows error code %u (FormatMessage error code %u)",
 				(unsigned int)error_code, (unsigned int)format_error);
 		else
-			safe_stprintf(wErr_string, ERR_BUFFER_SIZE, _T("Unknown error code %u"), (unsigned int)error_code);
+			snprintf(err_string, ERR_BUFFER_SIZE, "Unknown error code %u", (unsigned int)error_code);
 	} else {
-		// Remove CR/LF terminators
-		for (i = safe_tcslen(wErr_string) - 1; ((wErr_string[i] == 0x0A) || (wErr_string[i] == 0x0D)); i--)
-			wErr_string[i] = 0;
-	}
+		// Remove CR/LF terminators, if present
+		size_t pos = size - 2;
+		if (wErr_string[pos] == 0x0D)
+			wErr_string[pos] = 0;
 
-	if (WideCharToMultiByte(CP_ACP, 0, wErr_string, -1, err_string, ERR_BUFFER_SIZE, NULL, NULL) < 0)
-		strcpy(err_string, "Unable to convert error string");
+		if (!WideCharToMultiByte(CP_ACP, 0, wErr_string, -1, &err_string[len], ERR_BUFFER_SIZE - len, NULL, NULL))
+			strcpy(err_string, "Unable to convert error string");
+	}
 
 	return err_string;
 }
@@ -109,7 +109,7 @@ static int translate_driver_error(DWORD error)
 	}
 }
 
-static int init_dllimports(void)
+static BOOL init_dllimports(void)
 {
 	DLL_GET_HANDLE(ceusbkwrapper);
 	DLL_LOAD_FUNC(ceusbkwrapper, UkwOpenDriver, TRUE);
@@ -135,7 +135,7 @@ static int init_dllimports(void)
 	DLL_LOAD_FUNC(ceusbkwrapper, UkwIssueBulkTransfer, TRUE);
 	DLL_LOAD_FUNC(ceusbkwrapper, UkwIsPipeHalted, TRUE);
 
-	return LIBUSB_SUCCESS;
+	return TRUE;
 }
 
 static void exit_dllimports(void)
@@ -186,11 +186,8 @@ static int wince_init(struct libusb_context *ctx)
 	// NB: concurrent usage supposes that init calls are equally balanced with
 	// exit calls. If init is called more than exit, we will not exit properly
 	if ( ++concurrent_usage == 0 ) {	// First init?
-		// Initialize pollable file descriptors
-		init_polling();
-
 		// Load DLL imports
-		if (init_dllimports() != LIBUSB_SUCCESS) {
+		if (!init_dllimports()) {
 			usbi_err(ctx, "could not resolve DLL functions");
 			r = LIBUSB_ERROR_NOT_SUPPORTED;
 			goto init_exit;
@@ -223,7 +220,6 @@ static int wince_init(struct libusb_context *ctx)
 init_exit: // Holds semaphore here.
 	if (!concurrent_usage && r != LIBUSB_SUCCESS) { // First init failed?
 		exit_dllimports();
-		exit_polling();
 
 		if (driver_handle != INVALID_HANDLE_VALUE) {
 			UkwCloseDriver(driver_handle);
@@ -239,10 +235,11 @@ init_exit: // Holds semaphore here.
 	return r;
 }
 
-static void wince_exit(void)
+static void wince_exit(struct libusb_context *ctx)
 {
 	HANDLE semaphore;
 	TCHAR sem_name[11 + 8 + 1]; // strlen("libusb_init") + (32-bit hex PID) + '\0'
+	UNUSED(ctx);
 
 	_stprintf(sem_name, _T("libusb_init%08X"), (unsigned int)(GetCurrentProcessId() & 0xFFFFFFFF));
 	semaphore = CreateSemaphore(NULL, 1, 1, sem_name);
@@ -259,7 +256,6 @@ static void wince_exit(void)
 	// Only works if exits and inits are balanced exactly
 	if (--concurrent_usage < 0) {	// Last exit
 		exit_dllimports();
-		exit_polling();
 
 		if (driver_handle != INVALID_HANDLE_VALUE) {
 			UkwCloseDriver(driver_handle);
@@ -328,19 +324,19 @@ static int wince_get_device_list(
 		}
 
 		new_devices = discovered_devs_append(new_devices, dev);
-		if (!discdevs) {
+		if (!new_devices) {
 			r = LIBUSB_ERROR_NO_MEM;
 			goto err_out;
 		}
 
-		safe_unref_device(dev);
+		libusb_unref_device(dev);
 	}
 
 	*discdevs = new_devices;
 	return r;
 err_out:
 	*discdevs = new_devices;
-	safe_unref_device(dev);
+	libusb_unref_device(dev);
 	// Release the remainder of the unprocessed device list.
 	// The devices added to new_devices already will still be passed up to libusb,
 	// which can dispose of them at its leisure.
@@ -541,12 +537,9 @@ static void wince_destroy_device(struct libusb_device *dev)
 static void wince_clear_transfer_priv(struct usbi_transfer *itransfer)
 {
 	struct wince_transfer_priv *transfer_priv = usbi_transfer_get_os_priv(itransfer);
-	struct winfd wfd = fd_to_winfd(transfer_priv->pollable_fd.fd);
 
-	// No need to cancel transfer as it is either complete or abandoned
-	wfd.itransfer = NULL;
-	CloseHandle(wfd.handle);
-	usbi_free_fd(&transfer_priv->pollable_fd);
+	usbi_close(transfer_priv->pollable_fd.fd);
+	transfer_priv->pollable_fd = INVALID_WINFD;
 }
 
 static int wince_cancel_transfer(struct usbi_transfer *itransfer)
@@ -570,11 +563,10 @@ static int wince_submit_control_or_bulk_transfer(struct usbi_transfer *itransfer
 	BOOL direction_in, ret;
 	struct winfd wfd;
 	DWORD flags;
-	HANDLE eventHandle;
 	PUKW_CONTROL_HEADER setup = NULL;
 	const BOOL control_transfer = transfer->type == LIBUSB_TRANSFER_TYPE_CONTROL;
+	int r;
 
-	transfer_priv->pollable_fd = INVALID_WINFD;
 	if (control_transfer) {
 		setup = (PUKW_CONTROL_HEADER) transfer->buffer;
 		direction_in = setup->bmRequestType & LIBUSB_ENDPOINT_IN;
@@ -584,19 +576,18 @@ static int wince_submit_control_or_bulk_transfer(struct usbi_transfer *itransfer
 	flags = direction_in ? UKW_TF_IN_TRANSFER : UKW_TF_OUT_TRANSFER;
 	flags |= UKW_TF_SHORT_TRANSFER_OK;
 
-	eventHandle = CreateEvent(NULL, FALSE, FALSE, NULL);
-	if (eventHandle == NULL) {
-		usbi_err(ctx, "Failed to create event for async transfer");
+	wfd = usbi_create_fd();
+	if (wfd.fd < 0)
 		return LIBUSB_ERROR_NO_MEM;
-	}
 
-	wfd = usbi_create_fd(eventHandle, direction_in ? RW_READ : RW_WRITE, itransfer, &wince_cancel_transfer);
-	if (wfd.fd < 0) {
-		CloseHandle(eventHandle);
-		return LIBUSB_ERROR_NO_MEM;
+	r = usbi_add_pollfd(ctx, wfd.fd, direction_in ? POLLIN : POLLOUT);
+	if (r) {
+		usbi_close(wfd.fd);
+		return r;
 	}
 
 	transfer_priv->pollable_fd = wfd;
+
 	if (control_transfer) {
 		// Split out control setup header and data buffer
 		DWORD bufLen = transfer->length - sizeof(UKW_CONTROL_HEADER);
@@ -612,17 +603,14 @@ static int wince_submit_control_or_bulk_transfer(struct usbi_transfer *itransfer
 		int libusbErr = translate_driver_error(GetLastError());
 		usbi_err(ctx, "UkwIssue%sTransfer failed: error %u",
 			control_transfer ? "Control" : "Bulk", (unsigned int)GetLastError());
-		wince_clear_transfer_priv(itransfer);
+		usbi_remove_pollfd(ctx, wfd.fd);
+		usbi_close(wfd.fd);
+		transfer_priv->pollable_fd = INVALID_WINFD;
 		return libusbErr;
 	}
-	usbi_add_pollfd(ctx, transfer_priv->pollable_fd.fd, direction_in ? POLLIN : POLLOUT);
+
 
 	return LIBUSB_SUCCESS;
-}
-
-static int wince_submit_iso_transfer(struct usbi_transfer *itransfer)
-{
-	return LIBUSB_ERROR_NOT_SUPPORTED;
 }
 
 static int wince_submit_transfer(struct usbi_transfer *itransfer)
@@ -635,7 +623,6 @@ static int wince_submit_transfer(struct usbi_transfer *itransfer)
 	case LIBUSB_TRANSFER_TYPE_INTERRUPT:
 		return wince_submit_control_or_bulk_transfer(itransfer);
 	case LIBUSB_TRANSFER_TYPE_ISOCHRONOUS:
-		return wince_submit_iso_transfer(itransfer);
 	case LIBUSB_TRANSFER_TYPE_BULK_STREAM:
 		return LIBUSB_ERROR_NOT_SUPPORTED;
 	default:
@@ -763,7 +750,7 @@ static int wince_handle_events(
 	struct wince_transfer_priv* transfer_priv = NULL;
 	POLL_NFDS_TYPE i = 0;
 	BOOL found = FALSE;
-	struct usbi_transfer *transfer;
+	struct usbi_transfer *itransfer;
 	DWORD io_size, io_result;
 	int r = LIBUSB_SUCCESS;
 
@@ -780,8 +767,8 @@ static int wince_handle_events(
 		// Because a Windows OVERLAPPED is used for poll emulation,
 		// a pollable fd is created and stored with each transfer
 		usbi_mutex_lock(&ctx->flying_transfers_lock);
-		list_for_each_entry(transfer, &ctx->flying_transfers, list, struct usbi_transfer) {
-			transfer_priv = usbi_transfer_get_os_priv(transfer);
+		list_for_each_entry(itransfer, &ctx->flying_transfers, list, struct usbi_transfer) {
+			transfer_priv = usbi_transfer_get_os_priv(itransfer);
 			if (transfer_priv->pollable_fd.fd == fds[i].fd) {
 				found = TRUE;
 				break;
@@ -796,7 +783,7 @@ static int wince_handle_events(
 			// let handle_callback free the event using the transfer wfd
 			// If you don't use the transfer wfd, you run a risk of trying to free a
 			// newly allocated wfd that took the place of the one from the transfer.
-			wince_handle_callback(transfer, io_result, io_size);
+			wince_handle_callback(itransfer, io_result, io_size);
 		} else if (found) {
 			usbi_err(ctx, "matching transfer for fd %d has not completed", fds[i]);
 			r = LIBUSB_ERROR_OTHER;
@@ -832,14 +819,14 @@ static int wince_clock_gettime(int clk_id, struct timespec *tp)
 		// Fall through and return real-time if monotonic read failed or was not detected @ init
 	case USBI_CLOCK_REALTIME:
 		// We follow http://msdn.microsoft.com/en-us/library/ms724928%28VS.85%29.aspx
-		// with a predef epoch_time to have an epoch that starts at 1970.01.01 00:00
+		// with a predef epoch time to have an epoch that starts at 1970.01.01 00:00
 		// Note however that our resolution is bounded by the Windows system time
 		// functions and is at best of the order of 1 ms (or, usually, worse)
 		GetSystemTime(&st);
 		SystemTimeToFileTime(&st, &filetime);
 		rtime.LowPart = filetime.dwLowDateTime;
 		rtime.HighPart = filetime.dwHighDateTime;
-		rtime.QuadPart -= epoch_time;
+		rtime.QuadPart -= EPOCH_TIME;
 		tp->tv_sec = (long)(rtime.QuadPart / 10000000);
 		tp->tv_nsec = (long)((rtime.QuadPart % 10000000)*100);
 		return LIBUSB_SUCCESS;
@@ -848,11 +835,12 @@ static int wince_clock_gettime(int clk_id, struct timespec *tp)
 	}
 }
 
-const struct usbi_os_backend wince_backend = {
+const struct usbi_os_backend usbi_backend = {
 	"Windows CE",
 	0,
 	wince_init,
 	wince_exit,
+	NULL,				/* set_option() */
 
 	wince_get_device_list,
 	NULL,				/* hotplug_poll */
@@ -893,6 +881,7 @@ const struct usbi_os_backend wince_backend = {
 	NULL,				/* handle_transfer_completion() */
 
 	wince_clock_gettime,
+	0,
 	sizeof(struct wince_device_priv),
 	0,
 	sizeof(struct wince_transfer_priv),

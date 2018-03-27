@@ -1,6 +1,24 @@
 For detailed information about the changes below, please see the git log or
 visit: http://log.libusb.info
 
+2018-03-24: v1.0.22:
+* New libusb_set_option() API
+* Fix transfer timeout not being cleared upon resubmission
+* Report super speed plus devices on modern Linux and macOS
+* Darwin: Improve support for macOS Sierra and High Sierra
+* Darwin: SDK fixes and improvements
+* Linux: Let initialization succeed when no devices are present
+* Linux: Mark internal file descriptors with CLOEXEC flag
+* Solaris: Add support for attach/detach kernel driver
+* Windows: Add dynamic UsbDk backend selection
+* Windows: Add isochronous transfer support via libusbK
+* Windows: Add Visual Studio 2017 support
+* Windows: Fix enumeration problems on Windows 8 and later
+* Windows: Major rework of poll() emulation
+* Windows: Numerous HID API fixes
+* Windows: Support cancelation of individual transfers (Vista and later)
+* Various other bug fixes and improvements
+
 2016-10-01: v1.0.21:
 * Core: Refactor code related to transfer flags and timeout handling
 * Darwin: Ignore root hub simulation devices

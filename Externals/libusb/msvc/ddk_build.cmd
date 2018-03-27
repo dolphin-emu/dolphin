@@ -3,28 +3,20 @@
 ::# you can pass the following arguments (case insensitive):
 ::# - "DLL" to build a DLL instead of a static library
 ::# - "/MT" to build a static library compatible with MSVC's /MT option (LIBCMT vs MSVCRT)
-::# - "USBDK" to build with UsbDk backend
 
 if Test%BUILD_ALT_DIR%==Test goto usage
 
 ::# process commandline parameters
 set TARGET=LIBRARY
 set STATIC_LIBC=
-set WITH_USBDK=
 set version=1.0
 set PWD=%~dp0
-set BUILD_CMD=build -bcwgZ -M2
-
-:more_args
+set BUILD_CMD=build /bcwgZ /M2
 
 if "%1" == "" goto no_more_args
 ::# /I for case insensitive
 if /I Test%1==TestDLL set TARGET=DYNLINK
 if /I Test%1==Test/MT set STATIC_LIBC=1
-if /I Test%1==TestUSBDK set WITH_USBDK=1
-
-shift
-goto more_args
 
 :no_more_args
 
@@ -53,13 +45,13 @@ set dstPath=%destType%\Release
 :isDebug
 
 if exist %destType% goto md2
-mkdir %destType%
+md %destType%
 :md2
 if exist %dstPath% goto md3
-mkdir %dstPath%
+md %dstPath%
 :md3
 if exist %dstPath%\dll goto md4
-mkdir %dstPath%\dll
+md %dstPath%\dll
 :md4
 if exist %dstPath%\lib goto md5
 md %dstPath%\lib
@@ -67,9 +59,12 @@ md %dstPath%\lib
 if exist %dstPath%\examples goto md6
 md %dstPath%\examples
 :md6
+if exist %dstPath%\tests goto md7
+md %dstPath%\tests
+:md7
 @echo on
 
-@if /I NOT Test%1==TestDLL goto copylib
+if %TARGET%==LIBRARY goto copylib
 copy %srcPath%\libusb-%version%.dll %dstPath%\dll
 copy %srcPath%\libusb-%version%.pdb %dstPath%\dll
 :copylib
@@ -77,49 +72,9 @@ copy %srcPath%\libusb-%version%.lib %dstPath%\lib
 
 @echo off
 
-if exist examples\listdevs_ddkbuild goto md7
-md examples\listdevs_ddkbuild
-:md7
-
-cd examples\listdevs_ddkbuild
-copy ..\..\msvc\listdevs_sources sources >NUL 2>&1
-@echo on
-%BUILD_CMD%
-@echo off
-if errorlevel 1 goto builderror
-cd ..\..
-
-set srcPath=examples\listdevs_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
-@echo on
-
-copy %srcPath%\listdevs.exe %dstPath%\examples
-copy %srcPath%\listdevs.pdb %dstPath%\examples
-
-@echo off
-
-if exist examples\xusb_ddkbuild goto md8
-md examples\xusb_ddkbuild
-:md8
-
-cd examples\xusb_ddkbuild
-copy ..\..\msvc\xusb_sources sources >NUL 2>&1
-@echo on
-%BUILD_CMD%
-@echo off
-if errorlevel 1 goto builderror
-cd ..\..
-
-set srcPath=examples\xusb_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
-@echo on
-
-copy %srcPath%\xusb.exe %dstPath%\examples
-copy %srcPath%\xusb.pdb %dstPath%\examples
-
-@echo off
-
-if exist examples\getopt\getopt_ddkbuild goto md9
+if exist examples\getopt\getopt_ddkbuild goto md8
 md examples\getopt\getopt_ddkbuild
-:md9
+:md8
 
 cd examples\getopt\getopt_ddkbuild
 copy ..\..\..\msvc\getopt_sources sources >NUL 2>&1
@@ -129,9 +84,9 @@ copy ..\..\..\msvc\getopt_sources sources >NUL 2>&1
 if errorlevel 1 goto builderror
 cd ..\..\..
 
-if exist examples\fxload_ddkbuild goto md10
+if exist examples\fxload_ddkbuild goto md9
 md examples\fxload_ddkbuild
-:md10
+:md9
 
 cd examples\fxload_ddkbuild
 copy ..\..\msvc\fxload_sources sources >NUL 2>&1
@@ -149,9 +104,9 @@ copy %srcPath%\fxload.pdb %dstPath%\examples
 
 @echo off
 
-if exist examples\hotplugtest_ddkbuild goto md11
+if exist examples\hotplugtest_ddkbuild goto md10
 md examples\hotplugtest_ddkbuild
-:md11
+:md10
 
 cd examples\hotplugtest_ddkbuild
 copy ..\..\msvc\hotplugtest_sources sources >NUL 2>&1
@@ -166,6 +121,86 @@ set srcPath=examples\hotplugtest_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
 
 copy %srcPath%\hotplugtest.exe %dstPath%\examples
 copy %srcPath%\hotplugtest.pdb %dstPath%\examples
+
+@echo off
+
+if exist examples\listdevs_ddkbuild goto md11
+md examples\listdevs_ddkbuild
+:md11
+
+cd examples\listdevs_ddkbuild
+copy ..\..\msvc\listdevs_sources sources >NUL 2>&1
+@echo on
+%BUILD_CMD%
+@echo off
+if errorlevel 1 goto builderror
+cd ..\..
+
+set srcPath=examples\listdevs_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
+@echo on
+
+copy %srcPath%\listdevs.exe %dstPath%\examples
+copy %srcPath%\listdevs.pdb %dstPath%\examples
+
+@echo off
+
+if exist examples\testlibusb_ddkbuild goto md12
+md examples\testlibusb_ddkbuild
+:md12
+
+cd examples\testlibusb_ddkbuild
+copy ..\..\msvc\testlibusb_sources sources >NUL 2>&1
+@echo on
+%BUILD_CMD%
+@echo off
+if errorlevel 1 goto builderror
+cd ..\..
+
+set srcPath=examples\testlibusb_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
+@echo on
+
+copy %srcPath%\testlibusb.exe %dstPath%\examples
+copy %srcPath%\testlibusb.pdb %dstPath%\examples
+
+@echo off
+
+if exist examples\xusb_ddkbuild goto md13
+md examples\xusb_ddkbuild
+:md13
+
+cd examples\xusb_ddkbuild
+copy ..\..\msvc\xusb_sources sources >NUL 2>&1
+@echo on
+%BUILD_CMD%
+@echo off
+if errorlevel 1 goto builderror
+cd ..\..
+
+set srcPath=examples\xusb_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
+@echo on
+
+copy %srcPath%\xusb.exe %dstPath%\examples
+copy %srcPath%\xusb.pdb %dstPath%\examples
+
+@echo off
+
+if exist tests\stress_ddkbuild goto md14
+md tests\stress_ddkbuild
+:md14
+
+cd tests\stress_ddkbuild
+copy ..\..\msvc\stress_sources sources >NUL 2>&1
+@echo on
+%BUILD_CMD%
+@echo off
+if errorlevel 1 goto builderror
+cd ..\..
+
+set srcPath=tests\stress_ddkbuild\obj%BUILD_ALT_DIR%\%cpudir%
+@echo on
+
+copy %srcPath%\stress.exe %dstPath%\tests
+copy %srcPath%\stress.pdb %dstPath%\tests
 
 @echo off
 

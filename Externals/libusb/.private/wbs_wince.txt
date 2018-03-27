@@ -1,0 +1,42 @@
+              libusb 1.0 Windows CE binary snapshot - README
+
+   *********************************************************************
+   *  The latest version of this snapshot can always be downloaded at: *
+   *         https://sourceforge.net/projects/libusb/files/           *
+   *********************************************************************
+
+The binaries contained in this snapshot are licensed under the
+GNU Lesser General Public License version 2.1 or, at your option, any later
+version (see COPYING for further details). The source code for these binaries
+is available for download at the same location as this binary snapshot.
+
+o Visual Studio:
+  - Open existing or create a new project for your application
+  - Copy libusb.h, from the include\libusb-1.0\ directory, into your project and
+    make sure that the location where the file reside appears in the 'Additional
+    Include Directories' section (Configuration Properties -> C/C++ -> General).
+  - Copy the relevant .lib file from ARMV4I, MIPSII, MIPSII_FP, MIPSIV, MIPSIV_FP,
+    SH4 or x86 and add 'libusb-1.0.lib' to  your 'Additional Dependencies'
+    (Configuration Properties -> Linker -> Input). Also make sure that the
+    directory where libusb-1.0.lib resides is added to 'Additional Library
+    Directories' (Configuration Properties -> Linker -> General)
+  - If you use the static version of the libusb library, make sure that
+    'Runtime Library' is set to 'Multi-threaded DLL (/MD)' (Configuration
+    Properties -> C/C++ -> Code Generation).
+    NB: If your application requires /MT (Multi-threaded/libCMT), you need to
+    recompile a static libusb 1.0 library from source.
+  - Compile and run your application. If you use the DLL version of libusb-1.0,
+    remember that you need to have a copy of the DLL either in the runtime
+    directory or in system32
+
+o Additional information:
+  - The libusb 1.0 API documentation can be accessed at:
+    http://api.libusb.info
+  - For some libusb samples (including source), please have a look in examples/
+  - For additional information on the libusb 1.0 Windows backend please visit:
+    http://windows.libusb.info
+  - It is necessary to install the CE USB Kernel Wrapper driver for libusb to
+    function on a device. This is obtainable from:
+    https://github.com/RealVNC/CEUSBKWrapper
+  - If you find any issue, please visit http://libusb.info/ and check the
+    Support section
