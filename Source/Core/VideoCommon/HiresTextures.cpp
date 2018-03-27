@@ -243,10 +243,11 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     }
     break;
   case 16384 * 2:
-    for (size_t i = 0; i < texture_size / 2; i++)
+    for (size_t i = 0; i < texture_size; i += sizeof(u16))
     {
-      min = std::min<u32>(min, Common::swap16(((u16*)texture)[i]) & 0x3fff);
-      max = std::max<u32>(max, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+      const u16 texture_halfword = Common::swap16(texture[i]) & 0x3fff;
+      min = std::min<u32>(min, texture_halfword);
+      max = std::max<u32>(max, texture_halfword);
     }
     break;
   }
