@@ -28,6 +28,7 @@ public:
 
   static QIcon GetScaledIcon(const std::string& name);
   static QIcon GetScaledThemeIcon(const std::string& name);
+  static QIcon GetAppIcon();
 
   static QPixmap GetScaledPixmap(const std::string& name);
   static QPixmap GetScaledThemePixmap(const std::string& name);
