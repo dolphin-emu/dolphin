@@ -624,6 +624,16 @@ bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
   return true;
 }
 
+void FatalError(const std::string& message)
+{
+  auto wide_message = UTF8ToUTF16(message);
+
+  MessageBox(nullptr,
+             (L"A fatal error occured and the updater cannot continue:\n " + wide_message).c_str(),
+             L"Error", MB_ICONERROR);
+  fprintf(log_fp, "%s\n", message.c_str());
+}
+
 }  // namespace
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
@@ -648,7 +658,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   if (!File::IsDirectory(opts.install_base_path))
   {
-    fprintf(log_fp, "Cannot find install base path, or not a directory.\n");
+    FatalError("Cannot find install base path, or not a directory.");
     return 1;
   }
 
@@ -666,7 +676,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     std::optional<Manifest> maybe_manifest = FetchAndParseManifest(opts.this_manifest_url);
     if (!maybe_manifest)
     {
-      fprintf(log_fp, "Could not fetch current manifest. Aborting.\n");
+      FatalError("Could not fetch current manifest. Aborting.");
       return 1;
     }
     this_manifest = std::move(*maybe_manifest);
@@ -674,7 +684,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     maybe_manifest = FetchAndParseManifest(opts.next_manifest_url);
     if (!maybe_manifest)
     {
-      fprintf(log_fp, "Could not fetch next manifest. Aborting.\n");
+      FatalError("Could not fetch next manifest. Aborting.");
       return 1;
     }
     next_manifest = std::move(*maybe_manifest);
@@ -690,7 +700,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   bool ok = PerformUpdate(todo, opts.install_base_path, opts.content_store_url, temp_dir);
   if (!ok)
-    fprintf(log_fp, "Failed to apply the update.\n");
+    FatalError("Failed to apply the update.");
 
   CleanUpTempDir(temp_dir, todo);
 
