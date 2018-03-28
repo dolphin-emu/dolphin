@@ -352,7 +352,7 @@ public final class SettingsFragmentPresenter
 		if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
 				(helper.supportsGLES3() && helper.GetVersion() >= 310 && helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
 		{
-			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy, R.string.stereoscopy_descrip, SettingsFile.SECTION_STEREOSCOPY));
+			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu, R.string.stereoscopy_submenu_descrip, SettingsFile.SECTION_STEREOSCOPY));
 		}
 	}
 
@@ -396,10 +396,10 @@ public final class SettingsFragmentPresenter
 		Setting convergence = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_CONV);
 		Setting swapEyes = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_SWAP);
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy, R.string.stereoscopy_descrip, R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
-		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.sterescopy_depth, R.string.sterescopy_depth_descrip, 100, "%", 20, stereoDepth));
-		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_CONV, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.sterescopy_convergence, R.string.sterescopy_convergence_descrip, 200, "%", 0, convergence));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_STEREO_SWAP, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.sterescopy_swap_eyes, R.string.sterescopy_swap_eyes_descrip, false, swapEyes));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_mode, R.string.stereoscopy_mode_descrip, R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
+		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_depth, R.string.stereoscopy_depth_descrip, 100, "%", 20, stereoDepth));
+		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_CONV, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_descrip, 200, "%", 0, convergence));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_STEREO_SWAP, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_swap_eyes, R.string.stereoscopy_swap_eyes_descrip, false, swapEyes));
 	}
 
 	private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)
