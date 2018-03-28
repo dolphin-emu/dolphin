@@ -928,7 +928,6 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   if (is_traversal)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
