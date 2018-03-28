@@ -238,7 +238,7 @@ void FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, con
     QMessageBox::critical(nullptr, tr("Error"), tr("Failed to extract system data."));
 }
 
-void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, const QString path,
+void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
                                         const QString& out)
 {
   const DiscIO::FileSystem* filesystem = m_volume->GetFileSystem(partition);
