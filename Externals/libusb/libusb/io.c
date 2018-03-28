@@ -27,9 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
-#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -1147,8 +1144,8 @@ int usbi_io_init(struct libusb_context *ctx)
 		goto err_close_pipe;
 
 #ifdef USBI_TIMERFD_AVAILABLE
-	ctx->timerfd = timerfd_create(usbi_backend->get_timerfd_clockid(),
-		TFD_NONBLOCK);
+	ctx->timerfd = timerfd_create(usbi_backend.get_timerfd_clockid(),
+		TFD_NONBLOCK | TFD_CLOEXEC);
 	if (ctx->timerfd >= 0) {
 		usbi_dbg("using timerfd for timeouts");
 		r = usbi_add_pollfd(ctx, ctx->timerfd, POLLIN);
@@ -1208,10 +1205,12 @@ static int calculate_timeout(struct usbi_transfer *transfer)
 	unsigned int timeout =
 		USBI_TRANSFER_TO_LIBUSB_TRANSFER(transfer)->timeout;
 
-	if (!timeout)
+	if (!timeout) {
+		timerclear(&transfer->timeout);
 		return 0;
+	}
 
-	r = usbi_backend->clock_gettime(USBI_CLOCK_MONOTONIC, &current_time);
+	r = usbi_backend.clock_gettime(USBI_CLOCK_MONOTONIC, &current_time);
 	if (r < 0) {
 		usbi_err(ITRANSFER_CTX(transfer),
 			"failed to read monotonic clock, errno=%d", errno);
@@ -1258,7 +1257,7 @@ struct libusb_transfer * LIBUSB_CALL libusb_alloc_transfer(
 	int iso_packets)
 {
 	struct libusb_transfer *transfer;
-	size_t os_alloc_size = usbi_backend->transfer_priv_size;
+	size_t os_alloc_size = usbi_backend.transfer_priv_size;
 	size_t alloc_size = sizeof(struct usbi_transfer)
 		+ sizeof(struct libusb_transfer)
 		+ (sizeof(struct libusb_iso_packet_descriptor) * iso_packets)
@@ -1529,7 +1528,7 @@ int API_EXPORTED libusb_submit_transfer(struct libusb_transfer *transfer)
 	 */
 	usbi_mutex_unlock(&ctx->flying_transfers_lock);
 
-	r = usbi_backend->submit_transfer(itransfer);
+	r = usbi_backend.submit_transfer(itransfer);
 	if (r == LIBUSB_SUCCESS) {
 		itransfer->state_flags |= USBI_TRANSFER_IN_FLIGHT;
 		/* keep a reference to this device */
@@ -1570,7 +1569,7 @@ int API_EXPORTED libusb_cancel_transfer(struct libusb_transfer *transfer)
 		r = LIBUSB_ERROR_NOT_FOUND;
 		goto out;
 	}
-	r = usbi_backend->cancel_transfer(itransfer);
+	r = usbi_backend.cancel_transfer(itransfer);
 	if (r < 0) {
 		if (r != LIBUSB_ERROR_NOT_FOUND &&
 		    r != LIBUSB_ERROR_NO_DEVICE)
@@ -1887,14 +1886,17 @@ int API_EXPORTED libusb_event_handler_active(libusb_context *ctx)
  */
 void API_EXPORTED libusb_interrupt_event_handler(libusb_context *ctx)
 {
+	int pending_events;
 	USBI_GET_CONTEXT(ctx);
 
 	usbi_dbg("");
 	usbi_mutex_lock(&ctx->event_data_lock);
-	if (!usbi_pending_events(ctx)) {
-		ctx->event_flags |= USBI_EVENT_USER_INTERRUPT;
+
+	pending_events = usbi_pending_events(ctx);
+	ctx->event_flags |= USBI_EVENT_USER_INTERRUPT;
+	if (!pending_events)
 		usbi_signal_event(ctx);
-	}
+
 	usbi_mutex_unlock(&ctx->event_data_lock);
 }
 
@@ -2004,7 +2006,7 @@ static int handle_timeouts_locked(struct libusb_context *ctx)
 		return 0;
 
 	/* get current time */
-	r = usbi_backend->clock_gettime(USBI_CLOCK_MONOTONIC, &systime_ts);
+	r = usbi_backend.clock_gettime(USBI_CLOCK_MONOTONIC, &systime_ts);
 	if (r < 0)
 		return r;
 
@@ -2077,7 +2079,6 @@ static int handle_events(struct libusb_context *ctx, struct timeval *tv)
 	struct pollfd *fds = NULL;
 	int i = -1;
 	int timeout_ms;
-	int special_event;
 
 	/* prevent attempts to recursively handle events (e.g. calling into
 	 * libusb_handle_events() from within a hotplug or transfer callback) */
@@ -2146,31 +2147,29 @@ static int handle_events(struct libusb_context *ctx, struct timeval *tv)
 	if (tv->tv_usec % 1000)
 		timeout_ms++;
 
-redo_poll:
 	usbi_dbg("poll() %d fds with timeout in %dms", nfds, timeout_ms);
 	r = usbi_poll(fds, nfds, timeout_ms);
 	usbi_dbg("poll() returned %d", r);
 	if (r == 0) {
 		r = handle_timeouts(ctx);
 		goto done;
-	}
-	else if (r == -1 && errno == EINTR) {
+	} else if (r == -1 && errno == EINTR) {
 		r = LIBUSB_ERROR_INTERRUPTED;
 		goto done;
-	}
-	else if (r < 0) {
+	} else if (r < 0) {
 		usbi_err(ctx, "poll failed %d err=%d", r, errno);
 		r = LIBUSB_ERROR_IO;
 		goto done;
 	}
 
-	special_event = 0;
-
 	/* fds[0] is always the event pipe */
 	if (fds[0].revents) {
-		libusb_hotplug_message *message = NULL;
+		struct list_head hotplug_msgs;
 		struct usbi_transfer *itransfer;
+		int hotplug_cb_deregistered = 0;
 		int ret = 0;
+
+		list_init(&hotplug_msgs);
 
 		usbi_dbg("caught a fish on the event pipe");
 
@@ -2186,6 +2185,12 @@ redo_poll:
 			ctx->event_flags &= ~USBI_EVENT_USER_INTERRUPT;
 		}
 
+		if (ctx->event_flags & USBI_EVENT_HOTPLUG_CB_DEREGISTERED) {
+			usbi_dbg("someone unregistered a hotplug cb");
+			ctx->event_flags &= ~USBI_EVENT_HOTPLUG_CB_DEREGISTERED;
+			hotplug_cb_deregistered = 1;
+		}
+
 		/* check if someone is closing a device */
 		if (ctx->device_close)
 			usbi_dbg("someone is closing a device");
@@ -2193,9 +2198,7 @@ redo_poll:
 		/* check for any pending hotplug messages */
 		if (!list_empty(&ctx->hotplug_msgs)) {
 			usbi_dbg("hotplug message received");
-			special_event = 1;
-			message = list_first_entry(&ctx->hotplug_msgs, libusb_hotplug_message, list);
-			list_del(&message->list);
+			list_cut(&hotplug_msgs, &ctx->hotplug_msgs);
 		}
 
 		/* complete any pending transfers */
@@ -2203,7 +2206,7 @@ redo_poll:
 			itransfer = list_first_entry(&ctx->completed_transfers, struct usbi_transfer, completed_list);
 			list_del(&itransfer->completed_list);
 			usbi_mutex_unlock(&ctx->event_data_lock);
-			ret = usbi_backend->handle_transfer_completion(itransfer);
+			ret = usbi_backend.handle_transfer_completion(itransfer);
 			if (ret)
 				usbi_err(ctx, "backend handle_transfer_completion failed with error %d", ret);
 			usbi_mutex_lock(&ctx->event_data_lock);
@@ -2215,14 +2218,21 @@ redo_poll:
 
 		usbi_mutex_unlock(&ctx->event_data_lock);
 
-		/* process the hotplug message, if any */
-		if (message) {
+		if (hotplug_cb_deregistered)
+			usbi_hotplug_deregister(ctx, 0);
+
+		/* process the hotplug messages, if any */
+		while (!list_empty(&hotplug_msgs)) {
+			struct libusb_hotplug_message *message =
+				list_first_entry(&hotplug_msgs, struct libusb_hotplug_message, list);
+
 			usbi_hotplug_match(ctx, message->device, message->event);
 
 			/* the device left, dereference the device */
 			if (LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT == message->event)
 				libusb_unref_device(message->device);
 
+			list_del(&message->list);
 			free(message);
 		}
 
@@ -2233,7 +2243,7 @@ redo_poll:
 		}
 
 		if (0 == --r)
-			goto handled;
+			goto done;
 	}
 
 #ifdef USBI_TIMERFD_AVAILABLE
@@ -2242,7 +2252,6 @@ redo_poll:
 		/* timerfd indicates that a timeout has expired */
 		int ret;
 		usbi_dbg("timerfd triggered");
-		special_event = 1;
 
 		ret = handle_timerfd_trigger(ctx);
 		if (ret < 0) {
@@ -2252,19 +2261,13 @@ redo_poll:
 		}
 
 		if (0 == --r)
-			goto handled;
+			goto done;
 	}
 #endif
 
-	r = usbi_backend->handle_events(ctx, fds + internal_nfds, nfds - internal_nfds, r);
+	r = usbi_backend.handle_events(ctx, fds + internal_nfds, nfds - internal_nfds, r);
 	if (r)
 		usbi_err(ctx, "backend handle_events failed with error %d", r);
-
-handled:
-	if (r == 0 && special_event) {
-		timeout_ms = 0;
-		goto redo_poll;
-	}
 
 done:
 	usbi_end_event_handling(ctx);
@@ -2583,7 +2586,7 @@ int API_EXPORTED libusb_get_next_timeout(libusb_context *ctx,
 		return 0;
 	}
 
-	r = usbi_backend->clock_gettime(USBI_CLOCK_MONOTONIC, &cur_ts);
+	r = usbi_backend.clock_gettime(USBI_CLOCK_MONOTONIC, &cur_ts);
 	if (r < 0) {
 		usbi_err(ctx, "failed to read monotonic clock, errno=%d", errno);
 		return 0;
@@ -2811,7 +2814,7 @@ void usbi_handle_disconnect(struct libusb_device_handle *dev_handle)
 			 USBI_TRANSFER_TO_LIBUSB_TRANSFER(to_cancel));
 
 		usbi_mutex_lock(&to_cancel->lock);
-		usbi_backend->clear_transfer_priv(to_cancel);
+		usbi_backend.clear_transfer_priv(to_cancel);
 		usbi_mutex_unlock(&to_cancel->lock);
 		usbi_handle_transfer_completion(to_cancel, LIBUSB_TRANSFER_NO_DEVICE);
 	}

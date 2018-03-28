@@ -19,12 +19,34 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#if !defined(USBI_HOTPLUG_H)
+#ifndef USBI_HOTPLUG_H
 #define USBI_HOTPLUG_H
 
-#ifndef LIBUSBI_H
 #include "libusbi.h"
-#endif
+
+enum usbi_hotplug_flags {
+	/* This callback is interested in device arrivals */
+	USBI_HOTPLUG_DEVICE_ARRIVED = LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED,
+
+	/* This callback is interested in device removals */
+	USBI_HOTPLUG_DEVICE_LEFT = LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
+
+	/* IMPORTANT: The values for the below entries must start *after*
+	 * the highest value of the above entries!!!
+	 */
+
+	/* The vendor_id field is valid for matching */
+	USBI_HOTPLUG_VENDOR_ID_VALID = (1 << 3),
+
+	/* The product_id field is valid for matching */
+	USBI_HOTPLUG_PRODUCT_ID_VALID = (1 << 4),
+
+	/* The dev_class field is valid for matching */
+	USBI_HOTPLUG_DEV_CLASS_VALID = (1 << 5),
+
+	/* This callback has been unregistered and needs to be freed */
+	USBI_HOTPLUG_NEEDS_FREE = (1 << 6),
+};
 
 /** \ingroup hotplug
  * The hotplug callback structure. The user populates this structure with
@@ -32,23 +54,17 @@
  * to receive notification of hotplug events.
  */
 struct libusb_hotplug_callback {
-	/** Context this callback is associated with */
-	struct libusb_context *ctx;
+	/** Flags that control how this callback behaves */
+	uint8_t flags;
 
-	/** Vendor ID to match or LIBUSB_HOTPLUG_MATCH_ANY */
-	int vendor_id;
+	/** Vendor ID to match (if flags says this is valid) */
+	uint16_t vendor_id;
 
-	/** Product ID to match or LIBUSB_HOTPLUG_MATCH_ANY */
-	int product_id;
+	/** Product ID to match (if flags says this is valid) */
+	uint16_t product_id;
 
-	/** Device class to match or LIBUSB_HOTPLUG_MATCH_ANY */
-	int dev_class;
-
-	/** Hotplug callback flags */
-	libusb_hotplug_flag flags;
-
-	/** Event(s) that will trigger this callback */
-	libusb_hotplug_event events;
+	/** Device class to match (if flags says this is valid) */
+	uint8_t dev_class;
 
 	/** Callback function to invoke for matching event/device */
 	libusb_hotplug_callback_fn cb;
@@ -59,14 +75,9 @@ struct libusb_hotplug_callback {
 	/** User data that will be passed to the callback function */
 	void *user_data;
 
-	/** Callback is marked for deletion */
-	int needs_free;
-
 	/** List this callback is registered in (ctx->hotplug_cbs) */
 	struct list_head list;
 };
-
-typedef struct libusb_hotplug_callback libusb_hotplug_callback;
 
 struct libusb_hotplug_message {
 	/** The hotplug event that occurred */
@@ -79,9 +90,7 @@ struct libusb_hotplug_message {
 	struct list_head list;
 };
 
-typedef struct libusb_hotplug_message libusb_hotplug_message;
-
-void usbi_hotplug_deregister_all(struct libusb_context *ctx);
+void usbi_hotplug_deregister(struct libusb_context *ctx, int forced);
 void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 			libusb_hotplug_event event);
 void usbi_hotplug_notification(struct libusb_context *ctx, struct libusb_device *dev,

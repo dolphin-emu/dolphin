@@ -2,6 +2,7 @@
  * Windows compat: POSIX compatibility wrapper
  * Copyright © 2012-2013 RealVNC Ltd.
  * Copyright © 2009-2010 Pete Batard <pete@akeo.ie>
+ * Copyright © 2016-2018 Chris Dickens <christopher.a.dickens@gmail.com>
  * With contributions from Michael Plante, Orin Eman et al.
  * Parts of poll implementation from libusb-win32, by Stephan Meyer et al.
  *
@@ -40,21 +41,6 @@
 
 #define DUMMY_HANDLE ((HANDLE)(LONG_PTR)-2)
 
-/* Windows versions */
-enum windows_version {
-	WINDOWS_CE = -2,
-	WINDOWS_UNDEFINED = -1,
-	WINDOWS_UNSUPPORTED = 0,
-	WINDOWS_XP = 0x51,
-	WINDOWS_2003 = 0x52,	// Also XP x64
-	WINDOWS_VISTA = 0x60,
-	WINDOWS_7 = 0x61,
-	WINDOWS_8 = 0x62,
-	WINDOWS_8_1_OR_LATER = 0x63,
-	WINDOWS_MAX
-};
-extern int windows_version;
-
 #define MAX_FDS     256
 
 #define POLLIN      0x0001    /* There is data to read */
@@ -65,45 +51,25 @@ extern int windows_version;
 #define POLLNVAL    0x0020    /* Invalid request: fd not open */
 
 struct pollfd {
-    int fd;           /* file descriptor */
-    short events;     /* requested events */
-    short revents;    /* returned events */
+	int fd;		/* file descriptor */
+	short events;	/* requested events */
+	short revents;	/* returned events */
 };
-
-// access modes
-enum rw_type {
-	RW_NONE,
-	RW_READ,
-	RW_WRITE,
-};
-
-// fd struct that can be used for polling on Windows
-typedef int cancel_transfer(struct usbi_transfer *itransfer);
 
 struct winfd {
-	int fd;							// what's exposed to libusb core
-	HANDLE handle;					// what we need to attach overlapped to the I/O op, so we can poll it
-	OVERLAPPED* overlapped;			// what will report our I/O status
-	struct usbi_transfer *itransfer;		// Associated transfer, or NULL if completed
-	cancel_transfer *cancel_fn;		// Function pointer to cancel transfer API
-	enum rw_type rw;				// I/O transfer direction: read *XOR* write (NOT BOTH)
+	int fd;				// what's exposed to libusb core
+	OVERLAPPED *overlapped;		// what will report our I/O status
 };
+
 extern const struct winfd INVALID_WINFD;
+
+struct winfd usbi_create_fd(void);
 
 int usbi_pipe(int pipefd[2]);
 int usbi_poll(struct pollfd *fds, unsigned int nfds, int timeout);
 ssize_t usbi_write(int fd, const void *buf, size_t count);
 ssize_t usbi_read(int fd, void *buf, size_t count);
 int usbi_close(int fd);
-
-void init_polling(void);
-void exit_polling(void);
-struct winfd usbi_create_fd(HANDLE handle, int access_mode, 
-	struct usbi_transfer *transfer, cancel_transfer *cancel_fn);
-void usbi_free_fd(struct winfd* winfd);
-struct winfd fd_to_winfd(int fd);
-struct winfd handle_to_winfd(HANDLE handle);
-struct winfd overlapped_to_winfd(OVERLAPPED* overlapped);
 
 /*
  * Timeval operations

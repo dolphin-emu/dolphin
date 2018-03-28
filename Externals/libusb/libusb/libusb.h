@@ -54,12 +54,18 @@ typedef unsigned __int32  uint32_t;
 #include <sys/types.h>
 #endif
 
-#if defined(__linux) || defined(__APPLE__) || defined(__CYGWIN__) || defined(__HAIKU__)
+#if defined(__linux__) || defined(__APPLE__) || defined(__CYGWIN__) || defined(__HAIKU__)
 #include <sys/time.h>
 #endif
 
 #include <time.h>
 #include <limits.h>
+
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+#define ZERO_SIZED_ARRAY		/* [] - valid C99 code */
+#else
+#define ZERO_SIZED_ARRAY	0	/* [0] - non-standard, but usually working code */
+#endif
 
 /* 'interface' might be defined as a macro on Windows, so we need to
  * undefine it so as not to break the current libusb API, because
@@ -79,6 +85,8 @@ typedef unsigned __int32  uint32_t;
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
 #define LIBUSB_DEPRECATED_FOR(f) \
   __attribute__((deprecated("Use " #f " instead")))
+#elif __GNUC__ >= 3
+#define LIBUSB_DEPRECATED_FOR(f) __attribute__((deprecated))
 #else
 #define LIBUSB_DEPRECATED_FOR(f)
 #endif /* __GNUC__ */
@@ -141,7 +149,7 @@ typedef unsigned __int32  uint32_t;
  * Internally, LIBUSB_API_VERSION is defined as follows:
  * (libusb major << 24) | (libusb minor << 16) | (16 bit incremental)
  */
-#define LIBUSB_API_VERSION 0x01000105
+#define LIBUSB_API_VERSION 0x01000106
 
 /* The following is kept for compatibility, but will be deprecated in the future */
 #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
@@ -729,13 +737,7 @@ struct libusb_bos_dev_capability_descriptor {
 	/** Device Capability type */
 	uint8_t bDevCapabilityType;
 	/** Device Capability data (bLength - 3 bytes) */
-	uint8_t dev_capability_data
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-	[] /* valid C99 code */
-#else
-	[0] /* non-standard, but usually working code */
-#endif
-	;
+	uint8_t dev_capability_data[ZERO_SIZED_ARRAY];
 };
 
 /** \ingroup libusb_desc
@@ -760,13 +762,7 @@ struct libusb_bos_descriptor {
 	uint8_t  bNumDeviceCaps;
 
 	/** bNumDeviceCap Device Capability Descriptors */
-	struct libusb_bos_dev_capability_descriptor *dev_capability
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-	[] /* valid C99 code */
-#else
-	[0] /* non-standard, but usually working code */
-#endif
-	;
+	struct libusb_bos_dev_capability_descriptor *dev_capability[ZERO_SIZED_ARRAY];
 };
 
 /** \ingroup libusb_desc
@@ -927,7 +923,7 @@ struct libusb_version {
  * sessions allows for your program to use two libraries (or dynamically
  * load two modules) which both independently use libusb. This will prevent
  * interference between the individual libusb users - for example
- * libusb_set_debug() will not affect the other user of the library, and
+ * libusb_set_option() will not affect the other user of the library, and
  * libusb_exit() will not destroy resources that the other user is still
  * using.
  *
@@ -987,6 +983,9 @@ enum libusb_speed {
 
 	/** The device is operating at super speed (5000MBit/s). */
 	LIBUSB_SPEED_SUPER = 4,
+
+	/** The device is operating at super speed plus (10000MBit/s). */
+	LIBUSB_SPEED_SUPER_PLUS = 5,
 };
 
 /** \ingroup libusb_dev
@@ -1220,7 +1219,7 @@ struct libusb_transfer {
 	/** Type of the endpoint from \ref libusb_transfer_type */
 	unsigned char type;
 
-	/** Timeout for this transfer in millseconds. A value of 0 indicates no
+	/** Timeout for this transfer in milliseconds. A value of 0 indicates no
 	 * timeout. */
 	unsigned int timeout;
 
@@ -1256,13 +1255,7 @@ struct libusb_transfer {
 	int num_iso_packets;
 
 	/** Isochronous packet descriptors, for isochronous transfers only. */
-	struct libusb_iso_packet_descriptor iso_packet_desc
-#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-	[] /* valid C99 code */
-#else
-	[0] /* non-standard, but usually working code */
-#endif
-	;
+	struct libusb_iso_packet_descriptor iso_packet_desc[ZERO_SIZED_ARRAY];
 };
 
 /** \ingroup libusb_misc
@@ -1290,21 +1283,20 @@ enum libusb_capability {
  *  - LIBUSB_LOG_LEVEL_NONE (0)    : no messages ever printed by the library (default)
  *  - LIBUSB_LOG_LEVEL_ERROR (1)   : error messages are printed to stderr
  *  - LIBUSB_LOG_LEVEL_WARNING (2) : warning and error messages are printed to stderr
- *  - LIBUSB_LOG_LEVEL_INFO (3)    : informational messages are printed to stdout, warning
- *    and error messages are printed to stderr
- *  - LIBUSB_LOG_LEVEL_DEBUG (4)   : debug and informational messages are printed to stdout,
- *    warnings and errors to stderr
+ *  - LIBUSB_LOG_LEVEL_INFO (3)    : informational messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_DEBUG (4)   : debug and informational messages are printed to stderr
  */
 enum libusb_log_level {
 	LIBUSB_LOG_LEVEL_NONE = 0,
-	LIBUSB_LOG_LEVEL_ERROR,
-	LIBUSB_LOG_LEVEL_WARNING,
-	LIBUSB_LOG_LEVEL_INFO,
-	LIBUSB_LOG_LEVEL_DEBUG,
+	LIBUSB_LOG_LEVEL_ERROR = 1,
+	LIBUSB_LOG_LEVEL_WARNING = 2,
+	LIBUSB_LOG_LEVEL_INFO = 3,
+	LIBUSB_LOG_LEVEL_DEBUG = 4,
 };
 
 int LIBUSB_CALL libusb_init(libusb_context **ctx);
 void LIBUSB_CALL libusb_exit(libusb_context *ctx);
+LIBUSB_DEPRECATED_FOR(libusb_set_option)
 void LIBUSB_CALL libusb_set_debug(libusb_context *ctx, int level);
 const struct libusb_version * LIBUSB_CALL libusb_get_version(void);
 int LIBUSB_CALL libusb_has_capability(uint32_t capability);
@@ -2000,6 +1992,45 @@ int LIBUSB_CALL libusb_hotplug_register_callback(libusb_context *ctx,
  */
 void LIBUSB_CALL libusb_hotplug_deregister_callback(libusb_context *ctx,
 						libusb_hotplug_callback_handle callback_handle);
+
+/** \ingroup libusb_lib
+ * Available option values for libusb_set_option().
+ */
+enum libusb_option {
+	/** Set the log message verbosity.
+	 *
+	 * The default level is LIBUSB_LOG_LEVEL_NONE, which means no messages are ever
+	 * printed. If you choose to increase the message verbosity level, ensure
+	 * that your application does not close the stderr file descriptor.
+	 *
+	 * You are advised to use level LIBUSB_LOG_LEVEL_WARNING. libusb is conservative
+	 * with its message logging and most of the time, will only log messages that
+	 * explain error conditions and other oddities. This will help you debug
+	 * your software.
+	 *
+	 * If the LIBUSB_DEBUG environment variable was set when libusb was
+	 * initialized, this function does nothing: the message verbosity is fixed
+	 * to the value in the environment variable.
+	 *
+	 * If libusb was compiled without any message logging, this function does
+	 * nothing: you'll never get any messages.
+	 *
+	 * If libusb was compiled with verbose debug message logging, this function
+	 * does nothing: you'll always get messages from all levels.
+	 */
+	LIBUSB_OPTION_LOG_LEVEL,
+
+	/** Use the UsbDk backend for a specific context, if available.
+	 *
+	 * This option should be set immediately after calling libusb_init(), otherwise
+	 * unspecified behavior may occur.
+	 *
+	 * Only valid on Windows.
+	 */
+	LIBUSB_OPTION_USE_USBDK,
+};
+
+int LIBUSB_CALL libusb_set_option(libusb_context *ctx, enum libusb_option option, ...);
 
 #ifdef __cplusplus
 }
