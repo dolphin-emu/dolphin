@@ -210,7 +210,5 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_gpu_texture_decoding, TR_GPU_DECODING_DESCRIPTION);
   AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
   AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);
-  AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
-  AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);
   AddDescription(m_vertex_rounding, TR_VERTEX_ROUNDING_DESCRIPTION);
 }
