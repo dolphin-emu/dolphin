@@ -588,7 +588,6 @@ if(NOT XXHASH_FOUND)
   add_subdirectory(Externals/xxhash)
   include_directories(Externals/xxhash)
 endif()
-LIST(APPEND LIBS xxhash)
 
 find_package(ZLIB)
 if(ZLIB_FOUND)
