@@ -38,7 +38,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>iphlpapi.lib;winmm.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;ws2_32.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -70,6 +71,12 @@
   <!--Copy the .exe to binary output folder-->
   <ItemGroup>
     <SourceFiles Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="UI.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="Updater.exe.manifest" />
   </ItemGroup>
   <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
     <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
