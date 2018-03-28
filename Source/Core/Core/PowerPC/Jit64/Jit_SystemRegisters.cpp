@@ -407,7 +407,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 
   TEST(32, PPCSTATE(Exceptions),
        Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
-  FixupBranch noExceptionsPending = J_CC(CC_Z);
+  FixupBranch noExceptionsPending = J_CC(CC_Z, true);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
   MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
