@@ -6,9 +6,7 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QScreen>
-#include <QStringList>
 
-#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Resources.h"
@@ -82,8 +80,6 @@ QPixmap Resources::GetScaledThemePixmap(const std::string& name)
 
 void Resources::Init()
 {
-  QString sys_dir = QString::fromStdString(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
-
   for (const std::string& platform :
        {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {

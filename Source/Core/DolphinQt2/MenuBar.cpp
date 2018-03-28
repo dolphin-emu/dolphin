@@ -929,7 +929,7 @@ void MenuBar::LoadSymbolMap()
     g_symbolDB.LoadMap(existing_map_file);
     QMessageBox::information(
         this, tr("Information"),
-        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file.c_str())));
+        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file)));
   }
 
   HLE::PatchFunctions();
@@ -978,7 +978,7 @@ void MenuBar::SaveCode()
   CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
   const std::string path =
-      writable_map_file.substr(0, writable_map_file.find_last_of(".")) + "_code.map";
+      writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
   g_symbolDB.SaveCodeMap(path);
 }

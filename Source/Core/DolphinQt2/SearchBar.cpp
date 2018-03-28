@@ -4,7 +4,6 @@
 
 #include "DolphinQt2/SearchBar.h"
 
-#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
