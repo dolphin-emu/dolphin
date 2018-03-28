@@ -119,7 +119,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const std::str
   return ExportFile(volume, partition, file_system->FindFileInfo(path).get(), export_filename);
 }
 
-void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
                      bool recursive, const std::string& filesystem_path,
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
