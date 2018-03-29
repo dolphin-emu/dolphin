@@ -46,6 +46,7 @@ private:
     IOS::HLE::FS::Fd fs_fd = INVALID_FD;
     // We use a std::array to keep this savestate friendly.
     std::array<char, 64> name{};
+    bool superblock_flush_needed = false;
   };
 
   enum
@@ -79,7 +80,15 @@ private:
   IPCCommandResult GetUsage(const Handle& handle, const IOCtlVRequest& request);
   IPCCommandResult Shutdown(const Handle& handle, const IOCtlRequest& request);
 
+  u64 EstimateTicksForReadWrite(const Handle& handle, const ReadWriteRequest& request);
+  u64 SimulatePopulateFileCache(u32 fd, u32 offset, u32 file_size);
+  u64 SimulateFlushFileCache();
+  bool HasCacheForFile(u32 fd, u32 offset) const;
+
   std::map<u32, Handle> m_fd_map;
+  u32 m_cache_fd = INVALID_FD;
+  u16 m_cache_chain_index = 0;
+  bool m_dirty_cache = false;
 };
 }  // namespace Device
 }  // namespace HLE
