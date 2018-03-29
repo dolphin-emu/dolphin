@@ -36,6 +36,9 @@ static IPCCommandResult GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
   return {return_value, true, (2700 + extra_tb_ticks) * SystemTimers::TIMER_RATIO};
 }
 
+/// Amount of TB ticks required for a superblock write to complete.
+constexpr u64 SUPERBLOCK_WRITE_TICKS = 3370000;
+
 FS::FS(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 }
@@ -78,6 +81,16 @@ static u64 EstimateFileLookupTicks(const std::string& path, FileLookupMode mode)
   if (mode == FileLookupMode::Normal)
     return 680 * number_of_path_components;
   return 1000 + 340 * number_of_path_components;
+}
+
+/// Get a reply with the correct timing for operations that modify the superblock.
+///
+/// A superblock flush takes a very large amount of time, so other delays are ignored
+/// to simplify the implementation as they are insignificant.
+static IPCCommandResult GetReplyForSuperblockOperation(ResultCode result)
+{
+  const u64 ticks = result == ResultCode::Success ? SUPERBLOCK_WRITE_TICKS : 0;
+  return GetFSReply(ConvertResult(result), ticks);
 }
 
 IPCCommandResult FS::Open(const OpenRequest& request)
@@ -271,7 +284,7 @@ IPCCommandResult FS::Format(const Handle& handle, const IOCtlRequest& request)
     return GetFSReply(ConvertResult(ResultCode::AccessDenied));
 
   const ResultCode result = m_ios.GetFS()->Format(handle.uid);
-  return GetFSReply(ConvertResult(result));
+  return GetReplyForSuperblockOperation(result);
 }
 
 IPCCommandResult FS::GetStats(const Handle& handle, const IOCtlRequest& request)
@@ -306,7 +319,7 @@ IPCCommandResult FS::CreateDirectory(const Handle& handle, const IOCtlRequest& r
       m_ios.GetFS()->CreateDirectory(handle.uid, handle.gid, params->path, params->attribute,
                                      params->owner_mode, params->group_mode, params->other_mode);
   LogResult(StringFromFormat("CreateDirectory(%s)", params->path), result);
-  return GetFSReply(ConvertResult(result));
+  return GetReplyForSuperblockOperation(result);
 }
 
 IPCCommandResult FS::ReadDirectory(const Handle& handle, const IOCtlVRequest& request)
@@ -371,7 +384,7 @@ IPCCommandResult FS::SetAttribute(const Handle& handle, const IOCtlRequest& requ
       handle.uid, params->path, params->uid, params->gid, params->attribute, params->owner_mode,
       params->group_mode, params->other_mode);
   LogResult(StringFromFormat("SetMetadata(%s)", params->path), result);
-  return GetFSReply(ConvertResult(result));
+  return GetReplyForSuperblockOperation(result);
 }
 
 IPCCommandResult FS::GetAttribute(const Handle& handle, const IOCtlRequest& request)
@@ -408,7 +421,7 @@ IPCCommandResult FS::DeleteFile(const Handle& handle, const IOCtlRequest& reques
   const std::string path = Memory::GetString(request.buffer_in, 64);
   const ResultCode result = m_ios.GetFS()->Delete(handle.uid, handle.gid, path);
   LogResult(StringFromFormat("Delete(%s)", path.c_str()), result);
-  return GetFSReply(ConvertResult(result));
+  return GetReplyForSuperblockOperation(result);
 }
 
 IPCCommandResult FS::RenameFile(const Handle& handle, const IOCtlRequest& request)
@@ -420,7 +433,7 @@ IPCCommandResult FS::RenameFile(const Handle& handle, const IOCtlRequest& reques
   const std::string new_path = Memory::GetString(request.buffer_in + 64, 64);
   const ResultCode result = m_ios.GetFS()->Rename(handle.uid, handle.gid, old_path, new_path);
   LogResult(StringFromFormat("Rename(%s, %s)", old_path.c_str(), new_path.c_str()), result);
-  return GetFSReply(ConvertResult(result));
+  return GetReplyForSuperblockOperation(result);
 }
 
 IPCCommandResult FS::CreateFile(const Handle& handle, const IOCtlRequest& request)
@@ -433,7 +446,7 @@ IPCCommandResult FS::CreateFile(const Handle& handle, const IOCtlRequest& reques
       m_ios.GetFS()->CreateFile(handle.uid, handle.gid, params->path, params->attribute,
                                 params->owner_mode, params->group_mode, params->other_mode);
   LogResult(StringFromFormat("CreateFile(%s)", params->path), result);
-  return GetFSReply(ConvertResult(result));
+  return GetReplyForSuperblockOperation(result);
 }
 
 IPCCommandResult FS::SetFileVersionControl(const Handle& handle, const IOCtlRequest& request)
