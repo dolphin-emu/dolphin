@@ -640,9 +640,9 @@ void NetPlayClient::ThreadFunc()
     qos_session = Common::QoSSession(m_server);
 
     if (qos_session.Successful())
-      m_dialog->AppendChat("Quality of Service (QoS) was successfully enabled.");
+      m_dialog->AppendChat(GetStringT("Quality of Service (QoS) was successfully enabled."));
     else
-      m_dialog->AppendChat("Quality of Service (QoS) couldn't be enabled.");
+      m_dialog->AppendChat(GetStringT("Quality of Service (QoS) couldn't be enabled."));
   }
 
   while (m_do_loop.IsSet())
