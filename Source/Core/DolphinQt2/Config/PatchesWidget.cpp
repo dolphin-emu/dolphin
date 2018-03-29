@@ -169,7 +169,8 @@ void PatchesWidget::Update()
 void PatchesWidget::UpdateActions()
 {
   bool selected = !m_list->selectedItems().isEmpty();
-  auto* item = m_list->selectedItems()[0];
+
+  auto* item = selected ? m_list->selectedItems()[0] : nullptr;
 
   bool user_defined = selected ? item->data(Qt::UserRole).toBool() : true;
 
