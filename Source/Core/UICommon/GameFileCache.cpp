@@ -28,7 +28,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 7;  // Last changed in PR 6281
+static constexpr u32 CACHE_REVISION = 8;  // Last changed in PR 6560
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -60,7 +60,12 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
       [&path](const std::shared_ptr<GameFile>& file) { return file->GetFilePath() == path; });
   const bool found = it != m_cached_files.cend();
   if (!found)
-    m_cached_files.emplace_back(std::make_shared<GameFile>(path));
+  {
+    std::shared_ptr<UICommon::GameFile> game = std::make_shared<GameFile>(path);
+    if (!game->IsValid())
+      return nullptr;
+    m_cached_files.emplace_back(std::move(game));
+  }
   std::shared_ptr<GameFile>& result = found ? *it : m_cached_files.back();
   if (UpdateAdditionalMetadata(&result, title_database) || !found)
     *cache_changed = true;
