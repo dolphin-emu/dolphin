@@ -4,6 +4,7 @@
 
 #include "Core/IOS/FS/FileSystemProxy.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "Common/Assert.h"
@@ -56,29 +57,54 @@ static void LogResult(const std::string& command, const Result<T>& result)
   LogResult(command, result.Succeeded() ? ResultCode::Success : result.Error());
 }
 
+enum class FileLookupMode
+{
+  Normal,
+  /// Timing model to use when FS splits the path into a parent and a file name
+  /// and looks up each of them individually.
+  Split,
+};
+// Note: lookups normally stop at the first non existing path (as the FST cannot be traversed
+// further when a directory doesn't exist). However for the sake of simplicity we assume that the
+// entire lookup succeeds because otherwise we'd need to check whether every path component exists.
+static u64 EstimateFileLookupTicks(const std::string& path, FileLookupMode mode)
+{
+  const size_t number_of_path_components = std::count(path.cbegin(), path.cend(), '/');
+  if (number_of_path_components == 0)
+    return 0;
+  // Paths that end with a slash are invalid and rejected early in FS.
+  if (!path.empty() && *path.rbegin() == '/')
+    return 300;
+  if (mode == FileLookupMode::Normal)
+    return 680 * number_of_path_components;
+  return 1000 + 340 * number_of_path_components;
+}
+
 IPCCommandResult FS::Open(const OpenRequest& request)
 {
   if (m_fd_map.size() >= 16)
-    return GetDefaultReply(ConvertResult(ResultCode::NoFreeHandle));
+    return GetFSReply(ConvertResult(ResultCode::NoFreeHandle));
 
   if (request.path.size() >= 64)
-    return GetDefaultReply(ConvertResult(ResultCode::Invalid));
+    return GetFSReply(ConvertResult(ResultCode::Invalid));
 
   if (request.path == "/dev/fs")
   {
     m_fd_map[request.fd] = {request.gid, request.uid, INVALID_FD};
-    return GetDefaultReply(IPC_SUCCESS);
+    return GetFSReply(IPC_SUCCESS);
   }
+
+  const u64 ticks = EstimateFileLookupTicks(request.path, FileLookupMode::Normal);
 
   auto backend_fd = m_ios.GetFS()->OpenFile(request.uid, request.gid, request.path,
                                             static_cast<Mode>(request.flags & 3));
   LogResult(StringFromFormat("OpenFile(%s)", request.path.c_str()), backend_fd);
   if (!backend_fd)
-    return GetFSReply(ConvertResult(backend_fd.Error()));
+    return GetFSReply(ConvertResult(backend_fd.Error()), ticks);
 
   m_fd_map[request.fd] = {request.gid, request.uid, backend_fd->Release()};
   std::strncpy(m_fd_map[request.fd].name.data(), request.path.c_str(), 64);
-  return GetFSReply(IPC_SUCCESS);
+  return GetFSReply(IPC_SUCCESS, ticks);
 }
 
 IPCCommandResult FS::Close(u32 fd)
