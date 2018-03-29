@@ -41,5 +41,9 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV)
 
 # Link against glslang, the other necessary libraries are referenced by the executable.
 add_dolphin_library(videovulkan "${SRCS}" "${LIBS}")
-target_link_libraries(videovulkan PRIVATE glslang)
+target_link_libraries(videovulkan
+PRIVATE
+  glslang
+  xxhash
+)
 

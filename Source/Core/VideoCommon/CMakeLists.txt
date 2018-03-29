@@ -64,6 +64,7 @@ PUBLIC
   core
 PRIVATE
   png
+  xxhash
 )
 
 if(_M_X86)
