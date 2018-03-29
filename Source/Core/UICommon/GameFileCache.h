@@ -35,6 +35,7 @@ public:
 
   void Clear();
 
+  // Returns nullptr if the file is invalid.
   std::shared_ptr<const GameFile> AddOrGet(const std::string& path, bool* cache_changed,
                                            const Core::TitleDatabase& title_database);
 
