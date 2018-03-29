@@ -380,10 +380,11 @@ IPCCommandResult FS::GetAttribute(const Handle& handle, const IOCtlRequest& requ
     return GetFSReply(ConvertResult(ResultCode::Invalid));
 
   const std::string path = Memory::GetString(request.buffer_in, 64);
+  const u64 ticks = EstimateFileLookupTicks(path, FileLookupMode::Split);
   const Result<Metadata> metadata = m_ios.GetFS()->GetMetadata(handle.uid, handle.gid, path);
   LogResult(StringFromFormat("GetMetadata(%s)", path.c_str()), metadata);
   if (!metadata)
-    return GetFSReply(ConvertResult(metadata.Error()));
+    return GetFSReply(ConvertResult(metadata.Error()), ticks);
 
   // Yes, the other members aren't copied at all. Actually, IOS does not even memset
   // the struct at all, which means uninitialised bytes from the stack are returned.
@@ -396,7 +397,7 @@ IPCCommandResult FS::GetAttribute(const Handle& handle, const IOCtlRequest& requ
   out.group_mode = metadata->group_mode;
   out.other_mode = metadata->other_mode;
   Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
-  return GetFSReply(IPC_SUCCESS);
+  return GetFSReply(IPC_SUCCESS, ticks);
 }
 
 IPCCommandResult FS::DeleteFile(const Handle& handle, const IOCtlRequest& request)
