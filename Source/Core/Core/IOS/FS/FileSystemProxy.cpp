@@ -29,10 +29,10 @@ static s32 ConvertResult(ResultCode code)
   return -(static_cast<s32>(code) + 100);
 }
 
-// XXX: timing is not the same for all commands and in all cases.
-static IPCCommandResult GetFSReply(s32 return_value)
+static IPCCommandResult GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
 {
-  return {return_value, true, SystemTimers::GetTicksPerSecond() / 500};
+  // According to hardware tests, FS takes at least 2700 TB ticks to reply to commands.
+  return {return_value, true, (2700 + extra_tb_ticks) * SystemTimers::TIMER_RATIO};
 }
 
 FS::FS(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
