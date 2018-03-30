@@ -291,6 +291,15 @@ PUBLIC
   z
 )
 
+if (APPLE)
+  target_link_libraries(core
+  PRIVATE
+    ${CORESERV_LIBRARY}
+    ${IOB_LIBRARY}
+    ${IOK_LIBRARY}
+  )
+endif()
+
 if(LIBUSB_FOUND)
   # Using shared LibUSB
   target_link_libraries(core PUBLIC ${LIBUSB_LIBRARIES})

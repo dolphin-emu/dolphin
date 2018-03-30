@@ -52,6 +52,15 @@ target_link_libraries(common PUBLIC
   ${VTUNE_LIBRARIES}
 )
 
+if (APPLE)
+  target_link_libraries(common
+  PRIVATE
+    ${APPKIT_LIBRARY}
+    ${COREFOUNDATION_LIBRARY}
+    ${IOK_LIBRARY}
+  )
+endif()
+
 if(ANDROID)
   target_sources(common PRIVATE
     Logging/ConsoleListenerDroid.cpp
