@@ -291,7 +291,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(IOB_LIBRARY IOBluetooth)
   find_library(IOK_LIBRARY IOKit)
-  find_library(FORCEFEEDBACK ForceFeedback)
   find_library(OPENGL_LIBRARY OpenGL)
 
   # Link against OS X system frameworks.
@@ -302,7 +301,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     ${COREFUND_LIBRARY}
     ${CORESERV_LIBRARY}
     ${IOK_LIBRARY}
-    ${FORCEFEEDBACK}
   )
 endif()
 
