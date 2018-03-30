@@ -19,12 +19,12 @@ namespace ControllerEmu
 {
 Force::Force(const std::string& name_) : ControlGroup(name_, GroupType::Force)
 {
-  controls.emplace_back(std::make_unique<Input>(_trans("Up")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Down")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Left")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Right")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
+  controls.emplace_back(std::make_unique<Input>(true, _trans("Up")));
+  controls.emplace_back(std::make_unique<Input>(true, _trans("Down")));
+  controls.emplace_back(std::make_unique<Input>(true, _trans("Left")));
+  controls.emplace_back(std::make_unique<Input>(true, _trans("Right")));
+  controls.emplace_back(std::make_unique<Input>(true, _trans("Forward")));
+  controls.emplace_back(std::make_unique<Input>(true, _trans("Backward")));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }

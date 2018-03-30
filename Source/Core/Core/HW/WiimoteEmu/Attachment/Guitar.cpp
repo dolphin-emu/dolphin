@@ -66,17 +66,17 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
   // frets
   groups.emplace_back(m_frets = new ControllerEmu::Buttons(_trans("Frets")));
   for (auto& guitar_fret_name : guitar_fret_names)
-    m_frets->controls.emplace_back(new ControllerEmu::Input(guitar_fret_name));
+    m_frets->controls.emplace_back(new ControllerEmu::Input(true, guitar_fret_name));
 
   // strum
   groups.emplace_back(m_strum = new ControllerEmu::Buttons(_trans("Strum")));
-  m_strum->controls.emplace_back(new ControllerEmu::Input(_trans("Up")));
-  m_strum->controls.emplace_back(new ControllerEmu::Input(_trans("Down")));
+  m_strum->controls.emplace_back(new ControllerEmu::Input(true, _trans("Up")));
+  m_strum->controls.emplace_back(new ControllerEmu::Input(true, _trans("Down")));
 
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(false, "-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(false, "+"));
 
   // stick
   groups.emplace_back(
@@ -84,7 +84,7 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 
   // whammy
   groups.emplace_back(m_whammy = new ControllerEmu::Triggers(_trans("Whammy")));
-  m_whammy->controls.emplace_back(new ControllerEmu::Input(_trans("Bar")));
+  m_whammy->controls.emplace_back(new ControllerEmu::Input(true, _trans("Bar")));
 
   // slider bar
   groups.emplace_back(m_slider_bar = new ControllerEmu::Slider(_trans("Slider Bar")));
