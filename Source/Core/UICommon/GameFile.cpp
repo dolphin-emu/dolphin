@@ -222,9 +222,11 @@ bool GameFile::BannerChanged()
   if (!DiscIO::IsWii(m_platform))
     return false;
 
-  m_volume_banner.buffer =
-      DiscIO::WiiSaveBanner(m_title_id).GetBanner(&m_volume_banner.width, &m_volume_banner.height);
-  if (m_volume_banner.buffer.empty())
+  m_pending.volume_banner.buffer =
+      DiscIO::WiiSaveBanner(m_title_id)
+          .GetBanner(&m_pending.volume_banner.width, &m_pending.volume_banner.height);
+
+  if (m_pending.volume_banner.buffer.empty())
     return false;
 
   // We only reach here if m_volume_banner was empty, so we can always return true
