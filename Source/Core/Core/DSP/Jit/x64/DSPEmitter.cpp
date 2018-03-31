@@ -208,15 +208,6 @@ void DSPEmitter::Compile(u16 start_addr)
 
   const u8* entryPoint = AlignCode16();
 
-  /*
-  // Check for other exceptions
-  if (dsp_SR_is_flag_set(SR_INT_ENABLE))
-    return;
-
-  if (g_dsp.exceptions == 0)
-    return;
-  */
-
   m_gpr.LoadRegs();
 
   m_block_link_entry = GetCodePtr();
