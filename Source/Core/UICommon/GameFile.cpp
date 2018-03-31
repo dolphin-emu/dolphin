@@ -48,9 +48,9 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
     return it->second;
 
   // English tends to be a good fallback when the requested language isn't available
-  if (language != DiscIO::Language::LANGUAGE_ENGLISH)
+  if (language != DiscIO::Language::English)
   {
-    it = strings.find(DiscIO::Language::LANGUAGE_ENGLISH);
+    it = strings.find(DiscIO::Language::English);
     if (it != end)
       return it->second;
   }
@@ -70,8 +70,7 @@ GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string
 }
 
 GameFile::GameFile(const std::string& path)
-    : m_file_path(path), m_region(DiscIO::Region::UNKNOWN_REGION),
-      m_country(DiscIO::Country::COUNTRY_UNKNOWN)
+    : m_file_path(path), m_region(DiscIO::Region::Unknown), m_country(DiscIO::Country::Unknown)
 {
   {
     std::string name, extension;
@@ -113,7 +112,7 @@ GameFile::GameFile(const std::string& path)
   {
     m_valid = true;
     m_file_size = File::GetSize(m_file_path);
-    m_platform = DiscIO::Platform::ELF_DOL;
+    m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
 }
@@ -123,7 +122,7 @@ bool GameFile::IsValid() const
   if (!m_valid)
     return false;
 
-  if (m_platform == DiscIO::Platform::WII_WAD && !IOS::ES::IsChannel(m_title_id))
+  if (m_platform == DiscIO::Platform::WiiWAD && !IOS::ES::IsChannel(m_title_id))
     return false;
 
   return true;
@@ -131,7 +130,7 @@ bool GameFile::IsValid() const
 
 bool GameFile::CustomNameChanged(const Core::TitleDatabase& title_database)
 {
-  const auto type = m_platform == DiscIO::Platform::WII_WAD ?
+  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
                         Core::TitleDatabase::TitleType::Channel :
                         Core::TitleDatabase::TitleType::Other;
   m_pending.custom_name = title_database.GetTitleName(m_game_id, type);
@@ -273,7 +272,7 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 
 std::string GameFile::GetUniqueIdentifier() const
 {
-  const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
+  const DiscIO::Language lang = DiscIO::Language::English;
   std::vector<std::string> info;
   if (!GetGameID().empty())
     info.push_back(GetGameID());

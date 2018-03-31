@@ -258,14 +258,14 @@ Region VolumeWii::GetRegion() const
 {
   const std::optional<u32> region_code = m_pReader->ReadSwapped<u32>(0x4E000);
   if (!region_code)
-    return Region::UNKNOWN_REGION;
+    return Region::Unknown;
   const Region region = static_cast<Region>(*region_code);
-  return region <= Region::NTSC_K ? region : Region::UNKNOWN_REGION;
+  return region <= Region::NTSC_K ? region : Region::Unknown;
 }
 
 Country VolumeWii::GetCountry(const Partition& partition) const
 {
-  // The 0 that we use as a default value is mapped to COUNTRY_UNKNOWN and UNKNOWN_REGION
+  // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
   u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
 
@@ -332,7 +332,7 @@ std::string VolumeWii::GetApploaderDate(const Partition& partition) const
 
 Platform VolumeWii::GetVolumeType() const
 {
-  return Platform::WII_DISC;
+  return Platform::WiiDisc;
 }
 
 std::optional<u8> VolumeWii::GetDiscNumber(const Partition& partition) const

@@ -23,25 +23,25 @@ static std::string GetLanguageCode(DiscIO::Language language)
 {
   switch (language)
   {
-  case DiscIO::Language::LANGUAGE_JAPANESE:
+  case DiscIO::Language::Japanese:
     return "ja";
-  case DiscIO::Language::LANGUAGE_ENGLISH:
+  case DiscIO::Language::English:
     return "en";
-  case DiscIO::Language::LANGUAGE_GERMAN:
+  case DiscIO::Language::German:
     return "de";
-  case DiscIO::Language::LANGUAGE_FRENCH:
+  case DiscIO::Language::French:
     return "fr";
-  case DiscIO::Language::LANGUAGE_SPANISH:
+  case DiscIO::Language::Spanish:
     return "es";
-  case DiscIO::Language::LANGUAGE_ITALIAN:
+  case DiscIO::Language::Italian:
     return "it";
-  case DiscIO::Language::LANGUAGE_DUTCH:
+  case DiscIO::Language::Dutch:
     return "nl";
-  case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
+  case DiscIO::Language::SimplifiedChinese:
     return "zh_CN";
-  case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
+  case DiscIO::Language::TraditionalChinese:
     return "zh_TW";
-  case DiscIO::Language::LANGUAGE_KOREAN:
+  case DiscIO::Language::Korean:
     return "ko";
   default:
     return "en";
@@ -95,12 +95,12 @@ static bool IsWiiTitle(const std::string& game_id)
 
 static bool IsJapaneseGCTitle(const std::string& game_id)
 {
-  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) == DiscIO::Country::COUNTRY_JAPAN;
+  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) == DiscIO::Country::Japan;
 }
 
 static bool IsNonJapaneseGCTitle(const std::string& game_id)
 {
-  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) != DiscIO::Country::COUNTRY_JAPAN;
+  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) != DiscIO::Country::Japan;
 }
 
 // Note that this function will not overwrite entries that already are in the maps

@@ -76,14 +76,14 @@ Region VolumeGC::GetRegion() const
 {
   const std::optional<u32> region_code = ReadSwapped<u32>(0x458, PARTITION_NONE);
   if (!region_code)
-    return Region::UNKNOWN_REGION;
+    return Region::Unknown;
   const Region region = static_cast<Region>(*region_code);
-  return region <= Region::PAL ? region : Region::UNKNOWN_REGION;
+  return region <= Region::PAL ? region : Region::Unknown;
 }
 
 Country VolumeGC::GetCountry(const Partition& partition) const
 {
-  // The 0 that we use as a default value is mapped to COUNTRY_UNKNOWN and UNKNOWN_REGION
+  // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
   const u8 country = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
 
@@ -93,7 +93,7 @@ Country VolumeGC::GetCountry(const Partition& partition) const
   // W means Taiwan for Wii games, but on the GC, it's used for English-language Korean releases.
   // (There doesn't seem to be any pattern to which of E and W is used for Korean GC releases.)
   if (region == Region::NTSC_J && (country == 'E' || country == 'K' || country == 'W'))
-    return Country::COUNTRY_KOREA;
+    return Country::Korea;
 
   if (RegionSwitchGC(country) != region)
     return TypicalCountryForRegion(region);
@@ -188,7 +188,7 @@ std::optional<u8> VolumeGC::GetDiscNumber(const Partition& partition) const
 
 Platform VolumeGC::GetVolumeType() const
 {
-  return Platform::GAMECUBE_DISC;
+  return Platform::GameCubeDisc;
 }
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const
@@ -228,18 +228,17 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   ConvertedGCBanner banner;
 
   u32 number_of_languages = 0;
-  Language start_language = Language::LANGUAGE_UNKNOWN;
+  Language start_language = Language::Unknown;
 
   if (is_bnr1)  // NTSC
   {
-    bool is_japanese = GetRegion() == Region::NTSC_J;
     number_of_languages = 1;
-    start_language = is_japanese ? Language::LANGUAGE_JAPANESE : Language::LANGUAGE_ENGLISH;
+    start_language = GetRegion() == Region::NTSC_J ? Language::Japanese : Language::English;
   }
   else  // PAL
   {
     number_of_languages = 6;
-    start_language = Language::LANGUAGE_ENGLISH;
+    start_language = Language::English;
   }
 
   banner.image_width = GC_BANNER_WIDTH;

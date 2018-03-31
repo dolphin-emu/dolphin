@@ -1127,7 +1127,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
 
   const u64 current_time = CoreTiming::GetTicks();
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
-  const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WII_DISC;
+  const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WiiDisc;
 
   // Where the DVD read head is (usually parked at the end of the buffer,
   // unless we've interrupted it mid-buffer-read).

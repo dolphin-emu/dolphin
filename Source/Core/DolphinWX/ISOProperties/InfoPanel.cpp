@@ -52,37 +52,37 @@ wxArrayString GetLanguageChoiceStrings(const std::vector<DiscIO::Language>& lang
   {
     switch (language)
     {
-    case DiscIO::Language::LANGUAGE_JAPANESE:
+    case DiscIO::Language::Japanese:
       available_languages.Add(_("Japanese"));
       break;
-    case DiscIO::Language::LANGUAGE_ENGLISH:
+    case DiscIO::Language::English:
       available_languages.Add(_("English"));
       break;
-    case DiscIO::Language::LANGUAGE_GERMAN:
+    case DiscIO::Language::German:
       available_languages.Add(_("German"));
       break;
-    case DiscIO::Language::LANGUAGE_FRENCH:
+    case DiscIO::Language::French:
       available_languages.Add(_("French"));
       break;
-    case DiscIO::Language::LANGUAGE_SPANISH:
+    case DiscIO::Language::Spanish:
       available_languages.Add(_("Spanish"));
       break;
-    case DiscIO::Language::LANGUAGE_ITALIAN:
+    case DiscIO::Language::Italian:
       available_languages.Add(_("Italian"));
       break;
-    case DiscIO::Language::LANGUAGE_DUTCH:
+    case DiscIO::Language::Dutch:
       available_languages.Add(_("Dutch"));
       break;
-    case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
+    case DiscIO::Language::SimplifiedChinese:
       available_languages.Add(_("Simplified Chinese"));
       break;
-    case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
+    case DiscIO::Language::TraditionalChinese:
       available_languages.Add(_("Traditional Chinese"));
       break;
-    case DiscIO::Language::LANGUAGE_KOREAN:
+    case DiscIO::Language::Korean:
       available_languages.Add(_("Korean"));
       break;
-    case DiscIO::Language::LANGUAGE_UNKNOWN:
+    case DiscIO::Language::Unknown:
     default:
       available_languages.Add(_("Unknown"));
       break;
@@ -96,33 +96,33 @@ wxString GetCountryName(DiscIO::Country country)
 {
   switch (country)
   {
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
+  case DiscIO::Country::Australia:
     return _("Australia");
-  case DiscIO::Country::COUNTRY_EUROPE:
+  case DiscIO::Country::Europe:
     return _("Europe");
-  case DiscIO::Country::COUNTRY_FRANCE:
+  case DiscIO::Country::France:
     return _("France");
-  case DiscIO::Country::COUNTRY_ITALY:
+  case DiscIO::Country::Italy:
     return _("Italy");
-  case DiscIO::Country::COUNTRY_GERMANY:
+  case DiscIO::Country::Germany:
     return _("Germany");
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
+  case DiscIO::Country::Netherlands:
     return _("Netherlands");
-  case DiscIO::Country::COUNTRY_RUSSIA:
+  case DiscIO::Country::Russia:
     return _("Russia");
-  case DiscIO::Country::COUNTRY_SPAIN:
+  case DiscIO::Country::Spain:
     return _("Spain");
-  case DiscIO::Country::COUNTRY_USA:
+  case DiscIO::Country::USA:
     return _("USA");
-  case DiscIO::Country::COUNTRY_JAPAN:
+  case DiscIO::Country::Japan:
     return _("Japan");
-  case DiscIO::Country::COUNTRY_KOREA:
+  case DiscIO::Country::Korea:
     return _("Korea");
-  case DiscIO::Country::COUNTRY_TAIWAN:
+  case DiscIO::Country::Taiwan:
     return _("Taiwan");
-  case DiscIO::Country::COUNTRY_WORLD:
+  case DiscIO::Country::World:
     return _("World");
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Country::Unknown:
   default:
     return _("Unknown");
   }
