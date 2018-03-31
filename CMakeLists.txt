@@ -597,7 +597,6 @@ else()
   include_directories(Externals/LZO)
   set(LZO lzo2)
 endif()
-list(APPEND LIBS ${LZO})
 
 if(NOT APPLE)
   check_lib(PNG libpng png png.h QUIET)

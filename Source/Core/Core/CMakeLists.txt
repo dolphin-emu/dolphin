@@ -280,7 +280,6 @@ PUBLIC
   discio
   enet
   inputcommon
-  ${LZO}
   ${MBEDTLS_LIBRARIES}
   pugixml
   sfml-network
@@ -289,6 +288,9 @@ PUBLIC
   videoogl
   videosoftware
   z
+
+PRIVATE
+  ${LZO}
 )
 
 if (APPLE)
