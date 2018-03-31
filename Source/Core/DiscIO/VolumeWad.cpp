@@ -75,14 +75,14 @@ const FileSystem* VolumeWAD::GetFileSystem(const Partition& partition) const
 Region VolumeWAD::GetRegion() const
 {
   if (!m_tmd.IsValid())
-    return Region::UNKNOWN_REGION;
+    return Region::Unknown;
   return m_tmd.GetRegion();
 }
 
 Country VolumeWAD::GetCountry(const Partition& partition) const
 {
   if (!m_tmd.IsValid())
-    return Country::COUNTRY_UNKNOWN;
+    return Country::Unknown;
 
   u8 country_code = static_cast<u8>(m_tmd.GetTitleId() & 0xff);
   if (country_code == 2)  // SYSMENU
@@ -130,7 +130,7 @@ std::optional<u16> VolumeWAD::GetRevision(const Partition& partition) const
 
 Platform VolumeWAD::GetVolumeType() const
 {
-  return Platform::WII_WAD;
+  return Platform::WiiWAD;
 }
 
 std::map<Language, std::string> VolumeWAD::GetLongNames() const

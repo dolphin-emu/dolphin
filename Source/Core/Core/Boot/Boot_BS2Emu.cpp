@@ -341,7 +341,7 @@ static void WriteEmptyPlayRecord()
 bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
 {
   INFO_LOG(BOOT, "Faking Wii BS2...");
-  if (volume.GetVolumeType() != DiscIO::Platform::WII_DISC)
+  if (volume.GetVolumeType() != DiscIO::Platform::WiiDisc)
     return false;
 
   const DiscIO::Partition partition = volume.GetGamePartition();

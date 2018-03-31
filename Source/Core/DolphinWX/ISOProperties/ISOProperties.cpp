@@ -364,7 +364,7 @@ void CISOProperties::CreateGUIControls()
 
   wxStaticBoxSizer* const wii_overrides_sizer =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
-  if (m_open_iso->GetVolumeType() == DiscIO::Platform::GAMECUBE_DISC)
+  if (m_open_iso->GetVolumeType() == DiscIO::Platform::GameCubeDisc)
   {
     wii_overrides_sizer->ShowItems(false);
     m_enable_widescreen->Hide();

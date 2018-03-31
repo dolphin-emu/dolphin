@@ -168,7 +168,7 @@ void GameList::ShowContextMenu(const QPoint&)
   AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
 
-  if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
+  if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
   {
     AddAction(menu, tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
     const auto blob_type = game->GetBlobType();
@@ -187,7 +187,7 @@ void GameList::ShowContextMenu(const QPoint&)
     menu->addSeparator();
   }
 
-  if (platform == DiscIO::Platform::WII_DISC)
+  if (platform == DiscIO::Platform::WiiDisc)
   {
     auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
       WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
@@ -195,7 +195,7 @@ void GameList::ShowContextMenu(const QPoint&)
     perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
   }
 
-  if (platform == DiscIO::Platform::WII_WAD)
+  if (platform == DiscIO::Platform::WiiWAD)
   {
     QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
     QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
@@ -218,7 +218,7 @@ void GameList::ShowContextMenu(const QPoint&)
     menu->addSeparator();
   }
 
-  if (platform == DiscIO::Platform::WII_WAD || platform == DiscIO::Platform::WII_DISC)
+  if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
   {
     AddAction(menu, tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
     AddAction(menu, tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
@@ -278,7 +278,7 @@ void GameList::CompressISO()
 
   const bool compressed = (file->GetBlobType() == DiscIO::BlobType::GCZ);
 
-  if (!compressed && file->GetPlatform() == DiscIO::Platform::WII_DISC)
+  if (!compressed && file->GetPlatform() == DiscIO::Platform::WiiDisc)
   {
     QMessageBox wii_warning(this);
     wii_warning.setIcon(QMessageBox::Warning);
@@ -319,7 +319,7 @@ void GameList::CompressISO()
   else
   {
     good = DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
-                                      file->GetPlatform() == DiscIO::Platform::WII_DISC ? 1 : 0,
+                                      file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
                                       16384, &CompressCB, &progress_dialog);
   }
 

@@ -208,12 +208,11 @@ std::string SystemUpdater::GetDeviceRegion()
   if (tmd.IsValid())
   {
     const DiscIO::Region region = tmd.GetRegion();
-    static const std::map<DiscIO::Region, std::string> regions = {
-        {DiscIO::Region::NTSC_J, "JPN"},
-        {DiscIO::Region::NTSC_U, "USA"},
-        {DiscIO::Region::PAL, "EUR"},
-        {DiscIO::Region::NTSC_K, "KOR"},
-        {DiscIO::Region::UNKNOWN_REGION, "EUR"}};
+    static const std::map<DiscIO::Region, std::string> regions = {{DiscIO::Region::NTSC_J, "JPN"},
+                                                                  {DiscIO::Region::NTSC_U, "USA"},
+                                                                  {DiscIO::Region::PAL, "EUR"},
+                                                                  {DiscIO::Region::NTSC_K, "KOR"},
+                                                                  {DiscIO::Region::Unknown, "EUR"}};
     return regions.at(region);
   }
   return "";

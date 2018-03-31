@@ -172,13 +172,13 @@ static bool ShouldDisplayGameListItem(const UICommon::GameFile& item)
   const bool show_platform = [&item] {
     switch (item.GetPlatform())
     {
-    case DiscIO::Platform::GAMECUBE_DISC:
+    case DiscIO::Platform::GameCubeDisc:
       return SConfig::GetInstance().m_ListGC;
-    case DiscIO::Platform::WII_DISC:
+    case DiscIO::Platform::WiiDisc:
       return SConfig::GetInstance().m_ListWii;
-    case DiscIO::Platform::WII_WAD:
+    case DiscIO::Platform::WiiWAD:
       return SConfig::GetInstance().m_ListWad;
-    case DiscIO::Platform::ELF_DOL:
+    case DiscIO::Platform::ELFOrDOL:
       return SConfig::GetInstance().m_ListElfDol;
     default:
       return false;
@@ -190,33 +190,33 @@ static bool ShouldDisplayGameListItem(const UICommon::GameFile& item)
 
   switch (item.GetCountry())
   {
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
+  case DiscIO::Country::Australia:
     return SConfig::GetInstance().m_ListAustralia;
-  case DiscIO::Country::COUNTRY_EUROPE:
+  case DiscIO::Country::Europe:
     return SConfig::GetInstance().m_ListPal;
-  case DiscIO::Country::COUNTRY_FRANCE:
+  case DiscIO::Country::France:
     return SConfig::GetInstance().m_ListFrance;
-  case DiscIO::Country::COUNTRY_GERMANY:
+  case DiscIO::Country::Germany:
     return SConfig::GetInstance().m_ListGermany;
-  case DiscIO::Country::COUNTRY_ITALY:
+  case DiscIO::Country::Italy:
     return SConfig::GetInstance().m_ListItaly;
-  case DiscIO::Country::COUNTRY_JAPAN:
+  case DiscIO::Country::Japan:
     return SConfig::GetInstance().m_ListJap;
-  case DiscIO::Country::COUNTRY_KOREA:
+  case DiscIO::Country::Korea:
     return SConfig::GetInstance().m_ListKorea;
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
+  case DiscIO::Country::Netherlands:
     return SConfig::GetInstance().m_ListNetherlands;
-  case DiscIO::Country::COUNTRY_RUSSIA:
+  case DiscIO::Country::Russia:
     return SConfig::GetInstance().m_ListRussia;
-  case DiscIO::Country::COUNTRY_SPAIN:
+  case DiscIO::Country::Spain:
     return SConfig::GetInstance().m_ListSpain;
-  case DiscIO::Country::COUNTRY_TAIWAN:
+  case DiscIO::Country::Taiwan:
     return SConfig::GetInstance().m_ListTaiwan;
-  case DiscIO::Country::COUNTRY_USA:
+  case DiscIO::Country::USA:
     return SConfig::GetInstance().m_ListUsa;
-  case DiscIO::Country::COUNTRY_WORLD:
+  case DiscIO::Country::World:
     return SConfig::GetInstance().m_ListWorld;
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Country::Unknown:
   default:
     return SConfig::GetInstance().m_ListUnknown;
   }
@@ -328,45 +328,36 @@ void GameListCtrl::InitBitmaps()
   AssignImageList(img_list, wxIMAGE_LIST_SMALL);
 
   auto& flag_indexes = m_image_indexes.flag;
-  flag_indexes.resize(static_cast<size_t>(DiscIO::Country::NUMBER_OF_COUNTRIES));
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_JAPAN,
-             "Flag_Japan");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_EUROPE,
-             "Flag_Europe");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_USA,
-             "Flag_USA");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_AUSTRALIA,
+  flag_indexes.resize(static_cast<size_t>(DiscIO::Country::NumberOfCountries));
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Japan, "Flag_Japan");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Europe, "Flag_Europe");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::USA, "Flag_USA");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Australia,
              "Flag_Australia");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_FRANCE,
-             "Flag_France");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_GERMANY,
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::France, "Flag_France");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Germany,
              "Flag_Germany");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_ITALY,
-             "Flag_Italy");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_KOREA,
-             "Flag_Korea");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_NETHERLANDS,
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Italy, "Flag_Italy");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Korea, "Flag_Korea");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Netherlands,
              "Flag_Netherlands");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_RUSSIA,
-             "Flag_Russia");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_SPAIN,
-             "Flag_Spain");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_TAIWAN,
-             "Flag_Taiwan");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_WORLD,
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Russia, "Flag_Russia");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Spain, "Flag_Spain");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Taiwan, "Flag_Taiwan");
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::World,
              "Flag_International");
-  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::COUNTRY_UNKNOWN,
+  InitBitmap(img_list, &flag_indexes, this, flag_bmp_size, DiscIO::Country::Unknown,
              "Flag_Unknown");
 
   auto& platform_indexes = m_image_indexes.platform;
-  platform_indexes.resize(static_cast<size_t>(DiscIO::Platform::NUMBER_OF_PLATFORMS));
-  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::GAMECUBE_DISC,
+  platform_indexes.resize(static_cast<size_t>(DiscIO::Platform::NumberOfPlatforms));
+  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::GameCubeDisc,
              "Platform_Gamecube");
-  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::WII_DISC,
+  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::WiiDisc,
              "Platform_Wii");
-  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::WII_WAD,
+  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::WiiWAD,
              "Platform_Wad");
-  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::ELF_DOL,
+  InitBitmap(img_list, &platform_indexes, this, platform_bmp_size, DiscIO::Platform::ELFOrDOL,
              "Platform_File");
 
   auto& emu_state_indexes = m_image_indexes.emu_state;
@@ -954,13 +945,13 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
       wxMenu popupMenu;
       DiscIO::Platform platform = selected_iso->GetPlatform();
 
-      if (platform != DiscIO::Platform::ELF_DOL)
+      if (platform != DiscIO::Platform::ELFOrDOL)
       {
         popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
         popupMenu.Append(IDM_GAME_WIKI, _("&Wiki"));
         popupMenu.AppendSeparator();
       }
-      if (platform == DiscIO::Platform::WII_DISC || platform == DiscIO::Platform::WII_WAD)
+      if (platform == DiscIO::Platform::WiiDisc || platform == DiscIO::Platform::WiiWAD)
       {
         auto* const open_save_folder_item =
             popupMenu.Append(IDM_OPEN_SAVE_FOLDER, _("Open Wii &save folder"));
@@ -979,7 +970,7 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
       }
       popupMenu.Append(IDM_OPEN_CONTAINING_FOLDER, _("Open &containing folder"));
 
-      if (platform != DiscIO::Platform::ELF_DOL)
+      if (platform != DiscIO::Platform::ELFOrDOL)
         popupMenu.AppendCheckItem(IDM_SET_DEFAULT_ISO, _("Set as &default ISO"));
 
       // First we have to decide a starting value when we append it
@@ -989,7 +980,7 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
       popupMenu.AppendSeparator();
       popupMenu.Append(IDM_DELETE_ISO, _("&Delete File..."));
 
-      if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
+      if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
       {
         if (selected_iso->GetBlobType() == DiscIO::BlobType::GCZ)
           popupMenu.Append(IDM_COMPRESS_ISO, _("Decompress ISO..."));
@@ -1000,14 +991,14 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
         changeDiscItem->Enable(Core::IsRunning());
       }
 
-      if (platform == DiscIO::Platform::WII_DISC)
+      if (platform == DiscIO::Platform::WiiDisc)
       {
         auto* const perform_update_item =
             popupMenu.Append(IDM_LIST_PERFORM_DISC_UPDATE, _("Perform System Update"));
         perform_update_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
       }
 
-      if (platform == DiscIO::Platform::WII_WAD)
+      if (platform == DiscIO::Platform::WiiWAD)
       {
         auto* const install_wad_item =
             popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to the NAND"));
@@ -1208,8 +1199,8 @@ void GameListCtrl::CompressSelection(bool _compress)
   for (const UICommon::GameFile* iso : GetAllSelectedISOs())
   {
     // Don't include items that we can't do anything with
-    if (iso->GetPlatform() != DiscIO::Platform::GAMECUBE_DISC &&
-        iso->GetPlatform() != DiscIO::Platform::WII_DISC)
+    if (iso->GetPlatform() != DiscIO::Platform::GameCubeDisc &&
+        iso->GetPlatform() != DiscIO::Platform::WiiDisc)
       continue;
     if (iso->GetBlobType() != DiscIO::BlobType::PLAIN &&
         iso->GetBlobType() != DiscIO::BlobType::GCZ)
@@ -1220,7 +1211,7 @@ void GameListCtrl::CompressSelection(bool _compress)
     // Show the Wii compression warning if it's relevant and it hasn't been shown already
     if (!wii_compression_warning_accepted && _compress &&
         iso->GetBlobType() != DiscIO::BlobType::GCZ &&
-        iso->GetPlatform() == DiscIO::Platform::WII_DISC)
+        iso->GetPlatform() == DiscIO::Platform::WiiDisc)
     {
       if (WiiCompressWarning())
         wii_compression_warning_accepted = true;
@@ -1269,7 +1260,7 @@ void GameListCtrl::CompressSelection(bool _compress)
 
         all_good &=
             DiscIO::CompressFileToBlob(iso->GetFilePath(), OutputFileName,
-                                       (iso->GetPlatform() == DiscIO::Platform::WII_DISC) ? 1 : 0,
+                                       (iso->GetPlatform() == DiscIO::Platform::WiiDisc) ? 1 : 0,
                                        16384, &MultiCompressCB, &progress);
       }
       else if (iso->GetBlobType() == DiscIO::BlobType::GCZ && !_compress)
@@ -1277,7 +1268,7 @@ void GameListCtrl::CompressSelection(bool _compress)
         std::string FileName;
         SplitPath(iso->GetFilePath(), nullptr, &FileName, nullptr);
         progress.current_filename = FileName;
-        if (iso->GetPlatform() == DiscIO::Platform::WII_DISC)
+        if (iso->GetPlatform() == DiscIO::Platform::WiiDisc)
           FileName.append(".iso");
         else
           FileName.append(".gcm");
@@ -1328,7 +1319,7 @@ void GameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED(event))
     if (is_compressed)
     {
       wxString FileType;
-      if (iso->GetPlatform() == DiscIO::Platform::WII_DISC)
+      if (iso->GetPlatform() == DiscIO::Platform::WiiDisc)
         FileType = _("All Wii ISO files (iso)") + "|*.iso";
       else
         FileType = _("All GameCube GCM files (gcm)") + "|*.gcm";
@@ -1339,7 +1330,7 @@ void GameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED(event))
     }
     else
     {
-      if (iso->GetPlatform() == DiscIO::Platform::WII_DISC && !WiiCompressWarning())
+      if (iso->GetPlatform() == DiscIO::Platform::WiiDisc && !WiiCompressWarning())
         return;
 
       path = wxFileSelector(_("Save compressed GCM/ISO"), StrToWxStr(FilePath),
@@ -1370,7 +1361,7 @@ void GameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED(event))
     else
       all_good = DiscIO::CompressFileToBlob(
           iso->GetFilePath(), WxStrToStr(path),
-          (iso->GetPlatform() == DiscIO::Platform::WII_DISC) ? 1 : 0, 16384, &CompressCB, &dialog);
+          (iso->GetPlatform() == DiscIO::Platform::WiiDisc) ? 1 : 0, 16384, &CompressCB, &dialog);
   }
 
   if (!all_good)
