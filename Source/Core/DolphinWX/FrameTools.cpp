@@ -204,7 +204,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnToggleWindow, this, IDM_LOG_WINDOW, IDM_VIDEO_WINDOW);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_LIST_WAD, IDM_LIST_DRIVES);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_PURGE_GAME_LIST_CACHE);
-  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_STATE);
+  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_SIZE);
 
   // Help menu
   Bind(wxEVT_MENU, &CFrame::OnHelp, this, IDM_HELP_WEBSITE);
@@ -1917,9 +1917,6 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
     break;
   case IDM_SHOW_SIZE:
     SConfig::GetInstance().m_showSizeColumn = !SConfig::GetInstance().m_showSizeColumn;
-    break;
-  case IDM_SHOW_STATE:
-    SConfig::GetInstance().m_showStateColumn = !SConfig::GetInstance().m_showStateColumn;
     break;
   default:
     return;

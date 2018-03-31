@@ -183,7 +183,6 @@ EVT_CLOSE(CISOProperties::OnClose)
 EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
-EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::PatchListSelectionChanged)
 EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -333,22 +332,6 @@ void CISOProperties::CreateGUIControls()
                      wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
   m_mono_depth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  wxBoxSizer* const emustate_sizer = new wxBoxSizer(wxHORIZONTAL);
-  wxStaticText* const emustate_text =
-      new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State:"));
-  m_emustate_string.Add(_("Not Set"));
-  m_emustate_string.Add(_("Broken"));
-  m_emustate_string.Add(_("Intro"));
-  m_emustate_string.Add(_("In Game"));
-  m_emustate_string.Add(_("Playable"));
-  m_emustate_string.Add(_("Perfect"));
-  m_emustate_choice =
-      new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, m_emustate_string);
-  m_emu_issues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
-  emustate_sizer->Add(emustate_text, 0, wxALIGN_CENTER_VERTICAL);
-  emustate_sizer->Add(m_emustate_choice, 0, wxALIGN_CENTER_VERTICAL);
-  emustate_sizer->Add(m_emu_issues, 1, wxEXPAND);
-
   wxStaticBoxSizer* const core_overrides_sizer =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
   core_overrides_sizer->Add(m_cpu_thread, 0, wxLEFT | wxRIGHT, space5);
@@ -389,8 +372,6 @@ void CISOProperties::CreateGUIControls()
   wxBoxSizer* const config_page_sizer = new wxBoxSizer(wxVERTICAL);
   config_page_sizer->AddSpacer(space5);
   config_page_sizer->Add(game_config_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  config_page_sizer->AddSpacer(space5);
-  config_page_sizer->Add(emustate_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   config_page_sizer->AddSpacer(space5);
   m_GameConfig->SetSizer(config_page_sizer);
 
@@ -489,11 +470,6 @@ void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED(event))
   Close();
 }
 
-void CISOProperties::OnEmustateChanged(wxCommandEvent& event)
-{
-  m_emu_issues->Enable(event.GetSelection() != 0);
-}
-
 void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char* key,
                                                  wxCheckBox* checkbox)
 {
@@ -537,20 +513,6 @@ void CISOProperties::LoadGameConfig()
   default_video->Get("PH_ZFar", &m_phack_data.PHZFar);
   if (m_gameini_local.GetIfExists("Video", "PH_ZFar", &sTemp))
     m_phack_data.PHZFar = sTemp;
-
-  IniFile::Section* default_emustate = m_gameini_default.GetOrCreateSection("EmuState");
-  default_emustate->Get("EmulationStateId", &iTemp, 0 /*Not Set*/);
-  m_emustate_choice->SetSelection(iTemp);
-  if (m_gameini_local.GetIfExists("EmuState", "EmulationStateId", &iTemp))
-    m_emustate_choice->SetSelection(iTemp);
-
-  default_emustate->Get("EmulationIssues", &sTemp);
-  if (!sTemp.empty())
-    m_emu_issues->SetValue(StrToWxStr(sTemp));
-  if (m_gameini_local.GetIfExists("EmuState", "EmulationIssues", &sTemp))
-    m_emu_issues->SetValue(StrToWxStr(sTemp));
-
-  m_emu_issues->Enable(m_emustate_choice->GetSelection() != 0);
 
   sTemp = "";
   if (!m_gameini_local.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
@@ -637,10 +599,6 @@ bool CISOProperties::SaveGameConfig()
   SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_phack_data.PHackSZFar ? 1 : 0), 0);
   SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_phack_data.PHZNear, "");
   SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_phack_data.PHZFar, "");
-  SAVE_IF_NOT_DEFAULT("EmuState", "EmulationStateId", m_emustate_choice->GetSelection(), 0);
-
-  std::string emu_issues = m_emu_issues->GetValue().ToStdString();
-  SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
 
   std::string tmp;
   if (m_gpu_determinism->GetSelection() == 0)

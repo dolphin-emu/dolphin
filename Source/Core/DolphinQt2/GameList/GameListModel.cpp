@@ -55,12 +55,6 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game.GetCountry());
     break;
-  case COL_RATING:
-    if (role == Qt::DecorationRole)
-      return Resources::GetRating(game.GetEmuState());
-    if (role == Qt::InitialSortOrderRole)
-      return game.GetEmuState();
-    break;
   case COL_BANNER:
     if (role == Qt::DecorationRole)
     {
@@ -128,8 +122,6 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("File Name");
   case COL_SIZE:
     return tr("Size");
-  case COL_RATING:
-    return tr("State");
   }
   return QVariant();
 }

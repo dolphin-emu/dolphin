@@ -276,7 +276,6 @@ struct SConfig
   bool m_showIDColumn;
   bool m_showRegionColumn;
   bool m_showSizeColumn;
-  bool m_showStateColumn;
 
   std::string m_WirelessMac;
   bool m_PauseMovie;

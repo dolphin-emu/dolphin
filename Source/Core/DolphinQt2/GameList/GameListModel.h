@@ -48,7 +48,6 @@ public:
     COL_ID,
     COL_COUNTRY,
     COL_SIZE,
-    COL_RATING,
     COL_FILE_NAME,
     NUM_COLS
   };

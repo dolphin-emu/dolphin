@@ -319,8 +319,6 @@ wxMenu* MainMenuBar::CreateViewMenu() const
   columns_menu->Check(IDM_SHOW_REGION, config_instance.m_showRegionColumn);
   columns_menu->AppendCheckItem(IDM_SHOW_SIZE, _("File Size"));
   columns_menu->Check(IDM_SHOW_SIZE, config_instance.m_showSizeColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
-  columns_menu->Check(IDM_SHOW_STATE, config_instance.m_showStateColumn);
 
   auto* const view_menu = new wxMenu;
   view_menu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _("Show &Toolbar"));
