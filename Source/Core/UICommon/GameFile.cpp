@@ -226,12 +226,9 @@ bool GameFile::BannerChanged()
       DiscIO::WiiSaveBanner(m_title_id)
           .GetBanner(&m_pending.volume_banner.width, &m_pending.volume_banner.height);
 
-  if (m_pending.volume_banner.buffer.empty())
-    return false;
-
-  // We only reach here if m_volume_banner was empty, so we can always return true
-  // without needing any extra check to know whether the banners are different
-  return true;
+  // We only reach here if the old banner was empty, so if the new banner isn't empty,
+  // the new banner is guaranteed to be different from the old banner
+  return !m_pending.volume_banner.buffer.empty();
 }
 
 void GameFile::BannerCommit()
