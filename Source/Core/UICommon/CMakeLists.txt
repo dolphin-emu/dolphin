@@ -9,9 +9,13 @@ add_library(uicommon
   VideoUtils.cpp
 )
 
-target_link_libraries(uicommon PUBLIC
+target_link_libraries(uicommon
+PUBLIC
   common
   cpp-optparse
+
+PRIVATE
+  $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 
 if(USE_X11)

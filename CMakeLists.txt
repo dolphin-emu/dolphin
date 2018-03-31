@@ -282,26 +282,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
-  find_library(AU_LIBRARY AudioUnit)
   find_library(CARBON_LIBRARY Carbon)
   find_library(COCOA_LIBRARY Cocoa)
-  find_library(COREAUDIO_LIBRARY CoreAudio)
-  find_library(COREFUND_LIBRARY CoreFoundation)
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(CORESERV_LIBRARY CoreServices)
+  find_library(FORCEFEEDBACK_LIBRARY ForceFeedback)
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(IOB_LIBRARY IOBluetooth)
   find_library(IOK_LIBRARY IOKit)
   find_library(OPENGL_LIBRARY OpenGL)
-
-  # Link against OS X system frameworks.
-  list(APPEND LIBS
-    ${APPKIT_LIBRARY}
-    ${AU_LIBRARY}
-    ${COREAUDIO_LIBRARY}
-    ${COREFUND_LIBRARY}
-    ${CORESERV_LIBRARY}
-    ${IOK_LIBRARY}
-  )
 endif()
 
 if(ENABLE_LTO)

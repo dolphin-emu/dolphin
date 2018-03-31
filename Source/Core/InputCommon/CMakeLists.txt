@@ -37,10 +37,6 @@ if(WIN32)
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
   )
 elseif(APPLE)
-  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
-  find_library(CARBON_LIBRARY Carbon)
-  find_library(COCOA_LIBRARY Cocoa)
-  find_library(FORCEFEEDBACK_LIBRARY ForceFeedback)
   target_sources(inputcommon PRIVATE
     ControllerInterface/OSX/OSX.mm
     ControllerInterface/OSX/OSXJoystick.mm
@@ -53,6 +49,7 @@ elseif(APPLE)
     ${CARBON_LIBRARY}
     ${COCOA_LIBRARY}
     ${FORCEFEEDBACK_LIBRARY}
+    ${IOK_LIBRARY}
   )
 elseif(X11_FOUND)
   target_sources(inputcommon PRIVATE
