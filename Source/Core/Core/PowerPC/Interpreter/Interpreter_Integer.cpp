@@ -4,10 +4,9 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include "Common/CommonFuncs.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Core/PowerPC/PowerPC.h"
 
 void Interpreter::Helper_UpdateCR0(u32 value)
@@ -172,7 +171,7 @@ void Interpreter::xoris(UGeckoInstruction inst)
 void Interpreter::rlwimix(UGeckoInstruction inst)
 {
   u32 mask = Helper_Mask(inst.MB, inst.ME);
-  rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (_rotl(rGPR[inst.RS], inst.SH) & mask);
+  rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -181,7 +180,7 @@ void Interpreter::rlwimix(UGeckoInstruction inst)
 void Interpreter::rlwinmx(UGeckoInstruction inst)
 {
   u32 mask = Helper_Mask(inst.MB, inst.ME);
-  rGPR[inst.RA] = _rotl(rGPR[inst.RS], inst.SH) & mask;
+  rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -190,7 +189,7 @@ void Interpreter::rlwinmx(UGeckoInstruction inst)
 void Interpreter::rlwnmx(UGeckoInstruction inst)
 {
   u32 mask = Helper_Mask(inst.MB, inst.ME);
-  rGPR[inst.RA] = _rotl(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
+  rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
