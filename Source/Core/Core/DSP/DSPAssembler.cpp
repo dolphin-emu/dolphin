@@ -597,12 +597,6 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             }
           }
           break;
-          /*				case P_ACCM_D: //P_ACC_MID:
-                    if ((int)par[i].val < 0x1e || (int)par[i].val > 0x1f)
-                    {
-                      ShowError(ERR_WRONG_PARAMETER_MID_ACC);
-                    }
-                    break;*/
         }
         continue;
       }

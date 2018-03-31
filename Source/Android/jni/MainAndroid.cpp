@@ -281,14 +281,6 @@ static std::string GetTitle(std::string filename)
     if (titles.empty())
       titles = pVolume->GetShortNames();
 
-    /*
-    const bool is_wii_title = DiscIO::IsWii(pVolume->GetVolumeType());
-    DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
-
-    auto it = titles.find(language);
-    if (it != end)
-      return it->second;*/
-
     auto end = titles.end();
 
     // English tends to be a good fallback when the requested language isn't available
@@ -321,14 +313,6 @@ static std::string GetDescription(std::string filename)
   if (volume != nullptr)
   {
     std::map<DiscIO::Language, std::string> descriptions = volume->GetDescriptions();
-
-    /*
-    const bool is_wii_title = DiscIO::IsWii(pVolume->GetVolumeType());
-    DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
-
-    auto it = descriptions.find(language);
-    if (it != end)
-      return it->second;*/
 
     auto end = descriptions.end();
 
