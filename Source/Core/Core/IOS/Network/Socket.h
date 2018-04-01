@@ -175,8 +175,11 @@ class WiiSocket
 {
 public:
   WiiSocket() = default;
+  WiiSocket(const WiiSocket&) = delete;
+  WiiSocket(WiiSocket&&) = default;
   ~WiiSocket();
-  void operator=(WiiSocket const&) = delete;
+  WiiSocket& operator=(const WiiSocket&) = delete;
+  WiiSocket& operator=(WiiSocket&&) = default;
 
 private:
   struct sockop
