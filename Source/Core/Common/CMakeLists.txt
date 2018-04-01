@@ -44,12 +44,16 @@ add_library(common
   x64Emitter.cpp
 )
 
-target_link_libraries(common PUBLIC
+target_link_libraries(common
+PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
   ${CURL_LIBRARIES}
   enet
   ${MBEDTLS_LIBRARIES}
   ${VTUNE_LIBRARIES}
+
+PRIVATE
+  ${ICONV_LIBRARIES}
 )
 
 if (APPLE)
@@ -65,7 +69,6 @@ if(ANDROID)
   target_sources(common PRIVATE
     Logging/ConsoleListenerDroid.cpp
   )
-  target_link_libraries(common PRIVATE iconv)
 elseif(WIN32)
   target_sources(common PRIVATE
     Logging/ConsoleListenerWin.cpp
