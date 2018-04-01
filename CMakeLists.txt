@@ -568,7 +568,6 @@ else()
   include_directories(Externals/enet/include)
   add_subdirectory(Externals/enet)
 endif()
-LIST(APPEND LIBS enet)
 
 if(NOT XXHASH_FOUND)
   message(STATUS "Using static xxhash from Externals")
