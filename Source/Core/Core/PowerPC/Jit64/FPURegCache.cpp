@@ -24,7 +24,7 @@ void FPURegCache::LoadRegister(size_t preg, X64Reg new_loc)
   m_emitter->MOVAPD(new_loc, m_regs[preg].location);
 }
 
-const X64Reg* FPURegCache::GetAllocationOrder(size_t* count)
+const X64Reg* FPURegCache::GetAllocationOrder(size_t* count) const
 {
   static const X64Reg allocation_order[] = {XMM6,  XMM7,  XMM8,  XMM9, XMM10, XMM11, XMM12,
                                             XMM13, XMM14, XMM15, XMM2, XMM3,  XMM4,  XMM5};
@@ -37,12 +37,12 @@ OpArg FPURegCache::GetDefaultLocation(size_t reg) const
   return PPCSTATE(ps[reg][0]);
 }
 
-BitSet32 FPURegCache::GetRegUtilization()
+BitSet32 FPURegCache::GetRegUtilization() const
 {
   return m_jit.js.op->gprInReg;
 }
 
-BitSet32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead)
+BitSet32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead) const
 {
   BitSet32 regs_used;
 
