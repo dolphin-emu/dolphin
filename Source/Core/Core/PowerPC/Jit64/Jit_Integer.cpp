@@ -350,7 +350,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   }
 }
 
-bool Jit64::CheckMergedBranch(u32 crf)
+bool Jit64::CheckMergedBranch(u32 crf) const
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
