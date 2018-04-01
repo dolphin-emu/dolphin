@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <clocale>
 #include <cmath>
+#include <iomanip>
 #include <locale>
 #include <memory>
+#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 #endif
@@ -406,7 +408,10 @@ std::string FormatSize(u64 bytes)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  return StringFromFormat("%.2f %s", bytes / unit_size, GetStringT(unit_symbols[unit]).c_str());
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(2);
+  ss << bytes / unit_size << ' ' << GetStringT(unit_symbols[unit]);
+  return ss.str();
 }
 
 }  // namespace UICommon
