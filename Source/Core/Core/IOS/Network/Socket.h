@@ -185,9 +185,9 @@ class WiiSocket
   };
 
 private:
-  s32 fd;
-  s32 wii_fd;
-  bool nonBlock;
+  s32 fd = -1;
+  s32 wii_fd = -1;
+  bool nonBlock = false;
   std::list<sockop> pending_sockops;
 
   friend class WiiSockMan;
@@ -201,7 +201,7 @@ private:
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
 public:
-  WiiSocket() : fd(-1), nonBlock(false) {}
+  WiiSocket() = default;
   ~WiiSocket();
   void operator=(WiiSocket const&) = delete;
 };
