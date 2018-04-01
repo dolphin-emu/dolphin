@@ -173,6 +173,12 @@ struct WiiSockAddrIn
 
 class WiiSocket
 {
+public:
+  WiiSocket() = default;
+  ~WiiSocket();
+  void operator=(WiiSocket const&) = delete;
+
+private:
   struct sockop
   {
     Request request;
@@ -184,12 +190,6 @@ class WiiSocket
     };
   };
 
-private:
-  s32 fd = -1;
-  s32 wii_fd = -1;
-  bool nonBlock = false;
-  std::list<sockop> pending_sockops;
-
   friend class WiiSockMan;
   void SetFd(s32 s);
   void SetWiiFd(s32 s);
@@ -200,10 +200,10 @@ private:
   void DoSock(Request request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
-public:
-  WiiSocket() = default;
-  ~WiiSocket();
-  void operator=(WiiSocket const&) = delete;
+  s32 fd = -1;
+  s32 wii_fd = -1;
+  bool nonBlock = false;
+  std::list<sockop> pending_sockops;
 };
 
 class WiiSockMan
