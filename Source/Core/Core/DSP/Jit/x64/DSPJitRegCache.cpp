@@ -923,7 +923,7 @@ void DSPJitRegCache::SpillXReg(X64Reg reg)
   }
 }
 
-X64Reg DSPJitRegCache::FindFreeXReg()
+X64Reg DSPJitRegCache::FindFreeXReg() const
 {
   for (X64Reg x : s_allocation_order)
   {
