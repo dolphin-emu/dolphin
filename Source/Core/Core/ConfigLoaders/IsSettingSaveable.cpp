@@ -80,9 +80,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
 
       // Graphics.GameSpecific
 
-      Config::GFX_PROJECTION_HACK.location, Config::GFX_PROJECTION_HACK_SZNEAR.location,
-      Config::GFX_PROJECTION_HACK_SZFAR.location, Config::GFX_PROJECTION_HACK_ZNEAR.location,
-      Config::GFX_PROJECTION_HACK_ZFAR.location, Config::GFX_PERF_QUERIES_ENABLE.location,
+      Config::GFX_PERF_QUERIES_ENABLE.location,
 
   };
 

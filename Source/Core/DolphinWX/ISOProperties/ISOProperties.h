@@ -39,14 +39,6 @@ namespace Gecko
 class CodeConfigPanel;
 }
 
-struct PHackData
-{
-  bool PHackSZNear;
-  bool PHackSZFar;
-  std::string PHZNear;
-  std::string PHZFar;
-};
-
 wxDECLARE_EVENT(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, wxCommandEvent);
 
 class CISOProperties : public wxDialog
@@ -64,7 +56,6 @@ private:
   std::unique_ptr<DiscIO::Volume> m_open_iso;
 
   std::vector<PatchEngine::Patch> m_on_frame;
-  PHackData m_phack_data;
 
   // Core
   wxCheckBox *m_cpu_thread, *m_mmu, *m_dcbz_off, *m_fprf;

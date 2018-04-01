@@ -12,8 +12,6 @@
 class PointerWrap;
 struct ProjectionHackConfig;
 
-void UpdateProjectionHack(const ProjectionHackConfig& config);
-
 // The non-API dependent parts.
 class VertexShaderManager
 {

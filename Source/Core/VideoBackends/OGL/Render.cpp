@@ -51,11 +51,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-void VideoConfig::UpdateProjectionHack()
-{
-  ::UpdateProjectionHack(g_Config.phack);
-}
-
 namespace OGL
 {
 VideoConfig g_ogl_config;
