@@ -44,7 +44,7 @@ void GraphicsWindow::CreateMainLayout()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   description_box->setLayout(description_layout);
-  description_box->setFixedHeight(230);
+  description_box->setFixedHeight(200);
 
   m_description->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_description->setWordWrap(true);
@@ -69,15 +69,16 @@ void GraphicsWindow::CreateMainLayout()
 
   if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
   {
-    m_tab_widget->addTab(GetWrappedWidget(m_general_widget, this, 50, 325), tr("General"));
-    m_tab_widget->addTab(GetWrappedWidget(m_enhancements_widget, this, 50, 325),
+    m_tab_widget->addTab(GetWrappedWidget(m_general_widget, this, 50, 305), tr("General"));
+    m_tab_widget->addTab(GetWrappedWidget(m_enhancements_widget, this, 50, 305),
                          tr("Enhancements"));
-    m_tab_widget->addTab(GetWrappedWidget(m_hacks_widget, this, 50, 325), tr("Hacks"));
-    m_tab_widget->addTab(GetWrappedWidget(m_advanced_widget, this, 50, 325), tr("Advanced"));
+    m_tab_widget->addTab(GetWrappedWidget(m_hacks_widget, this, 50, 305), tr("Hacks"));
+    m_tab_widget->addTab(GetWrappedWidget(m_advanced_widget, this, 50, 305), tr("Advanced"));
   }
   else
   {
-    m_tab_widget->addTab(GetWrappedWidget(m_software_renderer, this, 325), tr("Software Renderer"));
+    m_tab_widget->addTab(GetWrappedWidget(m_software_renderer, this, 50, 305),
+                         tr("Software Renderer"));
   }
 
   setLayout(main_layout);
