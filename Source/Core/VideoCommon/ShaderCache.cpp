@@ -602,6 +602,12 @@ void ShaderCache::LoadPipelineUIDCache()
       m_gx_pipeline_uid_cache_file.WriteBytes(&CACHE_FILE_MAGIC, sizeof(GX_PIPELINE_UID_VERSION));
       m_gx_pipeline_uid_cache_file.WriteBytes(&GX_PIPELINE_UID_VERSION,
                                               sizeof(GX_PIPELINE_UID_VERSION));
+
+      // Write any current UIDs out to the file.
+      // This way, if we load a UID cache where the data was incomplete (e.g. Dolphin crashed),
+      // we don't lose the existing UIDs which were previously at the beginning.
+      for (const auto& it : m_gx_pipeline_cache)
+        AppendGXPipelineUID(it.first);
     }
   }
 
