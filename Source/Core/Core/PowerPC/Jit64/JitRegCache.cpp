@@ -317,7 +317,7 @@ X64Reg RegCache::GetFreeXReg()
   return INVALID_REG;
 }
 
-int RegCache::NumFreeRegisters()
+int RegCache::NumFreeRegisters() const
 {
   int count = 0;
   size_t aCount;
@@ -330,16 +330,16 @@ int RegCache::NumFreeRegisters()
 
 // Estimate roughly how bad it would be to de-allocate this register. Higher score
 // means more bad.
-float RegCache::ScoreRegister(X64Reg xr)
+float RegCache::ScoreRegister(X64Reg xreg) const
 {
-  size_t preg = m_xregs[xr].ppcReg;
+  size_t preg = m_xregs[xreg].ppcReg;
   float score = 0;
 
   // If it's not dirty, we don't need a store to write it back to the register file, so
   // bias a bit against dirty registers. Testing shows that a bias of 2 seems roughly
   // right: 3 causes too many extra clobbers, while 1 saves very few clobbers relative
   // to the number of extra stores it causes.
-  if (m_xregs[xr].dirty)
+  if (m_xregs[xreg].dirty)
     score += 2;
 
   // If the register isn't actually needed in a physical register for a later instruction,
