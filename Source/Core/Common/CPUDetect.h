@@ -7,17 +7,17 @@
 
 #include <string>
 
-enum CPUVendor
+enum class CPUVendor
 {
-  VENDOR_INTEL = 0,
-  VENDOR_AMD = 1,
-  VENDOR_ARM = 2,
-  VENDOR_OTHER = 3,
+  Intel,
+  AMD,
+  ARM,
+  Other,
 };
 
 struct CPUInfo
 {
-  CPUVendor vendor = VENDOR_INTEL;
+  CPUVendor vendor = CPUVendor::Intel;
 
   char cpu_string[0x41] = {};
   char brand_string[0x21] = {};
