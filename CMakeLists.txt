@@ -706,7 +706,6 @@ else()
   add_subdirectory(Externals/libiconv-1.14)
   set(ICONV_LIBRARIES iconv)
 endif()
-list(APPEND LIBS ${ICONV_LIBRARIES})
 
 if(NOT ANDROID)
   find_package(HIDAPI)
