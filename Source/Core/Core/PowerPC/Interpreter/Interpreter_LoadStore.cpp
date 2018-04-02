@@ -24,6 +24,12 @@ void GenerateAlignmentException(u32 address)
   PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
   PowerPC::ppcState.spr[SPR_DAR] = address;
 }
+
+void GenerateDSIException(u32 address)
+{
+  PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+  PowerPC::ppcState.spr[SPR_DAR] = address;
+}
 }
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction inst)
@@ -431,7 +437,8 @@ void Interpreter::eciwx(UGeckoInstruction inst)
 
   if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
   {
-    PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+    GenerateDSIException(EA);
+    return;
   }
 
   if (EA & 3)
@@ -449,7 +456,8 @@ void Interpreter::ecowx(UGeckoInstruction inst)
 
   if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
   {
-    PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+    GenerateDSIException(EA);
+    return;
   }
 
   if (EA & 3)
