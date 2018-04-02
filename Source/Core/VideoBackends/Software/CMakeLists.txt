@@ -1,4 +1,4 @@
-set(SRCS
+add_library(videosoftware
   Clipper.cpp
   DebugUtil.cpp
   EfbCopy.cpp
@@ -16,11 +16,12 @@ set(SRCS
   TransformUnit.cpp
 )
 
-set(LIBS
-  videocommon
-  SOIL
+target_link_libraries(videosoftware
+PUBLIC
   common
+  videocommon
+
+PRIVATE
+  SOIL
   ${X11_LIBRARIES}
 )
-
-add_dolphin_library(videosoftware "${SRCS}" "${LIBS}")
