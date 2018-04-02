@@ -474,8 +474,6 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
-    // This never happens ATM
-    // perhaps we can get dcb* instructions to use this :p
     SRR0 = PC;
     SRR1 = MSR & 0x87C0FFFF;
     MSR |= (MSR >> 16) & 1;

@@ -17,6 +17,15 @@
 bool Interpreter::m_reserve;
 u32 Interpreter::m_reserve_address;
 
+namespace
+{
+void GenerateAlignmentException(u32 address)
+{
+  PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+  PowerPC::ppcState.spr[SPR_DAR] = address;
+}
+}
+
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction inst)
 {
   return inst.RA ? (rGPR[inst.RA] + inst.SIMM_16) : (u32)inst.SIMM_16;
@@ -198,6 +207,12 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   for (int i = inst.RD; i <= 31; i++, address += 4)
   {
     const u32 temp_reg = PowerPC::Read_U32(address);
@@ -219,6 +234,12 @@ void Interpreter::lmw(UGeckoInstruction inst)
 void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
 
   for (int i = inst.RS; i <= 31; i++, address += 4)
   {
@@ -780,6 +801,13 @@ void Interpreter::stwbrx(UGeckoInstruction inst)
 void Interpreter::lwarx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   const u32 temp = PowerPC::Read_U32(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -790,13 +818,19 @@ void Interpreter::lwarx(UGeckoInstruction inst)
   }
 }
 
+// Stores Word Conditional indeXed
 void Interpreter::stwcxd(UGeckoInstruction inst)
 {
-  // Stores Word Conditional indeXed
+  const u32 address = Helper_Get_EA_X(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   if (m_reserve)
   {
-    const u32 address = Helper_Get_EA_X(inst);
-
     if (address == m_reserve_address)
     {
       PowerPC::Write_U32(rGPR[inst.RS], address);
