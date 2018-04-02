@@ -433,8 +433,12 @@ void Interpreter::eciwx(UGeckoInstruction inst)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
   }
+
   if (EA & 3)
-    PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+  {
+    GenerateAlignmentException(EA);
+    return;
+  }
 
   rGPR[inst.RD] = PowerPC::Read_U32(EA);
 }
@@ -447,8 +451,12 @@ void Interpreter::ecowx(UGeckoInstruction inst)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
   }
+
   if (EA & 3)
-    PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+  {
+    GenerateAlignmentException(EA);
+    return;
+  }
 
   PowerPC::Write_U32(rGPR[inst.RS], EA);
 }
