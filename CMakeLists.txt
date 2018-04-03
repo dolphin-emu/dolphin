@@ -538,7 +538,15 @@ include_directories(Externals/Bochs_disasm)
 
 add_subdirectory(Externals/glslang)
 
-add_subdirectory(Externals/pugixml)
+find_package(PugiXML)
+if(PugiXML_FOUND)
+  message(STATUS "Using shared pugixml")
+  include_directories(${PugiXML_INCLUDE_DIRS})
+else()
+  message(STATUS "Shared pugixml not found, falling back to the static library")
+  add_subdirectory(Externals/pugixml)
+  include_directories(Externals/pugixml)
+endif()
 
 add_subdirectory(Externals/cpp-optparse)
 
