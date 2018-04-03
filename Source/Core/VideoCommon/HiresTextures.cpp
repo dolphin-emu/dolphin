@@ -12,7 +12,6 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include <tuple>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -232,21 +231,29 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     {
       const u32 low_nibble = texture[i] & 0xf;
       const u32 high_nibble = texture[i] >> 4;
-      std::tie(min, max) = std::minmax({min, max, low_nibble, high_nibble});
+
+      min = std::min({min, low_nibble, high_nibble});
+      max = std::max({max, low_nibble, high_nibble});
     }
     break;
   case 256 * 2:
   {
-    const auto minmax = std::minmax_element(texture, texture + texture_size);
-    min = *minmax.first;
-    max = *minmax.second;
+    for (size_t i = 0; i < texture_size; i++)
+    {
+      const u32 texture_byte = texture[i];
+
+      min = std::min(min, texture_byte);
+      max = std::max(max, texture_byte);
+    }
     break;
   }
   case 16384 * 2:
     for (size_t i = 0; i < texture_size; i += sizeof(u16))
     {
       const u32 texture_halfword = Common::swap16(texture[i]) & 0x3fff;
-      std::tie(min, max) = std::minmax({min, max, texture_halfword});
+
+      min = std::min(min, texture_halfword);
+      max = std::max(max, texture_halfword);
     }
     break;
   }
