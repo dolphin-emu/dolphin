@@ -242,7 +242,7 @@ static int GetCountry(std::string filename)
     return country;
   }
 
-  return static_cast<int>(DiscIO::Country::COUNTRY_UNKNOWN);
+  return static_cast<int>(DiscIO::Country::Unknown);
 }
 
 static int GetPlatform(std::string filename)
