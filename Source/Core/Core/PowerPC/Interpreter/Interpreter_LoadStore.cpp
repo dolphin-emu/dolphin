@@ -421,12 +421,33 @@ void Interpreter::dcbz(UGeckoInstruction inst)
     return;
 
   const u32 dcbz_addr = Helper_Get_EA_X(inst);
+
+  if (!HID0.DCE)
+  {
+    GenerateAlignmentException(dcbz_addr);
+    return;
+  }
+
   // Hack to stop dcbz/dcbi over low MEM1 trashing memory.
   if (SConfig::GetInstance().bLowDCBZHack && (dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000))
     return;
 
   // TODO: Implement some sort of L2 emulation.
   PowerPC::ClearCacheLine(dcbz_addr & (~31));
+}
+
+void Interpreter::dcbz_l(UGeckoInstruction inst)
+{
+  const u32 address = Helper_Get_EA_X(inst);
+
+  if (!HID0.DCE)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  // FAKE: clear memory instead of clearing the cache block
+  PowerPC::ClearCacheLine(address & (~31));
 }
 
 // eciwx/ecowx technically should access the specified device
