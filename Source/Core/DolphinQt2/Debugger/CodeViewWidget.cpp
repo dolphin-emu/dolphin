@@ -58,6 +58,7 @@ CodeViewWidget::CodeViewWidget()
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
+    g_symbolDB.FillInCallers();
     m_address = PC;
     Update();
   });
@@ -92,9 +93,6 @@ void CodeViewWidget::Update()
   int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
 
   setRowCount(rows);
-
-  for (int i = 0; i < rows; i++)
-    setRowHeight(i, 24);
 
   u32 pc = PowerPC::ppcState.pc;
 
@@ -157,6 +155,7 @@ void CodeViewWidget::Update()
                        Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
     }
 
+    setRowHeight(i, 24);
     setItem(i, 0, bp_item);
     setItem(i, 1, addr_item);
     setItem(i, 2, ins_item);
@@ -173,7 +172,6 @@ void CodeViewWidget::Update()
 
   g_symbolDB.FillInCallers();
 
-  repaint();
   m_updating = false;
 }
 
