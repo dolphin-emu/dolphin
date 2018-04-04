@@ -213,7 +213,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
-  if ((address & 0b11) != 0)
+  if ((address & 0b11) != 0 || UReg_MSR{MSR}.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -241,7 +241,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
-  if ((address & 0b11) != 0)
+  if ((address & 0b11) != 0 || UReg_MSR{MSR}.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -565,6 +565,12 @@ void Interpreter::lswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(inst);
 
+  if (UReg_MSR{MSR}.LE)
+  {
+    GenerateAlignmentException(EA);
+    return;
+  }
+
   // Confirmed by hardware test that the zero case doesn't zero rGPR[r]
   for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer_stringctrl); n++)
   {
@@ -707,6 +713,12 @@ void Interpreter::lswi(UGeckoInstruction inst)
   else
     EA = rGPR[inst.RA];
 
+  if (UReg_MSR{MSR}.LE)
+  {
+    GenerateAlignmentException(EA);
+    return;
+  }
+
   u32 n;
   if (inst.NB == 0)
     n = 32;
@@ -752,6 +764,12 @@ void Interpreter::stswi(UGeckoInstruction inst)
   else
     EA = rGPR[inst.RA];
 
+  if (UReg_MSR{MSR}.LE)
+  {
+    GenerateAlignmentException(EA);
+    return;
+  }
+
   u32 n;
   if (inst.NB == 0)
     n = 32;
@@ -785,6 +803,13 @@ void Interpreter::stswi(UGeckoInstruction inst)
 void Interpreter::stswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(inst);
+
+  if (UReg_MSR{MSR}.LE)
+  {
+    GenerateAlignmentException(EA);
+    return;
+  }
+
   u32 n = (u8)PowerPC::ppcState.xer_stringctrl;
   int r = inst.RS;
   int i = 0;
