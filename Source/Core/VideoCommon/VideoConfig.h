@@ -50,22 +50,12 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
-struct ProjectionHackConfig final
-{
-  bool m_enable;
-  bool m_sznear;
-  bool m_szfar;
-  std::string m_znear;
-  std::string m_zfar;
-};
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {
   VideoConfig();
   void Refresh();
   void VerifyValidity();
-  void UpdateProjectionHack();
   bool IsVSync() const;
 
   // General
@@ -130,7 +120,6 @@ struct VideoConfig final
   bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
-  ProjectionHackConfig phack;
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;

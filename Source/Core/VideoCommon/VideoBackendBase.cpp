@@ -295,7 +295,6 @@ void VideoBackendBase::InitializeShared()
   PixelShaderManager::Init();
 
   g_Config.Refresh();
-  g_Config.UpdateProjectionHack();
   UpdateActiveConfig();
 }
 

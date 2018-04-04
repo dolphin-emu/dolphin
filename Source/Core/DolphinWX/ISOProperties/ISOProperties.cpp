@@ -495,26 +495,7 @@ void CISOProperties::LoadGameConfig()
   SetCheckboxValueFromGameini("Wii", "Widescreen", m_enable_widescreen);
   SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", m_mono_depth);
 
-  IniFile::Section* default_video = m_gameini_default.GetOrCreateSection("Video");
-
-  int iTemp;
-  default_video->Get("ProjectionHack", &iTemp);
-  default_video->Get("PH_SZNear", &m_phack_data.PHackSZNear);
-  if (m_gameini_local.GetIfExists("Video", "PH_SZNear", &iTemp))
-    m_phack_data.PHackSZNear = !!iTemp;
-  default_video->Get("PH_SZFar", &m_phack_data.PHackSZFar);
-  if (m_gameini_local.GetIfExists("Video", "PH_SZFar", &iTemp))
-    m_phack_data.PHackSZFar = !!iTemp;
-
   std::string sTemp;
-  default_video->Get("PH_ZNear", &m_phack_data.PHZNear);
-  if (m_gameini_local.GetIfExists("Video", "PH_ZNear", &sTemp))
-    m_phack_data.PHZNear = sTemp;
-  default_video->Get("PH_ZFar", &m_phack_data.PHZFar);
-  if (m_gameini_local.GetIfExists("Video", "PH_ZFar", &sTemp))
-    m_phack_data.PHZFar = sTemp;
-
-  sTemp = "";
   if (!m_gameini_local.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
     m_gameini_default.GetIfExists("Core", "GPUDeterminismMode", &sTemp);
 
@@ -527,6 +508,7 @@ void CISOProperties::LoadGameConfig()
   else if (sTemp == "fake-completion")
     m_gpu_determinism->SetSelection(3);
 
+  int iTemp;
   IniFile::Section* default_stereoscopy = m_gameini_default.GetOrCreateSection("Video_Stereoscopy");
   default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
   m_gameini_local.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
@@ -594,11 +576,6 @@ bool CISOProperties::SaveGameConfig()
     else                                                                                           \
       m_gameini_local.DeleteKey((section), (key));                                                 \
   } while (0)
-
-  SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (m_phack_data.PHackSZNear ? 1 : 0), 0);
-  SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_phack_data.PHackSZFar ? 1 : 0), 0);
-  SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_phack_data.PHZNear, "");
-  SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_phack_data.PHZFar, "");
 
   std::string tmp;
   if (m_gpu_determinism->GetSelection() == 0)
