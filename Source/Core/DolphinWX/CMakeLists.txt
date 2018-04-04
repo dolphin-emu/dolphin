@@ -2,7 +2,7 @@ if(NOT wxWidgets_FOUND)
   return()
 endif()
 
-set(SRCS
+add_executable(dolphin-emu
   AboutDolphin.cpp
   ControllerConfigDiag.cpp
   Cheats/ActionReplayCodesPanel.cpp
@@ -83,7 +83,8 @@ set(SRCS
   WxUtils.cpp
 )
 
-set(LIBS
+target_link_libraries(dolphin-emu
+PRIVATE
   core
   uicommon
   cpp-optparse
@@ -93,20 +94,17 @@ set(LIBS
 if(APPLE)
   # Add resource files to application bundle.
   set(RESOURCES "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
-  list(APPEND SRCS ${RESOURCES})
+  target_sources(dolphin-emu PRIVATE ${RESOURCES})
   set_source_files_properties(${RESOURCES} PROPERTIES
     MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
 if(WIN32)
-  list(APPEND SRCS
+  target_sources(dolphin-emu PRIVATE
     DolphinWX.manifest
     DolphinWX.rc
   )
 endif()
-
-add_executable(dolphin-emu ${SRCS})
-target_link_libraries(dolphin-emu PRIVATE ${LIBS})
 
 if(USE_X11)
   find_package(GTK2 REQUIRED)
