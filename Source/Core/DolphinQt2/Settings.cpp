@@ -305,6 +305,20 @@ bool Settings::IsCodeVisible() const
   return GetQSettings().value(QStringLiteral("debugger/showcode")).toBool();
 }
 
+void Settings::SetMemoryVisible(bool enabled)
+{
+  if (IsMemoryVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
+
+  emit MemoryVisibilityChanged(enabled);
+}
+
+bool Settings::IsMemoryVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
+}
+
 void Settings::SetDebugFont(QFont font)
 {
   if (GetDebugFont() != font)

@@ -97,6 +97,8 @@ public:
   bool IsBreakpointsVisible() const;
   void SetCodeVisible(bool enabled);
   bool IsCodeVisible() const;
+  void SetMemoryVisible(bool enabled);
+  bool IsMemoryVisible() const;
   QFont GetDebugFont() const;
   void SetDebugFont(QFont font);
 
@@ -127,6 +129,7 @@ signals:
   void WatchVisibilityChanged(bool visible);
   void BreakpointsVisibilityChanged(bool visible);
   void CodeVisibilityChanged(bool visible);
+  void MemoryVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);

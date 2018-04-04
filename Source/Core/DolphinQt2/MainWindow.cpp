@@ -54,6 +54,7 @@
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
+#include "DolphinQt2/Debugger/MemoryWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
@@ -195,6 +196,7 @@ void MainWindow::CreateComponents()
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_fifo_window = new FIFOPlayerWindow(this);
+  m_memory_widget = new MemoryWidget(this);
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
           [this](const QString& path) { StartGame(path); });
@@ -207,8 +209,16 @@ void MainWindow::CreateComponents()
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+
   connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
+  connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
+          &BreakpointWidget::Update);
+
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
+          &CodeWidget::Update);
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
+          &MemoryWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_graphics_window = new GraphicsWindow(
@@ -410,12 +420,14 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_memory_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
   tabifyDockWidget(m_log_widget, m_register_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
+  tabifyDockWidget(m_log_widget, m_memory_widget);
 }
 
 QString MainWindow::PromptFileName()

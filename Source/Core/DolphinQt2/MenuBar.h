@@ -201,6 +201,7 @@ private:
   QAction* m_show_registers;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
+  QAction* m_show_memory;
 
   // Symbols
   QMenu* m_symbols;
