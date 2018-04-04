@@ -80,9 +80,6 @@ include(DolphinCompileDefinitions)
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Libraries to link
-set(LIBS)
-
 # Set up paths
 set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
 if(HAIKU)
@@ -386,8 +383,6 @@ elseif(HAIKU)
   set(USE_X11 0)
   set(USE_UPNP 0)
   set(USE_EGL 0)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND LIBS rt)
 endif()
 
 if(ENABLE_HEADLESS)
