@@ -10,6 +10,12 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
 
 project(dolphin-emu)
+
+# Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
+# unofficial builds) please consider identifying your distribution with a
+# unique name here.
+set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
@@ -31,10 +37,15 @@ option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 #    of our software in the wild.
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
 
-# Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
-# unofficial builds) please consider identifying your distribution with a
-# unique name here.
-set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+
+option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+option(FASTLOG "Enable all logs" OFF)
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+option(OPROFILING "Enable profiling" OFF)
+
+# TODO: Add DSPSpy
+option(DSPTOOL "Build dsptool" OFF)
 
 # Enable SDL for default on operating systems that aren't OSX, Android, Linux or Windows.
 if(NOT APPLE AND NOT ANDROID AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT MSVC)
@@ -43,30 +54,24 @@ else()
   option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT ANDROID)
-  option(ENABLE_EVDEV "Enables the evdev controller backend" ON)
-endif()
-
 if(APPLE)
   option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
-endif()
-
-option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
-
-option(FASTLOG "Enable all logs" OFF)
-option(OPROFILING "Enable profiling" OFF)
-option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  option(VTUNE "Enable Intel VTune integration for JIT symbols." OFF)
-endif()
-
-if(APPLE)
   option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
 endif()
-########################################
-# Optional Targets
-# TODO: Add DSPSpy
-option(DSPTOOL "Build dsptool" OFF)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  option(VTUNE "Enable Intel VTune integration for JIT symbols." OFF)
+
+  if(NOT ANDROID)
+    option(ENABLE_EVDEV "Enables the evdev controller backend" ON)
+  endif()
+endif()
+
+if(UNIX)
+  # Builds a relocatable binary on Linux.
+  # The Sys folder will need to be copied to the Binaries folder.
+  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/CMake
@@ -298,13 +303,8 @@ if(ENABLE_LTO)
   endif()
 endif()
 
-# Add an option to build relocatable binaries on Linux
-# The Sys folder will need to be copied to the Binaries folder.
-if(UNIX)
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
-  if(LINUX_LOCAL_DEV)
-    add_definitions(-DLINUX_LOCAL_DEV)
-  endif()
+if(UNIX AND LINUX_LOCAL_DEV)
+  add_definitions(-DLINUX_LOCAL_DEV)
 endif()
 
 # BSDs put packages in /usr/local instead of /usr, so we need to
@@ -326,7 +326,6 @@ if(NOT CMAKE_BUILD_TYPE)
       "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
 endif()
 
-option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 if(ENABLE_GPROF)
   check_and_add_flag(HAVE_PG -pg)
   if(NOT FLAG_C_HAVE_PG)
