@@ -74,7 +74,15 @@ void Interpreter::lbzu(UGeckoInstruction inst)
 
 void Interpreter::lfd(UGeckoInstruction inst)
 {
-  const u64 temp = PowerPC::Read_U64(Helper_Get_EA(inst));
+  const u32 address = Helper_Get_EA(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  const u64 temp = PowerPC::Read_U64(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
     riPS0(inst.FD) = temp;
@@ -83,6 +91,13 @@ void Interpreter::lfd(UGeckoInstruction inst)
 void Interpreter::lfdu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   const u64 temp = PowerPC::Read_U64(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -95,6 +110,13 @@ void Interpreter::lfdu(UGeckoInstruction inst)
 void Interpreter::lfdux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   const u64 temp = PowerPC::Read_U64(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -106,7 +128,15 @@ void Interpreter::lfdux(UGeckoInstruction inst)
 
 void Interpreter::lfdx(UGeckoInstruction inst)
 {
-  const u64 temp = PowerPC::Read_U64(Helper_Get_EA_X(inst));
+  const u32 address = Helper_Get_EA_X(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  const u64 temp = PowerPC::Read_U64(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
     riPS0(inst.FD) = temp;
@@ -114,7 +144,15 @@ void Interpreter::lfdx(UGeckoInstruction inst)
 
 void Interpreter::lfs(UGeckoInstruction inst)
 {
-  const u32 temp = PowerPC::Read_U32(Helper_Get_EA(inst));
+  const u32 address = Helper_Get_EA(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  const u32 temp = PowerPC::Read_U32(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
@@ -127,6 +165,13 @@ void Interpreter::lfs(UGeckoInstruction inst)
 void Interpreter::lfsu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   const u32 temp = PowerPC::Read_U32(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -141,6 +186,13 @@ void Interpreter::lfsu(UGeckoInstruction inst)
 void Interpreter::lfsux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   const u32 temp = PowerPC::Read_U32(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -154,7 +206,15 @@ void Interpreter::lfsux(UGeckoInstruction inst)
 
 void Interpreter::lfsx(UGeckoInstruction inst)
 {
-  const u32 temp = PowerPC::Read_U32(Helper_Get_EA_X(inst));
+  const u32 address = Helper_Get_EA_X(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  const u32 temp = PowerPC::Read_U32(address);
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
@@ -300,12 +360,26 @@ void Interpreter::stbu(UGeckoInstruction inst)
 
 void Interpreter::stfd(UGeckoInstruction inst)
 {
-  PowerPC::Write_U64(riPS0(inst.FS), Helper_Get_EA(inst));
+  const u32 address = Helper_Get_EA(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  PowerPC::Write_U64(riPS0(inst.FS), address);
 }
 
 void Interpreter::stfdu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
 
   PowerPC::Write_U64(riPS0(inst.FS), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -316,12 +390,26 @@ void Interpreter::stfdu(UGeckoInstruction inst)
 
 void Interpreter::stfs(UGeckoInstruction inst)
 {
-  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), Helper_Get_EA(inst));
+  const u32 address = Helper_Get_EA(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), address);
 }
 
 void Interpreter::stfsu(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_U(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
 
   PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -646,6 +734,12 @@ void Interpreter::stfdux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(inst);
 
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   PowerPC::Write_U64(riPS0(inst.FS), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
@@ -655,7 +749,15 @@ void Interpreter::stfdux(UGeckoInstruction inst)
 
 void Interpreter::stfdx(UGeckoInstruction inst)
 {
-  PowerPC::Write_U64(riPS0(inst.FS), Helper_Get_EA_X(inst));
+  const u32 address = Helper_Get_EA_X(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  PowerPC::Write_U64(riPS0(inst.FS), address);
 }
 
 // Stores Floating points into Integers indeXed
@@ -663,12 +765,24 @@ void Interpreter::stfiwx(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_X(inst);
 
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
   PowerPC::Write_U32((u32)riPS0(inst.FS), address);
 }
 
 void Interpreter::stfsux(UGeckoInstruction inst)
 {
   const u32 address = Helper_Get_EA_UX(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
 
   PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), address);
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
@@ -679,7 +793,15 @@ void Interpreter::stfsux(UGeckoInstruction inst)
 
 void Interpreter::stfsx(UGeckoInstruction inst)
 {
-  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), Helper_Get_EA_X(inst));
+  const u32 address = Helper_Get_EA_X(inst);
+
+  if ((address & 0b11) != 0)
+  {
+    GenerateAlignmentException(address);
+    return;
+  }
+
+  PowerPC::Write_U32(ConvertToSingle(riPS0(inst.FS)), address);
 }
 
 void Interpreter::sthbrx(UGeckoInstruction inst)
