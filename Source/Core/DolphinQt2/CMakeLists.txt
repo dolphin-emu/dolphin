@@ -3,11 +3,6 @@ find_package(Qt5 REQUIRED COMPONENTS Gui Widgets)
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
-
-add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
 set(CMAKE_AUTOMOC ON)
 
 add_executable(dolphin-emu-qt2
@@ -116,6 +111,19 @@ add_executable(dolphin-emu-qt2
   TAS/StickWidget.cpp
   TAS/IRWidget.cpp
   Updater.cpp
+)
+
+target_compile_definitions(dolphin-emu-qt2
+PRIVATE
+  -DQT_USE_QSTRINGBUILDER
+  -DQT_NO_CAST_FROM_ASCII
+  -DQT_NO_CAST_TO_ASCII
+)
+
+target_include_directories(dolphin-emu-qt2
+PRIVATE
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
 )
 
 target_link_libraries(dolphin-emu-qt2
