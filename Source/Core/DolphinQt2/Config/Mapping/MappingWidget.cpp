@@ -31,6 +31,29 @@ MappingWindow* MappingWidget::GetParent() const
   return m_parent;
 }
 
+bool MappingWidget::IsIterativeInput() const
+{
+  return m_parent->IsIterativeInput();
+}
+
+void MappingWidget::NextButton(MappingButton* button)
+{
+  auto iterator = std::find(m_buttons.begin(), m_buttons.end(), button);
+
+  if (iterator == m_buttons.end())
+    return;
+
+  if (++iterator == m_buttons.end())
+    return;
+
+  MappingButton* next = *iterator;
+
+  if (next->IsInput() && next->isVisible())
+    next->Detect();
+  else
+    NextButton(next);
+}
+
 std::shared_ptr<ciface::Core::Device> MappingWidget::GetDevice() const
 {
   return m_parent->GetDevice();
