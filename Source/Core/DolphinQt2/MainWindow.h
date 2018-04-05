@@ -43,6 +43,11 @@ class SettingsWindow;
 class WatchWidget;
 class WiiTASInputWindow;
 
+namespace X11Utils
+{
+class XRRConfiguration;
+}
+
 class MainWindow final : public QMainWindow
 {
   Q_OBJECT
@@ -145,6 +150,10 @@ private:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
+
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
+#endif
 
   QProgressDialog* m_progress_dialog = nullptr;
   QStackedWidget* m_stack;

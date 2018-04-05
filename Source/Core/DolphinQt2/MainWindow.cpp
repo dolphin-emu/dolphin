@@ -221,12 +221,11 @@ void MainWindow::CreateComponents()
           &MemoryWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  m_graphics_window = new GraphicsWindow(
-      new X11Utils::XRRConfiguration(
-          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-              "display", windowHandle())),
-          winId()),
-      this);
+  m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", windowHandle())),
+      winId());
+  m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
 #else
   m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
