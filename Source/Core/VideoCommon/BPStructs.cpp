@@ -718,7 +718,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
   const char* no_yes[2] = {"No", "Yes"};
 
   u8 cmd = data[0];
-  u32 cmddata = Common::swap32(*(u32*)data) & 0xFFFFFF;
+  u32 cmddata = Common::swap32(data) & 0xFFFFFF;
   switch (cmd)
   {
 // Macro to set the register name and make sure it was written correctly via compile time assertion

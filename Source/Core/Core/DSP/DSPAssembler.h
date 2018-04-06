@@ -18,32 +18,32 @@
 
 namespace DSP
 {
-enum err_t
+enum class AssemblerError
 {
-  ERR_OK = 0,
-  ERR_UNKNOWN,
-  ERR_UNKNOWN_OPCODE,
-  ERR_NOT_ENOUGH_PARAMETERS,
-  ERR_TOO_MANY_PARAMETERS,
-  ERR_WRONG_PARAMETER,
-  ERR_EXPECTED_PARAM_STR,
-  ERR_EXPECTED_PARAM_VAL,
-  ERR_EXPECTED_PARAM_REG,
-  ERR_EXPECTED_PARAM_MEM,
-  ERR_EXPECTED_PARAM_IMM,
-  ERR_INCORRECT_BIN,
-  ERR_INCORRECT_HEX,
-  ERR_INCORRECT_DEC,
-  ERR_LABEL_EXISTS,
-  ERR_UNKNOWN_LABEL,
-  ERR_NO_MATCHING_BRACKETS,
-  ERR_EXT_CANT_EXTEND_OPCODE,
-  ERR_EXT_PAR_NOT_EXT,
-  ERR_WRONG_PARAMETER_ACC,
-  ERR_WRONG_PARAMETER_MID_ACC,
-  ERR_INVALID_REGISTER,
-  ERR_OUT_RANGE_NUMBER,
-  ERR_OUT_RANGE_PC,
+  OK,
+  Unknown,
+  UnknownOpcode,
+  NotEnoughParameters,
+  TooManyParameters,
+  WrongParameter,
+  ExpectedParamStr,
+  ExpectedParamVal,
+  ExpectedParamReg,
+  ExpectedParamMem,
+  ExpectedParamImm,
+  IncorrectBinary,
+  IncorrectHex,
+  IncorrectDecimal,
+  LabelAlreadyExists,
+  UnknownLabel,
+  NoMatchingBrackets,
+  CantExtendOpcode,
+  ExtensionParamsOnNonExtendableOpcode,
+  WrongParameterExpectedAccumulator,
+  WrongParameterExpectedMidAccumulator,
+  InvalidRegister,
+  NumberOutOfRange,
+  PCOutOfRange,
 };
 
 // Unless you want labels to carry over between files, you probably
@@ -62,7 +62,7 @@ public:
                 std::vector<int>* line_numbers = nullptr);
 
   std::string GetErrorString() const { return last_error_str; }
-  err_t GetError() const { return last_error; }
+  AssemblerError GetError() const { return last_error; }
 private:
   struct param_t
   {
@@ -94,13 +94,12 @@ private:
   void InitPass(int pass);
   bool AssemblePass(const std::string& text, int pass);
 
-  void ShowError(err_t err_code, const char* extra_info = nullptr);
-  // void ShowWarning(err_t err_code, const char *extra_info = nullptr);
+  void ShowError(AssemblerError err_code, const char* extra_info = nullptr);
 
   char* FindBrackets(char* src, char* dst);
-  const opc_t* FindOpcode(std::string name, size_t par_count, OpcodeType type);
-  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type);
-  void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
+  const DSPOPCTemplate* FindOpcode(std::string name, size_t par_count, OpcodeType type);
+  bool VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t count, OpcodeType type);
+  void BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_count, u16* outbuf);
 
   std::vector<u16> m_output_buffer;
 
@@ -116,7 +115,7 @@ private:
   u32 code_line;
   bool failed;
   std::string last_error_str;
-  err_t last_error;
+  AssemblerError last_error;
 
   typedef std::map<std::string, std::string> AliasMap;
   AliasMap aliases;

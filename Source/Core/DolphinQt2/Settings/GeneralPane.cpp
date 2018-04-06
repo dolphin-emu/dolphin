@@ -20,13 +20,24 @@
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
+#include "UICommon/AutoUpdate.h"
+
+constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
+constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
+constexpr int AUTO_UPDATE_BETA_INDEX = 2;
+constexpr int AUTO_UPDATE_DEV_INDEX = 3;
+
+constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
+constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
+constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
+constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  ConnectLayout();
-
   LoadConfig();
+
+  ConnectLayout();
 }
 
 void GeneralPane::CreateLayout()
@@ -34,6 +45,10 @@ void GeneralPane::CreateLayout()
   m_main_layout = new QVBoxLayout;
   // Create layout here
   CreateBasic();
+
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+    CreateAutoUpdate();
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   CreateAnalytics();
 #endif
@@ -46,19 +61,30 @@ void GeneralPane::CreateLayout()
 
 void GeneralPane::ConnectLayout()
 {
-  connect(m_checkbox_dualcore, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_checkbox_cheats, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  {
+    connect(m_combobox_update_track,
+            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+            &GeneralPane::OnSaveConfig);
+    connect(&Settings::Instance(), &Settings::AutoUpdateTrackChanged, this,
+            &GeneralPane::LoadConfig);
+  }
+
   // Advanced
   connect(m_combobox_speedlimit,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
-          [this](const QString& text) { OnSaveConfig(); });
-  connect(m_radio_interpreter, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_radio_cached_interpreter, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_radio_jit, &QRadioButton::clicked, this, &GeneralPane::OnSaveConfig);
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+          [this]() { OnSaveConfig(); });
+  connect(m_radio_interpreter, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_radio_cached_interpreter, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_radio_jit, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  connect(m_checkbox_enable_analytics, &QCheckBox::clicked, this, &GeneralPane::OnSaveConfig);
-  connect(m_button_generate_new_identity, &QPushButton::clicked, this,
+  connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
+  connect(m_checkbox_enable_analytics, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+  connect(m_button_generate_new_identity, &QPushButton::pressed, this,
           &GeneralPane::GenerateNewIdentity);
 #endif
 }
@@ -94,6 +120,22 @@ void GeneralPane::CreateBasic()
   }
 
   speed_limit_layout->addRow(tr("&Speed Limit:"), m_combobox_speedlimit);
+}
+
+void GeneralPane::CreateAutoUpdate()
+{
+  auto* auto_update_group = new QGroupBox(tr("Auto Update Settings"));
+  auto* layout = new QFormLayout;
+  auto_update_group->setLayout(layout);
+  m_main_layout->addWidget(auto_update_group);
+
+  m_combobox_update_track = new QComboBox(this);
+
+  layout->addRow(tr("&Auto Update:"), m_combobox_update_track);
+
+  for (const QString& option : {tr("Don't Update"), tr("Stable (once a year)"),
+                                tr("Beta (once a month)"), tr("Dev (multiple times a day)")})
+    m_combobox_update_track->addItem(option);
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -135,8 +177,22 @@ void GeneralPane::CreateAdvanced()
 
 void GeneralPane::LoadConfig()
 {
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  {
+    const auto track = Settings::Instance().GetAutoUpdateTrack().toStdString();
+
+    if (track == AUTO_UPDATE_DISABLE_STRING)
+      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DISABLE_INDEX);
+    else if (track == AUTO_UPDATE_STABLE_STRING)
+      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_STABLE_INDEX);
+    else if (track == AUTO_UPDATE_BETA_STRING)
+      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_BETA_INDEX);
+    else
+      m_combobox_update_track->setCurrentIndex(AUTO_UPDATE_DEV_INDEX);
+  }
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  m_checkbox_enable_analytics->setChecked(SConfig::GetInstance().m_analytics_enabled);
+  m_checkbox_enable_analytics->setChecked(Settings::Instance().IsAnalyticsEnabled());
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
@@ -164,14 +220,44 @@ void GeneralPane::LoadConfig()
   }
 }
 
+static QString UpdateTrackFromIndex(int index)
+{
+  QString value;
+
+  switch (index)
+  {
+  case AUTO_UPDATE_DISABLE_INDEX:
+    value = QString::fromStdString(AUTO_UPDATE_DISABLE_STRING);
+    break;
+  case AUTO_UPDATE_STABLE_INDEX:
+    value = QString::fromStdString(AUTO_UPDATE_STABLE_STRING);
+    break;
+  case AUTO_UPDATE_BETA_INDEX:
+    value = QString::fromStdString(AUTO_UPDATE_BETA_STRING);
+    break;
+  case AUTO_UPDATE_DEV_INDEX:
+    value = QString::fromStdString(AUTO_UPDATE_DEV_STRING);
+    break;
+  }
+
+  return value;
+}
+
 void GeneralPane::OnSaveConfig()
 {
+  auto& settings = SConfig::GetInstance();
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  {
+    Settings::Instance().SetAutoUpdateTrack(
+        UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
+  }
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-  SConfig::GetInstance().m_analytics_enabled = m_checkbox_enable_analytics->isChecked();
+  Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
 #endif
-  SConfig::GetInstance().bCPUThread = m_checkbox_dualcore->isChecked();
+  settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
-  SConfig::GetInstance().m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
+  settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
   int engine_value = 0;
   if (m_radio_interpreter->isChecked())
     engine_value = PowerPC::CPUCore::CORE_INTERPRETER;
@@ -182,7 +268,8 @@ void GeneralPane::OnSaveConfig()
   else
     engine_value = PowerPC::CPUCore::CORE_JIT64;
 
-  SConfig::GetInstance().iCPUCore = engine_value;
+  settings.iCPUCore = engine_value;
+  settings.SaveSettings();
 }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

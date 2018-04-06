@@ -57,16 +57,16 @@ u32 Arm64RegCache::GetUnlockedRegisterCount()
 void Arm64RegCache::LockRegister(ARM64Reg host_reg)
 {
   auto reg = std::find(m_host_registers.begin(), m_host_registers.end(), host_reg);
-  _assert_msg_(DYNA_REC, reg != m_host_registers.end(),
-               "Don't try locking a register that isn't in the cache. Reg %d", host_reg);
+  ASSERT_MSG(DYNA_REC, reg != m_host_registers.end(),
+             "Don't try locking a register that isn't in the cache. Reg %d", host_reg);
   reg->Lock();
 }
 
 void Arm64RegCache::UnlockRegister(ARM64Reg host_reg)
 {
   auto reg = std::find(m_host_registers.begin(), m_host_registers.end(), host_reg);
-  _assert_msg_(DYNA_REC, reg != m_host_registers.end(),
-               "Don't try unlocking a register that isn't in the cache. Reg %d", host_reg);
+  ASSERT_MSG(DYNA_REC, reg != m_host_registers.end(),
+             "Don't try unlocking a register that isn't in the cache. Reg %d", host_reg);
   reg->Unlock();
 }
 
@@ -116,19 +116,19 @@ bool Arm64GPRCache::IsCalleeSaved(ARM64Reg reg)
 
 const OpArg& Arm64GPRCache::GetGuestGPROpArg(size_t preg) const
 {
-  _assert_(preg < GUEST_GPR_COUNT);
+  ASSERT(preg < GUEST_GPR_COUNT);
   return m_guest_registers[preg];
 }
 
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestGPR(size_t preg)
 {
-  _assert_(preg < GUEST_GPR_COUNT);
+  ASSERT(preg < GUEST_GPR_COUNT);
   return {32, PPCSTATE_OFF(gpr[preg]), m_guest_registers[GUEST_GPR_OFFSET + preg]};
 }
 
 Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestCR(size_t preg)
 {
-  _assert_(preg < GUEST_CR_COUNT);
+  ASSERT(preg < GUEST_CR_COUNT);
   return {64, PPCSTATE_OFF(cr_val[preg]), m_guest_registers[GUEST_CR_OFFSET + preg]};
 }
 
@@ -138,7 +138,7 @@ Arm64GPRCache::GuestRegInfo Arm64GPRCache::GetGuestByIndex(size_t index)
     return GetGuestGPR(index - GUEST_GPR_OFFSET);
   if (index >= GUEST_CR_OFFSET && index < GUEST_CR_OFFSET + GUEST_CR_COUNT)
     return GetGuestCR(index - GUEST_CR_OFFSET);
-  _assert_msg_(DYNA_REC, false, "Invalid index for guest register");
+  ASSERT_MSG(DYNA_REC, false, "Invalid index for guest register");
 }
 
 void Arm64GPRCache::FlushRegister(size_t index, bool maintain_state)
@@ -474,7 +474,7 @@ ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
     return host_reg;
   }
   default:
-    _dbg_assert_msg_(DYNA_REC, false, "Invalid OpArg Type!");
+    DEBUG_ASSERT_MSG(DYNA_REC, false, "Invalid OpArg Type!");
     break;
   }
   // We've got an issue if we end up here

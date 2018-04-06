@@ -64,7 +64,6 @@ private:
 };
 
 typedef BoolSetting<wxCheckBox> SettingCheckBox;
-typedef BoolSetting<wxRadioButton> SettingRadioButton;
 
 class IntegerSetting : public wxSpinCtrl
 {
@@ -91,6 +90,33 @@ public:
 
 private:
   Config::ConfigInfo<int> m_setting;
+};
+
+template <typename ValueType>
+class SettingRadioButton : public wxRadioButton
+{
+public:
+  SettingRadioButton(wxWindow* parent, const wxString& label, const wxString& tooltip,
+                     const Config::ConfigInfo<ValueType>& setting, const ValueType& value,
+                     long style = 0)
+      : wxRadioButton(parent, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, style),
+        m_setting(setting), m_value(value)
+  {
+    SetToolTip(tooltip);
+    SetValue(Config::Get(m_setting) == m_value);
+    Bind(wxEVT_RADIOBUTTON, &SettingRadioButton::UpdateValue, this);
+  }
+
+  void UpdateValue(wxCommandEvent& ev)
+  {
+    if (ev.IsChecked())
+      Config::SetBaseOrCurrent(m_setting, m_value);
+    ev.Skip();
+  }
+
+private:
+  Config::ConfigInfo<ValueType> m_setting;
+  ValueType m_value;
 };
 
 class VideoConfigDiag : public wxDialog
@@ -125,10 +151,17 @@ protected:
   SettingChoice* CreateChoice(wxWindow* parent, const Config::ConfigInfo<int>& setting,
                               const wxString& description, int num = 0,
                               const wxString choices[] = nullptr, long style = 0);
-  SettingRadioButton* CreateRadioButton(wxWindow* parent, const wxString& label,
-                                        const wxString& description,
-                                        const Config::ConfigInfo<bool>& setting,
-                                        bool reverse = false, long style = 0);
+  template <typename ValueType>
+  SettingRadioButton<ValueType>* CreateRadioButton(wxWindow* parent, const wxString& label,
+                                                   const wxString& description,
+                                                   const Config::ConfigInfo<ValueType>& setting,
+                                                   const ValueType& value, long style = 0)
+  {
+    auto* const rb =
+        new SettingRadioButton<ValueType>(parent, label, wxString(), setting, value, style);
+    RegisterControl(rb, description);
+    return rb;
+  }
 
   // Same as above but only connects enter/leave window events
   wxControl* RegisterControl(wxControl* const control, const wxString& description);
@@ -156,9 +189,6 @@ protected:
 
   SettingCheckBox* borderless_fullscreen;
   RefBoolSetting<wxCheckBox>* render_to_main_checkbox;
-
-  SettingRadioButton* virtual_xfb;
-  SettingRadioButton* real_xfb;
 
   SettingCheckBox* cache_hires_textures;
 

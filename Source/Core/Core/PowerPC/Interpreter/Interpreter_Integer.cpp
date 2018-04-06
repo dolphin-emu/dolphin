@@ -4,17 +4,16 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include "Common/CommonFuncs.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Core/PowerPC/PowerPC.h"
 
 void Interpreter::Helper_UpdateCR0(u32 value)
 {
   s64 sign_extended = (s64)(s32)value;
   u64 cr_val = (u64)sign_extended;
-  cr_val = (cr_val & ~(1ull << 61)) | ((u64)GetXER_SO() << 61);
+  cr_val = (cr_val & ~(1ull << 61)) | ((u64)PowerPC::GetXER_SO() << 61);
 
   PowerPC::ppcState.cr_val[0] = cr_val;
 }
@@ -53,7 +52,7 @@ void Interpreter::addic(UGeckoInstruction inst)
   u32 imm = (u32)(s32)inst.SIMM_16;
   // TODO(ector): verify this thing
   rGPR[inst.RD] = a + imm;
-  SetCarry(Helper_Carry(a, imm));
+  PowerPC::SetCarry(Helper_Carry(a, imm));
 }
 
 void Interpreter::addic_rc(UGeckoInstruction inst)
@@ -95,10 +94,10 @@ void Interpreter::cmpi(UGeckoInstruction inst)
   else
     f = 0x2;  // equals
 
-  if (GetXER_SO())
+  if (PowerPC::GetXER_SO())
     f |= 0x1;
 
-  SetCRField(inst.CRFD, f);
+  PowerPC::SetCRField(inst.CRFD, f);
 }
 
 void Interpreter::cmpli(UGeckoInstruction inst)
@@ -114,10 +113,10 @@ void Interpreter::cmpli(UGeckoInstruction inst)
   else
     f = 0x2;  // equals
 
-  if (GetXER_SO())
+  if (PowerPC::GetXER_SO())
     f |= 0x1;
 
-  SetCRField(inst.CRFD, f);
+  PowerPC::SetCRField(inst.CRFD, f);
 }
 
 void Interpreter::mulli(UGeckoInstruction inst)
@@ -137,21 +136,9 @@ void Interpreter::oris(UGeckoInstruction inst)
 
 void Interpreter::subfic(UGeckoInstruction inst)
 {
-  /*	u32 rra = ~rGPR[inst.RA];
-    s32 immediate = (s16)inst.SIMM_16 + 1;
-
-  //	#define CALC_XER_CA(X,Y) (((X) + (Y) < X) ? SET_XER_CA : CLEAR_XER_CA)
-    if ((rra + immediate) < rra)
-      SetCarry(1);
-    else
-      SetCarry(0);
-
-    rGPR[inst.RD] = rra - immediate;
-  */
-
   s32 immediate = inst.SIMM_16;
   rGPR[inst.RD] = immediate - (int)rGPR[inst.RA];
-  SetCarry((rGPR[inst.RA] == 0) || (Helper_Carry(0 - rGPR[inst.RA], immediate)));
+  PowerPC::SetCarry((rGPR[inst.RA] == 0) || (Helper_Carry(0 - rGPR[inst.RA], immediate)));
 }
 
 void Interpreter::twi(UGeckoInstruction inst)
@@ -184,7 +171,7 @@ void Interpreter::xoris(UGeckoInstruction inst)
 void Interpreter::rlwimix(UGeckoInstruction inst)
 {
   u32 mask = Helper_Mask(inst.MB, inst.ME);
-  rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (_rotl(rGPR[inst.RS], inst.SH) & mask);
+  rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -193,7 +180,7 @@ void Interpreter::rlwimix(UGeckoInstruction inst)
 void Interpreter::rlwinmx(UGeckoInstruction inst)
 {
   u32 mask = Helper_Mask(inst.MB, inst.ME);
-  rGPR[inst.RA] = _rotl(rGPR[inst.RS], inst.SH) & mask;
+  rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -202,7 +189,7 @@ void Interpreter::rlwinmx(UGeckoInstruction inst)
 void Interpreter::rlwnmx(UGeckoInstruction inst)
 {
   u32 mask = Helper_Mask(inst.MB, inst.ME);
-  rGPR[inst.RA] = _rotl(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
+  rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -237,10 +224,10 @@ void Interpreter::cmp(UGeckoInstruction inst)
   else  // Equals
     fTemp = 0x2;
 
-  if (GetXER_SO())
+  if (PowerPC::GetXER_SO())
     fTemp |= 0x1;
 
-  SetCRField(inst.CRFD, fTemp);
+  PowerPC::SetCRField(inst.CRFD, fTemp);
 }
 
 void Interpreter::cmpl(UGeckoInstruction inst)
@@ -256,10 +243,10 @@ void Interpreter::cmpl(UGeckoInstruction inst)
   else  // Equals
     fTemp = 0x2;
 
-  if (GetXER_SO())
+  if (PowerPC::GetXER_SO())
     fTemp |= 0x1;
 
-  SetCRField(inst.CRFD, fTemp);
+  PowerPC::SetCRField(inst.CRFD, fTemp);
 }
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)
@@ -354,12 +341,12 @@ void Interpreter::srawx(UGeckoInstruction inst)
     if (rGPR[inst.RS] & 0x80000000)
     {
       rGPR[inst.RA] = 0xFFFFFFFF;
-      SetCarry(1);
+      PowerPC::SetCarry(1);
     }
     else
     {
       rGPR[inst.RA] = 0x00000000;
-      SetCarry(0);
+      PowerPC::SetCarry(0);
     }
   }
   else
@@ -368,7 +355,7 @@ void Interpreter::srawx(UGeckoInstruction inst)
     s32 rrs = rGPR[inst.RS];
     rGPR[inst.RA] = rrs >> amount;
 
-    SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
+    PowerPC::SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
   }
 
   if (inst.Rc)
@@ -382,7 +369,7 @@ void Interpreter::srawix(UGeckoInstruction inst)
   s32 rrs = rGPR[inst.RS];
   rGPR[inst.RA] = rrs >> amount;
 
-  SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
+  PowerPC::SetCarry(rrs < 0 && amount > 0 && (u32(rrs) << (32 - amount)) != 0);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RA]);
@@ -422,87 +409,102 @@ void Interpreter::xorx(UGeckoInstruction inst)
     Helper_UpdateCR0(rGPR[inst.RA]);
 }
 
+static bool HasAddOverflowed(u32 x, u32 y, u32 result)
+{
+  // If x and y have the same sign, but the result is different
+  // then an overflow has occurred.
+  return (((x ^ result) & (y ^ result)) >> 31) != 0;
+}
+
 void Interpreter::addx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = rGPR[inst.RA] + rGPR[inst.RB];
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b;
+
+  rGPR[inst.RD] = result;
 
   if (inst.OE)
-    PanicAlert("OE: addx");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addcx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  rGPR[inst.RD] = a + b;
-  SetCarry(Helper_Carry(a, b));
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, b));
 
   if (inst.OE)
-    PanicAlert("OE: addcx");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addex(UGeckoInstruction inst)
 {
-  int carry = GetCarry();
-  int a = rGPR[inst.RA];
-  int b = rGPR[inst.RB];
-  rGPR[inst.RD] = a + b + carry;
-  SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
+  const u32 carry = PowerPC::GetCarry();
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
 
   if (inst.OE)
-    PanicAlert("OE: addex");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addmex(UGeckoInstruction inst)
 {
-  int carry = GetCarry();
-  int a = rGPR[inst.RA];
-  rGPR[inst.RD] = a + carry - 1;
-  SetCarry(Helper_Carry(a, carry - 1));
+  const u32 carry = PowerPC::GetCarry();
+  const u32 a = rGPR[inst.RA];
+  const u32 b = 0xFFFFFFFF;
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, carry - 1));
 
   if (inst.OE)
-    PanicAlert("OE: addmex");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::addzex(UGeckoInstruction inst)
 {
-  int carry = GetCarry();
-  int a = rGPR[inst.RA];
-  rGPR[inst.RD] = a + carry;
-  SetCarry(Helper_Carry(a, carry));
+  const u32 carry = PowerPC::GetCarry();
+  const u32 a = rGPR[inst.RA];
+  const u32 result = a + carry;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, carry));
 
   if (inst.OE)
-    PanicAlert("OE: addzex");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, 0, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::divwx(UGeckoInstruction inst)
 {
-  s32 a = rGPR[inst.RA];
-  s32 b = rGPR[inst.RB];
+  const s32 a = rGPR[inst.RA];
+  const s32 b = rGPR[inst.RB];
+  const bool overflow = b == 0 || ((u32)a == 0x80000000 && b == -1);
 
-  if (b == 0 || ((u32)a == 0x80000000 && b == -1))
+  if (overflow)
   {
-    if (inst.OE)
-    {
-      // should set OV
-      PanicAlert("OE: divwx");
-    }
-
     if (((u32)a & 0x80000000) && b == 0)
       rGPR[inst.RD] = UINT32_MAX;
     else
@@ -513,29 +515,30 @@ void Interpreter::divwx(UGeckoInstruction inst)
     rGPR[inst.RD] = (u32)(a / b);
   }
 
+  if (inst.OE)
+    PowerPC::SetXER_OV(overflow);
+
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
 }
 
 void Interpreter::divwux(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const bool overflow = b == 0;
 
-  if (b == 0)
+  if (overflow)
   {
-    if (inst.OE)
-    {
-      // should set OV
-      PanicAlert("OE: divwux");
-    }
-
     rGPR[inst.RD] = 0;
   }
   else
   {
     rGPR[inst.RD] = a / b;
   }
+
+  if (inst.OE)
+    PowerPC::SetXER_OV(overflow);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
@@ -568,13 +571,14 @@ void Interpreter::mulhwux(UGeckoInstruction inst)
 
 void Interpreter::mullwx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  u32 d = (u32)((s32)a * (s32)b);
-  rGPR[inst.RD] = d;
+  const s64 a = static_cast<s32>(rGPR[inst.RA]);
+  const s64 b = static_cast<s32>(rGPR[inst.RB]);
+  const s64 result = a * b;
+
+  rGPR[inst.RD] = static_cast<u32>(result);
 
   if (inst.OE)
-    PanicAlert("OE: mullwx");
+    PowerPC::SetXER_OV(result < -0x80000000LL || result > 0x7FFFFFFFLL);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
@@ -582,13 +586,12 @@ void Interpreter::mullwx(UGeckoInstruction inst)
 
 void Interpreter::negx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = (~rGPR[inst.RA]) + 1;
+  const u32 a = rGPR[inst.RA];
 
-  if (rGPR[inst.RD] == 0x80000000)
-  {
-    if (inst.OE)
-      PanicAlert("OE: negx");
-  }
+  rGPR[inst.RD] = (~a) + 1;
+
+  if (inst.OE)
+    PowerPC::SetXER_OV(a == 0x80000000);
 
   if (inst.Rc)
     Helper_UpdateCR0(rGPR[inst.RD]);
@@ -596,70 +599,83 @@ void Interpreter::negx(UGeckoInstruction inst)
 
 void Interpreter::subfx(UGeckoInstruction inst)
 {
-  rGPR[inst.RD] = rGPR[inst.RB] - rGPR[inst.RA];
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b + 1;
+
+  rGPR[inst.RD] = result;
 
   if (inst.OE)
-    PanicAlert("OE: subfx");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::subfcx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  rGPR[inst.RD] = b - a;
-  SetCarry(a == 0 || Helper_Carry(b, 0 - a));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 result = a + b + 1;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(a == 0xFFFFFFFF || Helper_Carry(b, a + 1));
 
   if (inst.OE)
-    PanicAlert("OE: subfcx");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 void Interpreter::subfex(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  int carry = GetCarry();
-  rGPR[inst.RD] = (~a) + b + carry;
-  SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  const u32 carry = PowerPC::GetCarry();
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, b) || Helper_Carry(a + b, carry));
 
   if (inst.OE)
-    PanicAlert("OE: subfex");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 // sub from minus one
 void Interpreter::subfmex(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  int carry = GetCarry();
-  rGPR[inst.RD] = (~a) + carry - 1;
-  SetCarry(Helper_Carry(~a, carry - 1));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 b = 0xFFFFFFFF;
+  const u32 carry = PowerPC::GetCarry();
+  const u32 result = a + b + carry;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, carry - 1));
 
   if (inst.OE)
-    PanicAlert("OE: subfmex");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, b, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }
 
 // sub from zero
 void Interpreter::subfzex(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  int carry = GetCarry();
-  rGPR[inst.RD] = (~a) + carry;
-  SetCarry(Helper_Carry(~a, carry));
+  const u32 a = ~rGPR[inst.RA];
+  const u32 carry = PowerPC::GetCarry();
+  const u32 result = a + carry;
+
+  rGPR[inst.RD] = result;
+  PowerPC::SetCarry(Helper_Carry(a, carry));
 
   if (inst.OE)
-    PanicAlert("OE: subfzex");
+    PowerPC::SetXER_OV(HasAddOverflowed(a, 0, result));
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(result);
 }

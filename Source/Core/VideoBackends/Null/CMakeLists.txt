@@ -1,14 +1,12 @@
-set(SRCS
+add_library(videonull
   NullBackend.cpp
   NullTexture.cpp
   Render.cpp
   VertexManager.cpp
 )
 
-set(LIBS
-  videocommon
+target_link_libraries(videonull
+PUBLIC
   common
+  videocommon
 )
-
-add_dolphin_library(videonull "${SRCS}" "${LIBS}")
-

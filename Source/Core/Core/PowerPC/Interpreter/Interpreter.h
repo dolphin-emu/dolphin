@@ -20,7 +20,7 @@ public:
 
   void Run() override;
   void ClearCache() override;
-  const char* GetName() override;
+  const char* GetName() const override;
 
   static void unknown_instruction(UGeckoInstruction inst);
 
@@ -303,6 +303,8 @@ private:
 
   static void Helper_FloatCompareOrdered(UGeckoInstruction inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction inst, double a, double b);
+
+  UGeckoInstruction m_prev_inst{};
 
   static bool m_end_block;
 

@@ -664,33 +664,42 @@ std::string GetBundleDirectory()
 }
 #endif
 
-std::string& GetExeDirectory()
+std::string GetExePath()
 {
-  static std::string DolphinPath;
-  if (DolphinPath.empty())
+  static std::string dolphin_path;
+  if (dolphin_path.empty())
   {
 #ifdef _WIN32
-    TCHAR Dolphin_exe_Path[2048];
-    TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
-    GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
-    if (_tfullpath(Dolphin_exe_Clean_Path, Dolphin_exe_Path, MAX_PATH) != nullptr)
-      DolphinPath = TStrToUTF8(Dolphin_exe_Clean_Path);
+    TCHAR dolphin_exe_path[2048];
+    TCHAR dolphin_exe_expanded_path[MAX_PATH];
+    GetModuleFileName(nullptr, dolphin_exe_path, ARRAYSIZE(dolphin_exe_path));
+    if (_tfullpath(dolphin_exe_expanded_path, dolphin_exe_path,
+                   ARRAYSIZE(dolphin_exe_expanded_path)) != nullptr)
+      dolphin_path = TStrToUTF8(dolphin_exe_expanded_path);
     else
-      DolphinPath = TStrToUTF8(Dolphin_exe_Path);
-    DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+      dolphin_path = TStrToUTF8(dolphin_exe_path);
 #else
-    char Dolphin_exe_Path[PATH_MAX];
-    ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
-    if (len == -1 || len == sizeof(Dolphin_exe_Path))
+    char dolphin_exe_path[PATH_MAX];
+    ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
+    if (len == -1 || len == sizeof(dolphin_exe_path))
     {
       len = 0;
     }
-    Dolphin_exe_Path[len] = '\0';
-    DolphinPath = Dolphin_exe_Path;
-    DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
+    dolphin_exe_path[len] = '\0';
+    dolphin_path = dolphin_exe_path;
 #endif
   }
-  return DolphinPath;
+  return dolphin_path;
+}
+
+std::string GetExeDirectory()
+{
+  std::string exe_path = GetExePath();
+#ifdef _WIN32
+  return exe_path.substr(0, exe_path.rfind('\\'));
+#else
+  return exe_path.substr(0, exe_path.rfind('/'));
+#endif
 }
 
 std::string GetSysDirectory()
@@ -715,7 +724,7 @@ std::string GetSysDirectory()
   sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
 #elif defined ANDROID
   sysDir = s_android_sys_directory;
-  _assert_msg_(COMMON, !sysDir.empty(), "Sys directory has not been set");
+  ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
 #else
   sysDir = SYSDATA_DIR;
 #endif
@@ -882,4 +891,4 @@ bool ReadFileToString(const std::string& filename, std::string& str)
   return retval;
 }
 
-}  // namespace
+}  // namespace File

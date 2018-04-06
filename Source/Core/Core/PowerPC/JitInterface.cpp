@@ -46,21 +46,20 @@ void DoState(PointerWrap& p)
 }
 CPUCoreBase* InitJitCore(int core)
 {
-  CPUCoreBase* ptr = nullptr;
   switch (core)
   {
 #if _M_X86
   case PowerPC::CORE_JIT64:
-    ptr = new Jit64();
+    g_jit = new Jit64();
     break;
 #endif
 #if _M_ARM_64
   case PowerPC::CORE_JITARM64:
-    ptr = new JitArm64();
+    g_jit = new JitArm64();
     break;
 #endif
   case PowerPC::CORE_CACHEDINTERPRETER:
-    ptr = new CachedInterpreter();
+    g_jit = new CachedInterpreter();
     break;
 
   default:
@@ -68,9 +67,8 @@ CPUCoreBase* InitJitCore(int core)
     g_jit = nullptr;
     return nullptr;
   }
-  g_jit = static_cast<JitBase*>(ptr);
   g_jit->Init();
-  return ptr;
+  return g_jit;
 }
 
 CPUCoreBase* GetCore()
@@ -241,8 +239,8 @@ void CompileExceptionCheck(ExceptionType type)
     if (type == ExceptionType::FIFOWrite)
     {
       // Check in case the code has been replaced since: do we need to do this?
-      int optype = GetOpInfo(PowerPC::HostRead_U32(PC))->type;
-      if (optype != OPTYPE_STORE && optype != OPTYPE_STOREFP && (optype != OPTYPE_STOREPS))
+      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PC))->type;
+      if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
     exception_addresses->insert(PC);

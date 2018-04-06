@@ -33,6 +33,14 @@ Settings& Settings::Instance()
   return settings;
 }
 
+QSettings& Settings::GetQSettings()
+{
+  static QSettings settings(
+      QStringLiteral("%1/Qt.ini").arg(QString::fromStdString(File::GetUserPath(D_CONFIG_IDX))),
+      QSettings::IniFormat);
+  return settings;
+}
+
 void Settings::SetThemeName(const QString& theme_name)
 {
   SConfig::GetInstance().theme_name = theme_name.toStdString();
@@ -88,22 +96,22 @@ void Settings::SetDefaultGame(QString path)
 
 bool Settings::GetPreferredView() const
 {
-  return QSettings().value(QStringLiteral("PreferredView"), true).toBool();
+  return GetQSettings().value(QStringLiteral("PreferredView"), true).toBool();
 }
 
 void Settings::SetPreferredView(bool list)
 {
-  QSettings().setValue(QStringLiteral("PreferredView"), list);
+  GetQSettings().setValue(QStringLiteral("PreferredView"), list);
 }
 
 int Settings::GetStateSlot() const
 {
-  return QSettings().value(QStringLiteral("Emulation/StateSlot"), 1).toInt();
+  return GetQSettings().value(QStringLiteral("Emulation/StateSlot"), 1).toInt();
 }
 
 void Settings::SetStateSlot(int slot)
 {
-  QSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
+  GetQSettings().setValue(QStringLiteral("Emulation/StateSlot"), slot);
 }
 
 void Settings::SetHideCursor(bool hide_cursor)
@@ -145,28 +153,28 @@ void Settings::DecreaseVolume(int volume)
 
 bool Settings::IsLogVisible() const
 {
-  return QSettings().value(QStringLiteral("logging/logvisible")).toBool();
+  return GetQSettings().value(QStringLiteral("logging/logvisible")).toBool();
 }
 
 void Settings::SetLogVisible(bool visible)
 {
   if (IsLogVisible() != visible)
   {
-    QSettings().setValue(QStringLiteral("logging/logvisible"), visible);
+    GetQSettings().setValue(QStringLiteral("logging/logvisible"), visible);
     emit LogVisibilityChanged(visible);
   }
 }
 
 bool Settings::IsLogConfigVisible() const
 {
-  return QSettings().value(QStringLiteral("logging/logconfigvisible")).toBool();
+  return GetQSettings().value(QStringLiteral("logging/logconfigvisible")).toBool();
 }
 
 void Settings::SetLogConfigVisible(bool visible)
 {
   if (IsLogConfigVisible() != visible)
   {
-    QSettings().setValue(QStringLiteral("logging/logconfigvisible"), visible);
+    GetQSettings().setValue(QStringLiteral("logging/logconfigvisible"), visible);
     emit LogConfigVisibilityChanged(visible);
   }
 }
@@ -218,6 +226,8 @@ void Settings::SetDebugModeEnabled(bool enabled)
     SConfig::GetInstance().bEnableDebugging = enabled;
     emit DebugModeToggled(enabled);
   }
+  if (enabled)
+    SetCodeVisible(true);
 }
 
 bool Settings::IsDebugModeEnabled() const
@@ -229,7 +239,7 @@ void Settings::SetRegistersVisible(bool enabled)
 {
   if (IsRegistersVisible() != enabled)
   {
-    QSettings().setValue(QStringLiteral("debugger/showregisters"), enabled);
+    GetQSettings().setValue(QStringLiteral("debugger/showregisters"), enabled);
 
     emit RegistersVisibilityChanged(enabled);
   }
@@ -237,14 +247,14 @@ void Settings::SetRegistersVisible(bool enabled)
 
 bool Settings::IsRegistersVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showregisters")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showregisters")).toBool();
 }
 
 void Settings::SetWatchVisible(bool enabled)
 {
   if (IsWatchVisible() != enabled)
   {
-    QSettings().setValue(QStringLiteral("debugger/showwatch"), enabled);
+    GetQSettings().setValue(QStringLiteral("debugger/showwatch"), enabled);
 
     emit WatchVisibilityChanged(enabled);
   }
@@ -252,14 +262,14 @@ void Settings::SetWatchVisible(bool enabled)
 
 bool Settings::IsWatchVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showwatch")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showwatch")).toBool();
 }
 
 void Settings::SetBreakpointsVisible(bool enabled)
 {
   if (IsBreakpointsVisible() != enabled)
   {
-    QSettings().setValue(QStringLiteral("debugger/showbreakpoints"), enabled);
+    GetQSettings().setValue(QStringLiteral("debugger/showbreakpoints"), enabled);
 
     emit BreakpointsVisibilityChanged(enabled);
   }
@@ -267,7 +277,7 @@ void Settings::SetBreakpointsVisible(bool enabled)
 
 bool Settings::IsBreakpointsVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showbreakpoints")).toBool();
 }
 
 bool Settings::IsControllerStateNeeded() const
@@ -284,7 +294,7 @@ void Settings::SetCodeVisible(bool enabled)
 {
   if (IsCodeVisible() != enabled)
   {
-    QSettings().setValue(QStringLiteral("debugger/showcode"), enabled);
+    GetQSettings().setValue(QStringLiteral("debugger/showcode"), enabled);
 
     emit CodeVisibilityChanged(enabled);
   }
@@ -292,14 +302,28 @@ void Settings::SetCodeVisible(bool enabled)
 
 bool Settings::IsCodeVisible() const
 {
-  return QSettings().value(QStringLiteral("debugger/showcode")).toBool();
+  return GetQSettings().value(QStringLiteral("debugger/showcode")).toBool();
+}
+
+void Settings::SetMemoryVisible(bool enabled)
+{
+  if (IsMemoryVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
+
+  emit MemoryVisibilityChanged(enabled);
+}
+
+bool Settings::IsMemoryVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
 
 void Settings::SetDebugFont(QFont font)
 {
   if (GetDebugFont() != font)
   {
-    QSettings().setValue(QStringLiteral("debugger/font"), font);
+    GetQSettings().setValue(QStringLiteral("debugger/font"), font);
 
     emit DebugFontChanged(font);
   }
@@ -310,5 +334,35 @@ QFont Settings::GetDebugFont() const
   QFont default_font = QFont(QStringLiteral("Monospace"));
   default_font.setStyleHint(QFont::TypeWriter);
 
-  return QSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
+  return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
+}
+
+void Settings::SetAutoUpdateTrack(const QString& mode)
+{
+  if (mode == GetAutoUpdateTrack())
+    return;
+
+  SConfig::GetInstance().m_auto_update_track = mode.toStdString();
+
+  emit AutoUpdateTrackChanged(mode);
+}
+
+QString Settings::GetAutoUpdateTrack() const
+{
+  return QString::fromStdString(SConfig::GetInstance().m_auto_update_track);
+}
+
+void Settings::SetAnalyticsEnabled(bool enabled)
+{
+  if (enabled == IsAnalyticsEnabled())
+    return;
+
+  SConfig::GetInstance().m_analytics_enabled = enabled;
+
+  emit AnalyticsToggled(enabled);
+}
+
+bool Settings::IsAnalyticsEnabled() const
+{
+  return SConfig::GetInstance().m_analytics_enabled;
 }

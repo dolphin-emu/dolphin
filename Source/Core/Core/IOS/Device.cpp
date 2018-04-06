@@ -80,7 +80,7 @@ IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
 
 const IOCtlVRequest::IOVector* IOCtlVRequest::GetVector(size_t index) const
 {
-  _assert_(index < (in_vectors.size() + io_vectors.size()));
+  ASSERT(index < (in_vectors.size() + io_vectors.size()));
   if (index < in_vectors.size())
     return &in_vectors[index];
   return &io_vectors[index - in_vectors.size()];
@@ -184,10 +184,18 @@ IPCCommandResult Device::Unsupported(const Request& request)
   return GetDefaultReply(IPC_EINVAL);
 }
 
-// Returns an IPCCommandResult for a reply that takes 25 us (based on ES::GetTicketViews)
+// Returns an IPCCommandResult for a reply with an average reply time for devices
+// Please avoid using this function if more accurate timings are known.
 IPCCommandResult Device::GetDefaultReply(const s32 return_value)
 {
-  return {return_value, true, SystemTimers::GetTicksPerSecond() / 40000};
+  // Based on a hardware test, a device takes at least ~2700 ticks to reply to an IPC request.
+  // Depending on how much work a command performs, this can take much longer (10000+)
+  // especially if the NAND filesystem is accessed.
+  //
+  // Because we currently don't emulate timing very accurately, we should not return
+  // the minimum possible reply time (~960 ticks from the kernel or ~2700 from devices)
+  // but an average time, otherwise we are going to be much too fast in most cases.
+  return {return_value, true, 4000 * SystemTimers::TIMER_RATIO};
 }
 
 // Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply

@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QVBoxLayout>
 
 #include <future>
 #include <optional>
@@ -27,6 +28,7 @@
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -52,6 +54,7 @@
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
+#include "DolphinQt2/Debugger/MemoryWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
@@ -65,6 +68,7 @@
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/QtUtils/WindowActivationEventFilter.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/SearchBar.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/TAS/GCTASInputWindow.h"
 #include "DolphinQt2/TAS/WiiTASInputWindow.h"
@@ -82,7 +86,7 @@
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
-  setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
+  setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
 
@@ -91,6 +95,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   CreateComponents();
 
   ConnectGameList();
+  ConnectHost();
   ConnectToolBar();
   ConnectRenderWidget();
   ConnectStack();
@@ -164,6 +169,7 @@ void MainWindow::CreateComponents()
 {
   m_menu_bar = new MenuBar(this);
   m_tool_bar = new ToolBar(this);
+  m_search_bar = new SearchBar(this);
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
@@ -190,6 +196,7 @@ void MainWindow::CreateComponents()
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_fifo_window = new FIFOPlayerWindow(this);
+  m_memory_widget = new MemoryWidget(this);
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
           [this](const QString& path) { StartGame(path); });
@@ -202,16 +209,23 @@ void MainWindow::CreateComponents()
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+
   connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
+  connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
+          &BreakpointWidget::Update);
+
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
+          &CodeWidget::Update);
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
+          &MemoryWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  m_graphics_window = new GraphicsWindow(
-      new X11Utils::XRRConfiguration(
-          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-              "display", windowHandle())),
-          winId()),
-      this);
+  m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", windowHandle())),
+      winId());
+  m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
 #else
   m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
@@ -228,6 +242,10 @@ void MainWindow::ConnectMenuBar()
   // File
   connect(m_menu_bar, &MenuBar::Open, this, &MainWindow::Open);
   connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
+  connect(m_menu_bar, &MenuBar::EjectDisc, this, &MainWindow::EjectDisc);
+  connect(m_menu_bar, &MenuBar::ChangeDisc, this, &MainWindow::ChangeDisc);
+  connect(m_menu_bar, &MenuBar::BootDVDBackup, this,
+          [this](const QString& drive) { StartGame(drive); });
 
   // Emulation
   connect(m_menu_bar, &MenuBar::Pause, this, &MainWindow::Pause);
@@ -275,6 +293,8 @@ void MainWindow::ConnectMenuBar()
   // View
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
   connect(m_menu_bar, &MenuBar::ShowGrid, m_game_list, &GameList::SetGridView);
+  connect(m_menu_bar, &MenuBar::ToggleSearch, m_search_bar, &SearchBar::Toggle);
+
   connect(m_menu_bar, &MenuBar::ColumnVisibilityToggled, m_game_list,
           &GameList::OnColumnVisibilityToggled);
 
@@ -370,9 +390,25 @@ void MainWindow::ConnectRenderWidget()
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 }
 
+void MainWindow::ConnectHost()
+{
+  connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
+          &MainWindow::OnUpdateProgressDialog);
+}
+
 void MainWindow::ConnectStack()
 {
-  m_stack->addWidget(m_game_list);
+  auto* widget = new QWidget;
+  auto* layout = new QVBoxLayout;
+  widget->setLayout(layout);
+
+  layout->addWidget(m_game_list);
+  layout->addWidget(m_search_bar);
+  layout->setMargin(0);
+
+  connect(m_search_bar, &SearchBar::Search, m_game_list, &GameList::SetSearchTerm);
+
+  m_stack->addWidget(widget);
 
   setCentralWidget(m_stack);
 
@@ -383,20 +419,40 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_memory_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
   tabifyDockWidget(m_log_widget, m_register_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
+  tabifyDockWidget(m_log_widget, m_memory_widget);
+}
+
+QString MainWindow::PromptFileName()
+{
+  return QFileDialog::getOpenFileName(
+      this, tr("Select a File"), QDir::currentPath(),
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
+         "All Files (*)"));
+}
+
+void MainWindow::ChangeDisc()
+{
+  QString file = PromptFileName();
+
+  if (!file.isEmpty())
+    Core::RunAsCPUThread([&file] { DVDInterface::ChangeDisc(file.toStdString()); });
+}
+
+void MainWindow::EjectDisc()
+{
+  Core::RunAsCPUThread(DVDInterface::EjectDisc);
 }
 
 void MainWindow::Open()
 {
-  QString file = QFileDialog::getOpenFileName(
-      this, tr("Select a File"), QDir::currentPath(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
-         "All Files (*)"));
+  QString file = PromptFileName();
   if (!file.isEmpty())
     StartGame(file);
 }
@@ -551,7 +607,7 @@ void MainWindow::FullScreen()
   // settings. If it's set to be fullscreen then it just remakes the window,
   // which probably isn't ideal.
   bool was_fullscreen = m_render_widget->isFullScreen();
-  HideRenderWidget();
+  HideRenderWidget(false);
   if (was_fullscreen)
     ShowRenderWidget();
   else
@@ -610,12 +666,13 @@ void MainWindow::ShowRenderWidget()
     m_rendering_to_main = true;
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
+    m_stack->repaint();
   }
   else
   {
     // Otherwise, just show it.
     m_rendering_to_main = false;
-    if (SConfig::GetInstance().bFullscreen)
+    if (SConfig::GetInstance().bFullscreen && !m_render_widget->isFullScreen())
     {
       m_render_widget->showFullScreen();
     }
@@ -627,7 +684,7 @@ void MainWindow::ShowRenderWidget()
   }
 }
 
-void MainWindow::HideRenderWidget()
+void MainWindow::HideRenderWidget(bool reinit)
 {
   if (m_rendering_to_main)
   {
@@ -643,16 +700,19 @@ void MainWindow::HideRenderWidget()
   // The following code works around a driver bug that would lead to Dolphin crashing when changing
   // graphics backends (e.g. OpenGL to Vulkan). To avoid this the render widget is (safely)
   // recreated
-  disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+  if (reinit)
+  {
+    m_render_widget->hide();
+    disconnect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
 
-  m_render_widget->hide();
-  m_render_widget->removeEventFilter(this);
-  m_render_widget->deleteLater();
+    m_render_widget->removeEventFilter(this);
+    m_render_widget->deleteLater();
 
-  m_render_widget = new RenderWidget;
+    m_render_widget = new RenderWidget;
 
-  m_render_widget->installEventFilter(this);
-  connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+    m_render_widget->installEventFilter(this);
+    connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+  }
 }
 
 void MainWindow::ShowControllersWindow()
@@ -879,7 +939,6 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   if (is_traversal)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
@@ -1175,4 +1234,25 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
+{
+  if (!m_progress_dialog)
+  {
+    m_progress_dialog = new QProgressDialog(m_render_widget);
+    m_progress_dialog->show();
+  }
+
+  m_progress_dialog->setValue(progress);
+  m_progress_dialog->setLabelText(title);
+  m_progress_dialog->setWindowTitle(title);
+  m_progress_dialog->setMaximum(total);
+
+  if (total < 0 || progress >= total)
+  {
+    m_progress_dialog->hide();
+    m_progress_dialog->deleteLater();
+    m_progress_dialog = nullptr;
+  }
 }

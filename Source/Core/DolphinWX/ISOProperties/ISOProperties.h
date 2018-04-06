@@ -39,14 +39,6 @@ namespace Gecko
 class CodeConfigPanel;
 }
 
-struct PHackData
-{
-  bool PHackSZNear;
-  bool PHackSZFar;
-  std::string PHZNear;
-  std::string PHZFar;
-};
-
 wxDECLARE_EVENT(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, wxCommandEvent);
 
 class CISOProperties : public wxDialog
@@ -64,7 +56,6 @@ private:
   std::unique_ptr<DiscIO::Volume> m_open_iso;
 
   std::vector<PatchEngine::Patch> m_on_frame;
-  PHackData m_phack_data;
 
   // Core
   wxCheckBox *m_cpu_thread, *m_mmu, *m_dcbz_off, *m_fprf;
@@ -79,10 +70,6 @@ private:
   DolphinSlider* m_depth_percentage;
   wxSpinCtrl* m_convergence;
   wxCheckBox* m_mono_depth;
-
-  wxArrayString m_emustate_string;
-  wxChoice* m_emustate_choice;
-  wxTextCtrl* m_emu_issues;
 
   wxCheckListBox* m_patches;
   wxButton* m_edit_patch;
@@ -116,8 +103,6 @@ private:
     ID_ENABLEWIDESCREEN,
     ID_EDITCONFIG,
     ID_SHOWDEFAULTCONFIG,
-    ID_EMUSTATE,
-    ID_EMU_ISSUES,
     ID_PATCHES_LIST,
     ID_EDITPATCH,
     ID_ADDPATCH,
@@ -137,7 +122,6 @@ private:
   void OnShowDefaultConfig(wxCommandEvent& event);
   void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
-  void OnEmustateChanged(wxCommandEvent& event);
   void OnCheatCodeToggled(wxCommandEvent& event);
   void OnChangeTitle(wxCommandEvent& event);
 

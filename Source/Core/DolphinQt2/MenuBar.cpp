@@ -19,6 +19,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Common/CDUtils.h"
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
@@ -74,6 +75,10 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   bool running = state != Core::State::Uninitialized;
   bool playing = running && state != Core::State::Paused;
 
+  // File
+  m_eject_disc->setEnabled(running);
+  m_change_disc->setEnabled(running);
+
   // Emulation
   m_play_action->setEnabled(!playing);
   m_play_action->setVisible(!playing);
@@ -115,6 +120,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_registers->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
+  m_show_memory->setVisible(enabled);
 
   if (enabled)
     addMenu(m_symbols);
@@ -122,11 +128,34 @@ void MenuBar::OnDebugModeToggled(bool enabled)
     removeAction(m_symbols->menuAction());
 }
 
+void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
+{
+  m_backup_menu = file_menu->addMenu(tr("Boot from DVD Backup"));
+
+  const std::vector<std::string> drives = cdio_get_devices();
+  // Windows Limitation of 24 character drives
+  for (size_t i = 0; i < drives.size() && i < 24; i++)
+  {
+    auto drive = QString::fromStdString(drives[i]);
+    AddAction(m_backup_menu, drive, this, [this, drive] { emit BootDVDBackup(drive); });
+  }
+}
+
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
   m_open_action = AddAction(file_menu, tr("&Open..."), this, &MenuBar::Open,
                             QKeySequence(QStringLiteral("Ctrl+O")));
+
+  file_menu->addSeparator();
+
+  m_change_disc = AddAction(file_menu, tr("Change &Disc..."), this, &MenuBar::ChangeDisc);
+  m_eject_disc = AddAction(file_menu, tr("&Eject Disc"), this, &MenuBar::EjectDisc);
+
+  AddDVDBackupMenu(file_menu);
+
+  file_menu->addSeparator();
+
   m_exit_action = AddAction(file_menu, tr("E&xit"), this, &MenuBar::Exit,
                             QKeySequence(QStringLiteral("Alt+F4")));
 }
@@ -349,6 +378,14 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
           &QAction::setChecked);
 
+  m_show_memory = view_menu->addAction(tr("&Memory"));
+  m_show_memory->setCheckable(true);
+  m_show_memory->setChecked(Settings::Instance().IsMemoryVisible());
+
+  connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::SetMemoryVisible);
+  connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
+          &QAction::setChecked);
+
   view_menu->addSeparator();
 
   AddGameListTypeSection(view_menu);
@@ -357,6 +394,10 @@ void MenuBar::AddViewMenu()
   view_menu->addSeparator();
   AddShowPlatformsMenu(view_menu);
   AddShowRegionsMenu(view_menu);
+
+  view_menu->addSeparator();
+  AddAction(view_menu, tr("Search"), this, &MenuBar::ToggleSearch,
+            QKeySequence(QStringLiteral("Ctrl+F")));
 }
 
 void MenuBar::AddOptionsMenu()
@@ -372,7 +413,7 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
 
   // Debugging mode only
-  m_boot_to_pause = options_menu->addAction(tr("Boot To Pause"));
+  m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
   m_boot_to_pause->setCheckable(true);
   m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);
 
@@ -386,7 +427,7 @@ void MenuBar::AddOptionsMenu()
   connect(m_automatic_start, &QAction::toggled, this,
           [this](bool enable) { SConfig::GetInstance().bAutomaticStart = enable; });
 
-  m_change_font = AddAction(options_menu, tr("Font..."), this, &MenuBar::ChangeDebugFont);
+  m_change_font = AddAction(options_menu, tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
 void MenuBar::AddHelpMenu()
@@ -439,8 +480,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
-      {tr("State"), &SConfig::GetInstance().m_showStateColumn}};
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
@@ -596,7 +636,7 @@ void MenuBar::AddSymbolsMenu()
 
   AddAction(m_symbols, tr("&Clear Symbols"), this, &MenuBar::ClearSymbols);
 
-  auto* generate = m_symbols->addMenu(tr("Generate Symbols From"));
+  auto* generate = m_symbols->addMenu(tr("&Generate Symbols From"));
   AddAction(generate, tr("Address"), this, &MenuBar::GenerateSymbolsFromAddress);
   AddAction(generate, tr("Signature Database"), this, &MenuBar::GenerateSymbolsFromSignatureDB);
   AddAction(generate, tr("RSO Modules"), this, &MenuBar::GenerateSymbolsFromRSO);
@@ -606,7 +646,7 @@ void MenuBar::AddSymbolsMenu()
   AddAction(m_symbols, tr("&Save Symbol Map"), this, &MenuBar::SaveSymbolMap);
   m_symbols->addSeparator();
 
-  AddAction(m_symbols, tr("&Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
+  AddAction(m_symbols, tr("Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
   AddAction(m_symbols, tr("Save Symbol Map &As..."), this, &MenuBar::SaveSymbolMapAs);
   m_symbols->addSeparator();
 
@@ -897,7 +937,7 @@ void MenuBar::LoadSymbolMap()
     g_symbolDB.LoadMap(existing_map_file);
     QMessageBox::information(
         this, tr("Information"),
-        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file.c_str())));
+        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file)));
   }
 
   HLE::PatchFunctions();
@@ -946,7 +986,7 @@ void MenuBar::SaveCode()
   CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
   const std::string path =
-      writable_map_file.substr(0, writable_map_file.find_last_of(".")) + "_code.map";
+      writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
   g_symbolDB.SaveCodeMap(path);
 }

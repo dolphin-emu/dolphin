@@ -27,7 +27,7 @@ VKPipeline::~VKPipeline()
 
 std::unique_ptr<VKPipeline> VKPipeline::Create(const AbstractPipelineConfig& config)
 {
-  _dbg_assert_(VIDEO, config.vertex_shader && config.pixel_shader);
+  DEBUG_ASSERT(config.vertex_shader && config.pixel_shader);
 
   // Get render pass for config.
   VkRenderPass render_pass = g_object_cache->GetRenderPass(

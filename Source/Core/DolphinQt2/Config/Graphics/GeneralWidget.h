@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include "DolphinQt2/Config/Graphics/GraphicsWidget.h"
 
 class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
+class QRadioButton;
 class QGridLayout;
 
 namespace X11Utils
@@ -52,6 +54,7 @@ private:
   QCheckBox* m_keep_window_top;
   QCheckBox* m_hide_cursor;
   QCheckBox* m_render_main_window;
+  std::array<QRadioButton*, 4> m_shader_compilation_mode{};
   QCheckBox* m_wait_for_shaders;
 
   X11Utils::XRRConfiguration* m_xrr_config;

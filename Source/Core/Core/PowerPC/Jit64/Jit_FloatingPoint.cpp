@@ -83,7 +83,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
     return;
   }
 
-  _assert_(xmm != clobber);
+  ASSERT(xmm != clobber);
 
   std::vector<u32> inputs;
   u32 a = inst.FA, b = inst.FB, c = inst.FC;
@@ -126,7 +126,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       FixupBranch handle_nan = J_CC(CC_NZ, true);
       SwitchToFarCode();
       SetJumpTarget(handle_nan);
-      _assert_msg_(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
+      ASSERT_MSG(DYNA_REC, clobber == XMM0, "BLENDVPD implicitly uses XMM0");
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
       for (u32 x : inputs)
       {
@@ -221,7 +221,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
                      round_input);
     break;
   default:
-    _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+    ASSERT_MSG(DYNA_REC, 0, "fp_arith WTF!!!");
   }
   HandleNaNs(inst, fpr.RX(d), dest);
   if (single)
@@ -487,7 +487,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   int a = inst.FA;
   int b = inst.FB;
   u32 crf = inst.CRFD;
-  int output[4] = {CR_SO, CR_EQ, CR_GT, CR_LT};
+  int output[4] = {PowerPC::CR_SO, PowerPC::CR_EQ, PowerPC::CR_GT, PowerPC::CR_LT};
 
   // Merge neighboring fcmp and cror (the primary use of cror).
   UGeckoInstruction next = js.op[1].inst;
@@ -541,31 +541,31 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     pGreater = J_CC(CC_B);
   }
 
-  MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_EQ_BIT])));
+  MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_EQ_BIT])));
   if (fprf)
-    OR(32, PPCSTATE(fpscr), Imm32(CR_EQ << FPRF_SHIFT));
+    OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_EQ << FPRF_SHIFT));
 
   continue1 = J();
 
   SetJumpTarget(pNaN);
-  MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_SO_BIT])));
+  MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_SO_BIT])));
   if (fprf)
-    OR(32, PPCSTATE(fpscr), Imm32(CR_SO << FPRF_SHIFT));
+    OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_SO << FPRF_SHIFT));
 
   if (a != b)
   {
     continue2 = J();
 
     SetJumpTarget(pGreater);
-    MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_GT_BIT])));
+    MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_GT_BIT])));
     if (fprf)
-      OR(32, PPCSTATE(fpscr), Imm32(CR_GT << FPRF_SHIFT));
+      OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_GT << FPRF_SHIFT));
     continue3 = J();
 
     SetJumpTarget(pLesser);
-    MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_LT_BIT])));
+    MOV(64, R(RSCRATCH), Imm64(PowerPC::PPCCRToInternal(output[PowerPC::CR_LT_BIT])));
     if (fprf)
-      OR(32, PPCSTATE(fpscr), Imm32(CR_LT << FPRF_SHIFT));
+      OR(32, PPCSTATE(fpscr), Imm32(PowerPC::CR_LT << FPRF_SHIFT));
   }
 
   SetJumpTarget(continue1);

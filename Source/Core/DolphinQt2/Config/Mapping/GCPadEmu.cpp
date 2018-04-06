@@ -22,12 +22,6 @@ void GCPadEmu::CreateMainLayout()
 {
   m_main_layout = new QHBoxLayout();
 
-  auto* hbox_layout = new QVBoxLayout();
-
-  hbox_layout->addWidget(
-      CreateGroupBox(tr("Triggers"), Pad::GetGroup(GetPort(), PadGroup::Triggers)));
-  hbox_layout->addWidget(CreateGroupBox(tr("Rumble"), Pad::GetGroup(GetPort(), PadGroup::Rumble)));
-
   m_main_layout->addWidget(
       CreateGroupBox(tr("Buttons"), Pad::GetGroup(GetPort(), PadGroup::Buttons)));
   m_main_layout->addWidget(
@@ -35,7 +29,14 @@ void GCPadEmu::CreateMainLayout()
   m_main_layout->addWidget(
       CreateGroupBox(tr("C Stick"), Pad::GetGroup(GetPort(), PadGroup::CStick)));
   m_main_layout->addWidget(CreateGroupBox(tr("D-Pad"), Pad::GetGroup(GetPort(), PadGroup::DPad)));
+
+  auto* hbox_layout = new QVBoxLayout();
+
   m_main_layout->addItem(hbox_layout);
+
+  hbox_layout->addWidget(
+      CreateGroupBox(tr("Triggers"), Pad::GetGroup(GetPort(), PadGroup::Triggers)));
+  hbox_layout->addWidget(CreateGroupBox(tr("Rumble"), Pad::GetGroup(GetPort(), PadGroup::Rumble)));
 
   setLayout(m_main_layout);
 }

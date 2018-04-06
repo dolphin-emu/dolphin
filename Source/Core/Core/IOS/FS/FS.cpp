@@ -230,7 +230,7 @@ IPCCommandResult FS::GetStats(const IOCtlRequest& request)
 
 IPCCommandResult FS::CreateDirectory(const IOCtlRequest& request)
 {
-  _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
   u32 Addr = request.buffer_in;
 
   u32 OwnerID = Memory::Read_U32(Addr);
@@ -255,7 +255,7 @@ IPCCommandResult FS::CreateDirectory(const IOCtlRequest& request)
 
   DirName += DIR_SEP;
   File::CreateFullPath(DirName);
-  _dbg_assert_msg_(IOS_FILEIO, File::IsDirectory(DirName), "FS: CREATE_DIR %s failed",
+  DEBUG_ASSERT_MSG(IOS_FILEIO, File::IsDirectory(DirName), "FS: CREATE_DIR %s failed",
                    DirName.c_str());
 
   return GetFSReply(IPC_SUCCESS);
@@ -301,7 +301,7 @@ IPCCommandResult FS::SetAttribute(const IOCtlRequest& request)
 
 IPCCommandResult FS::GetAttribute(const IOCtlRequest& request)
 {
-  _dbg_assert_msg_(IOS_FILEIO, request.buffer_out_size == 76,
+  DEBUG_ASSERT_MSG(IOS_FILEIO, request.buffer_out_size == 76,
                    "    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large",
                    request.buffer_out_size);
 
@@ -377,7 +377,7 @@ IPCCommandResult FS::GetAttribute(const IOCtlRequest& request)
 
 IPCCommandResult FS::DeleteFile(const IOCtlRequest& request)
 {
-  _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
   int Offset = 0;
 
   const std::string wii_path = Memory::GetString(request.buffer_in + Offset, 64);
@@ -407,7 +407,7 @@ IPCCommandResult FS::DeleteFile(const IOCtlRequest& request)
 
 IPCCommandResult FS::RenameFile(const IOCtlRequest& request)
 {
-  _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
   int Offset = 0;
 
   const std::string wii_path = Memory::GetString(request.buffer_in + Offset, 64);
@@ -454,7 +454,7 @@ IPCCommandResult FS::RenameFile(const IOCtlRequest& request)
 
 IPCCommandResult FS::CreateFile(const IOCtlRequest& request)
 {
-  _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
+  DEBUG_ASSERT(request.buffer_out_size == 0);
 
   u32 Addr = request.buffer_in;
   u32 OwnerID = Memory::Read_U32(Addr);
@@ -600,9 +600,9 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
 
 IPCCommandResult FS::GetUsage(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_FILEIO, request.io_vectors.size() == 2);
-  _dbg_assert_(IOS_FILEIO, request.io_vectors[0].size == 4);
-  _dbg_assert_(IOS_FILEIO, request.io_vectors[1].size == 4);
+  DEBUG_ASSERT(request.io_vectors.size() == 2);
+  DEBUG_ASSERT(request.io_vectors[0].size == 4);
+  DEBUG_ASSERT(request.io_vectors[1].size == 4);
 
   // this command sucks because it asks of the number of used
   // fsBlocks and inodes

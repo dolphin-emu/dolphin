@@ -29,7 +29,7 @@ public:
   void Jit(u32 address) override;
 
   JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }
-  const char* GetName() override { return "Cached Interpreter"; }
+  const char* GetName() const override { return "Cached Interpreter"; }
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
 private:
   struct Instruction;

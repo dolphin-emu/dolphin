@@ -45,6 +45,11 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
+bool IsInitialized()
+{
+  return !s_config.ControllersNeedToBeCreated();
+}
+
 GCPadStatus GetStatus(int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
@@ -58,6 +63,11 @@ ControllerEmu::ControlGroup* GetGroup(int pad_num, PadGroup group)
 void Rumble(const int pad_num, const ControlState strength)
 {
   static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(strength);
+}
+
+void ResetRumble(const int pad_num)
+{
+  static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(0.0);
 }
 
 bool GetMicButton(const int pad_num)

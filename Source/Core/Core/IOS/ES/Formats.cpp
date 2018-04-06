@@ -376,7 +376,7 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 
   // Copy the rest of the ticket view structure from the ticket.
   view.insert(view.end(), view_start, view_start + (sizeof(TicketView) - sizeof(version)));
-  _assert_(view.size() == sizeof(TicketView));
+  ASSERT(view.size() == sizeof(TicketView));
 
   return view;
 }

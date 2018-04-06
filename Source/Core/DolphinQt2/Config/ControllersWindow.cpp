@@ -30,6 +30,7 @@
 #include "Core/NetPlayProto.h"
 #include "DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
+#include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/UICommon.h"
 
@@ -221,19 +222,20 @@ void ControllersWindow::CreateAdvancedLayout()
 
 void ControllersWindow::CreateMainLayout()
 {
-  m_main_layout = new QVBoxLayout();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  auto* layout = new QVBoxLayout();
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
 
-  m_main_layout->addWidget(m_gc_box);
-  m_main_layout->addWidget(m_wiimote_box);
-  m_main_layout->addWidget(m_advanced_box);
-  m_main_layout->addWidget(m_button_box);
+  layout->addWidget(m_gc_box);
+  layout->addWidget(m_wiimote_box);
+  layout->addWidget(m_advanced_box);
+  layout->addWidget(m_button_box);
 
-  setLayout(m_main_layout);
+  WrapInScrollArea(this, layout);
 }
 
 void ControllersWindow::ConnectWidgets()
 {
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 
@@ -252,7 +254,6 @@ void ControllersWindow::ConnectWidgets()
           &ControllersWindow::OnBluetoothPassthroughResetPressed);
   connect(m_wiimote_refresh, &QPushButton::clicked, this,
           &ControllersWindow::OnWiimoteRefreshPressed);
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &ControllersWindow::accept);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {

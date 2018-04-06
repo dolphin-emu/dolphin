@@ -194,7 +194,7 @@ public:
   u16 GetTitleVersion() const;
   u16 GetGroupId() const;
 
-  // Provides a best guess for the region. Might be inaccurate or UNKNOWN_REGION.
+  // Provides a best guess for the region. Might be inaccurate or Region::Unknown.
   DiscIO::Region GetRegion() const;
 
   // Constructs a 6-character game ID in the format typically used by Dolphin.

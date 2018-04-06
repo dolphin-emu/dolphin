@@ -450,7 +450,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
   menu.Append(IDM_JITRESULTS, _("PPC vs x86"))->Enable(Core::IsRunning());
   menu.Append(IDM_INSERTBLR, _("&Insert blr"))->Enable(Core::IsRunning());
   menu.Append(IDM_INSERTNOP, _("Insert &nop"))->Enable(Core::IsRunning());
-  menu.Append(IDM_ASSEMBLE, _("Re&place Instruction"))->Enable(Core::IsRunning());
+  menu.Append(IDM_ASSEMBLE, _("Re&place instruction"))->Enable(Core::IsRunning());
   // menu.Append(IDM_PATCHALERT, _("Patch alert"))->Enable(Core::IsRunning());
   PopupMenu(&menu);
   event.Skip();

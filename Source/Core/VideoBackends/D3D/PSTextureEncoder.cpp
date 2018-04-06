@@ -48,7 +48,7 @@ void PSTextureEncoder::Init()
   m_encoding_render_texture = g_renderer->CreateTexture(encoding_texture_config);
   m_encoding_readback_texture =
       g_renderer->CreateStagingTexture(StagingTextureType::Readback, encoding_texture_config);
-  _assert_(m_encoding_render_texture && m_encoding_readback_texture);
+  ASSERT(m_encoding_render_texture && m_encoding_readback_texture);
 
   // Create constant buffer for uploading data to shaders
   D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams), D3D11_BIND_CONSTANT_BUFFER);

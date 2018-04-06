@@ -302,7 +302,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
         else
         {
           device_name = "illegal address";
-          _dbg_assert_msg_(EXPANSIONINTERFACE, 0, "EXI IPL-DEV: %s %08x", device_name.c_str(),
+          DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0, "EXI IPL-DEV: %s %08x", device_name.c_str(),
                            m_uAddress);
         }
         break;
@@ -431,7 +431,7 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
   }
   else
   {
-    _assert_(!Core::WantsDeterminism());
+    ASSERT(!Core::WantsDeterminism());
     ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 

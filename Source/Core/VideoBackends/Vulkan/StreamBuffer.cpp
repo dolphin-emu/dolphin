@@ -209,8 +209,8 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
   // Can we find a fence to wait on that will give us enough memory?
   if (allow_reuse && WaitForClearSpace(required_bytes))
   {
-    _assert_(m_current_offset == m_current_gpu_position ||
-             (m_current_offset + required_bytes) < m_current_gpu_position);
+    ASSERT(m_current_offset == m_current_gpu_position ||
+           (m_current_offset + required_bytes) < m_current_gpu_position);
     m_current_offset = Util::AlignBufferOffset(m_current_offset, alignment);
     m_last_allocation_size = num_bytes;
     return true;
@@ -232,8 +232,8 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
 
 void StreamBuffer::CommitMemory(size_t final_num_bytes)
 {
-  _assert_((m_current_offset + final_num_bytes) <= m_current_size);
-  _assert_(final_num_bytes <= m_last_allocation_size);
+  ASSERT((m_current_offset + final_num_bytes) <= m_current_size);
+  ASSERT(final_num_bytes <= m_last_allocation_size);
 
   // For non-coherent mappings, flush the memory range
   if (!m_coherent_mapping)

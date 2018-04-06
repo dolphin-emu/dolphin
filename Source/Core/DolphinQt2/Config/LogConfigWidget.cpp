@@ -9,7 +9,6 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QRadioButton>
-#include <QSettings>
 #include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
@@ -122,7 +121,7 @@ void LogConfigWidget::ConnectWidgets()
 void LogConfigWidget::LoadSettings()
 {
   auto* logmanager = LogManager::GetInstance();
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("logconfigwidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("logconfigwidget/floating")).toBool());
@@ -156,7 +155,7 @@ void LogConfigWidget::SaveSettings()
   if (m_block_save)
     return;
 
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("logconfigwidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("logconfigwidget/floating"), isFloating());

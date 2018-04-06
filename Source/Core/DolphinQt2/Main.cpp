@@ -7,6 +7,8 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QObject>
+#include <QPushButton>
+#include <QWidget>
 
 #include "Common/MsgHandler.h"
 #include "Core/Analytics.h"
@@ -14,12 +16,12 @@
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
-#include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Translation.h"
+#include "DolphinQt2/Updater.h"
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
@@ -31,7 +33,11 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
     QMessageBox message_box(QApplication::activeWindow());
     message_box.setWindowTitle(QString::fromUtf8(caption));
     message_box.setText(QString::fromUtf8(text));
+
     message_box.setStandardButtons(yes_no ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Ok);
+    if (style == MsgType::Warning)
+      message_box.addButton(QMessageBox::Ignore)->setText(QObject::tr("Ignore for this session"));
+
     message_box.setIcon([&] {
       switch (style)
       {
@@ -48,7 +54,14 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
       return QMessageBox::NoIcon;
     }());
 
-    return message_box.exec() == QMessageBox::Yes;
+    const int button = message_box.exec();
+    if (button == QMessageBox::Yes)
+      return true;
+
+    if (button == QMessageBox::Ignore)
+      SetEnableAlert(false);
+
+    return false;
   });
 }
 
@@ -106,15 +119,13 @@ int main(int argc, char* argv[])
       QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid title ID."));
     }
   }
-
-  int retval = 0;
-
-  if (SConfig::GetInstance().m_show_development_warning)
+  else if (!args.empty())
   {
-    InDevelopmentWarning warning_box;
-    retval = warning_box.exec() == QDialog::Rejected;
+    boot = BootParameters::GenerateFromFile(args.front());
   }
-  if (!retval)
+
+  int retval;
+
   {
     DolphinAnalytics::Instance()->ReportDolphinStart("qt");
 
@@ -148,11 +159,14 @@ int main(int argc, char* argv[])
       const int answer = analytics_prompt.exec();
 
       SConfig::GetInstance().m_analytics_permission_asked = true;
-      SConfig::GetInstance().m_analytics_enabled = (answer == QMessageBox::Yes);
+      Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
       DolphinAnalytics::Instance()->ReloadConfig();
     }
 #endif
+
+    auto* updater = new Updater(&win);
+    updater->start();
 
     retval = app.exec();
   }

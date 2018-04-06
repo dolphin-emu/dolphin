@@ -79,6 +79,7 @@
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsBool.h" />
     <QtMoc Include="Config\Graphics\GraphicsChoice.h" />
+    <QtMoc Include="Config\Graphics\GraphicsRadio.h" />
     <QtMoc Include="Config\Graphics\GraphicsSlider.h" />
     <QtMoc Include="Config\Graphics\GraphicsWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsWindow.h" />
@@ -96,6 +97,8 @@
     <QtMoc Include="Debugger\BreakpointWidget.h" />
     <QtMoc Include="Debugger\CodeWidget.h" />
     <QtMoc Include="Debugger\CodeViewWidget.h" />
+    <QtMoc Include="Debugger\MemoryWidget.h" />
+    <QtMoc Include="Debugger\MemoryViewWidget.h" />
     <QtMoc Include="Debugger\NewBreakpointDialog.h" />
     <QtMoc Include="Debugger\RegisterWidget.h" />
     <QtMoc Include="Debugger\WatchWidget.h" />
@@ -106,7 +109,6 @@
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
-    <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="Settings\InterfacePane.h" />
     <QtMoc Include="Settings\AudioPane.h" />
     <QtMoc Include="Settings\WiiPane.h" />
@@ -120,12 +122,15 @@
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
+    <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="RenderWidget.h" />
+    <QtMoc Include="SearchBar.h" />
     <QtMoc Include="Settings.h" />
     <QtMoc Include="Settings\AdvancedPane.h" />
     <QtMoc Include="Settings\GeneralPane.h" />
     <QtMoc Include="ToolBar.h" />
+    <QtMoc Include="Updater.h" />
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
@@ -159,13 +164,13 @@
     <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsChoice.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)GraphicsRadio.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsSlider.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HacksWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyScheduler.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InterfacePane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
@@ -178,6 +183,8 @@
     <ClCompile Include="$(QtMocOutPrefix)MappingWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MappingWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MD5Dialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MemoryWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)MemoryViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
@@ -189,12 +196,14 @@
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RegisterWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)SearchBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WatchWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)USBDeviceAddToWhitelistDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)Updater.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
@@ -209,6 +218,7 @@
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsChoice.cpp" />
+    <ClCompile Include="Config\Graphics\GraphicsRadio.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
@@ -244,7 +254,10 @@
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="Debugger\CodeViewWidget.cpp" />
     <ClCompile Include="Debugger\CodeWidget.cpp" />
+    <ClCompile Include="Debugger\MemoryWidget.cpp" />
+    <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="FIFOPlayerWindow.cpp" />
+    <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
     <ClCompile Include="TAS\StickWidget.cpp" />
@@ -263,7 +276,6 @@
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
-    <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
@@ -278,9 +290,11 @@
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ListTabWidget.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
+    <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="QtUtils\AspectRatioWidget.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
     <ClCompile Include="Resources.cpp" />
+    <ClCompile Include="SearchBar.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="Settings\AdvancedPane.cpp" />
     <ClCompile Include="Settings\AudioPane.cpp" />
@@ -292,6 +306,7 @@
     <ClCompile Include="Settings\USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="ToolBar.cpp" />
     <ClCompile Include="Translation.cpp" />
+    <ClCompile Include="Updater.cpp" />
     <ClCompile Include="WiiUpdate.cpp" />
     <ClCompile Include="../DolphinWX/NetcoreClient.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
@@ -324,6 +339,7 @@
     <ClInclude Include="Config\Mapping\HotkeyGraphics.h" />
     <ClInclude Include="Config\Mapping\HotkeyStates.h" />
     <ClInclude Include="Config\Mapping\HotkeyTAS.h" />
+    <ClInclude Include="QtUtils\WinIconHelper.h" />
     <ClInclude Include="TAS\Shared.h" />
     <ClInclude Include="Config\Mapping\HotkeyWii.h" />
     <ClInclude Include="Config\Mapping\MappingBool.h" />

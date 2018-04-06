@@ -40,6 +40,6 @@ void UnloadVulkanLibrary();
 const char* VkResultToString(VkResult res);
 void LogVulkanResult(int level, const char* func_name, VkResult res, const char* msg, ...);
 
-#define LOG_VULKAN_ERROR(res, ...) LogVulkanResult(2, __FUNCTION__, res, __VA_ARGS__)
+#define LOG_VULKAN_ERROR(res, ...) LogVulkanResult(2, __func__, res, __VA_ARGS__)
 
 }  // namespace Vulkan

@@ -17,7 +17,6 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
-#include <QSettings>
 #include <QSpinBox>
 #include <QTabWidget>
 
@@ -50,7 +49,7 @@ NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
 
   OnConnectionTypeChanged(m_connection_type->currentIndex());
 
-  int selected_game = QSettings().value(QStringLiteral("netplay/hostgame"), 0).toInt();
+  int selected_game = Settings::GetQSettings().value(QStringLiteral("netplay/hostgame"), 0).toInt();
 
   if (selected_game >= m_host_games->count())
     selected_game = 0;
@@ -160,7 +159,9 @@ void NetPlaySetupDialog::ConnectWidgets()
   connect(m_host_port_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
           &NetPlaySetupDialog::SaveSettings);
   connect(m_host_games, static_cast<void (QListWidget::*)(int)>(&QListWidget::currentRowChanged),
-          [](int index) { QSettings().setValue(QStringLiteral("netplay/hostgame"), index); });
+          [](int index) {
+            Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"), index);
+          });
   connect(m_host_force_port_check, &QCheckBox::toggled,
           [this](int value) { m_host_force_port_box->setEnabled(value); });
 #ifdef USE_UPNP

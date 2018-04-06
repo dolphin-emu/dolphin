@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 93;  // Last changed in PR 6389, Narry's Mod 0.1.7
+static const u32 STATE_VERSION = 94;  // Last changed in PR 6456 Narry's Mod 0.1.8
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -229,15 +229,6 @@ void SaveToBuffer(std::vector<u8>& buffer)
 
     ptr = &buffer[0];
     p.SetMode(PointerWrap::MODE_WRITE);
-    DoState(p);
-  });
-}
-
-void VerifyBuffer(std::vector<u8>& buffer)
-{
-  Core::RunAsCPUThread([&] {
-    u8* ptr = &buffer[0];
-    PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
     DoState(p);
   });
 }
@@ -611,26 +602,6 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
   s_on_after_load_callback = std::move(callback);
 }
 
-void VerifyAt(const std::string& filename)
-{
-  Core::RunAsCPUThread([&] {
-    std::vector<u8> buffer;
-    LoadFileStateData(filename, buffer);
-
-    if (!buffer.empty())
-    {
-      u8* ptr = &buffer[0];
-      PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
-      DoState(p);
-
-      if (p.GetMode() == PointerWrap::MODE_VERIFY)
-        Core::DisplayMessage(StringFromFormat("Verified state at %s", filename.c_str()), 2000);
-      else
-        Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
-    }
-  });
-}
-
 void Init()
 {
   if (lzo_init() != LZO_E_OK)
@@ -669,11 +640,6 @@ void Save(int slot, bool wait)
 void Load(int slot)
 {
   LoadAs(MakeStateFilename(slot));
-}
-
-void Verify(int slot)
-{
-  VerifyAt(MakeStateFilename(slot));
 }
 
 void LoadLastSaved(int i)

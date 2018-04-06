@@ -277,15 +277,6 @@ constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)
   return static_cast<ARM64Reg>(reg | 0xC0);
 }
 
-// For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s,
-                  unsigned int* imm_r);
-// For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32* val, bool* shift);
-
-float FPImm8ToFloat(uint8_t bits);
-bool FPImm8FromFloat(float value, uint8_t* immOut);
-
 enum OpType
 {
   TYPE_IMM = 0,
@@ -490,7 +481,7 @@ public:
       return (m_shifttype << 22) | (m_shift << 10);
       break;
     default:
-      _dbg_assert_msg_(DYNA_REC, false, "Invalid type in GetData");
+      DEBUG_ASSERT_MSG(DYNA_REC, false, "Invalid type in GetData");
       break;
     }
     return 0;
@@ -846,7 +837,7 @@ public:
   template <class P>
   void MOVP2R(ARM64Reg Rd, P* ptr)
   {
-    _assert_msg_(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
+    ASSERT_MSG(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
     MOVI2R(Rd, (uintptr_t)ptr);
   }
 

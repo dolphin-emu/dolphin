@@ -33,4 +33,6 @@ const ConfigInfo<std::string> NETPLAY_SELECTED_HOST_GAME{
     {System::Main, "NetPlay", "SelectedHostGame"}, ""};
 const ConfigInfo<bool> NETPLAY_USE_UPNP{{System::Main, "NetPlay", "UseUPNP"}, false};
 
+const ConfigInfo<bool> NETPLAY_ENABLE_QOS{{System::Main, "NetPlay", "EnableQoS"}, true};
+
 }  // namespace Config

@@ -80,7 +80,13 @@ var isStable = +("master" === branch || "stable" === branch);
 
 // Get environment information.
 var distributor = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DISTRIBUTOR%");
+<<<<<<< HEAD
 if (distributor === "%DOLPHIN_DISTRIBUTOR%") distributor = "None";
+=======
+if (distributor == "%DOLPHIN_DISTRIBUTOR%") distributor = "None";
+var default_update_track = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DEFAULT_UPDATE_TRACK%");
+if (default_update_track == "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_track = "";
+>>>>>>> a3bdb5d85e41040cc9b1347c9606e85bd9116928
 
 // remove hash (and trailing "-0" if needed) from description
 describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
@@ -90,7 +96,8 @@ var out_contents =
 	"#define SCM_DESC_STR \"" + describe + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + branch + "\"\n" +
 	"#define SCM_IS_MASTER " + isStable + "\n" +
-	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n";
+	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n" +
+    "#define SCM_UPDATE_TRACK_STR \"" + default_update_track + "\"\n";
 
 // check if file needs updating
 if (out_contents === GetFileContents(outfile))

@@ -76,23 +76,23 @@ inline u64 bswap(u64 val)
 }
 // =================
 
-enum XCheckTLBFlag
+enum class XCheckTLBFlag
 {
-  FLAG_NO_EXCEPTION,
-  FLAG_READ,
-  FLAG_WRITE,
-  FLAG_OPCODE,
-  FLAG_OPCODE_NO_EXCEPTION
+  NoException,
+  Read,
+  Write,
+  Opcode,
+  OpcodeNoException
 };
 
 static bool IsOpcodeFlag(XCheckTLBFlag flag)
 {
-  return flag == FLAG_OPCODE || flag == FLAG_OPCODE_NO_EXCEPTION;
+  return flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException;
 }
 
 static bool IsNoExceptionFlag(XCheckTLBFlag flag)
 {
-  return flag == FLAG_NO_EXCEPTION || flag == FLAG_OPCODE_NO_EXCEPTION;
+  return flag == XCheckTLBFlag::NoException || flag == XCheckTLBFlag::OpcodeNoException;
 }
 
 struct TranslateAddressResult
@@ -173,7 +173,7 @@ static T ReadFromHardware(u32 em_address)
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
     {
-      if (flag == FLAG_READ)
+      if (flag == XCheckTLBFlag::Read)
         GenerateDSIException(em_address, false);
       return 0;
     }
@@ -187,7 +187,7 @@ static T ReadFromHardware(u32 em_address)
       auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
       if (!addr_next_page.Success())
       {
-        if (flag == FLAG_READ)
+        if (flag == XCheckTLBFlag::Read)
           GenerateDSIException(em_address_next_page, false);
         return 0;
       }
@@ -241,7 +241,7 @@ static T ReadFromHardware(u32 em_address)
     return bswap(value);
   }
 
-  if (flag == FLAG_READ && (em_address & 0xF8000000) == 0x08000000)
+  if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
   {
     if (em_address < 0x0c000000)
       return EFB_Read(em_address);
@@ -261,7 +261,7 @@ static void WriteToHardware(u32 em_address, const T data)
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
     {
-      if (flag == FLAG_WRITE)
+      if (flag == XCheckTLBFlag::Write)
         GenerateDSIException(em_address, true);
       return;
     }
@@ -276,7 +276,7 @@ static void WriteToHardware(u32 em_address, const T data)
       auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
       if (!addr_next_page.Success())
       {
-        if (flag == FLAG_WRITE)
+        if (flag == XCheckTLBFlag::Write)
           GenerateDSIException(em_address_next_page, true);
         return;
       }
@@ -334,7 +334,7 @@ static void WriteToHardware(u32 em_address, const T data)
   // Check for a gather pipe write.
   // Note that we must mask the address to correctly emulate certain games;
   // Pac-Man World 3 in particular is affected by this.
-  if (flag == FLAG_WRITE && (em_address & 0xFFFFF000) == 0x0C008000)
+  if (flag == XCheckTLBFlag::Write && (em_address & 0xFFFFF000) == 0x0C008000)
   {
     switch (sizeof(T))
     {
@@ -353,7 +353,7 @@ static void WriteToHardware(u32 em_address, const T data)
     }
   }
 
-  if (flag == FLAG_WRITE && (em_address & 0xF8000000) == 0x08000000)
+  if (flag == XCheckTLBFlag::Write && (em_address & 0xF8000000) == 0x08000000)
   {
     if (em_address < 0x0c000000)
     {
@@ -395,7 +395,7 @@ TryReadInstResult TryReadInstruction(u32 address)
   bool from_bat = true;
   if (UReg_MSR(MSR).IR)
   {
-    auto tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
+    auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
     {
       return TryReadInstResult{false, false, 0, 0};
@@ -458,28 +458,28 @@ static void Memcheck(u32 address, u32 var, bool write, size_t size)
 
 u8 Read_U8(const u32 address)
 {
-  u8 var = ReadFromHardware<FLAG_READ, u8>(address);
+  u8 var = ReadFromHardware<XCheckTLBFlag::Read, u8>(address);
   Memcheck(address, var, false, 1);
   return var;
 }
 
 u16 Read_U16(const u32 address)
 {
-  u16 var = ReadFromHardware<FLAG_READ, u16>(address);
+  u16 var = ReadFromHardware<XCheckTLBFlag::Read, u16>(address);
   Memcheck(address, var, false, 2);
   return var;
 }
 
 u32 Read_U32(const u32 address)
 {
-  u32 var = ReadFromHardware<FLAG_READ, u32>(address);
+  u32 var = ReadFromHardware<XCheckTLBFlag::Read, u32>(address);
   Memcheck(address, var, false, 4);
   return var;
 }
 
 u64 Read_U64(const u32 address)
 {
-  u64 var = ReadFromHardware<FLAG_READ, u64>(address);
+  u64 var = ReadFromHardware<XCheckTLBFlag::Read, u64>(address);
   Memcheck(address, (u32)var, false, 8);
   return var;
 }
@@ -517,13 +517,13 @@ u32 Read_U16_ZX(const u32 address)
 void Write_U8(const u8 var, const u32 address)
 {
   Memcheck(address, var, true, 1);
-  WriteToHardware<FLAG_WRITE, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u8>(address, var);
 }
 
 void Write_U16(const u16 var, const u32 address)
 {
   Memcheck(address, var, true, 2);
-  WriteToHardware<FLAG_WRITE, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u16>(address, var);
 }
 void Write_U16_Swap(const u16 var, const u32 address)
 {
@@ -534,7 +534,7 @@ void Write_U16_Swap(const u16 var, const u32 address)
 void Write_U32(const u32 var, const u32 address)
 {
   Memcheck(address, var, true, 4);
-  WriteToHardware<FLAG_WRITE, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u32>(address, var);
 }
 void Write_U32_Swap(const u32 var, const u32 address)
 {
@@ -545,7 +545,7 @@ void Write_U32_Swap(const u32 var, const u32 address)
 void Write_U64(const u64 var, const u32 address)
 {
   Memcheck(address, (u32)var, true, 8);
-  WriteToHardware<FLAG_WRITE, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::Write, u64>(address, var);
 }
 void Write_U64_Swap(const u64 var, const u32 address)
 {
@@ -563,42 +563,42 @@ void Write_F64(const double var, const u32 address)
 
 u8 HostRead_U8(const u32 address)
 {
-  return ReadFromHardware<FLAG_NO_EXCEPTION, u8>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address);
 }
 
 u16 HostRead_U16(const u32 address)
 {
-  return ReadFromHardware<FLAG_NO_EXCEPTION, u16>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address);
 }
 
 u32 HostRead_U32(const u32 address)
 {
-  return ReadFromHardware<FLAG_NO_EXCEPTION, u32>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address);
 }
 
 u64 HostRead_U64(const u32 address)
 {
-  return ReadFromHardware<FLAG_NO_EXCEPTION, u64>(address);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address);
 }
 
 void HostWrite_U8(const u8 var, const u32 address)
 {
-  WriteToHardware<FLAG_NO_EXCEPTION, u8>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var);
 }
 
 void HostWrite_U16(const u16 var, const u32 address)
 {
-  WriteToHardware<FLAG_NO_EXCEPTION, u16>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var);
 }
 
 void HostWrite_U32(const u32 var, const u32 address)
 {
-  WriteToHardware<FLAG_NO_EXCEPTION, u32>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var);
 }
 
 void HostWrite_U64(const u64 var, const u32 address)
 {
-  WriteToHardware<FLAG_NO_EXCEPTION, u64>(address, var);
+  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var);
 }
 
 std::string HostGetString(u32 address, size_t size)
@@ -658,13 +658,14 @@ static bool IsRAMAddress(u32 address, bool translate)
 
 bool HostIsRAMAddress(u32 address)
 {
-  return IsRAMAddress<FLAG_NO_EXCEPTION>(address, UReg_MSR(MSR).DR);
+  return IsRAMAddress<XCheckTLBFlag::NoException>(address, UReg_MSR(MSR).DR);
 }
 
 bool HostIsInstructionRAMAddress(u32 address)
 {
   // Instructions are always 32bit aligned.
-  return !(address & 3) && IsRAMAddress<FLAG_OPCODE_NO_EXCEPTION>(address, UReg_MSR(MSR).IR);
+  return !(address & 3) &&
+         IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, UReg_MSR(MSR).IR);
 }
 
 void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
@@ -741,10 +742,10 @@ void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
 
 void ClearCacheLine(u32 address)
 {
-  _dbg_assert_(POWERPC, (address & 0x1F) == 0);
+  DEBUG_ASSERT((address & 0x1F) == 0);
   if (UReg_MSR(MSR).DR)
   {
-    auto translated_address = TranslateAddress<FLAG_WRITE>(address);
+    auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResult::DIRECT_STORE_SEGMENT)
     {
       // dcbz to direct store segments is ignored. This is a little
@@ -764,7 +765,7 @@ void ClearCacheLine(u32 address)
   // TODO: This isn't precisely correct for non-RAM regions, but the difference
   // is unlikely to matter.
   for (u32 i = 0; i < 32; i += 8)
-    WriteToHardware<FLAG_WRITE, u64, true>(address + i, 0);
+    WriteToHardware<XCheckTLBFlag::Write, u64, true>(address + i, 0);
 }
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
@@ -813,7 +814,7 @@ TranslateResult JitCache_TranslateAddress(u32 address)
     return TranslateResult{true, true, address};
 
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.
-  auto tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
+  auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
   if (!tlb_addr.Success())
   {
     return TranslateResult{false, false, 0};
@@ -960,11 +961,11 @@ void SDRUpdated()
   PowerPC::ppcState.pagetable_hashmask = ((htabmask << 10) | 0x3ff);
 }
 
-enum TLBLookupResult
+enum class TLBLookupResult
 {
-  TLB_FOUND,
-  TLB_NOTFOUND,
-  TLB_UPDATE_C
+  Found,
+  NotFound,
+  UpdateC
 };
 
 static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
@@ -975,7 +976,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
   if (tlbe.tag[0] == tag)
   {
     // Check if C bit requires updating
-    if (flag == FLAG_WRITE)
+    if (flag == XCheckTLBFlag::Write)
     {
       UPTE2 PTE2;
       PTE2.Hex = tlbe.pte[0];
@@ -983,7 +984,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       {
         PTE2.C = 1;
         tlbe.pte[0] = PTE2.Hex;
-        return TLB_UPDATE_C;
+        return TLBLookupResult::UpdateC;
       }
     }
 
@@ -992,12 +993,12 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
     *paddr = tlbe.paddr[0] | (vpa & 0xfff);
 
-    return TLB_FOUND;
+    return TLBLookupResult::Found;
   }
   if (tlbe.tag[1] == tag)
   {
     // Check if C bit requires updating
-    if (flag == FLAG_WRITE)
+    if (flag == XCheckTLBFlag::Write)
     {
       UPTE2 PTE2;
       PTE2.Hex = tlbe.pte[1];
@@ -1005,7 +1006,7 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
       {
         PTE2.C = 1;
         tlbe.pte[1] = PTE2.Hex;
-        return TLB_UPDATE_C;
+        return TLBLookupResult::UpdateC;
       }
     }
 
@@ -1014,9 +1015,9 @@ static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 
 
     *paddr = tlbe.paddr[1] | (vpa & 0xfff);
 
-    return TLB_FOUND;
+    return TLBLookupResult::Found;
   }
-  return TLB_NOTFOUND;
+  return TLBLookupResult::NotFound;
 }
 
 static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
@@ -1055,7 +1056,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   // much from optimization.
   u32 translatedAddress = 0;
   TLBLookupResult res = LookupTLBPageAddress(flag, address, &translatedAddress);
-  if (res == TLB_FOUND)
+  if (res == TLBLookupResult::Found)
     return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED, translatedAddress};
 
   u32 sr = PowerPC::ppcState.sr[EA_SR(address)];
@@ -1066,8 +1067,11 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   // TODO: Handle KS/KP segment register flags.
 
   // No-execute segment register flag.
-  if ((flag == FLAG_OPCODE || flag == FLAG_OPCODE_NO_EXCEPTION) && (sr & 0x10000000))
+  if ((flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException) &&
+      (sr & 0x10000000))
+  {
     return TranslateAddressResult{TranslateAddressResult::PAGE_FAULT, 0};
+  }
 
   u32 offset = EA_Offset(address);         // 12 bit
   u32 page_index = EA_PageIndex(address);  // 16 bit
@@ -1103,17 +1107,17 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         // set the access bits
         switch (flag)
         {
-        case FLAG_NO_EXCEPTION:
-        case FLAG_OPCODE_NO_EXCEPTION:
+        case XCheckTLBFlag::NoException:
+        case XCheckTLBFlag::OpcodeNoException:
           break;
-        case FLAG_READ:
+        case XCheckTLBFlag::Read:
           PTE2.R = 1;
           break;
-        case FLAG_WRITE:
+        case XCheckTLBFlag::Write:
           PTE2.R = 1;
           PTE2.C = 1;
           break;
-        case FLAG_OPCODE:
+        case XCheckTLBFlag::Opcode:
           PTE2.R = 1;
           break;
         }
@@ -1125,7 +1129,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
-        if (res != TLB_UPDATE_C)
+        if (res != TLBLookupResult::UpdateC)
           UpdateTLBEntry(flag, PTE2, address);
 
         return TranslateAddressResult{TranslateAddressResult::PAGE_TABLE_TRANSLATED,

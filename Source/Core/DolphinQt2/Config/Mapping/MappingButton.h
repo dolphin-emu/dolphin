@@ -21,6 +21,8 @@ public:
 
   void Clear();
   void Update();
+  void Detect();
+  bool IsInput() const;
 
 signals:
   void AdvancedPressed();
@@ -28,7 +30,6 @@ signals:
 private:
   void mouseReleaseEvent(QMouseEvent* event) override;
 
-  void OnButtonPressed();
   void OnButtonTimeout();
   void Connect();
 

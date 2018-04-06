@@ -25,7 +25,7 @@
 bool CBoot::BootNANDTitle(const u64 title_id)
 {
   UpdateStateFlags([](StateFlags* state) {
-    state->type = 0x03;  // TYPE_RETURN
+    state->type = 0x04;  // TYPE_NANDBOOT
   });
 
   if (title_id == Titles::SYSTEM_MENU)

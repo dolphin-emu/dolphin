@@ -1255,7 +1255,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (use_shader_blend)
   {
-    static const std::array<const char*, 8> blendSrcFactor = {
+    static const std::array<const char*, 8> blendSrcFactor{{
         "float3(0,0,0);",                      // ZERO
         "float3(1,1,1);",                      // ONE
         "initial_ocol0.rgb;",                  // DSTCLR
@@ -1264,8 +1264,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
         "initial_ocol0.aaa;",                  // DSTALPHA
         "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    };
-    static const std::array<const char*, 8> blendSrcFactorAlpha = {
+    }};
+    static const std::array<const char*, 8> blendSrcFactorAlpha{{
         "0.0;",                    // ZERO
         "1.0;",                    // ONE
         "initial_ocol0.a;",        // DSTCLR
@@ -1274,8 +1274,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "1.0 - ocol1.a;",          // INVSRCALPHA
         "initial_ocol0.a;",        // DSTALPHA
         "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    };
-    static const std::array<const char*, 8> blendDstFactor = {
+    }};
+    static const std::array<const char*, 8> blendDstFactor{{
         "float3(0,0,0);",                      // ZERO
         "float3(1,1,1);",                      // ONE
         "ocol0.rgb;",                          // SRCCLR
@@ -1284,8 +1284,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
         "initial_ocol0.aaa;",                  // DSTALPHA
         "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    };
-    static const std::array<const char*, 8> blendDstFactorAlpha = {
+    }};
+    static const std::array<const char*, 8> blendDstFactorAlpha{{
         "0.0;",                    // ZERO
         "1.0;",                    // ONE
         "ocol0.a;",                // SRCCLR
@@ -1294,7 +1294,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
         "1.0 - ocol1.a;",          // INVSRCALPHA
         "initial_ocol0.a;",        // DSTALPHA
         "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    };
+    }};
 
     out.Write("  if (blend_enable) {\n"
               "    float4 blend_src;\n"

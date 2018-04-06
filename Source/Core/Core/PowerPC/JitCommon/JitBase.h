@@ -110,13 +110,13 @@ protected:
 
 public:
   // This should probably be removed from public:
-  JitOptions jo;
-  JitState js;
+  JitOptions jo{};
+  JitState js{};
 
   JitBase();
   ~JitBase() override;
 
-  static const u8* Dispatch() { return g_jit->GetBlockCache()->Dispatch(); }
+  static const u8* Dispatch(JitBase& jit);
   virtual JitBaseBlockCache* GetBlockCache() = 0;
 
   virtual void Jit(u32 em_address) = 0;
@@ -127,7 +127,7 @@ public:
   virtual bool HandleStackFault() { return false; }
 };
 
-void JitTrampoline(u32 em_address);
+void JitTrampoline(JitBase& jit, u32 em_address);
 
 // Merged routines that should be moved somewhere better
 u32 Helper_Mask(u8 mb, u8 me);

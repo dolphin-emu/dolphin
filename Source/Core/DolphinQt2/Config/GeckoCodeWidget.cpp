@@ -64,7 +64,9 @@ void GeckoCodeWidget::CreateWidgets()
   m_add_code = new QPushButton(tr("&Add New Code..."));
   m_edit_code = new QPushButton(tr("&Edit Code..."));
   m_remove_code = new QPushButton(tr("&Remove Code"));
-  m_download_codes = new QPushButton(tr("Download Codes (WiiRD Database)"));
+  m_download_codes = new QPushButton(tr("Download Codes"));
+
+  m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 
   m_download_codes->setEnabled(!m_game_id.empty());
   m_edit_code->setEnabled(false);

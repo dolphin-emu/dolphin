@@ -84,11 +84,11 @@ void CPUInfo::Detect()
   __cpuid(cpu_id, 0x80000000);
   u32 max_ex_fn = cpu_id[0];
   if (!strcmp(brand_string, "GenuineIntel"))
-    vendor = VENDOR_INTEL;
+    vendor = CPUVendor::Intel;
   else if (!strcmp(brand_string, "AuthenticAMD"))
-    vendor = VENDOR_AMD;
+    vendor = CPUVendor::AMD;
   else
-    vendor = VENDOR_OTHER;
+    vendor = CPUVendor::Other;
 
   // Set reasonable default brand string even if brand string not available.
   strcpy(cpu_string, brand_string);
@@ -198,7 +198,7 @@ void CPUInfo::Detect()
       if (ht)
       {
         // New mechanism for modern Intel CPUs.
-        if (vendor == VENDOR_INTEL)
+        if (vendor == CPUVendor::Intel)
         {
           __cpuidex(cpu_id, 0x00000004, 0x00000000);
           int cores_x_package = ((cpu_id[0] >> 26) & 0x3F) + 1;

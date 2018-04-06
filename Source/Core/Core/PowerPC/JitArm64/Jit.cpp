@@ -149,7 +149,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
     gpr.Unlock(WA);
   }
 
-  Interpreter::Instruction instr = GetInterpreterOp(inst);
+  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   MOVI2R(W0, inst.hex);
   MOVP2R(X30, instr);
   BLR(X30);
@@ -772,7 +772,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       }
 
       CompileInstruction(ops[i]);
-      if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
+      if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();
 
       // If we have a register that will never be used again, flush it.

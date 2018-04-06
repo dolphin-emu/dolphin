@@ -160,7 +160,7 @@ private:
   };
 
   // Find a free host reg
-  Gen::X64Reg FindFreeXReg();
+  Gen::X64Reg FindFreeXReg() const;
   Gen::X64Reg SpillXReg();
   Gen::X64Reg FindSpillFreeXReg();
   void SpillXReg(Gen::X64Reg reg);

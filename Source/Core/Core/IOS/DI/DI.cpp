@@ -98,8 +98,8 @@ IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
   {
   case DVDInterface::DVDLowOpenPartition:
   {
-    _dbg_assert_msg_(IOS_DI, request.in_vectors[1].address == 0, "DVDLowOpenPartition with ticket");
-    _dbg_assert_msg_(IOS_DI, request.in_vectors[2].address == 0,
+    DEBUG_ASSERT_MSG(IOS_DI, request.in_vectors[1].address == 0, "DVDLowOpenPartition with ticket");
+    DEBUG_ASSERT_MSG(IOS_DI, request.in_vectors[2].address == 0,
                      "DVDLowOpenPartition with cert chain");
 
     const u64 partition_offset =

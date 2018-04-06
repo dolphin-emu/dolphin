@@ -6,6 +6,7 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
+#include <QProgressDialog>
 
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
@@ -105,6 +106,7 @@ void Host_UpdateDisasmDialog()
 
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
+  emit Host::GetInstance()->UpdateProgressDialog(QString::fromUtf8(caption), position, total);
 }
 
 // We ignore these, and their purpose should be questioned individually.
@@ -113,9 +115,12 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
 void Host_UpdateMainFrame()
 {
 }
+
 void Host_RequestRenderWindowSize(int w, int h)
 {
+  emit Host::GetInstance()->RequestRenderSize(w, h);
 }
+
 bool Host_UINeedsControllerState()
 {
   return Settings::Instance().IsControllerStateNeeded();

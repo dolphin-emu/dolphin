@@ -178,17 +178,19 @@ void DolphinAnalytics::MakeBaseBuilder()
   m_base_builder = builder;
 }
 
-static const char* GetUbershaderMode(const VideoConfig& video_config)
+static const char* GetShaderCompilationMode(const VideoConfig& video_config)
 {
-  switch (video_config.iUberShaderMode)
+  switch (video_config.iShaderCompilationMode)
   {
-  case UberShaderMode::Exclusive:
-    return "exclusive";
-  case UberShaderMode::Hybrid:
-    return "hybrid";
-  case UberShaderMode::Disabled:
+  case ShaderCompilationMode::AsynchronousUberShaders:
+    return "async-ubershaders";
+  case ShaderCompilationMode::AsynchronousSkipRendering:
+    return "async-skip-rendering";
+  case ShaderCompilationMode::SynchronousUberShaders:
+    return "sync-ubershaders";
+  case ShaderCompilationMode::Synchronous:
   default:
-    return "disabled";
+    return "sync";
   }
 }
 
@@ -234,7 +236,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-tc-samples", g_Config.iSafeTextureCache_ColorSamples);
   builder.AddData("cfg-gfx-stereo-mode", static_cast<int>(g_Config.stereo_mode));
   builder.AddData("cfg-gfx-per-pixel-lighting", g_Config.bEnablePixelLighting);
-  builder.AddData("cfg-gfx-ubershader-mode", GetUbershaderMode(g_Config));
+  builder.AddData("cfg-gfx-shader-compilation-mode", GetShaderCompilationMode(g_Config));
+  builder.AddData("cfg-gfx-wait-for-shaders", g_Config.bWaitForShadersBeforeStarting);
   builder.AddData("cfg-gfx-fast-depth", g_Config.bFastDepthCalc);
   builder.AddData("cfg-gfx-vertex-rounding", g_Config.UseVertexRounding());
 

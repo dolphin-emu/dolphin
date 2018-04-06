@@ -245,12 +245,12 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
     break;
   default:
     PanicAlertT("IPL with unknown hash %x", ipl_hash);
-    ipl_region = DiscIO::Region::UNKNOWN_REGION;
+    ipl_region = DiscIO::Region::Unknown;
     break;
   }
 
   const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
-  if (ipl_region != DiscIO::Region::UNKNOWN_REGION && boot_region != ipl_region)
+  if (ipl_region != DiscIO::Region::Unknown && boot_region != ipl_region)
     PanicAlertT("%s IPL found in %s directory. The disc might not be recognized",
                 SConfig::GetDirectoryForRegion(ipl_region),
                 SConfig::GetDirectoryForRegion(boot_region));

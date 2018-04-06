@@ -59,7 +59,7 @@ public:
   void ClearCache() override;
 
   const CommonAsmRoutines* GetAsmRoutines() override { return &asm_routines; }
-  const char* GetName() override { return "JIT64"; }
+  const char* GetName() const override { return "JIT64"; }
   // Run!
   void Run() override;
   void SingleStep() override;
@@ -87,7 +87,7 @@ public:
   // Use to extract bytes from a register using the regcache. offset is in bytes.
   Gen::OpArg ExtractFromReg(int reg, int offset);
   void AndWithMask(Gen::X64Reg reg, u32 mask);
-  bool CheckMergedBranch(u32 crf);
+  bool CheckMergedBranch(u32 crf) const;
   void DoMergedBranch();
   void DoMergedBranchCondition();
   void DoMergedBranchImmediate(s64 val);
@@ -243,7 +243,7 @@ private:
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
   PPCAnalyst::CodeBuffer code_buffer;
-  Jit64AsmRoutineManager asm_routines;
+  Jit64AsmRoutineManager asm_routines{*this};
 
   bool m_enable_blr_optimization;
   bool m_cleanup_after_stackfault;

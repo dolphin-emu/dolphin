@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QSettings>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QWidget>
@@ -30,7 +29,7 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Code"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
   setFloating(settings.value(QStringLiteral("codewidget/floating")).toBool());
@@ -58,7 +57,7 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
 CodeWidget::~CodeWidget()
 {
-  QSettings settings;
+  auto& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("codewidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("codewidget/floating"), isFloating());
@@ -247,6 +246,9 @@ void CodeWidget::Update()
 
 void CodeWidget::UpdateCallstack()
 {
+  if (Core::GetState() == Core::State::Starting)
+    return;
+
   m_callstack_list->clear();
 
   std::vector<Dolphin_Debugger::CallstackEntry> stack;
@@ -308,8 +310,8 @@ void CodeWidget::UpdateFunctionCalls(Symbol* symbol)
 
     if (call_symbol)
     {
-      auto* item = new QListWidgetItem(QString::fromStdString(
-          StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), addr).c_str()));
+      auto* item = new QListWidgetItem(
+          QString::fromStdString(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), addr)));
       item->setData(Qt::UserRole, addr);
 
       m_function_calls_list->addItem(item);
@@ -329,7 +331,7 @@ void CodeWidget::UpdateFunctionCallers(Symbol* symbol)
     if (caller_symbol)
     {
       auto* item = new QListWidgetItem(QString::fromStdString(
-          StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), addr).c_str()));
+          StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), addr)));
       item->setData(Qt::UserRole, addr);
 
       m_function_callers_list->addItem(item);
@@ -387,7 +389,7 @@ static bool WillInstructionReturn(UGeckoInstruction inst)
   if (inst.hex == 0x4C000064u)
     return true;
   bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
-  bool condition = inst.BO_2 >> 4 != 0 || GetCRBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
+  bool condition = inst.BO_2 >> 4 != 0 || PowerPC::GetCRBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
   return isBclr && counter && condition && !inst.LK_3;
 }

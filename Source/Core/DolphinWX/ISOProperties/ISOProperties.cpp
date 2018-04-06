@@ -183,7 +183,6 @@ EVT_CLOSE(CISOProperties::OnClose)
 EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
-EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::PatchListSelectionChanged)
 EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -293,7 +292,7 @@ void CISOProperties::CreateGUIControls()
 
   wxBoxSizer* const gpu_determinism_sizer = new wxBoxSizer(wxHORIZONTAL);
   wxStaticText* const gpu_determinism_text =
-      new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
+      new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core:"));
   m_gpu_determinism_string.Add(_("Not Set"));
   m_gpu_determinism_string.Add(_("auto"));
   m_gpu_determinism_string.Add(_("none"));
@@ -311,7 +310,7 @@ void CISOProperties::CreateGUIControls()
   // Stereoscopy
   wxBoxSizer* const depth_percentage = new wxBoxSizer(wxHORIZONTAL);
   wxStaticText* const depth_percentage_text =
-      new wxStaticText(m_GameConfig, wxID_ANY, _("Depth Percentage: "));
+      new wxStaticText(m_GameConfig, wxID_ANY, _("Depth Percentage:"));
   m_depth_percentage = new DolphinSlider(m_GameConfig, ID_DEPTHPERCENTAGE, 100, 0, 200);
   m_depth_percentage->SetToolTip(
       _("This value is multiplied with the depth set in the graphics configuration."));
@@ -320,7 +319,7 @@ void CISOProperties::CreateGUIControls()
 
   wxBoxSizer* const convergence_sizer = new wxBoxSizer(wxHORIZONTAL);
   wxStaticText* const convergence_text =
-      new wxStaticText(m_GameConfig, wxID_ANY, _("Convergence: "));
+      new wxStaticText(m_GameConfig, wxID_ANY, _("Convergence:"));
   m_convergence = new wxSpinCtrl(m_GameConfig, ID_CONVERGENCE);
   m_convergence->SetRange(0, INT32_MAX);
   m_convergence->SetToolTip(
@@ -332,22 +331,6 @@ void CISOProperties::CreateGUIControls()
       new wxCheckBox(m_GameConfig, ID_MONODEPTH, _("Monoscopic Shadows"), wxDefaultPosition,
                      wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
   m_mono_depth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
-
-  wxBoxSizer* const emustate_sizer = new wxBoxSizer(wxHORIZONTAL);
-  wxStaticText* const emustate_text =
-      new wxStaticText(m_GameConfig, wxID_ANY, _("Emulation State: "));
-  m_emustate_string.Add(_("Not Set"));
-  m_emustate_string.Add(_("Broken"));
-  m_emustate_string.Add(_("Intro"));
-  m_emustate_string.Add(_("In Game"));
-  m_emustate_string.Add(_("Playable"));
-  m_emustate_string.Add(_("Perfect"));
-  m_emustate_choice =
-      new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, m_emustate_string);
-  m_emu_issues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
-  emustate_sizer->Add(emustate_text, 0, wxALIGN_CENTER_VERTICAL);
-  emustate_sizer->Add(m_emustate_choice, 0, wxALIGN_CENTER_VERTICAL);
-  emustate_sizer->Add(m_emu_issues, 1, wxEXPAND);
 
   wxStaticBoxSizer* const core_overrides_sizer =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
@@ -364,7 +347,7 @@ void CISOProperties::CreateGUIControls()
 
   wxStaticBoxSizer* const wii_overrides_sizer =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
-  if (m_open_iso->GetVolumeType() == DiscIO::Platform::GAMECUBE_DISC)
+  if (m_open_iso->GetVolumeType() == DiscIO::Platform::GameCubeDisc)
   {
     wii_overrides_sizer->ShowItems(false);
     m_enable_widescreen->Hide();
@@ -389,8 +372,6 @@ void CISOProperties::CreateGUIControls()
   wxBoxSizer* const config_page_sizer = new wxBoxSizer(wxVERTICAL);
   config_page_sizer->AddSpacer(space5);
   config_page_sizer->Add(game_config_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  config_page_sizer->AddSpacer(space5);
-  config_page_sizer->Add(emustate_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   config_page_sizer->AddSpacer(space5);
   m_GameConfig->SetSizer(config_page_sizer);
 
@@ -489,11 +470,6 @@ void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED(event))
   Close();
 }
 
-void CISOProperties::OnEmustateChanged(wxCommandEvent& event)
-{
-  m_emu_issues->Enable(event.GetSelection() != 0);
-}
-
 void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char* key,
                                                  wxCheckBox* checkbox)
 {
@@ -519,40 +495,7 @@ void CISOProperties::LoadGameConfig()
   SetCheckboxValueFromGameini("Wii", "Widescreen", m_enable_widescreen);
   SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", m_mono_depth);
 
-  IniFile::Section* default_video = m_gameini_default.GetOrCreateSection("Video");
-
-  int iTemp;
-  default_video->Get("ProjectionHack", &iTemp);
-  default_video->Get("PH_SZNear", &m_phack_data.PHackSZNear);
-  if (m_gameini_local.GetIfExists("Video", "PH_SZNear", &iTemp))
-    m_phack_data.PHackSZNear = !!iTemp;
-  default_video->Get("PH_SZFar", &m_phack_data.PHackSZFar);
-  if (m_gameini_local.GetIfExists("Video", "PH_SZFar", &iTemp))
-    m_phack_data.PHackSZFar = !!iTemp;
-
   std::string sTemp;
-  default_video->Get("PH_ZNear", &m_phack_data.PHZNear);
-  if (m_gameini_local.GetIfExists("Video", "PH_ZNear", &sTemp))
-    m_phack_data.PHZNear = sTemp;
-  default_video->Get("PH_ZFar", &m_phack_data.PHZFar);
-  if (m_gameini_local.GetIfExists("Video", "PH_ZFar", &sTemp))
-    m_phack_data.PHZFar = sTemp;
-
-  IniFile::Section* default_emustate = m_gameini_default.GetOrCreateSection("EmuState");
-  default_emustate->Get("EmulationStateId", &iTemp, 0 /*Not Set*/);
-  m_emustate_choice->SetSelection(iTemp);
-  if (m_gameini_local.GetIfExists("EmuState", "EmulationStateId", &iTemp))
-    m_emustate_choice->SetSelection(iTemp);
-
-  default_emustate->Get("EmulationIssues", &sTemp);
-  if (!sTemp.empty())
-    m_emu_issues->SetValue(StrToWxStr(sTemp));
-  if (m_gameini_local.GetIfExists("EmuState", "EmulationIssues", &sTemp))
-    m_emu_issues->SetValue(StrToWxStr(sTemp));
-
-  m_emu_issues->Enable(m_emustate_choice->GetSelection() != 0);
-
-  sTemp = "";
   if (!m_gameini_local.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
     m_gameini_default.GetIfExists("Core", "GPUDeterminismMode", &sTemp);
 
@@ -565,6 +508,7 @@ void CISOProperties::LoadGameConfig()
   else if (sTemp == "fake-completion")
     m_gpu_determinism->SetSelection(3);
 
+  int iTemp;
   IniFile::Section* default_stereoscopy = m_gameini_default.GetOrCreateSection("Video_Stereoscopy");
   default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
   m_gameini_local.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
@@ -632,15 +576,6 @@ bool CISOProperties::SaveGameConfig()
     else                                                                                           \
       m_gameini_local.DeleteKey((section), (key));                                                 \
   } while (0)
-
-  SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (m_phack_data.PHackSZNear ? 1 : 0), 0);
-  SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_phack_data.PHackSZFar ? 1 : 0), 0);
-  SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_phack_data.PHZNear, "");
-  SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_phack_data.PHZFar, "");
-  SAVE_IF_NOT_DEFAULT("EmuState", "EmulationStateId", m_emustate_choice->GetSelection(), 0);
-
-  std::string emu_issues = m_emu_issues->GetValue().ToStdString();
-  SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
 
   std::string tmp;
   if (m_gpu_determinism->GetSelection() == 0)

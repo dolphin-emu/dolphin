@@ -22,22 +22,61 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
 
-  m_cache.Load();
+  m_load_thread.Reset([this](Command command) {
+    switch (command.type)
+    {
+    case CommandType::LoadCache:
+      m_cache.Load();
+      break;
+    case CommandType::AddDirectory:
+      AddDirectoryInternal(command.path);
+      break;
+    case CommandType::RemoveDirectory:
+      RemoveDirectoryInternal(command.path);
+      break;
+    case CommandType::UpdateDirectory:
+      UpdateDirectoryInternal(command.path);
+      break;
+    case CommandType::UpdateFile:
+      UpdateFileInternal(command.path);
+      break;
+    }
+  });
 
-  m_load_thread.Reset([this](const QString& path) { LoadGame(path); });
+  m_load_thread.EmplaceItem(Command{CommandType::LoadCache, {}});
 
   // TODO: When language changes, reload m_title_database and call m_cache.UpdateAdditionalMetadata
 }
 
 void GameTracker::AddDirectory(const QString& dir)
 {
-  if (!QFileInfo(dir).exists())
-    return;
-  addPath(dir);
-  UpdateDirectory(dir);
+  m_load_thread.EmplaceItem(Command{CommandType::AddDirectory, dir});
 }
 
 void GameTracker::RemoveDirectory(const QString& dir)
+{
+  m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
+}
+
+void GameTracker::UpdateDirectory(const QString& dir)
+{
+  m_load_thread.EmplaceItem(Command{CommandType::UpdateDirectory, dir});
+}
+
+void GameTracker::UpdateFile(const QString& dir)
+{
+  m_load_thread.EmplaceItem(Command{CommandType::UpdateFile, dir});
+}
+
+void GameTracker::AddDirectoryInternal(const QString& dir)
+{
+  if (!QFileInfo(dir).exists())
+    return;
+  addPath(dir);
+  UpdateDirectoryInternal(dir);
+}
+
+void GameTracker::RemoveDirectoryInternal(const QString& dir)
 {
   removePath(dir);
   QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
@@ -57,7 +96,7 @@ void GameTracker::RemoveDirectory(const QString& dir)
   }
 }
 
-void GameTracker::UpdateDirectory(const QString& dir)
+void GameTracker::UpdateDirectoryInternal(const QString& dir)
 {
   QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
   while (it.hasNext())
@@ -74,7 +113,7 @@ void GameTracker::UpdateDirectory(const QString& dir)
     {
       addPath(path);
       m_tracked_files[path] = QSet<QString>{dir};
-      m_load_thread.EmplaceItem(path);
+      LoadGame(path);
     }
   }
 
@@ -88,6 +127,21 @@ void GameTracker::UpdateDirectory(const QString& dir)
       m_tracked_files.remove(missing);
       GameRemoved(missing);
     }
+  }
+}
+
+void GameTracker::UpdateFileInternal(const QString& file)
+{
+  if (QFileInfo(file).exists())
+  {
+    GameRemoved(file);
+    addPath(file);
+    LoadGame(file);
+  }
+  else if (removePath(file))
+  {
+    m_tracked_files.remove(file);
+    emit GameRemoved(file);
   }
 }
 
@@ -113,29 +167,15 @@ QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
   return missing_files;
 }
 
-void GameTracker::UpdateFile(const QString& file)
-{
-  if (QFileInfo(file).exists())
-  {
-    GameRemoved(file);
-    addPath(file);
-
-    m_load_thread.EmplaceItem(file);
-  }
-  else if (removePath(file))
-  {
-    m_tracked_files.remove(file);
-    emit GameRemoved(file);
-  }
-}
-
 void GameTracker::LoadGame(const QString& path)
 {
   const std::string converted_path = path.toStdString();
   if (!DiscIO::ShouldHideFromGameList(converted_path))
   {
     bool cache_changed = false;
-    emit GameLoaded(m_cache.AddOrGet(converted_path, &cache_changed, m_title_database));
+    auto game = m_cache.AddOrGet(converted_path, &cache_changed, m_title_database);
+    if (game)
+      emit GameLoaded(std::move(game));
     if (cache_changed)
       m_cache.Save();
   }

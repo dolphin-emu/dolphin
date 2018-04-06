@@ -42,20 +42,12 @@ enum class StereoMode : int
   Nvidia3DVision
 };
 
-enum class UberShaderMode : int
+enum class ShaderCompilationMode : int
 {
-  Disabled,
-  Hybrid,
-  Exclusive
-};
-
-struct ProjectionHackConfig final
-{
-  bool m_enable;
-  bool m_sznear;
-  bool m_szfar;
-  std::string m_znear;
-  std::string m_zfar;
+  Synchronous,
+  SynchronousUberShaders,
+  AsynchronousUberShaders,
+  AsynchronousSkipRendering
 };
 
 // NEVER inherit from this class.
@@ -64,7 +56,6 @@ struct VideoConfig final
   VideoConfig();
   void Refresh();
   void VerifyValidity();
-  void UpdateProjectionHack();
   bool IsVSync() const;
 
   // General
@@ -129,7 +120,6 @@ struct VideoConfig final
   bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
-  ProjectionHackConfig phack;
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
@@ -170,7 +160,7 @@ struct VideoConfig final
 
   // Shader compilation settings.
   bool bWaitForShadersBeforeStarting;
-  UberShaderMode iUberShaderMode;
+  ShaderCompilationMode iShaderCompilationMode;
 
   // Number of shader compiler threads.
   // 0 disables background compilation.
@@ -238,7 +228,7 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
-  bool UsingUberShaders() const { return iUberShaderMode != UberShaderMode::Disabled; }
+  bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
 };

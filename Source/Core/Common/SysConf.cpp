@@ -31,7 +31,7 @@ static size_t GetNonArrayEntrySize(SysConf::Entry::Type type)
   case SysConf::Entry::Type::LongLong:
     return 8;
   default:
-    _assert_(false);
+    ASSERT(false);
     return 0;
   }
 }

@@ -78,8 +78,9 @@ const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
 const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};
 const ConfigInfo<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING{
     {System::GFX, "Settings", "WaitForShadersBeforeStarting"}, false};
-const ConfigInfo<int> GFX_UBERSHADER_MODE{{System::GFX, "Settings", "UberShaderMode"},
-                                          static_cast<int>(UberShaderMode::Disabled)};
+const ConfigInfo<int> GFX_SHADER_COMPILATION_MODE{
+    {System::GFX, "Settings", "ShaderCompilationMode"},
+    static_cast<int>(ShaderCompilationMode::Synchronous)};
 const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
     {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{
@@ -140,13 +141,6 @@ const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING{{System::GFX, "Hacks", "VertexRou
 
 // Graphics.GameSpecific
 
-const ConfigInfo<int> GFX_PROJECTION_HACK{{System::GFX, "GameSpecific", "ProjectionHack"}, 0};
-const ConfigInfo<int> GFX_PROJECTION_HACK_SZNEAR{{System::GFX, "GameSpecific", "PH_SZNear"}, 0};
-const ConfigInfo<int> GFX_PROJECTION_HACK_SZFAR{{System::GFX, "GameSpecific", "PH_SZFar"}, 0};
-const ConfigInfo<std::string> GFX_PROJECTION_HACK_ZNEAR{{System::GFX, "GameSpecific", "PH_ZNear"},
-                                                        ""};
-const ConfigInfo<std::string> GFX_PROJECTION_HACK_ZFAR{{System::GFX, "GameSpecific", "PH_ZFar"},
-                                                       ""};
 const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE{{System::GFX, "GameSpecific", "PerfQueriesEnable"},
                                                false};
 }  // namespace Config

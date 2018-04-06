@@ -135,22 +135,6 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           func.flags |= FFLAG_STRAIGHT;
         return true;
       }
-      /*
-      else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK)
-      {
-        u32 target = addr + SignExt26(instr.LI << 2);
-        if (target < startAddr || (max_size && target > max_size+startAddr))
-        {
-          //block ends by branching away. We're done!
-          func.size *= 4; // into bytes
-          func.address = startAddr;
-          func.analyzed = 1;
-          func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
-          if (numInternalBranches == 0)
-            func.flags |= FFLAG_STRAIGHT;
-          return true;
-        }
-      }*/
       else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
       {
         func.flags &= ~FFLAG_LEAF;
@@ -194,7 +178,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 
 bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
 {
-  _assert_msg_(OSHLE, func.analyzed, "The function wasn't previously analyzed!");
+  ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
   func.analyzed = false;
   return AnalyzeFunction(start_addr, func, max_size);
@@ -252,11 +236,11 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   // a crash caused by this error.
   //
   // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
-  if (b_info->type != OPTYPE_INTEGER)
+  if (b_info->type != OpType::Integer)
     return false;
 
   // And it's possible a might raise an interrupt too (fcmpo/fcmpu)
-  if (a_info->type != OPTYPE_INTEGER)
+  if (a_info->type != OpType::Integer)
     return false;
 
   // Check that we have no register collisions.
@@ -399,7 +383,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   {
     if (func.second.address == 4)
     {
-      WARN_LOG(OSHLE, "Weird function");
+      WARN_LOG(SYMBOLS, "Weird function");
       continue;
     }
     AnalyzeFunction2(&(func.second));
@@ -449,10 +433,11 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   else
     unniceSize /= numUnNice;
 
-  INFO_LOG(OSHLE, "Functions analyzed. %i leafs, %i nice, %i unnice."
-                  "%i timer, %i rfi. %i are branchless leafs.",
+  INFO_LOG(SYMBOLS, "Functions analyzed. %i leafs, %i nice, %i unnice."
+                    "%i timer, %i rfi. %i are branchless leafs.",
            numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
-  INFO_LOG(OSHLE, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize, unniceSize);
+  INFO_LOG(SYMBOLS, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize,
+           unniceSize);
 }
 
 static bool isCmp(const CodeOp& a)
@@ -464,7 +449,7 @@ static bool isCmp(const CodeOp& a)
 static bool isCarryOp(const CodeOp& a)
 {
   return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
-         a.opinfo->type == OPTYPE_INTEGER;
+         a.opinfo->type == OpType::Integer;
 }
 
 static bool isCror(const CodeOp& a)
@@ -581,7 +566,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   // If the instruction reads CA but doesn't write it, we still need to store CA in XER; we can't
   // leave it in flags.
   if (HasOption(OPTION_CARRY_MERGE))
-    code->wantsCAInFlags = code->wantsCA && code->outputCA && opinfo->type == OPTYPE_INTEGER;
+    code->wantsCAInFlags = code->wantsCA && code->outputCA && opinfo->type == OpType::Integer;
   else
     code->wantsCAInFlags = false;
 
@@ -659,16 +644,16 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   switch (opinfo->type)
   {
-  case OPTYPE_INTEGER:
-  case OPTYPE_LOAD:
-  case OPTYPE_STORE:
-  case OPTYPE_LOADFP:
-  case OPTYPE_STOREFP:
+  case OpType::Integer:
+  case OpType::Load:
+  case OpType::Store:
+  case OpType::LoadFP:
+  case OpType::StoreFP:
     break;
-  case OPTYPE_SINGLEFP:
-  case OPTYPE_DOUBLEFP:
+  case OpType::SingleFP:
+  case OpType::DoubleFP:
     break;
-  case OPTYPE_BRANCH:
+  case OpType::Branch:
     if (code->inst.hex == 0x4e800020)
     {
       // For analysis purposes, we can assume that blr eats opinfo->flags.
@@ -676,8 +661,8 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
       code->outputCR1 = true;
     }
     break;
-  case OPTYPE_SYSTEM:
-  case OPTYPE_SYSTEMFP:
+  case OpType::System:
+  case OpType::SystemFP:
     break;
   }
 }
@@ -725,7 +710,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
 
     num_inst++;
     memset(&code[i], 0, sizeof(CodeOp));
-    GekkoOPInfo* opinfo = GetOpInfo(inst);
+    GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
 
     code[i].opinfo = opinfo;
     code[i].address = address;
@@ -924,7 +909,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
       fprIsDuplicated[code[i].fregOut] = false;
       fprIsStoreSafe[code[i].fregOut] = false;
       // Single, duplicated, and doesn't need PPC_FP.
-      if (code[i].opinfo->type == OPTYPE_SINGLEFP)
+      if (code[i].opinfo->type == OpType::SingleFP)
       {
         fprIsSingle[code[i].fregOut] = true;
         fprIsDuplicated[code[i].fregOut] = true;
@@ -940,7 +925,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
         fprIsDuplicated[code[i].fregOut] = true;
       }
       // Paired are still floats, but the top/bottom halves may differ.
-      if (code[i].opinfo->type == OPTYPE_PS || code[i].opinfo->type == OPTYPE_LOADPS)
+      if (code[i].opinfo->type == OpType::PS || code[i].opinfo->type == OpType::LoadPS)
       {
         fprIsSingle[code[i].fregOut] = true;
         fprIsStoreSafe[code[i].fregOut] = true;
@@ -952,7 +937,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
         fprIsStoreSafe = BitSet32(0);
     }
 
-    if (code[i].opinfo->type == OPTYPE_STOREPS || code[i].opinfo->type == OPTYPE_LOADPS)
+    if (code[i].opinfo->type == OpType::StorePS || code[i].opinfo->type == OpType::LoadPS)
     {
       int gqr = code[i].inst.OPCD == 4 ? code[i].inst.Ix : code[i].inst.I;
       gqrUsed[gqr] = true;

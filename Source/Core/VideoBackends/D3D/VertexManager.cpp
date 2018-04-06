@@ -144,6 +144,13 @@ void VertexManager::vFlush()
 
   FramebufferManager::SetIntegerEFBRenderTarget(
       m_current_pipeline_config.blending_state.logicopenable);
+  if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
+  {
+    D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(
+        D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(),
+        nullptr);
+  }
+
   g_renderer->SetPipeline(m_current_pipeline_object);
 
   ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();

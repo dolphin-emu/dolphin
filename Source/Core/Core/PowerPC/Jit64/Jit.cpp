@@ -287,7 +287,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
   }
-  Interpreter::Instruction instr = GetInterpreterOp(inst);
+  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
@@ -895,9 +895,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         // If we have a fastmem loadstore, we can omit the exception check and let fastmem handle
         // it.
         FixupBranch memException;
-        _assert_msg_(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
-                     "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
-                     ops[i].address);
+        ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+                   "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
+                   ops[i].address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {
           TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));

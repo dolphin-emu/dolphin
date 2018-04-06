@@ -1,32 +1,21 @@
-find_package(Qt5Widgets)
-find_package(Qt5Gui)
-
-if(NOT Qt5Widgets_FOUND OR NOT Qt5Gui_FOUND)
-  message(FATAL_ERROR "Could not find Qt5, which is required to build the DolphinQt2 frontend. If you don't want to build the Qt frontend, pass -DENABLE_QT2=False to
-CMake.")
-endif()
+find_package(Qt5 REQUIRED COMPONENTS Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
-
-add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
 set(CMAKE_AUTOMOC ON)
 
-set(SRCS
+add_executable(dolphin-emu-qt2
   AboutDialog.cpp
   FIFOPlayerWindow.cpp
   HotkeyScheduler.cpp
   Host.cpp
-  InDevelopmentWarning.cpp
   Main.cpp
   MainWindow.cpp
   MenuBar.cpp
   RenderWidget.cpp
   Resources.cpp
+  SearchBar.cpp
   Settings.cpp
   ToolBar.cpp
   Translation.cpp
@@ -45,6 +34,7 @@ set(SRCS
   Config/Graphics/HacksWidget.cpp
   Config/Graphics/GraphicsBool.cpp
   Config/Graphics/GraphicsChoice.cpp
+  Config/Graphics/GraphicsRadio.cpp
   Config/Graphics/GraphicsSlider.cpp
   Config/Graphics/GraphicsWidget.cpp
   Config/Graphics/GraphicsWindow.cpp
@@ -81,6 +71,8 @@ set(SRCS
   Debugger/BreakpointWidget.cpp
   Debugger/CodeViewWidget.cpp
   Debugger/CodeWidget.cpp
+  Debugger/MemoryViewWidget.cpp
+  Debugger/MemoryWidget.cpp
   Debugger/NewBreakpointDialog.cpp
   Debugger/RegisterColumn.cpp
   Debugger/RegisterWidget.cpp
@@ -102,6 +94,8 @@ set(SRCS
   QtUtils/ImageConverter.cpp
   QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
+  QtUtils/WinIconHelper.cpp
+  QtUtils/WrapInScrollArea.cpp
   QtUtils/AspectRatioWidget.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
@@ -116,18 +110,32 @@ set(SRCS
   TAS/Shared.cpp
   TAS/StickWidget.cpp
   TAS/IRWidget.cpp
+  Updater.cpp
 )
 
-list(APPEND LIBS core uicommon)
+target_compile_definitions(dolphin-emu-qt2
+PRIVATE
+  -DQT_USE_QSTRINGBUILDER
+  -DQT_NO_CAST_FROM_ASCII
+  -DQT_NO_CAST_TO_ASCII
+)
+
+target_include_directories(dolphin-emu-qt2
+PRIVATE
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${Qt5Gui_PRIVATE_INCLUDE_DIRS}
+)
+
+target_link_libraries(dolphin-emu-qt2
+PRIVATE
+  core
+  Qt5::Widgets
+  uicommon
+)
 
 if(WIN32)
-  list(APPEND SRCS DolphinQt2.manifest)
+  target_sources(dolphin-emu-qt2 PRIVATE DolphinQt2.manifest)
 endif()
-
-set(DOLPHINQT2_BINARY dolphin-emu-qt2)
-
-add_executable(${DOLPHINQT2_BINARY} ${SRCS} ${UI_HEADERS})
-target_link_libraries(${DOLPHINQT2_BINARY} ${LIBS} Qt5::Widgets)
 
 # Handle localization
 find_package(Gettext)
@@ -166,36 +174,36 @@ if(APPLE)
   # Note: This is copied from DolphinQt, based on the DolphinWX version.
 
   include(BundleUtilities)
-  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHINQT2_BINARY}.app)
+  set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/dolphin-emu-qt2.app)
 
   # Ask for an application bundle.
-  set_target_properties(${DOLPHINQT2_BINARY} PROPERTIES
+  set_target_properties(dolphin-emu-qt2 PROPERTIES
     MACOSX_BUNDLE true
     MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
     )
 
   # Copy qt.conf into the bundle
-  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
+  target_sources(dolphin-emu-qt2 PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
   set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
   # Copy icon into the bundle
-  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
+  target_sources(dolphin-emu-qt2 PRIVATE "${CMAKE_SOURCE_DIR}/Data/Dolphin.icns")
   set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/Dolphin.icns" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
   # Copy Qt plugins into the bundle
   get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
-  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtcocoa_location}")
+  target_sources(dolphin-emu-qt2 PRIVATE "${qtcocoa_location}")
   set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
 
   get_target_property(qtmacstyle_location Qt5::QMacStylePlugin LOCATION)
-  target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtmacstyle_location}")
+  target_sources(dolphin-emu-qt2 PRIVATE "${qtmacstyle_location}")
   set_source_files_properties("${qtmacstyle_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/styles)
 
   # Copy resources into the bundle
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
   file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
   foreach(res ${resources})
-    target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
+    target_sources(dolphin-emu-qt2 PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
     get_filename_component(resdir "${res}" DIRECTORY)
     set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/${res}" PROPERTIES
       MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
@@ -204,7 +212,7 @@ if(APPLE)
 
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
-  dolphin_postprocess_bundle(${DOLPHINQT2_BINARY})
+  dolphin_postprocess_bundle(dolphin-emu-qt2)
 else()
-  install(TARGETS ${DOLPHINQT2_BINARY} RUNTIME DESTINATION ${bindir})
+  install(TARGETS dolphin-emu-qt2 RUNTIME DESTINATION ${bindir})
 endif()

@@ -270,7 +270,7 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
 
 void Renderer::UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size)
 {
-  _dbg_assert_(VIDEO, uniforms_size > 0 && uniforms_size < UTILITY_UBO_SIZE);
+  DEBUG_ASSERT(uniforms_size > 0 && uniforms_size < UTILITY_UBO_SIZE);
   D3D11_MAPPED_SUBRESOURCE mapped;
   HRESULT hr = D3D::context->Map(m_utility_uniform_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
   CHECK(SUCCEEDED(hr), "Map utility UBO");
@@ -323,7 +323,7 @@ void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, cons
     if (vertices_ptr)
     {
       vertices_this_draw = std::min(vertices_this_draw, UTILITY_VBO_SIZE / vertex_stride);
-      _dbg_assert_(VIDEO, vertices_this_draw > 0);
+      DEBUG_ASSERT(vertices_this_draw > 0);
       UpdateUtilityVertexBuffer(vertices_ptr, vertex_stride, vertices_this_draw);
       D3D::stateman->SetVertexBuffer(m_utility_vertex_buffer, vertex_stride, 0);
     }

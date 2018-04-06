@@ -29,7 +29,7 @@ OpArg GPRRegCache::GetDefaultLocation(size_t reg) const
   return PPCSTATE(gpr[reg]);
 }
 
-const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count)
+const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count) const
 {
   static const X64Reg allocation_order[] = {
 // R12, when used as base register, for example in a LEA, can generate bad code! Need to look into
@@ -55,12 +55,12 @@ void GPRRegCache::SetImmediate32(size_t preg, u32 imm_value, bool dirty)
   m_regs[preg].location = Imm32(imm_value);
 }
 
-BitSet32 GPRRegCache::GetRegUtilization()
+BitSet32 GPRRegCache::GetRegUtilization() const
 {
   return m_jit.js.op->gprInReg;
 }
 
-BitSet32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
+BitSet32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead) const
 {
   BitSet32 regs_used;
 

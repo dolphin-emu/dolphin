@@ -92,15 +92,17 @@
     </integer-array>
 
     <!-- Ubershader Mode Preference -->
-    <string-array name="uberShaderModeEntries" translatable="false">
-        <item>Disabled</item>
-        <item>Hybrid</item>
-        <item>Exclusive</item>
+    <string-array name="shaderCompilationModeEntries" translatable="false">
+        <item>Synchronous</item>
+        <item>Synchronous (Ubershaders)</item>
+        <item>Asynchronous (Ubershaders)</item>
+        <item>Asynchronous (Skip Drawing)</item>
     </string-array>
-    <integer-array name="uberShaderModeValues" translatable="false">
+    <integer-array name="shaderCompilationModeValues" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>3</item>
     </integer-array>
 
     <!-- Internal Resolution Preference -->

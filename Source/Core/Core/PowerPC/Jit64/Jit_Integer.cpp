@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -142,7 +143,7 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // LT/GT either.
 void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 {
-  _assert_msg_(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
+  ASSERT_MSG(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
   if (arg.IsImm())
   {
     MOV(64, PPCSTATE(cr_val[0]), Imm32(arg.SImm32()));
@@ -269,7 +270,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
   }
   else
   {
-    _assert_msg_(DYNA_REC, 0, "WTF regimmop");
+    ASSERT_MSG(DYNA_REC, 0, "WTF regimmop");
   }
   if (Rc)
     ComputeRC(gpr.R(d), needs_test, doop != And || (value & 0x80000000));
@@ -304,18 +305,21 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   case 15:  // addis
     regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
     break;
-  case 24:                                               // ori
-    if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  // check for nop
+  case 24:  // ori
+  case 25:  // oris
+  {
+    // check for nop
+    if (a == s && inst.UIMM == 0)
     {
       // Make the nop visible in the generated code. not much use but interesting if we see one.
       NOP();
       return;
     }
-    regimmop(a, s, true, inst.UIMM, Or, &XEmitter::OR);
+
+    const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
+    regimmop(a, s, true, immediate, Or, &XEmitter::OR);
     break;
-  case 25:  // oris
-    regimmop(a, s, true, inst.UIMM << 16, Or, &XEmitter::OR, false);
-    break;
+  }
   case 28:  // andi
     regimmop(a, s, true, inst.UIMM, And, &XEmitter::AND, true);
     break;
@@ -323,11 +327,19 @@ void Jit64::reg_imm(UGeckoInstruction inst)
     regimmop(a, s, true, inst.UIMM << 16, And, &XEmitter::AND, true);
     break;
   case 26:  // xori
-    regimmop(a, s, true, inst.UIMM, Xor, &XEmitter::XOR, false);
-    break;
   case 27:  // xoris
-    regimmop(a, s, true, inst.UIMM << 16, Xor, &XEmitter::XOR, false);
+  {
+    if (s == a && inst.UIMM == 0)
+    {
+      // Make the nop visible in the generated code.
+      NOP();
+      return;
+    }
+
+    const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
+    regimmop(a, s, true, immediate, Xor, &XEmitter::XOR, false);
     break;
+  }
   case 12:  // addic
     regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD, false, true);
     break;
@@ -339,7 +351,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   }
 }
 
-bool Jit64::CheckMergedBranch(u32 crf)
+bool Jit64::CheckMergedBranch(u32 crf) const
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
@@ -598,7 +610,7 @@ void Jit64::boolX(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, s = inst.RS, b = inst.RB;
   bool needs_test = false;
-  _dbg_assert_msg_(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
+  DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
 
   if (gpr.R(s).IsImm() && gpr.R(b).IsImm())
   {
@@ -1343,8 +1355,6 @@ void Jit64::arithXex(UGeckoInstruction inst)
   {
     if (!js.carryFlagInverted)
       CMC();
-    if (d != b)
-      MOV(32, gpr.R(d), gpr.R(b));
     SBB(32, gpr.R(d), gpr.R(a));
     invertedCarry = true;
   }
@@ -1426,7 +1436,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   {
     u32 result = gpr.R(s).Imm32();
     if (inst.SH != 0)
-      result = _rotl(result, inst.SH);
+      result = Common::RotateLeft(result, inst.SH);
     result &= Helper_Mask(inst.MB, inst.ME);
     gpr.SetImmediate32(a, result);
     if (inst.Rc)
@@ -1511,7 +1521,8 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   if (gpr.R(a).IsImm() && gpr.R(s).IsImm())
   {
     u32 mask = Helper_Mask(inst.MB, inst.ME);
-    gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) | (_rotl(gpr.R(s).Imm32(), inst.SH) & mask));
+    gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) |
+                              (Common::RotateLeft(gpr.R(s).Imm32(), inst.SH) & mask));
     if (inst.Rc)
       ComputeRC(gpr.R(a));
   }
@@ -1537,7 +1548,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
     {
       gpr.BindToRegister(a, true, true);
       AndWithMask(gpr.RX(a), ~mask);
-      OR(32, gpr.R(a), Imm32(_rotl(gpr.R(s).Imm32(), inst.SH) & mask));
+      OR(32, gpr.R(a), Imm32(Common::RotateLeft(gpr.R(s).Imm32(), inst.SH) & mask));
     }
     else if (inst.SH)
     {
@@ -1611,7 +1622,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   u32 mask = Helper_Mask(inst.MB, inst.ME);
   if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
   {
-    gpr.SetImmediate32(a, _rotl(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);
+    gpr.SetImmediate32(a, Common::RotateLeft(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);
   }
   else
   {

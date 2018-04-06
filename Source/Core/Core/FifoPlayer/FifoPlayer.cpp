@@ -102,7 +102,7 @@ public:
     PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 
-  const char* GetName() override { return "FifoPlayer"; }
+  const char* GetName() const override { return "FifoPlayer"; }
   void Run() override
   {
     while (CPU::GetState() == CPU::State::Running)
@@ -328,7 +328,7 @@ void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
 
 void FifoPlayer::WriteAllMemoryUpdates()
 {
-  _assert_(m_File);
+  ASSERT(m_File);
 
   for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
   {

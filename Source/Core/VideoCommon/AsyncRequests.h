@@ -90,9 +90,9 @@ private:
   std::mutex m_mutex;
   std::condition_variable m_cond;
 
-  bool m_wake_me_up_again;
-  bool m_enable;
-  bool m_passthrough;
+  bool m_wake_me_up_again = false;
+  bool m_enable = false;
+  bool m_passthrough = true;
 
   std::vector<EfbPokeData> m_merged_efb_pokes;
 };

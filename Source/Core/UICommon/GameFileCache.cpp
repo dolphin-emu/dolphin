@@ -28,7 +28,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 7;  // Last changed in PR 6281
+static constexpr u32 CACHE_REVISION = 9;  // Last changed in PR 6569
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -60,7 +60,12 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
       [&path](const std::shared_ptr<GameFile>& file) { return file->GetFilePath() == path; });
   const bool found = it != m_cached_files.cend();
   if (!found)
-    m_cached_files.emplace_back(std::make_shared<GameFile>(path));
+  {
+    std::shared_ptr<UICommon::GameFile> game = std::make_shared<GameFile>(path);
+    if (!game->IsValid())
+      return nullptr;
+    m_cached_files.emplace_back(std::move(game));
+  }
   std::shared_ptr<GameFile>& result = found ? *it : m_cached_files.back();
   if (UpdateAdditionalMetadata(&result, title_database) || !found)
     *cache_changed = true;
@@ -133,18 +138,15 @@ bool GameFileCache::UpdateAdditionalMetadata(const Core::TitleDatabase& title_da
 bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file,
                                              const Core::TitleDatabase& title_database)
 {
-  const bool emu_state_changed = (*game_file)->EmuStateChanged();
   const bool banner_changed = (*game_file)->BannerChanged();
   const bool custom_title_changed = (*game_file)->CustomNameChanged(title_database);
-  if (!emu_state_changed && !banner_changed && !custom_title_changed)
+  if (!banner_changed && !custom_title_changed)
     return false;
 
   // If a cached file needs an update, apply the updates to a copy and delete the original.
   // This makes the usage of cached files in other threads safe.
 
   std::shared_ptr<GameFile> copy = std::make_shared<GameFile>(**game_file);
-  if (emu_state_changed)
-    copy->EmuStateCommit();
   if (banner_changed)
     copy->BannerCommit();
   if (custom_title_changed)

@@ -31,8 +31,8 @@ public:
 
 private:
   GLenum m_type;
-  GLuint m_id;
-  GLuint m_compute_program_id;
+  GLuint m_id = 0;
+  GLuint m_compute_program_id = 0;
 };
 
 }  // namespace OGL

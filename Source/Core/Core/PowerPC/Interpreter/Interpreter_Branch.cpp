@@ -39,7 +39,7 @@ void Interpreter::bcx(UGeckoInstruction inst)
   const bool only_condition_check = ((inst.BO >> 2) & 1);
   int ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
   bool counter = only_condition_check || ctr_check;
-  bool condition = only_counter_check || (GetCRBit(inst.BI) == u32(true_false));
+  bool condition = only_counter_check || (PowerPC::GetCRBit(inst.BI) == u32(true_false));
 
   if (counter && condition)
   {
@@ -75,10 +75,10 @@ void Interpreter::bcx(UGeckoInstruction inst)
 
 void Interpreter::bcctrx(UGeckoInstruction inst)
 {
-  _dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
+  DEBUG_ASSERT_MSG(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
                    "bcctrx with decrement and test CTR option is invalid!");
 
-  int condition = ((inst.BO_2 >> 4) | (GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+  int condition = ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (condition)
   {
@@ -96,7 +96,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
     CTR--;
 
   int counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
-  int condition = ((inst.BO_2 >> 4) | (GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+  int condition = ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (counter & condition)
   {

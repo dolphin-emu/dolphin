@@ -22,8 +22,10 @@
 InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {
   QVBoxLayout* layout = new QVBoxLayout();
+
   layout->addWidget(CreateISODetails());
   layout->addWidget(CreateBannerDetails());
+
   setLayout(layout);
 }
 
@@ -32,8 +34,15 @@ QGroupBox* InfoWidget::CreateISODetails()
   QGroupBox* group = new QGroupBox(tr("ISO Details"));
   QFormLayout* layout = new QFormLayout;
 
-  QLineEdit* file_path = CreateValueDisplay(m_game.GetFilePath());
-  QLineEdit* internal_name = CreateValueDisplay(m_game.GetInternalName());
+  QLineEdit* file_path = CreateValueDisplay(
+      QStringLiteral("%1 (%2)")
+          .arg(QString::fromStdString(m_game.GetFilePath()))
+          .arg(QString::fromStdString(UICommon::FormatSize(m_game.GetFileSize()))));
+  QLineEdit* internal_name =
+      CreateValueDisplay(tr("%1 (Disc %2, Revision %3)")
+                             .arg(QString::fromStdString(m_game.GetInternalName()))
+                             .arg(m_game.GetDiscNumber())
+                             .arg(m_game.GetRevision()));
 
   QString game_id_string = QString::fromStdString(m_game.GetGameID());
   if (const u64 title_id = m_game.GetTitleID())
@@ -41,24 +50,16 @@ QGroupBox* InfoWidget::CreateISODetails()
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
-  QLineEdit* maker = CreateValueDisplay(m_game.GetMaker());
-  QLineEdit* maker_id = CreateValueDisplay("0x" + m_game.GetMakerID());
-  QLineEdit* disc_number = CreateValueDisplay(QString::number(m_game.GetDiscNumber()));
-  QLineEdit* revision = CreateValueDisplay(QString::number(m_game.GetRevision()));
+  QLineEdit* maker = CreateValueDisplay(m_game.GetMaker() + " (0x" + m_game.GetMakerID() + ")");
   QLineEdit* apploader_date = CreateValueDisplay(m_game.GetApploaderDate());
-  QLineEdit* iso_size = CreateValueDisplay(UICommon::FormatSize(m_game.GetFileSize()));
   QWidget* checksum = CreateChecksumComputer();
 
-  layout->addRow(tr("File Path:"), file_path);
-  layout->addRow(tr("Internal Name:"), internal_name);
+  layout->addRow(tr("Name:"), internal_name);
+  layout->addRow(tr("File:"), file_path);
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);
-  layout->addRow(tr("Maker ID:"), maker_id);
-  layout->addRow(tr("Disc Number:"), disc_number);
-  layout->addRow(tr("Revision:"), revision);
   layout->addRow(tr("Apploader Date:"), apploader_date);
-  layout->addRow(tr("ISO Size:"), iso_size);
   layout->addRow(tr("MD5 Checksum:"), checksum);
 
   group->setLayout(layout);
@@ -70,26 +71,22 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   QGroupBox* group = new QGroupBox(tr("Banner Details"));
   QFormLayout* layout = new QFormLayout;
 
-  m_long_name = CreateValueDisplay();
-  m_short_name = CreateValueDisplay();
-  m_short_maker = CreateValueDisplay();
-  m_long_maker = CreateValueDisplay();
+  m_name = CreateValueDisplay();
+  m_maker = CreateValueDisplay();
   m_description = new QTextEdit();
   m_description->setReadOnly(true);
   CreateLanguageSelector();
 
   layout->addRow(tr("Show Language:"), m_language_selector);
-  if (m_game.GetPlatform() == DiscIO::Platform::GAMECUBE_DISC)
+  if (m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc)
   {
-    layout->addRow(tr("Short Name:"), m_short_name);
-    layout->addRow(tr("Short Maker:"), m_short_maker);
-    layout->addRow(tr("Long Name:"), m_long_name);
-    layout->addRow(tr("Long Maker:"), m_long_maker);
+    layout->addRow(tr("Name:"), m_name);
+    layout->addRow(tr("Maker:"), m_maker);
     layout->addRow(tr("Description:"), m_description);
   }
   else if (DiscIO::IsWii(m_game.GetPlatform()))
   {
-    layout->addRow(tr("Name:"), m_long_name);
+    layout->addRow(tr("Name:"), m_name);
   }
 
   QPixmap banner = ToQPixmap(m_game.GetBannerImage());
@@ -156,10 +153,8 @@ void InfoWidget::ChangeLanguage()
 {
   DiscIO::Language language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
-  m_short_name->setText(QString::fromStdString(m_game.GetShortName(language)));
-  m_short_maker->setText(QString::fromStdString(m_game.GetShortMaker(language)));
-  m_long_name->setText(QString::fromStdString(m_game.GetLongName(language)));
-  m_long_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
+  m_name->setText(QString::fromStdString(m_game.GetLongName(language)));
+  m_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
   m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
 }
 

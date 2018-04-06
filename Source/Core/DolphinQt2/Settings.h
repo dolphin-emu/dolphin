@@ -8,6 +8,7 @@
 
 #include <QFont>
 #include <QObject>
+#include <QSettings>
 #include <QVector>
 
 #include "Core/NetPlayClient.h"
@@ -39,6 +40,7 @@ public:
   Settings& operator=(Settings&&) = delete;
 
   static Settings& Instance();
+  static QSettings& GetQSettings();
 
   // UI
   void SetThemeName(const QString& theme_name);
@@ -95,8 +97,18 @@ public:
   bool IsBreakpointsVisible() const;
   void SetCodeVisible(bool enabled);
   bool IsCodeVisible() const;
+  void SetMemoryVisible(bool enabled);
+  bool IsMemoryVisible() const;
   QFont GetDebugFont() const;
   void SetDebugFont(QFont font);
+
+  // Auto-Update
+  QString GetAutoUpdateTrack() const;
+  void SetAutoUpdateTrack(const QString& mode);
+
+  // Analytics
+  bool IsAnalyticsEnabled() const;
+  void SetAnalyticsEnabled(bool enabled);
 
   // Other
   GameListModel* GetGameListModel() const;
@@ -117,8 +129,11 @@ signals:
   void WatchVisibilityChanged(bool visible);
   void BreakpointsVisibilityChanged(bool visible);
   void CodeVisibilityChanged(bool visible);
+  void MemoryVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
+  void AutoUpdateTrackChanged(const QString& mode);
+  void AnalyticsToggled(bool enabled);
 
 private:
   bool m_controller_state_needed = false;

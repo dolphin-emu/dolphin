@@ -714,7 +714,7 @@ void FifoPlayerDlg::OnObjectListSelectionChanged(wxCommandEvent& event)
           // The recorder should have expanded display lists into the fifo stream and skipped the
           // call to start them
           // That is done to make it easier to track where memory is updated
-          _assert_(false);
+          ASSERT(false);
           objectdata += 8;
           newLabel = wxString::Format("CALL DL");
           break;

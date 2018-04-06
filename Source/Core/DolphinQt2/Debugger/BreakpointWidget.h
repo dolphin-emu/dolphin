@@ -27,6 +27,9 @@ public:
                     bool do_break = true);
   void Update();
 
+signals:
+  void BreakpointsChanged();
+
 protected:
   void closeEvent(QCloseEvent*) override;
 

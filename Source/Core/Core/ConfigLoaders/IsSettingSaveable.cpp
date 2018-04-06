@@ -46,8 +46,9 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_DISABLE_FOG.location, Config::GFX_BORDERLESS_FULLSCREEN.location,
       Config::GFX_ENABLE_VALIDATION_LAYER.location, Config::GFX_BACKEND_MULTITHREADING.location,
       Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL.location, Config::GFX_SHADER_CACHE.location,
-      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING.location, Config::GFX_UBERSHADER_MODE.location,
-      Config::GFX_SHADER_COMPILER_THREADS.location, Config::GFX_SHADER_PRECOMPILER_THREADS.location,
+      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING.location,
+      Config::GFX_SHADER_COMPILATION_MODE.location, Config::GFX_SHADER_COMPILER_THREADS.location,
+      Config::GFX_SHADER_PRECOMPILER_THREADS.location,
 
       Config::GFX_SW_ZCOMPLOC.location, Config::GFX_SW_ZFREEZE.location,
       Config::GFX_SW_DUMP_OBJECTS.location, Config::GFX_SW_DUMP_TEV_STAGES.location,
@@ -79,9 +80,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
 
       // Graphics.GameSpecific
 
-      Config::GFX_PROJECTION_HACK.location, Config::GFX_PROJECTION_HACK_SZNEAR.location,
-      Config::GFX_PROJECTION_HACK_SZFAR.location, Config::GFX_PROJECTION_HACK_ZNEAR.location,
-      Config::GFX_PROJECTION_HACK_ZFAR.location, Config::GFX_PERF_QUERIES_ENABLE.location,
+      Config::GFX_PERF_QUERIES_ENABLE.location,
 
   };
 

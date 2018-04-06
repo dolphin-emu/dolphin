@@ -18,6 +18,10 @@
 
 using namespace Gen;
 
+Jit64AsmRoutineManager::Jit64AsmRoutineManager(JitBase& jit) : m_jit{jit}
+{
+}
+
 void Jit64AsmRoutineManager::Init(u8* stack_top)
 {
   m_const_pool.Init(AllocChildCodeSpace(4096), 4096);
@@ -108,7 +112,7 @@ void Jit64AsmRoutineManager::Generate()
     // Fast block number lookup.
     // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
-    u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetFastBlockMap());
+    u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMap());
     AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 2));
     if (icache <= INT_MAX)
     {
@@ -151,6 +155,7 @@ void Jit64AsmRoutineManager::Generate()
 
   // Ok, no block, let's call the slow dispatcher
   ABI_PushRegistersAndAdjustStack({}, 0);
+  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
   ABI_CallFunction(JitBase::Dispatch);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
@@ -175,7 +180,8 @@ void Jit64AsmRoutineManager::Generate()
   ResetStack(*this);
 
   ABI_PushRegistersAndAdjustStack({}, 0);
-  MOV(32, R(ABI_PARAM1), PPCSTATE(pc));
+  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(&m_jit)));
+  MOV(32, R(ABI_PARAM2), PPCSTATE(pc));
   ABI_CallFunction(JitTrampoline);
   ABI_PopRegistersAndAdjustStack({}, 0);
 

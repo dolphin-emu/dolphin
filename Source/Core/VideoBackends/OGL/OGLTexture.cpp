@@ -108,7 +108,7 @@ bool UsePersistentStagingBuffers()
 
 OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
 {
-  _dbg_assert_msg_(VIDEO, !tex_config.IsMultisampled() || tex_config.levels == 1,
+  DEBUG_ASSERT_MSG(VIDEO, !tex_config.IsMultisampled() || tex_config.levels == 1,
                    "OpenGL does not support multisampled textures with mip levels");
 
   GLenum target =
@@ -138,7 +138,7 @@ OGLTexture::OGLTexture(const TextureConfig& tex_config) : AbstractTexture(tex_co
   if (m_config.rendertarget)
   {
     // We can't render to compressed formats.
-    _assert_(!IsCompressedFormat(m_config.format));
+    ASSERT(!IsCompressedFormat(m_config.format));
     if (!g_ogl_config.bSupportsTextureStorage && !tex_config.IsMultisampled())
     {
       for (u32 level = 0; level < m_config.levels; level++)
@@ -185,8 +185,8 @@ void OGLTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                           u32 dst_layer, u32 dst_level)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
   if (g_ogl_config.bSupportsCopySubImage)
   {
     glCopyImageSubData(srcentry->m_texId, GL_TEXTURE_2D_ARRAY, src_level, src_rect.left,
@@ -279,11 +279,10 @@ void OGLTexture::ResolveFromTexture(const AbstractTexture* src,
                                     const MathUtil::Rectangle<int>& rect, u32 layer, u32 level)
 {
   const OGLTexture* srcentry = static_cast<const OGLTexture*>(src);
-  _dbg_assert_(VIDEO, m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
-                          m_config.height == srcentry->m_config.height && m_config.samples == 1);
-  _dbg_assert_(VIDEO,
-               rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
-                   rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
+  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
+               rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
   BlitFramebuffer(const_cast<OGLTexture*>(srcentry), rect, layer, level, rect, layer, level);
 }
 
@@ -398,7 +397,7 @@ std::unique_ptr<OGLStagingTexture> OGLStagingTexture::Create(StagingTextureType 
     glBufferStorage(target, buffer_size, nullptr, buffer_flags);
     buffer_ptr =
         reinterpret_cast<char*>(glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0, buffer_size, map_flags));
-    _assert_(buffer_ptr != nullptr);
+    ASSERT(buffer_ptr != nullptr);
   }
   else
   {
@@ -417,13 +416,13 @@ void OGLStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                         const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                         u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  _assert_(m_type == StagingTextureType::Readback);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
-  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
-           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
-  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
-           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
+  ASSERT(m_type == StagingTextureType::Readback);
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
 
   // Unmap the buffer before writing when not using persistent mappings.
   if (!UsePersistentStagingBuffers())
@@ -492,13 +491,13 @@ void OGLStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect,
                                       const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                       u32 dst_level)
 {
-  _assert_(m_type == StagingTextureType::Upload);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
-  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
-           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
-  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
-           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
+  ASSERT(m_type == StagingTextureType::Upload);
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
 
   size_t src_offset = src_rect.top * m_config.GetStride() + src_rect.left * m_texel_size;
   size_t copy_size = src_rect.GetHeight() * m_config.GetStride();
@@ -655,7 +654,7 @@ std::unique_ptr<OGLFramebuffer> OGLFramebuffer::Create(const OGLTexture* color_a
     }
   }
 
-  _dbg_assert_(VIDEO, glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
+  DEBUG_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE);
   FramebufferManager::SetFramebuffer(0);
   return std::make_unique<OGLFramebuffer>(color_format, depth_format, width, height, layers,
                                           samples, fbo);

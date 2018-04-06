@@ -1256,7 +1256,7 @@ void EndPlayInput(bool cont)
   if (cont)
   {
     // If !IsMovieActive(), changing s_playMode requires calling UpdateWantDeterminism
-    _assert_(IsMovieActive());
+    ASSERT(IsMovieActive());
 
     s_playMode = MODE_RECORDING;
     Core::DisplayMessage("Reached movie end. Resuming recording.", 2000);

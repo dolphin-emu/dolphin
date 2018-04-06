@@ -4,6 +4,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/Core.h"
@@ -56,7 +57,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
+  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == ::OpType::Integer)
   {
     return;
   }
@@ -121,17 +122,20 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
 
   switch (inst.OPCD)
   {
-  case 24:                                               // ori
-    if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  // check for nop
+  case 24:  // ori
+  case 25:  // oris
+  {
+    // check for nop
+    if (a == s && inst.UIMM == 0)
     {
       // NOP
       return;
     }
-    reg_imm(a, s, inst.UIMM, BitOR, &ARM64XEmitter::ORRI2R);
+
+    const u32 immediate = inst.OPCD == 24 ? inst.UIMM : inst.UIMM << 16;
+    reg_imm(a, s, immediate, BitOR, &ARM64XEmitter::ORRI2R);
     break;
-  case 25:  // oris
-    reg_imm(a, s, inst.UIMM << 16, BitOR, &ARM64XEmitter::ORRI2R);
-    break;
+  }
   case 28:  // andi
     reg_imm(a, s, inst.UIMM, BitAND, &ARM64XEmitter::ANDI2R, true);
     break;
@@ -139,11 +143,18 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
     reg_imm(a, s, inst.UIMM << 16, BitAND, &ARM64XEmitter::ANDI2R, true);
     break;
   case 26:  // xori
-    reg_imm(a, s, inst.UIMM, BitXOR, &ARM64XEmitter::EORI2R);
-    break;
   case 27:  // xoris
-    reg_imm(a, s, inst.UIMM << 16, BitXOR, &ARM64XEmitter::EORI2R);
+  {
+    if (a == s && inst.UIMM == 0)
+    {
+      // NOP
+      return;
+    }
+
+    const u32 immediate = inst.OPCD == 26 ? inst.UIMM : inst.UIMM << 16;
+    reg_imm(a, s, immediate, BitXOR, &ARM64XEmitter::EORI2R);
     break;
+  }
   }
 }
 
@@ -524,7 +535,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   u32 mask = Helper_Mask(inst.MB, inst.ME);
   if (gpr.IsImm(inst.RS))
   {
-    gpr.SetImmediate(a, _rotl(gpr.GetImm(s), inst.SH) & mask);
+    gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
     return;
@@ -573,7 +584,7 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
-    gpr.SetImmediate(a, _rotl(gpr.GetImm(s), gpr.GetImm(b) & 0x1F) & mask);
+    gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), gpr.GetImm(b) & 0x1F) & mask);
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }
@@ -1427,7 +1438,7 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
 
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {
-    u32 res = (gpr.GetImm(a) & ~mask) | (_rotl(gpr.GetImm(s), inst.SH) & mask);
+    u32 res = (gpr.GetImm(a) & ~mask) | (Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
     gpr.SetImmediate(a, res);
     if (inst.Rc)
       ComputeRC0(res);

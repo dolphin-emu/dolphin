@@ -44,7 +44,6 @@
 
 // template instantiation
 template class BoolSetting<wxCheckBox>;
-template class BoolSetting<wxRadioButton>;
 
 template <>
 SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, const wxString& tooltip,
@@ -57,19 +56,6 @@ SettingCheckBox::BoolSetting(wxWindow* parent, const wxString& label, const wxSt
   if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
     SetFont(GetFont().MakeBold());
   Bind(wxEVT_CHECKBOX, &SettingCheckBox::UpdateValue, this);
-}
-
-template <>
-SettingRadioButton::BoolSetting(wxWindow* parent, const wxString& label, const wxString& tooltip,
-                                const Config::ConfigInfo<bool>& setting, bool reverse, long style)
-    : wxRadioButton(parent, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, style),
-      m_setting(setting), m_reverse(reverse)
-{
-  SetToolTip(tooltip);
-  SetValue(Config::Get(m_setting) ^ m_reverse);
-  if (Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base)
-    SetFont(GetFont().MakeBold());
-  Bind(wxEVT_RADIOBUTTON, &SettingRadioButton::UpdateValue, this);
 }
 
 template <>
@@ -311,18 +297,35 @@ static wxString gpu_texture_decoding_desc =
                 "bottleneck.\n\nIf unsure, leave this unchecked.");
 static wxString ubershader_desc =
     wxTRANSLATE("Disabled: Ubershaders are never used. Stuttering will occur during shader "
-                "compilation, but GPU demands are low. Recommended for low-end hardware.\n\n"
+                "compilation, but GPU demands are low. Recommended for low-end hardware.\n"
                 "Hybrid: Ubershaders will be used to prevent stuttering during shader "
                 "compilation, but traditional shaders will be used when they will not cause "
-                "stuttering. Balances performance and smoothness.\n\n"
+                "stuttering. Balances performance and smoothness.\n"
                 "Exclusive: Ubershaders will always be used. Only recommended for high-end "
-                "systems.");
-static wxString wait_for_shaders_desc =
+                "systems.\n"
+                "Skip Drawing: Does not draw objects during shader compilation. Reduces "
+                "stuttering at the cost of missing objects, or broken effects.");
+static wxString shader_compile_sync_desc =
+    wxTRANSLATE("Ubershaders are never used. Stuttering will occur during shader "
+                "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
+                "unsure, select this mode.");
+static wxString shader_compile_uber_only_desc =
+    wxTRANSLATE("Ubershaders will always be used. Provides a near stutter-free experience at the "
+                "cost of high GPU requirements. Only recommended for high-end systems.");
+static wxString shader_compile_async_uber_desc =
+    wxTRANSLATE("Ubershaders will be used to prevent stuttering during shader compilation, but "
+                "specialized shaders will be used when they will not cause stuttering.");
+static wxString shader_compile_async_skip_desc =
+    wxTRANSLATE("Instead of using ubershaders during shader compilation, objects which use these "
+                "shaders will be not be rendered. This can further reduce stuttering and "
+                "performance requirements, compared to ubershaders, at the cost of introducing "
+                "visual glitches and broken effects. Not recommended.");
+static wxString shader_compile_before_start_desc =
     wxTRANSLATE("Waits for all shaders to finish compiling before starting a game. Enabling this "
                 "option may reduce stuttering or hitching for a short time after the game is "
-                "started, at the cost of a longer delay before the game starts.\n\nFor systems "
-                "with two or fewer cores, it is recommended to enable this option, as a large "
-                "shader queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
+                "started, at the cost of a longer delay before the game starts. For systems with "
+                "two or fewer cores, it is recommended to enable this option, as a large shader "
+                "queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
@@ -448,10 +451,29 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                         wxGetTranslation(backend_multithreading_desc),
                                         Config::GFX_BACKEND_MULTITHREADING));
         }
+      }
 
-        szr_other->Add(CreateCheckBox(page_general, _("Immediately Compile Shaders"),
-                                      wxGetTranslation(wait_for_shaders_desc),
-                                      Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING));
+      // - shader compilation
+      wxGridBagSizer* const szr_shader_compilation = new wxGridBagSizer(space5, space5);
+      {
+        const std::array<std::pair<wxString, wxString>, 4> modes = {
+            {{_("Synchronous"), wxGetTranslation(shader_compile_sync_desc)},
+             {_("Synchronous (Ubershaders)"), wxGetTranslation(shader_compile_uber_only_desc)},
+             {_("Asynchronous (Ubershaders)"), wxGetTranslation(shader_compile_async_uber_desc)},
+             {_("Asynchronous (Skip Drawing)"), wxGetTranslation(shader_compile_async_skip_desc)}}};
+        for (size_t i = 0; i < modes.size(); i++)
+        {
+          szr_shader_compilation->Add(
+              CreateRadioButton(page_general, modes[i].first, modes[i].second,
+                                Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i)),
+              wxGBPosition(static_cast<int>(i / 2), static_cast<int>(i % 2)), wxDefaultSpan,
+              wxALIGN_CENTER_VERTICAL);
+        }
+        szr_shader_compilation->Add(
+            CreateCheckBox(page_general, _("Compile Shaders Before Starting"),
+                           wxGetTranslation(shader_compile_before_start_desc),
+                           Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING),
+            wxGBPosition(2, 0), wxGBSpan(1, 2));
       }
 
       wxStaticBoxSizer* const group_basic =
@@ -469,12 +491,19 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       group_other->Add(szr_other, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
       group_other->AddSpacer(space5);
 
+      wxStaticBoxSizer* const group_shader_compilation =
+          new wxStaticBoxSizer(wxVERTICAL, page_general, _("Shader Compilation"));
+      group_shader_compilation->Add(szr_shader_compilation, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+      group_shader_compilation->AddSpacer(space5);
+
       szr_general->AddSpacer(space5);
       szr_general->Add(group_basic, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
       szr_general->AddSpacer(space5);
       szr_general->Add(group_display, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
       szr_general->AddSpacer(space5);
       szr_general->Add(group_other, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+      szr_general->AddSpacer(space5);
+      szr_general->Add(group_shader_compilation, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
     }
 
     szr_general->AddSpacer(space5);
@@ -537,18 +566,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                    wxGBPosition(row, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
       szr_enh->Add(CreateChoice(page_enh, Config::GFX_ENHANCE_MAX_ANISOTROPY,
                                 wxGetTranslation(af_desc), af_choices.size(), af_choices.data()),
-                   wxGBPosition(row, 1), span2, wxALIGN_CENTER_VERTICAL);
-      row += 1;
-    }
-
-    // ubershaders
-    {
-      const std::array<wxString, 3> mode_choices = {{_("Disabled"), _("Hybrid"), _("Exclusive")}};
-      szr_enh->Add(new wxStaticText(page_enh, wxID_ANY, _("Ubershaders:")), wxGBPosition(row, 0),
-                   wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-      szr_enh->Add(CreateChoice(page_enh, Config::GFX_UBERSHADER_MODE,
-                                wxGetTranslation(ubershader_desc), mode_choices.size(),
-                                mode_choices.data()),
                    wxGBPosition(row, 1), span2, wxALIGN_CENTER_VERTICAL);
       row += 1;
     }
@@ -1111,17 +1128,6 @@ SettingChoice* VideoConfigDiag::CreateChoice(wxWindow* parent,
   return ch;
 }
 
-SettingRadioButton* VideoConfigDiag::CreateRadioButton(wxWindow* parent, const wxString& label,
-                                                       const wxString& description,
-                                                       const Config::ConfigInfo<bool>& setting,
-                                                       bool reverse, long style)
-{
-  SettingRadioButton* const rb =
-      new SettingRadioButton(parent, label, wxString(), setting, reverse, style);
-  RegisterControl(rb, description);
-  return rb;
-}
-
 /* Use this to register descriptions for controls which have NOT been created using the Create*
  * functions from above */
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
@@ -1245,7 +1251,7 @@ void VideoConfigDiag::PopulateAAList()
     if (mode == 1)
     {
       choice_aamode->AppendString(_("None"));
-      _assert_msg_(VIDEO, !supports_ssaa || m_msaa_modes == 0, "SSAA setting won't work correctly");
+      ASSERT_MSG(VIDEO, !supports_ssaa || m_msaa_modes == 0, "SSAA setting won't work correctly");
     }
     else
     {

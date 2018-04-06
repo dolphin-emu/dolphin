@@ -51,11 +51,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-void VideoConfig::UpdateProjectionHack()
-{
-  ::UpdateProjectionHack(g_Config.phack);
-}
-
 namespace OGL
 {
 VideoConfig g_ogl_config;
@@ -1690,7 +1685,7 @@ void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, cons
 
 void Renderer::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
 {
-  _dbg_assert_(VIDEO, uniforms_size > 0);
+  DEBUG_ASSERT(uniforms_size > 0);
 
   auto buf = ProgramShaderCache::GetUniformBuffer()->Map(
       uniforms_size, ProgramShaderCache::GetUniformBufferAlignment());

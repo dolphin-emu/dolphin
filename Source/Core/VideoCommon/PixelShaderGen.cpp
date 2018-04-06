@@ -947,7 +947,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       }
       else if (tevind.mid <= 7 && bHasTexCoord)
       {  // s matrix
-        _assert_(tevind.mid >= 5);
+        ASSERT(tevind.mid >= 5);
         int mtxidx = 2 * (tevind.mid - 5);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
@@ -969,7 +969,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
       }
       else if (tevind.mid <= 11 && bHasTexCoord)
       {  // t matrix
-        _assert_(tevind.mid >= 9);
+        ASSERT(tevind.mid >= 9);
         int mtxidx = 2 * (tevind.mid - 9);
         out.SetConstantsUsed(C_INDTEXMTX + mtxidx, C_INDTEXMTX + mtxidx);
 
@@ -1394,25 +1394,20 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
-  if (!uid_data->useDstAlpha)
-  {
-    out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
-    if (use_dual_source)
-      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
-  }
-  else
+  if (uid_data->useDstAlpha)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
     out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
 
     // Use dual-source color blending to perform dst alpha in a single pass
     if (use_dual_source)
-    {
-      if (uid_data->useDstAlpha)
-        out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
-      else
-        out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");
-    }
+      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
+  }
+  else
+  {
+    out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
+    if (use_dual_source)
+      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
   }
 }
 
@@ -1420,7 +1415,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
   if (uid_data->blend_enable)
   {
-    static const std::array<const char*, 8> blendSrcFactor = {
+    static const std::array<const char*, 8> blendSrcFactor{{
         "float3(0,0,0);",                      // ZERO
         "float3(1,1,1);",                      // ONE
         "initial_ocol0.rgb;",                  // DSTCLR
@@ -1429,8 +1424,8 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
         "initial_ocol0.aaa;",                  // DSTALPHA
         "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    };
-    static const std::array<const char*, 8> blendSrcFactorAlpha = {
+    }};
+    static const std::array<const char*, 8> blendSrcFactorAlpha{{
         "0.0;",                    // ZERO
         "1.0;",                    // ONE
         "initial_ocol0.a;",        // DSTCLR
@@ -1439,8 +1434,8 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "1.0 - ocol1.a;",          // INVSRCALPHA
         "initial_ocol0.a;",        // DSTALPHA
         "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    };
-    static const std::array<const char*, 8> blendDstFactor = {
+    }};
+    static const std::array<const char*, 8> blendDstFactor{{
         "float3(0,0,0);",                      // ZERO
         "float3(1,1,1);",                      // ONE
         "ocol0.rgb;",                          // SRCCLR
@@ -1449,8 +1444,8 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "float3(1,1,1) - ocol1.aaa;",          // INVSRCALPHA
         "initial_ocol0.aaa;",                  // DSTALPHA
         "float3(1,1,1) - initial_ocol0.aaa;",  // INVDSTALPHA
-    };
-    static const std::array<const char*, 8> blendDstFactorAlpha = {
+    }};
+    static const std::array<const char*, 8> blendDstFactorAlpha{{
         "0.0;",                    // ZERO
         "1.0;",                    // ONE
         "ocol0.a;",                // SRCCLR
@@ -1459,7 +1454,7 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
         "1.0 - ocol1.a;",          // INVSRCALPHA
         "initial_ocol0.a;",        // DSTALPHA
         "1.0 - initial_ocol0.a;",  // INVDSTALPHA
-    };
+    }};
     out.Write("\tfloat4 blend_src;\n");
     out.Write("\tblend_src.rgb = %s\n", blendSrcFactor[uid_data->blend_src_factor]);
     out.Write("\tblend_src.a = %s\n", blendSrcFactorAlpha[uid_data->blend_src_factor_alpha]);

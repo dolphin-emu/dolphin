@@ -12,9 +12,7 @@
 
 AsyncRequests AsyncRequests::s_singleton;
 
-AsyncRequests::AsyncRequests() : m_enable(false), m_passthrough(true)
-{
-}
+AsyncRequests::AsyncRequests() = default;
 
 void AsyncRequests::PullEventsInternal()
 {

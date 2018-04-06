@@ -133,7 +133,7 @@ void PPCSymbolDB::FillInCallers()
       }
       else
       {
-        // LOG(OSHLE, "FillInCallers tries to fill data in an unknown function 0x%08x.",
+        // LOG(SYMBOLS, "FillInCallers tries to fill data in an unknown function 0x%08x.",
         // FunctionAddress);
         // TODO - analyze the function instead.
       }
@@ -147,19 +147,19 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
   if (iter != functions.end())
   {
     const Symbol& f = iter->second;
-    DEBUG_LOG(OSHLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
+    DEBUG_LOG(SYMBOLS, "The function %s at %08x calls:", f.name.c_str(), f.address);
     for (const SCall& call : f.calls)
     {
       XFuncMap::const_iterator n = functions.find(call.function);
       if (n != functions.end())
       {
-        DEBUG_LOG(CONSOLE, "* %08x : %s", call.callAddress, n->second.name.c_str());
+        DEBUG_LOG(SYMBOLS, "* %08x : %s", call.callAddress, n->second.name.c_str());
       }
     }
   }
   else
   {
-    WARN_LOG(CONSOLE, "Symbol does not exist");
+    WARN_LOG(SYMBOLS, "Symbol does not exist");
   }
 }
 
@@ -169,13 +169,13 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
   if (iter != functions.end())
   {
     const Symbol& f = iter->second;
-    DEBUG_LOG(CONSOLE, "The function %s at %08x is called by:", f.name.c_str(), f.address);
+    DEBUG_LOG(SYMBOLS, "The function %s at %08x is called by:", f.name.c_str(), f.address);
     for (const SCall& caller : f.callers)
     {
       XFuncMap::const_iterator n = functions.find(caller.function);
       if (n != functions.end())
       {
-        DEBUG_LOG(CONSOLE, "* %08x : %s", caller.callAddress, n->second.name.c_str());
+        DEBUG_LOG(SYMBOLS, "* %08x : %s", caller.callAddress, n->second.name.c_str());
       }
     }
   }

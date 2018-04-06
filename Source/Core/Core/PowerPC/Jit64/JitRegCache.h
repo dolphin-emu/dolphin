@@ -120,15 +120,15 @@ public:
   bool IsBound(size_t preg) const;
 
   Gen::X64Reg GetFreeXReg();
-  int NumFreeRegisters();
+  int NumFreeRegisters() const;
 
 protected:
-  virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) = 0;
+  virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) const = 0;
 
-  virtual BitSet32 GetRegUtilization() = 0;
-  virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
+  virtual BitSet32 GetRegUtilization() const = 0;
+  virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) const = 0;
 
-  float ScoreRegister(Gen::X64Reg xreg);
+  float ScoreRegister(Gen::X64Reg xreg) const;
 
   Jit64& m_jit;
   std::array<PPCCachedReg, 32> m_regs;

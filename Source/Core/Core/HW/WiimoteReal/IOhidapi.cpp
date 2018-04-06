@@ -38,7 +38,7 @@ namespace WiimoteReal
 WiimoteScannerHidapi::WiimoteScannerHidapi()
 {
   int ret = hid_init();
-  _assert_msg_(WIIMOTE, ret == 0, "Couldn't initialise hidapi.");
+  ASSERT_MSG(WIIMOTE, ret == 0, "Couldn't initialise hidapi.");
 }
 
 WiimoteScannerHidapi::~WiimoteScannerHidapi()
@@ -134,7 +134,7 @@ int WiimoteHidapi::IORead(u8* buf)
 
 int WiimoteHidapi::IOWrite(const u8* buf, size_t len)
 {
-  _dbg_assert_(WIIMOTE, buf[0] == (WR_SET_REPORT | BT_OUTPUT));
+  DEBUG_ASSERT(buf[0] == (WR_SET_REPORT | BT_OUTPUT));
   int result = hid_write(m_handle, buf + 1, len - 1);
   if (result == -1)
   {

@@ -55,12 +55,6 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game.GetCountry());
     break;
-  case COL_RATING:
-    if (role == Qt::DecorationRole)
-      return Resources::GetRating(game.GetEmuState());
-    if (role == Qt::InitialSortOrderRole)
-      return game.GetEmuState();
-    break;
   case COL_BANNER:
     if (role == Qt::DecorationRole)
     {
@@ -128,8 +122,6 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("File Name");
   case COL_SIZE:
     return tr("Size");
-  case COL_RATING:
-    return tr("State");
   }
   return QVariant();
 }
@@ -150,16 +142,20 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
 {
   const UICommon::GameFile& game = *m_games[index];
 
+  if (!m_term.isEmpty() &&
+      !QString::fromStdString(game.GetName()).contains(m_term, Qt::CaseInsensitive))
+    return false;
+
   const bool show_platform = [&game] {
     switch (game.GetPlatform())
     {
-    case DiscIO::Platform::GAMECUBE_DISC:
+    case DiscIO::Platform::GameCubeDisc:
       return SConfig::GetInstance().m_ListGC;
-    case DiscIO::Platform::WII_DISC:
+    case DiscIO::Platform::WiiDisc:
       return SConfig::GetInstance().m_ListWii;
-    case DiscIO::Platform::WII_WAD:
+    case DiscIO::Platform::WiiWAD:
       return SConfig::GetInstance().m_ListWad;
-    case DiscIO::Platform::ELF_DOL:
+    case DiscIO::Platform::ELFOrDOL:
       return SConfig::GetInstance().m_ListElfDol;
     default:
       return false;
@@ -171,33 +167,33 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
 
   switch (game.GetCountry())
   {
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
+  case DiscIO::Country::Australia:
     return SConfig::GetInstance().m_ListAustralia;
-  case DiscIO::Country::COUNTRY_EUROPE:
+  case DiscIO::Country::Europe:
     return SConfig::GetInstance().m_ListPal;
-  case DiscIO::Country::COUNTRY_FRANCE:
+  case DiscIO::Country::France:
     return SConfig::GetInstance().m_ListFrance;
-  case DiscIO::Country::COUNTRY_GERMANY:
+  case DiscIO::Country::Germany:
     return SConfig::GetInstance().m_ListGermany;
-  case DiscIO::Country::COUNTRY_ITALY:
+  case DiscIO::Country::Italy:
     return SConfig::GetInstance().m_ListItaly;
-  case DiscIO::Country::COUNTRY_JAPAN:
+  case DiscIO::Country::Japan:
     return SConfig::GetInstance().m_ListJap;
-  case DiscIO::Country::COUNTRY_KOREA:
+  case DiscIO::Country::Korea:
     return SConfig::GetInstance().m_ListKorea;
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
+  case DiscIO::Country::Netherlands:
     return SConfig::GetInstance().m_ListNetherlands;
-  case DiscIO::Country::COUNTRY_RUSSIA:
+  case DiscIO::Country::Russia:
     return SConfig::GetInstance().m_ListRussia;
-  case DiscIO::Country::COUNTRY_SPAIN:
+  case DiscIO::Country::Spain:
     return SConfig::GetInstance().m_ListSpain;
-  case DiscIO::Country::COUNTRY_TAIWAN:
+  case DiscIO::Country::Taiwan:
     return SConfig::GetInstance().m_ListTaiwan;
-  case DiscIO::Country::COUNTRY_USA:
+  case DiscIO::Country::USA:
     return SConfig::GetInstance().m_ListUsa;
-  case DiscIO::Country::COUNTRY_WORLD:
+  case DiscIO::Country::World:
     return SConfig::GetInstance().m_ListWorld;
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Country::Unknown:
   default:
     return SConfig::GetInstance().m_ListUnknown;
   }
@@ -243,4 +239,9 @@ int GameListModel::FindGame(const std::string& path) const
       return i;
   }
   return -1;
+}
+
+void GameListModel::SetSearchTerm(const QString& term)
+{
+  m_term = term;
 }

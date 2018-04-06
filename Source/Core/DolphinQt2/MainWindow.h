@@ -18,26 +18,35 @@
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 
+class QProgressDialog;
+
 class BreakpointWidget;
 struct BootParameters;
 class CodeWidget;
+class ControllersWindow;
+class DragEnterEvent;
 class FIFOPlayerWindow;
+class GCTASInputWindow;
+class GraphicsWindow;
 class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
+class MemoryWidget;
 class NetPlayClient;
 class NetPlayDialog;
 class NetPlayServer;
 class NetPlaySetupDialog;
-class SettingsWindow;
-class ControllersWindow;
-class DragEnterEvent;
-class GraphicsWindow;
 class RegisterWidget;
+class SearchBar;
+class SettingsWindow;
 class WatchWidget;
-class GCTASInputWindow;
 class WiiTASInputWindow;
+
+namespace X11Utils
+{
+class XRRConfiguration;
+}
 
 class MainWindow final : public QMainWindow
 {
@@ -84,6 +93,7 @@ private:
   void CreateComponents();
 
   void ConnectGameList();
+  void ConnectHost();
   void ConnectHotkeys();
   void ConnectMenuBar();
   void ConnectRenderWidget();
@@ -99,7 +109,7 @@ private:
   void StartGame(const std::string& path, const std::optional<std::string>& savestate_path = {});
   void StartGame(std::unique_ptr<BootParameters>&& parameters);
   void ShowRenderWidget();
-  void HideRenderWidget();
+  void HideRenderWidget(bool reinit = true);
 
   void ShowSettingsWindow();
   void ShowGeneralWindow();
@@ -121,11 +131,18 @@ private:
   void OnImportNANDBackup();
   void OnConnectWiiRemote(int id);
 
+  void OnUpdateProgressDialog(QString label, int progress, int total);
+
   void OnPlayRecording();
   void OnStartRecording();
   void OnStopRecording();
   void OnExportRecording();
   void ShowTASInput();
+
+  void ChangeDisc();
+  void EjectDisc();
+
+  QString PromptFileName();
 
   void EnableScreenSaver(bool enable);
 
@@ -134,9 +151,15 @@ private:
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
 
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
+#endif
+
+  QProgressDialog* m_progress_dialog = nullptr;
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
   MenuBar* m_menu_bar;
+  SearchBar* m_search_bar;
   GameList* m_game_list;
   RenderWidget* m_render_widget;
   bool m_rendering_to_main;
@@ -161,6 +184,7 @@ private:
   CodeWidget* m_code_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  MemoryWidget* m_memory_widget;
   FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;

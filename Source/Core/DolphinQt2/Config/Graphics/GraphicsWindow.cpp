@@ -18,12 +18,12 @@
 #include "DolphinQt2/Config/Graphics/HacksWidget.h"
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
+#include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
 {
   CreateMainLayout();
-  ConnectWidgets();
 
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -39,10 +39,12 @@ void GraphicsWindow::CreateMainLayout()
   m_description =
       new QLabel(tr("Move the mouse pointer over an option to display a detailed description."));
   m_tab_widget = new QTabWidget();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
   description_box->setLayout(description_layout);
-  description_box->setMinimumHeight(230);
+  description_box->setFixedHeight(200);
 
   m_description->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   m_description->setWordWrap(true);
@@ -67,22 +69,19 @@ void GraphicsWindow::CreateMainLayout()
 
   if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
   {
-    m_tab_widget->addTab(m_general_widget, tr("General"));
-    m_tab_widget->addTab(m_enhancements_widget, tr("Enhancements"));
-    m_tab_widget->addTab(m_hacks_widget, tr("Hacks"));
-    m_tab_widget->addTab(m_advanced_widget, tr("Advanced"));
+    m_tab_widget->addTab(GetWrappedWidget(m_general_widget, this, 50, 305), tr("General"));
+    m_tab_widget->addTab(GetWrappedWidget(m_enhancements_widget, this, 50, 305),
+                         tr("Enhancements"));
+    m_tab_widget->addTab(GetWrappedWidget(m_hacks_widget, this, 50, 305), tr("Hacks"));
+    m_tab_widget->addTab(GetWrappedWidget(m_advanced_widget, this, 50, 305), tr("Advanced"));
   }
   else
   {
-    m_tab_widget->addTab(m_software_renderer, tr("Software Renderer"));
+    m_tab_widget->addTab(GetWrappedWidget(m_software_renderer, this, 50, 305),
+                         tr("Software Renderer"));
   }
 
   setLayout(main_layout);
-}
-
-void GraphicsWindow::ConnectWidgets()
-{
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
 }
 
 void GraphicsWindow::OnBackendChanged(const QString& backend)

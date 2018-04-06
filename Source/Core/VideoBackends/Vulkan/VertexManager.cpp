@@ -166,16 +166,19 @@ void VertexManager::vFlush()
   }
 
   // Bind all pending state to the command buffer
-  g_renderer->SetPipeline(m_current_pipeline_object);
-  if (!StateTracker::GetInstance()->Bind())
+  if (m_current_pipeline_object)
   {
-    WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
-    return;
-  }
+    g_renderer->SetPipeline(m_current_pipeline_object);
+    if (!StateTracker::GetInstance()->Bind())
+    {
+      WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
+      return;
+    }
 
-  // Execute the draw
-  vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
-                   m_current_draw_base_index, m_current_draw_base_vertex, 0);
+    // Execute the draw
+    vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
+                     m_current_draw_base_index, m_current_draw_base_vertex, 0);
+  }
 
   StateTracker::GetInstance()->OnDraw();
 }

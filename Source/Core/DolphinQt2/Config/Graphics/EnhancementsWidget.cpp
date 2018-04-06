@@ -63,9 +63,6 @@ void EnhancementsWidget::CreateWidgets()
   m_af_combo = new GraphicsChoice({tr("1x"), tr("2x"), tr("4x"), tr("8x"), tr("16x")},
                                   Config::GFX_ENHANCE_MAX_ANISOTROPY);
 
-  m_ubershader_combo = new GraphicsChoice({tr("Disabled"), tr("Hybrid"), tr("Exclusive")},
-                                          Config::GFX_UBERSHADER_MODE);
-
   m_pp_effect = new QComboBox();
   m_configure_pp_effect = new QPushButton(tr("Configure"));
   m_scaled_efb_copy = new GraphicsBool(tr("Scaled EFB Copy"), Config::GFX_HACK_COPY_EFB_SCALED);
@@ -84,9 +81,6 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
   enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
   enhancements_layout->addWidget(m_af_combo, 2, 1, 1, -1);
-
-  enhancements_layout->addWidget(new QLabel(tr("Ubershaders:")), 3, 0);
-  enhancements_layout->addWidget(m_ubershader_combo, 3, 1, 1, -1);
 
   enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 4, 0);
   enhancements_layout->addWidget(m_pp_effect, 4, 1);
@@ -243,15 +237,6 @@ void EnhancementsWidget::AddDescriptions()
       "Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique "
       "viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
 
-  static const char* TR_UBERSHADER_DESCRIPTION =
-      QT_TR_NOOP("Disabled: Ubershaders are never used. Stuttering will occur during shader "
-                 "compilation, but GPU demands are low. Recommended for low-end hardware.\n\n"
-                 "Hybrid: Ubershaders will be used to prevent stuttering during shader "
-                 "compilation, but traditional shaders will be used when they will not cause "
-                 "stuttering. Balances performance and smoothness.\n\n"
-                 "Exclusive: Ubershaders will always be used. Only recommended for high-end "
-                 "systems.");
-
   static const char* TR_POSTPROCESSING_DESCRIPTION = QT_TR_NOOP(
       "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
 
@@ -303,7 +288,6 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
   AddDescription(m_af_combo, TR_ANISOTROPIC_FILTERING_DESCRIPTION);
-  AddDescription(m_ubershader_combo, TR_UBERSHADER_DESCRIPTION);
   AddDescription(m_pp_effect, TR_POSTPROCESSING_DESCRIPTION);
   AddDescription(m_scaled_efb_copy, TR_SCALED_EFB_COPY_DESCRIPTION);
   AddDescription(m_per_pixel_lighting, TR_PER_PIXEL_LIGHTING_DESCRIPTION);

@@ -474,8 +474,6 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
-    // This never happens ATM
-    // perhaps we can get dcb* instructions to use this :p
     SRR0 = PC;
     SRR1 = MSR & 0x87C0FFFF;
     MSR |= (MSR >> 16) & 1;
@@ -514,7 +512,7 @@ void CheckExternalExceptions()
       DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
-      _dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
+      DEBUG_ASSERT_MSG(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
     }
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
@@ -540,7 +538,7 @@ void CheckExternalExceptions()
     }
     else
     {
-      _dbg_assert_msg_(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
+      DEBUG_ASSERT_MSG(POWERPC, 0, "Unknown EXT interrupt: Exceptions == %08x", exceptions);
       ERROR_LOG(POWERPC, "Unknown EXTERNAL INTERRUPT exception: Exceptions == %08x", exceptions);
     }
   }
@@ -556,13 +554,11 @@ void CheckBreakPoints()
   }
 }
 
-}  // namespace
-
 // FPSCR update functions
 
 void UpdateFPRF(double dvalue)
 {
   FPSCR.FPRF = MathUtil::ClassifyDouble(dvalue);
-  // if (FPSCR.FPRF == 0x11)
-  //	PanicAlert("QNAN alert");
 }
+
+}  // namespace PowerPC

@@ -16,6 +16,7 @@ class EmulatedController;
 }
 
 class InputConfig;
+class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
 class QEvent;
@@ -50,8 +51,9 @@ public:
 
   int GetPort() const;
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
-
   ControllerEmu::EmulatedController* GetController() const;
+  bool IsIterativeInput() const;
+
 signals:
   void Update();
   void ClearFields();
@@ -77,6 +79,7 @@ private:
   ControllerEmu::EmulatedController* m_controller = nullptr;
 
   // Main
+  QCheckBox* m_iterative_input;
   QVBoxLayout* m_main_layout;
   QHBoxLayout* m_config_layout;
   QDialogButtonBox* m_button_box;

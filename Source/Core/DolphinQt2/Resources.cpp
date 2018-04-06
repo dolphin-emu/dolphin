@@ -6,17 +6,18 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QScreen>
-#include <QStringList>
 
-#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
+#ifdef _WIN32
+#include "DolphinQt2/QtUtils/WinIconHelper.h"
+#endif
+
 QList<QPixmap> Resources::m_platforms;
 QList<QPixmap> Resources::m_countries;
-QList<QPixmap> Resources::m_ratings;
 QList<QPixmap> Resources::m_misc;
 
 QIcon Resources::GetIcon(const QString& name, const QString& dir)
@@ -71,15 +72,8 @@ QPixmap Resources::GetScaledPixmap(const std::string& name)
   return GetPixmap(QString::fromStdString(name), GetResourcesDir());
 }
 
-QPixmap Resources::GetScaledThemePixmap(const std::string& name)
-{
-  return GetPixmap(QString::fromStdString(name), GetCurrentThemeDir());
-}
-
 void Resources::Init()
 {
-  QString sys_dir = QString::fromStdString(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP);
-
   for (const std::string& platform :
        {"Platform_Gamecube", "Platform_Wii", "Platform_Wad", "Platform_File"})
   {
@@ -97,16 +91,6 @@ void Resources::Init()
   m_misc.append(GetScaledPixmap("nobanner"));
   m_misc.append(GetScaledPixmap("dolphin_logo"));
   m_misc.append(GetScaledPixmap("Dolphin"));
-
-  QObject::connect(&Settings::Instance(), &Settings::ThemeChanged, Resources::InitThemeIcons);
-  InitThemeIcons();
-}
-
-void Resources::InitThemeIcons()
-{
-  m_ratings = {GetScaledThemePixmap("rating0"), GetScaledThemePixmap("rating1"),
-               GetScaledThemePixmap("rating2"), GetScaledThemePixmap("rating3"),
-               GetScaledThemePixmap("rating4"), GetScaledThemePixmap("rating5")};
 }
 
 QPixmap Resources::GetPlatform(int platform)
@@ -119,12 +103,21 @@ QPixmap Resources::GetCountry(int country)
   return m_countries[country];
 }
 
-QPixmap Resources::GetRating(int rating)
-{
-  return m_ratings[rating];
-}
-
 QPixmap Resources::GetMisc(int id)
 {
   return m_misc[id];
+}
+
+QIcon Resources::GetAppIcon()
+{
+  QIcon icon;
+
+#ifdef _WIN32
+  icon = WinIconHelper::GetNativeIcon();
+#else
+  icon.addPixmap(GetScaledPixmap("dolphin_logo"));
+  icon.addPixmap(GetScaledPixmap("Dolphin"));
+#endif
+
+  return icon;
 }

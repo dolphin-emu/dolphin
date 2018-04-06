@@ -1971,7 +1971,7 @@ void TextureCacheBase::TCacheEntry::SetXfbCopy(u32 stride)
   is_xfb_copy = true;
   memory_stride = stride;
 
-  _assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
+  ASSERT_MSG(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
 
   size_in_bytes = memory_stride * NumBlocksY();
 }
@@ -1982,7 +1982,7 @@ void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
   is_xfb_copy = false;
   memory_stride = stride;
 
-  _assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
+  ASSERT_MSG(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");
 
   size_in_bytes = memory_stride * NumBlocksY();
 }

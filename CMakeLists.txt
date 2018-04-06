@@ -80,9 +80,6 @@ include(DolphinCompileDefinitions)
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Libraries to link
-set(LIBS)
-
 # Set up paths
 set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
 if(HAIKU)
@@ -282,28 +279,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
-  find_library(AU_LIBRARY AudioUnit)
   find_library(CARBON_LIBRARY Carbon)
   find_library(COCOA_LIBRARY Cocoa)
-  find_library(COREAUDIO_LIBRARY CoreAudio)
-  find_library(COREFUND_LIBRARY CoreFoundation)
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(CORESERV_LIBRARY CoreServices)
+  find_library(FORCEFEEDBACK_LIBRARY ForceFeedback)
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(IOB_LIBRARY IOBluetooth)
   find_library(IOK_LIBRARY IOKit)
-  find_library(FORCEFEEDBACK ForceFeedback)
   find_library(OPENGL_LIBRARY OpenGL)
-
-  # Link against OS X system frameworks.
-  list(APPEND LIBS
-    ${APPKIT_LIBRARY}
-    ${AU_LIBRARY}
-    ${COREAUDIO_LIBRARY}
-    ${COREFUND_LIBRARY}
-    ${CORESERV_LIBRARY}
-    ${IOK_LIBRARY}
-    ${FORCEFEEDBACK}
-  )
 endif()
 
 if(ENABLE_LTO)
@@ -399,8 +383,6 @@ elseif(HAIKU)
   set(USE_X11 0)
   set(USE_UPNP 0)
   set(USE_EGL 0)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND LIBS rt)
 endif()
 
 if(ENABLE_HEADLESS)
@@ -581,14 +563,12 @@ else()
   include_directories(Externals/enet/include)
   add_subdirectory(Externals/enet)
 endif()
-LIST(APPEND LIBS enet)
 
 if(NOT XXHASH_FOUND)
   message(STATUS "Using static xxhash from Externals")
   add_subdirectory(Externals/xxhash)
   include_directories(Externals/xxhash)
 endif()
-LIST(APPEND LIBS xxhash)
 
 find_package(ZLIB)
 if(ZLIB_FOUND)
@@ -611,7 +591,6 @@ else()
   include_directories(Externals/LZO)
   set(LZO lzo2)
 endif()
-list(APPEND LIBS ${LZO})
 
 if(NOT APPLE)
   check_lib(PNG libpng png png.h QUIET)
@@ -722,7 +701,6 @@ else()
   add_subdirectory(Externals/libiconv-1.14)
   set(ICONV_LIBRARIES iconv)
 endif()
-list(APPEND LIBS ${ICONV_LIBRARIES})
 
 if(NOT ANDROID)
   find_package(HIDAPI)
@@ -805,7 +783,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
   install(FILES Data/dolphin-emu.svg
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
   install(FILES Data/dolphin-emu.png
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps)
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps)
   install(FILES Data/dolphin-emu.desktop
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
   # Install manpages

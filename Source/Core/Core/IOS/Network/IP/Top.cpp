@@ -691,8 +691,8 @@ IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& reques
                     request.buffer_out + 4);
 
   // Returned struct must be ipv4.
-  _assert_msg_(IOS_NET, remoteHost->h_addrtype == AF_INET && remoteHost->h_length == sizeof(u32),
-               "returned host info is not IPv4");
+  ASSERT_MSG(IOS_NET, remoteHost->h_addrtype == AF_INET && remoteHost->h_length == sizeof(u32),
+             "returned host info is not IPv4");
   Memory::Write_U16(AF_INET, request.buffer_out + 8);
   Memory::Write_U16(sizeof(u32), request.buffer_out + 10);
 

@@ -40,6 +40,9 @@ signals:
   // File
   void Open();
   void Exit();
+  void ChangeDisc();
+  void BootDVDBackup(const QString& backup);
+  void EjectDisc();
 
   // Emulation
   void Play();
@@ -82,6 +85,7 @@ signals:
   // View
   void ShowList();
   void ShowGrid();
+  void ToggleSearch();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
@@ -101,6 +105,7 @@ private:
   void OnEmulationStateChanged(Core::State state);
 
   void AddFileMenu();
+  void AddDVDBackupMenu(QMenu* file_menu);
 
   void AddEmulationMenu();
   void AddStateLoadMenu(QMenu* emu_menu);
@@ -147,6 +152,9 @@ private:
   // File
   QAction* m_open_action;
   QAction* m_exit_action;
+  QAction* m_change_disc;
+  QAction* m_eject_disc;
+  QMenu* m_backup_menu;
 
   // Tools
   QAction* m_wad_install_action;
@@ -193,6 +201,7 @@ private:
   QAction* m_show_registers;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
+  QAction* m_show_memory;
 
   // Symbols
   QMenu* m_symbols;

@@ -140,8 +140,8 @@ void DXTexture::CopyRectangleFromTexture(const AbstractTexture* src,
                                          u32 dst_layer, u32 dst_level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
 
   D3D11_BOX src_box;
   src_box.left = src_rect.left;
@@ -162,7 +162,7 @@ void DXTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
                                           const MathUtil::Rectangle<int>& dstrect)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(source);
-  _assert_(m_config.rendertarget);
+  ASSERT(m_config.rendertarget);
 
   g_renderer->ResetAPIState();  // reset any game specific settings
 
@@ -193,11 +193,10 @@ void DXTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::R
                                    u32 layer, u32 level)
 {
   const DXTexture* srcentry = static_cast<const DXTexture*>(src);
-  _dbg_assert_(VIDEO, m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
-                          m_config.height == srcentry->m_config.height && m_config.samples == 1);
-  _dbg_assert_(VIDEO,
-               rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
-                   rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
+  DEBUG_ASSERT(m_config.samples > 1 && m_config.width == srcentry->m_config.width &&
+               m_config.height == srcentry->m_config.height && m_config.samples == 1);
+  DEBUG_ASSERT(rect.left + rect.GetWidth() <= static_cast<int>(srcentry->m_config.width) &&
+               rect.top + rect.GetHeight() <= static_cast<int>(srcentry->m_config.height));
 
   D3D::context->ResolveSubresource(
       m_texture->GetTex(), D3D11CalcSubresource(level, layer, m_config.levels),
@@ -263,13 +262,13 @@ void DXStagingTexture::CopyFromTexture(const AbstractTexture* src,
                                        const MathUtil::Rectangle<int>& src_rect, u32 src_layer,
                                        u32 src_level, const MathUtil::Rectangle<int>& dst_rect)
 {
-  _assert_(m_type == StagingTextureType::Readback);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
-  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
-           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
-  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
-           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
+  ASSERT(m_type == StagingTextureType::Readback);
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= src->GetConfig().width &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= src->GetConfig().height);
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= m_config.width &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= m_config.height);
 
   if (IsMapped())
     DXStagingTexture::Unmap();
@@ -287,13 +286,13 @@ void DXStagingTexture::CopyToTexture(const MathUtil::Rectangle<int>& src_rect, A
                                      const MathUtil::Rectangle<int>& dst_rect, u32 dst_layer,
                                      u32 dst_level)
 {
-  _assert_(m_type == StagingTextureType::Upload);
-  _assert_(src_rect.GetWidth() == dst_rect.GetWidth() &&
-           src_rect.GetHeight() == dst_rect.GetHeight());
-  _assert_(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
-           src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
-  _assert_(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
-           dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
+  ASSERT(m_type == StagingTextureType::Upload);
+  ASSERT(src_rect.GetWidth() == dst_rect.GetWidth() &&
+         src_rect.GetHeight() == dst_rect.GetHeight());
+  ASSERT(src_rect.left >= 0 && static_cast<u32>(src_rect.right) <= m_config.width &&
+         src_rect.top >= 0 && static_cast<u32>(src_rect.bottom) <= m_config.height);
+  ASSERT(dst_rect.left >= 0 && static_cast<u32>(dst_rect.right) <= dst->GetConfig().width &&
+         dst_rect.top >= 0 && static_cast<u32>(dst_rect.bottom) <= dst->GetConfig().height);
 
   if (IsMapped())
     DXStagingTexture::Unmap();

@@ -103,7 +103,8 @@ void VideoConfig::Refresh()
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
   bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
-  iUberShaderMode = static_cast<UberShaderMode>(Config::Get(Config::GFX_UBERSHADER_MODE));
+  iShaderCompilationMode =
+      static_cast<ShaderCompilationMode>(Config::Get(Config::GFX_SHADER_COMPILATION_MODE));
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
@@ -141,11 +142,6 @@ void VideoConfig::Refresh()
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
 
-  phack.m_enable = Config::Get(Config::GFX_PROJECTION_HACK) == 1;
-  phack.m_sznear = Config::Get(Config::GFX_PROJECTION_HACK_SZNEAR) == 1;
-  phack.m_szfar = Config::Get(Config::GFX_PROJECTION_HACK_SZFAR) == 1;
-  phack.m_znear = Config::Get(Config::GFX_PROJECTION_HACK_ZNEAR);
-  phack.m_zfar = Config::Get(Config::GFX_PROJECTION_HACK_ZFAR);
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
   VerifyValidity();
@@ -176,6 +172,12 @@ void VideoConfig::VerifyValidity()
 bool VideoConfig::IsVSync() const
 {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
+}
+
+bool VideoConfig::UsingUberShaders() const
+{
+  return iShaderCompilationMode == ShaderCompilationMode::SynchronousUberShaders ||
+         iShaderCompilationMode == ShaderCompilationMode::AsynchronousUberShaders;
 }
 
 static u32 GetNumAutoShaderCompilerThreads()

@@ -33,7 +33,7 @@ std::string BuildFilename(const std::string& wii_path)
   if (wii_path.compare(0, 1, "/") == 0)
     return nand_path + Common::EscapePath(wii_path);
 
-  _assert_(false);
+  ASSERT(false);
   return nand_path;
 }
 

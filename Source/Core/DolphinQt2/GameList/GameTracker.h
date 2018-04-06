@@ -34,14 +34,33 @@ signals:
   void GameRemoved(const QString& path);
 
 private:
-  void LoadGame(const QString& path);
   void UpdateDirectory(const QString& dir);
   void UpdateFile(const QString& path);
+  void AddDirectoryInternal(const QString& dir);
+  void RemoveDirectoryInternal(const QString& dir);
+  void UpdateDirectoryInternal(const QString& dir);
+  void UpdateFileInternal(const QString& path);
   QSet<QString> FindMissingFiles(const QString& dir);
+  void LoadGame(const QString& path);
+
+  enum class CommandType
+  {
+    LoadCache,
+    AddDirectory,
+    RemoveDirectory,
+    UpdateDirectory,
+    UpdateFile,
+  };
+
+  struct Command
+  {
+    CommandType type;
+    QString path;
+  };
 
   // game path -> directories that track it
   QMap<QString, QSet<QString>> m_tracked_files;
-  Common::WorkQueueThread<QString> m_load_thread;
+  Common::WorkQueueThread<Command> m_load_thread;
   UICommon::GameFileCache m_cache;
   Core::TitleDatabase m_title_database;
 };

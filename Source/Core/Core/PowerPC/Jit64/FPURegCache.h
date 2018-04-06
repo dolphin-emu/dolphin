@@ -15,8 +15,8 @@ public:
 
   void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
   void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
-  const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
+  const Gen::X64Reg* GetAllocationOrder(size_t* count) const override;
   Gen::OpArg GetDefaultLocation(size_t reg) const override;
-  BitSet32 GetRegUtilization() override;
-  BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+  BitSet32 GetRegUtilization() const override;
+  BitSet32 CountRegsIn(size_t preg, u32 lookahead) const override;
 };

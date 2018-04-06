@@ -20,9 +20,11 @@
 #include "Common/ENetUtil.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
+#include "Common/QoSSession.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/SI/SI.h"
@@ -632,6 +634,17 @@ void NetPlayClient::SendAsync(sf::Packet&& packet)
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
+  Common::QoSSession qos_session;
+  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
+  {
+    qos_session = Common::QoSSession(m_server);
+
+    if (qos_session.Successful())
+      m_dialog->AppendChat(GetStringT("Quality of Service (QoS) was successfully enabled."));
+    else
+      m_dialog->AppendChat(GetStringT("Quality of Service (QoS) couldn't be enabled."));
+  }
+
   while (m_do_loop.IsSet())
   {
     ENetEvent netEvent;

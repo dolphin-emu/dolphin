@@ -119,7 +119,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const std::str
   return ExportFile(volume, partition, file_system->FindFileInfo(path).get(), export_filename);
 }
 
-void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
                      bool recursive, const std::string& filesystem_path,
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress)
@@ -153,7 +153,7 @@ void ExportDirectory(const Volume& volume, const Partition partition, const File
 
 bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, 0, 0x100, export_filename);
@@ -161,7 +161,7 @@ bool ExportWiiUnencryptedHeader(const Volume& volume, const std::string& export_
 
 bool ExportWiiRegionData(const Volume& volume, const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, 0x4E000, 0x20, export_filename);
@@ -170,7 +170,7 @@ bool ExportWiiRegionData(const Volume& volume, const std::string& export_filenam
 bool ExportTicket(const Volume& volume, const Partition& partition,
                   const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   return ExportData(volume, PARTITION_NONE, partition.offset, 0x2a4, export_filename);
@@ -178,7 +178,7 @@ bool ExportTicket(const Volume& volume, const Partition& partition,
 
 bool ExportTMD(const Volume& volume, const Partition& partition, const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2a4, PARTITION_NONE);
@@ -193,7 +193,7 @@ bool ExportTMD(const Volume& volume, const Partition& partition, const std::stri
 bool ExportCertificateChain(const Volume& volume, const Partition& partition,
                             const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   const std::optional<u32> size = volume.ReadSwapped<u32>(partition.offset + 0x2ac, PARTITION_NONE);
@@ -208,7 +208,7 @@ bool ExportCertificateChain(const Volume& volume, const Partition& partition,
 bool ExportH3Hashes(const Volume& volume, const Partition& partition,
                     const std::string& export_filename)
 {
-  if (volume.GetVolumeType() != Platform::WII_DISC)
+  if (volume.GetVolumeType() != Platform::WiiDisc)
     return false;
 
   const std::optional<u64> offset =
@@ -351,7 +351,7 @@ bool ExportSystemData(const Volume& volume, const Partition& partition,
   success &= ExportDOL(volume, partition, export_folder + "/sys/main.dol");
   success &= ExportFST(volume, partition, export_folder + "/sys/fst.bin");
 
-  if (volume.GetVolumeType() == Platform::WII_DISC)
+  if (volume.GetVolumeType() == Platform::WiiDisc)
   {
     File::CreateFullPath(export_folder + "/disc/");
     success &= ExportWiiUnencryptedHeader(volume, export_folder + "/disc/header.bin");

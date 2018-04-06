@@ -31,6 +31,29 @@ MappingWindow* MappingWidget::GetParent() const
   return m_parent;
 }
 
+bool MappingWidget::IsIterativeInput() const
+{
+  return m_parent->IsIterativeInput();
+}
+
+void MappingWidget::NextButton(MappingButton* button)
+{
+  auto iterator = std::find(m_buttons.begin(), m_buttons.end(), button);
+
+  if (iterator == m_buttons.end())
+    return;
+
+  if (++iterator == m_buttons.end())
+    return;
+
+  MappingButton* next = *iterator;
+
+  if (next->IsInput() && next->isVisible())
+    next->Detect();
+  else
+    NextButton(next);
+}
+
 std::shared_ptr<ciface::Core::Device> MappingWidget::GetDevice() const
 {
   return m_parent->GetDevice();
@@ -80,7 +103,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& numeric : group->numeric_settings)
   {
     auto* spinbox = new MappingNumeric(this, numeric.get());
-    spinbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     form_layout->addRow(QString::fromStdString(numeric->m_name), spinbox);
     m_numerics.push_back(spinbox);
   }
@@ -88,7 +110,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
   for (auto& boolean : group->boolean_settings)
   {
     auto* checkbox = new MappingBool(this, boolean.get());
-    checkbox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     form_layout->addRow(checkbox);
     m_bools.push_back(checkbox);
   }

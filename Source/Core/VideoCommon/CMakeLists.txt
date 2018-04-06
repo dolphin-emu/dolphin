@@ -1,4 +1,4 @@
-set(SRCS
+add_library(videocommon
   AbstractFramebuffer.cpp
   AbstractStagingTexture.cpp
   AbstractTexture.cpp
@@ -22,7 +22,6 @@ set(SRCS
   ImageWrite.cpp
   IndexGenerator.cpp
   LightingShaderGen.cpp
-  MainBase.cpp
   OnScreenDisplay.cpp
   OpcodeDecoding.cpp
   PerfQueryBase.cpp
@@ -60,20 +59,29 @@ set(SRCS
   XFStructs.cpp
 )
 
-set(LIBS
+target_link_libraries(videocommon
+PUBLIC
   core
+PRIVATE
   png
+  xxhash
 )
 
 if(_M_X86)
-  set(SRCS ${SRCS} TextureDecoder_x64.cpp VertexLoaderX64.cpp)
+  target_sources(videocommon PRIVATE
+    TextureDecoder_x64.cpp
+    VertexLoaderX64.cpp
+  )
 elseif(_M_ARM_64)
-  set(SRCS ${SRCS} VertexLoaderARM64.cpp TextureDecoder_Generic.cpp)
+  target_sources(videocommon PRIVATE
+    VertexLoaderARM64.cpp
+    TextureDecoder_Generic.cpp
+  )
 else()
-  set(SRCS ${SRCS} TextureDecoder_Generic.cpp)
+  target_sources(videocommon PRIVATE
+    TextureDecoder_Generic.cpp
+  )
 endif()
-
-add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
 if(FFmpeg_FOUND)
   target_sources(videocommon PRIVATE AVIDump.cpp)

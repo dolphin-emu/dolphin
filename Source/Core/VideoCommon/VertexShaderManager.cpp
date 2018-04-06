@@ -47,88 +47,6 @@ static float s_fViewRotation[2];
 VertexShaderConstants VertexShaderManager::constants;
 bool VertexShaderManager::dirty;
 
-struct ProjectionHack
-{
-  float sign;
-  float value;
-  ProjectionHack() {}
-  ProjectionHack(float new_sign, float new_value) : sign(new_sign), value(new_value) {}
-};
-
-namespace
-{
-// Control Variables
-static ProjectionHack g_proj_hack_near;
-static ProjectionHack g_proj_hack_far;
-}  // Namespace
-
-static float PHackValue(std::string sValue)
-{
-  float f = 0;
-  bool fp = false;
-  const char* cStr = sValue.c_str();
-  char* c = new char[strlen(cStr) + 1];
-  std::istringstream sTof("");
-
-  for (unsigned int i = 0; i <= strlen(cStr); ++i)
-  {
-    if (i == 20)
-    {
-      c[i] = '\0';
-      break;
-    }
-
-    c[i] = (cStr[i] == ',') ? '.' : *(cStr + i);
-    if (c[i] == '.')
-      fp = true;
-  }
-
-  cStr = c;
-  sTof.str(cStr);
-  sTof >> f;
-
-  if (!fp)
-    f /= 0xF4240;
-
-  delete[] c;
-  return f;
-}
-
-void UpdateProjectionHack(const ProjectionHackConfig& config)
-{
-  float near_value = 0, far_value = 0;
-  float near_sign = 1.0, far_sign = 1.0;
-
-  if (config.m_enable)
-  {
-    const char* near_sign_str = "";
-    const char* far_sign_str = "";
-
-    NOTICE_LOG(VIDEO, "\t\t--- Orthographic Projection Hack ON ---");
-
-    if (config.m_sznear)
-    {
-      near_sign *= -1.0f;
-      near_sign_str = " * (-1)";
-    }
-    if (config.m_szfar)
-    {
-      far_sign *= -1.0f;
-      far_sign_str = " * (-1)";
-    }
-
-    near_value = PHackValue(config.m_znear);
-    NOTICE_LOG(VIDEO, "- zNear Correction = (%f + zNear)%s", near_value, near_sign_str);
-
-    far_value = PHackValue(config.m_zfar);
-    NOTICE_LOG(VIDEO, "- zFar Correction =  (%f + zFar)%s", far_value, far_sign_str);
-  }
-
-  // Set the projections hacks
-  g_proj_hack_near = ProjectionHack(near_sign, near_value);
-  g_proj_hack_far = ProjectionHack(far_sign, far_value);
-}
-
 // Viewport correction:
 // In D3D, the viewport rectangle must fit within the render target.
 // Say you want a viewport at (ix, iy) with size (iw, ih),
@@ -454,7 +372,6 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[8] = 0.0f;
       g_fProjectionMatrix[9] = 0.0f;
       g_fProjectionMatrix[10] = rawProjection[4];
-
       g_fProjectionMatrix[11] = rawProjection[5];
 
       g_fProjectionMatrix[12] = 0.0f;
@@ -495,10 +412,8 @@ void VertexShaderManager::SetConstants()
 
       g_fProjectionMatrix[8] = 0.0f;
       g_fProjectionMatrix[9] = 0.0f;
-      g_fProjectionMatrix[10] = (g_proj_hack_near.value + rawProjection[4]) *
-                                ((g_proj_hack_near.sign == 0) ? 1.0f : g_proj_hack_near.sign);
-      g_fProjectionMatrix[11] = (g_proj_hack_far.value + rawProjection[5]) *
-                                ((g_proj_hack_far.sign == 0) ? 1.0f : g_proj_hack_far.sign);
+      g_fProjectionMatrix[10] = rawProjection[4];
+      g_fProjectionMatrix[11] = rawProjection[5];
 
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;

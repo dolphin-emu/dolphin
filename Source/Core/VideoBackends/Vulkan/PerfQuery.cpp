@@ -76,7 +76,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   {
     u32 index = (m_query_read_pos + m_query_count) % PERF_QUERY_BUFFER_SIZE;
     ActiveQuery& entry = m_query_buffer[index];
-    _assert_(!entry.active && !entry.available);
+    ASSERT(!entry.active && !entry.available);
     entry.active = true;
     m_query_count++;
 
@@ -245,12 +245,12 @@ void PerfQuery::OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fe
     if (entry.available)
     {
       // These should be grouped together, and at the start.
-      _assert_(copy_count == 0);
+      ASSERT(copy_count == 0);
       continue;
     }
 
     // If this wrapped around, we need to flush the entries before the end of the buffer.
-    _assert_(entry.active);
+    ASSERT(entry.active);
     if (index < copy_start_index)
     {
       QueueCopyQueryResults(command_buffer, fence, copy_start_index, copy_count);
@@ -311,7 +311,7 @@ void PerfQuery::ProcessResults(u32 start_index, u32 query_count)
                                         query_count * sizeof(PerfQueryDataType));
 
   // Should be at maximum query_count queries pending.
-  _assert_(query_count <= m_query_count);
+  ASSERT(query_count <= m_query_count);
   DEBUG_LOG(VIDEO, "process queries %u-%u", start_index, start_index + query_count - 1);
 
   // Remove pending queries.
@@ -321,7 +321,7 @@ void PerfQuery::ProcessResults(u32 start_index, u32 query_count)
     ActiveQuery& entry = m_query_buffer[index];
 
     // Should have a fence associated with it (waiting for a result).
-    _assert_(entry.pending_fence != VK_NULL_HANDLE);
+    ASSERT(entry.pending_fence != VK_NULL_HANDLE);
     entry.pending_fence = VK_NULL_HANDLE;
     entry.available = false;
     entry.active = false;
