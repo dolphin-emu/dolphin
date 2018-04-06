@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 93;  // Last changed in PR 6389
+static const u32 STATE_VERSION = 93;  // Last changed in PR 6389, Narry's Mod 0.1.7
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -99,7 +99,7 @@ enum
   STATE_LOAD = 2,
 };
 
-//narrysmod_hijack
+//NARRYSMOD_HIJACK
 static bool g_use_compression = false;
 
 void EnableCompression(bool compression)
@@ -152,12 +152,13 @@ static std::string DoState(PointerWrap& p)
   std::string version_created_by;
   if (!DoStateVersion(p, &version_created_by))
   {
-    // because the version doesn't match, fail.
-    // this will trigger an OSD message like "Can't load state from other revisions"
-    // we could use the version numbers to maintain some level of backward compatibility, but
-    // currently don't.
-    p.SetMode(PointerWrap::MODE_MEASURE);
-    return version_created_by;
+	
+	  //NARRYSMOD_HIJACK
+	  //Hardcode compatible versions
+	  if (version_created_by != "0.1.7") {
+		  p.SetMode(PointerWrap::MODE_MEASURE);
+		  return version_created_by;
+	  }
   }
 
   bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
