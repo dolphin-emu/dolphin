@@ -31,8 +31,8 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/DeviceStub.h"
 #include "Core/IOS/ES/ES.h"
-#include "Core/IOS/FS/FS.h"
-#include "Core/IOS/FS/FileIO.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/MIOS.h"
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/KD/NetKDRequest.h"
@@ -242,9 +242,9 @@ u32 Kernel::GetVersion() const
   return static_cast<u32>(m_title_id);
 }
 
-std::shared_ptr<Device::FS> Kernel::GetFS()
+std::shared_ptr<FS::FileSystem> Kernel::GetFS()
 {
-  return std::static_pointer_cast<Device::FS>(m_device_map.at("/dev/fs"));
+  return m_fs;
 }
 
 std::shared_ptr<Device::ES> Kernel::GetES()
@@ -368,6 +368,9 @@ void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
 
 void Kernel::AddCoreDevices()
 {
+  m_fs = FS::MakeFileSystem();
+  ASSERT(m_fs);
+
   std::lock_guard<std::mutex> lock(m_device_map_mutex);
   AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
   AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
@@ -491,7 +494,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   }
   else if (request.path.find('/') == 0)
   {
-    device = std::make_shared<Device::FileIO>(*this, request.path);
+    device = GetDeviceByName("/dev/fs");
   }
 
   if (!device)
@@ -691,6 +694,7 @@ void Kernel::DoState(PointerWrap& p)
   p.Do(m_ppc_gid);
 
   m_iosc.DoState(p);
+  m_fs->DoState(p);
 
   if (m_title_id == Titles::MIOS)
     return;
@@ -725,10 +729,6 @@ void Kernel::DoState(PointerWrap& p)
           m_fdmap[i] = GetDeviceByName(device_name);
           break;
         }
-        case Device::Device::DeviceType::FileIO:
-          m_fdmap[i] = std::make_shared<Device::FileIO>(*this, "");
-          m_fdmap[i]->DoState(p);
-          break;
         case Device::Device::DeviceType::OH0:
           m_fdmap[i] = std::make_shared<Device::OH0Device>(*this, "");
           m_fdmap[i]->DoState(p);

@@ -732,7 +732,16 @@
     <ClCompile Include="IOS\DI\DI.cpp">
       <Filter>IOS\DI</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\FS\FileIO.cpp">
+    <ClCompile Include="IOS\FS\FileSystem.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\FileSystemProxy.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\FS.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\File.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\ES\ES.cpp">
@@ -758,9 +767,6 @@
     </ClCompile>
     <ClCompile Include="IOS\ES\Views.cpp">
       <Filter>IOS\ES</Filter>
-    </ClCompile>
-    <ClCompile Include="IOS\FS\FS.cpp">
-      <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\ICMPLin.cpp">
       <Filter>IOS\Network</Filter>
@@ -1401,14 +1407,20 @@
     <ClInclude Include="IOS\ES\ES.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\FS\FileIO.h">
+    <ClInclude Include="IOS\FS\FileSystem.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\FileSystemProxy.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\File.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\FS.h">
       <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\ES\Formats.h">
       <Filter>IOS\ES</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\FS\FS.h">
-      <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\Bluetooth\hci.h">
       <Filter>IOS\USB\Bluetooth</Filter>
