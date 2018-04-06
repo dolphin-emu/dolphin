@@ -162,7 +162,7 @@ if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
     endif()
 
     add_custom_command(OUTPUT ${mo}
-      COMMAND mkdir -p ${mo_dir}
+      COMMAND cmake -E make_directory ${mo_dir}
       COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
       COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
       DEPENDS ${po}
