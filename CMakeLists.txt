@@ -566,7 +566,6 @@ endif()
 if(NOT XXHASH_FOUND)
   message(STATUS "Using static xxhash from Externals")
   add_subdirectory(Externals/xxhash)
-  include_directories(Externals/xxhash)
 endif()
 
 find_package(ZLIB)
