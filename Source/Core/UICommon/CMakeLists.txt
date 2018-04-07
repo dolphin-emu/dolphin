@@ -15,6 +15,7 @@ PUBLIC
   cpp-optparse
 
 PRIVATE
+  bdisasm
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 

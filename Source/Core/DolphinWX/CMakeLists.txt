@@ -85,6 +85,7 @@ add_executable(dolphin-emu
 
 target_link_libraries(dolphin-emu
 PRIVATE
+  bdisasm
   core
   uicommon
   cpp-optparse

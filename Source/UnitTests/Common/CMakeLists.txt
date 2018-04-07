@@ -12,4 +12,6 @@ add_dolphin_test(NandPathsTest NandPathsTest.cpp)
 add_dolphin_test(SPSCQueueTest SPSCQueueTest.cpp)
 add_dolphin_test(StringUtilTest StringUtilTest.cpp)
 add_dolphin_test(SwapTest SwapTest.cpp)
+
 add_dolphin_test(x64EmitterTest x64EmitterTest.cpp)
+target_link_libraries(x64EmitterTest PRIVATE bdisasm)

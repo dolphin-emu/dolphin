@@ -276,7 +276,6 @@ endif()
 target_link_libraries(core
 PUBLIC
   audiocommon
-  bdisasm
   common
   cubeb
   discio
@@ -292,6 +291,7 @@ PUBLIC
   z
 
 PRIVATE
+  bdisasm
   ${LZO}
 )
 
