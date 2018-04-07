@@ -30,6 +30,11 @@ void GenerateDSIException(u32 address)
   PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
   PowerPC::ppcState.spr[SPR_DAR] = address;
 }
+
+void GenerateProgramException()
+{
+  PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+}
 }
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction inst)
@@ -526,6 +531,12 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
 {
+  if (!HID2.LCE)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   const u32 address = Helper_Get_EA_X(inst);
 
   if (!HID0.DCE)
