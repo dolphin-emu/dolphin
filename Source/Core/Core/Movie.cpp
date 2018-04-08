@@ -1383,9 +1383,18 @@ void GetSettings()
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
-    u64 title_id = SConfig::GetInstance().GetTitleID();
-    s_bClearSave =
-        !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
+    if (Core::IsRunning())
+    {
+      // Accessing the NAND while emulation is running is unsafe, so avoid doing it.
+      // This is fine because s_bClearSave is only used during boot in WiiRoot.
+      s_bClearSave = false;
+    }
+    else
+    {
+      const u64 title_id = SConfig::GetInstance().GetTitleID();
+      s_bClearSave = !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) +
+                                   "banner.bin");
+    }
   }
   else
   {
