@@ -28,7 +28,7 @@ FileHandle::FileHandle(FileHandle&& other) : m_fs{other.m_fs}, m_fd{other.m_fd}
 
 FileHandle& FileHandle::operator=(FileHandle&& other)
 {
-  if (*this != other)
+  if (std::tie(m_fs, m_fd) != std::tie(other.m_fs, other.m_fd))
     *this = std::move(other);
   return *this;
 }
@@ -44,6 +44,16 @@ Fd FileHandle::Release()
   const Fd fd = m_fd.value();
   m_fd.reset();
   return fd;
+}
+
+Result<u32> FileHandle::Seek(u32 offset, SeekMode mode) const
+{
+  return m_fs->SeekFile(*m_fd, offset, mode);
+}
+
+Result<FileStatus> FileHandle::GetStatus() const
+{
+  return m_fs->GetFileStatus(*m_fd);
 }
 
 void FileSystem::Init()
