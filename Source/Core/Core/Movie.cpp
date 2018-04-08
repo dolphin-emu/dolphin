@@ -84,9 +84,9 @@ static bool s_bDiscChange = false;
 static bool s_bReset = false;
 static std::string s_author = "";
 static std::string s_discChange = "";
-static u8 s_MD5[16];
+static std::array<u8, 16> s_MD5;
 static u8 s_bongos, s_memcards;
-static u8 s_revision[20];
+static std::array<u8, 20> s_revision;
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
 
@@ -103,7 +103,7 @@ static WiiManipFunction s_wii_manip_func;
 static std::string s_current_file_name;
 
 static void GetSettings();
-static bool IsMovieHeader(u8 magic[4])
+static bool IsMovieHeader(const std::array<u8, 4>& magic)
 {
   return magic[0] == 'D' && magic[1] == 'T' && magic[2] == 'M' && magic[3] == 0x1A;
 }
@@ -215,10 +215,10 @@ void Init(const BootParameters& boot)
     ReadHeader();
     std::thread md5thread(CheckMD5);
     md5thread.detach();
-    if (strncmp(tmpHeader.gameID, SConfig::GetInstance().GetGameID().c_str(), 6))
+    if (strncmp(tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
       PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)",
-                  tmpHeader.gameID, SConfig::GetInstance().GetGameID().c_str());
+                  tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str());
       EndPlayInput(false);
     }
   }
@@ -848,16 +848,16 @@ void ReadHeader()
     s_memcards = tmpHeader.memcards;
     s_bongos = tmpHeader.bongos;
     s_bNetPlay = tmpHeader.bNetPlay;
-    memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
+    s_revision = tmpHeader.revision;
   }
   else
   {
     GetSettings();
   }
 
-  s_discChange = (char*)tmpHeader.discChange;
-  s_author = (char*)tmpHeader.author;
-  memcpy(s_MD5, tmpHeader.md5, 16);
+  s_discChange = {tmpHeader.discChange.begin(), tmpHeader.discChange.end()};
+  s_author = {tmpHeader.author.begin(), tmpHeader.author.end()};
+  s_MD5 = tmpHeader.md5;
   s_DSPiromHash = tmpHeader.DSPiromHash;
   s_DSPcoefHash = tmpHeader.DSPcoefHash;
 }
@@ -1298,7 +1298,7 @@ void SaveRecording(const std::string& filename)
   header.filetype[1] = 'T';
   header.filetype[2] = 'M';
   header.filetype[3] = 0x1A;
-  strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
+  strncpy(header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6);
   header.bWii = SConfig::GetInstance().bWii;
   header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
 
@@ -1314,11 +1314,11 @@ void SaveRecording(const std::string& filename)
   header.memcards = s_memcards;
   header.bClearSave = s_bClearSave;
   header.bNetPlay = s_bNetPlay;
-  strncpy((char*)header.discChange, s_discChange.c_str(), ArraySize(header.discChange));
-  strncpy((char*)header.author, s_author.c_str(), ArraySize(header.author));
-  memcpy(header.md5, s_MD5, 16);
+  strncpy(header.discChange.data(), s_discChange.c_str(), header.discChange.size());
+  strncpy(header.author.data(), s_author.c_str(), header.author.size());
+  header.md5 = s_MD5;
   header.bongos = s_bongos;
-  memcpy(header.revision, s_revision, ArraySize(header.revision));
+  header.revision = s_revision;
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
@@ -1400,8 +1400,7 @@ void GetSettings()
        SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
       << 1;
 
-  std::array<u8, 20> revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
-  std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
+  s_revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
 
   if (!Config::Get(Config::MAIN_DSP_HLE))
   {
@@ -1455,10 +1454,10 @@ static void CheckMD5()
   }
   Core::DisplayMessage("Verifying checksum...", 2000);
 
-  unsigned char gameMD5[16];
-  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), gameMD5);
+  std::array<u8, 16> game_md5;
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), game_md5.data());
 
-  if (memcmp(gameMD5, s_MD5, 16) == 0)
+  if (game_md5 == s_MD5)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
   else
     Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
@@ -1471,8 +1470,7 @@ static void GetMD5()
     return;
 
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
-  memset(s_MD5, 0, sizeof(s_MD5));
-  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5);
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5.data());
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
