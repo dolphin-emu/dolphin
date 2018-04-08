@@ -342,7 +342,8 @@ static bool CheckIfContentHashMatches(const std::vector<u8>& content, const IOS:
 
 static std::string GetImportContentPath(u64 title_id, u32 content_id)
 {
-  return Common::GetImportTitlePath(title_id) + StringFromFormat("/content/%08x.app", content_id);
+  return Common::GetImportTitlePath(title_id, Common::FROM_SESSION_ROOT) +
+         StringFromFormat("/content/%08x.app", content_id);
 }
 
 ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
@@ -604,7 +605,7 @@ ReturnCode ES::DeleteContent(u64 title_id, u32 content_id) const
     return ES_EINVAL;
 
   if (!File::Delete(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
-                    StringFromFormat("%08x.app", content_id)))
+                    StringFromFormat("/%08x.app", content_id)))
   {
     return FS_ENOENT;
   }

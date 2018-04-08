@@ -181,7 +181,7 @@ void CWiiSaveCrypted::ReadHDR()
     m_valid = false;
     return;
   }
-  std::string banner_file_path = m_wii_title_path + "banner.bin";
+  std::string banner_file_path = m_wii_title_path + "/banner.bin";
   if (!File::Exists(banner_file_path) ||
       AskYesNoT("%s already exists. Consider making a backup of the current save files before "
                 "overwriting.\nOverwrite now?",
@@ -203,7 +203,7 @@ void CWiiSaveCrypted::WriteHDR()
     return;
   memset(&m_header, 0, HEADER_SZ);
 
-  std::string banner_file_path = m_wii_title_path + "banner.bin";
+  std::string banner_file_path = m_wii_title_path + "/banner.bin";
   u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
   m_header.hdr.BannerSize = Common::swap32(banner_size);
 
@@ -347,7 +347,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
       // Special characters in path components will be escaped such as /../
       std::string file_path = Common::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
 
-      std::string file_path_full = m_wii_title_path + file_path;
+      std::string file_path_full = m_wii_title_path + '/' + file_path;
       File::CreateFullPath(file_path_full);
       const File::FileInfo file_info(file_path_full);
       if (file_hdr_tmp.type == 1)
@@ -585,7 +585,7 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
       return false;
     }
 
-    if (!File::Exists(m_wii_title_path + "banner.bin"))
+    if (!File::Exists(m_wii_title_path + "/banner.bin"))
     {
       m_valid = false;
       ERROR_LOG(CONSOLE, "No banner file found for title %s", game_id);

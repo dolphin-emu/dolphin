@@ -36,7 +36,7 @@ static void InitializeDeterministicWiiSaves()
     else
     {
       // TODO: Check for the actual save data
-      Movie::SetClearSave(!File::Exists(user_save_path + "banner.bin"));
+      Movie::SetClearSave(!File::Exists(user_save_path + "/banner.bin"));
     }
   }
 
@@ -44,7 +44,7 @@ static void InitializeDeterministicWiiSaves()
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND
-    if (File::Exists(user_save_path + "banner.bin"))
+    if (File::Exists(user_save_path + "/banner.bin"))
     {
       File::CopyDir(user_save_path, save_path);
     }
@@ -86,10 +86,10 @@ void ShutdownWiiRoot()
     std::string user_backup_path = File::GetUserPath(D_BACKUP_IDX) +
                                    StringFromFormat("%08x/%08x/", static_cast<u32>(title_id >> 32),
                                                     static_cast<u32>(title_id));
-    if (File::Exists(save_path + "banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)
+    if (File::Exists(save_path + "/banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)
     {
       // Backup the existing save just in case it's still needed.
-      if (File::Exists(user_save_path + "banner.bin"))
+      if (File::Exists(user_save_path + "/banner.bin"))
       {
         if (File::Exists(user_backup_path))
           File::DeleteDirRecursively(user_backup_path);

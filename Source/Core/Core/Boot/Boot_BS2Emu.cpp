@@ -227,7 +227,7 @@ bool CBoot::SetupWiiMemory()
   SettingsHandler gen;
   std::string serno;
   const std::string settings_file_path(
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/" WII_SETTING);
   if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
   {
     serno = gen.GetValue("SERNO");
@@ -328,7 +328,7 @@ bool CBoot::SetupWiiMemory()
 static void WriteEmptyPlayRecord()
 {
   const std::string file_path =
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "play_rec.dat";
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/play_rec.dat";
   File::IOFile playrec_file(file_path, "r+b");
   std::vector<u8> empty_record(0x80);
   playrec_file.WriteBytes(empty_record.data(), empty_record.size());

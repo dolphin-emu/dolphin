@@ -21,41 +21,46 @@ std::string RootUserPath(FromWhichRoot from)
   return File::GetUserPath(idx);
 }
 
-std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
+static std::string RootUserPath(std::optional<FromWhichRoot> from)
+{
+  return from ? RootUserPath(*from) : "";
+}
+
+std::string GetImportTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
 {
   return RootUserPath(from) + StringFromFormat("/import/%08x/%08x",
                                                static_cast<u32>(title_id >> 32),
                                                static_cast<u32>(title_id));
 }
 
-std::string GetTicketFileName(u64 title_id, FromWhichRoot from)
+std::string GetTicketFileName(u64 title_id, std::optional<FromWhichRoot> from)
 {
   return StringFromFormat("%s/ticket/%08x/%08x.tik", RootUserPath(from).c_str(),
                           static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetTitlePath(u64 title_id, FromWhichRoot from)
+std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return StringFromFormat("%s/title/%08x/%08x/", RootUserPath(from).c_str(),
+  return StringFromFormat("%s/title/%08x/%08x", RootUserPath(from).c_str(),
                           static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetTitleDataPath(u64 title_id, FromWhichRoot from)
+std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return GetTitlePath(title_id, from) + "data/";
+  return GetTitlePath(title_id, from) + "/data";
 }
 
-std::string GetTitleContentPath(u64 title_id, FromWhichRoot from)
+std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return GetTitlePath(title_id, from) + "content/";
+  return GetTitlePath(title_id, from) + "/content";
 }
 
-std::string GetTMDFileName(u64 title_id, FromWhichRoot from)
+std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from)
 {
-  return GetTitleContentPath(title_id, from) + "title.tmd";
+  return GetTitleContentPath(title_id, from) + "/title.tmd";
 }
 
-bool IsTitlePath(const std::string& path, FromWhichRoot from, u64* title_id)
+bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from, u64* title_id)
 {
   std::string expected_prefix = RootUserPath(from) + "/title/";
   if (!StringBeginsWith(path, expected_prefix))
