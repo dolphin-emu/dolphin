@@ -188,14 +188,6 @@ Kernel::Kernel()
 
 Kernel::~Kernel()
 {
-  // Close all devices that were opened
-  for (auto& device : m_fdmap)
-  {
-    if (!device)
-      continue;
-    device->Close(0);
-  }
-
   {
     std::lock_guard<std::mutex> lock(m_device_map_mutex);
     m_device_map.clear();
