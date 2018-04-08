@@ -123,6 +123,58 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   }
 }
 
+void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data, ControllerEmu::Buttons* const buttons_group,
+  const DynamicConfiguration& config, u8* const shake_step)
+{
+  // frame count of one up/down shake
+  // < 9 no shake detection in "Wario Land: Shake It"
+  auto const shake_step_max = 15;
+
+  // shake is a bitfield of X,Y,Z shake button states
+  static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
+  unsigned int shake = 0;
+  buttons_group->GetState(&shake, btns);
+
+  static const int frames_high = 45;
+  static const int frames_low = 15;
+  static const int frames_to_execute = 31;  // about 2 shake-loops
+
+  for (int i = 0; i != 3; ++i)
+  {
+    if ((shake & (1 << i)) && dynamic_data.executing_frames_left[i] == 0)
+    {
+      dynamic_data.timing[i]++;
+    }
+    else if (dynamic_data.executing_frames_left[i] > 0)
+    {
+      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * dynamic_data.intensity[i];
+      shake_step[i] = (shake_step[i] + 1) % shake_step_max;
+      dynamic_data.executing_frames_left[i]--;
+    }
+    else if (shake == 0 && dynamic_data.timing[i] > 0)
+    {
+      if (dynamic_data.timing[i] > frames_high)
+      {
+        dynamic_data.intensity[i] = config.high_intensity;
+      }
+      else if (dynamic_data.timing[i] < frames_low)
+      {
+        dynamic_data.intensity[i] = config.low_intensity;
+      }
+      else
+      {
+        dynamic_data.intensity[i] = config.med_intensity;
+      }
+      dynamic_data.timing[i] = 0;
+      dynamic_data.executing_frames_left[i] = frames_to_execute;
+    }
+    else
+    {
+      shake_step[i] = 0;
+    }
+  }
+}
+
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, const bool sideways,
                  const bool upright)
 {
@@ -183,6 +235,62 @@ void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const swing_grou
     (&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * intensity;
 }
 
+void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
+  ControllerEmu::Force* const swing_group, const DynamicConfiguration& config, const bool sideways, const bool upright)
+{
+  ControlState swing[3];
+  swing_group->GetState(swing);
+
+  s8 g_dir[3] = { -1, -1, -1 };
+  u8 axis_map[3];
+
+  // determine which axis is which direction
+  axis_map[0] = upright ? (sideways ? 0 : 1) : 2;  // up/down
+  axis_map[1] = sideways;                          // left|right
+  axis_map[2] = upright ? 2 : (sideways ? 0 : 1);  // forward/backward
+
+  // some orientations have up as positive, some as negative
+  // same with forward
+  if (sideways && !upright)
+    g_dir[axis_map[2]] *= -1;
+  if (!sideways && upright)
+    g_dir[axis_map[0]] *= -1;
+
+  static const int frames_high = 100;
+  static const int frames_low = 30;
+  static const int frames_to_execute = 30;
+
+  for (unsigned int i = 0; i < 3; ++i)
+  {
+    if (swing[i] > 0 && dynamic_data.executing_frames_left[i] == 0)
+    {
+      dynamic_data.timing[i]++;
+    }
+    else if (dynamic_data.executing_frames_left[i] > 0)
+    {
+      (&accel->x)[axis_map[i]] += g_dir[i] * dynamic_data.intensity[i];
+      dynamic_data.executing_frames_left[i]--;
+    }
+    else if (swing[i] == 0 && dynamic_data.timing[i] > 0)
+    {
+      if (dynamic_data.timing[i] > frames_high)
+      {
+        dynamic_data.intensity[i] = config.high_intensity;
+      }
+      else if (dynamic_data.timing[i] < frames_low)
+      {
+        dynamic_data.intensity[i] = config.low_intensity;
+      }
+      else
+      {
+        dynamic_data.intensity[i] = config.med_intensity;
+      }
+      dynamic_data.timing[i] = 0;
+      dynamic_data.executing_frames_left[i] = frames_to_execute;
+    }
+  }
+}
+
 static const u16 button_bitmasks[] = {
     Wiimote::BUTTON_A,     Wiimote::BUTTON_B,    Wiimote::BUTTON_ONE, Wiimote::BUTTON_TWO,
     Wiimote::BUTTON_MINUS, Wiimote::BUTTON_PLUS, Wiimote::BUTTON_HOME};
@@ -237,6 +345,8 @@ void Wiimote::Reset()
   m_shake_step = {};
   m_shake_soft_step = {};
   m_shake_hard_step = {};
+  m_swing_dynamic_data = {};
+  m_shake_dynamic_data = {};
 
   // clear read request queue
   while (!m_read_requests.empty())
@@ -271,6 +381,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
   groups.emplace_back(m_swing_slow = new ControllerEmu::Force("SwingSlow"));
   groups.emplace_back(m_swing_fast = new ControllerEmu::Force("SwingFast"));
+  groups.emplace_back(m_swing_dynamic = new ControllerEmu::Force("Swing Dynamic"));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
@@ -293,6 +404,11 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+
+  groups.emplace_back(m_shake_dynamic = new ControllerEmu::Buttons("Shake Dynamic"));
+  m_shake_dynamic->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_dynamic->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_dynamic->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -492,13 +608,28 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 
   EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
 
+  DynamicConfiguration swing_config;
+  swing_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW);
+  swing_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM);
+  swing_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST);
+
   EmulateSwing(&m_accel, m_swing, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM), is_sideways, is_upright);
   EmulateSwing(&m_accel, m_swing_slow, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW), is_sideways, is_upright);
   EmulateSwing(&m_accel, m_swing_fast, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST), is_sideways, is_upright);
+  EmulateDynamicSwing(&m_accel, m_swing_dynamic_data, m_swing_dynamic, swing_config, is_sideways,
+                      is_upright);
+
+  DynamicConfiguration shake_config;
+  shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
+  shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
+  shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
 
   EmulateShake(&m_accel, m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM), m_shake_step.data());
   EmulateShake(&m_accel, m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT), m_shake_soft_step.data());
   EmulateShake(&m_accel, m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD), m_shake_hard_step.data());
+  EmulateDynamicShake(&m_accel, m_shake_dynamic_data, m_shake_dynamic, shake_config,
+                      m_shake_dynamic_step.data());
+
 
   wm_accel& accel = *reinterpret_cast<wm_accel*>(data + rptf.accel);
   wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + rptf.core);

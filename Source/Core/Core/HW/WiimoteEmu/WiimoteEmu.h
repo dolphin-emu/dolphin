@@ -124,6 +124,26 @@ struct AccelData
   double x, y, z;
 };
 
+// Used for a dynamic swing or
+// shake
+struct DynamicData
+{
+  std::array<int, 3> timing; // Hold length in frames for each axis
+  std::array<double, 3> intensity;  // Swing or shake intensity
+  std::array<int, 3> executing_frames_left;  // Number of frames to execute the intensity operation
+};
+
+// Used for a dynamic swing or
+// shake.  This is used to pass
+// in data that defines the dynamic
+// action
+struct DynamicConfiguration
+{
+  double low_intensity;
+  double med_intensity;
+  double high_intensity;
+};
+
 struct ADPCMState
 {
   s32 predictor, step;
@@ -157,11 +177,21 @@ struct ExtensionReg
 void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
                   const double intensity, u8* const shake_step);
 
+void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
+                         ControllerEmu::Buttons* const buttons_group,
+                         const DynamicConfiguration& config,
+                         u8* const shake_step);
+
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
                  const bool sideways = false, const bool upright = false);
 
 void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group,
                   const double intensity, const bool sideways = false, const bool upright = false);
+
+void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
+                         ControllerEmu::Force* const swing_group,
+                         const DynamicConfiguration& config,
+                         const bool sideways = false, const bool upright = false);
 
 enum
 {
@@ -250,11 +280,13 @@ private:
   ControllerEmu::Buttons* m_shake;
   ControllerEmu::Buttons* m_shake_soft;
   ControllerEmu::Buttons* m_shake_hard;
+  ControllerEmu::Buttons* m_shake_dynamic;
   ControllerEmu::Cursor* m_ir;
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::Force* m_swing_slow;
   ControllerEmu::Force* m_swing_fast;
+  ControllerEmu::Force* m_swing_dynamic;
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Output* m_motor;
   ControllerEmu::Extension* m_extension;
@@ -263,6 +295,9 @@ private:
   ControllerEmu::BooleanSetting* m_upright_setting;
   ControllerEmu::NumericSetting* m_battery_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
+
+  DynamicData m_swing_dynamic_data;
+  DynamicData m_shake_dynamic_data;
 
   // Wiimote accel data
   AccelData m_accel;
@@ -282,6 +317,7 @@ private:
   std::array<u8, 3> m_shake_step{};
   std::array<u8, 3> m_shake_soft_step{};
   std::array<u8, 3> m_shake_hard_step{};
+  std::array<u8, 3> m_shake_dynamic_step{};
 
   bool m_sensor_bar_on_top;
 
