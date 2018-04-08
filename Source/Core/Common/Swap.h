@@ -174,7 +174,12 @@ struct BigEndianValue
   BigEndianValue() = default;
   explicit BigEndianValue(value_type val) { *this = val; }
   operator value_type() const { return FromBigEndian(raw); }
-  void operator=(value_type v) { raw = FromBigEndian(v); }
+  BigEndianValue& operator=(value_type v)
+  {
+    raw = FromBigEndian(v);
+    return *this;
+  }
+
 private:
   value_type raw;
 };
