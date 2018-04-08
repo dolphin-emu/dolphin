@@ -706,8 +706,8 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   static const int camHeight = 768;
   static const double bndup = -0.315447;
   static const double bnddown = 0.85;
-  static const double bndleft = 0.443364;
-  static const double bndright = -0.443364;
+  static const double bndleft = 0.78820266;
+  static const double bndright = -0.78820266;
   static const double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
   static const double dist2 = 1.2 * dist1;
 
