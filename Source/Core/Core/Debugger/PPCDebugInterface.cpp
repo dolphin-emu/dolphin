@@ -28,11 +28,9 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
       return "(No RAM here)";
     }
 
-    u32 op = PowerPC::HostRead_Instruction(address);
+    const u32 op = PowerPC::HostRead_Instruction(address);
     std::string disasm = GekkoDisassembler::Disassemble(op, address);
-
-    UGeckoInstruction inst;
-    inst.hex = PowerPC::HostRead_U32(address);
+    const UGeckoInstruction inst{op};
 
     if (inst.OPCD == 1)
     {
