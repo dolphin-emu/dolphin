@@ -521,20 +521,21 @@ endif()
 # Process externals and setup their include directories
 #
 # NOTES about adding Externals:
-#   - add the include directory here
+#   - If an external provides a target, or one can be introduced with find_package, consider using it.
+#     - If a target doesn't exist, consider introducing a target for it with add_library and adding all necessary
+#       includes, definitions, etc, to that target. This way, only libraries that need those attributes simply
+#       need to link that target in, as opposed to them being provided to every library
+#       (which is the case with the directory-based include_directories, add_definitions, etc)
+#
 #   - make sure to tell cmake to link them statically or dynamically (most
 #     should be linked statically)
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 add_subdirectory(Externals/Bochs_disasm)
-include_directories(Externals/Bochs_disasm)
-
-add_subdirectory(Externals/glslang)
-
-add_subdirectory(Externals/pugixml)
-
 add_subdirectory(Externals/cpp-optparse)
+add_subdirectory(Externals/glslang)
+add_subdirectory(Externals/pugixml)
 
 if(USE_SHARED_ENET)
   check_lib(ENET libenet enet enet/enet.h QUIET)
