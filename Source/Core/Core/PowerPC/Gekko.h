@@ -325,17 +325,6 @@ union UGQR
   UGQR() { Hex = 0; }
 };
 
-// FPU Register
-union UFPR
-{
-  u64 as_u64;
-  s64 as_s64;
-  double d;
-  u32 as_u32[2];
-  s32 as_s32[2];
-  float f[2];
-};
-
 #define XER_CA_SHIFT 29
 #define XER_OV_SHIFT 30
 #define XER_SO_SHIFT 31
