@@ -586,15 +586,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-  if ((s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
-      (s_DISR.BRKINT & s_DISR.BRKINTMASK) || (s_DICVR.CVRINT & s_DICVR.CVRINTMASK))
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, true);
-  }
-  else
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, false);
-  }
+  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
+                        (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
+                        (s_DICVR.CVRINT & s_DICVR.CVRINTMASK);
+
+  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
   // Required for Summoner: A Goddess Reborn
   CoreTiming::ForceExceptionCheck(50);
