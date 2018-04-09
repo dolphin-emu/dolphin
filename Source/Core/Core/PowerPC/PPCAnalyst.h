@@ -205,7 +205,6 @@ public:
     OPTION_CROR_MERGE = (1 << 6),
   };
 
-  PPCAnalyzer() : m_options(0) {}
   // Option setting/getting
   void SetOption(AnalystOption option) { m_options |= option; }
   void ClearOption(AnalystOption option) { m_options &= ~(option); }
@@ -225,7 +224,7 @@ private:
   void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
 
   // Options
-  u32 m_options;
+  u32 m_options = 0;
 };
 
 void LogFunctionCall(u32 addr);
