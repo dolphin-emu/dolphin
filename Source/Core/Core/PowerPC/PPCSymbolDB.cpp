@@ -21,15 +21,11 @@
 
 PPCSymbolDB g_symbolDB;
 
-PPCSymbolDB::PPCSymbolDB()
+PPCSymbolDB::PPCSymbolDB() : debugger{&PowerPC::debug_interface}
 {
-  // Get access to the disasm() fgnction
-  debugger = &PowerPC::debug_interface;
 }
 
-PPCSymbolDB::~PPCSymbolDB()
-{
-}
+PPCSymbolDB::~PPCSymbolDB() = default;
 
 // Adds the function to the list, unless it's already there
 Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
