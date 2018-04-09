@@ -208,11 +208,11 @@ public:
   u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 blockSize);
 
 private:
-  enum ReorderType
+  enum class ReorderType
   {
-    REORDER_CARRY,
-    REORDER_CMP,
-    REORDER_CROR
+    Carry,
+    CMP,
+    CROR
   };
 
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);

@@ -479,11 +479,12 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       CodeOp& b = code[i + increment];
       // Reorder integer compares, rlwinm., and carry-affecting ops
       // (if we add more merged branch instructions, add them here!)
-      if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) ||
-          (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
+      if ((type == ReorderType::CROR && isCror(a)) ||
+          (type == ReorderType::Carry && isCarryOp(a)) ||
+          (type == ReorderType::CMP && (isCmp(a) || a.outputCR0)))
       {
         // once we're next to a carry instruction, don't move away!
-        if (type == REORDER_CARRY && i != start)
+        if (type == ReorderType::Carry && i != start)
         {
           // if we read the CA flag, and the previous instruction sets it, don't move away.
           if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
@@ -514,16 +515,16 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
   // picky about this, but cror seems to almost solely be used for this purpose in real code.
   // Additionally, the other boolean ops seem to almost never be used.
   if (HasOption(OPTION_CROR_MERGE))
-    ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
+    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
   if (HasOption(OPTION_CARRY_MERGE))
   {
-    ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
-    ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
+    ReorderInstructionsCore(instructions, code, false, ReorderType::Carry);
+    ReorderInstructionsCore(instructions, code, true, ReorderType::Carry);
   }
   if (HasOption(OPTION_BRANCH_MERGE))
-    ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
+    ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
