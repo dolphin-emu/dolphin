@@ -479,11 +479,12 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       CodeOp& b = code[i + increment];
       // Reorder integer compares, rlwinm., and carry-affecting ops
       // (if we add more merged branch instructions, add them here!)
-      if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) ||
-          (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
+      if ((type == ReorderType::CROR && isCror(a)) ||
+          (type == ReorderType::Carry && isCarryOp(a)) ||
+          (type == ReorderType::CMP && (isCmp(a) || a.outputCR0)))
       {
         // once we're next to a carry instruction, don't move away!
-        if (type == REORDER_CARRY && i != start)
+        if (type == ReorderType::Carry && i != start)
         {
           // if we read the CA flag, and the previous instruction sets it, don't move away.
           if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
@@ -514,16 +515,16 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
   // picky about this, but cror seems to almost solely be used for this purpose in real code.
   // Additionally, the other boolean ops seem to almost never be used.
   if (HasOption(OPTION_CROR_MERGE))
-    ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
+    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
   if (HasOption(OPTION_CARRY_MERGE))
   {
-    ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
-    ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
+    ReorderInstructionsCore(instructions, code, false, ReorderType::Carry);
+    ReorderInstructionsCore(instructions, code, true, ReorderType::Carry);
   }
   if (HasOption(OPTION_BRANCH_MERGE))
-    ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
+    ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
@@ -544,7 +545,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
     code->outputCR0 = true;
   else
-    code->outputCR0 = (opinfo->flags & FL_SET_CR0) ? true : false;
+    code->outputCR0 = (opinfo->flags & FL_SET_CR0) != 0;
 
   // Does the instruction output CR1?
   if (opinfo->flags & FL_RC_BIT_F)
@@ -552,14 +553,14 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
     code->outputCR1 = true;
   else
-    code->outputCR1 = (opinfo->flags & FL_SET_CR1) ? true : false;
+    code->outputCR1 = (opinfo->flags & FL_SET_CR1) != 0;
 
-  code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) ? true : false;
-  code->outputFPRF = (opinfo->flags & FL_SET_FPRF) ? true : false;
-  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) ? true : false;
+  code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
+  code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
+  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
 
-  code->wantsCA = (opinfo->flags & FL_READ_CA) ? true : false;
-  code->outputCA = (opinfo->flags & FL_SET_CA) ? true : false;
+  code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
+  code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
 
   // We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry
   // flag!
