@@ -5,11 +5,7 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdlib>
-#include <map>
 #include <set>
-#include <string>
-#include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
