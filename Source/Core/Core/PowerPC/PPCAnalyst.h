@@ -166,21 +166,6 @@ struct CodeBlock
 
 class PPCAnalyzer
 {
-private:
-  enum ReorderType
-  {
-    REORDER_CARRY,
-    REORDER_CMP,
-    REORDER_CROR
-  };
-
-  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
-  void ReorderInstructions(u32 instructions, CodeOp* code);
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
-
-  // Options
-  u32 m_options;
-
 public:
   enum AnalystOption
   {
@@ -226,6 +211,21 @@ public:
   void ClearOption(AnalystOption option) { m_options &= ~(option); }
   bool HasOption(AnalystOption option) const { return !!(m_options & option); }
   u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 blockSize);
+
+private:
+  enum ReorderType
+  {
+    REORDER_CARRY,
+    REORDER_CMP,
+    REORDER_CROR
+  };
+
+  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
+  void ReorderInstructions(u32 instructions, CodeOp* code);
+  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
+
+  // Options
+  u32 m_options;
 };
 
 void LogFunctionCall(u32 addr);
