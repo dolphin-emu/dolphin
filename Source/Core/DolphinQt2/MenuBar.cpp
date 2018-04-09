@@ -33,8 +33,10 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/State.h"
 #include "Core/TitleDatabase.h"
@@ -57,6 +59,7 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
   AddOptionsMenu();
   AddToolsMenu();
   AddViewMenu();
+  AddJITMenu();
   AddSymbolsMenu();
   AddHelpMenu();
 
@@ -102,6 +105,22 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Tools
   m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled());
 
+  // JIT
+  m_jit_interpreter_core->setEnabled(running);
+  m_jit_block_linking->setEnabled(!running);
+  m_jit_disable_cache->setEnabled(!running);
+  m_jit_clear_cache->setEnabled(running);
+  m_jit_log_coverage->setEnabled(!running);
+  m_jit_search_instruction->setEnabled(running);
+
+  for (QAction* action :
+       {m_jit_off, m_jit_loadstore_off, m_jit_loadstore_lbzx_off, m_jit_loadstore_lxz_off,
+        m_jit_loadstore_lwz_off, m_jit_loadstore_floating_off, m_jit_loadstore_paired_off,
+        m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off})
+  {
+    action->setEnabled(running);
+  }
+
   // Symbols
   m_symbols->setEnabled(running);
 
@@ -124,11 +143,18 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
   m_show_memory->setVisible(enabled);
+  m_show_jit->setVisible(enabled);
 
   if (enabled)
+  {
+    addMenu(m_jit);
     addMenu(m_symbols);
+  }
   else
+  {
+    removeAction(m_jit->menuAction());
     removeAction(m_symbols->menuAction());
+  }
 }
 
 void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
@@ -410,6 +436,12 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
           &QAction::setChecked);
 
+  m_show_jit = view_menu->addAction(tr("&JIT"));
+  m_show_jit->setCheckable(true);
+  m_show_jit->setChecked(Settings::Instance().IsJITVisible());
+  connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::SetJITVisible);
+  connect(&Settings::Instance(), &Settings::JITVisibilityChanged, m_show_jit, &QAction::setChecked);
+
   view_menu->addSeparator();
 
   AddGameListTypeSection(view_menu);
@@ -652,6 +684,106 @@ void MenuBar::AddMovieMenu()
   dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
   connect(dump_audio, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
+}
+
+void MenuBar::AddJITMenu()
+{
+  m_jit = addMenu(tr("JIT"));
+
+  m_jit_interpreter_core = m_jit->addAction(tr("Interpreter Core"));
+  m_jit_interpreter_core->setCheckable(true);
+  m_jit_interpreter_core->setChecked(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
+
+  m_jit->addSeparator();
+
+  m_jit_block_linking = m_jit->addAction(tr("JIT Block Linking Off"));
+  m_jit_block_linking->setCheckable(true);
+  m_jit_block_linking->setChecked(SConfig::GetInstance().bJITNoBlockLinking);
+  connect(m_jit_block_linking, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITNoBlockLinking = enabled; });
+
+  m_jit_disable_cache = m_jit->addAction(tr("Disable JIT Cache"));
+  m_jit_disable_cache->setCheckable(true);
+  m_jit_disable_cache->setChecked(SConfig::GetInstance().bJITNoBlockCache);
+  connect(m_jit_disable_cache, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITNoBlockCache = enabled; });
+
+  m_jit_clear_cache = AddAction(m_jit, tr("Clear Cache"), this, &MenuBar::ClearCache);
+
+  m_jit->addSeparator();
+
+  m_jit_log_coverage =
+      AddAction(m_jit, tr("Log JIT Instruction Coverage"), this, &MenuBar::LogInstructions);
+  m_jit_search_instruction =
+      AddAction(m_jit, tr("Search for an Instruction"), this, &MenuBar::SearchInstruction);
+
+  m_jit->addSeparator();
+
+  m_jit_off = m_jit->addAction(tr("JIT Off (JIT Core)"));
+  m_jit_off->setCheckable(true);
+  m_jit_off->setChecked(SConfig::GetInstance().bJITOff);
+  connect(m_jit_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITOff = enabled; });
+
+  m_jit_loadstore_off = m_jit->addAction(tr("JIT LoadStore Off"));
+  m_jit_loadstore_off->setCheckable(true);
+  m_jit_loadstore_off->setChecked(SConfig::GetInstance().bJITLoadStoreOff);
+  connect(m_jit_loadstore_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITLoadStoreOff = enabled; });
+
+  m_jit_loadstore_lbzx_off = m_jit->addAction(tr("JIT LoadStore lbzx Off"));
+  m_jit_loadstore_lbzx_off->setCheckable(true);
+  m_jit_loadstore_lbzx_off->setChecked(SConfig::GetInstance().bJITLoadStorelbzxOff);
+  connect(m_jit_loadstore_lbzx_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITLoadStorelbzxOff = enabled; });
+
+  m_jit_loadstore_lxz_off = m_jit->addAction(tr("JIT LoadStore lXz Off"));
+  m_jit_loadstore_lxz_off->setCheckable(true);
+  m_jit_loadstore_lxz_off->setChecked(SConfig::GetInstance().bJITLoadStorelXzOff);
+  connect(m_jit_loadstore_lxz_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITLoadStorelXzOff = enabled; });
+
+  m_jit_loadstore_lwz_off = m_jit->addAction(tr("JIT LoadStore lwz Off"));
+  m_jit_loadstore_lwz_off->setCheckable(true);
+  m_jit_loadstore_lwz_off->setChecked(SConfig::GetInstance().bJITLoadStorelwzOff);
+  connect(m_jit_loadstore_lwz_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITLoadStorelwzOff = enabled; });
+
+  m_jit_loadstore_floating_off = m_jit->addAction(tr("JIT LoadStore Floating Off"));
+  m_jit_loadstore_floating_off->setCheckable(true);
+  m_jit_loadstore_floating_off->setChecked(SConfig::GetInstance().bJITLoadStoreFloatingOff);
+  connect(m_jit_loadstore_floating_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITLoadStoreFloatingOff = enabled; });
+
+  m_jit_loadstore_paired_off = m_jit->addAction(tr("JIT LoadStore Paired Off"));
+  m_jit_loadstore_paired_off->setCheckable(true);
+  m_jit_loadstore_paired_off->setChecked(SConfig::GetInstance().bJITLoadStorePairedOff);
+  connect(m_jit_loadstore_paired_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITLoadStorePairedOff = enabled; });
+
+  m_jit_floatingpoint_off = m_jit->addAction(tr("JIT FloatingPoint Off"));
+  m_jit_floatingpoint_off->setCheckable(true);
+  m_jit_floatingpoint_off->setChecked(SConfig::GetInstance().bJITFloatingPointOff);
+  connect(m_jit_floatingpoint_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITFloatingPointOff = enabled; });
+
+  m_jit_integer_off = m_jit->addAction(tr("JIT Integer Off"));
+  m_jit_integer_off->setCheckable(true);
+  m_jit_integer_off->setChecked(SConfig::GetInstance().bJITIntegerOff);
+  connect(m_jit_integer_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITIntegerOff = enabled; });
+
+  m_jit_paired_off = m_jit->addAction(tr("JIT Paired Off"));
+  m_jit_paired_off->setCheckable(true);
+  m_jit_paired_off->setChecked(SConfig::GetInstance().bJITPairedOff);
+  connect(m_jit_paired_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITPairedOff = enabled; });
+
+  m_jit_systemregisters_off = m_jit->addAction(tr("JIT SystemRegisters Off"));
+  m_jit_systemregisters_off->setCheckable(true);
+  m_jit_systemregisters_off->setChecked(SConfig::GetInstance().bJITSystemRegistersOff);
+  connect(m_jit_systemregisters_off, &QAction::toggled,
+          [](bool enabled) { SConfig::GetInstance().bJITSystemRegistersOff = enabled; });
 }
 
 void MenuBar::AddSymbolsMenu()
@@ -1040,4 +1172,38 @@ void MenuBar::CreateSignatureFile()
 void MenuBar::PatchHLEFunctions()
 {
   HLE::PatchFunctions();
+}
+
+void MenuBar::ClearCache()
+{
+  Core::RunAsCPUThread(JitInterface::ClearCache);
+}
+
+void MenuBar::LogInstructions()
+{
+  PPCTables::LogCompiledInstructions();
+}
+
+void MenuBar::SearchInstruction()
+{
+  bool good;
+  QString op = QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"),
+                                     QLineEdit::Normal, QStringLiteral(""), &good);
+
+  if (!good)
+    return;
+
+  bool found = false;
+  for (u32 addr = 0x80000000; addr < 0x81800000; addr += 4)
+  {
+    auto ins_name =
+        QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));
+    if (op == ins_name)
+    {
+      NOTICE_LOG(POWERPC, "Found %s at %08x", op.toStdString().c_str(), addr);
+      found = true;
+    }
+  }
+  if (!found)
+    NOTICE_LOG(POWERPC, "Opcode %s not found", op.toStdString().c_str());
 }

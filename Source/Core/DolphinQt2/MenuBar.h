@@ -123,6 +123,7 @@ private:
   void AddToolsMenu();
   void AddHelpMenu();
   void AddMovieMenu();
+  void AddJITMenu();
   void AddSymbolsMenu();
 
   void InstallWAD();
@@ -144,6 +145,9 @@ private:
   void SaveCode();
   void CreateSignatureFile();
   void PatchHLEFunctions();
+  void ClearCache();
+  void LogInstructions();
+  void SearchInstruction();
 
   void OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OnRecordingStatusChanged(bool recording);
@@ -204,7 +208,28 @@ private:
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
   QAction* m_show_memory;
+  QAction* m_show_jit;
+
+  // JIT
+  QMenu* m_jit;
 
   // Symbols
   QMenu* m_symbols;
+  QAction* m_jit_interpreter_core;
+  QAction* m_jit_block_linking;
+  QAction* m_jit_disable_cache;
+  QAction* m_jit_clear_cache;
+  QAction* m_jit_log_coverage;
+  QAction* m_jit_search_instruction;
+  QAction* m_jit_off;
+  QAction* m_jit_loadstore_off;
+  QAction* m_jit_loadstore_lbzx_off;
+  QAction* m_jit_loadstore_lxz_off;
+  QAction* m_jit_loadstore_lwz_off;
+  QAction* m_jit_loadstore_floating_off;
+  QAction* m_jit_loadstore_paired_off;
+  QAction* m_jit_floatingpoint_off;
+  QAction* m_jit_integer_off;
+  QAction* m_jit_paired_off;
+  QAction* m_jit_systemregisters_off;
 };

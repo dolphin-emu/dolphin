@@ -7,6 +7,8 @@
 #include <QDockWidget>
 #include <QString>
 
+#include "Common/CommonTypes.h"
+
 class CodeViewWidget;
 class QCloseEvent;
 class QLineEdit;
@@ -35,6 +37,7 @@ public:
   void Update();
 signals:
   void BreakpointsChanged();
+  void RequestPPCComparison(u32 addr);
 
 private:
   void CreateWidgets();

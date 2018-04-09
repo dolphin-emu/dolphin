@@ -250,7 +250,7 @@ void CodeViewWidget::OnContextMenu()
   AddAction(menu, tr("Run &To Here"), this, &CodeViewWidget::OnRunToHere);
   auto* function_action =
       AddAction(menu, tr("&Add function"), this, &CodeViewWidget::OnAddFunction);
-  auto* ppc_action = AddAction(menu, tr("PPC vs x86"), this, &CodeViewWidget::OnPPCComparison);
+  auto* ppc_action = AddAction(menu, tr("PPC vs Host"), this, &CodeViewWidget::OnPPCComparison);
   auto* insert_blr_action = AddAction(menu, tr("&Insert blr"), this, &CodeViewWidget::OnInsertBLR);
   auto* insert_nop_action = AddAction(menu, tr("Insert &nop"), this, &CodeViewWidget::OnInsertNOP);
   auto* replace_action =

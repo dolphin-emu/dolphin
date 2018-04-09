@@ -103,6 +103,8 @@ public:
   bool IsCodeVisible() const;
   void SetMemoryVisible(bool enabled);
   bool IsMemoryVisible() const;
+  void SetJITVisible(bool enabled);
+  bool IsJITVisible() const;
   QFont GetDebugFont() const;
   void SetDebugFont(QFont font);
 
@@ -136,6 +138,7 @@ signals:
   void BreakpointsVisibilityChanged(bool visible);
   void CodeVisibilityChanged(bool visible);
   void MemoryVisibilityChanged(bool visible);
+  void JITVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);

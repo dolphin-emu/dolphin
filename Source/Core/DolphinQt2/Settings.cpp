@@ -319,6 +319,20 @@ bool Settings::IsMemoryVisible() const
   return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
 
+void Settings::SetJITVisible(bool enabled)
+{
+  if (IsJITVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showjit"), enabled);
+
+  emit JITVisibilityChanged(enabled);
+}
+
+bool Settings::IsJITVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
+}
+
 void Settings::SetDebugFont(QFont font)
 {
   if (GetDebugFont() != font)
