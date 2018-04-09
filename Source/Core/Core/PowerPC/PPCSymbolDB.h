@@ -17,8 +17,6 @@
 class PPCSymbolDB : public SymbolDB
 {
 public:
-  typedef void (*functionGetterCallback)(Symbol* f);
-
   PPCSymbolDB();
   ~PPCSymbolDB();
 
