@@ -1179,6 +1179,7 @@ void GekkoDisassembler::ps(u32 inst)
       ill(inst);
     else
       dab(inst, "dcbz_l", 3, 0, 0, 0, 0);
+    return;
   }
 
   //	default:
