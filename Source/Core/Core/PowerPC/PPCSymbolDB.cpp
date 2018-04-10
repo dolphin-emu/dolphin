@@ -405,8 +405,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
   }
 
   Index();
-  if (bad)
-    SuccessAlertT("Loaded %d good functions, ignored %d bad functions.", good_count, bad_count);
+  NOTICE_LOG(SYMBOLS, "%d symbols loaded, %d symbols ignored.", good_count, bad_count);
   return true;
 }
 
