@@ -77,6 +77,11 @@ if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
   target_sources(inputcommon PRIVATE
     ControllerInterface/evdev/evdev.cpp
   )
+  target_include_directories(inputcommon
+  PRIVATE
+    ${LIBEVDEV_INCLUDE_DIR}
+    ${LIBUDEV_INCLUDE_DIR}
+  )
   target_link_libraries(inputcommon PUBLIC
     ${LIBEVDEV_LIBRARY}
     ${LIBUDEV_LIBRARY}
