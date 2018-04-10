@@ -270,7 +270,8 @@ HotkeyManager::HotkeyManager()
     groups.emplace_back(m_hotkey_groups[group]);
     for (int key = groups_info[group].first; key <= groups_info[group].last; key++)
     {
-      m_keys[group]->controls.emplace_back(new ControllerEmu::Input(true, hotkey_labels[key]));
+      m_keys[group]->controls.emplace_back(
+          new ControllerEmu::Input(ControllerEmu::Translate, hotkey_labels[key]));
     }
   }
 }

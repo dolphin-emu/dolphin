@@ -48,13 +48,17 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& turntable_button_name : turntable_button_names)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(true, turntable_button_name));
+  {
+    m_buttons->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, turntable_button_name));
+  }
 
-  m_buttons->controls.emplace_back(new ControllerEmu::Input(false, "-"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input(false, "+"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
 
   // i18n: This button name refers to a gameplay element in DJ Hero
-  m_buttons->controls.emplace_back(new ControllerEmu::Input(true, _trans("Euphoria")));
+  m_buttons->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Euphoria")));
 
   // turntables
   // i18n: "Table" refers to a turntable
@@ -69,7 +73,8 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
   // effect dial
   groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
-  m_effect_dial->controls.emplace_back(new ControllerEmu::Input(true, _trans("Dial")));
+  m_effect_dial->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Dial")));
 
   // crossfade
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));

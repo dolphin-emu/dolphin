@@ -53,9 +53,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   for (const char* named_button : named_buttons)
   {
     const bool is_start = named_button == std::string("Start");
+    const ControllerEmu::Translatability translate =
+        is_start ? ControllerEmu::Translate : ControllerEmu::DoNotTranslate;
     // i18n: The START/PAUSE button on GameCube controllers
     const std::string& ui_name = is_start ? _trans("START") : named_button;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(is_start, named_button, ui_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(translate, named_button, ui_name));
   }
 
   // sticks
@@ -67,20 +69,28 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* named_trigger : named_triggers)
-    m_triggers->controls.emplace_back(new ControllerEmu::Input(true, named_trigger));
+  {
+    m_triggers->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, named_trigger));
+  }
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(new ControllerEmu::Output(true, _trans("Motor")));
+  m_rumble->controls.emplace_back(
+      new ControllerEmu::Output(ControllerEmu::Translate, _trans("Motor")));
 
   // Microphone
   groups.emplace_back(m_mic = new ControllerEmu::Buttons(_trans("Microphone")));
-  m_mic->controls.emplace_back(new ControllerEmu::Input(true, _trans("Button")));
+  m_mic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Button")));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControllerEmu::Input(true, named_direction));
+  {
+    m_dpad->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
+  }
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));

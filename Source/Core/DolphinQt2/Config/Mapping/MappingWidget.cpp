@@ -82,8 +82,9 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
     button->setMinimumWidth(100);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    const QString translated_name = control->translate ? tr(control->ui_name.c_str()) :
-                                                         QString::fromStdString(control->ui_name);
+    const bool translate = control->translate == ControllerEmu::Translate;
+    const QString translated_name =
+        translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
     form_layout->addRow(translated_name, button);
 
     auto* control_ref = control->control_ref.get();

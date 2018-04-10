@@ -966,8 +966,9 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
   {
     const wxString control_ui_name = StrToWxStr(control->ui_name);
 
+    const bool translate = control->translate == ControllerEmu::Translate;
     wxStaticText* const label = new wxStaticText(
-        parent, wxID_ANY, control->translate ? wxGetTranslation(control_ui_name) : control_ui_name);
+        parent, wxID_ANY, translate ? wxGetTranslation(control_ui_name) : control_ui_name);
 
     ControlButton* const control_button =
         new ControlButton(parent, control->control_ref.get(), control->ui_name, 80);

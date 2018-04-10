@@ -10,8 +10,8 @@
 
 namespace ControllerEmu
 {
-Output::Output(bool translate, const std::string& name_)
-    : Control(std::make_unique<OutputReference>(), translate, name_)
+Output::Output(Translatability translate_, const std::string& name_)
+    : Control(std::make_unique<OutputReference>(), translate_, name_)
 {
 }
 }  // namespace ControllerEmu
