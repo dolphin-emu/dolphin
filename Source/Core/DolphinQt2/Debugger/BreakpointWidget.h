@@ -42,8 +42,13 @@ private:
   void OnLoad();
   void OnSave();
 
+  void UpdateIcons();
+
   QToolBar* m_toolbar;
   QTableWidget* m_table;
+  QAction* m_new;
+  QAction* m_delete;
+  QAction* m_clear;
   QAction* m_load;
   QAction* m_save;
 };

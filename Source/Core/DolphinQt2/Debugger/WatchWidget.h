@@ -42,6 +42,8 @@ private:
   void DeleteWatch(int row);
   void AddWatchBreakpoint(int row);
 
+  void UpdateIcons();
+
   QAction* m_load;
   QAction* m_save;
   QToolBar* m_toolbar;

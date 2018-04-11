@@ -28,6 +28,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
 constexpr size_t VALID_BRANCH_LENGTH = 10;
@@ -49,7 +50,6 @@ CodeViewWidget::CodeViewWidget()
   verticalHeader()->hide();
   horizontalHeader()->hide();
   horizontalHeader()->setStretchLastSection(true);
-  horizontalHeader()->resizeSection(0, 32);
 
   setFont(Settings::Instance().GetDebugFont());
 
@@ -61,6 +61,8 @@ CodeViewWidget::CodeViewWidget()
     m_address = PC;
     Update();
   });
+
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &CodeViewWidget::Update);
 }
 
 static u32 GetBranchFromAddress(u32 addr)
@@ -151,7 +153,8 @@ void CodeViewWidget::Update()
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
-      bp_item->setBackground(Qt::red);
+      bp_item->setData(Qt::DecorationRole,
+                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
     }
 
     setItem(i, 0, bp_item);
@@ -165,6 +168,8 @@ void CodeViewWidget::Update()
       addr_item->setSelected(true);
     }
   }
+
+  setColumnWidth(0, 24 + 5);
 
   g_symbolDB.FillInCallers();
 
