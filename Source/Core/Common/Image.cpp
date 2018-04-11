@@ -4,11 +4,14 @@
 
 #include "Common/Image.h"
 
+// Versions of libpng older than 1.5 want us to not include setjmp.h before png.h,
+// so let's include png.h first of all headers
+#include <png.h>
+
 #include <csetjmp>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
-#include <png.h>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -87,7 +90,8 @@ static void PNGErrorCallback(png_structp png, png_const_charp error_msg)
 bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width_out,
              u32* height_out)
 {
-  const bool is_png = !png_sig_cmp(input.data(), 0, input.size());
+  // The const_cast is only required for libpng versions older than 1.5
+  const bool is_png = !png_sig_cmp(const_cast<u8*>(input.data()), 0, input.size());
   if (!is_png)
     return false;
 
