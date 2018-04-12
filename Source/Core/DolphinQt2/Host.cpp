@@ -6,6 +6,7 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
+#include <QCursor>
 #include <QProgressDialog>
 
 #include "Common/Common.h"
@@ -55,10 +56,32 @@ void Host::SetRenderFullscreen(bool fullscreen)
   m_render_fullscreen = fullscreen;
 }
 
+void Host::MoveSurface(int x, int y)
+{
+  m_surface_x = x;
+  m_surface_y = y;
+}
+
 void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
     g_renderer->ResizeSurface(new_width, new_height);
+
+  m_surface_width = new_width;
+  m_surface_height = new_height;
+}
+
+double Host::GetCursorX() const
+{
+  auto x = (QCursor::pos().x() - m_surface_x - (m_surface_width / 2.)) / (m_surface_width);
+
+  return x * 2.5;
+}
+double Host::GetCursorY() const
+{
+  auto y = -(QCursor::pos().y() - m_surface_y - (m_surface_height / 2.)) / (m_surface_height / 2.) *
+           (m_surface_height / static_cast<double>(m_surface_width));
+  return y * 1.5;
 }
 
 void Host_Message(int id)
@@ -133,4 +156,14 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 }
 void Host_RefreshDSPDebuggerWindow()
 {
+}
+
+double Host_GetCursorX()
+{
+  return Host::GetInstance()->GetCursorX();
+}
+
+double Host_GetCursorY()
+{
+  return Host::GetInstance()->GetCursorY();
 }

@@ -139,6 +139,15 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
 }
 
+double Host_GetCursorX()
+{
+  return 0;
+}
+double Host_GetCursorY()
+{
+  return 0;
+}
+
 #if HAVE_X11
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>

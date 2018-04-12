@@ -525,3 +525,12 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
   event.SetExtraLong(total);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
+
+double Host_GetCursorX()
+{
+  return 0;
+}
+double Host_GetCursorY()
+{
+  return 0;
+}

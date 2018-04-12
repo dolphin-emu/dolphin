@@ -25,6 +25,7 @@ signals:
   void HandleChanged(void* handle);
   void StateChanged(bool fullscreen);
   void SizeChanged(int new_width, int new_height);
+  void PositionChanged(int new_x, int new_y);
 
 private:
   void HandleCursorTimer();
@@ -32,6 +33,7 @@ private:
   void OnKeepOnTopChanged(bool top);
   void SetFillBackground(bool fill);
 
+  bool m_grabbed = false;
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;
 };

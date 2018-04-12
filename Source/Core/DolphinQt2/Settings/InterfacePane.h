@@ -40,4 +40,6 @@ private:
   QCheckBox* m_checkbox_show_active_title;
   QCheckBox* m_checkbox_pause_on_focus_lost;
   QCheckBox* m_checkbox_hide_mouse;
+  QCheckBox* m_checkbox_grab_mouse;
+  QCheckBox* m_checkbox_relative_mouse;
 };

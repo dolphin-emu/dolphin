@@ -11,6 +11,8 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Host.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
@@ -93,8 +95,16 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
       m_y = yy;
     }
 
-    *x = m_x;
-    *y = m_y;
+    if (SConfig::GetInstance().bCursorRelativeToWindow)
+    {
+      *x = Host_GetCursorX();
+      *y = Host_GetCursorY();
+    }
+    else
+    {
+      *x = m_x;
+      *y = m_y;
+    }
   }
 }
 }  // namespace ControllerEmu

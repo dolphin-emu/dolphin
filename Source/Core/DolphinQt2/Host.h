@@ -7,6 +7,8 @@
 #include <QObject>
 #include <atomic>
 
+#include "Common/CommonTypes.h"
+
 // Singleton that talks to the Core via the interface defined in Core/Host.h.
 // Because Host_* calls might come from different threads than the MainWindow,
 // the Host class communicates with it via signals/slots only.
@@ -27,7 +29,10 @@ public:
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void ResizeSurface(int new_width, int new_height);
+  void MoveSurface(int x, int y);
 
+  double GetCursorX() const;
+  double GetCursorY() const;
 signals:
   void RequestTitle(const QString& title);
   void RequestStop();
@@ -40,4 +45,8 @@ private:
   std::atomic<void*> m_render_handle;
   std::atomic<bool> m_render_focus;
   std::atomic<bool> m_render_fullscreen;
+  std::atomic<u32> m_surface_x;
+  std::atomic<u32> m_surface_y;
+  std::atomic<u32> m_surface_width;
+  std::atomic<u32> m_surface_height;
 };

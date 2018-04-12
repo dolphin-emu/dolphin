@@ -37,5 +37,8 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name);
 void Host_YieldToUI();
 void Host_UpdateProgressDialog(const char* caption, int position, int total);
 
+double Host_GetCursorX();
+double Host_GetCursorY();
+
 // TODO (neobrain): Remove this from host!
 void* Host_GetRenderHandle();

@@ -133,6 +133,8 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
+  bool bGrabCursor = false;
+  bool bCursorRelativeToWindow = false;
   bool bUsePanicHandlers = true;
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;

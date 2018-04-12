@@ -42,6 +42,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           Qt::DirectConnection);
   connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
           Qt::DirectConnection);
+  connect(this, &RenderWidget::PositionChanged, Host::GetInstance(), &Host::MoveSurface,
+          Qt::DirectConnection);
 
   emit HandleChanged((void*)winId());
 
@@ -112,6 +114,12 @@ bool RenderWidget::event(QEvent* event)
     if (ke->key() == Qt::Key_Escape)
       emit EscapePressed();
 
+    if (ke->key() == Qt::Key_Alt)
+    {
+      releaseMouse();
+      m_grabbed = false;
+    }
+
     // The render window might flicker on some platforms because Qt tries to change focus to a new
     // element when there is none (?) Handling this event before it reaches QWidget fixes the issue.
     if (ke->key() == Qt::Key_Tab)
@@ -119,12 +127,24 @@ bool RenderWidget::event(QEvent* event)
 
     break;
   }
-  case QEvent::MouseMove:
   case QEvent::MouseButtonPress:
+    if (SConfig::GetInstance().bGrabCursor)
+    {
+      grabMouse();
+      m_grabbed = true;
+    }
+  case QEvent::MouseMove:
     if (!Settings::Instance().GetHideCursor() && isActiveWindow())
     {
       setCursor(Qt::ArrowCursor);
       m_mouse_timer->start(MOUSE_HIDE_DELAY);
+    }
+    if (SConfig::GetInstance().bGrabCursor && m_grabbed)
+    {
+      const auto win = geometry();
+      int new_x = std::min(std::max(QCursor::pos().x(), win.x()), win.x() + win.width());
+      int new_y = std::min(std::max(QCursor::pos().y(), win.y()), win.y() + win.height());
+      QCursor::setPos(new_x, new_y);
     }
     break;
   case QEvent::WinIdChange:
@@ -139,6 +159,9 @@ bool RenderWidget::event(QEvent* event)
     Host::GetInstance()->SetRenderFocus(false);
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
       Core::SetState(Core::State::Paused);
+    break;
+  case QEvent::Move:
+    emit PositionChanged(x(), y());
     break;
   case QEvent::Resize:
   {
