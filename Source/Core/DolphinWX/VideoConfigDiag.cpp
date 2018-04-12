@@ -328,8 +328,9 @@ static wxString shader_compile_before_start_desc =
                 "queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
 
 VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
-    : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
-                                                  wxGetTranslation(StrToWxStr(title)))),
+    : wxDialog(parent, wxID_ANY,
+               wxString::Format(_("Dolphin %s Graphics Configuration"),
+                                wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
   // We don't need to load the config if the core is running, since it would have been done

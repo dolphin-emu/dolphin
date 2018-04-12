@@ -81,13 +81,30 @@ std::string VertexLoaderBase::ToString() const
   dest += ": ";
 
   static constexpr std::array<const char*, 4> pos_mode{{
-      "Inv", "Dir", "I8", "I16",
+      "Inv",
+      "Dir",
+      "I8",
+      "I16",
   }};
   static constexpr std::array<const char*, 8> pos_formats{{
-      "u8", "s8", "u16", "s16", "flt", "Inv", "Inv", "Inv",
+      "u8",
+      "s8",
+      "u16",
+      "s16",
+      "flt",
+      "Inv",
+      "Inv",
+      "Inv",
   }};
   static constexpr std::array<const char*, 8> color_format{{
-      "565", "888", "888x", "4444", "6666", "8888", "Inv", "Inv",
+      "565",
+      "888",
+      "888x",
+      "4444",
+      "6666",
+      "8888",
+      "Inv",
+      "Inv",
   }};
 
   dest += StringFromFormat("%ib skin: %i P: %i %s-%s ", m_VertexSize, (u32)m_VtxDesc.PosMatIdx,
@@ -174,8 +191,9 @@ public:
 
     if (memcmp(buffer_a.data(), buffer_b.data(),
                std::min(count_a, count_b) * m_native_vtx_decl.stride))
-      ERROR_LOG(VIDEO, "The two vertex loaders have loaded different data "
-                       "(guru meditation 0x%016" PRIx64 ", 0x%08x, 0x%08x, 0x%08x).",
+      ERROR_LOG(VIDEO,
+                "The two vertex loaders have loaded different data "
+                "(guru meditation 0x%016" PRIx64 ", 0x%08x, 0x%08x, 0x%08x).",
                 m_VtxDesc.Hex, m_vat.g0.Hex, m_vat.g1.Hex, m_vat.g2.Hex);
 
     memcpy(dst.GetPointer(), buffer_a.data(), count_a * m_native_vtx_decl.stride);
@@ -184,6 +202,7 @@ public:
   }
   std::string GetName() const override { return "CompareLoader"; }
   bool IsInitialized() override { return m_initialized; }
+
 private:
   bool m_initialized;
 
@@ -199,7 +218,7 @@ std::unique_ptr<VertexLoaderBase> VertexLoaderBase::CreateVertexLoader(const TVt
 {
   std::unique_ptr<VertexLoaderBase> loader;
 
-//#define COMPARE_VERTEXLOADERS
+  //#define COMPARE_VERTEXLOADERS
 
 #if defined(COMPARE_VERTEXLOADERS) && defined(_M_X86_64)
   // first try: Any new VertexLoader vs the old one

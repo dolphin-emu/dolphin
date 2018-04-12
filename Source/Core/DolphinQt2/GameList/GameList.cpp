@@ -291,8 +291,9 @@ void GameList::CompressISO()
   }
 
   QString dst_path = QFileDialog::getSaveFileName(
-      this, compressed ? tr("Select where you want to save the decompressed image") :
-                         tr("Select where you want to save the compressed image"),
+      this,
+      compressed ? tr("Select where you want to save the decompressed image") :
+                   tr("Select where you want to save the compressed image"),
       QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
           .dir()
           .absoluteFilePath(QString::fromStdString(file->GetGameID()))

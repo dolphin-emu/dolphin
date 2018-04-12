@@ -552,7 +552,8 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   present_queue_info.pQueuePriorities = queue_priorities;
 
   std::array<VkDeviceQueueCreateInfo, 2> queue_infos = {{
-      graphics_queue_info, present_queue_info,
+      graphics_queue_info,
+      present_queue_info,
   }};
 
   device_info.queueCreateInfoCount = 1;

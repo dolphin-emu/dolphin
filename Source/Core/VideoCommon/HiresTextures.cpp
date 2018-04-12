@@ -379,16 +379,18 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   const Level& first_mip = ret->m_levels[0];
   if (first_mip.width * height != first_mip.height * width)
   {
-    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
-                     "from the native size %ux%u.",
+    ERROR_LOG(VIDEO,
+              "Invalid custom texture size %ux%u for texture %s. The aspect differs "
+              "from the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
   if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
   {
-    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
-                     "upscaling factor based on the native size %ux%u.",
+    ERROR_LOG(VIDEO,
+              "Invalid custom texture size %ux%u for texture %s. Please use an integer "
+              "upscaling factor based on the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 

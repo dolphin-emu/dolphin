@@ -318,6 +318,7 @@ struct ARMBinary final
   u32 GetHeaderSize() const { return Common::swap32(m_bytes.data()); }
   u32 GetElfOffset() const { return Common::swap32(m_bytes.data() + 0x4); }
   u32 GetElfSize() const { return Common::swap32(m_bytes.data() + 0x8); }
+
 private:
   std::vector<u8> m_bytes;
 };

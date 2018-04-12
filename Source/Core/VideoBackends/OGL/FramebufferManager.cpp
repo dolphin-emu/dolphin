@@ -263,11 +263,13 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
                 "vec4 sampleEFB(ivec3 pos) {\n"
                 "	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
                 "	for(int i=0; i<" +
-                samples.str() + "; i++)\n"
-                                "		color += texelFetch(samp9, pos, i);\n"
-                                "	return color / " +
-                samples.str() + ";\n"
-                                "}\n";
+                samples.str() +
+                "; i++)\n"
+                "		color += texelFetch(samp9, pos, i);\n"
+                "	return color / " +
+                samples.str() +
+                ";\n"
+                "}\n";
     }
     else
     {
@@ -275,11 +277,13 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
                 "vec4 sampleEFB(ivec3 pos) {\n"
                 "	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
                 "	for(int i=0; i<" +
-                samples.str() + "; i++)\n"
-                                "		color += texelFetch(samp9, pos.xy, i);\n"
-                                "	return color / " +
-                samples.str() + ";\n"
-                                "}\n";
+                samples.str() +
+                "; i++)\n"
+                "		color += texelFetch(samp9, pos.xy, i);\n"
+                "	return color / " +
+                samples.str() +
+                ";\n"
+                "}\n";
     }
   }
 
@@ -316,21 +320,23 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   layers << m_EFBLayers;
   std::string gs = "layout(triangles) in;\n"
                    "layout(triangle_strip, max_vertices = " +
-                   vertices.str() + ") out;\n"
-                                    "flat out int layer;\n"
-                                    "void main()\n"
-                                    "{\n"
-                                    "	for (int j = 0; j < " +
-                   layers.str() + "; ++j) {\n"
-                                  "		for (int i = 0; i < 3; ++i) {\n"
-                                  "			layer = j;\n"
-                                  "			gl_Layer = j;\n"
-                                  "			gl_Position = gl_in[i].gl_Position;\n"
-                                  "			EmitVertex();\n"
-                                  "		}\n"
-                                  "		EndPrimitive();\n"
-                                  "	}\n"
-                                  "}\n";
+                   vertices.str() +
+                   ") out;\n"
+                   "flat out int layer;\n"
+                   "void main()\n"
+                   "{\n"
+                   "	for (int j = 0; j < " +
+                   layers.str() +
+                   "; ++j) {\n"
+                   "		for (int i = 0; i < 3; ++i) {\n"
+                   "			layer = j;\n"
+                   "			gl_Layer = j;\n"
+                   "			gl_Position = gl_in[i].gl_Position;\n"
+                   "			EmitVertex();\n"
+                   "		}\n"
+                   "		EndPrimitive();\n"
+                   "	}\n"
+                   "}\n";
 
   ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6,
                                     (m_EFBLayers > 1) ? gs : "");

@@ -69,6 +69,7 @@ public:
   Section(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
   iterator begin() const { return m_begin; }
   iterator end() const { return m_end; }
+
 private:
   iterator m_begin;
   iterator m_end;
@@ -81,6 +82,7 @@ public:
   ConstSection(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
   iterator begin() const { return m_begin; }
   iterator end() const { return m_end; }
+
 private:
   iterator m_begin;
   iterator m_end;

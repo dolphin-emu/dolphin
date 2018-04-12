@@ -256,9 +256,10 @@ void CISOProperties::CreateGUIControls()
                     _("Info"));
 
   // GameConfig editing - Overrides and emulation state
-  wxStaticText* const OverrideText = new wxStaticText(
-      m_GameConfig, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined "
-                                "means the game uses Dolphin's setting."));
+  wxStaticText* const OverrideText =
+      new wxStaticText(m_GameConfig, wxID_ANY,
+                       _("These settings override core Dolphin settings.\nUndetermined "
+                         "means the game uses Dolphin's setting."));
 
   // Core
   m_cpu_thread =

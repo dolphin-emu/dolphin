@@ -67,6 +67,7 @@ public:
 
 protected:
   u32 GetOffsetShift() const override { return 2; }
+
 private:
   struct PartitionDetails
   {

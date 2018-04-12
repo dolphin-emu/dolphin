@@ -680,6 +680,7 @@ void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, u32 prior
     }
 
     void Retrieve() override { shader_cache->InsertVertexShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;
@@ -708,6 +709,7 @@ void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid
     }
 
     void Retrieve() override { shader_cache->InsertVertexUberShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;
@@ -736,6 +738,7 @@ void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priorit
     }
 
     void Retrieve() override { shader_cache->InsertPixelShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;
@@ -764,6 +767,7 @@ void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& 
     }
 
     void Retrieve() override { shader_cache->InsertPixelUberShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;

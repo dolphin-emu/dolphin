@@ -23,25 +23,54 @@ constexpr std::array<u8, 6> classic_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x01}};
 
 // Classic Controller calibration
 constexpr std::array<u8, 0x10> classic_calibration{{
-    0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0x00, 0x00, 0x51, 0xa6,
+    0xff,
+    0x00,
+    0x80,
+    0xff,
+    0x00,
+    0x80,
+    0xff,
+    0x00,
+    0x80,
+    0xff,
+    0x00,
+    0x80,
+    0x00,
+    0x00,
+    0x51,
+    0xa6,
 }};
 
 constexpr std::array<u16, 9> classic_button_bitmasks{{
-    Classic::BUTTON_A, Classic::BUTTON_B, Classic::BUTTON_X, Classic::BUTTON_Y,
+    Classic::BUTTON_A,
+    Classic::BUTTON_B,
+    Classic::BUTTON_X,
+    Classic::BUTTON_Y,
 
-    Classic::BUTTON_ZL, Classic::BUTTON_ZR,
+    Classic::BUTTON_ZL,
+    Classic::BUTTON_ZR,
 
-    Classic::BUTTON_MINUS, Classic::BUTTON_PLUS,
+    Classic::BUTTON_MINUS,
+    Classic::BUTTON_PLUS,
 
     Classic::BUTTON_HOME,
 }};
 
 constexpr std::array<const char*, 9> classic_button_names{{
-    "A", "B", "X", "Y", "ZL", "ZR", "-", "+", "Home",
+    "A",
+    "B",
+    "X",
+    "Y",
+    "ZL",
+    "ZR",
+    "-",
+    "+",
+    "Home",
 }};
 
 constexpr std::array<u16, 2> classic_trigger_bitmasks{{
-    Classic::TRIGGER_L, Classic::TRIGGER_R,
+    Classic::TRIGGER_L,
+    Classic::TRIGGER_R,
 }};
 
 constexpr std::array<const char*, 4> classic_trigger_names{{
@@ -56,7 +85,10 @@ constexpr std::array<const char*, 4> classic_trigger_names{{
 }};
 
 constexpr std::array<u16, 4> classic_dpad_bitmasks{{
-    Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT,
+    Classic::PAD_UP,
+    Classic::PAD_DOWN,
+    Classic::PAD_LEFT,
+    Classic::PAD_RIGHT,
 }};
 
 Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)

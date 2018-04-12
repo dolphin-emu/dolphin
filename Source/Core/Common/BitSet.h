@@ -164,6 +164,7 @@ public:
     constexpr int operator*() const { return m_bit; }
     constexpr bool operator==(Iterator other) const { return m_bit == other.m_bit; }
     constexpr bool operator!=(Iterator other) const { return m_bit != other.m_bit; }
+
   private:
     IntTy m_val;
     int m_bit;

@@ -184,7 +184,8 @@ static void InitializeCPUCore(int cpu_core)
 const std::vector<CPUCore>& AvailableCPUCores()
 {
   static const std::vector<CPUCore> cpu_cores = {
-      CORE_INTERPRETER, CORE_CACHEDINTERPRETER,
+      CORE_INTERPRETER,
+      CORE_CACHEDINTERPRETER,
 #ifdef _M_X86_64
       CORE_JIT64,
 #elif defined(_M_ARM_64)

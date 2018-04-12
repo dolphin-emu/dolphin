@@ -621,16 +621,16 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 MTU, u16 FlushTimeOut
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, Offset, Buffer);
 }
 
-//
-//
-//
-//
-// ---  SDP
-//
-//
-//
-//
-//
+  //
+  //
+  //
+  //
+  // ---  SDP
+  //
+  //
+  //
+  //
+  //
 
 #define SDP_UINT8 0x08
 #define SDP_UINT16 0x09

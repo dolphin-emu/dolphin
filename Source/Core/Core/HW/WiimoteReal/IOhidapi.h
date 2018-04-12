@@ -17,6 +17,7 @@ public:
   explicit WiimoteHidapi(const std::string& device_path);
   ~WiimoteHidapi() override;
   std::string GetId() const override { return m_device_path; }
+
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;

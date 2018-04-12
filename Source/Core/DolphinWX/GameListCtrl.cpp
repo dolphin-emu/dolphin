@@ -1126,8 +1126,9 @@ void GameListCtrl::CompressSelection(bool _compress)
     wxProgressDialog progressDialog(
         _compress ? _("Compressing ISO") : _("Decompressing ISO"), _("Working..."),
         1000,  // Arbitrary number that's larger than the dialog's width in pixels
-        this, wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
-                  wxPD_REMAINING_TIME | wxPD_SMOOTH);
+        this,
+        wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
+            wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
     CompressionProgress progress(0, items_to_compress.size(), "", &progressDialog);
 

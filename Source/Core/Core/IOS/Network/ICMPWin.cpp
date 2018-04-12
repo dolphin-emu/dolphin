@@ -31,13 +31,13 @@ struct icmp_hdr
 static u8 workspace[56];
 
 /*
-* Description:
-* Calculate Internet checksum for data buffer and length (one's
-* complement sum of 16-bit words). Used in IP, ICMP, UDP, IGMP.
-*
-* NOTE: to handle odd number of bytes, last (even) byte in
-* buffer have a value of 0 (we assume that it does)
-*/
+ * Description:
+ * Calculate Internet checksum for data buffer and length (one's
+ * complement sum of 16-bit words). Used in IP, ICMP, UDP, IGMP.
+ *
+ * NOTE: to handle odd number of bytes, last (even) byte in
+ * buffer have a value of 0 (we assume that it does)
+ */
 u16 cksum(const u16* buffer, int length)
 {
   u32 sum = 0;

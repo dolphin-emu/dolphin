@@ -23,14 +23,26 @@ namespace WiimoteEmu
 constexpr std::array<u8, 6> turntable_id{{0x03, 0x00, 0xa4, 0x20, 0x01, 0x03}};
 
 constexpr std::array<u16, 9> turntable_button_bitmasks{{
-    Turntable::BUTTON_L_GREEN, Turntable::BUTTON_L_RED, Turntable::BUTTON_L_BLUE,
-    Turntable::BUTTON_R_GREEN, Turntable::BUTTON_R_RED, Turntable::BUTTON_R_BLUE,
-    Turntable::BUTTON_MINUS, Turntable::BUTTON_PLUS, Turntable::BUTTON_EUPHORIA,
+    Turntable::BUTTON_L_GREEN,
+    Turntable::BUTTON_L_RED,
+    Turntable::BUTTON_L_BLUE,
+    Turntable::BUTTON_R_GREEN,
+    Turntable::BUTTON_R_RED,
+    Turntable::BUTTON_R_BLUE,
+    Turntable::BUTTON_MINUS,
+    Turntable::BUTTON_PLUS,
+    Turntable::BUTTON_EUPHORIA,
 }};
 
 constexpr std::array<const char*, 9> turntable_button_names{{
-    _trans("Green Left"), _trans("Red Left"), _trans("Blue Left"), _trans("Green Right"),
-    _trans("Red Right"), _trans("Blue Right"), "-", "+",
+    _trans("Green Left"),
+    _trans("Red Left"),
+    _trans("Blue Left"),
+    _trans("Green Right"),
+    _trans("Red Right"),
+    _trans("Blue Right"),
+    "-",
+    "+",
     // i18n: This button name refers to a gameplay element in DJ Hero
     _trans("Euphoria"),
 }};

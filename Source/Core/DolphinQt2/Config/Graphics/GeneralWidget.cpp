@@ -109,7 +109,9 @@ void GeneralWidget::CreateWidgets()
   auto* shader_compilation_layout = new QGridLayout();
 
   const std::array<const char*, 4> modes = {{
-      "Synchronous", "Synchronous (Ubershaders)", "Asynchronous (Ubershaders)",
+      "Synchronous",
+      "Synchronous (Ubershaders)",
+      "Asynchronous (Ubershaders)",
       "Asynchronous (Skip Drawing)",
   }};
   for (size_t i = 0; i < modes.size(); i++)

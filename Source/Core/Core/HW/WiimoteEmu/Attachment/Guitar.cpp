@@ -36,20 +36,29 @@ static const std::map<const ControlState, const u8> s_slider_bar_control_codes{
 constexpr std::array<u8, 6> guitar_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x03}};
 
 constexpr std::array<u16, 5> guitar_fret_bitmasks{{
-    Guitar::FRET_GREEN, Guitar::FRET_RED, Guitar::FRET_YELLOW, Guitar::FRET_BLUE,
+    Guitar::FRET_GREEN,
+    Guitar::FRET_RED,
+    Guitar::FRET_YELLOW,
+    Guitar::FRET_BLUE,
     Guitar::FRET_ORANGE,
 }};
 
 constexpr std::array<const char*, 5> guitar_fret_names{{
-    _trans("Green"), _trans("Red"), _trans("Yellow"), _trans("Blue"), _trans("Orange"),
+    _trans("Green"),
+    _trans("Red"),
+    _trans("Yellow"),
+    _trans("Blue"),
+    _trans("Orange"),
 }};
 
 constexpr std::array<u16, 2> guitar_button_bitmasks{{
-    Guitar::BUTTON_MINUS, Guitar::BUTTON_PLUS,
+    Guitar::BUTTON_MINUS,
+    Guitar::BUTTON_PLUS,
 }};
 
 constexpr std::array<u16, 2> guitar_strum_bitmasks{{
-    Guitar::BAR_UP, Guitar::BAR_DOWN,
+    Guitar::BAR_UP,
+    Guitar::BAR_DOWN,
 }};
 
 Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)

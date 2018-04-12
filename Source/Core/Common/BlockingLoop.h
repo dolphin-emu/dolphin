@@ -230,6 +230,7 @@ public:
   // This function should be triggered regularly over time so
   // that we will fall back from the busy loop to sleeping.
   void AllowSleep() { m_may_sleep.Set(); }
+
 private:
   std::mutex m_wait_lock;
   std::mutex m_prepare_lock;

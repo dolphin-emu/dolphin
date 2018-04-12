@@ -65,6 +65,7 @@ public:
     // pointers, but will not invalidate copies of the iterator or file info object.
     const FileInfo& operator*() const { return *m_file_info.get(); }
     const FileInfo* operator->() const { return m_file_info.get(); }
+
   private:
     std::unique_ptr<FileInfo> m_file_info;
   };

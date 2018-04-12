@@ -1194,7 +1194,10 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
 
   const char* tevLerpBias[] =  // indexed by 2*op+(shift==3)
       {
-          "", " + 128", "", " + 127",
+          "",
+          " + 128",
+          "",
+          " + 127",
       };
 
   const char* tevBiasTable[] = {

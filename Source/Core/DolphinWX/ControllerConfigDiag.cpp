@@ -354,9 +354,9 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
                                      wxDLG_UNIT(this, wxSize(60, -1)));
   m_refresh_wm_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnWiimoteRefreshButton, this);
 
-  m_unsupported_bt_text =
-      new wxStaticText(this, wxID_ANY, _("A supported Bluetooth device could not be found,\n"
-                                         "so you must connect Wii Remotes manually."));
+  m_unsupported_bt_text = new wxStaticText(this, wxID_ANY,
+                                           _("A supported Bluetooth device could not be found,\n"
+                                             "so you must connect Wii Remotes manually."));
   m_unsupported_bt_text->Show(!WiimoteReal::g_wiimote_scanner.IsReady());
 
   // Balance Board
@@ -481,8 +481,9 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   else if (device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER)
   {
     GCAdapterConfigDiag config_diag(
-        this, wxString::Format(_("Wii U GameCube Controller Adapter Configuration Port %i"),
-                               port_num + 1),
+        this,
+        wxString::Format(_("Wii U GameCube Controller Adapter Configuration Port %i"),
+                         port_num + 1),
         port_num);
     config_diag.ShowModal();
   }

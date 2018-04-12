@@ -405,6 +405,7 @@ class Parser
 public:
   explicit Parser(std::vector<Token> tokens_) : tokens(tokens_) { m_it = tokens.begin(); }
   ParseResult Parse() { return Toplevel(); }
+
 private:
   std::vector<Token> tokens;
   std::vector<Token>::iterator m_it;

@@ -573,8 +573,10 @@ private:
           auto x = j * 2;
           auto y = i * 2;
           const std::array<PixelRGBAf, 4> samples{{
-              Sample(src, src_shape, x, y), Sample(src, src_shape, x + 1, y),
-              Sample(src, src_shape, x, y + 1), Sample(src, src_shape, x + 1, y + 1),
+              Sample(src, src_shape, x, y),
+              Sample(src, src_shape, x + 1, y),
+              Sample(src, src_shape, x, y + 1),
+              Sample(src, src_shape, x + 1, y + 1),
           }};
 
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;

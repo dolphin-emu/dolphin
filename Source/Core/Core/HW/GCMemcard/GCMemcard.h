@@ -81,6 +81,7 @@ public:
   virtual void DoState(PointerWrap& p) = 0;
   u32 GetCardId() const { return m_nintendo_card_id; }
   bool IsAddressInBounds(u32 address) const { return address <= (m_memory_card_size - 1); }
+
 protected:
   int m_card_index;
   u16 m_nintendo_card_id;

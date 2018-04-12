@@ -61,7 +61,8 @@ static UVIBorderBlankRegister m_BorderHBlank;
 static u32 s_target_refresh_rate = 0;
 
 static constexpr std::array<u32, 2> s_clock_freqs{{
-    27000000, 54000000,
+    27000000,
+    54000000,
 }};
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
@@ -323,10 +324,9 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       }));
   mmio->Register(
       base | VI_HORIZONTAL_BEAM_POSITION, MMIO::ComplexRead<u16>([](u32) {
-        u16 value =
-            static_cast<u16>(1 +
-                             m_HTiming0.HLW * (CoreTiming::GetTicks() - s_ticks_last_line_start) /
-                                 (GetTicksPerHalfLine()));
+        u16 value = static_cast<u16>(1 + m_HTiming0.HLW *
+                                             (CoreTiming::GetTicks() - s_ticks_last_line_start) /
+                                             (GetTicksPerHalfLine()));
         return MathUtil::Clamp(value, static_cast<u16>(1), static_cast<u16>(m_HTiming0.HLW * 2));
       }),
       MMIO::ComplexWrite<u16>([](u32, u16 val) {
@@ -644,13 +644,15 @@ static void LogField(FieldType field, u32 xfb_address)
   static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
 
   static const std::array<const UVIVBlankTimingRegister*, 2> vert_timing{{
-      &m_VBlankTimingOdd, &m_VBlankTimingEven,
+      &m_VBlankTimingOdd,
+      &m_VBlankTimingEven,
   }};
 
   const auto field_index = static_cast<size_t>(field);
 
-  DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
-                            "ACV %u | PSB %u | Field %s",
+  DEBUG_LOG(VIDEOINTERFACE,
+            "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
+            "ACV %u | PSB %u | Field %s",
             xfb_address, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
             m_VerticalTimingRegister.EQU, vert_timing[field_index]->PRB,
             m_VerticalTimingRegister.ACV, vert_timing[field_index]->PSB,

@@ -24,7 +24,8 @@ namespace WiimoteEmu
 constexpr std::array<u8, 6> nunchuk_id{{0x00, 0x00, 0xa4, 0x20, 0x00, 0x00}};
 
 constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
-    Nunchuk::BUTTON_C, Nunchuk::BUTTON_Z,
+    Nunchuk::BUTTON_C,
+    Nunchuk::BUTTON_Z,
 }};
 
 Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)

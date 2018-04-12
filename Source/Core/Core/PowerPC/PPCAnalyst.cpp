@@ -433,8 +433,9 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   else
     unniceSize /= numUnNice;
 
-  INFO_LOG(SYMBOLS, "Functions analyzed. %i leafs, %i nice, %i unnice."
-                    "%i timer, %i rfi. %i are branchless leafs.",
+  INFO_LOG(SYMBOLS,
+           "Functions analyzed. %i leafs, %i nice, %i unnice."
+           "%i timer, %i rfi. %i are branchless leafs.",
            numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
   INFO_LOG(SYMBOLS, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize,
            unniceSize);
@@ -798,8 +799,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
         // bcx with conditional branch
         conditional_continue = true;
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
-                                                         (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+               ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
+                (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
       {
         // bclrx with conditional branch
         conditional_continue = true;

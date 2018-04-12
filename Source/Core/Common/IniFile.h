@@ -76,6 +76,7 @@ public:
     const std::string& GetName() const { return name; }
     const SectionMap& GetValues() const { return values; }
     bool HasLines() const { return !m_lines.empty(); }
+
   protected:
     std::string name;
 
@@ -142,6 +143,7 @@ public:
   static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
 
   const std::list<Section>& GetSections() const { return sections; }
+
 private:
   std::list<Section> sections;
 

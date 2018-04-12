@@ -77,6 +77,7 @@ public:
   const std::vector<std::string>& PerspectiveNames() const { return m_perspective_names; }
   int ActivePerspective() const { return m_active_perspective; }
   wxEvent* Clone() const override { return new PopulatePerspectivesEvent(*this); }
+
 private:
   std::vector<std::string> m_perspective_names;
   int m_active_perspective{};

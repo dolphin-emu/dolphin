@@ -155,9 +155,10 @@ void BreakpointWidget::Update()
 
     if (mbp.is_ranged)
     {
-      m_table->setItem(i, 3, create_item(QStringLiteral("%1 - %2")
-                                             .arg(mbp.start_address, 8, 16, QLatin1Char('0'))
-                                             .arg(mbp.end_address, 8, 16, QLatin1Char('0'))));
+      m_table->setItem(i, 3,
+                       create_item(QStringLiteral("%1 - %2")
+                                       .arg(mbp.start_address, 8, 16, QLatin1Char('0'))
+                                       .arg(mbp.end_address, 8, 16, QLatin1Char('0'))));
     }
     else
     {

@@ -30,6 +30,7 @@ public:
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
   virtual void TriggerSyncButtonHeldEvent() {}
+
 protected:
   static constexpr int ACL_PKT_SIZE = 339;
   static constexpr int ACL_PKT_NUM = 10;
