@@ -220,6 +220,8 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
   s_backbuffer_height = theight;
 
   const DWORD stereo_flag = stereo ? PFD_STEREO : 0;
+
+  // clang-format off
   static const PIXELFORMATDESCRIPTOR pfd = {
       sizeof(PIXELFORMATDESCRIPTOR),  // Size Of This Pixel Format Descriptor
       1,                              // Version Number
@@ -230,27 +232,19 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
       PFD_TYPE_RGBA,                  // Request An RGBA Format
       32,                             // Select Our Color Depth
       0,
-      0,
-      0,
-      0,
-      0,
-      0,  // Color Bits Ignored
-      0,  // 8bit Alpha Buffer
-      0,  // Shift Bit Ignored
-      0,  // No Accumulation Buffer
-      0,
-      0,
-      0,
-      0,               // Accumulation Bits Ignored
+      0, 0, 0, 0, 0,   // Color Bits Ignored
+      0,               // 8bit Alpha Buffer
+      0,               // Shift Bit Ignored
+      0,               // No Accumulation Buffer
+      0, 0, 0, 0,      // Accumulation Bits Ignored
       0,               // 0Bit Z-Buffer (Depth Buffer)
       0,               // 0bit Stencil Buffer
       0,               // No Auxiliary Buffer
       PFD_MAIN_PLANE,  // Main Drawing Layer
       0,               // Reserved
-      0,
-      0,
-      0  // Layer Masks Ignored
+      0, 0, 0          // Layer Masks Ignored
   };
+  // clang-format on
 
   m_dc = GetDC(m_window_handle);
   if (!m_dc)
