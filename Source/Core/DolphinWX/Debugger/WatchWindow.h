@@ -8,6 +8,7 @@
 #include <wx/panel.h>
 
 class CWatchView;
+class CWatchToolbar;
 
 class CWatchWindow : public wxPanel
 {
@@ -24,8 +25,10 @@ public:
   void SaveAll();
   void Event_LoadAll(wxCommandEvent& WXUNUSED(event));
   void LoadAll();
+  void ReloadBitmaps();
 
 private:
+  CWatchToolbar* m_watch_toolbar;
   wxAuiManager m_mgr;
 
   // Owned by wx. Deleted implicitly upon destruction.

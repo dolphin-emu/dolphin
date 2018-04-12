@@ -1107,6 +1107,12 @@ void CFrame::OnReloadThemeBitmaps(wxCommandEvent& WXUNUSED(event))
   reload_event.SetEventObject(this);
   wxPostEvent(GetToolBar(), reload_event);
 
+  if (m_code_window)
+  {
+    wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_RELOAD_THEME_BITMAPS);
+    m_code_window->GetEventHandler()->AddPendingEvent(evt);
+  }
+
   GameListRefresh();
 }
 
