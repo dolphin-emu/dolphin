@@ -307,7 +307,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 #ifdef _WIN32
                                           ":"
 #endif
-                                          );
+  );
   if (std::string::npos == dir_end)
     dir_end = 0;
   else

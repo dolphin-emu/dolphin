@@ -53,6 +53,7 @@ auto const PI = TAU / 2.0;
 
 namespace WiimoteEmu
 {
+// clang-format off
 static const u8 eeprom_data_0[] = {
     // IR, maybe more
     // assuming last 2 bytes are checksum
@@ -64,6 +65,7 @@ static const u8 eeprom_data_0[] = {
     ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0xA3,
     ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0xA3,
 };
+// clang-format on
 
 static const u8 motion_plus_id[] = {0x00, 0x00, 0xA6, 0x20, 0x00, 0x05};
 

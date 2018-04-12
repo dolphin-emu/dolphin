@@ -244,8 +244,9 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   //       complex down filtering to average all pixels and produce the correct result.
   bool linear_filter =
       (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 || params.y_scale > 1.0f;
-  draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
-                                                    g_object_cache->GetPointSampler());
+  draw.SetPSSampler(0, src_texture,
+                    linear_filter ? g_object_cache->GetLinearSampler() :
+                                    g_object_cache->GetPointSampler());
 
   u32 render_width = bytes_per_row / sizeof(u32);
   u32 render_height = num_blocks_y;

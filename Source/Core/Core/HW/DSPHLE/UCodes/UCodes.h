@@ -51,6 +51,7 @@ public:
 
   virtual void DoState(PointerWrap& p) { DoStateShared(p); }
   static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
+
 protected:
   void PrepareBootUCode(u32 mail);
 

@@ -27,7 +27,9 @@
 namespace PatchEngine
 {
 const char* PatchTypeStrings[] = {
-    "byte", "word", "dword",
+    "byte",
+    "word",
+    "dword",
 };
 
 static std::vector<Patch> onFrame;

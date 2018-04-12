@@ -50,6 +50,7 @@ public:
   // True if there are no further pending query results
   // NOTE: Called from CPU thread
   virtual bool IsFlushed() const { return true; }
+
 protected:
   // TODO: sloppy
   volatile u32 m_query_count;

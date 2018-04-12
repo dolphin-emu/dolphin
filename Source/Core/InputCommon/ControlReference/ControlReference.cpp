@@ -131,8 +131,8 @@ ciface::Core::Device::Control* InputReference::Detect(const unsigned int ms,
 
   // get starting state of all inputs,
   // so we can ignore those that were activated at time of Detect start
-  std::vector<ciface::Core::Device::Input *>::const_iterator i = device->Inputs().begin(),
-                                                             e = device->Inputs().end();
+  std::vector<ciface::Core::Device::Input*>::const_iterator i = device->Inputs().begin(),
+                                                            e = device->Inputs().end();
   for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
     *state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
 

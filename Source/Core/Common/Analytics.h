@@ -148,6 +148,7 @@ public:
 
   // For convenience.
   void Send(AnalyticsReportBuilder& report) { Send(std::move(report)); }
+
 protected:
   void ThreadProc();
 

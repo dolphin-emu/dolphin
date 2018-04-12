@@ -44,6 +44,7 @@ public:
 
   float GetCurrentSpeed() const { return m_speed.load(); }
   void UpdateSpeed(float val) { m_speed.store(val); }
+
 private:
   static constexpr u32 MAX_SAMPLES = 1024 * 4;  // 128 ms
   static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;

@@ -28,6 +28,7 @@ public:
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
   bool LoadIntoMemory(bool only_in_mem1 = false) const override;
   bool LoadSymbols() const override { return false; }
+
 private:
   enum
   {

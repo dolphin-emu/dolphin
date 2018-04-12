@@ -230,17 +230,26 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
       PFD_TYPE_RGBA,                  // Request An RGBA Format
       32,                             // Select Our Color Depth
       0,
-      0, 0, 0, 0, 0,   // Color Bits Ignored
-      0,               // 8bit Alpha Buffer
-      0,               // Shift Bit Ignored
-      0,               // No Accumulation Buffer
-      0, 0, 0, 0,      // Accumulation Bits Ignored
+      0,
+      0,
+      0,
+      0,
+      0,  // Color Bits Ignored
+      0,  // 8bit Alpha Buffer
+      0,  // Shift Bit Ignored
+      0,  // No Accumulation Buffer
+      0,
+      0,
+      0,
+      0,               // Accumulation Bits Ignored
       0,               // 0Bit Z-Buffer (Depth Buffer)
       0,               // 0bit Stencil Buffer
       0,               // No Auxiliary Buffer
       PFD_MAIN_PLANE,  // Main Drawing Layer
       0,               // Reserved
-      0, 0, 0          // Layer Masks Ignored
+      0,
+      0,
+      0  // Layer Masks Ignored
   };
 
   m_dc = GetDC(m_window_handle);
@@ -358,22 +367,22 @@ HGLRC cInterfaceWGL::CreateCoreContext(HDC dc, HGLRC share_context)
   for (const auto& version : try_versions)
   {
     // Construct list of attributes. Prefer a forward-compatible, core context.
-    std::array<int, 5 * 2> attribs = {
-        WGL_CONTEXT_PROFILE_MASK_ARB,
-        WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+    std::array<int, 5 * 2> attribs = {WGL_CONTEXT_PROFILE_MASK_ARB,
+                                      WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 #ifdef _DEBUG
-        WGL_CONTEXT_FLAGS_ARB,
-        WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
+                                      WGL_CONTEXT_FLAGS_ARB,
+                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB |
+                                          WGL_CONTEXT_DEBUG_BIT_ARB,
 #else
-        WGL_CONTEXT_FLAGS_ARB,
-        WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+                                      WGL_CONTEXT_FLAGS_ARB,
+                                      WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 #endif
-        WGL_CONTEXT_MAJOR_VERSION_ARB,
-        version.first,
-        WGL_CONTEXT_MINOR_VERSION_ARB,
-        version.second,
-        0,
-        0};
+                                      WGL_CONTEXT_MAJOR_VERSION_ARB,
+                                      version.first,
+                                      WGL_CONTEXT_MINOR_VERSION_ARB,
+                                      version.second,
+                                      0,
+                                      0};
 
     // Attempt creating this context.
     HGLRC core_context = wglCreateContextAttribsARB(dc, nullptr, attribs.data());

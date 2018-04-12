@@ -1302,24 +1302,24 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
   }
   else
   {
-    const GLenum src_factors[8] = {
-        GL_ZERO,
-        GL_ONE,
-        GL_DST_COLOR,
-        GL_ONE_MINUS_DST_COLOR,
-        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-        GL_DST_ALPHA,
-        GL_ONE_MINUS_DST_ALPHA};
-    const GLenum dst_factors[8] = {
-        GL_ZERO,
-        GL_ONE,
-        GL_SRC_COLOR,
-        GL_ONE_MINUS_SRC_COLOR,
-        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-        GL_DST_ALPHA,
-        GL_ONE_MINUS_DST_ALPHA};
+    const GLenum src_factors[8] = {GL_ZERO,
+                                   GL_ONE,
+                                   GL_DST_COLOR,
+                                   GL_ONE_MINUS_DST_COLOR,
+                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   GL_DST_ALPHA,
+                                   GL_ONE_MINUS_DST_ALPHA};
+    const GLenum dst_factors[8] = {GL_ZERO,
+                                   GL_ONE,
+                                   GL_SRC_COLOR,
+                                   GL_ONE_MINUS_SRC_COLOR,
+                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   GL_DST_ALPHA,
+                                   GL_ONE_MINUS_DST_ALPHA};
 
     if (state.blendenable)
     {

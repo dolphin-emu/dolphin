@@ -24,6 +24,7 @@ public:
   const T* operator->() const { return &std::get<T>(m_variant); }
   T& operator*() { return std::get<T>(m_variant); }
   T* operator->() { return &std::get<T>(m_variant); }
+
 private:
   std::variant<ResultCode, T> m_variant;
 };

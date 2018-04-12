@@ -87,6 +87,7 @@ private:
     bool IsEmpty() const { return m_queue.empty(); }
     // For SaveStates
     void DoState(PointerWrap& p) { p.Do(m_queue); }
+
   private:
     struct Packet
     {

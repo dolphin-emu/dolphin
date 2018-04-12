@@ -51,6 +51,7 @@ public:
   T& front() { return storage[head]; }
   const T& front() const { return storage[head]; }
   size_t size() const { return count; }
+
 private:
   std::array<T, N> storage;
   int head = 0;

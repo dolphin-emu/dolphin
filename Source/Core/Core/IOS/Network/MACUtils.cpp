@@ -38,8 +38,9 @@ void GetMACAddress(u8* mac)
     SaveMACAddress(mac);
     if (!wireless_mac.empty())
     {
-      ERROR_LOG(IOS_NET, "The MAC provided (%s) is invalid. We have "
-                         "generated another one for you.",
+      ERROR_LOG(IOS_NET,
+                "The MAC provided (%s) is invalid. We have "
+                "generated another one for you.",
                 Common::MacAddressToString(mac).c_str());
     }
   }

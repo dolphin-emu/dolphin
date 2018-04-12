@@ -46,15 +46,16 @@ void AdvancedConfigPane::InitializeGUI()
   m_custom_rtc_time_picker = new wxTimePickerCtrl(this, wxID_ANY);
 
   wxStaticText* const clock_override_description =
-      new wxStaticText(this, wxID_ANY, _("Adjusts the emulated CPU's clock rate.\n\n"
-                                         "Higher values may make variable-framerate games run "
-                                         "at a higher framerate, at the expense of performance. "
-                                         "Lower values may activate a game's internal "
-                                         "frameskip, potentially improving performance.\n\n"
-                                         "WARNING: Changing this from the default (100%) "
-                                         "can and will break games and cause glitches. "
-                                         "Do so at your own risk. Please do not report "
-                                         "bugs that occur with a non-default clock."));
+      new wxStaticText(this, wxID_ANY,
+                       _("Adjusts the emulated CPU's clock rate.\n\n"
+                         "Higher values may make variable-framerate games run "
+                         "at a higher framerate, at the expense of performance. "
+                         "Lower values may activate a game's internal "
+                         "frameskip, potentially improving performance.\n\n"
+                         "WARNING: Changing this from the default (100%) "
+                         "can and will break games and cause glitches. "
+                         "Do so at your own risk. Please do not report "
+                         "bugs that occur with a non-default clock."));
 
   wxStaticText* const custom_rtc_description = new wxStaticText(
       this, wxID_ANY,

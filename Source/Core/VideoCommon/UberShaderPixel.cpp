@@ -924,9 +924,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "      int3 color_D = selectColorInput(s, ss, %scolors_0, %scolors_1, color_d);  // 10 "
             "bits + sign\n"
             "\n",  // TODO: do we need to sign extend?
-            color_input_prefix,
             color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix,
-            color_input_prefix, color_input_prefix, color_input_prefix);
+            color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix);
   out.Write(
       "      int3 color;\n"
       "      if(color_bias != 3u) { // Normal mode\n"
@@ -998,9 +997,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       "      int alpha_D = selectAlphaInput(s, ss, %scolors_0, %scolors_1, alpha_d); // 10 bits + "
       "sign\n"
       "\n",  // TODO: do we need to sign extend?
-      color_input_prefix,
       color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix,
-      color_input_prefix, color_input_prefix, color_input_prefix);
+      color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix);
   out.Write("\n"
             "      int alpha;\n"
             "      if(alpha_bias != 3u) { // Normal mode\n"

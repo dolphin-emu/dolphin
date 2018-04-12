@@ -27,7 +27,8 @@ static const u16 button_bitmasks[] = {
 };
 
 static const u16 trigger_bitmasks[] = {
-    PAD_TRIGGER_L, PAD_TRIGGER_R,
+    PAD_TRIGGER_L,
+    PAD_TRIGGER_R,
 };
 
 static const u16 dpad_bitmasks[] = {PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT,

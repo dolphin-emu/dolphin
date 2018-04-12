@@ -233,17 +233,17 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
   }
 
   /* Here's the layout:
-  *
-  *  boot_sector
-  *  fsinfo_sector
-  *  empty
-  *  backup boot sector
-  *  backup fsinfo sector
-  *  RESERVED_SECTORS - 4 empty sectors (if backup sectors), or RESERVED_SECTORS - 2 (if no backup)
-  *  first fat
-  *  second fat
-  *  zero sectors
-  */
+   *
+   *  boot_sector
+   *  fsinfo_sector
+   *  empty
+   *  backup boot sector
+   *  backup fsinfo sector
+   *  RESERVED_SECTORS - 4 empty sectors (if backup sectors), or RESERVED_SECTORS - 2 (if no backup)
+   *  first fat
+   *  second fat
+   *  zero sectors
+   */
 
   if (write_sector(f, s_boot_sector))
     goto FailWrite;

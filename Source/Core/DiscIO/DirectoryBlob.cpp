@@ -731,12 +731,13 @@ void DirectoryBlobPartition::WriteDirectory(const File::FSTEntry& parent_entry, 
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
   // Sort for determinism
-  std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
-                                                             const File::FSTEntry& two) {
-    const std::string one_upper = ASCIIToUppercase(one.virtualName);
-    const std::string two_upper = ASCIIToUppercase(two.virtualName);
-    return one_upper == two_upper ? one.virtualName < two.virtualName : one_upper < two_upper;
-  });
+  std::sort(sorted_entries.begin(), sorted_entries.end(),
+            [](const File::FSTEntry& one, const File::FSTEntry& two) {
+              const std::string one_upper = ASCIIToUppercase(one.virtualName);
+              const std::string two_upper = ASCIIToUppercase(two.virtualName);
+              return one_upper == two_upper ? one.virtualName < two.virtualName :
+                                              one_upper < two_upper;
+            });
 
   for (const File::FSTEntry& entry : sorted_entries)
   {

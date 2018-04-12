@@ -82,7 +82,8 @@ void GameCubeConfigPane::InitializeGUI()
   // Device settings
   // EXI Devices
   wxStaticText* GCEXIDeviceText[3] = {
-      new wxStaticText(this, wxID_ANY, _("Slot A")), new wxStaticText(this, wxID_ANY, _("Slot B")),
+      new wxStaticText(this, wxID_ANY, _("Slot A")),
+      new wxStaticText(this, wxID_ANY, _("Slot B")),
       new wxStaticText(this, wxID_ANY, "SP1"),
   };
 

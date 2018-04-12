@@ -524,8 +524,9 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
             {
               fprintf(stderr, "%i : %s ", code_line, cur_line.c_str());
-              fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
-                              "Param: %zu Ext: %d\n",
+              fprintf(stderr,
+                      "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
+                      "Param: %zu Ext: %d\n",
                       (par[i].val & 1), (par[i].val & 1), code_line, current_param,
                       static_cast<int>(type));
             }
