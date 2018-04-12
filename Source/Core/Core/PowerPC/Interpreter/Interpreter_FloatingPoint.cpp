@@ -275,11 +275,14 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
   const double b = rPS0(inst.FB);
   const double rounded = ForceSingle(b);
 
-  if (MathUtil::IsSNAN(b))
+  if (std::isnan(b))
   {
-    SetFPException(FPSCR_VXSNAN);
+    const bool is_snan = MathUtil::IsSNAN(b);
 
-    if (FPSCR.VE == 0)
+    if (is_snan)
+      SetFPException(FPSCR_VXSNAN);
+
+    if (!is_snan || FPSCR.VE == 0)
     {
       rPS0(inst.FD) = rounded;
       rPS1(inst.FD) = rounded;
