@@ -68,6 +68,13 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
     if (tf.type == Symbol::Type::Function)
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
+      // Do not truncate symbol when a size is expected
+      if (size != 0 && tf.size != size)
+      {
+        WARN_LOG(SYMBOLS, "Analysed symbol (%s) size mismatch, %u expected but %u computed",
+                 name.c_str(), size, tf.size);
+        tf.size = size;
+      }
       checksumToFunction[tf.hash].insert(&functions[startAddr]);
     }
     else
@@ -405,8 +412,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
   }
 
   Index();
-  if (bad)
-    SuccessAlertT("Loaded %d good functions, ignored %d bad functions.", good_count, bad_count);
+  NOTICE_LOG(SYMBOLS, "%d symbols loaded, %d symbols ignored.", good_count, bad_count);
   return true;
 }
 

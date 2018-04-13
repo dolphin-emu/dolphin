@@ -83,7 +83,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
+bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
 {
   if (func.name.empty())
     func.Rename(StringFromFormat("zz_%08x_", startAddr));
@@ -176,7 +176,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
   }
 }
 
-bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
+bool ReanalyzeFunction(u32 start_addr, Symbol& func, u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
