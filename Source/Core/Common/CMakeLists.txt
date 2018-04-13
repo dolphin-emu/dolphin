@@ -146,7 +146,7 @@ if(USE_UPNP)
 endif()
 
 if(OPROFILE_FOUND)
-  target_link_libraries(common PRIVATE ${OPROFILE_LIBRARIES})
+  target_link_libraries(common PRIVATE OProfile::OProfile)
 endif()
 
 if(UNIX)
