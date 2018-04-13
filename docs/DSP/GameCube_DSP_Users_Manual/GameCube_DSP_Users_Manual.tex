@@ -990,7 +990,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.hm += #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1118,7 +1118,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     ELSE
         $sr.LZ = 0
     ENDIF
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1144,7 +1144,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     ELSE
         $sr.LZ = 0
     ENDIF
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1165,7 +1165,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.m &= #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1270,7 +1270,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $st0 = $pc + 2
     $st2 = addrA
     $st3 = $R
-    $pc + 2
+    $pc += 2
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
@@ -1306,7 +1306,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $st0 = $pc + 2
     $st2 = addrA
     $st3 = I
-    $pc + 2
+    $pc += 2
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
@@ -1499,7 +1499,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     res = ($acD.hm - I) | $acD.l
     FLAGS(res)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -2039,7 +2039,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $(0x18+D) = MEM[M]
-    $pc += 2
+    $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -2821,7 +2821,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.m |= #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3088,7 +3088,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     MEM[M] = $(0x18+S)
-    $pc += 2
+    $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3227,7 +3227,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.m ^= #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3384,13 +3384,13 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{'LSMN}
+\begin{DSPOpcode}{'LSNM}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{110s}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'LSMN $(0x18+D), $acS.m
+    'LSNM $(0x18+D), $acS.m
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -3503,8 +3503,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
@@ -3526,8 +3526,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
@@ -3550,8 +3550,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
@@ -3573,8 +3573,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}
