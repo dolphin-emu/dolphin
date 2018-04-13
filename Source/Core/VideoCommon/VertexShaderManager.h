@@ -10,7 +10,6 @@
 #include "VideoCommon/ConstantManager.h"
 
 class PointerWrap;
-struct ProjectionHackConfig;
 
 // The non-API dependent parts.
 class VertexShaderManager
