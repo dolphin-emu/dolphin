@@ -599,7 +599,6 @@ if (PNG_FOUND)
 else()
   message(STATUS "Using static libpng from Externals")
   add_subdirectory(Externals/libpng)
-  include_directories(Externals/libpng)
   set(PNG png)
 endif()
 
