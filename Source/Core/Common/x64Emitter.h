@@ -381,10 +381,10 @@ public:
   virtual ~XEmitter() = default;
   void SetCodePtr(u8* ptr);
   void ReserveCodeSpace(int bytes);
-  const u8* AlignCodeTo(size_t alignment);
-  const u8* AlignCode4();
-  const u8* AlignCode16();
-  const u8* AlignCodePage();
+  u8* AlignCodeTo(size_t alignment);
+  u8* AlignCode4();
+  u8* AlignCode16();
+  u8* AlignCodePage();
   const u8* GetCodePtr() const;
   u8* GetWritableCodePtr();
 
