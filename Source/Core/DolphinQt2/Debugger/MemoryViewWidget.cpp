@@ -15,7 +15,9 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinQt2/QtUtils/ActionHelper.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
 MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
@@ -31,6 +33,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] { Update(); });
   connect(this, &MemoryViewWidget::customContextMenuRequested, this,
           &MemoryViewWidget::OnContextMenu);
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &MemoryViewWidget::Update);
 
   setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -65,8 +68,6 @@ void MemoryViewWidget::Update()
 
   setColumnCount(CalculateColumnCount(m_type));
 
-  setColumnWidth(0, 24);
-
   if (rowCount() == 0)
     setRowCount(1);
 
@@ -88,7 +89,10 @@ void MemoryViewWidget::Update()
     bp_item->setData(Qt::UserRole, addr);
 
     if (PowerPC::memchecks.OverlapsMemcheck(addr, 16))
-      bp_item->setBackground(Qt::red);
+    {
+      bp_item->setData(Qt::DecorationRole,
+                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
+    }
 
     setItem(i, 0, bp_item);
 
@@ -240,6 +244,7 @@ void MemoryViewWidget::Update()
     }
   }
 
+  setColumnWidth(0, 24 + 5);
   for (int i = 1; i < columnCount(); i++)
   {
     resizeColumnToContents(i);

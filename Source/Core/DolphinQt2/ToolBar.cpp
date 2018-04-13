@@ -104,6 +104,13 @@ void ToolBar::MakeActions()
 
 void ToolBar::UpdateIcons()
 {
+  m_step_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_in"));
+  m_step_over_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_over"));
+  m_step_out_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_out"));
+  m_skip_action->setIcon(Resources::GetScaledThemeIcon("debugger_skip"));
+  m_show_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_set_pc"));
+  m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
+
   m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
   m_play_action->setIcon(Resources::GetScaledThemeIcon("play"));
   m_pause_action->setIcon(Resources::GetScaledThemeIcon("pause"));
