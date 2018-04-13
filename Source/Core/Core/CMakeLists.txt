@@ -288,11 +288,11 @@ PUBLIC
   videonull
   videoogl
   videosoftware
-  z
 
 PRIVATE
   bdisasm
   ${LZO}
+  ZLIB::ZLIB
 )
 
 if (APPLE)
