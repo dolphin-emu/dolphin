@@ -587,7 +587,6 @@ if(LZO_FOUND)
 else()
   message(STATUS "Using static lzo from Externals")
   add_subdirectory(Externals/LZO)
-  include_directories(Externals/LZO)
   set(LZO lzo2)
 endif()
 
