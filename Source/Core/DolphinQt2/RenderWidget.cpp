@@ -2,8 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QGuiApplication>
 #include <QKeyEvent>
 #include <QPalette>
+#include <QScreen>
 #include <QTimer>
 
 #include "Core/ConfigManager.h"
@@ -75,7 +79,11 @@ void RenderWidget::HandleCursorTimer()
 void RenderWidget::showFullScreen()
 {
   QWidget::showFullScreen();
-  emit SizeChanged(width(), height());
+
+  const auto dpr =
+      QGuiApplication::screens()[QApplication::desktop()->screenNumber(this)]->devicePixelRatio();
+
+  emit SizeChanged(width() * dpr, height() * dpr);
 }
 
 bool RenderWidget::event(QEvent* event)
@@ -116,7 +124,11 @@ bool RenderWidget::event(QEvent* event)
   {
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
-    emit SizeChanged(new_size.width(), new_size.height());
+
+    const auto dpr =
+        QGuiApplication::screens()[QApplication::desktop()->screenNumber(this)]->devicePixelRatio();
+
+    emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
   }
   case QEvent::WindowStateChange:
