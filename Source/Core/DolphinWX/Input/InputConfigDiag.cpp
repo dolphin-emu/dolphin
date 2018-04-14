@@ -964,8 +964,11 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
   control_grid->AddGrowableCol(0);
   for (const auto& control : group->controls)
   {
-    wxStaticText* const label =
-        new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->ui_name)));
+    const wxString control_ui_name = StrToWxStr(control->ui_name);
+
+    const bool translate = control->translate == ControllerEmu::Translate;
+    wxStaticText* const label = new wxStaticText(
+        parent, wxID_ANY, translate ? wxGetTranslation(control_ui_name) : control_ui_name);
 
     ControlButton* const control_button =
         new ControlButton(parent, control->control_ref.get(), control->ui_name, 80);

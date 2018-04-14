@@ -47,7 +47,10 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
   // pads
   groups.emplace_back(m_pads = new ControllerEmu::Buttons(_trans("Pads")));
   for (auto& drum_pad_name : drum_pad_names)
-    m_pads->controls.emplace_back(new ControllerEmu::Input(drum_pad_name));
+  {
+    m_pads->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, drum_pad_name));
+  }
 
   // stick
   groups.emplace_back(
@@ -55,8 +58,8 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
 
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
 
   // set up register
   m_id = drums_id;

@@ -8,7 +8,7 @@
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 
 MappingBool::MappingBool(MappingWidget* widget, ControllerEmu::BooleanSetting* setting)
-    : QCheckBox(QString::fromStdString(setting->m_ui_name)), m_parent(widget), m_setting(setting)
+    : QCheckBox(tr(setting->m_ui_name.c_str())), m_parent(widget), m_setting(setting)
 {
   Update();
   Connect();

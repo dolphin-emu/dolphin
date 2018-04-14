@@ -24,12 +24,12 @@ namespace ControllerEmu
 Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor)
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(named_direction));
+    controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
 
-  controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
-  controls.emplace_back(std::make_unique<Input>(_trans("Recenter")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Hide")));
+  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
