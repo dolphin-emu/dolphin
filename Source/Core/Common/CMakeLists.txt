@@ -34,7 +34,6 @@ add_library(common
   SettingsHandler.cpp
   StringUtil.cpp
   SymbolDB.cpp
-  SysConf.cpp
   Thread.cpp
   Timer.cpp
   TraversalClient.cpp

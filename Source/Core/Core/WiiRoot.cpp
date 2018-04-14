@@ -11,10 +11,11 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
+#include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
+#include "Core/SysConf.h"
 
 namespace Core
 {
@@ -64,7 +65,7 @@ void InitializeWiiRoot(bool use_temporary)
     WARN_LOG(IOS_FS, "Using temporary directory %s for minimal Wii FS", s_temp_wii_root.c_str());
     File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
     // Generate a SYSCONF with default settings for the temporary Wii NAND.
-    SysConf sysconf{Common::FromWhichRoot::FROM_SESSION_ROOT};
+    SysConf sysconf{IOS::HLE::Kernel{}.GetFS()};
     sysconf.Save();
 
     InitializeDeterministicWiiSaves();

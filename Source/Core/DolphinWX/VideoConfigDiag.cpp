@@ -24,10 +24,10 @@
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
-#include "Common/SysConf.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/SysConf.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"

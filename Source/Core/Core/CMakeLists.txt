@@ -16,6 +16,7 @@ add_library(core
   NetPlayServer.cpp
   PatchEngine.cpp
   State.cpp
+  SysConf.cpp
   TitleDatabase.cpp
   WiiRoot.cpp
   WiiUtils.cpp

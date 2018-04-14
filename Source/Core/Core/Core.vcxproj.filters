@@ -179,6 +179,7 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="WiiUtils.cpp" />
@@ -912,6 +913,7 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />

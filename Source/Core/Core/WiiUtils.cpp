@@ -29,13 +29,13 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-#include "Common/SysConf.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IOS.h"
+#include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
@@ -136,7 +136,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
   }
 
   // Delete a previous temporary title, if it exists.
-  SysConf sysconf{Common::FROM_SESSION_ROOT};
+  SysConf sysconf{ios.GetFS()};
   SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
   if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);

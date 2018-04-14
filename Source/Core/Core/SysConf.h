@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -14,10 +15,16 @@
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 
+namespace IOS::HLE::FS
+{
+class FileHandle;
+class FileSystem;
+}
+
 class SysConf final
 {
 public:
-  explicit SysConf(Common::FromWhichRoot root_type);
+  explicit SysConf(std::shared_ptr<IOS::HLE::FS::FileSystem> fs);
   ~SysConf();
 
   void Clear();
@@ -85,8 +92,8 @@ public:
 
 private:
   void InsertDefaultEntries();
-  bool LoadFromFile(const std::string& file_name);
+  bool LoadFromFile(const IOS::HLE::FS::FileHandle& file);
 
-  std::string m_file_name;
   std::vector<Entry> m_entries;
+  std::shared_ptr<IOS::HLE::FS::FileSystem> m_fs;
 };

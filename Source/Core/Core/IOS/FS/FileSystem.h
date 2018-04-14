@@ -108,9 +108,17 @@ public:
   FileHandle& operator=(const FileHandle&) = delete;
   FileHandle& operator=(FileHandle&&);
 
-  operator Fd() const { return m_fd.value(); }
   /// Release the FD so that it is not automatically closed.
   Fd Release();
+
+  template <typename T>
+  Result<size_t> Read(T* ptr, size_t count) const;
+
+  template <typename T>
+  Result<size_t> Write(const T* ptr, size_t count) const;
+
+  Result<u32> Seek(u32 offset, SeekMode mode) const;
+  Result<FileStatus> GetStatus() const;
 
 private:
   FileSystem* m_fs;
@@ -139,26 +147,6 @@ public:
   virtual Result<u32> SeekFile(Fd fd, u32 offset, SeekMode mode) = 0;
   /// Get status for a file descriptor.
   virtual Result<FileStatus> GetFileStatus(Fd fd) = 0;
-
-  template <typename T>
-  Result<u32> ReadFile(Fd fd, T* ptr, u32 count)
-  {
-    const Result<u32> bytes = ReadBytesFromFile(fd, reinterpret_cast<u8*>(ptr), sizeof(T) * count);
-    if (!bytes)
-      return bytes.Error();
-    if (*bytes != sizeof(T) * count)
-      return ResultCode::ShortRead;
-    return count;
-  }
-
-  template <typename T>
-  Result<u32> WriteFile(Fd fd, const T* ptr, u32 count)
-  {
-    const auto result = WriteBytesToFile(fd, reinterpret_cast<const u8*>(ptr), sizeof(T) * count);
-    if (!result)
-      return result.Error();
-    return count;
-  }
 
   /// Create a file with the specified path and metadata.
   virtual ResultCode CreateFile(Uid caller_uid, Gid caller_gid, const std::string& path,
@@ -194,6 +182,28 @@ public:
 protected:
   void Init();
 };
+
+template <typename T>
+Result<size_t> FileHandle::Read(T* ptr, size_t count) const
+{
+  const Result<u32> bytes = m_fs->ReadBytesFromFile(*m_fd, reinterpret_cast<u8*>(ptr),
+                                                    static_cast<u32>(sizeof(T) * count));
+  if (!bytes)
+    return bytes.Error();
+  if (*bytes != sizeof(T) * count)
+    return ResultCode::ShortRead;
+  return count;
+}
+
+template <typename T>
+Result<size_t> FileHandle::Write(const T* ptr, size_t count) const
+{
+  const auto result = m_fs->WriteBytesToFile(*m_fd, reinterpret_cast<const u8*>(ptr),
+                                             static_cast<u32>(sizeof(T) * count));
+  if (!result)
+    return result.Error();
+  return count;
+}
 
 enum class Location
 {

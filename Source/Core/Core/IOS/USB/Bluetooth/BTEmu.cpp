@@ -15,7 +15,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/SysConf.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -25,6 +24,7 @@
 #include "Core/Host.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/SysConf.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS
@@ -42,8 +42,7 @@ namespace Device
 BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
     : BluetoothBase(ios, device_name)
 {
-  SysConf sysconf{Core::WantsDeterminism() ? Common::FromWhichRoot::FROM_SESSION_ROOT :
-                                             Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{ios.GetFS()};
   if (!Core::WantsDeterminism())
     BackUpBTInfoSection(&sysconf);
 
