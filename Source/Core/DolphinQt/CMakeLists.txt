@@ -50,6 +50,7 @@ add_executable(dolphin-emu
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
+  Config/Mapping/HotkeyControllerProfile.cpp
   Config/Mapping/HotkeyDebugging.cpp
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGraphics.cpp

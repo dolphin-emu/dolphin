@@ -128,6 +128,11 @@ bool InputConfig::ControllersNeedToBeCreated() const
   return m_controllers.empty();
 }
 
+std::size_t InputConfig::GetControllerCount() const
+{
+  return m_controllers.size();
+}
+
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
 {
   if (static_cast<size_t>(index) >= m_controllers.size())

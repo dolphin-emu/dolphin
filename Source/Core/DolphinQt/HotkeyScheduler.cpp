@@ -240,6 +240,11 @@ void HotkeyScheduler::Run()
           emit ConnectWiiRemote(wiimote_id);
       }
 
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE))
+        m_profile_cycler.PreviousWiimoteProfile();
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE))
+        m_profile_cycler.NextWiimoteProfile();
+
       const auto show_msg = [](OSDMessage message) {
         if (g_renderer)
           g_renderer->ShowOSDMessage(message);

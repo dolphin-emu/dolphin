@@ -70,6 +70,7 @@
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />
     <QtMoc Include="Config\Mapping\GCPadWiiUConfigDialog.h" />
     <QtMoc Include="Config\Mapping\Hotkey3D.h" />
+    <QtMoc Include="Config\Mapping\HotkeyControllerProfile.h" />
     <QtMoc Include="Config\Mapping\HotkeyDebugging.h" />
     <QtMoc Include="Config\Mapping\HotkeyGeneral.h" />
     <QtMoc Include="Config\Mapping\HotkeyGraphics.h" />
@@ -203,6 +204,7 @@
     <ClCompile Include="$(QtMocOutPrefix)HacksWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Hotkey3D.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)HotkeyControllerProfile.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyDebugging.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyGraphics.cpp" />
@@ -283,6 +285,7 @@
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyControllerProfile.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />

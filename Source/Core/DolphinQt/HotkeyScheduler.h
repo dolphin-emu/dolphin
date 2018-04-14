@@ -9,6 +9,7 @@
 #include <QObject>
 
 #include "Common/Flag.h"
+#include "InputCommon/InputProfile.h"
 
 class HotkeyScheduler : public QObject
 {
@@ -64,4 +65,6 @@ private:
 
   Common::Flag m_stop_requested;
   std::thread m_thread;
+
+  InputProfile::ProfileCycler m_profile_cycler;
 };

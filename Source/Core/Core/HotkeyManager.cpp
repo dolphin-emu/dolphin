@@ -69,6 +69,9 @@ constexpr std::array<const char*, 114> s_hotkey_labels{{
     _trans("Connect Wii Remote 4"),
     _trans("Connect Balance Board"),
 
+	_trans("Next Wii Remote Profile"),
+	_trans("Previous Wii Remote Profile"),
+
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle EFB Copies"),
@@ -255,6 +258,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Program Counter"), HK_SHOW_PC, HK_SET_PC},
      {_trans("Breakpoint"), HK_BP_TOGGLE, HK_MBP_ADD},
      {_trans("Wii"), HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
+     {_trans("Controller Profile"), HK_NEXT_WIIMOTE_PROFILE, HK_PREV_WIIMOTE_PROFILE},
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
      {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
