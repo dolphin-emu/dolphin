@@ -178,6 +178,13 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
   case IDM_UPDATE_JIT_PANE:
     RequirePanel<CJitWindow>()->ViewAddr(codeview->GetSelection());
     break;
+
+  case IDM_RELOAD_THEME_BITMAPS:
+    if (HasPanel<CBreakPointWindow>())
+      GetPanel<CBreakPointWindow>()->ReloadBitmaps();
+    if (HasPanel<CWatchWindow>())
+      GetPanel<CWatchWindow>()->ReloadBitmaps();
+    break;
   }
 }
 

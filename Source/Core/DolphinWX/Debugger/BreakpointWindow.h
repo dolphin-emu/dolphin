@@ -10,6 +10,7 @@
 class CBreakPointView;
 class CCodeWindow;
 class wxListEvent;
+class CBreakPointBar;
 
 class CBreakPointWindow : public wxPanel
 {
@@ -23,6 +24,7 @@ public:
   void NotifyUpdate();
   void SaveAll();
   void LoadAll();
+  void ReloadBitmaps();
 
 private:
   friend class CBreakPointBar;
@@ -38,4 +40,5 @@ private:
   wxAuiManager m_mgr;
   CBreakPointView* m_BreakPointListView;
   CCodeWindow* m_pCodeWindow;
+  CBreakPointBar* m_breakpointBar;
 };

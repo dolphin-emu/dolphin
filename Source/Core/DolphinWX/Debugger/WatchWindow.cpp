@@ -25,32 +25,56 @@ public:
       : DolphinAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
                           wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
   {
-    wxSize bitmap_size = FromDIP(wxSize(16, 16));
-    SetToolBitmapSize(bitmap_size);
+    InitialiseThemedBitmaps();
 
-    m_Bitmaps[Toolbar_File] = WxUtils::LoadScaledResourceBitmap(
-        "toolbar_debugger_delete", this, bitmap_size, wxDefaultSize,
-        WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
-
-    AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_File]);
+    AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Load]);
     Bind(wxEVT_TOOL, &CWatchWindow::Event_LoadAll, parent, ID_LOAD);
 
-    AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_File]);
+    AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_Save]);
     Bind(wxEVT_TOOL, &CWatchWindow::Event_SaveAll, parent, ID_SAVE);
+  }
+
+  void ReloadBitmaps()
+  {
+    Freeze();
+
+    InitialiseThemedBitmaps();
+    for (int i = 0; i < ID_NUM; ++i)
+      SetToolBitmap(i, m_Bitmaps[i]);
+
+    Thaw();
   }
 
 private:
   enum
   {
-    Toolbar_File,
+    Toolbar_Load,
+    Toolbar_Save,
     Num_Bitmaps
   };
 
   enum
   {
-    ID_LOAD,
-    ID_SAVE
+    ID_LOAD = 0,
+    ID_SAVE,
+    ID_NUM
   };
+
+  void InitialiseThemedBitmaps()
+  {
+    wxSize bitmap_size = FromDIP(wxSize(24, 24));
+    SetToolBitmapSize(bitmap_size);
+
+    static const std::array<const char* const, Num_Bitmaps> m_image_names{
+        {"debugger_load", "debugger_save"}};
+
+    for (std::size_t i = 0; i < m_image_names.size(); ++i)
+    {
+      m_Bitmaps[i] =
+          WxUtils::LoadScaledThemeBitmap(m_image_names[i], this, bitmap_size, wxDefaultSize,
+                                         WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
+    }
+  }
 
   wxBitmap m_Bitmaps[Num_Bitmaps];
 };
@@ -64,13 +88,15 @@ CWatchWindow::CWatchWindow(wxWindow* parent, wxWindowID id, const wxPoint& posit
 
   m_GPRGridView = new CWatchView(this);
 
-  m_mgr.AddPane(new CWatchToolbar(this, wxID_ANY), wxAuiPaneInfo()
-                                                       .ToolbarPane()
-                                                       .Top()
-                                                       .LeftDockable(true)
-                                                       .RightDockable(true)
-                                                       .BottomDockable(false)
-                                                       .Floatable(false));
+  m_watch_toolbar = new CWatchToolbar(this, wxID_ANY);
+
+  m_mgr.AddPane(m_watch_toolbar, wxAuiPaneInfo()
+                                     .ToolbarPane()
+                                     .Top()
+                                     .LeftDockable(true)
+                                     .RightDockable(true)
+                                     .BottomDockable(false)
+                                     .Floatable(false));
   m_mgr.AddPane(m_GPRGridView, wxAuiPaneInfo().CenterPane());
   m_mgr.Update();
 }
@@ -123,4 +149,9 @@ void CWatchWindow::LoadAll()
   }
 
   NotifyUpdate();
+}
+
+void CWatchWindow::ReloadBitmaps()
+{
+  m_watch_toolbar->ReloadBitmaps();
 }

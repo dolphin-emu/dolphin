@@ -35,20 +35,12 @@ public:
       : DolphinAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
                           wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
   {
-    wxSize bitmap_size = FromDIP(wxSize(24, 24));
-    SetToolBitmapSize(bitmap_size);
-
-    static const std::array<const char* const, Num_Bitmaps> image_names{
-        {"toolbar_debugger_delete", "toolbar_add_breakpoint", "toolbar_add_memorycheck"}};
-    for (std::size_t i = 0; i < image_names.size(); ++i)
-      m_Bitmaps[i] =
-          WxUtils::LoadScaledResourceBitmap(image_names[i], this, bitmap_size, wxDefaultSize,
-                                            WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
+    InitializeThemedBitmaps();
 
     AddTool(ID_DELETE, _("Delete"), m_Bitmaps[Toolbar_Delete]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnDelete, parent, ID_DELETE);
 
-    AddTool(ID_CLEAR, _("Clear"), m_Bitmaps[Toolbar_Delete]);
+    AddTool(ID_CLEAR, _("Clear"), m_Bitmaps[Toolbar_Clear]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnClear, parent, ID_CLEAR);
 
     AddTool(ID_ADDBP, "+BP", m_Bitmaps[Toolbar_Add_BP]);
@@ -57,31 +49,63 @@ public:
     AddTool(ID_ADDMC, "+MBP", m_Bitmaps[Toolbar_Add_MC]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
 
-    AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Delete]);
+    AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Load]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::Event_LoadAll, parent, ID_LOAD);
 
-    AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_Delete]);
+    AddTool(ID_SAVE, _("Save"), m_Bitmaps[Toolbar_Save]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::Event_SaveAll, parent, ID_SAVE);
+  }
+
+  void ReloadBitmaps()
+  {
+    Freeze();
+
+    InitializeThemedBitmaps();
+    for (int i = 0; i < ID_NUM; ++i)
+      SetToolBitmap(i, m_Bitmaps[i]);
+
+    Thaw();
   }
 
 private:
   enum
   {
-    Toolbar_Delete,
+    Toolbar_Delete = 0,
+    Toolbar_Clear,
     Toolbar_Add_BP,
     Toolbar_Add_MC,
+    Toolbar_Load,
+    Toolbar_Save,
     Num_Bitmaps
   };
 
   enum
   {
-    ID_DELETE = 2000,
+    ID_DELETE = 0,
     ID_CLEAR,
     ID_ADDBP,
     ID_ADDMC,
     ID_LOAD,
-    ID_SAVE
+    ID_SAVE,
+    ID_NUM
   };
+
+  void InitializeThemedBitmaps()
+  {
+    wxSize bitmap_size = FromDIP(wxSize(24, 24));
+    SetToolBitmapSize(bitmap_size);
+
+    static const std::array<const char* const, Num_Bitmaps> m_image_names{
+        {"debugger_delete", "debugger_clear", "debugger_add_breakpoint", "debugger_add_memorycheck",
+         "debugger_load", "debugger_save"}};
+
+    for (std::size_t i = 0; i < m_image_names.size(); ++i)
+    {
+      m_Bitmaps[i] =
+          WxUtils::LoadScaledThemeBitmap(m_image_names[i], this, bitmap_size, wxDefaultSize,
+                                         WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
+    }
+  }
 
   wxBitmap m_Bitmaps[Num_Bitmaps];
 };
@@ -97,13 +121,15 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
   m_BreakPointListView = new CBreakPointView(this, wxID_ANY);
   m_BreakPointListView->Bind(wxEVT_LIST_ITEM_SELECTED, &CBreakPointWindow::OnSelectBP, this);
 
-  m_mgr.AddPane(new CBreakPointBar(this, wxID_ANY), wxAuiPaneInfo()
-                                                        .ToolbarPane()
-                                                        .Top()
-                                                        .LeftDockable(true)
-                                                        .RightDockable(true)
-                                                        .BottomDockable(false)
-                                                        .Floatable(false));
+  m_breakpointBar = new CBreakPointBar(this, wxID_ANY);
+
+  m_mgr.AddPane(m_breakpointBar, wxAuiPaneInfo()
+                                     .ToolbarPane()
+                                     .Top()
+                                     .LeftDockable(true)
+                                     .RightDockable(true)
+                                     .BottomDockable(false)
+                                     .Floatable(false));
   m_mgr.AddPane(m_BreakPointListView, wxAuiPaneInfo().CenterPane());
   m_mgr.Update();
 }
@@ -116,6 +142,11 @@ CBreakPointWindow::~CBreakPointWindow()
 void CBreakPointWindow::NotifyUpdate()
 {
   m_BreakPointListView->Repopulate();
+}
+
+void CBreakPointWindow::ReloadBitmaps()
+{
+  m_breakpointBar->ReloadBitmaps();
 }
 
 void CBreakPointWindow::OnDelete(wxCommandEvent& WXUNUSED(event))
