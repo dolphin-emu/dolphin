@@ -274,6 +274,8 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   TMemCheck check;
 
   check.start_address = addr;
+  check.end_address = addr;
+  check.is_ranged = false;
   check.is_break_on_read = on_read;
   check.is_break_on_write = on_write;
   check.log_on_hit = do_log;
