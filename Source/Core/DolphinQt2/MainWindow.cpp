@@ -972,10 +972,7 @@ void MainWindow::NetPlayQuit()
 void MainWindow::EnableScreenSaver(bool enable)
 {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  UICommon::EnableScreenSaver(
-      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-          "display", windowHandle())),
-      winId(), enable);
+  UICommon::EnableScreenSaver(winId(), enable);
 #else
   UICommon::EnableScreenSaver(enable);
 #endif

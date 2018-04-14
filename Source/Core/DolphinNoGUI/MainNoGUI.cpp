@@ -191,7 +191,7 @@ class PlatformX11 : public Platform
     s_window_handle = (void*)win;
 
     if (SConfig::GetInstance().bDisableScreenSaver)
-      X11Utils::InhibitScreensaver(dpy, win, true);
+      X11Utils::InhibitScreensaver(win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
     XRRConfig = new X11Utils::XRRConfiguration(dpy, win);

@@ -8,17 +8,13 @@
 
 #include "Common/CommonTypes.h"
 
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include <X11/extensions/Xrandr.h>
-#endif
-
 namespace UICommon
 {
 void Init();
 void Shutdown();
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-void EnableScreenSaver(Display* display, Window win, bool enable);
+void EnableScreenSaver(unsigned long win, bool enable);
 #else
 void EnableScreenSaver(bool enable);
 #endif
