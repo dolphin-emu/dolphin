@@ -34,7 +34,7 @@ constexpr std::array<u16, 9> turntable_button_bitmasks{{
     Turntable::BUTTON_EUPHORIA,
 }};
 
-constexpr std::array<const char*, 9> turntable_button_names{{
+constexpr std::array<const char*, 6> turntable_button_names{{
     _trans("Green Left"),
     _trans("Red Left"),
     _trans("Blue Left"),
