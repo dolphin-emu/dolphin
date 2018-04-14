@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
+
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
