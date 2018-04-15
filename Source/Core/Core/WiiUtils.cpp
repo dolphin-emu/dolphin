@@ -34,6 +34,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
@@ -168,18 +169,17 @@ bool UninstallTitle(u64 title_id)
 
 bool IsTitleInstalled(u64 title_id)
 {
-  const std::string content_dir =
-      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+  IOS::HLE::Kernel ios;
+  const auto entries = ios.GetFS()->ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
 
-  if (!File::IsDirectory(content_dir))
+  if (!entries)
     return false;
 
   // Since this isn't IOS and we only need a simple way to figure out if a title is installed,
   // we make the (reasonable) assumption that having more than just the TMD in the content
   // directory means that the title is installed.
-  const auto entries = File::ScanDirectoryTree(content_dir, false);
-  return std::any_of(entries.children.begin(), entries.children.end(),
-                     [](const auto& file) { return file.virtualName != "title.tmd"; });
+  return std::any_of(entries->begin(), entries->end(),
+                     [](const std::string& file) { return file != "title.tmd"; });
 }
 
 // Common functionality for system updaters.
