@@ -897,10 +897,12 @@ void GameListCtrl::OnRightClick(wxMouseEvent& event)
         auto* const uninstall_wad_item =
             popupMenu.Append(IDM_LIST_UNINSTALL_WAD, _("Uninstall from the NAND"));
         // These should not be allowed while emulation is running for safety reasons.
-        for (auto* menu_item : {install_wad_item, uninstall_wad_item})
-          menu_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
-
-        if (!WiiUtils::IsTitleInstalled(selected_iso->GetTitleID()))
+        const bool can_enable = !Core::IsRunning() || !SConfig::GetInstance().bWii;
+        install_wad_item->Enable(can_enable);
+        // IsTitleInstalled should also only be called when nothing is using the NAND.
+        if (can_enable)
+          uninstall_wad_item->Enable(WiiUtils::IsTitleInstalled(selected_iso->GetTitleID()));
+        else
           uninstall_wad_item->Enable(false);
       }
 
