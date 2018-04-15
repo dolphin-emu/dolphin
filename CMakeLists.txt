@@ -533,7 +533,12 @@ endif()
 add_subdirectory(Externals/Bochs_disasm)
 add_subdirectory(Externals/cpp-optparse)
 add_subdirectory(Externals/glslang)
-add_subdirectory(Externals/pugixml)
+
+find_package(Pugixml)
+if(NOT Pugixml_FOUND)
+  message(STATUS "Using static pugixml from Externals")
+  add_subdirectory(Externals/pugixml)
+endif()
 
 if(USE_SHARED_ENET)
   check_lib(ENET libenet enet enet/enet.h QUIET)
