@@ -338,7 +338,7 @@ bool TriggerSTMPowerEvent()
 }
 
 #if defined(HAVE_XRANDR) && HAVE_X11
-void EnableScreenSaver(Display* display, Window win, bool enable)
+void EnableScreenSaver(Window win, bool enable)
 #else
 void EnableScreenSaver(bool enable)
 #endif
@@ -349,7 +349,7 @@ void EnableScreenSaver(bool enable)
 #if defined(HAVE_X11) && HAVE_X11
   if (SConfig::GetInstance().bDisableScreenSaver)
   {
-    X11Utils::InhibitScreensaver(display, win, !enable);
+    X11Utils::InhibitScreensaver(win, !enable);
   }
 #endif
 

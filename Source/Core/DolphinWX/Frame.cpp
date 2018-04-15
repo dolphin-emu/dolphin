@@ -708,8 +708,7 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 void CFrame::EnableScreenSaver(bool enable)
 {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  UICommon::EnableScreenSaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                              X11Utils::XWindowFromHandle(GetHandle()), enable);
+  UICommon::EnableScreenSaver(X11Utils::XWindowFromHandle(GetHandle()), enable);
 #else
   UICommon::EnableScreenSaver(enable);
 #endif

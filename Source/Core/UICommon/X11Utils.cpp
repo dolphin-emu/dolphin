@@ -43,7 +43,7 @@ bool ToggleFullscreen(Display* dpy, Window win)
   return true;
 }
 
-void InhibitScreensaver(Display* dpy, Window win, bool suspend)
+void InhibitScreensaver(Window win, bool suspend)
 {
   char id[11];
   snprintf(id, sizeof(id), "0x%lx", win);
