@@ -126,8 +126,17 @@ void MemoryWidget::CreateWidgets()
   auto* bp_layout = new QVBoxLayout;
   bp_group->setLayout(bp_layout);
 
-  m_bp_read_write = new QRadioButton(tr("Read and Write"));
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation or write operation occurs.
+  // The string is not a command to read and write something or to allow reading and writing.
+  m_bp_read_write = new QRadioButton(tr("Read and write"));
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a read operation occurs.
+  // The string does not mean "read-only" in the sense that something cannot be written to.
   m_bp_read_only = new QRadioButton(tr("Read only"));
+  // i18n: This string is used for a radio button that represents the type of
+  // memory breakpoint that gets triggered when a write operation occurs.
+  // The string does not mean "write-only" in the sense that something cannot be read from.
   m_bp_write_only = new QRadioButton(tr("Write only"));
   m_bp_log_check = new QCheckBox(tr("Log"));
 
@@ -536,7 +545,7 @@ void MemoryWidget::FindValue(bool next)
 
   if (addr >= ram_size - search_for.size())
   {
-    m_result_label->setText(tr("Address Out Of Range"));
+    m_result_label->setText(tr("Address Out of Range"));
     return;
   }
 

@@ -73,7 +73,7 @@ void EnhancementsWidget::CreateWidgets()
   m_widescreen_hack = new GraphicsBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
   m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
   m_force_24bit_color =
-      new GraphicsBool(tr("Force 24-bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+      new GraphicsBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
 
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
   enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);

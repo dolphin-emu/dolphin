@@ -295,16 +295,6 @@ static wxString gpu_texture_decoding_desc =
     wxTRANSLATE("Enables texture decoding using the GPU instead of the CPU. This may result in "
                 "performance gains in some scenarios, or on systems where the CPU is the "
                 "bottleneck.\n\nIf unsure, leave this unchecked.");
-static wxString ubershader_desc =
-    wxTRANSLATE("Disabled: Ubershaders are never used. Stuttering will occur during shader "
-                "compilation, but GPU demands are low. Recommended for low-end hardware.\n"
-                "Hybrid: Ubershaders will be used to prevent stuttering during shader "
-                "compilation, but traditional shaders will be used when they will not cause "
-                "stuttering. Balances performance and smoothness.\n"
-                "Exclusive: Ubershaders will always be used. Only recommended for high-end "
-                "systems.\n"
-                "Skip Drawing: Does not draw objects during shader compilation. Reduces "
-                "stuttering at the cost of missing objects, or broken effects.");
 static wxString shader_compile_sync_desc =
     wxTRANSLATE("Ubershaders are never used. Stuttering will occur during shader "
                 "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "

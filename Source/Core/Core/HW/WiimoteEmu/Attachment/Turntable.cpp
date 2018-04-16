@@ -56,8 +56,8 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
   m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "-"));
   m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
 
-  // i18n: This button name refers to a gameplay element in DJ Hero
   m_buttons->controls.emplace_back(
+      // i18n: This button name refers to a gameplay element in DJ Hero
       new ControllerEmu::Input(ControllerEmu::Translate, _trans("Euphoria")));
 
   // turntables
