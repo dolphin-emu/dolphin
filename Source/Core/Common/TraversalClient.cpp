@@ -32,8 +32,21 @@ TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, c
   ReconnectToServer();
 }
 
-TraversalClient::~TraversalClient()
+TraversalClient::~TraversalClient() = default;
+
+TraversalHostId TraversalClient::GetHostID() const
 {
+  return m_HostId;
+}
+
+TraversalClient::State TraversalClient::GetState() const
+{
+  return m_State;
+}
+
+TraversalClient::FailureReason TraversalClient::GetFailureReason() const
+{
+  return m_FailureReason;
 }
 
 void TraversalClient::ReconnectToServer()

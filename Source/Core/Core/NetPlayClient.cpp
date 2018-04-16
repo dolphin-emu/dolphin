@@ -134,7 +134,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     m_traversal_client = g_TraversalClient.get();
 
     // If we were disconnected in the background, reconnect.
-    if (m_traversal_client->m_State == TraversalClient::Failure)
+    if (m_traversal_client->GetState() == TraversalClient::Failure)
       m_traversal_client->ReconnectToServer();
     m_traversal_client->m_Client = this;
     m_host_spec = address;
@@ -909,17 +909,18 @@ void NetPlayClient::ClearBuffers()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnTraversalStateChanged()
 {
+  const TraversalClient::State state = m_traversal_client->GetState();
+
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
-      m_traversal_client->m_State == TraversalClient::Connected)
+      state == TraversalClient::Connected)
   {
     m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
     m_traversal_client->ConnectToClient(m_host_spec);
   }
-  else if (m_connection_state != ConnectionState::Failure &&
-           m_traversal_client->m_State == TraversalClient::Failure)
+  else if (m_connection_state != ConnectionState::Failure && state == TraversalClient::Failure)
   {
     Disconnect();
-    m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
+    m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
   }
 }
 

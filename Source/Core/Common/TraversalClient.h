@@ -41,6 +41,11 @@ public:
   };
   TraversalClient(ENetHost* netHost, const std::string& server, const u16 port);
   ~TraversalClient();
+
+  TraversalHostId GetHostID() const;
+  State GetState() const;
+  FailureReason GetFailureReason() const;
+
   void Reset();
   void ConnectToClient(const std::string& host);
   void ReconnectToServer();
@@ -49,11 +54,7 @@ public:
   bool TestPacket(u8* data, size_t size, ENetAddress* from);
   void HandleResends();
 
-  ENetHost* m_NetHost;
   TraversalClientClient* m_Client;
-  TraversalHostId m_HostId;
-  State m_State;
-  FailureReason m_FailureReason;
 
 private:
   struct OutgoingTraversalPacketInfo
@@ -68,6 +69,11 @@ private:
   void OnFailure(FailureReason reason);
   void HandlePing();
   static int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
+
+  ENetHost* m_NetHost;
+  TraversalHostId m_HostId;
+  State m_State;
+  FailureReason m_FailureReason;
   TraversalRequestId m_ConnectRequestId;
   bool m_PendingConnect;
   std::list<OutgoingTraversalPacketInfo> m_OutgoingTraversalPackets;
