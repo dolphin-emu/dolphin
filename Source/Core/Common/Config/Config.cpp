@@ -5,17 +5,13 @@
 #include <algorithm>
 #include <list>
 #include <map>
-#include <tuple>
 
-#include "Common/Assert.h"
 #include "Common/Config/Config.h"
 
 namespace Config
 {
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
-
-void InvokeConfigChangedCallbacks();
 
 Layers* GetLayers()
 {
