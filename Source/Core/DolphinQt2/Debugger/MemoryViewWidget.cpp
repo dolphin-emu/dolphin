@@ -40,33 +40,28 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
   Update();
 }
 
-static int CalculateColumnCount(MemoryViewWidget::Type type)
+static int GetColumnCount(MemoryViewWidget::Type type)
 {
-  int column_count = 3;
-
   switch (type)
   {
   case MemoryViewWidget::Type::ASCII:
   case MemoryViewWidget::Type::U8:
-    column_count += 16;
-    break;
+    return 16;
   case MemoryViewWidget::Type::U16:
-    column_count += 8;
-    break;
+    return 8;
   case MemoryViewWidget::Type::U32:
   case MemoryViewWidget::Type::Float32:
-    column_count += 4;
-    break;
+    return 4;
+  default:
+    return 0;
   }
-
-  return column_count;
 }
 
 void MemoryViewWidget::Update()
 {
   clearSelection();
 
-  setColumnCount(CalculateColumnCount(m_type));
+  setColumnCount(3 + GetColumnCount(m_type));
 
   if (rowCount() == 0)
     setRowCount(1);
@@ -128,118 +123,54 @@ void MemoryViewWidget::Update()
 
     setItem(i, columnCount() - 1, description_item);
 
+    auto update_values = [this, i, addr](auto value_to_string) {
+      for (int c = 0; c < GetColumnCount(m_type); c++)
+      {
+        auto* hex_item = new QTableWidgetItem;
+        const u32 address = addr + c * (16 / GetColumnCount(m_type));
+        if (PowerPC::HostIsRAMAddress(address))
+        {
+          hex_item->setText(value_to_string(address));
+          hex_item->setFlags(Qt::ItemIsEnabled);
+          hex_item->setData(Qt::UserRole, addr);
+        }
+        else
+        {
+          hex_item->setFlags(0);
+          hex_item->setText(QStringLiteral("-"));
+        }
+        setItem(i, 2 + c, hex_item);
+      }
+    };
+
     switch (m_type)
     {
     case Type::U8:
-      for (int c = 0; c < 16; c++)
-      {
-        auto* hex_item = new QTableWidgetItem;
-
-        if (PowerPC::HostIsRAMAddress(addr + c * sizeof(u8)))
-        {
-          u8 value = PowerPC::HostRead_U8(addr + c * sizeof(u8));
-          hex_item->setText(QStringLiteral("%1").arg(value, 2, 16, QLatin1Char('0')));
-
-          hex_item->setFlags(Qt::ItemIsEnabled);
-          hex_item->setData(Qt::UserRole, addr);
-        }
-        else
-        {
-          hex_item->setFlags(0);
-          hex_item->setText(QStringLiteral("-"));
-        }
-
-        setItem(i, 2 + c, hex_item);
-      }
+      update_values([](u32 address) {
+        const u8 value = PowerPC::HostRead_U8(address);
+        return QStringLiteral("%1").arg(value, 2, 16, QLatin1Char('0'));
+      });
       break;
     case Type::ASCII:
-      for (int c = 0; c < 16; c++)
-      {
-        auto* hex_item = new QTableWidgetItem;
-
-        if (PowerPC::HostIsRAMAddress(addr + c * sizeof(u8)))
-        {
-          char value = PowerPC::HostRead_U8(addr + c * sizeof(u8));
-          std::string s(1, std::isprint(value) ? value : '.');
-          hex_item->setText(QString::fromStdString(s));
-
-          hex_item->setFlags(Qt::ItemIsEnabled);
-          hex_item->setData(Qt::UserRole, addr);
-        }
-        else
-        {
-          hex_item->setFlags(0);
-          hex_item->setText(QStringLiteral("-"));
-        }
-
-        setItem(i, 2 + c, hex_item);
-      }
+      update_values([](u32 address) {
+        const char value = PowerPC::HostRead_U8(address);
+        return std::isprint(value) ? QString{QChar::fromLatin1(value)} : QStringLiteral(".");
+      });
       break;
     case Type::U16:
-      for (int c = 0; c < 8; c++)
-      {
-        auto* hex_item = new QTableWidgetItem;
-
-        if (PowerPC::HostIsRAMAddress(addr + c * sizeof(u16)))
-        {
-          u16 value = PowerPC::HostRead_U16(addr + c * sizeof(u16));
-          hex_item->setText(QStringLiteral("%1").arg(value, 4, 16, QLatin1Char('0')));
-
-          hex_item->setFlags(Qt::ItemIsEnabled);
-          hex_item->setData(Qt::UserRole, addr);
-        }
-        else
-        {
-          hex_item->setFlags(0);
-          hex_item->setText(QStringLiteral("-"));
-        }
-
-        setItem(i, 2 + c, hex_item);
-      }
+      update_values([](u32 address) {
+        const u16 value = PowerPC::HostRead_U16(address);
+        return QStringLiteral("%1").arg(value, 4, 16, QLatin1Char('0'));
+      });
       break;
     case Type::U32:
-      for (int c = 0; c < 4; c++)
-      {
-        auto* hex_item = new QTableWidgetItem;
-
-        if (PowerPC::HostIsRAMAddress(addr + c * sizeof(u32)))
-        {
-          u32 value = PowerPC::HostRead_U32(addr + c * sizeof(u32));
-          hex_item->setText(QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0')));
-
-          hex_item->setFlags(Qt::ItemIsEnabled);
-          hex_item->setData(Qt::UserRole, addr);
-        }
-        else
-        {
-          hex_item->setFlags(0);
-          hex_item->setText(QStringLiteral("-"));
-        }
-
-        setItem(i, 2 + c, hex_item);
-      }
+      update_values([](u32 address) {
+        const u32 value = PowerPC::HostRead_U32(address);
+        return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
+      });
       break;
     case Type::Float32:
-      for (int c = 0; c < 4; c++)
-      {
-        auto* hex_item = new QTableWidgetItem;
-
-        if (PowerPC::HostIsRAMAddress(addr + c * sizeof(u32)))
-        {
-          float value = PowerPC::Read_F32(addr + c * sizeof(u32));
-          hex_item->setText(QString::number(value));
-
-          hex_item->setFlags(Qt::ItemIsEnabled);
-          hex_item->setData(Qt::UserRole, addr);
-        }
-        else
-        {
-          hex_item->setFlags(0);
-          hex_item->setText(QStringLiteral("-"));
-        }
-
-        setItem(i, 2 + c, hex_item);
-      }
+      update_values([](u32 address) { return QString::number(PowerPC::Read_F32(address)); });
       break;
     }
   }
