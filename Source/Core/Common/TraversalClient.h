@@ -59,7 +59,7 @@ private:
   {
     TraversalPacket packet;
     int tries;
-    enet_uint32 sendTime;
+    u32 sendTime;
   };
   void HandleServerPacket(TraversalPacket* packet);
   // called from NetHost
@@ -80,7 +80,7 @@ private:
   ENetAddress m_ServerAddress{};
   std::string m_Server;
   u16 m_port;
-  enet_uint32 m_PingTime = 0;
+  u32 m_PingTime = 0;
 };
 extern std::unique_ptr<TraversalClient> g_TraversalClient;
 // the NetHost connected to the TraversalClient.

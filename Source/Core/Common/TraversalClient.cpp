@@ -243,7 +243,7 @@ void TraversalClient::ResendPacket(OutgoingTraversalPacketInfo* info)
 
 void TraversalClient::HandleResends()
 {
-  enet_uint32 now = enet_time_get();
+  const u32 now = enet_time_get();
   for (auto& tpi : m_OutgoingTraversalPackets)
   {
     if (now - tpi.sendTime >= (u32)(300 * tpi.tries))
@@ -265,7 +265,7 @@ void TraversalClient::HandleResends()
 
 void TraversalClient::HandlePing()
 {
-  enet_uint32 now = enet_time_get();
+  const u32 now = enet_time_get();
   if (m_State == Connected && now - m_PingTime >= 500)
   {
     TraversalPacket ping = {};
