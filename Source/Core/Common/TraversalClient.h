@@ -54,7 +54,7 @@ public:
   bool TestPacket(u8* data, size_t size, ENetAddress* from);
   void HandleResends();
 
-  TraversalClientClient* m_Client;
+  TraversalClientClient* m_Client = nullptr;
 
 private:
   struct OutgoingTraversalPacketInfo
@@ -71,16 +71,16 @@ private:
   static int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
 
   ENetHost* m_NetHost;
-  TraversalHostId m_HostId;
-  State m_State;
-  FailureReason m_FailureReason;
-  TraversalRequestId m_ConnectRequestId;
-  bool m_PendingConnect;
+  TraversalHostId m_HostId{};
+  State m_State{};
+  FailureReason m_FailureReason{};
+  TraversalRequestId m_ConnectRequestId = 0;
+  bool m_PendingConnect = false;
   std::list<OutgoingTraversalPacketInfo> m_OutgoingTraversalPackets;
-  ENetAddress m_ServerAddress;
+  ENetAddress m_ServerAddress{};
   std::string m_Server;
   u16 m_port;
-  enet_uint32 m_PingTime;
+  enet_uint32 m_PingTime = 0;
 };
 extern std::unique_ptr<TraversalClient> g_TraversalClient;
 // the NetHost connected to the TraversalClient.
