@@ -15,8 +15,6 @@ namespace Config
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
 
-void InvokeConfigChangedCallbacks();
-
 Layers* GetLayers()
 {
   return &s_layers;
