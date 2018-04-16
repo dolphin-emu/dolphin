@@ -50,8 +50,6 @@ public:
   void ConnectToClient(const std::string& host);
   void ReconnectToServer();
   void Update();
-  // called from NetHost
-  bool TestPacket(u8* data, size_t size, ENetAddress* from);
   void HandleResends();
 
   TraversalClientClient* m_Client = nullptr;
@@ -64,6 +62,8 @@ private:
     enet_uint32 sendTime;
   };
   void HandleServerPacket(TraversalPacket* packet);
+  // called from NetHost
+  bool TestPacket(u8* data, size_t size, ENetAddress* from);
   void ResendPacket(OutgoingTraversalPacketInfo* info);
   TraversalRequestId SendTraversalPacket(const TraversalPacket& packet);
   void OnFailure(FailureReason reason);
