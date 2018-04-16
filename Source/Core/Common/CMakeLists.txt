@@ -46,13 +46,13 @@ add_library(common
 target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CURL_LIBRARIES}
   enet
   ${MBEDTLS_LIBRARIES}
-  ${VTUNE_LIBRARIES}
 
 PRIVATE
+  ${CURL_LIBRARIES}
   ${ICONV_LIBRARIES}
+  ${VTUNE_LIBRARIES}
 )
 
 if (APPLE)
