@@ -76,6 +76,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     case MemCard123Mb:
     case MemCard251Mb:
     case Memcard507Mb:
+    case MemCard995Mb:
     case MemCard1019Mb:
     case MemCard2043Mb:
       break;
@@ -94,8 +95,14 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
   }
   if (m_sizeMb != BE16(hdr.SizeMb))
   {
-    PanicAlertT("Memory card file size does not match the header size");
-    return;
+    // Special case: Datel's "MaxDrive" cards report a size of 0x40,
+    // which should be 8,192*1,024 bytes, but the actual size of an
+    // image of such a card is 8,192*1,000. The cards work, though.
+    if (m_sizeMb != MemCard995Mb || BE16(hdr.SizeMb) != MemCard1019Mb)
+    {
+      PanicAlertT("Memory card file size does not match the header size");
+      return;
+    }
   }
 
   if (!mcdFile.ReadBytes(&dir, BLOCK_SIZE))
@@ -123,6 +130,10 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
   }
 
   u32 csums = TestChecksums();
+
+  // If you got here because you have a MaxDrive and it's reporting strange
+  // errors, use the MaxDrive software on the GameCube to "prepare" the card for
+  // use with the PC and try again.
 
   if (csums & 0x1)
   {
