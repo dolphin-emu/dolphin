@@ -36,9 +36,6 @@ void Host_UpdateMainFrame()
 void Host_RequestRenderWindowSize(int, int)
 {
 }
-void Host_SetStartupDebuggingParameters()
-{
-}
 bool Host_UINeedsControllerState()
 {
   return false;

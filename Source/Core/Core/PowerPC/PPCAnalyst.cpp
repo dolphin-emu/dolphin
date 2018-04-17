@@ -644,28 +644,11 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  switch (opinfo->type)
+  // For analysis purposes, we can assume that blr eats opinfo->flags.
+  if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
   {
-  case OpType::Integer:
-  case OpType::Load:
-  case OpType::Store:
-  case OpType::LoadFP:
-  case OpType::StoreFP:
-    break;
-  case OpType::SingleFP:
-  case OpType::DoubleFP:
-    break;
-  case OpType::Branch:
-    if (code->inst.hex == 0x4e800020)
-    {
-      // For analysis purposes, we can assume that blr eats opinfo->flags.
-      code->outputCR0 = true;
-      code->outputCR1 = true;
-    }
-    break;
-  case OpType::System:
-  case OpType::SystemFP:
-    break;
+    code->outputCR0 = true;
+    code->outputCR1 = true;
   }
 }
 

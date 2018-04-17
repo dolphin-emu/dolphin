@@ -76,8 +76,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                            const char* message, const void* userParam)
+static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                   GLsizei length, const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;

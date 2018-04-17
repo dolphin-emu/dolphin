@@ -217,7 +217,7 @@ private:
   MoFile m_mo_file;
 };
 
-QStringList FindPossibleLanguageCodes(const QString& exact_language_code)
+static QStringList FindPossibleLanguageCodes(const QString& exact_language_code)
 {
   QStringList possible_language_codes;
   possible_language_codes << exact_language_code;
