@@ -282,7 +282,7 @@ PUBLIC
   discio
   enet
   inputcommon
-  ${MBEDTLS_LIBRARIES}
+  MbedTLS::Crypto
   pugixml
   sfml-network
   sfml-system
@@ -293,6 +293,7 @@ PUBLIC
 PRIVATE
   bdisasm
   ${LZO}
+  MbedTLS::MbedTLS
   ZLIB::ZLIB
 )
 

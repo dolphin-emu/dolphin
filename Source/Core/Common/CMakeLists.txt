@@ -47,11 +47,11 @@ target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
   enet
-  ${MBEDTLS_LIBRARIES}
 
 PRIVATE
   ${CURL_LIBRARIES}
   ${ICONV_LIBRARIES}
+  MbedTLS::Crypto
   ${VTUNE_LIBRARIES}
 )
 

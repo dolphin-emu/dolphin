@@ -11,5 +11,5 @@ add_library(
   ${SRCS}
   )
 
-target_link_libraries(curl ${MBEDTLS_LIBRARIES})
+target_link_libraries(curl PRIVATE MbedTLS::MbedTLS)
 target_compile_definitions(curl PUBLIC CURL_STATICLIB PRIVATE CURL_DISABLE_LDAP)

@@ -23,6 +23,9 @@ add_library(discio
 )
 
 target_link_libraries(discio
+PUBLIC
+  MbedTLS::Crypto
+
 PRIVATE
   ZLIB::ZLIB
 )
