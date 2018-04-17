@@ -245,6 +245,11 @@ void HotkeyScheduler::Run()
       else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE))
         m_profile_cycler.NextWiimoteProfile();
 
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE))
+        m_profile_cycler.PreviousWiimoteProfileForGame();
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE))
+        m_profile_cycler.NextWiimoteProfileForGame();
+
       const auto show_msg = [](OSDMessage message) {
         if (g_renderer)
           g_renderer->ShowOSDMessage(message);
