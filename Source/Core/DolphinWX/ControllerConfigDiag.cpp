@@ -94,8 +94,7 @@ void ControllerConfigDiag::UpdateUI()
         SConfig::GetInstance().bWii || Core::GetState() == Core::State::Uninitialized;
     if (Core::WantsDeterminism() || !wii_game_started)
       m_wiimote_sources[i]->Disable();
-    if (!wii_game_started ||
-        (g_wiimote_sources[i] != WIIMOTE_SRC_EMU && g_wiimote_sources[i] != WIIMOTE_SRC_HYBRID))
+    if (!wii_game_started || g_wiimote_sources[i] != WIIMOTE_SRC_EMU)
       m_wiimote_configure_button[i]->Disable();
   }
 
@@ -309,8 +308,8 @@ wxSizer* ControllerConfigDiag::CreatePassthroughBTConfigSizer()
 
 wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
 {
-  const std::array<wxString, 4> src_choices{
-      {_("None"), _("Emulated Wii Remote"), _("Real Wii Remote"), _("Hybrid Wii Remote")}};
+  const std::array<wxString, 3> src_choices{
+      {_("None"), _("Emulated Wii Remote"), _("Real Wii Remote")}};
 
   const int space5 = FromDIP(5);
 
@@ -507,11 +506,7 @@ void ControllerConfigDiag::OnWiimoteSourceChanged(wxCommandEvent& event)
   if (index != WIIMOTE_BALANCE_BOARD)
   {
     WiimoteReal::ChangeWiimoteSource(index, event.GetInt());
-    if (g_wiimote_sources[index] != WIIMOTE_SRC_EMU &&
-        g_wiimote_sources[index] != WIIMOTE_SRC_HYBRID)
-      m_wiimote_configure_button[index]->Disable();
-    else
-      m_wiimote_configure_button[index]->Enable();
+    m_wiimote_configure_button[index]->Enable(g_wiimote_sources[index] == WIIMOTE_SRC_EMU);
   }
   else
   {
