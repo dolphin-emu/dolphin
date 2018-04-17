@@ -581,6 +581,26 @@ u64 HostRead_U64(const u32 address)
   return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address);
 }
 
+float HostRead_F32(const u32 address)
+{
+  const u32 integral = HostRead_U32(address);
+
+  float real;
+  std::memcpy(&real, &integral, sizeof(float));
+
+  return real;
+}
+
+double HostRead_F64(const u32 address)
+{
+  const u64 integral = HostRead_U64(address);
+
+  double real;
+  std::memcpy(&real, &integral, sizeof(double));
+
+  return real;
+}
+
 void HostWrite_U8(const u8 var, const u32 address)
 {
   WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var);
@@ -599,6 +619,22 @@ void HostWrite_U32(const u32 var, const u32 address)
 void HostWrite_U64(const u64 var, const u32 address)
 {
   WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var);
+}
+
+void HostWrite_F32(const float var, const u32 address)
+{
+  u32 integral;
+  std::memcpy(&integral, &var, sizeof(u32));
+
+  HostWrite_U32(integral, address);
+}
+
+void HostWrite_F64(const double var, const u32 address)
+{
+  u64 integral;
+  std::memcpy(&integral, &var, sizeof(u64));
+
+  HostWrite_U64(integral, address);
 }
 
 std::string HostGetString(u32 address, size_t size)
