@@ -271,7 +271,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("Microphone"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:
-  case Type::MAPPING_WIIMOTE_HYBRID:
   {
     auto* extension = new WiimoteEmuExtension(this);
     widget = new WiimoteEmuGeneral(this, extension);
