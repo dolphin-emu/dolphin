@@ -92,7 +92,6 @@ add_executable(dolphin-emu-qt2
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
   QtUtils/ImageConverter.cpp
-  QtUtils/ListTabWidget.cpp
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp

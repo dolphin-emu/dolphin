@@ -6,7 +6,13 @@
 
 #include <QDialog>
 
-class ListTabWidget;
+class QTabWidget;
+
+enum class TabIndex
+{
+  General = 0,
+  Audio = 2
+};
 
 class SettingsWindow final : public QDialog
 {
@@ -17,7 +23,5 @@ public:
   void SelectAudioPane();
 
 private:
-  ListTabWidget* m_tabs;
-  int m_audio_pane_index = -1;
-  int m_general_pane_index = -1;
+  QTabWidget* m_tab_widget;
 };
