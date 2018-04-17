@@ -98,7 +98,7 @@ void CodeViewWidget::Update()
 
   u32 pc = PowerPC::ppcState.pc;
 
-  if (PowerPC::debug_interface.IsBreakpoint(pc))
+  if (Core::GetState() != Core::State::Paused && PowerPC::debug_interface.IsBreakpoint(pc))
     Core::SetState(Core::State::Paused);
 
   for (int i = 0; i < rowCount(); i++)
