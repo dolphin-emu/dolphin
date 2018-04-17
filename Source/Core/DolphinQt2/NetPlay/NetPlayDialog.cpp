@@ -360,19 +360,22 @@ void NetPlayDialog::UpdateGUI()
   // Update Room ID / IP label
   if (m_use_traversal && m_room_box->currentIndex() == 0)
   {
-    switch (g_TraversalClient->m_State)
+    switch (g_TraversalClient->GetState())
     {
     case TraversalClient::Connecting:
       m_hostcode_label->setText(tr("..."));
       m_hostcode_action_button->setEnabled(false);
       break;
     case TraversalClient::Connected:
-      m_hostcode_label->setText(QString::fromStdString(
-          std::string(g_TraversalClient->m_HostId.data(), g_TraversalClient->m_HostId.size())));
+    {
+      const auto host_id = g_TraversalClient->GetHostID();
+      m_hostcode_label->setText(
+          QString::fromStdString(std::string(host_id.begin(), host_id.end())));
       m_hostcode_action_button->setEnabled(true);
       m_hostcode_action_button->setText(tr("Copy"));
       m_is_copy_button_retry = false;
       break;
+    }
     case TraversalClient::Failure:
       m_hostcode_label->setText(tr("Error"));
       m_hostcode_action_button->setText(tr("Retry"));
