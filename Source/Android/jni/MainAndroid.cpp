@@ -123,10 +123,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-void Host_SetStartupDebuggingParameters()
-{
-}
-
 bool Host_UINeedsControllerState()
 {
   return true;
