@@ -719,6 +719,12 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
   const u32 param4 = Memory::Read_U32(request.io_vectors[1].address);
   u32 param5 = 0;
 
+  if (param != 0xfffe)
+  {
+    WARN_LOG(IOS_NET, "GetInterfaceOpt: received invalid request with param0=%08x", param);
+    return GetDefaultReply(-51);
+  }
+
   if (request.io_vectors[0].size >= 8)
   {
     param5 = Memory::Read_U32(request.io_vectors[0].address + 4);
