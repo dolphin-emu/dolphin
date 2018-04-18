@@ -379,19 +379,19 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		switch (which)
 		{
 			case 0:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "OGL");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "OGL");
 				break;
 
 			case 1:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Vulkan");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Vulkan");
 				break;
 
 			case 2:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Software Renderer");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Software Renderer");
 				break;
 
 			case 3:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Null");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Null");
 				break;
 		}
 

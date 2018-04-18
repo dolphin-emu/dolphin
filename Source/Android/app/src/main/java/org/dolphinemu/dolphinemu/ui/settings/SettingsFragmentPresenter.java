@@ -196,15 +196,15 @@ public final class SettingsFragmentPresenter
 
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
-			cpuCore = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_CPU_CORE);
-			dualCore = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_DUAL_CORE);
-			overclockEnable = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
-			overclock = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
-			slotADevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
-			slotBDevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
-			continuousScan = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
-			wiimoteSpeaker = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
-			audioStretch = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+			cpuCore = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_CPU_CORE);
+			dualCore = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_DUAL_CORE);
+			overclockEnable = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
+			overclock = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
+			slotADevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
+			slotBDevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
+			continuousScan = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
+			wiimoteSpeaker = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
+			audioStretch = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		}
 		else
 		{
@@ -232,15 +232,15 @@ public final class SettingsFragmentPresenter
 			emuCoresEntries = R.array.emuCoresEntriesGeneric;
 			emuCoresValues = R.array.emuCoresValuesGeneric;
 		}
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.cpu_core, 0, emuCoresEntries, emuCoresValues, defaultCpuCore, cpuCore));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.dual_core, R.string.dual_core_descrip, true, dualCore));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
-		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_title, 0, 400, "%", 100, overclock));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_B_DEVICE, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_b_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 255, slotBDevice));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.cpu_core, 0, emuCoresEntries, emuCoresValues, defaultCpuCore, cpuCore));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.dual_core, R.string.dual_core_descrip, true, dualCore));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
+		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_title, 0, 400, "%", 100, overclock));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_B_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_b_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 255, slotBDevice));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 	}
 
 	private void addInterfaceSettings(ArrayList<SettingsItem> sl)
@@ -250,11 +250,11 @@ public final class SettingsFragmentPresenter
 
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
-			usePanicHandlers = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INTERFACE).getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
-			onScreenDisplayMessages = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INTERFACE).getSetting(SettingsFile.KEY_OSD_MESSAGES);
+			usePanicHandlers = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_INTERFACE).getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
+			onScreenDisplayMessages = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_INTERFACE).getSetting(SettingsFile.KEY_OSD_MESSAGES);
 		}
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, SettingsFile.SECTION_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.panic_handlers, R.string.panic_handlers_description, true, usePanicHandlers));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_OSD_MESSAGES, SettingsFile.SECTION_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.osd_messages, R.string.osd_messages_description, true, onScreenDisplayMessages));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.panic_handlers, R.string.panic_handlers_description, true, usePanicHandlers));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_OSD_MESSAGES, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.osd_messages, R.string.osd_messages_description, true, onScreenDisplayMessages));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl)
@@ -264,8 +264,8 @@ public final class SettingsFragmentPresenter
 			for (int i = 0; i < 4; i++)
 			{
 				// TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
-				Setting gcPadSetting = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
-				sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0, gcPadSetting));
+				Setting gcPadSetting = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
+				sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0, gcPadSetting));
 			}
 		}
 	}
@@ -285,7 +285,7 @@ public final class SettingsFragmentPresenter
 
 	private void addGraphicsSettings(ArrayList<SettingsItem> sl)
 	{
-		IntSetting videoBackend = new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, getVideoBackendValue());
+		IntSetting videoBackend = new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, getVideoBackendValue());
 		Setting showFps = null;
 		Setting shaderCompilationMode = null;
 		Setting waitForShaders = null;
@@ -306,7 +306,7 @@ public final class SettingsFragmentPresenter
 			mView.passSettingsToActivity(mSettings);
 		}
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_descrip, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_descrip, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, R.string.show_fps_descrip, false, showFps));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.shader_compilation_mode, R.string.shader_compilation_mode_descrip, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.wait_for_shaders, 0, false, waitForShaders));
@@ -459,11 +459,11 @@ public final class SettingsFragmentPresenter
 		}
 		else // Adapter
 		{
-			Setting rumble = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber);
-			Setting bongos = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber);
+			Setting rumble = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber);
+			Setting bongos = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber);
 
-			sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description, false, rumble));
-			sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description, false, bongos));
+			sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description, false, rumble));
+			sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description, false, bongos));
 		}
 	}
 
@@ -812,7 +812,7 @@ public final class SettingsFragmentPresenter
 
 		try
 		{
-			String videoBackend = ((StringSetting)mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_VIDEO_BACKEND)).getValue();
+			String videoBackend = ((StringSetting)mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_VIDEO_BACKEND)).getValue();
 			if (videoBackend.equals("OGL"))
 			{
 				videoBackendValue = 0;
