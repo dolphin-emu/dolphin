@@ -112,6 +112,8 @@ void Jit64AsmRoutineManager::Generate()
     // Fast block number lookup.
     // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
+    // Keep a copy for later.
+    MOV(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
     u64 icache = reinterpret_cast<u64>(m_jit.GetBlockCache()->GetFastBlockMap());
     AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 2));
     if (icache <= INT_MAX)
@@ -132,7 +134,7 @@ void Jit64AsmRoutineManager::Generate()
     MOV(32, R(RSCRATCH2), PPCSTATE(msr));
     AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
     SHL(64, R(RSCRATCH2), Imm8(32));
-    MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
+    // RSCRATCH_EXTRA still has the PC.
     OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
     CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, effectiveAddress))));
     FixupBranch state_mismatch = J_CC(CC_NE);
