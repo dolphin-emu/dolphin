@@ -22,6 +22,8 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
           [this](const QString& path) { RemoveGame(path.toStdString()); });
   connect(&Settings::Instance(), &Settings::PathAdded, &m_tracker, &GameTracker::AddDirectory);
   connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+  connect(&Settings::Instance(), &Settings::PathReloadRequested, &m_tracker,
+          &GameTracker::ReloadDirectory);
 
   for (const QString& dir : Settings::Instance().GetPaths())
     m_tracker.AddDirectory(dir);

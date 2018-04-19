@@ -6,6 +6,7 @@
 #include <QDirIterator>
 #include <QFile>
 
+#include "Core/ConfigManager.h"
 #include "DiscIO/DirectoryBlob.h"
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
@@ -58,6 +59,12 @@ void GameTracker::RemoveDirectory(const QString& dir)
   m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
 }
 
+void GameTracker::ReloadDirectory(const QString& dir)
+{
+  m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
+  m_load_thread.EmplaceItem(Command{CommandType::AddDirectory, dir});
+}
+
 void GameTracker::UpdateDirectory(const QString& dir)
 {
   m_load_thread.EmplaceItem(Command{CommandType::UpdateDirectory, dir});
@@ -76,13 +83,21 @@ void GameTracker::AddDirectoryInternal(const QString& dir)
   UpdateDirectoryInternal(dir);
 }
 
+static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
+{
+  return std::make_unique<QDirIterator>(dir, game_filters, QDir::NoFilter,
+                                        SConfig::GetInstance().m_RecursiveISOFolder ?
+                                            QDirIterator::Subdirectories :
+                                            QDirIterator::NoIteratorFlags);
+}
+
 void GameTracker::RemoveDirectoryInternal(const QString& dir)
 {
   removePath(dir);
-  QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
-  while (it.hasNext())
+  auto it = GetIterator(dir);
+  while (it->hasNext())
   {
-    QString path = QFileInfo(it.next()).canonicalFilePath();
+    QString path = QFileInfo(it->next()).canonicalFilePath();
     if (m_tracked_files.contains(path))
     {
       m_tracked_files[path].remove(dir);
@@ -98,10 +113,10 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
 
 void GameTracker::UpdateDirectoryInternal(const QString& dir)
 {
-  QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
-  while (it.hasNext())
+  auto it = GetIterator(dir);
+  while (it->hasNext())
   {
-    QString path = QFileInfo(it.next()).canonicalFilePath();
+    QString path = QFileInfo(it->next()).canonicalFilePath();
 
     if (m_tracked_files.contains(path))
     {
@@ -147,7 +162,7 @@ void GameTracker::UpdateFileInternal(const QString& file)
 
 QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
 {
-  QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
+  auto it = GetIterator(dir);
 
   QSet<QString> missing_files;
 
@@ -157,9 +172,9 @@ QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
       missing_files.insert(key);
   }
 
-  while (it.hasNext())
+  while (it->hasNext())
   {
-    QString path = QFileInfo(it.next()).canonicalFilePath();
+    QString path = QFileInfo(it->next()).canonicalFilePath();
     if (m_tracked_files.contains(path))
       missing_files.remove(path);
   }

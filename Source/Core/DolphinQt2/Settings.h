@@ -61,6 +61,7 @@ public:
   void SetPreferredView(bool list);
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
+  void ReloadPath(const QString& qpath);
 
   // Emulation
   int GetStateSlot() const;
@@ -119,6 +120,7 @@ signals:
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
+  void PathReloadRequested(const QString&);
   void HideCursorChanged();
   void VolumeChanged(int volume);
   void NANDRefresh();

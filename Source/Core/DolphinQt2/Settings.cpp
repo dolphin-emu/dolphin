@@ -80,6 +80,11 @@ void Settings::RemovePath(const QString& qpath)
   emit PathRemoved(qpath);
 }
 
+void Settings::ReloadPath(const QString& qpath)
+{
+  emit PathReloadRequested(qpath);
+}
+
 QString Settings::GetDefaultGame() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
