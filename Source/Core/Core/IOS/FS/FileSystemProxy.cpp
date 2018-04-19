@@ -469,6 +469,8 @@ IPCCommandResult FS::ReadDirectory(const Handle& handle, const IOCtlVRequest& re
     Memory::Write_U8(0, file_list_address + 12);
     file_list_address += 13;
   }
+  // Write the actual number of entries in the buffer.
+  Memory::Write_U32(std::min(max_count, static_cast<u32>(list->size())), file_count_address);
   return GetFSReply(IPC_SUCCESS);
 }
 
