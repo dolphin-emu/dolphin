@@ -54,8 +54,7 @@ public:
 class STMEventHook final : public Device
 {
 public:
-  using Device::Device;
-  ~STMEventHook() override;
+  STMEventHook(Kernel& ios, const std::string& name);
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void DoState(PointerWrap& p) override;
 
