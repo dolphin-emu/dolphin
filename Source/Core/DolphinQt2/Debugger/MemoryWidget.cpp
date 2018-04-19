@@ -32,6 +32,8 @@
 MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Memory"));
+  setObjectName(QStringLiteral("memory"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   CreateWidgets();

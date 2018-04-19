@@ -20,6 +20,7 @@ class ToolBar final : public QToolBar
 public:
   explicit ToolBar(QWidget* parent = nullptr);
 
+  void closeEvent(QCloseEvent*) override;
 signals:
   void OpenPressed();
   void PlayPressed();

@@ -108,6 +108,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 
   if (boot_parameters)
     StartGame(std::move(boot_parameters));
+
+  QSettings& settings = Settings::GetQSettings();
+
+  restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
 }
 
 MainWindow::~MainWindow()
@@ -116,6 +120,10 @@ MainWindow::~MainWindow()
   ShutdownControllers();
 
   Config::Save();
+
+  QSettings& settings = Settings::GetQSettings();
+
+  settings.setValue(QStringLiteral("mainwindow/state"), saveState());
 }
 
 void MainWindow::InitControllers()

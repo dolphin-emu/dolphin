@@ -27,6 +27,8 @@
 CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Code"));
+  setObjectName(QStringLiteral("code"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();

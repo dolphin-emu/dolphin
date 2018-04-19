@@ -338,9 +338,23 @@ void MenuBar::AddViewMenu()
   connect(show_log_config, &QAction::toggled, &Settings::Instance(),
           &Settings::SetLogConfigVisible);
 
+  QAction* show_toolbar = view_menu->addAction(tr("Show &Toolbar"));
+  show_toolbar->setCheckable(true);
+  show_toolbar->setChecked(Settings::Instance().IsToolBarVisible());
+
+  connect(show_toolbar, &QAction::toggled, &Settings::Instance(), &Settings::SetToolBarVisible);
+
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
           &QAction::setChecked);
+  connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, show_toolbar,
+          &QAction::setChecked);
+
+  QAction* lock_widgets = view_menu->addAction(tr("&Lock Widgets In Place"));
+  lock_widgets->setCheckable(true);
+  lock_widgets->setChecked(Settings::Instance().AreWidgetsLocked());
+
+  connect(lock_widgets, &QAction::toggled, &Settings::Instance(), &Settings::SetWidgetsLocked);
 
   view_menu->addSeparator();
 
