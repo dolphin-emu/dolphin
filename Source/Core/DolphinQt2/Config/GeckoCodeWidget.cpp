@@ -220,10 +220,15 @@ void GeckoCodeWidget::SaveCodes()
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 }
 
+bool helpOrderCodes(Gecko::GeckoCode code1, Gecko::GeckoCode code2) { // to sort the codes alphabetically
+  return (code1.name < code2.name);
+}
+
 void GeckoCodeWidget::UpdateList()
 {
   m_code_list->clear();
 
+  std::sort(m_gecko_codes.begin(), m_gecko_codes.end(), helpOrderCodes);  // should sort the codes in alphabetical order
   for (size_t i = 0; i < m_gecko_codes.size(); i++)
   {
     const auto& code = m_gecko_codes[i];
