@@ -357,7 +357,6 @@ void MainWindow::ConnectToolBar()
 
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
 
-  connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
   connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
   connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::RequestStop);
