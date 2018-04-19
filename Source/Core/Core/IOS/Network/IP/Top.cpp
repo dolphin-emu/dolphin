@@ -22,6 +22,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
+#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
@@ -37,16 +38,12 @@
 #define MALLOC(x) HeapAlloc(GetProcessHeap(), 0, (x))
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
-#elif defined(__linux__) or defined(__APPLE__)
-#include <netinet/in.h>
-#include <sys/socket.h>
-
-typedef struct pollfd pollfd_t;
 #else
-#include <errno.h>
+#include <ifaddrs.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 #endif
 
 // WSAPoll doesn't support POLLPRI and POLLWRBAND flags
@@ -210,6 +207,47 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
       const auto& entry = ipTable->table[i];
       if (entry.dwIndex == ifIndex)
         return DefaultInterface{entry.dwAddr, entry.dwMask, entry.dwBCastAddr};
+    }
+  }
+#elif !defined(__ANDROID__)
+  // Assume that the address that is used to access the Internet corresponds
+  // to the default interface.
+  auto get_default_address = []() -> std::optional<in_addr> {
+    const int sock = socket(AF_INET, SOCK_DGRAM, 0);
+    Common::ScopeGuard sock_guard{[sock] { close(sock); }};
+
+    sockaddr_in addr{};
+    socklen_t length = sizeof(addr);
+    addr.sin_family = AF_INET;
+    // The address is irrelevant -- no packet is actually sent. This just needs to be a public IP.
+    addr.sin_addr.s_addr = inet_addr(8, 8, 8, 8);
+    if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == -1)
+      return {};
+    if (getsockname(sock, reinterpret_cast<sockaddr*>(&addr), &length) == -1)
+      return {};
+    return addr.sin_addr;
+  };
+
+  auto get_addr = [](const sockaddr* addr) {
+    return reinterpret_cast<const sockaddr_in*>(addr)->sin_addr.s_addr;
+  };
+
+  const auto default_interface_address = get_default_address();
+  if (!default_interface_address)
+    return {};
+
+  ifaddrs* iflist;
+  if (getifaddrs(&iflist) != 0)
+    return {};
+  Common::ScopeGuard iflist_guard{[iflist] { freeifaddrs(iflist); }};
+
+  for (const ifaddrs* iface = iflist; iface; iface = iface->ifa_next)
+  {
+    if (iface->ifa_addr && iface->ifa_addr->sa_family == AF_INET &&
+        get_addr(iface->ifa_addr) == default_interface_address->s_addr)
+    {
+      return DefaultInterface{get_addr(iface->ifa_addr), get_addr(iface->ifa_netmask),
+                              get_addr(iface->ifa_broadaddr)};
     }
   }
 #endif
