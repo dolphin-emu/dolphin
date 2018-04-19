@@ -75,12 +75,16 @@ CodeConfigPanel::CodeConfigPanel(wxWindow* const parent) : wxPanel(parent)
   SetSizerAndFit(sizer_main);
 }
 
+bool helpOrderCodes(GeckoCode& code1, GeckoCode& code2) { // to sort the codes by name
+  return (code1.name < code2.name);
+}
+
 void CodeConfigPanel::UpdateCodeList(bool checkRunning)
 {
   // disable the button if it doesn't have an effect
   btn_download->Enable((!checkRunning || Core::IsRunning()) && !m_gameid.empty());
 
-  m_listbox_gcodes->Clear();
+  std::sort(m_gcodes.begin(), m_gcodes.end(), helpOrderCodes);  // should sort the codes in alphabetical order  m_listbox_gcodes->Clear();
   // add the codes to the listbox
   for (const GeckoCode& code : m_gcodes)
   {
