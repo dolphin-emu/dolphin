@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -151,6 +152,75 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
 
   INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown optname %u", optname);
   return optname;
+}
+
+struct DefaultInterface
+{
+  u32 inet;       ///< IPv4 address
+  u32 netmask;    ///< IPv4 subnet mask
+  u32 broadcast;  ///< IPv4 broadcast address
+};
+
+static std::optional<DefaultInterface> GetSystemDefaultInterface()
+{
+#ifdef _WIN32
+  DWORD forwardTableSize, ipTableSize, result;
+  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
+  std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
+  std::unique_ptr<MIB_IPADDRTABLE> ipTable;
+
+  forwardTableSize = 0;
+  if (GetIpForwardTable(nullptr, &forwardTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+  {
+    forwardTable =
+        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forwardTableSize));
+  }
+
+  ipTableSize = 0;
+  if (GetIpAddrTable(nullptr, &ipTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+  {
+    ipTable = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ipTableSize));
+  }
+
+  // find the interface IP used for the default route and use that
+  result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
+  // can return ERROR_MORE_DATA on XP even after the first call
+  while (result == NO_ERROR || result == ERROR_MORE_DATA)
+  {
+    for (DWORD i = 0; i < forwardTable->dwNumEntries; ++i)
+    {
+      if (forwardTable->table[i].dwForwardDest == 0)
+      {
+        ifIndex = forwardTable->table[i].dwForwardIfIndex;
+        break;
+      }
+    }
+
+    if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
+      break;
+
+    result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
+  }
+
+  if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
+      GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
+  {
+    for (DWORD i = 0; i < ipTable->dwNumEntries; ++i)
+    {
+      const auto& entry = ipTable->table[i];
+      if (entry.dwIndex == ifIndex)
+        return DefaultInterface{entry.dwAddr, entry.dwMask, entry.dwBCastAddr};
+    }
+  }
+#endif
+  return {};
+}
+
+static DefaultInterface GetSystemDefaultInterfaceOrFallback()
+{
+  static constexpr DefaultInterface FALLBACK_VALUES{
+      inet_addr(10, 0, 1, 30), inet_addr(255, 255, 255, 0), inet_addr(10, 0, 255, 255)};
+  return GetSystemDefaultInterface().value_or(FALLBACK_VALUES);
 }
 
 IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
@@ -433,67 +503,8 @@ IPCCommandResult NetIPTop::HandleGetPeerNameRequest(const IOCtlRequest& request)
 IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::IOS_WC24);
-
-  s32 return_value = 0;
-
-#ifdef _WIN32
-  DWORD forwardTableSize, ipTableSize, result;
-  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
-  std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
-  std::unique_ptr<MIB_IPADDRTABLE> ipTable;
-
-  forwardTableSize = 0;
-  if (GetIpForwardTable(nullptr, &forwardTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
-  {
-    forwardTable =
-        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forwardTableSize));
-  }
-
-  ipTableSize = 0;
-  if (GetIpAddrTable(nullptr, &ipTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
-  {
-    ipTable = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ipTableSize));
-  }
-
-  // find the interface IP used for the default route and use that
-  result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
-  // can return ERROR_MORE_DATA on XP even after the first call
-  while (result == NO_ERROR || result == ERROR_MORE_DATA)
-  {
-    for (DWORD i = 0; i < forwardTable->dwNumEntries; ++i)
-    {
-      if (forwardTable->table[i].dwForwardDest == 0)
-      {
-        ifIndex = forwardTable->table[i].dwForwardIfIndex;
-        break;
-      }
-    }
-
-    if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
-      break;
-
-    result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
-  }
-
-  if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
-      GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
-  {
-    for (DWORD i = 0; i < ipTable->dwNumEntries; ++i)
-    {
-      if (ipTable->table[i].dwIndex == ifIndex)
-      {
-        return_value = Common::swap32(ipTable->table[i].dwAddr);
-        break;
-      }
-    }
-  }
-#endif
-
-  // default placeholder, in case of failure
-  if (return_value == 0)
-    return_value = 192 << 24 | 168 << 16 | 1 << 8 | 150;
-
-  return GetDefaultReply(return_value);
+  const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
+  return GetDefaultReply(Common::swap32(interface.inet));
 }
 
 IPCCommandResult NetIPTop::HandleInetAToNRequest(const IOCtlRequest& request)
