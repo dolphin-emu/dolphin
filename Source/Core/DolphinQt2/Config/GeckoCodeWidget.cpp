@@ -22,8 +22,9 @@
 #include "DolphinQt2/Config/CheatWarningWidget.h"
 #include "UICommon/GameFile.h"
 
-GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
+GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)
+    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision()),
+      m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -42,7 +43,7 @@ GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game)
 
 void GeckoCodeWidget::CreateWidgets()
 {
-  m_warning = new CheatWarningWidget(m_game_id);
+  m_warning = new CheatWarningWidget(m_game_id, m_restart_required);
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
@@ -154,6 +155,9 @@ void GeckoCodeWidget::OnSelectionChanged()
 void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
 {
   m_gecko_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
+
+  if (!m_restart_required)
+    Gecko::SetActiveCodes(m_gecko_codes);
 
   SaveCodes();
 }

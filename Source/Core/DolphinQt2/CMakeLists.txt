@@ -7,6 +7,7 @@ set(CMAKE_AUTOMOC ON)
 
 add_executable(dolphin-emu-qt2
   AboutDialog.cpp
+  CheatsManager.cpp
   FIFOPlayerWindow.cpp
   HotkeyScheduler.cpp
   Host.cpp
