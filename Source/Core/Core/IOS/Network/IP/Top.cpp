@@ -884,11 +884,16 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
     break;
 
   case 0x4003:  // ip addr table
+  {
+    // XXX: this isn't exactly right; the buffer can be larger than 12 bytes, in which case
+    // SO can write 12 more bytes.
     Memory::Write_U32(0xC, request.io_vectors[1].address);
-    Memory::Write_U32(inet_addr(10, 0, 1, 30), request.io_vectors[0].address);
-    Memory::Write_U32(inet_addr(255, 255, 255, 0), request.io_vectors[0].address + 4);
-    Memory::Write_U32(inet_addr(10, 0, 255, 255), request.io_vectors[0].address + 8);
+    const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
+    Memory::Write_U32(Common::swap32(interface.inet), request.io_vectors[0].address);
+    Memory::Write_U32(Common::swap32(interface.netmask), request.io_vectors[0].address + 4);
+    Memory::Write_U32(Common::swap32(interface.broadcast), request.io_vectors[0].address + 8);
     break;
+  }
 
   case 0x4005:  // hardcoded value
     Memory::Write_U32(0x20, request.io_vectors[0].address);
