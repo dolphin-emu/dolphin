@@ -66,7 +66,7 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-STMEventHook::~STMEventHook()
+STMEventHook::STMEventHook(Kernel& ios, const std::string& name) : Device{ios, name}
 {
   s_event_hook_request.reset();
 }
