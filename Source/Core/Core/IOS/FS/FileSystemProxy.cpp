@@ -467,8 +467,10 @@ IPCCommandResult FS::ReadDirectory(const Handle& handle, const IOCtlVRequest& re
     Memory::Memset(file_list_address, 0, 13);
     Memory::CopyToEmu(file_list_address, (*list)[i].data(), (*list)[i].size());
     Memory::Write_U8(0, file_list_address + 12);
-    file_list_address += 13;
+    file_list_address += static_cast<u32>((*list)[i].size()) + 1;
   }
+  // Write the actual number of entries in the buffer.
+  Memory::Write_U32(std::min(max_count, static_cast<u32>(list->size())), file_count_address);
   return GetFSReply(IPC_SUCCESS);
 }
 
