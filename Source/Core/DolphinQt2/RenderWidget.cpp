@@ -90,6 +90,8 @@ bool RenderWidget::event(QEvent* event)
 {
   switch (event->type())
   {
+  case QEvent::Paint:
+    return !autoFillBackground();
   case QEvent::KeyPress:
   {
     QKeyEvent* ke = static_cast<QKeyEvent*>(event);
