@@ -77,8 +77,8 @@ private:
   std::shared_ptr<File::IOFile> OpenHostFile(const std::string& host_path);
 
   std::string m_root_path;
-  std::array<Handle, 16> m_handles{};
   std::map<std::string, std::weak_ptr<File::IOFile>> m_open_files;
+  std::array<Handle, 16> m_handles{};
 };
 
 }  // namespace IOS::HLE::FS
