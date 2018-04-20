@@ -75,13 +75,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-// Android and OSX haven't implemented the keyword yet.
-#if defined __ANDROID__ || defined __APPLE__
-#include <pthread.h>
-#else  // Everything besides OSX and Android
-#define ThreadLocalStorage thread_local
-#endif
-
 namespace Core
 {
 static bool s_wants_determinism;
@@ -112,16 +105,7 @@ struct HostJob
 static std::mutex s_host_jobs_lock;
 static std::queue<HostJob> s_host_jobs_queue;
 
-#ifdef ThreadLocalStorage
-static ThreadLocalStorage bool tls_is_cpu_thread = false;
-#else
-static pthread_key_t s_tls_is_cpu_key;
-static pthread_once_t s_cpu_key_is_init = PTHREAD_ONCE_INIT;
-static void InitIsCPUKey()
-{
-  pthread_key_create(&s_tls_is_cpu_key, nullptr);
-}
-#endif
+static thread_local bool tls_is_cpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot);
 
@@ -183,14 +167,7 @@ bool IsRunningInCurrentThread()
 
 bool IsCPUThread()
 {
-#ifdef ThreadLocalStorage
   return tls_is_cpu_thread;
-#else
-  // Use pthread implementation for Android and Mac
-  // Make sure that s_tls_is_cpu_key is initialized
-  pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
-  return pthread_getspecific(s_tls_is_cpu_key);
-#endif
 }
 
 bool IsGPUThread()
@@ -297,26 +274,12 @@ void Stop()  // - Hammertime!
 
 void DeclareAsCPUThread()
 {
-#ifdef ThreadLocalStorage
   tls_is_cpu_thread = true;
-#else
-  // Use pthread implementation for Android and Mac
-  // Make sure that s_tls_is_cpu_key is initialized
-  pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
-  pthread_setspecific(s_tls_is_cpu_key, (void*)true);
-#endif
 }
 
 void UndeclareAsCPUThread()
 {
-#ifdef ThreadLocalStorage
   tls_is_cpu_thread = false;
-#else
-  // Use pthread implementation for Android and Mac
-  // Make sure that s_tls_is_cpu_key is initialized
-  pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
-  pthread_setspecific(s_tls_is_cpu_key, (void*)false);
-#endif
 }
 
 // For the CPU Thread only.
