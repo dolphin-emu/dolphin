@@ -25,6 +25,8 @@
 BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Breakpoints"));
+  setObjectName(QStringLiteral("breakpoints"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();

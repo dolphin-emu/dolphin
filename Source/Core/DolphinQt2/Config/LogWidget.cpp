@@ -29,6 +29,8 @@ constexpr int TIMESTAMP_LENGTH = 10;
 LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(this))
 {
   setWindowTitle(tr("Log"));
+  setObjectName(QStringLiteral("log"));
+
   setHidden(!Settings::Instance().IsLogVisible());
   setAllowedAreas(Qt::AllDockWidgetAreas);
 

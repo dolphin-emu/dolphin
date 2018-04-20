@@ -18,9 +18,12 @@ static QSize ICON_SIZE(32, 32);
 ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 {
   setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-  setMovable(false);
+  setMovable(!Settings::Instance().AreWidgetsLocked());
   setFloatable(false);
   setIconSize(ICON_SIZE);
+
+  setWindowTitle(tr("Toolbar"));
+  setObjectName(QStringLiteral("toolbar"));
 
   MakeActions();
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
@@ -30,6 +33,11 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
           [this](Core::State state) { OnEmulationStateChanged(state); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
+
+  connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
+
+  connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
+          [this](bool locked) { setMovable(!locked); });
 
   OnEmulationStateChanged(Core::GetState());
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
@@ -47,6 +55,11 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_play_action->setVisible(!playing);
   m_pause_action->setEnabled(playing);
   m_pause_action->setVisible(playing);
+}
+
+void ToolBar::closeEvent(QCloseEvent*)
+{
+  Settings::Instance().SetToolBarVisible(false);
 }
 
 void ToolBar::OnDebugModeToggled(bool enabled)

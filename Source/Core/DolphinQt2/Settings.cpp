@@ -366,3 +366,33 @@ bool Settings::IsAnalyticsEnabled() const
 {
   return SConfig::GetInstance().m_analytics_enabled;
 }
+
+void Settings::SetToolBarVisible(bool visible)
+{
+  if (IsToolBarVisible() == visible)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("toolbar/visible"), visible);
+
+  emit ToolBarVisibilityChanged(visible);
+}
+
+bool Settings::IsToolBarVisible() const
+{
+  return GetQSettings().value(QStringLiteral("toolbar/visible")).toBool();
+}
+
+void Settings::SetWidgetsLocked(bool locked)
+{
+  if (AreWidgetsLocked() == locked)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("widgets/locked"), locked);
+
+  emit WidgetLockChanged(locked);
+}
+
+bool Settings::AreWidgetsLocked() const
+{
+  return GetQSettings().value(QStringLiteral("widgets/locked"), true).toBool();
+}

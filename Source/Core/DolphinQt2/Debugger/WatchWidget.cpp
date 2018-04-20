@@ -26,6 +26,8 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   // i18n: This kind of "watch" is used for watching emulated memory.
   // It's not related to timekeeping devices.
   setWindowTitle(tr("Watch"));
+  setObjectName(QStringLiteral("watch"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();

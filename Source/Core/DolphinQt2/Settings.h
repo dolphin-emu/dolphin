@@ -52,6 +52,10 @@ public:
   void SetLogConfigVisible(bool visible);
   bool IsControllerStateNeeded() const;
   void SetControllerStateNeeded(bool needed);
+  void SetToolBarVisible(bool visible);
+  bool IsToolBarVisible() const;
+  void SetWidgetsLocked(bool visible);
+  bool AreWidgetsLocked() const;
 
   // GameList
   QStringList GetPaths() const;
@@ -125,6 +129,8 @@ signals:
   void RegistersVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
+  void ToolBarVisibilityChanged(bool visible);
+  void WidgetLockChanged(bool locked);
   void EnableCheatsChanged(bool enabled);
   void WatchVisibilityChanged(bool visible);
   void BreakpointsVisibilityChanged(bool visible);
