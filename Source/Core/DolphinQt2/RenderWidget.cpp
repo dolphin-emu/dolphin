@@ -116,9 +116,13 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowActivate:
     Host::GetInstance()->SetRenderFocus(true);
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
+      Core::SetState(Core::State::Running);
     break;
   case QEvent::WindowDeactivate:
     Host::GetInstance()->SetRenderFocus(false);
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
     break;
   case QEvent::Resize:
   {
