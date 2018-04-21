@@ -14,6 +14,11 @@ class QRadioButton;
 class QSlider;
 class QVBoxLayout;
 
+namespace Core
+{
+enum class State;
+}
+
 class GeneralPane final : public QWidget
 {
   Q_OBJECT
@@ -29,6 +34,7 @@ private:
 
   void LoadConfig();
   void OnSaveConfig();
+  void OnEmulationStateChanged(Core::State state);
 
   // Widgets
   QVBoxLayout* m_main_layout;
