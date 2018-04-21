@@ -595,7 +595,7 @@ bool MainWindow::RequestStop()
 
 void MainWindow::ForceStop()
 {
-  BootManager::Stop();
+  Core::Stop();
   EnableScreenSaver(true);
 }
 
