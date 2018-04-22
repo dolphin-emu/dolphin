@@ -4,8 +4,9 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
-#include "Core/Config/WiimoteInputSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
@@ -41,7 +42,7 @@ namespace InputProfile
     return profiles[profile_index];
   }
 
-  void ProfileCycler::UpdateToProfile(const std::string& profile_filename, const std::vector<ControllerEmu::EmulatedController*>& controllers)
+  void ProfileCycler::UpdateToProfile(const std::string& profile_filename, ControllerEmu::EmulatedController* controller)
   {
     std::string base;
     SplitPath(profile_filename, nullptr, &base, nullptr);
@@ -49,32 +50,14 @@ namespace InputProfile
     IniFile ini_file;
     if (ini_file.Load(profile_filename))
     {
-      Core::DisplayMessage("Loading input profile: " + base, display_message_ms);
-
-      for (auto* controller : controllers)
-      {
-        controller->LoadConfig(ini_file.GetOrCreateSection("Profile"));
-        controller->UpdateReferences(g_controller_interface);
-      }
+      Core::DisplayMessage("Loading input profile '" + base + "' for device '" + controller->GetName() + "'", display_message_ms);
+      controller->LoadConfig(ini_file.GetOrCreateSection("Profile"));
+      controller->UpdateReferences(g_controller_interface);
     }
     else
     {
-      Core::DisplayMessage("Unable to load input profile: " + base, display_message_ms);
+      Core::DisplayMessage("Unable to load input profile '" + base + "' for device '" + controller->GetName() + "'", display_message_ms);
     }
-  }
-
-  std::vector<ControllerEmu::EmulatedController*> ProfileCycler::GetControllersForDevice(InputConfig* device_configuration)
-  {
-    const std::size_t size = device_configuration->GetControllerCount();
-
-    std::vector<ControllerEmu::EmulatedController*> result(size);
-
-    for (int i = 0; i < static_cast<int>(size); i++)
-    {
-      result[i] = device_configuration->GetController(i);
-    }
-
-    return result;
   }
 
   std::vector<std::string> ProfileCycler::GetProfilesFromSetting(const std::string& setting, InputConfig* device_configuration)
@@ -86,7 +69,7 @@ namespace InputProfile
     std::vector<std::string> result(profiles.size());
     std::transform(profiles.begin(), profiles.end(), result.begin(), [&device_profile_root_location](const std::string& profile)
     {
-      return device_profile_root_location + "/" + profile;
+      return device_profile_root_location + "/" + profile + ".ini";
     });
 
     return result;
@@ -107,7 +90,8 @@ namespace InputProfile
   }
 
   void ProfileCycler::CycleProfile(CycleDirection cycle_direction,
-                                   InputConfig* device_configuration, int& profile_index)
+                                   InputConfig* device_configuration, int& profile_index,
+                                   int controller_index)
   {
     const auto& profiles = GetProfilesForDevice(device_configuration);
     if (profiles.empty())
@@ -117,13 +101,20 @@ namespace InputProfile
     }
     const std::string profile = GetProfile(cycle_direction, profile_index, profiles);
 
-    const auto& controllers = GetControllersForDevice(device_configuration);
-    UpdateToProfile(profile, controllers);
+    auto* controller = device_configuration->GetController(controller_index);
+    if (controller)
+    {
+      UpdateToProfile(profile, controller);
+    }
+    else
+    {
+      Core::DisplayMessage("No controller found for index: " + std::to_string(controller_index), display_message_ms);
+    }
   }
 
   void ProfileCycler::CycleProfileForGame(CycleDirection cycle_direction,
                                           InputConfig* device_configuration, int& profile_index,
-                                          const std::string& setting)
+                                          const std::string& setting, int controller_index)
   {
     const auto& profiles = GetProfilesForDevice(device_configuration);
     if (profiles.empty())
@@ -159,25 +150,37 @@ namespace InputProfile
     }
   }
 
-  void ProfileCycler::NextWiimoteProfile()
+  std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
   {
-    CycleProfile(CycleDirection::Forward, Wiimote::GetConfig(), m_wiimote_profile_index);
+    IniFile game_ini = SConfig::GetInstance().LoadGameIni();
+    const IniFile::Section* const control_section = game_ini.GetOrCreateSection("Controls");
+
+    std::string result;
+    control_section->Get(StringFromFormat("WiimoteProfile%d", controller_index+1), &result);
+    return result;
   }
 
-  void ProfileCycler::PreviousWiimoteProfile()
+  void ProfileCycler::NextWiimoteProfile(int controller_index)
   {
-    CycleProfile(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index);
+    CycleProfile(CycleDirection::Forward, Wiimote::GetConfig(), m_wiimote_profile_index,
+                 controller_index);
   }
 
-  void ProfileCycler::NextWiimoteProfileForGame()
+  void ProfileCycler::PreviousWiimoteProfile(int controller_index)
+  {
+    CycleProfile(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index,
+                 controller_index);
+  }
+
+  void ProfileCycler::NextWiimoteProfileForGame(int controller_index)
   {
     CycleProfileForGame(CycleDirection::Forward, Wiimote::GetConfig(), m_wiimote_profile_index,
-                        Config::Get(Config::WIIMOTE_PROFILES));
+                        GetWiimoteInputProfilesForGame(controller_index), controller_index);
   }
 
-  void ProfileCycler::PreviousWiimoteProfileForGame()
+  void ProfileCycler::PreviousWiimoteProfileForGame(int controller_index)
   {
     CycleProfileForGame(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index,
-                        Config::Get(Config::WIIMOTE_PROFILES));
+                        GetWiimoteInputProfilesForGame(controller_index), controller_index);
   }
 }

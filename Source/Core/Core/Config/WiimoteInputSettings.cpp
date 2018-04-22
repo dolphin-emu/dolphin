@@ -27,7 +27,4 @@ namespace Config
   const ConfigInfo<double> NUNCHUK_INPUT_SHAKE_INTENSITY_HARD{ { System::WiiPad, "Nunchuk_Shake", "Hard" }, 5.0 };
   const ConfigInfo<double> NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM{ { System::WiiPad, "Nunchuk_Shake", "Medium" }, 3.0 };
   const ConfigInfo<double> NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT{ { System::WiiPad, "Nunchuk_Shake", "Soft" }, 2.0 };
-
-  // Other Settings
-  const ConfigInfo<std::string> WIIMOTE_PROFILES{ {System::WiiPad, "InputProfiles", "List"}, "" };
 }

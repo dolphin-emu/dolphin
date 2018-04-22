@@ -7,6 +7,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
@@ -51,8 +52,16 @@ bool InputConfig::LoadConfig(bool isGC)
     {
       if (control_section->Exists(type + "Profile" + num[i]))
       {
-        if (control_section->Get(type + "Profile" + num[i], &profile[i]))
+        std::string profile_setting;
+        if (control_section->Get(type + "Profile" + num[i], &profile_setting))
         {
+          // Setting can contain commas, which means there are multiple profiles specified
+          // this is used for controller cycling
+          const auto& profile_options = SplitString(profile_setting, ',');
+
+          // Use the first profile by default
+          profile[i] = profile_options[0];
+
           if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
           {
             useProfile[i] = true;
@@ -76,7 +85,7 @@ bool InputConfig::LoadConfig(bool isGC)
       if (useProfile[n])
       {
         IniFile profile_ini;
-        profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
+        profile_ini.Load(profile[n]);
         controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
       }
       else

@@ -30,8 +30,4 @@ namespace Config
   extern const ConfigInfo<double> NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM;
   extern const ConfigInfo<double> NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT;
 
-  // Other settings
-
-  extern const ConfigInfo<std::string> WIIMOTE_PROFILES;
-
 }  // namespace Config

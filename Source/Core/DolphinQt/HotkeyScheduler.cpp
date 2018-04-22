@@ -240,15 +240,45 @@ void HotkeyScheduler::Run()
           emit ConnectWiiRemote(wiimote_id);
       }
 
-      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE))
-        m_profile_cycler.PreviousWiimoteProfile();
-      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE))
-        m_profile_cycler.NextWiimoteProfile();
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))
+        m_profile_cycler.PreviousWiimoteProfile(0);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_1))
+        m_profile_cycler.NextWiimoteProfile(0);
 
-      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE))
-        m_profile_cycler.PreviousWiimoteProfileForGame();
-      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE))
-        m_profile_cycler.NextWiimoteProfileForGame();
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_2))
+        m_profile_cycler.PreviousWiimoteProfile(1);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_2))
+        m_profile_cycler.NextWiimoteProfile(1);
+
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_3))
+        m_profile_cycler.PreviousWiimoteProfile(2);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_3))
+        m_profile_cycler.NextWiimoteProfile(2);
+
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_4))
+        m_profile_cycler.PreviousWiimoteProfile(3);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_4))
+        m_profile_cycler.NextWiimoteProfile(3);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_1))
+        m_profile_cycler.PreviousWiimoteProfileForGame(0);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_1))
+        m_profile_cycler.NextWiimoteProfileForGame(0);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_2))
+        m_profile_cycler.PreviousWiimoteProfileForGame(1);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_2))
+        m_profile_cycler.NextWiimoteProfileForGame(1);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_3))
+        m_profile_cycler.PreviousWiimoteProfileForGame(2);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_3))
+        m_profile_cycler.NextWiimoteProfileForGame(2);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_4))
+        m_profile_cycler.PreviousWiimoteProfileForGame(3);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
+        m_profile_cycler.NextWiimoteProfileForGame(3);
 
       const auto show_msg = [](OSDMessage message) {
         if (g_renderer)

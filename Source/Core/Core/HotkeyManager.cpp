@@ -20,7 +20,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 114> s_hotkey_labels{{
+constexpr std::array<const char*, 130> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -69,10 +69,22 @@ constexpr std::array<const char*, 114> s_hotkey_labels{{
     _trans("Connect Wii Remote 4"),
     _trans("Connect Balance Board"),
 
-    _trans("Next Wii Remote Profile"),
-    _trans("Previous Wii Remote Profile"),
-    _trans("Next Wii Remote Profile For Current Game"),
-    _trans("Previous Wii Remote Profile For Current Game"),
+    _trans("Next Profile for Wii Remote 1"),
+    _trans("Previous Profile for Wii Remote 1"),
+    _trans("Next Game Profile for Wii Remote 1"),
+    _trans("Previous Game Profile for Wii Remote 1"),
+    _trans("Next Profile for Wii Remote 2"),
+    _trans("Previous Profile for Wii Remote 2"),
+    _trans("Next Game Profile for Wii Remote 2"),
+    _trans("Previous Game Profile for Wii Remote 2"),
+    _trans("Next Profile for Wii Remote 3"),
+    _trans("Previous Profile for Wii Remote 3"),
+    _trans("Next Game Profile for Wii Remote 3"),
+    _trans("Previous Game Profile for Wii Remote 3"),
+    _trans("Next Profile for Wii Remote 4"),
+    _trans("Previous Profile for Wii Remote 4"),
+    _trans("Next Game Profile for Wii Remote 4"),
+    _trans("Previous Game Profile for Wii Remote 4"),
 
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
@@ -260,7 +272,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Program Counter"), HK_SHOW_PC, HK_SET_PC},
      {_trans("Breakpoint"), HK_BP_TOGGLE, HK_MBP_ADD},
      {_trans("Wii"), HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
-     {_trans("Controller Profile"), HK_NEXT_WIIMOTE_PROFILE, HK_PREV_GAME_WIIMOTE_PROFILE},
+     {_trans("Controller Profile"), HK_NEXT_WIIMOTE_PROFILE_1, HK_PREV_GAME_WIIMOTE_PROFILE_4},
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
      {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
