@@ -18,6 +18,7 @@
 
 #include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/AutoUpdate.h"
@@ -38,6 +39,9 @@ GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
   LoadConfig();
 
   ConnectLayout();
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &GeneralPane::OnEmulationStateChanged);
 }
 
 void GeneralPane::CreateLayout()
@@ -57,6 +61,17 @@ void GeneralPane::CreateLayout()
   m_main_layout->setContentsMargins(0, 0, 0, 0);
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
+}
+
+void GeneralPane::OnEmulationStateChanged(Core::State state)
+{
+  const bool running = state != Core::State::Uninitialized;
+
+  m_checkbox_dualcore->setEnabled(!running);
+  m_checkbox_cheats->setEnabled(!running);
+  m_radio_interpreter->setEnabled(!running);
+  m_radio_cached_interpreter->setEnabled(!running);
+  m_radio_jit->setEnabled(!running);
 }
 
 void GeneralPane::ConnectLayout()
