@@ -390,9 +390,9 @@ bool CheatsManager::MatchesSearch(u32 addr) const
   case DataType::Int:
     return Compare(PowerPC::HostRead_U32(addr), text.toUInt(nullptr, base), op);
   case DataType::Float:
-    return Compare(PowerPC::Read_F32(addr), text.toFloat(), op);
+    return Compare(PowerPC::HostRead_F32(addr), text.toFloat(), op);
   case DataType::Double:
-    return Compare(PowerPC::Read_F64(addr), text.toDouble(), op);
+    return Compare(PowerPC::HostRead_F64(addr), text.toDouble(), op);
   case DataType::String:
   {
     bool is_equal = std::equal(text.toUtf8().cbegin(), text.toUtf8().cend(),
@@ -516,10 +516,10 @@ void CheatsManager::Update()
                                                      16, QLatin1Char('0')));
         break;
       case DataType::Float:
-        value_item->setText(QString::number(PowerPC::Read_F32(m_results[i].address)));
+        value_item->setText(QString::number(PowerPC::HostRead_F32(m_results[i].address)));
         break;
       case DataType::Double:
-        value_item->setText(QString::number(PowerPC::Read_F64(m_results[i].address)));
+        value_item->setText(QString::number(PowerPC::HostRead_F64(m_results[i].address)));
         break;
       case DataType::String:
         value_item->setText(tr("String Match"));
@@ -575,10 +575,10 @@ void CheatsManager::Update()
                                                      16, QLatin1Char('0')));
         break;
       case DataType::Float:
-        value_item->setText(QString::number(PowerPC::Read_F32(m_watch[i].address)));
+        value_item->setText(QString::number(PowerPC::HostRead_F32(m_watch[i].address)));
         break;
       case DataType::Double:
-        value_item->setText(QString::number(PowerPC::Read_F64(m_watch[i].address)));
+        value_item->setText(QString::number(PowerPC::HostRead_F64(m_watch[i].address)));
         break;
       case DataType::String:
         value_item->setText(tr("String Match"));
