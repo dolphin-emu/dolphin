@@ -198,7 +198,7 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
     color = "yellow";
     break;
   case LogTypes::LOG_LEVELS::LNOTICE:
-    color = "green";
+    color = "lime";
     break;
   case LogTypes::LOG_LEVELS::LINFO:
     color = "cyan";
