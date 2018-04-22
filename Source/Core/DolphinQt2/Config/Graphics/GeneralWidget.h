@@ -51,8 +51,6 @@ private:
   QCheckBox* m_log_render_time;
   QCheckBox* m_autoadjust_window_size;
   QCheckBox* m_show_messages;
-  QCheckBox* m_keep_window_top;
-  QCheckBox* m_hide_cursor;
   QCheckBox* m_render_main_window;
   std::array<QRadioButton*, 4> m_shader_compilation_mode{};
   QCheckBox* m_wait_for_shaders;
