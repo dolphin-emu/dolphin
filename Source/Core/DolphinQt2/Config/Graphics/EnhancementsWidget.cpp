@@ -165,6 +165,16 @@ void EnhancementsWidget::LoadSettings()
       m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
   }
 
+  const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
+  m_pp_effect->setEnabled(supports_postprocessing);
+
+  if (!supports_postprocessing)
+  {
+    m_pp_effect->setToolTip(
+        tr("%1 doesn't support this feature.")
+            .arg(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend)));
+  }
+
   PostProcessingShaderConfiguration pp_shader;
   if (selected_shader != "(off)")
   {
