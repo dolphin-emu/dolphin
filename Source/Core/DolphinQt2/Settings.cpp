@@ -130,6 +130,20 @@ bool Settings::GetHideCursor() const
   return SConfig::GetInstance().bHideCursor;
 }
 
+void Settings::SetKeepWindowOnTop(bool top)
+{
+  if (IsKeepWindowOnTopEnabled() == top)
+    return;
+
+  SConfig::GetInstance().bKeepWindowOnTop = top;
+  emit KeepWindowOnTopChanged(top);
+}
+
+bool Settings::IsKeepWindowOnTopEnabled() const
+{
+  return SConfig::GetInstance().bKeepWindowOnTop;
+}
+
 int Settings::GetVolume() const
 {
   return SConfig::GetInstance().m_Volume;

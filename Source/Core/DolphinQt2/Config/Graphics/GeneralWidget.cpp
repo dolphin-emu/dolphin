@@ -165,7 +165,7 @@ void GeneralWidget::LoadSettings()
   // Render to Main Window
   m_render_main_window->setChecked(SConfig::GetInstance().bRenderToMain);
   // Keep Window on Top
-  m_keep_window_top->setChecked(SConfig::GetInstance().bKeepWindowOnTop);
+  m_keep_window_top->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   // Autoadjust Window size
   m_autoadjust_window_size->setChecked(SConfig::GetInstance().bRenderWindowAutoSize);
 }
@@ -222,7 +222,7 @@ void GeneralWidget::SaveSettings()
   // Render to Main Window
   SConfig::GetInstance().bRenderToMain = m_render_main_window->isChecked();
   // Keep Window on Top
-  SConfig::GetInstance().bKeepWindowOnTop = m_keep_window_top->isChecked();
+  Settings::Instance().SetKeepWindowOnTop(m_keep_window_top->isChecked());
   // Autoadjust windowsize
   SConfig::GetInstance().bRenderWindowAutoSize = m_autoadjust_window_size->isChecked();
 }

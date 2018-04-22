@@ -178,7 +178,7 @@ void InterfacePane::LoadConfig()
 {
   const SConfig& startup_params = SConfig::GetInstance();
   m_checkbox_auto_window->setChecked(startup_params.bRenderWindowAutoSize);
-  m_checkbox_top_window->setChecked(startup_params.bKeepWindowOnTop);
+  m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_checkbox_render_to_window->setChecked(startup_params.bRenderToMain);
   m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
   m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
@@ -200,7 +200,7 @@ void InterfacePane::OnSaveConfig()
 {
   SConfig& settings = SConfig::GetInstance();
   settings.bRenderWindowAutoSize = m_checkbox_auto_window->isChecked();
-  settings.bKeepWindowOnTop = m_checkbox_top_window->isChecked();
+  Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   settings.bRenderToMain = m_checkbox_render_to_window->isChecked();
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());

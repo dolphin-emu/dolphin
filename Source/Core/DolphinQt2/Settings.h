@@ -74,6 +74,8 @@ public:
   // Graphics
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
+  void SetKeepWindowOnTop(bool top);
+  bool IsKeepWindowOnTopEnabled() const;
 
   // Audio
   int GetVolume() const;
@@ -126,6 +128,7 @@ signals:
   void DefaultGameChanged(const QString&);
   void PathReloadRequested(const QString&);
   void HideCursorChanged();
+  void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);
   void NANDRefresh();
   void RegistersVisibilityChanged(bool visible);

@@ -53,6 +53,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   connect(&Settings::Instance(), &Settings::HideCursorChanged, this,
           &RenderWidget::OnHideCursorChanged);
   OnHideCursorChanged();
+  connect(&Settings::Instance(), &Settings::KeepWindowOnTopChanged, this,
+          &RenderWidget::OnKeepOnTopChanged);
+  OnKeepOnTopChanged(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
 
   SetFillBackground(true);
@@ -68,6 +71,14 @@ void RenderWidget::SetFillBackground(bool fill)
 void RenderWidget::OnHideCursorChanged()
 {
   setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
+}
+
+void RenderWidget::OnKeepOnTopChanged(bool top)
+{
+  setWindowFlags(top ? windowFlags() | Qt::WindowStaysOnTopHint :
+                       windowFlags() & ~Qt::WindowStaysOnTopHint);
+
+  show();
 }
 
 void RenderWidget::HandleCursorTimer()
@@ -90,6 +101,8 @@ bool RenderWidget::event(QEvent* event)
 {
   switch (event->type())
   {
+  case QEvent::Paint:
+    return !autoFillBackground();
   case QEvent::KeyPress:
   {
     QKeyEvent* ke = static_cast<QKeyEvent*>(event);
@@ -116,9 +129,13 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowActivate:
     Host::GetInstance()->SetRenderFocus(true);
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
+      Core::SetState(Core::State::Running);
     break;
   case QEvent::WindowDeactivate:
     Host::GetInstance()->SetRenderFocus(false);
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
     break;
   case QEvent::Resize:
   {
