@@ -53,6 +53,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   connect(&Settings::Instance(), &Settings::HideCursorChanged, this,
           &RenderWidget::OnHideCursorChanged);
   OnHideCursorChanged();
+  connect(&Settings::Instance(), &Settings::KeepWindowOnTopChanged, this,
+          &RenderWidget::OnKeepOnTopChanged);
+  OnKeepOnTopChanged(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
 
   SetFillBackground(true);
@@ -68,6 +71,14 @@ void RenderWidget::SetFillBackground(bool fill)
 void RenderWidget::OnHideCursorChanged()
 {
   setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
+}
+
+void RenderWidget::OnKeepOnTopChanged(bool top)
+{
+  setWindowFlags(top ? windowFlags() | Qt::WindowStaysOnTopHint :
+                       windowFlags() & ~Qt::WindowStaysOnTopHint);
+
+  show();
 }
 
 void RenderWidget::HandleCursorTimer()
