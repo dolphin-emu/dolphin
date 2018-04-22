@@ -43,7 +43,7 @@ static std::unordered_map<std::string, DiskTexture> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static std::mutex s_textureCacheAquireMutex;  // for high priority access
-static Common::Flag s_textureCacheAbortLoading;
+static Common::Flag s_textureCacheAbortPrefetching;
 
 static std::thread s_prefetcher;
 
@@ -62,7 +62,7 @@ void HiresTexture::Shutdown()
 {
   if (s_prefetcher.joinable())
   {
-    s_textureCacheAbortLoading.Set();
+    s_textureCacheAbortPrefetching.Set();
     s_prefetcher.join();
   }
 
@@ -74,7 +74,7 @@ void HiresTexture::Update()
 {
   if (s_prefetcher.joinable())
   {
-    s_textureCacheAbortLoading.Set();
+    s_textureCacheAbortPrefetching.Set();
     s_prefetcher.join();
   }
 
@@ -133,7 +133,7 @@ void HiresTexture::Update()
       }
     }
 
-    s_textureCacheAbortLoading.Clear();
+    s_textureCacheAbortPrefetching.Clear();
     s_prefetcher = std::thread(Prefetch);
   }
 }
@@ -189,7 +189,7 @@ void HiresTexture::Prefetch()
       }
     }
 
-    if (s_textureCacheAbortLoading.IsSet())
+    if (s_textureCacheAbortPrefetching.IsSet())
     {
       return;
     }
