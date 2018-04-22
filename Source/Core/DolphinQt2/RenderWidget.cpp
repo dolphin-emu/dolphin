@@ -75,10 +75,13 @@ void RenderWidget::OnHideCursorChanged()
 
 void RenderWidget::OnKeepOnTopChanged(bool top)
 {
+  const bool was_visible = isVisible();
+
   setWindowFlags(top ? windowFlags() | Qt::WindowStaysOnTopHint :
                        windowFlags() & ~Qt::WindowStaysOnTopHint);
 
-  show();
+  if (was_visible)
+    show();
 }
 
 void RenderWidget::HandleCursorTimer()
