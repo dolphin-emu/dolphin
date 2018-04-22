@@ -20,8 +20,9 @@
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
-  Core::SetOnStateChangedCallback(
-      [this](Core::State new_state) { emit EmulationStateChanged(new_state); });
+  Core::SetOnStateChangedCallback([this](Core::State new_state) {
+    QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
+  });
 
   Config::AddConfigChangedCallback(
       [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
