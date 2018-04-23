@@ -2,19 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/NandPaths.h"
+
 #include <algorithm>
 #include <string>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 namespace Common
 {

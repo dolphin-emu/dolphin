@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
