@@ -28,10 +28,10 @@ std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
                                                static_cast<u32>(title_id));
 }
 
-std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
+std::string GetTicketFileName(u64 title_id, FromWhichRoot from)
 {
   return StringFromFormat("%s/ticket/%08x/%08x.tik", RootUserPath(from).c_str(),
-                          (u32)(_titleID >> 32), (u32)_titleID);
+                          static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
 std::string GetTitlePath(u64 title_id, FromWhichRoot from)
@@ -40,19 +40,19 @@ std::string GetTitlePath(u64 title_id, FromWhichRoot from)
                           static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
 }
 
-std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from)
+std::string GetTitleDataPath(u64 title_id, FromWhichRoot from)
 {
-  return GetTitlePath(_titleID, from) + "data/";
+  return GetTitlePath(title_id, from) + "data/";
 }
 
-std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
+std::string GetTitleContentPath(u64 title_id, FromWhichRoot from)
 {
-  return GetTitlePath(_titleID, from) + "content/";
+  return GetTitlePath(title_id, from) + "content/";
 }
 
-std::string GetTMDFileName(u64 _titleID, FromWhichRoot from)
+std::string GetTMDFileName(u64 title_id, FromWhichRoot from)
 {
-  return GetTitleContentPath(_titleID, from) + "title.tmd";
+  return GetTitleContentPath(title_id, from) + "title.tmd";
 }
 
 bool IsTitlePath(const std::string& path, FromWhichRoot from, u64* title_id)
