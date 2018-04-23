@@ -119,7 +119,7 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_add_code, &QPushButton::pressed, this, &GeckoCodeWidget::AddCode);
   connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
-  connect(m_sort_code, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
+  connect(m_sort_code, &QPushButton::pressed, this, &GeckoCodeWidget::SortCode);
 
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
@@ -229,6 +229,7 @@ bool helpOrderCodes(Gecko::GeckoCode code1, Gecko::GeckoCode code2) { // to sort
 
 void GeckoCodeWidget::SortCode(){
   std::sort(m_gecko_codes.begin(), m_gecko_codes.end(), helpOrderCodes);
+  GeckoCodeWidget::UpdateList();
 }
 
 void GeckoCodeWidget::UpdateList()
