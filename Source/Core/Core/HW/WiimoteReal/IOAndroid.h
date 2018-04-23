@@ -19,6 +19,7 @@ public:
   WiimoteAndroid(int index);
   ~WiimoteAndroid() override;
   std::string GetId() const override { return "Android " + std::to_string(m_mayflash_index); }
+
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;

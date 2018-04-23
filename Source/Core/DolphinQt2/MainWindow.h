@@ -22,6 +22,7 @@ class QProgressDialog;
 
 class BreakpointWidget;
 struct BootParameters;
+class CheatsManager;
 class CodeWidget;
 class ControllersWindow;
 class DragEnterEvent;
@@ -32,6 +33,7 @@ class HotkeyScheduler;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
+class MemoryWidget;
 class NetPlayClient;
 class NetPlayDialog;
 class NetPlayServer;
@@ -41,6 +43,11 @@ class SearchBar;
 class SettingsWindow;
 class WatchWidget;
 class WiiTASInputWindow;
+
+namespace X11Utils
+{
+class XRRConfiguration;
+}
 
 class MainWindow final : public QMainWindow
 {
@@ -115,6 +122,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
+  void ShowCheatsManager();
 
   void NetPlayInit();
   bool NetPlayJoin();
@@ -145,6 +153,10 @@ private:
   void dropEvent(QDropEvent* event) override;
   QSize sizeHint() const override;
 
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
+#endif
+
   QProgressDialog* m_progress_dialog = nullptr;
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
@@ -174,7 +186,9 @@ private:
   CodeWidget* m_code_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  MemoryWidget* m_memory_widget;
   FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;
+  CheatsManager* m_cheats_manager;
 };

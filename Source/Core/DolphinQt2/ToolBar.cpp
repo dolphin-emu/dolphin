@@ -18,9 +18,12 @@ static QSize ICON_SIZE(32, 32);
 ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 {
   setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-  setMovable(false);
+  setMovable(!Settings::Instance().AreWidgetsLocked());
   setFloatable(false);
   setIconSize(ICON_SIZE);
+
+  setWindowTitle(tr("Toolbar"));
+  setObjectName(QStringLiteral("toolbar"));
 
   MakeActions();
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
@@ -30,6 +33,11 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
           [this](Core::State state) { OnEmulationStateChanged(state); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
+
+  connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
+
+  connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
+          [this](bool locked) { setMovable(!locked); });
 
   OnEmulationStateChanged(Core::GetState());
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
@@ -47,6 +55,11 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_play_action->setVisible(!playing);
   m_pause_action->setEnabled(playing);
   m_pause_action->setVisible(playing);
+}
+
+void ToolBar::closeEvent(QCloseEvent*)
+{
+  Settings::Instance().SetToolBarVisible(false);
 }
 
 void ToolBar::OnDebugModeToggled(bool enabled)
@@ -104,6 +117,13 @@ void ToolBar::MakeActions()
 
 void ToolBar::UpdateIcons()
 {
+  m_step_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_in"));
+  m_step_over_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_over"));
+  m_step_out_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_out"));
+  m_skip_action->setIcon(Resources::GetScaledThemeIcon("debugger_skip"));
+  m_show_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_set_pc"));
+  m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
+
   m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
   m_play_action->setIcon(Resources::GetScaledThemeIcon("play"));
   m_pause_action->setIcon(Resources::GetScaledThemeIcon("pause"));

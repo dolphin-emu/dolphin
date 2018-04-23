@@ -21,6 +21,7 @@ namespace Pad
 void Shutdown();
 void Initialize();
 void LoadConfig();
+bool IsInitialized();
 
 InputConfig* GetConfig();
 

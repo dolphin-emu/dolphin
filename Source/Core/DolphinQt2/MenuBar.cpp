@@ -99,6 +99,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
     m_recording_stop->setEnabled(false);
   m_recording_play->setEnabled(!running);
 
+  // Tools
+  m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled());
+
   // Symbols
   m_symbols->setEnabled(running);
 
@@ -120,6 +123,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_registers->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
+  m_show_memory->setVisible(enabled);
 
   if (enabled)
     addMenu(m_symbols);
@@ -129,7 +133,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
 
 void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 {
-  m_backup_menu = file_menu->addMenu(tr("Boot from DVD Backup"));
+  m_backup_menu = file_menu->addMenu(tr("&Boot from DVD Backup"));
 
   const std::vector<std::string> drives = cdio_get_devices();
   // Windows Limitation of 24 character drives
@@ -165,6 +169,13 @@ void MenuBar::AddToolsMenu()
 
   AddAction(tools_menu, tr("&Memory Card Manager (GC)"), this,
             [this] { emit ShowMemcardManager(); });
+
+  m_show_cheat_manager =
+      AddAction(tools_menu, tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
+
+  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
+    m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
+  });
 
   tools_menu->addSeparator();
 
@@ -337,9 +348,23 @@ void MenuBar::AddViewMenu()
   connect(show_log_config, &QAction::toggled, &Settings::Instance(),
           &Settings::SetLogConfigVisible);
 
+  QAction* show_toolbar = view_menu->addAction(tr("Show &Toolbar"));
+  show_toolbar->setCheckable(true);
+  show_toolbar->setChecked(Settings::Instance().IsToolBarVisible());
+
+  connect(show_toolbar, &QAction::toggled, &Settings::Instance(), &Settings::SetToolBarVisible);
+
   connect(&Settings::Instance(), &Settings::LogVisibilityChanged, show_log, &QAction::setChecked);
   connect(&Settings::Instance(), &Settings::LogConfigVisibilityChanged, show_log_config,
           &QAction::setChecked);
+  connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, show_toolbar,
+          &QAction::setChecked);
+
+  QAction* lock_widgets = view_menu->addAction(tr("&Lock Widgets In Place"));
+  lock_widgets->setCheckable(true);
+  lock_widgets->setChecked(Settings::Instance().AreWidgetsLocked());
+
+  connect(lock_widgets, &QAction::toggled, &Settings::Instance(), &Settings::SetWidgetsLocked);
 
   view_menu->addSeparator();
 
@@ -375,6 +400,14 @@ void MenuBar::AddViewMenu()
   connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
           &Settings::SetBreakpointsVisible);
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
+          &QAction::setChecked);
+
+  m_show_memory = view_menu->addAction(tr("&Memory"));
+  m_show_memory->setCheckable(true);
+  m_show_memory->setChecked(Settings::Instance().IsMemoryVisible());
+
+  connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::SetMemoryVisible);
+  connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
           &QAction::setChecked);
 
   view_menu->addSeparator();
@@ -471,8 +504,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
-      {tr("State"), &SConfig::GetInstance().m_showStateColumn}};
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
@@ -929,7 +961,7 @@ void MenuBar::LoadSymbolMap()
     g_symbolDB.LoadMap(existing_map_file);
     QMessageBox::information(
         this, tr("Information"),
-        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file.c_str())));
+        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file)));
   }
 
   HLE::PatchFunctions();
@@ -978,7 +1010,7 @@ void MenuBar::SaveCode()
   CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
   const std::string path =
-      writable_map_file.substr(0, writable_map_file.find_last_of(".")) + "_code.map";
+      writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
   g_symbolDB.SaveCodeMap(path);
 }

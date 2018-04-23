@@ -278,8 +278,9 @@ ReturnCode ES::ImportContentBegin(Context& context, u64 title_id, u32 content_id
 
   if (title_id != context.title_import_export.tmd.GetTitleId())
   {
-    ERROR_LOG(IOS_ES, "ImportContentBegin: title id %016" PRIx64 " != "
-                      "TMD title id %016" PRIx64 ", ignoring",
+    ERROR_LOG(IOS_ES,
+              "ImportContentBegin: title id %016" PRIx64 " != "
+              "TMD title id %016" PRIx64 ", ignoring",
               title_id, context.title_import_export.tmd.GetTitleId());
     return ES_EINVAL;
   }

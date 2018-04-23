@@ -51,11 +51,6 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-void VideoConfig::UpdateProjectionHack()
-{
-  ::UpdateProjectionHack(g_Config.phack);
-}
-
 namespace OGL
 {
 VideoConfig g_ogl_config;
@@ -81,8 +76,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                            const char* message, const void* userParam)
+static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                   GLsizei length, const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;
@@ -1307,24 +1302,24 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
   }
   else
   {
-    const GLenum src_factors[8] = {
-        GL_ZERO,
-        GL_ONE,
-        GL_DST_COLOR,
-        GL_ONE_MINUS_DST_COLOR,
-        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-        GL_DST_ALPHA,
-        GL_ONE_MINUS_DST_ALPHA};
-    const GLenum dst_factors[8] = {
-        GL_ZERO,
-        GL_ONE,
-        GL_SRC_COLOR,
-        GL_ONE_MINUS_SRC_COLOR,
-        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-        GL_DST_ALPHA,
-        GL_ONE_MINUS_DST_ALPHA};
+    const GLenum src_factors[8] = {GL_ZERO,
+                                   GL_ONE,
+                                   GL_DST_COLOR,
+                                   GL_ONE_MINUS_DST_COLOR,
+                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   GL_DST_ALPHA,
+                                   GL_ONE_MINUS_DST_ALPHA};
+    const GLenum dst_factors[8] = {GL_ZERO,
+                                   GL_ONE,
+                                   GL_SRC_COLOR,
+                                   GL_ONE_MINUS_SRC_COLOR,
+                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   GL_DST_ALPHA,
+                                   GL_ONE_MINUS_DST_ALPHA};
 
     if (state.blendenable)
     {

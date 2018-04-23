@@ -24,15 +24,16 @@ namespace WiimoteEmu
 constexpr std::array<u8, 6> nunchuk_id{{0x00, 0x00, 0xa4, 0x20, 0x00, 0x00}};
 
 constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
-    Nunchuk::BUTTON_C, Nunchuk::BUTTON_Z,
+    Nunchuk::BUTTON_C,
+    Nunchuk::BUTTON_Z,
 }};
 
 Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("C"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("Z"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "C"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   // stick
   groups.emplace_back(
@@ -47,11 +48,11 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("X")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
 
   m_id = nunchuk_id;
 }

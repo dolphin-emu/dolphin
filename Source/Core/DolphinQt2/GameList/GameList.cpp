@@ -84,19 +84,6 @@ void GameList::MakeListView()
             emit SelectionChanged(GetSelectedGame());
           });
 
-  m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
-  m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
-  m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
-  m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
-                          !SConfig::GetInstance().m_showDescriptionColumn);
-  m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
-  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
-  m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
-  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
-  m_list->setColumnHidden(GameListModel::COL_RATING, !SConfig::GetInstance().m_showStateColumn);
-  m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
-                          !SConfig::GetInstance().m_showFileNameColumn);
-
   QHeaderView* hor_header = m_list->horizontalHeader();
 
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
@@ -116,8 +103,19 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
+
+  m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
+  m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
+  m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
+  m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
+                          !SConfig::GetInstance().m_showDescriptionColumn);
+  m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
+  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
+  m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
+  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
+  m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
+                          !SConfig::GetInstance().m_showFileNameColumn);
 
   m_list->verticalHeader()->hide();
   m_list->setFrameStyle(QFrame::NoFrame);
@@ -168,7 +166,7 @@ void GameList::ShowContextMenu(const QPoint&)
   AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
   menu->addSeparator();
 
-  if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
+  if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
   {
     AddAction(menu, tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
     const auto blob_type = game->GetBlobType();
@@ -187,7 +185,7 @@ void GameList::ShowContextMenu(const QPoint&)
     menu->addSeparator();
   }
 
-  if (platform == DiscIO::Platform::WII_DISC)
+  if (platform == DiscIO::Platform::WiiDisc)
   {
     auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
       WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
@@ -195,7 +193,7 @@ void GameList::ShowContextMenu(const QPoint&)
     perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
   }
 
-  if (platform == DiscIO::Platform::WII_WAD)
+  if (platform == DiscIO::Platform::WiiWAD)
   {
     QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
     QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
@@ -218,7 +216,7 @@ void GameList::ShowContextMenu(const QPoint&)
     menu->addSeparator();
   }
 
-  if (platform == DiscIO::Platform::WII_WAD || platform == DiscIO::Platform::WII_DISC)
+  if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
   {
     AddAction(menu, tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
     AddAction(menu, tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
@@ -278,7 +276,7 @@ void GameList::CompressISO()
 
   const bool compressed = (file->GetBlobType() == DiscIO::BlobType::GCZ);
 
-  if (!compressed && file->GetPlatform() == DiscIO::Platform::WII_DISC)
+  if (!compressed && file->GetPlatform() == DiscIO::Platform::WiiDisc)
   {
     QMessageBox wii_warning(this);
     wii_warning.setIcon(QMessageBox::Warning);
@@ -293,8 +291,9 @@ void GameList::CompressISO()
   }
 
   QString dst_path = QFileDialog::getSaveFileName(
-      this, compressed ? tr("Select where you want to save the decompressed image") :
-                         tr("Select where you want to save the compressed image"),
+      this,
+      compressed ? tr("Select where you want to save the decompressed image") :
+                   tr("Select where you want to save the compressed image"),
       QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
           .dir()
           .absoluteFilePath(QString::fromStdString(file->GetGameID()))
@@ -319,7 +318,7 @@ void GameList::CompressISO()
   else
   {
     good = DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
-                                      file->GetPlatform() == DiscIO::Platform::WII_DISC ? 1 : 0,
+                                      file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
                                       16384, &CompressCB, &progress_dialog);
   }
 
@@ -486,16 +485,15 @@ void GameList::keyReleaseEvent(QKeyEvent* event)
 void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
 {
   static const QMap<QString, int> rowname_to_col_index = {
-      {tr("Banner"), GameListModel::COL_BANNER},
-      {tr("Country"), GameListModel::COL_COUNTRY},
-      {tr("Description"), GameListModel::COL_DESCRIPTION},
-      {tr("ID"), GameListModel::COL_ID},
-      {tr("Maker"), GameListModel::COL_MAKER},
       {tr("Platform"), GameListModel::COL_PLATFORM},
-      {tr("Size"), GameListModel::COL_SIZE},
+      {tr("Banner"), GameListModel::COL_BANNER},
       {tr("Title"), GameListModel::COL_TITLE},
-      {tr("State"), GameListModel::COL_RATING},
-      {tr("File Name"), GameListModel::COL_FILE_NAME}};
+      {tr("Description"), GameListModel::COL_DESCRIPTION},
+      {tr("Maker"), GameListModel::COL_MAKER},
+      {tr("File Name"), GameListModel::COL_FILE_NAME},
+      {tr("Game ID"), GameListModel::COL_ID},
+      {tr("Region"), GameListModel::COL_COUNTRY},
+      {tr("File Size"), GameListModel::COL_SIZE}};
 
   m_list->setColumnHidden(rowname_to_col_index[row], !visible);
 }

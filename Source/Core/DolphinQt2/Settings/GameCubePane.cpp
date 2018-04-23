@@ -116,6 +116,8 @@ void GameCubePane::CreateWidgets()
   layout->addWidget(ipl_box);
   layout->addWidget(device_box);
 
+  layout->addStretch();
+
   setLayout(layout);
 }
 
@@ -178,9 +180,10 @@ void GameCubePane::OnConfigPressed(int slot)
 
     if (!mc.IsValid())
     {
-      QMessageBox::critical(this, tr("Error"), tr("Cannot use that file as a memory card.\n%1\n"
-                                                  "is not a valid GameCube memory card file")
-                                                   .arg(filename));
+      QMessageBox::critical(this, tr("Error"),
+                            tr("Cannot use that file as a memory card.\n%1\n"
+                               "is not a valid GameCube memory card file")
+                                .arg(filename));
 
       return;
     }

@@ -1,4 +1,4 @@
-set(SRCS
+add_library(videoogl
   BoundingBox.cpp
   FramebufferManager.cpp
   main.cpp
@@ -18,11 +18,12 @@ set(SRCS
   VertexManager.cpp
 )
 
-set(LIBS ${LIBS}
-  videocommon
-  SOIL
+target_link_libraries(videoogl
+PUBLIC
   common
+  videocommon
+
+PRIVATE
+  SOIL
   ${X11_LIBRARIES}
 )
-
-add_dolphin_library(videoogl "${SRCS}" "${LIBS}")

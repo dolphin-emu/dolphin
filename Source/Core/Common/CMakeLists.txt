@@ -34,7 +34,6 @@ add_library(common
   SettingsHandler.cpp
   StringUtil.cpp
   SymbolDB.cpp
-  SysConf.cpp
   Thread.cpp
   Timer.cpp
   TraversalClient.cpp
@@ -44,19 +43,31 @@ add_library(common
   x64Emitter.cpp
 )
 
-target_link_libraries(common PUBLIC
+target_link_libraries(common
+PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CURL_LIBRARIES}
   enet
   ${MBEDTLS_LIBRARIES}
+
+PRIVATE
+  ${CURL_LIBRARIES}
+  ${ICONV_LIBRARIES}
   ${VTUNE_LIBRARIES}
 )
+
+if (APPLE)
+  target_link_libraries(common
+  PRIVATE
+    ${APPKIT_LIBRARY}
+    ${COREFOUNDATION_LIBRARY}
+    ${IOK_LIBRARY}
+  )
+endif()
 
 if(ANDROID)
   target_sources(common PRIVATE
     Logging/ConsoleListenerDroid.cpp
   )
-  target_link_libraries(common PRIVATE iconv)
 elseif(WIN32)
   target_sources(common PRIVATE
     Logging/ConsoleListenerWin.cpp
@@ -134,7 +145,7 @@ if(USE_UPNP)
 endif()
 
 if(OPROFILE_FOUND)
-  target_link_libraries(common PRIVATE ${OPROFILE_LIBRARIES})
+  target_link_libraries(common PRIVATE OProfile::OProfile)
 endif()
 
 if(UNIX)

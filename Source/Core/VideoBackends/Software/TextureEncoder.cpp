@@ -1216,7 +1216,7 @@ static void EncodeZ24(u8* dst, const u8* src, EFBCopyFormat format)
     ENCODE_LOOP_SPANS
     break;
 
-  // FIXME: handle RA8?
+    // FIXME: handle RA8?
 
   case EFBCopyFormat::RGBA8:
     SetBlockDimensions(2, 2, &sBlkCount, &tBlkCount, &sBlkSize, &tBlkSize);
@@ -1326,7 +1326,7 @@ static void EncodeZ24halfscale(u8* dst, const u8* src, EFBCopyFormat format)
     ENCODE_LOOP_SPANS
     break;
 
-  // FIXME: handle RA8?
+    // FIXME: handle RA8?
 
   case EFBCopyFormat::RGBA8:
     SetBlockDimensions(2, 2, &sBlkCount, &tBlkCount, &sBlkSize, &tBlkSize);

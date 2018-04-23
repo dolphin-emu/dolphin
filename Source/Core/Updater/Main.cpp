@@ -14,6 +14,7 @@
 #include <mbedtls/sha256.h>
 #include <optional>
 #include <shellapi.h>
+#include <thread>
 #include <vector>
 #include <zlib.h>
 
@@ -22,6 +23,8 @@
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/StringUtil.h"
+
+#include "Updater/UI.h"
 
 namespace
 {
@@ -286,6 +289,7 @@ std::optional<Manifest> ParseManifest(const std::string& manifest)
   return parsed;
 }
 
+// Not showing a progress bar here because this part is just too quick
 std::optional<Manifest> FetchAndParseManifest(const std::string& url)
 {
   Common::HttpRequest http;
@@ -336,7 +340,12 @@ std::optional<Manifest> FetchAndParseManifest(const std::string& url)
 // Represent the operations to be performed by the updater.
 struct TodoList
 {
-  std::vector<Manifest::Hash> to_download;
+  struct DownloadOp
+  {
+    Manifest::Filename filename;
+    Manifest::Hash hash;
+  };
+  std::vector<DownloadOp> to_download;
 
   struct UpdateOp
   {
@@ -405,7 +414,11 @@ TodoList ComputeActionsToDo(Manifest this_manifest, Manifest next_manifest)
 
     if (!old_hash || *old_hash != entry.second)
     {
-      todo.to_download.push_back(entry.second);
+      TodoList::DownloadOp download;
+      download.filename = entry.first;
+      download.hash = entry.second;
+
+      todo.to_download.push_back(std::move(download));
 
       TodoList::UpdateOp update;
       update.filename = entry.first;
@@ -454,8 +467,8 @@ std::optional<std::string> FindOrCreateTempDir(const std::string& base_path)
 void CleanUpTempDir(const std::string& temp_dir, const TodoList& todo)
 {
   // This is best-effort cleanup, we ignore most errors.
-  for (const auto& hash : todo.to_download)
-    File::Delete(temp_dir + DIR_SEP + HexEncode(hash.data(), hash.size()));
+  for (const auto& download : todo.to_download)
+    File::Delete(temp_dir + DIR_SEP + HexEncode(download.hash.data(), download.hash.size()));
   File::DeleteDir(temp_dir);
 }
 
@@ -469,13 +482,25 @@ Manifest::Hash ComputeHash(const std::string& contents)
   return out;
 }
 
-bool DownloadContent(const std::vector<Manifest::Hash>& to_download,
+bool ProgressCallback(double total, double now, double, double)
+{
+  UI::SetProgress(static_cast<int>(now), static_cast<int>(total));
+  return true;
+}
+
+bool DownloadContent(const std::vector<TodoList::DownloadOp>& to_download,
                      const std::string& content_base_url, const std::string& temp_path)
 {
-  Common::HttpRequest req(std::chrono::seconds(30));
-  for (const auto& h : to_download)
+  Common::HttpRequest req(std::chrono::seconds(30), ProgressCallback);
+
+  for (size_t i = 0; i < to_download.size(); i++)
   {
-    std::string hash_filename = HexEncode(h.data(), h.size());
+    auto& download = to_download[i];
+
+    std::string hash_filename = HexEncode(download.hash.data(), download.hash.size());
+    UI::SetDescription("Downloading " + download.filename + "... (File " + std::to_string(i + 1) +
+                       " of " + std::to_string(to_download.size()) + ")");
+    UI::SetMarquee(false);
 
     // Add slashes where needed.
     std::string content_store_path = hash_filename;
@@ -484,9 +509,13 @@ bool DownloadContent(const std::vector<Manifest::Hash>& to_download,
 
     std::string url = content_base_url + content_store_path;
     fprintf(log_fp, "Downloading %s ...\n", url.c_str());
+
     auto resp = req.Get(url);
     if (!resp)
       return false;
+
+    UI::SetMarquee(true);
+    UI::SetDescription("Verifying " + download.filename + "...");
 
     std::string contents(reinterpret_cast<char*>(resp->data()), resp->size());
     std::optional<std::string> maybe_decompressed = GzipInflate(contents);
@@ -496,7 +525,7 @@ bool DownloadContent(const std::vector<Manifest::Hash>& to_download,
 
     // Check that the downloaded contents have the right hash.
     Manifest::Hash contents_hash = ComputeHash(decompressed);
-    if (contents_hash != h)
+    if (contents_hash != download.hash)
     {
       fprintf(log_fp, "Wrong hash on downloaded content %s.\n", url.c_str());
       return false;
@@ -624,6 +653,18 @@ bool PerformUpdate(const TodoList& todo, const std::string& install_base_path,
   return true;
 }
 
+void FatalError(const std::string& message)
+{
+  auto wide_message = UTF8ToUTF16(message);
+
+  MessageBox(nullptr,
+             (L"A fatal error occured and the updater cannot continue:\n " + wide_message).c_str(),
+             L"Error", MB_ICONERROR);
+
+  fprintf(log_fp, "%s\n", message.c_str());
+
+  UI::Stop();
+}
 }  // namespace
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
@@ -648,7 +689,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   if (!File::IsDirectory(opts.install_base_path))
   {
-    fprintf(log_fp, "Cannot find install base path, or not a directory.\n");
+    FatalError("Cannot find install base path, or not a directory.");
     return 1;
   }
 
@@ -661,12 +702,17 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     fprintf(log_fp, "Completed! Proceeding with update.\n");
   }
 
+  std::thread thread(UI::MessageLoop);
+  thread.detach();
+
+  UI::SetDescription("Fetching and parsing manifests...");
+
   Manifest this_manifest, next_manifest;
   {
     std::optional<Manifest> maybe_manifest = FetchAndParseManifest(opts.this_manifest_url);
     if (!maybe_manifest)
     {
-      fprintf(log_fp, "Could not fetch current manifest. Aborting.\n");
+      FatalError("Could not fetch current manifest. Aborting.");
       return 1;
     }
     this_manifest = std::move(*maybe_manifest);
@@ -674,11 +720,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     maybe_manifest = FetchAndParseManifest(opts.next_manifest_url);
     if (!maybe_manifest)
     {
-      fprintf(log_fp, "Could not fetch next manifest. Aborting.\n");
+      FatalError("Could not fetch next manifest. Aborting.");
       return 1;
     }
     next_manifest = std::move(*maybe_manifest);
   }
+
+  UI::SetDescription("Computing what to do...");
 
   TodoList todo = ComputeActionsToDo(this_manifest, next_manifest);
   todo.Log();
@@ -688,16 +736,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 1;
   std::string temp_dir = std::move(*maybe_temp_dir);
 
+  UI::SetDescription("Performing Update...");
+
   bool ok = PerformUpdate(todo, opts.install_base_path, opts.content_store_url, temp_dir);
   if (!ok)
-    fprintf(log_fp, "Failed to apply the update.\n");
+    FatalError("Failed to apply the update.");
 
   CleanUpTempDir(temp_dir, todo);
+
+  UI::ResetProgress();
+  UI::SetMarquee(false);
+  UI::SetProgress(100, 100);
+  UI::SetDescription("Done!");
+
+  // Let the user process that we are done.
+  Sleep(1000);
 
   if (opts.binary_to_restart)
   {
     ShellExecuteW(nullptr, L"open", UTF8ToUTF16(*opts.binary_to_restart).c_str(), L"", nullptr,
                   SW_SHOW);
   }
+
+  UI::Stop();
+
   return !ok;
 }

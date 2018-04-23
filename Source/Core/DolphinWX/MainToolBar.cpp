@@ -98,26 +98,17 @@ void MainToolBar::InitializeThemeBitmaps()
 
 void MainToolBar::InitializeDebuggerBitmaps()
 {
-  m_icon_bitmaps.insert(
-      {{TOOLBAR_DEBUG_STEP, CreateDebuggerBitmap("toolbar_debugger_step")},
-       {TOOLBAR_DEBUG_STEPOVER, CreateDebuggerBitmap("toolbar_debugger_step_over")},
-       {TOOLBAR_DEBUG_STEPOUT, CreateDebuggerBitmap("toolbar_debugger_step_out")},
-       {TOOLBAR_DEBUG_SKIP, CreateDebuggerBitmap("toolbar_debugger_skip")},
-       {TOOLBAR_DEBUG_GOTOPC, CreateDebuggerBitmap("toolbar_debugger_goto_pc")},
-       {TOOLBAR_DEBUG_SETPC, CreateDebuggerBitmap("toolbar_debugger_set_pc")}});
+  m_icon_bitmaps.insert({{TOOLBAR_DEBUG_STEP, CreateBitmap("debugger_step_in")},
+                         {TOOLBAR_DEBUG_STEPOVER, CreateBitmap("debugger_step_over")},
+                         {TOOLBAR_DEBUG_STEPOUT, CreateBitmap("debugger_step_out")},
+                         {TOOLBAR_DEBUG_SKIP, CreateBitmap("debugger_skip")},
+                         {TOOLBAR_DEBUG_GOTOPC, CreateBitmap("debugger_show_pc")},
+                         {TOOLBAR_DEBUG_SETPC, CreateBitmap("debugger_set_pc")}});
 }
 
 wxBitmap MainToolBar::CreateBitmap(const std::string& name) const
 {
   return WxUtils::LoadScaledThemeBitmap(name, this, GetToolBitmapSize());
-}
-
-wxBitmap MainToolBar::CreateDebuggerBitmap(const std::string& name) const
-{
-  constexpr auto scale_flags = WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER;
-
-  return WxUtils::LoadScaledResourceBitmap(name, this, GetToolBitmapSize(), wxDefaultSize,
-                                           scale_flags);
 }
 
 void MainToolBar::ApplyThemeBitmaps()

@@ -2,24 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstddef>
 #include <memory>
-#include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
 #include "Core/WiiUtils.h"
-
 #include "DiscIO/WiiWad.h"
 
 bool CBoot::BootNANDTitle(const u64 title_id)
@@ -28,11 +21,8 @@ bool CBoot::BootNANDTitle(const u64 title_id)
     state->type = 0x04;  // TYPE_NANDBOOT
   });
 
-  if (title_id == Titles::SYSTEM_MENU)
-    IOS::HLE::CreateVirtualFATFilesystem();
-
-  SetupWiiMemory();
   auto* ios = IOS::HLE::GetIOS();
+  SetupWiiMemory();
   return ios->GetES()->LaunchTitle(title_id);
 }
 

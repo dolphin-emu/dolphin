@@ -31,7 +31,7 @@ bool ExportFile(const Volume& volume, const Partition& partition, const std::str
 // update_progress is called once for each child (file or directory).
 // If update_progress returns true, the extraction gets cancelled.
 // filesystem_path is supposed to be the path corresponding to the directory argument.
-void ExportDirectory(const Volume& volume, const Partition partition, const FileInfo& directory,
+void ExportDirectory(const Volume& volume, const Partition& partition, const FileInfo& directory,
                      bool recursive, const std::string& filesystem_path,
                      const std::string& export_folder,
                      const std::function<bool(const std::string& path)>& update_progress);

@@ -2,18 +2,25 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QGuiApplication>
 #include <QKeyEvent>
+#include <QPalette>
+#include <QScreen>
 #include <QTimer>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Settings.h"
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
-  setAttribute(Qt::WA_OpaquePaintEvent, true);
-  setAttribute(Qt::WA_NoSystemBackground, true);
+  QPalette p;
+  p.setColor(QPalette::Background, Qt::black);
+  setPalette(p);
 
   connect(Host::GetInstance(), &Host::RequestTitle, this, &RenderWidget::setWindowTitle);
   connect(Host::GetInstance(), &Host::RequestRenderSize, this, [this](int w, int h) {
@@ -21,6 +28,10 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
       return;
 
     resize(w, h);
+  });
+
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
+    SetFillBackground(SConfig::GetInstance().bRenderToMain && state == Core::State::Uninitialized);
   });
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
@@ -42,12 +53,35 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   connect(&Settings::Instance(), &Settings::HideCursorChanged, this,
           &RenderWidget::OnHideCursorChanged);
   OnHideCursorChanged();
+  connect(&Settings::Instance(), &Settings::KeepWindowOnTopChanged, this,
+          &RenderWidget::OnKeepOnTopChanged);
+  OnKeepOnTopChanged(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
+
+  SetFillBackground(true);
+}
+
+void RenderWidget::SetFillBackground(bool fill)
+{
+  setAttribute(Qt::WA_OpaquePaintEvent, !fill);
+  setAttribute(Qt::WA_NoSystemBackground, !fill);
+  setAutoFillBackground(fill);
 }
 
 void RenderWidget::OnHideCursorChanged()
 {
   setCursor(Settings::Instance().GetHideCursor() ? Qt::BlankCursor : Qt::ArrowCursor);
+}
+
+void RenderWidget::OnKeepOnTopChanged(bool top)
+{
+  const bool was_visible = isVisible();
+
+  setWindowFlags(top ? windowFlags() | Qt::WindowStaysOnTopHint :
+                       windowFlags() & ~Qt::WindowStaysOnTopHint);
+
+  if (was_visible)
+    show();
 }
 
 void RenderWidget::HandleCursorTimer()
@@ -59,13 +93,19 @@ void RenderWidget::HandleCursorTimer()
 void RenderWidget::showFullScreen()
 {
   QWidget::showFullScreen();
-  emit SizeChanged(width(), height());
+
+  const auto dpr =
+      QGuiApplication::screens()[QApplication::desktop()->screenNumber(this)]->devicePixelRatio();
+
+  emit SizeChanged(width() * dpr, height() * dpr);
 }
 
 bool RenderWidget::event(QEvent* event)
 {
   switch (event->type())
   {
+  case QEvent::Paint:
+    return !autoFillBackground();
   case QEvent::KeyPress:
   {
     QKeyEvent* ke = static_cast<QKeyEvent*>(event);
@@ -92,15 +132,23 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowActivate:
     Host::GetInstance()->SetRenderFocus(true);
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
+      Core::SetState(Core::State::Running);
     break;
   case QEvent::WindowDeactivate:
     Host::GetInstance()->SetRenderFocus(false);
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
     break;
   case QEvent::Resize:
   {
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
-    emit SizeChanged(new_size.width(), new_size.height());
+
+    const auto dpr =
+        QGuiApplication::screens()[QApplication::desktop()->screenNumber(this)]->devicePixelRatio();
+
+    emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
   }
   case QEvent::WindowStateChange:

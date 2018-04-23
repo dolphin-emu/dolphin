@@ -127,27 +127,14 @@ void GameConfigWidget::CreateWidgets()
   settings_layout->addWidget(core_box);
   settings_layout->addWidget(stereoscopy_box);
 
-  m_state_combo = new QComboBox;
-
-  for (const auto& item :
-       {tr("Not Set"), tr("Broken"), tr("Intro"), tr("In Game"), tr("Playable"), tr("Perfect")})
-    m_state_combo->addItem(item);
-
-  m_state_comment_edit = new QLineEdit;
-
   auto* layout = new QGridLayout;
 
-  auto* emulation_state = new QLabel(tr("Emulation State:"));
-
   layout->addWidget(settings_box, 0, 0, 1, -1);
-  layout->addWidget(emulation_state, 1, 0);
-  layout->addWidget(m_state_combo, 1, 1);
-  layout->addWidget(m_state_comment_edit, 1, 2, 1, -1);
 
   auto* button_layout = new QHBoxLayout;
   button_layout->setMargin(0);
 
-  layout->addLayout(button_layout, 2, 0, 1, -1);
+  layout->addLayout(button_layout, 1, 0, 1, -1);
 
   button_layout->addWidget(m_refresh_config);
   button_layout->addWidget(m_edit_user_config);
@@ -156,9 +143,6 @@ void GameConfigWidget::CreateWidgets()
   for (QCheckBox* item : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                           m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
     item->setTristate(true);
-
-  emulation_state->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  m_state_combo->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   setLayout(layout);
 }
@@ -169,11 +153,6 @@ void GameConfigWidget::ConnectWidgets()
   connect(m_refresh_config, &QPushButton::pressed, this, &GameConfigWidget::LoadSettings);
   connect(m_edit_user_config, &QPushButton::pressed, this, &GameConfigWidget::EditUserConfig);
   connect(m_view_default_config, &QPushButton::pressed, this, &GameConfigWidget::ViewDefaultConfig);
-
-  // Settings
-  connect(m_state_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, &GameConfigWidget::SaveSettings);
-  connect(m_state_comment_edit, &QLineEdit::editingFinished, this, &GameConfigWidget::SaveSettings);
 
   for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                          m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
@@ -237,10 +216,6 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
 
 void GameConfigWidget::LoadSettings()
 {
-  // Load state information
-  m_state_combo->setCurrentIndex(m_game.GetEmuState());
-  m_state_comment_edit->setText(QString::fromStdString(m_game.GetIssues()));
-
   // Load game-specific settings
 
   // Core
@@ -293,18 +268,6 @@ void GameConfigWidget::LoadSettings()
 
 void GameConfigWidget::SaveSettings()
 {
-  // Save state information
-  QString comment = m_state_comment_edit->text();
-  int state = m_state_combo->currentIndex();
-
-  if (comment != QString::fromStdString(m_game.GetIssues()))
-    m_gameini_local.GetOrCreateSection("EmuState")->Set("EmulationIssues", comment.toStdString());
-
-  if (state != m_game.GetEmuState())
-    m_gameini_local.GetOrCreateSection("EmuState")->Set("EmulationStateId", state);
-
-  // Save game-specific settings
-
   // Core
   SaveCheckBox(m_enable_dual_core, "Core", "CPUThread");
   SaveCheckBox(m_enable_mmu, "Core", "MMU");

@@ -460,8 +460,8 @@ void ProcessVoice(PB_TYPE& pb, const AXBuffers& buffers, u16 count, AXMixControl
     pb.lpf.yn1 = LowPassFilter(samples, count, pb.lpf.yn1, pb.lpf.a0, pb.lpf.b0);
   }
 
-// Mix LRS, AUXA and AUXB depending on mixer_control
-// TODO: Handle DPL2 on AUXB.
+    // Mix LRS, AUXA and AUXB depending on mixer_control
+    // TODO: Handle DPL2 on AUXB.
 
 #define MIX_ON(C) (0 != (mctrl & MIX_##C))
 #define RAMP_ON(C) (0 != (mctrl & MIX_##C##_RAMP))

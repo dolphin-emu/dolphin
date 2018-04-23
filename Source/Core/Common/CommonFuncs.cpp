@@ -22,12 +22,12 @@ std::string LastStrerrorString()
 {
   char error_message[BUFFER_SIZE];
 
-// There are two variants of strerror_r. The XSI version stores the message to the passed-in
-// buffer and returns an int (0 on success). The GNU version returns a pointer to the message,
-// which might have been stored in the passed-in buffer or might be a static string.
+  // There are two variants of strerror_r. The XSI version stores the message to the passed-in
+  // buffer and returns an int (0 on success). The GNU version returns a pointer to the message,
+  // which might have been stored in the passed-in buffer or might be a static string.
 
-// We check defines in order to figure out variant is in use, and we store the returned value
-// to a variable so that we'll get a compile-time check that our assumption was correct.
+  // We check defines in order to figure out variant is in use, and we store the returned value
+  // to a variable so that we'll get a compile-time check that our assumption was correct.
 
 #if defined(__GLIBC__) && (_GNU_SOURCE || (_POSIX_C_SOURCE < 200112L && _XOPEN_SOURCE < 600))
   const char* str = strerror_r(errno, error_message, BUFFER_SIZE);

@@ -138,6 +138,7 @@
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="QoSSession.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="Semaphore.h" />
@@ -146,7 +147,6 @@
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
-    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="TraversalClient.h" />
@@ -202,7 +202,6 @@
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
-    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TraversalClient.cpp" />

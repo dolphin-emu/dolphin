@@ -20,8 +20,9 @@
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();
-  Core::SetOnStateChangedCallback(
-      [this](Core::State new_state) { emit EmulationStateChanged(new_state); });
+  Core::SetOnStateChangedCallback([this](Core::State new_state) {
+    QueueOnObject(this, [this, new_state] { emit EmulationStateChanged(new_state); });
+  });
 
   Config::AddConfigChangedCallback(
       [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
@@ -80,6 +81,11 @@ void Settings::RemovePath(const QString& qpath)
   emit PathRemoved(qpath);
 }
 
+void Settings::ReloadPath(const QString& qpath)
+{
+  emit PathReloadRequested(qpath);
+}
+
 QString Settings::GetDefaultGame() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
@@ -123,6 +129,20 @@ void Settings::SetHideCursor(bool hide_cursor)
 bool Settings::GetHideCursor() const
 {
   return SConfig::GetInstance().bHideCursor;
+}
+
+void Settings::SetKeepWindowOnTop(bool top)
+{
+  if (IsKeepWindowOnTopEnabled() == top)
+    return;
+
+  SConfig::GetInstance().bKeepWindowOnTop = top;
+  emit KeepWindowOnTopChanged(top);
+}
+
+bool Settings::IsKeepWindowOnTopEnabled() const
+{
+  return SConfig::GetInstance().bKeepWindowOnTop;
 }
 
 int Settings::GetVolume() const
@@ -226,6 +246,8 @@ void Settings::SetDebugModeEnabled(bool enabled)
     SConfig::GetInstance().bEnableDebugging = enabled;
     emit DebugModeToggled(enabled);
   }
+  if (enabled)
+    SetCodeVisible(true);
 }
 
 bool Settings::IsDebugModeEnabled() const
@@ -303,6 +325,20 @@ bool Settings::IsCodeVisible() const
   return GetQSettings().value(QStringLiteral("debugger/showcode")).toBool();
 }
 
+void Settings::SetMemoryVisible(bool enabled)
+{
+  if (IsMemoryVisible() == enabled)
+    return;
+  QSettings().setValue(QStringLiteral("debugger/showmemory"), enabled);
+
+  emit MemoryVisibilityChanged(enabled);
+}
+
+bool Settings::IsMemoryVisible() const
+{
+  return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
+}
+
 void Settings::SetDebugFont(QFont font)
 {
   if (GetDebugFont() != font)
@@ -349,4 +385,34 @@ void Settings::SetAnalyticsEnabled(bool enabled)
 bool Settings::IsAnalyticsEnabled() const
 {
   return SConfig::GetInstance().m_analytics_enabled;
+}
+
+void Settings::SetToolBarVisible(bool visible)
+{
+  if (IsToolBarVisible() == visible)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("toolbar/visible"), visible);
+
+  emit ToolBarVisibilityChanged(visible);
+}
+
+bool Settings::IsToolBarVisible() const
+{
+  return GetQSettings().value(QStringLiteral("toolbar/visible")).toBool();
+}
+
+void Settings::SetWidgetsLocked(bool locked)
+{
+  if (AreWidgetsLocked() == locked)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("widgets/locked"), locked);
+
+  emit WidgetLockChanged(locked);
+}
+
+bool Settings::AreWidgetsLocked() const
+{
+  return GetQSettings().value(QStringLiteral("widgets/locked"), true).toBool();
 }

@@ -44,24 +44,49 @@ struct TASWiimoteReport
 };
 
 constexpr std::array<int, 12> s_gc_pad_buttons_bitmask{{
-    PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT, PAD_BUTTON_A, PAD_BUTTON_B,
-    PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_START,
+    PAD_BUTTON_DOWN,
+    PAD_BUTTON_UP,
+    PAD_BUTTON_LEFT,
+    PAD_BUTTON_RIGHT,
+    PAD_BUTTON_A,
+    PAD_BUTTON_B,
+    PAD_BUTTON_X,
+    PAD_BUTTON_Y,
+    PAD_TRIGGER_Z,
+    PAD_TRIGGER_L,
+    PAD_TRIGGER_R,
+    PAD_BUTTON_START,
 }};
 
 constexpr std::array<int, 11> s_wii_buttons_bitmask{{
-    WiimoteEmu::Wiimote::PAD_DOWN, WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_LEFT,
-    WiimoteEmu::Wiimote::PAD_RIGHT, WiimoteEmu::Wiimote::BUTTON_A, WiimoteEmu::Wiimote::BUTTON_B,
-    WiimoteEmu::Wiimote::BUTTON_ONE, WiimoteEmu::Wiimote::BUTTON_TWO,
-    WiimoteEmu::Wiimote::BUTTON_PLUS, WiimoteEmu::Wiimote::BUTTON_MINUS,
+    WiimoteEmu::Wiimote::PAD_DOWN,
+    WiimoteEmu::Wiimote::PAD_UP,
+    WiimoteEmu::Wiimote::PAD_LEFT,
+    WiimoteEmu::Wiimote::PAD_RIGHT,
+    WiimoteEmu::Wiimote::BUTTON_A,
+    WiimoteEmu::Wiimote::BUTTON_B,
+    WiimoteEmu::Wiimote::BUTTON_ONE,
+    WiimoteEmu::Wiimote::BUTTON_TWO,
+    WiimoteEmu::Wiimote::BUTTON_PLUS,
+    WiimoteEmu::Wiimote::BUTTON_MINUS,
     WiimoteEmu::Wiimote::BUTTON_HOME,
 }};
 
 constexpr std::array<int, 15> s_cc_buttons_bitmask{{
-    WiimoteEmu::Classic::PAD_DOWN, WiimoteEmu::Classic::PAD_UP, WiimoteEmu::Classic::PAD_LEFT,
-    WiimoteEmu::Classic::PAD_RIGHT, WiimoteEmu::Classic::BUTTON_A, WiimoteEmu::Classic::BUTTON_B,
-    WiimoteEmu::Classic::BUTTON_X, WiimoteEmu::Classic::BUTTON_Y, WiimoteEmu::Classic::BUTTON_PLUS,
-    WiimoteEmu::Classic::BUTTON_MINUS, WiimoteEmu::Classic::TRIGGER_L,
-    WiimoteEmu::Classic::TRIGGER_R, WiimoteEmu::Classic::BUTTON_ZR, WiimoteEmu::Classic::BUTTON_ZL,
+    WiimoteEmu::Classic::PAD_DOWN,
+    WiimoteEmu::Classic::PAD_UP,
+    WiimoteEmu::Classic::PAD_LEFT,
+    WiimoteEmu::Classic::PAD_RIGHT,
+    WiimoteEmu::Classic::BUTTON_A,
+    WiimoteEmu::Classic::BUTTON_B,
+    WiimoteEmu::Classic::BUTTON_X,
+    WiimoteEmu::Classic::BUTTON_Y,
+    WiimoteEmu::Classic::BUTTON_PLUS,
+    WiimoteEmu::Classic::BUTTON_MINUS,
+    WiimoteEmu::Classic::TRIGGER_L,
+    WiimoteEmu::Classic::TRIGGER_R,
+    WiimoteEmu::Classic::BUTTON_ZR,
+    WiimoteEmu::Classic::BUTTON_ZL,
     WiimoteEmu::Classic::BUTTON_HOME,
 }};
 

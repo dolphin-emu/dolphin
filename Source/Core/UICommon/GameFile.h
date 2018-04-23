@@ -75,31 +75,16 @@ public:
   DiscIO::Platform GetPlatform() const { return m_platform; }
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
   const std::string& GetApploaderDate() const { return m_apploader_date; }
-  const std::string& GetIssues() const { return m_emu_state.issues; }
-  int GetEmuState() const { return m_emu_state.rating; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
   const GameBanner& GetBannerImage() const { return m_volume_banner; }
   void DoState(PointerWrap& p);
   bool BannerChanged();
   void BannerCommit();
-  bool EmuStateChanged();
-  void EmuStateCommit();
   bool CustomNameChanged(const Core::TitleDatabase& title_database);
   void CustomNameCommit();
 
 private:
-  struct EmuState
-  {
-    int rating{};
-    std::string issues{};
-    bool operator!=(const EmuState& rhs) const
-    {
-      return rating != rhs.rating || issues != rhs.issues;
-    }
-    void DoState(PointerWrap& p);
-  };
-
   static const std::string& Lookup(DiscIO::Language language,
                                    const std::map<DiscIO::Language, std::string>& strings);
   const std::string&
@@ -136,7 +121,6 @@ private:
   std::string m_apploader_date{};
 
   GameBanner m_volume_banner{};
-  EmuState m_emu_state{};
   // Overridden name from TitleDatabase
   std::string m_custom_name{};
 
@@ -144,7 +128,6 @@ private:
   // of GameFiles in a threadsafe way. They should not be handled in DoState.
   struct
   {
-    EmuState emu_state;
     GameBanner volume_banner;
     std::string custom_name;
   } m_pending{};

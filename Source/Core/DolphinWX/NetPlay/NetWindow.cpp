@@ -777,7 +777,7 @@ void NetPlayDialog::UpdateHostLabel()
   if (sel == 0)
   {
     // the traversal ID
-    switch (g_TraversalClient->m_State)
+    switch (g_TraversalClient->GetState())
     {
     case TraversalClient::Connecting:
       m_host_label->SetForegroundColour(*wxLIGHT_GREY);
@@ -786,13 +786,15 @@ void NetPlayDialog::UpdateHostLabel()
       m_host_copy_btn->Disable();
       break;
     case TraversalClient::Connected:
+    {
+      const auto host_id = g_TraversalClient->GetHostID();
       m_host_label->SetForegroundColour(*wxBLACK);
-      m_host_label->SetLabel(
-          wxString(g_TraversalClient->m_HostId.data(), g_TraversalClient->m_HostId.size()));
+      m_host_label->SetLabel(wxString(host_id.data(), host_id.size()));
       m_host_copy_btn->SetLabel(_("Copy"));
       m_host_copy_btn->Enable();
       m_host_copy_btn_is_retry = false;
       break;
+    }
     case TraversalClient::Failure:
       m_host_label->SetForegroundColour(*wxBLACK);
       m_host_label->SetLabel("...");

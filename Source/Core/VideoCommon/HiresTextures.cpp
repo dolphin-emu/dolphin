@@ -229,24 +229,31 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   case 16 * 2:
     for (size_t i = 0; i < texture_size; i++)
     {
-      min = std::min<u32>(min, texture[i] & 0xf);
-      min = std::min<u32>(min, texture[i] >> 4);
-      max = std::max<u32>(max, texture[i] & 0xf);
-      max = std::max<u32>(max, texture[i] >> 4);
+      const u32 low_nibble = texture[i] & 0xf;
+      const u32 high_nibble = texture[i] >> 4;
+
+      min = std::min({min, low_nibble, high_nibble});
+      max = std::max({max, low_nibble, high_nibble});
     }
     break;
   case 256 * 2:
+  {
     for (size_t i = 0; i < texture_size; i++)
     {
-      min = std::min<u32>(min, texture[i]);
-      max = std::max<u32>(max, texture[i]);
+      const u32 texture_byte = texture[i];
+
+      min = std::min(min, texture_byte);
+      max = std::max(max, texture_byte);
     }
     break;
+  }
   case 16384 * 2:
-    for (size_t i = 0; i < texture_size / 2; i++)
+    for (size_t i = 0; i < texture_size; i += sizeof(u16))
     {
-      min = std::min<u32>(min, Common::swap16(((u16*)texture)[i]) & 0x3fff);
-      max = std::max<u32>(max, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+      const u32 texture_halfword = Common::swap16(texture[i]) & 0x3fff;
+
+      min = std::min(min, texture_halfword);
+      max = std::max(max, texture_halfword);
     }
     break;
   }
@@ -372,16 +379,18 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   const Level& first_mip = ret->m_levels[0];
   if (first_mip.width * height != first_mip.height * width)
   {
-    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. The aspect differs "
-                     "from the native size %ux%u.",
+    ERROR_LOG(VIDEO,
+              "Invalid custom texture size %ux%u for texture %s. The aspect differs "
+              "from the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 
   // Same deal if the custom texture isn't a multiple of the native size.
   if (width != 0 && height != 0 && (first_mip.width % width || first_mip.height % height))
   {
-    ERROR_LOG(VIDEO, "Invalid custom texture size %ux%u for texture %s. Please use an integer "
-                     "upscaling factor based on the native size %ux%u.",
+    ERROR_LOG(VIDEO,
+              "Invalid custom texture size %ux%u for texture %s. Please use an integer "
+              "upscaling factor based on the native size %ux%u.",
               first_mip.width, first_mip.height, first_mip_file.path.c_str(), width, height);
   }
 

@@ -123,10 +123,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-void Host_SetStartupDebuggingParameters()
-{
-}
-
 bool Host_UINeedsControllerState()
 {
   return true;
@@ -242,7 +238,7 @@ static int GetCountry(std::string filename)
     return country;
   }
 
-  return static_cast<int>(DiscIO::Country::COUNTRY_UNKNOWN);
+  return static_cast<int>(DiscIO::Country::Unknown);
 }
 
 static int GetPlatform(std::string filename)
@@ -253,13 +249,13 @@ static int GetPlatform(std::string filename)
   {
     switch (pVolume->GetVolumeType())
     {
-    case DiscIO::Platform::GAMECUBE_DISC:
+    case DiscIO::Platform::GameCubeDisc:
       __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a GameCube disc.");
       return 0;
-    case DiscIO::Platform::WII_DISC:
+    case DiscIO::Platform::WiiDisc:
       __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii disc.");
       return 1;
-    case DiscIO::Platform::WII_WAD:
+    case DiscIO::Platform::WiiWAD:
       __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii WAD.");
       return 2;
     }
@@ -281,19 +277,11 @@ static std::string GetTitle(std::string filename)
     if (titles.empty())
       titles = pVolume->GetShortNames();
 
-    /*
-    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
-    DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
-
-    auto it = titles.find(language);
-    if (it != end)
-      return it->second;*/
-
     auto end = titles.end();
 
     // English tends to be a good fallback when the requested language isn't available
-    // if (language != DiscIO::Language::LANGUAGE_ENGLISH) {
-    auto it = titles.find(DiscIO::Language::LANGUAGE_ENGLISH);
+    // if (language != DiscIO::Language::English) {
+    auto it = titles.find(DiscIO::Language::English);
     if (it != end)
       return it->second;
     //}
@@ -322,19 +310,11 @@ static std::string GetDescription(std::string filename)
   {
     std::map<DiscIO::Language, std::string> descriptions = volume->GetDescriptions();
 
-    /*
-    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
-    DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
-
-    auto it = descriptions.find(language);
-    if (it != end)
-      return it->second;*/
-
     auto end = descriptions.end();
 
     // English tends to be a good fallback when the requested language isn't available
-    // if (language != DiscIO::Language::LANGUAGE_ENGLISH) {
-    auto it = descriptions.find(DiscIO::Language::LANGUAGE_ENGLISH);
+    // if (language != DiscIO::Language::English) {
+    auto it = descriptions.find(DiscIO::Language::English);
     if (it != end)
       return it->second;
     //}

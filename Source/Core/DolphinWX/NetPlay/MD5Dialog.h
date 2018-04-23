@@ -7,7 +7,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <vector>
 #include <wx/dialog.h>
 
 class NetPlayServer;

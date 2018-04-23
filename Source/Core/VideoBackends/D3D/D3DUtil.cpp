@@ -89,6 +89,7 @@ public:
   void EndAppendData() { context->Unmap(buf, 0); }
   void AddWrapObserver(bool* observer) { observers.push_back(observer); }
   inline ID3D11Buffer*& GetBuffer() { return buf; }
+
 private:
   ID3D11Buffer* buf = nullptr;
   unsigned int offset = 0;
@@ -645,7 +646,10 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture, const D3D11_RECT* rSou
 void drawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2)
 {
   ColVertex coords[4] = {
-      {x1, y1, z, Color}, {x2, y1, z, Color}, {x1, y2, z, Color}, {x2, y2, z, Color},
+      {x1, y1, z, Color},
+      {x2, y1, z, Color},
+      {x1, y2, z, Color},
+      {x2, y2, z, Color},
   };
 
   if (cq_observer || draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||

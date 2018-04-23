@@ -293,21 +293,21 @@ void DSPJitRegCache::FlushRegs(DSPJitRegCache& cache, bool emit)
   for (size_t i = 0; i < m_xregs.size(); i++)
   {
     ASSERT_MSG(DSPLLE, m_xregs[i].guest_reg == cache.m_xregs[i].guest_reg,
-               "cache and current xreg guest_reg mismatch for %u", static_cast<u32>(i));
+               "cache and current xreg guest_reg mismatch for %zu", i);
   }
 
   for (size_t i = 0; i < m_regs.size(); i++)
   {
     ASSERT_MSG(DSPLLE, m_regs[i].loc.IsImm() == cache.m_regs[i].loc.IsImm(),
-               "cache and current reg loc mismatch for %i", static_cast<u32>(i));
+               "cache and current reg loc mismatch for %zu", i);
     ASSERT_MSG(DSPLLE, m_regs[i].loc.GetSimpleReg() == cache.m_regs[i].loc.GetSimpleReg(),
-               "cache and current reg loc mismatch for %i", static_cast<u32>(i));
+               "cache and current reg loc mismatch for %zu", i);
     ASSERT_MSG(DSPLLE, m_regs[i].dirty || !cache.m_regs[i].dirty,
-               "cache and current reg dirty mismatch for %i", static_cast<u32>(i));
+               "cache and current reg dirty mismatch for %zu", i);
     ASSERT_MSG(DSPLLE, m_regs[i].used == cache.m_regs[i].used,
-               "cache and current reg used mismatch for %i", static_cast<u32>(i));
+               "cache and current reg used mismatch for %zu", i);
     ASSERT_MSG(DSPLLE, m_regs[i].shift == cache.m_regs[i].shift,
-               "cache and current reg shift mismatch for %i", static_cast<u32>(i));
+               "cache and current reg shift mismatch for %zu", i);
   }
 
   m_use_ctr = cache.m_use_ctr;
@@ -923,7 +923,7 @@ void DSPJitRegCache::SpillXReg(X64Reg reg)
   }
 }
 
-X64Reg DSPJitRegCache::FindFreeXReg()
+X64Reg DSPJitRegCache::FindFreeXReg() const
 {
   for (X64Reg x : s_allocation_order)
   {

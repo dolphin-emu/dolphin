@@ -23,25 +23,54 @@ constexpr std::array<u8, 6> classic_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x01}};
 
 // Classic Controller calibration
 constexpr std::array<u8, 0x10> classic_calibration{{
-    0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0x00, 0x00, 0x51, 0xa6,
+    0xff,
+    0x00,
+    0x80,
+    0xff,
+    0x00,
+    0x80,
+    0xff,
+    0x00,
+    0x80,
+    0xff,
+    0x00,
+    0x80,
+    0x00,
+    0x00,
+    0x51,
+    0xa6,
 }};
 
 constexpr std::array<u16, 9> classic_button_bitmasks{{
-    Classic::BUTTON_A, Classic::BUTTON_B, Classic::BUTTON_X, Classic::BUTTON_Y,
+    Classic::BUTTON_A,
+    Classic::BUTTON_B,
+    Classic::BUTTON_X,
+    Classic::BUTTON_Y,
 
-    Classic::BUTTON_ZL, Classic::BUTTON_ZR,
+    Classic::BUTTON_ZL,
+    Classic::BUTTON_ZR,
 
-    Classic::BUTTON_MINUS, Classic::BUTTON_PLUS,
+    Classic::BUTTON_MINUS,
+    Classic::BUTTON_PLUS,
 
     Classic::BUTTON_HOME,
 }};
 
 constexpr std::array<const char*, 9> classic_button_names{{
-    "A", "B", "X", "Y", "ZL", "ZR", "-", "+", "Home",
+    "A",
+    "B",
+    "X",
+    "Y",
+    "ZL",
+    "ZR",
+    "-",
+    "+",
+    "Home",
 }};
 
 constexpr std::array<u16, 2> classic_trigger_bitmasks{{
-    Classic::TRIGGER_L, Classic::TRIGGER_R,
+    Classic::TRIGGER_L,
+    Classic::TRIGGER_R,
 }};
 
 constexpr std::array<const char*, 4> classic_trigger_names{{
@@ -56,7 +85,10 @@ constexpr std::array<const char*, 4> classic_trigger_names{{
 }};
 
 constexpr std::array<u16, 4> classic_dpad_bitmasks{{
-    Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT,
+    Classic::PAD_UP,
+    Classic::PAD_DOWN,
+    Classic::PAD_LEFT,
+    Classic::PAD_RIGHT,
 }};
 
 Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
@@ -66,7 +98,8 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
   for (const char* button_name : classic_button_names)
   {
     const std::string& ui_name = (button_name == std::string("Home")) ? "HOME" : button_name;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(button_name, ui_name));
+    m_buttons->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::DoNotTranslate, button_name, ui_name));
   }
 
   // sticks
@@ -78,12 +111,18 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* trigger_name : classic_trigger_names)
-    m_triggers->controls.emplace_back(new ControllerEmu::Input(trigger_name));
+  {
+    m_triggers->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, trigger_name));
+  }
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
+  {
+    m_dpad->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
+  }
 
   // Set up register
   m_calibration = classic_calibration;

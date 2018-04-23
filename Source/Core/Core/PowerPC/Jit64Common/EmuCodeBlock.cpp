@@ -1059,8 +1059,9 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     FixupBranch zeroExponent = J_CC(CC_Z);
 
     // Nice normalized number: sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
-                              MathUtil::PPC_FPCLASS_PN));
+    LEA(32, RSCRATCH,
+        MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
+                MathUtil::PPC_FPCLASS_PN));
     continue1 = J();
 
     SetJumpTarget(maxExponent);
@@ -1073,8 +1074,9 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 
     // Max exponent + no mantissa: sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
     SetJumpTarget(notNAN);
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
-                              MathUtil::PPC_FPCLASS_PINF));
+    LEA(32, RSCRATCH,
+        MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
+                MathUtil::PPC_FPCLASS_PINF));
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
@@ -1082,8 +1084,9 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     FixupBranch zero = J_CC(CC_Z);
 
     // No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
-                              MathUtil::PPC_FPCLASS_PD));
+    LEA(32, RSCRATCH,
+        MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
+                MathUtil::PPC_FPCLASS_PD));
     continue4 = J();
 
     // Zero: sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
@@ -1103,8 +1106,9 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     FixupBranch infinity = J_CC(CC_E);
     MOVQ_xmm(R(RSCRATCH), xmm);
     SHR(64, R(RSCRATCH), Imm8(63));
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
-                              MathUtil::PPC_FPCLASS_PN));
+    LEA(32, RSCRATCH,
+        MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
+                MathUtil::PPC_FPCLASS_PN));
     continue1 = J();
     SetJumpTarget(nan);
     MOVQ_xmm(R(RSCRATCH), xmm);
@@ -1114,15 +1118,17 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     SetJumpTarget(infinity);
     MOVQ_xmm(R(RSCRATCH), xmm);
     SHR(64, R(RSCRATCH), Imm8(63));
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
-                              MathUtil::PPC_FPCLASS_PINF));
+    LEA(32, RSCRATCH,
+        MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
+                MathUtil::PPC_FPCLASS_PINF));
     continue3 = J();
     SetJumpTarget(zeroExponent);
     TEST(64, R(RSCRATCH), R(RSCRATCH));
     FixupBranch zero = J_CC(CC_Z);
     SHR(64, R(RSCRATCH), Imm8(63));
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
-                              MathUtil::PPC_FPCLASS_PD));
+    LEA(32, RSCRATCH,
+        MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
+                MathUtil::PPC_FPCLASS_PD));
     continue4 = J();
     SetJumpTarget(zero);
     SHR(64, R(RSCRATCH), Imm8(63));

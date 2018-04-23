@@ -16,13 +16,17 @@
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinQt2/Debugger/NewBreakpointDialog.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
 BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Breakpoints"));
+  setObjectName(QStringLiteral("breakpoints"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
@@ -47,6 +51,9 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     setHidden(!enabled || !Settings::Instance().IsBreakpointsVisible());
   });
 
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &BreakpointWidget::UpdateIcons);
+  UpdateIcons();
+
   setHidden(!Settings::Instance().IsBreakpointsVisible() ||
             !Settings::Instance().IsDebugModeEnabled());
 
@@ -64,6 +71,8 @@ BreakpointWidget::~BreakpointWidget()
 void BreakpointWidget::CreateWidgets()
 {
   m_toolbar = new QToolBar;
+  m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
   m_table = new QTableWidget;
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -75,9 +84,9 @@ void BreakpointWidget::CreateWidgets()
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
 
-  AddAction(m_toolbar, tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
-  AddAction(m_toolbar, tr("Delete"), this, &BreakpointWidget::OnDelete);
-  AddAction(m_toolbar, tr("Clear"), this, &BreakpointWidget::OnClear);
+  m_new = AddAction(m_toolbar, tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
+  m_delete = AddAction(m_toolbar, tr("Delete"), this, &BreakpointWidget::OnDelete);
+  m_clear = AddAction(m_toolbar, tr("Clear"), this, &BreakpointWidget::OnClear);
 
   m_load = AddAction(m_toolbar, tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = AddAction(m_toolbar, tr("Save"), this, &BreakpointWidget::OnSave);
@@ -89,6 +98,15 @@ void BreakpointWidget::CreateWidgets()
   widget->setLayout(layout);
 
   setWidget(widget);
+}
+
+void BreakpointWidget::UpdateIcons()
+{
+  m_new->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint"));
+  m_delete->setIcon(Resources::GetScaledThemeIcon("debugger_delete"));
+  m_clear->setIcon(Resources::GetScaledThemeIcon("debugger_clear"));
+  m_load->setIcon(Resources::GetScaledThemeIcon("debugger_load"));
+  m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
 }
 
 void BreakpointWidget::closeEvent(QCloseEvent*)
@@ -155,9 +173,10 @@ void BreakpointWidget::Update()
 
     if (mbp.is_ranged)
     {
-      m_table->setItem(i, 3, create_item(QStringLiteral("%1 - %2")
-                                             .arg(mbp.start_address, 8, 16, QLatin1Char('0'))
-                                             .arg(mbp.end_address, 8, 16, QLatin1Char('0'))));
+      m_table->setItem(i, 3,
+                       create_item(QStringLiteral("%1 - %2")
+                                       .arg(mbp.start_address, 8, 16, QLatin1Char('0'))
+                                       .arg(mbp.end_address, 8, 16, QLatin1Char('0'))));
     }
     else
     {
@@ -257,6 +276,8 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   TMemCheck check;
 
   check.start_address = addr;
+  check.end_address = addr;
+  check.is_ranged = false;
   check.is_break_on_read = on_read;
   check.is_break_on_write = on_write;
   check.log_on_hit = do_log;

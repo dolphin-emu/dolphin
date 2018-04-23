@@ -103,7 +103,7 @@ void CachedInterpreter::ExecuteOneBlock()
       break;
 
     default:
-      ERROR_LOG(POWERPC, "Unknown CachedInterpreter Instruction: %d", code->type);
+      ERROR_LOG(POWERPC, "Unknown CachedInterpreter Instruction: %d", static_cast<int>(code->type));
       break;
     }
   }

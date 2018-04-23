@@ -2,8 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <clocale>
 #include <cmath>
+#include <iomanip>
+#include <locale>
 #include <memory>
+#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 #endif
@@ -64,6 +69,63 @@ void Shutdown()
   LogManager::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
+}
+
+void SetLocale(std::string locale_name)
+{
+  auto set_locale = [](const std::string& locale) {
+#ifdef __linux__
+    std::string adjusted_locale = locale;
+    if (!locale.empty())
+      adjusted_locale += ".UTF-8";
+#else
+    const std::string& adjusted_locale = locale;
+#endif
+
+    // setlocale sets the C locale, and global sets the C and C++ locales, so the call to setlocale
+    // would be redundant if it wasn't for not having any other good way to check whether
+    // the locale name is valid. (Constructing a std::locale object for an unsupported
+    // locale name throws std::runtime_error, and exception handling is disabled in Dolphin.)
+    if (!std::setlocale(LC_ALL, adjusted_locale.c_str()))
+      return false;
+    std::locale::global(std::locale(adjusted_locale));
+    return true;
+  };
+
+#ifdef _WIN32
+  constexpr char PREFERRED_SEPARATOR = '-';
+  constexpr char OTHER_SEPARATOR = '_';
+#else
+  constexpr char PREFERRED_SEPARATOR = '_';
+  constexpr char OTHER_SEPARATOR = '-';
+#endif
+
+  // Users who use a system language other than English are unlikely to prefer American date and
+  // time formats, so let's explicitly request "en_GB" if Dolphin's language is set to "en".
+  // (The settings window only allows setting "en", not anything like "en_US" or "en_GB".)
+  // Users who prefer the American formats are likely to have their system language set to en_US,
+  // and are thus likely to leave Dolphin's language as the default value "" (<System Language>).
+  if (locale_name == "en")
+    locale_name = "en_GB";
+
+  std::replace(locale_name.begin(), locale_name.end(), OTHER_SEPARATOR, PREFERRED_SEPARATOR);
+
+  // Use the specified locale if supported.
+  if (set_locale(locale_name))
+    return;
+
+  // Remove subcodes until we get a supported locale. If that doesn't give us a supported locale,
+  // "" is passed to set_locale in order to get the system default locale.
+  while (!locale_name.empty())
+  {
+    const size_t separator_index = locale_name.rfind(PREFERRED_SEPARATOR);
+    locale_name.erase(separator_index == std::string::npos ? 0 : separator_index);
+    if (set_locale(locale_name))
+      return;
+  }
+
+  // If none of the locales tried above are supported, we just keep using whatever locale is set
+  // (which is the classic locale by default).
 }
 
 void CreateDirectories()
@@ -160,6 +222,7 @@ void SetUserDirectory(const std::string& custom_path)
   // Make sure it ends in DIR_SEP.
   if (*user_path.rbegin() != DIR_SEP_CHR)
     user_path += DIR_SEP;
+
 #else
   if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
   {
@@ -167,6 +230,7 @@ void SetUserDirectory(const std::string& custom_path)
   }
   else
   {
+    const char* env_path = getenv("DOLPHIN_EMU_USERPATH");
     const char* home = getenv("HOME");
     if (!home)
       home = getenv("PWD");
@@ -175,14 +239,23 @@ void SetUserDirectory(const std::string& custom_path)
     std::string home_path = std::string(home) + DIR_SEP;
 
 #if defined(__APPLE__) || defined(ANDROID)
-    user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+    if (env_path)
+    {
+      user_path = env_path;
+    }
+    else
+    {
+      user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
+    }
 #else
-    // We are on a non-Apple and non-Android POSIX system, there are 3 cases:
+    // We are on a non-Apple and non-Android POSIX system, there are 4 cases:
     // 1. GetExeDirectory()/portable.txt exists
-    //    -> Use GetExeDirectory/User
-    // 2. ~/.dolphin-emu directory exists
+    //    -> Use GetExeDirectory()/User
+    // 2. $DOLPHIN_EMU_USERPATH is set
+    //    -> Use $DOLPHIN_EMU_USERPATH
+    // 3. ~/.dolphin-emu directory exists
     //    -> Use ~/.dolphin-emu
-    // 3. Default
+    // 4. Default
     //    -> Use XDG basedir, see
     //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
@@ -190,6 +263,10 @@ void SetUserDirectory(const std::string& custom_path)
     if (File::Exists(exe_path + DIR_SEP "portable.txt"))
     {
       user_path = exe_path + DIR_SEP "User" DIR_SEP;
+    }
+    else if (env_path)
+    {
+      user_path = env_path;
     }
     else if (!File::Exists(user_path))
     {
@@ -261,7 +338,7 @@ bool TriggerSTMPowerEvent()
 }
 
 #if defined(HAVE_XRANDR) && HAVE_X11
-void EnableScreenSaver(Display* display, Window win, bool enable)
+void EnableScreenSaver(Window win, bool enable)
 #else
 void EnableScreenSaver(bool enable)
 #endif
@@ -272,7 +349,7 @@ void EnableScreenSaver(bool enable)
 #if defined(HAVE_X11) && HAVE_X11
   if (SConfig::GetInstance().bDisableScreenSaver)
   {
-    X11Utils::InhibitScreensaver(display, win, !enable);
+    X11Utils::InhibitScreensaver(win, !enable);
   }
 #endif
 
@@ -331,7 +408,10 @@ std::string FormatSize(u64 bytes)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  return StringFromFormat("%.2f %s", bytes / unit_size, GetStringT(unit_symbols[unit]).c_str());
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(2);
+  ss << bytes / unit_size << ' ' << GetStringT(unit_symbols[unit]);
+  return ss.str();
 }
 
 }  // namespace UICommon

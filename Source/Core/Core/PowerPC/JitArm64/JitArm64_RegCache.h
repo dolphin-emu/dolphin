@@ -85,6 +85,7 @@ public:
   void IncrementLastUsed() { ++m_last_used; }
   void SetDirty(bool dirty) { m_dirty = dirty; }
   bool IsDirty() const { return m_dirty; }
+
 private:
   // For REG_REG
   RegType m_type;            // store type
@@ -108,6 +109,7 @@ public:
   void Unlock() { m_locked = false; }
   Arm64Gen::ARM64Reg GetReg() const { return m_reg; }
   bool operator==(const Arm64Gen::ARM64Reg& reg) { return reg == m_reg; }
+
 private:
   Arm64Gen::ARM64Reg m_reg;
   bool m_locked;
@@ -231,6 +233,7 @@ public:
 
   void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
   void StoreCRRegisters(BitSet32 regs) { FlushCRRegisters(regs, false); }
+
 protected:
   // Get the order of the host registers
   void GetAllocationOrder() override;
@@ -284,6 +287,7 @@ public:
   void FixSinglePrecision(size_t preg);
 
   void StoreRegisters(BitSet32 regs) { FlushRegisters(regs, false); }
+
 protected:
   // Get the order of the host registers
   void GetAllocationOrder() override;

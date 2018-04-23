@@ -146,7 +146,7 @@ void XEmitter::ReserveCodeSpace(int bytes)
     *code++ = 0xCC;
 }
 
-const u8* XEmitter::AlignCodeTo(size_t alignment)
+u8* XEmitter::AlignCodeTo(size_t alignment)
 {
   ASSERT_MSG(DYNA_REC, alignment != 0 && (alignment & (alignment - 1)) == 0,
              "Alignment must be power of two");
@@ -156,17 +156,17 @@ const u8* XEmitter::AlignCodeTo(size_t alignment)
   return code;
 }
 
-const u8* XEmitter::AlignCode4()
+u8* XEmitter::AlignCode4()
 {
   return AlignCodeTo(4);
 }
 
-const u8* XEmitter::AlignCode16()
+u8* XEmitter::AlignCode16()
 {
   return AlignCodeTo(16);
 }
 
-const u8* XEmitter::AlignCodePage()
+u8* XEmitter::AlignCodePage()
 {
   return AlignCodeTo(4096);
 }
@@ -248,7 +248,7 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
                       bool warn_64bit_offset) const
 {
   if (_operandReg == INVALID_REG)
-    _operandReg = (X64Reg) this->operandReg;
+    _operandReg = (X64Reg)this->operandReg;
   int mod = 0;
   int ireg = indexReg;
   bool SIB = false;

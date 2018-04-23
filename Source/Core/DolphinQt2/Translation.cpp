@@ -18,6 +18,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "UICommon/UICommon.h"
 
 constexpr u32 MO_MAGIC_NUMBER = 0x950412de;
 
@@ -216,7 +217,7 @@ private:
   MoFile m_mo_file;
 };
 
-QStringList FindPossibleLanguageCodes(const QString& exact_language_code)
+static QStringList FindPossibleLanguageCodes(const QString& exact_language_code)
 {
   QStringList possible_language_codes;
   possible_language_codes << exact_language_code;
@@ -270,6 +271,10 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     if (translator->load(filename))
     {
       QApplication::instance()->installTranslator(translator);
+
+      QLocale::setDefault(QLocale(exact_language_code));
+      UICommon::SetLocale(exact_language_code.toStdString());
+
       return true;
     }
     translator->deleteLater();

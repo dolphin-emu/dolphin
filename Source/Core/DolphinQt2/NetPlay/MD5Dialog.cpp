@@ -109,7 +109,7 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
   m_status_labels[pid]->setText(
       tr("%1[%2]: %3").arg(player_name, QString::number(pid), QString::fromStdString(result)));
 
-  if (m_last_result == "")
+  if (m_last_result.empty())
   {
     m_check_label->setText(tr("The hashes match!"));
     return;

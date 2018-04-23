@@ -28,7 +28,7 @@ class GeckoCodeWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeckoCodeWidget(const UICommon::GameFile& game);
+  explicit GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required = true);
 
 signals:
   void OpenGeneralSettings();
@@ -64,4 +64,5 @@ private:
   QPushButton* m_download_codes;
   QPushButton* m_sort_code;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
+  bool m_restart_required;
 };

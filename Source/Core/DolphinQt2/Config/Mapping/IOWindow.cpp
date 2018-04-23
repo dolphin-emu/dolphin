@@ -198,7 +198,8 @@ void IOWindow::OnDetectButtonPressed()
     releaseMouse();
     releaseKeyboard();
     removeEventFilter(BlockUserInputFilter::Instance());
-  }).detach();
+  })
+      .detach();
 }
 
 void IOWindow::OnRangeChanged(int value)

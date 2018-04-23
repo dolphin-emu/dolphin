@@ -16,6 +16,7 @@ add_library(core
   NetPlayServer.cpp
   PatchEngine.cpp
   State.cpp
+  SysConf.cpp
   TitleDatabase.cpp
   WiiRoot.cpp
   WiiUtils.cpp
@@ -165,8 +166,10 @@ add_library(core
   IOS/ES/TitleInformation.cpp
   IOS/ES/TitleManagement.cpp
   IOS/ES/Views.cpp
-  IOS/FS/FileIO.cpp
-  IOS/FS/FS.cpp
+  IOS/FS/FileSystem.cpp
+  IOS/FS/FileSystemProxy.cpp
+  IOS/FS/HostBackend/File.cpp
+  IOS/FS/HostBackend/FS.cpp
   IOS/Network/ICMPLin.cpp
   IOS/Network/MACUtils.cpp
   IOS/Network/Socket.cpp
@@ -274,13 +277,11 @@ endif()
 target_link_libraries(core
 PUBLIC
   audiocommon
-  bdisasm
   common
   cubeb
   discio
   enet
   inputcommon
-  ${LZO}
   ${MBEDTLS_LIBRARIES}
   pugixml
   sfml-network
@@ -288,8 +289,21 @@ PUBLIC
   videonull
   videoogl
   videosoftware
-  z
+
+PRIVATE
+  bdisasm
+  ${LZO}
+  ZLIB::ZLIB
 )
+
+if (APPLE)
+  target_link_libraries(core
+  PRIVATE
+    ${CORESERV_LIBRARY}
+    ${IOB_LIBRARY}
+    ${IOK_LIBRARY}
+  )
+endif()
 
 if(LIBUSB_FOUND)
   # Using shared LibUSB

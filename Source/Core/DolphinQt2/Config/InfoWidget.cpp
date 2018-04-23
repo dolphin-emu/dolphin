@@ -78,7 +78,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   CreateLanguageSelector();
 
   layout->addRow(tr("Show Language:"), m_language_selector);
-  if (m_game.GetPlatform() == DiscIO::Platform::GAMECUBE_DISC)
+  if (m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc)
   {
     layout->addRow(tr("Name:"), m_name);
     layout->addRow(tr("Maker:"), m_maker);

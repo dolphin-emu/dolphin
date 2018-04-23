@@ -204,7 +204,7 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnToggleWindow, this, IDM_LOG_WINDOW, IDM_VIDEO_WINDOW);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_LIST_WAD, IDM_LIST_DRIVES);
   Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_PURGE_GAME_LIST_CACHE);
-  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_STATE);
+  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_SIZE);
 
   // Help menu
   Bind(wxEVT_MENU, &CFrame::OnHelp, this, IDM_HELP_WEBSITE);
@@ -856,10 +856,11 @@ void CFrame::DoStop()
       }
 
       wxMessageDialog m_StopDlg(
-          this, !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
-                                             _("A shutdown is already in progress. Unsaved data "
-                                               "may be lost if you stop the current emulation "
-                                               "before it completes. Force stop?"),
+          this,
+          !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
+                                       _("A shutdown is already in progress. Unsaved data "
+                                         "may be lost if you stop the current emulation "
+                                         "before it completes. Force stop?"),
           _("Please confirm..."), wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
 
       HotkeyManagerEmu::Enable(false);
@@ -1105,6 +1106,12 @@ void CFrame::OnReloadThemeBitmaps(wxCommandEvent& WXUNUSED(event))
   wxCommandEvent reload_event{DOLPHIN_EVT_RELOAD_TOOLBAR_BITMAPS};
   reload_event.SetEventObject(this);
   wxPostEvent(GetToolBar(), reload_event);
+
+  if (m_code_window)
+  {
+    wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_RELOAD_THEME_BITMAPS);
+    m_code_window->GetEventHandler()->AddPendingEvent(evt);
+  }
 
   GameListRefresh();
 }
@@ -1917,9 +1924,6 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
     break;
   case IDM_SHOW_SIZE:
     SConfig::GetInstance().m_showSizeColumn = !SConfig::GetInstance().m_showSizeColumn;
-    break;
-  case IDM_SHOW_STATE:
-    SConfig::GetInstance().m_showStateColumn = !SConfig::GetInstance().m_showStateColumn;
     break;
   default:
     return;

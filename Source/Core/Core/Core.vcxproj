@@ -195,8 +195,10 @@
     <ClCompile Include="IOS\ES\TitleInformation.cpp" />
     <ClCompile Include="IOS\ES\TitleManagement.cpp" />
     <ClCompile Include="IOS\ES\Views.cpp" />
-    <ClCompile Include="IOS\FS\FileIO.cpp" />
-    <ClCompile Include="IOS\FS\FS.cpp" />
+    <ClCompile Include="IOS\FS\FileSystem.cpp" />
+    <ClCompile Include="IOS\FS\FileSystemProxy.cpp" />
+    <ClCompile Include="IOS\FS\HostBackend\FS.cpp" />
+    <ClCompile Include="IOS\FS\HostBackend\File.cpp" />
     <ClCompile Include="IOS\Network\ICMPLin.cpp" />
     <ClCompile Include="IOS\Network\MACUtils.cpp" />
     <ClCompile Include="IOS\Network\Socket.cpp" />
@@ -290,6 +292,7 @@
     <ClCompile Include="PowerPC\PPCTables.cpp" />
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="WiiUtils.cpp" />
@@ -445,8 +448,10 @@
     <ClInclude Include="IOS\DI\DI.h" />
     <ClInclude Include="IOS\ES\ES.h" />
     <ClInclude Include="IOS\ES\Formats.h" />
-    <ClInclude Include="IOS\FS\FileIO.h" />
-    <ClInclude Include="IOS\FS\FS.h" />
+    <ClInclude Include="IOS\FS\FileSystem.h" />
+    <ClInclude Include="IOS\FS\FileSystemProxy.h" />
+    <ClInclude Include="IOS\FS\HostBackend\File.h" />
+    <ClInclude Include="IOS\FS\HostBackend\FS.h" />
     <ClInclude Include="IOS\Network\ICMPLin.h" />
     <ClInclude Include="IOS\Network\ICMP.h" />
     <ClInclude Include="IOS\Network\MACUtils.h" />
@@ -526,6 +531,7 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />

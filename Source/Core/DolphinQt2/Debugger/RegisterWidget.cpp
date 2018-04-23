@@ -18,6 +18,7 @@
 RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Registers"));
+  setObjectName(QStringLiteral("registers"));
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();

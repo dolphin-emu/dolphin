@@ -4,7 +4,6 @@
 
 #include "DolphinQt2/SearchBar.h"
 
-#include <QCheckBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
@@ -24,13 +23,13 @@ void SearchBar::CreateWidgets()
   m_search_edit = new QLineEdit;
   m_close_button = new QPushButton(tr("Close"));
 
-  m_search_edit->setPlaceholderText(tr("Type your search term here"));
+  m_search_edit->setPlaceholderText(tr("Search games..."));
 
   auto* layout = new QHBoxLayout;
 
   layout->addWidget(m_search_edit);
   layout->addWidget(m_close_button);
-  layout->setMargin(0);
+  layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
   setLayout(layout);
 }

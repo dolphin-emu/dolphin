@@ -46,6 +46,7 @@
 #include "DiscIO/NANDImporter.h"
 
 #include "DolphinQt2/AboutDialog.h"
+#include "DolphinQt2/CheatsManager.h"
 #include "DolphinQt2/Config/ControllersWindow.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt2/Config/LogConfigWidget.h"
@@ -54,6 +55,7 @@
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
+#include "DolphinQt2/Debugger/MemoryWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
 #include "DolphinQt2/FIFOPlayerWindow.h"
@@ -85,7 +87,7 @@
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
-  setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
+  setWindowIcon(Resources::GetAppIcon());
   setUnifiedTitleAndToolBarOnMac(true);
   setAcceptDrops(true);
 
@@ -107,6 +109,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 
   if (boot_parameters)
     StartGame(std::move(boot_parameters));
+
+  QSettings& settings = Settings::GetQSettings();
+
+  restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
 }
 
 MainWindow::~MainWindow()
@@ -115,6 +121,10 @@ MainWindow::~MainWindow()
   ShutdownControllers();
 
   Config::Save();
+
+  QSettings& settings = Settings::GetQSettings();
+
+  settings.setValue(QStringLiteral("mainwindow/state"), saveState());
 }
 
 void MainWindow::InitControllers()
@@ -195,6 +205,7 @@ void MainWindow::CreateComponents()
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_fifo_window = new FIFOPlayerWindow(this);
+  m_memory_widget = new MemoryWidget(this);
 
   connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
           [this](const QString& path) { StartGame(path); });
@@ -202,21 +213,29 @@ void MainWindow::CreateComponents()
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
+  m_cheats_manager = new CheatsManager(this);
 
   connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
   connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
           [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
+
   connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
+  connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
+          &BreakpointWidget::Update);
+
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
+          &CodeWidget::Update);
+  connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
+          &MemoryWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  m_graphics_window = new GraphicsWindow(
-      new X11Utils::XRRConfiguration(
-          static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-              "display", windowHandle())),
-          winId()),
-      this);
+  m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+          "display", windowHandle())),
+      winId());
+  m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
 #else
   m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
@@ -266,6 +285,7 @@ void MainWindow::ConnectMenuBar()
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
+  connect(m_menu_bar, &MenuBar::ShowCheatsManager, this, &MainWindow::ShowCheatsManager);
   connect(m_menu_bar, &MenuBar::BootGameCubeIPL, this, &MainWindow::OnBootGameCubeIPL);
   connect(m_menu_bar, &MenuBar::ImportNANDBackup, this, &MainWindow::OnImportNANDBackup);
   connect(m_menu_bar, &MenuBar::PerformOnlineUpdate, this, &MainWindow::PerformOnlineUpdate);
@@ -348,7 +368,6 @@ void MainWindow::ConnectToolBar()
 
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
 
-  connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
   connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
   connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::RequestStop);
@@ -410,12 +429,14 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_memory_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
   tabifyDockWidget(m_log_widget, m_register_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
+  tabifyDockWidget(m_log_widget, m_memory_widget);
 }
 
 QString MainWindow::PromptFileName()
@@ -574,7 +595,7 @@ bool MainWindow::RequestStop()
 
 void MainWindow::ForceStop()
 {
-  BootManager::Stop();
+  Core::Stop();
   EnableScreenSaver(true);
 }
 
@@ -655,6 +676,7 @@ void MainWindow::ShowRenderWidget()
     m_rendering_to_main = true;
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
+    m_stack->repaint();
   }
   else
   {
@@ -927,7 +949,6 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
-  const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   if (is_traversal)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
@@ -961,10 +982,7 @@ void MainWindow::NetPlayQuit()
 void MainWindow::EnableScreenSaver(bool enable)
 {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  UICommon::EnableScreenSaver(
-      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-          "display", windowHandle())),
-      winId(), enable);
+  UICommon::EnableScreenSaver(winId(), enable);
 #else
   UICommon::EnableScreenSaver(enable);
 #endif
@@ -1223,6 +1241,11 @@ void MainWindow::ShowMemcardManager()
   GCMemcardManager manager(this);
 
   manager.exec();
+}
+
+void MainWindow::ShowCheatsManager()
+{
+  m_cheats_manager->show();
 }
 
 void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)

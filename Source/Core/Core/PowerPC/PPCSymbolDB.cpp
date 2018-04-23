@@ -21,15 +21,11 @@
 
 PPCSymbolDB g_symbolDB;
 
-PPCSymbolDB::PPCSymbolDB()
+PPCSymbolDB::PPCSymbolDB() : debugger{&PowerPC::debug_interface}
 {
-  // Get access to the disasm() fgnction
-  debugger = &PowerPC::debug_interface;
 }
 
-PPCSymbolDB::~PPCSymbolDB()
-{
-}
+PPCSymbolDB::~PPCSymbolDB() = default;
 
 // Adds the function to the list, unless it's already there
 Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
@@ -52,7 +48,7 @@ Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
 void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
                                  Symbol::Type type)
 {
-  XFuncMap::iterator iter = functions.find(startAddr);
+  auto iter = functions.find(startAddr);
   if (iter != functions.end())
   {
     // already got it, let's just update name, checksum & size to be sure.
@@ -72,6 +68,13 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
     if (tf.type == Symbol::Type::Function)
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
+      // Do not truncate symbol when a size is expected
+      if (size != 0 && tf.size != size)
+      {
+        WARN_LOG(SYMBOLS, "Analysed symbol (%s) size mismatch, %u expected but %u computed",
+                 name.c_str(), size, tf.size);
+        tf.size = size;
+      }
       checksumToFunction[tf.hash].insert(&functions[startAddr]);
     }
     else
@@ -84,7 +87,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
 
 Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  XFuncMap::iterator it = functions.lower_bound(addr);
+  auto it = functions.lower_bound(addr);
   if (it == functions.end())
     return nullptr;
 
@@ -122,14 +125,14 @@ void PPCSymbolDB::FillInCallers()
     Symbol& f = entry.second;
     for (const SCall& call : f.calls)
     {
-      SCall NewCall(entry.first, call.callAddress);
-      u32 FunctionAddress = call.function;
+      const SCall new_call(entry.first, call.callAddress);
+      const u32 function_address = call.function;
 
-      XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
-      if (FuncIterator != functions.end())
+      auto func_iter = functions.find(function_address);
+      if (func_iter != functions.end())
       {
-        Symbol& rCalledFunction = FuncIterator->second;
-        rCalledFunction.callers.push_back(NewCall);
+        Symbol& called_function = func_iter->second;
+        called_function.callers.push_back(new_call);
       }
       else
       {
@@ -143,53 +146,51 @@ void PPCSymbolDB::FillInCallers()
 
 void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 {
-  XFuncMap::const_iterator iter = functions.find(funcAddr);
-  if (iter != functions.end())
-  {
-    const Symbol& f = iter->second;
-    DEBUG_LOG(SYMBOLS, "The function %s at %08x calls:", f.name.c_str(), f.address);
-    for (const SCall& call : f.calls)
-    {
-      XFuncMap::const_iterator n = functions.find(call.function);
-      if (n != functions.end())
-      {
-        DEBUG_LOG(SYMBOLS, "* %08x : %s", call.callAddress, n->second.name.c_str());
-      }
-    }
-  }
-  else
+  const auto iter = functions.find(funcAddr);
+  if (iter == functions.end())
   {
     WARN_LOG(SYMBOLS, "Symbol does not exist");
+    return;
+  }
+
+  const Symbol& f = iter->second;
+  DEBUG_LOG(SYMBOLS, "The function %s at %08x calls:", f.name.c_str(), f.address);
+  for (const SCall& call : f.calls)
+  {
+    const auto n = functions.find(call.function);
+    if (n != functions.end())
+    {
+      DEBUG_LOG(SYMBOLS, "* %08x : %s", call.callAddress, n->second.name.c_str());
+    }
   }
 }
 
 void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 {
-  XFuncMap::const_iterator iter = functions.find(funcAddr);
-  if (iter != functions.end())
+  const auto iter = functions.find(funcAddr);
+  if (iter == functions.end())
+    return;
+
+  const Symbol& f = iter->second;
+  DEBUG_LOG(SYMBOLS, "The function %s at %08x is called by:", f.name.c_str(), f.address);
+  for (const SCall& caller : f.callers)
   {
-    const Symbol& f = iter->second;
-    DEBUG_LOG(SYMBOLS, "The function %s at %08x is called by:", f.name.c_str(), f.address);
-    for (const SCall& caller : f.callers)
+    const auto n = functions.find(caller.function);
+    if (n != functions.end())
     {
-      XFuncMap::const_iterator n = functions.find(caller.function);
-      if (n != functions.end())
-      {
-        DEBUG_LOG(SYMBOLS, "* %08x : %s", caller.callAddress, n->second.name.c_str());
-      }
+      DEBUG_LOG(SYMBOLS, "* %08x : %s", caller.callAddress, n->second.name.c_str());
     }
   }
 }
 
 void PPCSymbolDB::LogFunctionCall(u32 addr)
 {
-  // u32 from = PC;
-  XFuncMap::iterator iter = functions.find(addr);
-  if (iter != functions.end())
-  {
-    Symbol& f = iter->second;
-    f.numCalls++;
-  }
+  auto iter = functions.find(addr);
+  if (iter == functions.end())
+    return;
+
+  Symbol& f = iter->second;
+  f.numCalls++;
 }
 
 // The use case for handling bad map files is when you have a game with a map file on the disc,
@@ -411,8 +412,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
   }
 
   Index();
-  if (bad)
-    SuccessAlertT("Loaded %d good functions, ignored %d bad functions.", good_count, bad_count);
+  NOTICE_LOG(SYMBOLS, "%d symbols loaded, %d symbols ignored.", good_count, bad_count);
   return true;
 }
 

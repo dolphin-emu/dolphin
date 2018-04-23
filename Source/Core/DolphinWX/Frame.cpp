@@ -204,7 +204,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
     // Let Core finish initializing before accepting any WM_CLOSE messages
     if (!Core::IsRunning())
       break;
-  // Use default action otherwise
+    // Use default action otherwise
 
   default:
     // By default let wxWidgets do what it normally does with this event
@@ -670,14 +670,15 @@ void CFrame::OnResize(wxSizeEvent& event)
 
   // Make sure the logger pane is a sane size
   if (!m_code_window && m_log_window && m_mgr->GetPane("Pane 1").IsShown() &&
-      !m_mgr->GetPane("Pane 1").IsFloating() && (m_log_window->x > GetClientRect().GetWidth() ||
-                                                 m_log_window->y > GetClientRect().GetHeight()))
+      !m_mgr->GetPane("Pane 1").IsFloating() &&
+      (m_log_window->x > GetClientRect().GetWidth() ||
+       m_log_window->y > GetClientRect().GetHeight()))
   {
     ShowResizePane();
   }
 }
 
-// Host messages
+  // Host messages
 
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
@@ -707,8 +708,7 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 void CFrame::EnableScreenSaver(bool enable)
 {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  UICommon::EnableScreenSaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                              X11Utils::XWindowFromHandle(GetHandle()), enable);
+  UICommon::EnableScreenSaver(X11Utils::XWindowFromHandle(GetHandle()), enable);
 #else
   UICommon::EnableScreenSaver(enable);
 #endif
@@ -735,7 +735,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   case IDM_UPDATE_DISASM_DIALOG:  // For breakpoints causing pausing
     if (!m_code_window || Core::GetState() != Core::State::Paused)
       return;
-  // fallthrough
+    // fallthrough
 
   case IDM_UPDATE_GUI:
     UpdateGUI();

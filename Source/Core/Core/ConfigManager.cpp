@@ -228,7 +228,6 @@ void SConfig::SaveGameListSettings(IniFile& ini)
   gamelist->Set("ColumnID", m_showIDColumn);
   gamelist->Set("ColumnRegion", m_showRegionColumn);
   gamelist->Set("ColumnSize", m_showSizeColumn);
-  gamelist->Set("ColumnState", m_showStateColumn);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
@@ -517,7 +516,6 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ColumnID", &m_showIDColumn, false);
   gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
   gamelist->Get("ColumnSize", &m_showSizeColumn, true);
-  gamelist->Get("ColumnState", &m_showStateColumn, true);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
@@ -888,7 +886,7 @@ struct SetGameMetadata
   bool operator()(const BootParameters::Disc& disc) const
   {
     config->SetRunningGameMetadata(*disc.volume, disc.volume->GetGamePartition());
-    config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
+    config->bWii = disc.volume->GetVolumeType() == DiscIO::Platform::WiiDisc;
     config->m_disc_booted_from_game_list = true;
     *region = disc.volume->GetRegion();
     return true;
@@ -901,7 +899,7 @@ struct SetGameMetadata
 
     config->bWii = executable.reader->IsWii();
 
-    *region = DiscIO::Region::UNKNOWN_REGION;
+    *region = DiscIO::Region::Unknown;
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
@@ -974,7 +972,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
     return false;
 
   // Fall back to the system menu region, if possible.
-  if (m_region == DiscIO::Region::UNKNOWN_REGION)
+  if (m_region == DiscIO::Region::Unknown)
   {
     IOS::HLE::Kernel ios;
     const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
@@ -983,7 +981,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   }
 
   // Fall back to PAL.
-  if (m_region == DiscIO::Region::UNKNOWN_REGION)
+  if (m_region == DiscIO::Region::Unknown)
     m_region = DiscIO::Region::PAL;
 
   // Set up paths
@@ -1054,9 +1052,8 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
   DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
-  if (language > DiscIO::Language::LANGUAGE_UNKNOWN ||
-      language < DiscIO::Language::LANGUAGE_JAPANESE)
-    language = DiscIO::Language::LANGUAGE_UNKNOWN;
+  if (language > DiscIO::Language::Unknown || language < DiscIO::Language::Japanese)
+    language = DiscIO::Language::Unknown;
   return language;
 }
 

@@ -48,9 +48,9 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
     return it->second;
 
   // English tends to be a good fallback when the requested language isn't available
-  if (language != DiscIO::Language::LANGUAGE_ENGLISH)
+  if (language != DiscIO::Language::English)
   {
-    it = strings.find(DiscIO::Language::LANGUAGE_ENGLISH);
+    it = strings.find(DiscIO::Language::English);
     if (it != end)
       return it->second;
   }
@@ -70,8 +70,7 @@ GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string
 }
 
 GameFile::GameFile(const std::string& path)
-    : m_file_path(path), m_region(DiscIO::Region::UNKNOWN_REGION),
-      m_country(DiscIO::Country::COUNTRY_UNKNOWN)
+    : m_file_path(path), m_region(DiscIO::Region::Unknown), m_country(DiscIO::Country::Unknown)
 {
   {
     std::string name, extension;
@@ -113,7 +112,7 @@ GameFile::GameFile(const std::string& path)
   {
     m_valid = true;
     m_file_size = File::GetSize(m_file_path);
-    m_platform = DiscIO::Platform::ELF_DOL;
+    m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
 }
@@ -123,7 +122,7 @@ bool GameFile::IsValid() const
   if (!m_valid)
     return false;
 
-  if (m_platform == DiscIO::Platform::WII_WAD && !IOS::ES::IsChannel(m_title_id))
+  if (m_platform == DiscIO::Platform::WiiWAD && !IOS::ES::IsChannel(m_title_id))
     return false;
 
   return true;
@@ -131,7 +130,7 @@ bool GameFile::IsValid() const
 
 bool GameFile::CustomNameChanged(const Core::TitleDatabase& title_database)
 {
-  const auto type = m_platform == DiscIO::Platform::WII_WAD ?
+  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
                         Core::TitleDatabase::TitleType::Channel :
                         Core::TitleDatabase::TitleType::Other;
   m_pending.custom_name = title_database.GetTitleName(m_game_id, type);
@@ -141,25 +140,6 @@ bool GameFile::CustomNameChanged(const Core::TitleDatabase& title_database)
 void GameFile::CustomNameCommit()
 {
   m_custom_name = std::move(m_pending.custom_name);
-}
-
-bool GameFile::EmuStateChanged()
-{
-  IniFile ini = SConfig::LoadGameIni(m_game_id, m_revision);
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_pending.emu_state.rating, 0);
-  ini.GetIfExists("EmuState", "EmulationIssues", &m_pending.emu_state.issues, std::string());
-  return m_emu_state != m_pending.emu_state;
-}
-
-void GameFile::EmuStateCommit()
-{
-  m_emu_state = std::move(m_pending.emu_state);
-}
-
-void GameFile::EmuState::DoState(PointerWrap& p)
-{
-  p.Do(rating);
-  p.Do(issues);
 }
 
 void GameBanner::DoState(PointerWrap& p)
@@ -197,7 +177,6 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_apploader_date);
 
   m_volume_banner.DoState(p);
-  m_emu_state.DoState(p);
   p.Do(m_custom_name);
 }
 
@@ -222,14 +201,13 @@ bool GameFile::BannerChanged()
   if (!DiscIO::IsWii(m_platform))
     return false;
 
-  m_volume_banner.buffer =
-      DiscIO::WiiSaveBanner(m_title_id).GetBanner(&m_volume_banner.width, &m_volume_banner.height);
-  if (m_volume_banner.buffer.empty())
-    return false;
+  m_pending.volume_banner.buffer =
+      DiscIO::WiiSaveBanner(m_title_id)
+          .GetBanner(&m_pending.volume_banner.width, &m_pending.volume_banner.height);
 
-  // We only reach here if m_volume_banner was empty, so we can always return true
-  // without needing any extra check to know whether the banners are different
-  return true;
+  // We only reach here if the old banner was empty, so if the new banner isn't empty,
+  // the new banner is guaranteed to be different from the old banner
+  return !m_pending.volume_banner.buffer.empty();
 }
 
 void GameFile::BannerCommit()
@@ -273,7 +251,7 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 
 std::string GameFile::GetUniqueIdentifier() const
 {
-  const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
+  const DiscIO::Language lang = DiscIO::Language::English;
   std::vector<std::string> info;
   if (!GetGameID().empty())
     info.push_back(GetGameID());

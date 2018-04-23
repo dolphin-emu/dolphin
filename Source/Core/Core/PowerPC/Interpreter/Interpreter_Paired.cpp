@@ -331,12 +331,3 @@ void Interpreter::ps_cmpo1(UGeckoInstruction inst)
 {
   Helper_FloatCompareOrdered(inst, rPS1(inst.FA), rPS1(inst.FB));
 }
-
-// __________________________________________________________________________________________________
-// dcbz_l
-// TODO(ector) check docs
-void Interpreter::dcbz_l(UGeckoInstruction inst)
-{
-  // FAKE: clear memory instead of clearing the cache block
-  PowerPC::ClearCacheLine(Helper_Get_EA_X(inst) & (~31));
-}

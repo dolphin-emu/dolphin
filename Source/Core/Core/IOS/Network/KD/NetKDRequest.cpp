@@ -165,7 +165,10 @@ u8 NetKDRequest::GetAreaCode(const std::string& area) const
 u8 NetKDRequest::GetHardwareModel(const std::string& model) const
 {
   static const std::map<std::string, u8> models = {
-      {"RVL", MODEL_RVL}, {"RVT", MODEL_RVT}, {"RVV", MODEL_RVV}, {"RVD", MODEL_RVD},
+      {"RVL", MODEL_RVL},
+      {"RVT", MODEL_RVT},
+      {"RVV", MODEL_RVV},
+      {"RVD", MODEL_RVD},
   };
 
   auto entryPos = models.find(model);

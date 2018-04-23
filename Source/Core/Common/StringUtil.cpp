@@ -173,7 +173,11 @@ std::string StringFromFormatV(const char* format, va_list args)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
+  {
     ERROR_LOG(COMMON, "Unable to allocate memory for string");
+    buf = nullptr;
+  }
+
 #if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
@@ -303,7 +307,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 #ifdef _WIN32
                                           ":"
 #endif
-                                          );
+  );
   if (std::string::npos == dir_end)
     dir_end = 0;
   else

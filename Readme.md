@@ -188,7 +188,8 @@ rules folder.
 A number of user writeable directories are created for caching purposes or for
 allowing the user to edit their contents. On macOS and Linux these folders are
 stored in `~/Library/Application Support/Dolphin/` and `~/.dolphin-emu`
-respectively. On Windows the user directory is stored in the `My Documents`
+respectively, but can be overwritten by setting the environment variable
+`DOLPHIN_EMU_USERPATH`. On Windows the user directory is stored in the `My Documents`
 folder by default, but there are various way to override this behavior:
 
 * Creating a file called `portable.txt` next to the Dolphin executable will

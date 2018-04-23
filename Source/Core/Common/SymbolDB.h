@@ -39,7 +39,7 @@ struct Symbol
   u32 hash = 0;                // use for HLE function finding
   u32 address = 0;
   u32 flags = 0;
-  int size = 0;
+  u32 size = 0;
   int numCalls = 0;
   Type type = Type::Function;
   int index = 0;  // only used for coloring the disasm view

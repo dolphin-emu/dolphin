@@ -184,7 +184,8 @@ static void InitializeCPUCore(int cpu_core)
 const std::vector<CPUCore>& AvailableCPUCores()
 {
   static const std::vector<CPUCore> cpu_cores = {
-      CORE_INTERPRETER, CORE_CACHEDINTERPRETER,
+      CORE_INTERPRETER,
+      CORE_CACHEDINTERPRETER,
 #ifdef _M_X86_64
       CORE_JIT64,
 #elif defined(_M_ARM_64)
@@ -474,8 +475,6 @@ void CheckExceptions()
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
-    // This never happens ATM
-    // perhaps we can get dcb* instructions to use this :p
     SRR0 = PC;
     SRR1 = MSR & 0x87C0FFFF;
     MSR |= (MSR >> 16) & 1;

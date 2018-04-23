@@ -60,7 +60,6 @@ private:
   void InitializeDebuggerBitmaps();
 
   wxBitmap CreateBitmap(const std::string& name) const;
-  wxBitmap CreateDebuggerBitmap(const std::string& name) const;
 
   void ApplyThemeBitmaps();
   void ApplyDebuggerBitmaps();

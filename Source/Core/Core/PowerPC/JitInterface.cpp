@@ -78,7 +78,7 @@ CPUCoreBase* GetCore()
 
 void WriteProfileResults(const std::string& filename)
 {
-  ProfileStats prof_stats;
+  Profiler::ProfileStats prof_stats;
   GetProfileResults(&prof_stats);
 
   File::IOFile f(filename, "w");
@@ -101,7 +101,7 @@ void WriteProfileResults(const std::string& filename)
   }
 }
 
-void GetProfileResults(ProfileStats* prof_stats)
+void GetProfileResults(Profiler::ProfileStats* prof_stats)
 {
   // Can't really do this with no g_jit core available
   if (!g_jit)

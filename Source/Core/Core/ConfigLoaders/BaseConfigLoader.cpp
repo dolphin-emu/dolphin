@@ -17,12 +17,13 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/SysConf.h"
 
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "Core/Core.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/SysConf.h"
 
 namespace ConfigLoaders
 {
@@ -31,7 +32,8 @@ void SaveToSYSCONF(Config::LayerType layer)
   if (Core::IsRunning())
     return;
 
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  IOS::HLE::Kernel ios;
+  SysConf sysconf{ios.GetFS()};
 
   for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
   {
@@ -154,7 +156,8 @@ private:
     if (Core::IsRunning())
       return;
 
-    SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+    IOS::HLE::Kernel ios;
+    SysConf sysconf{ios.GetFS()};
     for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
     {
       std::visit(

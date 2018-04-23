@@ -28,6 +28,11 @@ static QString EscapeAmpersand(QString&& string)
   return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
 }
 
+bool MappingButton::IsInput() const
+{
+  return m_reference->IsInput();
+}
+
 MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool indicator)
     : ElidedButton(EscapeAmpersand(QString::fromStdString(ref->GetExpression()))), m_parent(widget),
       m_reference(ref)
@@ -71,10 +76,10 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
 
 void MappingButton::Connect()
 {
-  connect(this, &MappingButton::clicked, this, &MappingButton::OnButtonPressed);
+  connect(this, &MappingButton::pressed, this, &MappingButton::Detect);
 }
 
-void MappingButton::OnButtonPressed()
+void MappingButton::Detect()
 {
   if (m_parent->GetDevice() == nullptr || !m_reference->IsInput())
     return;
@@ -84,7 +89,7 @@ void MappingButton::OnButtonPressed()
   grabMouse();
 
   // Make sure that we don't block event handling
-  std::thread([this] {
+  std::thread thread([this] {
     const auto dev = m_parent->GetDevice();
 
     setText(QStringLiteral("..."));
@@ -104,12 +109,17 @@ void MappingButton::OnButtonPressed()
       m_reference->SetExpression(expr.toStdString());
       m_parent->SaveSettings();
       Update();
+
+      if (m_parent->IsIterativeInput())
+        m_parent->NextButton(this);
     }
     else
     {
       OnButtonTimeout();
     }
-  }).detach();
+  });
+
+  thread.detach();
 }
 
 void MappingButton::OnButtonTimeout()

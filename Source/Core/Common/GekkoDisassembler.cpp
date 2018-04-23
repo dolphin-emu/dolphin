@@ -967,7 +967,7 @@ void GekkoDisassembler::mtfsb(u32 in, int n)
   }
 }
 
-// Paired instructions
+  // Paired instructions
 
 #define RA ((inst >> 16) & 0x1f)
 #define RB ((inst >> 11) & 0x1f)
@@ -1179,6 +1179,7 @@ void GekkoDisassembler::ps(u32 inst)
       ill(inst);
     else
       dab(inst, "dcbz_l", 3, 0, 0, 0, 0);
+    return;
   }
 
   //	default:

@@ -552,6 +552,7 @@ void ShaderCache::LoadPipelineUIDCache()
     // If an existing case exists, validate the version before reading entries.
     u32 existing_magic;
     u32 existing_version;
+    bool uid_file_valid = false;
     if (m_gx_pipeline_uid_cache_file.ReadBytes(&existing_magic, sizeof(existing_magic)) &&
         m_gx_pipeline_uid_cache_file.ReadBytes(&existing_version, sizeof(existing_version)) &&
         existing_magic == CACHE_FILE_MAGIC && existing_version == GX_PIPELINE_UID_VERSION)
@@ -563,7 +564,7 @@ void ShaderCache::LoadPipelineUIDCache()
       const size_t uid_count =
           static_cast<size_t>(file_size - CACHE_HEADER_SIZE) / sizeof(SerializedGXPipelineUid);
       const size_t expected_size = uid_count * sizeof(SerializedGXPipelineUid) + CACHE_HEADER_SIZE;
-      bool uid_file_valid = file_size == expected_size;
+      uid_file_valid = file_size == expected_size;
       if (uid_file_valid)
       {
         for (size_t i = 0; i < uid_count; i++)
@@ -583,12 +584,13 @@ void ShaderCache::LoadPipelineUIDCache()
       }
 
       // We open the file for reading and writing, so we must seek to the end before writing.
-      if (!uid_file_valid || !m_gx_pipeline_uid_cache_file.Seek(expected_size, SEEK_SET))
-      {
-        // Close the file. We re-open and truncate it below.
-        m_gx_pipeline_uid_cache_file.Close();
-      }
+      if (uid_file_valid)
+        uid_file_valid = m_gx_pipeline_uid_cache_file.Seek(expected_size, SEEK_SET);
     }
+
+    // If the file is invalid, close it. We re-open and truncate it below.
+    if (!uid_file_valid)
+      m_gx_pipeline_uid_cache_file.Close();
   }
 
   // If the file is not open, it means it was either corrupted or didn't exist.
@@ -600,6 +602,12 @@ void ShaderCache::LoadPipelineUIDCache()
       m_gx_pipeline_uid_cache_file.WriteBytes(&CACHE_FILE_MAGIC, sizeof(GX_PIPELINE_UID_VERSION));
       m_gx_pipeline_uid_cache_file.WriteBytes(&GX_PIPELINE_UID_VERSION,
                                               sizeof(GX_PIPELINE_UID_VERSION));
+
+      // Write any current UIDs out to the file.
+      // This way, if we load a UID cache where the data was incomplete (e.g. Dolphin crashed),
+      // we don't lose the existing UIDs which were previously at the beginning.
+      for (const auto& it : m_gx_pipeline_cache)
+        AppendGXPipelineUID(it.first);
     }
   }
 
@@ -672,6 +680,7 @@ void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, u32 prior
     }
 
     void Retrieve() override { shader_cache->InsertVertexShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;
@@ -700,6 +709,7 @@ void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid
     }
 
     void Retrieve() override { shader_cache->InsertVertexUberShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;
@@ -728,6 +738,7 @@ void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priorit
     }
 
     void Retrieve() override { shader_cache->InsertPixelShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;
@@ -756,6 +767,7 @@ void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& 
     }
 
     void Retrieve() override { shader_cache->InsertPixelUberShader(uid, std::move(shader)); }
+
   private:
     ShaderCache* shader_cache;
     std::unique_ptr<AbstractShader> shader;

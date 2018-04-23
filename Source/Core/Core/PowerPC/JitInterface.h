@@ -11,7 +11,11 @@
 
 class CPUCoreBase;
 class PointerWrap;
+
+namespace Profiler
+{
 struct ProfileStats;
+}
 
 namespace JitInterface
 {
@@ -29,7 +33,7 @@ CPUCoreBase* GetCore();
 
 // Debugging
 void WriteProfileResults(const std::string& filename);
-void GetProfileResults(ProfileStats* prof_stats);
+void GetProfileResults(Profiler::ProfileStats* prof_stats);
 int GetHostCode(u32* address, const u8** code, u32* code_size);
 
 // Memory Utilities

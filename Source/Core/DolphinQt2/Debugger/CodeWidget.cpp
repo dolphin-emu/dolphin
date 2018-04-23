@@ -27,6 +27,8 @@
 CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Code"));
+  setObjectName(QStringLiteral("code"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
@@ -310,8 +312,8 @@ void CodeWidget::UpdateFunctionCalls(Symbol* symbol)
 
     if (call_symbol)
     {
-      auto* item = new QListWidgetItem(QString::fromStdString(
-          StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), addr).c_str()));
+      auto* item = new QListWidgetItem(
+          QString::fromStdString(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), addr)));
       item->setData(Qt::UserRole, addr);
 
       m_function_calls_list->addItem(item);
@@ -331,7 +333,7 @@ void CodeWidget::UpdateFunctionCallers(Symbol* symbol)
     if (caller_symbol)
     {
       auto* item = new QListWidgetItem(QString::fromStdString(
-          StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), addr).c_str()));
+          StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), addr)));
       item->setData(Qt::UserRole, addr);
 
       m_function_callers_list->addItem(item);

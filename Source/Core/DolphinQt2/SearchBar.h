@@ -6,7 +6,6 @@
 
 #include <QWidget>
 
-class QCheckBox;
 class QLineEdit;
 class QPushButton;
 
@@ -25,7 +24,5 @@ private:
   void ConnectWidgets();
 
   QLineEdit* m_search_edit;
-  QCheckBox* m_wii_check;
-  QCheckBox* m_gc_check;
   QPushButton* m_close_button;
 };

@@ -32,13 +32,13 @@ public:
   void ToggleBreakpoint();
   void AddBreakpoint();
 
+  void Update();
 signals:
   void BreakpointsChanged();
 
 private:
   void CreateWidgets();
   void ConnectWidgets();
-  void Update();
   void UpdateCallstack();
   void UpdateSymbols();
   void UpdateFunctionCalls(Symbol* symbol);

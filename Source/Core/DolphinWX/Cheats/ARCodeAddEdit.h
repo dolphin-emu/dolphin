@@ -19,6 +19,7 @@ public:
                 long style = wxDEFAULT_DIALOG_STYLE);
 
   const ActionReplay::ARCode& GetCode() const { return m_code; }
+
 private:
   void CreateGUI();
   void SaveCheatData(wxCommandEvent& event);

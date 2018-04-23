@@ -29,6 +29,8 @@ constexpr int TIMESTAMP_LENGTH = 10;
 LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(this))
 {
   setWindowTitle(tr("Log"));
+  setObjectName(QStringLiteral("log"));
+
   setHidden(!Settings::Instance().IsLogVisible());
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
@@ -39,6 +41,8 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
 
   connect(m_timer, &QTimer::timeout, this, &LogWidget::UpdateLog);
   m_timer->start(UPDATE_LOG_DELAY);
+
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
   LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
 }
@@ -97,6 +101,9 @@ void LogWidget::UpdateFont()
     f = QFont(QStringLiteral("Monospace"));
     f.setStyleHint(QFont::TypeWriter);
     break;
+  case 2:  // Debugger font
+    f = Settings::Instance().GetDebugFont();
+    break;
   }
   m_log_text->setFont(f);
 }
@@ -110,7 +117,7 @@ void LogWidget::CreateWidgets()
   m_log_font = new QComboBox;
   m_log_clear = new QPushButton(tr("Clear"));
 
-  m_log_font->addItems({tr("Default Font"), tr("Monospaced Font")});
+  m_log_font->addItems({tr("Default Font"), tr("Monospaced Font"), tr("Selected Font")});
 
   auto* log_layout = new QGridLayout;
   m_tab_log->setLayout(log_layout);
@@ -191,7 +198,7 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
     color = "yellow";
     break;
   case LogTypes::LOG_LEVELS::LNOTICE:
-    color = "green";
+    color = "lime";
     break;
   case LogTypes::LOG_LEVELS::LINFO:
     color = "cyan";

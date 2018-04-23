@@ -73,6 +73,7 @@ signals:
   void BootGameCubeIPL(DiscIO::Region region);
   void ShowFIFOPlayer();
   void ShowAboutDialog();
+  void ShowCheatsManager();
   void ConnectWiiRemote(int id);
 
   // Options
@@ -157,6 +158,7 @@ private:
   QMenu* m_backup_menu;
 
   // Tools
+  QAction* m_show_cheat_manager;
   QAction* m_wad_install_action;
   QMenu* m_perform_online_update_menu;
   QAction* m_perform_online_update_for_current_region;
@@ -201,6 +203,7 @@ private:
   QAction* m_show_registers;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
+  QAction* m_show_memory;
 
   // Symbols
   QMenu* m_symbols;

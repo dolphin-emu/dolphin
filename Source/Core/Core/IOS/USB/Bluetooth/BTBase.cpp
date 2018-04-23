@@ -13,7 +13,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/SysConf.h"
+#include "Core/SysConf.h"
 
 namespace IOS
 {

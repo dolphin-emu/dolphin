@@ -59,8 +59,8 @@ void AXWiiUCode::HandleCommandList()
     {
       switch (cmd)
       {
-      // Some of these commands are unknown, or unused in this AX HLE.
-      // We still need to skip their arguments using "curr_idx += N".
+        // Some of these commands are unknown, or unused in this AX HLE.
+        // We still need to skip their arguments using "curr_idx += N".
 
       case CMD_SETUP_OLD:
         addr_hi = m_cmdlist[curr_idx++];
@@ -156,8 +156,8 @@ void AXWiiUCode::HandleCommandList()
     {
       switch (cmd)
       {
-      // Some of these commands are unknown, or unused in this AX HLE.
-      // We still need to skip their arguments using "curr_idx += N".
+        // Some of these commands are unknown, or unused in this AX HLE.
+        // We still need to skip their arguments using "curr_idx += N".
 
       case CMD_SETUP:
         addr_hi = m_cmdlist[curr_idx++];

@@ -163,13 +163,13 @@ private:
   template <typename D>
   bool Write(const D* data, u32 count = 1)
   {
-    return m_file.write((const char*)data, count * sizeof(D)).good();
+    return m_file.write(reinterpret_cast<const char*>(data), count * sizeof(D)).good();
   }
 
   template <typename D>
-  bool Read(const D* data, u32 count = 1)
+  bool Read(D* data, u32 count = 1)
   {
-    return m_file.read((char*)data, count * sizeof(D)).good();
+    return m_file.read(reinterpret_cast<char*>(data), count * sizeof(D)).good();
   }
 
   struct Header

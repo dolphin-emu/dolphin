@@ -208,15 +208,6 @@ void DSPEmitter::Compile(u16 start_addr)
 
   const u8* entryPoint = AlignCode16();
 
-  /*
-  // Check for other exceptions
-  if (dsp_SR_is_flag_set(SR_INT_ENABLE))
-    return;
-
-  if (g_dsp.exceptions == 0)
-    return;
-  */
-
   m_gpr.LoadRegs();
 
   m_block_link_entry = GetCodePtr();
@@ -374,9 +365,9 @@ void DSPEmitter::Compile(u16 start_addr)
   JMP(m_return_dispatcher, true);
 }
 
-static void CompileCurrent()
+static void CompileCurrent(DSPEmitter& emitter)
 {
-  g_dsp_jit->Compile(g_dsp.pc);
+  emitter.Compile(g_dsp.pc);
 
   bool retry = true;
 
@@ -385,11 +376,11 @@ static void CompileCurrent()
     retry = false;
     for (size_t i = 0; i < 0xffff; ++i)
     {
-      if (!g_dsp_jit->m_unresolved_jumps[i].empty())
+      if (!emitter.m_unresolved_jumps[i].empty())
       {
-        const u16 address_to_compile = g_dsp_jit->m_unresolved_jumps[i].front();
-        g_dsp_jit->Compile(address_to_compile);
-        if (!g_dsp_jit->m_unresolved_jumps[i].empty())
+        const u16 address_to_compile = emitter.m_unresolved_jumps[i].front();
+        emitter.Compile(address_to_compile);
+        if (!emitter.m_unresolved_jumps[i].empty())
           retry = true;
       }
     }
@@ -399,6 +390,7 @@ static void CompileCurrent()
 const u8* DSPEmitter::CompileStub()
 {
   const u8* entryPoint = AlignCode16();
+  MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(this)));
   ABI_CallFunction(CompileCurrent);
   XOR(32, R(EAX), R(EAX));  // Return 0 cycles executed
   JMP(m_return_dispatcher);

@@ -15,7 +15,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/SysConf.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -25,6 +24,7 @@
 #include "Core/Host.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
+#include "Core/SysConf.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace IOS
@@ -42,8 +42,7 @@ namespace Device
 BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
     : BluetoothBase(ios, device_name)
 {
-  SysConf sysconf{Core::WantsDeterminism() ? Common::FromWhichRoot::FROM_SESSION_ROOT :
-                                             Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  SysConf sysconf{ios.GetFS()};
   if (!Core::WantsDeterminism())
     BackUpBTInfoSection(&sysconf);
 
@@ -288,8 +287,9 @@ void BluetoothEmu::AddEventToQueue(const SQueuedEvent& _event)
                 m_EventQueue.size());
       m_EventQueue.push_back(_event);
       const SQueuedEvent& event = m_EventQueue.front();
-      DEBUG_LOG(IOS_WIIMOTE, "HCI event %x "
-                             "being written from queue (%zu) to %08x...",
+      DEBUG_LOG(IOS_WIIMOTE,
+                "HCI event %x "
+                "being written from queue (%zu) to %08x...",
                 ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
                 m_HCIEndpoint->ios_request.address);
       m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
@@ -400,8 +400,9 @@ void BluetoothEmu::ACLPool::WriteToEndpoint(USB::V0BulkMessage& endpoint)
   const u16 size = packet.size;
   const u16 conn_handle = packet.conn_handle;
 
-  DEBUG_LOG(IOS_WIIMOTE, "ACL packet being written from "
-                         "queue to %08x",
+  DEBUG_LOG(IOS_WIIMOTE,
+            "ACL packet being written from "
+            "queue to %08x",
             endpoint.ios_request.address);
 
   hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.data_address);
@@ -1204,7 +1205,8 @@ void BluetoothEmu::CommandAcceptCon(const u8* input)
   const hci_accept_con_cp* accept_connection = reinterpret_cast<const hci_accept_con_cp*>(input);
 
   static char roles[][128] = {
-      {"Master (0x00)"}, {"Slave (0x01)"},
+      {"Master (0x00)"},
+      {"Slave (0x01)"},
   };
 
   INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_ACCEPT_CON");

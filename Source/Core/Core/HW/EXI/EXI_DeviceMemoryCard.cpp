@@ -293,7 +293,7 @@ void CEXIMemoryCard::SetCS(int cs)
       {
         int count = m_uPosition - 5;
         int i = 0;
-        status &= ~0x80;
+        status &= ~MC_STATUS_BUSY;
 
         while (count--)
         {

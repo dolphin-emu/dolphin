@@ -9,7 +9,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinQt2/QtUtils/ActionHelper.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
 #include <QHeaderView>
@@ -24,6 +26,8 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   // i18n: This kind of "watch" is used for watching emulated memory.
   // It's not related to timekeeping devices.
   setWindowTitle(tr("Watch"));
+  setObjectName(QStringLiteral("watch"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
@@ -51,6 +55,9 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsWatchVisible()); });
 
+  connect(&Settings::Instance(), &Settings::ThemeChanged, this, &WatchWidget::UpdateIcons);
+  UpdateIcons();
+
   setHidden(!Settings::Instance().IsWatchVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   Update();
@@ -67,6 +74,8 @@ WatchWidget::~WatchWidget()
 void WatchWidget::CreateWidgets()
 {
   m_toolbar = new QToolBar;
+  m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+
   m_table = new QTableWidget;
 
   m_table->setColumnCount(5);
@@ -94,6 +103,12 @@ void WatchWidget::ConnectWidgets()
 {
   connect(m_table, &QTableWidget::customContextMenuRequested, this, &WatchWidget::ShowContextMenu);
   connect(m_table, &QTableWidget::itemChanged, this, &WatchWidget::OnItemChanged);
+}
+
+void WatchWidget::UpdateIcons()
+{
+  m_load->setIcon(Resources::GetScaledThemeIcon("debugger_load"));
+  m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
 }
 
 void WatchWidget::Update()

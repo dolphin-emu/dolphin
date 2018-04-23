@@ -90,7 +90,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
 
     m_server = g_MainNetHost.get();
 
-    if (g_TraversalClient->m_State == TraversalClient::Failure)
+    if (g_TraversalClient->GetState() == TraversalClient::Failure)
       g_TraversalClient->ReconnectToServer();
   }
   else
@@ -736,8 +736,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  if (m_dialog && m_traversal_client->m_State == TraversalClient::Failure)
-    m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
+  if (m_dialog && m_traversal_client->GetState() == TraversalClient::Failure)
+    m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
 }
 
 // called from ---GUI--- thread

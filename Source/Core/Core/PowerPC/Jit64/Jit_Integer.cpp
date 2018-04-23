@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
@@ -350,7 +351,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   }
 }
 
-bool Jit64::CheckMergedBranch(u32 crf)
+bool Jit64::CheckMergedBranch(u32 crf) const
 {
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE))
     return false;
@@ -1354,8 +1355,6 @@ void Jit64::arithXex(UGeckoInstruction inst)
   {
     if (!js.carryFlagInverted)
       CMC();
-    if (d != b)
-      MOV(32, gpr.R(d), gpr.R(b));
     SBB(32, gpr.R(d), gpr.R(a));
     invertedCarry = true;
   }
@@ -1437,7 +1436,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   {
     u32 result = gpr.R(s).Imm32();
     if (inst.SH != 0)
-      result = _rotl(result, inst.SH);
+      result = Common::RotateLeft(result, inst.SH);
     result &= Helper_Mask(inst.MB, inst.ME);
     gpr.SetImmediate32(a, result);
     if (inst.Rc)
@@ -1522,7 +1521,8 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   if (gpr.R(a).IsImm() && gpr.R(s).IsImm())
   {
     u32 mask = Helper_Mask(inst.MB, inst.ME);
-    gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) | (_rotl(gpr.R(s).Imm32(), inst.SH) & mask));
+    gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) |
+                              (Common::RotateLeft(gpr.R(s).Imm32(), inst.SH) & mask));
     if (inst.Rc)
       ComputeRC(gpr.R(a));
   }
@@ -1548,7 +1548,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
     {
       gpr.BindToRegister(a, true, true);
       AndWithMask(gpr.RX(a), ~mask);
-      OR(32, gpr.R(a), Imm32(_rotl(gpr.R(s).Imm32(), inst.SH) & mask));
+      OR(32, gpr.R(a), Imm32(Common::RotateLeft(gpr.R(s).Imm32(), inst.SH) & mask));
     }
     else if (inst.SH)
     {
@@ -1622,7 +1622,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   u32 mask = Helper_Mask(inst.MB, inst.ME);
   if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
   {
-    gpr.SetImmediate32(a, _rotl(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);
+    gpr.SetImmediate32(a, Common::RotateLeft(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);
   }
   else
   {

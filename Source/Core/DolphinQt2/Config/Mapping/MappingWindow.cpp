@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -108,14 +109,19 @@ void MappingWindow::CreateMainLayout()
 {
   m_main_layout = new QVBoxLayout();
   m_config_layout = new QHBoxLayout();
+  m_iterative_input = new QCheckBox(tr("Iterative Input"));
   m_tab_widget = new QTabWidget();
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  m_iterative_input->setToolTip(tr("Automatically progress one button after another during "
+                                   "configuration. Useful for first-time setup."));
 
   m_config_layout->addWidget(m_devices_box);
   m_config_layout->addWidget(m_reset_box);
   m_config_layout->addWidget(m_profiles_box);
 
   m_main_layout->addItem(m_config_layout);
+  m_main_layout->addWidget(m_iterative_input);
   m_main_layout->addWidget(m_tab_widget);
   m_main_layout->addWidget(m_button_box);
 
@@ -124,6 +130,7 @@ void MappingWindow::CreateMainLayout()
 
 void MappingWindow::ConnectWidgets()
 {
+  connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_devices_refresh, &QPushButton::clicked, this, &MappingWindow::RefreshDevices);
   connect(m_devices_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &MappingWindow::OnDeviceChanged);
@@ -132,7 +139,6 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_save, &QPushButton::clicked, this, &MappingWindow::OnSaveProfilePressed);
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
-  connect(m_button_box, &QDialogButtonBox::accepted, this, &MappingWindow::accept);
 }
 
 void MappingWindow::OnDeleteProfilePressed()
@@ -265,7 +271,6 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("Microphone"), widget);
     break;
   case Type::MAPPING_WIIMOTE_EMU:
-  case Type::MAPPING_WIIMOTE_HYBRID:
   {
     auto* extension = new WiimoteEmuExtension(this);
     widget = new WiimoteEmuGeneral(this, extension);
@@ -336,4 +341,9 @@ void MappingWindow::OnDefaultFieldsPressed()
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
   emit Update();
+}
+
+bool MappingWindow::IsIterativeInput() const
+{
+  return m_iterative_input->isChecked();
 }

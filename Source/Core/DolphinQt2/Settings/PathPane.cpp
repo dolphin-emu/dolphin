@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QCheckBox>
 #include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
@@ -81,9 +82,20 @@ QGroupBox* PathPane::MakeGameFolderBox()
   hlayout->addStretch();
   QPushButton* add = new QPushButton(tr("Add"));
   QPushButton* remove = new QPushButton(tr("Remove"));
+
+  auto* checkbox = new QCheckBox(tr("Search Subfolders"));
+  checkbox->setChecked(SConfig::GetInstance().m_RecursiveISOFolder);
+
   hlayout->addWidget(add);
   hlayout->addWidget(remove);
   vlayout->addLayout(hlayout);
+  vlayout->addWidget(checkbox);
+
+  connect(checkbox, &QCheckBox::toggled, this, [this](bool checked) {
+    SConfig::GetInstance().m_RecursiveISOFolder = checked;
+    for (const auto& path : Settings::Instance().GetPaths())
+      Settings::Instance().ReloadPath(path);
+  });
 
   connect(add, &QPushButton::clicked, this, &PathPane::Browse);
   connect(remove, &QPushButton::clicked, this, &PathPane::RemovePath);

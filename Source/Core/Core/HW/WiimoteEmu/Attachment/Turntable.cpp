@@ -23,16 +23,24 @@ namespace WiimoteEmu
 constexpr std::array<u8, 6> turntable_id{{0x03, 0x00, 0xa4, 0x20, 0x01, 0x03}};
 
 constexpr std::array<u16, 9> turntable_button_bitmasks{{
-    Turntable::BUTTON_L_GREEN, Turntable::BUTTON_L_RED, Turntable::BUTTON_L_BLUE,
-    Turntable::BUTTON_R_GREEN, Turntable::BUTTON_R_RED, Turntable::BUTTON_R_BLUE,
-    Turntable::BUTTON_MINUS, Turntable::BUTTON_PLUS, Turntable::BUTTON_EUPHORIA,
+    Turntable::BUTTON_L_GREEN,
+    Turntable::BUTTON_L_RED,
+    Turntable::BUTTON_L_BLUE,
+    Turntable::BUTTON_R_GREEN,
+    Turntable::BUTTON_R_RED,
+    Turntable::BUTTON_R_BLUE,
+    Turntable::BUTTON_MINUS,
+    Turntable::BUTTON_PLUS,
+    Turntable::BUTTON_EUPHORIA,
 }};
 
-constexpr std::array<const char*, 9> turntable_button_names{{
-    _trans("Green Left"), _trans("Red Left"), _trans("Blue Left"), _trans("Green Right"),
-    _trans("Red Right"), _trans("Blue Right"), "-", "+",
-    // i18n: This button name refers to a gameplay element in DJ Hero
-    _trans("Euphoria"),
+constexpr std::array<const char*, 6> turntable_button_names{{
+    _trans("Green Left"),
+    _trans("Red Left"),
+    _trans("Blue Left"),
+    _trans("Green Right"),
+    _trans("Red Right"),
+    _trans("Blue Right"),
 }};
 
 Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
@@ -40,7 +48,17 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& turntable_button_name : turntable_button_names)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(turntable_button_name));
+  {
+    m_buttons->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, turntable_button_name));
+  }
+
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
+
+  m_buttons->controls.emplace_back(
+      // i18n: This button name refers to a gameplay element in DJ Hero
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Euphoria")));
 
   // turntables
   // i18n: "Table" refers to a turntable
@@ -55,7 +73,8 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
   // effect dial
   groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
-  m_effect_dial->controls.emplace_back(new ControllerEmu::Input(_trans("Dial")));
+  m_effect_dial->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Dial")));
 
   // crossfade
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));

@@ -83,7 +83,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
+bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
 {
   if (func.name.empty())
     func.Rename(StringFromFormat("zz_%08x_", startAddr));
@@ -135,22 +135,6 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           func.flags |= FFLAG_STRAIGHT;
         return true;
       }
-      /*
-      else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK)
-      {
-        u32 target = addr + SignExt26(instr.LI << 2);
-        if (target < startAddr || (max_size && target > max_size+startAddr))
-        {
-          //block ends by branching away. We're done!
-          func.size *= 4; // into bytes
-          func.address = startAddr;
-          func.analyzed = 1;
-          func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
-          if (numInternalBranches == 0)
-            func.flags |= FFLAG_STRAIGHT;
-          return true;
-        }
-      }*/
       else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
       {
         func.flags &= ~FFLAG_LEAF;
@@ -192,7 +176,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
   }
 }
 
-bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size)
+bool ReanalyzeFunction(u32 start_addr, Symbol& func, u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
@@ -449,8 +433,9 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
   else
     unniceSize /= numUnNice;
 
-  INFO_LOG(SYMBOLS, "Functions analyzed. %i leafs, %i nice, %i unnice."
-                    "%i timer, %i rfi. %i are branchless leafs.",
+  INFO_LOG(SYMBOLS,
+           "Functions analyzed. %i leafs, %i nice, %i unnice."
+           "%i timer, %i rfi. %i are branchless leafs.",
            numLeafs, numNice, numUnNice, numTimer, numRFI, numStraightLeaf);
   INFO_LOG(SYMBOLS, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize,
            unniceSize);
@@ -495,11 +480,12 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
       CodeOp& b = code[i + increment];
       // Reorder integer compares, rlwinm., and carry-affecting ops
       // (if we add more merged branch instructions, add them here!)
-      if ((type == REORDER_CROR && isCror(a)) || (type == REORDER_CARRY && isCarryOp(a)) ||
-          (type == REORDER_CMP && (isCmp(a) || a.outputCR0)))
+      if ((type == ReorderType::CROR && isCror(a)) ||
+          (type == ReorderType::Carry && isCarryOp(a)) ||
+          (type == ReorderType::CMP && (isCmp(a) || a.outputCR0)))
       {
         // once we're next to a carry instruction, don't move away!
-        if (type == REORDER_CARRY && i != start)
+        if (type == ReorderType::Carry && i != start)
         {
           // if we read the CA flag, and the previous instruction sets it, don't move away.
           if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
@@ -530,16 +516,16 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
   // picky about this, but cror seems to almost solely be used for this purpose in real code.
   // Additionally, the other boolean ops seem to almost never be used.
   if (HasOption(OPTION_CROR_MERGE))
-    ReorderInstructionsCore(instructions, code, true, REORDER_CROR);
+    ReorderInstructionsCore(instructions, code, true, ReorderType::CROR);
   // For carry, bubble instructions *towards* each other; one direction often isn't enough
   // to get pairs like addc/adde next to each other.
   if (HasOption(OPTION_CARRY_MERGE))
   {
-    ReorderInstructionsCore(instructions, code, false, REORDER_CARRY);
-    ReorderInstructionsCore(instructions, code, true, REORDER_CARRY);
+    ReorderInstructionsCore(instructions, code, false, ReorderType::Carry);
+    ReorderInstructionsCore(instructions, code, true, ReorderType::Carry);
   }
   if (HasOption(OPTION_BRANCH_MERGE))
-    ReorderInstructionsCore(instructions, code, false, REORDER_CMP);
+    ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
 }
 
 void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
@@ -560,7 +546,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
     code->outputCR0 = true;
   else
-    code->outputCR0 = (opinfo->flags & FL_SET_CR0) ? true : false;
+    code->outputCR0 = (opinfo->flags & FL_SET_CR0) != 0;
 
   // Does the instruction output CR1?
   if (opinfo->flags & FL_RC_BIT_F)
@@ -568,14 +554,14 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
     code->outputCR1 = true;
   else
-    code->outputCR1 = (opinfo->flags & FL_SET_CR1) ? true : false;
+    code->outputCR1 = (opinfo->flags & FL_SET_CR1) != 0;
 
-  code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) ? true : false;
-  code->outputFPRF = (opinfo->flags & FL_SET_FPRF) ? true : false;
-  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) ? true : false;
+  code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
+  code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
+  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
 
-  code->wantsCA = (opinfo->flags & FL_READ_CA) ? true : false;
-  code->outputCA = (opinfo->flags & FL_SET_CA) ? true : false;
+  code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
+  code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
 
   // We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry
   // flag!
@@ -658,28 +644,11 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   if (opinfo->flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  switch (opinfo->type)
+  // For analysis purposes, we can assume that blr eats opinfo->flags.
+  if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
   {
-  case OpType::Integer:
-  case OpType::Load:
-  case OpType::Store:
-  case OpType::LoadFP:
-  case OpType::StoreFP:
-    break;
-  case OpType::SingleFP:
-  case OpType::DoubleFP:
-    break;
-  case OpType::Branch:
-    if (code->inst.hex == 0x4e800020)
-    {
-      // For analysis purposes, we can assume that blr eats opinfo->flags.
-      code->outputCR0 = true;
-      code->outputCR1 = true;
-    }
-    break;
-  case OpType::System:
-  case OpType::SystemFP:
-    break;
+    code->outputCR0 = true;
+    code->outputCR1 = true;
   }
 }
 
@@ -813,8 +782,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
         // bcx with conditional branch
         conditional_continue = true;
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
-                                                         (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 &&
+               ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0 ||
+                (inst.BO & BO_DONT_CHECK_CONDITION) == 0))
       {
         // bclrx with conditional branch
         conditional_continue = true;

@@ -379,14 +379,6 @@ void WiimoteDevice::ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size)
 
   DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendConnectionResponse");
   SendCommandToACL(_Ident, L2CAP_CONNECT_RSP, sizeof(l2cap_con_rsp_cp), (u8*)&Rsp);
-
-  // update state machine
-  /*
-  if (rChannel.PSM == L2CAP_PSM_HID_CNTL)
-    m_HIDControlChannel_Connected = true;
-  else if (rChannel.PSM == L2CAP_PSM_HID_INTR)
-    m_HIDInterruptChannel_Connected = true;
-  */
 }
 
 void WiimoteDevice::ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
@@ -629,16 +621,16 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 MTU, u16 FlushTimeOut
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, Offset, Buffer);
 }
 
-//
-//
-//
-//
-// ---  SDP
-//
-//
-//
-//
-//
+  //
+  //
+  //
+  //
+  // ---  SDP
+  //
+  //
+  //
+  //
+  //
 
 #define SDP_UINT8 0x08
 #define SDP_UINT16 0x09

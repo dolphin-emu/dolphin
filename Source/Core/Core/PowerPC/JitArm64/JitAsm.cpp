@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
@@ -10,6 +9,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -97,7 +97,7 @@ void JitArm64::GenerateAsm()
     ARM64Reg block = X30;
     ORRI2R(pc_masked, WZR, JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3);
     AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ST_LSL, 1));
-    MOVP2R(cache_base, g_jit->GetBlockCache()->GetFastBlockMap());
+    MOVP2R(cache_base, GetBlockCache()->GetFastBlockMap());
     LDR(block, cache_base, EncodeRegTo64(pc_masked));
     FixupBranch not_found = CBZ(block);
 

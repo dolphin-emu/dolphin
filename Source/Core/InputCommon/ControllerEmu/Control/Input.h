@@ -12,7 +12,7 @@ namespace ControllerEmu
 class Input : public Control
 {
 public:
-  Input(const std::string& name, const std::string& ui_name);
-  explicit Input(const std::string& name);
+  Input(Translatability translate, const std::string& name, const std::string& ui_name);
+  Input(Translatability translate, const std::string& name);
 };
 }  // namespace ControllerEmu

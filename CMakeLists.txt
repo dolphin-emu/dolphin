@@ -10,12 +10,18 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
 
 project(dolphin-emu)
+
+# Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
+# unofficial builds) please consider identifying your distribution with a
+# unique name here.
+set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
-option(ENABLE_WX "Enable wxWidgets (Default)" ON)
-option(ENABLE_QT2 "Enable Qt2 (use the other experimental Qt interface)" ON)
+option(ENABLE_QT2 "Enable Qt (Default)" ON)
+option(ENABLE_WX "Enable wxWidgets (Legacy)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
@@ -31,10 +37,15 @@ option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 #    of our software in the wild.
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
 
-# Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
-# unofficial builds) please consider identifying your distribution with a
-# unique name here.
-set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+
+option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+option(FASTLOG "Enable all logs" OFF)
+option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
+option(OPROFILING "Enable profiling" OFF)
+
+# TODO: Add DSPSpy
+option(DSPTOOL "Build dsptool" OFF)
 
 # Enable SDL for default on operating systems that aren't OSX, Android, Linux or Windows.
 if(NOT APPLE AND NOT ANDROID AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT MSVC)
@@ -43,30 +54,24 @@ else()
   option(ENABLE_SDL "Enables SDL as a generic controller backend" OFF)
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT ANDROID)
-  option(ENABLE_EVDEV "Enables the evdev controller backend" ON)
-endif()
-
 if(APPLE)
   option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
-endif()
-
-option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
-
-option(FASTLOG "Enable all logs" OFF)
-option(OPROFILING "Enable profiling" OFF)
-option(GDBSTUB "Enable gdb stub for remote debugging." OFF)
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-  option(VTUNE "Enable Intel VTune integration for JIT symbols." OFF)
-endif()
-
-if(APPLE)
   option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
 endif()
-########################################
-# Optional Targets
-# TODO: Add DSPSpy
-option(DSPTOOL "Build dsptool" OFF)
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  option(VTUNE "Enable Intel VTune integration for JIT symbols." OFF)
+
+  if(NOT ANDROID)
+    option(ENABLE_EVDEV "Enables the evdev controller backend" ON)
+  endif()
+endif()
+
+if(UNIX)
+  # Builds a relocatable binary on Linux.
+  # The Sys folder will need to be copied to the Binaries folder.
+  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/CMake
@@ -79,9 +84,6 @@ include(DolphinCompileDefinitions)
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-# Libraries to link
-set(LIBS)
 
 # Set up paths
 set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
@@ -282,28 +284,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
-  find_library(AU_LIBRARY AudioUnit)
   find_library(CARBON_LIBRARY Carbon)
   find_library(COCOA_LIBRARY Cocoa)
-  find_library(COREAUDIO_LIBRARY CoreAudio)
-  find_library(COREFUND_LIBRARY CoreFoundation)
+  find_library(COREFOUNDATION_LIBRARY CoreFoundation)
   find_library(CORESERV_LIBRARY CoreServices)
+  find_library(FORCEFEEDBACK_LIBRARY ForceFeedback)
   find_library(FOUNDATION_LIBRARY Foundation)
   find_library(IOB_LIBRARY IOBluetooth)
   find_library(IOK_LIBRARY IOKit)
-  find_library(FORCEFEEDBACK ForceFeedback)
   find_library(OPENGL_LIBRARY OpenGL)
-
-  # Link against OS X system frameworks.
-  list(APPEND LIBS
-    ${APPKIT_LIBRARY}
-    ${AU_LIBRARY}
-    ${COREAUDIO_LIBRARY}
-    ${COREFUND_LIBRARY}
-    ${CORESERV_LIBRARY}
-    ${IOK_LIBRARY}
-    ${FORCEFEEDBACK}
-  )
 endif()
 
 if(ENABLE_LTO)
@@ -314,13 +303,8 @@ if(ENABLE_LTO)
   endif()
 endif()
 
-# Add an option to build relocatable binaries on Linux
-# The Sys folder will need to be copied to the Binaries folder.
-if(UNIX)
-  option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
-  if(LINUX_LOCAL_DEV)
-    add_definitions(-DLINUX_LOCAL_DEV)
-  endif()
+if(UNIX AND LINUX_LOCAL_DEV)
+  add_definitions(-DLINUX_LOCAL_DEV)
 endif()
 
 # BSDs put packages in /usr/local instead of /usr, so we need to
@@ -342,7 +326,6 @@ if(NOT CMAKE_BUILD_TYPE)
       "Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
 endif()
 
-option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 if(ENABLE_GPROF)
   check_and_add_flag(HAVE_PG -pg)
   if(NOT FLAG_C_HAVE_PG)
@@ -399,8 +382,6 @@ elseif(HAIKU)
   set(USE_X11 0)
   set(USE_UPNP 0)
   set(USE_EGL 0)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  list(APPEND LIBS rt)
 endif()
 
 if(ENABLE_HEADLESS)
@@ -492,7 +473,6 @@ if(OPROFILING)
   if(OPROFILE_FOUND)
     message(STATUS "OProfile found, enabling profiling support")
     add_definitions(-DUSE_OPROFILE=1)
-    include_directories(${OPROFILE_INCLUDE_DIRS})
   else()
     message(FATAL_ERROR "OProfile not found. Can't build profiling support.")
   endif()
@@ -510,7 +490,6 @@ if(ENABLE_EVDEV)
     message(STATUS "libevdev/libudev found, enabling evdev controller backend")
     add_definitions(-DHAVE_LIBUDEV=1)
     add_definitions(-DHAVE_LIBEVDEV=1)
-    include_directories(${LIBUDEV_INCLUDE_DIR} ${LIBEVDEV_INCLUDE_DIR})
   else()
     message(FATAL_ERROR "Couldn't find libevdev and/or libudev. Can't build evdev controller backend.\nDisable ENABLE_EVDEV if you wish to build without controller support")
   endif()
@@ -540,20 +519,26 @@ endif()
 # Process externals and setup their include directories
 #
 # NOTES about adding Externals:
-#   - add the include directory here
+#   - If an external provides a target, or one can be introduced with find_package, consider using it.
+#     - If a target doesn't exist, consider introducing a target for it with add_library and adding all necessary
+#       includes, definitions, etc, to that target. This way, only libraries that need those attributes simply
+#       need to link that target in, as opposed to them being provided to every library
+#       (which is the case with the directory-based include_directories, add_definitions, etc)
+#
 #   - make sure to tell cmake to link them statically or dynamically (most
 #     should be linked statically)
 #   - place the CMakeLists.txt in the first-level subdirectory, e.g.
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 add_subdirectory(Externals/Bochs_disasm)
-include_directories(Externals/Bochs_disasm)
-
+add_subdirectory(Externals/cpp-optparse)
 add_subdirectory(Externals/glslang)
 
-add_subdirectory(Externals/pugixml)
-
-add_subdirectory(Externals/cpp-optparse)
+find_package(Pugixml)
+if(NOT Pugixml_FOUND)
+  message(STATUS "Using static pugixml from Externals")
+  add_subdirectory(Externals/pugixml)
+endif()
 
 if(USE_SHARED_ENET)
   check_lib(ENET libenet enet enet/enet.h QUIET)
@@ -581,23 +566,18 @@ else()
   include_directories(Externals/enet/include)
   add_subdirectory(Externals/enet)
 endif()
-LIST(APPEND LIBS enet)
 
 if(NOT XXHASH_FOUND)
   message(STATUS "Using static xxhash from Externals")
   add_subdirectory(Externals/xxhash)
-  include_directories(Externals/xxhash)
 endif()
-LIST(APPEND LIBS xxhash)
 
 find_package(ZLIB)
 if(ZLIB_FOUND)
   message(STATUS "Using shared zlib")
-  include_directories(${ZLIB_INCLUDE_DIRS})
 else()
   message(STATUS "Shared zlib not found, falling back to the static library")
   add_subdirectory(Externals/zlib)
-  include_directories(Externals/zlib)
 endif()
 
 if(NOT APPLE)
@@ -608,10 +588,8 @@ if(LZO_FOUND)
 else()
   message(STATUS "Using static lzo from Externals")
   add_subdirectory(Externals/LZO)
-  include_directories(Externals/LZO)
   set(LZO lzo2)
 endif()
-list(APPEND LIBS ${LZO})
 
 if(NOT APPLE)
   check_lib(PNG libpng png png.h QUIET)
@@ -621,7 +599,6 @@ if (PNG_FOUND)
 else()
   message(STATUS "Using static libpng from Externals")
   add_subdirectory(Externals/libpng)
-  include_directories(Externals/libpng)
   set(PNG png)
 endif()
 
@@ -722,7 +699,6 @@ else()
   add_subdirectory(Externals/libiconv-1.14)
   set(ICONV_LIBRARIES iconv)
 endif()
-list(APPEND LIBS ${ICONV_LIBRARIES})
 
 if(NOT ANDROID)
   find_package(HIDAPI)
@@ -805,7 +781,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
   install(FILES Data/dolphin-emu.svg
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
   install(FILES Data/dolphin-emu.png
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps)
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/256x256/apps)
   install(FILES Data/dolphin-emu.desktop
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
   # Install manpages

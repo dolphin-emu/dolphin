@@ -52,6 +52,10 @@ public:
   void SetLogConfigVisible(bool visible);
   bool IsControllerStateNeeded() const;
   void SetControllerStateNeeded(bool needed);
+  void SetToolBarVisible(bool visible);
+  bool IsToolBarVisible() const;
+  void SetWidgetsLocked(bool visible);
+  bool AreWidgetsLocked() const;
 
   // GameList
   QStringList GetPaths() const;
@@ -61,6 +65,7 @@ public:
   void SetPreferredView(bool list);
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
+  void ReloadPath(const QString& qpath);
 
   // Emulation
   int GetStateSlot() const;
@@ -69,6 +74,8 @@ public:
   // Graphics
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
+  void SetKeepWindowOnTop(bool top);
+  bool IsKeepWindowOnTopEnabled() const;
 
   // Audio
   int GetVolume() const;
@@ -97,6 +104,8 @@ public:
   bool IsBreakpointsVisible() const;
   void SetCodeVisible(bool enabled);
   bool IsCodeVisible() const;
+  void SetMemoryVisible(bool enabled);
+  bool IsMemoryVisible() const;
   QFont GetDebugFont() const;
   void SetDebugFont(QFont font);
 
@@ -117,16 +126,21 @@ signals:
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
+  void PathReloadRequested(const QString&);
   void HideCursorChanged();
+  void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);
   void NANDRefresh();
   void RegistersVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
+  void ToolBarVisibilityChanged(bool visible);
+  void WidgetLockChanged(bool locked);
   void EnableCheatsChanged(bool enabled);
   void WatchVisibilityChanged(bool visible);
   void BreakpointsVisibilityChanged(bool visible);
   void CodeVisibilityChanged(bool visible);
+  void MemoryVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);

@@ -3,11 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <QDialogButtonBox>
+#include <QPushButton>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/MainWindow.h"
-#include "DolphinQt2/QtUtils/ListTabWidget.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Settings/AdvancedPane.h"
@@ -20,16 +21,6 @@
 
 #include "Core/Core.h"
 
-static int AddTab(ListTabWidget* tab_widget, const QString& label, QWidget* widget,
-                  const char* icon_name)
-{
-  int index = tab_widget->addTab(widget, label);
-  auto set_icon = [=] { tab_widget->setTabIcon(index, Resources::GetScaledThemeIcon(icon_name)); };
-  QObject::connect(&Settings::Instance(), &Settings::ThemeChanged, set_icon);
-  set_icon();
-  return index;
-}
-
 SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
 {
   // Set Window Properties
@@ -40,38 +31,40 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   QVBoxLayout* layout = new QVBoxLayout;
 
   // Add content to layout before dialog buttons.
-  m_tabs = new ListTabWidget();
-  layout->addWidget(m_tabs);
+  m_tab_widget = new QTabWidget();
+  layout->addWidget(m_tab_widget);
 
-  m_general_pane_index = AddTab(m_tabs, tr("General"), new GeneralPane(), "config");
-  AddTab(m_tabs, tr("Interface"), new InterfacePane(), "browse");
-  m_audio_pane_index = AddTab(m_tabs, tr("Audio"), new AudioPane(), "play");
-  AddTab(m_tabs, tr("GameCube"), new GameCubePane(), "gcpad");
-  AddTab(m_tabs, tr("Paths"), new PathPane(), "browse");
+  m_tab_widget->addTab(new GeneralPane(), tr("General"));
+  m_tab_widget->addTab(new InterfacePane(), tr("Interface"));
+  m_tab_widget->addTab(new AudioPane(), tr("Audio"));
+  m_tab_widget->addTab(new PathPane(), tr("Paths"));
+  m_tab_widget->addTab(new GameCubePane(), tr("GameCube"));
 
   auto* wii_pane = new WiiPane;
-  AddTab(m_tabs, tr("Wii"), wii_pane, "wiimote");
+  m_tab_widget->addTab(wii_pane, tr("Wii"));
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [wii_pane](Core::State state) {
     wii_pane->OnEmulationStateChanged(state != Core::State::Uninitialized);
   });
 
-  AddTab(m_tabs, tr("Advanced"), new AdvancedPane(), "config");
+  m_tab_widget->addTab(new AdvancedPane(), tr("Advanced"));
 
   // Dialog box buttons
-  QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);
-  connect(ok_box, &QDialogButtonBox::accepted, this, &SettingsWindow::accept);
-  layout->addWidget(ok_box);
+  QDialogButtonBox* close_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  connect(close_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+  layout->addWidget(close_box);
 
   setLayout(layout);
 }
 
 void SettingsWindow::SelectAudioPane()
 {
-  m_tabs->setCurrentIndex(m_audio_pane_index);
+  m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::Audio));
 }
 
 void SettingsWindow::SelectGeneralPane()
 {
-  m_tabs->setCurrentIndex(m_general_pane_index);
+  m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::Audio));
 }

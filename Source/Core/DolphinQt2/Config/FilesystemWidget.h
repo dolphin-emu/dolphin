@@ -36,8 +36,9 @@ private:
   void ShowContextMenu(const QPoint&);
 
   void ExtractPartition(const DiscIO::Partition& partition, const QString& out);
-  void ExtractDirectory(const DiscIO::Partition& partition, const QString path, const QString& out);
-  void ExtractFile(const DiscIO::Partition& pratition, const QString& path, const QString& out);
+  void ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
+                        const QString& out);
+  void ExtractFile(const DiscIO::Partition& partition, const QString& path, const QString& out);
   void ExtractSystemData(const DiscIO::Partition& partition, const QString& out);
   void CheckIntegrity(const DiscIO::Partition& partition);
 

@@ -290,7 +290,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
       {
         controls_section->Get(StringFromFormat("WiimoteSource%u", i), &source, -1);
         if (source != -1 && g_wiimote_sources[i] != (unsigned)source &&
-            source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
+            source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_REAL)
         {
           config_cache.bSetWiimoteSource[i] = true;
           g_wiimote_sources[i] = source;
