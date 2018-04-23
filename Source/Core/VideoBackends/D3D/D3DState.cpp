@@ -28,8 +28,8 @@ void StateManager::Apply()
   if (!m_dirtyFlags)
     return;
 
-  int textureMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Texture0);
-  int samplerMaskShift = LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
+  const int textureMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Texture0);
+  const int samplerMaskShift = Common::LeastSignificantSetBit((u32)DirtyFlag_Sampler0);
 
   u32 dirtyTextures =
       (m_dirtyFlags &
@@ -105,7 +105,7 @@ void StateManager::Apply()
 
   while (dirtyTextures)
   {
-    int index = LeastSignificantSetBit(dirtyTextures);
+    const int index = Common::LeastSignificantSetBit(dirtyTextures);
     if (m_current.textures[index] != m_pending.textures[index])
     {
       D3D::context->PSSetShaderResources(index, 1, &m_pending.textures[index]);
@@ -117,7 +117,7 @@ void StateManager::Apply()
 
   while (dirtySamplers)
   {
-    int index = LeastSignificantSetBit(dirtySamplers);
+    const int index = Common::LeastSignificantSetBit(dirtySamplers);
     if (m_current.samplers[index] != m_pending.samplers[index])
     {
       D3D::context->PSSetSamplers(index, 1, &m_pending.samplers[index]);
@@ -187,7 +187,7 @@ void StateManager::SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceVie
 {
   while (textureSlotMask)
   {
-    int index = LeastSignificantSetBit(textureSlotMask);
+    const int index = Common::LeastSignificantSetBit(textureSlotMask);
     SetTexture(index, srv);
     textureSlotMask &= ~(1 << index);
   }

@@ -7,12 +7,12 @@
 #include <type_traits>
 #include "CommonTypes.h"
 
-// Helper functions:
-
 #ifdef _WIN32
 
 #include <intrin.h>
 
+namespace Common
+{
 template <typename T>
 constexpr int CountSetBits(T v)
 {
@@ -49,6 +49,8 @@ inline int LeastSignificantSetBit(u64 val)
   return (int)index;
 }
 #else
+namespace Common
+{
 constexpr int CountSetBits(u8 val)
 {
   return __builtin_popcount(val);
@@ -83,8 +85,6 @@ inline int LeastSignificantSetBit(u64 val)
 }
 #endif
 
-namespace Common
-{
 // Similar to std::bitset, this is a class which encapsulates a bitset, i.e.
 // using the set bits of an integer to represent a set of integers.  Like that
 // class, it acts like an array of bools:
