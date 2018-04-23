@@ -83,8 +83,7 @@ inline int LeastSignificantSetBit(u64 val)
 }
 #endif
 
-// namespace avoids conflict with OS X Carbon; don't use BitSet<T> directly
-namespace BS
+namespace Common
 {
 // Similar to std::bitset, this is a class which encapsulates a bitset, i.e.
 // using the set bits of an integer to represent a set of integers.  Like that
@@ -207,9 +206,9 @@ public:
   constexpr Iterator end() const { return Iterator(m_val, -1); }
   IntTy m_val;
 };
-}
+}  // namespace Common
 
-typedef BS::BitSet<u8> BitSet8;
-typedef BS::BitSet<u16> BitSet16;
-typedef BS::BitSet<u32> BitSet32;
-typedef BS::BitSet<u64> BitSet64;
+using BitSet8 = Common::BitSet<u8>;
+using BitSet16 = Common::BitSet<u16>;
+using BitSet32 = Common::BitSet<u32>;
+using BitSet64 = Common::BitSet<u64>;
