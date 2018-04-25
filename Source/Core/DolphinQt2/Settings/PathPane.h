@@ -20,6 +20,8 @@ private:
   void Browse();
   void BrowseDefaultGame();
   void BrowseWiiNAND();
+  void BrowseDump();
+  void BrowseSDCard();
   QGroupBox* MakeGameFolderBox();
   QGridLayout* MakePathsLayout();
   void RemovePath();
@@ -27,4 +29,6 @@ private:
   QListWidget* m_path_list;
   QLineEdit* m_game_edit;
   QLineEdit* m_nand_edit;
+  QLineEdit* m_dump_edit;
+  QLineEdit* m_sdcard_edit;
 };
