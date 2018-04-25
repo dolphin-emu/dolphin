@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <windows.h>
+#include <ShlObj.h>
 
 #include <OptionParser.h>
 #include <algorithm>
@@ -674,11 +675,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 1;
   Options opts = std::move(*maybe_opts);
 
+  bool need_admin = false;
+
   if (opts.log_file)
   {
     log_fp = _wfopen(UTF8ToUTF16(*opts.log_file).c_str(), L"w");
     if (!log_fp)
+    {
       log_fp = stderr;
+      // Failing to create the logfile for writing is a good indicator that we need administrator
+      // priviliges
+      need_admin = true;
+    }
     else
       atexit(FlushLog);
   }
@@ -702,8 +710,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     fprintf(log_fp, "Completed! Proceeding with update.\n");
   }
 
-  std::thread thread(UI::MessageLoop);
-  thread.detach();
+  if (need_admin)
+  {
+    if (IsUserAnAdmin())
+    {
+      FatalError("Failed to write to directory despite administrator priviliges.");
+      return 1;
+    }
+
+    wchar_t path[MAX_PATH];
+    if (GetModuleFileName(hInstance, path, sizeof(path)) == 0)
+    {
+      FatalError("Failed to get updater filename.");
+      return 1;
+    }
+
+    // Relaunch the updater as administrator
+    ShellExecuteW(nullptr, L"runas", path, pCmdLine, NULL, SW_SHOW);
+    return 0;
+  }
 
   UI::SetDescription("Fetching and parsing manifests...");
 
@@ -754,8 +779,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
   if (opts.binary_to_restart)
   {
-    ShellExecuteW(nullptr, L"open", UTF8ToUTF16(*opts.binary_to_restart).c_str(), L"", nullptr,
-                  SW_SHOW);
+    // Hack: Launching the updater over the explorer ensures that admin priviliges are dropped. Why?
+    // Ask Microsoft.
+    ShellExecuteW(nullptr, nullptr, L"explorer.exe", UTF8ToUTF16(*opts.binary_to_restart).c_str(),
+                  nullptr, SW_SHOW);
   }
 
   UI::Stop();
