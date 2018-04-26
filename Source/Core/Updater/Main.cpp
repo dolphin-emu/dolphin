@@ -591,7 +591,7 @@ bool UpdateFiles(const std::vector<TodoList::UpdateOp>& to_update,
     std::string content_filename = HexEncode(op.new_hash.data(), op.new_hash.size());
     fprintf(log_fp, "Updating file %s from content %s...\n", op.filename.c_str(),
             content_filename.c_str());
-    if (!File::Rename(temp_path + DIR_SEP + content_filename, path))
+    if (!File::Copy(temp_path + DIR_SEP + content_filename, path))
     {
       fprintf(log_fp, "Could not update file %s.\n", op.filename.c_str());
       return false;
