@@ -374,7 +374,7 @@ void SConfig::SaveAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  section->Set("TrackForTesting", m_auto_update_track);
+  section->Set("Track", m_auto_update_track);
   section->Set("HashOverride", m_auto_update_hash_override);
 }
 
@@ -682,8 +682,7 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  // TODO: Rename and default to SCM_UPDATE_TRACK_STR when ready for general consumption.
-  section->Get("TrackForTesting", &m_auto_update_track, "");
+  section->Get("Track", &m_auto_update_track, SCM_UPDATE_TRACK_STR);
   section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
