@@ -92,6 +92,10 @@ void GameList::MakeListView()
   connect(hor_header, &QHeaderView::sectionMoved, this, &GameList::OnHeaderViewChanged);
 
   hor_header->setSectionsMovable(true);
+
+  if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
+    m_list->sortByColumn(GameListModel::COL_TITLE, Qt::AscendingOrder);
+
   hor_header->restoreState(
       Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
