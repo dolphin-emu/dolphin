@@ -234,12 +234,13 @@ bool CheatCodeEditor::AcceptGecko()
 
     QStringList values = line.split(QStringLiteral(" "));
 
-    bool good = true;
+    bool good = values.size() == 2;
 
     u32 addr = 0;
     u32 value = 0;
 
-    addr = values[0].toUInt(&good, 16);
+    if (good)
+      addr = values[0].toUInt(&good, 16);
 
     if (good)
       value = values[1].toUInt(&good, 16);
@@ -272,7 +273,7 @@ bool CheatCodeEditor::AcceptGecko()
   {
     QMessageBox::critical(this, tr("Error"),
                           tr("The resulting decrypted AR code doesn't contain any lines."));
-    return true;
+    return false;
   }
 
   m_gecko_code->name = m_name_edit->text().toStdString();
