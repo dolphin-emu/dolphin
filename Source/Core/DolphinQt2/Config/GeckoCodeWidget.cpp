@@ -115,6 +115,7 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_code_list, &QListWidget::itemChanged, this, &GeckoCodeWidget::OnItemChanged);
 
   connect(m_add_code, &QPushButton::pressed, this, &GeckoCodeWidget::AddCode);
+  connect(m_remove_code, &QPushButton::pressed, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
 
