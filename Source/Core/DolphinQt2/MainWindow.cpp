@@ -670,10 +670,17 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
 void MainWindow::ShowRenderWidget()
 {
+  if (SConfig::GetInstance().bFullscreen && !m_render_widget->isFullScreen())
+  {
+    m_render_widget->showFullScreen();
+    return;
+  }
+
   if (SConfig::GetInstance().bRenderToMain)
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
     m_rendering_to_main = true;
+
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     m_stack->repaint();
@@ -682,15 +689,9 @@ void MainWindow::ShowRenderWidget()
   {
     // Otherwise, just show it.
     m_rendering_to_main = false;
-    if (SConfig::GetInstance().bFullscreen && !m_render_widget->isFullScreen())
-    {
-      m_render_widget->showFullScreen();
-    }
-    else
-    {
-      m_render_widget->showNormal();
-      m_render_widget->resize(640, 480);
-    }
+
+    m_render_widget->showNormal();
+    m_render_widget->resize(640, 480);
   }
 }
 
