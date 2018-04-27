@@ -13,6 +13,7 @@
 #include "Core/ConfigManager.h"
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
+#include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "VideoCommon/VideoConfig.h"
 
 HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
@@ -21,6 +22,9 @@ HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
+
+  connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
+  OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
 }
 
 void HacksWidget::CreateWidgets()
@@ -96,6 +100,21 @@ void HacksWidget::CreateWidgets()
   main_layout->addStretch();
 
   setLayout(main_layout);
+}
+
+void HacksWidget::OnBackendChanged(const QString& backend_name)
+{
+  const bool bbox = g_Config.backend_info.bSupportsBBox;
+  const bool gpu_texture_decoding = g_Config.backend_info.bSupportsGPUTextureDecoding;
+
+  m_gpu_texture_decoding->setEnabled(gpu_texture_decoding);
+  m_disable_bounding_box->setEnabled(bbox);
+
+  if (!gpu_texture_decoding)
+    m_gpu_texture_decoding->setToolTip(tr("%1 doesn't support this feature.").arg(backend_name));
+
+  if (!bbox)
+    m_disable_bounding_box->setToolTip(tr("%1 doesn't support this feature.").arg(backend_name));
 }
 
 void HacksWidget::ConnectWidgets()
