@@ -22,6 +22,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -310,7 +311,9 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 // menu.Append(IDM_GOTOINMEMVIEW, _("&Goto in mem view"));
 #if wxUSE_CLIPBOARD
   menu.Append(IDM_COPYADDRESS, _("Copy &address"));
-  menu.Append(IDM_COPYHEX, _("Copy &hex"));
+  menu.Append(IDM_COPYHEX, _("Copy &hex"))
+      ->Enable(Core::GetState() != Core::State::Uninitialized &&
+               PowerPC::HostIsRAMAddress(selection));
 #endif
   // i18n: This kind of "watch" is used for watching emulated memory.
   // It's not related to timekeeping devices.
