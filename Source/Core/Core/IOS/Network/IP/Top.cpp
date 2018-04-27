@@ -59,6 +59,12 @@ namespace HLE
 {
 namespace Device
 {
+enum SOResultCode : s32
+{
+  SO_ERROR_INVALID_REQUEST = -51,
+  SO_ERROR_HOST_NOT_FOUND = -305,
+};
+
 NetIPTop::NetIPTop(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
 #ifdef _WIN32
@@ -771,7 +777,7 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
   if (param != 0xfffe)
   {
     WARN_LOG(IOS_NET, "GetInterfaceOpt: received invalid request with param0=%08x", param);
-    return GetDefaultReply(-51);
+    return GetDefaultReply(SO_ERROR_INVALID_REQUEST);
   }
 
   if (request.io_vectors[0].size >= 8)
@@ -1022,8 +1028,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   }
   else
   {
-    // Host not found
-    ret = -305;
+    ret = SO_ERROR_HOST_NOT_FOUND;
   }
 
   request.Dump(GetDeviceName(), LogTypes::IOS_NET, LogTypes::LINFO);
