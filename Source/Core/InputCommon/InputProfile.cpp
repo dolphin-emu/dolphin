@@ -69,7 +69,7 @@ namespace InputProfile
     std::vector<std::string> result(profiles.size());
     std::transform(profiles.begin(), profiles.end(), result.begin(), [&device_profile_root_location](const std::string& profile)
     {
-      return device_profile_root_location + "/" + profile + ".ini";
+      return device_profile_root_location + "/" + StripSpaces(profile) + ".ini";
     });
 
     return result;
