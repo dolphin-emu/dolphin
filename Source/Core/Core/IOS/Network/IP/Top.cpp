@@ -167,34 +167,32 @@ struct DefaultInterface
 static std::optional<DefaultInterface> GetSystemDefaultInterface()
 {
 #ifdef _WIN32
-  DWORD forwardTableSize, ipTableSize, result;
-  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
-  std::unique_ptr<MIB_IPFORWARDTABLE> forwardTable;
-  std::unique_ptr<MIB_IPADDRTABLE> ipTable;
-
-  forwardTableSize = 0;
-  if (GetIpForwardTable(nullptr, &forwardTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+  std::unique_ptr<MIB_IPFORWARDTABLE> forward_table;
+  DWORD forward_table_size = 0;
+  if (GetIpForwardTable(nullptr, &forward_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
   {
-    forwardTable =
-        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forwardTableSize));
+    forward_table =
+        std::unique_ptr<MIB_IPFORWARDTABLE>((PMIB_IPFORWARDTABLE) operator new(forward_table_size));
   }
 
-  ipTableSize = 0;
-  if (GetIpAddrTable(nullptr, &ipTableSize, FALSE) == ERROR_INSUFFICIENT_BUFFER)
+  std::unique_ptr<MIB_IPADDRTABLE> ip_table;
+  DWORD ip_table_size = 0;
+  if (GetIpAddrTable(nullptr, &ip_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)
   {
-    ipTable = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ipTableSize));
+    ip_table = std::unique_ptr<MIB_IPADDRTABLE>((PMIB_IPADDRTABLE) operator new(ip_table_size));
   }
 
   // find the interface IP used for the default route and use that
-  result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
+  NET_IFINDEX ifIndex = NET_IFINDEX_UNSPECIFIED;
+  DWORD result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
   // can return ERROR_MORE_DATA on XP even after the first call
   while (result == NO_ERROR || result == ERROR_MORE_DATA)
   {
-    for (DWORD i = 0; i < forwardTable->dwNumEntries; ++i)
+    for (DWORD i = 0; i < forward_table->dwNumEntries; ++i)
     {
-      if (forwardTable->table[i].dwForwardDest == 0)
+      if (forward_table->table[i].dwForwardDest == 0)
       {
-        ifIndex = forwardTable->table[i].dwForwardIfIndex;
+        ifIndex = forward_table->table[i].dwForwardIfIndex;
         break;
       }
     }
@@ -202,15 +200,15 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
     if (result == NO_ERROR || ifIndex != NET_IFINDEX_UNSPECIFIED)
       break;
 
-    result = GetIpForwardTable(forwardTable.get(), &forwardTableSize, FALSE);
+    result = GetIpForwardTable(forward_table.get(), &forward_table_size, FALSE);
   }
 
   if (ifIndex != NET_IFINDEX_UNSPECIFIED &&
-      GetIpAddrTable(ipTable.get(), &ipTableSize, FALSE) == NO_ERROR)
+      GetIpAddrTable(ip_table.get(), &ip_table_size, FALSE) == NO_ERROR)
   {
-    for (DWORD i = 0; i < ipTable->dwNumEntries; ++i)
+    for (DWORD i = 0; i < ip_table->dwNumEntries; ++i)
     {
-      const auto& entry = ipTable->table[i];
+      const auto& entry = ip_table->table[i];
       if (entry.dwIndex == ifIndex)
         return DefaultInterface{entry.dwAddr, entry.dwMask, entry.dwBCastAddr};
     }
