@@ -21,6 +21,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   setMovable(!Settings::Instance().AreWidgetsLocked());
   setFloatable(false);
   setIconSize(ICON_SIZE);
+  setVisible(Settings::Instance().IsToolBarVisible());
 
   setWindowTitle(tr("Toolbar"));
   setObjectName(QStringLiteral("toolbar"));
