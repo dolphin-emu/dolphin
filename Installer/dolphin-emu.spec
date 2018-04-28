@@ -27,7 +27,7 @@ Version:          5.0.0
 Release:          0
 Group:            System/Emulators/Other
 License:          GPL-2.0-or-later
-URL:              http://www.dolphin-emu.org/
+URL:              https://dolphin-emu.org/
 Source0:          %{name}-%{version}.tar.xz
 BuildArch:        x86_64 aarch64
 
@@ -169,8 +169,7 @@ find %{buildroot} -name '*.a' -delete
 rm -rf %{buildroot}%{_includedir}/
 
 # ------------ Workarounds for the Qt port ------------
-## Desktop starter should launch the Qt binary if built without wx GUI.
-## Delete nongui binary in that case.
+## Delete nongui binary if built without wx GUI.
 if [ ! -f "%{buildroot}%{_bindir}/%{_localname}-wx" ]
 then
  cd %{buildroot}%{_bindir}
