@@ -27,5 +27,4 @@ private:
 
   MappingWidget* m_parent;
   ControllerEmu::NumericSetting* m_setting;
-  double m_range;
 };
