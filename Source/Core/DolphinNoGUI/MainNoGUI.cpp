@@ -42,9 +42,7 @@ static Common::Flag s_tried_graceful_shutdown{false};
 static void signal_handler(int)
 {
   const char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
-  if (write(STDERR_FILENO, message, sizeof(message)) < 0)
-  {
-  }
+  fputs(message, stderr);
   s_shutdown_requested.Set();
 }
 
