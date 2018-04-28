@@ -143,11 +143,11 @@ void CodeViewWidget::Update()
       item->setData(Qt::UserRole, addr);
 
       if (color != 0xFFFFFF)
-        item->setBackground(QColor(color).darker(200));
+        item->setBackground(QColor(color).darker(110));
 
       if (addr == pc && item != bp_item)
       {
-        item->setBackground(Qt::darkGreen);
+        item->setBackground(QColor(Qt::green).darker(110));
       }
     }
 

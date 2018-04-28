@@ -170,7 +170,7 @@ void MemoryViewWidget::Update()
       });
       break;
     case Type::Float32:
-      update_values([](u32 address) { return QString::number(PowerPC::Read_F32(address)); });
+      update_values([](u32 address) { return QString::number(PowerPC::HostRead_F32(address)); });
       break;
     }
   }

@@ -72,6 +72,7 @@ void RegisterWidget::CreateWidgets()
   m_table->setColumnCount(9);
 
   m_table->verticalHeader()->setVisible(false);
+  m_table->verticalHeader()->setDefaultSectionSize(24);
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 
