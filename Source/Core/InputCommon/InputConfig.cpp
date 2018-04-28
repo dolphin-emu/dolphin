@@ -9,6 +9,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
@@ -84,6 +85,12 @@ bool InputConfig::LoadConfig(bool isGC)
       // Load settings from ini
       if (useProfile[n])
       {
+        std::string base;
+        SplitPath(profile[n], nullptr, &base, nullptr);
+        Core::DisplayMessage("Loading game specific input profile '" + base +
+                                 "' for device '" + controller->GetName() + "'",
+                             6000);
+
         IniFile profile_ini;
         profile_ini.Load(profile[n]);
         controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
