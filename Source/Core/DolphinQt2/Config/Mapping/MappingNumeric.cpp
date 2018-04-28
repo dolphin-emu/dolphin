@@ -8,7 +8,7 @@
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 MappingNumeric::MappingNumeric(MappingWidget* widget, ControllerEmu::NumericSetting* setting)
-    : m_parent(widget), m_setting(setting), m_range(setting->m_high - setting->m_low)
+    : m_parent(widget), m_setting(setting)
 {
   setRange(setting->m_low, setting->m_high);
   Update();
@@ -19,7 +19,7 @@ void MappingNumeric::Connect()
 {
   connect(this, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
           [this](int value) {
-            m_setting->SetValue(static_cast<double>(value - m_setting->m_low) / m_range);
+            m_setting->SetValue(static_cast<double>(value) / 100);
             m_parent->SaveSettings();
           });
 }
@@ -33,5 +33,5 @@ void MappingNumeric::Clear()
 
 void MappingNumeric::Update()
 {
-  setValue(m_setting->m_low + m_setting->GetValue() * m_range);
+  setValue(m_setting->GetValue() * 100);
 }
