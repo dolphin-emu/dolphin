@@ -67,10 +67,20 @@ bool CubebStream::Init()
 
 bool CubebStream::SetRunning(bool running)
 {
+  if (m_running == running)
+    return true;
+
+  bool success;
+
   if (running)
-    return cubeb_stream_start(m_stream) == CUBEB_OK;
+    success = cubeb_stream_start(m_stream) == CUBEB_OK;
   else
-    return cubeb_stream_stop(m_stream) == CUBEB_OK;
+    success = cubeb_stream_stop(m_stream) == CUBEB_OK;
+
+  if (success)
+    m_running = running;
+
+  return success;
 }
 
 CubebStream::~CubebStream()

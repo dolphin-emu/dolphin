@@ -22,6 +22,7 @@ public:
 
 private:
   bool m_stereo = false;
+  bool m_running = false;
   std::shared_ptr<cubeb> m_ctx;
   cubeb_stream* m_stream = nullptr;
 
