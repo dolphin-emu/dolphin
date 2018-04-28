@@ -7,6 +7,7 @@
 
 ListProxyModel::ListProxyModel(QObject* parent) : QSortFilterProxyModel(parent)
 {
+  setDynamicSortFilter(true);
 }
 
 bool ListProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_parent) const
