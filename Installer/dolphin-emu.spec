@@ -1,7 +1,7 @@
 #
 # Spec file for package Dolphin Emulator
 #
-# Copyright © 2014 Markus S. <kamikazow@web.de>
+# Copyright © 2014–2018 Markus S. <kamikazow@opensuse.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,133 +15,201 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
 
-Name:       dolphin-emu
-Summary:    Dolphin Emulator
-Version:    5.0
-Release:    0%{?dist}
-Group:      System/Emulators/Other
-License:    GPL-2.0
-URL:        https://dolphin-emu.org/
-BuildArch:  x86_64 armv7l aarch64
+%define _localname dolphin-emu
+%define _prettyname Dolphin
+%global debug_package %{nil}
 
-# For this spec file to work, the Dolphin Emulator sources must be located
-# in a directory named dolphin-emu-5.0 (with "5.0" being the version
-# number defined above).
-# If the sources are compressed in another format than .tar.xz, change the
-# file extension accordingly.
-Source0:    %{name}-%{version}.tar.xz
+Name:             %{_localname}
+Summary:          %{_prettyname}, a GameCube and Wii Emulator
+Version:          5.0.0
+Release:          0
+Group:            System/Emulators/Other
+License:          GPL-2.0-or-later
+URL:              http://www.dolphin-emu.org/
+Source0:          %{name}-%{version}.tar.xz
+BuildArch:        x86_64 aarch64
 
-# Package names verified with, CentOS, Fedora and openSUSE.
+# Package names verified with Fedora and openSUSE.
 # Should the packages in your distro be named differently,
 # see http://en.opensuse.org/openSUSE:Build_Service_cross_distribution_howto
 #
 # All other distros should work as well as Dolphin bundles
 # its dependencies for static linking.
 
-BuildRequires:  desktop-file-utils
-BuildRequires:  cmake >= 2.8
-BuildRequires:  gcc-c++
-BuildRequires:  gtk2-devel
-BuildRequires:  pkgconfig(alsa)
-BuildRequires:  pkgconfig(ao)
-BuildRequires:  pkgconfig(bluez)
-BuildRequires:  pkgconfig(libpulse)
-BuildRequires:  pkgconfig(xrandr)
-BuildRequires:  pkgconfig(zlib)
+BuildRequires:    cmake >= 2.8
+BuildRequires:    desktop-file-utils
+BuildRequires:    libevdev-devel
+BuildRequires:    libSM-devel
+BuildRequires:    libcurl-devel
+BuildRequires:    lzo-devel
+BuildRequires:    mbedtls-devel
+BuildRequires:    pkgconfig(alsa)
+BuildRequires:    pkgconfig(ao)
+BuildRequires:    pkgconfig(bluez)
+BuildRequires:    pkgconfig(gl)
+BuildRequires:    pkgconfig(libpng)
+BuildRequires:    pkgconfig(libpulse)
+BuildRequires:    pkgconfig(libudev)
+BuildRequires:    pkgconfig(libusb-1.0)
+BuildRequires:    pkgconfig(sdl2)
+BuildRequires:    pkgconfig(sfml-all)
+BuildRequires:    pkgconfig(soundtouch)
+BuildRequires:    pkgconfig(xi)
+BuildRequires:    pkgconfig(xext)
+BuildRequires:    pkgconfig(xinerama)
+BuildRequires:    pkgconfig(xrandr)
+BuildRequires:    pkgconfig(xxf86vm)
+BuildRequires:    pkgconfig(zlib)
 
-%if 0%{?fedora}
-BuildRequires:  libusb-devel
-BuildRequires:  lzo-devel
-# Disable miniupnpc in OBS for F20
-BuildRequires:  miniupnpc-devel
-BuildRequires:  openal-soft-devel
-#polarssl is now mbedtls:
-BuildRequires:  mbedtls-devel
-BuildRequires:  SDL2-devel
-BuildRequires:  SFML-devel
-BuildRequires:  SOIL-devel
-BuildRequires:  soundtouch-devel
+## Qt GUI
+BuildRequires:    pkgconfig(Qt5Core)
+BuildRequires:    pkgconfig(Qt5Widgets)
+
+%if 0%{?fedora} || 0%{?rhel_version} || 0%{?centos_version}
+BuildRequires:    gettext
+BuildRequires:    gtest-devel
+BuildRequires:    hidapi-devel
+BuildRequires:    mesa-libGL-devel
+BuildRequires:    miniupnpc-devel
+BuildRequires:    SOIL-devel
 %endif
 
 %if 0%{?suse_version}
-BuildRequires:  libminiupnpc-devel
-BuildRequires:  libSDL2-devel
-BuildRequires:  libSOIL-devel
-BuildRequires:  lzo-devel
-BuildRequires:  openal-devel
-BuildRequires:  sfml-devel
-BuildRequires:  soundtouch-devel
-BuildRequires:  update-desktop-files
+BuildRequires:    libQt5Gui-private-headers-devel
+BuildRequires:    libhidapi-devel
+BuildRequires:    libminiupnpc-devel
+BuildRequires:    update-desktop-files
+BuildRequires:    pkg-config
+BuildRequires:    pkgconfig(libavcodec)
+BuildRequires:    pkgconfig(libavformat)
+BuildRequires:    pkgconfig(libavutil)
+BuildRequires:    pkgconfig(libswscale)
+
+# Not in default repos:
+BuildRequires:    libSOIL-devel
+## wx GUI
+#BuildRequires:    wxWidgets-3_2-devel
+%endif
+#BuildRequires:    gtk2-devel
+
+# openSUSE Leap 42.x defaults to GCC 4
+%if 0%{?suse_version} == 1315
+%define _cxx g++-7
+BuildRequires:    gcc7 gcc7-c++
+%else
+%define _cxx g++
+BuildRequires:    gcc gcc-c++
 %endif
 
-# Use bundled wxGTK 3 except under the following distros:
-%if 0%{?fedora_version} > 20
-BuildRequires:  wxGTK3-devel
-%endif
+Requires(post):   hicolor-icon-theme
+Requires(postun): hicolor-icon-theme
 
 %description
-Dolphin is an emulator for two Nintendo video game consoles, GameCube and the Wii.
-It allows PC gamers to enjoy games for these two consoles in full HD with several
-enhancements such as compatibility with all PC controllers, turbo speed,
-networked multiplayer, and more.
+%{_prettyname} is an emulator for Nintendo GameCube and Wii.
+It allows PC gamers to enjoy games for these two consoles in full HD with
+several enhancements such as compatibility with all PC controllers, turbo
+speed, networked multiplayer, and more.
 Most games run perfectly or with minor bugs.
 
-# ------------------------------------------------------
+# -----------------------------------------------------
 
 %package lang
-Summary:        Translations for Dolphin Emulator
-BuildArch:      noarch
+Summary:          Translations for %{_prettyname} Emulator
+BuildArch:        noarch
 
 %description lang
-Translations into various languages for Dolphin Emulator
+Translations into various languages for %{_prettyname} Emulator
 
 %files lang
 %{_datadir}/locale
 
-# ------------------------------------------------------
-
-%package nogui
-Summary:        Dolphin Emulator without a graphical user interface
-
-%description nogui
-Dolphin Emulator without a graphical user interface
-
-%files nogui
-%{_bindir}/%{name}-nogui
-%{_mandir}/man6/%{name}-nogui.*
-
-# ------------------------------------------------------
+# -----------------------------------------------------
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}
 
 %build
 export CCFLAGS='%{optflags}'
-cmake . -DCMAKE_INSTALL_PREFIX=/usr
-make %{?_smp_mflags}
+
+# CMake options:
+# - CMAKE_CXX_COMPILER: Set GCC version
+# - ENABLE_ALSA: ALSA sound back-end (on by default, crashes Qt port)
+# - ENABLE_ANALYTICS: Analytics on (turn off for forks)
+# - ENABLE_QT2: Qt GUI (on by default, turn off for wx-only builds)
+# - ENABLE_WX: wxWidgets GUI (on by default)
+# - DOLPHIN_WC_REVISION: Set vesion number for About window
+# - DOLPHIN_WC_BRANCH: Set branch name for About window (usually set to "master")
+
+cmake \
+      -DCMAKE_CXX_COMPILER=%{_cxx} \
+      -DENABLE_ALSA=OFF \
+      -DENABLE_QT2=ON \
+      -DENABLE_WX=OFF \
+      -DENABLE_ANALYTICS=ON \
+      -DDOLPHIN_WC_REVISION=%{version} \
+      -DDOLPHIN_WC_BRANCH=master \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=%{_prefix} \
+      .
+make -j1
 
 %install
 export CCFLAGS='%{optflags}'
 make %{?_smp_mflags} install DESTDIR="%{?buildroot}"
 
+mkdir -p %{buildroot}%{_udevrulesdir}
+install -m 0644 Data/51-usb-device.rules %{buildroot}%{_udevrulesdir}/51-dolphin-usb-device.rules
+
+# Get rid of static libraries
+cd ..
+find %{buildroot} -name '*.a' -delete
+# Don't want dev files
+rm -rf %{buildroot}%{_includedir}/
+
+# ------------ Workarounds for the Qt port ------------
+## Desktop starter should launch the Qt binary if built without wx GUI.
+## Delete nongui binary in that case.
+if [ ! -f "%{buildroot}%{_bindir}/%{_localname}-wx" ]
+then
+ cd %{buildroot}%{_bindir}
+ rm -rf %{_localname}-nogui
+fi
+# -----------------------------------------------------
+
 %if 0%{?suse_version}
 # Replace desktop file category 'Game;Emulator;' with 'System;Emulator;'
 # under openSUSE or else build fails.
-%suse_update_desktop_file -c %name Dolphin 'GameCube and Wii emulator' %{name} %{name} 'System;Emulator;'
+# See https://en.opensuse.org/openSUSE:Packaging_Conventions_RPM_Macros#.25suse_update_desktop_file
+# and https://build.opensuse.org/package/view_file/X11:common:Factory/update-desktop-files/suse_update_desktop_file.sh
+%suse_update_desktop_file '%{_localname}' 'System;Emulator;'
 %endif
+
+%post
+/bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null || :
+
+%postun
+if [ $1 -eq 0 ] ; then
+    /bin/touch --no-create %{_datadir}/icons/hicolor &>/dev/null
+    /usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+fi
+
+%posttrans
+/usr/bin/gtk-update-icon-cache %{_datadir}/icons/hicolor &>/dev/null || :
+
+%clean
+rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
 %doc license.txt Readme.md
-%{_bindir}/%{name}
-%{_datadir}/%{name}
-%{_datadir}/icons/hicolor/48x48/apps/%{name}.*
-%{_datadir}/icons/hicolor/scalable/apps/%{name}.*
-%{_datadir}/applications/%{name}.desktop
-%{_mandir}/man6/%{name}.*
-
-%clean
-rm -rf %{buildroot}
+%{_bindir}/%{_localname}*
+%{_datadir}/%{_localname}
+%{_datadir}/applications/%{_localname}.desktop
+%{_datadir}/icons/hicolor/256x256/apps/%{_localname}.png
+%{_datadir}/icons/hicolor/scalable/apps/%{_localname}.svg
+%{_mandir}/man6/%{_localname}*
+%{_udevrulesdir}/51-dolphin-usb-device.rules
 
 %changelog
