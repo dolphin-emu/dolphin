@@ -26,6 +26,9 @@ private:
   QGridLayout* MakePathsLayout();
   void RemovePath();
 
+  void OnSDCardPathChanged();
+  void OnNANDPathChanged();
+
   QListWidget* m_path_list;
   QLineEdit* m_game_edit;
   QLineEdit* m_nand_edit;

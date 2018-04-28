@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt2/Settings.h"
@@ -38,50 +39,70 @@ void PathPane::Browse()
 
 void PathPane::BrowseDefaultGame()
 {
+  auto& default_iso = SConfig::GetInstance().m_strDefaultISO;
+
   QString file = QFileDialog::getOpenFileName(
-      this, tr("Select a Game"), QDir::currentPath(),
+      this, tr("Select a Game"), QString::fromStdString(default_iso),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
          "All Files (*)"));
   if (!file.isEmpty())
   {
     m_game_edit->setText(file);
-    SConfig::GetInstance().m_strDefaultISO = file.toStdString();
+    default_iso = file.toStdString();
   }
 }
 
 void PathPane::BrowseWiiNAND()
 {
-  QString dir =
-      QFileDialog::getExistingDirectory(this, tr("Select Wii NAND Root"), QDir::currentPath());
+  QString dir = QFileDialog::getExistingDirectory(
+      this, tr("Select Wii NAND Root"), QString::fromStdString(SConfig::GetInstance().m_NANDPath));
   if (!dir.isEmpty())
   {
     m_nand_edit->setText(dir);
-    SConfig::GetInstance().m_NANDPath = dir.toStdString();
+    OnNANDPathChanged();
   }
 }
 
 void PathPane::BrowseDump()
 {
-  QString dir =
-      QFileDialog::getExistingDirectory(this, tr("Select Dump Path"), QDir::currentPath());
+  auto& dump_path = SConfig::GetInstance().m_DumpPath;
+  QString dir = QFileDialog::getExistingDirectory(this, tr("Select Dump Path"),
+                                                  QString::fromStdString(dump_path));
   if (!dir.isEmpty())
   {
     m_dump_edit->setText(dir);
-    SConfig::GetInstance().m_DumpPath = dir.toStdString();
+    dump_path = dir.toStdString();
   }
 }
 
 void PathPane::BrowseSDCard()
 {
-  QString file =
-      QFileDialog::getOpenFileName(this, tr("Select a SD Card Image"), QDir::currentPath(),
-                                   tr("SD Card Image (*.raw);;"
-                                      "All Files (*)"));
+  QString file = QFileDialog::getOpenFileName(
+      this, tr("Select a SD Card Image"),
+      QString::fromStdString(SConfig::GetInstance().m_strWiiSDCardPath),
+      tr("SD Card Image (*.raw);;"
+         "All Files (*)"));
   if (!file.isEmpty())
   {
     m_sdcard_edit->setText(file);
-    SConfig::GetInstance().m_strWiiSDCardPath = file.toStdString();
+    OnSDCardPathChanged();
   }
+}
+
+void PathPane::OnSDCardPathChanged()
+{
+  const auto sd_card_path = m_sdcard_edit->text().toStdString();
+
+  SConfig::GetInstance().m_strWiiSDCardPath = sd_card_path;
+  File::SetUserPath(F_WIISDCARD_IDX, sd_card_path);
+}
+
+void PathPane::OnNANDPathChanged()
+{
+  const auto nand_path = m_nand_edit->text().toStdString();
+
+  SConfig::GetInstance().m_NANDPath = nand_path;
+  File::SetUserPath(D_WIIROOT_IDX, nand_path);
 }
 
 QGroupBox* PathPane::MakeGameFolderBox()
@@ -145,8 +166,7 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(game_open, 0, 2);
 
   m_nand_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_NANDPath));
-  connect(m_nand_edit, &QLineEdit::editingFinished,
-          [=] { SConfig::GetInstance().m_NANDPath = m_nand_edit->text().toStdString(); });
+  connect(m_nand_edit, &QLineEdit::editingFinished, this, &PathPane::OnNANDPathChanged);
   QPushButton* nand_open = new QPushButton;
   connect(nand_open, &QPushButton::clicked, this, &PathPane::BrowseWiiNAND);
   layout->addWidget(new QLabel(tr("Wii NAND Root:")), 1, 0);
@@ -163,8 +183,7 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(dump_open, 2, 2);
 
   m_sdcard_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_strWiiSDCardPath));
-  connect(m_sdcard_edit, &QLineEdit::editingFinished,
-          [=] { SConfig::GetInstance().m_strWiiSDCardPath = m_sdcard_edit->text().toStdString(); });
+  connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
   QPushButton* sdcard_open = new QPushButton;
   connect(sdcard_open, &QPushButton::clicked, this, &PathPane::BrowseSDCard);
   layout->addWidget(new QLabel(tr("SD Card Path:")), 3, 0);
