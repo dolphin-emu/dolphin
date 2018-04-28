@@ -160,6 +160,8 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("UsePanicHandlers", bUsePanicHandlers);
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
+  interface->Set("GrabCursor", bGrabCursor);
+  interface->Set("CursorRelativeToWindow", bCursorRelativeToWindow);
   interface->Set("MainWindowPosX", iPosX);
   interface->Set("MainWindowPosY", iPosY);
   interface->Set("MainWindowWidth", iWidth);
@@ -446,6 +448,8 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("GrabCursor", &bGrabCursor, false);
+  interface->Get("CursorRelativeToWindow", &bCursorRelativeToWindow, false);
   interface->Get("MainWindowPosX", &iPosX, INT_MIN);
   interface->Get("MainWindowPosY", &iPosY, INT_MIN);
   interface->Get("MainWindowWidth", &iWidth, -1);

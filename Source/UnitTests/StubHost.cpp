@@ -61,3 +61,12 @@ std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
 {
   return nullptr;
 }
+
+double Host_GetCursorX()
+{
+  return 0;
+}
+double Host_GetCursorY()
+{
+  return 0;
+}

@@ -73,8 +73,8 @@ static QComboBox* MakeLanguageComboBox()
 InterfacePane::InterfacePane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
-  ConnectLayout();
   LoadConfig();
+  ConnectLayout();
 }
 
 void InterfacePane::CreateLayout()
@@ -145,6 +145,8 @@ void InterfacePane::CreateInGame()
   m_checkbox_show_active_title = new QCheckBox(tr("Show Active Title in Window Title"));
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Always Hide Mouse Cursor"));
+  m_checkbox_grab_mouse = new QCheckBox(tr("Grab Mouse Cursor"));
+  m_checkbox_relative_mouse = new QCheckBox(tr("Mouse Cursor Relative To Window"));
 
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
@@ -152,6 +154,8 @@ void InterfacePane::CreateInGame()
   groupbox_layout->addWidget(m_checkbox_show_active_title);
   groupbox_layout->addWidget(m_checkbox_pause_on_focus_lost);
   groupbox_layout->addWidget(m_checkbox_hide_mouse);
+  groupbox_layout->addWidget(m_checkbox_grab_mouse);
+  groupbox_layout->addWidget(m_checkbox_relative_mouse);
 }
 
 void InterfacePane::ConnectLayout()
@@ -172,6 +176,8 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_pause_on_focus_lost, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_hide_mouse, &QCheckBox::clicked, &Settings::Instance(),
           &Settings::SetHideCursor);
+  connect(m_checkbox_grab_mouse, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_relative_mouse, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
 }
 
 void InterfacePane::LoadConfig()
@@ -194,6 +200,8 @@ void InterfacePane::LoadConfig()
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
   m_checkbox_hide_mouse->setChecked(Settings::Instance().GetHideCursor());
+  m_checkbox_grab_mouse->setChecked(startup_params.bGrabCursor);
+  m_checkbox_relative_mouse->setChecked(startup_params.bCursorRelativeToWindow);
 }
 
 void InterfacePane::OnSaveConfig()
@@ -211,6 +219,8 @@ void InterfacePane::OnSaveConfig()
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
   settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
+  settings.bGrabCursor = m_checkbox_grab_mouse->isChecked();
+  settings.bCursorRelativeToWindow = m_checkbox_relative_mouse->isChecked();
 
   auto new_language = m_combobox_language->currentData().toString().toStdString();
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
