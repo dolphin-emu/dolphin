@@ -110,6 +110,8 @@ void WiimoteEmuExtension::CreateGuitarLayout()
       tr("Buttons"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::Buttons)));
   vbox->addWidget(CreateGroupBox(
       tr("Stick"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::Stick)));
+  vbox->addWidget(CreateGroupBox(
+      tr("Slider Bar"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::SliderBar)));
   hbox->addItem(vbox);
 
   auto* vbox2 = new QVBoxLayout();
