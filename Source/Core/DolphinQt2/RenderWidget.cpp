@@ -6,12 +6,16 @@
 #include <QDesktopWidget>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QMouseEvent>
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
+
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Settings.h"
@@ -120,6 +124,10 @@ bool RenderWidget::event(QEvent* event)
     break;
   }
   case QEvent::MouseMove:
+    if (g_Config.bFreeLook)
+      OnFreeLookMouseMove(static_cast<QMouseEvent*>(event));
+
+  // [[fallthrough]]
   case QEvent::MouseButtonPress:
     if (!Settings::Instance().GetHideCursor() && isActiveWindow())
     {
@@ -161,4 +169,23 @@ bool RenderWidget::event(QEvent* event)
     break;
   }
   return QWidget::event(event);
+}
+
+void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
+{
+  if (event->buttons() & Qt::MidButton)
+  {
+    // Mouse Move
+    VertexShaderManager::TranslateView((event->x() - m_last_mouse[0]) / 50.0f,
+                                       (event->y() - m_last_mouse[1]) / 50.0f);
+  }
+  else if (event->buttons() & Qt::RightButton)
+  {
+    // Mouse Look
+    VertexShaderManager::RotateView((event->x() - m_last_mouse[0]) / 200.0f,
+                                    (event->y() - m_last_mouse[1]) / 200.0f);
+  }
+
+  m_last_mouse[0] = event->x();
+  m_last_mouse[1] = event->y();
 }
