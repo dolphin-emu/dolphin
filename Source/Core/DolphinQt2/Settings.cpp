@@ -416,3 +416,12 @@ bool Settings::AreWidgetsLocked() const
 {
   return GetQSettings().value(QStringLiteral("widgets/locked"), true).toBool();
 }
+
+bool Settings::IsBatchModeEnabled() const
+{
+  return m_batch;
+}
+void Settings::SetBatchModeEnabled(bool batch)
+{
+  m_batch = batch;
+}

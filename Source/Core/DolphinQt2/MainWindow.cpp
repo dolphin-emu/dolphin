@@ -526,7 +526,7 @@ void MainWindow::OnStopComplete()
   m_stop_requested = false;
   HideRenderWidget();
 
-  if (m_exit_requested)
+  if (m_exit_requested || Settings::Instance().IsBatchModeEnabled())
     QGuiApplication::instance()->quit();
 
   // If the current emulation prevented the booting of another, do that now
