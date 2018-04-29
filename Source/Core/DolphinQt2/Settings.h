@@ -70,6 +70,8 @@ public:
   // Emulation
   int GetStateSlot() const;
   void SetStateSlot(int);
+  bool IsBatchModeEnabled() const;
+  void SetBatchModeEnabled(bool batch);
 
   // Graphics
   void SetHideCursor(bool hide_cursor);
@@ -147,6 +149,7 @@ signals:
   void AnalyticsToggled(bool enabled);
 
 private:
+  bool m_batch = false;
   bool m_controller_state_needed = false;
   std::unique_ptr<NetPlayClient> m_client;
   std::unique_ptr<NetPlayServer> m_server;
