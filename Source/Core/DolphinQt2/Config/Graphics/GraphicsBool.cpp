@@ -20,6 +20,7 @@ GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>&
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
+    setChecked(Config::Get(m_setting) ^ m_reverse);
   });
 }
 

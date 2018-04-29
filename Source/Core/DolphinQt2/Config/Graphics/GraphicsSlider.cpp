@@ -23,6 +23,7 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInf
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
+    setValue(Config::Get(m_setting));
   });
 }
 
