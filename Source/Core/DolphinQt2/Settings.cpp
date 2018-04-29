@@ -399,7 +399,7 @@ void Settings::SetToolBarVisible(bool visible)
 
 bool Settings::IsToolBarVisible() const
 {
-  return GetQSettings().value(QStringLiteral("toolbar/visible")).toBool();
+  return GetQSettings().value(QStringLiteral("toolbar/visible"), true).toBool();
 }
 
 void Settings::SetWidgetsLocked(bool locked)
