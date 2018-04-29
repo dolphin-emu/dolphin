@@ -120,6 +120,7 @@ void VideoConfig::Refresh()
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  bDisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
 
   stereo_mode = static_cast<StereoMode>(Config::Get(Config::GFX_STEREO_MODE));
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);

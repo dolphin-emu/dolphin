@@ -1499,10 +1499,39 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
   }
 }
 
-void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width,
-                                                 u32 height, u32 dstStride, bool is_depth_copy,
-                                                 const EFBRectangle& srcRect, bool isIntensity,
-                                                 bool scaleByHalf, float y_scale, float gamma)
+TextureCacheBase::CopyFilterCoefficientArray
+TextureCacheBase::GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients)
+{
+  // To simplify the backend, we precalculate the three coefficients in common. Coefficients 0, 1
+  // are for the row above, 2, 3, 4 are for the current pixel, and 5, 6 are for the row below.
+  return {static_cast<u32>(coefficients[0]) + static_cast<u32>(coefficients[1]),
+          static_cast<u32>(coefficients[2]) + static_cast<u32>(coefficients[3]) +
+              static_cast<u32>(coefficients[4]),
+          static_cast<u32>(coefficients[5]) + static_cast<u32>(coefficients[6])};
+}
+
+TextureCacheBase::CopyFilterCoefficientArray
+TextureCacheBase::GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients)
+{
+  // If the user disables the copy filter, only apply it to the VRAM copy.
+  // This way games which are sensitive to changes to the RAM copy of the XFB will be unaffected.
+  CopyFilterCoefficientArray res = GetRAMCopyFilterCoefficients(coefficients);
+  if (!g_ActiveConfig.bDisableCopyFilter)
+    return res;
+
+  // Disabling the copy filter in options should not ignore the values the game sets completely,
+  // as some games use the filter coefficients to control the brightness of the screen. Instead,
+  // add all coefficients to the middle sample, so the deflicker/vertical filter has no effect.
+  res[1] += res[0] + res[2];
+  res[0] = 0;
+  res[2] = 0;
+  return res;
+}
+
+void TextureCacheBase::CopyRenderTargetToTexture(
+    u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height, u32 dstStride, bool is_depth_copy,
+    const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf, float y_scale, float gamma,
+    bool clamp_top, bool clamp_bottom, const CopyFilterCoefficients::Values& filter_coefficients)
 {
   // Emulation methods:
   //
@@ -1622,8 +1651,10 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
   if (copy_to_ram)
   {
     PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity, y_scale);
-    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf);
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity);
+    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf,
+            y_scale, gamma, clamp_top, clamp_bottom,
+            GetRAMCopyFilterCoefficients(filter_coefficients));
   }
   else
   {
@@ -1742,8 +1773,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     {
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
       entry->SetDimensions(tex_w, tex_h, 1);
-      entry->gamma = gamma;
-
       entry->frameCount = FRAMECOUNT_INVALID;
       if (is_xfb_copy)
       {
@@ -1757,7 +1786,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity);
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity, gamma,
+                          clamp_top, clamp_bottom,
+                          GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);

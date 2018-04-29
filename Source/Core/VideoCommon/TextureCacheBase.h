@@ -47,23 +47,21 @@ struct TextureAndTLUTFormat
 struct EFBCopyParams
 {
   EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
-                bool yuv_, float y_scale_)
-      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
-        y_scale(y_scale_)
+                bool yuv_)
+      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_)
   {
   }
 
   bool operator<(const EFBCopyParams& rhs) const
   {
-    return std::tie(efb_format, copy_format, depth, yuv, y_scale) <
-           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.y_scale);
+    return std::tie(efb_format, copy_format, depth, yuv) <
+           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv);
   }
 
   PEControl::PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;
-  float y_scale;
 };
 
 struct TextureLookupInformation
@@ -108,6 +106,8 @@ private:
   static const int FRAMECOUNT_INVALID = 0;
 
 public:
+  using CopyFilterCoefficientArray = std::array<u32, 3>;
+
   struct TCacheEntry
   {
     // common members
@@ -126,7 +126,6 @@ public:
                                       // content, aren't just downscaled
     bool should_force_safe_hashing = false;  // for XFB
     bool is_xfb_copy = false;
-    float gamma = 1.0f;
     u64 id;
 
     bool reference_changed = false;  // used by xfb to determine when a reference xfb changed
@@ -216,7 +215,9 @@ public:
 
   virtual void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
                        u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
-                       bool scale_by_half) = 0;
+                       bool scale_by_half, float y_scale, float gamma, bool clamp_top,
+                       bool clamp_bottom,
+                       const CopyFilterCoefficientArray& filter_coefficients) = 0;
 
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
@@ -248,7 +249,9 @@ public:
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height,
                                  u32 dstStride, bool is_depth_copy, const EFBRectangle& srcRect,
-                                 bool isIntensity, bool scaleByHalf, float y_scale, float gamma);
+                                 bool isIntensity, bool scaleByHalf, float y_scale, float gamma,
+                                 bool clamp_top, bool clamp_bottom,
+                                 const CopyFilterCoefficients::Values& filter_coefficients);
 
   virtual void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, const void* palette,
                               TLUTFormat format) = 0;
@@ -315,12 +318,20 @@ private:
 
   virtual void CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                    const EFBRectangle& src_rect, bool scale_by_half,
-                                   EFBCopyFormat dst_format, bool is_intensity) = 0;
+                                   EFBCopyFormat dst_format, bool is_intensity, float gamma,
+                                   bool clamp_top, bool clamp_bottom,
+                                   const CopyFilterCoefficientArray& filter_coefficients) = 0;
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
 
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
+
+  // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
+  CopyFilterCoefficientArray
+  GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
+  CopyFilterCoefficientArray
+  GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;

@@ -680,7 +680,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // TODO: merge more generic parts into VideoCommon
       {
         std::lock_guard<std::mutex> guard(m_swap_mutex);
-        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks);
       }
 
       // Update the window size based on the frame that was just rendered.

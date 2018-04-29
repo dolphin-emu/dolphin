@@ -1365,8 +1365,7 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
-                        float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks)
 {
   if (g_ogl_config.bSupportsDebug)
   {

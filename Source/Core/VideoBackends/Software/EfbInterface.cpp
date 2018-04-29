@@ -502,6 +502,23 @@ static u32 VerticalFilter(const std::array<u32, 3>& colors,
   return out_color32;
 }
 
+static u32 GammaCorrection(u32 color, const float gamma_rcp)
+{
+  u8 in_colors[4];
+  std::memcpy(&in_colors, &color, sizeof(in_colors));
+
+  u8 out_color[4];
+  for (int i = BLU_C; i <= RED_C; i++)
+  {
+    out_color[i] = static_cast<u8>(
+        MathUtil::Clamp(std::pow(in_colors[i] / 255.0f, gamma_rcp) * 255.0f, 0.0f, 255.0f));
+  }
+
+  u32 out_color32;
+  std::memcpy(&out_color32, out_color, sizeof(out_color32));
+  return out_color32;
+}
+
 // For internal used only, return a non-normalized value, which saves work later.
 static yuv444 ConvertColorToYUV(u32 color)
 {
@@ -530,8 +547,7 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
 }
 
 void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale,
-               bool clamp_top, bool clamp_bottom, float Gamma,
-               const std::array<u8, 7>& filterCoefficients)
+               float gamma)
 {
   if (!xfb_in_ram)
   {
@@ -539,8 +555,12 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rec
     return;
   }
 
-  int left = source_rect.left;
-  int right = source_rect.right;
+  const int left = source_rect.left;
+  const int right = source_rect.right;
+  const bool clamp_top = bpmem.triggerEFBCopy.clamp_top;
+  const bool clamp_bottom = bpmem.triggerEFBCopy.clamp_bottom;
+  const float gamma_rcp = 1.0f / gamma;
+  const auto filter_coefficients = bpmem.copyfilter.GetCoefficients();
 
   // this assumes copies will always start on an even (YU) pixel and the
   // copy always has an even width, which might not be true.
@@ -575,9 +595,10 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rec
       std::array<u32, 3> colors = {{GetColor(x, y_prev), GetColor(x, y), GetColor(x, y_next)}};
 
       // Vertical Filter (Multisampling resolve, deflicker, brightness)
-      u32 filtered = VerticalFilter(colors, filterCoefficients);
+      u32 filtered = VerticalFilter(colors, filter_coefficients);
 
-      // TODO: Gamma correction happens here.
+      // Gamma correction happens here.
+      filtered = GammaCorrection(filtered, gamma_rcp);
 
       scanline[i] = ConvertColorToYUV(filtered);
     }

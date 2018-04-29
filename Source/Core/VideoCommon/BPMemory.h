@@ -970,6 +970,8 @@ union UPE_Copy
 
 union CopyFilterCoefficients
 {
+  using Values = std::array<u8, 7>;
+
   u64 Hex;
 
   BitField<0, 6, u64> w0;
@@ -980,7 +982,7 @@ union CopyFilterCoefficients
   BitField<38, 6, u64> w5;
   BitField<44, 6, u64> w6;
 
-  std::array<u8, 7> GetCoefficients() const
+  Values GetCoefficients() const
   {
     return {
         static_cast<u8>(w0), static_cast<u8>(w1), static_cast<u8>(w2), static_cast<u8>(w3),

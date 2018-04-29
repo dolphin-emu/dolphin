@@ -80,6 +80,7 @@ extern const ConfigInfo<bool> GFX_ENHANCE_FORCE_FILTERING;
 extern const ConfigInfo<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
 extern const ConfigInfo<std::string> GFX_ENHANCE_POST_SHADER;
 extern const ConfigInfo<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
+extern const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
 
 // Graphics.Stereoscopy
 
