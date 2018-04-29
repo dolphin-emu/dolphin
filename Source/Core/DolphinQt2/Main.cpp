@@ -2,6 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <cstdio>
+#endif
+
 #include <OptionParser.h>
 #include <QAbstractEventDispatcher>
 #include <QApplication>
@@ -67,6 +72,16 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 // /SubSystem:Windows
 int main(int argc, char* argv[])
 {
+#ifdef _WIN32
+  const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
+  HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+  if (console_attached && stdout_handle)
+  {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+  }
+#endif
+
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
@@ -81,6 +96,10 @@ int main(int argc, char* argv[])
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
   const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   const std::vector<std::string> args = parser->args();
+
+#ifdef _WIN32
+  FreeConsole();
+#endif
 
   UICommon::SetUserDirectory(static_cast<const char*>(options.get("user")));
   UICommon::CreateDirectories();
