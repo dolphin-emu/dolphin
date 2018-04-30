@@ -129,7 +129,7 @@ void GeneralPane::CreateBasic()
     if (i != 100)
       str.sprintf("%i%%", i);
     else
-      str.sprintf("%i%% (Normal Speed)", i);
+      str.sprintf(tr("%i%% (Normal Speed)").toStdString().c_str(), i);
 
     m_combobox_speedlimit->addItem(str);
   }
