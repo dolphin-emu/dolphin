@@ -100,7 +100,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_recording_play->setEnabled(!running);
 
   // Tools
-  m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled());
+  m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
 
   // Symbols
   m_symbols->setEnabled(running);
