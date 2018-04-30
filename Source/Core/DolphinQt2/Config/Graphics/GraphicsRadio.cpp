@@ -13,6 +13,13 @@ GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::ConfigInf
 {
   setChecked(Config::Get(m_setting) == m_value);
   connect(this, &QRadioButton::toggled, this, &GraphicsRadioInt::Update);
+
+  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
+    QFont bf = font();
+    bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
+    setFont(bf);
+    setChecked(Config::Get(m_setting) == m_value);
+  });
 }
 
 void GraphicsRadioInt::Update()
