@@ -119,15 +119,11 @@ void InterfacePane::CreateUI()
   }
 
   // Checkboxes
-  m_checkbox_auto_window = new QCheckBox(tr("Auto-Adjust Window Size"));
   m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
-  m_checkbox_render_to_window = new QCheckBox(tr("Render to Main Window"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
 
-  groupbox_layout->addWidget(m_checkbox_auto_window);
   groupbox_layout->addWidget(m_checkbox_top_window);
-  groupbox_layout->addWidget(m_checkbox_render_to_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
 }
@@ -156,9 +152,7 @@ void InterfacePane::CreateInGame()
 
 void InterfacePane::ConnectLayout()
 {
-  connect(m_checkbox_auto_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_render_to_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::clicked, this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
@@ -177,9 +171,7 @@ void InterfacePane::ConnectLayout()
 void InterfacePane::LoadConfig()
 {
   const SConfig& startup_params = SConfig::GetInstance();
-  m_checkbox_auto_window->setChecked(startup_params.bRenderWindowAutoSize);
   m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
-  m_checkbox_render_to_window->setChecked(startup_params.bRenderToMain);
   m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
   m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
   m_combobox_language->setCurrentIndex(m_combobox_language->findData(
@@ -199,9 +191,7 @@ void InterfacePane::LoadConfig()
 void InterfacePane::OnSaveConfig()
 {
   SConfig& settings = SConfig::GetInstance();
-  settings.bRenderWindowAutoSize = m_checkbox_auto_window->isChecked();
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
-  settings.bRenderToMain = m_checkbox_render_to_window->isChecked();
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
 

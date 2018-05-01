@@ -86,8 +86,6 @@ void GeneralWidget::CreateWidgets()
   m_autoadjust_window_size = new QCheckBox(tr("Auto-Adjust Window Size"));
   m_show_messages =
       new GraphicsBool(tr("Show NetPlay Messages"), Config::GFX_SHOW_NETPLAY_MESSAGES);
-  m_keep_window_top = new QCheckBox(tr("Keep Window on Top"));
-  m_hide_cursor = new QCheckBox(tr("Hide Mouse Cursor"));
   m_render_main_window = new QCheckBox(tr("Render to Main Window"));
 
   m_options_box->setLayout(m_options_layout);
@@ -99,10 +97,7 @@ void GeneralWidget::CreateWidgets()
   m_options_layout->addWidget(m_autoadjust_window_size, 1, 1);
 
   m_options_layout->addWidget(m_show_messages, 2, 0);
-  m_options_layout->addWidget(m_keep_window_top, 2, 1);
-
-  m_options_layout->addWidget(m_hide_cursor, 3, 0);
-  m_options_layout->addWidget(m_render_main_window, 3, 1);
+  m_options_layout->addWidget(m_render_main_window, 2, 1);
 
   // Other
   auto* shader_compilation_box = new QGroupBox(tr("Shader Compilation"));
@@ -139,8 +134,8 @@ void GeneralWidget::ConnectWidgets()
   // Video Backend
   connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  // Enable Fullscreen
-  for (QCheckBox* checkbox : {m_enable_fullscreen, m_hide_cursor, m_render_main_window})
+
+  for (QCheckBox* checkbox : {m_enable_fullscreen, m_render_main_window})
     connect(checkbox, &QCheckBox::toggled, this, &GeneralWidget::SaveSettings);
 }
 
@@ -160,13 +155,11 @@ void GeneralWidget::LoadSettings()
 
   // Enable Fullscreen
   m_enable_fullscreen->setChecked(SConfig::GetInstance().bFullscreen);
-  // Hide Cursor
-  m_hide_cursor->setChecked(SConfig::GetInstance().bHideCursor);
+
   // Render to Main Window
-  m_render_main_window->setChecked(SConfig::GetInstance().bRenderToMain);
-  // Keep Window on Top
-  m_keep_window_top->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
-  // Autoadjust Window size
+  SConfig::GetInstance().bRenderToMain = m_render_main_window->isChecked();
+
+  // Autoadjust window size
   m_autoadjust_window_size->setChecked(SConfig::GetInstance().bRenderWindowAutoSize);
 }
 
@@ -217,13 +210,7 @@ void GeneralWidget::SaveSettings()
 
   // Enable Fullscreen
   SConfig::GetInstance().bFullscreen = m_enable_fullscreen->isChecked();
-  // Hide Cursor
-  SConfig::GetInstance().bHideCursor = m_hide_cursor->isChecked();
-  // Render to Main Window
-  SConfig::GetInstance().bRenderToMain = m_render_main_window->isChecked();
-  // Keep Window on Top
-  Settings::Instance().SetKeepWindowOnTop(m_keep_window_top->isChecked());
-  // Autoadjust windowsize
+  // Autoadjust window size
   SConfig::GetInstance().bRenderWindowAutoSize = m_autoadjust_window_size->isChecked();
 }
 
@@ -261,11 +248,7 @@ void GeneralWidget::AddDescriptions()
   static const char* TR_AUTOSIZE_DESCRIPTION =
       QT_TR_NOOP("Automatically adjusts the window size to your internal resolution.\n\nIf unsure, "
                  "leave this unchecked.");
-  static const char* TR_KEEP_WINDOW_ON_TOP_DESCRIPTION = QT_TR_NOOP(
-      "Keep the game window on top of all other windows.\n\nIf unsure, leave this unchecked.");
-  static const char* TR_HIDE_MOUSE_CURSOR_DESCRIPTION =
-      QT_TR_NOOP("Hides the mouse cursor if it's on top of the emulation window.\n\nIf unsure, "
-                 "leave this unchecked.");
+
   static const char* TR_RENDER_TO_MAINWINDOW_DESCRIPTION =
       QT_TR_NOOP("Enable this if you want to use the main Dolphin window for rendering rather than "
                  "a separate render window.\n\nIf unsure, leave this unchecked.");
@@ -318,7 +301,6 @@ void GeneralWidget::AddDescriptions()
 #endif
   AddDescription(m_enable_fullscreen, TR_FULLSCREEN_DESCRIPTION);
   AddDescription(m_autoadjust_window_size, TR_AUTOSIZE_DESCRIPTION);
-  AddDescription(m_hide_cursor, TR_HIDE_MOUSE_CURSOR_DESCRIPTION);
   AddDescription(m_render_main_window, TR_RENDER_TO_MAINWINDOW_DESCRIPTION);
   AddDescription(m_aspect_combo, TR_ASPECT_RATIO_DESCRIPTION);
   AddDescription(m_enable_vsync, TR_VSYNC_DESCRIPTION);
@@ -326,7 +308,6 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_show_ping, TR_SHOW_NETPLAY_PING_DESCRIPTION);
   AddDescription(m_log_render_time, TR_LOG_RENDERTIME_DESCRIPTION);
   AddDescription(m_show_messages, TR_SHOW_FPS_DESCRIPTION);
-  AddDescription(m_keep_window_top, TR_KEEP_WINDOW_ON_TOP_DESCRIPTION);
   AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[0], TR_SHADER_COMPILE_SYNC_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION);
