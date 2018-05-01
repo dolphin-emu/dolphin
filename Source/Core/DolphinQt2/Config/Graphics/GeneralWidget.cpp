@@ -64,10 +64,8 @@ void GeneralWidget::CreateWidgets()
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   m_video_layout->addWidget(m_backend_combo, 0, 1);
 
-#ifdef _WIN32
   m_video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
   m_video_layout->addWidget(m_adapter_combo, 1, 1);
-#endif
 
   m_video_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 3, 0);
   m_video_layout->addWidget(m_aspect_combo, 3, 1);
@@ -165,6 +163,8 @@ void GeneralWidget::LoadSettings()
 
 void GeneralWidget::SaveSettings()
 {
+  g_Config.iAdapter = m_adapter_combo->currentIndex();
+
   // Video Backend
   for (const auto& backend : g_available_video_backends)
   {
@@ -219,9 +219,7 @@ void GeneralWidget::OnEmulationStateChanged(bool running)
   m_backend_combo->setEnabled(!running);
   m_render_main_window->setEnabled(!running);
 
-#ifdef _WIN32
   m_adapter_combo->setEnabled(!running);
-#endif
 }
 
 void GeneralWidget::AddDescriptions()
@@ -234,14 +232,14 @@ void GeneralWidget::AddDescriptions()
                  "OpenGL. Different games and different GPUs will behave differently on each "
                  "backend, so for the best emulation experience it's recommended to try both and "
                  "choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
-  static const char* TR_ADAPTER_DESCRIPTION =
-      QT_TR_NOOP("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
 #else
   static const char* TR_BACKEND_DESCRIPTION =
       QT_TR_NOOP("Selects what graphics API to use internally.\nThe software renderer is extremely "
                  "slow and only useful for debugging, so unless you have a reason to use it you'll "
                  "want to select OpenGL here.\n\nIf unsure, select OpenGL.");
 #endif
+  static const char* TR_ADAPTER_DESCRIPTION =
+      QT_TR_NOOP("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
   static const char* TR_FULLSCREEN_DESCRIPTION = QT_TR_NOOP(
       "Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a "
       "render window will be created instead.\n\nIf unsure, leave this unchecked.");
@@ -296,9 +294,7 @@ void GeneralWidget::AddDescriptions()
                  "queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
 
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
-#ifdef _WIN32
   AddDescription(m_adapter_combo, TR_ADAPTER_DESCRIPTION);
-#endif
   AddDescription(m_enable_fullscreen, TR_FULLSCREEN_DESCRIPTION);
   AddDescription(m_autoadjust_window_size, TR_AUTOSIZE_DESCRIPTION);
   AddDescription(m_render_main_window, TR_RENDER_TO_MAINWINDOW_DESCRIPTION);
@@ -327,7 +323,6 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
     }
   }
 
-#ifdef _WIN32
   m_adapter_combo->clear();
 
   for (const auto& adapter : g_Config.backend_info.Adapters)
@@ -335,5 +330,4 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
   m_adapter_combo->setEnabled(g_Config.backend_info.Adapters.size());
-#endif
 }
