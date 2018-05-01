@@ -39,6 +39,8 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/InputConfig.h"
 
+constexpr const char* PROFILES_DIR = "Profiles/";
+
 MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
     : QDialog(parent), m_port(port_num)
 {
@@ -197,21 +199,22 @@ void MappingWindow::OnLoadProfilePressed()
 void MappingWindow::OnSaveProfilePressed()
 {
   const QString profile_name = m_profiles_combo->currentText();
-  const QString profile_path = m_profiles_combo->currentData().toString();
+  const std::string profile_path =
+      File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + profile_name.toStdString() + ".ini";
 
   if (profile_name.isEmpty())
     return;
 
-  File::CreateFullPath(profile_path.toStdString());
+  File::CreateFullPath(profile_path);
 
   IniFile ini;
 
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
-  ini.Save(profile_path.toStdString());
+  ini.Save(profile_path);
 
   if (m_profiles_combo->currentIndex() == 0)
   {
-    m_profiles_combo->addItem(profile_name, profile_path);
+    m_profiles_combo->addItem(profile_name, QString::fromStdString(profile_path));
     m_profiles_combo->setCurrentIndex(m_profiles_combo->count() - 1);
   }
 }
@@ -305,7 +308,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   m_profiles_combo->addItem(QStringLiteral(""));
 
   const std::string profiles_path =
-      File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + m_config->GetProfileName();
+      File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
   for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
   {
     std::string basename;
