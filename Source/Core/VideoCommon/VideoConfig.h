@@ -73,6 +73,7 @@ struct VideoConfig final
   int iMaxAnisotropy;
   std::string sPostProcessingShader;
   bool bForceTrueColor;
+  bool bDisableCopyFilter;
 
   // Information
   bool bShowFPS;

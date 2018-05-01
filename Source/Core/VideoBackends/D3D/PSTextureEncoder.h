@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -38,8 +39,9 @@ public:
   void Init();
   void Shutdown();
   void Encode(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
-              u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
-              bool scale_by_half);
+              u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half,
+              float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
+              const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients);
 
 private:
   ID3D11PixelShader* GetEncodingPixelShader(const EFBCopyParams& params);

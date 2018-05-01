@@ -74,6 +74,8 @@ void EnhancementsWidget::CreateWidgets()
   m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
   m_force_24bit_color =
       new GraphicsBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  m_disable_copy_filter =
+      new GraphicsBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
 
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
   enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
@@ -92,6 +94,7 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_widescreen_hack, 6, 1);
   enhancements_layout->addWidget(m_disable_fog, 7, 0);
   enhancements_layout->addWidget(m_force_24bit_color, 7, 1);
+  enhancements_layout->addWidget(m_disable_copy_filter, 8, 0);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -269,7 +272,6 @@ void EnhancementsWidget::AddDescriptions()
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
                  "detail.\nDisabling fog will break some games which rely on proper fog "
                  "emulation.\n\nIf unsure, leave this unchecked.");
-
   static const char* TR_3D_MODE_DESCRIPTION = QT_TR_NOOP(
       "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
       "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
@@ -294,6 +296,11 @@ void EnhancementsWidget::AddDescriptions()
       QT_TR_NOOP("Filter all textures, including any that the game explicitly set as "
                  "unfiltered.\nMay improve quality of certain textures in some games, but will "
                  "cause issues in others.\n\nIf unsure, leave this unchecked.");
+  static const char* TR_DISABLE_COPY_FILTER_DESCRIPTION =
+      QT_TR_NOOP("Disables the blending of adjacent rows when copying the EFB. This is known in "
+                 "some games as \"deflickering\" or \"smoothing\". Disabling the filter has no "
+                 "effect on performance, but may result in a sharper image, and causes few "
+                 "graphical issues.\n\n\nIf unsure, leave this checked.");
 
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
@@ -305,6 +312,7 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_disable_fog, TR_REMOVE_FOG_DESCRIPTION);
   AddDescription(m_force_24bit_color, TR_FORCE_24BIT_DESCRIPTION);
   AddDescription(m_force_texture_filtering, TR_FORCE_TEXTURE_FILTERING_DESCRIPTION);
+  AddDescription(m_disable_copy_filter, TR_DISABLE_COPY_FILTER_DESCRIPTION);
   AddDescription(m_3d_mode, TR_3D_MODE_DESCRIPTION);
   AddDescription(m_3d_depth, TR_3D_DEPTH_DESCRIPTION);
   AddDescription(m_3d_convergence, TR_3D_CONVERGENCE_DESCRIPTION);

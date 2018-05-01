@@ -38,6 +38,7 @@ private:
   QCheckBox* m_widescreen_hack;
   QCheckBox* m_disable_fog;
   QCheckBox* m_force_24bit_color;
+  QCheckBox* m_disable_copy_filter;
 
   // Stereoscopy
   QComboBox* m_3d_mode;

@@ -287,6 +287,11 @@ static wxString true_color_desc =
     wxTRANSLATE("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
                 "quality by reducing color banding.\nIt has no impact on performance and causes "
                 "few graphical issues.\n\n\nIf unsure, leave this checked.");
+static wxString disable_copy_filter_desc =
+    wxTRANSLATE("Disables the blending of adjacent rows when copying the EFB. This is known in "
+                "some games as \"deflickering\" or \"smoothing\". Disabling the filter has no "
+                "effect on performance, but may result in a sharper image, and causes few "
+                "graphical issues.\n\n\nIf unsure, leave this checked.");
 static wxString vertex_rounding_desc =
     wxTRANSLATE("Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at "
                 "higher internal resolutions. This setting has no effect when native internal "
@@ -602,6 +607,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                Config::GFX_DISABLE_FOG));
     cb_szr->Add(CreateCheckBox(page_enh, _("Force 24-Bit Color"), wxGetTranslation(true_color_desc),
                                Config::GFX_ENHANCE_FORCE_TRUE_COLOR));
+    cb_szr->Add(CreateCheckBox(page_enh, _("Disable Copy Filter"),
+                               wxGetTranslation(disable_copy_filter_desc),
+                               Config::GFX_ENHANCE_DISABLE_COPY_FILTER));
     szr_enh->Add(cb_szr, wxGBPosition(row, 0), wxGBSpan(1, 3));
     row += 1;
 

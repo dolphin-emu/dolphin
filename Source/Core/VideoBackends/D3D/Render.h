@@ -63,7 +63,7 @@ public:
 
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks, float Gamma) override;
+  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override;
@@ -84,7 +84,7 @@ private:
   void UpdateBackbufferSize();
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
-                  u32 src_width, u32 src_height, float Gamma);
+                  u32 src_width, u32 src_height);
 
   void UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
   void UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices);

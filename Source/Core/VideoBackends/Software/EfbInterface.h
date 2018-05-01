@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -52,12 +54,12 @@ void SetColor(u16 x, u16 y, u8* color);
 void SetDepth(u16 x, u16 y, u32 depth);
 
 u32 GetColor(u16 x, u16 y);
-yuv444 GetColorYUV(u16 x, u16 y);
 u32 GetDepth(u16 x, u16 y);
 
 u8* GetPixelPointer(u16 x, u16 y, bool depth);
 
-void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale);
+void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale,
+               float gamma);
 
 extern u32 perf_values[PQ_NUM_MEMBERS];
 inline void IncPerfCounterQuadCount(PerfQueryType type)

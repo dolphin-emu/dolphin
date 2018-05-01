@@ -38,6 +38,11 @@ struct EFBEncodeParams
 {
   std::array<s32, 4> position_uniform;
   float y_scale;
+  float gamma_rcp;
+  float clamp_top;
+  float clamp_bottom;
+  s32 filter_coefficients[3];
+  u32 padding;
 };
 }
 TextureConverter::TextureConverter()
@@ -201,10 +206,11 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   draw.EndRenderPass();
 }
 
-void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr,
-                                             const EFBCopyParams& params, u32 native_width,
-                                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                                             const EFBRectangle& src_rect, bool scale_by_half)
+void TextureConverter::EncodeTextureToMemory(
+    VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
+    u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
+    bool scale_by_half, float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
+    const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients)
 {
   VkShaderModule shader = GetEncodingShader(params);
   if (shader == VK_NULL_HANDLE)
@@ -236,14 +242,21 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   encoder_params.position_uniform[1] = src_rect.top;
   encoder_params.position_uniform[2] = static_cast<s32>(native_width);
   encoder_params.position_uniform[3] = scale_by_half ? 2 : 1;
-  encoder_params.y_scale = params.y_scale;
-  draw.SetPushConstants(&encoder_params, sizeof(encoder_params));
+  encoder_params.y_scale = y_scale;
+  encoder_params.gamma_rcp = 1.0f / gamma;
+  encoder_params.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
+  encoder_params.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 0.0f;
+  for (size_t i = 0; i < filter_coefficients.size(); i++)
+    encoder_params.filter_coefficients[i] = filter_coefficients[i];
+  u8* ubo_ptr = draw.AllocatePSUniforms(sizeof(EFBEncodeParams));
+  std::memcpy(ubo_ptr, &encoder_params, sizeof(EFBEncodeParams));
+  draw.CommitPSUniforms(sizeof(EFBEncodeParams));
 
   // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
   // TODO: This only produces perfect downsampling for 2x IR, other resolutions will need more
   //       complex down filtering to average all pixels and produce the correct result.
   bool linear_filter =
-      (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 || params.y_scale > 1.0f;
+      (scale_by_half && !params.depth) || g_renderer->GetEFBScale() != 1 || y_scale > 1.0f;
   draw.SetPSSampler(0, src_texture,
                     linear_filter ? g_object_cache->GetLinearSampler() :
                                     g_object_cache->GetPointSampler());

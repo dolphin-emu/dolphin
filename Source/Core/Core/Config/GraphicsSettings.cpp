@@ -106,6 +106,8 @@ const ConfigInfo<std::string> GFX_ENHANCE_POST_SHADER{
     {System::GFX, "Enhancements", "PostProcessingShader"}, ""};
 const ConfigInfo<bool> GFX_ENHANCE_FORCE_TRUE_COLOR{{System::GFX, "Enhancements", "ForceTrueColor"},
                                                     true};
+const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER{
+    {System::GFX, "Enhancements", "DisableCopyFilter"}, true};
 
 // Graphics.Stereoscopy
 

@@ -85,6 +85,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_ENHANCE_MAX_ANISOTROPY.location,
       Config::GFX_ENHANCE_POST_SHADER.location,
       Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location,
+      Config::GFX_ENHANCE_DISABLE_COPY_FILTER.location,
 
       // Graphics.Stereoscopy
 

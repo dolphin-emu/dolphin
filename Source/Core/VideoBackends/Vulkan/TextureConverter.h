@@ -40,9 +40,12 @@ public:
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
-  void EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params,
-                             u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                             u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half);
+  void
+  EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyParams& params,
+                        u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                        const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
+                        float gamma, bool clamp_top, bool clamp_bottom,
+                        const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients);
 
   bool SupportsTextureDecoding(TextureFormat format, TLUTFormat palette_format);
   void DecodeTexture(VkCommandBuffer command_buffer, TextureCache::TCacheEntry* entry,
