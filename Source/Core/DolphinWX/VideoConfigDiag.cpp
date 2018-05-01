@@ -299,17 +299,18 @@ static wxString shader_compile_sync_desc =
     wxTRANSLATE("Ubershaders are never used. Stuttering will occur during shader "
                 "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
                 "unsure, select this mode.");
-static wxString shader_compile_uber_only_desc =
-    wxTRANSLATE("Ubershaders will always be used. Provides a near stutter-free experience at the "
-                "cost of high GPU requirements. Only recommended for high-end systems.");
+static wxString shader_compile_uber_only_desc = wxTRANSLATE(
+    "Ubershaders will always be used. Provides a near stutter-free experience at the cost of high "
+    "GPU performance requirements. Only recommended for high-end systems.");
 static wxString shader_compile_async_uber_desc =
     wxTRANSLATE("Ubershaders will be used to prevent stuttering during shader compilation, but "
-                "specialized shaders will be used when they will not cause stuttering.");
-static wxString shader_compile_async_skip_desc =
-    wxTRANSLATE("Instead of using ubershaders during shader compilation, objects which use these "
-                "shaders will be not be rendered. This can further reduce stuttering and "
-                "performance requirements, compared to ubershaders, at the cost of introducing "
-                "visual glitches and broken effects. Not recommended.");
+                "specialized shaders will be used when they will not cause stuttering. In the best "
+                "case it eliminates shader compilation stuttering while having minimal performance "
+                "impact, but results depend on video driver behavior.");
+static wxString shader_compile_async_skip_desc = wxTRANSLATE(
+    "Prevents shader compilation stuttering by not rendering waiting objects. Can work in "
+    "scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken "
+    "effects. Not recommended, only use if the other options give poor results on your system.");
 static wxString shader_compile_before_start_desc =
     wxTRANSLATE("Waits for all shaders to finish compiling before starting a game. Enabling this "
                 "option may reduce stuttering or hitching for a short time after the game is "
