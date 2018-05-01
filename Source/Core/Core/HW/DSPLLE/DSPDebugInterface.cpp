@@ -137,6 +137,115 @@ void DSPDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
+void DSPDebugInterface::SetBreakpoint(u32 address, Common::Debug::BreakPoint::State state)
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return;
+  m_breakpoints.SetBreakpoint(addr, state);
+}
+
+const Common::Debug::BreakPoint& DSPDebugInterface::GetBreakpoint(std::size_t index) const
+{
+  return m_breakpoints.GetBreakpoint(index);
+}
+
+const std::vector<Common::Debug::BreakPoint>& DSPDebugInterface::GetBreakpoints() const
+{
+  return m_breakpoints.GetBreakpoints();
+}
+
+void DSPDebugInterface::UnsetBreakpoint(u32 address)
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return;
+  m_breakpoints.UnsetBreakpoint(addr);
+}
+
+void DSPDebugInterface::ToggleBreakpoint(u32 address)
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return;
+  m_breakpoints.ToggleBreakpoint(addr);
+}
+
+void DSPDebugInterface::EnableBreakpoint(std::size_t index)
+{
+  m_breakpoints.EnableBreakpoint(index);
+}
+
+void DSPDebugInterface::EnableBreakpointAt(u32 address)
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return;
+  m_breakpoints.EnableBreakpointAt(addr);
+}
+
+void DSPDebugInterface::DisableBreakpoint(std::size_t index)
+{
+  m_breakpoints.DisableBreakpoint(index);
+}
+
+void DSPDebugInterface::DisableBreakpointAt(u32 address)
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return;
+  m_breakpoints.DisableBreakpointAt(addr);
+}
+
+bool DSPDebugInterface::HasBreakpoint(u32 address) const
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return false;
+  return m_breakpoints.HasBreakpoint(addr);
+}
+
+bool DSPDebugInterface::HasBreakpoint(u32 address, Common::Debug::BreakPoint::State state) const
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return false;
+  return m_breakpoints.HasBreakpoint(addr, state);
+}
+
+bool DSPDebugInterface::BreakpointBreak(u32 address)
+{
+  int addr = Symbols::Line2Addr(address);
+  if (addr < 0)
+    return false;
+  return m_breakpoints.BreakpointBreak(addr);
+}
+
+void DSPDebugInterface::RemoveBreakpoint(std::size_t index)
+{
+  m_breakpoints.RemoveBreakpoint(index);
+}
+
+void DSPDebugInterface::LoadBreakpointsFromStrings(const std::vector<std::string>& breakpoints)
+{
+  m_breakpoints.LoadFromStrings(breakpoints);
+}
+
+std::vector<std::string> DSPDebugInterface::SaveBreakpointsToStrings() const
+{
+  return m_breakpoints.SaveToStrings();
+}
+
+void DSPDebugInterface::ClearBreakpoints()
+{
+  m_breakpoints.Clear();
+}
+
+void DSPDebugInterface::ClearTemporaryBreakpoints()
+{
+  m_breakpoints.ClearTemporary();
+}
+
 std::string DSPDebugInterface::Disassemble(unsigned int address)
 {
   // we'll treat addresses as line numbers.
@@ -189,52 +298,6 @@ unsigned int DSPDebugInterface::ReadInstruction(unsigned int address)
 bool DSPDebugInterface::IsAlive()
 {
   return true;
-}
-
-bool DSPDebugInterface::IsBreakpoint(unsigned int address)
-{
-  int real_addr = Symbols::Line2Addr(address);
-  if (real_addr >= 0)
-    return g_dsp_breakpoints.IsAddressBreakPoint(real_addr);
-
-  return false;
-}
-
-void DSPDebugInterface::SetBreakpoint(unsigned int address)
-{
-  int real_addr = Symbols::Line2Addr(address);
-
-  if (real_addr >= 0)
-  {
-    g_dsp_breakpoints.Add(real_addr);
-  }
-}
-
-void DSPDebugInterface::ClearBreakpoint(unsigned int address)
-{
-  int real_addr = Symbols::Line2Addr(address);
-
-  if (real_addr >= 0)
-  {
-    g_dsp_breakpoints.Remove(real_addr);
-  }
-}
-
-void DSPDebugInterface::ClearAllBreakpoints()
-{
-  g_dsp_breakpoints.Clear();
-}
-
-void DSPDebugInterface::ToggleBreakpoint(unsigned int address)
-{
-  int real_addr = Symbols::Line2Addr(address);
-  if (real_addr >= 0)
-  {
-    if (g_dsp_breakpoints.IsAddressBreakPoint(real_addr))
-      g_dsp_breakpoints.Remove(real_addr);
-    else
-      g_dsp_breakpoints.Add(real_addr);
-  }
 }
 
 bool DSPDebugInterface::IsMemCheck(unsigned int address, size_t size)

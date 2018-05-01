@@ -837,7 +837,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(op.address) &&
+      if (SConfig::GetInstance().bEnableDebugging && debug_interface.BreakpointBreak(op.address) &&
           !CPU::IsStepping())
       {
         // Turn off block linking if there are breakpoints so that the Step Over command does not

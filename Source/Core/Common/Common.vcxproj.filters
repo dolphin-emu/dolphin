@@ -268,10 +268,13 @@
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
     <ClInclude Include="Config\ConfigInfo.h" />
-    <ClInclude Include="Debug\Watches.h">
+    <ClInclude Include="Debug\BreakPoints.h">
       <Filter>Debug</Filter>
     </ClInclude>
     <ClInclude Include="Debug\MemoryPatches.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\Watches.h">
       <Filter>Debug</Filter>
     </ClInclude>
   </ItemGroup>
@@ -346,13 +349,16 @@
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="CompatPatches.cpp" />
     <ClCompile Include="Config\ConfigInfo.cpp" />
+    <ClCompile Include="Debug\BreakPoints.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\MemoryPatches.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
     <ClCompile Include="Debug\Watches.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
     <ClCompile Include="QoSSession.cpp" />
-    <ClCompile Include="Debug\MemoryPatches.cpp">
-      <Filter>Debug</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

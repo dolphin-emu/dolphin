@@ -319,7 +319,7 @@ void CCodeWindow::SingleStep()
   {
     PowerPC::CoreMode old_mode = PowerPC::GetMode();
     PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-    PowerPC::breakpoints.ClearAllTemporary();
+    PowerPC::debug_interface.ClearTemporaryBreakpoints();
     CPU::StepOpcode(&sync_event);
     sync_event.WaitFor(std::chrono::milliseconds(20));
     PowerPC::SetMode(old_mode);
@@ -335,8 +335,8 @@ void CCodeWindow::StepOver()
     UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
     if (inst.LK)
     {
-      PowerPC::breakpoints.ClearAllTemporary();
-      PowerPC::breakpoints.Add(PC + 4, true);
+      PowerPC::debug_interface.ClearTemporaryBreakpoints();
+      PowerPC::debug_interface.SetBreakpoint(PC + 4, Common::Debug::BreakPoint::State::Temporary);
       CPU::EnableStepping(false);
       Core::DisplayMessage(_("Step over in progress...").ToStdString(), 2000);
     }
@@ -364,7 +364,7 @@ void CCodeWindow::StepOut()
   if (CPU::IsStepping())
   {
     CPU::PauseAndLock(true, false);
-    PowerPC::breakpoints.ClearAllTemporary();
+    PowerPC::debug_interface.ClearTemporaryBreakpoints();
 
     // Keep stepping until the next return instruction or timeout after five seconds
     using clock = std::chrono::steady_clock;
@@ -392,7 +392,7 @@ void CCodeWindow::StepOut()
         {
           PowerPC::SingleStep();
         } while (PC != next_pc && clock::now() < timeout &&
-                 !PowerPC::breakpoints.IsAddressBreakPoint(PC));
+                 !PowerPC::debug_interface.BreakpointBreak(PC));
       }
       else
       {
@@ -400,7 +400,7 @@ void CCodeWindow::StepOut()
       }
 
       inst = PowerPC::HostRead_Instruction(PC);
-    } while (clock::now() < timeout && !PowerPC::breakpoints.IsAddressBreakPoint(PC));
+    } while (clock::now() < timeout && !PowerPC::debug_interface.BreakpointBreak(PC));
 
     PowerPC::SetMode(old_mode);
     CPU::PauseAndLock(false, false);
@@ -408,7 +408,7 @@ void CCodeWindow::StepOut()
     wxCommandEvent ev(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
     GetEventHandler()->ProcessEvent(ev);
 
-    if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+    if (PowerPC::debug_interface.BreakpointBreak(PC))
       Core::DisplayMessage(_("Breakpoint encountered! Step out aborted.").ToStdString(), 2000);
     else if (clock::now() >= timeout)
       Core::DisplayMessage(_("Step out timed out!").ToStdString(), 2000);

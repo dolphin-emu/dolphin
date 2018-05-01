@@ -13,6 +13,7 @@
 
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -42,6 +43,11 @@ void PPCPatches::Patch(std::size_t index)
     PowerPC::ScheduleInvalidateCacheThreadSafe(
         Common::AlignDown(address + static_cast<u32>(size), 4));
   }
+}
+
+void PPCBreakPoints::UpdateHook(u32 address)
+{
+  JitInterface::InvalidateICache(address, 4, true);
 }
 
 std::size_t PPCDebugInterface::SetWatch(u32 address, const std::string& name)
@@ -159,6 +165,91 @@ void PPCDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
+void PPCDebugInterface::SetBreakpoint(u32 address, Common::Debug::BreakPoint::State state)
+{
+  m_breakpoints.SetBreakpoint(address, state);
+}
+
+const Common::Debug::BreakPoint& PPCDebugInterface::GetBreakpoint(std::size_t index) const
+{
+  return m_breakpoints.GetBreakpoint(index);
+}
+
+const std::vector<Common::Debug::BreakPoint>& PPCDebugInterface::GetBreakpoints() const
+{
+  return m_breakpoints.GetBreakpoints();
+}
+
+void PPCDebugInterface::UnsetBreakpoint(u32 address)
+{
+  m_breakpoints.UnsetBreakpoint(address);
+}
+
+void PPCDebugInterface::ToggleBreakpoint(u32 address)
+{
+  m_breakpoints.ToggleBreakpoint(address);
+}
+
+void PPCDebugInterface::EnableBreakpoint(std::size_t index)
+{
+  m_breakpoints.EnableBreakpoint(index);
+}
+
+void PPCDebugInterface::EnableBreakpointAt(u32 address)
+{
+  m_breakpoints.EnableBreakpointAt(address);
+}
+
+void PPCDebugInterface::DisableBreakpoint(std::size_t index)
+{
+  m_breakpoints.DisableBreakpoint(index);
+}
+
+void PPCDebugInterface::DisableBreakpointAt(u32 address)
+{
+  m_breakpoints.DisableBreakpointAt(address);
+}
+
+bool PPCDebugInterface::HasBreakpoint(u32 address) const
+{
+  return m_breakpoints.HasBreakpoint(address);
+}
+
+bool PPCDebugInterface::HasBreakpoint(u32 address, Common::Debug::BreakPoint::State state) const
+{
+  return m_breakpoints.HasBreakpoint(address, state);
+}
+
+bool PPCDebugInterface::BreakpointBreak(u32 address)
+{
+  return m_breakpoints.BreakpointBreak(address);
+}
+
+void PPCDebugInterface::RemoveBreakpoint(std::size_t index)
+{
+  m_breakpoints.RemoveBreakpoint(index);
+}
+
+void PPCDebugInterface::LoadBreakpointsFromStrings(const std::vector<std::string>& breakpoints)
+{
+  m_breakpoints.LoadFromStrings(breakpoints);
+}
+
+std::vector<std::string> PPCDebugInterface::SaveBreakpointsToStrings() const
+{
+  return m_breakpoints.SaveToStrings();
+}
+
+void PPCDebugInterface::ClearBreakpoints()
+{
+  m_breakpoints.Clear();
+}
+
+void PPCDebugInterface::ClearTemporaryBreakpoints()
+{
+  m_breakpoints.ClearTemporary();
+}
+
 std::string PPCDebugInterface::Disassemble(unsigned int address)
 {
   // PowerPC::HostRead_U32 seemed to crash on shutdown
@@ -231,34 +322,6 @@ unsigned int PPCDebugInterface::ReadInstruction(unsigned int address)
 bool PPCDebugInterface::IsAlive()
 {
   return Core::IsRunningAndStarted();
-}
-
-bool PPCDebugInterface::IsBreakpoint(unsigned int address)
-{
-  return PowerPC::breakpoints.IsAddressBreakPoint(address);
-}
-
-void PPCDebugInterface::SetBreakpoint(unsigned int address)
-{
-  PowerPC::breakpoints.Add(address);
-}
-
-void PPCDebugInterface::ClearBreakpoint(unsigned int address)
-{
-  PowerPC::breakpoints.Remove(address);
-}
-
-void PPCDebugInterface::ClearAllBreakpoints()
-{
-  PowerPC::breakpoints.Clear();
-}
-
-void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
-{
-  if (PowerPC::breakpoints.IsAddressBreakPoint(address))
-    PowerPC::breakpoints.Remove(address);
-  else
-    PowerPC::breakpoints.Add(address);
 }
 
 void PPCDebugInterface::ClearAllMemChecks()
@@ -340,7 +403,7 @@ void PPCDebugInterface::RunToBreakpoint()
 
 void PPCDebugInterface::Clear()
 {
-  ClearAllBreakpoints();
+  ClearBreakpoints();
   ClearAllMemChecks();
   ClearPatches();
   ClearWatches();

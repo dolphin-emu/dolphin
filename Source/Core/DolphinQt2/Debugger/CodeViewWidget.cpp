@@ -98,7 +98,7 @@ void CodeViewWidget::Update()
 
   u32 pc = PowerPC::ppcState.pc;
 
-  if (Core::GetState() != Core::State::Paused && PowerPC::debug_interface.IsBreakpoint(pc))
+  if (Core::GetState() != Core::State::Paused && PowerPC::debug_interface.BreakpointBreak(pc))
     Core::SetState(Core::State::Paused);
 
   const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
@@ -155,7 +155,7 @@ void CodeViewWidget::Update()
     if (ins == "blr")
       ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
-    if (PowerPC::debug_interface.IsBreakpoint(addr))
+    if (PowerPC::debug_interface.BreakpointBreak(addr))
     {
       bp_item->setData(Qt::DecorationRole,
                        Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
@@ -540,10 +540,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
 
 void CodeViewWidget::ToggleBreakpoint()
 {
-  if (PowerPC::debug_interface.IsBreakpoint(GetContextAddress()))
-    PowerPC::breakpoints.Remove(GetContextAddress());
-  else
-    PowerPC::breakpoints.Add(GetContextAddress());
+  PowerPC::debug_interface.ToggleBreakpoint(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();
@@ -551,7 +548,7 @@ void CodeViewWidget::ToggleBreakpoint()
 
 void CodeViewWidget::AddBreakpoint()
 {
-  PowerPC::breakpoints.Add(GetContextAddress());
+  PowerPC::debug_interface.SetBreakpoint(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();

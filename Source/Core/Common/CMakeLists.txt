@@ -9,6 +9,7 @@ add_library(common
   Crypto/AES.cpp
   Crypto/bn.cpp
   Crypto/ec.cpp
+  Debug/BreakPoints.cpp
   Debug/MemoryPatches.cpp
   Debug/Watches.cpp
   ENetUtil.cpp

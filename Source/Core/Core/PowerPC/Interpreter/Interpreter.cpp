@@ -241,7 +241,7 @@ void Interpreter::Run()
 #endif
 
           // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+          if (PowerPC::debug_interface.BreakpointBreak(PC))
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG(POWERPC, "----------------------------");
@@ -264,8 +264,6 @@ void Interpreter::Run()
 #endif
             INFO_LOG(POWERPC, "Hit Breakpoint - %08x", PC);
             CPU::Break();
-            if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-              PowerPC::breakpoints.Remove(PC);
 
             Host_UpdateDisasmDialog();
             return;

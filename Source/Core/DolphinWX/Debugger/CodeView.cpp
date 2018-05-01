@@ -612,7 +612,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
       }
 
       // Show red breakpoint dot
-      if (m_debugger->IsBreakpoint(address))
+      if (m_debugger->HasBreakpoint(address, Common::Debug::BreakPoint::State::Enabled))
       {
         ctx->SetPen(null_pen);
         ctx->SetBrush(bp_brush);

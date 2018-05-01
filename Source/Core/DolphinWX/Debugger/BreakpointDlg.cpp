@@ -41,7 +41,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
   u32 Address = 0;
   if (AsciiToHex(WxStrToStr(AddressString), Address))
   {
-    PowerPC::breakpoints.Add(Address);
+    PowerPC::debug_interface.SetBreakpoint(Address);
     EndModal(wxID_OK);
   }
   else

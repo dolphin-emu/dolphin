@@ -135,7 +135,6 @@ static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x10
 
 extern PowerPCState ppcState;
 
-extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
 

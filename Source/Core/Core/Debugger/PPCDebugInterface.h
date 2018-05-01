@@ -15,6 +15,12 @@ private:
   void Patch(std::size_t index) override;
 };
 
+class PPCBreakPoints : public Common::Debug::BreakPoints
+{
+private:
+  void UpdateHook(u32 address) override;
+};
+
 // wrapper between disasm control and Dolphin debugger
 
 class PPCDebugInterface final : public DebugInterface
@@ -48,15 +54,30 @@ public:
   void RemovePatch(std::size_t index) override;
   void ClearPatches() override;
 
+  // Breakpoints
+  void SetBreakpoint(u32 address, Common::Debug::BreakPoint::State state =
+                                      Common::Debug::BreakPoint::State::Enabled) override;
+  const Common::Debug::BreakPoint& GetBreakpoint(std::size_t index) const override;
+  const std::vector<Common::Debug::BreakPoint>& GetBreakpoints() const override;
+  void UnsetBreakpoint(u32 address) override;
+  void ToggleBreakpoint(u32 address) override;
+  void EnableBreakpoint(std::size_t index) override;
+  void EnableBreakpointAt(u32 address) override;
+  void DisableBreakpoint(std::size_t index) override;
+  void DisableBreakpointAt(u32 address) override;
+  bool HasBreakpoint(u32 address) const override;
+  bool HasBreakpoint(u32 address, Common::Debug::BreakPoint::State state) const override;
+  bool BreakpointBreak(u32 address) override;
+  void RemoveBreakpoint(std::size_t index) override;
+  void LoadBreakpointsFromStrings(const std::vector<std::string>& breakpoints) override;
+  std::vector<std::string> SaveBreakpointsToStrings() const override;
+  void ClearBreakpoints() override;
+  void ClearTemporaryBreakpoints() override;
+
   std::string Disassemble(unsigned int address) override;
   std::string GetRawMemoryString(int memory, unsigned int address) override;
   int GetInstructionSize(int /*instruction*/) override { return 4; }
   bool IsAlive() override;
-  bool IsBreakpoint(unsigned int address) override;
-  void SetBreakpoint(unsigned int address) override;
-  void ClearBreakpoint(unsigned int address) override;
-  void ClearAllBreakpoints() override;
-  void ToggleBreakpoint(unsigned int address) override;
   void ClearAllMemChecks() override;
   bool IsMemCheck(unsigned int address, size_t size = 1) override;
   void ToggleMemCheck(unsigned int address, bool read = true, bool write = true,
@@ -81,5 +102,6 @@ public:
 
 private:
   Common::Debug::Watches m_watches;
+  PPCBreakPoints m_breakpoints;
   PPCPatches m_patches;
 };

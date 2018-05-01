@@ -20,6 +20,10 @@ private:
   void Patch(std::size_t index) override;
 };
 
+class DSPBreakPoints : public Common::Debug::BreakPoints
+{
+};
+
 class DSPDebugInterface final : public DebugInterface
 {
 public:
@@ -51,15 +55,31 @@ public:
   bool HasEnabledPatch(u32 address) const override;
   void ClearPatches() override;
 
+  // Breakpoints
+  void SetBreakpoint(u32 address, Common::Debug::BreakPoint::State state =
+                                      Common::Debug::BreakPoint::State::Enabled) override;
+  const Common::Debug::BreakPoint& GetBreakpoint(std::size_t index) const override;
+  const std::vector<Common::Debug::BreakPoint>& GetBreakpoints() const override;
+  void UnsetBreakpoint(u32 address) override;
+  void ToggleBreakpoint(u32 address) override;
+  void EnableBreakpoint(std::size_t index) override;
+  void EnableBreakpointAt(u32 address) override;
+  void DisableBreakpoint(std::size_t index) override;
+  void DisableBreakpointAt(u32 address) override;
+  bool HasBreakpoint(u32 address) const override;
+  bool HasBreakpoint(u32 address, Common::Debug::BreakPoint::State state) const override;
+  bool BreakpointBreak(u32 address) override;
+  void RemoveBreakpoint(std::size_t index) override;
+  void LoadBreakpointsFromStrings(const std::vector<std::string>& breakpoints) override;
+  std::vector<std::string> SaveBreakpointsToStrings() const override;
+  void ClearBreakpoints() override;
+  void ClearTemporaryBreakpoints() override;
+
   std::string Disassemble(unsigned int address) override;
   std::string GetRawMemoryString(int memory, unsigned int address) override;
   int GetInstructionSize(int instruction) override { return 1; }
   bool IsAlive() override;
-  bool IsBreakpoint(unsigned int address) override;
-  void SetBreakpoint(unsigned int address) override;
-  void ClearBreakpoint(unsigned int address) override;
-  void ClearAllBreakpoints() override;
-  void ToggleBreakpoint(unsigned int address) override;
+
   void ClearAllMemChecks() override;
   bool IsMemCheck(unsigned int address, size_t size) override;
   void ToggleMemCheck(unsigned int address, bool read = true, bool write = true,
@@ -77,6 +97,7 @@ public:
 
 private:
   Common::Debug::Watches m_watches;
+  DSPBreakPoints m_breakpoints;
   DSPPatches m_patches;
 };
 }  // namespace LLE

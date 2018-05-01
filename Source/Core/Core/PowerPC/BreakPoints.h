@@ -12,13 +12,6 @@
 
 class DebugInterface;
 
-struct TBreakPoint
-{
-  u32 address = 0;
-  bool is_enabled = false;
-  bool is_temporary = false;
-};
-
 struct TMemCheck
 {
   u32 start_address = 0;
@@ -36,34 +29,6 @@ struct TMemCheck
 
   // returns whether to break
   bool Action(DebugInterface* dbg_interface, u32 value, u32 addr, bool write, size_t size, u32 pc);
-};
-
-// Code breakpoints.
-class BreakPoints
-{
-public:
-  using TBreakPoints = std::vector<TBreakPoint>;
-  using TBreakPointsStr = std::vector<std::string>;
-
-  const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
-  TBreakPointsStr GetStrings() const;
-  void AddFromStrings(const TBreakPointsStr& bp_strings);
-
-  // is address breakpoint
-  bool IsAddressBreakPoint(u32 address) const;
-  bool IsTempBreakPoint(u32 address) const;
-
-  // Add BreakPoint
-  void Add(u32 address, bool temp = false);
-  void Add(const TBreakPoint& bp);
-
-  // Remove Breakpoint
-  void Remove(u32 address);
-  void Clear();
-  void ClearAllTemporary();
-
-private:
-  TBreakPoints m_breakpoints;
 };
 
 // Memory breakpoints

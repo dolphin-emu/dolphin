@@ -149,7 +149,7 @@ void PatchFunctions()
     {
       for (const auto& symbol : g_symbolDB.GetSymbolsFromName(OSBreakPoints[i].m_szPatchName))
       {
-        PowerPC::breakpoints.Add(symbol->address, false);
+        PowerPC::debug_interface.SetBreakpoint(symbol->address);
         INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
       }
     }

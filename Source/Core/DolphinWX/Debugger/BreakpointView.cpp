@@ -36,12 +36,13 @@ void CBreakPointView::Repopulate()
   InsertColumn(3, _("Address"));
   InsertColumn(4, _("Flags"));
 
-  const BreakPoints::TBreakPoints& rBreakPoints = PowerPC::breakpoints.GetBreakPoints();
+  const auto& rBreakPoints = PowerPC::debug_interface.GetBreakpoints();
   for (const auto& rBP : rBreakPoints)
   {
-    if (!rBP.is_temporary)
+    if (rBP.state != Common::Debug::BreakPoint::State::Temporary)
     {
-      wxString breakpoint_enabled_str = StrToWxStr(rBP.is_enabled ? "on" : " ");
+      wxString breakpoint_enabled_str =
+          StrToWxStr(rBP.state == Common::Debug::BreakPoint::State::Enabled ? "on" : " ");
       int item = InsertItem(0, breakpoint_enabled_str);
       SetItem(item, 1, StrToWxStr("BP"));
 
@@ -98,7 +99,7 @@ void CBreakPointView::DeleteCurrentSelection()
   if (item >= 0)
   {
     u32 Address = (u32)GetItemData(item);
-    PowerPC::breakpoints.Remove(Address);
+    PowerPC::debug_interface.UnsetBreakpoint(Address);
     PowerPC::memchecks.Remove(Address);
     Repopulate();
   }

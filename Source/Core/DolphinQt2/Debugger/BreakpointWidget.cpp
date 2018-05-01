@@ -46,7 +46,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     m_save->setEnabled(is_initialised);
     if (!is_initialised)
     {
-      PowerPC::breakpoints.Clear();
+      PowerPC::debug_interface.ClearBreakpoints();
       PowerPC::memchecks.Clear();
       Update();
     }
@@ -150,11 +150,12 @@ void BreakpointWidget::Update()
   };
 
   // Breakpoints
-  for (const auto& bp : PowerPC::breakpoints.GetBreakPoints())
+  for (const auto& bp : PowerPC::debug_interface.GetBreakpoints())
   {
     m_table->setRowCount(i + 1);
 
-    auto* active = create_item(bp.is_enabled ? tr("on") : QString());
+    auto* active =
+        create_item(bp.state == Common::Debug::BreakPoint::State::Enabled ? tr("on") : QString());
 
     active->setData(Qt::UserRole, bp.address);
 
@@ -225,7 +226,7 @@ void BreakpointWidget::OnDelete()
 
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
 
-  PowerPC::breakpoints.Remove(address);
+  PowerPC::debug_interface.UnsetBreakpoint(address);
   Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Remove(address);
   Settings::Instance().blockSignals(false);
@@ -235,7 +236,7 @@ void BreakpointWidget::OnDelete()
 
 void BreakpointWidget::OnClear()
 {
-  PowerPC::debug_interface.ClearAllBreakpoints();
+  PowerPC::debug_interface.ClearBreakpoints();
   Settings::Instance().blockSignals(true);
   PowerPC::debug_interface.ClearAllMemChecks();
   Settings::Instance().blockSignals(false);
@@ -259,11 +260,11 @@ void BreakpointWidget::OnLoad()
     return;
   }
 
-  BreakPoints::TBreakPointsStr new_bps;
+  std::vector<std::string> new_bps;
   if (ini.GetLines("BreakPoints", &new_bps, false))
   {
-    PowerPC::breakpoints.Clear();
-    PowerPC::breakpoints.AddFromStrings(new_bps);
+    PowerPC::debug_interface.ClearBreakpoints();
+    PowerPC::debug_interface.LoadBreakpointsFromStrings(new_bps);
   }
 
   MemChecks::TMemChecksStr new_mcs;
@@ -283,14 +284,14 @@ void BreakpointWidget::OnSave()
   IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
-  ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
+  ini.SetLines("BreakPoints", PowerPC::debug_interface.SaveBreakpointsToStrings());
   ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
 void BreakpointWidget::AddBP(u32 addr)
 {
-  PowerPC::breakpoints.Add(addr);
+  PowerPC::debug_interface.SetBreakpoint(addr);
 
   Update();
 }

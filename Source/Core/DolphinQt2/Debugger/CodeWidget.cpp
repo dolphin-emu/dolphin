@@ -370,7 +370,7 @@ void CodeWidget::Step()
 
   PowerPC::CoreMode old_mode = PowerPC::GetMode();
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  PowerPC::breakpoints.ClearAllTemporary();
+  PowerPC::debug_interface.ClearTemporaryBreakpoints();
   CPU::StepOpcode(&sync_event);
   sync_event.WaitFor(std::chrono::milliseconds(20));
   PowerPC::SetMode(old_mode);
@@ -386,8 +386,8 @@ void CodeWidget::StepOver()
   UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
   if (inst.LK)
   {
-    PowerPC::breakpoints.ClearAllTemporary();
-    PowerPC::breakpoints.Add(PC + 4, true);
+    PowerPC::debug_interface.ClearTemporaryBreakpoints();
+    PowerPC::debug_interface.SetBreakpoint(PC + 4, Common::Debug::BreakPoint::State::Temporary);
     CPU::EnableStepping(false);
     Core::DisplayMessage(tr("Step over in progress...").toStdString(), 2000);
   }
@@ -415,7 +415,7 @@ void CodeWidget::StepOut()
     return;
 
   CPU::PauseAndLock(true, false);
-  PowerPC::breakpoints.ClearAllTemporary();
+  PowerPC::debug_interface.ClearTemporaryBreakpoints();
 
   // Keep stepping until the next return instruction or timeout after five seconds
   using clock = std::chrono::steady_clock;
@@ -443,7 +443,7 @@ void CodeWidget::StepOut()
       {
         PowerPC::SingleStep();
       } while (PC != next_pc && clock::now() < timeout &&
-               !PowerPC::breakpoints.IsAddressBreakPoint(PC));
+               !PowerPC::debug_interface.BreakpointBreak(PC));
     }
     else
     {
@@ -451,14 +451,14 @@ void CodeWidget::StepOut()
     }
 
     inst = PowerPC::HostRead_Instruction(PC);
-  } while (clock::now() < timeout && !PowerPC::breakpoints.IsAddressBreakPoint(PC));
+  } while (clock::now() < timeout && !PowerPC::debug_interface.BreakpointBreak(PC));
 
   PowerPC::SetMode(old_mode);
   CPU::PauseAndLock(false, false);
 
   emit Host::GetInstance()->UpdateDisasmDialog();
 
-  if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+  if (PowerPC::debug_interface.BreakpointBreak(PC))
     Core::DisplayMessage(tr("Breakpoint encountered! Step out aborted.").toStdString(), 2000);
   else if (clock::now() >= timeout)
     Core::DisplayMessage(tr("Step out timed out!").toStdString(), 2000);

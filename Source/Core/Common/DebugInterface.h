@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Debug/BreakPoints.h"
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
 
@@ -46,6 +47,26 @@ public:
   virtual void RemovePatch(std::size_t index) = 0;
   virtual void ClearPatches() = 0;
 
+  // Breakpoints
+  virtual void SetBreakpoint(u32 address, Common::Debug::BreakPoint::State state =
+                                              Common::Debug::BreakPoint::State::Enabled) = 0;
+  virtual const Common::Debug::BreakPoint& GetBreakpoint(std::size_t index) const = 0;
+  virtual const std::vector<Common::Debug::BreakPoint>& GetBreakpoints() const = 0;
+  virtual void UnsetBreakpoint(u32 address) = 0;
+  virtual void ToggleBreakpoint(u32 address) = 0;
+  virtual void EnableBreakpoint(std::size_t index) = 0;
+  virtual void EnableBreakpointAt(u32 address) = 0;
+  virtual void DisableBreakpoint(std::size_t index) = 0;
+  virtual void DisableBreakpointAt(u32 address) = 0;
+  virtual bool HasBreakpoint(u32 address) const = 0;
+  virtual bool HasBreakpoint(u32 address, Common::Debug::BreakPoint::State state) const = 0;
+  virtual bool BreakpointBreak(u32 address) = 0;
+  virtual void RemoveBreakpoint(std::size_t index) = 0;
+  virtual void LoadBreakpointsFromStrings(const std::vector<std::string>& breakpoints) = 0;
+  virtual std::vector<std::string> SaveBreakpointsToStrings() const = 0;
+  virtual void ClearBreakpoints() = 0;
+  virtual void ClearTemporaryBreakpoints() = 0;
+
   virtual std::string Disassemble(unsigned int /*address*/) { return "NODEBUGGER"; }
   virtual std::string GetRawMemoryString(int /*memory*/, unsigned int /*address*/)
   {
@@ -53,11 +74,6 @@ public:
   }
   virtual int GetInstructionSize(int /*instruction*/) { return 1; }
   virtual bool IsAlive() { return true; }
-  virtual bool IsBreakpoint(unsigned int /*address*/) { return false; }
-  virtual void SetBreakpoint(unsigned int /*address*/) {}
-  virtual void ClearBreakpoint(unsigned int /*address*/) {}
-  virtual void ClearAllBreakpoints() {}
-  virtual void ToggleBreakpoint(unsigned int /*address*/) {}
   virtual void ClearAllMemChecks() {}
   virtual bool IsMemCheck(unsigned int /*address*/, size_t /*size*/) { return false; }
   virtual void ToggleMemCheck(unsigned int /*address*/, bool /*read*/, bool /*write*/, bool /*log*/)

@@ -34,7 +34,6 @@ static bool s_cpu_core_base_is_injected = false;
 Interpreter* const s_interpreter = Interpreter::getInstance();
 static CoreMode s_mode = CoreMode::Interpreter;
 
-BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
@@ -214,7 +213,7 @@ void Init(int cpu_core)
   ppcState.iCache.Init();
 
   if (SConfig::GetInstance().bEnableDebugging)
-    breakpoints.ClearAllTemporary();
+    debug_interface.ClearTemporaryBreakpoints();
 }
 
 void Reset()
@@ -544,11 +543,9 @@ void CheckExternalExceptions()
 
 void CheckBreakPoints()
 {
-  if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+  if (debug_interface.BreakpointBreak(PC))
   {
     CPU::Break();
-    if (PowerPC::breakpoints.IsTempBreakPoint(PC))
-      PowerPC::breakpoints.Remove(PC);
   }
 }
 

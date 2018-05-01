@@ -132,7 +132,7 @@ int RunCyclesDebug(int cycles)
   {
     if (g_dsp.cr & CR_HALT)
       return 0;
-    if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+    if (debug_interface.BreakpointBreak(g_dsp.pc))
     {
       DSPCore_SetState(State::Stepping);
       return cycles;
@@ -151,7 +151,7 @@ int RunCyclesDebug(int cycles)
     {
       if (g_dsp.cr & CR_HALT)
         return 0;
-      if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+      if (debug_interface.BreakpointBreak(g_dsp.pc))
       {
         DSPCore_SetState(State::Stepping);
         return cycles;
@@ -168,7 +168,7 @@ int RunCyclesDebug(int cycles)
     // Now, lets run some more without idle skipping.
     for (int i = 0; i < 200; i++)
     {
-      if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+      if (debug_interface.BreakpointBreak(g_dsp.pc))
       {
         DSPCore_SetState(State::Stepping);
         return cycles;

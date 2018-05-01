@@ -11,8 +11,8 @@
 #include <memory>
 #include <string>
 
-#include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
 
 namespace DSP
 {
@@ -315,7 +315,7 @@ struct SDSP
 };
 
 extern SDSP g_dsp;
-extern DSPBreakpoints g_dsp_breakpoints;
+extern DSP::LLE::DSPDebugInterface debug_interface;
 extern bool g_init_hax;
 extern std::unique_ptr<JIT::x64::DSPEmitter> g_dsp_jit;
 extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;

@@ -31,7 +31,7 @@ void AddAutoBreakpoints()
   {
     Common::Symbol* symbol = g_symbolDB.GetSymbolFromName(bp);
     if (symbol)
-      PowerPC::breakpoints.Add(symbol->address, false);
+      PowerPC::debug_interface.SetBreakpoint(symbol->address);
   }
 #endif
 #endif

@@ -27,7 +27,7 @@
 namespace DSP
 {
 SDSP g_dsp;
-DSPBreakpoints g_dsp_breakpoints;
+DSP::LLE::DSPDebugInterface debug_interface;
 static State core_state = State::Stopped;
 bool g_init_hax = false;
 std::unique_ptr<JIT::x64::DSPEmitter> g_dsp_jit;

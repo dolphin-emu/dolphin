@@ -169,7 +169,7 @@ void CBreakPointWindow::OnSelectBP(wxListEvent& event)
 // Clear all breakpoints and memchecks
 void CBreakPointWindow::OnClear(wxCommandEvent& WXUNUSED(event))
 {
-  PowerPC::debug_interface.ClearAllBreakpoints();
+  PowerPC::debug_interface.ClearBreakpoints();
   PowerPC::debug_interface.ClearAllMemChecks();
 
   NotifyUpdate();
@@ -204,7 +204,7 @@ void CBreakPointWindow::SaveAll()
   IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
-  ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
+  ini.SetLines("BreakPoints", PowerPC::debug_interface.SaveBreakpointsToStrings());
   ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
@@ -218,7 +218,7 @@ void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 void CBreakPointWindow::LoadAll()
 {
   IniFile ini;
-  BreakPoints::TBreakPointsStr newbps;
+  std::vector<std::string> newbps;
   MemChecks::TMemChecksStr newmcs;
 
   if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
@@ -229,8 +229,8 @@ void CBreakPointWindow::LoadAll()
 
   if (ini.GetLines("BreakPoints", &newbps, false))
   {
-    PowerPC::breakpoints.Clear();
-    PowerPC::breakpoints.AddFromStrings(newbps);
+    PowerPC::debug_interface.ClearBreakpoints();
+    PowerPC::debug_interface.LoadBreakpointsFromStrings(newbps);
   }
 
   if (ini.GetLines("MemoryBreakPoints", &newmcs, false))
