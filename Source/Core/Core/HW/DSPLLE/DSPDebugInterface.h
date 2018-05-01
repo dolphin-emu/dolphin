@@ -37,9 +37,18 @@ public:
   void SetPC(unsigned int address) override;
   void Step() override {}
   void RunToBreakpoint() override;
+
+  // Memory Patches
   void Patch(unsigned int address, unsigned int value) override;
+  const std::vector<MemoryPatch>& ListPatches() const override;
+  void DeletePatch(std::size_t index) override;
+  void ClearPatches() override;
+
   int GetColor(unsigned int address) override;
   std::string GetDescription(unsigned int address) override;
+
+private:
+  MemoryPatches m_patches;
 };
 }  // namespace LLE
 }  // namespace DSP

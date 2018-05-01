@@ -14,6 +14,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/MemoryPatches.h"
 #include "Core/PowerPC/PPCCache.h"
 
 class CPUCoreBase;

@@ -881,6 +881,7 @@ void CFrame::DoStop()
       PowerPC::watches.Clear();
       PowerPC::breakpoints.Clear();
       PowerPC::memchecks.Clear();
+      PowerPC::debug_interface.ClearPatches();
       if (m_code_window->HasPanel<CBreakPointWindow>())
         m_code_window->GetPanel<CBreakPointWindow>()->NotifyUpdate();
       g_symbolDB.Clear();

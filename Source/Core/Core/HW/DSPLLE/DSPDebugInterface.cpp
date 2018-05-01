@@ -137,6 +137,22 @@ void DSPDebugInterface::Patch(unsigned int address, unsigned int value)
   PanicAlert("Patch functionality not supported in DSP module.");
 }
 
+const std::vector<MemoryPatch>& DSPDebugInterface::ListPatches() const
+{
+  PanicAlert("Patch functionality not supported in DSP module.");
+  return m_patches.List();
+}
+
+void DSPDebugInterface::DeletePatch(std::size_t index)
+{
+  PanicAlert("Patch functionality not supported in DSP module.");
+}
+
+void DSPDebugInterface::ClearPatches()
+{
+  PanicAlert("Patch functionality not supported in DSP module.");
+}
+
 // =======================================================
 // Separate the blocks with colors.
 // -------------

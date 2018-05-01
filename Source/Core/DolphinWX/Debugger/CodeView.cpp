@@ -204,28 +204,24 @@ u32 CCodeView::AddrToBranch(u32 addr)
 void CCodeView::InsertBlrNop(int Blr)
 {
   // Check if this address has been modified
+  int i = 0;
   int find = -1;
-  for (u32 i = 0; i < m_blrList.size(); i++)
+  for (const auto& patch : m_debugger->ListPatches())
   {
-    if (m_blrList.at(i).address == m_selection)
+    if (patch.address == m_selection)
     {
       find = i;
       break;
     }
+    i += 1;
   }
 
-  // Save the old value
   if (find >= 0)
   {
-    m_debugger->WriteExtraMemory(0, m_blrList.at(find).oldValue, m_selection);
-    m_blrList.erase(m_blrList.begin() + find);
+    m_debugger->DeletePatch(find);
   }
   else
   {
-    BlrStruct temp;
-    temp.address = m_selection;
-    temp.oldValue = m_debugger->ReadMemory(m_selection);
-    m_blrList.push_back(temp);
     if (Blr == 0)
       m_debugger->Patch(m_selection, 0x4e800020);
     else
