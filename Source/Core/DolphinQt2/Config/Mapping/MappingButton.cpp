@@ -130,6 +130,7 @@ void MappingButton::OnButtonTimeout()
 void MappingButton::Clear()
 {
   m_reference->SetExpression("");
+  m_reference->range = 100;
   m_parent->SaveSettings();
   Update();
 }
