@@ -19,6 +19,7 @@
 #include <QVBoxLayout>
 
 #include <map>
+#include <optional>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -42,16 +43,17 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_DANCEMAT, 4},     {SerialInterface::SIDEVICE_GC_TARUKONGA, 5},
     {SerialInterface::SIDEVICE_GC_GBA, 6},       {SerialInterface::SIDEVICE_GC_KEYBOARD, 7}};
 
-static int ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
+static std::optional<int> ToGCMenuIndex(const SerialInterface::SIDevices sidevice)
 {
-  return s_gc_types.at(sidevice);
+  auto it = s_gc_types.find(sidevice);
+  return it != s_gc_types.end() ? it->second : std::optional<int>();
 }
 
-static SerialInterface::SIDevices FromGCMenuIndex(const int menudevice)
+static std::optional<SerialInterface::SIDevices> FromGCMenuIndex(const int menudevice)
 {
   auto it = std::find_if(s_gc_types.begin(), s_gc_types.end(),
                          [=](auto pair) { return pair.second == menudevice; });
-  return it->first;
+  return it != s_gc_types.end() ? it->first : std::optional<SerialInterface::SIDevices>();
 }
 
 ControllersWindow::ControllersWindow(QWidget* parent) : QDialog(parent)
@@ -460,7 +462,9 @@ void ControllersWindow::LoadSettings()
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    m_gc_controller_boxes[i]->setCurrentIndex(ToGCMenuIndex(SConfig::GetInstance().m_SIDevice[i]));
+    const std::optional<int> gc_index = ToGCMenuIndex(SConfig::GetInstance().m_SIDevice[i]);
+    if (gc_index)
+      m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
     m_wiimote_boxes[i]->setCurrentIndex(g_wiimote_sources[i]);
   }
   m_wiimote_real_balance_board->setChecked(g_wiimote_sources[WIIMOTE_BALANCE_BOARD] ==
@@ -501,7 +505,9 @@ void ControllersWindow::SaveSettings()
   for (size_t i = 0; i < m_gc_groups.size(); i++)
   {
     const int index = m_gc_controller_boxes[i]->currentIndex();
-    SConfig::GetInstance().m_SIDevice[i] = FromGCMenuIndex(index);
+    const std::optional<SerialInterface::SIDevices> si_device = FromGCMenuIndex(index);
+    if (si_device)
+      SConfig::GetInstance().m_SIDevice[i] = *si_device;
     m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
   }
   SConfig::GetInstance().SaveSettings();
