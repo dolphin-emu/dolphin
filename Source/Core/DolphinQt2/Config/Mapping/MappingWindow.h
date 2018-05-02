@@ -56,6 +56,7 @@ public:
 signals:
   void Update();
   void ClearFields();
+  void Save();
 
 private:
   void SetMappingType(Type type);

@@ -345,6 +345,7 @@ void MappingWindow::OnDefaultFieldsPressed()
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
   emit Update();
+  emit Save();
 }
 
 bool MappingWindow::IsIterativeInput() const

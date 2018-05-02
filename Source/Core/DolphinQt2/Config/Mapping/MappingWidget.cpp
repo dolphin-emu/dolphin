@@ -24,6 +24,7 @@ MappingWidget::MappingWidget(MappingWindow* window) : m_parent(window)
 {
   connect(window, &MappingWindow::ClearFields, this, &MappingWidget::OnClearFields);
   connect(window, &MappingWindow::Update, this, &MappingWidget::Update);
+  connect(window, &MappingWindow::Save, this, &MappingWidget::SaveSettings);
 }
 
 MappingWindow* MappingWidget::GetParent() const
