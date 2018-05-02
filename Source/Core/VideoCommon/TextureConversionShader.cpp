@@ -731,8 +731,8 @@ static void WriteXFBEncoder(char*& p, APIType ApiType, const EFBCopyParams& para
   WriteSampleColor(p, "rgb", "color1", 1, ApiType, params);
 
   // Gamma is only applied to XFB copies.
-  WRITE(p, "  color0 = pow(color0, gamma_rcp.xxx);\n");
-  WRITE(p, "  color1 = pow(color1, gamma_rcp.xxx);\n");
+  WRITE(p, "  color0 = pow(color0, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
+  WRITE(p, "  color1 = pow(color1, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
 
   // Convert to YUV.
   WRITE(p, "  const float3 y_const = float3(0.257, 0.504, 0.098);\n");
