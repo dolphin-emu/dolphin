@@ -54,6 +54,8 @@ void HacksWidget::CreateWidgets()
   m_accuracy = new QSlider(Qt::Horizontal);
   m_accuracy->setMinimum(0);
   m_accuracy->setMaximum(2);
+  m_accuracy->setPageStep(1);
+  m_accuracy->setTickPosition(QSlider::TicksBelow);
   m_gpu_texture_decoding =
       new GraphicsBool(tr("GPU Texture Decoding"), Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
 
