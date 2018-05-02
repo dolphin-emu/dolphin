@@ -32,6 +32,7 @@ public:
             wxWindowID Id = wxID_ANY);
 
   void ToggleBreakpoint(u32 address);
+  void DisableBreakpoint(u32 address);
 
   u32 GetSelection() const { return m_selection; }
   void Center(u32 addr)
@@ -46,7 +47,8 @@ public:
 private:
   void OnPaint(wxPaintEvent& event);
   void OnScrollWheel(wxMouseEvent& event);
-  void OnMouseDown(wxMouseEvent& event);
+  void OnMouseDownL(wxMouseEvent& event);
+  void OnMouseDownR(wxMouseEvent& event);
   void OnMouseMove(wxMouseEvent& event);
   void OnMouseUpL(wxMouseEvent& event);
   void OnMouseUpR(wxMouseEvent& event);

@@ -49,6 +49,9 @@ public:
     AddTool(ID_ADDMC, "+MBP", m_Bitmaps[Toolbar_Add_MC]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
 
+    AddTool(ID_ENABLE_DISABLE_BP, _("On/Off"), m_Bitmaps[Toolbar_Enable_Disable_BP]);
+    Bind(wxEVT_TOOL, &CBreakPointWindow::OnEnableDisableBreakPoint, parent, ID_ENABLE_DISABLE_BP);
+
     AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Load]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::Event_LoadAll, parent, ID_LOAD);
 
@@ -74,6 +77,7 @@ private:
     Toolbar_Clear,
     Toolbar_Add_BP,
     Toolbar_Add_MC,
+    Toolbar_Enable_Disable_BP,
     Toolbar_Load,
     Toolbar_Save,
     Num_Bitmaps
@@ -85,6 +89,7 @@ private:
     ID_CLEAR,
     ID_ADDBP,
     ID_ADDMC,
+    ID_ENABLE_DISABLE_BP,
     ID_LOAD,
     ID_SAVE,
     ID_NUM
@@ -97,7 +102,7 @@ private:
 
     static const std::array<const char* const, Num_Bitmaps> m_image_names{
         {"debugger_delete", "debugger_clear", "debugger_add_breakpoint", "debugger_add_memorycheck",
-         "debugger_load", "debugger_save"}};
+         "debugger_breakpoint", "debugger_load", "debugger_save"}};
 
     for (std::size_t i = 0; i < m_image_names.size(); ++i)
     {
@@ -189,6 +194,24 @@ void CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& WXUNUSED(event))
   MemoryCheckDlg memDlg(this);
   if (memDlg.ShowModal() == wxID_OK)
   {
+    NotifyUpdate();
+  }
+}
+
+void CBreakPointWindow::OnEnableDisableBreakPoint(wxCommandEvent& WXUNUSED(event))
+{
+  long index = m_BreakPointListView->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+  if (index >= 0)
+  {
+    u32 address = static_cast<u32>(m_BreakPointListView->GetItemData(index));
+    if (PowerPC::debug_interface.HasBreakpoint(address, Common::Debug::BreakPoint::State::Disabled))
+    {
+      PowerPC::debug_interface.EnableBreakpointAt(address);
+    }
+    else
+    {
+      PowerPC::debug_interface.DisableBreakpointAt(address);
+    }
     NotifyUpdate();
   }
 }

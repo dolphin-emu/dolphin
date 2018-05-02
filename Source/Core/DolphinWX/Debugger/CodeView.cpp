@@ -66,10 +66,10 @@ CCodeView::CCodeView(DebugInterface* debuginterface, Common::SymbolDB* symboldb,
 {
   Bind(wxEVT_PAINT, &CCodeView::OnPaint, this);
   Bind(wxEVT_MOUSEWHEEL, &CCodeView::OnScrollWheel, this);
-  Bind(wxEVT_LEFT_DOWN, &CCodeView::OnMouseDown, this);
+  Bind(wxEVT_LEFT_DOWN, &CCodeView::OnMouseDownL, this);
   Bind(wxEVT_LEFT_UP, &CCodeView::OnMouseUpL, this);
   Bind(wxEVT_MOTION, &CCodeView::OnMouseMove, this);
-  Bind(wxEVT_RIGHT_DOWN, &CCodeView::OnMouseDown, this);
+  Bind(wxEVT_RIGHT_DOWN, &CCodeView::OnMouseDownR, this);
   Bind(wxEVT_RIGHT_UP, &CCodeView::OnMouseUpR, this);
   Bind(wxEVT_MENU, &CCodeView::OnPopupMenu, this);
   Bind(wxEVT_SIZE, &CCodeView::OnResize, this);
@@ -90,7 +90,7 @@ int CCodeView::YToAddress(int y)
   return m_curAddress + ydiff * m_align;
 }
 
-void CCodeView::OnMouseDown(wxMouseEvent& event)
+void CCodeView::OnMouseDownL(wxMouseEvent& event)
 {
   int x = event.m_x;
   int y = event.m_y;
@@ -109,6 +109,19 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
   else
   {
     ToggleBreakpoint(YToAddress(y));
+  }
+
+  event.Skip();
+}
+
+void CCodeView::OnMouseDownR(wxMouseEvent& event)
+{
+  const int x = event.m_x;
+  const int y = event.m_y;
+
+  if (x <= m_left_col_width)
+  {
+    DisableBreakpoint(YToAddress(y));
   }
 
   event.Skip();
@@ -142,6 +155,16 @@ void CCodeView::ToggleBreakpoint(u32 address)
   GetEventHandler()->AddPendingEvent(evt);
 }
 
+void CCodeView::DisableBreakpoint(u32 address)
+{
+  m_debugger->DisableBreakpointAt(address);
+  Refresh();
+
+  // Propagate back to the parent window to update the breakpoint list.
+  wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
 void CCodeView::OnMouseMove(wxMouseEvent& event)
 {
   wxRect rc = GetClientRect();
@@ -160,7 +183,7 @@ void CCodeView::OnMouseMove(wxMouseEvent& event)
     }
     else
     {
-      OnMouseDown(event);
+      OnMouseDownL(event);
     }
   }
 
@@ -408,6 +431,11 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
+  if (event.m_x <= m_left_col_width)
+  {
+    event.Skip();
+    return;
+  }
   bool isSymbol = m_symbol_db->GetSymbolFromAddr(m_selection) != nullptr;
   // popup menu
   wxMenu menu;
@@ -487,6 +515,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
   wxColour blr_color = wxTheColourDatabase->Find("DARK GREEN");
   wxColour instr_color = wxTheColourDatabase->Find("VIOLET");
   wxGraphicsPen null_pen = ctx->CreatePen(*wxTRANSPARENT_PEN);
+  wxGraphicsPen bp_pen = ctx->CreatePen(wxPen(*wxRED, pen_width));
   wxGraphicsPen focus_pen = ctx->CreatePen(wxPen(*wxBLACK, pen_width));
   wxGraphicsPen selection_pen = ctx->CreatePen(wxPen("GREY", pen_width));
   wxGraphicsBrush pc_brush = ctx->CreateBrush(*wxGREEN_BRUSH);
@@ -616,6 +645,12 @@ void CCodeView::OnPaint(wxPaintEvent& event)
       {
         ctx->SetPen(null_pen);
         ctx->SetBrush(bp_brush);
+        ctx->DrawEllipse(bp_offset_x, row_y + bp_offset_y, bp_size.GetWidth(), bp_size.GetHeight());
+      }
+      else if (m_debugger->HasBreakpoint(address, Common::Debug::BreakPoint::State::Disabled))
+      {
+        ctx->SetPen(bp_pen);
+        ctx->SetBrush(back_brush);
         ctx->DrawEllipse(bp_offset_x, row_y + bp_offset_y, bp_size.GetWidth(), bp_size.GetHeight());
       }
     }

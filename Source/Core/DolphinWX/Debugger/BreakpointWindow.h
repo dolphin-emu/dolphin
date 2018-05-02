@@ -33,6 +33,7 @@ private:
   void OnClear(wxCommandEvent& WXUNUSED(event));
   void OnAddBreakPoint(wxCommandEvent& WXUNUSED(event));
   void OnAddMemoryCheck(wxCommandEvent& WXUNUSED(event));
+  void OnEnableDisableBreakPoint(wxCommandEvent& WXUNUSED(event));
   void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
   void Event_LoadAll(wxCommandEvent& WXUNUSED(event));
   void OnSelectBP(wxListEvent& event);

@@ -42,7 +42,7 @@ void CBreakPointView::Repopulate()
     if (rBP.state != Common::Debug::BreakPoint::State::Temporary)
     {
       wxString breakpoint_enabled_str =
-          StrToWxStr(rBP.state == Common::Debug::BreakPoint::State::Enabled ? "on" : " ");
+          StrToWxStr(rBP.state == Common::Debug::BreakPoint::State::Enabled ? "on" : "off");
       int item = InsertItem(0, breakpoint_enabled_str);
       SetItem(item, 1, StrToWxStr("BP"));
 
