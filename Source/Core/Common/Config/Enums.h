@@ -30,7 +30,6 @@ enum class System
   GFX,
   Logger,
   Debugger,
-  UI,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{
