@@ -86,14 +86,12 @@ const char simple_shader_code[] = {
     "{\n"
     "float4 vPosition : POSITION;\n"
     "float3 vTexCoord : TEXCOORD0;\n"
-    "float  vTexCoord1 : TEXCOORD1;\n"
     "};\n"
-    "VSOUTPUT main(float4 inPosition : POSITION,float4 inTEX0 : TEXCOORD0)\n"
+    "VSOUTPUT main(float4 inPosition : POSITION,float3 inTEX0 : TEXCOORD0)\n"
     "{\n"
     "VSOUTPUT OUT;\n"
     "OUT.vPosition = inPosition;\n"
-    "OUT.vTexCoord = inTEX0.xyz;\n"
-    "OUT.vTexCoord1 = inTEX0.w;\n"
+    "OUT.vTexCoord = inTEX0;\n"
     "return OUT;\n"
     "}\n"};
 

@@ -870,13 +870,13 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0f, 0);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
 
     D3D::context->RSSetViewports(1, &rightVp);
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0f, 1);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::Nvidia3DVision)
   {
@@ -895,13 +895,13 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0f, 0);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
 
     D3D::context->RSSetViewports(1, &rightVp);
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0f, 1);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
 
     // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
     // recognize the signature and automatically include the right eye frame.
@@ -926,7 +926,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                                            nullptr;
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), geomShader, 1.0f);
+                           VertexShaderCache::GetSimpleInputLayout(), geomShader);
   }
 }
 
