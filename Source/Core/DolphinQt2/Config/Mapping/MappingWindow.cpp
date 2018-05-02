@@ -199,8 +199,9 @@ void MappingWindow::OnLoadProfilePressed()
 void MappingWindow::OnSaveProfilePressed()
 {
   const QString profile_name = m_profiles_combo->currentText();
-  const std::string profile_path =
-      File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + profile_name.toStdString() + ".ini";
+  const std::string profile_path = File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR +
+                                   m_config->GetProfileName() + "/" + profile_name.toStdString() +
+                                   ".ini";
 
   if (profile_name.isEmpty())
     return;
