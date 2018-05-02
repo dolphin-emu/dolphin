@@ -24,7 +24,7 @@ namespace ControllerEmu
 class Control;
 class ControlGroup;
 class EmulatedController;
-}
+}  // namespace ControllerEmu
 
 namespace ciface
 {
@@ -32,7 +32,7 @@ namespace Core
 {
 class Device;
 }
-}
+}  // namespace ciface
 
 class MappingWidget : public QWidget
 {
