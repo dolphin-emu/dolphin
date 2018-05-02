@@ -25,7 +25,6 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
   layout->addWidget(MakeGameFolderBox());
   layout->addLayout(MakePathsLayout());
 
-  layout->setContentsMargins(0, 0, 0, 0);
   setLayout(layout);
 }
 
