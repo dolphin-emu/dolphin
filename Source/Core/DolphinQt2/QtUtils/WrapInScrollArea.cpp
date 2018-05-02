@@ -6,6 +6,7 @@
 
 #include <QFrame>
 #include <QLayout>
+#include <QPalette>
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -28,6 +29,12 @@ QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margi
     to_resize->resize(std::max(recommended_width, to_resize->width()),
                       std::max(recommended_height, to_resize->height()));
   }
+
+  // Make sure the background color stays consistent with the parent widget
+  QPalette p = wrapped_widget->palette();
+  p.setColor(QPalette::Window, QColor(0, 0, 0, 0));
+  wrapped_widget->setPalette(p);
+  scroll->setPalette(p);
 
   return scroll;
 }
