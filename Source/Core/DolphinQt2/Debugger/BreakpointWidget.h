@@ -40,6 +40,7 @@ private:
   void OnDelete();
   void OnClear();
   void OnNewBreakpoint();
+  void OnEnableDisableBreakpoint();
   void OnLoad();
   void OnSave();
 
@@ -48,6 +49,7 @@ private:
   QToolBar* m_toolbar;
   QTableWidget* m_table;
   QAction* m_new;
+  QAction* m_enable_disable;
   QAction* m_delete;
   QAction* m_clear;
   QAction* m_load;

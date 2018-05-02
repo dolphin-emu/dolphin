@@ -105,6 +105,8 @@ void BreakpointWidget::CreateWidgets()
   m_new = AddAction(m_toolbar, tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
   m_delete = AddAction(m_toolbar, tr("Delete"), this, &BreakpointWidget::OnDelete);
   m_clear = AddAction(m_toolbar, tr("Clear"), this, &BreakpointWidget::OnClear);
+  m_enable_disable =
+      AddAction(m_toolbar, tr("On/Off"), this, &BreakpointWidget::OnEnableDisableBreakpoint);
 
   m_load = AddAction(m_toolbar, tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = AddAction(m_toolbar, tr("Save"), this, &BreakpointWidget::OnSave);
@@ -124,6 +126,7 @@ void BreakpointWidget::UpdateIcons()
   m_new->setIcon(Resources::GetScaledThemeIcon("debugger_add_breakpoint"));
   m_delete->setIcon(Resources::GetScaledThemeIcon("debugger_delete"));
   m_clear->setIcon(Resources::GetScaledThemeIcon("debugger_clear"));
+  m_enable_disable->setIcon(Resources::GetScaledThemeIcon("debugger_breakpoint"));
   m_load->setIcon(Resources::GetScaledThemeIcon("debugger_load"));
   m_save->setIcon(Resources::GetScaledThemeIcon("debugger_save"));
 }
@@ -155,7 +158,7 @@ void BreakpointWidget::Update()
     m_table->setRowCount(i + 1);
 
     auto* active =
-        create_item(bp.state == Common::Debug::BreakPoint::State::Enabled ? tr("on") : QString());
+        create_item(bp.state == Common::Debug::BreakPoint::State::Enabled ? tr("on") : tr("off"));
 
     active->setData(Qt::UserRole, bp.address);
 
@@ -249,6 +252,24 @@ void BreakpointWidget::OnNewBreakpoint()
 {
   NewBreakpointDialog* dialog = new NewBreakpointDialog(this);
   dialog->exec();
+}
+
+void BreakpointWidget::OnEnableDisableBreakpoint()
+{
+  if (m_table->selectedItems().size() == 0)
+    return;
+
+  u32 address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
+  if (PowerPC::debug_interface.HasBreakpoint(address, Common::Debug::BreakPoint::State::Disabled))
+  {
+    PowerPC::debug_interface.EnableBreakpointAt(address);
+  }
+  else
+  {
+    PowerPC::debug_interface.DisableBreakpointAt(address);
+  }
+
+  Update();
 }
 
 void BreakpointWidget::OnLoad()

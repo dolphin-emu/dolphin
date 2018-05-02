@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QTableWidgetItem>
@@ -155,10 +156,22 @@ void CodeViewWidget::Update()
     if (ins == "blr")
       ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
-    if (PowerPC::debug_interface.BreakpointBreak(addr))
+    if (PowerPC::debug_interface.HasBreakpoint(addr, Common::Debug::BreakPoint::State::Enabled))
     {
       bp_item->setData(Qt::DecorationRole,
                        Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
+    }
+    else if (PowerPC::debug_interface.HasBreakpoint(addr,
+                                                    Common::Debug::BreakPoint::State::Disabled))
+    {
+      QPixmap icon = Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24));
+      QPixmap disabled_icon(icon.size());
+      disabled_icon.fill(Qt::transparent);
+      QPainter p(&disabled_icon);
+      p.setOpacity(0.25);
+      p.drawPixmap(0, 0, icon);
+      p.end();
+      bp_item->setData(Qt::DecorationRole, disabled_icon);
     }
 
     setItem(i, 0, bp_item);
@@ -533,6 +546,10 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
 
     Update();
     break;
+  case Qt::RightButton:
+    if (column(item) == 0)
+      DisableBreakpoint();
+    break;
   default:
     break;
   }
@@ -541,6 +558,14 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
 void CodeViewWidget::ToggleBreakpoint()
 {
   PowerPC::debug_interface.ToggleBreakpoint(GetContextAddress());
+
+  emit BreakpointsChanged();
+  Update();
+}
+
+void CodeViewWidget::DisableBreakpoint()
+{
+  PowerPC::debug_interface.DisableBreakpointAt(GetContextAddress());
 
   emit BreakpointsChanged();
   Update();

@@ -33,6 +33,7 @@ public:
   void Update();
 
   void ToggleBreakpoint();
+  void DisableBreakpoint();
   void AddBreakpoint();
 signals:
   void RequestPPCComparison(u32 addr);
