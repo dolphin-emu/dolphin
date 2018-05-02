@@ -730,6 +730,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 0;
   }
 
+  std::thread thread(UI::MessageLoop);
+  thread.detach();
+
   UI::SetDescription("Fetching and parsing manifests...");
 
   Manifest this_manifest, next_manifest;
