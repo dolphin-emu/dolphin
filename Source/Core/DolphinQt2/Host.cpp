@@ -16,6 +16,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 Host::Host() = default;
 
@@ -43,6 +44,8 @@ bool Host::GetRenderFocus()
 void Host::SetRenderFocus(bool focus)
 {
   m_render_focus = focus;
+  if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
+    Core::RunAsCPUThread([focus] { g_renderer->SetFullscreen(focus); });
 }
 
 bool Host::GetRenderFullscreen()
@@ -53,6 +56,10 @@ bool Host::GetRenderFullscreen()
 void Host::SetRenderFullscreen(bool fullscreen)
 {
   m_render_fullscreen = fullscreen;
+
+  if (g_renderer && g_renderer->IsFullscreen() != fullscreen &&
+      g_ActiveConfig.ExclusiveFullscreenEnabled())
+    Core::RunAsCPUThread([fullscreen] { g_renderer->SetFullscreen(fullscreen); });
 }
 
 void Host::ResizeSurface(int new_width, int new_height)

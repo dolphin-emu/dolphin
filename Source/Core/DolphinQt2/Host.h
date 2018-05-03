@@ -37,7 +37,7 @@ signals:
 private:
   Host();
 
-  std::atomic<void*> m_render_handle;
-  std::atomic<bool> m_render_focus;
-  std::atomic<bool> m_render_fullscreen;
+  std::atomic<void*> m_render_handle{nullptr};
+  std::atomic<bool> m_render_focus{false};
+  std::atomic<bool> m_render_fullscreen{false};
 };
