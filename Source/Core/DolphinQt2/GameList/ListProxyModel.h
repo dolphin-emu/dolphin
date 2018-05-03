@@ -14,4 +14,7 @@ class ListProxyModel final : public QSortFilterProxyModel
 public:
   explicit ListProxyModel(QObject* parent = nullptr);
   bool filterAcceptsRow(int source_row, const QModelIndex& source_parent) const override;
+
+protected:
+  bool lessThan(const QModelIndex& left, const QModelIndex& right) const override;
 };
