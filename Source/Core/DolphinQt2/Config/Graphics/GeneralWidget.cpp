@@ -52,7 +52,7 @@ void GeneralWidget::CreateWidgets()
   m_aspect_combo =
       new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
                          Config::GFX_ASPECT_RATIO);
-  m_adapter_combo = new GraphicsChoice({}, Config::GFX_ADAPTER);
+  m_adapter_combo = new QComboBox;
   m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
   m_enable_fullscreen = new QCheckBox(tr("Use Fullscreen"));
 
@@ -311,6 +311,7 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_shader_compilation_mode[3], TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION);
   AddDescription(m_wait_for_shaders, TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION);
 }
+
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
 {
   for (const auto& backend : g_available_video_backends)
@@ -325,9 +326,11 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 
   m_adapter_combo->clear();
 
-  for (const auto& adapter : g_Config.backend_info.Adapters)
+  const auto& adapters = g_Config.backend_info.Adapters;
+
+  for (const auto& adapter : adapters)
     m_adapter_combo->addItem(QString::fromStdString(adapter));
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(g_Config.backend_info.Adapters.size());
+  m_adapter_combo->setEnabled(!adapters.empty());
 }
