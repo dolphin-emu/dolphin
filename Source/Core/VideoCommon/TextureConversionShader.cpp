@@ -158,7 +158,7 @@ static void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType A
     else
       WRITE(p, "Tex0.Sample(samp0, float3(");
 
-    WRITE(p, "uv.x + xoffset * pixel_size.x, ");
+    WRITE(p, "uv.x + float(xoffset) * pixel_size.x, ");
 
     // Reverse the direction for OpenGL, since positive numbers are distance from the bottom row.
     if (yoffset != 0)
@@ -257,7 +257,8 @@ static void WriteSwizzler(char*& p, const EFBCopyParams& params, EFBCopyFormat f
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
   }
 
-  WRITE(p, "  float2 pixel_size = position.ww / float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);
+  WRITE(p, "  float2 pixel_size = float2(position.w, position.w) / float2(%d, %d);\n", EFB_WIDTH,
+        EFB_HEIGHT);
 }
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
