@@ -238,6 +238,9 @@ static wxString dump_efb_desc = wxTRANSLATE(
     "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
 static wxString dump_xfb_desc = wxTRANSLATE(
     "Dump the contents of XFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
+static wxString disable_vram_copies_desc =
+    wxTRANSLATE("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
+                "upscaling.\n\nIf unsure, leave this unchecked.");
 static wxString internal_resolution_frame_dumping_desc = wxTRANSLATE(
     "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
     "the size of the window it is displayed within. If the aspect ratio is widescreen, the output "
@@ -868,6 +871,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_utility->Add(CreateCheckBox(page_advanced, _("Dump XFB Target"),
                                       wxGetTranslation(dump_xfb_desc),
                                       Config::GFX_DUMP_XFB_TARGET));
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Disable EFB VRAM Copies"),
+                                      wxGetTranslation(disable_vram_copies_desc),
+                                      Config::GFX_HACK_DISABLE_COPY_TO_VRAM));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), Config::GFX_FREE_LOOK));
 #if defined(HAVE_FFMPEG)
