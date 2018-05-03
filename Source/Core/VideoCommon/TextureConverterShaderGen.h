@@ -22,6 +22,7 @@ struct UidData
   u32 is_depth_copy : 1;
   u32 is_intensity : 1;
   u32 scale_by_half : 1;
+  u32 copy_filter : 1;
 };
 #pragma pack()
 
@@ -30,6 +31,6 @@ using TCShaderUid = ShaderUid<UidData>;
 ShaderCode GenerateShader(APIType api_type, const UidData* uid_data);
 
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half);
+                         bool scale_by_half, bool copy_filter);
 
 }  // namespace TextureConversionShaderGen

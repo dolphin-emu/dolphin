@@ -274,7 +274,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
-                                                      scale_by_half);
+                                                      scale_by_half,
+                                                      NeedsCopyFilterInShader(filter_coefficients));
 
   auto it = m_efb_copy_to_tex_shaders.emplace(uid, VkShaderModule(VK_NULL_HANDLE));
   VkShaderModule& shader = it.first->second;
