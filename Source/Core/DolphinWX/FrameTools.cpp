@@ -614,7 +614,13 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
     m_log_window->Update();
 
     if (g_renderer)
-      g_renderer->ResizeSurface(width, height);
+    {
+      // The window geometry is in device-independent points and may not match the content or
+      // framebuffer size in macOS. Multiply by the content scaling factor to get the real size.
+      double scaling_factor = m_render_frame->GetContentScaleFactor();
+      g_renderer->ResizeSurface(static_cast<int>(width * scaling_factor),
+                                static_cast<int>(height * scaling_factor));
+    }
   }
   event.Skip();
 }
