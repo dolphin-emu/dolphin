@@ -23,6 +23,8 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+constexpr int SLIDER_TICK_COUNT = 100;
+
 static QString EscapeAmpersand(QString&& string)
 {
   return string.replace(QStringLiteral("&"), QStringLiteral("&&"));
@@ -130,7 +132,7 @@ void MappingButton::OnButtonTimeout()
 void MappingButton::Clear()
 {
   m_reference->SetExpression("");
-  m_reference->range = 100;
+  m_reference->range = 100.0 / SLIDER_TICK_COUNT;
   m_parent->SaveSettings();
   Update();
 }
