@@ -94,7 +94,7 @@ void AdvancedWidget::CreateWidgets()
   m_borderless_fullscreen =
       new GraphicsBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
 
-  misc_layout->addWidget(m_borderless_fullscreen, 1, -1);
+  misc_layout->addWidget(m_borderless_fullscreen, 1, 0);
 #endif
 
   main_layout->addWidget(debugging_box);
