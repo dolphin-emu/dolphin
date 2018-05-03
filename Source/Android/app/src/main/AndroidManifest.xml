@@ -25,6 +25,7 @@
         android:supportsRtl="true"
         android:isGame="true"
         android:banner="@drawable/banner_tv">
+        <meta-data android:name="android.max_aspect" android:value="2.1" />
 
         <activity
             android:name=".ui.main.MainActivity"
