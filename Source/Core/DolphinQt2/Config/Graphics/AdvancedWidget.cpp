@@ -65,6 +65,8 @@ void AdvancedWidget::CreateWidgets()
   m_use_fullres_framedumps = new GraphicsBool(tr("Internal Resolution Frame Dumps"),
                                               Config::GFX_INTERNAL_RESOLUTION_FRAME_DUMPS);
   m_dump_efb_target = new GraphicsBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
+  m_disable_vram_copies =
+      new GraphicsBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
   m_enable_freelook = new GraphicsBool(tr("Free Look"), Config::GFX_FREE_LOOK);
   m_dump_use_ffv1 = new GraphicsBool(tr("Frame Dumps Use FFV1"), Config::GFX_USE_FFV1);
 
@@ -73,9 +75,10 @@ void AdvancedWidget::CreateWidgets()
   utility_layout->addWidget(m_prefetch_custom_textures, 1, 0);
   utility_layout->addWidget(m_use_fullres_framedumps, 1, 1);
   utility_layout->addWidget(m_dump_efb_target, 2, 0);
-  utility_layout->addWidget(m_enable_freelook, 2, 1);
+  utility_layout->addWidget(m_disable_vram_copies, 2, 1);
+  utility_layout->addWidget(m_enable_freelook, 3, 0);
 #if defined(HAVE_FFMPEG)
-  utility_layout->addWidget(m_dump_use_ffv1, 3, 0);
+  utility_layout->addWidget(m_dump_use_ffv1, 3, 1);
 #endif
 
   // Misc.
@@ -154,6 +157,9 @@ void AdvancedWidget::AddDescriptions()
   static const char* TR_DUMP_EFB_DESCRIPTION =
       QT_TR_NOOP("Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this "
                  "unchecked.");
+  static const char* TR_DISABLE_VRAM_COPIES_DESCRIPTION =
+      QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
+                 "upscaling.\n\nIf unsure, leave this unchecked.");
   static const char* TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION = QT_TR_NOOP(
       "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
       "the size of the window it is displayed within. If the aspect ratio is widescreen, the "
@@ -196,6 +202,7 @@ void AdvancedWidget::AddDescriptions()
   AddDescription(m_load_custom_textures, TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION);
   AddDescription(m_prefetch_custom_textures, TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION);
   AddDescription(m_dump_efb_target, TR_DUMP_EFB_DESCRIPTION);
+  AddDescription(m_disable_vram_copies, TR_DISABLE_VRAM_COPIES_DESCRIPTION);
   AddDescription(m_use_fullres_framedumps, TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION);
 #ifdef HAVE_FFMPEG
   AddDescription(m_dump_use_ffv1, TR_USE_FFV1_DESCRIPTION);
