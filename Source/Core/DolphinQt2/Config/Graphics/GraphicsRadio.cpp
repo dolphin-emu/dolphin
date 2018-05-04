@@ -18,7 +18,10 @@ GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::ConfigInf
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
+
+    bool old = blockSignals(true);
     setChecked(Config::Get(m_setting) == m_value);
+    blockSignals(old);
   });
 }
 
