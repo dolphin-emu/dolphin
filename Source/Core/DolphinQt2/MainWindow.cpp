@@ -619,9 +619,14 @@ void MainWindow::FullScreen()
   bool was_fullscreen = m_render_widget->isFullScreen();
   HideRenderWidget(false);
   if (was_fullscreen)
+  {
     ShowRenderWidget();
+  }
   else
+  {
+    m_render_widget_size = m_render_widget->size();
     m_render_widget->showFullScreen();
+  }
 }
 
 void MainWindow::ScreenShot()
@@ -691,7 +696,7 @@ void MainWindow::ShowRenderWidget()
     m_rendering_to_main = false;
 
     m_render_widget->showNormal();
-    m_render_widget->resize(640, 480);
+    m_render_widget->resize(m_render_widget_size);
   }
 }
 
