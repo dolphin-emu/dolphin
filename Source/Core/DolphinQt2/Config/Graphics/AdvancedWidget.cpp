@@ -10,8 +10,10 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
@@ -88,7 +90,7 @@ void AdvancedWidget::CreateWidgets()
 
   m_enable_cropping = new GraphicsBool(tr("Crop"), Config::GFX_CROP);
   m_enable_prog_scan =
-      new GraphicsBool(tr("Enable Progressive Scan"), Config::GFX_HACK_FORCE_PROGRESSIVE);
+      new GraphicsBool(tr("Enable Progressive Scan"), Config::SYSCONF_PROGRESSIVE_SCAN);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
