@@ -74,7 +74,8 @@ void RegisterWidget::CreateWidgets()
   m_table->verticalHeader()->setVisible(false);
   m_table->verticalHeader()->setDefaultSectionSize(24);
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_table->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_table->setSelectionMode(QAbstractItemView::NoSelection);
+  m_table->setFont(Settings::Instance().GetDebugFont());
 
   QStringList empty_list;
 
@@ -353,10 +354,12 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
 
     m_table->setItem(row, column, label);
     m_table->setItem(row, column + 1, value);
+    m_table->item(row, column + 1)->setTextAlignment(Qt::AlignRight);
   }
   else
   {
     m_table->setItem(row, column, value);
+    m_table->item(row, column)->setTextAlignment(Qt::AlignRight);
   }
 
   connect(this, &RegisterWidget::UpdateTable, [value] { value->RefreshValue(); });
