@@ -38,7 +38,7 @@ BuildArch:        x86_64 aarch64
 # All other distros should work as well as Dolphin bundles
 # its dependencies for static linking.
 
-BuildRequires:    cmake >= 2.8
+BuildRequires:    cmake >= 3.5
 BuildRequires:    desktop-file-utils
 BuildRequires:    libevdev-devel
 BuildRequires:    libSM-devel
