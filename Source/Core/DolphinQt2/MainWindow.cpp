@@ -442,14 +442,14 @@ void MainWindow::ConnectStack()
   setCentralWidget(m_stack);
 
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
-  addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_code_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_memory_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_jit_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_log_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_log_config_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_code_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_register_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
