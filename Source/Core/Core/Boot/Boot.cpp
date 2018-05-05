@@ -269,10 +269,9 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
   PowerPC::ppcState.gpr[4] = 0x00002030;
   PowerPC::ppcState.gpr[5] = 0x0000009c;
 
-  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
-  m_MSR.FP = 1;
-  m_MSR.DR = 1;
-  m_MSR.IR = 1;
+  MSR.FP = 1;
+  MSR.DR = 1;
+  MSR.IR = 1;
 
   PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
   PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;

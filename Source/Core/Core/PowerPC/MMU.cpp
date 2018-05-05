@@ -168,7 +168,7 @@ static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
 static T ReadFromHardware(u32 em_address)
 {
-  if (!never_translate && UReg_MSR(MSR).DR)
+  if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -256,7 +256,7 @@ static T ReadFromHardware(u32 em_address)
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
 static void WriteToHardware(u32 em_address, const T data)
 {
-  if (!never_translate && UReg_MSR(MSR).DR)
+  if (!never_translate && MSR.DR)
   {
     auto translated_addr = TranslateAddress<flag>(em_address);
     if (!translated_addr.Success())
@@ -393,7 +393,7 @@ u32 Read_Opcode(u32 address)
 TryReadInstResult TryReadInstruction(u32 address)
 {
   bool from_bat = true;
-  if (UReg_MSR(MSR).IR)
+  if (MSR.IR)
   {
     auto tlb_addr = TranslateAddress<XCheckTLBFlag::Opcode>(address);
     if (!tlb_addr.Success())
@@ -658,7 +658,7 @@ bool IsOptimizableRAMAddress(const u32 address)
   if (PowerPC::memchecks.HasAny())
     return false;
 
-  if (!UReg_MSR(MSR).DR)
+  if (!MSR.DR)
     return false;
 
   // TODO: This API needs to take an access size
@@ -694,14 +694,13 @@ static bool IsRAMAddress(u32 address, bool translate)
 
 bool HostIsRAMAddress(u32 address)
 {
-  return IsRAMAddress<XCheckTLBFlag::NoException>(address, UReg_MSR(MSR).DR);
+  return IsRAMAddress<XCheckTLBFlag::NoException>(address, MSR.DR);
 }
 
 bool HostIsInstructionRAMAddress(u32 address)
 {
   // Instructions are always 32bit aligned.
-  return !(address & 3) &&
-         IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, UReg_MSR(MSR).IR);
+  return !(address & 3) && IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, MSR.IR);
 }
 
 void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
@@ -779,7 +778,7 @@ void DMA_MemoryToLC(const u32 cacheAddr, const u32 memAddr, const u32 numBlocks)
 void ClearCacheLine(u32 address)
 {
   DEBUG_ASSERT((address & 0x1F) == 0);
-  if (UReg_MSR(MSR).DR)
+  if (MSR.DR)
   {
     auto translated_address = TranslateAddress<XCheckTLBFlag::Write>(address);
     if (translated_address.result == TranslateAddressResult::DIRECT_STORE_SEGMENT)
@@ -809,7 +808,7 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
   if (PowerPC::memchecks.HasAny())
     return 0;
 
-  if (!UReg_MSR(MSR).DR)
+  if (!MSR.DR)
     return 0;
 
   // Translate address
@@ -831,7 +830,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
   if (PowerPC::memchecks.HasAny())
     return false;
 
-  if (!UReg_MSR(MSR).DR)
+  if (!MSR.DR)
     return false;
 
   // Translate address, only check BAT mapping.
@@ -846,7 +845,7 @@ bool IsOptimizableGatherPipeWrite(u32 address)
 
 TranslateResult JitCache_TranslateAddress(u32 address)
 {
-  if (!UReg_MSR(MSR).IR)
+  if (!MSR.IR)
     return TranslateResult{true, true, address};
 
   // TODO: We shouldn't use FLAG_OPCODE if the caller is the debugger.

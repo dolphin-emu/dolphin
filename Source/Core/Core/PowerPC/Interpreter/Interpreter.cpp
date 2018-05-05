@@ -96,8 +96,7 @@ static void Trace(UGeckoInstruction& inst)
             "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx FPSCR: %08x MSR: %08x LR: "
             "%08x %s %08x %s",
             PC, SRR0, SRR1, (unsigned long)PowerPC::ppcState.cr_val[0], PowerPC::ppcState.fpscr,
-            PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), inst.hex,
-            ppc_inst.c_str());
+            MSR.Hex, PowerPC::ppcState.spr[8], regs.c_str(), inst.hex, ppc_inst.c_str());
 }
 
 int Interpreter::SingleStepInner()
@@ -153,8 +152,7 @@ int Interpreter::SingleStepInner()
 
     if (m_prev_inst.hex != 0)
     {
-      const UReg_MSR msr{MSR};
-      if (msr.FP)  // If FPU is enabled, just execute
+      if (MSR.FP)  // If FPU is enabled, just execute
       {
         m_op_table[m_prev_inst.OPCD](m_prev_inst);
         if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)

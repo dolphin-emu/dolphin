@@ -284,7 +284,7 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much
   // because the realmode code at 0x3400 initializes everything itself anyway.
-  MSR = 0;
+  MSR.Hex = 0;
   PC = 0x3400;
 
   return true;

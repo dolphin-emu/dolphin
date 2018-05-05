@@ -136,7 +136,7 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
 void Interpreter::mfmsr(UGeckoInstruction inst)
 {
   // Privileged?
-  rGPR[inst.RD] = MSR;
+  rGPR[inst.RD] = MSR.Hex;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
@@ -153,7 +153,7 @@ void Interpreter::mfsrin(UGeckoInstruction inst)
 void Interpreter::mtmsr(UGeckoInstruction inst)
 {
   // Privileged?
-  MSR = rGPR[inst.RS];
+  MSR.Hex = rGPR[inst.RS];
   PowerPC::CheckExceptions();
   m_end_block = true;
 }

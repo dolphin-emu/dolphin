@@ -23,7 +23,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
   // The asm routines assume address translation is on.
-  FALLBACK_IF(!UReg_MSR(MSR).DR);
+  FALLBACK_IF(!MSR.DR);
 
   // X30 is LR
   // X0 contains the scale
@@ -106,7 +106,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
   // The asm routines assume address translation is on.
-  FALLBACK_IF(!UReg_MSR(MSR).DR);
+  FALLBACK_IF(!MSR.DR);
 
   // X30 is LR
   // X0 contains the scale
