@@ -426,17 +426,14 @@ void CheatsManager::NewSearch()
     return;
   }
 
-  const auto prev_state = Core::GetState();
-  Core::SetState(Core::State::Paused);
-
-  for (u32 i = 0; i < Memory::REALRAM_SIZE - GetTypeSize(); i++)
-  {
-    if (PowerPC::HostIsRAMAddress(base_address + i) && MatchesSearch(base_address + i))
-      m_results.push_back(
-          {base_address + i, static_cast<DataType>(m_match_length->currentIndex())});
-  }
-
-  Core::SetState(prev_state);
+  Core::RunAsCPUThread([&] {
+    for (u32 i = 0; i < Memory::REALRAM_SIZE - GetTypeSize(); i++)
+    {
+      if (PowerPC::HostIsRAMAddress(base_address + i) && MatchesSearch(base_address + i))
+        m_results.push_back(
+            {base_address + i, static_cast<DataType>(m_match_length->currentIndex())});
+    }
+  });
 
   m_match_next->setEnabled(true);
 
@@ -451,17 +448,14 @@ void CheatsManager::NextSearch()
     return;
   }
 
-  const auto prev_state = Core::GetState();
-  Core::SetState(Core::State::Paused);
-
-  m_results.erase(std::remove_if(m_results.begin(), m_results.end(),
-                                 [this](Result r) {
-                                   return !PowerPC::HostIsRAMAddress(r.address) ||
-                                          !MatchesSearch(r.address);
-                                 }),
-                  m_results.end());
-
-  Core::SetState(prev_state);
+  Core::RunAsCPUThread([this] {
+    m_results.erase(std::remove_if(m_results.begin(), m_results.end(),
+                                   [this](Result r) {
+                                     return !PowerPC::HostIsRAMAddress(r.address) ||
+                                            !MatchesSearch(r.address);
+                                   }),
+                    m_results.end());
+  });
 
   Update();
 }
@@ -482,139 +476,134 @@ void CheatsManager::Update()
     return;
   }
 
-  m_updating = true;
-
   m_result_label->setText(tr("%1 Match(es)").arg(m_results.size()));
   m_match_table->setRowCount(static_cast<int>(m_results.size()));
 
-  for (size_t i = 0; i < m_results.size(); i++)
-  {
-    auto* address_item = new QTableWidgetItem(
-        QStringLiteral("%1").arg(m_results[i].address, 8, 16, QLatin1Char('0')));
-    auto* value_item = new QTableWidgetItem;
+  if (m_results.empty())
+    return;
 
-    address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+  m_updating = true;
 
-    if (PowerPC::HostIsRAMAddress(m_results[i].address))
+  Core::RunAsCPUThread([this] {
+    for (size_t i = 0; i < m_results.size(); i++)
     {
-      const auto prev_state = Core::GetState();
-      Core::SetState(Core::State::Paused);
+      auto* address_item = new QTableWidgetItem(
+          QStringLiteral("%1").arg(m_results[i].address, 8, 16, QLatin1Char('0')));
+      auto* value_item = new QTableWidgetItem;
 
-      switch (m_results[i].type)
+      address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+      if (PowerPC::HostIsRAMAddress(m_results[i].address))
       {
-      case DataType::Byte:
-        value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_results[i].address), 2,
-                                                     16, QLatin1Char('0')));
-        break;
-      case DataType::Short:
-        value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_results[i].address), 4,
-                                                     16, QLatin1Char('0')));
-        break;
-      case DataType::Int:
-        value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_results[i].address), 8,
-                                                     16, QLatin1Char('0')));
-        break;
-      case DataType::Float:
-        value_item->setText(QString::number(PowerPC::HostRead_F32(m_results[i].address)));
-        break;
-      case DataType::Double:
-        value_item->setText(QString::number(PowerPC::HostRead_F64(m_results[i].address)));
-        break;
-      case DataType::String:
-        value_item->setText(tr("String Match"));
-        break;
+        switch (m_results[i].type)
+        {
+        case DataType::Byte:
+          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_results[i].address),
+                                                       2, 16, QLatin1Char('0')));
+          break;
+        case DataType::Short:
+          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_results[i].address),
+                                                       4, 16, QLatin1Char('0')));
+          break;
+        case DataType::Int:
+          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_results[i].address),
+                                                       8, 16, QLatin1Char('0')));
+          break;
+        case DataType::Float:
+          value_item->setText(QString::number(PowerPC::HostRead_F32(m_results[i].address)));
+          break;
+        case DataType::Double:
+          value_item->setText(QString::number(PowerPC::HostRead_F64(m_results[i].address)));
+          break;
+        case DataType::String:
+          value_item->setText(tr("String Match"));
+          break;
+        }
+      }
+      else
+      {
+        value_item->setText(QStringLiteral("---"));
       }
 
-      Core::SetState(prev_state);
+      address_item->setData(INDEX_ROLE, static_cast<int>(i));
+      value_item->setData(INDEX_ROLE, static_cast<int>(i));
+
+      m_match_table->setItem(static_cast<int>(i), 0, address_item);
+      m_match_table->setItem(static_cast<int>(i), 1, value_item);
     }
-    else
+
+    m_watch_table->setRowCount(static_cast<int>(m_watch.size()));
+
+    for (size_t i = 0; i < m_watch.size(); i++)
     {
-      value_item->setText(QStringLiteral("---"));
-    }
+      auto* name_item = new QTableWidgetItem(m_watch[i].name);
+      auto* address_item = new QTableWidgetItem(
+          QStringLiteral("%1").arg(m_watch[i].address, 8, 16, QLatin1Char('0')));
+      auto* lock_item = new QTableWidgetItem;
+      auto* value_item = new QTableWidgetItem;
 
-    address_item->setData(INDEX_ROLE, static_cast<int>(i));
-    value_item->setData(INDEX_ROLE, static_cast<int>(i));
-
-    m_match_table->setItem(static_cast<int>(i), 0, address_item);
-    m_match_table->setItem(static_cast<int>(i), 1, value_item);
-  }
-
-  m_watch_table->setRowCount(static_cast<int>(m_watch.size()));
-
-  for (size_t i = 0; i < m_watch.size(); i++)
-  {
-    auto* name_item = new QTableWidgetItem(m_watch[i].name);
-    auto* address_item =
-        new QTableWidgetItem(QStringLiteral("%1").arg(m_watch[i].address, 8, 16, QLatin1Char('0')));
-    auto* lock_item = new QTableWidgetItem;
-    auto* value_item = new QTableWidgetItem;
-
-    if (PowerPC::HostIsRAMAddress(m_watch[i].address))
-    {
-      const auto prev_state = Core::GetState();
-      Core::SetState(Core::State::Paused);
-
-      if (m_watch[i].locked)
+      if (PowerPC::HostIsRAMAddress(m_watch[i].address))
       {
-        PowerPC::debug_interface.Patch(m_watch[i].address, m_watch[i].locked_value);
+        if (m_watch[i].locked)
+        {
+          PowerPC::debug_interface.Patch(m_watch[i].address, m_watch[i].locked_value);
+        }
+
+        switch (m_watch[i].type)
+        {
+        case DataType::Byte:
+          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_watch[i].address), 2,
+                                                       16, QLatin1Char('0')));
+          break;
+        case DataType::Short:
+          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_watch[i].address), 4,
+                                                       16, QLatin1Char('0')));
+          break;
+        case DataType::Int:
+          value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_watch[i].address), 8,
+                                                       16, QLatin1Char('0')));
+          break;
+        case DataType::Float:
+          value_item->setText(QString::number(PowerPC::HostRead_F32(m_watch[i].address)));
+          break;
+        case DataType::Double:
+          value_item->setText(QString::number(PowerPC::HostRead_F64(m_watch[i].address)));
+          break;
+        case DataType::String:
+          value_item->setText(tr("String Match"));
+          break;
+        }
+      }
+      else
+      {
+        value_item->setText(QStringLiteral("---"));
       }
 
-      switch (m_watch[i].type)
-      {
-      case DataType::Byte:
-        value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U8(m_watch[i].address), 2,
-                                                     16, QLatin1Char('0')));
-        break;
-      case DataType::Short:
-        value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U16(m_watch[i].address), 4,
-                                                     16, QLatin1Char('0')));
-        break;
-      case DataType::Int:
-        value_item->setText(QStringLiteral("%1").arg(PowerPC::HostRead_U32(m_watch[i].address), 8,
-                                                     16, QLatin1Char('0')));
-        break;
-      case DataType::Float:
-        value_item->setText(QString::number(PowerPC::HostRead_F32(m_watch[i].address)));
-        break;
-      case DataType::Double:
-        value_item->setText(QString::number(PowerPC::HostRead_F64(m_watch[i].address)));
-        break;
-      case DataType::String:
-        value_item->setText(tr("String Match"));
-        break;
-      }
+      name_item->setData(INDEX_ROLE, static_cast<int>(i));
+      name_item->setData(COLUMN_ROLE, 0);
+      address_item->setData(INDEX_ROLE, static_cast<int>(i));
+      address_item->setData(COLUMN_ROLE, 1);
+      value_item->setData(INDEX_ROLE, static_cast<int>(i));
+      value_item->setData(COLUMN_ROLE, 2);
+      lock_item->setData(INDEX_ROLE, static_cast<int>(i));
+      lock_item->setData(COLUMN_ROLE, 3);
+      value_item->setData(INDEX_ROLE, static_cast<int>(i));
+      value_item->setData(COLUMN_ROLE, 4);
 
-      Core::SetState(prev_state);
+      name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+      address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      lock_item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
+      value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+
+      lock_item->setCheckState(m_watch[i].locked ? Qt::Checked : Qt::Unchecked);
+
+      m_watch_table->setItem(static_cast<int>(i), 0, name_item);
+      m_watch_table->setItem(static_cast<int>(i), 1, address_item);
+      m_watch_table->setItem(static_cast<int>(i), 2, lock_item);
+      m_watch_table->setItem(static_cast<int>(i), 3, value_item);
     }
-    else
-    {
-      value_item->setText(QStringLiteral("---"));
-    }
-
-    name_item->setData(INDEX_ROLE, static_cast<int>(i));
-    name_item->setData(COLUMN_ROLE, 0);
-    address_item->setData(INDEX_ROLE, static_cast<int>(i));
-    address_item->setData(COLUMN_ROLE, 1);
-    value_item->setData(INDEX_ROLE, static_cast<int>(i));
-    value_item->setData(COLUMN_ROLE, 2);
-    lock_item->setData(INDEX_ROLE, static_cast<int>(i));
-    lock_item->setData(COLUMN_ROLE, 3);
-    value_item->setData(INDEX_ROLE, static_cast<int>(i));
-    value_item->setData(COLUMN_ROLE, 4);
-
-    name_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
-    address_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    lock_item->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsSelectable);
-    value_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-
-    lock_item->setCheckState(m_watch[i].locked ? Qt::Checked : Qt::Unchecked);
-
-    m_watch_table->setItem(static_cast<int>(i), 0, name_item);
-    m_watch_table->setItem(static_cast<int>(i), 1, address_item);
-    m_watch_table->setItem(static_cast<int>(i), 2, lock_item);
-    m_watch_table->setItem(static_cast<int>(i), 3, value_item);
-  }
+  });
 
   m_updating = false;
 }
