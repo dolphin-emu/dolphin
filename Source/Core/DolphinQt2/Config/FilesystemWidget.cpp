@@ -181,8 +181,15 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
       }
       else
       {
-        for (auto& p : m_volume->GetPartitions())
-          ExtractPartition(p, folder);
+        for (DiscIO::Partition& p : m_volume->GetPartitions())
+        {
+          if (const std::optional<u32> partition_type = m_volume->GetPartitionType(p))
+          {
+            const std::string partition_name =
+                DiscIO::DirectoryNameForPartitionType(*partition_type);
+            ExtractPartition(p, folder + QChar(u'/') + QString::fromStdString(partition_name));
+          }
+        }
       }
     });
     break;
@@ -224,7 +231,7 @@ DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id)
 
 void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, const QString& out)
 {
-  ExtractDirectory(partition, QStringLiteral(""), out);
+  ExtractDirectory(partition, QStringLiteral(""), out + QStringLiteral("/files"));
   ExtractSystemData(partition, out);
 }
 
