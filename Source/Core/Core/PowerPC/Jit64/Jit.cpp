@@ -584,6 +584,12 @@ void Jit64::Jit(u32 em_address)
   if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
       SConfig::GetInstance().bJITNoBlockCache)
   {
+    if (!SConfig::GetInstance().bJITNoBlockCache)
+    {
+      const auto reason =
+          IsAlmostFull() ? "main" : m_far_code.IsAlmostFull() ? "far" : "trampoline";
+      WARN_LOG(POWERPC, "flushing %s code cache, please report if this happens a lot", reason);
+    }
     ClearCache();
   }
 
