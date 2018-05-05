@@ -19,7 +19,10 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigI
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
+
+    bool old = blockSignals(true);
     setCurrentIndex(Config::Get(m_setting));
+    blockSignals(old);
   });
 }
 
