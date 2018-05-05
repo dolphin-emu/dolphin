@@ -74,7 +74,18 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_TITLE:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
-      return QString::fromStdString(game.GetName());
+    {
+      QString name = QString::fromStdString(game.GetName());
+      const int disc_nr = game.GetDiscNumber() + 1;
+      if (disc_nr > 1)
+      {
+        if (!name.contains(QRegExp(QStringLiteral("disc ?%1").arg(disc_nr), Qt::CaseInsensitive)))
+        {
+          name.append(tr(" (Disc %1)").arg(disc_nr));
+        }
+      }
+      return name;
+    }
     break;
   case COL_ID:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
