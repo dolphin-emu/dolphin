@@ -20,6 +20,8 @@
 NewPatchDialog::NewPatchDialog(PatchEngine::Patch& patch) : m_patch(patch)
 {
   setWindowTitle(tr("Patch Editor"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
   CreateWidgets();
   ConnectWidgets();
 

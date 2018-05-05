@@ -24,6 +24,8 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
                      .arg(QString::fromStdString(game.GetFileName()),
                           QString::fromStdString(game.GetGameID()),
                           QString::fromStdString(game.GetLongName())));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
   QVBoxLayout* layout = new QVBoxLayout();
 
   QTabWidget* tab_widget = new QTabWidget(this);
