@@ -119,6 +119,23 @@ void CodeViewWidget::Update()
     auto* param_item = new QTableWidgetItem(QString::fromStdString(param));
     auto* description_item = new QTableWidgetItem(QString::fromStdString(desc));
 
+    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item})
+    {
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setData(Qt::UserRole, addr);
+
+      if (color != 0xFFFFFF)
+      {
+        item->setForeground(QColor(Qt::black));
+        item->setBackground(QColor(color));
+      }
+      if (addr == pc && item != bp_item)
+      {
+        item->setBackground(QColor(Qt::green));
+        item->setForeground(QColor(Qt::black));
+      }
+    }
+
     // look for hex strings to decode branches
     std::string hex_str;
     size_t pos = param.find("0x");
@@ -136,20 +153,6 @@ void CodeViewWidget::Update()
 
     if (ins == "blr")
       ins_item->setForeground(Qt::darkGreen);
-
-    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item})
-    {
-      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      item->setData(Qt::UserRole, addr);
-
-      if (color != 0xFFFFFF)
-        item->setBackground(QColor(color).darker(110));
-
-      if (addr == pc && item != bp_item)
-      {
-        item->setBackground(QColor(Qt::green).darker(110));
-      }
-    }
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
