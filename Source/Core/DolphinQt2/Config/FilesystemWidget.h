@@ -39,7 +39,7 @@ private:
   void ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
                         const QString& out);
   void ExtractFile(const DiscIO::Partition& partition, const QString& path, const QString& out);
-  void ExtractSystemData(const DiscIO::Partition& partition, const QString& out);
+  bool ExtractSystemData(const DiscIO::Partition& partition, const QString& out);
   void CheckIntegrity(const DiscIO::Partition& partition);
 
   DiscIO::Partition GetPartitionFromID(int id);

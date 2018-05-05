@@ -173,8 +173,13 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
     AddAction(menu, tr("Extract System Data..."), this, [this, partition] {
       auto folder = SelectFolder();
 
-      if (!folder.isEmpty())
-        ExtractSystemData(partition, folder);
+      if (folder.isEmpty())
+        return;
+
+      if (ExtractSystemData(partition, folder))
+        QMessageBox::information(nullptr, tr("Success"), tr("Successfully extracted system data."));
+      else
+        QMessageBox::critical(nullptr, tr("Error"), tr("Failed to extract system data."));
     });
   }
 
@@ -242,14 +247,9 @@ void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, cons
   ExtractSystemData(partition, out);
 }
 
-void FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out)
+bool FilesystemWidget::ExtractSystemData(const DiscIO::Partition& partition, const QString& out)
 {
-  bool success = DiscIO::ExportSystemData(*m_volume, partition, out.toStdString());
-
-  if (success)
-    QMessageBox::information(nullptr, tr("Success"), tr("Successfully extracted system data."));
-  else
-    QMessageBox::critical(nullptr, tr("Error"), tr("Failed to extract system data."));
+  return DiscIO::ExportSystemData(*m_volume, partition, out.toStdString());
 }
 
 void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, const QString& path,
