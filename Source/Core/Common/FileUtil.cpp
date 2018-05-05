@@ -24,6 +24,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#include <Shlwapi.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
@@ -111,7 +112,11 @@ bool Exists(const std::string& path)
 // Returns true if the path exists and is a directory
 bool IsDirectory(const std::string& path)
 {
+#ifdef _WIN32
+  return PathIsDirectory(UTF8ToUTF16(path).c_str());
+#else
   return FileInfo(path).IsDirectory();
+#endif
 }
 
 // Returns true if the path exists and is a file
