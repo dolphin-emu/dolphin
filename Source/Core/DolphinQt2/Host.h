@@ -33,6 +33,7 @@ signals:
   void RequestStop();
   void RequestRenderSize(int w, int h);
   void UpdateProgressDialog(QString label, int position, int maximum);
+  void UpdateDisasmDialog();
 
 private:
   Host();

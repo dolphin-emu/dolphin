@@ -21,7 +21,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinQt2/Debugger/CodeViewWidget.h"
+#include "DolphinQt2/Host.h"
 #include "DolphinQt2/Settings.h"
 
 CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
@@ -38,6 +38,12 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::CodeVisibilityChanged,
           [this](bool visible) { setHidden(!visible); });
+
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
+    if (Core::GetState() == Core::State::Paused)
+      SetAddress(PowerPC::ppcState.pc, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+    Update();
+  });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
@@ -175,7 +181,7 @@ void CodeWidget::OnSearchAddress()
   m_search_address->setFont(font);
 
   if (good)
-    m_code_view->SetAddress(address);
+    m_code_view->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
 
   Update();
 }
@@ -194,7 +200,8 @@ void CodeWidget::OnSelectSymbol()
 
   Symbol* symbol = g_symbolDB.GetSymbolFromAddr(items[0]->data(Qt::UserRole).toUInt());
 
-  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt());
+  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt(),
+                          CodeViewWidget::SetAddressUpdate::WithUpdate);
   UpdateCallstack();
   UpdateFunctionCalls(symbol);
   UpdateFunctionCallers(symbol);
@@ -208,7 +215,8 @@ void CodeWidget::OnSelectCallstack()
   if (items.isEmpty())
     return;
 
-  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt());
+  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt(),
+                          CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 
@@ -218,7 +226,8 @@ void CodeWidget::OnSelectFunctionCalls()
   if (items.isEmpty())
     return;
 
-  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt());
+  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt(),
+                          CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 
@@ -228,8 +237,14 @@ void CodeWidget::OnSelectFunctionCallers()
   if (items.isEmpty())
     return;
 
-  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt());
+  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt(),
+                          CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
+}
+
+void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update)
+{
+  m_code_view->SetAddress(address, update);
 }
 
 void CodeWidget::Update()
@@ -239,14 +254,14 @@ void CodeWidget::Update()
   UpdateCallstack();
   UpdateSymbols();
 
+  m_code_view->Update();
+  m_code_view->setFocus();
+
   if (!symbol)
     return;
 
   UpdateFunctionCalls(symbol);
   UpdateFunctionCallers(symbol);
-
-  m_code_view->Update();
-  m_code_view->setFocus();
 }
 
 void CodeWidget::UpdateCallstack()
@@ -358,10 +373,7 @@ void CodeWidget::Step()
   sync_event.WaitFor(std::chrono::milliseconds(20));
   PowerPC::SetMode(old_mode);
   Core::DisplayMessage(tr("Step successful!").toStdString(), 2000);
-
-  Core::SetState(Core::State::Paused);
-  m_code_view->SetAddress(PC);
-  Update();
+  // Will get a UpdateDisasmDialog(), don't update the GUI here.
 }
 
 void CodeWidget::StepOver()
@@ -381,10 +393,6 @@ void CodeWidget::StepOver()
   {
     Step();
   }
-
-  Core::SetState(Core::State::Paused);
-  m_code_view->SetAddress(PC);
-  Update();
 }
 
 // Returns true on a rfi, blr or on a bclr that evaluates to true.
@@ -404,7 +412,6 @@ void CodeWidget::StepOut()
   if (!CPU::IsStepping())
     return;
 
-  Core::SetState(Core::State::Running);
   CPU::PauseAndLock(true, false);
   PowerPC::breakpoints.ClearAllTemporary();
 
@@ -447,16 +454,14 @@ void CodeWidget::StepOut()
   PowerPC::SetMode(old_mode);
   CPU::PauseAndLock(false, false);
 
+  emit Host::GetInstance()->UpdateDisasmDialog();
+
   if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
     Core::DisplayMessage(tr("Breakpoint encountered! Step out aborted.").toStdString(), 2000);
   else if (clock::now() >= timeout)
     Core::DisplayMessage(tr("Step out timed out!").toStdString(), 2000);
   else
     Core::DisplayMessage(tr("Step out successful!").toStdString(), 2000);
-
-  Core::SetState(Core::State::Paused);
-  m_code_view->SetAddress(PC);
-  Update();
 }
 
 void CodeWidget::Skip()
@@ -467,7 +472,7 @@ void CodeWidget::Skip()
 
 void CodeWidget::ShowPC()
 {
-  m_code_view->SetAddress(PC);
+  m_code_view->SetAddress(PC, CodeViewWidget::SetAddressUpdate::WithUpdate);
   Update();
 }
 

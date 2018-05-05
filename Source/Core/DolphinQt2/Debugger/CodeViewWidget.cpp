@@ -187,13 +187,14 @@ u32 CodeViewWidget::GetAddress() const
   return m_address;
 }
 
-void CodeViewWidget::SetAddress(u32 address)
+void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
 {
   if (m_address == address)
     return;
 
   m_address = address;
-  Update();
+  if (update == SetAddressUpdate::WithUpdate)
+    Update();
 }
 
 void CodeViewWidget::ReplaceAddress(u32 address, bool blr)
@@ -367,7 +368,7 @@ void CodeViewWidget::OnFollowBranch()
   if (!branch_addr)
     return;
 
-  SetAddress(branch_addr);
+  SetAddress(branch_addr, SetAddressUpdate::WithUpdate);
 }
 
 void CodeViewWidget::OnRenameSymbol()
@@ -533,7 +534,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == 0)
       ToggleBreakpoint();
     else
-      SetAddress(addr);
+      SetAddress(addr, SetAddressUpdate::WithUpdate);
 
     Update();
     break;

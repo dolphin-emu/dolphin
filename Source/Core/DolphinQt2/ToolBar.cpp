@@ -8,6 +8,7 @@
 #include <QIcon>
 
 #include "Core/Core.h"
+#include "DolphinQt2/Host.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -33,6 +34,9 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [this](Core::State state) { OnEmulationStateChanged(state); });
 
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+          [this] { OnEmulationStateChanged(Core::GetState()); });
+
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
 
   connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
@@ -56,6 +60,13 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_play_action->setVisible(!playing);
   m_pause_action->setEnabled(playing);
   m_pause_action->setVisible(playing);
+
+  bool paused = Core::GetState() == Core::State::Paused;
+  m_step_action->setEnabled(paused);
+  m_step_over_action->setEnabled(paused);
+  m_step_out_action->setEnabled(paused);
+  m_skip_action->setEnabled(paused);
+  m_set_pc_action->setEnabled(paused);
 }
 
 void ToolBar::closeEvent(QCloseEvent*)
@@ -71,6 +82,13 @@ void ToolBar::OnDebugModeToggled(bool enabled)
   m_skip_action->setVisible(enabled);
   m_show_pc_action->setVisible(enabled);
   m_set_pc_action->setVisible(enabled);
+
+  bool paused = Core::GetState() == Core::State::Paused;
+  m_step_action->setEnabled(paused);
+  m_step_over_action->setEnabled(paused);
+  m_step_out_action->setEnabled(paused);
+  m_skip_action->setEnabled(paused);
+  m_set_pc_action->setEnabled(paused);
 }
 
 void ToolBar::MakeActions()

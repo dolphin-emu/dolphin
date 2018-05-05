@@ -8,8 +8,8 @@
 #include <QString>
 
 #include "Common/CommonTypes.h"
+#include "DolphinQt2/Debugger/CodeViewWidget.h"
 
-class CodeViewWidget;
 class QCloseEvent;
 class QLineEdit;
 class QSplitter;
@@ -33,6 +33,7 @@ public:
 
   void ToggleBreakpoint();
   void AddBreakpoint();
+  void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
 
   void Update();
 signals:

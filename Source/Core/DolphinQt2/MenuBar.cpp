@@ -46,6 +46,7 @@
 #include "DiscIO/WiiSaveBanner.h"
 
 #include "DolphinQt2/AboutDialog.h"
+#include "DolphinQt2/Host.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
 
@@ -65,6 +66,9 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+          [this] { OnEmulationStateChanged(Core::GetState()); });
+
   OnEmulationStateChanged(Core::GetState());
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &MenuBar::OnDebugModeToggled);
 

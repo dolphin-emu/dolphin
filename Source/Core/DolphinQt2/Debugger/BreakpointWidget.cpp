@@ -206,7 +206,9 @@ void BreakpointWidget::OnDelete()
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
 
   PowerPC::breakpoints.Remove(address);
+  Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Remove(address);
+  Settings::Instance().blockSignals(false);
 
   Update();
 }
@@ -214,7 +216,9 @@ void BreakpointWidget::OnDelete()
 void BreakpointWidget::OnClear()
 {
   PowerPC::debug_interface.ClearAllBreakpoints();
+  Settings::Instance().blockSignals(true);
   PowerPC::debug_interface.ClearAllMemChecks();
+  Settings::Instance().blockSignals(false);
 
   m_table->setRowCount(0);
   Update();
@@ -247,7 +251,9 @@ void BreakpointWidget::OnLoad()
   if (ini.GetLines("MemoryBreakPoints", &newmcs, false))
   {
     PowerPC::memchecks.Clear();
+    Settings::Instance().blockSignals(true);
     PowerPC::memchecks.AddFromStrings(newmcs);
+    Settings::Instance().blockSignals(false);
   }
 
   Update();
@@ -283,7 +289,9 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
 
+  Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Add(check);
+  Settings::Instance().blockSignals(false);
 
   Update();
 }
@@ -301,7 +309,9 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
 
+  Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Add(check);
+  Settings::Instance().blockSignals(false);
 
   Update();
 }
