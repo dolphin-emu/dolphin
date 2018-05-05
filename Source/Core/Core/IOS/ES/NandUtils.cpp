@@ -42,7 +42,8 @@ static IOS::ES::TMDReader FindTMD(u64 title_id, const std::string& tmd_path)
 
 IOS::ES::TMDReader ES::FindImportTMD(u64 title_id) const
 {
-  return FindTMD(title_id, Common::GetImportTitlePath(title_id) + "/content/title.tmd");
+  return FindTMD(title_id, Common::GetImportTitlePath(title_id, Common::FROM_SESSION_ROOT) +
+                               "/content/title.tmd");
 }
 
 IOS::ES::TMDReader ES::FindInstalledTMD(u64 title_id) const
@@ -218,7 +219,8 @@ bool ES::InitImport(u64 title_id)
   // IOS moves the title content directory to /import if the TMD exists during an import.
   if (File::Exists(Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT)))
   {
-    const std::string import_content_dir = Common::GetImportTitlePath(title_id) + "/content";
+    const std::string import_content_dir =
+        Common::GetImportTitlePath(title_id, Common::FROM_SESSION_ROOT) + "/content";
     File::CreateFullPath(import_content_dir);
     if (!File::Rename(content_dir, import_content_dir))
     {
@@ -233,7 +235,8 @@ bool ES::InitImport(u64 title_id)
 bool ES::FinishImport(const IOS::ES::TMDReader& tmd)
 {
   const u64 title_id = tmd.GetTitleId();
-  const std::string import_content_dir = Common::GetImportTitlePath(title_id) + "/content";
+  const std::string import_content_dir =
+      Common::GetImportTitlePath(title_id, Common::FROM_SESSION_ROOT) + "/content";
 
   // Remove everything not listed in the TMD.
   std::unordered_set<std::string> expected_entries = {"title.tmd"};
@@ -274,7 +277,8 @@ bool ES::WriteImportTMD(const IOS::ES::TMDReader& tmd)
       return false;
   }
 
-  const std::string dest = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
+  const std::string dest = Common::GetImportTitlePath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +
+                           "/content/title.tmd";
   return File::Rename(tmd_path, dest);
 }
 
@@ -282,7 +286,8 @@ void ES::FinishStaleImport(u64 title_id)
 {
   const auto import_tmd = FindImportTMD(title_id);
   if (!import_tmd.IsValid())
-    File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
+    File::DeleteDirRecursively(Common::GetImportTitlePath(title_id, Common::FROM_SESSION_ROOT) +
+                               "/content");
   else
     FinishImport(import_tmd);
 }
@@ -305,7 +310,7 @@ std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& conte
     return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
 
   return Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
-         StringFromFormat("%08x.app", content.id);
+         StringFromFormat("/%08x.app", content.id);
 }
 }  // namespace Device
 }  // namespace HLE

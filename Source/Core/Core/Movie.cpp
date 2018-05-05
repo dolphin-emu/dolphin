@@ -1384,8 +1384,8 @@ void GetSettings()
   if (SConfig::GetInstance().bWii)
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
-    s_bClearSave =
-        !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
+    s_bClearSave = !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) +
+                                 "/banner.bin");
   }
   else
   {

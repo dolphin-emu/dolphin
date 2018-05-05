@@ -472,7 +472,7 @@ void StateFlags::UpdateChecksum()
 void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 {
   const std::string file_path =
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_STATE;
+      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/" WII_STATE;
 
   File::IOFile file;
   StateFlags state;
