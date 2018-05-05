@@ -39,6 +39,7 @@ CodeViewWidget::CodeViewWidget()
   setShowGrid(false);
   setContextMenuPolicy(Qt::CustomContextMenu);
   setSelectionMode(QAbstractItemView::SingleSelection);
+  setSelectionBehavior(QAbstractItemView::SelectRows);
   verticalScrollBar()->setHidden(true);
 
   for (int i = 0; i < columnCount(); i++)
@@ -56,6 +57,7 @@ CodeViewWidget::CodeViewWidget()
   Update();
 
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
+  connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
     m_address = PC;
@@ -168,7 +170,7 @@ void CodeViewWidget::Update()
 
     if (addr == GetAddress())
     {
-      addr_item->setSelected(true);
+      selectRow(addr_item->row());
     }
   }
 
@@ -387,6 +389,19 @@ void CodeViewWidget::OnRenameSymbol()
     symbol->Rename(name.toStdString());
     emit SymbolsChanged();
     Update();
+  }
+}
+
+void CodeViewWidget::OnSelectionChanged()
+{
+  if (m_address == PowerPC::ppcState.pc)
+  {
+    setStyleSheet(QString::fromStdString(
+        "QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
+  }
+  else if (!styleSheet().isEmpty())
+  {
+    setStyleSheet(QString::fromStdString(""));
   }
 }
 

@@ -49,6 +49,7 @@ private:
   void OnCopyCode();
   void OnCopyHex();
   void OnRenameSymbol();
+  void OnSelectionChanged();
   void OnSetSymbolSize();
   void OnSetSymbolEndAddress();
   void OnRunToHere();
