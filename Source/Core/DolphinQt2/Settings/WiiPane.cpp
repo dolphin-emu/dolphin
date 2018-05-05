@@ -52,7 +52,6 @@ void WiiPane::CreateLayout()
   CreateMisc();
   CreateWhitelistedUSBPassthroughDevices();
   CreateWiiRemoteSettings();
-  m_main_layout->setContentsMargins(0, 0, 0, 0);
   m_main_layout->addStretch(1);
   setLayout(m_main_layout);
 }
