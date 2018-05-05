@@ -93,6 +93,17 @@ int main(int argc, char* argv[])
 
   QApplication app(argc, argv);
 
+#ifdef _WIN32
+  // Force the default font to Segoe UI on Windows
+  QFont font = QApplication::font();
+  font.setFamily(QStringLiteral("Segoe UI"));
+
+  // The default font size is a bit too small
+  font.setPointSize(QFontInfo(font).pointSize() * 1.2);
+
+  QApplication::setFont(font);
+#endif
+
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
   const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   const std::vector<std::string> args = parser->args();
