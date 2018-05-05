@@ -25,6 +25,8 @@
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent), m_num(num)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
   const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_F);
   const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_G);
 

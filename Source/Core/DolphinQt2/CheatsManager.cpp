@@ -42,6 +42,7 @@ constexpr int COLUMN_ROLE = Qt::UserRole + 1;
 CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Cheats Manager"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           &CheatsManager::OnStateChanged);

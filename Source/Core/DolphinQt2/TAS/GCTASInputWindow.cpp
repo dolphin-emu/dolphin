@@ -17,6 +17,8 @@
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 {
   setWindowTitle(tr("GameCube TAS Input %1").arg(num + 1));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
   auto* main_stick_box = CreateStickInputs(this, tr("Main Stick"), m_x_main_stick_value,
                                            m_y_main_stick_value, 255, 255, Qt::Key_F, Qt::Key_G);
   auto* c_stick_box = CreateStickInputs(this, tr("C Stick"), m_x_c_stick_value, m_y_c_stick_value,
