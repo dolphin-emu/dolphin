@@ -32,10 +32,17 @@ Windows users need to be careful about line endings. Windows users should config
 
 In most cases, clang-format can and **should** be used to automatically reformat code and solve most formatting issues.
 
-- To run clang-format on all staged files:
+It can be installed using your distro package manager (on Linux) or from [LLVM binary packages](http://releases.llvm.org/download.html) for the latest version.
+
+- To run clang-format on all staged files, use the following command:
   ```
-  git diff --cached --name-only | egrep '[.](cpp|h|mm)$' | xargs clang-format -i
+  git diff --cached --name-only | egrep '[.](cpp|h|mm)$' | xargs clang-format -style=file -i
   ```
+  
+  - On Windows, it is recommended to add clang-format to the System Environment Variables, what the LLVM installer offers to do automatically, otherwise try locating `clang-format.exe` in the LLVM installation directory and place it into the Git installation directory under `\usr\bin`.
+  
+- VS2017 users can install the [clang-format extension](https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.ClangFormat).
+
 
 - Formatting issues can be checked for before committing with a lint script that is included with the codebase. To enable it as a pre-commit hook (assuming you are in the repository root):
   ```
