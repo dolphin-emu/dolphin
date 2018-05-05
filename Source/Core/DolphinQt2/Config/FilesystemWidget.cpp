@@ -155,8 +155,20 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
                                     GetPartitionFromID(item->data(ENTRY_PARTITION).toInt());
   QString path = item->data(ENTRY_NAME).toString();
 
-  if ((type == EntryType::Disc && m_volume->GetPartitions().empty()) ||
-      type == EntryType::Partition)
+  const bool is_filesystem_root = (type == EntryType::Disc && m_volume->GetPartitions().empty()) ||
+                                  type == EntryType::Partition;
+
+  if (type == EntryType::Dir || is_filesystem_root)
+  {
+    AddAction(menu, tr("Extract Files..."), this, [this, partition, path] {
+      auto folder = SelectFolder();
+
+      if (!folder.isEmpty())
+        ExtractDirectory(partition, path, folder);
+    });
+  }
+
+  if (is_filesystem_root)
   {
     AddAction(menu, tr("Extract System Data..."), this, [this, partition] {
       auto folder = SelectFolder();
@@ -203,14 +215,6 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
     AddAction(menu, tr("Check Partition Integrity"), this,
               [this, partition] { CheckIntegrity(partition); });
     break;
-  case EntryType::Dir:
-    AddAction(menu, tr("Extract Files..."), this, [this, partition, path] {
-      auto folder = SelectFolder();
-
-      if (!folder.isEmpty())
-        ExtractDirectory(partition, path, folder);
-    });
-    break;
   case EntryType::File:
     AddAction(menu, tr("Extract File..."), this, [this, partition, path] {
       auto dest = QFileDialog::getSaveFileName(this, tr("Save File to"));
@@ -218,6 +222,9 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
       if (!dest.isEmpty())
         ExtractFile(partition, path, dest);
     });
+    break;
+  case EntryType::Dir:
+    // Handled above the switch statement
     break;
   }
 
