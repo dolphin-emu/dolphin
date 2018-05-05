@@ -378,7 +378,7 @@ union UReg_MSR
   u32 Hex = 0;
 
   UReg_MSR() = default;
-  UReg_MSR(u32 hex_) : Hex{hex_} {}
+  explicit UReg_MSR(u32 hex_) : Hex{hex_} {}
 };
 
 #define FPRF_SHIFT 12

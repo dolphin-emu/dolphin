@@ -144,7 +144,7 @@ static void ResetRegisters()
   SystemTimers::TimeBaseSet();
 
   // MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
-  ppcState.msr = 0;
+  ppcState.msr.Hex = 0;
   rDEC = 0xFFFFFFFF;
   SystemTimers::DecrementerSet();
 }
