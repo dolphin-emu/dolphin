@@ -175,6 +175,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DisableTooltips", m_DisableTooltips);
+  interface->Set("DebugModeEnabled", bEnableDebugging);
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -461,6 +462,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DisableTooltips", &m_DisableTooltips, false);
+  interface->Get("DebugModeEnabled", &bEnableDebugging, false);
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)

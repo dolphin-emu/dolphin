@@ -105,7 +105,6 @@ int main(int argc, char* argv[])
   UICommon::CreateDirectories();
   UICommon::Init();
   Resources::Init();
-  Settings::Instance().SetDebugModeEnabled(options.is_set("debugger"));
   Settings::Instance().SetBatchModeEnabled(options.is_set("batch"));
 
   // Hook up alerts from core
@@ -148,6 +147,8 @@ int main(int argc, char* argv[])
     DolphinAnalytics::Instance()->ReportDolphinStart("qt");
 
     MainWindow win{std::move(boot)};
+    if (options.is_set("debugger"))
+      Settings::Instance().SetDebugModeEnabled(true);
     win.show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
