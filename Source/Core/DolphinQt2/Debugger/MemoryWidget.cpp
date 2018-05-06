@@ -507,7 +507,10 @@ void MemoryWidget::FindValue(bool next)
   std::vector<u8> search_for = GetValueData();
 
   if (search_for.empty())
+  {
+    m_result_label->setText(tr("No Value Given"));
     return;
+  }
 
   const u8* ram_ptr = nullptr;
   std::size_t ram_size = 0;
@@ -528,12 +531,6 @@ void MemoryWidget::FindValue(bool next)
   else
   {
     m_result_label->setText(tr("Memory Not Ready"));
-    return;
-  }
-
-  if (search_for.empty())
-  {
-    m_result_label->setText(tr("No Value Given"));
     return;
   }
 
