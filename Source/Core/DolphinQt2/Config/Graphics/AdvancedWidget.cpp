@@ -89,8 +89,7 @@ void AdvancedWidget::CreateWidgets()
   misc_box->setLayout(misc_layout);
 
   m_enable_cropping = new GraphicsBool(tr("Crop"), Config::GFX_CROP);
-  m_enable_prog_scan =
-      new GraphicsBool(tr("Enable Progressive Scan"), Config::SYSCONF_PROGRESSIVE_SCAN);
+  m_enable_prog_scan = new QCheckBox(tr("Enable Progressive Scan"));
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
@@ -118,12 +117,15 @@ void AdvancedWidget::ConnectWidgets()
 void AdvancedWidget::LoadSettings()
 {
   m_prefetch_custom_textures->setEnabled(Config::Get(Config::GFX_HIRES_TEXTURES));
+  m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
 }
 
 void AdvancedWidget::SaveSettings()
 {
   const auto hires_enabled = Config::Get(Config::GFX_HIRES_TEXTURES);
   m_prefetch_custom_textures->setEnabled(hires_enabled);
+
+  Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
 }
 
 void AdvancedWidget::OnBackendChanged()
