@@ -177,7 +177,7 @@ std::vector<IOS::ES::Content> ES::GetStoredContentsFromTMD(const IOS::ES::TMDRea
   std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
                [this, &tmd, &map](const IOS::ES::Content& content) {
                  const std::string path = GetContentPath(tmd.GetTitleId(), content, map);
-                 return !path.empty() && File::Exists(path);
+                 return !path.empty() && m_ios.GetFS()->GetMetadata(0, 0, path).Succeeded();
                });
 
   return stored_contents;
@@ -307,13 +307,8 @@ std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& conte
                                const IOS::ES::SharedContentMap& content_map) const
 {
   if (content.IsShared())
-  {
-    const std::string path = content_map.GetFilenameFromSHA1(content.sha1).value_or("");
-    return path.empty() ? "" : Common::RootUserPath(Common::FROM_SESSION_ROOT) + path;
-  }
-
-  return Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
-         StringFromFormat("/%08x.app", content.id);
+    return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
+  return Common::GetTitleContentPath(title_id) + StringFromFormat("/%08x.app", content.id);
 }
 
 std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& content) const

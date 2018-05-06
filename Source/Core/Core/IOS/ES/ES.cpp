@@ -343,12 +343,8 @@ void ES::DoState(PointerWrap& p)
     p.Do(entry.m_opened);
     p.Do(entry.m_title_id);
     p.Do(entry.m_content);
-    p.Do(entry.m_position);
+    p.Do(entry.m_fd);
     p.Do(entry.m_uid);
-    if (entry.m_opened)
-      entry.m_opened = entry.m_file.Open(GetContentPath(entry.m_title_id, entry.m_content), "rb");
-    else
-      entry.m_file.Close();
   }
 
   m_title_context.DoState(p);

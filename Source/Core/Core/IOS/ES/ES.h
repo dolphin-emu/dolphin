@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 
@@ -339,14 +339,12 @@ private:
                              const IOS::ES::SharedContentMap& map) const;
   std::string GetContentPath(u64 title_id, const IOS::ES::Content& content) const;
 
-  // TODO: reuse the FS code.
   struct OpenedContent
   {
     bool m_opened = false;
-    File::IOFile m_file;
+    FS::Fd m_fd;
     u64 m_title_id = 0;
     IOS::ES::Content m_content;
-    u32 m_position = 0;
     u32 m_uid = 0;
   };
 
