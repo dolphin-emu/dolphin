@@ -14,8 +14,6 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/ChunkFile.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -619,6 +617,32 @@ IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
   return GetDefaultReply(ES_EINVAL);
 }
 
+static s32 WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd)
+{
+  const std::string temp_path = "/tmp/title.tmd";
+  fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
+  fs->CreateFile(PID_KERNEL, PID_KERNEL, temp_path, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
+                 FS::Mode::None);
+  {
+    const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, temp_path, FS::Mode::Write);
+    if (!file)
+      return FS::ConvertResult(file.Error());
+    if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
+      return ES_EIO;
+  }
+
+  const std::string tmd_dir = Common::GetTitleContentPath(tmd.GetTitleId());
+  const std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId());
+  const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, tmd_path, 0, FS::Mode::ReadWrite,
+                                         FS::Mode::ReadWrite, FS::Mode::Read);
+  if (result != FS::ResultCode::Success)
+    return FS::ConvertResult(result);
+
+  fs->SetMetadata(PID_KERNEL, tmd_dir, PID_KERNEL, PID_KERNEL, 0, FS::Mode::ReadWrite,
+                  FS::Mode::ReadWrite, FS::Mode::None);
+  return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
+}
+
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
   m_title_context.Clear();
@@ -633,20 +657,17 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   m_title_context.Update(tmd, ticket);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
-  std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+  // XXX: We are supposed to verify the TMD and ticket here, but cannot because
+  // this may cause issues with custom/patched games.
 
-  File::CreateFullPath(tmd_path);
-  File::CreateFullPath(Common::GetTitleDataPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
-
-  if (!File::Exists(tmd_path))
+  const auto fs = m_ios.GetFS();
+  if (!FindInstalledTMD(tmd.GetTitleId()).IsValid())
   {
-    // XXX: We are supposed to verify the TMD and ticket here, but cannot because
-    // this may cause issues with custom/patched games.
-
-    File::IOFile tmd_file(tmd_path, "wb");
-    const std::vector<u8>& tmd_bytes = tmd.GetBytes();
-    if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
-      ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
+    if (const s32 ret = WriteTmdForDiVerify(fs.get(), tmd))
+    {
+      ERROR_LOG(IOS_ES, "DiVerify failed to write disc TMD to NAND.");
+      return ret;
+    }
   }
 
   if (!UpdateUIDAndGID(*GetIOS(), m_title_context.tmd))
@@ -654,7 +675,12 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
     return ES_SHORT_READ;
   }
 
-  return IPC_SUCCESS;
+  const std::string data_dir = Common::GetTitleDataPath(tmd.GetTitleId());
+  // Might already exist, so we only need to check whether the second operation succeeded.
+  fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, FS::Mode::ReadWrite, FS::Mode::None,
+                      FS::Mode::None);
+  return FS::ConvertResult(fs->SetMetadata(0, data_dir, m_ios.GetUidForPPC(), m_ios.GetGidForPPC(),
+                                           0, FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None));
 }
 
 constexpr u32 FIRST_PPC_UID = 0x1000;
@@ -819,18 +845,20 @@ bool ES::IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& is
   }
 }
 
+static const std::string CERT_STORE_PATH = "/sys/cert.sys";
+
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
   if (!SConfig::GetInstance().m_enable_signature_checks)
     return IPC_SUCCESS;
 
-  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
-  File::IOFile store_file{store_path, "rb"};
+  const auto store_file =
+      m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
   if (!store_file)
-    return FS_ENOENT;
+    return FS::ConvertResult(store_file.Error());
 
-  buffer->resize(store_file.GetSize());
-  if (!store_file.ReadBytes(buffer->data(), buffer->size()))
+  buffer->resize(store_file->GetStatus()->size);
+  if (!store_file->Read(buffer->data(), buffer->size()))
     return ES_SHORT_READ;
   return IPC_SUCCESS;
 }
@@ -849,10 +877,13 @@ ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
   }
 
   // Otherwise, write the new cert at the end of the store.
-  const std::string store_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/sys/cert.sys";
-  File::IOFile store_file{store_path, "ab"};
-  if (!store_file || !store_file.WriteBytes(cert.GetBytes().data(), cert.GetBytes().size()))
+  const auto store_file =
+      m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::ReadWrite);
+  if (!store_file || !store_file->Seek(0, FS::SeekMode::End) ||
+      !store_file->Write(cert.GetBytes().data(), cert.GetBytes().size()))
+  {
     return ES_EIO;
+  }
   return IPC_SUCCESS;
 }
 
