@@ -617,7 +617,7 @@ u32 UIDSys::GetUIDFromTitle(u64 title_id) const
 u32 UIDSys::GetNextUID() const
 {
   if (m_entries.empty())
-    return 0x00001000;
+    return FIRST_PPC_UID;
   return m_entries.rbegin()->first + 1;
 }
 

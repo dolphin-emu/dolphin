@@ -23,6 +23,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/VersionInfo.h"
 
@@ -38,41 +39,42 @@ static u64 s_title_to_launch;
 struct DirectoryToCreate
 {
   const char* path;
-  u32 attributes;
-  OpenMode owner_perm;
-  OpenMode group_perm;
-  OpenMode other_perm;
+  FS::FileAttribute attribute;
+  FS::Mode owner_mode;
+  FS::Mode group_mode;
+  FS::Mode other_mode;
+  FS::Uid uid = PID_KERNEL;
+  FS::Gid gid = PID_KERNEL;
 };
 
 constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
-    {"/sys", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/ticket", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/title", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_READ},
-    {"/shared1", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/shared2", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
-    {"/tmp", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
-    {"/import", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE},
-    {"/meta", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_RW},
-    {"/wfs", 0, OpenMode::IOS_OPEN_RW, OpenMode::IOS_OPEN_NONE, OpenMode::IOS_OPEN_NONE},
+    {"/sys", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
+    {"/ticket", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
+    {"/title", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read},
+    {"/shared1", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
+    {"/shared2", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite},
+    {"/tmp", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite},
+    {"/import", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
+    {"/meta", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
+     IOS::ES::FIRST_PPC_UID, 0x1},
+    {"/wfs", 0, FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None, PID_UNKNOWN, PID_UNKNOWN},
 }};
 
 ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
   for (const auto& directory : s_directories_to_create)
   {
-    const std::string path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + directory.path;
+    // Note: ES sets its own UID and GID to 0/0 at boot, so all filesystem accesses in ES are done
+    // as UID 0 even though its PID is 1.
+    const auto result = m_ios.GetFS()->CreateDirectory(PID_KERNEL, PID_KERNEL, directory.path,
+                                                       directory.attribute, directory.owner_mode,
+                                                       directory.group_mode, directory.other_mode);
+    if (result != FS::ResultCode::Success && result != FS::ResultCode::AlreadyExists)
+      ERROR_LOG(IOS_ES, "Failed to create %s: error %d", directory.path, FS::ConvertResult(result));
 
-    // Create the directory if it does not exist.
-    if (File::IsDirectory(path))
-      continue;
-
-    File::CreateFullPath(path);
-    if (File::CreateDir(path))
-      INFO_LOG(IOS_ES, "Created %s (at %s)", directory.path, path.c_str());
-    else
-      ERROR_LOG(IOS_ES, "Failed to create %s (at %s)", directory.path, path.c_str());
-
-    // TODO: Set permissions.
+    // Now update the UID/GID and other attributes.
+    m_ios.GetFS()->SetMetadata(0, directory.path, directory.uid, directory.gid, directory.attribute,
+                               directory.owner_mode, directory.group_mode, directory.other_mode);
   }
 
   FinishAllStaleImports();
