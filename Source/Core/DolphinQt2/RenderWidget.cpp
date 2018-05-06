@@ -158,8 +158,14 @@ bool RenderWidget::event(QEvent* event)
     const QResizeEvent* se = static_cast<QResizeEvent*>(event);
     QSize new_size = se->size();
 
-    const auto dpr =
-        QGuiApplication::screens()[QApplication::desktop()->screenNumber(this)]->devicePixelRatio();
+    auto* desktop = QApplication::desktop();
+
+    int screen_nr = desktop->screenNumber(this);
+
+    if (screen_nr == -1)
+      screen_nr = desktop->screenNumber(parentWidget());
+
+    const auto dpr = desktop->screen(screen_nr)->devicePixelRatio();
 
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
