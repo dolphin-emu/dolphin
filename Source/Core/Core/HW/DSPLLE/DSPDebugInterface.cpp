@@ -17,6 +17,76 @@ namespace DSP
 {
 namespace LLE
 {
+std::size_t DSPDebugInterface::SetWatch(u32 address, const std::string& name)
+{
+  return m_watches.SetWatch(address, name);
+}
+
+const Common::Debug::Watch& DSPDebugInterface::GetWatch(std::size_t index) const
+{
+  return m_watches.GetWatch(index);
+}
+
+const std::vector<Common::Debug::Watch>& DSPDebugInterface::GetWatches() const
+{
+  return m_watches.GetWatches();
+}
+
+void DSPDebugInterface::UnsetWatch(u32 address)
+{
+  m_watches.UnsetWatch(address);
+}
+
+void DSPDebugInterface::UpdateWatch(std::size_t index, u32 address, const std::string& name)
+{
+  return m_watches.UpdateWatch(index, address, name);
+}
+
+void DSPDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
+{
+  return m_watches.UpdateWatchAddress(index, address);
+}
+
+void DSPDebugInterface::UpdateWatchName(std::size_t index, const std::string& name)
+{
+  return m_watches.UpdateWatchName(index, name);
+}
+
+void DSPDebugInterface::EnableWatch(std::size_t index)
+{
+  m_watches.EnableWatch(index);
+}
+
+void DSPDebugInterface::DisableWatch(std::size_t index)
+{
+  m_watches.DisableWatch(index);
+}
+
+bool DSPDebugInterface::HasEnabledWatch(u32 address) const
+{
+  return m_watches.HasEnabledWatch(address);
+}
+
+void DSPDebugInterface::RemoveWatch(std::size_t index)
+{
+  return m_watches.RemoveWatch(index);
+}
+
+void DSPDebugInterface::LoadWatchesFromStrings(const std::vector<std::string>& watches)
+{
+  m_watches.LoadFromStrings(watches);
+}
+
+std::vector<std::string> DSPDebugInterface::SaveWatchesToStrings() const
+{
+  return m_watches.SaveToStrings();
+}
+
+void DSPDebugInterface::ClearWatches()
+{
+  m_watches.Clear();
+}
+
 std::string DSPDebugInterface::Disassemble(unsigned int address)
 {
   // we'll treat addresses as line numbers.
@@ -190,6 +260,11 @@ void DSPDebugInterface::SetPC(unsigned int address)
 
 void DSPDebugInterface::RunToBreakpoint()
 {
+}
+
+void DSPDebugInterface::Clear()
+{
+  ClearWatches();
 }
 }  // namespace LLE
 }  // namespace DSP

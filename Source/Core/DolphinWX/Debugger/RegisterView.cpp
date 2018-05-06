@@ -541,7 +541,7 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
   switch (event.GetId())
   {
   case IDM_WATCHADDRESS:
-    PowerPC::watches.Add(m_selectedAddress);
+    PowerPC::debug_interface.SetWatch(m_selectedAddress);
     if (watch_window)
       watch_window->NotifyUpdate();
     Refresh();

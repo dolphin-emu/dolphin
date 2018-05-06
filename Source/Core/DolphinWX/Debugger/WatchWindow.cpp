@@ -122,7 +122,7 @@ void CWatchWindow::SaveAll()
   IniFile ini;
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
            false);
-  ini.SetLines("Watches", PowerPC::watches.GetStrings());
+  ini.SetLines("Watches", PowerPC::debug_interface.SaveWatchesToStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
 }
 
@@ -134,7 +134,7 @@ void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 void CWatchWindow::LoadAll()
 {
   IniFile ini;
-  Watches::TWatchesStr watches;
+  std::vector<std::string> watches;
 
   if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
                 false))
@@ -144,8 +144,8 @@ void CWatchWindow::LoadAll()
 
   if (ini.GetLines("Watches", &watches, false))
   {
-    PowerPC::watches.Clear();
-    PowerPC::watches.AddFromStrings(watches);
+    PowerPC::debug_interface.ClearWatches();
+    PowerPC::debug_interface.LoadWatchesFromStrings(watches);
   }
 
   NotifyUpdate();

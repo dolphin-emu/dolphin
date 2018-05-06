@@ -30,12 +30,12 @@ enum
 
 static std::string GetWatchName(int count)
 {
-  return PowerPC::watches.GetWatches().at(count - 1).name;
+  return PowerPC::debug_interface.GetWatch(count - 1).name;
 }
 
 static u32 GetWatchAddr(int count)
 {
-  return PowerPC::watches.GetWatches().at(count - 1).address;
+  return PowerPC::debug_interface.GetWatch(count - 1).address;
 }
 
 static u32 GetWatchValue(int count)
@@ -45,24 +45,23 @@ static u32 GetWatchValue(int count)
 
 static void AddWatchAddr(int count, u32 value)
 {
-  PowerPC::watches.Add(value);
+  PowerPC::debug_interface.SetWatch(value);
 }
 
 static void UpdateWatchAddr(int count, u32 value)
 {
-  PowerPC::watches.Update(count - 1, value);
+  PowerPC::debug_interface.UpdateWatchAddress(count - 1, value);
 }
 
 static void SetWatchName(int count, const std::string& value)
 {
-  if ((count - 1) < (int)PowerPC::watches.GetWatches().size())
+  if (count - 1 < static_cast<int>(PowerPC::debug_interface.GetWatches().size()))
   {
-    PowerPC::watches.UpdateName(count - 1, value);
+    PowerPC::debug_interface.UpdateWatchName(count - 1, value);
   }
   else
   {
-    PowerPC::watches.Add(0);
-    PowerPC::watches.UpdateName(PowerPC::watches.GetWatches().size() - 1, value);
+    PowerPC::debug_interface.SetWatch(0, value);
   }
 }
 
@@ -94,7 +93,7 @@ static wxString GetValueByRowCol(int row, int col)
       return wxEmptyString;
     }
   }
-  else if (row <= (int)PowerPC::watches.GetWatches().size())
+  else if (row <= static_cast<int>(PowerPC::debug_interface.GetWatches().size()))
   {
     if (Core::IsRunning())
     {
@@ -145,10 +144,10 @@ void CWatchTable::SetValue(int row, int col, const wxString& strNewVal)
       }
       case 1:
       {
-        if (row > (int)PowerPC::watches.GetWatches().size())
+        if (row > static_cast<int>(PowerPC::debug_interface.GetWatches().size()))
         {
           AddWatchAddr(row, newVal);
-          row = (int)PowerPC::watches.GetWatches().size();
+          row = static_cast<int>(PowerPC::debug_interface.GetWatches().size());
         }
         else
         {
@@ -170,7 +169,7 @@ void CWatchTable::SetValue(int row, int col, const wxString& strNewVal)
 
 void CWatchTable::UpdateWatch()
 {
-  for (int i = 0; i < (int)PowerPC::watches.GetWatches().size(); ++i)
+  for (int i = 0; i < static_cast<int>(PowerPC::debug_interface.GetWatches().size()); ++i)
   {
     m_CachedWatchHasChanged[i] = (m_CachedWatch[i] != GetWatchValue(i + 1));
     m_CachedWatch[i] = GetWatchValue(i + 1);
@@ -212,7 +211,8 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 
     attr->SetTextColour(red ? *wxRED : *wxBLACK);
 
-    if (row > (int)(PowerPC::watches.GetWatches().size() + 1) || !Core::IsRunning())
+    if (row > static_cast<int>(PowerPC::debug_interface.GetWatches().size() + 1) ||
+        !Core::IsRunning())
     {
       attr->SetReadOnly(true);
       attr->SetBackgroundColour(*wxLIGHT_GREY);
@@ -259,14 +259,15 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
   }
 
   wxMenu menu;
-  if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1))
+  if (row != 0 && row != static_cast<int>(PowerPC::debug_interface.GetWatches().size() + 1))
   {
     // i18n: This kind of "watch" is used for watching emulated memory.
     // It's not related to timekeeping devices.
     menu.Append(IDM_DELETEWATCH, _("&Delete watch"));
   }
 
-  if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) && (col == 1 || col == 2))
+  if (row != 0 && row != static_cast<int>(PowerPC::debug_interface.GetWatches().size() + 1) &&
+      (col == 1 || col == 2))
   {
     menu.Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
     menu.Append(IDM_VIEWMEMORY, _("View &memory"));
@@ -290,7 +291,7 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
     wxString strNewVal = GetValueByRowCol(m_selectedRow, 1);
     if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
     {
-      PowerPC::watches.Remove(m_selectedAddress);
+      PowerPC::debug_interface.UnsetWatch(m_selectedAddress);
       if (watch_window)
         watch_window->NotifyUpdate();
       Refresh();

@@ -15,6 +15,76 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
+std::size_t PPCDebugInterface::SetWatch(u32 address, const std::string& name)
+{
+  return m_watches.SetWatch(address, name);
+}
+
+const Common::Debug::Watch& PPCDebugInterface::GetWatch(std::size_t index) const
+{
+  return m_watches.GetWatch(index);
+}
+
+const std::vector<Common::Debug::Watch>& PPCDebugInterface::GetWatches() const
+{
+  return m_watches.GetWatches();
+}
+
+void PPCDebugInterface::UnsetWatch(u32 address)
+{
+  m_watches.UnsetWatch(address);
+}
+
+void PPCDebugInterface::UpdateWatch(std::size_t index, u32 address, const std::string& name)
+{
+  return m_watches.UpdateWatch(index, address, name);
+}
+
+void PPCDebugInterface::UpdateWatchAddress(std::size_t index, u32 address)
+{
+  return m_watches.UpdateWatchAddress(index, address);
+}
+
+void PPCDebugInterface::UpdateWatchName(std::size_t index, const std::string& name)
+{
+  return m_watches.UpdateWatchName(index, name);
+}
+
+void PPCDebugInterface::EnableWatch(std::size_t index)
+{
+  m_watches.EnableWatch(index);
+}
+
+void PPCDebugInterface::DisableWatch(std::size_t index)
+{
+  m_watches.DisableWatch(index);
+}
+
+bool PPCDebugInterface::HasEnabledWatch(u32 address) const
+{
+  return m_watches.HasEnabledWatch(address);
+}
+
+void PPCDebugInterface::RemoveWatch(std::size_t index)
+{
+  return m_watches.RemoveWatch(index);
+}
+
+void PPCDebugInterface::LoadWatchesFromStrings(const std::vector<std::string>& watches)
+{
+  m_watches.LoadFromStrings(watches);
+}
+
+std::vector<std::string> PPCDebugInterface::SaveWatchesToStrings() const
+{
+  return m_watches.SaveToStrings();
+}
+
+void PPCDebugInterface::ClearWatches()
+{
+  m_watches.Clear();
+}
+
 std::string PPCDebugInterface::Disassemble(unsigned int address)
 {
   // PowerPC::HostRead_U32 seemed to crash on shutdown
@@ -117,11 +187,6 @@ void PPCDebugInterface::ToggleBreakpoint(unsigned int address)
     PowerPC::breakpoints.Add(address);
 }
 
-void PPCDebugInterface::AddWatch(unsigned int address)
-{
-  PowerPC::watches.Add(address);
-}
-
 void PPCDebugInterface::ClearAllMemChecks()
 {
   PowerPC::memchecks.Clear();
@@ -203,4 +268,11 @@ void PPCDebugInterface::SetPC(unsigned int address)
 
 void PPCDebugInterface::RunToBreakpoint()
 {
+}
+
+void PPCDebugInterface::Clear()
+{
+  ClearAllBreakpoints();
+  ClearAllMemChecks();
+  ClearWatches();
 }
