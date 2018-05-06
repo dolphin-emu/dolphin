@@ -40,8 +40,16 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     if (!Settings::Instance().IsDebugModeEnabled())
       return;
 
-    m_load->setEnabled(Core::IsRunning());
-    m_save->setEnabled(Core::IsRunning());
+    bool is_initialised = state != Core::State::Uninitialized;
+    m_new->setEnabled(is_initialised);
+    m_load->setEnabled(is_initialised);
+    m_save->setEnabled(is_initialised);
+    if (!is_initialised)
+    {
+      PowerPC::breakpoints.Clear();
+      PowerPC::memchecks.Clear();
+      Update();
+    }
   });
 
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged,
@@ -101,6 +109,7 @@ void BreakpointWidget::CreateWidgets()
   m_load = AddAction(m_toolbar, tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = AddAction(m_toolbar, tr("Save"), this, &BreakpointWidget::OnSave);
 
+  m_new->setEnabled(false);
   m_load->setEnabled(false);
   m_save->setEnabled(false);
 
