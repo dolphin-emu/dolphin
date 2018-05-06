@@ -244,6 +244,7 @@ void CodeWidget::Update()
 
   m_code_view->Update();
   m_code_view->setFocus();
+  update();
 }
 
 void CodeWidget::UpdateCallstack()
