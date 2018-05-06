@@ -156,7 +156,7 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   if (ret != IPC_SUCCESS)
     return ret;
 
-  if (!InitImport(context.title_import_export.tmd.GetTitleId()))
+  if (!InitImport(context.title_import_export.tmd))
     return ES_EIO;
 
   ret =
@@ -238,7 +238,7 @@ ReturnCode ES::ImportTitleInit(Context& context, const std::vector<u8>& tmd_byte
   if (ret != IPC_SUCCESS)
     return ret;
 
-  if (!InitImport(context.title_import_export.tmd.GetTitleId()))
+  if (!InitImport(context.title_import_export.tmd))
     return ES_EIO;
 
   context.title_import_export.valid = true;

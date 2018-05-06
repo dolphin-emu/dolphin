@@ -326,7 +326,7 @@ private:
                              const std::vector<u8>& cert_chain, u32 iosc_handle = 0);
 
   // Start a title import.
-  bool InitImport(u64 title_id);
+  bool InitImport(const IOS::ES::TMDReader& tmd);
   // Clean up the import content directory and move it back to /title.
   bool FinishImport(const IOS::ES::TMDReader& tmd);
   // Write a TMD for a title in /import atomically.
