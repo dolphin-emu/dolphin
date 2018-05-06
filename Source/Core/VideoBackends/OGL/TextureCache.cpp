@@ -76,7 +76,7 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_widt
   float clamp_top_val =
       clamp_bottom ? (1.0f - src_rect.bottom / static_cast<float>(EFB_HEIGHT)) : 0.0f;
   float clamp_bottom_val =
-      clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 0.0f;
+      clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 1.0f;
   TextureConverter::EncodeToRamFromTexture(dst, params, native_width, bytes_per_row, num_blocks_y,
                                            memory_stride, src_rect, scale_by_half, y_scale, gamma,
                                            clamp_top_val, clamp_bottom_val, filter_coefficients);
@@ -556,7 +556,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   glUniform1f(shader.gamma_rcp_uniform, 1.0f / gamma);
   glUniform2f(shader.clamp_tb_uniform,
               clamp_bottom ? (1.0f - src_rect.bottom / static_cast<float>(EFB_HEIGHT)) : 0.0f,
-              clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 0.0f);
+              clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 1.0f);
   glUniform3f(shader.filter_coefficients_uniform, filter_coefficients[0] / 64.0f,
               filter_coefficients[1] / 64.0f, filter_coefficients[2] / 64.0f);
 
