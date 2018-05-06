@@ -23,13 +23,6 @@ namespace Device
 {
 using namespace IOS::HLE::FS;
 
-static s32 ConvertResult(ResultCode code)
-{
-  if (code == ResultCode::Success)
-    return IPC_SUCCESS;
-  return -(static_cast<s32>(code) + 100);
-}
-
 static IPCCommandResult GetFSReply(s32 return_value, u64 extra_tb_ticks = 0)
 {
   // According to hardware tests, FS takes at least 2700 TB ticks to reply to commands.
