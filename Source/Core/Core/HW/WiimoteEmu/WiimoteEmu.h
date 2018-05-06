@@ -140,8 +140,15 @@ struct DynamicData
 struct DynamicConfiguration
 {
   double low_intensity;
+  int frames_needed_for_low_intensity;
+
   double med_intensity;
+  // Frames needed for med intensity can be calculated between high & low
+
   double high_intensity;
+  int frames_needed_for_high_intensity;
+
+  int frames_to_execute;  // How many frames should we execute the action for?
 };
 
 struct ADPCMState

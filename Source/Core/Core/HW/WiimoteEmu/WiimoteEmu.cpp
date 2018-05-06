@@ -135,10 +135,6 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data, Cont
   unsigned int shake = 0;
   buttons_group->GetState(&shake, btns);
 
-  static const int frames_high = 45;
-  static const int frames_low = 15;
-  static const int frames_to_execute = 31;  // about 2 shake-loops
-
   for (int i = 0; i != 3; ++i)
   {
     if ((shake & (1 << i)) && dynamic_data.executing_frames_left[i] == 0)
@@ -153,11 +149,11 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data, Cont
     }
     else if (shake == 0 && dynamic_data.timing[i] > 0)
     {
-      if (dynamic_data.timing[i] > frames_high)
+      if (dynamic_data.timing[i] > config.frames_needed_for_high_intensity)
       {
         dynamic_data.intensity[i] = config.high_intensity;
       }
-      else if (dynamic_data.timing[i] < frames_low)
+      else if (dynamic_data.timing[i] < config.frames_needed_for_low_intensity)
       {
         dynamic_data.intensity[i] = config.low_intensity;
       }
@@ -166,7 +162,7 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data, Cont
         dynamic_data.intensity[i] = config.med_intensity;
       }
       dynamic_data.timing[i] = 0;
-      dynamic_data.executing_frames_left[i] = frames_to_execute;
+      dynamic_data.executing_frames_left[i] = config.frames_to_execute;
     }
     else
     {
@@ -256,10 +252,6 @@ void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
   if (!sideways && upright)
     g_dir[axis_map[0]] *= -1;
 
-  static const int frames_high = 100;
-  static const int frames_low = 30;
-  static const int frames_to_execute = 30;
-
   for (unsigned int i = 0; i < 3; ++i)
   {
     if (swing[i] > 0 && dynamic_data.executing_frames_left[i] == 0)
@@ -273,11 +265,11 @@ void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
     }
     else if (swing[i] == 0 && dynamic_data.timing[i] > 0)
     {
-      if (dynamic_data.timing[i] > frames_high)
+      if (dynamic_data.timing[i] > config.frames_needed_for_high_intensity)
       {
         dynamic_data.intensity[i] = config.high_intensity;
       }
-      else if (dynamic_data.timing[i] < frames_low)
+      else if (dynamic_data.timing[i] < config.frames_needed_for_low_intensity)
       {
         dynamic_data.intensity[i] = config.low_intensity;
       }
@@ -286,7 +278,7 @@ void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
         dynamic_data.intensity[i] = config.med_intensity;
       }
       dynamic_data.timing[i] = 0;
-      dynamic_data.executing_frames_left[i] = frames_to_execute;
+      dynamic_data.executing_frames_left[i] = config.frames_to_execute;
     }
   }
 }
@@ -612,6 +604,9 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   swing_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW);
   swing_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM);
   swing_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST);
+  swing_config.frames_needed_for_high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_FAST);
+  swing_config.frames_needed_for_low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_SLOW);
+  swing_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_LENGTH);
 
   EmulateSwing(&m_accel, m_swing, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM), is_sideways, is_upright);
   EmulateSwing(&m_accel, m_swing_slow, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW), is_sideways, is_upright);
@@ -623,6 +618,9 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
   shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
   shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
+  shake_config.frames_needed_for_high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
+  shake_config.frames_needed_for_low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
+  shake_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_LENGTH);
 
   EmulateShake(&m_accel, m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM), m_shake_step.data());
   EmulateShake(&m_accel, m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT), m_shake_soft_step.data());
