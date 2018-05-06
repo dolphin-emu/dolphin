@@ -11,6 +11,11 @@ namespace IOS
 {
 namespace HLE
 {
+namespace FS
+{
+class FileSystem;
+}
+
 namespace Net
 {
 #pragma pack(push, 1)
@@ -105,9 +110,9 @@ class WiiNetConfig final
 public:
   WiiNetConfig();
 
-  void ReadConfig();
-  void WriteConfig() const;
-  void ResetConfig();
+  void ReadConfig(FS::FileSystem* fs);
+  void WriteConfig(FS::FileSystem* fs) const;
+  void ResetConfig(FS::FileSystem* fs);
 
   void WriteToMem(u32 address) const;
   void ReadFromMem(u32 address);
@@ -135,7 +140,6 @@ private:
   };
 #pragma pack(pop)
 
-  std::string m_path;
   ConfigData m_data;
 };
 }  // namespace Net

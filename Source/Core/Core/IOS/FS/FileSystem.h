@@ -157,6 +157,11 @@ public:
                                      FileAttribute attribute, Mode owner_mode, Mode group_mode,
                                      Mode other_mode) = 0;
 
+  /// Create any parent directories for a path with the specified metadata.
+  /// Example: "/a/b" to create directory /a; "/a/b/" to create directories /a and /a/b
+  ResultCode CreateFullPath(Uid caller_uid, Gid caller_gid, const std::string& path,
+                            FileAttribute attribute, Mode ownerm, Mode group, Mode other);
+
   /// Delete a file or directory with the specified path.
   virtual ResultCode Delete(Uid caller_uid, Gid caller_gid, const std::string& path) = 0;
   /// Rename a file or directory with the specified path.

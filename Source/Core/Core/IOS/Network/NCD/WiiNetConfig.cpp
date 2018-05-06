@@ -8,10 +8,10 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/IOS.h"
 
 namespace IOS
 {
@@ -19,36 +19,34 @@ namespace HLE
 {
 namespace Net
 {
-WiiNetConfig::WiiNetConfig()
-{
-  m_path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR "/net/02/config.dat";
-  ReadConfig();
-}
+static const std::string CONFIG_PATH = "/shared2/sys/net/02/config.dat";
 
-void WiiNetConfig::ReadConfig()
-{
-  if (!File::IOFile(m_path, "rb").ReadBytes(&m_data, sizeof(m_data)))
-    ResetConfig();
-}
+WiiNetConfig::WiiNetConfig() = default;
 
-void WiiNetConfig::WriteConfig() const
+void WiiNetConfig::ReadConfig(FS::FileSystem* fs)
 {
-  if (!File::Exists(m_path))
   {
-    if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR
-                                                                         "/net/02/"))
-    {
-      ERROR_LOG(IOS_NET, "Failed to create directory for network config file");
-    }
+    const auto file = fs->OpenFile(PID_NCD, PID_NCD, CONFIG_PATH, FS::Mode::Read);
+    if (file && file->Read(&m_data, 1))
+      return;
   }
-
-  File::IOFile(m_path, "wb").WriteBytes(&m_data, sizeof(m_data));
+  ResetConfig(fs);
 }
 
-void WiiNetConfig::ResetConfig()
+void WiiNetConfig::WriteConfig(FS::FileSystem* fs) const
 {
-  if (File::Exists(m_path))
-    File::Delete(m_path);
+  fs->CreateFullPath(PID_NCD, PID_NCD, CONFIG_PATH, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
+                     FS::Mode::ReadWrite);
+  fs->CreateFile(PID_NCD, PID_NCD, CONFIG_PATH, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
+                 FS::Mode::ReadWrite);
+  const auto file = fs->OpenFile(PID_NCD, PID_NCD, CONFIG_PATH, FS::Mode::Write);
+  if (!file || !file->Write(&m_data, 1))
+    ERROR_LOG(IOS_NET, "Failed to write config");
+}
+
+void WiiNetConfig::ResetConfig(FS::FileSystem* fs)
+{
+  fs->Delete(PID_NCD, PID_NCD, CONFIG_PATH);
 
   memset(&m_data, 0, sizeof(m_data));
   m_data.connType = ConfigData::IF_WIRED;
@@ -56,7 +54,7 @@ void WiiNetConfig::ResetConfig()
       ConnectionSettings::WIRED_IF | ConnectionSettings::DNS_DHCP | ConnectionSettings::IP_DHCP |
       ConnectionSettings::CONNECTION_TEST_OK | ConnectionSettings::CONNECTION_SELECTED;
 
-  WriteConfig();
+  WriteConfig(fs);
 }
 
 void WiiNetConfig::WriteToMem(const u32 address) const
