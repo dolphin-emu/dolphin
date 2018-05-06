@@ -446,7 +446,7 @@ static void gdb_read_register()
     wbe32hex(reply, PC);
     break;
   case 65:
-    wbe32hex(reply, MSR);
+    wbe32hex(reply, MSR.Hex);
     break;
   case 66:
     wbe32hex(reply, PowerPC::GetCR());
@@ -531,7 +531,7 @@ static void gdb_write_register()
     PC = re32hex(bufptr);
     break;
   case 65:
-    MSR = re32hex(bufptr);
+    MSR.Hex = re32hex(bufptr);
     break;
   case 66:
     PowerPC::SetCR(re32hex(bufptr));

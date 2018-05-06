@@ -144,7 +144,7 @@ static void ResetRegisters()
   SystemTimers::TimeBaseSet();
 
   // MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
-  ppcState.msr = 0;
+  ppcState.msr.Hex = 0;
   rDEC = 0xFFFFFFFF;
   SystemTimers::DecrementerSet();
 }
@@ -394,15 +394,19 @@ void CheckExceptions()
   u32 exceptions = ppcState.Exceptions;
 
   // Example procedure:
-  // set SRR0 to either PC or NPC
+  // Set SRR0 to either PC or NPC
   // SRR0 = NPC;
-  // save specified MSR bits
-  // SRR1 = MSR & 0x87C0FFFF;
-  // copy ILE bit to LE
-  // MSR |= (MSR >> 16) & 1;
-  // clear MSR as specified
-  // MSR &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
-  // set to exception type entry point
+  //
+  // Save specified MSR bits
+  // SRR1 = MSR.Hex & 0x87C0FFFF;
+  //
+  // Copy ILE bit to LE
+  // MSR.LE |= MSR.ILE;
+  //
+  // Clear MSR as specified
+  // MSR.Hex &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
+  //
+  // Set to exception type entry point
   // NPC = 0x00000x00;
 
   // TODO(delroth): Exception priority is completely wrong here: depending on
@@ -414,9 +418,9 @@ void CheckExceptions()
   {
     SRR0 = NPC;
     // Page fault occurred
-    SRR1 = (MSR & 0x87C0FFFF) | (1 << 30);
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
+    MSR.LE |= MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_ISI");
@@ -426,9 +430,9 @@ void CheckExceptions()
   {
     SRR0 = PC;
     // say that it's a trap exception
-    SRR1 = (MSR & 0x87C0FFFF) | 0x20000;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = (MSR.Hex & 0x87C0FFFF) | 0x20000;
+    MSR.LE |= MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_PROGRAM");
@@ -437,9 +441,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_SYSCALL)
   {
     SRR0 = NPC;
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE |= MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
@@ -449,9 +453,9 @@ void CheckExceptions()
   {
     // This happens a lot - GameCube OS uses deferred FPU context switching
     SRR0 = PC;  // re-execute the instruction
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE |= MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
     DEBUG_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
@@ -464,9 +468,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_DSI)
   {
     SRR0 = PC;
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE |= MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
@@ -476,9 +480,9 @@ void CheckExceptions()
   else if (exceptions & EXCEPTION_ALIGNMENT)
   {
     SRR0 = PC;
-    SRR1 = MSR & 0x87C0FFFF;
-    MSR |= (MSR >> 16) & 1;
-    MSR &= ~0x04EF36;
+    SRR1 = MSR.Hex & 0x87C0FFFF;
+    MSR.LE |= MSR.ILE;
+    MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000600;
 
     // TODO crazy amount of DSISR options to check out
@@ -499,15 +503,16 @@ void CheckExternalExceptions()
   u32 exceptions = ppcState.Exceptions;
 
   // EXTERNAL INTERRUPT
-  if (exceptions && (MSR & 0x0008000))  // Handling is delayed until MSR.EE=1.
+  // Handling is delayed until MSR.EE=1.
+  if (exceptions && MSR.EE)
   {
     if (exceptions & EXCEPTION_EXTERNAL_INT)
     {
       // Pokemon gets this "too early", it hasn't a handler yet
       SRR0 = NPC;
-      SRR1 = MSR & 0x87C0FFFF;
-      MSR |= (MSR >> 16) & 1;
-      MSR &= ~0x04EF36;
+      SRR1 = MSR.Hex & 0x87C0FFFF;
+      MSR.LE |= MSR.ILE;
+      MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
       DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
@@ -518,9 +523,9 @@ void CheckExternalExceptions()
     else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
     {
       SRR0 = NPC;
-      SRR1 = MSR & 0x87C0FFFF;
-      MSR |= (MSR >> 16) & 1;
-      MSR &= ~0x04EF36;
+      SRR1 = MSR.Hex & 0x87C0FFFF;
+      MSR.LE |= MSR.ILE;
+      MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
       DEBUG_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
@@ -529,9 +534,9 @@ void CheckExternalExceptions()
     else if (exceptions & EXCEPTION_DECREMENTER)
     {
       SRR0 = NPC;
-      SRR1 = MSR & 0x87C0FFFF;
-      MSR |= (MSR >> 16) & 1;
-      MSR &= ~0x04EF36;
+      SRR1 = MSR.Hex & 0x87C0FFFF;
+      MSR.LE |= MSR.ILE;
+      MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
       DEBUG_LOG(POWERPC, "EXCEPTION_DECREMENTER");

@@ -75,8 +75,8 @@ struct PowerPCState
   // be manipulated bit by bit fairly easily.
   u64 cr_val[8];
 
-  u32 msr;    // machine specific register
-  u32 fpscr;  // floating point flags/status bits
+  UReg_MSR msr;  // machine state register
+  u32 fpscr;     // floating point flags/status bits
 
   // Exception management.
   u32 Exceptions;

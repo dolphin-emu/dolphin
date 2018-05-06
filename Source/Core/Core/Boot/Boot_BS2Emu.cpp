@@ -55,11 +55,10 @@ void CBoot::RunFunction(u32 address)
 
 void CBoot::SetupMSR()
 {
-  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
-  m_MSR.FP = 1;
-  m_MSR.DR = 1;
-  m_MSR.IR = 1;
-  m_MSR.EE = 1;
+  MSR.FP = 1;
+  MSR.DR = 1;
+  MSR.IR = 1;
+  MSR.EE = 1;
 }
 
 void CBoot::SetupBAT(bool is_wii)

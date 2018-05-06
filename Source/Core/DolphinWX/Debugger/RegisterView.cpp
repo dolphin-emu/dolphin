@@ -82,7 +82,7 @@ u32 GetSpecialRegValue(int reg)
   case 5:
     return PowerPC::ppcState.fpscr;
   case 6:
-    return PowerPC::ppcState.msr;
+    return PowerPC::ppcState.msr.Hex;
   case 7:
     return PowerPC::ppcState.spr[SPR_SRR0];
   case 8:
@@ -127,7 +127,7 @@ void SetSpecialRegValue(int reg, u32 value)
     PowerPC::ppcState.fpscr = value;
     break;
   case 6:
-    PowerPC::ppcState.msr = value;
+    PowerPC::ppcState.msr.Hex = value;
     break;
   case 7:
     PowerPC::ppcState.spr[SPR_SRR0] = value;

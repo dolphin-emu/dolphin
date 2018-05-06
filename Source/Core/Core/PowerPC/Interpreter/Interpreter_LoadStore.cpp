@@ -278,7 +278,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
-  if ((address & 0b11) != 0 || UReg_MSR{MSR}.LE)
+  if ((address & 0b11) != 0 || MSR.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -306,7 +306,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
-  if ((address & 0b11) != 0 || UReg_MSR{MSR}.LE)
+  if ((address & 0b11) != 0 || MSR.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -685,7 +685,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(inst);
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -867,7 +867,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
   else
     EA = rGPR[inst.RA];
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -918,7 +918,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
   else
     EA = rGPR[inst.RA];
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -958,7 +958,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(inst);
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
