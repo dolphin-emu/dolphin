@@ -78,7 +78,7 @@ IPCCommandResult ES::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest&
   if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
-  IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_map{m_ios.GetFS()};
   const u32 uid = uid_map.GetOrInsertUIDForTitle(m_title_context.tmd.GetTitleId());
   if (caller_uid != 0 && caller_uid != uid)
     return GetDefaultReply(ES_EACCES);

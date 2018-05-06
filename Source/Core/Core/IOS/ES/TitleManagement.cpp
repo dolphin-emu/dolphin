@@ -21,6 +21,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 
 namespace IOS
 {
@@ -373,8 +374,9 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   std::string content_path;
   if (content_info.IsShared())
   {
-    IOS::ES::SharedContentMap shared_content{Common::FROM_SESSION_ROOT};
-    content_path = shared_content.AddSharedContent(content_info.sha1);
+    IOS::ES::SharedContentMap shared_content{m_ios.GetFS()};
+    content_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) +
+                   shared_content.AddSharedContent(content_info.sha1);
   }
   else
   {
@@ -424,7 +426,7 @@ ReturnCode ES::ImportTitleDone(Context& context)
   // Make sure all listed, non-optional contents have been imported.
   const u64 title_id = context.title_import_export.tmd.GetTitleId();
   const std::vector<IOS::ES::Content> contents = context.title_import_export.tmd.GetContents();
-  const IOS::ES::SharedContentMap shared_content_map{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap shared_content_map{m_ios.GetFS()};
   const bool has_all_required_contents =
       std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
         if (content.IsOptional())
@@ -785,7 +787,7 @@ IPCCommandResult ES::ExportTitleDone(Context& context, const IOCtlVRequest& requ
 
 ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
 {
-  IOS::ES::SharedContentMap map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::SharedContentMap map{m_ios.GetFS()};
   const auto content_path = map.GetFilenameFromSHA1(sha1);
   if (!content_path)
     return ES_EINVAL;
@@ -810,8 +812,9 @@ ReturnCode ES::DeleteSharedContent(const std::array<u8, 20>& sha1) const
     return ES_EINVAL;
 
   // Delete the shared content and update the content map.
-  if (!File::Delete(*content_path))
-    return FS_ENOENT;
+  const auto delete_result = m_ios.GetFS()->Delete(0, 0, *content_path);
+  if (delete_result != FS::ResultCode::Success)
+    return FS::ConvertResult(delete_result);
 
   if (!map.DeleteSharedContent(sha1))
     return ES_EIO;

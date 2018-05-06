@@ -19,13 +19,13 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 
@@ -489,15 +489,15 @@ struct SharedContentMap::Entry
   std::array<u8, 20> sha1;
 };
 
-SharedContentMap::SharedContentMap(Common::FromWhichRoot root) : m_root(root)
+static const std::string CONTENT_MAP_PATH = "/shared1/content.map";
+SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
-  m_file_path = Common::RootUserPath(root) + "/shared1/content.map";
-
-  File::IOFile file(m_file_path, "rb");
   Entry entry;
-  while (file.ReadArray(&entry, 1))
+  const auto file =
+      fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read);
+  while (file && file->Read(&entry, 1))
   {
     m_entries.push_back(entry);
     m_last_id++;
@@ -515,7 +515,7 @@ SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
     return {};
 
   const std::string id_string(it->id.begin(), it->id.end());
-  return Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id_string.c_str());
+  return StringFromFormat("/shared1/%s.app", id_string.c_str());
 }
 
 std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
@@ -541,7 +541,7 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
   m_entries.push_back(entry);
 
   WriteEntries();
-  filename = Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id.c_str());
+  filename = StringFromFormat("/shared1/%s.app", id.c_str());
   m_last_id++;
   return *filename;
 }
@@ -556,45 +556,49 @@ bool SharedContentMap::DeleteSharedContent(const std::array<u8, 20>& sha1)
 
 bool SharedContentMap::WriteEntries() const
 {
-  // Temporary files in ES are only 12 characters long (excluding /tmp/).
-  const std::string temp_path = Common::RootUserPath(m_root) + "/tmp/shared1/cont";
-  File::CreateFullPath(temp_path);
+  // Temporary files are only 12 characters long and must match the final file name
+  const std::string temp_path = "/tmp/content.map";
+  m_fs->CreateFile(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path, 0, HLE::FS::Mode::ReadWrite,
+                   HLE::FS::Mode::ReadWrite, HLE::FS::Mode::None);
 
   // Atomically write the new content map.
   {
-    File::IOFile file(temp_path, "w+b");
-    if (!file.WriteArray(m_entries.data(), m_entries.size()))
+    const auto file =
+        m_fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path, HLE::FS::Mode::Write);
+    if (!file || !file->Write(m_entries.data(), m_entries.size()))
       return false;
-    File::CreateFullPath(m_file_path);
   }
-  return File::RenameSync(temp_path, m_file_path);
+  return m_fs->Rename(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path, CONTENT_MAP_PATH) ==
+         HLE::FS::ResultCode::Success;
 }
 
-static std::pair<u32, u64> ReadUidSysEntry(File::IOFile& file)
+static std::pair<u32, u64> ReadUidSysEntry(const HLE::FS::FileHandle& file)
 {
   u64 title_id = 0;
-  if (!file.ReadBytes(&title_id, sizeof(title_id)))
+  if (!file.Read(&title_id, 1))
     return {};
 
   u32 uid = 0;
-  if (!file.ReadBytes(&uid, sizeof(uid)))
+  if (!file.Read(&uid, 1))
     return {};
 
   return {Common::swap32(uid), Common::swap64(title_id)};
 }
 
-UIDSys::UIDSys(Common::FromWhichRoot root)
+static const std::string UID_MAP_PATH = "/sys/uid.sys";
+UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
-  m_file_path = Common::RootUserPath(root) + "/sys/uid.sys";
-
-  File::IOFile file(m_file_path, "rb");
-  while (true)
+  if (const auto file =
+          fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))
   {
-    const std::pair<u32, u64> entry = ReadUidSysEntry(file);
-    if (!entry.first && !entry.second)
-      break;
+    while (true)
+    {
+      const std::pair<u32, u64> entry = ReadUidSysEntry(*file);
+      if (!entry.first && !entry.second)
+        break;
 
-    m_entries.insert(std::move(entry));
+      m_entries.insert(std::move(entry));
+    }
   }
 
   if (m_entries.empty())
@@ -633,11 +637,10 @@ u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
   const u64 swapped_title_id = Common::swap64(title_id);
   const u32 swapped_uid = Common::swap32(uid);
 
-  File::CreateFullPath(m_file_path);
-  File::IOFile file(m_file_path, "ab");
-
-  if (!file.WriteBytes(&swapped_title_id, sizeof(title_id)) ||
-      !file.WriteBytes(&swapped_uid, sizeof(uid)))
+  const auto file =
+      m_fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::ReadWrite);
+  if (!file || !file->Seek(0, HLE::FS::SeekMode::End) || !file->Write(&swapped_title_id, 1) ||
+      !file->Write(&swapped_uid, 1))
   {
     ERROR_LOG(IOS_ES, "Failed to write to /sys/uid.sys");
     return 0;

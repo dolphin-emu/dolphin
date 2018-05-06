@@ -169,7 +169,7 @@ std::vector<IOS::ES::Content> ES::GetStoredContentsFromTMD(const IOS::ES::TMDRea
   if (!tmd.IsValid())
     return {};
 
-  const IOS::ES::SharedContentMap map{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap map{m_ios.GetFS()};
   const std::vector<IOS::ES::Content> contents = tmd.GetContents();
 
   std::vector<IOS::ES::Content> stored_contents;
@@ -196,7 +196,7 @@ u32 ES::GetSharedContentsCount() const
 
 std::vector<std::array<u8, 20>> ES::GetSharedContents() const
 {
-  const IOS::ES::SharedContentMap map{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap map{m_ios.GetFS()};
   return map.GetHashes();
 }
 
@@ -213,7 +213,7 @@ bool ES::InitImport(u64 title_id)
     }
   }
 
-  IOS::ES::UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
+  IOS::ES::UIDSys uid_sys{m_ios.GetFS()};
   uid_sys.GetOrInsertUIDForTitle(title_id);
 
   // IOS moves the title content directory to /import if the TMD exists during an import.
@@ -307,10 +307,19 @@ std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& conte
                                const IOS::ES::SharedContentMap& content_map) const
 {
   if (content.IsShared())
-    return content_map.GetFilenameFromSHA1(content.sha1).value_or("");
+  {
+    const std::string path = content_map.GetFilenameFromSHA1(content.sha1).value_or("");
+    return path.empty() ? "" : Common::RootUserPath(Common::FROM_SESSION_ROOT) + path;
+  }
 
   return Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT) +
          StringFromFormat("/%08x.app", content.id);
+}
+
+std::string ES::GetContentPath(const u64 title_id, const IOS::ES::Content& content) const
+{
+  IOS::ES::SharedContentMap map{m_ios.GetFS()};
+  return GetContentPath(title_id, content, map);
 }
 }  // namespace Device
 }  // namespace HLE

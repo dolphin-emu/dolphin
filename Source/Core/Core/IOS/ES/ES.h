@@ -336,8 +336,8 @@ private:
   void FinishAllStaleImports();
 
   std::string GetContentPath(u64 title_id, const IOS::ES::Content& content,
-                             const IOS::ES::SharedContentMap& map = IOS::ES::SharedContentMap{
-                                 Common::FROM_SESSION_ROOT}) const;
+                             const IOS::ES::SharedContentMap& map) const;
+  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content) const;
 
   // TODO: reuse the FS code.
   struct OpenedContent

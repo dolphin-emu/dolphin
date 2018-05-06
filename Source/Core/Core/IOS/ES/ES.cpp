@@ -161,7 +161,7 @@ IPCCommandResult ES::GetTitleId(const IOCtlVRequest& request)
 
 static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
 {
-  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_sys{kernel.GetFS()};
   const u64 title_id = tmd.GetTitleId();
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
   if (!uid)
@@ -174,9 +174,9 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(const u32 caller_uid)
+static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid)
 {
-  IOS::ES::UIDSys uid_map{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_map{kernel.GetFS()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
@@ -190,7 +190,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
-  const s32 ret = CheckIsAllowedToSetUID(uid);
+  const s32 ret = CheckIsAllowedToSetUID(m_ios, uid);
   if (ret < 0)
   {
     ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
