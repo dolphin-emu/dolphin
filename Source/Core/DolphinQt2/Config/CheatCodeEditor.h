@@ -22,7 +22,7 @@ class GeckoCode;
 class CheatCodeEditor : public QDialog
 {
 public:
-  explicit CheatCodeEditor();
+  explicit CheatCodeEditor(QWidget* parent);
 
   void SetARCode(ActionReplay::ARCode* code);
   void SetGeckoCode(Gecko::GeckoCode* code);

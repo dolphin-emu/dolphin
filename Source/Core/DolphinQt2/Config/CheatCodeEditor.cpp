@@ -17,8 +17,11 @@
 #include "Core/ActionReplay.h"
 #include "Core/GeckoCodeConfig.h"
 
-CheatCodeEditor::CheatCodeEditor()
+CheatCodeEditor::CheatCodeEditor(QWidget* parent) : QDialog(parent)
 {
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  setWindowTitle(tr("Cheat Code Editor"));
+
   CreateWidgets();
   ConnectWidgets();
 }

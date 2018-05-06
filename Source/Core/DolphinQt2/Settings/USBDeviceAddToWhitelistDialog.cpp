@@ -40,6 +40,8 @@ USBDeviceAddToWhitelistDialog::USBDeviceAddToWhitelistDialog(QWidget* parent) : 
 void USBDeviceAddToWhitelistDialog::InitControls()
 {
   setWindowTitle(tr("Add New USB Device"));
+  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
   m_whitelist_buttonbox = new QDialogButtonBox();
   auto* add_button = new QPushButton(tr("Add"));
   m_whitelist_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);

@@ -17,7 +17,8 @@
 
 #include <iostream>
 
-NewPatchDialog::NewPatchDialog(PatchEngine::Patch& patch) : m_patch(patch)
+NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
+    : QDialog(parent), m_patch(patch)
 {
   setWindowTitle(tr("Patch Editor"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
