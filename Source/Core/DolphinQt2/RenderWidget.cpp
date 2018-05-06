@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QDesktopWidget>
 #include <QGuiApplication>
+#include <QIcon>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPalette>
@@ -18,10 +19,14 @@
 
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
+  setWindowTitle(QStringLiteral("Dolphin"));
+  setWindowIcon(Resources::GetAppIcon());
+
   QPalette p;
   p.setColor(QPalette::Background, Qt::black);
   setPalette(p);
