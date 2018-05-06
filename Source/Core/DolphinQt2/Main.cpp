@@ -5,6 +5,8 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <cstdio>
+
+#include "Common/StringUtil.h"
 #endif
 
 #include <OptionParser.h>
@@ -94,14 +96,27 @@ int main(int argc, char* argv[])
   QApplication app(argc, argv);
 
 #ifdef _WIN32
-  // Force the default font to Segoe UI on Windows
-  QFont font = QApplication::font();
-  font.setFamily(QStringLiteral("Segoe UI"));
+  // Get the default system font because Qt's way of obtaining it is outdated
+  NONCLIENTMETRICS metrics = {};
+  auto& logfont = metrics.lfMenuFont;
+  metrics.cbSize = sizeof(NONCLIENTMETRICS);
 
-  // The default font size is a bit too small
-  font.setPointSize(QFontInfo(font).pointSize() * 1.2);
+  if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
+  {
+    // Sadly Qt 5 doesn't support turning a native font handle into a QFont so this is the next best
+    // thing
+    QFont font = QApplication::font();
+    font.setFamily(QString::fromStdString(UTF16ToUTF8(logfont.lfFaceName)));
+    font.setWeight(logfont.lfWeight);
+    font.setItalic(logfont.lfItalic);
+    font.setStrikeOut(logfont.lfStrikeOut);
+    font.setUnderline(logfont.lfUnderline);
 
-  QApplication::setFont(font);
+    // The default font size is a bit too small
+    font.setPointSize(QFontInfo(font).pointSize() * 1.2);
+
+    QApplication::setFont(font);
+  }
 #endif
 
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
