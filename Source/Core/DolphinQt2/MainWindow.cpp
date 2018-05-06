@@ -54,6 +54,7 @@
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
+#include "DolphinQt2/Debugger/CodeViewWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
 #include "DolphinQt2/Debugger/JITWidget.h"
 #include "DolphinQt2/Debugger/MemoryWidget.h"
@@ -245,6 +246,10 @@ void MainWindow::CreateComponents()
           &CodeWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
           &MemoryWidget::Update);
+  connect(m_breakpoint_widget, &BreakpointWidget::SelectedBreakpoint, [this](u32 address) {
+    if (Core::GetState() == Core::State::Paused)
+      m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
+  });
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(

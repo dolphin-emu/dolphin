@@ -80,6 +80,15 @@ void BreakpointWidget::CreateWidgets()
   m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   m_table->verticalHeader()->hide();
 
+  connect(m_table, &QTableWidget::itemClicked, [this](QTableWidgetItem* item) {
+    if (m_table->selectedItems()[0]->row() == item->row() &&
+        Core::GetState() == Core::State::Paused)
+    {
+      auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
+      emit SelectedBreakpoint(address);
+    }
+  });
+
   auto* layout = new QVBoxLayout;
 
   layout->addWidget(m_toolbar);
