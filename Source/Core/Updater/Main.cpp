@@ -670,6 +670,15 @@ void FatalError(const std::string& message)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
+  if (lstrlenW(pCmdLine) == 0)
+  {
+    MessageBox(nullptr,
+               L"This updater is not meant to be launched directly. Configure Auto-Update in "
+               "Dolphin's settings instead.",
+               L"Error", MB_ICONERROR);
+    return 1;
+  }
+
   std::optional<Options> maybe_opts = ParseCommandLine(pCmdLine);
   if (!maybe_opts)
     return 1;
