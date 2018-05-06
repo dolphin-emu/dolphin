@@ -29,8 +29,7 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::MAIN_FAST_DISC_SPEED, dtm->bFastDiscSpeed);
   config_layer->Set(Config::MAIN_CPU_CORE, static_cast<int>(dtm->CPUCore));
   config_layer->Set(Config::MAIN_SYNC_GPU, dtm->bSyncGPU);
-  config_layer->Set(Config::MAIN_GFX_BACKEND,
-                    std::string(reinterpret_cast<char*>(dtm->videoBackend)));
+  config_layer->Set(Config::MAIN_GFX_BACKEND, std::string(dtm->videoBackend.data()));
 
   config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, dtm->bProgressive);
   config_layer->Set(Config::SYSCONF_PAL60, dtm->bPAL60);
@@ -73,8 +72,7 @@ void SaveToDTM(Movie::DTMHeader* dtm)
   dtm->bEFBCopyEnable = true;
   dtm->bEFBCopyCacheEnable = false;
 
-  strncpy(reinterpret_cast<char*>(dtm->videoBackend), video_backend.c_str(),
-          ArraySize(dtm->videoBackend));
+  strncpy(dtm->videoBackend.data(), video_backend.c_str(), dtm->videoBackend.size());
 }
 
 // TODO: Future project, let this support all the configuration options.
