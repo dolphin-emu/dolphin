@@ -77,6 +77,7 @@ void BreakpointWidget::CreateWidgets()
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   m_table->verticalHeader()->hide();
 
   auto* layout = new QVBoxLayout;
@@ -122,6 +123,7 @@ void BreakpointWidget::Update()
       {tr("Active"), tr("Type"), tr("Function"), tr("Address"), tr("Flags")});
 
   int i = 0;
+  m_table->setRowCount(i);
 
   auto create_item = [this](const QString string = QStringLiteral("")) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
