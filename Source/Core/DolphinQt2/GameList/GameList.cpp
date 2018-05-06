@@ -210,6 +210,8 @@ void GameList::ShowContextMenu(const QPoint&)
       a->setEnabled(!Core::IsRunning());
       menu->addAction(a);
     }
+    if (!Core::IsRunning())
+      wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
 
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       wad_install_action->setEnabled(state == Core::State::Uninitialized);
