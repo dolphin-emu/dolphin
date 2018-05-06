@@ -80,7 +80,7 @@ u32 GetSpecialRegValue(int reg)
   case 4:
     return PowerPC::GetXER().Hex;
   case 5:
-    return PowerPC::ppcState.fpscr;
+    return PowerPC::ppcState.fpscr.Hex;
   case 6:
     return PowerPC::ppcState.msr.Hex;
   case 7:
@@ -124,7 +124,7 @@ void SetSpecialRegValue(int reg, u32 value)
     PowerPC::SetXER(UReg_XER(value));
     break;
   case 5:
-    PowerPC::ppcState.fpscr = value;
+    PowerPC::ppcState.fpscr.Hex = value;
     break;
   case 6:
     PowerPC::ppcState.msr.Hex = value;
