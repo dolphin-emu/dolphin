@@ -44,6 +44,11 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
+  void SetCurrentUserStyle(const QString& stylesheet_path);
+  QString GetCurrentUserStyle() const;
+
+  void SetUserStylesEnabled(bool enabled);
+  bool AreUserStylesEnabled() const;
 
   bool IsInDevelopmentWarningEnabled() const;
   bool IsLogVisible() const;

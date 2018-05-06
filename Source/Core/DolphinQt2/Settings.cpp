@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QApplication>
 #include <QDir>
+#include <QFile>
 #include <QSettings>
 #include <QSize>
 
@@ -26,6 +28,8 @@ Settings::Settings()
 
   Config::AddConfigChangedCallback(
       [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
+
+  SetCurrentUserStyle(GetCurrentUserStyle());
 }
 
 Settings& Settings::Instance()
@@ -46,6 +50,39 @@ void Settings::SetThemeName(const QString& theme_name)
 {
   SConfig::GetInstance().theme_name = theme_name.toStdString();
   emit ThemeChanged();
+}
+
+QString Settings::GetCurrentUserStyle() const
+{
+  return GetQSettings().value(QStringLiteral("userstyle/path"), false).toString();
+}
+
+void Settings::SetCurrentUserStyle(const QString& stylesheet_path)
+{
+  QString stylesheet_contents;
+
+  if (!stylesheet_path.isEmpty() && AreUserStylesEnabled())
+  {
+    // Load custom user stylesheet
+    QFile stylesheet(stylesheet_path);
+
+    if (stylesheet.open(QFile::ReadOnly))
+      stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
+  }
+
+  qApp->setStyleSheet(stylesheet_contents);
+
+  GetQSettings().setValue(QStringLiteral("userstyle/path"), stylesheet_path);
+}
+
+bool Settings::AreUserStylesEnabled() const
+{
+  return GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
+}
+
+void Settings::SetUserStylesEnabled(bool enabled)
+{
+  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), enabled);
 }
 
 QStringList Settings::GetPaths() const
