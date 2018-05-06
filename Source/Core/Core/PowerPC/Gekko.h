@@ -475,7 +475,7 @@ union UReg_FPSCR
   u32 Hex = 0;
 
   UReg_FPSCR() = default;
-  UReg_FPSCR(u32 hex_) : Hex{hex_} {}
+  explicit UReg_FPSCR(u32 hex_) : Hex{hex_} {}
 };
 
 // Hardware Implementation-Dependent Register 0
