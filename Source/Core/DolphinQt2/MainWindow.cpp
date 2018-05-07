@@ -526,6 +526,8 @@ void MainWindow::OnStopComplete()
   m_stop_requested = false;
   HideRenderWidget();
 
+  SetFullScreenResolution(false);
+
   if (m_exit_requested || Settings::Instance().IsBatchModeEnabled())
     QGuiApplication::instance()->quit();
 
@@ -618,6 +620,8 @@ void MainWindow::FullScreen()
   // which probably isn't ideal.
   bool was_fullscreen = m_render_widget->isFullScreen();
   HideRenderWidget(false);
+  SetFullScreenResolution(!was_fullscreen);
+
   if (was_fullscreen)
   {
     ShowRenderWidget();
@@ -673,11 +677,39 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 #endif
 }
 
+void MainWindow::SetFullScreenResolution(bool fullscreen)
+{
+  if (SConfig::GetInstance().strFullscreenResolution == "Auto")
+    return;
+#ifdef _WIN32
+
+  if (!fullscreen)
+  {
+    ChangeDisplaySettings(nullptr, CDS_FULLSCREEN);
+    return;
+  }
+
+  DEVMODE screen_settings;
+  memset(&screen_settings, 0, sizeof(screen_settings));
+  screen_settings.dmSize = sizeof(screen_settings);
+  sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(), "%dx%d",
+         &screen_settings.dmPelsWidth, &screen_settings.dmPelsHeight);
+  screen_settings.dmBitsPerPel = 32;
+  screen_settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
+  // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+  ChangeDisplaySettings(&screen_settings, CDS_FULLSCREEN);
+#elif defined(HAVE_XRANDR) && HAVE_XRANDR
+  m_xrr_config->ToggleDisplayMode(fullscreen);
+#endif
+}
+
 void MainWindow::ShowRenderWidget()
 {
   if (SConfig::GetInstance().bFullscreen && !m_render_widget->isFullScreen())
   {
     m_render_widget->showFullScreen();
+    SetFullScreenResolution(true);
     return;
   }
 
@@ -698,6 +730,8 @@ void MainWindow::ShowRenderWidget()
     m_render_widget->showNormal();
     m_render_widget->resize(m_render_widget_size);
   }
+
+  SetFullScreenResolution(false);
 }
 
 void MainWindow::HideRenderWidget(bool reinit)
