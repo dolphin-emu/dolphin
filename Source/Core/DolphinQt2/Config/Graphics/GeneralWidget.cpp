@@ -212,6 +212,8 @@ void GeneralWidget::SaveSettings()
   SConfig::GetInstance().bFullscreen = m_enable_fullscreen->isChecked();
   // Autoadjust window size
   SConfig::GetInstance().bRenderWindowAutoSize = m_autoadjust_window_size->isChecked();
+  // Render To Main
+  SConfig::GetInstance().bRenderToMain = m_render_main_window->isChecked();
 }
 
 void GeneralWidget::OnEmulationStateChanged(bool running)
