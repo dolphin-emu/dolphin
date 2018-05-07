@@ -20,7 +20,7 @@ class QPushButton;
 class NewPatchDialog : public QDialog
 {
 public:
-  explicit NewPatchDialog(PatchEngine::Patch& patch);
+  explicit NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch);
 
 private:
   void CreateWidgets();

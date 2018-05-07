@@ -137,7 +137,7 @@ void ARCodeWidget::OnCodeAddPressed()
   ActionReplay::ARCode ar;
   ar.active = true;
 
-  CheatCodeEditor ed;
+  CheatCodeEditor ed(this);
 
   ed.SetARCode(&ar);
 
@@ -165,7 +165,7 @@ void ARCodeWidget::OnCodeEditPressed()
 
   ActionReplay::ARCode ar = current_ar;
 
-  CheatCodeEditor ed;
+  CheatCodeEditor ed(this);
 
   ed.SetARCode(user_defined ? &current_ar : &ar);
   ed.exec();

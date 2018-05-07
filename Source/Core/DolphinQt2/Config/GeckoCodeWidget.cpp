@@ -168,7 +168,7 @@ void GeckoCodeWidget::AddCode()
   Gecko::GeckoCode code;
   code.enabled = true;
 
-  CheatCodeEditor ed;
+  CheatCodeEditor ed(this);
   ed.SetGeckoCode(&code);
 
   if (ed.exec())
@@ -188,7 +188,7 @@ void GeckoCodeWidget::EditCode()
 
   int row = m_code_list->row(item);
 
-  CheatCodeEditor ed;
+  CheatCodeEditor ed(this);
 
   ed.SetGeckoCode(&m_gecko_codes[row]);
 

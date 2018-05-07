@@ -69,7 +69,7 @@ void PatchesWidget::OnAdd()
   PatchEngine::Patch patch;
   patch.user_defined = true;
 
-  if (NewPatchDialog(patch).exec())
+  if (NewPatchDialog(this, patch).exec())
   {
     m_patches.push_back(patch);
     SavePatches();
@@ -93,7 +93,7 @@ void PatchesWidget::OnEdit()
     patch.name = tr("%1 (Copy)").arg(QString::fromStdString(patch.name)).toStdString();
   }
 
-  if (NewPatchDialog(patch).exec())
+  if (NewPatchDialog(this, patch).exec())
   {
     if (patch.user_defined)
     {
