@@ -25,13 +25,9 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 constexpr const char* GLSL_REINTERPRET_PIXELFMT_VS = R"GLSL(
-#define MULTILAYER %d
-
 flat out int layer;
 void main(void) {
-#if MULTILAYER
   layer = 0;
-#endif
   vec2 rawpos = vec2(gl_VertexID & 1, gl_VertexID & 2);
   gl_Position = vec4(rawpos* 2.0 - 1.0, 0.0, 1.0);
 })GLSL";
@@ -356,7 +352,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   }
 
   // reinterpret pixel format
-  std::string vs = StringFromFormat(GLSL_REINTERPRET_PIXELFMT_VS, multilayer);
+  std::string vs = GLSL_REINTERPRET_PIXELFMT_VS;
 
   // The way to sample the EFB is based on the on the current configuration.
   // As we use the same sampling way for both interpreting shaders, the sampling
