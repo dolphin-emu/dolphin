@@ -128,7 +128,7 @@ static void ResetRegisters()
   ppcState.spr[SPR_ECID_M] = 0x1840c00d;
   ppcState.spr[SPR_ECID_L] = 0x82bb08e8;
 
-  ppcState.fpscr = 0;
+  ppcState.fpscr.Hex = 0;
   ppcState.pc = 0;
   ppcState.npc = 0;
   ppcState.Exceptions = 0;

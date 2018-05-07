@@ -75,8 +75,8 @@ struct PowerPCState
   // be manipulated bit by bit fairly easily.
   u64 cr_val[8];
 
-  UReg_MSR msr;  // machine state register
-  u32 fpscr;     // floating point flags/status bits
+  UReg_MSR msr;      // machine state register
+  UReg_FPSCR fpscr;  // floating point flags/status bits
 
   // Exception management.
   u32 Exceptions;
@@ -185,7 +185,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
 #define PC PowerPC::ppcState.pc
 #define NPC PowerPC::ppcState.npc
-#define FPSCR ((UReg_FPSCR&)PowerPC::ppcState.fpscr)
+#define FPSCR PowerPC::ppcState.fpscr
 #define MSR PowerPC::ppcState.msr
 #define GPR(n) PowerPC::ppcState.gpr[n]
 
