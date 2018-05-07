@@ -400,7 +400,7 @@ void CheckExceptions()
   // SRR1 = MSR.Hex & 0x87C0FFFF;
   //
   // Copy ILE bit to LE
-  // MSR.LE |= MSR.ILE;
+  // MSR.LE = MSR.ILE;
   //
   // Clear MSR as specified
   // MSR.Hex &= ~0x04EF36; // 0x04FF36 also clears ME (only for machine check exception)
@@ -418,7 +418,7 @@ void CheckExceptions()
     SRR0 = NPC;
     // Page fault occurred
     SRR1 = (MSR.Hex & 0x87C0FFFF) | (1 << 30);
-    MSR.LE |= MSR.ILE;
+    MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
@@ -430,7 +430,7 @@ void CheckExceptions()
     SRR0 = PC;
     // say that it's a trap exception
     SRR1 = (MSR.Hex & 0x87C0FFFF) | 0x20000;
-    MSR.LE |= MSR.ILE;
+    MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
@@ -441,7 +441,7 @@ void CheckExceptions()
   {
     SRR0 = NPC;
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE |= MSR.ILE;
+    MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
@@ -453,7 +453,7 @@ void CheckExceptions()
     // This happens a lot - GameCube OS uses deferred FPU context switching
     SRR0 = PC;  // re-execute the instruction
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE |= MSR.ILE;
+    MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
@@ -468,7 +468,7 @@ void CheckExceptions()
   {
     SRR0 = PC;
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE |= MSR.ILE;
+    MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
@@ -480,7 +480,7 @@ void CheckExceptions()
   {
     SRR0 = PC;
     SRR1 = MSR.Hex & 0x87C0FFFF;
-    MSR.LE |= MSR.ILE;
+    MSR.LE = MSR.ILE;
     MSR.Hex &= ~0x04EF36;
     PC = NPC = 0x00000600;
 
@@ -510,7 +510,7 @@ void CheckExternalExceptions()
       // Pokemon gets this "too early", it hasn't a handler yet
       SRR0 = NPC;
       SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE |= MSR.ILE;
+      MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
@@ -523,7 +523,7 @@ void CheckExternalExceptions()
     {
       SRR0 = NPC;
       SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE |= MSR.ILE;
+      MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
@@ -534,7 +534,7 @@ void CheckExternalExceptions()
     {
       SRR0 = NPC;
       SRR1 = MSR.Hex & 0x87C0FFFF;
-      MSR.LE |= MSR.ILE;
+      MSR.LE = MSR.ILE;
       MSR.Hex &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
