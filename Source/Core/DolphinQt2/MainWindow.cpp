@@ -955,6 +955,7 @@ bool MainWindow::NetPlayJoin()
   {
     QMessageBox::critical(nullptr, QObject::tr("Error"),
                           QObject::tr("Failed to connect to server"));
+    NetPlayQuit();
     return false;
   }
 
@@ -1004,6 +1005,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
         QObject::tr(
             "Failed to listen on port %1. Is another instance of the NetPlay server running?")
             .arg(host_port));
+    NetPlayQuit();
     return false;
   }
 
