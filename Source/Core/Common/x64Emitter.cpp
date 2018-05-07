@@ -473,7 +473,7 @@ void XEmitter::CALL(const void* fnptr)
 FixupBranch XEmitter::CALL()
 {
   FixupBranch branch;
-  branch.type = 1;
+  branch.type = FixupBranch::Type::Branch32Bit;
   branch.ptr = code + 5;
   Write8(0xE8);
   Write32(0);
@@ -483,7 +483,7 @@ FixupBranch XEmitter::CALL()
 FixupBranch XEmitter::J(bool force5bytes)
 {
   FixupBranch branch;
-  branch.type = force5bytes ? 1 : 0;
+  branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
   branch.ptr = code + (force5bytes ? 5 : 2);
   if (!force5bytes)
   {
@@ -502,7 +502,7 @@ FixupBranch XEmitter::J(bool force5bytes)
 FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
 {
   FixupBranch branch;
-  branch.type = force5bytes ? 1 : 0;
+  branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
   branch.ptr = code + (force5bytes ? 6 : 2);
   if (!force5bytes)
   {
@@ -541,14 +541,14 @@ void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
 
 void XEmitter::SetJumpTarget(const FixupBranch& branch)
 {
-  if (branch.type == 0)
+  if (branch.type == FixupBranch::Type::Branch8Bit)
   {
     s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump target too far away, needs force5Bytes = true");
     branch.ptr[-1] = (u8)(s8)distance;
   }
-  else if (branch.type == 1)
+  else if (branch.type == FixupBranch::Type::Branch32Bit)
   {
     s64 distance = (s64)(code - branch.ptr);
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
