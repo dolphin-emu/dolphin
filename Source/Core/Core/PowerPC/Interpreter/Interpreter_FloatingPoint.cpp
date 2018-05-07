@@ -20,11 +20,11 @@ void Interpreter::Helper_UpdateCR1()
 
 void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, double fb)
 {
-  int compareResult;
+  FPCC compare_result;
 
   if (std::isnan(fa) || std::isnan(fb))
   {
-    compareResult = FPCC::FU;
+    compare_result = FPCC::FU;
     if (MathUtil::IsSNAN(fa) || MathUtil::IsSNAN(fb))
     {
       SetFPException(FPSCR_VXSNAN);
@@ -40,30 +40,32 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, 
   }
   else if (fa < fb)
   {
-    compareResult = FPCC::FL;
+    compare_result = FPCC::FL;
   }
   else if (fa > fb)
   {
-    compareResult = FPCC::FG;
+    compare_result = FPCC::FG;
   }
   else  // Equals
   {
-    compareResult = FPCC::FE;
+    compare_result = FPCC::FE;
   }
 
-  // Clear and set the FPCC bits accordingly.
-  FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compareResult;
+  const u32 compare_value = static_cast<u32>(compare_result);
 
-  PowerPC::SetCRField(inst.CRFD, compareResult);
+  // Clear and set the FPCC bits accordingly.
+  FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compare_value;
+
+  PowerPC::SetCRField(inst.CRFD, compare_value);
 }
 
 void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa, double fb)
 {
-  int compareResult;
+  FPCC compare_result;
 
   if (std::isnan(fa) || std::isnan(fb))
   {
-    compareResult = FPCC::FU;
+    compare_result = FPCC::FU;
 
     if (MathUtil::IsSNAN(fa) || MathUtil::IsSNAN(fb))
     {
@@ -72,21 +74,23 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa
   }
   else if (fa < fb)
   {
-    compareResult = FPCC::FL;
+    compare_result = FPCC::FL;
   }
   else if (fa > fb)
   {
-    compareResult = FPCC::FG;
+    compare_result = FPCC::FG;
   }
   else  // Equals
   {
-    compareResult = FPCC::FE;
+    compare_result = FPCC::FE;
   }
 
-  // Clear and set the FPCC bits accordingly.
-  FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compareResult;
+  const u32 compare_value = static_cast<u32>(compare_result);
 
-  PowerPC::SetCRField(inst.CRFD, compareResult);
+  // Clear and set the FPCC bits accordingly.
+  FPSCR.FPRF = (FPSCR.FPRF & ~0xF) | compare_value;
+
+  PowerPC::SetCRField(inst.CRFD, compare_value);
 }
 
 void Interpreter::fcmpo(UGeckoInstruction inst)

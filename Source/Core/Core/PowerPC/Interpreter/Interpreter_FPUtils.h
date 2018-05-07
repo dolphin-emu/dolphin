@@ -17,7 +17,7 @@
 constexpr double PPC_NAN = std::numeric_limits<double>::quiet_NaN();
 
 // the 4 less-significand bits in FPSCR[FPRF]
-enum FPCC
+enum class FPCC
 {
   FL = 8,  // <
   FG = 4,  // >
