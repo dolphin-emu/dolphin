@@ -140,11 +140,8 @@ static void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
   vertex0X = xi;
   vertex0Y = yi;
 
-  // adjust a little less than 0.5
-  const float adjust = 0.495f;
-
-  vertexOffsetX = ((float)xi - X1) + adjust;
-  vertexOffsetY = ((float)yi - Y1) + adjust;
+  vertexOffsetX = (float)xi - X1;
+  vertexOffsetY = (float)yi - Y1;
 }
 
 static void InitSlope(Slope* slope, float f1, float f2, float f3, float DX31, float DX12,
