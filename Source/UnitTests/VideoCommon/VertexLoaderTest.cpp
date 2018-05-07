@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>  // NOLINT
 
 #include "Common/Common.h"
-#include "Common/MathUtil.h"
+#include "Common/FloatUtils.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -75,7 +75,7 @@ protected:
   void ExpectOut(float val)
   {
     // Read unswapped.
-    MathUtil::IntFloat expected(val), actual(m_dst.Read<float, false>());
+    Common::IntFloat expected(val), actual(m_dst.Read<float, false>());
     if (!actual.f || actual.f != actual.f)
       EXPECT_EQ(expected.i, actual.i);
     else

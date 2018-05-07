@@ -10,7 +10,7 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
+#include "Common/FloatUtils.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -56,7 +56,7 @@ inline double ForceSingle(double value)
   float x = (float)value;
   if (!cpu_info.bFlushToZero && FPSCR.NI)
   {
-    x = MathUtil::FlushToZero(x);
+    x = Common::FlushToZero(x);
   }
   // ...and back to double:
   return x;
@@ -66,7 +66,7 @@ inline double ForceDouble(double d)
 {
   if (!cpu_info.bFlushToZero && FPSCR.NI)
   {
-    d = MathUtil::FlushToZero(d);
+    d = Common::FlushToZero(d);
   }
   return d;
 }
@@ -89,7 +89,7 @@ inline double MakeQuiet(double d)
   u64 integral;
   std::memcpy(&integral, &d, sizeof(u64));
 
-  integral |= MathUtil::DOUBLE_QBIT;
+  integral |= Common::DOUBLE_QBIT;
 
   double result;
   std::memcpy(&result, &integral, sizeof(double));
@@ -227,13 +227,13 @@ inline double NI_msub(double a, double c, double b)
 inline u32 ConvertToSingle(u64 x)
 {
   u32 exp = (x >> 52) & 0x7ff;
-  if (exp > 896 || (x & ~MathUtil::DOUBLE_SIGN) == 0)
+  if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
     return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
   }
   else if (exp >= 874)
   {
-    u32 t = (u32)(0x80000000 | ((x & MathUtil::DOUBLE_FRAC) >> 21));
+    u32 t = (u32)(0x80000000 | ((x & Common::DOUBLE_FRAC) >> 21));
     t = t >> (905 - exp);
     t |= (x >> 32) & 0x80000000;
     return t;
@@ -250,7 +250,7 @@ inline u32 ConvertToSingle(u64 x)
 inline u32 ConvertToSingleFTZ(u64 x)
 {
   u32 exp = (x >> 52) & 0x7ff;
-  if (exp > 896 || (x & ~MathUtil::DOUBLE_SIGN) == 0)
+  if (exp > 896 || (x & ~Common::DOUBLE_SIGN) == 0)
   {
     return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
   }

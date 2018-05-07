@@ -8,8 +8,8 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/FloatUtils.h"
 #include "Common/JitRegister.h"
-#include "Common/MathUtil.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
@@ -57,15 +57,15 @@ void CommonAsmRoutines::GenFrsqrte()
   XOR(32, R(RSCRATCH_EXTRA), Imm8(0x10));  // int index = i / 2048 + (odd_exponent ? 16 : 0);
 
   PUSH(RSCRATCH2);
-  MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(MathUtil::frsqrte_expected)));
-  static_assert(sizeof(MathUtil::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+  MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(Common::frsqrte_expected)));
+  static_assert(sizeof(Common::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
 
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
   IMUL(32, RSCRATCH,
-       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(MathUtil::BaseAndDec, m_dec)));
+       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
   MOV(32, R(RSCRATCH_EXTRA),
-      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(MathUtil::BaseAndDec, m_base)));
+      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
   SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
 
@@ -94,7 +94,7 @@ void CommonAsmRoutines::GenFrsqrte()
   SetJumpTarget(complex2);
   SetJumpTarget(complex3);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction(MathUtil::ApproximateReciprocalSquareRoot);
+  ABI_CallFunction(Common::ApproximateReciprocalSquareRoot);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
@@ -135,16 +135,16 @@ void CommonAsmRoutines::GenFres()
   AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
   PUSH(RSCRATCH_EXTRA);
-  MOV(64, R(RSCRATCH_EXTRA), ImmPtr(GetConstantFromPool(MathUtil::fres_expected)));
-  static_assert(sizeof(MathUtil::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+  MOV(64, R(RSCRATCH_EXTRA), ImmPtr(GetConstantFromPool(Common::fres_expected)));
+  static_assert(sizeof(Common::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
 
   IMUL(32, RSCRATCH,
-       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(MathUtil::BaseAndDec, m_dec)));
+       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_dec)));
   ADD(32, R(RSCRATCH), Imm8(1));
   SHR(32, R(RSCRATCH), Imm8(1));
 
   MOV(32, R(RSCRATCH2),
-      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(MathUtil::BaseAndDec, m_base)));
+      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(Common::BaseAndDec, m_base)));
   SUB(32, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(29));
 
@@ -165,7 +165,7 @@ void CommonAsmRoutines::GenFres()
 
   SetJumpTarget(complex);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction(MathUtil::ApproximateReciprocal);
+  ABI_CallFunction(Common::ApproximateReciprocal);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 

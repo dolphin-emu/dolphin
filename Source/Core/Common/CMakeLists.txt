@@ -14,6 +14,7 @@ add_library(common
   File.cpp
   FileSearch.cpp
   FileUtil.cpp
+  FloatUtils.cpp
   GekkoDisassembler.cpp
   Hash.cpp
   HttpRequest.cpp

@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
+#include "Common/FloatUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -123,8 +123,8 @@ void Interpreter::ps_res(UGeckoInstruction inst)
     SetFPException(FPSCR_ZX);
   }
 
-  rPS0(inst.FD) = MathUtil::ApproximateReciprocal(a);
-  rPS1(inst.FD) = MathUtil::ApproximateReciprocal(b);
+  rPS0(inst.FD) = Common::ApproximateReciprocal(a);
+  rPS1(inst.FD) = Common::ApproximateReciprocal(b);
   PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
@@ -143,8 +143,8 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
     SetFPException(FPSCR_VXSQRT);
   }
 
-  rPS0(inst.FD) = ForceSingle(MathUtil::ApproximateReciprocalSquareRoot(rPS0(inst.FB)));
-  rPS1(inst.FD) = ForceSingle(MathUtil::ApproximateReciprocalSquareRoot(rPS1(inst.FB)));
+  rPS0(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(rPS0(inst.FB)));
+  rPS1(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(rPS1(inst.FB)));
 
   PowerPC::UpdateFPRF(rPS0(inst.FD));
 

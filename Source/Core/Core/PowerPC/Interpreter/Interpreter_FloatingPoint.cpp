@@ -6,7 +6,7 @@
 #include <limits>
 
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
+#include "Common/FloatUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -25,7 +25,7 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, 
   if (std::isnan(fa) || std::isnan(fb))
   {
     compare_result = FPCC::FU;
-    if (MathUtil::IsSNAN(fa) || MathUtil::IsSNAN(fb))
+    if (Common::IsSNAN(fa) || Common::IsSNAN(fb))
     {
       SetFPException(FPSCR_VXSNAN);
       if (FPSCR.VE == 0)
@@ -67,7 +67,7 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction inst, double fa
   {
     compare_result = FPCC::FU;
 
-    if (MathUtil::IsSNAN(fa) || MathUtil::IsSNAN(fb))
+    if (Common::IsSNAN(fa) || Common::IsSNAN(fb))
     {
       SetFPException(FPSCR_VXSNAN);
     }
@@ -373,7 +373,7 @@ void Interpreter::fdivsx(UGeckoInstruction inst)
 void Interpreter::fresx(UGeckoInstruction inst)
 {
   double b = rPS0(inst.FB);
-  rPS0(inst.FD) = rPS1(inst.FD) = MathUtil::ApproximateReciprocal(b);
+  rPS0(inst.FD) = rPS1(inst.FD) = Common::ApproximateReciprocal(b);
 
   if (b == 0.0)
   {
@@ -399,7 +399,7 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
     SetFPException(FPSCR_ZX);
   }
 
-  rPS0(inst.FD) = MathUtil::ApproximateReciprocalSquareRoot(b);
+  rPS0(inst.FD) = Common::ApproximateReciprocalSquareRoot(b);
   PowerPC::UpdateFPRF(rPS0(inst.FD));
 
   if (inst.Rc)
