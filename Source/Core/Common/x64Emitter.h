@@ -322,8 +322,14 @@ inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
 
 struct FixupBranch
 {
+  enum class Type
+  {
+    Branch8Bit,
+    Branch32Bit
+  };
+
   u8* ptr;
-  int type;  // 0 = 8bit 1 = 32bit
+  Type type;
 };
 
 class XEmitter
