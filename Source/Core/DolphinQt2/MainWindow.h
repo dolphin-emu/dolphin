@@ -88,6 +88,8 @@ private:
 
   void PerformOnlineUpdate(const std::string& region);
 
+  void SetFullScreenResolution(bool fullscreen);
+
   void FullScreen();
   void ScreenShot();
 
