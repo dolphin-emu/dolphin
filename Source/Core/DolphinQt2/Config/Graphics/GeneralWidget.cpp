@@ -133,7 +133,7 @@ void GeneralWidget::ConnectWidgets()
   connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
 
-  for (QCheckBox* checkbox : {m_enable_fullscreen, m_render_main_window})
+  for (QCheckBox* checkbox : {m_enable_fullscreen, m_render_main_window, m_autoadjust_window_size})
     connect(checkbox, &QCheckBox::toggled, this, &GeneralWidget::SaveSettings);
 }
 
@@ -155,7 +155,7 @@ void GeneralWidget::LoadSettings()
   m_enable_fullscreen->setChecked(SConfig::GetInstance().bFullscreen);
 
   // Render to Main Window
-  SConfig::GetInstance().bRenderToMain = m_render_main_window->isChecked();
+  m_render_main_window->setChecked(SConfig::GetInstance().bRenderToMain);
 
   // Autoadjust window size
   m_autoadjust_window_size->setChecked(SConfig::GetInstance().bRenderWindowAutoSize);
