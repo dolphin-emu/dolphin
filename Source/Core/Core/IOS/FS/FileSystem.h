@@ -141,6 +141,9 @@ public:
 
   /// Get a file descriptor for accessing a file. The FD will be automatically closed after use.
   virtual Result<FileHandle> OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode) = 0;
+  /// Create a file if it doesn't exist and open it in read/write mode.
+  Result<FileHandle> CreateAndOpenFile(Uid uid, Gid gid, const std::string& path, Mode owner_mode,
+                                       Mode group_mode, Mode other_mode);
   /// Close a file descriptor.
   virtual ResultCode Close(Fd fd) = 0;
   /// Read `size` bytes from the file descriptor. Returns the number of bytes read.

@@ -312,9 +312,8 @@ bool ES::WriteImportTMD(const IOS::ES::TMDReader& tmd)
   const auto fs = m_ios.GetFS();
   const std::string tmd_path = "/tmp/title.tmd";
   {
-    fs->CreateFile(PID_KERNEL, PID_KERNEL, tmd_path, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
-                   FS::Mode::None);
-    const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::Write);
+    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::ReadWrite,
+                                            FS::Mode::ReadWrite, FS::Mode::None);
     if (!file || !file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
       return false;
   }

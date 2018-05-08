@@ -623,10 +623,9 @@ static s32 WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd
 {
   const std::string temp_path = "/tmp/title.tmd";
   fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
-  fs->CreateFile(PID_KERNEL, PID_KERNEL, temp_path, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
-                 FS::Mode::None);
   {
-    const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, temp_path, FS::Mode::Write);
+    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, FS::Mode::ReadWrite,
+                                            FS::Mode::ReadWrite, FS::Mode::None);
     if (!file)
       return FS::ConvertResult(file.Error());
     if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
@@ -880,7 +879,8 @@ ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 
   // Otherwise, write the new cert at the end of the store.
   const auto store_file =
-      m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::ReadWrite);
+      m_ios.GetFS()->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::ReadWrite,
+                                       FS::Mode::ReadWrite, FS::Mode::Read);
   if (!store_file || !store_file->Seek(0, FS::SeekMode::End) ||
       !store_file->Write(cert.GetBytes().data(), cert.GetBytes().size()))
   {

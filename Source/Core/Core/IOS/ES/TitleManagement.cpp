@@ -34,10 +34,9 @@ static ReturnCode WriteTicket(FS::FileSystem* fs, const IOS::ES::TicketReader& t
   const std::string path = Common::GetTicketFileName(title_id);
   fs->CreateFullPath(PID_KERNEL, PID_KERNEL, path, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
                      FS::Mode::None);
-  fs->CreateFile(PID_KERNEL, PID_KERNEL, path, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
-                 FS::Mode::None);
 
-  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::Write);
+  const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, path, FS::Mode::ReadWrite,
+                                          FS::Mode::ReadWrite, FS::Mode::None);
   if (!file)
     return FS::ConvertResult(file.Error());
 
@@ -387,10 +386,9 @@ ReturnCode ES::ImportContentEnd(Context& context, u32 content_fd)
   const std::string temp_path =
       "/tmp/" + content_path.substr(content_path.find_last_of('/') + 1, std::string::npos);
 
-  fs->CreateFile(PID_KERNEL, PID_KERNEL, temp_path, 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
-                 FS::Mode::None);
   {
-    const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, temp_path, FS::Mode::Write);
+    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, FS::Mode::ReadWrite,
+                                            FS::Mode::ReadWrite, FS::Mode::None);
     if (!file || !file->Write(decrypted_data.data(), content_info.size))
     {
       ERROR_LOG(IOS_ES, "ImportContentEnd: Failed to write to %s", temp_path.c_str());
