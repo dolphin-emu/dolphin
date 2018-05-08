@@ -19,10 +19,13 @@
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/QtUtils/WrapInScrollArea.h"
+#include "VideoCommon/VideoConfig.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
 {
+  g_Config.Refresh();
+
   CreateMainLayout();
 
   setWindowTitle(tr("Graphics"));
