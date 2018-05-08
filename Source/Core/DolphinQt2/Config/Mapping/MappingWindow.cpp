@@ -87,7 +87,7 @@ void MappingWindow::CreateProfilesLayout()
   button_layout->addWidget(m_profiles_load);
   button_layout->addWidget(m_profiles_save);
   button_layout->addWidget(m_profiles_delete);
-  m_profiles_layout->addItem(button_layout);
+  m_profiles_layout->addLayout(button_layout);
 
   m_profiles_box->setLayout(m_profiles_layout);
 }
@@ -122,7 +122,7 @@ void MappingWindow::CreateMainLayout()
   m_config_layout->addWidget(m_reset_box);
   m_config_layout->addWidget(m_profiles_box);
 
-  m_main_layout->addItem(m_config_layout);
+  m_main_layout->addLayout(m_config_layout);
   m_main_layout->addWidget(m_iterative_input);
   m_main_layout->addWidget(m_tab_widget);
   m_main_layout->addWidget(m_button_box);

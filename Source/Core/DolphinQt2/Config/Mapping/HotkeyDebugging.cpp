@@ -26,7 +26,7 @@ void HotkeyDebugging::CreateMainLayout()
   vbox->addWidget(CreateGroupBox(tr("Program Counter"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_PC)));
   vbox->addWidget(
       CreateGroupBox(tr("Breakpoint"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_BREAKPOINT)));
-  m_main_layout->addItem(vbox);
+  m_main_layout->addLayout(vbox);
 
   setLayout(m_main_layout);
 }
