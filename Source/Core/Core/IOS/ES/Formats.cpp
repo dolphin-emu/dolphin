@@ -558,13 +558,11 @@ bool SharedContentMap::WriteEntries() const
 {
   // Temporary files are only 12 characters long and must match the final file name
   const std::string temp_path = "/tmp/content.map";
-  m_fs->CreateFile(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path, 0, HLE::FS::Mode::ReadWrite,
-                   HLE::FS::Mode::ReadWrite, HLE::FS::Mode::None);
-
   // Atomically write the new content map.
   {
-    const auto file =
-        m_fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path, HLE::FS::Mode::Write);
+    const auto file = m_fs->CreateAndOpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path,
+                                              HLE::FS::Mode::ReadWrite, HLE::FS::Mode::ReadWrite,
+                                              HLE::FS::Mode::None);
     if (!file || !file->Write(m_entries.data(), m_entries.size()))
       return false;
   }
@@ -637,8 +635,9 @@ u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
   const u64 swapped_title_id = Common::swap64(title_id);
   const u32 swapped_uid = Common::swap32(uid);
 
-  const auto file =
-      m_fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::ReadWrite);
+  const auto file = m_fs->CreateAndOpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, UID_MAP_PATH,
+                                            HLE::FS::Mode::ReadWrite, HLE::FS::Mode::ReadWrite,
+                                            HLE::FS::Mode::None);
   if (!file || !file->Seek(0, HLE::FS::SeekMode::End) || !file->Write(&swapped_title_id, 1) ||
       !file->Write(&swapped_uid, 1))
   {

@@ -72,6 +72,20 @@ void FileSystem::Init()
     CreateDirectory(0, 0, "/tmp", 0, Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite);
 }
 
+Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
+                                                 Mode owner_mode, Mode group_mode, Mode other_mode)
+{
+  Result<FileHandle> file = OpenFile(uid, gid, path, Mode::ReadWrite);
+  if (file.Succeeded())
+    return file;
+
+  const ResultCode result = CreateFile(uid, gid, path, 0, owner_mode, group_mode, other_mode);
+  if (result != ResultCode::Success)
+    return result;
+
+  return OpenFile(uid, gid, path, Mode::ReadWrite);
+}
+
 ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
                                       FileAttribute attribute, Mode owner, Mode group, Mode other)
 {
