@@ -41,25 +41,6 @@ std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spac
 std::string StripSpaces(const std::string& s);
 std::string StripQuotes(const std::string& s);
 
-// Thousand separator. Turns 12345678 into 12,345,678
-template <typename I>
-std::string ThousandSeparate(I value, int spaces = 0)
-{
-#ifdef _WIN32
-  std::wostringstream stream;
-#else
-  std::ostringstream stream;
-#endif
-
-  stream << std::setw(spaces) << value;
-
-#ifdef _WIN32
-  return UTF16ToUTF8(stream.str());
-#else
-  return stream.str();
-#endif
-}
-
 std::string StringFromBool(bool value);
 
 bool TryParse(const std::string& str, bool* output);
@@ -158,3 +139,22 @@ inline std::string UTF8ToTStr(const std::string& str)
 #endif
 
 #endif
+
+// Thousand separator. Turns 12345678 into 12,345,678
+template <typename I>
+std::string ThousandSeparate(I value, int spaces = 0)
+{
+#ifdef _WIN32
+  std::wostringstream stream;
+#else
+  std::ostringstream stream;
+#endif
+
+  stream << std::setw(spaces) << value;
+
+#ifdef _WIN32
+  return UTF16ToUTF8(stream.str());
+#else
+  return stream.str();
+#endif
+}
