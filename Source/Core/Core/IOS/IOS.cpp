@@ -266,11 +266,27 @@ u16 Kernel::GetGidForPPC() const
   return m_ppc_gid;
 }
 
+static std::vector<u8> ReadBootContent(FS::FileSystem* fs, const std::string& path, size_t max_size)
+{
+  const auto file = fs->OpenFile(0, 0, path, FS::Mode::Read);
+  if (!file)
+    return {};
+
+  const size_t file_size = file->GetStatus()->size;
+  if (max_size != 0 && file_size > max_size)
+    return {};
+
+  std::vector<u8> buffer(file_size);
+  if (!file->Read(buffer.data(), buffer.size()))
+    return {};
+  return buffer;
+}
+
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
 bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
-  const DolReader dol{boot_content_path};
+  const DolReader dol{ReadBootContent(m_fs.get(), boot_content_path, 0)};
 
   if (!dol.IsValid())
     return false;
@@ -329,16 +345,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    File::IOFile file{boot_content_path, "rb"};
-    // TODO: should return IPC_ERROR_MAX.
-    if (file.GetSize() > 0xB00000)
-      return false;
-
-    std::vector<u8> data(file.GetSize());
-    if (!file.ReadBytes(data.data(), data.size()))
-      return false;
-
-    ARMBinary binary{std::move(data)};
+    ARMBinary binary{ReadBootContent(m_fs.get(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 

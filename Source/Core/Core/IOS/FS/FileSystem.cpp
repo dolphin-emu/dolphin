@@ -6,6 +6,7 @@
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
+#include "Core/IOS/Device.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
 
 namespace IOS::HLE::FS
@@ -15,6 +16,15 @@ std::unique_ptr<FileSystem> MakeFileSystem(Location location)
   const std::string nand_root =
       File::GetUserPath(location == Location::Session ? D_SESSION_WIIROOT_IDX : D_WIIROOT_IDX);
   return std::make_unique<HostFileSystem>(nand_root);
+}
+
+IOS::HLE::ReturnCode ConvertResult(ResultCode code)
+{
+  if (code == ResultCode::Success)
+    return IPC_SUCCESS;
+  // FS error codes start at -100. Since result codes in the enum are listed in the same way
+  // as the IOS codes, we just need to return -100-code.
+  return static_cast<ReturnCode>(-(static_cast<s32>(code) + 100));
 }
 
 FileHandle::FileHandle(FileSystem* fs, Fd fd) : m_fs{fs}, m_fd{fd}

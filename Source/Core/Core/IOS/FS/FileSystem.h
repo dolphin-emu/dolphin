@@ -14,7 +14,11 @@
 
 class PointerWrap;
 
-namespace IOS::HLE::FS
+namespace IOS::HLE
+{
+enum ReturnCode : s32;
+
+namespace FS
 {
 enum class ResultCode
 {
@@ -218,4 +222,8 @@ enum class Location
 
 std::unique_ptr<FileSystem> MakeFileSystem(Location location = Location::Session);
 
-}  // namespace IOS::HLE::FS
+/// Convert a FS result code to an IOS error code.
+IOS::HLE::ReturnCode ConvertResult(ResultCode code);
+
+}  // namespace FS
+}  // namespace IOS::HLE

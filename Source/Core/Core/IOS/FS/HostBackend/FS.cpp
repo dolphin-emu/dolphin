@@ -310,10 +310,11 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
 
   // Hack: if the path that is being accessed is within an installed title directory, get the
   // UID/GID from the installed title TMD.
+  Kernel* ios = GetIOS();
   u64 title_id;
-  if (IsTitlePath(file_name, Common::FROM_SESSION_ROOT, &title_id))
+  if (ios && IsTitlePath(file_name, Common::FROM_SESSION_ROOT, &title_id))
   {
-    IOS::ES::TMDReader tmd = GetIOS()->GetES()->FindInstalledTMD(title_id);
+    IOS::ES::TMDReader tmd = ios->GetES()->FindInstalledTMD(title_id);
     if (tmd.IsValid())
       metadata.gid = tmd.GetGroupId();
   }

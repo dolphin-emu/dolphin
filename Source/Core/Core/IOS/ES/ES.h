@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 
@@ -326,7 +326,7 @@ private:
                              const std::vector<u8>& cert_chain, u32 iosc_handle = 0);
 
   // Start a title import.
-  bool InitImport(u64 title_id);
+  bool InitImport(const IOS::ES::TMDReader& tmd);
   // Clean up the import content directory and move it back to /title.
   bool FinishImport(const IOS::ES::TMDReader& tmd);
   // Write a TMD for a title in /import atomically.
@@ -336,17 +336,15 @@ private:
   void FinishAllStaleImports();
 
   std::string GetContentPath(u64 title_id, const IOS::ES::Content& content,
-                             const IOS::ES::SharedContentMap& map = IOS::ES::SharedContentMap{
-                                 Common::FROM_SESSION_ROOT}) const;
+                             const IOS::ES::SharedContentMap& map) const;
+  std::string GetContentPath(u64 title_id, const IOS::ES::Content& content) const;
 
-  // TODO: reuse the FS code.
   struct OpenedContent
   {
     bool m_opened = false;
-    File::IOFile m_file;
+    FS::Fd m_fd;
     u64 m_title_id = 0;
     IOS::ES::Content m_content;
-    u32 m_position = 0;
     u32 m_uid = 0;
   };
 
