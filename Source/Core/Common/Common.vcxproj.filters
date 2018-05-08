@@ -47,6 +47,7 @@
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
     <ClInclude Include="Flag.h" />
+    <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
@@ -277,6 +278,7 @@
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
     <ClCompile Include="IniFile.cpp" />

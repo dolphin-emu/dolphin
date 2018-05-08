@@ -11,8 +11,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
+#include "Common/FloatUtils.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -563,7 +563,7 @@ void CheckBreakPoints()
 
 void UpdateFPRF(double dvalue)
 {
-  FPSCR.FPRF = MathUtil::ClassifyDouble(dvalue);
+  FPSCR.FPRF = Common::ClassifyDouble(dvalue);
 }
 
 }  // namespace PowerPC

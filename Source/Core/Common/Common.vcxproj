@@ -122,6 +122,7 @@
     <ClInclude Include="GL\GLInterfaceBase.h" />
     <ClInclude Include="GL\GLInterface\WGL.h" />
     <ClInclude Include="GL\GLUtil.h" />
+    <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
     <ClInclude Include="IniFile.h" />
@@ -179,6 +180,7 @@
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
     <ClCompile Include="GL\GLInterface\GLInterface.cpp" />
