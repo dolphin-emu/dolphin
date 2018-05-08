@@ -232,10 +232,17 @@ ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
   // try to make the basis directory
   File::CreateFullPath(new_name);
 
-  // if there is already a file, delete it
-  if (File::Exists(old_name) && File::Exists(new_name))
+  // If there is already something of the same type at the new path, delete it.
+  if (File::Exists(new_name))
   {
-    File::Delete(new_name);
+    const bool old_is_file = File::IsFile(old_name);
+    const bool new_is_file = File::IsFile(new_name);
+    if (old_is_file && new_is_file)
+      File::Delete(new_name);
+    else if (!old_is_file && !new_is_file)
+      File::DeleteDirRecursively(new_name);
+    else
+      return ResultCode::Invalid;
   }
 
   // finally try to rename the file
