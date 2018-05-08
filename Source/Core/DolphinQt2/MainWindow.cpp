@@ -113,6 +113,11 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   QSettings& settings = Settings::GetQSettings();
 
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
+  m_render_widget_size =
+      QSize(SConfig::GetInstance().iRenderWindowWidth, SConfig::GetInstance().iRenderWindowHeight);
+
+  m_render_widget_position =
+      QPoint(SConfig::GetInstance().iRenderWindowXPos, SConfig::GetInstance().iRenderWindowYPos);
 }
 
 MainWindow::~MainWindow()
@@ -125,6 +130,12 @@ MainWindow::~MainWindow()
   QSettings& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("mainwindow/state"), saveState());
+
+  SConfig::GetInstance().iRenderWindowWidth = m_render_widget_size.width();
+  SConfig::GetInstance().iRenderWindowHeight = m_render_widget_size.height();
+
+  SConfig::GetInstance().iRenderWindowXPos = m_render_widget_position.x();
+  SConfig::GetInstance().iRenderWindowYPos = m_render_widget_position.y();
 }
 
 void MainWindow::InitControllers()
@@ -547,6 +558,12 @@ bool MainWindow::RequestStop()
     return true;
   }
 
+  if (!m_render_widget->isFullScreen())
+  {
+    m_render_widget_size = m_render_widget->size();
+    m_render_widget_position = m_render_widget->pos();
+  }
+
   if (SConfig::GetInstance().bConfirmStop)
   {
     const Core::State state = Core::GetState();
@@ -629,6 +646,7 @@ void MainWindow::FullScreen()
   else
   {
     m_render_widget_size = m_render_widget->size();
+    m_render_widget_position = m_render_widget->pos();
     m_render_widget->showFullScreen();
   }
 }
@@ -729,6 +747,9 @@ void MainWindow::ShowRenderWidget()
 
     m_render_widget->showNormal();
     m_render_widget->resize(m_render_widget_size);
+
+    if (m_render_widget_position.x() != -1)
+      m_render_widget->move(m_render_widget_position);
   }
 
   SetFullScreenResolution(false);
