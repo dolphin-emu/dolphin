@@ -20,6 +20,10 @@ public:
   void Start();
   void Stop();
 signals:
+  void Open();
+  void EjectDisc();
+  void ChangeDisc();
+
   void ExitHotkey();
   void FullScreenHotkey();
   void StopHotkey();

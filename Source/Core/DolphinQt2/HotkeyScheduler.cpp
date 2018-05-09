@@ -138,6 +138,17 @@ void HotkeyScheduler::Run()
       if (!Core::IsRunningAndStarted())
         continue;
 
+      if (IsHotkey(HK_OPEN))
+        emit Open();
+
+      // Disc
+
+      if (IsHotkey(HK_EJECT_DISC))
+        emit EjectDisc();
+
+      if (IsHotkey(HK_CHANGE_DISC))
+        emit ChangeDisc();
+
       // Fullscreen
       if (IsHotkey(HK_FULLSCREEN))
         emit FullScreenHotkey();
