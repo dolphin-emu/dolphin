@@ -410,6 +410,7 @@ endif()
 include(CheckLib)
 include(CheckCXXSourceRuns)
 
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL)
 if (OPENGL_GL)
   include_directories(${OPENGL_INCLUDE_DIR})
