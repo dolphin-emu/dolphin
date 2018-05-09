@@ -5,6 +5,7 @@
 #include "Common/FloatUtils.h"
 
 #include <cmath>
+#include <cstring>
 
 namespace Common
 {
@@ -99,20 +100,20 @@ const std::array<BaseAndDec, 32> frsqrte_expected = {{
 
 double ApproximateReciprocalSquareRoot(double val)
 {
-  union
-  {
-    double valf;
-    s64 vali;
-  };
-  valf = val;
-  s64 mantissa = vali & ((1LL << 52) - 1);
-  s64 sign = vali & (1ULL << 63);
-  s64 exponent = vali & (0x7FFLL << 52);
+  s64 integral;
+  std::memcpy(&integral, &val, sizeof(integral));
+
+  s64 mantissa = integral & ((1LL << 52) - 1);
+  const s64 sign = integral & (1ULL << 63);
+  s64 exponent = integral & (0x7FFLL << 52);
 
   // Special case 0
   if (mantissa == 0 && exponent == 0)
+  {
     return sign ? -std::numeric_limits<double>::infinity() :
                   std::numeric_limits<double>::infinity();
+  }
+
   // Special case NaN-ish numbers
   if (exponent == (0x7FFLL << 52))
   {
@@ -124,7 +125,7 @@ double ApproximateReciprocalSquareRoot(double val)
       return 0.0;
     }
 
-    return 0.0 + valf;
+    return 0.0 + val;
   }
 
   // Negative numbers return NaN
@@ -143,15 +144,18 @@ double ApproximateReciprocalSquareRoot(double val)
     exponent += 1LL << 52;
   }
 
-  bool odd_exponent = !(exponent & (1LL << 52));
+  const bool odd_exponent = !(exponent & (1LL << 52));
   exponent = ((0x3FFLL << 52) - ((exponent - (0x3FELL << 52)) / 2)) & (0x7FFLL << 52);
+  integral = sign | exponent;
 
-  int i = (int)(mantissa >> 37);
-  vali = sign | exponent;
-  int index = i / 2048 + (odd_exponent ? 16 : 0);
+  const int i = static_cast<int>(mantissa >> 37);
+  const int index = i / 2048 + (odd_exponent ? 16 : 0);
   const auto& entry = frsqrte_expected[index];
-  vali |= (s64)(entry.m_base - entry.m_dec * (i % 2048)) << 26;
-  return valf;
+  integral |= static_cast<s64>(entry.m_base - entry.m_dec * (i % 2048)) << 26;
+
+  double result;
+  std::memcpy(&result, &integral, sizeof(result));
+  return result;
 }
 
 const std::array<BaseAndDec, 32> fres_expected = {{
@@ -167,44 +171,43 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 // Used by fres and ps_res.
 double ApproximateReciprocal(double val)
 {
-  union
-  {
-    double valf;
-    s64 vali;
-  };
+  s64 integral;
+  std::memcpy(&integral, &val, sizeof(integral));
 
-  valf = val;
-  s64 mantissa = vali & ((1LL << 52) - 1);
-  s64 sign = vali & (1ULL << 63);
-  s64 exponent = vali & (0x7FFLL << 52);
+  const s64 mantissa = integral & ((1LL << 52) - 1);
+  const s64 sign = integral & (1ULL << 63);
+  s64 exponent = integral & (0x7FFLL << 52);
 
   // Special case 0
   if (mantissa == 0 && exponent == 0)
-    return std::copysign(std::numeric_limits<double>::infinity(), valf);
+    return std::copysign(std::numeric_limits<double>::infinity(), val);
 
   // Special case NaN-ish numbers
   if (exponent == (0x7FFLL << 52))
   {
     if (mantissa == 0)
-      return std::copysign(0.0, valf);
-    return 0.0 + valf;
+      return std::copysign(0.0, val);
+    return 0.0 + val;
   }
 
   // Special case small inputs
   if (exponent < (895LL << 52))
-    return std::copysign(std::numeric_limits<float>::max(), valf);
+    return std::copysign(std::numeric_limits<float>::max(), val);
 
   // Special case large inputs
   if (exponent >= (1149LL << 52))
-    return std::copysign(0.0, valf);
+    return std::copysign(0.0, val);
 
   exponent = (0x7FDLL << 52) - exponent;
 
-  int i = (int)(mantissa >> 37);
+  const int i = static_cast<int>(mantissa >> 37);
   const auto& entry = fres_expected[i / 1024];
-  vali = sign | exponent;
-  vali |= (s64)(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
-  return valf;
+  integral = sign | exponent;
+  integral |= static_cast<s64>(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
+
+  double result;
+  std::memcpy(&result, &integral, sizeof(result));
+  return result;
 }
 
 }  // namespace Common
