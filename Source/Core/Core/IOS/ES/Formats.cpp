@@ -28,6 +28,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
+#include "Core/IOS/Uids.h"
 
 namespace IOS
 {
@@ -407,7 +408,7 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
 
   std::array<u8, 16> key;
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
-               HLE::PID_ES);
+               PID_ES);
   return key;
 }
 
@@ -495,8 +496,7 @@ SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs) : m_
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
 
   Entry entry;
-  const auto file =
-      fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read);
+  const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, CONTENT_MAP_PATH, HLE::FS::Mode::Read);
   while (file && file->Read(&entry, 1))
   {
     m_entries.push_back(entry);
@@ -560,13 +560,13 @@ bool SharedContentMap::WriteEntries() const
   const std::string temp_path = "/tmp/content.map";
   // Atomically write the new content map.
   {
-    const auto file = m_fs->CreateAndOpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path,
-                                              HLE::FS::Mode::ReadWrite, HLE::FS::Mode::ReadWrite,
-                                              HLE::FS::Mode::None);
+    const auto file =
+        m_fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, HLE::FS::Mode::ReadWrite,
+                                HLE::FS::Mode::ReadWrite, HLE::FS::Mode::None);
     if (!file || !file->Write(m_entries.data(), m_entries.size()))
       return false;
   }
-  return m_fs->Rename(HLE::PID_KERNEL, HLE::PID_KERNEL, temp_path, CONTENT_MAP_PATH) ==
+  return m_fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, CONTENT_MAP_PATH) ==
          HLE::FS::ResultCode::Success;
 }
 
@@ -586,8 +586,7 @@ static std::pair<u32, u64> ReadUidSysEntry(const HLE::FS::FileHandle& file)
 static const std::string UID_MAP_PATH = "/sys/uid.sys";
 UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
-  if (const auto file =
-          fs->OpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))
+  if (const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))
   {
     while (true)
     {
@@ -635,9 +634,9 @@ u32 UIDSys::GetOrInsertUIDForTitle(const u64 title_id)
   const u64 swapped_title_id = Common::swap64(title_id);
   const u32 swapped_uid = Common::swap32(uid);
 
-  const auto file = m_fs->CreateAndOpenFile(HLE::PID_KERNEL, HLE::PID_KERNEL, UID_MAP_PATH,
-                                            HLE::FS::Mode::ReadWrite, HLE::FS::Mode::ReadWrite,
-                                            HLE::FS::Mode::None);
+  const auto file =
+      m_fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::ReadWrite,
+                              HLE::FS::Mode::ReadWrite, HLE::FS::Mode::None);
   if (!file || !file->Seek(0, HLE::FS::SeekMode::End) || !file->Write(&swapped_title_id, 1) ||
       !file->Write(&swapped_uid, 1))
   {

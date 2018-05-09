@@ -25,6 +25,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOSC.h"
+#include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
 
 namespace IOS
@@ -55,8 +56,8 @@ constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
     {"/shared2", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite},
     {"/tmp", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite},
     {"/import", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
-    {"/meta", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite,
-     IOS::ES::FIRST_PPC_UID, 0x1},
+    {"/meta", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite, SYSMENU_UID,
+     SYSMENU_GID},
     {"/wfs", 0, FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None, PID_UNKNOWN, PID_UNKNOWN},
 }};
 
@@ -683,8 +684,6 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   return FS::ConvertResult(fs->SetMetadata(0, data_dir, m_ios.GetUidForPPC(), m_ios.GetGidForPPC(),
                                            0, FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None));
 }
-
-constexpr u32 FIRST_PPC_UID = 0x1000;
 
 ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
                                          const IOS::ES::TMDReader& tmd) const

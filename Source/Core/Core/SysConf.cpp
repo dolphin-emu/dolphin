@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Uids.h"
 
 constexpr size_t SYSCONF_SIZE = 0x4000;
 
@@ -196,17 +197,17 @@ bool SysConf::Save() const
 
   // Write the new data.
   const std::string temp_file = "/tmp/SYSCONF";
-  constexpr u32 SYSMENU_UID = 0x1000;
-  constexpr u16 SYSMENU_GID = 1;
   constexpr auto rw_mode = IOS::HLE::FS::Mode::ReadWrite;
   {
-    m_fs->CreateFile(SYSMENU_UID, SYSMENU_GID, temp_file, 0, rw_mode, rw_mode, rw_mode);
-    auto file = m_fs->OpenFile(SYSMENU_UID, SYSMENU_GID, temp_file, IOS::HLE::FS::Mode::Write);
+    auto file = m_fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, temp_file, rw_mode,
+                                        rw_mode, rw_mode);
     if (!file || !file->Write(buffer.data(), buffer.size()))
       return false;
   }
-  m_fs->CreateDirectory(SYSMENU_UID, SYSMENU_GID, "/shared2/sys", 0, rw_mode, rw_mode, rw_mode);
-  const auto result = m_fs->Rename(SYSMENU_UID, SYSMENU_GID, temp_file, "/shared2/sys/SYSCONF");
+  m_fs->CreateDirectory(IOS::SYSMENU_UID, IOS::SYSMENU_GID, "/shared2/sys", 0, rw_mode, rw_mode,
+                        rw_mode);
+  const auto result =
+      m_fs->Rename(IOS::SYSMENU_UID, IOS::SYSMENU_GID, temp_file, "/shared2/sys/SYSCONF");
   return result == IOS::HLE::FS::ResultCode::Success;
 }
 

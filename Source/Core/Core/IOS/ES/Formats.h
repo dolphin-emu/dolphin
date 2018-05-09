@@ -271,8 +271,6 @@ private:
   std::shared_ptr<HLE::FS::FileSystem> m_fs;
 };
 
-constexpr u32 FIRST_PPC_UID = 0x1000;
-
 class UIDSys final
 {
 public:

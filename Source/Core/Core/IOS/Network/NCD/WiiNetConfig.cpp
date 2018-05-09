@@ -12,6 +12,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/Uids.h"
 
 namespace IOS
 {

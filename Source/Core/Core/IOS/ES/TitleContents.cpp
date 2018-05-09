@@ -12,6 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/Uids.h"
 
 namespace IOS
 {
