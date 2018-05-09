@@ -68,16 +68,6 @@ public:
 
   using ClearColor = std::array<float, 4>;
 
-  enum PixelPerfQuery
-  {
-    PP_ZCOMP_INPUT_ZCOMPLOC,
-    PP_ZCOMP_OUTPUT_ZCOMPLOC,
-    PP_ZCOMP_INPUT,
-    PP_ZCOMP_OUTPUT,
-    PP_BLEND_INPUT,
-    PP_EFB_COPY_CLOCKS
-  };
-
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
