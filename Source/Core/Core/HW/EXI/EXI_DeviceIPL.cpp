@@ -237,9 +237,7 @@ void CEXIIPL::SetCS(int _iCS)
 
 void CEXIIPL::UpdateRTC()
 {
-  u32 epoch =
-      (SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios) ? WII_EPOCH : GC_EPOCH;
-  u32 rtc = Common::swap32(GetEmulatedTime(epoch));
+  u32 rtc = Common::swap32(GetEmulatedTime(GC_EPOCH));
   std::memcpy(m_RTC, &rtc, sizeof(u32));
 }
 
