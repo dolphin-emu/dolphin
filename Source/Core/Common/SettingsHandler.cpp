@@ -19,8 +19,6 @@
 #endif
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 
@@ -29,30 +27,21 @@ SettingsHandler::SettingsHandler()
   Reset();
 }
 
-bool SettingsHandler::Open(const std::string& settings_file_path)
+SettingsHandler::SettingsHandler(Buffer&& buffer)
+{
+  SetBytes(std::move(buffer));
+}
+
+const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
+{
+  return m_buffer;
+}
+
+void SettingsHandler::SetBytes(SettingsHandler::Buffer&& buffer)
 {
   Reset();
-
-  File::IOFile file{settings_file_path, "rb"};
-  if (!file.ReadBytes(m_buffer.data(), m_buffer.size()))
-    return false;
-
+  m_buffer = std::move(buffer);
   Decrypt();
-  return true;
-}
-
-bool SettingsHandler::Save(const std::string& destination_file_path) const
-{
-  if (!File::CreateFullPath(destination_file_path))
-    return false;
-
-  File::IOFile file{destination_file_path, "wb"};
-  return file.WriteBytes(m_buffer.data(), m_buffer.size());
-}
-
-const u8* SettingsHandler::GetData() const
-{
-  return m_buffer.data();
 }
 
 const std::string SettingsHandler::GetValue(const std::string& key)

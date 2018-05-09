@@ -16,7 +16,9 @@
 
 #include "Core/CommonTitles.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Network/Socket.h"
+#include "Core/IOS/Uids.h"
 
 namespace IOS
 {
@@ -82,20 +84,23 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
     if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
     {
-      const std::string settings_file_path(
-          Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) +
-          "/" WII_SETTING);
-      SettingsHandler gen;
+      const std::string settings_file_path =
+          Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING;
       std::string area, model;
-      bool got_settings = false;
 
-      if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
+      const auto fs = m_ios.GetFS();
+      if (const auto file = fs->OpenFile(PID_KD, PID_KD, settings_file_path, FS::Mode::Read))
       {
-        area = gen.GetValue("AREA");
-        model = gen.GetValue("MODEL");
-        got_settings = true;
+        SettingsHandler::Buffer data;
+        if (file->Read(data.data(), data.size()))
+        {
+          const SettingsHandler gen{std::move(data)};
+          area = gen.GetValue("AREA");
+          model = gen.GetValue("MODEL");
+        }
       }
-      if (got_settings)
+
+      if (!area.empty() && !model.empty())
       {
         u8 area_code = GetAreaCode(area);
         u8 id_ctr = config.IdGen();
