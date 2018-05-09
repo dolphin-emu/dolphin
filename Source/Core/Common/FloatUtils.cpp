@@ -5,85 +5,76 @@
 #include "Common/FloatUtils.h"
 
 #include <cmath>
+#include <cstring>
 
 namespace Common
 {
 u32 ClassifyDouble(double dvalue)
 {
-  // TODO: Optimize the below to be as fast as possible.
-  IntDouble value(dvalue);
-  u64 sign = value.i & DOUBLE_SIGN;
-  u64 exp = value.i & DOUBLE_EXP;
+  u64 ivalue;
+  std::memcpy(&ivalue, &dvalue, sizeof(ivalue));
+
+  const u64 sign = ivalue & DOUBLE_SIGN;
+  const u64 exp = ivalue & DOUBLE_EXP;
+
   if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP)
   {
     // Nice normalized number.
     return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
   }
-  else
+
+  const u64 mantissa = ivalue & DOUBLE_FRAC;
+  if (mantissa)
   {
-    u64 mantissa = value.i & DOUBLE_FRAC;
-    if (mantissa)
-    {
-      if (exp)
-      {
-        return PPC_FPCLASS_QNAN;
-      }
-      else
-      {
-        // Denormalized number.
-        return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-      }
-    }
-    else if (exp)
-    {
-      // Infinite
-      return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
-    }
-    else
-    {
-      // Zero
-      return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
-    }
+    if (exp)
+      return PPC_FPCLASS_QNAN;
+
+    // Denormalized number.
+    return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
   }
+
+  if (exp)
+  {
+    // Infinite
+    return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+  }
+
+  // Zero
+  return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 }
 
 u32 ClassifyFloat(float fvalue)
 {
-  // TODO: Optimize the below to be as fast as possible.
-  IntFloat value(fvalue);
-  u32 sign = value.i & FLOAT_SIGN;
-  u32 exp = value.i & FLOAT_EXP;
+  u32 ivalue;
+  std::memcpy(&ivalue, &fvalue, sizeof(ivalue));
+
+  const u32 sign = ivalue & FLOAT_SIGN;
+  const u32 exp = ivalue & FLOAT_EXP;
+
   if (exp > FLOAT_ZERO && exp < FLOAT_EXP)
   {
     // Nice normalized number.
     return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
   }
-  else
+
+  const u32 mantissa = ivalue & FLOAT_FRAC;
+  if (mantissa)
   {
-    u32 mantissa = value.i & FLOAT_FRAC;
-    if (mantissa)
-    {
-      if (exp)
-      {
-        return PPC_FPCLASS_QNAN;  // Quiet NAN
-      }
-      else
-      {
-        // Denormalized number.
-        return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-      }
-    }
-    else if (exp)
-    {
-      // Infinite
-      return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
-    }
-    else
-    {
-      // Zero
-      return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
-    }
+    if (exp)
+      return PPC_FPCLASS_QNAN;  // Quiet NAN
+
+    // Denormalized number.
+    return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
   }
+
+  if (exp)
+  {
+    // Infinite
+    return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+  }
+
+  // Zero
+  return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 }
 
 const std::array<BaseAndDec, 32> frsqrte_expected = {{
@@ -99,20 +90,20 @@ const std::array<BaseAndDec, 32> frsqrte_expected = {{
 
 double ApproximateReciprocalSquareRoot(double val)
 {
-  union
-  {
-    double valf;
-    s64 vali;
-  };
-  valf = val;
-  s64 mantissa = vali & ((1LL << 52) - 1);
-  s64 sign = vali & (1ULL << 63);
-  s64 exponent = vali & (0x7FFLL << 52);
+  s64 integral;
+  std::memcpy(&integral, &val, sizeof(integral));
+
+  s64 mantissa = integral & ((1LL << 52) - 1);
+  const s64 sign = integral & (1ULL << 63);
+  s64 exponent = integral & (0x7FFLL << 52);
 
   // Special case 0
   if (mantissa == 0 && exponent == 0)
+  {
     return sign ? -std::numeric_limits<double>::infinity() :
                   std::numeric_limits<double>::infinity();
+  }
+
   // Special case NaN-ish numbers
   if (exponent == (0x7FFLL << 52))
   {
@@ -124,7 +115,7 @@ double ApproximateReciprocalSquareRoot(double val)
       return 0.0;
     }
 
-    return 0.0 + valf;
+    return 0.0 + val;
   }
 
   // Negative numbers return NaN
@@ -143,15 +134,18 @@ double ApproximateReciprocalSquareRoot(double val)
     exponent += 1LL << 52;
   }
 
-  bool odd_exponent = !(exponent & (1LL << 52));
+  const bool odd_exponent = !(exponent & (1LL << 52));
   exponent = ((0x3FFLL << 52) - ((exponent - (0x3FELL << 52)) / 2)) & (0x7FFLL << 52);
+  integral = sign | exponent;
 
-  int i = (int)(mantissa >> 37);
-  vali = sign | exponent;
-  int index = i / 2048 + (odd_exponent ? 16 : 0);
+  const int i = static_cast<int>(mantissa >> 37);
+  const int index = i / 2048 + (odd_exponent ? 16 : 0);
   const auto& entry = frsqrte_expected[index];
-  vali |= (s64)(entry.m_base - entry.m_dec * (i % 2048)) << 26;
-  return valf;
+  integral |= static_cast<s64>(entry.m_base - entry.m_dec * (i % 2048)) << 26;
+
+  double result;
+  std::memcpy(&result, &integral, sizeof(result));
+  return result;
 }
 
 const std::array<BaseAndDec, 32> fres_expected = {{
@@ -167,50 +161,43 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 // Used by fres and ps_res.
 double ApproximateReciprocal(double val)
 {
-  // We are using namespace std scoped here because the Android NDK is complete trash as usual
-  // For 32bit targets(mips, ARMv7, x86) it doesn't provide an implementation of std::copysign
-  // but instead provides just global namespace copysign implementations.
-  // The workaround for this is to just use namespace std within this function's scope
-  // That way on real toolchains it will use the std:: variant like normal.
-  using namespace std;
-  union
-  {
-    double valf;
-    s64 vali;
-  };
+  s64 integral;
+  std::memcpy(&integral, &val, sizeof(integral));
 
-  valf = val;
-  s64 mantissa = vali & ((1LL << 52) - 1);
-  s64 sign = vali & (1ULL << 63);
-  s64 exponent = vali & (0x7FFLL << 52);
+  const s64 mantissa = integral & ((1LL << 52) - 1);
+  const s64 sign = integral & (1ULL << 63);
+  s64 exponent = integral & (0x7FFLL << 52);
 
   // Special case 0
   if (mantissa == 0 && exponent == 0)
-    return copysign(std::numeric_limits<double>::infinity(), valf);
+    return std::copysign(std::numeric_limits<double>::infinity(), val);
 
   // Special case NaN-ish numbers
   if (exponent == (0x7FFLL << 52))
   {
     if (mantissa == 0)
-      return copysign(0.0, valf);
-    return 0.0 + valf;
+      return std::copysign(0.0, val);
+    return 0.0 + val;
   }
 
   // Special case small inputs
   if (exponent < (895LL << 52))
-    return copysign(std::numeric_limits<float>::max(), valf);
+    return std::copysign(std::numeric_limits<float>::max(), val);
 
   // Special case large inputs
   if (exponent >= (1149LL << 52))
-    return copysign(0.0, valf);
+    return std::copysign(0.0, val);
 
   exponent = (0x7FDLL << 52) - exponent;
 
-  int i = (int)(mantissa >> 37);
+  const int i = static_cast<int>(mantissa >> 37);
   const auto& entry = fres_expected[i / 1024];
-  vali = sign | exponent;
-  vali |= (s64)(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
-  return valf;
+  integral = sign | exponent;
+  integral |= static_cast<s64>(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
+
+  double result;
+  std::memcpy(&result, &integral, sizeof(result));
+  return result;
 }
 
 }  // namespace Common
