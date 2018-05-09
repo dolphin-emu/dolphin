@@ -286,7 +286,7 @@ void SysConf::InsertDefaultEntries()
   ipl_pc[2] = 0x14;
   AddEntry({Entry::Type::SmallArray, "IPL.PC", std::move(ipl_pc)});
 
-  AddEntry({Entry::Type::Long, "IPL.CB", {0x0f, 0x11, 0x14, 0xa6}});
+  AddEntry({Entry::Type::Long, "IPL.CB", {0x00, 0x00, 0x00, 0x00}});
   AddEntry({Entry::Type::Byte, "IPL.AR", {1}});
   AddEntry({Entry::Type::Byte, "IPL.SSV", {1}});
 
