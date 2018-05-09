@@ -7,7 +7,12 @@
 #include <QDialog>
 #include <memory>
 
+// Qt versions prior to 5.9 don't support C++17 nested namespaces in moc so we have to if-guard
+// this header
+#ifndef Q_MOC_RUN
 #include "DiscIO/Volume.h"
+#endif
+
 #include "UICommon/GameFile.h"
 
 class QStandardItem;
@@ -18,7 +23,7 @@ namespace DiscIO
 {
 class FileInfo;
 struct Partition;
-};
+};  // namespace DiscIO
 
 class FilesystemWidget final : public QWidget
 {
