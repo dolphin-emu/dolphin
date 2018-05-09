@@ -32,7 +32,7 @@ void GCPadEmu::CreateMainLayout()
 
   auto* hbox_layout = new QVBoxLayout();
 
-  m_main_layout->addItem(hbox_layout);
+  m_main_layout->addLayout(hbox_layout);
 
   hbox_layout->addWidget(
       CreateGroupBox(tr("Triggers"), Pad::GetGroup(GetPort(), PadGroup::Triggers)));

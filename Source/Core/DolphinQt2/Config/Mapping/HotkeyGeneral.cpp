@@ -26,7 +26,7 @@ void HotkeyGeneral::CreateMainLayout()
   vbox->addWidget(CreateGroupBox(tr("Volume"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_VOLUME)));
   vbox->addWidget(
       CreateGroupBox(tr("Emulation Speed"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_SPEED)));
-  m_main_layout->addItem(vbox);
+  m_main_layout->addLayout(vbox);
 
   setLayout(m_main_layout);
 }

@@ -73,7 +73,7 @@ void IOWindow::CreateMainLayout()
   m_range_slider->setMaximum(500);
   m_range_spinbox->setMinimum(-500);
   m_range_spinbox->setMaximum(500);
-  m_main_layout->addItem(range_hbox);
+  m_main_layout->addLayout(range_hbox);
 
   // Options (Buttons, Outputs) and action buttons
   for (QPushButton* button : {m_select_button, m_detect_button, m_or_button, m_and_button,

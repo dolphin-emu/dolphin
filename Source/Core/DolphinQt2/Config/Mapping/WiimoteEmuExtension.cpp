@@ -43,7 +43,7 @@ void WiimoteEmuExtension::CreateClassicLayout()
       tr("D-Pad"), Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::DPad)));
   vbox->addWidget(CreateGroupBox(
       tr("Triggers"), Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Triggers)));
-  hbox->addItem(vbox);
+  hbox->addLayout(vbox);
 
   m_classic_box->setLayout(hbox);
 }
@@ -61,7 +61,7 @@ void WiimoteEmuExtension::CreateDrumsLayout()
       CreateGroupBox(tr("Pads"), Wiimote::GetDrumsGroup(GetPort(), WiimoteEmu::DrumsGroup::Pads)));
   vbox->addWidget(CreateGroupBox(tr("Stick"),
                                  Wiimote::GetDrumsGroup(GetPort(), WiimoteEmu::DrumsGroup::Stick)));
-  hbox->addItem(vbox);
+  hbox->addLayout(vbox);
 
   m_drums_box->setLayout(hbox);
 }
@@ -95,7 +95,7 @@ void WiimoteEmuExtension::CreateNunchukLayout()
       tr("Buttons"), Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Buttons)));
   vbox->addWidget(CreateGroupBox(
       tr("Shake"), Wiimote::GetNunchukGroup(GetPort(), WiimoteEmu::NunchukGroup::Shake)));
-  hbox->addItem(vbox);
+  hbox->addLayout(vbox);
 
   m_nunchuk_box->setLayout(hbox);
 }
@@ -112,7 +112,7 @@ void WiimoteEmuExtension::CreateGuitarLayout()
       tr("Stick"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::Stick)));
   vbox->addWidget(CreateGroupBox(
       tr("Slider Bar"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::SliderBar)));
-  hbox->addItem(vbox);
+  hbox->addLayout(vbox);
 
   auto* vbox2 = new QVBoxLayout();
   vbox2->addWidget(CreateGroupBox(
@@ -121,7 +121,7 @@ void WiimoteEmuExtension::CreateGuitarLayout()
       tr("Frets"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::Frets)));
   vbox2->addWidget(CreateGroupBox(
       tr("Whammy"), Wiimote::GetGuitarGroup(GetPort(), WiimoteEmu::GuitarGroup::Whammy)));
-  hbox->addItem(vbox2);
+  hbox->addLayout(vbox2);
 
   m_guitar_box->setLayout(hbox);
 }
@@ -150,7 +150,7 @@ void WiimoteEmuExtension::CreateTurntableLayout()
   vbox->addWidget(
       CreateGroupBox(tr("Crossfade"),
                      Wiimote::GetTurntableGroup(GetPort(), WiimoteEmu::TurntableGroup::Crossfade)));
-  hbox->addItem(vbox);
+  hbox->addLayout(vbox);
 
   m_turntable_box->setLayout(hbox);
 }

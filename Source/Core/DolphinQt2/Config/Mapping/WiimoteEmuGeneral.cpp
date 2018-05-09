@@ -57,7 +57,7 @@ void WiimoteEmuGeneral::CreateMainLayout()
   vbox_layout->addWidget(CreateGroupBox(
       tr("Options"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options)));
 
-  m_main_layout->addItem(vbox_layout);
+  m_main_layout->addLayout(vbox_layout);
 
   setLayout(m_main_layout);
 }

@@ -27,7 +27,7 @@ void HotkeyGraphics::CreateMainLayout()
                                  HotkeyManagerEmu::GetHotkeyGroup(HKGP_GRAPHICS_TOGGLES)));
   vbox->addWidget(
       CreateGroupBox(tr("Internal Resolution"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_IR)));
-  m_main_layout->addItem(vbox);
+  m_main_layout->addLayout(vbox);
 
   setLayout(m_main_layout);
 }
