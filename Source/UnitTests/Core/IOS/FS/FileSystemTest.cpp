@@ -107,6 +107,57 @@ TEST_F(FileSystemTest, Rename)
   EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/test").Succeeded());
 }
 
+TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
+{
+  // Test directory -> existing, non-empty directory.
+  // IOS's FS sysmodule is not POSIX compliant and will remove the existing directory
+  // if it exists, even when there are files in it.
+  ASSERT_EQ(
+      m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/d", 0, Mode::ReadWrite, Mode::None, Mode::None),
+      ResultCode::Success);
+  ASSERT_EQ(
+      m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/d2", 0, Mode::ReadWrite, Mode::None, Mode::None),
+      ResultCode::Success);
+  ASSERT_EQ(
+      m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/d2/file", 0, Mode::ReadWrite, Mode::None, Mode::None),
+      ResultCode::Success);
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/d", "/tmp/d2"), ResultCode::Success);
+
+  EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/d").Error(), ResultCode::NotFound);
+  const Result<std::vector<std::string>> children = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/d2");
+  ASSERT_TRUE(children.Succeeded());
+  EXPECT_TRUE(children->empty());
+}
+
+TEST_F(FileSystemTest, RenameWithExistingTargetFile)
+{
+  // Create the test source file and write some data (so that we can check its size later on).
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, Mode::ReadWrite, Mode::None, Mode::None),
+            ResultCode::Success);
+  const std::vector<u8> TEST_DATA{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
+  std::vector<u8> read_buffer(TEST_DATA.size());
+  {
+    const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f1", Mode::ReadWrite);
+    ASSERT_TRUE(file.Succeeded());
+    ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
+  }
+
+  // Create the test target file and leave it empty.
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f2", 0, Mode::ReadWrite, Mode::None, Mode::None),
+            ResultCode::Success);
+
+  // Rename f1 to f2 and check that f1 replaced f2.
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/f1", "/tmp/f2"), ResultCode::Success);
+
+  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f1").Succeeded());
+  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f1").Error(), ResultCode::NotFound);
+
+  const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f2");
+  ASSERT_TRUE(metadata.Succeeded());
+  EXPECT_TRUE(metadata->is_file);
+  EXPECT_EQ(metadata->size, TEST_DATA.size());
+}
+
 TEST_F(FileSystemTest, GetDirectoryStats)
 {
   auto check_stats = [this](u32 clusters, u32 inodes) {
