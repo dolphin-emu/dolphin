@@ -11,80 +11,70 @@ namespace Common
 {
 u32 ClassifyDouble(double dvalue)
 {
-  // TODO: Optimize the below to be as fast as possible.
-  IntDouble value(dvalue);
-  u64 sign = value.i & DOUBLE_SIGN;
-  u64 exp = value.i & DOUBLE_EXP;
+  u64 ivalue;
+  std::memcpy(&ivalue, &dvalue, sizeof(ivalue));
+
+  const u64 sign = ivalue & DOUBLE_SIGN;
+  const u64 exp = ivalue & DOUBLE_EXP;
+
   if (exp > DOUBLE_ZERO && exp < DOUBLE_EXP)
   {
     // Nice normalized number.
     return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
   }
-  else
+
+  const u64 mantissa = ivalue & DOUBLE_FRAC;
+  if (mantissa)
   {
-    u64 mantissa = value.i & DOUBLE_FRAC;
-    if (mantissa)
-    {
-      if (exp)
-      {
-        return PPC_FPCLASS_QNAN;
-      }
-      else
-      {
-        // Denormalized number.
-        return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-      }
-    }
-    else if (exp)
-    {
-      // Infinite
-      return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
-    }
-    else
-    {
-      // Zero
-      return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
-    }
+    if (exp)
+      return PPC_FPCLASS_QNAN;
+
+    // Denormalized number.
+    return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
   }
+
+  if (exp)
+  {
+    // Infinite
+    return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+  }
+
+  // Zero
+  return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 }
 
 u32 ClassifyFloat(float fvalue)
 {
-  // TODO: Optimize the below to be as fast as possible.
-  IntFloat value(fvalue);
-  u32 sign = value.i & FLOAT_SIGN;
-  u32 exp = value.i & FLOAT_EXP;
+  u32 ivalue;
+  std::memcpy(&ivalue, &fvalue, sizeof(ivalue));
+
+  const u32 sign = ivalue & FLOAT_SIGN;
+  const u32 exp = ivalue & FLOAT_EXP;
+
   if (exp > FLOAT_ZERO && exp < FLOAT_EXP)
   {
     // Nice normalized number.
     return sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
   }
-  else
+
+  const u32 mantissa = ivalue & FLOAT_FRAC;
+  if (mantissa)
   {
-    u32 mantissa = value.i & FLOAT_FRAC;
-    if (mantissa)
-    {
-      if (exp)
-      {
-        return PPC_FPCLASS_QNAN;  // Quiet NAN
-      }
-      else
-      {
-        // Denormalized number.
-        return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-      }
-    }
-    else if (exp)
-    {
-      // Infinite
-      return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
-    }
-    else
-    {
-      // Zero
-      return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
-    }
+    if (exp)
+      return PPC_FPCLASS_QNAN;  // Quiet NAN
+
+    // Denormalized number.
+    return sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
   }
+
+  if (exp)
+  {
+    // Infinite
+    return sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
+  }
+
+  // Zero
+  return sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
 }
 
 const std::array<BaseAndDec, 32> frsqrte_expected = {{
