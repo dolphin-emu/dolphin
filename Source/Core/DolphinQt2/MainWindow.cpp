@@ -125,8 +125,6 @@ MainWindow::~MainWindow()
   m_render_widget->deleteLater();
   ShutdownControllers();
 
-  Config::Save();
-
   QSettings& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("mainwindow/state"), saveState());
@@ -136,6 +134,8 @@ MainWindow::~MainWindow()
 
   SConfig::GetInstance().iRenderWindowXPos = m_render_widget_position.x();
   SConfig::GetInstance().iRenderWindowYPos = m_render_widget_position.y();
+
+  Config::Save();
 }
 
 void MainWindow::InitControllers()
