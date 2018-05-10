@@ -29,7 +29,7 @@ public:
 
   const Buffer& GetBytes() const;
   void SetBytes(Buffer&& buffer);
-  const std::string GetValue(const std::string& key);
+  std::string GetValue(const std::string& key) const;
 
   void Decrypt();
   void Reset();

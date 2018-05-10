@@ -44,7 +44,7 @@ void SettingsHandler::SetBytes(SettingsHandler::Buffer&& buffer)
   Decrypt();
 }
 
-const std::string SettingsHandler::GetValue(const std::string& key)
+std::string SettingsHandler::GetValue(const std::string& key) const
 {
   std::string delim = std::string("\r\n");
   std::string toFind = delim + key + "=";
