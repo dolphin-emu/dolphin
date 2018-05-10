@@ -56,6 +56,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
 
   auto& settings = Settings::Instance().GetQSettings();
 
+  restoreGeometry(settings.value(QStringLiteral("netplaydialog/geometry")).toByteArray());
   m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
 }
 
@@ -63,6 +64,7 @@ NetPlayDialog::~NetPlayDialog()
 {
   auto& settings = Settings::Instance().GetQSettings();
 
+  settings.setValue(QStringLiteral("netplaydialog/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("netplaydialog/splitter"), m_splitter->saveState());
 }
 
