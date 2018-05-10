@@ -24,6 +24,7 @@ class QPushButton;
 class QSpinBox;
 class QSplitter;
 class QTextEdit;
+class QToolButton;
 
 class NetPlayDialog : public QDialog, public NetPlayUI
 {
@@ -66,7 +67,6 @@ private:
   void ConnectWidgets();
   void OnChat();
   void OnStart();
-  void OnMD5Combo(int index);
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
   void UpdateGUI();
@@ -91,7 +91,7 @@ private:
 
   // Other
   QPushButton* m_game_button;
-  QComboBox* m_md5_box;
+  QToolButton* m_md5_button;
   QPushButton* m_start_button;
   QLabel* m_buffer_label;
   QSpinBox* m_buffer_size_box;
