@@ -106,4 +106,5 @@ private:
   GameListModel* m_game_list_model = nullptr;
   bool m_use_traversal = false;
   bool m_is_copy_button_retry = false;
+  int m_buffer_size = 0;
 };

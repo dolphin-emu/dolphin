@@ -18,7 +18,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QSpinBox>
-#include <QTextEdit>
+#include <QTextBrowser>
 
 #include <sstream>
 
@@ -96,7 +96,7 @@ void NetPlayDialog::CreateMainLayout()
 void NetPlayDialog::CreateChatLayout()
 {
   m_chat_box = new QGroupBox(tr("Chat"));
-  m_chat_edit = new QTextEdit;
+  m_chat_edit = new QTextBrowser;
   m_chat_type_edit = new QLineEdit;
   m_chat_send_button = new QPushButton(tr("Send"));
 
@@ -170,6 +170,9 @@ void NetPlayDialog::ConnectWidgets()
   // Other
   connect(m_buffer_size_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
           [this](int value) {
+            if (value == m_buffer_size)
+              return;
+
             if (Settings::Instance().GetNetPlayServer() != nullptr)
               Settings::Instance().GetNetPlayServer()->AdjustPadBufferSize(value);
           });
@@ -288,6 +291,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 {
   m_nickname = nickname;
   m_use_traversal = use_traversal;
+  m_buffer_size = 0;
 
   m_room_box->clear();
   m_chat_edit->clear();
@@ -488,6 +492,8 @@ void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 {
   QueueOnObject(this, [this, buffer] { m_buffer_size_box->setValue(buffer); });
   DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "");
+
+  m_buffer_size = static_cast<int>(buffer);
 }
 
 void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
