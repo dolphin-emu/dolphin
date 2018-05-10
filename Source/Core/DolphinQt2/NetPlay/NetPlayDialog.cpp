@@ -449,7 +449,7 @@ void NetPlayDialog::OnMsgChangeGame(const std::string& title)
     m_game_button->setText(qtitle);
     m_current_game = title;
   });
-  DisplayMessage(tr("Game changed to \"%1\"").arg(qtitle), "pink");
+  DisplayMessage(tr("Game changed to \"%1\"").arg(qtitle), "magenta");
 }
 
 void NetPlayDialog::GameStatusChanged(bool running)
@@ -487,7 +487,7 @@ void NetPlayDialog::OnMsgStopGame()
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 {
   QueueOnObject(this, [this, buffer] { m_buffer_size_box->setValue(buffer); });
-  DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "gray");
+  DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "");
 }
 
 void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
