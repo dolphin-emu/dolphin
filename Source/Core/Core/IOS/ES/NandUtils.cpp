@@ -222,40 +222,56 @@ static bool DeleteDirectoriesIfEmpty(FS::FileSystem* fs, const std::string& path
   return true;
 }
 
-bool ES::InitImport(const IOS::ES::TMDReader& tmd)
+bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
 {
   const auto fs = m_ios.GetFS();
-  const std::string content_dir = Common::GetTitleContentPath(tmd.GetTitleId());
-  const std::string import_content_dir = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content";
 
+  const std::string content_dir = Common::GetTitleContentPath(title_id);
   const auto result1 = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, content_dir + '/', 0,
                                           FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read);
   const auto result2 = fs->SetMetadata(PID_KERNEL, content_dir, PID_KERNEL, PID_KERNEL, 0,
                                        FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None);
-  const auto result3 = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, import_content_dir + '/', 0,
-                                          FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None);
-  if (result1 != FS::ResultCode::Success || result2 != FS::ResultCode::Success ||
-      result3 != FS::ResultCode::Success)
+  if (result1 != FS::ResultCode::Success || result2 != FS::ResultCode::Success)
   {
-    ERROR_LOG(IOS_ES, "InitImport: Failed to create content dir for %016" PRIx64, tmd.GetTitleId());
+    ERROR_LOG(IOS_ES, "Failed to create or set metadata on content dir for %016" PRIx64, title_id);
     return false;
   }
 
-  const std::string data_dir = Common::GetTitleDataPath(tmd.GetTitleId());
+  const std::string data_dir = Common::GetTitleDataPath(title_id);
   const auto data_dir_contents = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, data_dir);
   if (!data_dir_contents &&
       (data_dir_contents.Error() != FS::ResultCode::NotFound ||
        fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, FS::Mode::ReadWrite, FS::Mode::None,
                            FS::Mode::None) != FS::ResultCode::Success))
   {
+    ERROR_LOG(IOS_ES, "Failed to create data dir for %016" PRIx64, title_id);
     return false;
   }
 
   IOS::ES::UIDSys uid_sys{fs};
-  const u32 uid = uid_sys.GetOrInsertUIDForTitle(tmd.GetTitleId());
-  if (fs->SetMetadata(0, data_dir, uid, tmd.GetGroupId(), 0, FS::Mode::ReadWrite, FS::Mode::None,
+  const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
+  if (fs->SetMetadata(0, data_dir, uid, group_id, 0, FS::Mode::ReadWrite, FS::Mode::None,
                       FS::Mode::None) != FS::ResultCode::Success)
   {
+    ERROR_LOG(IOS_ES, "Failed to set metadata on data dir for %016" PRIx64, title_id);
+    return false;
+  }
+
+  return true;
+}
+
+bool ES::InitImport(const IOS::ES::TMDReader& tmd)
+{
+  if (!CreateTitleDirectories(tmd.GetTitleId(), tmd.GetGroupId()))
+    return false;
+
+  const auto fs = m_ios.GetFS();
+  const std::string import_content_dir = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content";
+  const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, import_content_dir + '/', 0,
+                                         FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None);
+  if (result != FS::ResultCode::Success)
+  {
+    ERROR_LOG(IOS_ES, "InitImport: Failed to create content dir for %016" PRIx64, tmd.GetTitleId());
     return false;
   }
 
@@ -265,8 +281,9 @@ bool ES::InitImport(const IOS::ES::TMDReader& tmd)
   if (!file_info || !file_info->is_file)
     return true;
 
-  const auto result = fs->Rename(PID_KERNEL, PID_KERNEL, content_dir, import_content_dir);
-  if (result != FS::ResultCode::Success)
+  const std::string content_dir = Common::GetTitleContentPath(tmd.GetTitleId());
+  const auto rename_result = fs->Rename(PID_KERNEL, PID_KERNEL, content_dir, import_content_dir);
+  if (rename_result != FS::ResultCode::Success)
   {
     ERROR_LOG(IOS_ES, "InitImport: Failed to move content dir for %016" PRIx64, tmd.GetTitleId());
     return false;
