@@ -18,6 +18,7 @@
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QSplitter>
 #include <QTextBrowser>
 
 #include <sstream>
@@ -52,6 +53,17 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   CreatePlayersLayout();
   CreateMainLayout();
   ConnectWidgets();
+
+  auto& settings = Settings::Instance().GetQSettings();
+
+  m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
+}
+
+NetPlayDialog::~NetPlayDialog()
+{
+  auto& settings = Settings::Instance().GetQSettings();
+
+  settings.setValue(QStringLiteral("netplaydialog/splitter"), m_splitter->saveState());
 }
 
 void NetPlayDialog::CreateMainLayout()
@@ -66,6 +78,7 @@ void NetPlayDialog::CreateMainLayout()
   m_record_input_box = new QCheckBox(tr("Record inputs"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
+  m_splitter = new QSplitter(Qt::Horizontal);
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
@@ -76,8 +89,10 @@ void NetPlayDialog::CreateMainLayout()
 
   m_main_layout->addWidget(m_game_button, 0, 0);
   m_main_layout->addWidget(m_md5_box, 0, 1);
-  m_main_layout->addWidget(m_chat_box, 1, 0);
-  m_main_layout->addWidget(m_players_box, 1, 1);
+  m_main_layout->addWidget(m_splitter, 1, 0, 1, -1);
+
+  m_splitter->addWidget(m_chat_box);
+  m_splitter->addWidget(m_players_box);
 
   auto* options_widget = new QHBoxLayout;
 

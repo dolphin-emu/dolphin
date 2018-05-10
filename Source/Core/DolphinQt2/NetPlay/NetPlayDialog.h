@@ -22,6 +22,7 @@ class QLineEdit;
 class QListWidget;
 class QPushButton;
 class QSpinBox;
+class QSplitter;
 class QTextEdit;
 
 class NetPlayDialog : public QDialog, public NetPlayUI
@@ -29,6 +30,7 @@ class NetPlayDialog : public QDialog, public NetPlayUI
   Q_OBJECT
 public:
   NetPlayDialog(QWidget* parent);
+  ~NetPlayDialog();
 
   void show(std::string nickname, bool use_traversal);
   void reject() override;
@@ -97,6 +99,7 @@ private:
   QCheckBox* m_load_wii_box;
   QCheckBox* m_record_input_box;
   QPushButton* m_quit_button;
+  QSplitter* m_splitter;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
