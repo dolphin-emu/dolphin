@@ -110,7 +110,7 @@ void PSTextureEncoder::Encode(
     encode_params.y_scale = y_scale;
     encode_params.gamma_rcp = 1.0f / gamma;
     encode_params.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
-    encode_params.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 0.0f;
+    encode_params.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 1.0f;
     for (size_t i = 0; i < filter_coefficients.size(); i++)
       encode_params.filter_coefficients[i] = filter_coefficients[i];
 

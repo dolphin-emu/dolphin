@@ -245,7 +245,7 @@ void TextureConverter::EncodeTextureToMemory(
   encoder_params.y_scale = y_scale;
   encoder_params.gamma_rcp = 1.0f / gamma;
   encoder_params.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
-  encoder_params.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 0.0f;
+  encoder_params.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 1.0f;
   for (size_t i = 0; i < filter_coefficients.size(); i++)
     encoder_params.filter_coefficients[i] = filter_coefficients[i];
   u8* ubo_ptr = draw.AllocatePSUniforms(sizeof(EFBEncodeParams));
