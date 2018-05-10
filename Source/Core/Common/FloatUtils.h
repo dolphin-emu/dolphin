@@ -7,6 +7,7 @@
 #include <array>
 #include <limits>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
 namespace Common
@@ -55,54 +56,39 @@ enum : u32
   FLOAT_ZERO = 0x00000000
 };
 
-union IntDouble
-{
-  double d;
-  u64 i;
-
-  explicit IntDouble(u64 _i) : i(_i) {}
-  explicit IntDouble(double _d) : d(_d) {}
-};
-union IntFloat
-{
-  float f;
-  u32 i;
-
-  explicit IntFloat(u32 _i) : i(_i) {}
-  explicit IntFloat(float _f) : f(_f) {}
-};
-
 inline bool IsQNAN(double d)
 {
-  IntDouble x(d);
-  return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) && ((x.i & DOUBLE_QBIT) == DOUBLE_QBIT);
+  const u64 i = BitCast<u64>(d);
+  return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_QBIT) == DOUBLE_QBIT);
 }
 
 inline bool IsSNAN(double d)
 {
-  IntDouble x(d);
-  return ((x.i & DOUBLE_EXP) == DOUBLE_EXP) && ((x.i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
-         ((x.i & DOUBLE_QBIT) == DOUBLE_ZERO);
+  const u64 i = BitCast<u64>(d);
+  return ((i & DOUBLE_EXP) == DOUBLE_EXP) && ((i & DOUBLE_FRAC) != DOUBLE_ZERO) &&
+         ((i & DOUBLE_QBIT) == DOUBLE_ZERO);
 }
 
 inline float FlushToZero(float f)
 {
-  IntFloat x(f);
-  if ((x.i & FLOAT_EXP) == 0)
+  u32 i = BitCast<u32>(f);
+  if ((i & FLOAT_EXP) == 0)
   {
-    x.i &= FLOAT_SIGN;  // turn into signed zero
+    // Turn into signed zero
+    i &= FLOAT_SIGN;
   }
-  return x.f;
+  return BitCast<float>(i);
 }
 
 inline double FlushToZero(double d)
 {
-  IntDouble x(d);
-  if ((x.i & DOUBLE_EXP) == 0)
+  u64 i = BitCast<u64>(d);
+  if ((i & DOUBLE_EXP) == 0)
   {
-    x.i &= DOUBLE_SIGN;  // turn into signed zero
+    // Turn into signed zero
+    i &= DOUBLE_SIGN;
   }
-  return x.d;
+  return BitCast<double>(i);
 }
 
 enum PPCFpClass

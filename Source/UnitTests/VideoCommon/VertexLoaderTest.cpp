@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>  // NOLINT
 
+#include "Common/BitUtils.h"
 #include "Common/Common.h"
-#include "Common/FloatUtils.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -72,14 +72,15 @@ protected:
     m_src.Write<T, true>(val);
   }
 
-  void ExpectOut(float val)
+  void ExpectOut(float expected)
   {
     // Read unswapped.
-    Common::IntFloat expected(val), actual(m_dst.Read<float, false>());
-    if (!actual.f || actual.f != actual.f)
-      EXPECT_EQ(expected.i, actual.i);
+    const float actual = m_dst.Read<float, false>();
+
+    if (!actual || actual != actual)
+      EXPECT_EQ(Common::BitCast<u32>(expected), Common::BitCast<u32>(actual));
     else
-      EXPECT_EQ(expected.f, actual.f);
+      EXPECT_EQ(expected, actual);
   }
 
   void RunVertices(int count, int expected_count = -1)
