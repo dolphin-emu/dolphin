@@ -113,6 +113,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   QSettings& settings = Settings::GetQSettings();
 
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
+  restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
   m_render_widget_size =
       QSize(SConfig::GetInstance().iRenderWindowWidth, SConfig::GetInstance().iRenderWindowHeight);
 
@@ -128,6 +129,7 @@ MainWindow::~MainWindow()
   QSettings& settings = Settings::GetQSettings();
 
   settings.setValue(QStringLiteral("mainwindow/state"), saveState());
+  settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
 
   SConfig::GetInstance().iRenderWindowWidth = m_render_widget_size.width();
   SConfig::GetInstance().iRenderWindowHeight = m_render_widget_size.height();
