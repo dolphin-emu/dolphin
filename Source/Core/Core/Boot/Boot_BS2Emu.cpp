@@ -9,8 +9,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -227,6 +225,7 @@ bool CBoot::SetupWiiMemory()
 
   SettingsHandler gen;
   std::string serno;
+  CreateSystemMenuTitleDirs();
   const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
                                        "/" WII_SETTING);
 
@@ -338,11 +337,16 @@ bool CBoot::SetupWiiMemory()
 
 static void WriteEmptyPlayRecord()
 {
-  const std::string file_path =
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/play_rec.dat";
-  File::IOFile playrec_file(file_path, "r+b");
+  CreateSystemMenuTitleDirs();
+  const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
+  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
+                                                  rw_mode, rw_mode, rw_mode);
+  if (!playrec_file)
+    return;
   std::vector<u8> empty_record(0x80);
-  playrec_file.WriteBytes(empty_record.data(), empty_record.size());
+  playrec_file->Write(empty_record.data(), empty_record.size());
 }
 
 // __________________________________________________________________________________________________

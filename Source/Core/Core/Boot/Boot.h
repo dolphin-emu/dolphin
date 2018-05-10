@@ -151,3 +151,9 @@ struct StateFlags
 // Reads the state file from the NAND, then calls the passed update function to update the struct,
 // and finally writes the updated state file to the NAND.
 void UpdateStateFlags(std::function<void(StateFlags*)> update_function);
+
+/// Create title directories for the system menu (if needed).
+///
+/// Normally, this is automatically done by ES when the System Menu is installed,
+/// but we cannot rely on this because we don't require any system titles to be installed.
+void CreateSystemMenuTitleDirs();
