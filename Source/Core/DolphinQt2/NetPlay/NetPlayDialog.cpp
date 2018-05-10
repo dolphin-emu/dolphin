@@ -201,8 +201,8 @@ void NetPlayDialog::OnChat()
     Settings::Instance().GetNetPlayClient()->SendChatMessage(msg);
     m_chat_type_edit->clear();
 
-    DisplayMessage(QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname),
-                                                QString::fromStdString(msg)),
+    DisplayMessage(QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname).toHtmlEscaped(),
+                                                QString::fromStdString(msg).toHtmlEscaped()),
                    "blue");
   });
 }
@@ -439,7 +439,7 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 
 void NetPlayDialog::AppendChat(const std::string& msg)
 {
-  DisplayMessage(QString::fromStdString(msg), "");
+  DisplayMessage(QString::fromStdString(msg).toHtmlEscaped(), "");
 }
 
 void NetPlayDialog::OnMsgChangeGame(const std::string& title)
