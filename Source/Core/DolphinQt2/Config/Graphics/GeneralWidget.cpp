@@ -173,8 +173,6 @@ void GeneralWidget::SaveSettings()
       const auto current_backend = backend->GetName();
       if (SConfig::GetInstance().m_strVideoBackend != current_backend)
       {
-        SConfig::GetInstance().m_strVideoBackend = current_backend;
-
         if (backend->GetName() == "Software Renderer")
         {
           QMessageBox confirm_sw;
@@ -201,7 +199,11 @@ void GeneralWidget::SaveSettings()
           }
         }
         SConfig::GetInstance().m_strVideoBackend = current_backend;
-        backend->InitBackendInfo();
+
+        g_Config.Refresh();
+
+        g_video_backend = backend.get();
+        g_video_backend->InitBackendInfo();
         emit BackendChanged(QString::fromStdString(current_backend));
         break;
       }

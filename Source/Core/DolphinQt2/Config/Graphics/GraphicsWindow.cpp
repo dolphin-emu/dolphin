@@ -19,10 +19,13 @@
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/QtUtils/WrapInScrollArea.h"
+#include "VideoCommon/VideoConfig.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
 {
+  g_Config.Refresh();
+
   CreateMainLayout();
 
   setWindowTitle(tr("Graphics"));
@@ -67,18 +70,22 @@ void GraphicsWindow::CreateMainLayout()
   connect(m_software_renderer, &SoftwareRendererWidget::BackendChanged, this,
           &GraphicsWindow::OnBackendChanged);
 
+  m_wrapped_general = GetWrappedWidget(m_general_widget, this, 50, 305);
+  m_wrapped_enhancements = GetWrappedWidget(m_enhancements_widget, this, 50, 305);
+  m_wrapped_hacks = GetWrappedWidget(m_hacks_widget, this, 50, 305);
+  m_wrapped_advanced = GetWrappedWidget(m_advanced_widget, this, 50, 305);
+  m_wrapped_software = GetWrappedWidget(m_software_renderer, this, 50, 305);
+
   if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
   {
-    m_tab_widget->addTab(GetWrappedWidget(m_general_widget, this, 50, 305), tr("General"));
-    m_tab_widget->addTab(GetWrappedWidget(m_enhancements_widget, this, 50, 305),
-                         tr("Enhancements"));
-    m_tab_widget->addTab(GetWrappedWidget(m_hacks_widget, this, 50, 305), tr("Hacks"));
-    m_tab_widget->addTab(GetWrappedWidget(m_advanced_widget, this, 50, 305), tr("Advanced"));
+    m_tab_widget->addTab(m_wrapped_general, tr("General"));
+    m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
+    m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
+    m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
   }
   else
   {
-    m_tab_widget->addTab(GetWrappedWidget(m_software_renderer, this, 50, 305),
-                         tr("Software Renderer"));
+    m_tab_widget->addTab(m_wrapped_software, tr("Software Renderer"));
   }
 
   setLayout(main_layout);
@@ -90,16 +97,16 @@ void GraphicsWindow::OnBackendChanged(const QString& backend)
   if (backend == QStringLiteral("Software Renderer") && m_tab_widget->count() > 1)
   {
     m_tab_widget->clear();
-    m_tab_widget->addTab(m_software_renderer, tr("Software Renderer"));
+    m_tab_widget->addTab(m_wrapped_software, tr("Software Renderer"));
   }
 
   if (backend != QStringLiteral("Software Renderer") && m_tab_widget->count() == 1)
   {
     m_tab_widget->clear();
-    m_tab_widget->addTab(m_general_widget, tr("General"));
-    m_tab_widget->addTab(m_enhancements_widget, tr("Enhancements"));
-    m_tab_widget->addTab(m_hacks_widget, tr("Hacks"));
-    m_tab_widget->addTab(m_advanced_widget, tr("Advanced"));
+    m_tab_widget->addTab(m_wrapped_general, tr("General"));
+    m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
+    m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
+    m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
   }
 
   emit BackendChanged(backend);
