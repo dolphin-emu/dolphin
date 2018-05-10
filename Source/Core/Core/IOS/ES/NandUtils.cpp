@@ -18,6 +18,7 @@
 #include "Common/StringUtil.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/Uids.h"
 
 namespace IOS
 {
