@@ -322,7 +322,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
       m_room_box->addItem(tr("Room ID"));
 
     for (const auto& iface : Settings::Instance().GetNetPlayServer()->GetInterfaceSet())
-      m_room_box->addItem(QString::fromStdString(iface));
+      m_room_box->addItem(iface == "!local!" ? tr("Local") : QString::fromStdString(iface));
   }
 
   m_start_button->setHidden(!is_hosting);
