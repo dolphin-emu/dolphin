@@ -217,6 +217,9 @@ void IOWindow::UpdateOptionList()
 
   const auto device = g_controller_interface.FindDevice(m_devq);
 
+  if (device == nullptr)
+    return;
+
   if (m_reference->IsInput())
   {
     for (const auto* input : device->Inputs())
