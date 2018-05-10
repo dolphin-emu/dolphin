@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32
   // Get the default system font because Qt's way of obtaining it is outdated
   NONCLIENTMETRICS metrics = {};
-  auto& logfont = metrics.lfMenuFont;
+  LOGFONT& logfont = metrics.lfMenuFont;
   metrics.cbSize = sizeof(NONCLIENTMETRICS);
 
   if (SystemParametersInfo(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
@@ -107,7 +107,12 @@ int main(int argc, char* argv[])
     // thing
     QFont font = QApplication::font();
     font.setFamily(QString::fromStdString(UTF16ToUTF8(logfont.lfFaceName)));
-    font.setWeight(logfont.lfWeight);
+
+    // LOGFONT uses a scale from 1 to 1000 to represent font weight while Qt uses a scale from 0
+    // to 99. LOGFONT also has a DONTCARE value which we have to ignore.
+    if (logfont.lfWeight != FW_DONTCARE)
+      font.setWeight((logfont.lfWeight / 10) - 1);
+
     font.setItalic(logfont.lfItalic);
     font.setStrikeOut(logfont.lfStrikeOut);
     font.setUnderline(logfont.lfUnderline);
