@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include "Common/BitUtils.h"
 #include "Common/FloatUtils.h"
 
 TEST(FloatUtils, IsQNAN)
@@ -51,18 +52,16 @@ TEST(FloatUtils, FlushToZero)
   std::uniform_int_distribution<u32> dist(0x00800000u, 0x7fffffffu);
   for (u32 i = 0; i <= 0x007fffffu; ++i)
   {
-    Common::IntFloat x(i);
-    EXPECT_EQ(+0.f, Common::FlushToZero(x.f));
+    u32 i_tmp = i;
+    EXPECT_EQ(+0.f, Common::FlushToZero(Common::BitCast<float>(i_tmp)));
 
-    x.i = i | 0x80000000u;
-    EXPECT_EQ(-0.f, Common::FlushToZero(x.f));
+    i_tmp |= 0x80000000u;
+    EXPECT_EQ(-0.f, Common::FlushToZero(Common::BitCast<float>(i_tmp)));
 
-    x.i = dist(engine);
-    Common::IntFloat y(Common::FlushToZero(x.f));
-    EXPECT_EQ(x.i, y.i);
+    i_tmp = dist(engine);
+    EXPECT_EQ(i_tmp, Common::BitCast<u32>(Common::FlushToZero(Common::BitCast<float>(i_tmp))));
 
-    x.i |= 0x80000000u;
-    y.f = Common::FlushToZero(x.f);
-    EXPECT_EQ(x.i, y.i);
+    i_tmp |= 0x80000000u;
+    EXPECT_EQ(i_tmp, Common::BitCast<u32>(Common::FlushToZero(Common::BitCast<float>(i_tmp))));
   }
 }
