@@ -5,15 +5,14 @@
 #include "Common/FloatUtils.h"
 
 #include <cmath>
-#include <cstring>
+
+#include "Common/BitUtils.h"
 
 namespace Common
 {
 u32 ClassifyDouble(double dvalue)
 {
-  u64 ivalue;
-  std::memcpy(&ivalue, &dvalue, sizeof(ivalue));
-
+  const u64 ivalue = BitCast<u64>(dvalue);
   const u64 sign = ivalue & DOUBLE_SIGN;
   const u64 exp = ivalue & DOUBLE_EXP;
 
@@ -45,9 +44,7 @@ u32 ClassifyDouble(double dvalue)
 
 u32 ClassifyFloat(float fvalue)
 {
-  u32 ivalue;
-  std::memcpy(&ivalue, &fvalue, sizeof(ivalue));
-
+  const u32 ivalue = BitCast<u32>(fvalue);
   const u32 sign = ivalue & FLOAT_SIGN;
   const u32 exp = ivalue & FLOAT_EXP;
 
@@ -90,9 +87,7 @@ const std::array<BaseAndDec, 32> frsqrte_expected = {{
 
 double ApproximateReciprocalSquareRoot(double val)
 {
-  s64 integral;
-  std::memcpy(&integral, &val, sizeof(integral));
-
+  s64 integral = BitCast<s64>(val);
   s64 mantissa = integral & ((1LL << 52) - 1);
   const s64 sign = integral & (1ULL << 63);
   s64 exponent = integral & (0x7FFLL << 52);
@@ -143,9 +138,7 @@ double ApproximateReciprocalSquareRoot(double val)
   const auto& entry = frsqrte_expected[index];
   integral |= static_cast<s64>(entry.m_base - entry.m_dec * (i % 2048)) << 26;
 
-  double result;
-  std::memcpy(&result, &integral, sizeof(result));
-  return result;
+  return BitCast<double>(integral);
 }
 
 const std::array<BaseAndDec, 32> fres_expected = {{
@@ -161,9 +154,7 @@ const std::array<BaseAndDec, 32> fres_expected = {{
 // Used by fres and ps_res.
 double ApproximateReciprocal(double val)
 {
-  s64 integral;
-  std::memcpy(&integral, &val, sizeof(integral));
-
+  s64 integral = BitCast<s64>(val);
   const s64 mantissa = integral & ((1LL << 52) - 1);
   const s64 sign = integral & (1ULL << 63);
   s64 exponent = integral & (0x7FFLL << 52);
@@ -195,9 +186,7 @@ double ApproximateReciprocal(double val)
   integral = sign | exponent;
   integral |= static_cast<s64>(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
 
-  double result;
-  std::memcpy(&result, &integral, sizeof(result));
-  return result;
+  return BitCast<double>(integral);
 }
 
 }  // namespace Common
