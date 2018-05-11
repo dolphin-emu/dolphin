@@ -7,6 +7,7 @@
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinQt2/Host.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
 
@@ -30,15 +31,13 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
   PopulateTable();
   ConnectWidgets();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     if (Settings::Instance().IsDebugModeEnabled() && Core::GetState() == Core::State::Paused)
-      emit RequestTableUpdate();
-  });
-
-  connect(this, &RegisterWidget::RequestTableUpdate, [this] {
-    m_updating = true;
-    emit UpdateTable();
-    m_updating = false;
+    {
+      m_updating = true;
+      emit UpdateTable();
+      m_updating = false;
+    }
   });
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged,
