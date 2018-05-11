@@ -32,6 +32,9 @@
 // A simple and portable piece of code used to generate a blank FAT32 image file.
 // Modified for Dolphin.
 
+#include "Common/SDCardUtil.h"
+
+#include <algorithm>
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
@@ -43,7 +46,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
-#include "Common/SDCardUtil.h"
 
 #ifndef _WIN32
 #include <unistd.h>  // for unlink()
@@ -182,18 +184,16 @@ static bool write_sector(FILE* file, const u8* sector)
   return fwrite(sector, 1, BYTES_PER_SECTOR, file) == BYTES_PER_SECTOR;
 }
 
-static bool write_empty(FILE* file, u64 count)
+static bool write_empty(FILE* file, std::size_t count)
 {
-  static u8 empty[64 * 1024];
+  static constexpr u8 empty[64 * 1024] = {};
 
   count *= BYTES_PER_SECTOR;
   while (count > 0)
   {
-    u64 len = sizeof(empty);
-    if (len > count)
-      len = count;
+    const std::size_t len = std::min(sizeof(empty), count);
 
-    if (fwrite(empty, 1, (size_t)len, file) != (size_t)len)
+    if (fwrite(empty, 1, len, file) != len)
       return false;
 
     count -= len;
