@@ -56,6 +56,8 @@
 #pragma warning(disable : 4310)
 #endif
 
+namespace Common
+{
 /* Believe me, you *don't* want to change these constants !! */
 #define BYTES_PER_SECTOR 512
 #define RESERVED_SECTORS 32
@@ -286,6 +288,7 @@ FailWrite:
     ERROR_LOG(COMMON, "unlink(%s) failed: %s", filename.c_str(), LastStrerrorString().c_str());
   return false;
 }
+}  // namespace Common
 
 #ifdef _MSC_VER
 #pragma warning(pop)
