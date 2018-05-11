@@ -883,16 +883,12 @@ bool WriteStringToFile(const std::string& str, const std::string& filename)
 bool ReadFileToString(const std::string& filename, std::string& str)
 {
   File::IOFile file(filename, "rb");
-  auto const f = file.GetHandle();
 
-  if (!f)
+  if (!file)
     return false;
 
-  size_t read_size;
-  str.resize(GetSize(f));
-  bool retval = file.ReadArray(&str[0], str.size(), &read_size);
-
-  return retval;
+  str.resize(file.GetSize());
+  return file.ReadArray(&str[0], str.size());
 }
 
 }  // namespace File
