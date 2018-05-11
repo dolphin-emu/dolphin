@@ -12,12 +12,15 @@
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 
 #include "Common/Thread.h"
+#include "Core/Core.h"
+
 #include "DolphinQt2/Config/Mapping/IOWindow.h"
 #include "DolphinQt2/Config/Mapping/MappingCommon.h"
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
 #include "DolphinQt2/Settings.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -51,6 +54,9 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
       return;
 
     Settings::Instance().SetControllerStateNeeded(true);
+
+    if (Core::GetState() == Core::State::Uninitialized || Core::GetState() == Core::State::Paused)
+      g_controller_interface.UpdateInput();
 
     auto state = m_reference->State();
 
