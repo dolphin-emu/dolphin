@@ -77,12 +77,11 @@ static u8 s_fat_head[BYTES_PER_SECTOR];      /* First FAT sector */
 /* This is the date and time when creating the disk */
 static unsigned int get_serial_id()
 {
-  u16 lo, hi;
-  time_t now = time(nullptr);
-  struct tm tm = gmtime(&now)[0];
+  const time_t now = std::time(nullptr);
+  const struct tm tm = std::gmtime(&now)[0];
 
-  lo = (u16)(tm.tm_mday + ((tm.tm_mon + 1) << 8) + (tm.tm_sec << 8));
-  hi = (u16)(tm.tm_min + (tm.tm_hour << 8) + (tm.tm_year + 1900));
+  const u16 lo = static_cast<u16>(tm.tm_mday + ((tm.tm_mon + 1) << 8) + (tm.tm_sec << 8));
+  const u16 hi = static_cast<u16>(tm.tm_min + (tm.tm_hour << 8) + (tm.tm_year + 1900));
 
   return lo + (hi << 16);
 }
@@ -108,23 +107,20 @@ static unsigned int get_sectors_per_cluster(u64 disk_size)
 
 static unsigned int get_sectors_per_fat(u64 disk_size, u32 sectors_per_cluster)
 {
-  u64 divider;
-
   /* Weird computation from MS - see fatgen103.doc for details */
   disk_size -= RESERVED_SECTORS * BYTES_PER_SECTOR; /* Don't count 32 reserved sectors */
   disk_size /= BYTES_PER_SECTOR;                    /* Disk size in sectors */
-  divider = ((256 * sectors_per_cluster) + NUM_FATS) / 2;
+  const u64 divider = ((256 * sectors_per_cluster) + NUM_FATS) / 2;
 
-  return (u32)((disk_size + (divider - 1)) / divider);
+  return static_cast<u32>((disk_size + (divider - 1)) / divider);
 }
 
 static void boot_sector_init(u8* boot, u8* info, u64 disk_size, const char* label)
 {
-  u32 sectors_per_cluster = get_sectors_per_cluster(disk_size);
-  u32 sectors_per_fat = get_sectors_per_fat(disk_size, sectors_per_cluster);
-  u32 sectors_per_disk = (u32)(disk_size / BYTES_PER_SECTOR);
-  u32 serial_id = get_serial_id();
-  u32 free_count;
+  const u32 sectors_per_cluster = get_sectors_per_cluster(disk_size);
+  const u32 sectors_per_fat = get_sectors_per_fat(disk_size, sectors_per_cluster);
+  const u32 sectors_per_disk = static_cast<u32>(disk_size / BYTES_PER_SECTOR);
+  const u32 serial_id = get_serial_id();
 
   if (label == nullptr)
     label = "DOLPHINSD";
@@ -163,7 +159,7 @@ static void boot_sector_init(u8* boot, u8* info, u64 disk_size, const char* labe
   POKEB(boot + BYTES_PER_SECTOR - 1, 0xAA);
 
   /* FSInfo sector */
-  free_count = sectors_per_disk - 32 - 2 * sectors_per_fat;
+  const u32 free_count = sectors_per_disk - 32 - 2 * sectors_per_fat;
 
   POKEW(info + 0, 0x41615252);
   POKEW(info + 484, 0x61417272);
@@ -203,9 +199,6 @@ static bool write_empty(FILE* file, std::size_t count)
 
 bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 {
-  u32 sectors_per_fat;
-  u32 sectors_per_disk;
-
   // Convert MB to bytes
   disk_size *= 1024 * 1024;
 
@@ -218,8 +211,8 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
   }
 
   // Pretty unlikely to overflow.
-  sectors_per_disk = (u32)(disk_size / BYTES_PER_SECTOR);
-  sectors_per_fat = get_sectors_per_fat(disk_size, get_sectors_per_cluster(disk_size));
+  const u32 sectors_per_disk = static_cast<u32>(disk_size / BYTES_PER_SECTOR);
+  const u32 sectors_per_fat = get_sectors_per_fat(disk_size, get_sectors_per_cluster(disk_size));
 
   boot_sector_init(s_boot_sector, s_fsinfo_sector, disk_size, nullptr);
   fat_init(s_fat_head);
