@@ -252,15 +252,20 @@ void HotkeyScheduler::Run()
           emit ConnectWiiRemote(wiimote_id);
       }
 
+      const auto show_msg = [](OSDMessage message) {
+        if (g_renderer)
+          g_renderer->ShowOSDMessage(message);
+      };
+
       // Graphics
       if (IsHotkey(HK_INCREASE_IR))
       {
-        OSDChoice = 1;
+        show_msg(OSDMessage::IRChanged);
         ++g_Config.iEFBScale;
       }
       if (IsHotkey(HK_DECREASE_IR))
       {
-        OSDChoice = 1;
+        show_msg(OSDMessage::IRChanged);
         g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, EFB_SCALE_AUTO_INTEGRAL);
       }
 
@@ -269,29 +274,29 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_TOGGLE_AR))
       {
-        OSDChoice = 2;
+        show_msg(OSDMessage::ARToggled);
         g_Config.aspect_mode =
             static_cast<AspectMode>((static_cast<int>(g_Config.aspect_mode) + 1) & 3);
       }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
       {
-        OSDChoice = 3;
+        show_msg(OSDMessage::EFBCopyToggled);
         g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
       }
 
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
       {
-        OSDChoice = 6;
+        show_msg(OSDMessage::XFBChanged);
         g_Config.bSkipXFBCopyToRam = !g_Config.bSkipXFBCopyToRam;
       }
       if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
       {
-        OSDChoice = 6;
+        show_msg(OSDMessage::XFBChanged);
         g_Config.bImmediateXFB = !g_Config.bImmediateXFB;
       }
       if (IsHotkey(HK_TOGGLE_FOG))
       {
-        OSDChoice = 4;
+        show_msg(OSDMessage::FogToggled);
         g_Config.bDisableFog = !g_Config.bDisableFog;
       }
 
@@ -305,7 +310,7 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
-        OSDChoice = 5;
+        show_msg(OSDMessage::SpeedChanged);
 
         auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
         speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
@@ -314,7 +319,7 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
-        OSDChoice = 5;
+        show_msg(OSDMessage::SpeedChanged);
 
         auto speed = SConfig::GetInstance().m_EmulationSpeed + 0.1;
         speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;

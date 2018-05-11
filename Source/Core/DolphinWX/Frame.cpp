@@ -1417,14 +1417,19 @@ void CFrame::ParseHotkeys()
     OnConnectWiimote(evt);
   }
 
+  const auto show_msg = [](OSDMessage message) {
+    if (g_renderer)
+      g_renderer->ShowOSDMessage(message);
+  };
+
   if (IsHotkey(HK_INCREASE_IR))
   {
-    OSDChoice = 1;
+    show_msg(OSDMessage::IRChanged);
     Config::SetCurrent(Config::GFX_EFB_SCALE, Config::Get(Config::GFX_EFB_SCALE) + 1);
   }
   if (IsHotkey(HK_DECREASE_IR))
   {
-    OSDChoice = 1;
+    show_msg(OSDMessage::IRChanged);
     if (Config::Get(Config::GFX_EFB_SCALE) > EFB_SCALE_AUTO_INTEGRAL)
       Config::SetCurrent(Config::GFX_EFB_SCALE, Config::Get(Config::GFX_EFB_SCALE) - 1);
   }
@@ -1434,7 +1439,7 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_TOGGLE_AR))
   {
-    OSDChoice = 2;
+    show_msg(OSDMessage::ARToggled);
     // Toggle aspect ratio
     int aspect_ratio = Config::Get(Config::GFX_ASPECT_RATIO);
     aspect_ratio = (aspect_ratio + 1) & 3;
@@ -1442,28 +1447,28 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_TOGGLE_EFBCOPIES))
   {
-    OSDChoice = 3;
+    show_msg(OSDMessage::EFBCopyToggled);
     // Toggle EFB copies between EFB2RAM and EFB2Texture
     Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
                        !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
   }
   if (IsHotkey(HK_TOGGLE_XFBCOPIES))
   {
-    OSDChoice = 6;
+    show_msg(OSDMessage::XFBChanged);
     // Toggle XFB copies between XFB2RAM and XFB2Texture
     Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
                        !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
   }
   if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
   {
-    OSDChoice = 6;
+    show_msg(OSDMessage::XFBChanged);
     // Toggle immediate present of xfb
     Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
                        !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
   }
   if (IsHotkey(HK_TOGGLE_FOG))
   {
-    OSDChoice = 4;
+    show_msg(OSDMessage::FogToggled);
     Config::SetCurrent(Config::GFX_DISABLE_FOG, !Config::Get(Config::GFX_DISABLE_FOG));
   }
   if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
@@ -1477,7 +1482,7 @@ void CFrame::ParseHotkeys()
   Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
   if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
   {
-    OSDChoice = 5;
+    show_msg(OSDMessage::SpeedChanged);
 
     if (SConfig::GetInstance().m_EmulationSpeed <= 0.0f)
       SConfig::GetInstance().m_EmulationSpeed = 1.0f;
@@ -1492,7 +1497,7 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
   {
-    OSDChoice = 5;
+    show_msg(OSDMessage::SpeedChanged);
 
     if (SConfig::GetInstance().m_EmulationSpeed > 0.0f)
       SConfig::GetInstance().m_EmulationSpeed += 0.1f;
