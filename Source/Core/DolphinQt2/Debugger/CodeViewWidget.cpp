@@ -44,8 +44,7 @@ CodeViewWidget::CodeViewWidget()
 
   for (int i = 0; i < columnCount(); i++)
   {
-    horizontalHeader()->setSectionResizeMode(i, i == 0 ? QHeaderView::Fixed :
-                                                         QHeaderView::ResizeToContents);
+    horizontalHeader()->setSectionResizeMode(i, QHeaderView::Fixed);
   }
 
   verticalHeader()->hide();
@@ -174,6 +173,7 @@ void CodeViewWidget::Update()
     }
   }
 
+  resizeColumnsToContents();
   setColumnWidth(0, 24 + 5);
 
   g_symbolDB.FillInCallers();
