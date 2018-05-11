@@ -68,8 +68,6 @@
 
 // TODO: Move these out of here.
 int frameCount;
-int OSDChoice;
-static int OSDTime;
 
 std::unique_ptr<Renderer> g_renderer;
 
@@ -84,9 +82,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   UpdateActiveConfig();
   UpdateDrawRectangle();
   CalculateTargetSize();
-
-  OSDChoice = 0;
-  OSDTime = 0;
 
   if (SConfig::GetInstance().bWii)
     m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
@@ -296,13 +291,13 @@ void Renderer::DrawDebugText()
   }
 
   // OSD Menu messages
-  if (OSDChoice > 0)
+  if (m_osd_message > 0)
   {
-    OSDTime = Common::Timer::GetTimeMs() + 3000;
-    OSDChoice = -OSDChoice;
+    m_osd_time = Common::Timer::GetTimeMs() + 3000;
+    m_osd_message = -m_osd_message;
   }
 
-  if ((u32)OSDTime > Common::Timer::GetTimeMs())
+  if (static_cast<u32>(m_osd_time) > Common::Timer::GetTimeMs())
   {
     std::string res_text;
     switch (g_ActiveConfig.iEFBScale)
@@ -360,7 +355,7 @@ void Renderer::DrawDebugText()
     // The latest changed setting in yellow
     for (int i = 0; i != lines_count; ++i)
     {
-      if (OSDChoice == -i - 1)
+      if (m_osd_message == -i - 1)
         final_yellow += lines[i];
       final_yellow += '\n';
     }
@@ -368,7 +363,7 @@ void Renderer::DrawDebugText()
     // The other settings in cyan
     for (int i = 0; i != lines_count; ++i)
     {
-      if (OSDChoice != -i - 1)
+      if (m_osd_message != -i - 1)
         final_cyan += lines[i];
       final_cyan += '\n';
     }
@@ -1031,4 +1026,9 @@ bool Renderer::UseVertexDepthRange() const
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
 {
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
+}
+
+void Renderer::ShowOSDMessage(OSDMessage message)
+{
+  m_osd_message = static_cast<s32>(message);
 }
