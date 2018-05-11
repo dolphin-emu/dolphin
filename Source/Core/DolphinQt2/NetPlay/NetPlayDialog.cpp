@@ -312,7 +312,10 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
       m_room_box->addItem(tr("Room ID"));
 
     for (const auto& iface : Settings::Instance().GetNetPlayServer()->GetInterfaceSet())
-      m_room_box->addItem(iface == "!local!" ? tr("Local") : QString::fromStdString(iface));
+    {
+      const auto interface = QString::fromStdString(iface);
+      m_room_box->addItem(iface == "!local!" ? tr("Local") : interface, interface);
+    }
   }
 
   m_start_button->setHidden(!is_hosting);
@@ -399,7 +402,7 @@ void NetPlayDialog::UpdateGUI()
   {
     m_hostcode_label->setText(
         QString::fromStdString(Settings::Instance().GetNetPlayServer()->GetInterfaceHost(
-            m_room_box->currentText().toStdString())));
+            m_room_box->currentData().toString().toStdString())));
     m_hostcode_action_button->setText(tr("Copy"));
     m_hostcode_action_button->setEnabled(true);
   }
