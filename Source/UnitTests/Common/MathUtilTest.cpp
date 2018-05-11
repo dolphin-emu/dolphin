@@ -30,3 +30,11 @@ TEST(MathUtil, IntLog2)
   EXPECT_EQ(3, IntLog2(15));
   EXPECT_EQ(63, IntLog2(0xFFFFFFFFFFFFFFFFull));
 }
+
+TEST(MathUtil, NextPowerOf2)
+{
+  EXPECT_EQ(4, MathUtil::NextPowerOf2(3));
+  EXPECT_EQ(4, MathUtil::NextPowerOf2(4));
+  EXPECT_EQ(8, MathUtil::NextPowerOf2(6));
+  EXPECT_EQ(0x40000000, MathUtil::NextPowerOf2(0x23456789));
+}
