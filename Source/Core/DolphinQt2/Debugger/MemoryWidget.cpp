@@ -385,9 +385,9 @@ void MemoryWidget::OnSetValue()
 
   if (m_find_ascii->isChecked())
   {
-    std::string ascii = m_data_edit->text().toStdString();
+    const QByteArray bytes = m_data_edit->text().toUtf8();
 
-    for (char c : ascii)
+    for (char c : bytes)
       PowerPC::HostWrite_U8(static_cast<u8>(c), addr++);
   }
   else
@@ -471,10 +471,8 @@ std::vector<u8> MemoryWidget::GetValueData() const
 
   if (m_find_ascii->isChecked())
   {
-    std::string s = m_data_edit->text().toStdString();
-
-    for (char c : s)
-      search_for.push_back(c);
+    const QByteArray bytes = m_data_edit->text().toUtf8();
+    search_for.assign(bytes.begin(), bytes.end());
   }
   else
   {
