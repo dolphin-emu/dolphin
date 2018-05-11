@@ -179,14 +179,14 @@ static void fat_init(u8* fat)
 
 static unsigned int write_sector(FILE* file, u8* sector)
 {
-  return fwrite(sector, 1, 512, file) != 512;
+  return fwrite(sector, 1, BYTES_PER_SECTOR, file) != BYTES_PER_SECTOR;
 }
 
 static unsigned int write_empty(FILE* file, u64 count)
 {
   static u8 empty[64 * 1024];
 
-  count *= 512;
+  count *= BYTES_PER_SECTOR;
   while (count > 0)
   {
     u64 len = sizeof(empty);
@@ -218,7 +218,7 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
   }
 
   // Pretty unlikely to overflow.
-  sectors_per_disk = (u32)(disk_size / 512);
+  sectors_per_disk = (u32)(disk_size / BYTES_PER_SECTOR);
   sectors_per_fat = get_sectors_per_fat(disk_size, get_sectors_per_cluster(disk_size));
 
   boot_sector_init(s_boot_sector, s_fsinfo_sector, disk_size, nullptr);
