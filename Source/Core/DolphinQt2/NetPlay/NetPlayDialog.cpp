@@ -4,6 +4,7 @@
 
 #include "DolphinQt2/NetPlay/NetPlayDialog.h"
 
+#include <QAction>
 #include <QApplication>
 #include <QCheckBox>
 #include <QClipboard>
@@ -14,11 +15,14 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QSpinBox>
-#include <QTextEdit>
+#include <QSplitter>
+#include <QTextBrowser>
+#include <QToolButton>
 
 #include <sstream>
 
@@ -52,13 +56,26 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   CreatePlayersLayout();
   CreateMainLayout();
   ConnectWidgets();
+
+  auto& settings = Settings::Instance().GetQSettings();
+
+  restoreGeometry(settings.value(QStringLiteral("netplaydialog/geometry")).toByteArray());
+  m_splitter->restoreState(settings.value(QStringLiteral("netplaydialog/splitter")).toByteArray());
+}
+
+NetPlayDialog::~NetPlayDialog()
+{
+  auto& settings = Settings::Instance().GetQSettings();
+
+  settings.setValue(QStringLiteral("netplaydialog/geometry"), saveGeometry());
+  settings.setValue(QStringLiteral("netplaydialog/splitter"), m_splitter->saveState());
 }
 
 void NetPlayDialog::CreateMainLayout()
 {
   m_main_layout = new QGridLayout;
   m_game_button = new QPushButton;
-  m_md5_box = new QComboBox;
+  m_md5_button = new QToolButton;
   m_start_button = new QPushButton(tr("Start"));
   m_buffer_size_box = new QSpinBox;
   m_save_sd_box = new QCheckBox(tr("Write save/SD data"));
@@ -66,18 +83,44 @@ void NetPlayDialog::CreateMainLayout()
   m_record_input_box = new QCheckBox(tr("Record inputs"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
+  m_splitter = new QSplitter(Qt::Horizontal);
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
 
-  for (const QString& text :
-       {tr("MD5 Check:"), tr("Current game"), tr("Other game"), tr("SD card")})
-    m_md5_box->addItem(text);
+  auto* default_button = new QAction(tr("Calculate MD5 hash"), m_md5_button);
+
+  auto* menu = new QMenu(this);
+
+  auto* other_game_button = new QAction(tr("Other game"), this);
+  auto* sdcard_button = new QAction(tr("SD Card"), this);
+
+  menu->addAction(other_game_button);
+  menu->addAction(sdcard_button);
+
+  connect(default_button, &QAction::triggered,
+          [this] { Settings::Instance().GetNetPlayServer()->ComputeMD5(m_current_game); });
+  connect(other_game_button, &QAction::triggered, [this] {
+    GameListDialog gld(this);
+
+    if (gld.exec() == QDialog::Accepted)
+    {
+      Settings::Instance().GetNetPlayServer()->ComputeMD5(gld.GetSelectedUniqueID().toStdString());
+    }
+  });
+  connect(sdcard_button, &QAction::triggered,
+          [] { Settings::Instance().GetNetPlayServer()->ComputeMD5(WII_SDCARD); });
+
+  m_md5_button->setDefaultAction(default_button);
+  m_md5_button->setPopupMode(QToolButton::MenuButtonPopup);
+  m_md5_button->setMenu(menu);
 
   m_main_layout->addWidget(m_game_button, 0, 0);
-  m_main_layout->addWidget(m_md5_box, 0, 1);
-  m_main_layout->addWidget(m_chat_box, 1, 0);
-  m_main_layout->addWidget(m_players_box, 1, 1);
+  m_main_layout->addWidget(m_md5_button, 0, 1);
+  m_main_layout->addWidget(m_splitter, 1, 0, 1, -1);
+
+  m_splitter->addWidget(m_chat_box);
+  m_splitter->addWidget(m_players_box);
 
   auto* options_widget = new QHBoxLayout;
 
@@ -96,7 +139,7 @@ void NetPlayDialog::CreateMainLayout()
 void NetPlayDialog::CreateChatLayout()
 {
   m_chat_box = new QGroupBox(tr("Chat"));
-  m_chat_edit = new QTextEdit;
+  m_chat_edit = new QTextBrowser;
   m_chat_type_edit = new QLineEdit;
   m_chat_send_button = new QPushButton(tr("Send"));
 
@@ -170,14 +213,15 @@ void NetPlayDialog::ConnectWidgets()
   // Other
   connect(m_buffer_size_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
           [this](int value) {
+            if (value == m_buffer_size)
+              return;
+
             if (Settings::Instance().GetNetPlayServer() != nullptr)
               Settings::Instance().GetNetPlayServer()->AdjustPadBufferSize(value);
           });
 
   connect(m_start_button, &QPushButton::clicked, this, &NetPlayDialog::OnStart);
   connect(m_quit_button, &QPushButton::clicked, this, &NetPlayDialog::reject);
-  connect(m_md5_box, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-          &NetPlayDialog::OnMD5Combo);
 
   connect(m_game_button, &QPushButton::clicked, [this] {
     GameListDialog gld(this);
@@ -201,8 +245,8 @@ void NetPlayDialog::OnChat()
     Settings::Instance().GetNetPlayClient()->SendChatMessage(msg);
     m_chat_type_edit->clear();
 
-    DisplayMessage(QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname),
-                                                QString::fromStdString(msg)),
+    DisplayMessage(QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname).toHtmlEscaped(),
+                                                QString::fromStdString(msg).toHtmlEscaped()),
                    "blue");
   });
 }
@@ -241,40 +285,6 @@ void NetPlayDialog::OnStart()
   Settings::Instance().GetNetPlayServer()->StartGame();
 }
 
-void NetPlayDialog::OnMD5Combo(int index)
-{
-  std::string identifier;
-
-  switch (index)
-  {
-  case 0:
-    return;
-  case 1:  // Current game
-    identifier = m_current_game;
-    break;
-  case 2:  // Other game
-  {
-    GameListDialog gld(this);
-
-    if (gld.exec() == QDialog::Accepted)
-    {
-      identifier = gld.GetSelectedUniqueID().toStdString();
-      break;
-    }
-    else
-    {
-      m_md5_box->setCurrentIndex(0);
-      return;
-    }
-  }
-  case 3:  // SD Card
-    identifier = WII_SDCARD;
-    break;
-  }
-
-  Settings::Instance().GetNetPlayServer()->ComputeMD5(identifier);
-}
-
 void NetPlayDialog::reject()
 {
   if (QMessageBox::question(this, tr("Confirmation"),
@@ -288,6 +298,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 {
   m_nickname = nickname;
   m_use_traversal = use_traversal;
+  m_buffer_size = 0;
 
   m_room_box->clear();
   m_chat_edit->clear();
@@ -301,7 +312,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
       m_room_box->addItem(tr("Room ID"));
 
     for (const auto& iface : Settings::Instance().GetNetPlayServer()->GetInterfaceSet())
-      m_room_box->addItem(QString::fromStdString(iface));
+      m_room_box->addItem(iface == "!local!" ? tr("Local") : QString::fromStdString(iface));
   }
 
   m_start_button->setHidden(!is_hosting);
@@ -311,7 +322,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_buffer_label->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
   m_assign_ports_button->setHidden(!is_hosting);
-  m_md5_box->setHidden(!is_hosting);
+  m_md5_button->setHidden(!is_hosting);
   m_room_box->setHidden(!is_hosting);
   m_hostcode_label->setHidden(!is_hosting);
   m_hostcode_action_button->setHidden(!is_hosting);
@@ -439,7 +450,7 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 
 void NetPlayDialog::AppendChat(const std::string& msg)
 {
-  DisplayMessage(QString::fromStdString(msg), "");
+  DisplayMessage(QString::fromStdString(msg).toHtmlEscaped(), "");
 }
 
 void NetPlayDialog::OnMsgChangeGame(const std::string& title)
@@ -449,7 +460,7 @@ void NetPlayDialog::OnMsgChangeGame(const std::string& title)
     m_game_button->setText(qtitle);
     m_current_game = title;
   });
-  DisplayMessage(tr("Game changed to \"%1\"").arg(qtitle), "pink");
+  DisplayMessage(tr("Game changed to \"%1\"").arg(qtitle), "magenta");
 }
 
 void NetPlayDialog::GameStatusChanged(bool running)
@@ -487,7 +498,9 @@ void NetPlayDialog::OnMsgStopGame()
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 {
   QueueOnObject(this, [this, buffer] { m_buffer_size_box->setValue(buffer); });
-  DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "gray");
+  DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "");
+
+  m_buffer_size = static_cast<int>(buffer);
 }
 
 void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
@@ -545,8 +558,7 @@ std::string NetPlayDialog::FindGame(const std::string& game)
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)
 {
   QueueOnObject(this, [this, file_identifier] {
-    m_md5_box->setEnabled(false);
-    m_md5_box->setCurrentIndex(0);
+    m_md5_button->setEnabled(false);
 
     if (m_md5_dialog->isVisible())
       m_md5_dialog->close();
@@ -567,7 +579,7 @@ void NetPlayDialog::SetMD5Result(int pid, const std::string& result)
 {
   QueueOnObject(this, [this, pid, result] {
     m_md5_dialog->SetResult(pid, result);
-    m_md5_box->setEnabled(true);
+    m_md5_button->setEnabled(true);
   });
 }
 
@@ -575,6 +587,6 @@ void NetPlayDialog::AbortMD5()
 {
   QueueOnObject(this, [this] {
     m_md5_dialog->close();
-    m_md5_box->setEnabled(true);
+    m_md5_button->setEnabled(true);
   });
 }

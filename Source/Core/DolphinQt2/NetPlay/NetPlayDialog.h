@@ -22,13 +22,16 @@ class QLineEdit;
 class QListWidget;
 class QPushButton;
 class QSpinBox;
+class QSplitter;
 class QTextEdit;
+class QToolButton;
 
 class NetPlayDialog : public QDialog, public NetPlayUI
 {
   Q_OBJECT
 public:
   NetPlayDialog(QWidget* parent);
+  ~NetPlayDialog();
 
   void show(std::string nickname, bool use_traversal);
   void reject() override;
@@ -64,7 +67,6 @@ private:
   void ConnectWidgets();
   void OnChat();
   void OnStart();
-  void OnMD5Combo(int index);
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
   void UpdateGUI();
@@ -89,7 +91,7 @@ private:
 
   // Other
   QPushButton* m_game_button;
-  QComboBox* m_md5_box;
+  QToolButton* m_md5_button;
   QPushButton* m_start_button;
   QLabel* m_buffer_label;
   QSpinBox* m_buffer_size_box;
@@ -97,6 +99,7 @@ private:
   QCheckBox* m_load_wii_box;
   QCheckBox* m_record_input_box;
   QPushButton* m_quit_button;
+  QSplitter* m_splitter;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
@@ -106,4 +109,5 @@ private:
   GameListModel* m_game_list_model = nullptr;
   bool m_use_traversal = false;
   bool m_is_copy_button_retry = false;
+  int m_buffer_size = 0;
 };
