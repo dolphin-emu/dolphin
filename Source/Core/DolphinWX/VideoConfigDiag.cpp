@@ -465,7 +465,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         {
           szr_shader_compilation->Add(
               CreateRadioButton(page_general, modes[i].first, modes[i].second,
-                                Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i)),
+                                Config::GFX_SHADER_COMPILATION_MODE,
+                                static_cast<ShaderCompilationMode>(i)),
               wxGBPosition(static_cast<int>(i / 2), static_cast<int>(i % 2)), wxDefaultSpan,
               wxALIGN_CENTER_VERTICAL);
         }
