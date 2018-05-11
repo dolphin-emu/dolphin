@@ -9,8 +9,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -25,7 +23,9 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/Uids.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
@@ -225,15 +225,23 @@ bool CBoot::SetupWiiMemory()
 
   SettingsHandler gen;
   std::string serno;
-  const std::string settings_file_path(
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/" WII_SETTING);
-  if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
-  {
-    serno = gen.GetValue("SERNO");
-    gen.Reset();
+  CreateSystemMenuTitleDirs();
+  const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
+                                       "/" WII_SETTING);
 
-    File::Delete(settings_file_path);
+  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  {
+    SettingsHandler::Buffer data;
+    const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
+                                   IOS::HLE::FS::Mode::Read);
+    if (file && file->Read(data.data(), data.size()))
+    {
+      gen.SetBytes(std::move(data));
+      serno = gen.GetValue("SERNO");
+      gen.Reset();
+    }
   }
+  fs->Delete(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path);
 
   if (serno.empty() || serno == "000000000")
   {
@@ -258,14 +266,17 @@ bool CBoot::SetupWiiMemory()
   gen.AddSetting("VIDEO", region_setting.video);
   gen.AddSetting("GAME", region_setting.game);
 
-  if (!gen.Save(settings_file_path))
+  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  const auto settings_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID,
+                                                   settings_file_path, rw_mode, rw_mode, rw_mode);
+  if (!settings_file || !settings_file->Write(gen.GetBytes().data(), gen.GetBytes().size()))
   {
     PanicAlertT("SetupWiiMemory: Can't create setting.txt file");
     return false;
   }
 
   // Write the 256 byte setting.txt to memory.
-  Memory::CopyToEmu(0x3800, gen.GetData(), SettingsHandler::SETTINGS_SIZE);
+  Memory::CopyToEmu(0x3800, gen.GetBytes().data(), gen.GetBytes().size());
 
   INFO_LOG(BOOT, "Setup Wii Memory...");
 
@@ -326,11 +337,16 @@ bool CBoot::SetupWiiMemory()
 
 static void WriteEmptyPlayRecord()
 {
-  const std::string file_path =
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/play_rec.dat";
-  File::IOFile playrec_file(file_path, "r+b");
+  CreateSystemMenuTitleDirs();
+  const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
+  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
+                                                  rw_mode, rw_mode, rw_mode);
+  if (!playrec_file)
+    return;
   std::vector<u8> empty_record(0x80);
-  playrec_file.WriteBytes(empty_record.data(), empty_record.size());
+  playrec_file->Write(empty_record.data(), empty_record.size());
 }
 
 // __________________________________________________________________________________________________

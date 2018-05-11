@@ -139,6 +139,8 @@ public:
   ReturnCode SetUpStreamKey(u32 uid, const u8* ticket_view, const IOS::ES::TMDReader& tmd,
                             u32* handle);
 
+  bool CreateTitleDirectories(u64 title_id, u16 group_id) const;
+
 private:
   enum
   {

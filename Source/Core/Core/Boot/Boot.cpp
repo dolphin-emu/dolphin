@@ -39,7 +39,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/Uids.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -470,26 +473,28 @@ void StateFlags::UpdateChecksum()
 
 void UpdateStateFlags(std::function<void(StateFlags*)> update_function)
 {
-  const std::string file_path =
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "/" WII_STATE;
+  CreateSystemMenuTitleDirs();
+  const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_STATE;
+  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  const auto file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path, rw_mode,
+                                          rw_mode, rw_mode);
+  if (!file)
+    return;
 
-  File::IOFile file;
-  StateFlags state;
-  if (File::Exists(file_path))
-  {
-    file.Open(file_path, "r+b");
-    file.ReadBytes(&state, sizeof(state));
-  }
-  else
-  {
-    File::CreateFullPath(file_path);
-    file.Open(file_path, "a+b");
-    memset(&state, 0, sizeof(state));
-  }
+  StateFlags state{};
+  if (file->GetStatus()->size == sizeof(StateFlags))
+    file->Read(&state, 1);
 
   update_function(&state);
   state.UpdateChecksum();
 
-  file.Seek(0, SEEK_SET);
-  file.WriteBytes(&state, sizeof(state));
+  file->Seek(0, IOS::HLE::FS::SeekMode::Set);
+  file->Write(&state, 1);
+}
+
+void CreateSystemMenuTitleDirs()
+{
+  const auto es = IOS::HLE::GetIOS()->GetES();
+  es->CreateTitleDirectories(Titles::SYSTEM_MENU, IOS::SYSMENU_GID);
 }
