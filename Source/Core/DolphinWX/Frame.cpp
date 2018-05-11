@@ -1524,7 +1524,7 @@ void CFrame::ParseHotkeys()
       // turned off when selecting other stereoscopy modes.
       if (g_Config.sPostProcessingShader == "dubois")
       {
-        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
       }
       Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::SBS));
     }
@@ -1539,7 +1539,7 @@ void CFrame::ParseHotkeys()
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
-        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
       }
       Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::TAB));
     }
@@ -1555,12 +1555,12 @@ void CFrame::ParseHotkeys()
       // Setting the anaglyph mode also requires a specific
       // post-processing shader to be activated.
       Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Anaglyph));
-      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
+      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "dubois");
     }
     else
     {
       Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
-      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+      Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
     }
   }
   if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
@@ -1569,7 +1569,7 @@ void CFrame::ParseHotkeys()
     {
       if (g_Config.sPostProcessingShader == "dubois")
       {
-        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+        Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
       }
       Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Nvidia3DVision));
     }

@@ -169,8 +169,11 @@ void LogManager::SaveSettings()
   Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
 
   for (const auto& container : m_log)
-    Config::SetBaseOrCurrent({{Config::System::Logger, "Logs", container.m_short_name}, false},
-                             container.m_enable);
+  {
+    const Config::ConfigInfo<bool> info{{Config::System::Logger, "Logs", container.m_short_name},
+                                        false};
+    Config::SetBaseOrCurrent(info, container.m_enable);
+  }
 
   Config::Save();
 }

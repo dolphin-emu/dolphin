@@ -116,7 +116,7 @@ public:
   }
 
   template <typename T>
-  void Set(const ConfigInfo<T>& config_info, const T& value)
+  void Set(const ConfigInfo<T>& config_info, const std::common_type_t<T>& value)
   {
     Set<T>(config_info.location, value);
   }
