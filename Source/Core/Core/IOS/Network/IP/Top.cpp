@@ -39,8 +39,10 @@
 #define FREE(x) HeapFree(GetProcessHeap(), 0, (x))
 
 #else
+#include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <netinet/in.h>
+#include <resolv.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -795,6 +797,8 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
   {
   case 0xb003:  // dns server table
   {
+    const u32 default_main_dns_resolver = ntohl(::inet_addr("8.8.8.8"));
+    const u32 default_backup_dns_resolver = ntohl(::inet_addr("8.8.4.4"));
     u32 address = 0;
 #ifdef _WIN32
     if (!Core::WantsDeterminism())
@@ -826,7 +830,7 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
       if (RetVal == NO_ERROR)
       {
         unsigned long dwBestIfIndex = 0;
-        IPAddr dwDestAddr = (IPAddr)0x08080808;
+        IPAddr dwDestAddr = static_cast<IPAddr>(default_main_dns_resolver);
         // If successful, output some information from the data we received
         PIP_ADAPTER_ADDRESSES AdapterList = AdapterAddresses;
         if (GetBestInterface(dwDestAddr, &dwBestIfIndex) == NO_ERROR)
@@ -857,12 +861,20 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
         FREE(AdapterAddresses);
       }
     }
+#elif defined(__linux__) && !defined(__ANDROID__)
+    if (res_init() == 0)
+      address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
+    else
+      WARN_LOG(IOS_NET, "Call to res_init failed");
 #endif
     if (address == 0)
-      address = 0x08080808;
+      address = default_main_dns_resolver;
+
+    INFO_LOG(IOS_NET, "Primary DNS: %X", address);
+    INFO_LOG(IOS_NET, "Secondary DNS: %X", default_backup_dns_resolver);
 
     Memory::Write_U32(address, request.io_vectors[0].address);
-    Memory::Write_U32(0x08080404, request.io_vectors[0].address + 4);
+    Memory::Write_U32(default_backup_dns_resolver, request.io_vectors[0].address + 4);
     break;
   }
   case 0x1003:  // error
