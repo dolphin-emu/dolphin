@@ -11,6 +11,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Thread.h"
+#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"
@@ -258,53 +259,60 @@ void HotkeyScheduler::Run()
       };
 
       // Graphics
+      const auto efb_scale = Config::Get(Config::GFX_EFB_SCALE);
+
       if (IsHotkey(HK_INCREASE_IR))
       {
         show_msg(OSDMessage::IRChanged);
-        ++g_Config.iEFBScale;
+        Config::SetCurrent(Config::GFX_EFB_SCALE, efb_scale + 1);
       }
       if (IsHotkey(HK_DECREASE_IR))
       {
         show_msg(OSDMessage::IRChanged);
-        g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, EFB_SCALE_AUTO_INTEGRAL);
+        if (efb_scale > EFB_SCALE_AUTO_INTEGRAL)
+          Config::SetCurrent(Config::GFX_EFB_SCALE, efb_scale - 1);
       }
 
       if (IsHotkey(HK_TOGGLE_CROP))
-        g_Config.bCrop = !g_Config.bCrop;
+        Config::SetCurrent(Config::GFX_CROP, !Config::Get(Config::GFX_CROP));
 
       if (IsHotkey(HK_TOGGLE_AR))
       {
         show_msg(OSDMessage::ARToggled);
-        g_Config.aspect_mode =
-            static_cast<AspectMode>((static_cast<int>(g_Config.aspect_mode) + 1) & 3);
+        const auto aspect_ratio = (Config::Get(Config::GFX_ASPECT_RATIO) + 1) & 3;
+        Config::SetCurrent(Config::GFX_ASPECT_RATIO, aspect_ratio);
       }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
       {
         show_msg(OSDMessage::EFBCopyToggled);
-        g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
+        Config::SetCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM,
+                           !Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM));
       }
 
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
       {
         show_msg(OSDMessage::XFBChanged);
-        g_Config.bSkipXFBCopyToRam = !g_Config.bSkipXFBCopyToRam;
+        Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
+                           !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
       }
       if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
       {
         show_msg(OSDMessage::XFBChanged);
-        g_Config.bImmediateXFB = !g_Config.bImmediateXFB;
+
+        Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
+                           !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
       }
       if (IsHotkey(HK_TOGGLE_FOG))
       {
         show_msg(OSDMessage::FogToggled);
-        g_Config.bDisableFog = !g_Config.bDisableFog;
+        Config::SetCurrent(Config::GFX_DISABLE_FOG, !Config::Get(Config::GFX_DISABLE_FOG));
       }
 
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
-        g_Config.bDumpTextures = !g_Config.bDumpTextures;
+        Config::SetCurrent(Config::GFX_DUMP_TEXTURES, !Config::Get(Config::GFX_DUMP_TEXTURES));
 
       if (IsHotkey(HK_TOGGLE_TEXTURES))
-        g_Config.bHiresTextures = !g_Config.bHiresTextures;
+        Config::SetCurrent(Config::GFX_HIRES_TEXTURES, !Config::Get(Config::GFX_HIRES_TEXTURES));
 
       Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 
@@ -336,61 +344,67 @@ void HotkeyScheduler::Run()
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS) || IsHotkey(HK_TOGGLE_STEREO_TAB))
       {
-        if (g_Config.stereo_mode != StereoMode::SBS)
+        if (Config::Get(Config::GFX_STEREO_MODE) != static_cast<int>(StereoMode::SBS))
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
-          if (g_Config.sPostProcessingShader == DUBOIS_ALGORITHM_SHADER)
-            g_Config.sPostProcessingShader = "";
+          if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
+            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
 
-          g_Config.stereo_mode = IsHotkey(HK_TOGGLE_STEREO_SBS) ? StereoMode::SBS : StereoMode::TAB;
+          Config::SetCurrent(Config::GFX_STEREO_MODE, IsHotkey(HK_TOGGLE_STEREO_SBS) ?
+                                                          static_cast<int>(StereoMode::SBS) :
+                                                          static_cast<int>(StereoMode::TAB));
         }
         else
         {
-          g_Config.stereo_mode = StereoMode::Off;
+          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
         }
       }
 
       if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
       {
-        if (g_Config.stereo_mode != StereoMode::Anaglyph)
+        if (Config::Get(Config::GFX_STEREO_MODE) != static_cast<int>(StereoMode::Anaglyph))
         {
-          g_Config.stereo_mode = StereoMode::Anaglyph;
-          g_Config.sPostProcessingShader = DUBOIS_ALGORITHM_SHADER;
+          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Anaglyph));
+          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(DUBOIS_ALGORITHM_SHADER));
         }
         else
         {
-          g_Config.stereo_mode = StereoMode::Off;
-          g_Config.sPostProcessingShader = "";
+          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
+          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
         }
       }
 
       if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
       {
-        if (g_Config.stereo_mode != StereoMode::Nvidia3DVision)
+        if (Config::Get(Config::GFX_STEREO_MODE) != static_cast<int>(StereoMode::Nvidia3DVision))
         {
-          if (g_Config.sPostProcessingShader == DUBOIS_ALGORITHM_SHADER)
-            g_Config.sPostProcessingShader = "";
+          if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
+            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
 
-          g_Config.stereo_mode = StereoMode::Nvidia3DVision;
+          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Nvidia3DVision));
         }
         else
         {
-          g_Config.stereo_mode = StereoMode::Off;
+          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
         }
       }
     }
 
+    const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);
+
     if (IsHotkey(HK_DECREASE_DEPTH, true))
-      g_Config.iStereoDepth = std::max(g_Config.iStereoDepth - 1, 0);
+      Config::SetCurrent(Config::GFX_STEREO_DEPTH, std::min(stereo_depth - 1, 0));
 
     if (IsHotkey(HK_INCREASE_DEPTH, true))
-      g_Config.iStereoDepth = std::min(g_Config.iStereoDepth + 1, 100);
+      Config::SetCurrent(Config::GFX_STEREO_DEPTH, std::min(stereo_depth + 1, 100));
+
+    const auto stereo_convergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
 
     if (IsHotkey(HK_DECREASE_CONVERGENCE, true))
-      g_Config.iStereoConvergence = std::max(g_Config.iStereoConvergence - 5, 0);
+      Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE, std::max(stereo_convergence - 5, 0));
 
     if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
-      g_Config.iStereoConvergence = std::min(g_Config.iStereoConvergence + 5, 500);
+      Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE, std::min(stereo_convergence + 5, 500));
 
     // Freelook
     static float fl_speed = 1.0;
