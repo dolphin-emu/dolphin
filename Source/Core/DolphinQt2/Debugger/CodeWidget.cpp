@@ -147,7 +147,7 @@ void CodeWidget::ConnectWidgets()
   connect(m_search_address, &QLineEdit::textChanged, this, &CodeWidget::OnSearchAddress);
   connect(m_search_symbols, &QLineEdit::textChanged, this, &CodeWidget::OnSearchSymbols);
 
-  connect(m_symbols_list, &QListWidget::itemSelectionChanged, this, &CodeWidget::OnSelectSymbol);
+  connect(m_symbols_list, &QListWidget::itemClicked, this, &CodeWidget::OnSelectSymbol);
   connect(m_callstack_list, &QListWidget::itemSelectionChanged, this,
           &CodeWidget::OnSelectCallstack);
   connect(m_function_calls_list, &QListWidget::itemSelectionChanged, this,
@@ -252,7 +252,6 @@ void CodeWidget::Update()
   Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
 
   UpdateCallstack();
-  UpdateSymbols();
 
   m_code_view->Update();
   m_code_view->setFocus();

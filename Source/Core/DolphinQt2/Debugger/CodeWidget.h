@@ -36,6 +36,7 @@ public:
   void SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update);
 
   void Update();
+  void UpdateSymbols();
 signals:
   void BreakpointsChanged();
   void RequestPPCComparison(u32 addr);
@@ -44,7 +45,6 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateCallstack();
-  void UpdateSymbols();
   void UpdateFunctionCalls(Symbol* symbol);
   void UpdateFunctionCallers(Symbol* symbol);
 

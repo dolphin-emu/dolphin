@@ -1020,13 +1020,13 @@ void MenuBar::ClearSymbols()
     return;
 
   g_symbolDB.Clear();
-  Host_NotifyMapLoaded();
+  emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
   PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
-  Host_NotifyMapLoaded();
+  emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
@@ -1048,7 +1048,7 @@ void MenuBar::GenerateSymbolsFromSignatureDB()
         tr("'%1' not found, no symbol names generated").arg(QString::fromStdString(TOTALDB)));
   }
 
-  Host_NotifyMapLoaded();
+  emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromRSO()
@@ -1067,7 +1067,7 @@ void MenuBar::GenerateSymbolsFromRSO()
   if (rso_chain.Load(static_cast<u32>(address)))
   {
     rso_chain.Apply(&g_symbolDB);
-    Host_NotifyMapLoaded();
+    emit NotifySymbolsUpdated();
   }
   else
   {
@@ -1101,7 +1101,7 @@ void MenuBar::LoadSymbolMap()
   }
 
   HLE::PatchFunctions();
-  Host_NotifyMapLoaded();
+  emit NotifySymbolsUpdated();
 }
 
 void MenuBar::SaveSymbolMap()
@@ -1123,7 +1123,7 @@ void MenuBar::LoadOtherSymbolMap()
 
   g_symbolDB.LoadMap(file.toStdString());
   HLE::PatchFunctions();
-  Host_NotifyMapLoaded();
+  emit NotifySymbolsUpdated();
 }
 
 void MenuBar::SaveSymbolMapAs()
