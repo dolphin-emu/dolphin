@@ -17,9 +17,12 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/State.h"
+
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Settings.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -251,26 +254,50 @@ void HotkeyScheduler::Run()
 
       // Graphics
       if (IsHotkey(HK_INCREASE_IR))
+      {
+        OSDChoice = 1;
         ++g_Config.iEFBScale;
+      }
       if (IsHotkey(HK_DECREASE_IR))
+      {
+        OSDChoice = 1;
         g_Config.iEFBScale = std::max(g_Config.iEFBScale - 1, EFB_SCALE_AUTO_INTEGRAL);
+      }
+
       if (IsHotkey(HK_TOGGLE_CROP))
         g_Config.bCrop = !g_Config.bCrop;
+
       if (IsHotkey(HK_TOGGLE_AR))
       {
+        OSDChoice = 2;
         g_Config.aspect_mode =
             static_cast<AspectMode>((static_cast<int>(g_Config.aspect_mode) + 1) & 3);
       }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
+      {
+        OSDChoice = 3;
         g_Config.bSkipEFBCopyToRam = !g_Config.bSkipEFBCopyToRam;
+      }
+
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
+      {
+        OSDChoice = 6;
         g_Config.bSkipXFBCopyToRam = !g_Config.bSkipXFBCopyToRam;
+      }
       if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
+      {
+        OSDChoice = 6;
         g_Config.bImmediateXFB = !g_Config.bImmediateXFB;
+      }
       if (IsHotkey(HK_TOGGLE_FOG))
+      {
+        OSDChoice = 4;
         g_Config.bDisableFog = !g_Config.bDisableFog;
+      }
+
       if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
         g_Config.bDumpTextures = !g_Config.bDumpTextures;
+
       if (IsHotkey(HK_TOGGLE_TEXTURES))
         g_Config.bHiresTextures = !g_Config.bHiresTextures;
 
@@ -278,6 +305,8 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
       {
+        OSDChoice = 5;
+
         auto speed = SConfig::GetInstance().m_EmulationSpeed - 0.1;
         speed = (speed <= 0 || (speed >= 0.95 && speed <= 1.05)) ? 1.0 : speed;
         SConfig::GetInstance().m_EmulationSpeed = speed;
@@ -285,6 +314,8 @@ void HotkeyScheduler::Run()
 
       if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
       {
+        OSDChoice = 5;
+
         auto speed = SConfig::GetInstance().m_EmulationSpeed + 0.1;
         speed = (speed >= 0.95 && speed <= 1.05) ? 1.0 : speed;
         SConfig::GetInstance().m_EmulationSpeed = speed;
