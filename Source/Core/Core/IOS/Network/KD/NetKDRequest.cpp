@@ -26,7 +26,8 @@ namespace HLE
 {
 namespace Device
 {
-NetKDRequest::NetKDRequest(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
+NetKDRequest::NetKDRequest(Kernel& ios, const std::string& device_name)
+    : Device(ios, device_name), config{ios.GetFS()}
 {
 }
 
