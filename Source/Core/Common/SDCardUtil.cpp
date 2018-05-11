@@ -58,23 +58,24 @@
 
 namespace Common
 {
-/* Believe me, you *don't* want to change these constants !! */
-#define BYTES_PER_SECTOR 512
-#define RESERVED_SECTORS 32
-#define BACKUP_BOOT_SECTOR 6
-#define NUM_FATS 2
-
-#define BYTE_(p, i) (((u8*)(p))[(i)])
-
-#define POKEB(p, v) BYTE_(p, 0) = (u8)(v)
-#define POKES(p, v) (BYTE_(p, 0) = (u8)(v), BYTE_(p, 1) = (u8)((v) >> 8))
-#define POKEW(p, v)                                                                                \
-  (BYTE_(p, 0) = (u8)(v), BYTE_(p, 1) = (u8)((v) >> 8), BYTE_(p, 2) = (u8)((v) >> 16),             \
-   BYTE_(p, 3) = (u8)((v) >> 24))
+// Believe me, you *don't* want to change these constants !!
+enum : u32
+{
+  BYTES_PER_SECTOR = 512,
+  RESERVED_SECTORS = 32,
+  BACKUP_BOOT_SECTOR = 6,
+  NUM_FATS = 2
+};
 
 static u8 s_boot_sector[BYTES_PER_SECTOR];   /* Boot sector */
 static u8 s_fsinfo_sector[BYTES_PER_SECTOR]; /* FS Info sector */
 static u8 s_fat_head[BYTES_PER_SECTOR];      /* First FAT sector */
+
+template <typename T>
+static void WriteData(u8* out, T data)
+{
+  std::memcpy(out, &data, sizeof(data));
+}
 
 /* This is the date and time when creating the disk */
 static unsigned int get_serial_id()
@@ -127,54 +128,55 @@ static void boot_sector_init(u8* boot, u8* info, u64 disk_size, const char* labe
   if (label == nullptr)
     label = "DOLPHINSD";
 
-  POKEB(boot, 0xeb);
-  POKEB(boot + 1, 0x5a);
-  POKEB(boot + 2, 0x90);
+  WriteData<u8>(boot, 0xeb);
+  WriteData<u8>(boot + 1, 0x5a);
+  WriteData<u8>(boot + 2, 0x90);
   strcpy((char*)boot + 3, "MSWIN4.1");
-  POKES(boot + 0x0b, BYTES_PER_SECTOR);   /* Sector size */
-  POKEB(boot + 0xd, sectors_per_cluster); /* Sectors per cluster */
-  POKES(boot + 0xe, RESERVED_SECTORS);    /* Reserved sectors before first FAT */
-  POKEB(boot + 0x10, NUM_FATS);           /* Number of FATs */
-  POKES(boot + 0x11, 0);    /* Max root directory entries for FAT12/FAT16, 0 for FAT32 */
-  POKES(boot + 0x13, 0);    /* Total sectors, 0 to use 32-bit value at offset 0x20 */
-  POKEB(boot + 0x15, 0xF8); /* Media descriptor, 0xF8 == hard disk */
-  POKES(boot + 0x16, 0);    /* Sectors per FAT for FAT12/16, 0 for FAT32 */
-  POKES(boot + 0x18, 9);    /* Sectors per track (whatever) */
-  POKES(boot + 0x1a, 2);    /* Number of heads (whatever) */
-  POKEW(boot + 0x1c, 0);    /* Hidden sectors */
-  POKEW(boot + 0x20, sectors_per_disk); /* Total sectors */
+  WriteData<u16>(boot + 0x0b, BYTES_PER_SECTOR);   // Sector size
+  WriteData<u8>(boot + 0xd, sectors_per_cluster);  // Sectors per cluster
+  WriteData<u16>(boot + 0xe, RESERVED_SECTORS);    // Reserved sectors before first FAT
+  WriteData<u8>(boot + 0x10, NUM_FATS);            // Number of FATs
+  WriteData<u16>(boot + 0x11, 0);    // Max root directory entries for FAT12/FAT16, 0 for FAT32
+  WriteData<u16>(boot + 0x13, 0);    // Total sectors, 0 to use 32-bit value at offset 0x20
+  WriteData<u8>(boot + 0x15, 0xF8);  // Media descriptor, 0xF8 == hard disk
+  WriteData<u16>(boot + 0x16, 0);    // Sectors per FAT for FAT12/16, 0 for FAT32
+  WriteData<u16>(boot + 0x18, 9);    // Sectors per track (whatever)
+  WriteData<u16>(boot + 0x1a, 2);    // Number of heads (whatever)
+  WriteData<u32>(boot + 0x1c, 0);    // Hidden sectors
+  WriteData<u32>(boot + 0x20, sectors_per_disk);  // Total sectors
 
-  /* Extension */
-  POKEW(boot + 0x24, sectors_per_fat);    /* Sectors per FAT */
-  POKES(boot + 0x28, 0);                  /* FAT flags */
-  POKES(boot + 0x2a, 0);                  /* Version */
-  POKEW(boot + 0x2c, 2);                  /* Cluster number of root directory start */
-  POKES(boot + 0x30, 1);                  /* Sector number of FS information sector */
-  POKES(boot + 0x32, BACKUP_BOOT_SECTOR); /* Sector number of a copy of this boot sector */
-  POKEB(boot + 0x40, 0x80);               /* Physical drive number */
-  POKEB(boot + 0x42, 0x29);               /* Extended boot signature ?? */
-  POKEW(boot + 0x43, serial_id);          /* Serial ID */
-  strncpy((char*)boot + 0x47, label, 11); /* Volume Label */
-  memcpy(boot + 0x52, "FAT32   ", 8);     /* FAT system type, padded with 0x20 */
+  // Extension
+  WriteData<u32>(boot + 0x24, sectors_per_fat);     // Sectors per FAT
+  WriteData<u16>(boot + 0x28, 0);                   // FAT flags
+  WriteData<u16>(boot + 0x2a, 0);                   // Version
+  WriteData<u32>(boot + 0x2c, 2);                   // Cluster number of root directory start
+  WriteData<u16>(boot + 0x30, 1);                   // Sector number of FS information sector
+  WriteData<u16>(boot + 0x32, BACKUP_BOOT_SECTOR);  // Sector number of a copy of this boot sector
+  WriteData<u8>(boot + 0x40, 0x80);                 // Physical drive number
+  WriteData<u8>(boot + 0x42, 0x29);                 // Extended boot signature ??
+  WriteData<u32>(boot + 0x43, serial_id);           // Serial ID
+  strncpy((char*)boot + 0x47, label, 11);           // Volume Label
+  memcpy(boot + 0x52, "FAT32   ", 8);               // FAT system type, padded with 0x20
 
-  POKEB(boot + BYTES_PER_SECTOR - 2, 0x55); /* Boot sector signature */
-  POKEB(boot + BYTES_PER_SECTOR - 1, 0xAA);
+  WriteData<u8>(boot + BYTES_PER_SECTOR - 2, 0x55);  // Boot sector signature
+  WriteData<u8>(boot + BYTES_PER_SECTOR - 1, 0xAA);
 
   /* FSInfo sector */
   const u32 free_count = sectors_per_disk - 32 - 2 * sectors_per_fat;
 
-  POKEW(info + 0, 0x41615252);
-  POKEW(info + 484, 0x61417272);
-  POKEW(info + 488, free_count); /* Number of free clusters */
-  POKEW(info + 492, 3);          /* Next free clusters, 0-1 reserved, 2 is used for the root dir */
-  POKEW(info + 508, 0xAA550000);
+  WriteData<u32>(info + 0, 0x41615252);
+  WriteData<u32>(info + 484, 0x61417272);
+  WriteData<u32>(info + 488, free_count);  // Number of free clusters
+  // Next free clusters, 0-1 reserved, 2 is used for the root dir
+  WriteData<u32>(info + 492, 3);
+  WriteData<u32>(info + 508, 0xAA550000);
 }
 
 static void fat_init(u8* fat)
 {
-  POKEW(fat, 0x0ffffff8);     /* Reserve cluster 1, media id in low byte */
-  POKEW(fat + 4, 0x0fffffff); /* Reserve cluster 2 */
-  POKEW(fat + 8, 0x0fffffff); /* End of cluster chain for root dir */
+  WriteData<u32>(fat, 0x0ffffff8);      // Reserve cluster 1, media id in low byte
+  WriteData<u32>(fat + 4, 0x0fffffff);  // Reserve cluster 2
+  WriteData<u32>(fat + 8, 0x0fffffff);  // End of cluster chain for root dir
 }
 
 static bool write_sector(File::IOFile& file, const u8* sector)
