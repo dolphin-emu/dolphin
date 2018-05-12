@@ -727,6 +727,8 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     PreviousBat = &bat;
   }
 
+  FixChecksums();
+
   return SUCCESS;
 }
 
@@ -792,6 +794,8 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
     PreviousDir = &dir;
   }
 
+  FixChecksums();
+
   return SUCCESS;
 }
 
@@ -817,6 +821,7 @@ u32 GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
   case NOMEMCARD:
     return NOMEMCARD;
   default:
+    FixChecksums();
     return ImportFile(tempDEntry, saveData);
   }
 }
