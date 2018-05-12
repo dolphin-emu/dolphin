@@ -112,11 +112,17 @@ void AudioPane::CreateWidgets()
 
   m_main_layout = new QGridLayout;
 
-  m_main_layout->setColumnStretch(0, 1);
+  m_main_layout->setRowStretch(0, 0);
+  m_main_layout->setRowStretch(0, 0);
+
+  m_main_layout->setRowStretch(0, 0);
+
+  dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
   m_main_layout->addWidget(dsp_box, 0, 0);
-  m_main_layout->addWidget(volume_box, 0, 1);
-  m_main_layout->addWidget(backend_box, 1, 0, 1, -1);
-  m_main_layout->addWidget(stretching_box, 2, 0, 1, -1);
+  m_main_layout->addWidget(volume_box, 0, 1, -1, 1);
+  m_main_layout->addWidget(backend_box, 1, 0);
+  m_main_layout->addWidget(stretching_box, 2, 0);
 
   setLayout(m_main_layout);
 }
