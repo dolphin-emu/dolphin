@@ -129,6 +129,8 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
   g_SRAM.lang = SConfig::GetInstance().SelectedLanguage;
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    g_SRAM.counter_bias = 0;
   FixSRAMChecksums();
 
   Common::WriteProtectMemory(m_pIPL, ROM_SIZE);
