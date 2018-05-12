@@ -1271,6 +1271,16 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
   m_MD5_thread.detach();
 }
 
+const PadMappingArray& NetPlayClient::GetPadMapping() const
+{
+  return m_pad_map;
+}
+
+const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
+{
+  return m_wiimote_map;
+}
+
 // stuff hacked into dolphin
 
 // called from ---CPU--- thread
