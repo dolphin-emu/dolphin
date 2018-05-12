@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 
