@@ -31,7 +31,7 @@ const SettingsHandler::Buffer& SettingsHandler::GetBytes() const
   return m_buffer;
 }
 
-void SettingsHandler::SetBytes(SettingsHandler::Buffer&& buffer)
+void SettingsHandler::SetBytes(Buffer&& buffer)
 {
   Reset();
   m_buffer = std::move(buffer);
