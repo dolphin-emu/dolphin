@@ -34,10 +34,6 @@ private:
   void ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
                     u32* num_files, u32* size_files);
 
-  static const u8 s_sd_key[16];
-  static const u8 s_md5_blanker[16];
-  static const u32 s_ng_id;
-
   mbedtls_aes_context m_aes_ctx;
   u8 m_sd_iv[0x10];
   std::vector<std::string> m_files_list;
