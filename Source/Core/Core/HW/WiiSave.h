@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 class WiiSave
 {
@@ -44,10 +45,6 @@ private:
 
   u8 m_iv[0x10];
 
-  u32 m_files_list_size;
-  u32 m_size_of_files;
-  u32 m_total_size;
-
   u64 m_title_id;
 
   bool m_valid;
@@ -78,12 +75,12 @@ private:
 
   struct DataBinHeader  // encrypted
   {
-    u64 save_game_title;
-    u32 banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
+    Common::BigEndianValue<u64> save_game_title;
+    Common::BigEndianValue<u32> banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
     u8 permissions;
     u8 unk1;       // maybe permissions is a be16
     u8 md5[0x10];  // md5 of plaintext header with md5 blanker applied
-    u16 unk2;
+    Common::BigEndianValue<u16> unk2;
   };
 
   struct Header
@@ -94,26 +91,26 @@ private:
 
   struct BkHeader  // Not encrypted
   {
-    u32 size;  // 0x00000070
+    Common::BigEndianValue<u32> size;  // 0x00000070
     // u16 magic;  // 'Bk'
     // u16 magic2; // or version (0x0001)
-    u32 magic;  // 0x426B0001
-    u32 ngid;
-    u32 number_of_files;
-    u32 size_of_files;
-    u32 unk1;
-    u32 unk2;
-    u32 total_size;
+    Common::BigEndianValue<u32> magic;  // 0x426B0001
+    Common::BigEndianValue<u32> ngid;
+    Common::BigEndianValue<u32> number_of_files;
+    Common::BigEndianValue<u32> size_of_files;
+    Common::BigEndianValue<u32> unk1;
+    Common::BigEndianValue<u32> unk2;
+    Common::BigEndianValue<u32> total_size;
     u8 unk3[64];
-    u64 save_game_title;
+    Common::BigEndianValue<u64> save_game_title;
     u8 mac_address[6];
     u8 padding[0x12];
   };
 
   struct FileHDR  // encrypted
   {
-    u32 magic;  // 0x03adf17e
-    u32 size;
+    Common::BigEndianValue<u32> magic;  // 0x03adf17e
+    Common::BigEndianValue<u32> size;
     u8 permissions;
     u8 attrib;
     u8 type;  // (1=file, 2=directory)

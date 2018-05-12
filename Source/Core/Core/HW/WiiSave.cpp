@@ -29,7 +29,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
 
 constexpr u8 s_sd_key[16] = {0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
                              0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
@@ -153,7 +152,7 @@ void WiiSave::ReadHDR()
 
   mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, HEADER_SZ, m_sd_iv,
                         (const u8*)&m_encrypted_header, (u8*)&m_header);
-  u32 banner_size = Common::swap32(m_header.hdr.banner_size);
+  u32 banner_size = m_header.hdr.banner_size;
   if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
       (((banner_size - BNR_SZ) % ICON_SZ) != 0))
   {
@@ -161,7 +160,7 @@ void WiiSave::ReadHDR()
     m_valid = false;
     return;
   }
-  m_title_id = Common::swap64(m_header.hdr.save_game_title);
+  m_title_id = m_header.hdr.save_game_title;
 
   u8 md5_file[16];
   u8 md5_calc[16];
@@ -205,9 +204,9 @@ void WiiSave::WriteHDR()
 
   std::string banner_file_path = m_wii_title_path + "/banner.bin";
   u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
-  m_header.hdr.banner_size = Common::swap32(banner_size);
+  m_header.hdr.banner_size = banner_size;
 
-  m_header.hdr.save_game_title = Common::swap64(m_title_id);
+  m_header.hdr.save_game_title = m_title_id;
   memcpy(m_header.hdr.md5, s_md5_blanker, 0x10);
   m_header.hdr.permissions = 0x3C;
 
@@ -257,28 +256,24 @@ void WiiSave::ReadBKHDR()
   }
   fpData_bin.Close();
 
-  if (m_bk_hdr.size != Common::swap32(BK_LISTED_SZ) ||
-      m_bk_hdr.magic != Common::swap32(BK_HDR_MAGIC))
+  if (m_bk_hdr.size != BK_LISTED_SZ || m_bk_hdr.magic != BK_HDR_MAGIC)
   {
-    ERROR_LOG(CONSOLE, "Invalid Size(%x) or Magic word (%x)", m_bk_hdr.size, m_bk_hdr.magic);
+    ERROR_LOG(CONSOLE, "Invalid Size(%x) or Magic word (%x)", u32(m_bk_hdr.size),
+              u32(m_bk_hdr.magic));
     m_valid = false;
     return;
   }
 
-  m_files_list_size = Common::swap32(m_bk_hdr.number_of_files);
-  m_size_of_files = Common::swap32(m_bk_hdr.size_of_files);
-  m_total_size = Common::swap32(m_bk_hdr.total_size);
-
-  if (m_size_of_files + FULL_CERT_SZ != m_total_size)
+  if (m_bk_hdr.size_of_files + FULL_CERT_SZ != m_bk_hdr.total_size)
   {
-    WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)", m_size_of_files,
-             FULL_CERT_SZ, m_total_size);
+    WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)",
+             u32(m_bk_hdr.size_of_files), FULL_CERT_SZ, u32(m_bk_hdr.total_size));
   }
-  if (m_title_id != Common::swap64(m_bk_hdr.save_game_title))
+  if (m_title_id != m_bk_hdr.save_game_title)
   {
     WARN_LOG(CONSOLE,
              "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")",
-             m_title_id, Common::swap64(m_bk_hdr.save_game_title));
+             m_title_id, u64(m_bk_hdr.save_game_title));
   }
 }
 
@@ -286,18 +281,16 @@ void WiiSave::WriteBKHDR()
 {
   if (!m_valid)
     return;
-  m_files_list_size = 0;
-  m_size_of_files = 0;
-
-  ScanForFiles(m_wii_title_path, m_files_list, &m_files_list_size, &m_size_of_files);
+  u32 number_of_files = 0, size_of_files = 0;
+  ScanForFiles(m_wii_title_path, m_files_list, &number_of_files, &size_of_files);
   memset(&m_bk_hdr, 0, BK_SZ);
-  m_bk_hdr.size = Common::swap32(BK_LISTED_SZ);
-  m_bk_hdr.magic = Common::swap32(BK_HDR_MAGIC);
+  m_bk_hdr.size = BK_LISTED_SZ;
+  m_bk_hdr.magic = BK_HDR_MAGIC;
   m_bk_hdr.ngid = s_ng_id;
-  m_bk_hdr.number_of_files = Common::swap32(m_files_list_size);
-  m_bk_hdr.size_of_files = Common::swap32(m_size_of_files);
-  m_bk_hdr.total_size = Common::swap32(m_size_of_files + FULL_CERT_SZ);
-  m_bk_hdr.save_game_title = Common::swap64(m_title_id);
+  m_bk_hdr.number_of_files = number_of_files;
+  m_bk_hdr.size_of_files = size_of_files;
+  m_bk_hdr.total_size = size_of_files + FULL_CERT_SZ;
+  m_bk_hdr.save_game_title = m_title_id;
 
   File::IOFile data_file(m_encrypted_save_path, "ab");
   if (!data_file.WriteBytes(&m_bk_hdr, BK_SZ))
@@ -324,11 +317,10 @@ void WiiSave::ImportWiiSaveFiles()
 
   FileHDR file_hdr_tmp;
 
-  for (u32 i = 0; i < m_files_list_size; ++i)
+  for (u32 i = 0; i < m_bk_hdr.number_of_files; ++i)
   {
     memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
     memset(m_iv, 0, 0x10);
-    u32 file_size = 0;
 
     if (!data_file.ReadBytes(&file_hdr_tmp, FILE_HDR_SZ))
     {
@@ -336,7 +328,7 @@ void WiiSave::ImportWiiSaveFiles()
       m_valid = false;
     }
 
-    if (Common::swap32(file_hdr_tmp.magic) != FILE_HDR_MAGIC)
+    if (file_hdr_tmp.magic != FILE_HDR_MAGIC)
     {
       ERROR_LOG(CONSOLE, "Bad File Header");
       break;
@@ -352,8 +344,7 @@ void WiiSave::ImportWiiSaveFiles()
       const File::FileInfo file_info(file_path_full);
       if (file_hdr_tmp.type == 1)
       {
-        file_size = Common::swap32(file_hdr_tmp.size);
-        u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
+        u32 file_size_rounded = Common::AlignUp<u32>(file_hdr_tmp.size, BLOCK_SZ);
         std::vector<u8> file_data(file_size_rounded);
         std::vector<u8> file_data_enc(file_size_rounded);
 
@@ -371,7 +362,7 @@ void WiiSave::ImportWiiSaveFiles()
         INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
 
         File::IOFile raw_save_file(file_path_full, "wb");
-        raw_save_file.WriteBytes(file_data.data(), file_size);
+        raw_save_file.WriteBytes(file_data.data(), file_hdr_tmp.size);
       }
       else if (file_hdr_tmp.type == 2)
       {
@@ -396,7 +387,7 @@ void WiiSave::ExportWiiSaveFiles()
   if (!m_valid)
     return;
 
-  for (u32 i = 0; i < m_files_list_size; i++)
+  for (u32 i = 0; i < m_bk_hdr.number_of_files; i++)
   {
     FileHDR file_hdr_tmp;
     memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
@@ -414,8 +405,8 @@ void WiiSave::ExportWiiSaveFiles()
     }
 
     u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
-    file_hdr_tmp.magic = Common::swap32(FILE_HDR_MAGIC);
-    file_hdr_tmp.size = Common::swap32(file_size);
+    file_hdr_tmp.magic = FILE_HDR_MAGIC;
+    file_hdr_tmp.size = file_size;
     file_hdr_tmp.permissions = 0x3c;
 
     std::string name =
@@ -514,7 +505,7 @@ void WiiSave::do_sig()
   generate_ecdsa(ap_sig, ap_sig + 30, ng_priv, hash);
   make_ec_cert(ap_cert, ap_sig, signer, name, ap_priv, 0);
 
-  data_size = Common::swap32(m_bk_hdr.size_of_files) + 0x80;
+  data_size = m_bk_hdr.size_of_files + 0x80;
 
   File::IOFile data_file(m_encrypted_save_path, "rb");
   if (!data_file)
