@@ -113,9 +113,6 @@ void AudioPane::CreateWidgets()
   m_main_layout = new QGridLayout;
 
   m_main_layout->setRowStretch(0, 0);
-  m_main_layout->setRowStretch(0, 0);
-
-  m_main_layout->setRowStretch(0, 0);
 
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
