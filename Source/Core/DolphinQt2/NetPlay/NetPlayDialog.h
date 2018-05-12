@@ -19,10 +19,10 @@ class QGridLayout;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
-class QListWidget;
 class QPushButton;
 class QSpinBox;
 class QSplitter;
+class QTableWidget;
 class QTextEdit;
 class QToolButton;
 
@@ -85,7 +85,7 @@ private:
   QComboBox* m_room_box;
   QLabel* m_hostcode_label;
   QPushButton* m_hostcode_action_button;
-  QListWidget* m_players_list;
+  QTableWidget* m_players_list;
   QPushButton* m_kick_button;
   QPushButton* m_assign_ports_button;
 

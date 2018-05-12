@@ -12,15 +12,16 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListWidget>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QSplitter>
+#include <QTableWidget>
 #include <QTextBrowser>
 #include <QToolButton>
 
@@ -163,9 +164,17 @@ void NetPlayDialog::CreatePlayersLayout()
   m_room_box = new QComboBox;
   m_hostcode_label = new QLabel;
   m_hostcode_action_button = new QPushButton(tr("Copy"));
-  m_players_list = new QListWidget;
+  m_players_list = new QTableWidget;
   m_kick_button = new QPushButton(tr("Kick Player"));
   m_assign_ports_button = new QPushButton(tr("Assign Controller Ports"));
+
+  m_players_list->setColumnCount(5);
+  m_players_list->verticalHeader()->hide();
+  m_players_list->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_players_list->horizontalHeader()->setStretchLastSection(true);
+
+  for (int i = 0; i < 4; i++)
+    m_players_list->horizontalHeader()->setSectionResizeMode(i, QHeaderView::ResizeToContents);
 
   auto* layout = new QGridLayout;
 
@@ -190,7 +199,7 @@ void NetPlayDialog::ConnectWidgets()
     else
       QApplication::clipboard()->setText(m_hostcode_label->text());
   });
-  connect(m_players_list, &QListWidget::itemSelectionChanged, [this] {
+  connect(m_players_list, &QTableWidget::itemSelectionChanged, [this] {
     int row = m_players_list->currentRow();
     m_kick_button->setEnabled(row > 0 &&
                               !m_players_list->currentItem()->data(Qt::UserRole).isNull());
@@ -338,38 +347,66 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 
 void NetPlayDialog::UpdateGUI()
 {
-  // Update player list
-  std::vector<int> player_ids;
-  std::string tmp;
+  auto* client = Settings::Instance().GetNetPlayClient();
 
-  Settings::Instance().GetNetPlayClient()->GetPlayerList(tmp, player_ids);
+  // Update Player List
+  const auto players = client->GetPlayers();
+  const auto player_count = static_cast<int>(players.size());
 
-  std::istringstream ss(tmp);
-
-  int row = m_players_list->currentRow();
-  unsigned int i = 0;
+  int selection_pid = m_players_list->currentItem() ?
+                          m_players_list->currentItem()->data(Qt::UserRole).toInt() :
+                          -1;
 
   m_players_list->clear();
+  m_players_list->setHorizontalHeaderLabels(
+      {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
+  m_players_list->setRowCount(player_count);
 
-  while (std::getline(ss, tmp))
-  {
-    auto text = QString::fromStdString(tmp);
-    if (!text.isEmpty())
+  const auto get_mapping_string = [](const Player* player, const PadMappingArray& array) {
+    std::string str;
+    for (size_t i = 0; i < array.size(); i++)
     {
-      QListWidgetItem* item = new QListWidgetItem(text);
-
-      if (player_ids.size() > i && !text.startsWith(QStringLiteral("Ping:")) &&
-          !text.startsWith(QStringLiteral("Status:")))
-      {
-        item->setData(Qt::UserRole, player_ids[i]);
-        i++;
-      }
-      m_players_list->addItem(item);
+      if (player->pid == array[i])
+        str += std::to_string(i + 1);
+      else
+        str += '-';
     }
-  }
 
-  if (row != -1)
-    m_players_list->setCurrentRow(row, QItemSelectionModel::SelectCurrent);
+    return '|' + str + '|';
+  };
+
+  static const std::map<PlayerGameStatus, QString> player_status{
+      {PlayerGameStatus::Ok, tr("OK")}, {PlayerGameStatus::NotFound, tr("Not Found")}};
+
+  for (int i = 0; i < player_count; i++)
+  {
+    const auto* p = players[i];
+
+    auto* name_item = new QTableWidgetItem(QString::fromStdString(p->name));
+    auto* status_item = new QTableWidgetItem(player_status.count(p->game_status) ?
+                                                 player_status.at(p->game_status) :
+                                                 QStringLiteral("?"));
+    auto* ping_item = new QTableWidgetItem(QStringLiteral("%1 ms").arg(p->ping));
+    auto* mapping_item = new QTableWidgetItem(
+        QString::fromStdString(get_mapping_string(p, client->GetPadMapping()) +
+                               get_mapping_string(p, client->GetWiimoteMapping())));
+    auto* revision_item = new QTableWidgetItem(QString::fromStdString(p->revision));
+
+    for (auto* item : {name_item, status_item, ping_item, mapping_item, revision_item})
+    {
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setData(Qt::UserRole, static_cast<int>(p->pid));
+    }
+
+    m_players_list->setItem(i, 0, name_item);
+    m_players_list->setItem(i, 1, status_item);
+    m_players_list->setItem(i, 2, ping_item);
+    m_players_list->setItem(i, 3, mapping_item);
+    m_players_list->setItem(i, 4, revision_item);
+
+    if (p->pid == selection_pid)
+      m_players_list->selectRow(i);
+  }
 
   // Update Room ID / IP label
   if (m_use_traversal && m_room_box->currentIndex() == 0)

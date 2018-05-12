@@ -98,6 +98,9 @@ public:
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
 
+  const PadMappingArray& GetPadMapping() const;
+  const PadMappingArray& GetWiimoteMapping() const;
+
 protected:
   void ClearBuffers();
 
