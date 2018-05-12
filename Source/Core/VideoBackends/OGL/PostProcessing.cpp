@@ -141,7 +141,7 @@ void OpenGLPostProcessing::ApplyShader()
   if (!ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code))
   {
     ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
-    Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+    Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
     code = m_config.LoadShader();
     ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code);
   }

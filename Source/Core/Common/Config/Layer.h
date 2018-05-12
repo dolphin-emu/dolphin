@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Config/ConfigInfo.h"
@@ -25,14 +26,28 @@ std::string ValueToString(double value);
 std::string ValueToString(int value);
 std::string ValueToString(bool value);
 std::string ValueToString(const std::string& value);
+template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+std::string ValueToString(T value)
+{
+  return ValueToString(static_cast<std::underlying_type_t<T>>(value));
+}
 
-template <typename T>
+template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
 std::optional<T> TryParse(const std::string& str_value)
 {
   T value;
   if (!::TryParse(str_value, &value))
     return std::nullopt;
   return value;
+}
+
+template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+std::optional<T> TryParse(const std::string& str_value)
+{
+  const auto result = TryParse<std::underlying_type_t<T>>(str_value);
+  if (result)
+    return static_cast<T>(*result);
+  return {};
 }
 
 template <>
@@ -116,7 +131,7 @@ public:
   }
 
   template <typename T>
-  void Set(const ConfigInfo<T>& config_info, const T& value)
+  void Set(const ConfigInfo<T>& config_info, const std::common_type_t<T>& value)
   {
     Set<T>(config_info.location, value);
   }

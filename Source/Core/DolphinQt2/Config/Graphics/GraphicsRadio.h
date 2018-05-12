@@ -6,11 +6,7 @@
 
 #include <QRadioButton>
 
-namespace Config
-{
-template <typename T>
-struct ConfigInfo;
-}
+#include "Common/Config/Config.h"
 
 class GraphicsRadioInt : public QRadioButton
 {
@@ -21,6 +17,6 @@ public:
 private:
   void Update();
 
-  const Config::ConfigInfo<int>& m_setting;
+  Config::ConfigInfo<int> m_setting;
   int m_value;
 };

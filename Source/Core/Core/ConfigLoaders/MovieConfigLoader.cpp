@@ -29,7 +29,7 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::MAIN_FAST_DISC_SPEED, dtm->bFastDiscSpeed);
   config_layer->Set(Config::MAIN_CPU_CORE, static_cast<int>(dtm->CPUCore));
   config_layer->Set(Config::MAIN_SYNC_GPU, dtm->bSyncGPU);
-  config_layer->Set(Config::MAIN_GFX_BACKEND, std::string(dtm->videoBackend.data()));
+  config_layer->Set(Config::MAIN_GFX_BACKEND, dtm->videoBackend.data());
 
   config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, dtm->bProgressive);
   config_layer->Set(Config::SYSCONF_PAL60, dtm->bPAL60);

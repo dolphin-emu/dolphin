@@ -6,11 +6,7 @@
 
 #include <QComboBox>
 
-namespace Config
-{
-template <typename T>
-struct ConfigInfo;
-}
+#include "Common/Config/Config.h"
 
 class GraphicsChoice : public QComboBox
 {
@@ -20,5 +16,5 @@ public:
 private:
   void Update(int choice);
 
-  const Config::ConfigInfo<int>& m_setting;
+  Config::ConfigInfo<int> m_setting;
 };

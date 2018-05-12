@@ -283,8 +283,8 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_TOGGLE_AR))
       {
         show_msg(OSDMessage::ARToggled);
-        const auto aspect_ratio = (Config::Get(Config::GFX_ASPECT_RATIO) + 1) & 3;
-        Config::SetCurrent(Config::GFX_ASPECT_RATIO, aspect_ratio);
+        const int aspect_ratio = (static_cast<int>(Config::Get(Config::GFX_ASPECT_RATIO)) + 1) & 3;
+        Config::SetCurrent(Config::GFX_ASPECT_RATIO, static_cast<AspectMode>(aspect_ratio));
       }
       if (IsHotkey(HK_TOGGLE_EFBCOPIES))
       {
@@ -348,48 +348,47 @@ void HotkeyScheduler::Run()
       // Stereoscopy
       if (IsHotkey(HK_TOGGLE_STEREO_SBS) || IsHotkey(HK_TOGGLE_STEREO_TAB))
       {
-        if (Config::Get(Config::GFX_STEREO_MODE) != static_cast<int>(StereoMode::SBS))
+        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::SBS)
         {
           // Disable post-processing shader, as stereoscopy itself is currently a shader
           if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
-            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
 
-          Config::SetCurrent(Config::GFX_STEREO_MODE, IsHotkey(HK_TOGGLE_STEREO_SBS) ?
-                                                          static_cast<int>(StereoMode::SBS) :
-                                                          static_cast<int>(StereoMode::TAB));
+          Config::SetCurrent(Config::GFX_STEREO_MODE,
+                             IsHotkey(HK_TOGGLE_STEREO_SBS) ? StereoMode::SBS : StereoMode::TAB);
         }
         else
         {
-          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Off);
         }
       }
 
       if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
       {
-        if (Config::Get(Config::GFX_STEREO_MODE) != static_cast<int>(StereoMode::Anaglyph))
+        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::Anaglyph)
         {
-          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Anaglyph));
-          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(DUBOIS_ALGORITHM_SHADER));
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Anaglyph);
+          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, DUBOIS_ALGORITHM_SHADER);
         }
         else
         {
-          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
-          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Off);
+          Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
         }
       }
 
       if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
       {
-        if (Config::Get(Config::GFX_STEREO_MODE) != static_cast<int>(StereoMode::Nvidia3DVision))
+        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::Nvidia3DVision)
         {
           if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
-            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
 
-          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Nvidia3DVision));
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Nvidia3DVision);
         }
         else
         {
-          Config::SetCurrent(Config::GFX_STEREO_MODE, static_cast<int>(StereoMode::Off));
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Off);
         }
       }
     }

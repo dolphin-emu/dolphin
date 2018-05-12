@@ -465,7 +465,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         {
           szr_shader_compilation->Add(
               CreateRadioButton(page_general, modes[i].first, modes[i].second,
-                                Config::GFX_SHADER_COMPILATION_MODE, static_cast<int>(i)),
+                                Config::GFX_SHADER_COMPILATION_MODE,
+                                static_cast<ShaderCompilationMode>(i)),
               wxGBPosition(static_cast<int>(i / 2), static_cast<int>(i % 2)), wxDefaultSpan,
               wxALIGN_CENTER_VERTICAL);
         }
@@ -1233,11 +1234,11 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 
     if (vconfig.stereo_mode == StereoMode::Anaglyph)
     {
-      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string("dubois"));
+      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, "dubois");
       choice_ppshader->SetStringSelection(StrToWxStr(vconfig.sPostProcessingShader));
     }
     else
-      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, std::string(""));
+      Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
   }
 
   // Should the configuration button be loaded by default?
