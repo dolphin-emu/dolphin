@@ -76,37 +76,37 @@ private:
 
 #pragma pack(push, 1)
 
-  struct Data_Bin_HDR  // encrypted
+  struct DataBinHeader  // encrypted
   {
-    u64 SaveGameTitle;
-    u32 BannerSize;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
-    u8 Permissions;
+    u64 save_game_title;
+    u32 banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
+    u8 permissions;
     u8 unk1;       // maybe permissions is a be16
-    u8 Md5[0x10];  // md5 of plaintext header with md5 blanker applied
+    u8 md5[0x10];  // md5 of plaintext header with md5 blanker applied
     u16 unk2;
   };
 
-  struct HEADER
+  struct Header
   {
-    Data_Bin_HDR hdr;
-    u8 BNR[FULL_BNR_MAX];
+    DataBinHeader hdr;
+    u8 banner[FULL_BNR_MAX];
   };
 
-  struct BK_Header  // Not encrypted
+  struct BkHeader  // Not encrypted
   {
     u32 size;  // 0x00000070
     // u16 magic;  // 'Bk'
     // u16 magic2; // or version (0x0001)
     u32 magic;  // 0x426B0001
-    u32 NGid;
-    u32 numberOfFiles;
-    u32 sizeOfFiles;
+    u32 ngid;
+    u32 number_of_files;
+    u32 size_of_files;
     u32 unk1;
     u32 unk2;
-    u32 totalSize;
+    u32 total_size;
     u8 unk3[64];
-    u64 SaveGameTitle;
-    u8 MACaddress[6];
+    u64 save_game_title;
+    u8 mac_address[6];
     u8 padding[0x12];
   };
 
@@ -114,16 +114,16 @@ private:
   {
     u32 magic;  // 0x03adf17e
     u32 size;
-    u8 Permissions;
+    u8 permissions;
     u8 attrib;
     u8 type;  // (1=file, 2=directory)
     u8 name[0x45];
-    u8 IV[0x10];
+    u8 iv[0x10];
     u8 unk[0x20];
   };
 #pragma pack(pop)
 
-  HEADER m_header;
-  HEADER m_encrypted_header;
-  BK_Header m_bk_hdr;
+  Header m_header;
+  Header m_encrypted_header;
+  BkHeader m_bk_hdr;
 };
