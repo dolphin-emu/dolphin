@@ -120,19 +120,24 @@ QGroupBox* PathPane::MakeGameFolderBox()
     for (auto& item : items)
       delete item;
   });
+  connect(m_path_list, &QListWidget::itemSelectionChanged, this,
+          [this] { m_remove_path->setEnabled(m_path_list->selectedItems().count()); });
+
   vlayout->addWidget(m_path_list);
 
   QHBoxLayout* hlayout = new QHBoxLayout;
 
   hlayout->addStretch();
-  QPushButton* add = new QPushButton(tr("Add"));
-  QPushButton* remove = new QPushButton(tr("Remove"));
+  QPushButton* add = new QPushButton(tr("Add..."));
+  m_remove_path = new QPushButton(tr("Remove"));
+
+  m_remove_path->setEnabled(false);
 
   auto* checkbox = new QCheckBox(tr("Search Subfolders"));
   checkbox->setChecked(SConfig::GetInstance().m_RecursiveISOFolder);
 
   hlayout->addWidget(add);
-  hlayout->addWidget(remove);
+  hlayout->addWidget(m_remove_path);
   vlayout->addLayout(hlayout);
   vlayout->addWidget(checkbox);
 
@@ -143,7 +148,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   });
 
   connect(add, &QPushButton::clicked, this, &PathPane::Browse);
-  connect(remove, &QPushButton::clicked, this, &PathPane::RemovePath);
+  connect(m_remove_path, &QPushButton::clicked, this, &PathPane::RemovePath);
 
   game_box->setLayout(vlayout);
   return game_box;

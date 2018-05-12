@@ -10,6 +10,7 @@ class QGridLayout;
 class QGroupBox;
 class QLineEdit;
 class QListWidget;
+class QPushButton;
 
 class PathPane final : public QWidget
 {
@@ -35,4 +36,6 @@ private:
   QLineEdit* m_nand_edit;
   QLineEdit* m_dump_edit;
   QLineEdit* m_sdcard_edit;
+
+  QPushButton* m_remove_path;
 };
