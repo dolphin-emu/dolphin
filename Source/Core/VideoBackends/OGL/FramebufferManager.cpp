@@ -116,7 +116,7 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices = %d) out;
 flat out int layer;
 void main() {
-  for (int j = 0; j < %d; layers.str(); ++j) {
+  for (int j = 0; j < %d; ++j) {
     for (int i = 0; i < 3; ++i) {
       layer = j;
       gl_Layer = j;
