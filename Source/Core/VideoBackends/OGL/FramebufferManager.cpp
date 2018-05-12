@@ -150,7 +150,7 @@ void main(void) {
   gl_FragDepth = %s_z;
 })GLSL";
 
-constexpr const char* GLSL_EFB_POKE_GEOMETRY_GS = R"GLSL("
+constexpr const char* GLSL_EFB_POKE_GEOMETRY_GS = R"GLSL(
 layout(points) in;
 layout(points, max_vertices = %d) out;
 in vec4 v_c[1];
