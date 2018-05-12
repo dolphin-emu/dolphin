@@ -260,7 +260,7 @@ void GameList::ExportWiiSave()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = WiiSave::ExportWiiSave(GetSelectedGame()->GetTitleID());
+  const bool success = WiiSave::Export(GetSelectedGame()->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully exported save files") :

@@ -897,12 +897,12 @@ void MenuBar::ImportWiiSave()
                                                  "All Files (*)"));
 
   if (!file.isEmpty())
-    WiiSave::ImportWiiSave(file.toStdString());
+    WiiSave::Import(file.toStdString());
 }
 
 void MenuBar::ExportWiiSaves()
 {
-  WiiSave::ExportAllSaves();
+  WiiSave::ExportAll();
 }
 
 void MenuBar::CheckNAND()

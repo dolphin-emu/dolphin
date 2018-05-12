@@ -1204,7 +1204,7 @@ void CFrame::OnLoadGameCubeIPLEUR(wxCommandEvent&)
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))
 {
-  WiiSave::ExportAllSaves();
+  WiiSave::ExportAll();
 }
 
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))
@@ -1215,7 +1215,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))
                      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
 
   if (!path.IsEmpty())
-    WiiSave::ImportWiiSave(WxStrToStr(path));
+    WiiSave::Import(WxStrToStr(path));
 }
 
 void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))

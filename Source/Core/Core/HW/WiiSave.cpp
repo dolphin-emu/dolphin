@@ -36,27 +36,31 @@ constexpr u8 s_md5_blanker[16] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17
                                   0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93};
 constexpr u32 s_ng_id = 0x0403AC68;
 
-bool WiiSave::ImportWiiSave(const std::string& filename)
+bool WiiSave::Import(const std::string& filename)
 {
-  WiiSave save_file(filename);
-  return save_file.m_valid;
+  WiiSave save_file{filename};
+  if (save_file.Import())
+  {
+    SuccessAlertT("Successfully imported save file(s)");
+    return true;
+  }
+  PanicAlertT("Import failed");
+  return false;
 }
 
-bool WiiSave::ExportWiiSave(u64 title_id)
+bool WiiSave::Export(u64 title_id)
 {
-  WiiSave export_save("", title_id);
-  if (export_save.m_valid)
+  WiiSave export_save{title_id};
+  if (export_save.Export())
   {
     SuccessAlertT("Successfully exported file to %s", export_save.m_encrypted_save_path.c_str());
+    return true;
   }
-  else
-  {
-    PanicAlertT("Export failed");
-  }
-  return export_save.m_valid;
+  PanicAlertT("Export failed");
+  return false;
 }
 
-void WiiSave::ExportAllSaves()
+void WiiSave::ExportAll()
 {
   std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
   std::vector<u64> titles;
@@ -88,49 +92,45 @@ void WiiSave::ExportAllSaves()
   u32 success = 0;
   for (const u64& title : titles)
   {
-    WiiSave export_save{"", title};
-    if (export_save.m_valid)
+    WiiSave export_save{title};
+    if (export_save.Export())
       success++;
   }
   SuccessAlertT("Successfully exported %u save(s) to %s", success,
                 (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
-WiiSave::WiiSave(const std::string& filename, u64 title_id)
-    : m_encrypted_save_path(filename), m_title_id(title_id)
+WiiSave::WiiSave(std::string filename) : m_encrypted_save_path(std::move(filename)), m_valid{true}
 {
   memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
+  mbedtls_aes_setkey_dec(&m_aes_ctx, s_sd_key, 128);
+}
 
-  if (!title_id)  // Import
-  {
-    mbedtls_aes_setkey_dec(&m_aes_ctx, s_sd_key, 128);
+bool WiiSave::Import()
+{
+  ReadHDR();
+  ReadBKHDR();
+  ImportWiiSaveFiles();
+  // TODO: check_sig()
+  return m_valid;
+}
+
+WiiSave::WiiSave(u64 title_id) : m_title_id{title_id}
+{
+  memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
+  mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key, 128);
+
+  if (getPaths(true))
     m_valid = true;
-    ReadHDR();
-    ReadBKHDR();
-    ImportWiiSaveFiles();
-    // TODO: check_sig()
-    if (m_valid)
-    {
-      SuccessAlertT("Successfully imported save file(s)");
-    }
-    else
-    {
-      PanicAlertT("Import failed");
-    }
-  }
-  else
-  {
-    mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key, 128);
+}
 
-    if (getPaths(true))
-    {
-      m_valid = true;
-      WriteHDR();
-      WriteBKHDR();
-      ExportWiiSaveFiles();
-      do_sig();
-    }
-  }
+bool WiiSave::Export()
+{
+  WriteHDR();
+  WriteBKHDR();
+  ExportWiiSaveFiles();
+  do_sig();
+  return m_valid;
 }
 
 void WiiSave::ReadHDR()

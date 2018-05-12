@@ -14,13 +14,18 @@
 class WiiSave
 {
 public:
-  bool static ImportWiiSave(const std::string& filename);
-  bool static ExportWiiSave(u64 title_id);
-  void static ExportAllSaves();
+  static bool Import(const std::string& filename);
+  static bool Export(u64 title_id);
+  static void ExportAll();
 
 private:
-  WiiSave(const std::string& filename, u64 title_id = 0);
+  explicit WiiSave(std::string filename);
+  explicit WiiSave(u64 title_id);
   ~WiiSave();
+
+  bool Import();
+  bool Export();
+
   void ReadHDR();
   void ReadBKHDR();
   void WriteHDR();
