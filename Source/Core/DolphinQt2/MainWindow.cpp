@@ -152,6 +152,17 @@ void MainWindow::InitControllers()
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   m_hotkey_scheduler = new HotkeyScheduler();
   m_hotkey_scheduler->Start();
+
+  // Defaults won't work reliabily without loading and saving the config first
+
+  Wiimote::LoadConfig();
+  Wiimote::GetConfig()->SaveConfig();
+
+  Pad::LoadConfig();
+  Pad::GetConfig()->SaveConfig();
+
+  Keyboard::LoadConfig();
+  Keyboard::GetConfig()->SaveConfig();
 }
 
 void MainWindow::ShutdownControllers()
