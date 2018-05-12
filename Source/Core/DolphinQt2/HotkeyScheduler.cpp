@@ -165,6 +165,10 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_STOP))
         emit StopHotkey();
 
+      // Reset
+      if (IsHotkey(HK_RESET))
+        emit ResetHotkey();
+
       // Frameskipping
       HandleFrameskipHotkeys();
 
