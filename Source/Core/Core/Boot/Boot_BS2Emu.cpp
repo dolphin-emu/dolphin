@@ -223,7 +223,7 @@ bool CBoot::SetupWiiMemory()
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
   const RegionSetting& region_setting = entryPos->second;
 
-  SettingsHandler gen;
+  Common::SettingsHandler gen;
   std::string serno;
   CreateSystemMenuTitleDirs();
   const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
@@ -231,7 +231,7 @@ bool CBoot::SetupWiiMemory()
 
   const auto fs = IOS::HLE::GetIOS()->GetFS();
   {
-    SettingsHandler::Buffer data;
+    Common::SettingsHandler::Buffer data;
     const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
                                    IOS::HLE::FS::Mode::Read);
     if (file && file->Read(data.data(), data.size()))
@@ -248,7 +248,7 @@ bool CBoot::SetupWiiMemory()
     if (Core::WantsDeterminism())
       serno = "123456789";
     else
-      serno = SettingsHandler::GenerateSerialNumber();
+      serno = Common::SettingsHandler::GenerateSerialNumber();
     INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
   }
   else
