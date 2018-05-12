@@ -14,9 +14,9 @@
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 
-DolReader::DolReader(const std::vector<u8>& buffer) : BootExecutableReader(buffer)
+DolReader::DolReader(std::vector<u8> buffer) : BootExecutableReader(std::move(buffer))
 {
-  m_is_valid = Initialize(buffer);
+  m_is_valid = Initialize(m_bytes);
 }
 
 DolReader::DolReader(File::IOFile file) : BootExecutableReader(std::move(file))

@@ -12,6 +12,7 @@
 #include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <zlib.h>
@@ -456,7 +457,7 @@ BootExecutableReader::BootExecutableReader(File::IOFile file)
   file.ReadBytes(m_bytes.data(), m_bytes.size());
 }
 
-BootExecutableReader::BootExecutableReader(const std::vector<u8>& bytes) : m_bytes(bytes)
+BootExecutableReader::BootExecutableReader(std::vector<u8> bytes) : m_bytes(std::move(bytes))
 {
 }
 

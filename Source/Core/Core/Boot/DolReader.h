@@ -20,7 +20,7 @@ class DolReader final : public BootExecutableReader
 public:
   explicit DolReader(const std::string& filename);
   explicit DolReader(File::IOFile file);
-  explicit DolReader(const std::vector<u8>& buffer);
+  explicit DolReader(std::vector<u8> buffer);
   ~DolReader();
 
   bool IsValid() const override { return m_is_valid; }

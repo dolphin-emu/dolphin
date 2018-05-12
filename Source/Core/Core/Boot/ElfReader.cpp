@@ -68,7 +68,7 @@ static void byteswapSection(Elf32_Shdr& sec)
   bswap(sec.sh_type);
 }
 
-ElfReader::ElfReader(const std::vector<u8>& buffer) : BootExecutableReader(buffer)
+ElfReader::ElfReader(std::vector<u8> buffer) : BootExecutableReader(std::move(buffer))
 {
   Initialize(m_bytes.data());
 }
