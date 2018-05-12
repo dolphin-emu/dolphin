@@ -115,11 +115,8 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 
   restoreState(settings.value(QStringLiteral("mainwindow/state")).toByteArray());
   restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
-  m_render_widget_size =
-      QSize(SConfig::GetInstance().iRenderWindowWidth, SConfig::GetInstance().iRenderWindowHeight);
 
-  m_render_widget_position =
-      QPoint(SConfig::GetInstance().iRenderWindowXPos, SConfig::GetInstance().iRenderWindowYPos);
+  m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
 }
 
 MainWindow::~MainWindow()
@@ -132,11 +129,7 @@ MainWindow::~MainWindow()
   settings.setValue(QStringLiteral("mainwindow/state"), saveState());
   settings.setValue(QStringLiteral("mainwindow/geometry"), saveGeometry());
 
-  SConfig::GetInstance().iRenderWindowWidth = m_render_widget_size.width();
-  SConfig::GetInstance().iRenderWindowHeight = m_render_widget_size.height();
-
-  SConfig::GetInstance().iRenderWindowXPos = m_render_widget_position.x();
-  SConfig::GetInstance().iRenderWindowYPos = m_render_widget_position.y();
+  settings.setValue(QStringLiteral("renderwidget/geometry"), m_render_widget_geometry);
 
   Config::Save();
 }
@@ -570,8 +563,7 @@ bool MainWindow::RequestStop()
 
   if (!m_render_widget->isFullScreen())
   {
-    m_render_widget_size = m_render_widget->size();
-    m_render_widget_position = m_render_widget->pos();
+    m_render_widget_geometry = m_render_widget->saveGeometry();
   }
 
   if (SConfig::GetInstance().bConfirmStop)
@@ -655,8 +647,7 @@ void MainWindow::FullScreen()
   }
   else
   {
-    m_render_widget_size = m_render_widget->size();
-    m_render_widget_position = m_render_widget->pos();
+    m_render_widget_geometry = m_render_widget->saveGeometry();
     m_render_widget->showFullScreen();
   }
 }
@@ -756,10 +747,7 @@ void MainWindow::ShowRenderWidget()
     m_rendering_to_main = false;
 
     m_render_widget->showNormal();
-    m_render_widget->resize(m_render_widget_size);
-
-    if (m_render_widget_position.x() != -1)
-      m_render_widget->move(m_render_widget_position);
+    m_render_widget->restoreGeometry(m_render_widget_geometry);
   }
 
   SetFullScreenResolution(false);
