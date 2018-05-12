@@ -140,8 +140,10 @@ static void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
   vertex0X = xi;
   vertex0Y = yi;
 
-  // adjust a little less than 0.5
-  const float adjust = 0.495f;
+  // The console GPU places the pixel center at 7/12 unless antialiasing
+  // NOTE: If we ever emulate antialiasing, the sample locations set by
+  // BP registers 0x01-0x04 need to be considered here.
+  const float adjust = 6.5f / 12.0f;
 
   vertexOffsetX = ((float)xi - X1) + adjust;
   vertexOffsetY = ((float)yi - Y1) + adjust;
