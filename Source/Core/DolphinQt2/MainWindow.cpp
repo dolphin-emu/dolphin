@@ -55,6 +55,7 @@
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
+#include "DolphinQt2/Debugger/JITWidget.h"
 #include "DolphinQt2/Debugger/MemoryWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
@@ -215,6 +216,7 @@ void MainWindow::CreateComponents()
 
   m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
 
+  m_jit_widget = new JITWidget(this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_fifo_window = new FIFOPlayerWindow(this);
@@ -235,6 +237,7 @@ void MainWindow::CreateComponents()
 
   connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
+  connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget, &JITWidget::Compare);
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
 
@@ -446,6 +449,7 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
   addDockWidget(Qt::RightDockWidgetArea, m_memory_widget);
+  addDockWidget(Qt::RightDockWidgetArea, m_jit_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
@@ -453,6 +457,7 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
   tabifyDockWidget(m_log_widget, m_memory_widget);
+  tabifyDockWidget(m_log_widget, m_jit_widget);
 }
 
 QString MainWindow::PromptFileName()

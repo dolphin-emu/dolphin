@@ -30,6 +30,7 @@ class FIFOPlayerWindow;
 class GCTASInputWindow;
 class GraphicsWindow;
 class HotkeyScheduler;
+class JITWidget;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
@@ -186,6 +187,7 @@ private:
 
   BreakpointWidget* m_breakpoint_widget;
   CodeWidget* m_code_widget;
+  JITWidget* m_jit_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   MemoryWidget* m_memory_widget;
