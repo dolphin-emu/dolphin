@@ -300,7 +300,7 @@ void GCMemcardManager::ExportFiles(bool prompt)
   }
 
   QString text = count == 1 ? tr("Successfully exported the save file.") :
-                              tr("Successfully exported the %1 save files.");
+                              tr("Successfully exported the %1 save files.").arg(count);
   QMessageBox::information(this, tr("Success"), text);
 }
 
