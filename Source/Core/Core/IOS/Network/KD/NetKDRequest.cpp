@@ -92,10 +92,10 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
       const auto fs = m_ios.GetFS();
       if (const auto file = fs->OpenFile(PID_KD, PID_KD, settings_file_path, FS::Mode::Read))
       {
-        SettingsHandler::Buffer data;
+        Common::SettingsHandler::Buffer data;
         if (file->Read(data.data(), data.size()))
         {
-          const SettingsHandler gen{std::move(data)};
+          const Common::SettingsHandler gen{std::move(data)};
           area = gen.GetValue("AREA");
           model = gen.GetValue("MODEL");
         }

@@ -22,6 +22,8 @@
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 
+namespace Common
+{
 SettingsHandler::SettingsHandler()
 {
   Reset();
@@ -134,3 +136,4 @@ std::string SettingsHandler::GenerateSerialNumber()
   stream << std::put_time(std::localtime(&t), "%j%H%M%S");
   return stream.str();
 }
+}  // namespace Common

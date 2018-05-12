@@ -11,6 +11,8 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 class SettingsHandler
 {
 public:
@@ -42,3 +44,4 @@ private:
   u32 m_position, m_key;
   std::string decoded;
 };
+}  // namespace Common
