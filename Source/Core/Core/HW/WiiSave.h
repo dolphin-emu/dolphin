@@ -10,7 +10,7 @@
 
 #include "Common/CommonTypes.h"
 
-class CWiiSaveCrypted
+class WiiSave
 {
 public:
   bool static ImportWiiSave(const std::string& filename);
@@ -18,8 +18,8 @@ public:
   void static ExportAllSaves();
 
 private:
-  CWiiSaveCrypted(const std::string& filename, u64 title_id = 0);
-  ~CWiiSaveCrypted();
+  WiiSave(const std::string& filename, u64 title_id = 0);
+  ~WiiSave();
   void ReadHDR();
   void ReadBKHDR();
   void WriteHDR();

@@ -20,7 +20,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -260,7 +260,7 @@ void GameList::ExportWiiSave()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = CWiiSaveCrypted::ExportWiiSave(GetSelectedGame()->GetTitleID());
+  const bool success = WiiSave::ExportWiiSave(GetSelectedGame()->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
   result_dialog.setText(success ? tr("Successfully exported save files") :

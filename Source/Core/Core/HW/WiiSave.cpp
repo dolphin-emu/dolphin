@@ -7,7 +7,7 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/WiiSave.h"
 
 #include <cinttypes>
 #include <cstddef>
@@ -31,21 +31,21 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
-const u8 CWiiSaveCrypted::s_sd_key[16] = {0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
-                                          0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
-const u8 CWiiSaveCrypted::s_md5_blanker[16] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17,
-                                               0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93};
-const u32 CWiiSaveCrypted::s_ng_id = 0x0403AC68;
+const u8 WiiSave::s_sd_key[16] = {0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
+                                  0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
+const u8 WiiSave::s_md5_blanker[16] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17,
+                                       0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93};
+const u32 WiiSave::s_ng_id = 0x0403AC68;
 
-bool CWiiSaveCrypted::ImportWiiSave(const std::string& filename)
+bool WiiSave::ImportWiiSave(const std::string& filename)
 {
-  CWiiSaveCrypted save_file(filename);
+  WiiSave save_file(filename);
   return save_file.m_valid;
 }
 
-bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
+bool WiiSave::ExportWiiSave(u64 title_id)
 {
-  CWiiSaveCrypted export_save("", title_id);
+  WiiSave export_save("", title_id);
   if (export_save.m_valid)
   {
     SuccessAlertT("Successfully exported file to %s", export_save.m_encrypted_save_path.c_str());
@@ -57,7 +57,7 @@ bool CWiiSaveCrypted::ExportWiiSave(u64 title_id)
   return export_save.m_valid;
 }
 
-void CWiiSaveCrypted::ExportAllSaves()
+void WiiSave::ExportAllSaves()
 {
   std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
   std::vector<u64> titles;
@@ -89,7 +89,7 @@ void CWiiSaveCrypted::ExportAllSaves()
   u32 success = 0;
   for (const u64& title : titles)
   {
-    CWiiSaveCrypted export_save{"", title};
+    WiiSave export_save{"", title};
     if (export_save.m_valid)
       success++;
   }
@@ -97,7 +97,7 @@ void CWiiSaveCrypted::ExportAllSaves()
                 (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
-CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
+WiiSave::WiiSave(const std::string& filename, u64 title_id)
     : m_encrypted_save_path(filename), m_title_id(title_id)
 {
   memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
@@ -134,7 +134,7 @@ CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
   }
 }
 
-void CWiiSaveCrypted::ReadHDR()
+void WiiSave::ReadHDR()
 {
   File::IOFile data_file(m_encrypted_save_path, "rb");
   if (!data_file)
@@ -197,7 +197,7 @@ void CWiiSaveCrypted::ReadHDR()
   }
 }
 
-void CWiiSaveCrypted::WriteHDR()
+void WiiSave::WriteHDR()
 {
   if (!m_valid)
     return;
@@ -236,7 +236,7 @@ void CWiiSaveCrypted::WriteHDR()
   }
 }
 
-void CWiiSaveCrypted::ReadBKHDR()
+void WiiSave::ReadBKHDR()
 {
   if (!m_valid)
     return;
@@ -282,7 +282,7 @@ void CWiiSaveCrypted::ReadBKHDR()
   }
 }
 
-void CWiiSaveCrypted::WriteBKHDR()
+void WiiSave::WriteBKHDR()
 {
   if (!m_valid)
     return;
@@ -307,7 +307,7 @@ void CWiiSaveCrypted::WriteBKHDR()
   }
 }
 
-void CWiiSaveCrypted::ImportWiiSaveFiles()
+void WiiSave::ImportWiiSaveFiles()
 {
   if (!m_valid)
     return;
@@ -391,7 +391,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
   }
 }
 
-void CWiiSaveCrypted::ExportWiiSaveFiles()
+void WiiSave::ExportWiiSaveFiles()
 {
   if (!m_valid)
     return;
@@ -471,7 +471,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
   }
 }
 
-void CWiiSaveCrypted::do_sig()
+void WiiSave::do_sig()
 {
   if (!m_valid)
     return;
@@ -550,8 +550,8 @@ void CWiiSaveCrypted::do_sig()
   m_valid = data_file.IsGood();
 }
 
-void CWiiSaveCrypted::make_ec_cert(u8* cert, const u8* sig, const char* signer, const char* name,
-                                   const u8* priv, const u32 key_id)
+void WiiSave::make_ec_cert(u8* cert, const u8* sig, const char* signer, const char* name,
+                           const u8* priv, const u32 key_id)
 {
   memset(cert, 0, 0x180);
   *(u32*)cert = Common::swap32(0x10002);
@@ -564,7 +564,7 @@ void CWiiSaveCrypted::make_ec_cert(u8* cert, const u8* sig, const char* signer, 
   ec_priv_to_pub(priv, cert + 0x108);
 }
 
-bool CWiiSaveCrypted::getPaths(bool for_export)
+bool WiiSave::getPaths(bool for_export)
 {
   if (m_title_id)
   {
@@ -606,9 +606,8 @@ bool CWiiSaveCrypted::getPaths(bool for_export)
   return true;
 }
 
-void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory,
-                                   std::vector<std::string>& file_list, u32* num_files,
-                                   u32* size_files)
+void WiiSave::ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
+                           u32* num_files, u32* size_files)
 {
   std::vector<std::string> directories;
   directories.push_back(save_directory);
@@ -653,6 +652,6 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory,
   *size_files = size;
 }
 
-CWiiSaveCrypted::~CWiiSaveCrypted()
+WiiSave::~WiiSave()
 {
 }

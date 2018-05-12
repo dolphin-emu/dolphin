@@ -150,7 +150,7 @@ add_library(core
   HW/WiimoteEmu/Encryption.cpp
   HW/WiimoteEmu/Speaker.cpp
   HW/WiimoteReal/WiimoteReal.cpp
-  HW/WiiSaveCrypted.cpp
+  HW/WiiSave.cpp
   IOS/Device.cpp
   IOS/DeviceStub.cpp
   IOS/IOS.cpp

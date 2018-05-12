@@ -179,7 +179,7 @@
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp" />
     <ClCompile Include="HW\WII_IPC.cpp" />
-    <ClCompile Include="HW\WiiSaveCrypted.cpp" />
+    <ClCompile Include="HW\WiiSave.cpp" />
     <ClCompile Include="IOS\Device.cpp" />
     <ClCompile Include="IOS\DeviceStub.cpp" />
     <ClCompile Include="IOS\IOS.cpp" />
@@ -437,7 +437,7 @@
     <ClInclude Include="HW\WiimoteEmu\WiimoteHid.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
-    <ClInclude Include="HW\WiiSaveCrypted.h" />
+    <ClInclude Include="HW\WiiSave.h" />
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IOS\Device.h" />
     <ClInclude Include="IOS\DeviceStub.h" />

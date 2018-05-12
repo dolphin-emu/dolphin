@@ -45,7 +45,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/WiiSave.h"
 #include "Core/Movie.h"
 #include "Core/SysConf.h"
 #include "Core/TitleDatabase.h"
@@ -988,7 +988,7 @@ void GameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED(event))
 {
   const UICommon::GameFile* iso = GetSelectedISO();
   if (iso)
-    CWiiSaveCrypted::ExportWiiSave(iso->GetTitleID());
+    WiiSave::ExportWiiSave(iso->GetTitleID());
 }
 
 // Save this file as the default file

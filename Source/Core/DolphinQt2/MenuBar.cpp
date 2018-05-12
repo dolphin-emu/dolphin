@@ -26,7 +26,7 @@
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IOS/ES/ES.h"
@@ -897,12 +897,12 @@ void MenuBar::ImportWiiSave()
                                                  "All Files (*)"));
 
   if (!file.isEmpty())
-    CWiiSaveCrypted::ImportWiiSave(file.toStdString());
+    WiiSave::ImportWiiSave(file.toStdString());
 }
 
 void MenuBar::ExportWiiSaves()
 {
-  CWiiSaveCrypted::ExportAllSaves();
+  WiiSave::ExportAllSaves();
 }
 
 void MenuBar::CheckNAND()
