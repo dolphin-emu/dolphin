@@ -321,7 +321,13 @@ void GCMemcardManager::ImportFile()
   if (path.isEmpty())
     return;
 
-  m_slot_memcard[m_active_slot]->ImportGci(path.toStdString(), "");
+  const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString(), "");
+
+  if (result != SUCCESS)
+  {
+    QMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
+    return;
+  }
 
   if (!m_slot_memcard[m_active_slot]->Save())
     PanicAlertT("File write failed");
@@ -341,14 +347,19 @@ void GCMemcardManager::CopyFiles()
     auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
     int file_index = memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel));
 
-    m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
+    const auto result = m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
+
+    if (result != SUCCESS)
+      QMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
   }
 
-  if (!m_slot_memcard[!m_active_slot]->Save())
-    PanicAlertT("File write failed");
-
   for (int i = 0; i < SLOT_COUNT; i++)
+  {
+    if (!m_slot_memcard[i]->Save())
+      PanicAlertT("File write failed");
+
     UpdateSlotTable(i);
+  }
 }
 
 void GCMemcardManager::DeleteFiles()
@@ -374,13 +385,14 @@ void GCMemcardManager::DeleteFiles()
   {
     auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
     int file_index = memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel));
-    memcard->RemoveFile(file_index);
+    if (memcard->RemoveFile(file_index) != SUCCESS)
+      QMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
   }
-
-  QMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
 
   if (!memcard->Save())
     PanicAlertT("File write failed");
+  else
+    QMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
 
   UpdateSlotTable(m_active_slot);
   UpdateActions();
