@@ -54,6 +54,7 @@
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Debugger/BreakpointWidget.h"
+#include "DolphinQt2/Debugger/CodeViewWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
 #include "DolphinQt2/Debugger/JITWidget.h"
 #include "DolphinQt2/Debugger/MemoryWidget.h"
@@ -256,6 +257,10 @@ void MainWindow::CreateComponents()
           &CodeWidget::Update);
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_memory_widget,
           &MemoryWidget::Update);
+  connect(m_breakpoint_widget, &BreakpointWidget::SelectedBreakpoint, [this](u32 address) {
+    if (Core::GetState() == Core::State::Paused)
+      m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
+  });
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
@@ -346,6 +351,12 @@ void MainWindow::ConnectMenuBar()
   connect(m_game_list, &GameList::SelectionChanged, m_menu_bar, &MenuBar::SelectionChanged);
   connect(this, &MainWindow::ReadOnlyModeChanged, m_menu_bar, &MenuBar::ReadOnlyModeChanged);
   connect(this, &MainWindow::RecordingStatusChanged, m_menu_bar, &MenuBar::RecordingStatusChanged);
+
+  // Symbols
+  connect(m_menu_bar, &MenuBar::NotifySymbolsUpdated, [this] {
+    m_code_widget->UpdateSymbols();
+    m_code_widget->Update();
+  });
 }
 
 void MainWindow::ConnectHotkeys()
@@ -453,14 +464,14 @@ void MainWindow::ConnectStack()
   setCentralWidget(m_stack);
 
   setTabPosition(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea, QTabWidget::North);
-  addDockWidget(Qt::RightDockWidgetArea, m_log_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_log_config_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_code_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_register_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_watch_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_breakpoint_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_memory_widget);
-  addDockWidget(Qt::RightDockWidgetArea, m_jit_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_log_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_log_config_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_code_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_register_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);

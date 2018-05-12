@@ -7,6 +7,7 @@
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinQt2/Host.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
 
@@ -30,15 +31,13 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
   PopulateTable();
   ConnectWidgets();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     if (Settings::Instance().IsDebugModeEnabled() && Core::GetState() == Core::State::Paused)
-      emit RequestTableUpdate();
-  });
-
-  connect(this, &RegisterWidget::RequestTableUpdate, [this] {
-    m_updating = true;
-    emit UpdateTable();
-    m_updating = false;
+    {
+      m_updating = true;
+      emit UpdateTable();
+      m_updating = false;
+    }
   });
 
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged,
@@ -74,7 +73,8 @@ void RegisterWidget::CreateWidgets()
   m_table->verticalHeader()->setVisible(false);
   m_table->verticalHeader()->setDefaultSectionSize(24);
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_table->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_table->setSelectionMode(QAbstractItemView::NoSelection);
+  m_table->setFont(Settings::Instance().GetDebugFont());
 
   QStringList empty_list;
 
@@ -108,108 +108,105 @@ void RegisterWidget::ShowContextMenu()
 {
   QMenu* menu = new QMenu(this);
 
-  if (m_table->selectedItems().size())
+  auto variant = m_table->currentItem()->data(DATA_TYPE);
+
+  if (!variant.isNull())
   {
-    auto variant = m_table->selectedItems()[0]->data(DATA_TYPE);
+    auto* item = static_cast<RegisterColumn*>(m_table->currentItem());
+    auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
+    auto display = item->GetDisplay();
 
-    if (!variant.isNull())
+    AddAction(menu, tr("Add to &watch"), this,
+              [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
+    menu->addAction(tr("View &memory"));
+    menu->addAction(tr("View &code"));
+
+    menu->addSeparator();
+
+    QActionGroup* group = new QActionGroup(menu);
+    group->setExclusive(true);
+
+    auto* view_hex = menu->addAction(tr("Hexadecimal"));
+    auto* view_int = menu->addAction(tr("Signed Integer"));
+    auto* view_uint = menu->addAction(tr("Unsigned Integer"));
+    // i18n: A floating point number
+    auto* view_float = menu->addAction(tr("Float"));
+    // i18n: A double precision floating point number
+    auto* view_double = menu->addAction(tr("Double"));
+
+    for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
     {
-      auto* item = reinterpret_cast<RegisterColumn*>(m_table->selectedItems()[0]);
-      auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
-      auto display = item->GetDisplay();
-
-      AddAction(menu, tr("Add to &watch"), this,
-                [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
-      menu->addAction(tr("View &memory"));
-      menu->addAction(tr("View &code"));
-
-      menu->addSeparator();
-
-      QActionGroup* group = new QActionGroup(menu);
-      group->setExclusive(true);
-
-      auto* view_hex = menu->addAction(tr("Hexadecimal"));
-      auto* view_int = menu->addAction(tr("Signed Integer"));
-      auto* view_uint = menu->addAction(tr("Unsigned Integer"));
-      // i18n: A floating point number
-      auto* view_float = menu->addAction(tr("Float"));
-      // i18n: A double precision floating point number
-      auto* view_double = menu->addAction(tr("Double"));
-
-      for (auto* action : {view_hex, view_int, view_uint, view_float, view_double})
-      {
-        action->setCheckable(true);
-        action->setVisible(false);
-        action->setActionGroup(group);
-      }
-
-      switch (display)
-      {
-      case RegisterDisplay::Hex:
-        view_hex->setChecked(true);
-        break;
-      case RegisterDisplay::SInt32:
-        view_int->setChecked(true);
-        break;
-      case RegisterDisplay::UInt32:
-        view_uint->setChecked(true);
-        break;
-      case RegisterDisplay::Float:
-        view_float->setChecked(true);
-        break;
-      case RegisterDisplay::Double:
-        view_double->setChecked(true);
-        break;
-      }
-
-      switch (type)
-      {
-      case RegisterType::gpr:
-        view_hex->setVisible(true);
-        view_int->setVisible(true);
-        view_uint->setVisible(true);
-        view_float->setVisible(true);
-        break;
-      case RegisterType::fpr:
-        view_hex->setVisible(true);
-        view_double->setVisible(true);
-        break;
-      default:
-        break;
-      }
-
-      connect(view_hex, &QAction::triggered, [this, item] {
-        m_updating = true;
-        item->SetDisplay(RegisterDisplay::Hex);
-        m_updating = false;
-      });
-
-      connect(view_int, &QAction::triggered, [this, item] {
-        m_updating = true;
-        item->SetDisplay(RegisterDisplay::SInt32);
-        m_updating = false;
-      });
-
-      connect(view_uint, &QAction::triggered, [this, item] {
-        m_updating = true;
-        item->SetDisplay(RegisterDisplay::UInt32);
-        m_updating = false;
-      });
-
-      connect(view_float, &QAction::triggered, [this, item] {
-        m_updating = true;
-        item->SetDisplay(RegisterDisplay::Float);
-        m_updating = false;
-      });
-
-      connect(view_double, &QAction::triggered, [this, item] {
-        m_updating = true;
-        item->SetDisplay(RegisterDisplay::Double);
-        m_updating = false;
-      });
-
-      menu->addSeparator();
+      action->setCheckable(true);
+      action->setVisible(false);
+      action->setActionGroup(group);
     }
+
+    switch (display)
+    {
+    case RegisterDisplay::Hex:
+      view_hex->setChecked(true);
+      break;
+    case RegisterDisplay::SInt32:
+      view_int->setChecked(true);
+      break;
+    case RegisterDisplay::UInt32:
+      view_uint->setChecked(true);
+      break;
+    case RegisterDisplay::Float:
+      view_float->setChecked(true);
+      break;
+    case RegisterDisplay::Double:
+      view_double->setChecked(true);
+      break;
+    }
+
+    switch (type)
+    {
+    case RegisterType::gpr:
+      view_hex->setVisible(true);
+      view_int->setVisible(true);
+      view_uint->setVisible(true);
+      view_float->setVisible(true);
+      break;
+    case RegisterType::fpr:
+      view_hex->setVisible(true);
+      view_double->setVisible(true);
+      break;
+    default:
+      break;
+    }
+
+    connect(view_hex, &QAction::triggered, [this, item] {
+      m_updating = true;
+      item->SetDisplay(RegisterDisplay::Hex);
+      m_updating = false;
+    });
+
+    connect(view_int, &QAction::triggered, [this, item] {
+      m_updating = true;
+      item->SetDisplay(RegisterDisplay::SInt32);
+      m_updating = false;
+    });
+
+    connect(view_uint, &QAction::triggered, [this, item] {
+      m_updating = true;
+      item->SetDisplay(RegisterDisplay::UInt32);
+      m_updating = false;
+    });
+
+    connect(view_float, &QAction::triggered, [this, item] {
+      m_updating = true;
+      item->SetDisplay(RegisterDisplay::Float);
+      m_updating = false;
+    });
+
+    connect(view_double, &QAction::triggered, [this, item] {
+      m_updating = true;
+      item->SetDisplay(RegisterDisplay::Double);
+      m_updating = false;
+    });
+
+    menu->addSeparator();
   }
 
   AddAction(menu, tr("Update"), this, [this] { emit RequestTableUpdate(); });
@@ -356,10 +353,12 @@ void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::st
 
     m_table->setItem(row, column, label);
     m_table->setItem(row, column + 1, value);
+    m_table->item(row, column + 1)->setTextAlignment(Qt::AlignRight);
   }
   else
   {
     m_table->setItem(row, column, value);
+    m_table->item(row, column)->setTextAlignment(Qt::AlignRight);
   }
 
   connect(this, &RegisterWidget::UpdateTable, [value] { value->RefreshValue(); });

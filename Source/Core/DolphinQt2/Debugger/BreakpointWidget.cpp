@@ -40,8 +40,16 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     if (!Settings::Instance().IsDebugModeEnabled())
       return;
 
-    m_load->setEnabled(Core::IsRunning());
-    m_save->setEnabled(Core::IsRunning());
+    bool is_initialised = state != Core::State::Uninitialized;
+    m_new->setEnabled(is_initialised);
+    m_load->setEnabled(is_initialised);
+    m_save->setEnabled(is_initialised);
+    if (!is_initialised)
+    {
+      PowerPC::breakpoints.Clear();
+      PowerPC::memchecks.Clear();
+      Update();
+    }
   });
 
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged,
@@ -77,7 +85,17 @@ void BreakpointWidget::CreateWidgets()
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
+  m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
   m_table->verticalHeader()->hide();
+
+  connect(m_table, &QTableWidget::itemClicked, [this](QTableWidgetItem* item) {
+    if (m_table->selectedItems()[0]->row() == item->row() &&
+        Core::GetState() == Core::State::Paused)
+    {
+      auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
+      emit SelectedBreakpoint(address);
+    }
+  });
 
   auto* layout = new QVBoxLayout;
 
@@ -91,6 +109,7 @@ void BreakpointWidget::CreateWidgets()
   m_load = AddAction(m_toolbar, tr("Load"), this, &BreakpointWidget::OnLoad);
   m_save = AddAction(m_toolbar, tr("Save"), this, &BreakpointWidget::OnSave);
 
+  m_new->setEnabled(false);
   m_load->setEnabled(false);
   m_save->setEnabled(false);
 
@@ -122,6 +141,7 @@ void BreakpointWidget::Update()
       {tr("Active"), tr("Type"), tr("Function"), tr("Address"), tr("Flags")});
 
   int i = 0;
+  m_table->setRowCount(i);
 
   auto create_item = [this](const QString string = QStringLiteral("")) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
@@ -206,7 +226,9 @@ void BreakpointWidget::OnDelete()
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
 
   PowerPC::breakpoints.Remove(address);
+  Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Remove(address);
+  Settings::Instance().blockSignals(false);
 
   Update();
 }
@@ -214,7 +236,9 @@ void BreakpointWidget::OnDelete()
 void BreakpointWidget::OnClear()
 {
   PowerPC::debug_interface.ClearAllBreakpoints();
+  Settings::Instance().blockSignals(true);
   PowerPC::debug_interface.ClearAllMemChecks();
+  Settings::Instance().blockSignals(false);
 
   m_table->setRowCount(0);
   Update();
@@ -247,7 +271,9 @@ void BreakpointWidget::OnLoad()
   if (ini.GetLines("MemoryBreakPoints", &newmcs, false))
   {
     PowerPC::memchecks.Clear();
+    Settings::Instance().blockSignals(true);
     PowerPC::memchecks.AddFromStrings(newmcs);
+    Settings::Instance().blockSignals(false);
   }
 
   Update();
@@ -283,7 +309,9 @@ void BreakpointWidget::AddAddressMBP(u32 addr, bool on_read, bool on_write, bool
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
 
+  Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Add(check);
+  Settings::Instance().blockSignals(false);
 
   Update();
 }
@@ -301,7 +329,9 @@ void BreakpointWidget::AddRangedMBP(u32 from, u32 to, bool on_read, bool on_writ
   check.log_on_hit = do_log;
   check.break_on_hit = do_break;
 
+  Settings::Instance().blockSignals(true);
   PowerPC::memchecks.Add(check);
+  Settings::Instance().blockSignals(false);
 
   Update();
 }

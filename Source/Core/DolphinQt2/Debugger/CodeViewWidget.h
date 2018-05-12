@@ -18,11 +18,17 @@ class CodeViewWidget : public QTableWidget
 {
   Q_OBJECT
 public:
+  enum class SetAddressUpdate
+  {
+    WithUpdate,
+    WithoutUpdate
+  };
+
   explicit CodeViewWidget();
 
   u32 GetAddress() const;
   u32 GetContextAddress() const;
-  void SetAddress(u32 address);
+  void SetAddress(u32 address, SetAddressUpdate update);
 
   void Update();
 
@@ -49,6 +55,7 @@ private:
   void OnCopyCode();
   void OnCopyHex();
   void OnRenameSymbol();
+  void OnSelectionChanged();
   void OnSetSymbolSize();
   void OnSetSymbolEndAddress();
   void OnRunToHere();

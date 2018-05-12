@@ -39,12 +39,12 @@ CodeViewWidget::CodeViewWidget()
   setShowGrid(false);
   setContextMenuPolicy(Qt::CustomContextMenu);
   setSelectionMode(QAbstractItemView::SingleSelection);
+  setSelectionBehavior(QAbstractItemView::SelectRows);
   verticalScrollBar()->setHidden(true);
 
   for (int i = 0; i < columnCount(); i++)
   {
-    horizontalHeader()->setSectionResizeMode(i, i == 0 ? QHeaderView::Fixed :
-                                                         QHeaderView::ResizeToContents);
+    horizontalHeader()->setSectionResizeMode(i, QHeaderView::Fixed);
   }
 
   verticalHeader()->hide();
@@ -56,6 +56,7 @@ CodeViewWidget::CodeViewWidget()
   Update();
 
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
+  connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
     m_address = PC;
@@ -119,6 +120,23 @@ void CodeViewWidget::Update()
     auto* param_item = new QTableWidgetItem(QString::fromStdString(param));
     auto* description_item = new QTableWidgetItem(QString::fromStdString(desc));
 
+    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item})
+    {
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setData(Qt::UserRole, addr);
+
+      if (color != 0xFFFFFF)
+      {
+        item->setForeground(QColor(Qt::black));
+        item->setBackground(QColor(color));
+      }
+      if (addr == pc && item != bp_item)
+      {
+        item->setBackground(QColor(Qt::green));
+        item->setForeground(QColor(Qt::black));
+      }
+    }
+
     // look for hex strings to decode branches
     std::string hex_str;
     size_t pos = param.find("0x");
@@ -137,20 +155,6 @@ void CodeViewWidget::Update()
     if (ins == "blr")
       ins_item->setForeground(Qt::darkGreen);
 
-    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item})
-    {
-      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      item->setData(Qt::UserRole, addr);
-
-      if (color != 0xFFFFFF)
-        item->setBackground(QColor(color).darker(110));
-
-      if (addr == pc && item != bp_item)
-      {
-        item->setBackground(QColor(Qt::green).darker(110));
-      }
-    }
-
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
       bp_item->setData(Qt::DecorationRole,
@@ -165,10 +169,11 @@ void CodeViewWidget::Update()
 
     if (addr == GetAddress())
     {
-      addr_item->setSelected(true);
+      selectRow(addr_item->row());
     }
   }
 
+  resizeColumnsToContents();
   setColumnWidth(0, 24 + 5);
 
   g_symbolDB.FillInCallers();
@@ -182,13 +187,14 @@ u32 CodeViewWidget::GetAddress() const
   return m_address;
 }
 
-void CodeViewWidget::SetAddress(u32 address)
+void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
 {
   if (m_address == address)
     return;
 
   m_address = address;
-  Update();
+  if (update == SetAddressUpdate::WithUpdate)
+    Update();
 }
 
 void CodeViewWidget::ReplaceAddress(u32 address, bool blr)
@@ -362,7 +368,7 @@ void CodeViewWidget::OnFollowBranch()
   if (!branch_addr)
     return;
 
-  SetAddress(branch_addr);
+  SetAddress(branch_addr, SetAddressUpdate::WithUpdate);
 }
 
 void CodeViewWidget::OnRenameSymbol()
@@ -384,6 +390,19 @@ void CodeViewWidget::OnRenameSymbol()
     symbol->Rename(name.toStdString());
     emit SymbolsChanged();
     Update();
+  }
+}
+
+void CodeViewWidget::OnSelectionChanged()
+{
+  if (m_address == PowerPC::ppcState.pc)
+  {
+    setStyleSheet(QString::fromStdString(
+        "QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
+  }
+  else if (!styleSheet().isEmpty())
+  {
+    setStyleSheet(QString::fromStdString(""));
   }
 }
 
@@ -515,7 +534,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
     if (column(item) == 0)
       ToggleBreakpoint();
     else
-      SetAddress(addr);
+      SetAddress(addr, SetAddressUpdate::WithUpdate);
 
     Update();
     break;
