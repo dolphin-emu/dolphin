@@ -81,10 +81,10 @@ void ShutdownWiiRoot()
 
 void InitializeWiiFileSystemContents()
 {
+  File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, File::GetUserPath(D_SESSION_WIIROOT_IDX));
+
   if (s_temp_wii_root.empty())
     return;
-
-  File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, s_temp_wii_root);
 
   // Generate a SYSCONF with default settings for the temporary Wii NAND.
   SysConf sysconf{IOS::HLE::GetIOS()->GetFS()};
