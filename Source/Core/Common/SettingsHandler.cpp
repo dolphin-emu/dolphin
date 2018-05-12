@@ -4,23 +4,15 @@
 
 // Thanks to Treeki for writing the original class - 29/01/2012
 
+#include "Common/SettingsHandler.h"
+
 #include <cstddef>
-#include <cstdio>
-#include <cstring>
 #include <ctime>
 #include <iomanip>
 #include <sstream>
 #include <string>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <mmsystem.h>
-#include <sys/timeb.h>
-#endif
-
 #include "Common/CommonTypes.h"
-#include "Common/SettingsHandler.h"
-#include "Common/Timer.h"
 
 namespace Common
 {
