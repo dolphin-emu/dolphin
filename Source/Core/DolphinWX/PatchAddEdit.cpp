@@ -42,7 +42,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
   if (_selection == -1)
   {
     tempEntries.clear();
-    tempEntries.emplace_back(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
+    tempEntries.emplace_back();
   }
   else
   {
@@ -68,11 +68,14 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
   EntrySelection->SetRange(0, (int)tempEntries.size() - 1);
   EntrySelection->SetValue((int)tempEntries.size() - 1);
 
-  wxArrayString wxArrayStringFor_EditPatchType;
+  wxArrayString patch_types;
   for (int i = 0; i < 3; ++i)
-    wxArrayStringFor_EditPatchType.Add(StrToWxStr(PatchEngine::PatchTypeStrings[i]));
-  EditPatchType = new wxRadioBox(this, wxID_ANY, _("Type"), wxDefaultPosition, wxDefaultSize,
-                                 wxArrayStringFor_EditPatchType, 3, wxRA_SPECIFY_COLS);
+  {
+    patch_types.Add(
+        StrToWxStr(PatchEngine::PatchTypeAsString(static_cast<PatchEngine::PatchType>(i))));
+  }
+  EditPatchType =
+      new wxRadioBox(this, wxID_ANY, _("Type"), wxDefaultPosition, wxDefaultSize, patch_types);
   EditPatchType->SetSelection((int)tempEntries.at(0).type);
 
   wxStaticText* EditPatchValueText = new wxStaticText(this, wxID_ANY, _("Value:"));
@@ -165,7 +168,7 @@ void CPatchAddEdit::AddEntry(wxCommandEvent& event)
   if (!UpdateTempEntryData(itCurEntry))
     return;
 
-  PatchEngine::PatchEntry peEmptyEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
+  PatchEngine::PatchEntry peEmptyEntry;
   ++itCurEntry;
   currentItem++;
   itCurEntry = tempEntries.insert(itCurEntry, peEmptyEntry);
@@ -206,7 +209,7 @@ void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
   sbEntry->GetStaticBox()->SetLabel(
       wxString::Format(_("Entry %d/%d"), currentItem, (int)tempEntries.size()));
   EditPatchOffset->SetValue(wxString::Format("%08X", pE.address));
-  EditPatchType->SetSelection(pE.type);
+  EditPatchType->SetSelection(static_cast<int>(pE.type));
   EditPatchValue->SetValue(
       wxString::Format("%0*X", PatchEngine::GetPatchTypeCharLength(pE.type), pE.value));
 }
@@ -217,19 +220,19 @@ bool CPatchAddEdit::UpdateTempEntryData(std::vector<PatchEngine::PatchEntry>::it
   bool parsed_ok = true;
 
   if (EditPatchOffset->GetValue().ToULong(&value, 16))
-    (*iterEntry).address = value;
+    iterEntry->address = value;
   else
     parsed_ok = false;
 
-  PatchEngine::PatchType tempType = (*iterEntry).type =
-      (PatchEngine::PatchType)EditPatchType->GetSelection();
+  const auto tempType = iterEntry->type =
+      static_cast<PatchEngine::PatchType>(EditPatchType->GetSelection());
 
   if (EditPatchValue->GetValue().ToULong(&value, 16))
   {
-    (*iterEntry).value = value;
-    if (tempType == PatchEngine::PATCH_8BIT && value > 0xff)
+    iterEntry->value = value;
+    if (tempType == PatchEngine::PatchType::Patch8Bit && value > 0xff)
       parsed_ok = false;
-    else if (tempType == PatchEngine::PATCH_16BIT && value > 0xffff)
+    else if (tempType == PatchEngine::PatchType::Patch16Bit && value > 0xffff)
       parsed_ok = false;
   }
   else

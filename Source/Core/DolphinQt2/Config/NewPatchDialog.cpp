@@ -77,11 +77,7 @@ void NewPatchDialog::ConnectWidgets()
 
 void NewPatchDialog::AddEntry()
 {
-  PatchEngine::PatchEntry entry;
-  entry.type = PatchEngine::PATCH_8BIT;
-  entry.address = entry.value = 0;
-
-  m_patch.entries.push_back(entry);
+  m_patch.entries.emplace_back();
 
   m_entry_layout->addWidget(CreateEntry(static_cast<int>(m_patch.entries.size() - 1)));
 }
@@ -163,24 +159,24 @@ QGroupBox* NewPatchDialog::CreateEntry(int index)
 
   connect(byte, &QRadioButton::toggled, [this, index](bool checked) {
     if (checked)
-      m_patch.entries[index].type = PatchEngine::PATCH_8BIT;
+      m_patch.entries[index].type = PatchEngine::PatchType::Patch8Bit;
   });
 
   connect(word, &QRadioButton::toggled, [this, index](bool checked) {
     if (checked)
-      m_patch.entries[index].type = PatchEngine::PATCH_16BIT;
+      m_patch.entries[index].type = PatchEngine::PatchType::Patch16Bit;
   });
 
   connect(dword, &QRadioButton::toggled, [this, index](bool checked) {
     if (checked)
-      m_patch.entries[index].type = PatchEngine::PATCH_32BIT;
+      m_patch.entries[index].type = PatchEngine::PatchType::Patch32Bit;
   });
 
   auto entry_type = m_patch.entries[index].type;
 
-  byte->setChecked(entry_type == PatchEngine::PATCH_8BIT);
-  word->setChecked(entry_type == PatchEngine::PATCH_16BIT);
-  dword->setChecked(entry_type == PatchEngine::PATCH_32BIT);
+  byte->setChecked(entry_type == PatchEngine::PatchType::Patch8Bit);
+  word->setChecked(entry_type == PatchEngine::PatchType::Patch16Bit);
+  dword->setChecked(entry_type == PatchEngine::PatchType::Patch32Bit);
 
   offset->setText(
       QStringLiteral("%1").arg(m_patch.entries[index].address, 10, 16, QLatin1Char('0')));
