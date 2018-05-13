@@ -294,7 +294,7 @@ void VertexShaderManager::SetConstants()
     // in VertexShaderGen.cpp for details.
     // NOTE: If we ever emulate antialiasing, the sample locations set by
     // BP registers 0x01-0x04 need to be considered here.
-    const float pixel_center_correction = 6.5f / 12.0f - 0.5f;
+    const float pixel_center_correction = 6.98f / 12.0f - 0.5f;
     const bool bUseVertexRounding = g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != 1;
     const float viewport_width = bUseVertexRounding ?
                                      (2.f * xfmem.viewport.wd) :
