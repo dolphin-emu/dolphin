@@ -468,7 +468,7 @@ void WiiSave::do_sig()
 
   data_file.WriteArray(ap_sig.data(), ap_sig.size());
   const u32 SIGNATURE_END_MAGIC = Common::swap32(0x2f536969);
-  data_file.WriteArray(&SIGNATURE_END_MAGIC, sizeof(SIGNATURE_END_MAGIC));
+  data_file.WriteArray(&SIGNATURE_END_MAGIC, 1);
   const IOS::Certificate device_certificate = m_ios.GetIOSC().GetDeviceCertificate();
   data_file.WriteArray(device_certificate.data(), device_certificate.size());
   data_file.WriteArray(ap_cert.data(), ap_cert.size());
