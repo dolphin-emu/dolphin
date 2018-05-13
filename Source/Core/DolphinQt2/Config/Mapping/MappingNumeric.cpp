@@ -5,7 +5,10 @@
 #include "DolphinQt2/Config/Mapping/MappingNumeric.h"
 
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
+
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 MappingNumeric::MappingNumeric(MappingWidget* widget, ControllerEmu::NumericSetting* setting)
     : m_parent(widget), m_setting(setting)
@@ -21,6 +24,7 @@ void MappingNumeric::Connect()
           [this](int value) {
             m_setting->SetValue(static_cast<double>(value) / 100);
             m_parent->SaveSettings();
+            m_parent->GetController()->UpdateReferences(g_controller_interface);
           });
 }
 

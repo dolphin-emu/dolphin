@@ -5,7 +5,10 @@
 #include "DolphinQt2/Config/Mapping/MappingBool.h"
 
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
+
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 MappingBool::MappingBool(MappingWidget* widget, ControllerEmu::BooleanSetting* setting)
     : QCheckBox(tr(setting->m_ui_name.c_str())), m_parent(widget), m_setting(setting)
@@ -19,6 +22,7 @@ void MappingBool::Connect()
   connect(this, &QCheckBox::stateChanged, this, [this](int value) {
     m_setting->SetValue(value);
     m_parent->SaveSettings();
+    m_parent->GetController()->UpdateReferences(g_controller_interface);
   });
 }
 

@@ -117,6 +117,7 @@ void MappingButton::Detect()
       m_reference->SetExpression(expr.toStdString());
       m_parent->SaveSettings();
       Update();
+      m_parent->GetController()->UpdateReferences(g_controller_interface);
 
       if (m_parent->IsIterativeInput())
         m_parent->NextButton(this);
