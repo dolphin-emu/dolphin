@@ -395,12 +395,12 @@ void CodeViewWidget::OnSelectionChanged()
 {
   if (m_address == PowerPC::ppcState.pc)
   {
-    setStyleSheet(QString::fromStdString(
-        "QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
+    setStyleSheet(
+        QStringLiteral("QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
   }
   else if (!styleSheet().isEmpty())
   {
-    setStyleSheet(QString::fromStdString(""));
+    setStyleSheet(QStringLiteral(""));
   }
 }
 
