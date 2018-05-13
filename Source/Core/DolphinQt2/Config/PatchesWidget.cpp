@@ -11,8 +11,13 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/PatchEngine.h"
+
 #include "DolphinQt2/Config/NewPatchDialog.h"
+
+#include "UICommon/GameFile.h"
 
 PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
     : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())

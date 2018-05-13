@@ -9,7 +9,10 @@
 #include <QDialog>
 #include <QWidget>
 
-#include "Core/PatchEngine.h"
+namespace PatchEngine
+{
+struct Patch;
+}
 
 class QDialogButtonBox;
 class QGroupBox;
