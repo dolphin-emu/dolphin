@@ -19,8 +19,9 @@
 #include <future>
 
 #include "DiscIO/DiscExtractor.h"
-#include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 
@@ -44,6 +45,8 @@ FilesystemWidget::FilesystemWidget(const UICommon::GameFile& game)
   ConnectWidgets();
   PopulateView();
 }
+
+FilesystemWidget::~FilesystemWidget() = default;
 
 void FilesystemWidget::CreateWidgets()
 {

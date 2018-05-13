@@ -7,6 +7,8 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include "DiscIO/Enums.h"
+
 #include "DolphinQt2/Config/ARCodeWidget.h"
 #include "DolphinQt2/Config/FilesystemWidget.h"
 #include "DolphinQt2/Config/GameConfigWidget.h"
