@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <mbedtls/aes.h>
 #include <string>
 #include <utility>
@@ -45,14 +46,14 @@ private:
                     u32* num_files, u32* size_files);
 
   mbedtls_aes_context m_aes_ctx;
-  u8 m_sd_iv[0x10];
+  std::array<u8, 0x10> m_sd_iv;
   std::vector<std::string> m_files_list;
 
   std::string m_encrypted_save_path;
 
   std::string m_wii_title_path;
 
-  u8 m_iv[0x10];
+  std::array<u8, 0x10> m_iv;
 
   u64 m_title_id;
 
@@ -87,8 +88,8 @@ private:
     Common::BigEndianValue<u64> save_game_title;
     Common::BigEndianValue<u32> banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
     u8 permissions;
-    u8 unk1;       // maybe permissions is a be16
-    u8 md5[0x10];  // md5 of plaintext header with md5 blanker applied
+    u8 unk1;                   // maybe permissions is a be16
+    std::array<u8, 0x10> md5;  // md5 of plaintext header with md5 blanker applied
     Common::BigEndianValue<u16> unk2;
   };
 
@@ -110,10 +111,10 @@ private:
     Common::BigEndianValue<u32> unk1;
     Common::BigEndianValue<u32> unk2;
     Common::BigEndianValue<u32> total_size;
-    u8 unk3[64];
+    std::array<u8, 64> unk3;
     Common::BigEndianValue<u64> save_game_title;
-    u8 mac_address[6];
-    u8 padding[0x12];
+    std::array<u8, 6> mac_address;
+    std::array<u8, 0x12> padding;
   };
 
   struct FileHDR  // encrypted
@@ -123,9 +124,9 @@ private:
     u8 permissions;
     u8 attrib;
     u8 type;  // (1=file, 2=directory)
-    u8 name[0x45];
-    u8 iv[0x10];
-    u8 unk[0x20];
+    std::array<char, 0x45> name;
+    std::array<u8, 0x10> iv;
+    std::array<u8, 0x20> unk;
   };
 #pragma pack(pop)
 

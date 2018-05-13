@@ -30,10 +30,14 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
-constexpr u8 s_sd_key[16] = {0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
-                             0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
-constexpr u8 s_md5_blanker[16] = {0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17,
-                                  0xAB, 0x06, 0xEC, 0x22, 0x45, 0x1A, 0x57, 0x93};
+using Md5 = std::array<u8, 0x10>;
+
+constexpr std::array<u8, 0x10> s_sd_initial_iv{{0x21, 0x67, 0x12, 0xE6, 0xAA, 0x1F, 0x68, 0x9F,
+                                                0x95, 0xC5, 0xA2, 0x23, 0x24, 0xDC, 0x6A, 0x98}};
+constexpr std::array<u8, 0x10> s_sd_key{{0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08, 0xAF, 0xBA,
+                                         0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D}};
+constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xAB, 0x06, 0xEC, 0x22,
+                             0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
 bool WiiSave::Import(const std::string& filename)
@@ -86,10 +90,10 @@ std::pair<size_t, std::string> WiiSave::ExportAll()
   return {exported_save_count, File::GetUserPath(D_USER_IDX) + "private/wii/title/"};
 }
 
-WiiSave::WiiSave(std::string filename) : m_encrypted_save_path(std::move(filename)), m_valid{true}
+WiiSave::WiiSave(std::string filename)
+    : m_sd_iv{s_sd_initial_iv}, m_encrypted_save_path(std::move(filename)), m_valid{true}
 {
-  memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
-  mbedtls_aes_setkey_dec(&m_aes_ctx, s_sd_key, 128);
+  mbedtls_aes_setkey_dec(&m_aes_ctx, s_sd_key.data(), 128);
 }
 
 bool WiiSave::Import()
@@ -101,10 +105,9 @@ bool WiiSave::Import()
   return m_valid;
 }
 
-WiiSave::WiiSave(u64 title_id) : m_title_id{title_id}
+WiiSave::WiiSave(u64 title_id) : m_sd_iv{s_sd_initial_iv}, m_title_id{title_id}
 {
-  memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
-  mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key, 128);
+  mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key.data(), 128);
 
   if (getPaths(true))
     m_valid = true;
@@ -136,7 +139,7 @@ void WiiSave::ReadHDR()
   }
   data_file.Close();
 
-  mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, HEADER_SZ, m_sd_iv,
+  mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, HEADER_SZ, m_sd_iv.data(),
                         (const u8*)&m_encrypted_header, (u8*)&m_header);
   u32 banner_size = m_header.hdr.banner_size;
   if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
@@ -148,16 +151,15 @@ void WiiSave::ReadHDR()
   }
   m_title_id = m_header.hdr.save_game_title;
 
-  u8 md5_file[16];
-  u8 md5_calc[16];
-  memcpy(md5_file, m_header.hdr.md5, 0x10);
-  memcpy(m_header.hdr.md5, s_md5_blanker, 0x10);
-  mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc);
-  if (memcmp(md5_file, md5_calc, 0x10))
+  Md5 md5_file = m_header.hdr.md5;
+  m_header.hdr.md5 = s_md5_blanker;
+  Md5 md5_calc;
+  mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc.data());
+  if (md5_file == md5_calc)
   {
     ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
-              Common::swap64(md5_file), Common::swap64(md5_file + 8), Common::swap64(md5_calc),
-              Common::swap64(md5_calc + 8));
+              Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
+              Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
     m_valid = false;
   }
 
@@ -193,7 +195,7 @@ void WiiSave::WriteHDR()
   m_header.hdr.banner_size = banner_size;
 
   m_header.hdr.save_game_title = m_title_id;
-  memcpy(m_header.hdr.md5, s_md5_blanker, 0x10);
+  m_header.hdr.md5 = s_md5_blanker;
   m_header.hdr.permissions = 0x3C;
 
   File::IOFile banner_file(banner_file_path, "rb");
@@ -206,12 +208,12 @@ void WiiSave::WriteHDR()
   // remove nocopy flag
   m_header.banner[7] &= ~1;
 
-  u8 md5_calc[16];
-  mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc);
-  memcpy(m_header.hdr.md5, md5_calc, 0x10);
+  Md5 md5_calc;
+  mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc.data());
+  m_header.hdr.md5 = std::move(md5_calc);
 
-  mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, HEADER_SZ, m_sd_iv, (const u8*)&m_header,
-                        (u8*)&m_encrypted_header);
+  mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, HEADER_SZ, m_sd_iv.data(),
+                        (const u8*)&m_header, (u8*)&m_encrypted_header);
 
   File::IOFile data_file(m_encrypted_save_path, "wb");
   if (!data_file.WriteBytes(&m_encrypted_header, HEADER_SZ))
@@ -306,7 +308,7 @@ void WiiSave::ImportWiiSaveFiles()
   for (u32 i = 0; i < m_bk_hdr.number_of_files; ++i)
   {
     memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
-    memset(m_iv, 0, 0x10);
+    m_iv.fill(0);
 
     if (!data_file.ReadBytes(&file_hdr_tmp, FILE_HDR_SZ))
     {
@@ -323,7 +325,7 @@ void WiiSave::ImportWiiSaveFiles()
     {
       // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
       // Special characters in path components will be escaped such as /../
-      std::string file_path = Common::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
+      std::string file_path = Common::EscapePath(file_hdr_tmp.name.data());
 
       std::string file_path_full = m_wii_title_path + '/' + file_path;
       File::CreateFullPath(file_path_full);
@@ -341,8 +343,8 @@ void WiiSave::ImportWiiSaveFiles()
           break;
         }
 
-        memcpy(m_iv, file_hdr_tmp.iv, 0x10);
-        mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv,
+        m_iv = file_hdr_tmp.iv;
+        mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv.data(),
                               static_cast<const u8*>(file_data_enc.data()), file_data.data());
 
         INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
@@ -405,7 +407,7 @@ void WiiSave::ExportWiiSaveFiles()
       m_valid = false;
       return;
     }
-    strncpy((char*)file_hdr_tmp.name, name.c_str(), sizeof(file_hdr_tmp.name));
+    std::strncpy(file_hdr_tmp.name.data(), name.c_str(), file_hdr_tmp.name.size());
 
     {
       File::IOFile fpData_bin(m_encrypted_save_path, "ab");
@@ -436,8 +438,9 @@ void WiiSave::ExportWiiSaveFiles()
         m_valid = false;
       }
 
-      mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, file_size_rounded, file_hdr_tmp.iv,
-                            static_cast<const u8*>(file_data.data()), file_data_enc.data());
+      mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, file_size_rounded,
+                            file_hdr_tmp.iv.data(), static_cast<const u8*>(file_data.data()),
+                            file_data_enc.data());
 
       File::IOFile fpData_bin(m_encrypted_save_path, "ab");
       if (!fpData_bin.WriteBytes(file_data_enc.data(), file_size_rounded))
