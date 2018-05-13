@@ -260,11 +260,13 @@ void GameList::ExportWiiSave()
 {
   QMessageBox result_dialog(this);
 
-  const bool success = WiiSave::Export(GetSelectedGame()->GetTitleID());
+  const QString bin_path = QString::fromStdString(WiiSave::Export(GetSelectedGame()->GetTitleID()));
 
-  result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setText(success ? tr("Successfully exported save files") :
-                                  tr("Failed to export save files!"));
+  result_dialog.setIcon(!bin_path.isEmpty() ? QMessageBox::Information : QMessageBox::Critical);
+  if (!bin_path.isEmpty())
+    result_dialog.setText(tr("Successfully exported save files to %1").arg(bin_path));
+  else
+    result_dialog.setText(tr("Failed to export save files."));
   result_dialog.exec();
 }
 

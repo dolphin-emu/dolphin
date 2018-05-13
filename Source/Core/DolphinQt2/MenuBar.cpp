@@ -896,13 +896,21 @@ void MenuBar::ImportWiiSave()
                                               tr("Wii save files (*.bin);;"
                                                  "All Files (*)"));
 
-  if (!file.isEmpty())
-    WiiSave::Import(file.toStdString());
+  if (file.isEmpty())
+    return;
+
+  if (WiiSave::Import(file.toStdString()))
+    QMessageBox::information(this, tr("Save Import"), tr("Successfully imported save files."));
+  else
+    QMessageBox::critical(this, tr("Save Import"), tr("Failed to import save files."));
 }
 
 void MenuBar::ExportWiiSaves()
 {
-  WiiSave::ExportAll();
+  const std::pair<size_t, std::string> result = WiiSave::ExportAll();
+  QMessageBox::information(this, tr("Save Export"),
+                           tr("Exported %n save(s) to %1", "", static_cast<int>(result.first))
+                               .arg(QString::fromStdString(result.second)));
 }
 
 void MenuBar::CheckNAND()

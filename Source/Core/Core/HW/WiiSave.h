@@ -6,6 +6,7 @@
 
 #include <mbedtls/aes.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -14,9 +15,13 @@
 class WiiSave
 {
 public:
+  /// Import a save into the NAND from a .bin file.
   static bool Import(const std::string& filename);
-  static bool Export(u64 title_id);
-  static void ExportAll();
+  /// Export a save to a .bin file. Returns the path to the .bin.
+  static std::string Export(u64 title_id);
+  /// Export all saves that are in the NAND. Returns the number of exported saves and a path
+  /// to the .bins.
+  static std::pair<size_t, std::string> ExportAll();
 
 private:
   explicit WiiSave(std::string filename);

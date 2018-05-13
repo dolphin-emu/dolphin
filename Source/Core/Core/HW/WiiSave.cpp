@@ -39,28 +39,16 @@ constexpr u32 s_ng_id = 0x0403AC68;
 bool WiiSave::Import(const std::string& filename)
 {
   WiiSave save_file{filename};
-  if (save_file.Import())
-  {
-    SuccessAlertT("Successfully imported save file(s)");
-    return true;
-  }
-  PanicAlertT("Import failed");
-  return false;
+  return save_file.Import();
 }
 
-bool WiiSave::Export(u64 title_id)
+std::string WiiSave::Export(u64 title_id)
 {
   WiiSave export_save{title_id};
-  if (export_save.Export())
-  {
-    SuccessAlertT("Successfully exported file to %s", export_save.m_encrypted_save_path.c_str());
-    return true;
-  }
-  PanicAlertT("Export failed");
-  return false;
+  return export_save.Export() ? export_save.m_encrypted_save_path : "";
 }
 
-void WiiSave::ExportAll()
+std::pair<size_t, std::string> WiiSave::ExportAll()
 {
   std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
   std::vector<u64> titles;
@@ -88,16 +76,14 @@ void WiiSave::ExportAll()
       }
     }
   }
-  SuccessAlertT("Found %zu save file(s)", titles.size());
-  u32 success = 0;
+  size_t exported_save_count = 0;
   for (const u64& title : titles)
   {
     WiiSave export_save{title};
     if (export_save.Export())
-      success++;
+      ++exported_save_count;
   }
-  SuccessAlertT("Successfully exported %u save(s) to %s", success,
-                (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
+  return {exported_save_count, File::GetUserPath(D_USER_IDX) + "private/wii/title/"};
 }
 
 WiiSave::WiiSave(std::string filename) : m_encrypted_save_path(std::move(filename)), m_valid{true}
