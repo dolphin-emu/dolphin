@@ -138,7 +138,7 @@ void PatchesWidget::SavePatches()
     for (const auto& entry : patch.entries)
     {
       lines.push_back(StringFromFormat("0x%08X:%s:0x%08X", entry.address,
-                                       PatchEngine::PatchTypeStrings[entry.type], entry.value));
+                                       PatchEngine::PatchTypeAsString(entry.type), entry.value));
     }
   }
 

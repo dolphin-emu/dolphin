@@ -755,9 +755,10 @@ void CISOProperties::PatchList_Save()
       lines.push_back("$" + p.name);
       for (const PatchEngine::PatchEntry& entry : p.entries)
       {
-        std::string temp = StringFromFormat("0x%08X:%s:0x%08X", entry.address,
-                                            PatchEngine::PatchTypeStrings[entry.type], entry.value);
-        lines.push_back(temp);
+        std::string temp =
+            StringFromFormat("0x%08X:%s:0x%08X", entry.address,
+                             PatchEngine::PatchTypeAsString(entry.type), entry.value);
+        lines.push_back(std::move(temp));
       }
     }
     ++index;

@@ -13,20 +13,18 @@ class IniFile;
 
 namespace PatchEngine
 {
-enum PatchType
+enum class PatchType
 {
-  PATCH_8BIT,
-  PATCH_16BIT,
-  PATCH_32BIT,
+  Patch8Bit,
+  Patch16Bit,
+  Patch32Bit,
 };
-
-extern const char* PatchTypeStrings[];
 
 struct PatchEntry
 {
   PatchEntry() = default;
   PatchEntry(PatchType t, u32 addr, u32 value_) : type(t), address(addr), value(value_) {}
-  PatchType type = PatchType::PATCH_8BIT;
+  PatchType type = PatchType::Patch8Bit;
   u32 address = 0;
   u32 value = 0;
 };
@@ -38,6 +36,8 @@ struct Patch
   bool active = false;
   bool user_defined = false;  // False if this code is shipped with Dolphin.
 };
+
+const char* PatchTypeAsString(PatchType type);
 
 int GetSpeedhackCycles(const u32 addr);
 void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
@@ -52,15 +52,15 @@ inline int GetPatchTypeCharLength(PatchType type)
   int size = 8;
   switch (type)
   {
-  case PatchEngine::PATCH_8BIT:
+  case PatchType::Patch8Bit:
     size = 2;
     break;
 
-  case PatchEngine::PATCH_16BIT:
+  case PatchType::Patch16Bit:
     size = 4;
     break;
 
-  case PatchEngine::PATCH_32BIT:
+  case PatchType::Patch32Bit:
     size = 8;
     break;
   }
