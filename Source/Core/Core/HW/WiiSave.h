@@ -17,16 +17,15 @@ class WiiSave
 {
 public:
   /// Import a save into the NAND from a .bin file.
-  static bool Import(const std::string& filename);
-  /// Export a save to a .bin file. Returns the path to the .bin.
-  static std::string Export(u64 title_id);
-  /// Export all saves that are in the NAND. Returns the number of exported saves and a path
-  /// to the .bins.
-  static std::pair<size_t, std::string> ExportAll();
+  static bool Import(std::string filename);
+  /// Export a save to a .bin file.
+  static bool Export(u64 title_id, std::string export_path);
+  /// Export all saves that are in the NAND. Returns the number of exported saves.
+  static size_t ExportAll(std::string export_path);
 
 private:
   explicit WiiSave(std::string filename);
-  explicit WiiSave(u64 title_id);
+  explicit WiiSave(u64 title_id, std::string export_path);
   ~WiiSave();
 
   bool Import();

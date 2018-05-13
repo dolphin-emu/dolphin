@@ -1204,7 +1204,7 @@ void CFrame::OnLoadGameCubeIPLEUR(wxCommandEvent&)
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))
 {
-  WiiSave::ExportAll();
+  WiiSave::ExportAll(File::GetUserPath(D_USER_IDX));
 }
 
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))

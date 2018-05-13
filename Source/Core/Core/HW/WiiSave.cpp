@@ -40,19 +40,19 @@ constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xA
                              0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
-bool WiiSave::Import(const std::string& filename)
+bool WiiSave::Import(std::string filename)
 {
-  WiiSave save_file{filename};
+  WiiSave save_file{std::move(filename)};
   return save_file.Import();
 }
 
-std::string WiiSave::Export(u64 title_id)
+bool WiiSave::Export(u64 title_id, std::string export_path)
 {
-  WiiSave export_save{title_id};
-  return export_save.Export() ? export_save.m_encrypted_save_path : "";
+  WiiSave export_save{title_id, std::move(export_path)};
+  return export_save.Export();
 }
 
-std::pair<size_t, std::string> WiiSave::ExportAll()
+size_t WiiSave::ExportAll(std::string export_path)
 {
   std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
   std::vector<u64> titles;
@@ -83,11 +83,11 @@ std::pair<size_t, std::string> WiiSave::ExportAll()
   size_t exported_save_count = 0;
   for (const u64& title : titles)
   {
-    WiiSave export_save{title};
+    WiiSave export_save{title, export_path};
     if (export_save.Export())
       ++exported_save_count;
   }
-  return {exported_save_count, File::GetUserPath(D_USER_IDX) + "private/wii/title/"};
+  return exported_save_count;
 }
 
 WiiSave::WiiSave(std::string filename)
@@ -105,7 +105,8 @@ bool WiiSave::Import()
   return m_valid;
 }
 
-WiiSave::WiiSave(u64 title_id) : m_sd_iv{s_sd_initial_iv}, m_title_id{title_id}
+WiiSave::WiiSave(u64 title_id, std::string export_path)
+    : m_sd_iv{s_sd_initial_iv}, m_encrypted_save_path(std::move(export_path)), m_title_id{title_id}
 {
   mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key.data(), 128);
 
@@ -571,12 +572,7 @@ bool WiiSave::getPaths(bool for_export)
       ERROR_LOG(CONSOLE, "No banner file found for title %s", game_id);
       return false;
     }
-    if (m_encrypted_save_path.length() == 0)
-    {
-      // If no path was passed, use User folder
-      m_encrypted_save_path = File::GetUserPath(D_USER_IDX);
-    }
-    m_encrypted_save_path += StringFromFormat("private/wii/title/%s/data.bin", game_id);
+    m_encrypted_save_path += StringFromFormat("/private/wii/title/%s/data.bin", game_id);
     File::CreateFullPath(m_encrypted_save_path);
   }
   else

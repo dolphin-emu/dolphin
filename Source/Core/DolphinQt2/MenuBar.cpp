@@ -907,10 +907,15 @@ void MenuBar::ImportWiiSave()
 
 void MenuBar::ExportWiiSaves()
 {
-  const std::pair<size_t, std::string> result = WiiSave::ExportAll();
+  const QString export_dir = QFileDialog::getExistingDirectory(
+      this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
+      QFileDialog::ShowDirsOnly);
+  if (export_dir.isEmpty())
+    return;
+
+  const size_t count = WiiSave::ExportAll(export_dir.toStdString());
   QMessageBox::information(this, tr("Save Export"),
-                           tr("Exported %n save(s) to %1", "", static_cast<int>(result.first))
-                               .arg(QString::fromStdString(result.second)));
+                           tr("Exported %n save(s)", "", static_cast<int>(count)));
 }
 
 void MenuBar::CheckNAND()

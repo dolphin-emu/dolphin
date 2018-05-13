@@ -258,16 +258,16 @@ void GameList::OpenProperties()
 
 void GameList::ExportWiiSave()
 {
-  QMessageBox result_dialog(this);
+  const QString export_dir = QFileDialog::getExistingDirectory(
+      this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
+      QFileDialog::ShowDirsOnly);
+  if (export_dir.isEmpty())
+    return;
 
-  const QString bin_path = QString::fromStdString(WiiSave::Export(GetSelectedGame()->GetTitleID()));
-
-  result_dialog.setIcon(!bin_path.isEmpty() ? QMessageBox::Information : QMessageBox::Critical);
-  if (!bin_path.isEmpty())
-    result_dialog.setText(tr("Successfully exported save files to %1").arg(bin_path));
+  if (WiiSave::Export(GetSelectedGame()->GetTitleID(), export_dir.toStdString()))
+    QMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
   else
-    result_dialog.setText(tr("Failed to export save files."));
-  result_dialog.exec();
+    QMessageBox::critical(this, tr("Save Export"), tr("Failed to export save files."));
 }
 
 void GameList::OpenWiki()
