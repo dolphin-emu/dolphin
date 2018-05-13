@@ -127,13 +127,13 @@ void CodeViewWidget::Update()
 
       if (color != 0xFFFFFF)
       {
-        item->setForeground(QColor(Qt::black));
+        item->setForeground(Qt::black);
         item->setBackground(QColor(color));
       }
       if (addr == pc && item != bp_item)
       {
-        item->setBackground(QColor(Qt::green));
-        item->setForeground(QColor(Qt::black));
+        item->setBackground(Qt::green);
+        item->setForeground(Qt::black);
       }
     }
 
