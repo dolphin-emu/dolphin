@@ -34,8 +34,8 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
     "dword",
 }};
 
-static std::vector<Patch> onFrame;
-static std::map<u32, int> speedHacks;
+static std::vector<Patch> s_on_frame;
+static std::map<u32, int> s_speed_hacks;
 
 const char* PatchTypeAsString(PatchType type)
 {
@@ -141,7 +141,7 @@ static void LoadSpeedhacks(const std::string& section, IniFile& ini)
       success &= TryParse(value, &cycles);
       if (success)
       {
-        speedHacks[address] = (int)cycles;
+        s_speed_hacks[address] = static_cast<int>(cycles);
       }
     }
   }
@@ -149,11 +149,11 @@ static void LoadSpeedhacks(const std::string& section, IniFile& ini)
 
 int GetSpeedhackCycles(const u32 addr)
 {
-  std::map<u32, int>::const_iterator iter = speedHacks.find(addr);
-  if (iter == speedHacks.end())
+  const auto iter = s_speed_hacks.find(addr);
+  if (iter == s_speed_hacks.end())
     return 0;
-  else
-    return iter->second;
+
+  return iter->second;
 }
 
 void LoadPatches()
@@ -162,7 +162,7 @@ void LoadPatches()
   IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
-  LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
+  LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
   ActionReplay::LoadAndApplyCodes(globalIni, localIni);
 
   Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
@@ -238,7 +238,7 @@ bool ApplyFramePatches()
     return false;
   }
 
-  ApplyPatches(onFrame);
+  ApplyPatches(s_on_frame);
 
   // Run the Gecko code handler
   Gecko::RunCodeHandler();
@@ -249,8 +249,8 @@ bool ApplyFramePatches()
 
 void Shutdown()
 {
-  onFrame.clear();
-  speedHacks.clear();
+  s_on_frame.clear();
+  s_speed_hacks.clear();
   ActionReplay::ApplyCodes({});
   Gecko::Shutdown();
 }
