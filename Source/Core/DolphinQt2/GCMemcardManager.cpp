@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -248,11 +249,11 @@ void GCMemcardManager::SetSlotFile(int slot, QString path)
 
 void GCMemcardManager::SetSlotFileInteractive(int slot)
 {
-  QString path = QFileDialog::getOpenFileName(
+  QString path = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
       this,
       slot == 0 ? tr("Set memory card file for Slot A") : tr("Set memory card file for Slot B"),
       QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("GameCube Memory Cards (*.raw *.gcp)"));
+      tr("GameCube Memory Cards (*.raw *.gcp)")));
   if (!path.isEmpty())
     m_slot_file_edit[slot]->setText(path);
 }
