@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <mbedtls/aes.h>
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
 #include <memory>
@@ -29,31 +28,36 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
+#include "Core/IOS/Uids.h"
 
 using Md5 = std::array<u8, 0x10>;
 
 constexpr std::array<u8, 0x10> s_sd_initial_iv{{0x21, 0x67, 0x12, 0xE6, 0xAA, 0x1F, 0x68, 0x9F,
                                                 0x95, 0xC5, 0xA2, 0x23, 0x24, 0xDC, 0x6A, 0x98}};
-constexpr std::array<u8, 0x10> s_sd_key{{0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08, 0xAF, 0xBA,
-                                         0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D}};
 constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xAB, 0x06, 0xEC, 0x22,
                              0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
 bool WiiSave::Import(std::string filename)
 {
-  WiiSave save_file{std::move(filename)};
+  IOS::HLE::Kernel ios;
+  WiiSave save_file{ios, std::move(filename)};
   return save_file.Import();
 }
 
 bool WiiSave::Export(u64 title_id, std::string export_path)
 {
-  WiiSave export_save{title_id, std::move(export_path)};
+  IOS::HLE::Kernel ios;
+  WiiSave export_save{ios, title_id, std::move(export_path)};
   return export_save.Export();
 }
 
 size_t WiiSave::ExportAll(std::string export_path)
 {
+  IOS::HLE::Kernel ios;
+
   std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
   std::vector<u64> titles;
   const u32 path_mask = 0x00010000;
@@ -83,17 +87,17 @@ size_t WiiSave::ExportAll(std::string export_path)
   size_t exported_save_count = 0;
   for (const u64& title : titles)
   {
-    WiiSave export_save{title, export_path};
+    WiiSave export_save{ios, title, export_path};
     if (export_save.Export())
       ++exported_save_count;
   }
   return exported_save_count;
 }
 
-WiiSave::WiiSave(std::string filename)
-    : m_sd_iv{s_sd_initial_iv}, m_encrypted_save_path(std::move(filename)), m_valid{true}
+WiiSave::WiiSave(IOS::HLE::Kernel& ios, std::string filename)
+    : m_ios{ios}, m_sd_iv{s_sd_initial_iv},
+      m_encrypted_save_path(std::move(filename)), m_valid{true}
 {
-  mbedtls_aes_setkey_dec(&m_aes_ctx, s_sd_key.data(), 128);
 }
 
 bool WiiSave::Import()
@@ -105,11 +109,10 @@ bool WiiSave::Import()
   return m_valid;
 }
 
-WiiSave::WiiSave(u64 title_id, std::string export_path)
-    : m_sd_iv{s_sd_initial_iv}, m_encrypted_save_path(std::move(export_path)), m_title_id{title_id}
+WiiSave::WiiSave(IOS::HLE::Kernel& ios, u64 title_id, std::string export_path)
+    : m_ios{ios}, m_sd_iv{s_sd_initial_iv},
+      m_encrypted_save_path(std::move(export_path)), m_title_id{title_id}
 {
-  mbedtls_aes_setkey_enc(&m_aes_ctx, s_sd_key.data(), 128);
-
   if (getPaths(true))
     m_valid = true;
 }
@@ -140,8 +143,9 @@ void WiiSave::ReadHDR()
   }
   data_file.Close();
 
-  mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, HEADER_SZ, m_sd_iv.data(),
-                        (const u8*)&m_encrypted_header, (u8*)&m_header);
+  m_ios.GetIOSC().Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, m_sd_iv.data(),
+                          reinterpret_cast<const u8*>(&m_encrypted_header), HEADER_SZ,
+                          reinterpret_cast<u8*>(&m_header), IOS::PID_ES);
   u32 banner_size = m_header.hdr.banner_size;
   if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
       (((banner_size - BNR_SZ) % ICON_SZ) != 0))
@@ -213,8 +217,9 @@ void WiiSave::WriteHDR()
   mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc.data());
   m_header.hdr.md5 = std::move(md5_calc);
 
-  mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, HEADER_SZ, m_sd_iv.data(),
-                        (const u8*)&m_header, (u8*)&m_encrypted_header);
+  m_ios.GetIOSC().Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, m_sd_iv.data(),
+                          reinterpret_cast<const u8*>(&m_header), HEADER_SZ,
+                          reinterpret_cast<u8*>(&m_encrypted_header), IOS::PID_ES);
 
   File::IOFile data_file(m_encrypted_save_path, "wb");
   if (!data_file.WriteBytes(&m_encrypted_header, HEADER_SZ))
@@ -345,8 +350,8 @@ void WiiSave::ImportWiiSaveFiles()
         }
 
         m_iv = file_hdr_tmp.iv;
-        mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv.data(),
-                              static_cast<const u8*>(file_data_enc.data()), file_data.data());
+        m_ios.GetIOSC().Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, m_iv.data(), file_data_enc.data(),
+                                file_size_rounded, file_data.data(), IOS::PID_ES);
 
         INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
 
@@ -439,9 +444,9 @@ void WiiSave::ExportWiiSaveFiles()
         m_valid = false;
       }
 
-      mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, file_size_rounded,
-                            file_hdr_tmp.iv.data(), static_cast<const u8*>(file_data.data()),
-                            file_data_enc.data());
+      m_ios.GetIOSC().Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr_tmp.iv.data(),
+                              file_data.data(), file_size_rounded, file_data_enc.data(),
+                              IOS::PID_ES);
 
       File::IOFile fpData_bin(m_encrypted_save_path, "ab");
       if (!fpData_bin.WriteBytes(file_data_enc.data(), file_size_rounded))
