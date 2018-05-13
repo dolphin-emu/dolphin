@@ -5,13 +5,20 @@
 #pragma once
 
 #include <array>
-#include <mbedtls/aes.h>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Swap.h"
+
+namespace IOS
+{
+namespace HLE
+{
+class Kernel;
+}
+}  // namespace IOS::HLE
 
 class WiiSave
 {
@@ -24,8 +31,8 @@ public:
   static size_t ExportAll(std::string export_path);
 
 private:
-  explicit WiiSave(std::string filename);
-  explicit WiiSave(u64 title_id, std::string export_path);
+  WiiSave(IOS::HLE::Kernel& ios, std::string filename);
+  WiiSave(IOS::HLE::Kernel& ios, u64 title_id, std::string export_path);
   ~WiiSave();
 
   bool Import();
@@ -38,13 +45,12 @@ private:
   void ImportWiiSaveFiles();
   void ExportWiiSaveFiles();
   void do_sig();
-  void make_ec_cert(u8* cert, const u8* sig, const char* signer, const char* name, const u8* priv,
-                    const u32 key_id);
   bool getPaths(bool for_export = false);
   void ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
                     u32* num_files, u32* size_files);
 
-  mbedtls_aes_context m_aes_ctx;
+  IOS::HLE::Kernel& m_ios;
+
   std::array<u8, 0x10> m_sd_iv;
   std::vector<std::string> m_files_list;
 
