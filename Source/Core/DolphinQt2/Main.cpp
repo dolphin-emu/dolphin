@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
     MainWindow win{std::move(boot)};
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
-    win.show();
+    win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)

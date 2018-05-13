@@ -58,6 +58,8 @@ public:
   explicit MainWindow(std::unique_ptr<BootParameters> boot_parameters);
   ~MainWindow();
 
+  void Show();
+
   bool eventFilter(QObject* object, QEvent* event) override;
 
 signals:
