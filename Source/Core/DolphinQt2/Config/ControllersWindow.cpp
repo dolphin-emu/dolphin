@@ -297,6 +297,8 @@ void ControllersWindow::OnWiimoteTypeChanged(int type)
       return;
     }
   }
+
+  SaveSettings();
 }
 
 void ControllersWindow::OnGCTypeChanged(int type)
@@ -312,6 +314,8 @@ void ControllersWindow::OnGCTypeChanged(int type)
       return;
     }
   }
+
+  SaveSettings();
 }
 
 void ControllersWindow::OnBluetoothPassthroughResetPressed()
@@ -498,6 +502,9 @@ void ControllersWindow::SaveSettings()
     const int index = m_wiimote_boxes[i]->currentIndex();
     g_wiimote_sources[i] = index;
     m_wiimote_buttons[i]->setEnabled(index != 0 && index != 2);
+
+    if (Core::IsRunning())
+      WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
   }
 
   UICommon::SaveWiimoteSources();
@@ -507,7 +514,13 @@ void ControllersWindow::SaveSettings()
     const int index = m_gc_controller_boxes[i]->currentIndex();
     const std::optional<SerialInterface::SIDevices> si_device = FromGCMenuIndex(index);
     if (si_device)
+    {
       SConfig::GetInstance().m_SIDevice[i] = *si_device;
+
+      if (Core::IsRunning())
+        SerialInterface::ChangeDevice(*si_device, static_cast<s32>(i));
+    }
+
     m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
   }
   SConfig::GetInstance().SaveSettings();
