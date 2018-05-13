@@ -11,6 +11,7 @@ class QHBoxLayout;
 
 class WiimoteEmuExtension final : public MappingWidget
 {
+  Q_OBJECT
 public:
   enum class Type
   {

@@ -14,6 +14,7 @@ struct ConfigInfo;
 
 class GraphicsSlider : public QSlider
 {
+  Q_OBJECT
 public:
   GraphicsSlider(int minimum, int maximum, const Config::ConfigInfo<int>& setting, int tick = 0);
   void Update(int value);

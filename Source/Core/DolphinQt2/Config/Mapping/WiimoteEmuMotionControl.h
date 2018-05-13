@@ -15,6 +15,7 @@ class QVBoxLayout;
 
 class WiimoteEmuMotionControl final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit WiimoteEmuMotionControl(MappingWindow* window);
 

@@ -13,6 +13,7 @@ class QListWidget;
 
 class PathPane final : public QWidget
 {
+  Q_OBJECT
 public:
   explicit PathPane(QWidget* parent = nullptr);
 

@@ -7,10 +7,12 @@
 #include "DolphinQt2/Config/Mapping/MappingWidget.h"
 
 class QComboBox;
+class QHBoxLayout;
 class WiimoteEmuExtension;
 
 class WiimoteEmuGeneral final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension);
 

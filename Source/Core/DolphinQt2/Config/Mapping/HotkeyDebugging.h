@@ -10,6 +10,7 @@ class QHBoxLayout;
 
 class HotkeyDebugging final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit HotkeyDebugging(MappingWindow* window);
 

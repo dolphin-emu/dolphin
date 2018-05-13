@@ -12,6 +12,7 @@ class QPushButton;
 
 class GameCubePane : public QWidget
 {
+  Q_OBJECT
 public:
   explicit GameCubePane();
 

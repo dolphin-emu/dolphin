@@ -15,6 +15,7 @@ class QVBoxLayout;
 
 class GCMicrophone final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit GCMicrophone(MappingWindow* window);
 

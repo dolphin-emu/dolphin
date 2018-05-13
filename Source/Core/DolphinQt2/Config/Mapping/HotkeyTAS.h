@@ -10,6 +10,7 @@ class QHBoxLayout;
 
 class HotkeyTAS final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit HotkeyTAS(MappingWindow* window);
 

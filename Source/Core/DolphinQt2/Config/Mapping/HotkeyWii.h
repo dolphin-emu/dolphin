@@ -10,6 +10,7 @@ class QHBoxLayout;
 
 class HotkeyWii final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit HotkeyWii(MappingWindow* window);
 
