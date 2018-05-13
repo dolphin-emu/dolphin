@@ -40,7 +40,13 @@ signals:
   void BreakpointsChanged();
 
 private:
-  void ReplaceAddress(u32 address, bool blr);
+  enum class ReplaceWith
+  {
+    BLR,
+    NOP
+  };
+
+  void ReplaceAddress(u32 address, ReplaceWith replace);
 
   void resizeEvent(QResizeEvent*) override;
   void keyPressEvent(QKeyEvent* event) override;
