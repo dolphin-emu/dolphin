@@ -28,6 +28,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
@@ -57,35 +58,8 @@ bool WiiSave::Export(u64 title_id, std::string export_path)
 size_t WiiSave::ExportAll(std::string export_path)
 {
   IOS::HLE::Kernel ios;
-
-  std::string title_folder = File::GetUserPath(D_WIIROOT_IDX) + "/title";
-  std::vector<u64> titles;
-  const u32 path_mask = 0x00010000;
-  for (int i = 0; i < 8; ++i)
-  {
-    std::string folder = StringFromFormat("%s/%08x/", title_folder.c_str(), path_mask | i);
-    File::FSTEntry fst_tmp = File::ScanDirectoryTree(folder, false);
-
-    for (const File::FSTEntry& entry : fst_tmp.children)
-    {
-      if (entry.isDirectory)
-      {
-        u32 game_id;
-        if (AsciiToHex(entry.virtualName, game_id))
-        {
-          std::string banner_path =
-              StringFromFormat("%s%08x/data/banner.bin", folder.c_str(), game_id);
-          if (File::Exists(banner_path))
-          {
-            u64 title_id = (((u64)path_mask | i) << 32) | game_id;
-            titles.push_back(title_id);
-          }
-        }
-      }
-    }
-  }
   size_t exported_save_count = 0;
-  for (const u64& title : titles)
+  for (const u64 title : ios.GetES()->GetInstalledTitles())
   {
     WiiSave export_save{ios, title, export_path};
     if (export_save.Export())
