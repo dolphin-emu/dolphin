@@ -4,6 +4,7 @@
 
 #include <QComboBox>
 #include <QCryptographicHash>
+#include <QDir>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -36,7 +37,7 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* file_path = CreateValueDisplay(
       QStringLiteral("%1 (%2)")
-          .arg(QString::fromStdString(m_game.GetFilePath()))
+          .arg(QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath())))
           .arg(QString::fromStdString(UICommon::FormatSize(m_game.GetFileSize()))));
   QLineEdit* internal_name =
       CreateValueDisplay(tr("%1 (Disc %2, Revision %3)")

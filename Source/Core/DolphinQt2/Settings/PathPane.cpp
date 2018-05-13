@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QCheckBox>
+#include <QDir>
 #include <QFileDialog>
 #include <QGroupBox>
 #include <QLabel>
@@ -30,8 +31,8 @@ PathPane::PathPane(QWidget* parent) : QWidget(parent)
 
 void PathPane::Browse()
 {
-  QString dir =
-      QFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath());
+  QString dir = QDir::toNativeSeparators(
+      QFileDialog::getExistingDirectory(this, tr("Select a Directory"), QDir::currentPath()));
   if (!dir.isEmpty())
     Settings::Instance().AddPath(dir);
 }
@@ -40,10 +41,10 @@ void PathPane::BrowseDefaultGame()
 {
   auto& default_iso = SConfig::GetInstance().m_strDefaultISO;
 
-  QString file = QFileDialog::getOpenFileName(
+  QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
       this, tr("Select a Game"), QString::fromStdString(default_iso),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
-         "All Files (*)"));
+         "All Files (*)")));
   if (!file.isEmpty())
   {
     m_game_edit->setText(file);
@@ -53,8 +54,8 @@ void PathPane::BrowseDefaultGame()
 
 void PathPane::BrowseWiiNAND()
 {
-  QString dir = QFileDialog::getExistingDirectory(
-      this, tr("Select Wii NAND Root"), QString::fromStdString(SConfig::GetInstance().m_NANDPath));
+  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+      this, tr("Select Wii NAND Root"), QString::fromStdString(SConfig::GetInstance().m_NANDPath)));
   if (!dir.isEmpty())
   {
     m_nand_edit->setText(dir);
@@ -65,8 +66,8 @@ void PathPane::BrowseWiiNAND()
 void PathPane::BrowseDump()
 {
   auto& dump_path = SConfig::GetInstance().m_DumpPath;
-  QString dir = QFileDialog::getExistingDirectory(this, tr("Select Dump Path"),
-                                                  QString::fromStdString(dump_path));
+  QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
+      this, tr("Select Dump Path"), QString::fromStdString(dump_path)));
   if (!dir.isEmpty())
   {
     m_dump_edit->setText(dir);
@@ -76,11 +77,11 @@ void PathPane::BrowseDump()
 
 void PathPane::BrowseSDCard()
 {
-  QString file = QFileDialog::getOpenFileName(
+  QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
       this, tr("Select a SD Card Image"),
       QString::fromStdString(SConfig::GetInstance().m_strWiiSDCardPath),
       tr("SD Card Image (*.raw);;"
-         "All Files (*)"));
+         "All Files (*)")));
   if (!file.isEmpty())
   {
     m_sdcard_edit->setText(file);
