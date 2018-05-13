@@ -45,7 +45,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI_Device.h"
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
@@ -1204,7 +1204,7 @@ void CFrame::OnLoadGameCubeIPLEUR(wxCommandEvent&)
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))
 {
-  CWiiSaveCrypted::ExportAllSaves();
+  WiiSave::ExportAll(File::GetUserPath(D_USER_IDX));
 }
 
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))
@@ -1215,7 +1215,7 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))
                      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
 
   if (!path.IsEmpty())
-    CWiiSaveCrypted::ImportWiiSave(WxStrToStr(path));
+    WiiSave::Import(WxStrToStr(path));
 }
 
 void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))

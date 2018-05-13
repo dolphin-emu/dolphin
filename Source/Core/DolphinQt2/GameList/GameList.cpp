@@ -20,7 +20,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
-#include "Core/HW/WiiSaveCrypted.h"
+#include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
@@ -258,14 +258,16 @@ void GameList::OpenProperties()
 
 void GameList::ExportWiiSave()
 {
-  QMessageBox result_dialog(this);
+  const QString export_dir = QFileDialog::getExistingDirectory(
+      this, tr("Select Export Directory"), QString::fromStdString(File::GetUserPath(D_USER_IDX)),
+      QFileDialog::ShowDirsOnly);
+  if (export_dir.isEmpty())
+    return;
 
-  const bool success = CWiiSaveCrypted::ExportWiiSave(GetSelectedGame()->GetTitleID());
-
-  result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
-  result_dialog.setText(success ? tr("Successfully exported save files") :
-                                  tr("Failed to export save files!"));
-  result_dialog.exec();
+  if (WiiSave::Export(GetSelectedGame()->GetTitleID(), export_dir.toStdString()))
+    QMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
+  else
+    QMessageBox::critical(this, tr("Save Export"), tr("Failed to export save files."));
 }
 
 void GameList::OpenWiki()
