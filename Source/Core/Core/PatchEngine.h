@@ -24,19 +24,19 @@ extern const char* PatchTypeStrings[];
 
 struct PatchEntry
 {
-  PatchEntry() {}
-  PatchEntry(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
-  PatchType type;
-  u32 address;
-  u32 value;
+  PatchEntry() = default;
+  PatchEntry(PatchType t, u32 addr, u32 value_) : type(t), address(addr), value(value_) {}
+  PatchType type = PatchType::PATCH_8BIT;
+  u32 address = 0;
+  u32 value = 0;
 };
 
 struct Patch
 {
   std::string name;
   std::vector<PatchEntry> entries;
-  bool active;
-  bool user_defined;  // False if this code is shipped with Dolphin.
+  bool active = false;
+  bool user_defined = false;  // False if this code is shipped with Dolphin.
 };
 
 int GetSpeedhackCycles(const u32 addr);

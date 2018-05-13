@@ -79,11 +79,7 @@ void NewPatchDialog::ConnectWidgets()
 
 void NewPatchDialog::AddEntry()
 {
-  PatchEngine::PatchEntry entry;
-  entry.type = PatchEngine::PATCH_8BIT;
-  entry.address = entry.value = 0;
-
-  m_patch.entries.push_back(entry);
+  m_patch.entries.emplace_back();
 
   m_entry_layout->addWidget(CreateEntry(static_cast<int>(m_patch.entries.size() - 1)));
 }

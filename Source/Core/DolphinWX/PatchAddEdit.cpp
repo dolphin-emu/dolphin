@@ -42,7 +42,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
   if (_selection == -1)
   {
     tempEntries.clear();
-    tempEntries.emplace_back(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
+    tempEntries.emplace_back();
   }
   else
   {
@@ -165,7 +165,7 @@ void CPatchAddEdit::AddEntry(wxCommandEvent& event)
   if (!UpdateTempEntryData(itCurEntry))
     return;
 
-  PatchEngine::PatchEntry peEmptyEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
+  PatchEngine::PatchEntry peEmptyEntry;
   ++itCurEntry;
   currentItem++;
   itCurEntry = tempEntries.insert(itCurEntry, peEmptyEntry);
