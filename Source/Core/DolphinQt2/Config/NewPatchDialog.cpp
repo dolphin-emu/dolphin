@@ -15,6 +15,8 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 
+#include "Core/PatchEngine.h"
+
 NewPatchDialog::NewPatchDialog(QWidget* parent, PatchEngine::Patch& patch)
     : QDialog(parent), m_patch(patch)
 {
