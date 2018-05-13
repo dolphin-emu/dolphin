@@ -110,7 +110,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   NetPlayInit();
 
   if (boot_parameters)
-    StartGame(std::move(boot_parameters));
+    m_pending_boot = std::move(boot_parameters);
 
   QSettings& settings = Settings::GetQSettings();
 
@@ -1349,5 +1349,17 @@ void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
     m_progress_dialog->hide();
     m_progress_dialog->deleteLater();
     m_progress_dialog = nullptr;
+  }
+}
+
+void MainWindow::Show()
+{
+  QWidget::show();
+
+  // If the booting of a game was requested on start up, do that now
+  if (m_pending_boot != nullptr)
+  {
+    StartGame(std::move(m_pending_boot));
+    m_pending_boot.reset();
   }
 }
