@@ -9,12 +9,21 @@
 
 #include <QWidget>
 
-#include "Core/PatchEngine.h"
-#include "UICommon/GameFile.h"
+#include "Common/CommonTypes.h"
+
+namespace PatchEngine
+{
+struct Patch;
+}
 
 class QListWidget;
 class QListWidgetItem;
 class QPushButton;
+
+namespace UICommon
+{
+class GameFile;
+}
 
 class PatchesWidget : public QWidget
 {
