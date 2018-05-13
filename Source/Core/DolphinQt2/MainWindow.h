@@ -195,6 +195,5 @@ private:
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;
-  QSize m_render_widget_size;
-  QPoint m_render_widget_position;
+  QByteArray m_render_widget_geometry;
 };
