@@ -762,6 +762,8 @@ void MainWindow::ShowRenderWidget()
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     m_stack->repaint();
+
+    Host::GetInstance()->SetRenderFocus(isActiveWindow());
   }
   else
   {
