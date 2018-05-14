@@ -22,11 +22,9 @@
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/Host.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinQt2/Debugger/CodeWidget.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
@@ -127,13 +125,13 @@ void CodeViewWidget::Update()
 
       if (color != 0xFFFFFF)
       {
-        item->setForeground(QColor(Qt::black));
+        item->setForeground(Qt::black);
         item->setBackground(QColor(color));
       }
       if (addr == pc && item != bp_item)
       {
-        item->setBackground(QColor(Qt::green));
-        item->setForeground(QColor(Qt::black));
+        item->setBackground(Qt::green);
+        item->setForeground(Qt::black);
       }
     }
 
@@ -197,14 +195,14 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
     Update();
 }
 
-void CodeViewWidget::ReplaceAddress(u32 address, bool blr)
+void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
   auto found = std::find_if(m_repl_list.begin(), m_repl_list.end(),
                             [address](ReplStruct r) { return r.address == address; });
 
   if (found != m_repl_list.end())
   {
-    PowerPC::debug_interface.WriteExtraMemory(0, (*found).old_value, address);
+    PowerPC::debug_interface.WriteExtraMemory(0, found->old_value, address);
     m_repl_list.erase(found);
   }
   else
@@ -216,7 +214,7 @@ void CodeViewWidget::ReplaceAddress(u32 address, bool blr)
 
     m_repl_list.push_back(repl);
 
-    PowerPC::debug_interface.Patch(address, blr ? 0x60000000 : 0x4e800020);
+    PowerPC::debug_interface.Patch(address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
   }
 
   Update();
@@ -349,14 +347,14 @@ void CodeViewWidget::OnInsertBLR()
 {
   const u32 addr = GetContextAddress();
 
-  ReplaceAddress(addr, 0);
+  ReplaceAddress(addr, ReplaceWith::BLR);
 }
 
 void CodeViewWidget::OnInsertNOP()
 {
   const u32 addr = GetContextAddress();
 
-  ReplaceAddress(addr, 1);
+  ReplaceAddress(addr, ReplaceWith::NOP);
 }
 
 void CodeViewWidget::OnFollowBranch()
@@ -397,12 +395,12 @@ void CodeViewWidget::OnSelectionChanged()
 {
   if (m_address == PowerPC::ppcState.pc)
   {
-    setStyleSheet(QString::fromStdString(
-        "QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
+    setStyleSheet(
+        QStringLiteral("QTableView::item:selected {background-color: #00FF00; color: #000000;}"));
   }
   else if (!styleSheet().isEmpty())
   {
-    setStyleSheet(QString::fromStdString(""));
+    setStyleSheet(QStringLiteral(""));
   }
 }
 
