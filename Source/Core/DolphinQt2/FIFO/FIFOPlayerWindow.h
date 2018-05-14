@@ -11,6 +11,7 @@ class QDialogButtonBox;
 class QLabel;
 class QPushButton;
 class QSpinBox;
+class FIFOAnalyzer;
 
 class FIFOPlayerWindow : public QDialog
 {
@@ -59,4 +60,6 @@ private:
   QLabel* m_object_range_to_label;
   QCheckBox* m_early_memory_updates;
   QDialogButtonBox* m_button_box;
+
+  FIFOAnalyzer* m_analyzer;
 };
