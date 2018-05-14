@@ -253,26 +253,25 @@ void BreakpointWidget::OnNewBreakpoint()
 void BreakpointWidget::OnLoad()
 {
   IniFile ini;
-  BreakPoints::TBreakPointsStr newbps;
-  MemChecks::TMemChecksStr newmcs;
-
   if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
                 false))
   {
     return;
   }
 
-  if (ini.GetLines("BreakPoints", &newbps, false))
+  BreakPoints::TBreakPointsStr new_bps;
+  if (ini.GetLines("BreakPoints", &new_bps, false))
   {
     PowerPC::breakpoints.Clear();
-    PowerPC::breakpoints.AddFromStrings(newbps);
+    PowerPC::breakpoints.AddFromStrings(new_bps);
   }
 
-  if (ini.GetLines("MemoryBreakPoints", &newmcs, false))
+  MemChecks::TMemChecksStr new_mcs;
+  if (ini.GetLines("MemoryBreakPoints", &new_mcs, false))
   {
     PowerPC::memchecks.Clear();
     Settings::Instance().blockSignals(true);
-    PowerPC::memchecks.AddFromStrings(newmcs);
+    PowerPC::memchecks.AddFromStrings(new_mcs);
     Settings::Instance().blockSignals(false);
   }
 
