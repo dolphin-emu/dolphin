@@ -310,6 +310,9 @@ void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
       std::launch::async, [this, partition] { return m_volume->CheckIntegrity(partition); });
 
   dialog->setLabelText(tr("Verifying integrity of partition..."));
+  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  dialog->setWindowTitle(tr("Verifying partition"));
+
   dialog->setMinimum(0);
   dialog->setMaximum(0);
   dialog->show();
