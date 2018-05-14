@@ -131,7 +131,12 @@ void GeneralWidget::ConnectWidgets()
 {
   // Video Backend
   connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
+          this, &GeneralWidget::SaveSettings);
+  connect(m_adapter_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+          this, [](int index) {
+            g_Config.iAdapter = index;
+            Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+          });
 
   for (QCheckBox* checkbox : {m_enable_fullscreen, m_render_main_window, m_autoadjust_window_size})
     connect(checkbox, &QCheckBox::toggled, this, &GeneralWidget::SaveSettings);
@@ -163,8 +168,6 @@ void GeneralWidget::LoadSettings()
 
 void GeneralWidget::SaveSettings()
 {
-  g_Config.iAdapter = m_adapter_combo->currentIndex();
-
   // Video Backend
   for (const auto& backend : g_available_video_backends)
   {
@@ -329,6 +332,8 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
     }
   }
 
+  const bool old = m_adapter_combo->blockSignals(true);
+
   m_adapter_combo->clear();
 
   const auto& adapters = g_Config.backend_info.Adapters;
@@ -338,4 +343,6 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
   m_adapter_combo->setEnabled(!adapters.empty());
+
+  m_adapter_combo->blockSignals(old);
 }
