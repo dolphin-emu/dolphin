@@ -136,7 +136,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
   vlayout->addLayout(hlayout);
   vlayout->addWidget(checkbox);
 
-  connect(checkbox, &QCheckBox::toggled, this, [this](bool checked) {
+  connect(checkbox, &QCheckBox::toggled, this, [](bool checked) {
     SConfig::GetInstance().m_RecursiveISOFolder = checked;
     for (const auto& path : Settings::Instance().GetPaths())
       Settings::Instance().ReloadPath(path);

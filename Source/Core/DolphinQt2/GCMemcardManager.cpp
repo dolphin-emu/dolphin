@@ -161,7 +161,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
   auto& memcard = m_slot_memcard[slot];
   auto* table = m_slot_table[slot];
 
-  auto create_item = [this](const QString string = QStringLiteral("")) {
+  auto create_item = [](const QString string = QStringLiteral("")) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;
