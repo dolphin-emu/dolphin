@@ -478,14 +478,14 @@ void MenuBar::AddOptionsMenu()
   m_boot_to_pause->setChecked(SConfig::GetInstance().bBootToPause);
 
   connect(m_boot_to_pause, &QAction::toggled, this,
-          [this](bool enable) { SConfig::GetInstance().bBootToPause = enable; });
+          [](bool enable) { SConfig::GetInstance().bBootToPause = enable; });
 
   m_automatic_start = options_menu->addAction(tr("&Automatic Start"));
   m_automatic_start->setCheckable(true);
   m_automatic_start->setChecked(SConfig::GetInstance().bAutomaticStart);
 
   connect(m_automatic_start, &QAction::toggled, this,
-          [this](bool enable) { SConfig::GetInstance().bAutomaticStart = enable; });
+          [](bool enable) { SConfig::GetInstance().bAutomaticStart = enable; });
 
   m_change_font = AddAction(options_menu, tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }

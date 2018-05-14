@@ -143,7 +143,7 @@ void BreakpointWidget::Update()
   int i = 0;
   m_table->setRowCount(i);
 
-  auto create_item = [this](const QString string = QStringLiteral("")) {
+  auto create_item = [](const QString string = QStringLiteral("")) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;

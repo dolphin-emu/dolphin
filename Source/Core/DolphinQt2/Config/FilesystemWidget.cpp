@@ -189,7 +189,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
   switch (type)
   {
   case EntryType::Disc:
-    AddAction(menu, tr("Extract Entire Disc..."), this, [this, partition, path] {
+    AddAction(menu, tr("Extract Entire Disc..."), this, [this, path] {
       auto folder = SelectFolder();
 
       if (folder.isEmpty())
