@@ -10,6 +10,7 @@ class QEvent;
 
 class BlockUserInputFilter : public QObject
 {
+  Q_OBJECT
 public:
   static BlockUserInputFilter* Instance();
 

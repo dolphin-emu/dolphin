@@ -10,6 +10,7 @@ class QHBoxLayout;
 
 class Hotkey3D final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit Hotkey3D(MappingWindow* window);
 

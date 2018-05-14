@@ -15,6 +15,7 @@ class QVBoxLayout;
 
 class GCPadEmu final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit GCPadEmu(MappingWindow* window);
 

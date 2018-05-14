@@ -15,6 +15,7 @@ class QVBoxLayout;
 
 class GCKeyboardEmu final : public MappingWidget
 {
+  Q_OBJECT
 public:
   explicit GCKeyboardEmu(MappingWindow* window);
 
