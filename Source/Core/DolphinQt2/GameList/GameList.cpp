@@ -400,6 +400,7 @@ void GameList::DeleteFile()
   QMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
+  confirm_dialog.setWindowTitle(tr("Confirm"));
   confirm_dialog.setText(tr("Are you sure you want to delete this file?"));
   confirm_dialog.setInformativeText(tr("This cannot be undone!"));
   confirm_dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
