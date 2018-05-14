@@ -761,6 +761,7 @@ void MainWindow::ShowRenderWidget()
 
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
+    m_stack->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
     m_stack->repaint();
 
     Host::GetInstance()->SetRenderFocus(isActiveWindow());
@@ -786,6 +787,7 @@ void MainWindow::HideRenderWidget(bool reinit)
     m_stack->removeWidget(m_render_widget);
     m_render_widget->setParent(nullptr);
     m_rendering_to_main = false;
+    m_stack->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     disconnect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
     setWindowTitle(QString::fromStdString(Common::scm_rev_str));
   }
