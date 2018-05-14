@@ -601,8 +601,6 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   js.curBlock = b;
   js.carryFlagSet = false;
 
-  PPCAnalyst::CodeOp* ops = code_buf->codebuffer;
-
   const u8* start = GetCodePtr();
   b->checkedEntry = start;
 
@@ -651,13 +649,16 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   fpr.Start(js.fpa);
 
   // Translate instructions
+  PPCAnalyst::CodeOp* const ops = code_buf->codebuffer;
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    js.compilerPC = ops[i].address;
-    js.op = &ops[i];
+    PPCAnalyst::CodeOp& op = ops[i];
+
+    js.compilerPC = op.address;
+    js.op = &op;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
-    const GekkoOPInfo* opinfo = ops[i].opinfo;
+    const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->numCycles;
     js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
@@ -665,8 +666,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Gather pipe writes using a non-immediate address are discovered by profiling.
-    bool gatherPipeIntCheck =
-        js.fifoWriteAddresses.find(ops[i].address) != js.fifoWriteAddresses.end();
+    bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
     if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
     {
@@ -740,7 +740,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       SetJumpTarget(exit);
     }
 
-    if (!ops[i].skip)
+    if (!op.skip)
     {
       if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
@@ -771,13 +771,13 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
         js.firstFPInstructionFound = true;
       }
 
-      CompileInstruction(ops[i]);
+      CompileInstruction(op);
       if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();
 
       // If we have a register that will never be used again, flush it.
-      gpr.StoreRegisters(~ops[i].gprInUse);
-      fpr.StoreRegisters(~ops[i].fprInUse);
+      gpr.StoreRegisters(~op.gprInUse);
+      fpr.StoreRegisters(~op.fprInUse);
     }
 
     i += js.skipInstructions;

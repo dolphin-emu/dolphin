@@ -198,16 +198,17 @@ void CachedInterpreter::Jit(u32 address)
   js.downcountAmount = 0;
   js.curBlock = b;
 
-  PPCAnalyst::CodeOp* ops = code_buffer.codebuffer;
-
   b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
 
+  PPCAnalyst::CodeOp* const ops = code_buffer.codebuffer;
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    js.downcountAmount += ops[i].opinfo->numCycles;
+    PPCAnalyst::CodeOp& op = ops[i];
 
-    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
+    js.downcountAmount += op.opinfo->numCycles;
+
+    u32 function = HLE::GetFirstFunctionIndex(op.address);
     if (function != 0)
     {
       HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
@@ -216,7 +217,7 @@ void CachedInterpreter::Jit(u32 address)
         HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
         if (HLE::IsEnabled(flags))
         {
-          m_code.emplace_back(WritePC, ops[i].address);
+          m_code.emplace_back(WritePC, op.address);
           m_code.emplace_back(Interpreter::HLEFunction, function);
           if (type == HLE::HookType::Replace)
           {
@@ -228,22 +229,22 @@ void CachedInterpreter::Jit(u32 address)
       }
     }
 
-    if (!ops[i].skip)
+    if (!op.skip)
     {
-      bool check_fpu = (ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
-      bool endblock = (ops[i].opinfo->flags & FL_ENDBLOCK) != 0;
-      bool memcheck = (ops[i].opinfo->flags & FL_LOADSTORE) && jo.memcheck;
+      const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
+      const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
+      const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;
 
       if (check_fpu)
       {
-        m_code.emplace_back(WritePC, ops[i].address);
+        m_code.emplace_back(WritePC, op.address);
         m_code.emplace_back(CheckFPU, js.downcountAmount);
         js.firstFPInstructionFound = true;
       }
 
       if (endblock || memcheck)
-        m_code.emplace_back(WritePC, ops[i].address);
-      m_code.emplace_back(PPCTables::GetInterpreterOp(ops[i].inst), ops[i].inst);
+        m_code.emplace_back(WritePC, op.address);
+      m_code.emplace_back(PPCTables::GetInterpreterOp(op.inst), op.inst);
       if (memcheck)
         m_code.emplace_back(CheckDSI, js.downcountAmount);
       if (endblock)

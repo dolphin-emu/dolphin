@@ -651,8 +651,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
 
-  PPCAnalyst::CodeOp* ops = code_buf->codebuffer;
-
   const u8* start =
       AlignCode4();  // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
   b->checkedEntry = start;
@@ -740,13 +738,16 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   }
 
   // Translate instructions
+  PPCAnalyst::CodeOp* const ops = code_buf->codebuffer;
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    js.compilerPC = ops[i].address;
-    js.op = &ops[i];
+    PPCAnalyst::CodeOp& op = ops[i];
+
+    js.compilerPC = op.address;
+    js.op = &op;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
-    const GekkoOPInfo* opinfo = ops[i].opinfo;
+    const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->numCycles;
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
@@ -762,8 +763,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     }
 
     // Gather pipe writes using a non-immediate address are discovered by profiling.
-    bool gatherPipeIntCheck =
-        js.fifoWriteAddresses.find(ops[i].address) != js.fifoWriteAddresses.end();
+    bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
     // Gather pipe writes using an immediate address are explicitly tracked.
     if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
@@ -798,7 +798,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       gpr.Flush(RegCache::FlushMode::MaintainState);
       fpr.Flush(RegCache::FlushMode::MaintainState);
 
-      MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+      MOV(32, PPCSTATE(pc), Imm32(op.address));
       WriteExternalExceptionExit();
       SwitchToNearCode();
 
@@ -806,7 +806,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       SetJumpTarget(noExtIntEnable);
     }
 
-    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
+    u32 function = HLE::GetFirstFunctionIndex(op.address);
     if (function != 0)
     {
       HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
@@ -827,7 +827,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       }
     }
 
-    if (!ops[i].skip)
+    if (!op.skip)
     {
       if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
@@ -842,7 +842,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
 
         // If a FPU exception occurs, the exception handler will read
         // from PC.  Update PC with the latest value in case that happens.
-        MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+        MOV(32, PPCSTATE(pc), Imm32(op.address));
         OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
         WriteExceptionExit();
         SwitchToNearCode();
@@ -850,8 +850,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         js.firstFPInstructionFound = true;
       }
 
-      if (SConfig::GetInstance().bEnableDebugging &&
-          breakpoints.IsAddressBreakPoint(ops[i].address) && !CPU::IsStepping())
+      if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(op.address) &&
+          !CPU::IsStepping())
       {
         // Turn off block linking if there are breakpoints so that the Step Over command does not
         // link this block.
@@ -860,7 +860,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         gpr.Flush();
         fpr.Flush();
 
-        MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
+        MOV(32, PPCSTATE(pc), Imm32(op.address));
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunction(PowerPC::CheckBreakPoints);
         ABI_PopRegistersAndAdjustStack({}, 0);
@@ -868,7 +868,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         TEST(32, MatR(RSCRATCH), Imm32(0xFFFFFFFF));
         FixupBranch noBreakpoint = J_CC(CC_Z);
 
-        WriteExit(ops[i].address);
+        WriteExit(op.address);
         SetJumpTarget(noBreakpoint);
       }
 
@@ -879,22 +879,22 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       // output, which needs to be bound in the actual instruction compilation.
       // TODO: make this smarter in the case that we're actually register-starved, i.e.
       // prioritize the more important registers.
-      for (int reg : ops[i].regsIn)
+      for (int reg : op.regsIn)
       {
         if (gpr.NumFreeRegisters() < 2)
           break;
-        if (ops[i].gprInReg[reg] && !gpr.R(reg).IsImm())
+        if (op.gprInReg[reg] && !gpr.R(reg).IsImm())
           gpr.BindToRegister(reg, true, false);
       }
-      for (int reg : ops[i].fregsIn)
+      for (int reg : op.fregsIn)
       {
         if (fpr.NumFreeRegisters() < 2)
           break;
-        if (ops[i].fprInXmm[reg])
+        if (op.fprInXmm[reg])
           fpr.BindToRegister(reg, true, false);
       }
 
-      CompileInstruction(ops[i]);
+      CompileInstruction(op);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {
@@ -903,7 +903,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         FixupBranch memException;
         ASSERT_MSG(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
                    "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
-                   ops[i].address);
+                   op.address);
         if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
         {
           TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
@@ -934,9 +934,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       }
 
       // If we have a register that will never be used again, flush it.
-      for (int j : ~ops[i].gprInUse)
+      for (int j : ~op.gprInUse)
         gpr.StoreFromRegister(j);
-      for (int j : ~ops[i].fprInUse)
+      for (int j : ~op.fprInUse)
         fpr.StoreFromRegister(j);
 
       if (opinfo->flags & FL_LOADSTORE)
@@ -949,7 +949,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (gpr.SanityCheck() || fpr.SanityCheck())
     {
-      std::string ppc_inst = GekkoDisassembler::Disassemble(ops[i].inst.hex, em_address);
+      std::string ppc_inst = GekkoDisassembler::Disassemble(op.inst.hex, em_address);
       // NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
     }
 #endif
