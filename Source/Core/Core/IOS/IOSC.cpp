@@ -250,8 +250,8 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
   }
 
   // Calculate the ECC shared secret.
-  std::array<u8, 0x3c> shared_secret;
-  point_mul(shared_secret.data(), private_entry->data.data(), public_entry->data.data());
+  const std::array<u8, 0x3c> shared_secret =
+      ComputeSharedSecret(private_entry->data.data(), public_entry->data.data());
 
   std::array<u8, 20> sha1;
   mbedtls_sha1(shared_secret.data(), shared_secret.size() / 2, sha1.data());

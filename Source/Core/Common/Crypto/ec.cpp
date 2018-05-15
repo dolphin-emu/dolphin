@@ -313,7 +313,7 @@ static void point_add(u8* r, const u8* p, const u8* q)
   elt_add(ry, s, rx);
 }
 
-void point_mul(u8* d, const u8* a, const u8* b)  // a is bignum
+static void point_mul(u8* d, const u8* a, const u8* b)  // a is bignum
 {
   u32 i;
   u8 mask;
@@ -410,6 +410,12 @@ void ec_priv_to_pub(const u8* k, u8* Q)
   point_mul(Q, k, ec_G);
 }
 
+std::array<u8, 60> ComputeSharedSecret(const u8* private_key, const u8* public_key)
+{
+  std::array<u8, 60> shared_secret;
+  point_mul(shared_secret.data(), private_key, public_key);
+  return shared_secret;
+}
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
