@@ -8,8 +8,14 @@
 
 #include "Common/CommonTypes.h"
 
-void generate_ecdsa(u8* R, u8* S, const u8* k, const u8* hash);
+namespace Common::ec
+{
+/// Generate a signature using ECDSA.
+std::array<u8, 60> Sign(const u8* key, const u8* hash);
 
-void ec_priv_to_pub(const u8* k, u8* Q);
-
+/// Compute a shared secret from a private key (30 bytes) and public key (60 bytes).
 std::array<u8, 60> ComputeSharedSecret(const u8* private_key, const u8* public_key);
+
+/// Convert a ECC private key (30 bytes) to a public key (60 bytes).
+std::array<u8, 60> PrivToPub(const u8* key);
+}  // namespace Common::ec

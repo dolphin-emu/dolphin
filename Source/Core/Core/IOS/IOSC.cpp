@@ -251,7 +251,7 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
 
   // Calculate the ECC shared secret.
   const std::array<u8, 0x3c> shared_secret =
-      ComputeSharedSecret(private_entry->data.data(), public_entry->data.data());
+      Common::ec::ComputeSharedSecret(private_entry->data.data(), public_entry->data.data());
 
   std::array<u8, 20> sha1;
   mbedtls_sha1(shared_secret.data(), shared_secret.size() / 2, sha1.data());
@@ -425,7 +425,8 @@ static Certificate MakeBlankSigECCert(const char* signer, const char* name, cons
   std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name, 0x40);
   const u32 swapped_key_id = Common::swap32(key_id);
   std::memcpy(cert_out.data() + 0x104, &swapped_key_id, sizeof(swapped_key_id));
-  ec_priv_to_pub(private_key, cert_out.data() + 0x108);
+  const std::array<u8, 60> public_key = Common::ec::PrivToPub(private_key);
+  std::copy(public_key.cbegin(), public_key.cend(), cert_out.begin() + 0x108);
   return cert_out;
 }
 
@@ -454,11 +455,12 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   std::copy(cert.begin(), cert.end(), ap_cert_out);
 
   mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash.data());
-  generate_ecdsa(ap_cert_out + 4, ap_cert_out + 34, m_key_entries[HANDLE_CONSOLE_KEY].data.data(),
-                 hash.data());
+  auto signature = Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), hash.data());
+  std::copy(signature.cbegin(), signature.cend(), ap_cert_out + 4);
 
   mbedtls_sha1(data, data_size, hash.data());
-  generate_ecdsa(sig_out, sig_out + 30, ap_priv.data(), hash.data());
+  signature = Common::ec::Sign(ap_priv.data(), hash.data());
+  std::copy(signature.cbegin(), signature.cend(), sig_out);
 }
 
 constexpr std::array<u8, 512> ROOT_PUBLIC_KEY = {
