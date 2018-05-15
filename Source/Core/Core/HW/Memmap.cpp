@@ -44,7 +44,7 @@ u8* physical_base = nullptr;
 u8* logical_base = nullptr;
 
 // The MemArena class
-static MemArena g_arena;
+static Common::MemArena g_arena;
 // ==============
 
 // STATE_TO_SAVE
@@ -190,7 +190,7 @@ void Init()
     mem_size += region.size;
   }
   g_arena.GrabSHMSegment(mem_size);
-  physical_base = MemArena::FindMemoryBase();
+  physical_base = Common::MemArena::FindMemoryBase();
 
   for (PhysicalMemoryRegion& region : physical_regions)
   {

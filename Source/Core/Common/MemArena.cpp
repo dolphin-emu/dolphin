@@ -28,6 +28,8 @@
 #endif
 #endif
 
+namespace Common
+{
 #ifdef ANDROID
 #define ASHMEM_DEVICE "/dev/ashmem"
 
@@ -154,3 +156,5 @@ u8* MemArena::FindMemoryBase()
   return static_cast<u8*>(base);
 #endif
 }
+
+}  // namespace Common
