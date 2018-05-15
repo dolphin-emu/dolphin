@@ -46,7 +46,10 @@ void Host::SetRenderFocus(bool focus)
 {
   m_render_focus = focus;
   if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
-    Core::RunAsCPUThread([focus] { g_renderer->SetFullscreen(focus); });
+    Core::RunAsCPUThread([focus] {
+      if (!SConfig::GetInstance().bRenderToMain)
+        g_renderer->SetFullscreen(focus);
+    });
 }
 
 bool Host::GetRenderFullscreen()
@@ -110,10 +113,7 @@ void Host_YieldToUI()
 
 void Host_UpdateDisasmDialog()
 {
-  RunOnObject(QApplication::instance(), [&] {
-    emit Host::GetInstance()->UpdateDisasmDialog();
-    return true;
-  });
+  QueueOnObject(Host::GetInstance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
