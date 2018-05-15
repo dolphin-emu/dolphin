@@ -13,6 +13,13 @@ namespace Common::ec
 /// Generate a signature using ECDSA.
 std::array<u8, 60> Sign(const u8* key, const u8* hash);
 
+/// Check a signature using ECDSA.
+///
+/// @param  public_key  30 byte ECC public key
+/// @param  signature   60 byte signature
+/// @param  hash        Message hash
+bool VerifySignature(const u8* public_key, const u8* signature, const u8* hash);
+
 /// Compute a shared secret from a private key (30 bytes) and public key (60 bytes).
 std::array<u8, 60> ComputeSharedSecret(const u8* private_key, const u8* public_key);
 
