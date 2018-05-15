@@ -419,8 +419,9 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     }
   }
 
-  int flags =
-      isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_DR_ON;
+  int flags = isInline ? 0 :
+                         SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                             SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
   if (!single)
     flags |= SAFE_LOADSTORE_NO_SWAP;
 
@@ -478,8 +479,9 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
   if (g_jit->jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
-    int flags =
-        isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_DR_ON;
+    int flags = isInline ? 0 :
+                           SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                               SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
     SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
     if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
     {
@@ -604,8 +606,9 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   if (g_jit->jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
-    int flags =
-        isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_DR_ON;
+    int flags = isInline ? 0 :
+                           SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG |
+                               SAFE_LOADSTORE_DR_ON | SAFE_LOADSTORE_NO_UPDATE_PC;
     SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
   }
 

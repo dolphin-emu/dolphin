@@ -317,7 +317,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
   registersInUse[reg_value] = false;
-  if (g_jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
+  if (g_jit->jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
+      !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
@@ -378,7 +379,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   // Helps external systems know which instruction triggered the read.
-  MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+  // Invalid for calls from Jit64AsmCommon routines
+  if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
+  {
+    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+  }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -483,7 +488,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
 
-  if (g_jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
+  if (g_jit->jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
+      !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
@@ -540,7 +546,11 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   }
 
   // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-  MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+  // Invalid for calls from Jit64AsmCommon routines
+  if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
+  {
+    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+  }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);

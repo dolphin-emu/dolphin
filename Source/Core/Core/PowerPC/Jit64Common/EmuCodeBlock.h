@@ -77,6 +77,8 @@ public:
     // Force slowmem (used when generating fallbacks in trampolines)
     SAFE_LOADSTORE_FORCE_SLOWMEM = 16,
     SAFE_LOADSTORE_DR_ON = 32,
+    // Generated from a context that doesn't have the PC of the instruction that caused it
+    SAFE_LOADSTORE_NO_UPDATE_PC = 64,
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
