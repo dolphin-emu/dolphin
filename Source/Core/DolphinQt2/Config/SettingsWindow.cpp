@@ -9,6 +9,7 @@
 
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/MainWindow.h"
+#include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Settings/AdvancedPane.h"
@@ -34,14 +35,14 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   m_tab_widget = new QTabWidget();
   layout->addWidget(m_tab_widget);
 
-  m_tab_widget->addTab(new GeneralPane(), tr("General"));
-  m_tab_widget->addTab(new InterfacePane(), tr("Interface"));
-  m_tab_widget->addTab(new AudioPane(), tr("Audio"));
-  m_tab_widget->addTab(new PathPane(), tr("Paths"));
-  m_tab_widget->addTab(new GameCubePane(), tr("GameCube"));
+  m_tab_widget->addTab(GetWrappedWidget(new GeneralPane, this, 125, 100), tr("General"));
+  m_tab_widget->addTab(GetWrappedWidget(new InterfacePane, this, 125, 100), tr("Interface"));
+  m_tab_widget->addTab(GetWrappedWidget(new AudioPane, this, 125, 100), tr("Audio"));
+  m_tab_widget->addTab(GetWrappedWidget(new PathPane, this, 125, 100), tr("Paths"));
+  m_tab_widget->addTab(GetWrappedWidget(new GameCubePane, this, 125, 100), tr("GameCube"));
 
   auto* wii_pane = new WiiPane;
-  m_tab_widget->addTab(wii_pane, tr("Wii"));
+  m_tab_widget->addTab(GetWrappedWidget(wii_pane, this, 125, 100), tr("Wii"));
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [wii_pane](Core::State state) {
     wii_pane->OnEmulationStateChanged(state != Core::State::Uninitialized);

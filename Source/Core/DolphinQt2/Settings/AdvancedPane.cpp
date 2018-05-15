@@ -21,10 +21,11 @@
 AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)
 {
   CreateLayout();
+  Update();
+
   ConnectLayout();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &AdvancedPane::Update);
-  Update();
 }
 
 void AdvancedPane::CreateLayout()

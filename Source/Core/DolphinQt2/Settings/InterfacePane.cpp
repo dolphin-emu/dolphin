@@ -171,22 +171,24 @@ void InterfacePane::CreateInGame()
 
 void InterfacePane::ConnectLayout()
 {
-  connect(m_checkbox_top_window, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_use_builtin_title_database, &QCheckBox::clicked, this,
+  connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_show_debugging_ui, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme, static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::activated),
+  connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_combobox_theme,
+          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
           &Settings::Instance(), &Settings::SetThemeName);
   connect(m_combobox_userstyle,
           static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
+  connect(m_combobox_language,
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_confirm_on_stop, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_use_panic_handlers, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_enable_osd, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_pause_on_focus_lost, &QCheckBox::clicked, this, &InterfacePane::OnSaveConfig);
-  connect(m_checkbox_hide_mouse, &QCheckBox::clicked, &Settings::Instance(),
+  connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_enable_osd, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_pause_on_focus_lost, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_hide_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetHideCursor);
   connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
 }

@@ -72,9 +72,9 @@ void WiiPane::ConnectLayout()
 
   // Whitelisted USB Passthrough Devices
   connect(m_whitelist_usb_list, &QListWidget::itemClicked, this, &WiiPane::ValidateSelectionState);
-  connect(m_whitelist_usb_add_button, &QPushButton::released, this,
+  connect(m_whitelist_usb_add_button, &QPushButton::pressed, this,
           &WiiPane::OnUSBWhitelistAddButton);
-  connect(m_whitelist_usb_remove_button, &QPushButton::released, this,
+  connect(m_whitelist_usb_remove_button, &QPushButton::pressed, this,
           &WiiPane::OnUSBWhitelistRemoveButton);
 
   // Wii Remote Settings
