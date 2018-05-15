@@ -132,6 +132,9 @@ public:
   ReturnCode GetDeviceId(u32* device_id) const;
   ReturnCode GetTitleId(u64* device_id) const;
 
+  ReturnCode VerifySign(const std::vector<u8>& hash, const std::vector<u8>& ecc_signature,
+                        const std::vector<u8>& certs);
+
   // Views
   ReturnCode GetV0TicketFromView(const u8* ticket_view, u8* ticket) const;
   ReturnCode GetTicketFromView(const u8* ticket_view, u8* ticket, u32* ticket_size) const;
@@ -243,6 +246,7 @@ private:
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);
+  IPCCommandResult VerifySign(const IOCtlVRequest& request);
   IPCCommandResult Encrypt(u32 uid, const IOCtlVRequest& request);
   IPCCommandResult Decrypt(u32 uid, const IOCtlVRequest& request);
 

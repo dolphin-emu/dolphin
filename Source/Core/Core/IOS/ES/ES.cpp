@@ -524,6 +524,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetDeviceCertificate(request);
   case IOCTL_ES_SIGN:
     return Sign(request);
+  case IOCTL_ES_VERIFYSIGN:
+    return VerifySign(request);
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
 
@@ -539,7 +541,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_DELETE_STREAM_KEY:
     return DeleteStreamKey(request);
 
-  case IOCTL_ES_VERIFYSIGN:
   case IOCTL_ES_UNKNOWN_41:
   case IOCTL_ES_UNKNOWN_42:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
