@@ -140,6 +140,8 @@ static void ResetTitleImportContext(ES::Context* context, IOSC& iosc)
 
 ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
 {
+  INFO_LOG(IOS_ES, "ImportTmd");
+
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
   ResetTitleImportContext(&context, m_ios.GetIOSC());
@@ -155,16 +157,26 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
                         context.title_import_export.tmd, cert_store);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "ImportTmd: VerifyContainer failed with error %d", ret);
     return ret;
+  }
 
   if (!InitImport(context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTmd: Failed to initialise title import");
     return ES_EIO;
+  }
 
   ret =
       InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "ImportTmd: InitBackupKey failed with error %d", ret);
     return ret;
+  }
 
+  INFO_LOG(IOS_ES, "ImportTmd: All checks passed, marking context as valid");
   context.title_import_export.valid = true;
   return IPC_SUCCESS;
 }
@@ -421,7 +433,10 @@ IPCCommandResult ES::ImportContentEnd(Context& context, const IOCtlVRequest& req
 ReturnCode ES::ImportTitleDone(Context& context)
 {
   if (!context.title_import_export.valid || context.title_import_export.content.valid)
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: No title import, or a content import is still in progress");
     return ES_EINVAL;
+  }
 
   // Make sure all listed, non-optional contents have been imported.
   const u64 title_id = context.title_import_export.tmd.GetTitleId();
@@ -442,13 +457,22 @@ ReturnCode ES::ImportTitleDone(Context& context)
         return m_ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
       });
   if (!has_all_required_contents)
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: Some required contents are missing");
     return ES_EINVAL;
+  }
 
   if (!WriteImportTMD(context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: Failed to write import TMD");
     return ES_EIO;
+  }
 
   if (!FinishImport(context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: Failed to finalise title import");
     return ES_EIO;
+  }
 
   INFO_LOG(IOS_ES, "ImportTitleDone: title %016" PRIx64, title_id);
   ResetTitleImportContext(&context, m_ios.GetIOSC());
