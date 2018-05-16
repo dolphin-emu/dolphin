@@ -430,6 +430,26 @@ IPCCommandResult ES::ImportContentEnd(Context& context, const IOCtlVRequest& req
   return GetDefaultReply(ImportContentEnd(context, content_fd));
 }
 
+static bool HasAllRequiredContents(IOS::HLE::Kernel& ios, const IOS::ES::TMDReader& tmd)
+{
+  const u64 title_id = tmd.GetTitleId();
+  const std::vector<IOS::ES::Content> contents = tmd.GetContents();
+  const IOS::ES::SharedContentMap shared_content_map{ios.GetFS()};
+  return std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
+    if (content.IsOptional())
+      return true;
+
+    if (content.IsShared())
+      return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
+
+    // Note: the import hasn't been finalised yet, so the whole title directory
+    // is still in /import, not /title.
+    const std::string path =
+        Common::GetImportTitlePath(title_id) + StringFromFormat("/content/%08x.app", content.id);
+    return ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
+  });
+}
+
 ReturnCode ES::ImportTitleDone(Context& context)
 {
   if (!context.title_import_export.valid || context.title_import_export.content.valid)
@@ -438,25 +458,10 @@ ReturnCode ES::ImportTitleDone(Context& context)
     return ES_EINVAL;
   }
 
-  // Make sure all listed, non-optional contents have been imported.
+  // For system titles, make sure all listed, non-optional contents have been imported.
   const u64 title_id = context.title_import_export.tmd.GetTitleId();
-  const std::vector<IOS::ES::Content> contents = context.title_import_export.tmd.GetContents();
-  const IOS::ES::SharedContentMap shared_content_map{m_ios.GetFS()};
-  const bool has_all_required_contents =
-      std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
-        if (content.IsOptional())
-          return true;
-
-        if (content.IsShared())
-          return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
-
-        // Note: the import hasn't been finalised yet, so the whole title directory
-        // is still in /import, not /title.
-        const std::string path = Common::GetImportTitlePath(title_id) +
-                                 StringFromFormat("/content/%08x.app", content.id);
-        return m_ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
-      });
-  if (!has_all_required_contents)
+  if (title_id - 0x100000001LL <= 0x100 &&
+      !HasAllRequiredContents(m_ios, context.title_import_export.tmd))
   {
     ERROR_LOG(IOS_ES, "ImportTitleDone: Some required contents are missing");
     return ES_EINVAL;
