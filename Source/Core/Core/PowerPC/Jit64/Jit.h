@@ -234,6 +234,8 @@ private:
   static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
+  bool HandleFunctionHooking(u32 address);
+
   void AllocStack();
   void FreeStack();
 
