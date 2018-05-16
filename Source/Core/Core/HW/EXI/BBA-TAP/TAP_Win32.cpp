@@ -263,7 +263,7 @@ bool CEXIETHERNET::IsActivated()
   return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-static void ReadThreadHandler(CEXIETHERNET* self)
+void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {

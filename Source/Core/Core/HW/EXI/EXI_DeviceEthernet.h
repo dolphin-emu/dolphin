@@ -210,7 +210,7 @@ public:
   void DMARead(u32 addr, u32 size) override;
   void DoState(PointerWrap& p) override;
 
-  // private:
+private:
   struct
   {
     enum
@@ -312,6 +312,7 @@ public:
   std::unique_ptr<u8[]> tx_fifo;
 
   // TAP interface
+  static void ReadThreadHandler(CEXIETHERNET* self);
   bool Activate();
   void Deactivate();
   bool IsActivated();
