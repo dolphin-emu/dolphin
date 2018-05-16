@@ -99,32 +99,17 @@ static void Trace(UGeckoInstruction& inst)
             PowerPC::ppcState.spr[8], regs.c_str(), inst.hex, ppc_inst.c_str());
 }
 
+bool Interpreter::HandleFunctionHooking(u32 address)
+{
+  return HLE::ReplaceFunctionIfPossible(address, [](u32 function, HLE::HookType type) {
+    HLEFunction(function);
+    return type != HLE::HookType::Start;
+  });
+}
+
 int Interpreter::SingleStepInner()
 {
-  u32 function = HLE::GetFirstFunctionIndex(PC);
-  if (function != 0)
-  {
-    HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
-    if (type == HLE::HookType::Start || type == HLE::HookType::Replace)
-    {
-      HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
-      if (HLE::IsEnabled(flags))
-      {
-        HLEFunction(function);
-        if (type == HLE::HookType::Start)
-        {
-          // Run the original.
-          function = 0;
-        }
-      }
-      else
-      {
-        function = 0;
-      }
-    }
-  }
-
-  if (function == 0)
+  if (!HandleFunctionHooking(PC))
   {
 #ifdef USE_GDBSTUB
     if (gdb_active() && gdb_bp_x(PC))
