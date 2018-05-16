@@ -64,8 +64,8 @@ static bool VerifyRoms()
       {0x128ea7a2, 0xa4a575f5},
   }};
 
-  u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
-  u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
+  const u32 hash_irom = Common::HashAdler32(reinterpret_cast<u8*>(g_dsp.irom), DSP_IROM_BYTE_SIZE);
+  const u32 hash_drom = Common::HashAdler32(reinterpret_cast<u8*>(g_dsp.coef), DSP_COEF_BYTE_SIZE);
   int rom_idx = -1;
 
   for (size_t i = 0; i < known_roms.size(); ++i)

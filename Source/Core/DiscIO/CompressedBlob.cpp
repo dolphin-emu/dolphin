@@ -112,7 +112,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   }
 
   // First, check hash.
-  u32 block_hash = HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
   if (block_hash != m_hashes[block_num])
     PanicAlertT("The disc image \"%s\" is corrupt.\n"
                 "Hash of block %" PRIu64 " is %08x instead of %08x.",
@@ -304,7 +304,7 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
 
     position += write_size;
 
-    hashes[i] = HashAdler32(write_buf, write_size);
+    hashes[i] = Common::HashAdler32(write_buf, write_size);
   }
 
   header.compressed_data_size = position;

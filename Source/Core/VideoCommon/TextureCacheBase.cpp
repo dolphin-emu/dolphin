@@ -81,7 +81,7 @@ TextureCacheBase::TextureCacheBase()
 
   HiresTexture::Init();
 
-  SetHash64Function();
+  Common::SetHash64Function();
 
   InvalidateAllBindPoints();
 }
@@ -733,13 +733,13 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
-  base_hash = GetHash64(src_data, texture_size, textureCacheSafetyColorSampleSize);
+  base_hash = Common::GetHash64(src_data, texture_size, textureCacheSafetyColorSampleSize);
   u32 palette_size = 0;
   if (isPaletteTexture)
   {
     palette_size = TexDecoder_GetPaletteSize(texformat);
-    full_hash =
-        base_hash ^ GetHash64(&texMem[tlutaddr], palette_size, textureCacheSafetyColorSampleSize);
+    full_hash = base_hash ^ Common::GetHash64(&texMem[tlutaddr], palette_size,
+                                              textureCacheSafetyColorSampleSize);
   }
   else
   {
@@ -1225,17 +1225,17 @@ std::optional<TextureLookupInformation> TextureCacheBase::ComputeTextureInformat
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
-  tex_info.base_hash = GetHash64(tex_info.src_data, tex_info.total_bytes,
-                                 tex_info.texture_cache_safety_color_sample_size);
+  tex_info.base_hash = Common::GetHash64(tex_info.src_data, tex_info.total_bytes,
+                                         tex_info.texture_cache_safety_color_sample_size);
 
   tex_info.is_palette_texture = IsColorIndexed(tex_format);
 
   if (tex_info.is_palette_texture)
   {
     tex_info.palette_size = TexDecoder_GetPaletteSize(tex_format);
-    tex_info.full_hash =
-        tex_info.base_hash ^ GetHash64(&texMem[tex_info.tlut_address], tex_info.palette_size,
-                                       tex_info.texture_cache_safety_color_sample_size);
+    tex_info.full_hash = tex_info.base_hash ^
+                         Common::GetHash64(&texMem[tex_info.tlut_address], tex_info.palette_size,
+                                           tex_info.texture_cache_safety_color_sample_size);
   }
   else
   {
@@ -2043,7 +2043,7 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
   u8* ptr = Memory::GetPointer(addr);
   if (memory_stride == BytesPerRow())
   {
-    return GetHash64(ptr, size_in_bytes, HashSampleSize());
+    return Common::GetHash64(ptr, size_in_bytes, HashSampleSize());
   }
   else
   {
@@ -2062,7 +2062,7 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
     {
       // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
       // canceling each other out
-      temp_hash = (temp_hash * 397) ^ GetHash64(ptr, BytesPerRow(), samples_per_row);
+      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, BytesPerRow(), samples_per_row);
       ptr += memory_stride;
     }
     return temp_hash;

@@ -101,8 +101,9 @@ void ROMUCode::HandleMail(u32 mail)
 
 void ROMUCode::BootUCode()
 {
-  u32 ector_crc = HashEctor((u8*)HLEMemory_Get_Pointer(m_current_ucode.m_ram_address),
-                            m_current_ucode.m_length);
+  const u32 ector_crc =
+      Common::HashEctor(static_cast<u8*>(HLEMemory_Get_Pointer(m_current_ucode.m_ram_address)),
+                        m_current_ucode.m_length);
 
   if (SConfig::GetInstance().m_DumpUCode)
   {
