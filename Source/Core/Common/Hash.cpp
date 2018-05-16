@@ -15,6 +15,8 @@
 #include <arm_acle.h>
 #endif
 
+namespace Common
+{
 static u64 (*ptrHashFunction)(const u8* src, u32 len, u32 samples) = nullptr;
 
 // uint32_t
@@ -524,3 +526,4 @@ void SetHash64Function()
     ptrHashFunction = &GetMurmurHash3;
   }
 }
+}  // namespace Common

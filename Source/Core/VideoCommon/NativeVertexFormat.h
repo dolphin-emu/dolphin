@@ -91,7 +91,7 @@ struct hash<PortableVertexDeclaration>
 {
   size_t operator()(const PortableVertexDeclaration& decl) const
   {
-    return HashFletcher((u8*)&decl, sizeof(decl));
+    return Common::HashFletcher(reinterpret_cast<const u8*>(&decl), sizeof(decl));
   }
 };
 }
