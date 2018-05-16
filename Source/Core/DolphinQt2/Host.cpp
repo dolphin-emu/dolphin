@@ -14,7 +14,7 @@
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinQt2/QtUtils/RunOnObject.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -113,7 +113,7 @@ void Host_YieldToUI()
 
 void Host_UpdateDisasmDialog()
 {
-  QueueOnObject(Host::GetInstance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
+  QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
