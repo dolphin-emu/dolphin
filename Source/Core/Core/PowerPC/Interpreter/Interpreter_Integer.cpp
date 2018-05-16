@@ -546,27 +546,26 @@ void Interpreter::divwux(UGeckoInstruction inst)
 
 void Interpreter::mulhwx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-
-  // This can be done better. Not in plain C/C++ though.
-  u32 d = (u32)((u64)(((s64)(s32)a * (s64)(s32)b)) >> 32);
+  const s64 a = static_cast<s32>(rGPR[inst.RA]);
+  const s64 b = static_cast<s32>(rGPR[inst.RB]);
+  const u32 d = static_cast<u32>((a * b) >> 32);
 
   rGPR[inst.RD] = d;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(d);
 }
 
 void Interpreter::mulhwux(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  u32 d = (u32)(((u64)a * (u64)b) >> 32);
+  const u64 a = rGPR[inst.RA];
+  const u64 b = rGPR[inst.RB];
+  const u32 d = static_cast<u32>((a * b) >> 32);
+
   rGPR[inst.RD] = d;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(d);
 }
 
 void Interpreter::mullwx(UGeckoInstruction inst)
