@@ -100,6 +100,8 @@ void CodeViewWidget::Update()
   if (Core::GetState() != Core::State::Paused && PowerPC::debug_interface.IsBreakpoint(pc))
     Core::SetState(Core::State::Paused);
 
+  const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
+
   for (int i = 0; i < rowCount(); i++)
   {
     u32 addr = m_address - ((rowCount() / 2) * 4) + i * 4;
@@ -123,15 +125,14 @@ void CodeViewWidget::Update()
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setData(Qt::UserRole, addr);
 
-      if (color != 0xFFFFFF)
-      {
-        item->setForeground(Qt::black);
-        item->setBackground(QColor(color));
-      }
       if (addr == pc && item != bp_item)
       {
-        item->setBackground(Qt::green);
-        item->setForeground(Qt::black);
+        item->setBackground(QColor(Qt::green));
+        item->setForeground(QColor(Qt::black));
+      }
+      else if (color != 0xFFFFFF)
+      {
+        item->setBackground(dark_theme ? QColor(color).darker(240) : QColor(color));
       }
     }
 
@@ -151,7 +152,7 @@ void CodeViewWidget::Update()
     }
 
     if (ins == "blr")
-      ins_item->setForeground(Qt::darkGreen);
+      ins_item->setForeground(dark_theme ? QColor(0xa0FFa0) : Qt::darkGreen);
 
     if (PowerPC::debug_interface.IsBreakpoint(addr))
     {
