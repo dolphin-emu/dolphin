@@ -26,9 +26,7 @@ CEXIETHERNET::CEXIETHERNET()
 {
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
   mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
-
   mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
-  mRecvBufferLength = 0;
 
   MXHardReset();
 
@@ -48,15 +46,6 @@ CEXIETHERNET::CEXIETHERNET()
 
   // HACK: .. fully established 100BASE-T link
   mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;
-
-#if defined(_WIN32)
-  mHAdapter = INVALID_HANDLE_VALUE;
-  memset(&mReadOverlapped, 0, sizeof(mReadOverlapped));
-  memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
-  mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__)
-  fd = -1;
-#endif
 }
 
 CEXIETHERNET::~CEXIETHERNET()
