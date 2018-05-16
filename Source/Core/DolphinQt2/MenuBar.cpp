@@ -666,7 +666,7 @@ void MenuBar::AddMovieMenu()
   auto* input_display = movie_menu->addAction(tr("Show Input Display"));
   input_display->setCheckable(true);
   input_display->setChecked(SConfig::GetInstance().m_ShowInputDisplay);
-  connect(frame_counter, &QAction::toggled,
+  connect(input_display, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowInputDisplay = value; });
 
   auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
