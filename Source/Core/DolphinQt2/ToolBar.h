@@ -46,10 +46,10 @@ private:
 
   void MakeActions();
   void UpdateIcons();
+  void UpdatePausePlayButtonState(bool playing_state);
 
   QAction* m_open_action;
-  QAction* m_play_action;
-  QAction* m_pause_action;
+  QAction* m_pause_play_action;
   QAction* m_stop_action;
   QAction* m_fullscreen_action;
   QAction* m_screenshot_action;
