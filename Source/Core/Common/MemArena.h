@@ -12,11 +12,12 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
 // Multiple views can mirror the same section of the block, which makes it very convenient for
 // emulating
 // memory mirrors.
-
 class MemArena
 {
 public:
@@ -35,3 +36,5 @@ private:
   int fd;
 #endif
 };
+
+}  // namespace Common
