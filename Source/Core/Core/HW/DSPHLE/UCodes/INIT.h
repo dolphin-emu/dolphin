@@ -17,7 +17,7 @@ class INITUCode : public UCodeInterface
 {
 public:
   INITUCode(DSPHLE* dsphle, u32 crc);
-  virtual ~INITUCode();
+  ~INITUCode() override;
 
   void Initialize() override;
   void HandleMail(u32 mail) override;
