@@ -524,6 +524,7 @@
     <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
+    <ClInclude Include="PowerPC\MMU.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
     <ClInclude Include="PowerPC\PPCAnalyst.h" />
     <ClInclude Include="PowerPC\PPCCache.h" />

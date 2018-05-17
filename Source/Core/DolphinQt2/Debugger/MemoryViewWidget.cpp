@@ -10,10 +10,13 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QScrollBar>
+
+#include <cctype>
 #include <cmath>
 
 #include "Core/Core.h"
 #include "Core/PowerPC/BreakPoints.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt2/QtUtils/ActionHelper.h"

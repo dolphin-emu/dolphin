@@ -10,7 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 
 // Global declarations
 class PointerWrap;

@@ -12,8 +12,8 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 
 void RSOHeaderView::Load(u32 address)
 {

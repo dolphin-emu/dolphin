@@ -1305,6 +1305,9 @@
     <ClInclude Include="PowerPC\JitInterface.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\MMU.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\PowerPC.h">
       <Filter>PowerPC</Filter>
     </ClInclude>

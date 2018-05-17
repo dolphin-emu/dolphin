@@ -13,6 +13,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 /*

@@ -4,11 +4,12 @@
 
 #include "Core/HLE/HLE_Misc.h"
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace HLE_Misc
