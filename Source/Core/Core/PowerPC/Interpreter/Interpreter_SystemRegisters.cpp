@@ -447,7 +447,7 @@ void Interpreter::crxor(UGeckoInstruction inst)
 
 void Interpreter::mcrf(UGeckoInstruction inst)
 {
-  int cr_f = PowerPC::GetCRField(inst.CRFS);
+  const u32 cr_f = PowerPC::GetCRField(inst.CRFS);
   PowerPC::SetCRField(inst.CRFD, cr_f);
 }
 

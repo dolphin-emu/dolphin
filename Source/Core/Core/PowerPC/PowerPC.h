@@ -347,14 +347,14 @@ extern const std::array<u64, 16> m_crTable;
 // Warning: these CR operations are fairly slow since they need to convert from
 // PowerPC format (4 bit) to our internal 64 bit format. See the definition of
 // ppcState.cr_val for more explanations.
-inline void SetCRField(int cr_field, int value)
+inline void SetCRField(u32 cr_field, u32 value)
 {
   PowerPC::ppcState.cr_val[cr_field] = m_crTable[value];
 }
 
-inline u32 GetCRField(int cr_field)
+inline u32 GetCRField(u32 cr_field)
 {
-  u64 cr_val = PowerPC::ppcState.cr_val[cr_field];
+  const u64 cr_val = PowerPC::ppcState.cr_val[cr_field];
   u32 ppc_cr = 0;
 
   // SO
@@ -362,19 +362,19 @@ inline u32 GetCRField(int cr_field)
   // EQ
   ppc_cr |= ((cr_val & 0xFFFFFFFF) == 0) << 1;
   // GT
-  ppc_cr |= ((s64)cr_val > 0) << 2;
+  ppc_cr |= (static_cast<s64>(cr_val) > 0) << 2;
   // LT
   ppc_cr |= !!(cr_val & (1ull << 62)) << 3;
 
   return ppc_cr;
 }
 
-inline u32 GetCRBit(int bit)
+inline u32 GetCRBit(u32 bit)
 {
   return (GetCRField(bit >> 2) >> (3 - (bit & 3))) & 1;
 }
 
-inline void SetCRBit(int bit, int value)
+inline void SetCRBit(u32 bit, u32 value)
 {
   if (value & 1)
     SetCRField(bit >> 2, GetCRField(bit >> 2) | (0x8 >> (bit & 3)));
@@ -393,12 +393,12 @@ inline u32 GetCR()
   return PowerPC::CompactCR();
 }
 
-inline void SetCarry(int ca)
+inline void SetCarry(u32 ca)
 {
   PowerPC::ppcState.xer_ca = ca;
 }
 
-inline int GetCarry()
+inline u32 GetCarry()
 {
   return PowerPC::ppcState.xer_ca;
 }

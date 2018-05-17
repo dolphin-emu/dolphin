@@ -47,7 +47,7 @@ static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
 u32 CompactCR()
 {
   u32 new_cr = 0;
-  for (int i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
     new_cr |= GetCRField(i) << (28 - i * 4);
   }
@@ -56,7 +56,7 @@ u32 CompactCR()
 
 void ExpandCR(u32 cr)
 {
-  for (int i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
     SetCRField(i, (cr >> (28 - i * 4)) & 0xF);
   }
