@@ -50,7 +50,6 @@ public:
   void SetUserStylesEnabled(bool enabled);
   bool AreUserStylesEnabled() const;
 
-  bool IsInDevelopmentWarningEnabled() const;
   bool IsLogVisible() const;
   void SetLogVisible(bool visible);
   bool IsLogConfigVisible() const;
