@@ -45,6 +45,8 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
     Update();
   });
 
+  connect(Host::GetInstance(), &Host::NotifyMapLoaded, this, &CodeWidget::UpdateSymbols);
+
   connect(&Settings::Instance(), &Settings::DebugModeToggled,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
