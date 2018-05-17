@@ -515,7 +515,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   glViewport(0, 0, destination_texture->GetConfig().width, destination_texture->GetConfig().height);
 
   auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
-                                                      scale_by_half);
+                                                      scale_by_half,
+                                                      NeedsCopyFilterInShader(filter_coefficients));
 
   auto it = m_efb_copy_programs.emplace(uid, EFBCopyShader());
   EFBCopyShader& shader = it.first->second;

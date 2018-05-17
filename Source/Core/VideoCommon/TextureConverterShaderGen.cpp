@@ -15,7 +15,7 @@
 namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half)
+                         bool scale_by_half, bool copy_filter)
 {
   TCShaderUid out;
   UidData* uid_data = out.GetUidData<UidData>();
@@ -26,6 +26,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
   uid_data->is_depth_copy = is_depth_copy;
   uid_data->is_intensity = is_intensity;
   uid_data->scale_by_half = scale_by_half;
+  uid_data->copy_filter = copy_filter;
 
   return out;
 }
@@ -91,12 +92,21 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 
   // The copy filter applies to both color and depth copies. This has been verified on hardware.
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
-  out.Write("  float4 prev_row = SampleEFB(uv0, -1.0f);\n"
-            "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
-            "  float4 next_row = SampleEFB(uv0, 1.0f);\n"
-            "  float4 texcol = float4(prev_row.rgb * filter_coefficients[0] +\n"
-            "                         current_row.rgb * filter_coefficients[1] +\n"
-            "                         next_row.rgb * filter_coefficients[2], current_row.a);\n");
+  if (uid_data->copy_filter)
+  {
+    out.Write("  float4 prev_row = SampleEFB(uv0, -1.0f);\n"
+              "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
+              "  float4 next_row = SampleEFB(uv0, 1.0f);\n"
+              "  float4 texcol = float4(prev_row.rgb * filter_coefficients[0] +\n"
+              "                         current_row.rgb * filter_coefficients[1] +\n"
+              "                         next_row.rgb * filter_coefficients[2], current_row.a);\n");
+  }
+  else
+  {
+    out.Write(
+        "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
+        "  float4 texcol = float4(current_row.rgb * filter_coefficients[1], current_row.a);\n");
+  }
 
   if (uid_data->is_depth_copy)
   {

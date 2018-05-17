@@ -47,21 +47,23 @@ struct TextureAndTLUTFormat
 struct EFBCopyParams
 {
   EFBCopyParams(PEControl::PixelFormat efb_format_, EFBCopyFormat copy_format_, bool depth_,
-                bool yuv_)
-      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_)
+                bool yuv_, bool copy_filter_)
+      : efb_format(efb_format_), copy_format(copy_format_), depth(depth_), yuv(yuv_),
+        copy_filter(copy_filter_)
   {
   }
 
   bool operator<(const EFBCopyParams& rhs) const
   {
-    return std::tie(efb_format, copy_format, depth, yuv) <
-           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv);
+    return std::tie(efb_format, copy_format, depth, yuv, copy_filter) <
+           std::tie(rhs.efb_format, rhs.copy_format, rhs.depth, rhs.yuv, rhs.copy_filter);
   }
 
   PEControl::PixelFormat efb_format;
   EFBCopyFormat copy_format;
   bool depth;
   bool yuv;
+  bool copy_filter;
 };
 
 struct TextureLookupInformation
@@ -106,6 +108,7 @@ private:
   static const int FRAMECOUNT_INVALID = 0;
 
 public:
+  // Reduced version of the full coefficient array, reduced to a single value for each row.
   using CopyFilterCoefficientArray = std::array<u32, 3>;
 
   struct TCacheEntry
@@ -278,6 +281,9 @@ public:
 protected:
   TextureCacheBase();
 
+  // Returns false if the top/bottom row coefficients are zero.
+  bool NeedsCopyFilterInShader(const CopyFilterCoefficientArray& coefficients) const;
+
   alignas(16) u8* temp = nullptr;
   size_t temp_size = 0;
 
@@ -329,9 +335,9 @@ private:
 
   // Precomputing the coefficients for the previous, current, and next lines for the copy filter.
   CopyFilterCoefficientArray
-  GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
+  GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients) const;
   CopyFilterCoefficientArray
-  GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients);
+  GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients) const;
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;

@@ -180,21 +180,33 @@ static void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType A
   // The filter is only applied to the RGB channels, the alpha channel is left intact.
   WRITE(p, "float4 SampleEFB(float2 uv, float2 pixel_size, int xoffset)\n");
   WRITE(p, "{\n");
-  WRITE(p, "  float4 prev_row = ");
-  WriteSampleOp(-1);
-  WRITE(p, ";\n");
-  WRITE(p, "  float4 current_row = ");
-  WriteSampleOp(0);
-  WRITE(p, ";\n");
-  WRITE(p, "  float4 next_row = ");
-  WriteSampleOp(1);
-  WRITE(p, ";\n");
-  WRITE(p,
+  if (params.copy_filter)
+  {
+    WRITE(p, "  float4 prev_row = ");
+    WriteSampleOp(-1);
+    WRITE(p, ";\n");
+    WRITE(p, "  float4 current_row = ");
+    WriteSampleOp(0);
+    WRITE(p, ";\n");
+    WRITE(p, "  float4 next_row = ");
+    WriteSampleOp(1);
+    WRITE(p, ";\n");
+    WRITE(
+        p,
         "  float3 col = float3(clamp((int3(prev_row.rgb * 255.0) * filter_coefficients[0] +\n"
         "                             int3(current_row.rgb * 255.0) * filter_coefficients[1] +\n"
         "                             int3(next_row.rgb * 255.0) * filter_coefficients[2]) >> 6,\n"
         "                            int3(0, 0, 0), int3(255, 255, 255))) / 255.0;\n");
-  WRITE(p, "  return float4(col, current_row.a);\n");
+    WRITE(p, "  return float4(col, current_row.a);\n");
+  }
+  else
+  {
+    WRITE(p, "  float4 current_row = ");
+    WriteSampleOp(0);
+    WRITE(p, ";\n");
+    WRITE(p, "  return float4(clamp(int3(current_row.rgb * 255.0) * filter_coefficients[1], "
+             "int3(0, 0, 0), int3(255, 255, 255)), current_row.a);\n");
+  }
   WRITE(p, "}\n");
 }
 

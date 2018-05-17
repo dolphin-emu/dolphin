@@ -1501,8 +1501,8 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
   }
 }
 
-TextureCacheBase::CopyFilterCoefficientArray
-TextureCacheBase::GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients)
+TextureCacheBase::CopyFilterCoefficientArray TextureCacheBase::GetRAMCopyFilterCoefficients(
+    const CopyFilterCoefficients::Values& coefficients) const
 {
   // To simplify the backend, we precalculate the three coefficients in common. Coefficients 0, 1
   // are for the row above, 2, 3, 4 are for the current pixel, and 5, 6 are for the row below.
@@ -1512,8 +1512,8 @@ TextureCacheBase::GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Val
           static_cast<u32>(coefficients[5]) + static_cast<u32>(coefficients[6])};
 }
 
-TextureCacheBase::CopyFilterCoefficientArray
-TextureCacheBase::GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients)
+TextureCacheBase::CopyFilterCoefficientArray TextureCacheBase::GetVRAMCopyFilterCoefficients(
+    const CopyFilterCoefficients::Values& coefficients) const
 {
   // If the user disables the copy filter, only apply it to the VRAM copy.
   // This way games which are sensitive to changes to the RAM copy of the XFB will be unaffected.
@@ -1528,6 +1528,12 @@ TextureCacheBase::GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Va
   res[0] = 0;
   res[2] = 0;
   return res;
+}
+
+bool TextureCacheBase::NeedsCopyFilterInShader(const CopyFilterCoefficientArray& coefficients) const
+{
+  // If the top/bottom coefficients are zero, no point sampling/blending from these rows.
+  return coefficients[0] != 0 || coefficients[2] != 0;
 }
 
 void TextureCacheBase::CopyRenderTargetToTexture(
@@ -1652,11 +1658,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(
 
   if (copy_to_ram)
   {
+    CopyFilterCoefficientArray coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
     PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity);
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
+                         NeedsCopyFilterInShader(coefficients));
     CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf,
-            y_scale, gamma, clamp_top, clamp_bottom,
-            GetRAMCopyFilterCoefficients(filter_coefficients));
+            y_scale, gamma, clamp_top, clamp_bottom, coefficients);
   }
   else
   {
