@@ -20,7 +20,7 @@ class PadMappingDialog : public QDialog
 public:
   explicit PadMappingDialog(QWidget* widget);
 
-  int exec();
+  int exec() override;
 
   PadMappingArray GetGCPadArray();
   PadMappingArray GetWiimoteArray();
