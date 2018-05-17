@@ -513,7 +513,6 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
   if (Core::GetState() == Core::State::Paused)
   {
     Core::SetState(Core::State::Running);
-    EnableScreenSaver(false);
   }
   else
   {
@@ -542,7 +541,6 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
 void MainWindow::Pause()
 {
   Core::SetState(Core::State::Paused);
-  EnableScreenSaver(true);
 }
 
 void MainWindow::TogglePause()
@@ -561,6 +559,7 @@ void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
   HideRenderWidget();
+  EnableScreenSaver(true);
 
   SetFullScreenResolution(false);
 
@@ -639,7 +638,6 @@ bool MainWindow::RequestStop()
 void MainWindow::ForceStop()
 {
   Core::Stop();
-  EnableScreenSaver(true);
 }
 
 void MainWindow::Reset()
