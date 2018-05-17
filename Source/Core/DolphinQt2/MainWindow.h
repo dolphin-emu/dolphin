@@ -83,6 +83,7 @@ private:
   void StateSaveSlot();
   void StateLoadSlotAt(int slot);
   void StateSaveSlotAt(int slot);
+  void StateLoadLastSavedAt(int slot);
   void StateLoadUndo();
   void StateSaveUndo();
   void StateSaveOldest();

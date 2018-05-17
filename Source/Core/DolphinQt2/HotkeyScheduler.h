@@ -33,6 +33,12 @@ signals:
   void SetStateSlotHotkey(int slot);
   void StateLoadSlotHotkey();
   void StateSaveSlotHotkey();
+  void StateLoadSlot(int state);
+  void StateSaveSlot(int state);
+  void StateLoadLastSaved(int state);
+  void StateSaveOldest();
+  void StateLoadUndo();
+  void StateSaveUndo();
   void StartRecording();
   void ExportRecording();
   void ToggleReadOnlyMode();
