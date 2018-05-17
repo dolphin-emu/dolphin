@@ -210,7 +210,7 @@ public:
   void DMARead(u32 addr, u32 size) override;
   void DoState(PointerWrap& p) override;
 
-  // private:
+private:
   struct
   {
     enum
@@ -227,7 +227,7 @@ public:
 
     u16 address;
     bool valid;
-  } transfer;
+  } transfer = {};
 
   enum
   {
@@ -251,28 +251,14 @@ public:
       TRANSFER = 0x80
     };
 
-    u8 revision_id;
-    u8 interrupt_mask;
-    u8 interrupt;
-    u16 device_id;
-    u8 acstart;
-    u32 hash_challenge;
-    u32 hash_response;
-    u8 hash_status;
-
-    EXIStatus()
-    {
-      device_id = 0xd107;
-      revision_id = 0;  // 0xf0;
-      acstart = 0x4e;
-
-      interrupt_mask = 0;
-      interrupt = 0;
-      hash_challenge = 0;
-      hash_response = 0;
-      hash_status = 0;
-    }
-
+    u8 revision_id = 0;  // 0xf0
+    u8 interrupt_mask = 0;
+    u8 interrupt = 0;
+    u16 device_id = 0xD107;
+    u8 acstart = 0x4E;
+    u32 hash_challenge = 0;
+    u32 hash_response = 0;
+    u8 hash_status = 0;
   } exi_status;
 
   struct Descriptor
@@ -312,6 +298,7 @@ public:
   std::unique_ptr<u8[]> tx_fifo;
 
   // TAP interface
+  static void ReadThreadHandler(CEXIETHERNET* self);
   bool Activate();
   void Deactivate();
   bool IsActivated();
@@ -321,16 +308,16 @@ public:
   void RecvStop();
 
   std::unique_ptr<u8[]> mRecvBuffer;
-  u32 mRecvBufferLength;
+  u32 mRecvBufferLength = 0;
 
 #if defined(_WIN32)
-  HANDLE mHAdapter;
-  OVERLAPPED mReadOverlapped;
-  OVERLAPPED mWriteOverlapped;
+  HANDLE mHAdapter = INVALID_HANDLE_VALUE;
+  OVERLAPPED mReadOverlapped = {};
+  OVERLAPPED mWriteOverlapped = {};
   std::vector<u8> mWriteBuffer;
-  bool mWritePending;
+  bool mWritePending = false;
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-  int fd;
+  int fd = -1;
 #endif
 
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
