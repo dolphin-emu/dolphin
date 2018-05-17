@@ -276,12 +276,34 @@ void Interpreter::fselx(UGeckoInstruction inst)
 // PS1 is said to be undefined
 void Interpreter::frspx(UGeckoInstruction inst)  // round to single
 {
-  double b = rPS0(inst.FB);
-  double rounded = ForceSingle(b);
-  SetFI(b != rounded);
-  FPSCR.FR = fabs(rounded) > fabs(b);
-  PowerPC::UpdateFPRF(rounded);
-  rPS0(inst.FD) = rPS1(inst.FD) = rounded;
+  const double b = rPS0(inst.FB);
+  const double rounded = ForceSingle(b);
+
+  if (std::isnan(b))
+  {
+    const bool is_snan = MathUtil::IsSNAN(b);
+
+    if (is_snan)
+      SetFPException(FPSCR_VXSNAN);
+
+    if (!is_snan || FPSCR.VE == 0)
+    {
+      rPS0(inst.FD) = rounded;
+      rPS1(inst.FD) = rounded;
+      PowerPC::UpdateFPRF(b);
+    }
+
+    SetFI(0);
+    FPSCR.FR = 0;
+  }
+  else
+  {
+    SetFI(b != rounded);
+    FPSCR.FR = fabs(rounded) > fabs(b);
+    PowerPC::UpdateFPRF(rounded);
+    rPS0(inst.FD) = rounded;
+    rPS1(inst.FD) = rounded;
+  }
 
   if (inst.Rc)
     Helper_UpdateCR1();
