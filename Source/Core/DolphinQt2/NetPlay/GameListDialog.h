@@ -17,8 +17,8 @@ class GameListDialog : public QDialog
 public:
   explicit GameListDialog(QWidget* parent);
 
-  int exec();
-  const QString& GetSelectedUniqueID();
+  int exec() override;
+  const QString& GetSelectedUniqueID() const;
 
 private:
   void CreateWidgets();

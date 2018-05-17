@@ -22,7 +22,7 @@ class NewBreakpointDialog : public QDialog
 public:
   explicit NewBreakpointDialog(BreakpointWidget* parent);
 
-  void accept();
+  void accept() override;
 
 private:
   void CreateWidgets();

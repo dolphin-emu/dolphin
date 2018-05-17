@@ -13,7 +13,7 @@ class AspectRatioWidget : public QWidget
   Q_OBJECT
 public:
   AspectRatioWidget(QWidget* widget, float width, float height, QWidget* parent = nullptr);
-  void resizeEvent(QResizeEvent* event);
+  void resizeEvent(QResizeEvent* event) override;
 
 private:
   QBoxLayout* m_layout;
