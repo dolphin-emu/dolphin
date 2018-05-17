@@ -121,6 +121,16 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
   emit Host::GetInstance()->UpdateProgressDialog(QString::fromUtf8(caption), position, total);
 }
 
+void Host::RequestNotifyMapLoaded()
+{
+  QueueOnObject(QApplication::instance(), [this] { emit NotifyMapLoaded(); });
+}
+
+void Host_NotifyMapLoaded()
+{
+  Host::GetInstance()->RequestNotifyMapLoaded();
+}
+
 // We ignore these, and their purpose should be questioned individually.
 // In particular, RequestRenderWindowSize, RequestFullscreen, and
 // UpdateMainFrame should almost certainly be removed.
@@ -136,9 +146,6 @@ void Host_RequestRenderWindowSize(int w, int h)
 bool Host_UINeedsControllerState()
 {
   return Settings::Instance().IsControllerStateNeeded();
-}
-void Host_NotifyMapLoaded()
-{
 }
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {

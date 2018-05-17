@@ -27,6 +27,7 @@ public:
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
   void ResizeSurface(int new_width, int new_height);
+  void RequestNotifyMapLoaded();
 
 signals:
   void RequestTitle(const QString& title);
@@ -34,6 +35,7 @@ signals:
   void RequestRenderSize(int w, int h);
   void UpdateProgressDialog(QString label, int position, int maximum);
   void UpdateDisasmDialog();
+  void NotifyMapLoaded();
 
 private:
   Host();
