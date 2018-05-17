@@ -281,7 +281,7 @@ void Interpreter::frspx(UGeckoInstruction inst)  // round to single
 
   if (std::isnan(b))
   {
-    const bool is_snan = MathUtil::IsSNAN(b);
+    const bool is_snan = Common::IsSNAN(b);
 
     if (is_snan)
       SetFPException(FPSCR_VXSNAN);
