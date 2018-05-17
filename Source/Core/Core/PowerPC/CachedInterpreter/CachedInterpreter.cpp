@@ -171,6 +171,21 @@ static bool CheckDSI(u32 data)
   return false;
 }
 
+bool CachedInterpreter::HandleFunctionHooking(u32 address)
+{
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 function, HLE::HookType type) {
+    m_code.emplace_back(WritePC, address);
+    m_code.emplace_back(Interpreter::HLEFunction, function);
+
+    if (type != HLE::HookType::Replace)
+      return false;
+
+    m_code.emplace_back(EndBlock, js.downcountAmount);
+    m_code.emplace_back();
+    return true;
+  });
+}
+
 void CachedInterpreter::Jit(u32 address)
 {
   if (m_code.size() >= CODE_SIZE / sizeof(Instruction) - 0x1000 ||
@@ -208,26 +223,8 @@ void CachedInterpreter::Jit(u32 address)
 
     js.downcountAmount += op.opinfo->numCycles;
 
-    u32 function = HLE::GetFirstFunctionIndex(op.address);
-    if (function != 0)
-    {
-      HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
-      if (type == HLE::HookType::Start || type == HLE::HookType::Replace)
-      {
-        HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
-        if (HLE::IsEnabled(flags))
-        {
-          m_code.emplace_back(WritePC, op.address);
-          m_code.emplace_back(Interpreter::HLEFunction, function);
-          if (type == HLE::HookType::Replace)
-          {
-            m_code.emplace_back(EndBlock, js.downcountAmount);
-            m_code.emplace_back();
-            break;
-          }
-        }
-      }
-    }
+    if (HandleFunctionHooking(op.address))
+      break;
 
     if (!op.skip)
     {

@@ -806,26 +806,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       SetJumpTarget(noExtIntEnable);
     }
 
-    u32 function = HLE::GetFirstFunctionIndex(op.address);
-    if (function != 0)
-    {
-      HLE::HookType type = HLE::GetFunctionTypeByIndex(function);
-      if (type == HLE::HookType::Start || type == HLE::HookType::Replace)
-      {
-        HLE::HookFlag flags = HLE::GetFunctionFlagsByIndex(function);
-        if (HLE::IsEnabled(flags))
-        {
-          HLEFunction(function);
-          if (type == HLE::HookType::Replace)
-          {
-            MOV(32, R(RSCRATCH), PPCSTATE(npc));
-            js.downcountAmount += js.st.numCycles;
-            WriteExitDestInRSCRATCH();
-            break;
-          }
-        }
-      }
-    }
+    if (HandleFunctionHooking(op.address))
+      break;
 
     if (!op.skip)
     {
@@ -1041,4 +1023,19 @@ void Jit64::IntializeSpeculativeConstants()
       gpr.SetImmediate32(i, compileTimeValue, false);
     }
   }
+}
+
+bool Jit64::HandleFunctionHooking(u32 address)
+{
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 function, HLE::HookType type) {
+    HLEFunction(function);
+
+    if (type != HLE::HookType::Replace)
+      return false;
+
+    MOV(32, R(RSCRATCH), PPCSTATE(npc));
+    js.downcountAmount += js.st.numCycles;
+    WriteExitDestInRSCRATCH();
+    return true;
+  });
 }
