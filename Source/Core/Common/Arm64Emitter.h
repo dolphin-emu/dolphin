@@ -1126,7 +1126,7 @@ private:
   void UXTL(u8 src_size, ARM64Reg Rd, ARM64Reg Rn, bool upper);
 };
 
-class ARM64CodeBlock : public CodeBlock<ARM64XEmitter>
+class ARM64CodeBlock : public Common::CodeBlock<ARM64XEmitter>
 {
 private:
   void PoisonMemory() override
