@@ -417,29 +417,25 @@ u32 IOSC::GetDeviceId() const
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
-static Certificate MakeBlankSigECCert(const std::string& signer, const std::string& name,
-                                      const u8* private_key, u32 key_id)
+static CertECC MakeBlankEccCert(const std::string& issuer, const std::string& name,
+                                const u8* private_key, u32 key_id)
 {
-  Certificate cert_out{};
-  const u32 type = Common::swap32(static_cast<u32>(SignatureType::ECC));
-  std::memcpy(cert_out.data(), &type, sizeof(type));
-  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0x80, signer.c_str(), 0x40);
-  const u32 two = Common::swap32(2);
-  std::memcpy(cert_out.data() + 0xc0, &two, sizeof(two));
-  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name.c_str(), 0x40);
-  const u32 swapped_key_id = Common::swap32(key_id);
-  std::memcpy(cert_out.data() + 0x104, &swapped_key_id, sizeof(swapped_key_id));
-  const std::array<u8, 60> public_key = Common::ec::PrivToPub(private_key);
-  std::copy(public_key.cbegin(), public_key.cend(), cert_out.begin() + 0x108);
-  return cert_out;
+  CertECC cert{};
+  cert.signature.type = SignatureType(Common::swap32(u32(SignatureType::ECC)));
+  std::strncpy(cert.signature.issuer, issuer.c_str(), 0x40);
+  cert.header.public_key_type = PublicKeyType(Common::swap32(u32(PublicKeyType::ECC)));
+  std::strncpy(cert.header.name, name.c_str(), 0x40);
+  cert.header.id = Common::swap32(key_id);
+  cert.public_key = Common::ec::PrivToPub(private_key);
+  return cert;
 }
 
-Certificate IOSC::GetDeviceCertificate() const
+CertECC IOSC::GetDeviceCertificate() const
 {
   const std::string name = StringFromFormat("NG%08x", GetDeviceId());
-  auto cert = MakeBlankSigECCert(StringFromFormat("Root-CA%08x-MS%08x", m_ca_id, m_ms_id), name,
-                                 m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
-  std::copy(m_console_signature.begin(), m_console_signature.end(), cert.begin() + 4);
+  auto cert = MakeBlankEccCert(StringFromFormat("Root-CA%08x-MS%08x", m_ca_id, m_ms_id), name,
+                               m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
+  cert.signature.sig = m_console_signature;
   return cert;
 }
 
@@ -456,15 +452,16 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   const std::string signer =
       StringFromFormat("Root-CA%08x-MS%08x-NG%08x", m_ca_id, m_ms_id, GetDeviceId());
   const std::string name = StringFromFormat("AP%016" PRIx64, title_id);
-  const auto cert = MakeBlankSigECCert(signer, name, ap_priv.data(), 0);
-  std::copy(cert.begin(), cert.end(), ap_cert_out);
+  CertECC cert = MakeBlankEccCert(signer, name, ap_priv.data(), 0);
+  // Sign the AP cert.
+  const size_t skip = offsetof(CertECC, signature.issuer);
+  mbedtls_sha1(reinterpret_cast<const u8*>(&cert) + skip, sizeof(cert) - skip, hash.data());
+  cert.signature.sig = Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), hash.data());
+  std::memcpy(ap_cert_out, &cert, sizeof(cert));
 
-  mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash.data());
-  auto signature = Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), hash.data());
-  std::copy(signature.cbegin(), signature.cend(), ap_cert_out + 4);
-
+  // Sign the data.
   mbedtls_sha1(data, data_size, hash.data());
-  signature = Common::ec::Sign(ap_priv.data(), hash.data());
+  const auto signature = Common::ec::Sign(ap_priv.data(), hash.data());
   std::copy(signature.cbegin(), signature.cend(), sig_out);
 }
 

@@ -37,6 +37,8 @@ enum class PublicKeyType : u32
   ECC = 2,
 };
 
+using ECCSignature = std::array<u8, 60>;
+
 #pragma pack(push, 4)
 struct SignatureRSA4096
 {
@@ -59,7 +61,7 @@ static_assert(sizeof(SignatureRSA2048) == 0x180, "Wrong size for SignatureRSA204
 struct SignatureECC
 {
   SignatureType type;
-  u8 sig[0x3c];
+  ECCSignature sig;
   u8 fill[0x40];
   char issuer[0x40];
 };
@@ -116,9 +118,6 @@ struct CertECC
 };
 static_assert(sizeof(CertECC) == 0x180, "Wrong size for CertECC");
 #pragma pack(pop)
-
-using ECCSignature = std::array<u8, 60>;
-using Certificate = std::array<u8, 0x180>;
 
 namespace HLE
 {
@@ -223,7 +222,7 @@ public:
 
   bool IsUsingDefaultId() const;
   u32 GetDeviceId() const;
-  Certificate GetDeviceCertificate() const;
+  CertECC GetDeviceCertificate() const;
   void Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const;
 
   void DoState(PointerWrap& p);

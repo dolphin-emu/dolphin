@@ -96,8 +96,8 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
 
-  const auto cert = m_ios.GetIOSC().GetDeviceCertificate();
-  Memory::CopyToEmu(request.io_vectors[0].address, cert.data(), cert.size());
+  const IOS::CertECC cert = m_ios.GetIOSC().GetDeviceCertificate();
+  Memory::CopyToEmu(request.io_vectors[0].address, &cert, sizeof(cert));
   return GetDefaultReply(IPC_SUCCESS);
 }
 
