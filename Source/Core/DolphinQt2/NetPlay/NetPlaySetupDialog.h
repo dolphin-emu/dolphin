@@ -22,7 +22,7 @@ class NetPlaySetupDialog : public QDialog
 {
   Q_OBJECT
 public:
-  NetPlaySetupDialog(QWidget* parent);
+  explicit NetPlaySetupDialog(QWidget* parent);
 
   void accept() override;
   void show();

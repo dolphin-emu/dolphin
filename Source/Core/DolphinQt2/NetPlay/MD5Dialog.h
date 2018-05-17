@@ -17,7 +17,7 @@ class MD5Dialog : public QDialog
 {
   Q_OBJECT
 public:
-  MD5Dialog(QWidget* parent);
+  explicit MD5Dialog(QWidget* parent);
 
   void show(const QString& title);
   void SetProgress(int pid, int progress);
