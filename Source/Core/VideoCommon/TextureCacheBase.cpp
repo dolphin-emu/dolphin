@@ -500,6 +500,9 @@ public:
     if (levels.size() < 2)
       return false;
 
+    if (!g_ActiveConfig.bArbitraryMipmapDetection)
+      return false;
+
     // This is the average per-pixel, per-channel difference in percent between what we
     // expect a normal blurred mipmap to look like and what we actually received
     // 4.5% was chosen because it's just below the lowest clearly-arbitrary texture
