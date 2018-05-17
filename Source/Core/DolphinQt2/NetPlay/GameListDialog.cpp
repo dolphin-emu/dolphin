@@ -59,7 +59,7 @@ void GameListDialog::PopulateGameList()
   m_game_list->sortItems();
 }
 
-const QString& GameListDialog::GetSelectedUniqueID()
+const QString& GameListDialog::GetSelectedUniqueID() const
 {
   return m_game_id;
 }
