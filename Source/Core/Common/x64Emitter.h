@@ -1155,7 +1155,7 @@ public:
   }
 };  // class XEmitter
 
-class X64CodeBlock : public CodeBlock<XEmitter>
+class X64CodeBlock : public Common::CodeBlock<XEmitter>
 {
 private:
   void PoisonMemory() override
