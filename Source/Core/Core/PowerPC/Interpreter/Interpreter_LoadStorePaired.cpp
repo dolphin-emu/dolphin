@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstring>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
@@ -180,20 +180,18 @@ void Interpreter::Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW)
   {
   case QUANTIZE_FLOAT:
   {
-    u64 integral_ps0;
-    std::memcpy(&integral_ps0, &ps0, sizeof(u64));
-
+    const u64 integral_ps0 = Common::BitCast<u64>(ps0);
     const u32 conv_ps0 = ConvertToSingleFTZ(integral_ps0);
+
     if (instW)
     {
       WriteUnpaired<u32>(conv_ps0, addr);
     }
     else
     {
-      u64 integral_ps1;
-      std::memcpy(&integral_ps1, &ps1, sizeof(double));
-
+      const u64 integral_ps1 = Common::BitCast<u64>(ps1);
       const u32 conv_ps1 = ConvertToSingleFTZ(integral_ps1);
+
       WritePair<u32>(conv_ps0, conv_ps1, addr);
     }
     break;
@@ -258,14 +256,14 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
     if (instW)
     {
       const u32 value = ReadUnpaired<u32>(addr);
-      std::memcpy(&ps0, &value, sizeof(float));
+      ps0 = Common::BitCast<float>(value);
       ps1 = 1.0f;
     }
     else
     {
       const std::pair<u32, u32> value = ReadPair<u32>(addr);
-      std::memcpy(&ps0, &value.first, sizeof(float));
-      std::memcpy(&ps1, &value.second, sizeof(float));
+      ps0 = Common::BitCast<float>(value.first);
+      ps1 = Common::BitCast<float>(value.second);
     }
     break;
 
