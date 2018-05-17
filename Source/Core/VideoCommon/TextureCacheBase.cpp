@@ -507,7 +507,7 @@ public:
     // expect a normal blurred mipmap to look like and what we actually received
     // 4.5% was chosen because it's just below the lowest clearly-arbitrary texture
     // I found in my tests, the background clouds in Mario Galaxy's Observatory lobby.
-    constexpr auto THRESHOLD_PERCENT = 4.5f;
+    const auto threshold = g_ActiveConfig.fArbitraryMipmapDetectionThreshold;
 
     auto* src = downsample_buffer;
     auto* dst = downsample_buffer + levels[1].shape.row_length * levels[1].shape.height * 4;
@@ -533,7 +533,7 @@ public:
     }
 
     auto all_levels = total_diff / (levels.size() - 1);
-    return all_levels > THRESHOLD_PERCENT;
+    return all_levels > threshold;
   }
 
 private:

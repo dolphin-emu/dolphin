@@ -109,6 +109,8 @@ const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER{
     {System::GFX, "Enhancements", "DisableCopyFilter"}, true};
 const ConfigInfo<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, true};
+const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
+    {System::GFX, "Enhancements", "ArbitraryMipmapDetectionThreshold"}, 4.5f};
 
 // Graphics.Stereoscopy
 
