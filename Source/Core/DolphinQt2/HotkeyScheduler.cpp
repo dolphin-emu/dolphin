@@ -446,25 +446,25 @@ void HotkeyScheduler::Run()
     for (u32 i = 0; i < State::NUM_STATES; i++)
     {
       if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
-        State::Load(i + 1);
+        emit StateLoadSlot(i + 1);
 
       if (IsHotkey(HK_SAVE_STATE_SLOT_1 + i))
-        State::Save(i + 1);
+        emit StateSaveSlot(i + 1);
 
       if (IsHotkey(HK_LOAD_LAST_STATE_1 + i))
-        State::LoadLastSaved(i + 1);
+        emit StateLoadLastSaved(i + 1);
 
       if (IsHotkey(HK_SELECT_STATE_SLOT_1 + i))
         emit SetStateSlotHotkey(i + 1);
     }
 
     if (IsHotkey(HK_SAVE_FIRST_STATE))
-      State::SaveFirstSaved();
+      emit StateSaveOldest();
 
     if (IsHotkey(HK_UNDO_LOAD_STATE))
-      State::UndoLoadState();
+      emit StateLoadUndo();
 
     if (IsHotkey(HK_UNDO_SAVE_STATE))
-      State::UndoSaveState();
+      emit StateSaveUndo();
   }
 }

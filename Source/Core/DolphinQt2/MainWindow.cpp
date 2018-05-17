@@ -364,6 +364,15 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::ScreenShotHotkey, this, &MainWindow::ScreenShot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::FullScreenHotkey, this, &MainWindow::FullScreen);
 
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadSlot, this, &MainWindow::StateLoadSlotAt);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveSlot, this, &MainWindow::StateSaveSlotAt);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadLastSaved, this,
+          &MainWindow::StateLoadLastSavedAt);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadUndo, this, &MainWindow::StateLoadUndo);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveUndo, this, &MainWindow::StateSaveUndo);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveOldest, this,
+          &MainWindow::StateSaveOldest);
+
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadSlotHotkey, this,
           &MainWindow::StateLoadSlot);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveSlotHotkey, this,
@@ -896,6 +905,11 @@ void MainWindow::StateSaveSlot()
 void MainWindow::StateLoadSlotAt(int slot)
 {
   State::Load(slot);
+}
+
+void MainWindow::StateLoadLastSavedAt(int slot)
+{
+  State::LoadLastSaved(slot);
 }
 
 void MainWindow::StateSaveSlotAt(int slot)
