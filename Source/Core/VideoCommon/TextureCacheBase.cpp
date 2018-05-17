@@ -608,13 +608,14 @@ private:
         const auto* row2 = ptr2;
         for (u32 j = 0; j < shape.width; ++j, row1 += 4, row2 += 4)
         {
+          int pixel_diff = 0;
           for (int channel = 0; channel < 4; channel++)
           {
-            const float diff =
-                std::abs(static_cast<float>(row1[channel]) - static_cast<float>(row2[channel]));
-            const float diff_squared = diff * diff;
-            average_diff += diff_squared;
+            const int diff = static_cast<int>(row1[channel]) - static_cast<int>(row2[channel]);
+            const int diff_squared = diff * diff;
+            pixel_diff += diff_squared;
           }
+          average_diff += pixel_diff;
         }
         ptr1 += shape.row_length;
         ptr2 += shape.row_length;
