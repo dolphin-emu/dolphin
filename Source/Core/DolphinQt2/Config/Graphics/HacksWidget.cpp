@@ -11,9 +11,12 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt2/Settings.h"
+
 #include "VideoCommon/VideoConfig.h"
 
 HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
@@ -25,6 +28,7 @@ HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
 }
 
 void HacksWidget::CreateWidgets()
@@ -62,7 +66,9 @@ void HacksWidget::CreateWidgets()
   auto* safe_label = new QLabel(tr("Safe"));
   safe_label->setAlignment(Qt::AlignRight);
 
-  texture_cache_layout->addWidget(new QLabel(tr("Accuracy:")), 0, 0);
+  m_accuracy_label = new QLabel(tr("Accuracy:"));
+
+  texture_cache_layout->addWidget(m_accuracy_label, 0, 0);
   texture_cache_layout->addWidget(safe_label, 0, 1);
   texture_cache_layout->addWidget(m_accuracy, 0, 2);
   texture_cache_layout->addWidget(new QLabel(tr("Fast")), 0, 3);
@@ -126,6 +132,7 @@ void HacksWidget::ConnectWidgets()
 
 void HacksWidget::LoadSettings()
 {
+  const bool old = m_accuracy->blockSignals(true);
   auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
 
   int slider_pos = 0;
@@ -147,6 +154,15 @@ void HacksWidget::LoadSettings()
   }
 
   m_accuracy->setValue(slider_pos);
+
+  QFont bf = m_accuracy_label->font();
+
+  bf.setBold(Config::GetActiveLayerForConfig(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES) !=
+             Config::LayerType::Base);
+
+  m_accuracy_label->setFont(bf);
+
+  m_accuracy->blockSignals(old);
 }
 
 void HacksWidget::SaveSettings()
