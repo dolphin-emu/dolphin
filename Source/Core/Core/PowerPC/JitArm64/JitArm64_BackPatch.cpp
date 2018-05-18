@@ -15,6 +15,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;

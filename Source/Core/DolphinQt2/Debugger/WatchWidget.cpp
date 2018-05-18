@@ -8,6 +8,7 @@
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt2/QtUtils/ActionHelper.h"

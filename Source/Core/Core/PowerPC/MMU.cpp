@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/MMU.h"
+
 #include <cstddef>
 #include <cstring>
 #include <string>
 
-#include "Common/Atomic.h"
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 

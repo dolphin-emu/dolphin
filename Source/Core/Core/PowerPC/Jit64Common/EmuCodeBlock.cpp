@@ -11,11 +11,13 @@
 #include "Common/CPUDetect.h"
 #include "Common/FloatUtils.h"
 #include "Common/Intrinsics.h"
+#include "Common/Swap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;

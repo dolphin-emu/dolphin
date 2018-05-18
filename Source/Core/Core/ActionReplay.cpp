@@ -39,7 +39,7 @@
 
 #include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 
 namespace ActionReplay
 {

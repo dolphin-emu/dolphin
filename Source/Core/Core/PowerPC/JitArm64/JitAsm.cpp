@@ -12,6 +12,7 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;

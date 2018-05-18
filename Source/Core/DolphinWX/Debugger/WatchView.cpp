@@ -2,20 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <wx/colour.h>
+#include "DolphinWX/Debugger/WatchView.h"
+
 #include <wx/grid.h>
 #include <wx/menu.h>
 
 #include "Common/GekkoDisassembler.h"
 #include "Core/Core.h"
-#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
-#include "DolphinWX/Debugger/RegisterView.h"
-#include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"

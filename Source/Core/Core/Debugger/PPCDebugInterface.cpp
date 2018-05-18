@@ -12,6 +12,7 @@
 
 #include "Core/Core.h"
 #include "Core/HW/DSP.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 

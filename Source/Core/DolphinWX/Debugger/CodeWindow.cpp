@@ -37,6 +37,7 @@
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"

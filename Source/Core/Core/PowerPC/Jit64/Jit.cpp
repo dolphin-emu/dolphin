@@ -32,6 +32,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)

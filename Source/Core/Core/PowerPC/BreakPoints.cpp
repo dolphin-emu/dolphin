@@ -15,7 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {

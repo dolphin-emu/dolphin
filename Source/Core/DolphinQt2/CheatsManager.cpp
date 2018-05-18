@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "UICommon/GameFile.h"
 

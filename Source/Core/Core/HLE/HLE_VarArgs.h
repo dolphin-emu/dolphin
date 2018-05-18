@@ -7,7 +7,7 @@
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 
-#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include <type_traits>

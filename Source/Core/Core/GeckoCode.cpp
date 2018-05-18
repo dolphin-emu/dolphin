@@ -12,10 +12,11 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace Gecko
