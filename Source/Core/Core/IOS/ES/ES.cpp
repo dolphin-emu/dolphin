@@ -888,7 +888,7 @@ ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 
 ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
                                const IOS::ES::SignedBlobReader& signed_blob,
-                               const std::vector<u8>& cert_chain, u32 iosc_handle)
+                               const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
   if (!SConfig::GetInstance().m_enable_signature_checks)
     return IPC_SUCCESS;
@@ -927,7 +927,7 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(handle, PID_ES); }};
-  ret = iosc.ImportCertificate(ca_cert.GetBytes().data(), IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
+  ret = iosc.ImportCertificate(ca_cert, IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error %d", ret);
@@ -941,7 +941,7 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   if (ret != IPC_SUCCESS)
     return ret;
   Common::ScopeGuard issuer_guard{[&] { iosc.DeleteObject(issuer_handle, PID_ES); }};
-  ret = iosc.ImportCertificate(issuer_cert.GetBytes().data(), handle, issuer_handle, PID_ES);
+  ret = iosc.ImportCertificate(issuer_cert, handle, issuer_handle, PID_ES);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(issuer) failed with error %d", ret);
@@ -950,7 +950,7 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
 
   // Verify the signature.
   const std::vector<u8> signature = signed_blob.GetSignatureData();
-  ret = iosc.VerifyPublicKeySign(signed_blob.GetSha1(), issuer_handle, signature.data(), PID_ES);
+  ret = iosc.VerifyPublicKeySign(signed_blob.GetSha1(), issuer_handle, signature, PID_ES);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error %d", ret);
@@ -968,13 +968,27 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
       ERROR_LOG(IOS_ES, "VerifyContainer: Writing the CA cert failed with return code %d", ret);
   }
 
-  // Import the signed blob to iosc_handle (if a handle was passed to us).
-  if (ret == IPC_SUCCESS && iosc_handle)
+  if (ret == IPC_SUCCESS && issuer_handle_out)
   {
-    ret = iosc.ImportCertificate(signed_blob.GetBytes().data(), issuer_handle, iosc_handle, PID_ES);
-    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(final) failed with error %d", ret);
+    *issuer_handle_out = issuer_handle;
+    issuer_guard.Dismiss();
   }
 
+  return ret;
+}
+
+ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                               const IOS::ES::CertReader& cert, const std::vector<u8>& cert_chain,
+                               u32 certificate_iosc_handle)
+{
+  IOSC::Handle issuer_handle;
+  ReturnCode ret = VerifyContainer(type, mode, cert, cert_chain, &issuer_handle);
+  // Import the signed blob.
+  if (ret == IPC_SUCCESS)
+  {
+    ret = m_ios.GetIOSC().ImportCertificate(cert, issuer_handle, certificate_iosc_handle, PID_ES);
+    m_ios.GetIOSC().DeleteObject(issuer_handle, PID_ES);
+  }
   return ret;
 }
 }  // namespace Device

@@ -18,6 +18,11 @@ class PointerWrap;
 
 namespace IOS
 {
+namespace ES
+{
+class CertReader;
+}  // namespace ES
+
 enum class SignatureType : u32
 {
   RSA4096 = 0x00010000,
@@ -192,9 +197,10 @@ public:
                      u32 pid) const;
 
   ReturnCode VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
-                                 const u8* signature, u32 pid) const;
+                                 const std::vector<u8>& signature, u32 pid) const;
   // Import a certificate (signed by the certificate in signer_handle) into dest_handle.
-  ReturnCode ImportCertificate(const u8* cert, Handle signer_handle, Handle dest_handle, u32 pid);
+  ReturnCode ImportCertificate(const IOS::ES::CertReader& cert, Handle signer_handle,
+                               Handle dest_handle, u32 pid);
 
   // Ownership
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
