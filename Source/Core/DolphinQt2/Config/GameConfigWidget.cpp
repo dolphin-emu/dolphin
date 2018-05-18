@@ -40,8 +40,6 @@ GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game
   m_game_id = m_game.GetGameID();
   m_gameini_local_path =
       QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-  m_gameini_local = SConfig::LoadLocalGameIni(m_game_id, m_game.GetRevision());
-  m_gameini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game.GetRevision());
 
   CreateWidgets();
   LoadSettings();
@@ -156,7 +154,7 @@ void GameConfigWidget::ConnectWidgets()
 
   for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                          m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
-    connect(box, &QCheckBox::toggled, this, &GameConfigWidget::SaveSettings);
+    connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
   connect(m_deterministic_dual_core,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
@@ -216,6 +214,10 @@ void GameConfigWidget::SaveCheckBox(QCheckBox* checkbox, const std::string& sect
 
 void GameConfigWidget::LoadSettings()
 {
+  // Reload config
+  m_gameini_local = SConfig::LoadLocalGameIni(m_game_id, m_game.GetRevision());
+  m_gameini_default = SConfig::LoadDefaultGameIni(m_game_id, m_game.GetRevision());
+
   // Load game-specific settings
 
   // Core
