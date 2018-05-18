@@ -11,8 +11,6 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/sha1.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -950,16 +948,9 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
     return ret;
   }
 
-  // Calculate the SHA1 of the signed blob.
-  const size_t skip = type == VerifyContainerType::Device ? offsetof(SignatureECC, issuer) :
-                                                            offsetof(SignatureRSA2048, issuer);
-  std::array<u8, 20> sha1;
-  mbedtls_sha1(signed_blob.GetBytes().data() + skip, signed_blob.GetBytes().size() - skip,
-               sha1.data());
-
   // Verify the signature.
   const std::vector<u8> signature = signed_blob.GetSignatureData();
-  ret = iosc.VerifyPublicKeySign(sha1, issuer_handle, signature.data(), PID_ES);
+  ret = iosc.VerifyPublicKeySign(signed_blob.GetSha1(), issuer_handle, signature.data(), PID_ES);
   if (ret != IPC_SUCCESS)
   {
     ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error %d", ret);
