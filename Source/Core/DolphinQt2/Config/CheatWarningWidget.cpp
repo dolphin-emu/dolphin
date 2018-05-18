@@ -14,8 +14,9 @@
 #include "Core/Core.h"
 #include "DolphinQt2/Settings.h"
 
-CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required)
-    : m_game_id(game_id), m_restart_required(restart_required)
+CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required,
+                                       QWidget* parent)
+    : QWidget(parent), m_game_id(game_id), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
