@@ -5,6 +5,7 @@
 #include "VideoBackends/Software/EfbInterface.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <vector>
@@ -20,9 +21,9 @@
 
 namespace EfbInterface
 {
-static u8 efb[EFB_WIDTH * EFB_HEIGHT * 6];
+static std::array<u8, EFB_WIDTH * EFB_HEIGHT * 6> efb;
 
-static u32 perf_values[PQ_NUM_MEMBERS];
+static std::array<u32, PQ_NUM_MEMBERS> perf_values;
 
 static inline u32 GetColorOffset(u16 x, u16 y)
 {
@@ -690,7 +691,7 @@ u32 GetPerfQueryResult(PerfQueryType type)
 
 void ResetPerfQuery()
 {
-  std::memset(perf_values, 0, sizeof(perf_values));
+  perf_values = {};
 }
 
 void IncPerfCounterQuadCount(PerfQueryType type)
