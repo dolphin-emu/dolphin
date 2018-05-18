@@ -637,11 +637,11 @@ void Jit64::Jit(u32 em_address)
   }
 
   JitBlock* b = blocks.AllocateBlock(em_address);
-  DoJit(em_address, &code_buffer, b, nextPC);
+  DoJit(em_address, b, nextPC);
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
+const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
   js.firstFPInstructionFound = false;
   js.isLastInstruction = false;
@@ -741,7 +741,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = (*code_buf)[i];
+    PPCAnalyst::CodeOp& op = code_buffer[i];
 
     js.compilerPC = op.address;
     js.op = &op;
