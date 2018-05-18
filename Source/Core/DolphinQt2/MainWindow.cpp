@@ -667,6 +667,10 @@ void MainWindow::FullScreen()
   // settings. If it's set to be fullscreen then it just remakes the window,
   // which probably isn't ideal.
   bool was_fullscreen = m_render_widget->isFullScreen();
+
+  if (!was_fullscreen)
+    m_render_widget_geometry = m_render_widget->saveGeometry();
+
   HideRenderWidget(false);
   SetFullScreenResolution(!was_fullscreen);
 
@@ -676,7 +680,6 @@ void MainWindow::FullScreen()
   }
   else
   {
-    m_render_widget_geometry = m_render_widget->saveGeometry();
     m_render_widget->showFullScreen();
   }
 }
@@ -761,6 +764,9 @@ void MainWindow::ShowRenderWidget()
     return;
   }
 
+  SetFullScreenResolution(false);
+  Host::GetInstance()->SetRenderFullscreen(false);
+
   if (SConfig::GetInstance().bRenderToMain)
   {
     // If we're rendering to main, add it to the stack and update our title when necessary.
@@ -781,8 +787,6 @@ void MainWindow::ShowRenderWidget()
     m_render_widget->showNormal();
     m_render_widget->restoreGeometry(m_render_widget_geometry);
   }
-
-  SetFullScreenResolution(false);
 }
 
 void MainWindow::HideRenderWidget(bool reinit)
