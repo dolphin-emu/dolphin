@@ -40,7 +40,7 @@ ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game, bool restart_required
 
 void ARCodeWidget::CreateWidgets()
 {
-  m_warning = new CheatWarningWidget(m_game_id, m_restart_required);
+  m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
   m_code_list = new QListWidget;
   m_code_add = new QPushButton(tr("&Add New Code..."));
   m_code_edit = new QPushButton(tr("&Edit Code..."));

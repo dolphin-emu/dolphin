@@ -43,7 +43,7 @@ GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_re
 
 void GeckoCodeWidget::CreateWidgets()
 {
-  m_warning = new CheatWarningWidget(m_game_id, m_restart_required);
+  m_warning = new CheatWarningWidget(m_game_id, m_restart_required, this);
   m_code_list = new QListWidget;
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
