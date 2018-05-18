@@ -155,7 +155,12 @@ void HotkeyScheduler::Run()
 
       // Fullscreen
       if (IsHotkey(HK_FULLSCREEN))
+      {
         emit FullScreenHotkey();
+
+        // Prevent fullscreen from getting toggled too often
+        Common::SleepCurrentThread(100);
+      }
 
       // Pause and Unpause
       if (IsHotkey(HK_PLAY_PAUSE))
