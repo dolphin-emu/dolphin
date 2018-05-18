@@ -5,7 +5,9 @@
 #pragma once
 
 #include <algorithm>
+#include <cstddef>
 #include <set>
+#include <vector>
 
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -113,18 +115,7 @@ struct BlockRegStats
   }
 };
 
-class CodeBuffer
-{
-public:
-  CodeBuffer(int size);
-  ~CodeBuffer();
-
-  int GetSize() const { return size_; }
-  PPCAnalyst::CodeOp* codebuffer;
-
-private:
-  int size_;
-};
+using CodeBuffer = std::vector<CodeOp>;
 
 struct CodeBlock
 {
@@ -205,7 +196,7 @@ public:
   void SetOption(AnalystOption option) { m_options |= option; }
   void ClearOption(AnalystOption option) { m_options &= ~(option); }
   bool HasOption(AnalystOption option) const { return !!(m_options & option); }
-  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 blockSize);
+  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size);
 
 private:
   enum class ReorderType

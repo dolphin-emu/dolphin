@@ -155,12 +155,12 @@ void JITWidget::Update()
   code_block.m_gpa = &gpa;
   code_block.m_fpa = &fpa;
 
-  if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, 32000) != 0xFFFFFFFF)
+  if (analyzer.Analyze(ppc_addr, &code_block, &code_buffer, code_buffer.size()) != 0xFFFFFFFF)
   {
     std::ostringstream ppc_disasm;
     for (u32 i = 0; i < code_block.m_num_instructions; i++)
     {
-      const PPCAnalyst::CodeOp& op = code_buffer.codebuffer[i];
+      const PPCAnalyst::CodeOp& op = code_buffer[i];
       std::string opcode = GekkoDisassembler::Disassemble(op.inst.hex, op.address);
       ppc_disasm << std::setfill('0') << std::setw(8) << std::hex << op.address;
       ppc_disasm << " " << opcode << std::endl;

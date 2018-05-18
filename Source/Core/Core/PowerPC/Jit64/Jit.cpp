@@ -594,7 +594,7 @@ void Jit64::Jit(u32 em_address)
     ClearCache();
   }
 
-  int blockSize = code_buffer.GetSize();
+  std::size_t block_size = code_buffer.size();
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
@@ -607,7 +607,7 @@ void Jit64::Jit(u32 em_address)
     {
       if (CPU::IsStepping())
       {
-        blockSize = 1;
+        block_size = 1;
 
         // Do not link this block to other blocks While single stepping
         jo.enableBlocklink = false;
@@ -624,7 +624,7 @@ void Jit64::Jit(u32 em_address)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
@@ -739,10 +739,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   }
 
   // Translate instructions
-  PPCAnalyst::CodeOp* const ops = code_buf->codebuffer;
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = ops[i];
+    PPCAnalyst::CodeOp& op = (*code_buf)[i];
 
     js.compilerPC = op.address;
     js.op = &op;
@@ -951,7 +950,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
-  LogGeneratedX86(code_block.m_num_instructions, code_buf, start, b);
+  LogGeneratedX86(code_block.m_num_instructions, code_buffer, start, b);
 #endif
 
   return normalEntry;

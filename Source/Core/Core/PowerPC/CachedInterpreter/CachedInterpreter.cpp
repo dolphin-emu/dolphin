@@ -194,7 +194,7 @@ void CachedInterpreter::Jit(u32 address)
     ClearCache();
   }
 
-  u32 nextPC = analyzer.Analyze(PC, &code_block, &code_buffer, code_buffer.GetSize());
+  const u32 nextPC = analyzer.Analyze(PC, &code_block, &code_buffer, code_buffer.size());
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
@@ -216,10 +216,9 @@ void CachedInterpreter::Jit(u32 address)
   b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
 
-  PPCAnalyst::CodeOp* const ops = code_buffer.codebuffer;
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = ops[i];
+    PPCAnalyst::CodeOp& op = code_buffer[i];
 
     js.downcountAmount += op.opinfo->numCycles;
 
