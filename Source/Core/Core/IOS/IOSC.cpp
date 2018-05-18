@@ -316,6 +316,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
   {
     const size_t expected_key_size = entry->subtype == SUBTYPE_RSA2048 ? 0x100 : 0x200;
     ASSERT(entry->data.size() == expected_key_size);
+    ASSERT(signature.size() == expected_key_size);
 
     mbedtls_rsa_context rsa;
     mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
