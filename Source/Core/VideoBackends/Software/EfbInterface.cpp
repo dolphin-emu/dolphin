@@ -18,10 +18,10 @@
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
 
-static u8 efb[EFB_WIDTH * EFB_HEIGHT * 6];
-
 namespace EfbInterface
 {
+static u8 efb[EFB_WIDTH * EFB_HEIGHT * 6];
+
 u32 perf_values[PQ_NUM_MEMBERS];
 
 static inline u32 GetColorOffset(u16 x, u16 y)
