@@ -5,6 +5,7 @@
 #include "VideoBackends/Software/EfbInterface.h"
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 #include <vector>
@@ -18,11 +19,11 @@
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
 
-static u8 efb[EFB_WIDTH * EFB_HEIGHT * 6];
-
 namespace EfbInterface
 {
-u32 perf_values[PQ_NUM_MEMBERS];
+static std::array<u8, EFB_WIDTH * EFB_HEIGHT * 6> efb;
+
+static std::array<u32, PQ_NUM_MEMBERS> perf_values;
 
 static inline u32 GetColorOffset(u16 x, u16 y)
 {
@@ -31,7 +32,9 @@ static inline u32 GetColorOffset(u16 x, u16 y)
 
 static inline u32 GetDepthOffset(u16 x, u16 y)
 {
-  return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
+  constexpr u32 depth_buffer_start = EFB_WIDTH * EFB_HEIGHT * 3;
+
+  return (x + y * EFB_WIDTH) * 3 + depth_buffer_start;
 }
 
 static void SetPixelAlphaOnly(u32 offset, u8 a)
@@ -681,5 +684,28 @@ bool ZCompare(u16 x, u16 y, u32 z)
   }
 
   return pass;
+}
+
+u32 GetPerfQueryResult(PerfQueryType type)
+{
+  return perf_values[type];
+}
+
+void ResetPerfQuery()
+{
+  perf_values = {};
+}
+
+void IncPerfCounterQuadCount(PerfQueryType type)
+{
+  // NOTE: hardware doesn't process individual pixels but quads instead.
+  // Current software renderer architecture works on pixels though, so
+  // we have this "quad" hack here to only increment the registers on
+  // every fourth rendered pixel
+  static u32 quad[PQ_NUM_MEMBERS];
+  if (++quad[type] != 3)
+    return;
+  quad[type] = 0;
+  ++perf_values[type];
 }
 }
