@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <array>
-
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -61,17 +59,7 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth);
 void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale,
                float gamma);
 
-extern u32 perf_values[PQ_NUM_MEMBERS];
-inline void IncPerfCounterQuadCount(PerfQueryType type)
-{
-  // NOTE: hardware doesn't process individual pixels but quads instead.
-  // Current software renderer architecture works on pixels though, so
-  // we have this "quad" hack here to only increment the registers on
-  // every fourth rendered pixel
-  static u32 quad[PQ_NUM_MEMBERS];
-  if (++quad[type] != 3)
-    return;
-  quad[type] = 0;
-  ++perf_values[type];
-}
-}
+u32 GetPerfQueryResult(PerfQueryType type);
+void ResetPerfQuery();
+void IncPerfCounterQuadCount(PerfQueryType type);
+}  // namespace EfbInterface

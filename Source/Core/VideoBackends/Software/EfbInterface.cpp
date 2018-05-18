@@ -22,7 +22,7 @@ namespace EfbInterface
 {
 static u8 efb[EFB_WIDTH * EFB_HEIGHT * 6];
 
-u32 perf_values[PQ_NUM_MEMBERS];
+static u32 perf_values[PQ_NUM_MEMBERS];
 
 static inline u32 GetColorOffset(u16 x, u16 y)
 {
@@ -681,5 +681,28 @@ bool ZCompare(u16 x, u16 y, u32 z)
   }
 
   return pass;
+}
+
+u32 GetPerfQueryResult(PerfQueryType type)
+{
+  return perf_values[type];
+}
+
+void ResetPerfQuery()
+{
+  std::memset(perf_values, 0, sizeof(perf_values));
+}
+
+void IncPerfCounterQuadCount(PerfQueryType type)
+{
+  // NOTE: hardware doesn't process individual pixels but quads instead.
+  // Current software renderer architecture works on pixels though, so
+  // we have this "quad" hack here to only increment the registers on
+  // every fourth rendered pixel
+  static u32 quad[PQ_NUM_MEMBERS];
+  if (++quad[type] != 3)
+    return;
+  quad[type] = 0;
+  ++perf_values[type];
 }
 }
