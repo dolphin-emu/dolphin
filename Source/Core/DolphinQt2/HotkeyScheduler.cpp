@@ -213,29 +213,10 @@ void HotkeyScheduler::Run()
               IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
       }
 
-      if (IsHotkey(HK_STEP))
-        emit Step();
-
-      if (IsHotkey(HK_STEP_OVER))
-        emit StepOver();
-
-      if (IsHotkey(HK_STEP_OUT))
-        emit StepOut();
-
-      if (IsHotkey(HK_SKIP))
-        emit Skip();
-
-      if (IsHotkey(HK_SHOW_PC))
-        emit ShowPC();
-
-      if (IsHotkey(HK_SET_PC))
-        emit Skip();
-
-      if (IsHotkey(HK_BP_TOGGLE))
-        emit ToggleBreakpoint();
-
-      if (IsHotkey(HK_BP_ADD))
-        emit AddBreakpoint();
+      if (SConfig::GetInstance().bEnableDebugging)
+      {
+        CheckDebuggingHotkeys();
+      }
 
       // TODO: HK_MBP_ADD
 
@@ -467,4 +448,31 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_UNDO_SAVE_STATE))
       emit StateSaveUndo();
   }
+}
+
+void HotkeyScheduler::CheckDebuggingHotkeys()
+{
+  if (IsHotkey(HK_STEP))
+    emit Step();
+
+  if (IsHotkey(HK_STEP_OVER))
+    emit StepOver();
+
+  if (IsHotkey(HK_STEP_OUT))
+    emit StepOut();
+
+  if (IsHotkey(HK_SKIP))
+    emit Skip();
+
+  if (IsHotkey(HK_SHOW_PC))
+    emit ShowPC();
+
+  if (IsHotkey(HK_SET_PC))
+    emit Skip();
+
+  if (IsHotkey(HK_BP_TOGGLE))
+    emit ToggleBreakpoint();
+
+  if (IsHotkey(HK_BP_ADD))
+    emit AddBreakpoint();
 }
