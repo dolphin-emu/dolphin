@@ -32,7 +32,9 @@ static inline u32 GetColorOffset(u16 x, u16 y)
 
 static inline u32 GetDepthOffset(u16 x, u16 y)
 {
-  return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
+  constexpr u32 depth_buffer_start = EFB_WIDTH * EFB_HEIGHT * 3;
+
+  return (x + y * EFB_WIDTH) * 3 + depth_buffer_start;
 }
 
 static void SetPixelAlphaOnly(u32 offset, u8 a)

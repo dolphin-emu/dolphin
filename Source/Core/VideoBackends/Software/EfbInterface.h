@@ -10,8 +10,6 @@
 
 namespace EfbInterface
 {
-const int DEPTH_BUFFER_START = EFB_WIDTH * EFB_HEIGHT * 3;
-
 // xfb color format - packed so the compiler doesn't mess with alignment
 #pragma pack(push, 1)
 struct yuv422_packed
