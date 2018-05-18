@@ -489,20 +489,14 @@ double Read_F64(const u32 address)
 {
   const u64 integral = Read_U64(address);
 
-  double real;
-  std::memcpy(&real, &integral, sizeof(double));
-
-  return real;
+  return Common::BitCast<double>(integral);
 }
 
 float Read_F32(const u32 address)
 {
   const u32 integral = Read_U32(address);
 
-  float real;
-  std::memcpy(&real, &integral, sizeof(float));
-
-  return real;
+  return Common::BitCast<float>(integral);
 }
 
 u32 Read_U8_ZX(const u32 address)
@@ -556,8 +550,7 @@ void Write_U64_Swap(const u64 var, const u32 address)
 
 void Write_F64(const double var, const u32 address)
 {
-  u64 integral;
-  std::memcpy(&integral, &var, sizeof(u64));
+  const u64 integral = Common::BitCast<u64>(var);
 
   Write_U64(integral, address);
 }
@@ -586,20 +579,14 @@ float HostRead_F32(const u32 address)
 {
   const u32 integral = HostRead_U32(address);
 
-  float real;
-  std::memcpy(&real, &integral, sizeof(float));
-
-  return real;
+  return Common::BitCast<float>(integral);
 }
 
 double HostRead_F64(const u32 address)
 {
   const u64 integral = HostRead_U64(address);
 
-  double real;
-  std::memcpy(&real, &integral, sizeof(double));
-
-  return real;
+  return Common::BitCast<double>(integral);
 }
 
 void HostWrite_U8(const u8 var, const u32 address)
@@ -624,16 +611,14 @@ void HostWrite_U64(const u64 var, const u32 address)
 
 void HostWrite_F32(const float var, const u32 address)
 {
-  u32 integral;
-  std::memcpy(&integral, &var, sizeof(u32));
+  const u32 integral = Common::BitCast<u32>(var);
 
   HostWrite_U32(integral, address);
 }
 
 void HostWrite_F64(const double var, const u32 address)
 {
-  u64 integral;
-  std::memcpy(&integral, &var, sizeof(u64));
+  const u64 integral = Common::BitCast<u64>(var);
 
   HostWrite_U64(integral, address);
 }
