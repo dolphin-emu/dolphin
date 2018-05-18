@@ -140,6 +140,8 @@ static void ResetTitleImportContext(ES::Context* context, IOSC& iosc)
 
 ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
 {
+  INFO_LOG(IOS_ES, "ImportTmd");
+
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
   ResetTitleImportContext(&context, m_ios.GetIOSC());
@@ -155,16 +157,26 @@ ReturnCode ES::ImportTmd(Context& context, const std::vector<u8>& tmd_bytes)
   ret = VerifyContainer(VerifyContainerType::TMD, VerifyMode::UpdateCertStore,
                         context.title_import_export.tmd, cert_store);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "ImportTmd: VerifyContainer failed with error %d", ret);
     return ret;
+  }
 
   if (!InitImport(context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTmd: Failed to initialise title import");
     return ES_EIO;
+  }
 
   ret =
       InitBackupKey(m_title_context.tmd, m_ios.GetIOSC(), &context.title_import_export.key_handle);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "ImportTmd: InitBackupKey failed with error %d", ret);
     return ret;
+  }
 
+  INFO_LOG(IOS_ES, "ImportTmd: All checks passed, marking context as valid");
   context.title_import_export.valid = true;
   return IPC_SUCCESS;
 }
@@ -418,37 +430,54 @@ IPCCommandResult ES::ImportContentEnd(Context& context, const IOCtlVRequest& req
   return GetDefaultReply(ImportContentEnd(context, content_fd));
 }
 
+static bool HasAllRequiredContents(IOS::HLE::Kernel& ios, const IOS::ES::TMDReader& tmd)
+{
+  const u64 title_id = tmd.GetTitleId();
+  const std::vector<IOS::ES::Content> contents = tmd.GetContents();
+  const IOS::ES::SharedContentMap shared_content_map{ios.GetFS()};
+  return std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
+    if (content.IsOptional())
+      return true;
+
+    if (content.IsShared())
+      return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
+
+    // Note: the import hasn't been finalised yet, so the whole title directory
+    // is still in /import, not /title.
+    const std::string path =
+        Common::GetImportTitlePath(title_id) + StringFromFormat("/content/%08x.app", content.id);
+    return ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
+  });
+}
+
 ReturnCode ES::ImportTitleDone(Context& context)
 {
   if (!context.title_import_export.valid || context.title_import_export.content.valid)
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: No title import, or a content import is still in progress");
     return ES_EINVAL;
+  }
 
-  // Make sure all listed, non-optional contents have been imported.
+  // For system titles, make sure all listed, non-optional contents have been imported.
   const u64 title_id = context.title_import_export.tmd.GetTitleId();
-  const std::vector<IOS::ES::Content> contents = context.title_import_export.tmd.GetContents();
-  const IOS::ES::SharedContentMap shared_content_map{m_ios.GetFS()};
-  const bool has_all_required_contents =
-      std::all_of(contents.cbegin(), contents.cend(), [&](const IOS::ES::Content& content) {
-        if (content.IsOptional())
-          return true;
-
-        if (content.IsShared())
-          return shared_content_map.GetFilenameFromSHA1(content.sha1).has_value();
-
-        // Note: the import hasn't been finalised yet, so the whole title directory
-        // is still in /import, not /title.
-        const std::string path = Common::GetImportTitlePath(title_id) +
-                                 StringFromFormat("/content/%08x.app", content.id);
-        return m_ios.GetFS()->GetMetadata(PID_KERNEL, PID_KERNEL, path).Succeeded();
-      });
-  if (!has_all_required_contents)
+  if (title_id - 0x100000001LL <= 0x100 &&
+      !HasAllRequiredContents(m_ios, context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: Some required contents are missing");
     return ES_EINVAL;
+  }
 
   if (!WriteImportTMD(context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: Failed to write import TMD");
     return ES_EIO;
+  }
 
   if (!FinishImport(context.title_import_export.tmd))
+  {
+    ERROR_LOG(IOS_ES, "ImportTitleDone: Failed to finalise title import");
     return ES_EIO;
+  }
 
   INFO_LOG(IOS_ES, "ImportTitleDone: title %016" PRIx64, title_id);
   ResetTitleImportContext(&context, m_ios.GetIOSC());

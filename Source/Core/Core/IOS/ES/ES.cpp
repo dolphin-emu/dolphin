@@ -931,7 +931,10 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   Common::ScopeGuard ca_guard{[&] { iosc.DeleteObject(handle, PID_ES); }};
   ret = iosc.ImportCertificate(ca_cert.GetBytes().data(), IOSC::HANDLE_ROOT_KEY, handle, PID_ES);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(ca) failed with error %d", ret);
     return ret;
+  }
 
   IOSC::Handle issuer_handle;
   const IOSC::ObjectSubType subtype =
@@ -942,7 +945,10 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   Common::ScopeGuard issuer_guard{[&] { iosc.DeleteObject(issuer_handle, PID_ES); }};
   ret = iosc.ImportCertificate(issuer_cert.GetBytes().data(), handle, issuer_handle, PID_ES);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(issuer) failed with error %d", ret);
     return ret;
+  }
 
   // Calculate the SHA1 of the signed blob.
   const size_t skip = type == VerifyContainerType::Device ? offsetof(SignatureECC, issuer) :
@@ -955,7 +961,10 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
   const std::vector<u8> signature = signed_blob.GetSignatureData();
   ret = iosc.VerifyPublicKeySign(sha1, issuer_handle, signature.data(), PID_ES);
   if (ret != IPC_SUCCESS)
+  {
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_VerifyPublicKeySign failed with error %d", ret);
     return ret;
+  }
 
   if (mode == VerifyMode::UpdateCertStore)
   {
@@ -970,7 +979,10 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
 
   // Import the signed blob to iosc_handle (if a handle was passed to us).
   if (ret == IPC_SUCCESS && iosc_handle)
+  {
     ret = iosc.ImportCertificate(signed_blob.GetBytes().data(), issuer_handle, iosc_handle, PID_ES);
+    ERROR_LOG(IOS_ES, "VerifyContainer: IOSC_ImportCertificate(final) failed with error %d", ret);
+  }
 
   return ret;
 }
