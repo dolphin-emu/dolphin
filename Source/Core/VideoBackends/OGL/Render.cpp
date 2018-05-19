@@ -1337,8 +1337,9 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
     GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
     glBlendEquationSeparate(equation, equationAlpha);
-    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
-                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
+    glBlendFuncSeparate(state.premultipliedalpha ? GL_ONE : src_factors[state.srcfactor],
+                        dst_factors[state.dstfactor], src_factors[state.srcfactoralpha],
+                        dst_factors[state.dstfactoralpha]);
   }
 
   const GLenum logic_op_codes[16] = {
@@ -1712,4 +1713,4 @@ std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCom
 {
   return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
-}
+}  // namespace OGL
