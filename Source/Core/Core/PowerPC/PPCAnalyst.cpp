@@ -833,39 +833,41 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   BitSet32 fprInUse, gprInUse, gprInReg, fprInXmm;
   for (int i = block->m_num_instructions - 1; i >= 0; i--)
   {
-    bool opWantsCR0 = code[i].wantsCR0;
-    bool opWantsCR1 = code[i].wantsCR1;
-    bool opWantsFPRF = code[i].wantsFPRF;
-    bool opWantsCA = code[i].wantsCA;
-    code[i].wantsCR0 = wantsCR0 || code[i].canEndBlock;
-    code[i].wantsCR1 = wantsCR1 || code[i].canEndBlock;
-    code[i].wantsFPRF = wantsFPRF || code[i].canEndBlock;
-    code[i].wantsCA = wantsCA || code[i].canEndBlock;
-    wantsCR0 |= opWantsCR0 || code[i].canEndBlock;
-    wantsCR1 |= opWantsCR1 || code[i].canEndBlock;
-    wantsFPRF |= opWantsFPRF || code[i].canEndBlock;
-    wantsCA |= opWantsCA || code[i].canEndBlock;
-    wantsCR0 &= !code[i].outputCR0 || opWantsCR0;
-    wantsCR1 &= !code[i].outputCR1 || opWantsCR1;
-    wantsFPRF &= !code[i].outputFPRF || opWantsFPRF;
-    wantsCA &= !code[i].outputCA || opWantsCA;
-    code[i].gprInUse = gprInUse;
-    code[i].fprInUse = fprInUse;
-    code[i].gprInReg = gprInReg;
-    code[i].fprInXmm = fprInXmm;
+    CodeOp& op = code[i];
+
+    const bool opWantsCR0 = op.wantsCR0;
+    const bool opWantsCR1 = op.wantsCR1;
+    const bool opWantsFPRF = op.wantsFPRF;
+    const bool opWantsCA = op.wantsCA;
+    op.wantsCR0 = wantsCR0 || op.canEndBlock;
+    op.wantsCR1 = wantsCR1 || op.canEndBlock;
+    op.wantsFPRF = wantsFPRF || op.canEndBlock;
+    op.wantsCA = wantsCA || op.canEndBlock;
+    wantsCR0 |= opWantsCR0 || op.canEndBlock;
+    wantsCR1 |= opWantsCR1 || op.canEndBlock;
+    wantsFPRF |= opWantsFPRF || op.canEndBlock;
+    wantsCA |= opWantsCA || op.canEndBlock;
+    wantsCR0 &= !op.outputCR0 || opWantsCR0;
+    wantsCR1 &= !op.outputCR1 || opWantsCR1;
+    wantsFPRF &= !op.outputFPRF || opWantsFPRF;
+    wantsCA &= !op.outputCA || opWantsCA;
+    op.gprInUse = gprInUse;
+    op.fprInUse = fprInUse;
+    op.gprInReg = gprInReg;
+    op.fprInXmm = fprInXmm;
     // TODO: if there's no possible endblocks or exceptions in between, tell the regcache
     // we can throw away a register if it's going to be overwritten later.
-    gprInUse |= code[i].regsIn;
-    gprInReg |= code[i].regsIn;
-    fprInUse |= code[i].fregsIn;
-    if (strncmp(code[i].opinfo->opname, "stfd", 4))
-      fprInXmm |= code[i].fregsIn;
+    gprInUse |= op.regsIn;
+    gprInReg |= op.regsIn;
+    fprInUse |= op.fregsIn;
+    if (strncmp(op.opinfo->opname, "stfd", 4))
+      fprInXmm |= op.fregsIn;
     // For now, we need to count output registers as "used" though; otherwise the flush
     // will result in a redundant store (e.g. store to regcache, then store again to
     // the same location later).
-    gprInUse |= code[i].regsOut;
-    if (code[i].fregOut >= 0)
-      fprInUse[code[i].fregOut] = true;
+    gprInUse |= op.regsOut;
+    if (op.fregOut >= 0)
+      fprInUse[op.fregOut] = true;
   }
 
   // Forward scan, for flags that need the other direction for calculation.
@@ -873,55 +875,57 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   BitSet8 gqrUsed, gqrModified;
   for (u32 i = 0; i < block->m_num_instructions; i++)
   {
-    gprBlockInputs |= code[i].regsIn & ~gprDefined;
-    gprDefined |= code[i].regsOut;
+    CodeOp& op = code[i];
 
-    code[i].fprIsSingle = fprIsSingle;
-    code[i].fprIsDuplicated = fprIsDuplicated;
-    code[i].fprIsStoreSafe = fprIsStoreSafe;
-    if (code[i].fregOut >= 0)
+    gprBlockInputs |= op.regsIn & ~gprDefined;
+    gprDefined |= op.regsOut;
+
+    op.fprIsSingle = fprIsSingle;
+    op.fprIsDuplicated = fprIsDuplicated;
+    op.fprIsStoreSafe = fprIsStoreSafe;
+    if (op.fregOut >= 0)
     {
-      fprIsSingle[code[i].fregOut] = false;
-      fprIsDuplicated[code[i].fregOut] = false;
-      fprIsStoreSafe[code[i].fregOut] = false;
+      fprIsSingle[op.fregOut] = false;
+      fprIsDuplicated[op.fregOut] = false;
+      fprIsStoreSafe[op.fregOut] = false;
       // Single, duplicated, and doesn't need PPC_FP.
-      if (code[i].opinfo->type == OpType::SingleFP)
+      if (op.opinfo->type == OpType::SingleFP)
       {
-        fprIsSingle[code[i].fregOut] = true;
-        fprIsDuplicated[code[i].fregOut] = true;
-        fprIsStoreSafe[code[i].fregOut] = true;
+        fprIsSingle[op.fregOut] = true;
+        fprIsDuplicated[op.fregOut] = true;
+        fprIsStoreSafe[op.fregOut] = true;
       }
       // Single and duplicated, but might be a denormal (not safe to skip PPC_FP).
       // TODO: if we go directly from a load to store, skip conversion entirely?
       // TODO: if we go directly from a load to a float instruction, and the value isn't used
       // for anything else, we can skip PPC_FP on a load too.
-      if (!strncmp(code[i].opinfo->opname, "lfs", 3))
+      if (!strncmp(op.opinfo->opname, "lfs", 3))
       {
-        fprIsSingle[code[i].fregOut] = true;
-        fprIsDuplicated[code[i].fregOut] = true;
+        fprIsSingle[op.fregOut] = true;
+        fprIsDuplicated[op.fregOut] = true;
       }
       // Paired are still floats, but the top/bottom halves may differ.
-      if (code[i].opinfo->type == OpType::PS || code[i].opinfo->type == OpType::LoadPS)
+      if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
       {
-        fprIsSingle[code[i].fregOut] = true;
-        fprIsStoreSafe[code[i].fregOut] = true;
+        fprIsSingle[op.fregOut] = true;
+        fprIsStoreSafe[op.fregOut] = true;
       }
       // Careful: changing the float mode in a block breaks this optimization, since
       // a previous float op might have had had FTZ off while the later store has FTZ
       // on. So, discard all information we have.
-      if (!strncmp(code[i].opinfo->opname, "mtfs", 4))
+      if (!strncmp(op.opinfo->opname, "mtfs", 4))
         fprIsStoreSafe = BitSet32(0);
     }
 
-    if (code[i].opinfo->type == OpType::StorePS || code[i].opinfo->type == OpType::LoadPS)
+    if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
     {
-      int gqr = code[i].inst.OPCD == 4 ? code[i].inst.Ix : code[i].inst.I;
+      const int gqr = op.inst.OPCD == 4 ? op.inst.Ix : op.inst.I;
       gqrUsed[gqr] = true;
     }
 
-    if (code[i].inst.OPCD == 31 && code[i].inst.SUBOP10 == 467)  // mtspr
+    if (op.inst.OPCD == 31 && op.inst.SUBOP10 == 467)  // mtspr
     {
-      int gqr = ((code[i].inst.SPRU << 5) | code[i].inst.SPRL) - SPR_GQR0;
+      const int gqr = ((op.inst.SPRU << 5) | op.inst.SPRL) - SPR_GQR0;
       if (gqr >= 0 && gqr <= 7)
         gqrModified[gqr] = true;
     }
