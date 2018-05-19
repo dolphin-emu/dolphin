@@ -112,6 +112,7 @@ void AdvancedWidget::CreateWidgets()
 void AdvancedWidget::ConnectWidgets()
 {
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
 void AdvancedWidget::LoadSettings()
