@@ -147,7 +147,8 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
          VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
          VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
 
-    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcColorBlendFactor =
+        state.premultipliedalpha ? VK_BLEND_FACTOR_ONE : src_factors[state.srcfactor];
     vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
     vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
     vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
@@ -166,7 +167,8 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
          VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
          VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
 
-    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+    vk_state.srcColorBlendFactor =
+        state.premultipliedalpha ? VK_BLEND_FACTOR_ONE : src_factors[state.srcfactor];
     vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
     vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
     vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];

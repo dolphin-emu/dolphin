@@ -135,14 +135,15 @@ static void GetD3DBlendDesc(D3D12_BLEND_DESC* desc, const BlendingState& state)
     rtblend->BlendOpAlpha = state.subtractAlpha ? D3D12_BLEND_OP_REV_SUBTRACT : D3D12_BLEND_OP_ADD;
     if (state.usedualsrc)
     {
-      rtblend->SrcBlend = src_dual_src_factors[state.srcfactor];
+      rtblend->SrcBlend =
+          state.premultipliedalpha ? D3D12_BLEND_ONE : src_dual_src_factors[state.srcfactor];
       rtblend->SrcBlendAlpha = src_dual_src_factors[state.srcfactoralpha];
       rtblend->DestBlend = dst_dual_src_factors[state.dstfactor];
       rtblend->DestBlendAlpha = dst_dual_src_factors[state.dstfactoralpha];
     }
     else
     {
-      rtblend->SrcBlend = src_factors[state.srcfactor];
+      rtblend->SrcBlend = state.premultipliedalpha ? D3D12_BLEND_ONE : src_factors[state.srcfactor];
       rtblend->SrcBlendAlpha = src_factors[state.srcfactoralpha];
       rtblend->DestBlend = dst_factors[state.dstfactor];
       rtblend->DestBlendAlpha = dst_factors[state.dstfactoralpha];
