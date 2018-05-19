@@ -133,10 +133,7 @@ void SoftwareRendererWidget::SaveSettings()
     {
       const auto backend_name = backend->GetName();
       if (backend_name != SConfig::GetInstance().m_strVideoBackend)
-      {
-        SConfig::GetInstance().m_strVideoBackend = backend_name;
         emit BackendChanged(QString::fromStdString(backend_name));
-      }
       break;
     }
   }

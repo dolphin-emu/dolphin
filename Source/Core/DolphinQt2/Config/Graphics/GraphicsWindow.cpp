@@ -94,17 +94,31 @@ void GraphicsWindow::CreateMainLayout()
   setLayout(main_layout);
 }
 
-void GraphicsWindow::OnBackendChanged(const QString& backend)
+void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
+  SConfig::GetInstance().m_strVideoBackend = backend_name.toStdString();
+
+  for (const auto& backend : g_available_video_backends)
+  {
+    if (backend->GetName() == backend_name.toStdString())
+    {
+      g_Config.Refresh();
+
+      g_video_backend = backend.get();
+      g_video_backend->InitBackendInfo();
+      break;
+    }
+  }
+
   setWindowTitle(tr("%1 Graphics Configuration")
                      .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
-  if (backend == QStringLiteral("Software Renderer") && m_tab_widget->count() > 1)
+  if (backend_name == QStringLiteral("Software Renderer") && m_tab_widget->count() > 1)
   {
     m_tab_widget->clear();
     m_tab_widget->addTab(m_wrapped_software, tr("Software Renderer"));
   }
 
-  if (backend != QStringLiteral("Software Renderer") && m_tab_widget->count() == 1)
+  if (backend_name != QStringLiteral("Software Renderer") && m_tab_widget->count() == 1)
   {
     m_tab_widget->clear();
     m_tab_widget->addTab(m_wrapped_general, tr("General"));
@@ -113,7 +127,7 @@ void GraphicsWindow::OnBackendChanged(const QString& backend)
     m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
   }
 
-  emit BackendChanged(backend);
+  emit BackendChanged(backend_name);
 }
 
 void GraphicsWindow::RegisterWidget(GraphicsWidget* widget)
