@@ -200,7 +200,7 @@ private:
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
-  void DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
   void DoDownCount();
   void Cleanup();

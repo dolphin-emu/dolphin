@@ -42,17 +42,6 @@ constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
 
 constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
-CodeBuffer::CodeBuffer(int size)
-{
-  codebuffer = new PPCAnalyst::CodeOp[size];
-  size_ = size;
-}
-
-CodeBuffer::~CodeBuffer()
-{
-  delete[] codebuffer;
-}
-
 static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
   switch (instr.OPCD)
@@ -653,7 +642,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   }
 }
 
-u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 blockSize)
+u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size)
 {
   // Clear block stats
   memset(block->m_stats, 0, sizeof(BlockStats));
@@ -675,7 +664,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   block->m_gqr_used = BitSet8(0);
   block->m_physical_addresses.clear();
 
-  CodeOp* code = buffer->codebuffer;
+  CodeOp* const code = buffer->data();
 
   bool found_exit = false;
   bool found_call = false;
@@ -683,7 +672,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   u32 numFollows = 0;
   u32 num_inst = 0;
 
-  for (u32 i = 0; i < blockSize; ++i)
+  for (std::size_t i = 0; i < block_size; ++i)
   {
     auto result = PowerPC::TryReadInstruction(address);
     if (!result.valid)
@@ -707,7 +696,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
     block->m_stats->numCycles += opinfo->numCycles;
     block->m_physical_addresses.insert(result.physical_address);
 
-    SetInstructionStats(block, &code[i], opinfo, i);
+    SetInstructionStats(block, &code[i], opinfo, static_cast<u32>(i));
 
     bool follow = false;
     u32 destination = 0;
@@ -720,7 +709,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
     //       cache clearning will happen many times.
     if (HasOption(OPTION_BRANCH_FOLLOW) && numFollows < BRANCH_FOLLOWING_THRESHOLD)
     {
-      if (inst.OPCD == 18 && blockSize > 1)
+      if (inst.OPCD == 18 && block_size > 1)
       {
         // Always follow BX instructions.
         // TODO: Loop unrolling might bloat the code size too much.
@@ -734,7 +723,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
         }
       }
       else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-               (inst.BO & BO_DONT_CHECK_CONDITION) && blockSize > 1)
+               (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
       {
         // Always follow unconditional BCX instructions, but they are very rare.
         follow = true;
@@ -832,7 +821,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   if (block->m_num_instructions > 1)
     ReorderInstructions(block->m_num_instructions, code);
 
-  if ((!found_exit && num_inst > 0) || blockSize == 1)
+  if ((!found_exit && num_inst > 0) || block_size == 1)
   {
     // We couldn't find an exit
     block->m_broken = true;

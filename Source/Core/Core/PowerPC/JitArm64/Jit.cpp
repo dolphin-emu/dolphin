@@ -553,19 +553,19 @@ void JitArm64::Jit(u32)
     ClearCache();
   }
 
-  int blockSize = code_buffer.GetSize();
-  u32 em_address = PowerPC::ppcState.pc;
+  std::size_t block_size = code_buffer.size();
+  const u32 em_address = PowerPC::ppcState.pc;
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
     // Comment out the following to disable breakpoints (speed-up)
-    blockSize = 1;
+    block_size = 1;
   }
 
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
@@ -578,11 +578,11 @@ void JitArm64::Jit(u32)
   }
 
   JitBlock* b = blocks.AllocateBlock(em_address);
-  DoJit(em_address, &code_buffer, b, nextPC);
+  DoJit(em_address, b, nextPC);
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
-void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
+void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
   if (em_address == 0)
   {
@@ -649,10 +649,9 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   fpr.Start(js.fpa);
 
   // Translate instructions
-  PPCAnalyst::CodeOp* const ops = code_buf->codebuffer;
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = ops[i];
+    PPCAnalyst::CodeOp& op = code_buffer[i];
 
     js.compilerPC = op.address;
     js.op = &op;

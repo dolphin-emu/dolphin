@@ -13,11 +13,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-
-namespace PPCAnalyst
-{
-class CodeBuffer;
-}
+#include "Core/PowerPC/PPCAnalyst.h"
 
 // RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
 // limitation.
@@ -46,5 +42,5 @@ public:
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 };
 
-void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
+void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
                      const JitBlock* b);
