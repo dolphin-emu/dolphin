@@ -12,6 +12,7 @@
 #include <QVBoxLayout>
 
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt2/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt2/Config/Graphics/GeneralWidget.h"
@@ -19,6 +20,8 @@
 #include "DolphinQt2/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/QtUtils/WrapInScrollArea.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
@@ -93,7 +96,8 @@ void GraphicsWindow::CreateMainLayout()
 
 void GraphicsWindow::OnBackendChanged(const QString& backend)
 {
-  setWindowTitle(tr("Dolphin %1 Graphics Configuration").arg(backend));
+  setWindowTitle(tr("%1 Graphics Configuration")
+                     .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
   if (backend == QStringLiteral("Software Renderer") && m_tab_widget->count() > 1)
   {
     m_tab_widget->clear();
