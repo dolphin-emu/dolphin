@@ -201,12 +201,6 @@ void GeneralWidget::SaveSettings()
             return;
           }
         }
-        SConfig::GetInstance().m_strVideoBackend = current_backend;
-
-        g_Config.Refresh();
-
-        g_video_backend = backend.get();
-        g_video_backend->InitBackendInfo();
         emit BackendChanged(QString::fromStdString(current_backend));
         break;
       }
