@@ -67,7 +67,7 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
 
 void Drums::GetState(u8* const data)
 {
-  wm_drums_extension* const ddata = reinterpret_cast<wm_drums_extension* const>(data);
+  wm_drums_extension* const ddata = reinterpret_cast<wm_drums_extension*>(data);
   ddata->bt = 0;
 
   // calibration data not figured out yet?

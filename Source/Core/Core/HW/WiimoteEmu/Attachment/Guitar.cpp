@@ -100,7 +100,7 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 
 void Guitar::GetState(u8* const data)
 {
-  wm_guitar_extension* const gdata = reinterpret_cast<wm_guitar_extension* const>(data);
+  wm_guitar_extension* const gdata = reinterpret_cast<wm_guitar_extension*>(data);
   gdata->bt = 0;
 
   // calibration data not figured out yet?

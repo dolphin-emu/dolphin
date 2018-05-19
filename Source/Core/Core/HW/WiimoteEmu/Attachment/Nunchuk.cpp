@@ -59,7 +59,7 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 
 void Nunchuk::GetState(u8* const data)
 {
-  wm_nc* const ncdata = reinterpret_cast<wm_nc* const>(data);
+  wm_nc* const ncdata = reinterpret_cast<wm_nc*>(data);
   ncdata->bt.hex = 0;
 
   // stick
