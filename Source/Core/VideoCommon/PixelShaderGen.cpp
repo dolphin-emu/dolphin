@@ -1241,13 +1241,10 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
       " >> 1",  // DIVIDE_2
   };
 
-  const char* tevLerpBias[] =  // indexed by 2*op+(shift==3)
-      {
-          "",
-          " + 128",
-          "",
-          " + 127",
-      };
+  const char* tevLerpBias[] = {
+      " + 128",
+      " + 127",
+  };
 
   const char* tevBiasTable[] = {
       "",        // ZERO,
@@ -1270,7 +1267,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
   out.Write(" %s ", tevOpTable[op]);
   out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
             components, components, components, components, components, tevScaleTableLeft[shift],
-            tevLerpBias[2 * op + ((shift == 3) == alpha)]);
+            (shift == 3) ? "" : tevLerpBias[op]);
   out.Write(")%s", tevScaleTableRight[shift]);
 }
 
