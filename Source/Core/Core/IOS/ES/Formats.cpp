@@ -16,6 +16,8 @@
 #include <utility>
 #include <vector>
 
+#include <mbedtls/sha1.h>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -100,6 +102,29 @@ void SignedBlobReader::SetBytes(const std::vector<u8>& bytes)
 void SignedBlobReader::SetBytes(std::vector<u8>&& bytes)
 {
   m_bytes = std::move(bytes);
+}
+
+static size_t GetIssuerOffset(SignatureType signature_type)
+{
+  switch (signature_type)
+  {
+  case SignatureType::RSA2048:
+    return offsetof(SignatureRSA2048, issuer);
+  case SignatureType::RSA4096:
+    return offsetof(SignatureRSA4096, issuer);
+  case SignatureType::ECC:
+    return offsetof(SignatureECC, issuer);
+  default:
+    return 0;
+  }
+}
+
+std::array<u8, 20> SignedBlobReader::GetSha1() const
+{
+  std::array<u8, 20> sha1;
+  const size_t skip = GetIssuerOffset(GetSignatureType());
+  mbedtls_sha1(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
+  return sha1;
 }
 
 bool SignedBlobReader::IsSignatureValid() const

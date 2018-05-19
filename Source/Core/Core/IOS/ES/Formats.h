@@ -162,6 +162,9 @@ public:
   void SetBytes(const std::vector<u8>& bytes);
   void SetBytes(std::vector<u8>&& bytes);
 
+  /// Get the SHA1 hash for this signed blob (starting at the issuer).
+  std::array<u8, 20> GetSha1() const;
+
   // Only checks whether the signature data could be parsed. The signature is not verified.
   bool IsSignatureValid() const;
 

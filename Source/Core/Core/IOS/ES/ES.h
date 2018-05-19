@@ -323,9 +323,14 @@ private:
   bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
   ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
+  // On success, if issuer_handle is non-null, the IOSC object for the issuer will be written to it.
+  // The caller is responsible for using IOSC_DeleteObject.
   ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
                              const IOS::ES::SignedBlobReader& signed_blob,
-                             const std::vector<u8>& cert_chain, u32 iosc_handle = 0);
+                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::CertReader& certificate,
+                             const std::vector<u8>& cert_chain, u32 certificate_iosc_handle);
 
   // Start a title import.
   bool InitImport(const IOS::ES::TMDReader& tmd);

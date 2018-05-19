@@ -27,6 +27,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/ES/Formats.h"
 
 namespace
 {
@@ -295,7 +296,7 @@ ReturnCode IOSC::Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size
 }
 
 ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
-                                     const u8* signature, u32 pid) const
+                                     const std::vector<u8>& signature, u32 pid) const
 {
   if (!HasOwnership(signer_handle, pid))
     return IOSC_EACCES;
@@ -315,6 +316,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
   {
     const size_t expected_key_size = entry->subtype == SUBTYPE_RSA2048 ? 0x100 : 0x200;
     ASSERT(entry->data.size() == expected_key_size);
+    ASSERT(signature.size() == expected_key_size);
 
     mbedtls_rsa_context rsa;
     mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
@@ -325,7 +327,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     rsa.len = entry->data.size();
 
     const int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC,
-                                             MBEDTLS_MD_SHA1, 0, sha1.data(), signature);
+                                             MBEDTLS_MD_SHA1, 0, sha1.data(), signature.data());
     if (ret != 0)
     {
       WARN_LOG(IOS, "VerifyPublicKeySign: RSA verification failed (error %d)", ret);
@@ -342,53 +344,8 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
   }
 }
 
-struct ImportCertParameters
-{
-  size_t offset;
-  size_t size;
-  size_t signature_offset;
-  size_t public_key_offset;
-  size_t public_key_exponent_offset;
-};
-
-static ReturnCode GetImportCertParameters(const u8* cert, ImportCertParameters* parameters)
-{
-  // TODO: Add support for ECC signature type.
-  const u32 signature_type = Common::swap32(cert + offsetof(Cert, type));
-  switch (static_cast<SignatureType>(signature_type))
-  {
-  case SignatureType::RSA2048:
-  {
-    const u32 key_type = Common::swap32(cert + offsetof(Cert, rsa2048.header.public_key_type));
-
-    // TODO: Add support for ECC public key type.
-    if (static_cast<PublicKeyType>(key_type) != PublicKeyType::RSA2048)
-      return IOSC_INVALID_FORMAT;
-
-    parameters->offset = offsetof(Cert, rsa2048.signature.issuer);
-    parameters->size = sizeof(Cert::rsa2048) - parameters->offset;
-    parameters->signature_offset = offsetof(Cert, rsa2048.signature.sig);
-    parameters->public_key_offset = offsetof(Cert, rsa2048.public_key);
-    parameters->public_key_exponent_offset = offsetof(Cert, rsa2048.exponent);
-    return IPC_SUCCESS;
-  }
-  case SignatureType::RSA4096:
-  {
-    parameters->offset = offsetof(Cert, rsa4096.signature.issuer);
-    parameters->size = sizeof(Cert::rsa4096) - parameters->offset;
-    parameters->signature_offset = offsetof(Cert, rsa4096.signature.sig);
-    parameters->public_key_offset = offsetof(Cert, rsa4096.public_key);
-    parameters->public_key_exponent_offset = offsetof(Cert, rsa4096.exponent);
-    return IPC_SUCCESS;
-  }
-  default:
-    WARN_LOG(IOS, "Unknown signature type: %08x", signature_type);
-    return IOSC_INVALID_FORMAT;
-  }
-}
-
-ReturnCode IOSC::ImportCertificate(const u8* cert, Handle signer_handle, Handle dest_handle,
-                                   u32 pid)
+ReturnCode IOSC::ImportCertificate(const IOS::ES::CertReader& cert, Handle signer_handle,
+                                   Handle dest_handle, u32 pid)
 {
   if (!HasOwnership(signer_handle, pid) || !HasOwnership(dest_handle, pid))
     return IOSC_EACCES;
@@ -401,22 +358,17 @@ ReturnCode IOSC::ImportCertificate(const u8* cert, Handle signer_handle, Handle 
   if (signer_entry->type != TYPE_PUBLIC_KEY || dest_entry->type != TYPE_PUBLIC_KEY)
     return IOSC_INVALID_OBJTYPE;
 
-  ImportCertParameters parameters;
-  const ReturnCode ret = GetImportCertParameters(cert, &parameters);
-  if (ret != IPC_SUCCESS)
-    return ret;
+  if (!cert.IsValid())
+    return IOSC_INVALID_FORMAT;
 
-  std::array<u8, 20> sha1;
-  mbedtls_sha1(cert + parameters.offset, parameters.size, sha1.data());
-
-  if (VerifyPublicKeySign(sha1, signer_handle, cert + parameters.signature_offset, pid) !=
-      IPC_SUCCESS)
-  {
+  const std::vector<u8> signature = cert.GetSignatureData();
+  if (VerifyPublicKeySign(cert.GetSha1(), signer_handle, signature, pid) != IPC_SUCCESS)
     return IOSC_FAIL_CHECKVALUE;
-  }
 
-  return ImportPublicKey(dest_handle, cert + parameters.public_key_offset,
-                         cert + parameters.public_key_exponent_offset, pid);
+  const std::vector<u8> public_key = cert.GetPublicKey();
+  const bool is_rsa = cert.GetSignatureType() != SignatureType::ECC;
+  const u8* exponent = is_rsa ? (public_key.data() + public_key.size() - 4) : nullptr;
+  return ImportPublicKey(dest_handle, public_key.data(), exponent, pid);
 }
 
 ReturnCode IOSC::GetOwnership(Handle handle, u32* owner) const
