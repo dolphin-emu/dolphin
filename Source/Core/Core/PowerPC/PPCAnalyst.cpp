@@ -645,7 +645,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size)
 {
   // Clear block stats
-  memset(block->m_stats, 0, sizeof(BlockStats));
+  *block->m_stats = {};
 
   // Clear register stats
   block->m_gpa->any = true;
@@ -681,12 +681,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
         block->m_memory_exception = true;
       break;
     }
-    UGeckoInstruction inst = result.hex;
 
     num_inst++;
-    memset(&code[i], 0, sizeof(CodeOp));
-    GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
 
+    const UGeckoInstruction inst = result.hex;
+    GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
+    code[i] = {};
     code[i].opinfo = opinfo;
     code[i].address = address;
     code[i].inst = inst;
