@@ -606,12 +606,11 @@ void GCMemcardDirectory::FlushToFile()
       m_saves[i].m_save_data.clear();
     }
   }
-#if _WRITE_MC_HEADER
+
   u8 mc[BLOCK_SIZE * MC_FST_BLOCKS];
   Read(0, BLOCK_SIZE * MC_FST_BLOCKS, mc);
   File::IOFile hdrfile(m_save_directory + MC_HDR, "wb");
   hdrfile.WriteBytes(mc, BLOCK_SIZE * MC_FST_BLOCKS);
-#endif
 }
 
 void GCMemcardDirectory::DoState(PointerWrap& p)
