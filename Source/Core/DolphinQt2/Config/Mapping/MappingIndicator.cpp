@@ -109,6 +109,8 @@ void MappingIndicator::DrawCursor(bool tilt)
   float centerx = width() / 2., centery = height() / 2.;
 
   QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   float width = 64, height = 64;
   float deadzone = m_cursor_deadzone->GetValue() * 48;
@@ -194,6 +196,8 @@ void MappingIndicator::DrawStick()
   }};
 
   QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   // Draw maximum values
   p.setBrush(Qt::white);
@@ -222,6 +226,9 @@ void MappingIndicator::DrawStick()
 void MappingIndicator::DrawMixedTriggers()
 {
   QPainter p(this);
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.setRenderHint(QPainter::TextAntialiasing, true);
+  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   // Polled values
   double r_analog = PollControlState(m_mixed_triggers_r_analog);
@@ -257,10 +264,10 @@ void MappingIndicator::DrawMixedTriggers()
 
   p.setBrush(Qt::black);
   p.setPen(Qt::white);
-  p.drawText(width() * 0.225, 16, tr("L-Analog"));
-  p.drawText(width() * 0.8 + 16, 16, tr("L"));
-  p.drawText(width() * 0.225, 48, tr("R-Analog"));
-  p.drawText(width() * 0.8 + 16, 48, tr("R"));
+  p.drawText(width() * 0.225, 20, tr("L-Analog"));
+  p.drawText(width() * 0.8 + 16, 20, tr("L"));
+  p.drawText(width() * 0.225, 52, tr("R-Analog"));
+  p.drawText(width() * 0.8 + 16, 52, tr("R"));
 }
 
 void MappingIndicator::paintEvent(QPaintEvent*)
