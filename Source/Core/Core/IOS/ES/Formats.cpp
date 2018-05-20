@@ -130,7 +130,7 @@ std::array<u8, 20> SignedBlobReader::GetSha1() const
 bool SignedBlobReader::IsSignatureValid() const
 {
   // Too small for the certificate type.
-  if (m_bytes.size() < sizeof(Cert::type))
+  if (m_bytes.size() < sizeof(SignatureType))
     return false;
 
   // Too small to contain the whole signature data.
@@ -146,20 +146,23 @@ SignatureType SignedBlobReader::GetSignatureType() const
   return static_cast<SignatureType>(Common::swap32(m_bytes.data()));
 }
 
+template <typename T, typename It>
+static std::vector<u8> DetailGetSignatureData(It begin)
+{
+  const auto signature_begin = begin + offsetof(T, sig);
+  return std::vector<u8>(signature_begin, signature_begin + sizeof(T::sig));
+}
+
 std::vector<u8> SignedBlobReader::GetSignatureData() const
 {
   switch (GetSignatureType())
   {
   case SignatureType::RSA4096:
-  {
-    const auto signature_begin = m_bytes.begin() + offsetof(SignatureRSA4096, sig);
-    return std::vector<u8>(signature_begin, signature_begin + sizeof(SignatureRSA4096::sig));
-  }
+    return DetailGetSignatureData<SignatureRSA4096>(m_bytes.cbegin());
   case SignatureType::RSA2048:
-  {
-    const auto signature_begin = m_bytes.begin() + offsetof(SignatureRSA2048, sig);
-    return std::vector<u8>(signature_begin, signature_begin + sizeof(SignatureRSA2048::sig));
-  }
+    return DetailGetSignatureData<SignatureRSA2048>(m_bytes.cbegin());
+  case SignatureType::ECC:
+    return DetailGetSignatureData<SignatureECC>(m_bytes.cbegin());
   default:
     return {};
   }
@@ -173,9 +176,18 @@ size_t SignedBlobReader::GetSignatureSize() const
     return sizeof(SignatureRSA4096);
   case SignatureType::RSA2048:
     return sizeof(SignatureRSA2048);
+  case SignatureType::ECC:
+    return sizeof(SignatureECC);
   default:
     return 0;
   }
+}
+
+template <typename T>
+static std::string DetailGetIssuer(const u8* bytes)
+{
+  const char* issuer = reinterpret_cast<const char*>(bytes + offsetof(T, issuer));
+  return {issuer, strnlen(issuer, sizeof(T::issuer))};
 }
 
 std::string SignedBlobReader::GetIssuer() const
@@ -183,17 +195,11 @@ std::string SignedBlobReader::GetIssuer() const
   switch (GetSignatureType())
   {
   case SignatureType::RSA4096:
-  {
-    const char* issuer =
-        reinterpret_cast<const char*>(m_bytes.data() + offsetof(SignatureRSA4096, issuer));
-    return std::string(issuer, strnlen(issuer, sizeof(SignatureRSA4096::issuer)));
-  }
+    return DetailGetIssuer<SignatureRSA4096>(m_bytes.data());
   case SignatureType::RSA2048:
-  {
-    const char* issuer =
-        reinterpret_cast<const char*>(m_bytes.data() + offsetof(SignatureRSA2048, issuer));
-    return std::string(issuer, strnlen(issuer, sizeof(SignatureRSA2048::issuer)));
-  }
+    return DetailGetIssuer<SignatureRSA2048>(m_bytes.data());
+  case SignatureType::ECC:
+    return DetailGetIssuer<SignatureECC>(m_bytes.data());
   default:
     return "";
   }
@@ -677,24 +683,22 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
   if (!IsSignatureValid())
     return;
 
-  switch (GetSignatureType())
-  {
-  case SignatureType::RSA4096:
-    if (m_bytes.size() < sizeof(CertRSA4096))
-      return;
-    m_bytes.resize(sizeof(CertRSA4096));
-    break;
+  static constexpr std::array<std::tuple<SignatureType, PublicKeyType, size_t>, 4> types{{
+      {SignatureType::RSA4096, PublicKeyType::RSA2048, sizeof(CertRSA4096RSA2048)},
+      {SignatureType::RSA2048, PublicKeyType::RSA2048, sizeof(CertRSA2048RSA2048)},
+      {SignatureType::RSA2048, PublicKeyType::ECC, sizeof(CertRSA2048ECC)},
+      {SignatureType::ECC, PublicKeyType::ECC, sizeof(CertECC)},
+  }};
 
-  case SignatureType::RSA2048:
-    if (m_bytes.size() < sizeof(CertRSA2048))
-      return;
-    m_bytes.resize(sizeof(CertRSA2048));
-    break;
+  const auto info = std::find_if(types.cbegin(), types.cend(), [this](const auto& entry) {
+    return m_bytes.size() >= std::get<2>(entry) && std::get<0>(entry) == GetSignatureType() &&
+           std::get<1>(entry) == GetPublicKeyType();
+  });
 
-  default:
+  if (info == types.cend())
     return;
-  }
 
+  m_bytes.resize(std::get<2>(*info));
   m_is_valid = true;
 }
 
@@ -722,20 +726,28 @@ PublicKeyType CertReader::GetPublicKeyType() const
   return static_cast<PublicKeyType>(Common::swap32(m_bytes.data() + offset));
 }
 
+template <typename T, typename It>
+std::vector<u8> DetailGetPublicKey(It begin, size_t extra_data = 0)
+{
+  const auto key_begin = begin + offsetof(T, public_key);
+  return {key_begin, key_begin + sizeof(T::public_key) + extra_data};
+}
+
 std::vector<u8> CertReader::GetPublicKey() const
 {
-  static const std::map<SignatureType, std::pair<size_t, size_t>> type_to_key_info = {{
-      {SignatureType::RSA4096,
-       {offsetof(CertRSA4096, public_key),
-        sizeof(CertRSA4096::public_key) + sizeof(CertRSA4096::exponent)}},
-      {SignatureType::RSA2048,
-       {offsetof(CertRSA2048, public_key),
-        sizeof(CertRSA2048::public_key) + sizeof(CertRSA2048::exponent)}},
-  }};
-
-  const auto info = type_to_key_info.at(GetSignatureType());
-  const auto key_begin = m_bytes.begin() + info.first;
-  return std::vector<u8>(key_begin, key_begin + info.second);
+  switch (GetSignatureType())
+  {
+  case SignatureType::RSA4096:
+    return DetailGetPublicKey<CertRSA4096RSA2048>(m_bytes.begin(), 4);
+  case SignatureType::RSA2048:
+    if (GetPublicKeyType() == PublicKeyType::RSA2048)
+      return DetailGetPublicKey<CertRSA2048RSA2048>(m_bytes.begin(), 4);
+    return DetailGetPublicKey<CertRSA2048ECC>(m_bytes.begin());
+  case SignatureType::ECC:
+    return DetailGetPublicKey<CertECC>(m_bytes.begin());
+  default:
+    return {};
+  }
 }
 
 std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)

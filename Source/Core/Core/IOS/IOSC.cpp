@@ -337,8 +337,12 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     return IPC_SUCCESS;
   }
   case SUBTYPE_ECC233:
-    ERROR_LOG(IOS, "VerifyPublicKeySign: SUBTYPE_ECC233 is unimplemented");
-  // [[fallthrough]]
+  {
+    ASSERT(entry->data.size() == sizeof(CertECC::public_key));
+
+    const bool ok = Common::ec::VerifySignature(entry->data.data(), signature.data(), sha1.data());
+    return ok ? IPC_SUCCESS : IOSC_FAIL_CHECKVALUE;
+  }
   default:
     return IOSC_INVALID_OBJTYPE;
   }

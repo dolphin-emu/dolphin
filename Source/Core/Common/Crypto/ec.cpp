@@ -278,8 +278,10 @@ std::array<u8, 60> Sign(const u8* key, const u8* hash)
   return signature;
 }
 
-UNUSED static int check_ecdsa(u8* Q, u8* R, u8* S, const u8* hash)
+bool VerifySignature(const u8* public_key, const u8* signature, const u8* hash)
 {
+  const u8* R = signature;
+  const u8* S = signature + 30;
   u8 Sinv[30];
 
   bn_inv(Sinv, S, ec_N, 30);
@@ -290,7 +292,7 @@ UNUSED static int check_ecdsa(u8* Q, u8* R, u8* S, const u8* hash)
   bn_mul(w1, e, Sinv, ec_N, 30);
   bn_mul(w2, R, Sinv, ec_N, 30);
 
-  Point r1 = w1 * ec_G + w2 * Point{Q};
+  Point r1 = w1 * ec_G + w2 * Point{public_key};
   auto& rx = r1.X().data;
   if (bn_compare(rx.data(), ec_N, 30) >= 0)
     bn_sub_modulus(rx.data(), ec_N, 30);

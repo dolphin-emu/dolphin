@@ -34,6 +34,7 @@ enum class PublicKeyType : u32
 {
   RSA4096 = 0,
   RSA2048 = 1,
+  ECC = 2,
 };
 
 #pragma pack(push, 4)
@@ -72,34 +73,48 @@ struct CertHeader
   u32 id;
 };
 
-struct CertRSA4096
+using RSA2048PublicKey = std::array<u8, 0x100>;
+using ECCPublicKey = std::array<u8, 60>;
+
+struct CertRSA4096RSA2048
 {
   SignatureRSA4096 signature;
   CertHeader header;
-  // The signature is RSA4096, but the key is a RSA2048 public key,
-  // so its size is 0x100, not 0x200, as one would expect from the name.
-  u8 public_key[0x100];
+  RSA2048PublicKey public_key;
   u8 exponent[0x4];
   u8 pad[0x34];
 };
-static_assert(sizeof(CertRSA4096) == 0x400, "Wrong size for CertRSA4096");
+static_assert(sizeof(CertRSA4096RSA2048) == 0x400, "Wrong size for CertRSA4096RSA2048");
 
-struct CertRSA2048
+struct CertRSA2048RSA2048
 {
   SignatureRSA2048 signature;
   CertHeader header;
-  u8 public_key[0x100];
+  RSA2048PublicKey public_key;
   u8 exponent[0x4];
   u8 pad[0x34];
 };
-static_assert(sizeof(CertRSA2048) == 0x300, "Wrong size for CertRSA2048");
+static_assert(sizeof(CertRSA2048RSA2048) == 0x300, "Wrong size for CertRSA2048RSA2048");
 
-union Cert
+/// Used for device certificates
+struct CertRSA2048ECC
 {
-  SignatureType type;
-  CertRSA4096 rsa4096;
-  CertRSA2048 rsa2048;
+  SignatureRSA2048 signature;
+  CertHeader header;
+  ECCPublicKey public_key;
+  std::array<u8, 60> padding;
 };
+static_assert(sizeof(CertRSA2048ECC) == 0x240, "Wrong size for CertRSA2048ECC");
+
+/// Used for device signed certificates
+struct CertECC
+{
+  SignatureECC signature;
+  CertHeader header;
+  ECCPublicKey public_key;
+  std::array<u8, 60> padding;
+};
+static_assert(sizeof(CertECC) == 0x180, "Wrong size for CertECC");
 #pragma pack(pop)
 
 using ECCSignature = std::array<u8, 60>;
