@@ -31,11 +31,14 @@ namespace UICommon
 struct GameBanner
 {
   std::vector<u32> buffer{};
-  int width{};
-  int height{};
+  u32 width{};
+  u32 height{};
   bool empty() const { return buffer.empty(); }
   void DoState(PointerWrap& p);
 };
+
+bool operator==(const GameBanner& lhs, const GameBanner& rhs);
+bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 
 // This class caches the metadata of a DiscIO::Volume (or a DOL/ELF file).
 class GameFile final
@@ -77,10 +80,12 @@ public:
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
-  const GameBanner& GetBannerImage() const { return m_volume_banner; }
+  const GameBanner& GetBannerImage() const;
   void DoState(PointerWrap& p);
-  bool BannerChanged();
-  void BannerCommit();
+  bool WiiBannerChanged();
+  void WiiBannerCommit();
+  bool CustomBannerChanged();
+  void CustomBannerCommit();
   bool CustomNameChanged(const Core::TitleDatabase& title_database);
   void CustomNameCommit();
 
@@ -90,6 +95,7 @@ private:
   const std::string&
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
   bool IsElfOrDol() const;
+  bool ReadPNGBanner(const std::string& path);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and
@@ -121,6 +127,7 @@ private:
   std::string m_apploader_date{};
 
   GameBanner m_volume_banner{};
+  GameBanner m_custom_banner{};
   // Overridden name from TitleDatabase
   std::string m_custom_name{};
 
@@ -129,6 +136,7 @@ private:
   struct
   {
     GameBanner volume_banner;
+    GameBanner custom_banner;
     std::string custom_name;
   } m_pending{};
 };

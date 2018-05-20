@@ -45,7 +45,7 @@ public:
   std::optional<u16> GetRevision(const Partition& partition) const override;
   std::string GetInternalName(const Partition& partition) const override;
   std::map<Language, std::string> GetLongNames() const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition) const override;
   std::optional<u8> GetDiscNumber(const Partition& partition) const override;
 

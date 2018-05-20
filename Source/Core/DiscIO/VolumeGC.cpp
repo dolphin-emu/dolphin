@@ -150,7 +150,7 @@ std::map<Language, std::string> VolumeGC::GetDescriptions() const
   return m_converted_banner->descriptions;
 }
 
-std::vector<u32> VolumeGC::GetBanner(int* width, int* height) const
+std::vector<u32> VolumeGC::GetBanner(u32* width, u32* height) const
 {
   *width = m_converted_banner->image_width;
   *height = m_converted_banner->image_height;

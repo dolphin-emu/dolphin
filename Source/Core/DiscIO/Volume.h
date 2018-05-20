@@ -83,7 +83,7 @@ public:
   virtual std::map<Language, std::string> GetShortMakers() const { return {}; }
   virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
   virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
-  virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
+  virtual std::vector<u32> GetBanner(u32* width, u32* height) const = 0;
   std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }
   virtual std::string GetApploaderDate(const Partition& partition) const = 0;
   // 0 is the first disc, 1 is the second disc
