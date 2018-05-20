@@ -99,6 +99,7 @@
     <QtMoc Include="Config\Graphics\GraphicsWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsWindow.h" />
     <QtMoc Include="Config\Graphics\HacksWidget.h" />
+    <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
     <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PatchesWidget.h" />
@@ -232,6 +233,7 @@
     <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PatchesWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PathPane.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)PostProcessingConfigWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RegisterWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
@@ -269,6 +271,7 @@
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
+    <ClCompile Include="Config\Graphics\PostProcessingConfigWindow.cpp" />
     <ClCompile Include="Config\Graphics\SoftwareRendererWidget.cpp" />
     <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\Mapping\GCKeyboardEmu.cpp" />

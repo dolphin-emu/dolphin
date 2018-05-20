@@ -18,6 +18,7 @@
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
+#include "DolphinQt2/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/VideoUtils.h"
 #include "VideoCommon/PostProcessing.h"
@@ -131,6 +132,8 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
+  connect(m_configure_pp_effect, &QPushButton::pressed, this,
+          &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 
 void EnhancementsWidget::LoadSettings()
@@ -317,4 +320,10 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_3d_depth, TR_3D_DEPTH_DESCRIPTION);
   AddDescription(m_3d_convergence, TR_3D_CONVERGENCE_DESCRIPTION);
   AddDescription(m_3d_swap_eyes, TR_3D_SWAP_EYES_DESCRIPTION);
+}
+
+void EnhancementsWidget::ConfigurePostProcessingShader()
+{
+  const std::string shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  PostProcessingConfigWindow(this, shader).exec();
 }

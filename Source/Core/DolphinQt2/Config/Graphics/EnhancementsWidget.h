@@ -25,6 +25,7 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void AddDescriptions();
+  void ConfigurePostProcessingShader();
 
   // Enhancements
   QComboBox* m_ir_combo;
