@@ -499,11 +499,17 @@ void Interpreter::dcbst(UGeckoInstruction inst)
 
 void Interpreter::dcbt(UGeckoInstruction inst)
 {
+  if (HID0.NOOPTI)
+    return;
+
   // TODO: Implement some sort of L2 emulation.
 }
 
 void Interpreter::dcbtst(UGeckoInstruction inst)
 {
+  if (HID0.NOOPTI)
+    return;
+
   // TODO: Implement some sort of L2 emulation.
 }
 
