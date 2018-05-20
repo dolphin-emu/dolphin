@@ -36,7 +36,6 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
-  void OnDelete();
 
   void CreateWidgets();
   void ConnectWidgets();
