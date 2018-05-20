@@ -9,6 +9,7 @@
 #include "Common/Swap.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -17,26 +18,6 @@
 
 bool Interpreter::m_reserve;
 u32 Interpreter::m_reserve_address;
-
-namespace
-{
-void GenerateAlignmentException(u32 address)
-{
-  PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
-  PowerPC::ppcState.spr[SPR_DAR] = address;
-}
-
-void GenerateDSIException(u32 address)
-{
-  PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
-  PowerPC::ppcState.spr[SPR_DAR] = address;
-}
-
-void GenerateProgramException()
-{
-  PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
-}
-}
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction inst)
 {

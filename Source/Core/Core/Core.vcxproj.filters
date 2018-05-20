@@ -1011,6 +1011,9 @@
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\Interpreter\ExceptionUtils.h">
+      <Filter>PowerPC\Interpreter</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
       <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>

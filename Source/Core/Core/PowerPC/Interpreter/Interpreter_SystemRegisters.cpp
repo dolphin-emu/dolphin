@@ -12,6 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -198,7 +199,7 @@ void Interpreter::mfspr(UGeckoInstruction inst)
   if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
       index != SPR_TU)
   {
-    PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+    GenerateProgramException();
     return;
   }
 
@@ -245,7 +246,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   // XER, LR, and CTR are the only ones available to be written to in user mode
   if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
   {
-    PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+    GenerateProgramException();
     return;
   }
 
