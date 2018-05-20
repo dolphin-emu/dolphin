@@ -40,14 +40,14 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  void ShowConfig(void*);
+  void ShowConfig(void* parent_handle);
   virtual void InitBackendInfo() = 0;
 
   void Video_ExitLoop();
 
-  void Video_BeginField(u32, u32, u32, u32, u64);
+  void Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
 
-  u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
+  u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data);
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 
