@@ -46,6 +46,7 @@ private:
   void RemoveCode();
   void DownloadCodes();
   void SaveCodes();
+  void SortCodesLexicographically();
 
   const UICommon::GameFile& m_game;
   std::string m_game_id;
@@ -61,6 +62,7 @@ private:
   QPushButton* m_edit_code;
   QPushButton* m_remove_code;
   QPushButton* m_download_codes;
+  QPushButton* m_sort_codes;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
   bool m_restart_required;
 };
