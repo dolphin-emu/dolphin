@@ -194,9 +194,13 @@ void Interpreter::mfspr(UGeckoInstruction inst)
 {
   const u32 index = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
 
-  // TODO - check processor privilege level - many of these require privilege
-  // XER LR CTR are the only ones available in user mode, time base can be read too.
-  // GameCube games always run in superuser mode, but hey....
+  // XER, LR, CTR, and timebase halves are the only ones available in user mode.
+  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
+      index != SPR_TU)
+  {
+    PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+    return;
+  }
 
   switch (index)
   {
@@ -237,12 +241,16 @@ void Interpreter::mfspr(UGeckoInstruction inst)
 void Interpreter::mtspr(UGeckoInstruction inst)
 {
   const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+
+  // XER, LR, and CTR are the only ones available to be written to in user mode
+  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
+  {
+    PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
+    return;
+  }
+
   const u32 old_value = rSPR(index);
   rSPR(index) = rGPR[inst.RD];
-
-  // TODO - check processor privilege level - many of these require privilege
-  // XER LR CTR are the only ones available in user mode, time base can be read too.
-  // GameCube games always run in superuser mode, but hey....
 
   // Our DMA emulation is highly inaccurate - instead of properly emulating the queue
   // and so on, we simply make all DMA:s complete instantaneously.
