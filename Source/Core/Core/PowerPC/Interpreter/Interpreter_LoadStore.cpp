@@ -673,7 +673,7 @@ void Interpreter::lhzux(UGeckoInstruction inst)
 
 void Interpreter::lhzx(UGeckoInstruction inst)
 {
-  const u32 temp = (u32)PowerPC::Read_U16(Helper_Get_EA_X(inst));
+  const u32 temp = PowerPC::Read_U16(Helper_Get_EA_X(inst));
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
