@@ -264,10 +264,10 @@ void MappingIndicator::DrawMixedTriggers()
 
   p.setBrush(Qt::black);
   p.setPen(Qt::white);
-  p.drawText(width() * 0.225, 16, tr("L-Analog"));
-  p.drawText(width() * 0.8 + 16, 16, tr("L"));
-  p.drawText(width() * 0.225, 48, tr("R-Analog"));
-  p.drawText(width() * 0.8 + 16, 48, tr("R"));
+  p.drawText(width() * 0.225, 20, tr("L-Analog"));
+  p.drawText(width() * 0.8 + 16, 20, tr("L"));
+  p.drawText(width() * 0.225, 52, tr("R-Analog"));
+  p.drawText(width() * 0.8 + 16, 52, tr("R"));
 }
 
 void MappingIndicator::paintEvent(QPaintEvent*)
