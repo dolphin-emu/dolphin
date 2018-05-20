@@ -18,6 +18,7 @@ add_library(common
   GekkoDisassembler.cpp
   Hash.cpp
   HttpRequest.cpp
+  Image.cpp
   IniFile.cpp
   JitRegister.cpp
   Logging/LogManager.cpp
@@ -54,6 +55,7 @@ PUBLIC
 PRIVATE
   ${CURL_LIBRARIES}
   ${ICONV_LIBRARIES}
+  png
   ${VTUNE_LIBRARIES}
 )
 

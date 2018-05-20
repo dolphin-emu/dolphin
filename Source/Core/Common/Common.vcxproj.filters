@@ -51,6 +51,7 @@
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
@@ -281,6 +282,7 @@
     <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MemArena.cpp" />

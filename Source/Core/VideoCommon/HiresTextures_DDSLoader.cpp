@@ -155,14 +155,9 @@ u32 GetBlockCount(u32 extent, u32 block_size)
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-HiresTexture::ImageDataPointer AllocateLevelData(size_t size)
-{
-  return HiresTexture::ImageDataPointer(new u8[size], [](u8* data) { delete[] data; });
-}
-
 void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
 {
-  u8* data_ptr = level->data.get();
+  u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
   {
     for (u32 x = 0; x < level->row_length; x++)
@@ -176,7 +171,7 @@ void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
 
 void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
 {
-  u8* data_ptr = level->data.get();
+  u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
   {
     for (u32 x = 0; x < level->row_length; x++)
@@ -193,7 +188,7 @@ void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
 
 void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
 {
-  u8* data_ptr = level->data.get();
+  u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
   {
     for (u32 x = 0; x < level->row_length; x++)
@@ -210,14 +205,10 @@ void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
 
 void ConvertTexture_R8G8B8(HiresTexture::Level* level)
 {
-  // Have to reallocate the buffer for this one, since the data in the file
-  // does not have an alpha byte.
-  level->data_size = level->row_length * level->height * sizeof(u32);
-  HiresTexture::ImageDataPointer rgb_data = AllocateLevelData(level->data_size);
-  std::swap(level->data, rgb_data);
+  std::vector<u8> new_data(level->row_length * level->height * sizeof(u32));
 
-  const u8* rgb_data_ptr = rgb_data.get();
-  u8* data_ptr = level->data.get();
+  const u8* rgb_data_ptr = level->data.data();
+  u8* data_ptr = new_data.data();
 
   for (u32 row = 0; row < level->height; row++)
   {
@@ -232,6 +223,8 @@ void ConvertTexture_R8G8B8(HiresTexture::Level* level)
       rgb_data_ptr += 3;
     }
   }
+
+  level->data = std::move(new_data);
 }
 
 bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
@@ -410,19 +403,14 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
 bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const DDSLoadInfo& info,
                   u32 width, u32 height, u32 row_length, size_t size)
 {
-  // Copy to the final storage location. The deallocator here is simple, nothing extra is
-  // needed, compared to the SOIL-based loader.
+  // Copy to the final storage location.
   level->width = width;
   level->height = height;
   level->format = info.format;
   level->row_length = row_length;
-  level->data_size = size;
-  level->data = AllocateLevelData(level->data_size);
-  if (!file.ReadBytes(level->data.get(), level->data_size))
-  {
-    level->data.reset();
+  level->data.resize(size);
+  if (!file.ReadBytes(level->data.data(), level->data.size()))
     return false;
-  }
 
   // Apply conversion function for uncompressed textures.
   if (info.conversion_function)

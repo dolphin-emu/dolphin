@@ -4,7 +4,6 @@
 
 #include "VideoCommon/HiresTextures.h"
 
-#include <SOIL/SOIL.h>
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
@@ -22,6 +21,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Hash.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -42,16 +42,11 @@ struct DiskTexture
 static std::unordered_map<std::string, DiskTexture> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
-static std::mutex s_textureCacheAquireMutex;  // for high priority access
 static Common::Flag s_textureCacheAbortLoading;
 
 static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
-
-HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
-{
-}
 
 void HiresTexture::Init()
 {
@@ -92,10 +87,7 @@ void HiresTexture::Update()
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::string texture_directory = GetTextureDirectory(game_id);
-  std::vector<std::string> extensions{
-      ".png", ".bmp", ".tga", ".dds",
-      ".jpg"  // Why not? Could be useful for large photo-like textures
-  };
+  const std::vector<std::string> extensions{".png", ".dds"};
 
   const std::vector<std::string> texture_paths =
       Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
@@ -155,25 +147,16 @@ void HiresTexture::Prefetch()
 
     if (base_filename.find("_mip") == std::string::npos)
     {
-      {
-        // try to get this mutex first, so the video thread is allow to get the real mutex faster
-        std::unique_lock<std::mutex> lk(s_textureCacheAquireMutex);
-      }
       std::unique_lock<std::mutex> lk(s_textureCacheMutex);
 
       auto iter = s_textureCache.find(base_filename);
       if (iter == s_textureCache.end())
       {
-        // unlock while loading a texture. This may result in a race condition where we'll load a
-        // texture twice,
-        // but it reduces the stuttering a lot. Notice: The loading library _must_ be thread safe
-        // now.
-        // But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use libpng directly
-        // Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main
-        // mutex will be locked rarely
-        // lk.unlock();
+        // unlock while loading a texture. This may result in a race condition where
+        // we'll load a texture twice, but it reduces the stuttering a lot.
+        lk.unlock();
         std::unique_ptr<HiresTexture> texture = Load(base_filename, 0, 0);
-        // lk.lock();
+        lk.lock();
         if (texture)
         {
           std::shared_ptr<HiresTexture> ptr(std::move(texture));
@@ -183,9 +166,7 @@ void HiresTexture::Prefetch()
       if (iter != s_textureCache.end())
       {
         for (const Level& l : iter->second->m_levels)
-        {
-          size_sum += l.data_size;
-        }
+          size_sum += l.data.size();
       }
     }
 
@@ -306,7 +287,6 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
   std::string base_filename =
       GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
 
-  std::lock_guard<std::mutex> lk2(s_textureCacheAquireMutex);
   std::lock_guard<std::mutex> lk(s_textureCacheMutex);
 
   auto iter = s_textureCache.find(base_filename);
@@ -361,6 +341,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       file.Open(filename_iter->second.path, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
+
       if (!LoadTexture(level, buffer))
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
@@ -440,22 +421,15 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
 bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
 {
-  int channels;
-  int width;
-  int height;
-
-  u8* data = SOIL_load_image_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width,
-                                         &height, &channels, SOIL_LOAD_RGBA);
-  if (!data)
+  if (!Common::LoadPNG(buffer, &level.data, &level.width, &level.height))
     return false;
 
-  // Images loaded by SOIL are converted to RGBA.
-  level.width = static_cast<u32>(width);
-  level.height = static_cast<u32>(height);
+  if (level.data.empty())
+    return false;
+
+  // Loaded PNG images are converted to RGBA.
   level.format = AbstractTextureFormat::RGBA8;
-  level.data = ImageDataPointer(data, SOIL_free_image_data);
   level.row_length = level.width;
-  level.data_size = static_cast<size_t>(level.row_length) * 4 * level.height;
   return true;
 }
 

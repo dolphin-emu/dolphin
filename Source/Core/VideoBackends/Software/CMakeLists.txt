@@ -22,6 +22,5 @@ PUBLIC
   videocommon
 
 PRIVATE
-  SOIL
   ${X11_LIBRARIES}
 )

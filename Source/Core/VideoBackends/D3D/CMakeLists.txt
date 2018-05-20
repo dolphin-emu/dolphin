@@ -46,7 +46,4 @@ target_link_libraries(videod3d
 PUBLIC
   common
   videocommon
-
-PRIVATE
-  SOIL
 )

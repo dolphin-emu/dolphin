@@ -957,8 +957,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   if (hires_tex)
   {
     const auto& level = hires_tex->m_levels[0];
-    entry->texture->Load(0, level.width, level.height, level.row_length, level.data.get(),
-                         level.data_size);
+    entry->texture->Load(0, level.width, level.height, level.row_length, level.data.data(),
+                         level.data.size());
   }
 
   // Initialized to null because only software loading uses this buffer
@@ -1042,7 +1042,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     {
       const auto& level = hires_tex->m_levels[level_index];
       entry->texture->Load(level_index, level.width, level.height, level.row_length,
-                           level.data.get(), level.data_size);
+                           level.data.data(), level.data.size());
     }
   }
   else

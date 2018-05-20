@@ -125,6 +125,7 @@
     <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="Lazy.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="LdrWatcher.cpp" />
@@ -229,6 +231,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
       <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
