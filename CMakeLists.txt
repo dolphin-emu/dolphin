@@ -700,7 +700,7 @@ if(ENABLE_WX)
   endif()
 
   if(wxWidgets_FOUND)
-    message(STATUS "wxWidgets found, enabling GUI build")
+    message(STATUS "wxWidgets found")
     if(NOT TARGET wxWidgets::wxWidgets)
       add_library(wxWidgets::wxWidgets INTERFACE IMPORTED)
       set_target_properties(wxWidgets::wxWidgets PROPERTIES
