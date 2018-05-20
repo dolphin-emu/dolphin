@@ -20,6 +20,8 @@
 JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("JIT Blocks"));
+  setObjectName(QStringLiteral("jitwidget"));
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
   auto& settings = Settings::GetQSettings();
