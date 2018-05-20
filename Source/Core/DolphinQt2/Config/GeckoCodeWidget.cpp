@@ -66,6 +66,7 @@ void GeckoCodeWidget::CreateWidgets()
   m_edit_code = new QPushButton(tr("&Edit Code..."));
   m_remove_code = new QPushButton(tr("&Remove Code"));
   m_download_codes = new QPushButton(tr("Download Codes"));
+  m_sort_code = new QPushButton(tr("Sort Codes"));
 
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 
@@ -102,6 +103,7 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_edit_code);
   btn_layout->addWidget(m_remove_code);
   btn_layout->addWidget(m_download_codes);
+  btn_layout->addWidget(m_sort_code);
 
   layout->addLayout(btn_layout);
 
@@ -118,6 +120,7 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_remove_code, &QPushButton::pressed, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
+  connect(m_sort_code, &QPushButton::pressed, this, &GeckoCodeWidget::SortCode);
 
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
@@ -221,10 +224,20 @@ void GeckoCodeWidget::SaveCodes()
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 }
 
+bool helpOrderCodes(Gecko::GeckoCode code1, Gecko::GeckoCode code2) { // to sort the codes alphabetically
+  return (code1.name < code2.name);
+}
+
+void GeckoCodeWidget::SortCode(){
+  std::sort(m_gecko_codes.begin(), m_gecko_codes.end(), helpOrderCodes);
+  GeckoCodeWidget::UpdateList();
+}
+
 void GeckoCodeWidget::UpdateList()
 {
   m_code_list->clear();
 
+  // std::sort(m_gecko_codes.begin(), m_gecko_codes.end(), helpOrderCodes);  // should sort the codes in alphabetical order
   for (size_t i = 0; i < m_gecko_codes.size(); i++)
   {
     const auto& code = m_gecko_codes[i];
