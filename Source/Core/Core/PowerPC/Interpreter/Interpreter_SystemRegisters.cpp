@@ -87,15 +87,15 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
 
 void Interpreter::mtfsfx(UGeckoInstruction inst)
 {
-  u32 fm = inst.FM;
+  const u32 fm = inst.FM;
   u32 m = 0;
-  for (int i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
-    if (fm & (1 << i))
-      m |= (0xF << (i * 4));
+    if (fm & (1U << i))
+      m |= (0xFU << (i * 4));
   }
 
-  FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(inst.FB)) & m);
+  FPSCR.Hex = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
@@ -116,7 +116,7 @@ void Interpreter::mfcr(UGeckoInstruction inst)
 
 void Interpreter::mtcrf(UGeckoInstruction inst)
 {
-  u32 crm = inst.CRM;
+  const u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
     PowerPC::SetCR(rGPR[inst.RS]);
@@ -125,10 +125,10 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
   {
     // TODO: use lookup table? probably not worth it
     u32 mask = 0;
-    for (int i = 0; i < 8; i++)
+    for (u32 i = 0; i < 8; i++)
     {
-      if (crm & (1 << i))
-        mask |= 0xF << (i * 4);
+      if (crm & (1U << i))
+        mask |= 0xFU << (i * 4);
     }
 
     PowerPC::SetCR((PowerPC::GetCR() & ~mask) | (rGPR[inst.RS] & mask));
@@ -148,7 +148,7 @@ void Interpreter::mfsr(UGeckoInstruction inst)
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
 {
-  int index = (rGPR[inst.RB] >> 28) & 0xF;
+  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
   rGPR[inst.RD] = PowerPC::ppcState.sr[index];
 }
 
@@ -162,7 +162,7 @@ void Interpreter::mtmsr(UGeckoInstruction inst)
 
 // Segment registers. MMU control.
 
-static void SetSR(int index, u32 value)
+static void SetSR(u32 index, u32 value)
 {
   DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index,
             value);
@@ -171,21 +171,21 @@ static void SetSR(int index, u32 value)
 
 void Interpreter::mtsr(UGeckoInstruction inst)
 {
-  int index = inst.SR;
-  u32 value = rGPR[inst.RS];
+  const u32 index = inst.SR;
+  const u32 value = rGPR[inst.RS];
   SetSR(index, value);
 }
 
 void Interpreter::mtsrin(UGeckoInstruction inst)
 {
-  int index = (rGPR[inst.RB] >> 28) & 0xF;
-  u32 value = rGPR[inst.RS];
+  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
+  const u32 value = rGPR[inst.RS];
   SetSR(index, value);
 }
 
 void Interpreter::mftb(UGeckoInstruction inst)
 {
-  const int index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
+  const u32 index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
   DEBUG_ASSERT_MSG(POWERPC, (index == SPR_TL) || (index == SPR_TU), "Invalid mftb");
   (void)index;
   mfspr(inst);
@@ -385,7 +385,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DBAT7U:
     if (old_value != rSPR(index))
     {
-      INFO_LOG(POWERPC, "DBAT updated %d %x %x", index, old_value, rSPR(index));
+      INFO_LOG(POWERPC, "DBAT updated %u %x %x", index, old_value, rSPR(index));
       PowerPC::DBATUpdated();
     }
     break;
@@ -408,7 +408,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_IBAT7U:
     if (old_value != rSPR(index))
     {
-      INFO_LOG(POWERPC, "IBAT updated %d %x %x", index, old_value, rSPR(index));
+      INFO_LOG(POWERPC, "IBAT updated %u %x %x", index, old_value, rSPR(index));
       PowerPC::IBATUpdated();
     }
     break;
