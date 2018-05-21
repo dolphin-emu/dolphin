@@ -70,10 +70,10 @@ struct BootMiiKeyDump
   u32 unk2;                         // 0x17C
   std::array<u8, 0x80> eeprom_pad;  // 0x180
 
-  u32 ms_id;                 // 0x200
-  u32 ca_id;                 // 0x204
-  u32 ng_key_id;             // 0x208
-  IOS::ECCSignature ng_sig;  // 0x20c
+  u32 ms_id;                     // 0x200
+  u32 ca_id;                     // 0x204
+  u32 ng_key_id;                 // 0x208
+  Common::ec::Signature ng_sig;  // 0x20c
   struct Counter
   {
     u8 boot2version;
@@ -108,7 +108,7 @@ constexpr std::array<u8, 30> DEFAULT_PRIVATE_KEY = {{
 }};
 
 // clang-format off
-constexpr ECCSignature DEFAULT_SIGNATURE = {{
+constexpr Common::ec::Signature DEFAULT_SIGNATURE = {{
     // R
     0x00, 0xD8, 0x81, 0x63, 0xB2, 0x00, 0x6B, 0x0B, 0x54, 0x82, 0x88, 0x63, 0x81, 0x1C, 0x00, 0x71,
     0x12, 0xED, 0xB7, 0xFD, 0x21, 0xAB, 0x0E, 0x50, 0x0E, 0x1F, 0xBF, 0x78, 0xAD, 0x37,

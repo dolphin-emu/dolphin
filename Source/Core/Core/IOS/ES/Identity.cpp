@@ -8,12 +8,14 @@
 
 #include <mbedtls/sha1.h>
 
+#include "Common/Crypto/ec.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 
 namespace IOS
@@ -197,7 +199,7 @@ IPCCommandResult ES::VerifySign(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
     return GetDefaultReply(ES_EINVAL);
-  if (request.in_vectors[1].size != sizeof(IOS::ECCSignature))
+  if (request.in_vectors[1].size != sizeof(Common::ec::Signature))
     return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> hash(request.in_vectors[0].size);

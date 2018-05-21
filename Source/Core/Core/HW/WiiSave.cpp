@@ -455,7 +455,7 @@ void WiiSave::do_sig()
 
   // Sign the data.
   IOS::CertECC ap_cert;
-  IOS::ECCSignature ap_sig;
+  Common::ec::Signature ap_sig;
   m_ios.GetIOSC().Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
                        data.get(), data_size);
 

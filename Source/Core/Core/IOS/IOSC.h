@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/Crypto/ec.h"
 
 class PointerWrap;
 
@@ -37,8 +38,6 @@ enum class PublicKeyType : u32
   ECC = 2,
 };
 
-using ECCSignature = std::array<u8, 60>;
-
 #pragma pack(push, 4)
 struct SignatureRSA4096
 {
@@ -61,7 +60,7 @@ static_assert(sizeof(SignatureRSA2048) == 0x180, "Wrong size for SignatureRSA204
 struct SignatureECC
 {
   SignatureType type;
-  ECCSignature sig;
+  Common::ec::Signature sig;
   u8 fill[0x40];
   char issuer[0x40];
 };
@@ -76,7 +75,6 @@ struct CertHeader
 };
 
 using RSA2048PublicKey = std::array<u8, 0x100>;
-using ECCPublicKey = std::array<u8, 60>;
 
 struct CertRSA4096RSA2048
 {
@@ -103,7 +101,7 @@ struct CertRSA2048ECC
 {
   SignatureRSA2048 signature;
   CertHeader header;
-  ECCPublicKey public_key;
+  Common::ec::PublicKey public_key;
   std::array<u8, 60> padding;
 };
 static_assert(sizeof(CertRSA2048ECC) == 0x240, "Wrong size for CertRSA2048ECC");
@@ -113,7 +111,7 @@ struct CertECC
 {
   SignatureECC signature;
   CertHeader header;
-  ECCPublicKey public_key;
+  Common::ec::PublicKey public_key;
   std::array<u8, 60> padding;
 };
 static_assert(sizeof(CertECC) == 0x180, "Wrong size for CertECC");
@@ -267,7 +265,7 @@ private:
 
   KeyEntries m_key_entries;
   KeyEntry m_root_key_entry;
-  ECCSignature m_console_signature{};
+  Common::ec::Signature m_console_signature{};
   // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults to 2.
   u32 m_ms_id = 2;
   u32 m_ca_id = 1;

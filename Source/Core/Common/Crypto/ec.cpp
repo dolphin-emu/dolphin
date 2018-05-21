@@ -241,7 +241,7 @@ static void silly_random(u8* rndArea, u8 count)
   }
 }
 
-std::array<u8, 60> Sign(const u8* key, const u8* hash)
+Signature Sign(const u8* key, const u8* hash)
 {
   u8 e[30]{};
   memcpy(e + 10, hash, 20);
@@ -272,7 +272,7 @@ std::array<u8, 60> Sign(const u8* key, const u8* hash)
   bn_inv(minv, m, ec_N, sizeof(minv));
   bn_mul(s.data.data(), minv, kk, ec_N, 30);
 
-  std::array<u8, 60> signature;
+  Signature signature;
   std::copy(r.data.cbegin(), r.data.cend(), signature.begin());
   std::copy(s.data.cbegin(), s.data.cend(), signature.begin() + 30);
   return signature;
@@ -300,10 +300,10 @@ bool VerifySignature(const u8* public_key, const u8* signature, const u8* hash)
   return (bn_compare(rx.data(), R, 30) == 0);
 }
 
-std::array<u8, 60> PrivToPub(const u8* key)
+PublicKey PrivToPub(const u8* key)
 {
   const Point data = key * ec_G;
-  std::array<u8, 60> result;
+  PublicKey result;
   std::copy_n(data.Data(), result.size(), result.begin());
   return result;
 }
