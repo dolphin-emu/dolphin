@@ -39,6 +39,7 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsSlider.cpp
   Config/Graphics/GraphicsWidget.cpp
   Config/Graphics/GraphicsWindow.cpp
+  Config/Graphics/PostProcessingConfigWindow.cpp
   Config/Graphics/SoftwareRendererWidget.cpp
   Config/InfoWidget.cpp
   Config/LogConfigWidget.cpp
