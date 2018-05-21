@@ -5,11 +5,10 @@
 #include <cctype>
 #include <cstring>
 #include <ctime>
-#include <random>
 
 #include "Common/Network.h"
+#include "Common/Random.h"
 #include "Common/StringUtil.h"
-#include "Common/Timer.h"
 
 namespace Common
 {
@@ -31,11 +30,7 @@ void GenerateMacAddress(const MACConsumer type, u8* mac)
   }
 
   // Generate the 24-bit NIC-specific portion of the MAC address.
-  std::default_random_engine generator(Common::Timer::GetTimeMs());
-  std::uniform_int_distribution<int> distribution(0x00, 0xFF);
-  mac[3] = static_cast<u8>(distribution(generator));
-  mac[4] = static_cast<u8>(distribution(generator));
-  mac[5] = static_cast<u8>(distribution(generator));
+  Common::Random::Generate(&mac[3], 3);
 }
 
 std::string MacAddressToString(const u8* mac)
