@@ -46,7 +46,7 @@ public:
     bool m_dirty;
   };
 
-  typedef std::map<std::string, ConfigurationOption> ConfigMap;
+  using ConfigMap = std::map<std::string, ConfigurationOption>;
 
   PostProcessingShaderConfiguration();
   virtual ~PostProcessingShaderConfiguration();
