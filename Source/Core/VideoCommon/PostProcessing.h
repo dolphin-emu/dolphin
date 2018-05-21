@@ -57,10 +57,10 @@ public:
   std::string LoadShader(std::string shader = "");
   void SaveOptionsConfiguration();
   void ReloadShader();
-  std::string GetShader() { return m_current_shader; }
-  bool IsDirty() { return m_any_options_dirty; }
+  std::string GetShader() const { return m_current_shader; }
+  bool IsDirty() const { return m_any_options_dirty; }
   void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
-  bool HasOptions() { return m_options.size() > 0; }
+  bool HasOptions() const { return m_options.size() > 0; }
   const ConfigMap& GetOptions() const { return m_options; }
   ConfigMap& GetOptions() { return m_options; }
   const ConfigurationOption& GetOption(const std::string& option) { return m_options[option]; }
