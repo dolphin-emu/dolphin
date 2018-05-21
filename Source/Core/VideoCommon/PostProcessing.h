@@ -57,7 +57,7 @@ public:
   std::string LoadShader(std::string shader = "");
   void SaveOptionsConfiguration();
   void ReloadShader();
-  std::string GetShader() const { return m_current_shader; }
+  const std::string& GetShader() const { return m_current_shader; }
   bool IsDirty() const { return m_any_options_dirty; }
   void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
   bool HasOptions() const { return m_options.size() > 0; }
