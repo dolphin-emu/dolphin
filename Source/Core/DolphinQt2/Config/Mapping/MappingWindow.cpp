@@ -291,7 +291,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
 
     HotkeyDebugging* debugging_widget = new HotkeyDebugging(this);
-    QWidget* debugging_widget_wrapper = GetWrappedWidget(debugging_widget, this, 150, 150);
+    QWidget* debugging_widget_wrapper = GetWrappedWidget(debugging_widget, this, 150, 205);
     connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [=](bool enabled) {
       if (enabled)
         m_tab_widget->insertTab(2, debugging_widget_wrapper, tr("Debugging"));
@@ -333,7 +333,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
 void MappingWindow::AddWidget(const QString& name, QWidget* widget)
 {
-  m_tab_widget->addTab(GetWrappedWidget(widget, this, 150, 150), name);
+  m_tab_widget->addTab(GetWrappedWidget(widget, this, 150, 205), name);
 }
 
 int MappingWindow::GetPort() const
