@@ -134,7 +134,7 @@ void WiiSave::ReadHDR()
   m_header.hdr.md5 = s_md5_blanker;
   Md5 md5_calc;
   mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc.data());
-  if (md5_file == md5_calc)
+  if (md5_file != md5_calc)
   {
     ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
               Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
