@@ -48,8 +48,9 @@ public:
 
   typedef std::map<std::string, ConfigurationOption> ConfigMap;
 
-  PostProcessingShaderConfiguration() : m_current_shader("") {}
-  virtual ~PostProcessingShaderConfiguration() {}
+  PostProcessingShaderConfiguration();
+  virtual ~PostProcessingShaderConfiguration();
+
   // Loads the configuration with a shader
   // If the argument is "" the class will load the shader from the g_activeConfig option.
   // Returns the loaded shader source from file
@@ -69,7 +70,7 @@ public:
   void SetOptionb(const std::string& option, bool value);
 
 private:
-  bool m_any_options_dirty;
+  bool m_any_options_dirty = false;
   std::string m_current_shader;
   ConfigMap m_options;
 
