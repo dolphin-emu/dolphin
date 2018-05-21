@@ -134,7 +134,7 @@ void VulkanPostProcessing::FillUniformBuffer(u8* buf, const TargetRectangle& src
   }
 }
 
-static const std::string DEFAULT_FRAGMENT_SHADER_SOURCE = R"(
+constexpr char DEFAULT_FRAGMENT_SHADER_SOURCE[] = R"(
   layout(set = 1, binding = 0) uniform sampler2DArray samp0;
 
   layout(location = 0) in float3 uv0;
@@ -147,7 +147,7 @@ static const std::string DEFAULT_FRAGMENT_SHADER_SOURCE = R"(
   }
 )";
 
-static const std::string POSTPROCESSING_SHADER_HEADER = R"(
+constexpr char POSTPROCESSING_SHADER_HEADER[] = R"(
   SAMPLER_BINDING(0) uniform sampler2DArray samp0;
   SAMPLER_BINDING(1) uniform sampler2DArray samp1;
 
