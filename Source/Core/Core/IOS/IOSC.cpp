@@ -417,16 +417,16 @@ u32 IOSC::GetDeviceId() const
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
-static Certificate MakeBlankSigECCert(const char* signer, const char* name, const u8* private_key,
-                                      u32 key_id)
+static Certificate MakeBlankSigECCert(const std::string& signer, const std::string& name,
+                                      const u8* private_key, u32 key_id)
 {
   Certificate cert_out{};
   const u32 type = Common::swap32(static_cast<u32>(SignatureType::ECC));
   std::memcpy(cert_out.data(), &type, sizeof(type));
-  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0x80, signer, 0x40);
+  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0x80, signer.c_str(), 0x40);
   const u32 two = Common::swap32(2);
   std::memcpy(cert_out.data() + 0xc0, &two, sizeof(two));
-  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name, 0x40);
+  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name.c_str(), 0x40);
   const u32 swapped_key_id = Common::swap32(key_id);
   std::memcpy(cert_out.data() + 0x104, &swapped_key_id, sizeof(swapped_key_id));
   const std::array<u8, 60> public_key = Common::ec::PrivToPub(private_key);
@@ -437,7 +437,7 @@ static Certificate MakeBlankSigECCert(const char* signer, const char* name, cons
 Certificate IOSC::GetDeviceCertificate() const
 {
   const std::string name = StringFromFormat("NG%08x", GetDeviceId());
-  auto cert = MakeBlankSigECCert("Root-CA00000001-MS00000002", name.c_str(),
+  auto cert = MakeBlankSigECCert(StringFromFormat("Root-CA%08x-MS%08x", m_ca_id, m_ms_id), name,
                                  m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
   std::copy(m_console_signature.begin(), m_console_signature.end(), cert.begin() + 4);
   return cert;
@@ -453,9 +453,10 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   // get_rand_bytes(ap_priv, 0x1e);
   // ap_priv[0] &= 1;
 
-  const std::string signer = StringFromFormat("Root-CA00000001-MS00000002-NG%08x", GetDeviceId());
+  const std::string signer =
+      StringFromFormat("Root-CA%08x-MS%08x-NG%08x", m_ca_id, m_ms_id, GetDeviceId());
   const std::string name = StringFromFormat("AP%016" PRIx64, title_id);
-  const auto cert = MakeBlankSigECCert(signer.c_str(), name.c_str(), ap_priv.data(), 0);
+  const auto cert = MakeBlankSigECCert(signer, name, ap_priv.data(), 0);
   std::copy(cert.begin(), cert.end(), ap_cert_out);
 
   mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash.data());
@@ -578,6 +579,8 @@ void IOSC::LoadEntries()
 
   m_key_entries[HANDLE_CONSOLE_KEY].data = {dump.ng_priv.begin(), dump.ng_priv.end()};
   m_console_signature = dump.ng_sig;
+  m_ms_id = Common::swap32(dump.ms_id);
+  m_ca_id = Common::swap32(dump.ca_id);
   m_console_key_id = Common::swap32(dump.ng_key_id);
   m_key_entries[HANDLE_CONSOLE_ID].misc_data = Common::swap32(dump.ng_id);
   m_key_entries[HANDLE_FS_KEY].data = {dump.nand_key.begin(), dump.nand_key.end()};
@@ -641,6 +644,10 @@ void IOSC::DoState(PointerWrap& p)
 {
   for (auto& entry : m_key_entries)
     entry.DoState(p);
+  p.Do(m_console_signature);
+  p.Do(m_ms_id);
+  p.Do(m_ca_id);
+  p.Do(m_console_key_id);
 }
 
 void IOSC::KeyEntry::DoState(PointerWrap& p)
