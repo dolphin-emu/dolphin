@@ -199,26 +199,8 @@ void CodeViewWidget::SetAddress(u32 address, SetAddressUpdate update)
 
 void CodeViewWidget::ReplaceAddress(u32 address, ReplaceWith replace)
 {
-  auto found = std::find_if(m_repl_list.begin(), m_repl_list.end(),
-                            [address](ReplStruct r) { return r.address == address; });
-
-  if (found != m_repl_list.end())
-  {
-    PowerPC::debug_interface.WriteExtraMemory(0, found->old_value, address);
-    m_repl_list.erase(found);
-  }
-  else
-  {
-    ReplStruct repl;
-
-    repl.address = address;
-    repl.old_value = PowerPC::debug_interface.ReadInstruction(address);
-
-    m_repl_list.push_back(repl);
-
-    PowerPC::debug_interface.Patch(address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
-  }
-
+  PowerPC::debug_interface.UnsetPatch(address);
+  PowerPC::debug_interface.SetPatch(address, replace == ReplaceWith::BLR ? 0x4e800020 : 0x60000000);
   Update();
 }
 
@@ -261,6 +243,8 @@ void CodeViewWidget::OnContextMenu()
   auto* insert_nop_action = AddAction(menu, tr("Insert &nop"), this, &CodeViewWidget::OnInsertNOP);
   auto* replace_action =
       AddAction(menu, tr("Re&place instruction"), this, &CodeViewWidget::OnReplaceInstruction);
+  auto* restore_action =
+      AddAction(menu, tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
   follow_branch_action->setEnabled(running && GetBranchFromAddress(addr));
 
@@ -270,6 +254,8 @@ void CodeViewWidget::OnContextMenu()
 
   for (auto* action : {symbol_rename_action, symbol_size_action, symbol_end_action})
     action->setEnabled(has_symbol);
+
+  restore_action->setEnabled(running && PowerPC::debug_interface.HasEnabledPatch(addr));
 
   menu->exec(QCursor::pos());
   Update();
@@ -474,9 +460,18 @@ void CodeViewWidget::OnReplaceInstruction()
 
   if (good)
   {
-    PowerPC::debug_interface.Patch(addr, code);
+    PowerPC::debug_interface.UnsetPatch(addr);
+    PowerPC::debug_interface.SetPatch(addr, code);
     Update();
   }
+}
+
+void CodeViewWidget::OnRestoreInstruction()
+{
+  const u32 addr = GetContextAddress();
+
+  PowerPC::debug_interface.UnsetPatch(addr);
+  Update();
 }
 
 void CodeViewWidget::resizeEvent(QResizeEvent*)

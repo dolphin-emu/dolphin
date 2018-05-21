@@ -269,6 +269,9 @@
     <ClInclude Include="Debug\Watches.h">
       <Filter>Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Debug\MemoryPatches.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -292,7 +295,6 @@
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="Profiler.cpp" />
-    <ClCompile Include="QoSSession.h" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
@@ -342,6 +344,10 @@
     <ClCompile Include="CompatPatches.cpp" />
     <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Debug\Watches.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="QoSSession.cpp" />
+    <ClCompile Include="Debug\MemoryPatches.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
   </ItemGroup>

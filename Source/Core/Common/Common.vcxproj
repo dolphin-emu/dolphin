@@ -60,6 +60,7 @@
     <ClInclude Include="Config\Layer.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="Debug\MemoryPatches.h" />
     <ClInclude Include="Debug\Watches.h" />
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
+    <ClCompile Include="Debug\MemoryPatches.cpp" />
     <ClCompile Include="Debug\Watches.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="File.cpp" />

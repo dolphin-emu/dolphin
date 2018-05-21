@@ -549,7 +549,7 @@ void CheatsManager::Update()
       {
         if (m_watch[i].locked)
         {
-          PowerPC::debug_interface.Patch(m_watch[i].address, m_watch[i].locked_value);
+          PowerPC::debug_interface.SetPatch(m_watch[i].address, m_watch[i].locked_value);
         }
 
         switch (m_watch[i].type)

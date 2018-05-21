@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 
@@ -15,6 +16,33 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+
+void PPCPatches::Patch(std::size_t index)
+{
+  auto& patch = m_patches[index];
+  if (patch.value.empty())
+    return;
+
+  const u32 address = patch.address;
+  const std::size_t size = patch.value.size();
+  if (!PowerPC::HostIsRAMAddress(address))
+    return;
+
+  for (u32 offset = 0; offset < size; ++offset)
+  {
+    const u8 value = PowerPC::HostRead_U8(address + offset);
+    PowerPC::HostWrite_U8(patch.value[offset], address + offset);
+    patch.value[offset] = value;
+
+    if (((address + offset) % 4) == 3)
+      PowerPC::ScheduleInvalidateCacheThreadSafe(Common::AlignDown(address + offset, 4));
+  }
+  if (((address + size) % 4) != 0)
+  {
+    PowerPC::ScheduleInvalidateCacheThreadSafe(
+        Common::AlignDown(address + static_cast<u32>(size), 4));
+  }
+}
 
 std::size_t PPCDebugInterface::SetWatch(u32 address, const std::string& name)
 {
@@ -84,6 +112,51 @@ std::vector<std::string> PPCDebugInterface::SaveWatchesToStrings() const
 void PPCDebugInterface::ClearWatches()
 {
   m_watches.Clear();
+}
+
+void PPCDebugInterface::SetPatch(u32 address, u32 value)
+{
+  m_patches.SetPatch(address, value);
+}
+
+void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
+{
+  m_patches.SetPatch(address, value);
+}
+
+const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const
+{
+  return m_patches.GetPatches();
+}
+
+void PPCDebugInterface::UnsetPatch(u32 address)
+{
+  m_patches.UnsetPatch(address);
+}
+
+void PPCDebugInterface::EnablePatch(std::size_t index)
+{
+  m_patches.EnablePatch(index);
+}
+
+void PPCDebugInterface::DisablePatch(std::size_t index)
+{
+  m_patches.DisablePatch(index);
+}
+
+bool PPCDebugInterface::HasEnabledPatch(u32 address) const
+{
+  return m_patches.HasEnabledPatch(address);
+}
+
+void PPCDebugInterface::RemovePatch(std::size_t index)
+{
+  m_patches.RemovePatch(index);
+}
+
+void PPCDebugInterface::ClearPatches()
+{
+  m_patches.ClearPatches();
 }
 
 std::string PPCDebugInterface::Disassemble(unsigned int address)
@@ -220,12 +293,6 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
   }
 }
 
-void PPCDebugInterface::Patch(unsigned int address, unsigned int value)
-{
-  PowerPC::HostWrite_U32(value, address);
-  PowerPC::ScheduleInvalidateCacheThreadSafe(address);
-}
-
 // =======================================================
 // Separate the blocks with colors.
 // -------------
@@ -275,5 +342,6 @@ void PPCDebugInterface::Clear()
 {
   ClearAllBreakpoints();
   ClearAllMemChecks();
+  ClearPatches();
   ClearWatches();
 }

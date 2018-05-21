@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
 
 class DebugInterface
@@ -33,6 +34,17 @@ public:
   virtual void LoadWatchesFromStrings(const std::vector<std::string>& watches) = 0;
   virtual std::vector<std::string> SaveWatchesToStrings() const = 0;
   virtual void ClearWatches() = 0;
+
+  // Memory Patches
+  virtual void SetPatch(u32 address, u32 value) = 0;
+  virtual void SetPatch(u32 address, std::vector<u8> value) = 0;
+  virtual const std::vector<Common::Debug::MemoryPatch>& GetPatches() const = 0;
+  virtual void UnsetPatch(u32 address) = 0;
+  virtual void EnablePatch(std::size_t index) = 0;
+  virtual void DisablePatch(std::size_t index) = 0;
+  virtual bool HasEnabledPatch(u32 address) const = 0;
+  virtual void RemovePatch(std::size_t index) = 0;
+  virtual void ClearPatches() = 0;
 
   virtual std::string Disassemble(unsigned int /*address*/) { return "NODEBUGGER"; }
   virtual std::string GetRawMemoryString(int /*memory*/, unsigned int /*address*/)
@@ -59,7 +71,6 @@ public:
   virtual void SetPC(unsigned int /*address*/) {}
   virtual void Step() {}
   virtual void RunToBreakpoint() {}
-  virtual void Patch(unsigned int /*address*/, unsigned int /*value*/) {}
   virtual int GetColor(unsigned int /*address*/) { return 0xFFFFFFFF; }
   virtual std::string GetDescription(unsigned int /*address*/) = 0;
   virtual void Clear() = 0;

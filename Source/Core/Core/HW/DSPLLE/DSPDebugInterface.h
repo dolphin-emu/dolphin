@@ -14,6 +14,12 @@ namespace DSP
 {
 namespace LLE
 {
+class DSPPatches : public Common::Debug::MemoryPatches
+{
+private:
+  void Patch(std::size_t index) override;
+};
+
 class DSPDebugInterface final : public DebugInterface
 {
 public:
@@ -34,6 +40,17 @@ public:
   std::vector<std::string> SaveWatchesToStrings() const override;
   void ClearWatches() override;
 
+  // Memory Patches
+  void SetPatch(u32 address, u32 value);
+  void SetPatch(u32 address, std::vector<u8> value);
+  const std::vector<Common::Debug::MemoryPatch>& GetPatches() const;
+  void UnsetPatch(u32 address);
+  void EnablePatch(std::size_t index);
+  void DisablePatch(std::size_t index);
+  void RemovePatch(std::size_t index);
+  bool HasEnabledPatch(u32 address) const;
+  void ClearPatches();
+
   std::string Disassemble(unsigned int address) override;
   std::string GetRawMemoryString(int memory, unsigned int address) override;
   int GetInstructionSize(int instruction) override { return 1; }
@@ -53,7 +70,6 @@ public:
   void SetPC(unsigned int address) override;
   void Step() override {}
   void RunToBreakpoint() override;
-  void Patch(unsigned int address, unsigned int value) override;
   int GetColor(unsigned int address) override;
   std::string GetDescription(unsigned int address) override;
 
@@ -61,6 +77,7 @@ public:
 
 private:
   Common::Debug::Watches m_watches;
+  DSPPatches m_patches;
 };
 }  // namespace LLE
 }  // namespace DSP
