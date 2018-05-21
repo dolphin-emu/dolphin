@@ -1196,13 +1196,16 @@ void MainWindow::OnImportNANDBackup()
           });
         },
         [this] {
-          return RunOnObject(this, [this] {
+          std::optional<std::string> keys_file = RunOnObject(this, [this] {
             return QFileDialog::getOpenFileName(this, tr("Select the keys file (OTP/SEEPROM dump)"),
                                                 QDir::currentPath(),
                                                 tr("BootMii keys file (*.bin);;"
                                                    "All Files (*)"))
                 .toStdString();
           });
+          if (keys_file)
+            return *keys_file;
+          return std::string("");
         });
     QueueOnObject(dialog, &QProgressDialog::close);
   });

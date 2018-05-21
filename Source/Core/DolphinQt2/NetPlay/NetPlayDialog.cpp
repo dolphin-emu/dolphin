@@ -580,12 +580,15 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 
 bool NetPlayDialog::IsRecording()
 {
-  return RunOnObject(m_record_input_box, &QCheckBox::isChecked);
+  std::optional<bool> is_recording = RunOnObject(m_record_input_box, &QCheckBox::isChecked);
+  if (is_recording)
+    return *is_recording;
+  return false;
 }
 
 std::string NetPlayDialog::FindGame(const std::string& game)
 {
-  return RunOnObject(this, [this, game] {
+  std::optional<std::string> path = RunOnObject(this, [this, game] {
     for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
     {
       if (m_game_list_model->GetUniqueIdentifier(i).toStdString() == game)
@@ -593,6 +596,9 @@ std::string NetPlayDialog::FindGame(const std::string& game)
     }
     return std::string("");
   });
+  if (path)
+    return *path;
+  return std::string("");
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)

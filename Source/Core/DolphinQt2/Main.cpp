@@ -34,7 +34,7 @@
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
 {
-  return RunOnObject(QApplication::instance(), [&] {
+  std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
     QMessageBox message_box(QApplication::activeWindow());
     message_box.setWindowTitle(QString::fromUtf8(caption));
     message_box.setText(QString::fromUtf8(text));
@@ -68,6 +68,9 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 
     return false;
   });
+  if (r.has_value())
+    return *r;
+  return false;
 }
 
 // N.B. On Windows, this should be called from WinMain. Link against qtmain and specify
