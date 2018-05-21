@@ -30,7 +30,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   bool later = false;
 
-  int choice = RunOnObject(m_parent, [&] {
+  std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);
     dialog->setWindowTitle(tr("Update available"));
     dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
@@ -79,7 +79,7 @@ void Updater::OnUpdateAvailable(const NewVersionInformation& info)
     return dialog->exec();
   });
 
-  if (choice == QDialog::Accepted)
+  if (choice && *choice == QDialog::Accepted)
   {
     TriggerUpdate(info, later ? AutoUpdateChecker::RestartMode::NO_RESTART_AFTER_UPDATE :
                                 AutoUpdateChecker::RestartMode::RESTART_AFTER_UPDATE);
