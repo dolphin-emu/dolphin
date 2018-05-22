@@ -67,7 +67,7 @@ static void WriteHeader(char*& p, APIType ApiType)
     WRITE(p, "uniform float y_scale;\n");
     WRITE(p, "uniform float gamma_rcp;\n");
     WRITE(p, "uniform float2 clamp_tb;\n");
-    WRITE(p, "uniform int3 filter_coefficients;\n");
+    WRITE(p, "uniform float3 filter_coefficients;\n");
     WRITE(p, "#define samp0 samp9\n");
     WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
     WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
@@ -79,7 +79,7 @@ static void WriteHeader(char*& p, APIType ApiType)
     WRITE(p, "  float y_scale;\n");
     WRITE(p, "  float gamma_rcp;\n");
     WRITE(p, "  float2 clamp_tb;\n");
-    WRITE(p, "  int3 filter_coefficients;\n");
+    WRITE(p, "  float3 filter_coefficients;\n");
     WRITE(p, "};\n");
     WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
     WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
@@ -91,7 +91,7 @@ static void WriteHeader(char*& p, APIType ApiType)
     WRITE(p, "  float y_scale;\n");
     WRITE(p, "  float gamma_rcp;\n");
     WRITE(p, "  float2 clamp_tb;\n");
-    WRITE(p, "  int3 filter_coefficients;\n");
+    WRITE(p, "  float3 filter_coefficients;\n");
     WRITE(p, "};\n");
     WRITE(p, "sampler samp0 : register(s0);\n");
     WRITE(p, "Texture2DArray Tex0 : register(t0);\n");
@@ -191,21 +191,18 @@ static void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType A
     WRITE(p, "  float4 next_row = ");
     WriteSampleOp(1);
     WRITE(p, ";\n");
-    WRITE(
-        p,
-        "  float3 col = float3(clamp((int3(prev_row.rgb * 255.0) * filter_coefficients[0] +\n"
-        "                             int3(current_row.rgb * 255.0) * filter_coefficients[1] +\n"
-        "                             int3(next_row.rgb * 255.0) * filter_coefficients[2]) >> 6,\n"
-        "                            int3(0, 0, 0), int3(255, 255, 255))) / 255.0;\n");
-    WRITE(p, "  return float4(col, current_row.a);\n");
+    WRITE(p, "  return float4(min(prev_row.rgb * filter_coefficients[0] +\n"
+             "                      current_row.rgb * filter_coefficients[1] +\n"
+             "                      next_row.rgb * filter_coefficients[2], \n"
+             "                    float3(1, 1, 1)), current_row.a);\n");
   }
   else
   {
     WRITE(p, "  float4 current_row = ");
     WriteSampleOp(0);
     WRITE(p, ";\n");
-    WRITE(p, "  return float4(clamp(int3(current_row.rgb * 255.0) * filter_coefficients[1], "
-             "int3(0, 0, 0), int3(255, 255, 255)), current_row.a);\n");
+    WRITE(p, "return float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
+             "              current_row.a);\n");
   }
   WRITE(p, "}\n");
 }
@@ -1422,4 +1419,4 @@ std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_form
   return ss.str();
 }
 
-}  // namespace
+}  // namespace TextureConversionShaderTiled

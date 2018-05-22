@@ -558,12 +558,12 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   glUniform2f(shader.clamp_tb_uniform,
               clamp_bottom ? (1.0f - src_rect.bottom / static_cast<float>(EFB_HEIGHT)) : 0.0f,
               clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 1.0f);
-  glUniform3f(shader.filter_coefficients_uniform, filter_coefficients[0] / 64.0f,
-              filter_coefficients[1] / 64.0f, filter_coefficients[2] / 64.0f);
+  glUniform3f(shader.filter_coefficients_uniform, filter_coefficients[0], filter_coefficients[1],
+              filter_coefficients[2]);
 
   ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   g_renderer->RestoreAPIState();
 }
-}
+}  // namespace OGL

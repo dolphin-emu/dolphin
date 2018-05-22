@@ -97,15 +97,17 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
     out.Write("  float4 prev_row = SampleEFB(uv0, -1.0f);\n"
               "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
               "  float4 next_row = SampleEFB(uv0, 1.0f);\n"
-              "  float4 texcol = float4(prev_row.rgb * filter_coefficients[0] +\n"
-              "                         current_row.rgb * filter_coefficients[1] +\n"
-              "                         next_row.rgb * filter_coefficients[2], current_row.a);\n");
+              "  float4 texcol = float4(min(prev_row.rgb * filter_coefficients[0] +\n"
+              "                               current_row.rgb * filter_coefficients[1] +\n"
+              "                               next_row.rgb * filter_coefficients[2], \n"
+              "                             float3(1, 1, 1)), current_row.a);\n");
   }
   else
   {
     out.Write(
         "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
-        "  float4 texcol = float4(current_row.rgb * filter_coefficients[1], current_row.a);\n");
+        "  float4 texcol = float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
+        "                         current_row.a);\n");
   }
 
   if (uid_data->is_depth_copy)
