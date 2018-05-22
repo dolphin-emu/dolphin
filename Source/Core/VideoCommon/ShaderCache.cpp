@@ -328,6 +328,7 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
     entry.shader = std::move(shader);
   }
 
+  m_vertex_shaders.insert(uid);
   return entry.shader.get();
 }
 
@@ -350,6 +351,7 @@ const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::Vert
     entry.shader = std::move(shader);
   }
 
+  ShowStats();
   return entry.shader.get();
 }
 
@@ -372,6 +374,8 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
     entry.shader = std::move(shader);
   }
 
+  m_pixel_shaders.insert(uid);
+  ShowStats();
   return entry.shader.get();
 }
 
@@ -416,6 +420,9 @@ const AbstractShader* ShaderCache::CreateGeometryShader(const GeometryShaderUid&
     }
     entry.shader = std::move(shader);
   }
+
+  m_geometry_shaders.insert(uid);
+  ShowStats();
 
   return entry.shader.get();
 }
@@ -526,6 +533,10 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
   if (!entry.first && pipeline)
     entry.first = std::move(pipeline);
 
+  m_rasterization_states.insert(config.rasterization_state);
+  m_depth_states.insert(config.depth_state);
+  m_blending_states.insert(config.blending_state);
+  m_vertex_formats.insert(config.vertex_format);
   return entry.first.get();
 }
 
@@ -985,4 +996,16 @@ std::string ShaderCache::GetUtilityShaderHeader() const
 
   return ss.str();
 }
+
+void ShaderCache::ShowStats()
+{
+  WARN_LOG(VIDEO, "-----------------------------------------------------------------------");
+  WARN_LOG(VIDEO, "Pipelines:%zu, VertexShaders:%zu, GeometryShaders:%zu, PixelShaders:%zu",
+           m_gx_pipeline_cache.size(), m_vertex_shaders.size(), m_geometry_shaders.size(),
+           m_pixel_shaders.size());
+  WARN_LOG(VIDEO, "VertexFormats:%zu, RasterizationStates:%zu, DepthStates:%zu, BlendStates:%zu",
+           m_vertex_formats.size(), m_rasterization_states.size(), m_depth_states.size(),
+           m_blending_states.size());
+}
+
 }  // namespace VideoCommon

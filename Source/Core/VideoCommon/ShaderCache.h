@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -155,6 +156,15 @@ private:
   std::map<GXUberPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
       m_gx_uber_pipeline_cache;
   File::IOFile m_gx_pipeline_uid_cache_file;
+
+  std::set<const NativeVertexFormat*> m_vertex_formats;
+  std::set<RasterizationState> m_rasterization_states;
+  std::set<DepthState> m_depth_states;
+  std::set<BlendingState> m_blending_states;
+  std::set<VertexShaderUid> m_vertex_shaders;
+  std::set<GeometryShaderUid> m_geometry_shaders;
+  std::set<PixelShaderUid> m_pixel_shaders;
+  void ShowStats();
 };
 
 }  // namespace VideoCommon
