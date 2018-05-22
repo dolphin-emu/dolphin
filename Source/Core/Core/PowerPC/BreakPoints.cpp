@@ -210,7 +210,7 @@ TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
   return &*iter;
 }
 
-bool MemChecks::OverlapsMemcheck(u32 address, u32 length)
+bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
 {
   if (!HasAny())
     return false;

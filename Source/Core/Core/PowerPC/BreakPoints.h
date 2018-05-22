@@ -81,7 +81,7 @@ public:
 
   // memory breakpoint
   TMemCheck* GetMemCheck(u32 address, size_t size = 1);
-  bool OverlapsMemcheck(u32 address, u32 length);
+  bool OverlapsMemcheck(u32 address, u32 length) const;
   void Remove(u32 address);
 
   void Clear() { m_mem_checks.clear(); }
