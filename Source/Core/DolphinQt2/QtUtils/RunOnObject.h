@@ -46,7 +46,7 @@ auto RunOnObject(QObject* object, F&& functor)
     {
       if (m_obj)
       {
-        (*m_result) = m_func();
+        m_result = m_func();
       }
       else
       {
