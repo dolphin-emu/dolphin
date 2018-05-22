@@ -137,24 +137,46 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
 
 void Interpreter::mfmsr(UGeckoInstruction inst)
 {
-  // Privileged?
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   rGPR[inst.RD] = MSR.Hex;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR];
 }
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
   rGPR[inst.RD] = PowerPC::ppcState.sr[index];
 }
 
 void Interpreter::mtmsr(UGeckoInstruction inst)
 {
-  // Privileged?
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   MSR.Hex = rGPR[inst.RS];
   PowerPC::CheckExceptions();
   m_end_block = true;
@@ -171,6 +193,12 @@ static void SetSR(u32 index, u32 value)
 
 void Interpreter::mtsr(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   const u32 index = inst.SR;
   const u32 value = rGPR[inst.RS];
   SetSR(index, value);
@@ -178,6 +206,12 @@ void Interpreter::mtsr(UGeckoInstruction inst)
 
 void Interpreter::mtsrin(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
   const u32 value = rGPR[inst.RS];
   SetSR(index, value);
