@@ -215,7 +215,9 @@ void FIFOPlayerWindow::StopRecording()
 void FIFOPlayerWindow::OnEmulationStarted()
 {
   UpdateControls();
-  OnFIFOLoaded();
+
+  if (FifoPlayer::GetInstance().GetFile())
+    OnFIFOLoaded();
 }
 
 void FIFOPlayerWindow::OnEmulationStopped()
