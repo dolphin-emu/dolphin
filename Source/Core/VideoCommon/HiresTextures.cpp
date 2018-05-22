@@ -335,7 +335,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
     // Try loading DDS textures first, that way we maintain compression of DXT formats.
     // TODO: Reduce the number of open() calls here. We could use one fd.
     Level level;
-    if (!LoadDDSTexture(level, filename_iter->second.path))
+    if (!LoadDDSTexture(level, filename_iter->second.path, mip_level))
     {
       File::IOFile file;
       file.Open(filename_iter->second.path, "rb");

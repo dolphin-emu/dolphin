@@ -49,7 +49,7 @@ private:
   static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width,
                                             u32 height);
   static bool LoadDDSTexture(HiresTexture* tex, const std::string& filename);
-  static bool LoadDDSTexture(Level& level, const std::string& filename);
+  static bool LoadDDSTexture(Level& level, const std::string& filename, u32 mip_level);
   static bool LoadTexture(Level& level, const std::vector<u8>& buffer);
   static void Prefetch();
 
