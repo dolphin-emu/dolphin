@@ -8,7 +8,8 @@ set(CMAKE_AUTOMOC ON)
 add_executable(dolphin-emu
   AboutDialog.cpp
   CheatsManager.cpp
-  FIFOPlayerWindow.cpp
+  FIFO/FIFOPlayerWindow.cpp
+  FIFO/FIFOAnalyzer.cpp
   HotkeyScheduler.cpp
   Host.cpp
   Main.cpp

@@ -60,7 +60,7 @@
 #include "DolphinQt2/Debugger/MemoryWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
-#include "DolphinQt2/FIFOPlayerWindow.h"
+#include "DolphinQt2/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt2/GCMemcardManager.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/HotkeyScheduler.h"

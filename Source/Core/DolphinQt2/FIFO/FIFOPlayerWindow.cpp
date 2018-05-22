@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinQt2/FIFOPlayerWindow.h"
+#include "DolphinQt2/FIFO/FIFOPlayerWindow.h"
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include <algorithm>
@@ -23,6 +24,7 @@
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 
+#include "DolphinQt2/FIFO/FIFOAnalyzer.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 
@@ -142,7 +144,20 @@ void FIFOPlayerWindow::CreateWidgets()
   layout->addWidget(recording_group);
   layout->addWidget(m_button_box);
 
-  setLayout(layout);
+  QWidget* main_widget = new QWidget(this);
+  main_widget->setLayout(layout);
+
+  auto* tab_widget = new QTabWidget(this);
+
+  m_analyzer = new FIFOAnalyzer;
+
+  tab_widget->addTab(main_widget, tr("Play / Record"));
+  tab_widget->addTab(m_analyzer, tr("Analyze"));
+
+  auto* tab_layout = new QVBoxLayout;
+  tab_layout->addWidget(tab_widget);
+
+  setLayout(tab_layout);
 }
 
 void FIFOPlayerWindow::ConnectWidgets()
@@ -292,6 +307,8 @@ void FIFOPlayerWindow::OnFIFOLoaded()
   UpdateInfo();
   UpdateLimits();
   UpdateControls();
+
+  m_analyzer->Update();
 }
 
 void FIFOPlayerWindow::OnEarlyMemoryUpdatesChanged(bool enabled)
