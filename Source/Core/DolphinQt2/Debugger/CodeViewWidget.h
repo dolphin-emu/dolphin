@@ -70,14 +70,8 @@ private:
   void OnInsertBLR();
   void OnInsertNOP();
   void OnReplaceInstruction();
+  void OnRestoreInstruction();
 
-  struct ReplStruct
-  {
-    u32 address;
-    u32 old_value;
-  };
-
-  std::vector<ReplStruct> m_repl_list;
   bool m_updating = false;
 
   u32 m_address = 0;

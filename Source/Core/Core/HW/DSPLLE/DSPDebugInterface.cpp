@@ -17,6 +17,11 @@ namespace DSP
 {
 namespace LLE
 {
+void DSPPatches::Patch(std::size_t index)
+{
+  PanicAlert("Patch functionality not supported in DSP module.");
+}
+
 std::size_t DSPDebugInterface::SetWatch(u32 address, const std::string& name)
 {
   return m_watches.SetWatch(address, name);
@@ -85,6 +90,51 @@ std::vector<std::string> DSPDebugInterface::SaveWatchesToStrings() const
 void DSPDebugInterface::ClearWatches()
 {
   m_watches.Clear();
+}
+
+void DSPDebugInterface::SetPatch(u32 address, u32 value)
+{
+  m_patches.SetPatch(address, value);
+}
+
+void DSPDebugInterface::SetPatch(u32 address, std::vector<u8> value)
+{
+  m_patches.SetPatch(address, value);
+}
+
+const std::vector<Common::Debug::MemoryPatch>& DSPDebugInterface::GetPatches() const
+{
+  return m_patches.GetPatches();
+}
+
+void DSPDebugInterface::UnsetPatch(u32 address)
+{
+  m_patches.UnsetPatch(address);
+}
+
+void DSPDebugInterface::EnablePatch(std::size_t index)
+{
+  m_patches.EnablePatch(index);
+}
+
+void DSPDebugInterface::DisablePatch(std::size_t index)
+{
+  m_patches.DisablePatch(index);
+}
+
+void DSPDebugInterface::RemovePatch(std::size_t index)
+{
+  m_patches.RemovePatch(index);
+}
+
+bool DSPDebugInterface::HasEnabledPatch(u32 address) const
+{
+  return m_patches.HasEnabledPatch(address);
+}
+
+void DSPDebugInterface::ClearPatches()
+{
+  m_patches.ClearPatches();
 }
 
 std::string DSPDebugInterface::Disassemble(unsigned int address)
@@ -202,11 +252,6 @@ void DSPDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
   PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::Patch(unsigned int address, unsigned int value)
-{
-  PanicAlert("Patch functionality not supported in DSP module.");
-}
-
 // =======================================================
 // Separate the blocks with colors.
 // -------------
@@ -264,6 +309,7 @@ void DSPDebugInterface::RunToBreakpoint()
 
 void DSPDebugInterface::Clear()
 {
+  ClearPatches();
   ClearWatches();
 }
 }  // namespace LLE

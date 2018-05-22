@@ -55,13 +55,6 @@ private:
   u32 AddrToBranch(u32 addr);
   void OnResize(wxSizeEvent& event);
 
-  struct BlrStruct  // for IDM_INSERTBLR
-  {
-    u32 address;
-    u32 oldValue;
-  };
-  std::vector<BlrStruct> m_blrList;
-
   static constexpr int LEFT_COL_WIDTH = 16;
 
   DebugInterface* m_debugger;
