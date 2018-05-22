@@ -1,4 +1,3 @@
-
 // Copyright 2015 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
@@ -19,6 +18,12 @@
 
 #include <future>
 #include <optional>
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+
+#include "QtUtils/SignalDaemon.h"
+#endif
 
 #include "Common/Version.h"
 
@@ -86,6 +91,23 @@
 #include "UICommon/X11Utils.h"
 #endif
 
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+void MainWindow::OnSignal()
+{
+  close();
+}
+
+static void InstallSignalHandler()
+{
+  struct sigaction sa;
+  sa.sa_handler = &SignalDaemon::HandleInterrupt;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &sa, nullptr);
+  sigaction(SIGTERM, &sa, nullptr);
+}
+#endif
+
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
   setWindowTitle(QString::fromStdString(Common::scm_rev_str));
@@ -108,6 +130,14 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   InitCoreCallbacks();
 
   NetPlayInit();
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  auto* daemon = new SignalDaemon(this);
+
+  connect(daemon, &SignalDaemon::InterruptReceived, this, &MainWindow::OnSignal);
+
+  InstallSignalHandler();
+#endif
 
   if (boot_parameters)
     m_pending_boot = std::move(boot_parameters);
