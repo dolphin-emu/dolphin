@@ -219,9 +219,12 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
       if (!folder.isEmpty())
         ExtractPartition(partition, folder);
     });
-    menu->addSeparator();
-    AddAction(menu, tr("Check Partition Integrity"), this,
-              [this, partition] { CheckIntegrity(partition); });
+    if (m_volume->IsEncryptedAndHashed())
+    {
+      menu->addSeparator();
+      AddAction(menu, tr("Check Partition Integrity"), this,
+                [this, partition] { CheckIntegrity(partition); });
+    }
     break;
   case EntryType::File:
     AddAction(menu, tr("Extract File..."), this, [this, partition, path] {

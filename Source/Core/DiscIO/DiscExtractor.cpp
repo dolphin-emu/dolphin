@@ -361,7 +361,8 @@ bool ExportSystemData(const Volume& volume, const Partition& partition,
     success &= ExportTicket(volume, partition, export_folder + "/ticket.bin");
     success &= ExportTMD(volume, partition, export_folder + "/tmd.bin");
     success &= ExportCertificateChain(volume, partition, export_folder + "/cert.bin");
-    success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
+    if (volume.IsEncryptedAndHashed())
+      success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
   }
 
   return success;

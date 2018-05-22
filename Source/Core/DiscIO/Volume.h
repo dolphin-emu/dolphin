@@ -58,6 +58,7 @@ public:
     return temp ? static_cast<u64>(*temp) << GetOffsetShift() : std::optional<u64>();
   }
 
+  virtual bool IsEncryptedAndHashed() const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   virtual std::optional<u32> GetPartitionType(const Partition& partition) const { return {}; }
@@ -70,6 +71,10 @@ public:
   virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
+  virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
+  {
+    return offset;
+  }
   std::string GetGameID() const { return GetGameID(GetGamePartition()); }
   virtual std::string GetGameID(const Partition& partition) const = 0;
   std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }

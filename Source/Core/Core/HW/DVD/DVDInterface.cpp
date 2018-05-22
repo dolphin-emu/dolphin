@@ -1142,7 +1142,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   // The variable dvd_offset tracks the actual offset on the DVD
   // that the disc drive starts reading at, which differs in two ways:
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
-  u64 dvd_offset = DiscIO::VolumeWii::PartitionOffsetToRawOffset(offset, partition);
+  u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
 
   if (SConfig::GetInstance().bFastDiscSpeed)
@@ -1209,7 +1209,9 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   u32 unbuffered_blocks = 0;
 
   const u32 bytes_per_chunk =
-      partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
+      partition != DiscIO::PARTITION_NONE && DVDThread::IsEncryptedAndHashed() ?
+          DiscIO::VolumeWii::BLOCK_DATA_SIZE :
+          DVD_ECC_BLOCK_SIZE;
 
   do
   {
