@@ -50,7 +50,7 @@ std::unique_ptr<AbstractStagingTexture> s_encoding_readback_texture;
 
 const int renderBufferWidth = EFB_WIDTH * 4;
 const int renderBufferHeight = 1024;
-}
+}  // namespace
 
 static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 {
@@ -158,7 +158,7 @@ void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 nativ
   glUniform1f(texconv_shader.y_scale_uniform, y_scale);
   glUniform1f(texconv_shader.gamma_rcp_uniform, 1.0f / gamma);
   glUniform2f(texconv_shader.clamp_tb_uniform, clamp_top, clamp_bottom);
-  glUniform3i(texconv_shader.filter_coefficients_uniform, filter_coefficients[0],
+  glUniform3f(texconv_shader.filter_coefficients_uniform, filter_coefficients[0],
               filter_coefficients[1], filter_coefficients[2]);
 
   const GLuint read_texture = params.depth ?
@@ -171,6 +171,6 @@ void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 nativ
   g_renderer->RestoreAPIState();
 }
 
-}  // namespace
+}  // namespace TextureConverter
 
 }  // namespace OGL

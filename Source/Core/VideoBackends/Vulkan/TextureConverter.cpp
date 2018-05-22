@@ -41,10 +41,10 @@ struct EFBEncodeParams
   float gamma_rcp;
   float clamp_top;
   float clamp_bottom;
-  s32 filter_coefficients[3];
+  float filter_coefficients[3];
   u32 padding;
 };
-}
+}  // namespace
 TextureConverter::TextureConverter()
 {
 }

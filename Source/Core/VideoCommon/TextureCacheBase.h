@@ -109,7 +109,7 @@ private:
 
 public:
   // Reduced version of the full coefficient array, reduced to a single value for each row.
-  using CopyFilterCoefficientArray = std::array<u32, 3>;
+  using CopyFilterCoefficientArray = std::array<float, 3>;
 
   struct TCacheEntry
   {

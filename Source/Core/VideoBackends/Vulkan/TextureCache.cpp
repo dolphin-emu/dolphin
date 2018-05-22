@@ -244,7 +244,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   };
   PixelUniforms uniforms;
   for (size_t i = 0; i < filter_coefficients.size(); i++)
-    uniforms.filter_coefficients[i] = filter_coefficients[i] / 64.0f;
+    uniforms.filter_coefficients[i] = filter_coefficients[i];
   uniforms.gamma_rcp = 1.0f / gamma;
   uniforms.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
   uniforms.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 1.0f;

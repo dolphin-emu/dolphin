@@ -276,7 +276,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   };
   PixelConstants constants;
   for (size_t i = 0; i < filter_coefficients.size(); i++)
-    constants.filter_coefficients[i] = filter_coefficients[i] / 64.0f;
+    constants.filter_coefficients[i] = filter_coefficients[i];
   constants.gamma_rcp = 1.0f / gamma;
   constants.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
   constants.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 1.0f;
@@ -315,4 +315,4 @@ TextureCache::GetEFBToTexPixelShader(const TextureConversionShaderGen::TCShaderU
   m_efb_to_tex_pixel_shaders.emplace(uid, shader);
   return shader;
 }
-}
+}  // namespace DX11
