@@ -456,6 +456,12 @@ void Interpreter::dcbf(UGeckoInstruction inst)
 
 void Interpreter::dcbi(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   // TODO: Implement some sort of L2 emulation.
   // TODO: Raise DSI if translation fails (except for direct-store segments).
 
@@ -1054,6 +1060,12 @@ void Interpreter::sync(UGeckoInstruction inst)
 
 void Interpreter::tlbie(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   // Invalidate TLB entry
   const u32 address = rGPR[inst.RB];
 
@@ -1062,5 +1074,10 @@ void Interpreter::tlbie(UGeckoInstruction inst)
 
 void Interpreter::tlbsync(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+  }
+
   // Ignored
 }

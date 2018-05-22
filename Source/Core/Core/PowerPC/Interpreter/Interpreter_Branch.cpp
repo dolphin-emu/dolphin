@@ -7,6 +7,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -119,6 +120,12 @@ void Interpreter::HLEFunction(UGeckoInstruction inst)
 
 void Interpreter::rfi(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
   const u32 mask = 0x87C0FFFF;
