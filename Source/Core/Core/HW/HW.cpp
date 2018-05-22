@@ -54,13 +54,11 @@ void Init()
     Core::InitializeWiiRoot(Core::WantsDeterminism());
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
-    Core::InitializeWiiFileSystemContents();
   }
 }
 
 void Shutdown()
 {
-  Core::CleanUpWiiFileSystemContents();
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
   IOS::HLE::Shutdown();  // Depends on Memory
   IOS::Shutdown();
