@@ -1223,7 +1223,8 @@ void Jit64::divwx(UGeckoInstruction inst)
     s32 i = gpr.R(a).SImm32(), j = gpr.R(b).SImm32();
     if (j == 0 || (i == (s32)0x80000000 && j == -1))
     {
-      gpr.SetImmediate32(d, (i >> 31) ^ j);
+      const u32 result = i < 0 ? 0xFFFFFFFF : 0x00000000;
+      gpr.SetImmediate32(d, result);
       if (inst.OE)
         GenerateConstantOverflow(true);
     }
@@ -1241,38 +1242,37 @@ void Jit64::divwx(UGeckoInstruction inst)
     gpr.FlushLockX(EAX, EDX);
     gpr.BindToRegister(d, (d == a || d == b), true);
     MOV(32, R(EAX), gpr.R(a));
-    CDQ();
     gpr.BindToRegister(b, true, false);
+
     TEST(32, gpr.R(b), gpr.R(b));
-    FixupBranch not_div_by_zero = J_CC(CC_NZ);
-    MOV(32, gpr.R(d), R(EDX));
-    if (inst.OE)
-    {
-      GenerateConstantOverflow(true);
-    }
-    FixupBranch end1 = J();
-    SetJumpTarget(not_div_by_zero);
-    CMP(32, gpr.R(b), R(EDX));
-    FixupBranch not_div_by_neg_one = J_CC(CC_NZ);
+    const FixupBranch overflow = J_CC(CC_E);
+
+    CMP(32, R(EAX), Imm32(0x80000000));
+    const FixupBranch normal_path1 = J_CC(CC_NE);
+
+    CMP(32, gpr.R(b), Imm32(0xFFFFFFFF));
+    const FixupBranch normal_path2 = J_CC(CC_NE);
+
+    SetJumpTarget(overflow);
+    SAR(32, R(EAX), Imm8(31));
     MOV(32, gpr.R(d), R(EAX));
-    NEG(32, gpr.R(d));
-    FixupBranch no_overflow = J_CC(CC_NO);
-    XOR(32, gpr.R(d), gpr.R(d));
     if (inst.OE)
     {
       GenerateConstantOverflow(true);
     }
-    FixupBranch end2 = J();
-    SetJumpTarget(not_div_by_neg_one);
+    const FixupBranch done = J();
+
+    SetJumpTarget(normal_path1);
+    SetJumpTarget(normal_path2);
+
+    CDQ();
     IDIV(32, gpr.R(b));
     MOV(32, gpr.R(d), R(EAX));
-    SetJumpTarget(no_overflow);
     if (inst.OE)
     {
       GenerateConstantOverflow(false);
     }
-    SetJumpTarget(end1);
-    SetJumpTarget(end2);
+    SetJumpTarget(done);
   }
   if (inst.Rc)
     ComputeRC(gpr.R(d));
