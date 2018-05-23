@@ -521,7 +521,10 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   // This is done here after Boot and not in HW to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
   Common::ScopeGuard wiifs_guard{Core::CleanUpWiiFileSystemContents};
-  Core::InitializeWiiFileSystemContents();
+  if (SConfig::GetInstance().bWii)
+    Core::InitializeWiiFileSystemContents();
+  else
+    wiifs_guard.Dismiss();
 
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
