@@ -222,8 +222,16 @@ void MappingWindow::OnSaveProfilePressed()
 
 void MappingWindow::OnDeviceChanged(int index)
 {
+  if (IsMappingAllDevices())
+    return;
+
   const auto device = m_devices_combo->currentText().toStdString();
   m_controller->SetDefaultDevice(device);
+}
+
+bool MappingWindow::IsMappingAllDevices() const
+{
+  return m_devices_combo->currentIndex() == m_devices_combo->count() - 1;
 }
 
 void MappingWindow::RefreshDevices()
@@ -244,6 +252,8 @@ void MappingWindow::RefreshDevices()
       if (name != default_device)
         m_devices_combo->addItem(QString::fromStdString(name));
     }
+
+    m_devices_combo->addItem(tr("All devices"));
 
     m_devices_combo->setCurrentIndex(0);
   });
