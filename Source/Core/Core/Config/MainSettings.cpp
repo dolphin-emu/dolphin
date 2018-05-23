@@ -106,4 +106,10 @@ const ConfigInfo<std::string> MAIN_AUDIO_BACKEND{{System::Main, "DSP", "Backend"
                                                  AudioCommon::GetDefaultSoundBackend()};
 const ConfigInfo<int> MAIN_AUDIO_VOLUME{{System::Main, "DSP", "Volume"}, 100};
 
+// Main.General
+
+const ConfigInfo<std::string> MAIN_DUMP_PATH{{System::Main, "General", "DumpPath"}, ""};
+const ConfigInfo<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, ""};
+const ConfigInfo<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
+
 }  // namespace Config

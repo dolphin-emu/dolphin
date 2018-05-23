@@ -185,7 +185,6 @@ struct SConfig
   std::string m_strBootROM;
   std::string m_strSRAM;
   std::string m_strDefaultISO;
-  std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;
 
@@ -218,9 +217,6 @@ struct SConfig
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
-
-  std::string m_NANDPath;
-  std::string m_DumpPath;
 
   std::string m_strMemoryCardA;
   std::string m_strMemoryCardB;
