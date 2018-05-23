@@ -394,12 +394,17 @@ void Interpreter::fdivsx(UGeckoInstruction inst)
 // Single precision only.
 void Interpreter::fresx(UGeckoInstruction inst)
 {
-  double b = rPS0(inst.FB);
+  const double b = rPS0(inst.FB);
   rPS0(inst.FD) = rPS1(inst.FD) = Common::ApproximateReciprocal(b);
 
   if (b == 0.0)
   {
     SetFPException(FPSCR_ZX);
+  }
+
+  if (Common::IsSNAN(b))
+  {
+    SetFPException(FPSCR_VXSNAN);
   }
 
   PowerPC::UpdateFPRF(rPS0(inst.FD));
