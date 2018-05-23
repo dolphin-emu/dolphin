@@ -12,7 +12,8 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include "Common/FileUtil.h"
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt2/Settings.h"
@@ -55,7 +56,7 @@ void PathPane::BrowseDefaultGame()
 void PathPane::BrowseWiiNAND()
 {
   QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
-      this, tr("Select Wii NAND Root"), QString::fromStdString(SConfig::GetInstance().m_NANDPath)));
+      this, tr("Select Wii NAND Root"), QString::fromStdString(Config::Get(Config::MAIN_FS_PATH))));
   if (!dir.isEmpty())
   {
     m_nand_edit->setText(dir);
@@ -65,21 +66,19 @@ void PathPane::BrowseWiiNAND()
 
 void PathPane::BrowseDump()
 {
-  auto& dump_path = SConfig::GetInstance().m_DumpPath;
   QString dir = QDir::toNativeSeparators(QFileDialog::getExistingDirectory(
-      this, tr("Select Dump Path"), QString::fromStdString(dump_path)));
+      this, tr("Select Dump Path"), QString::fromStdString(Config::Get(Config::MAIN_DUMP_PATH))));
   if (!dir.isEmpty())
   {
     m_dump_edit->setText(dir);
-    dump_path = dir.toStdString();
+    Config::SetBase(Config::MAIN_DUMP_PATH, dir.toStdString());
   }
 }
 
 void PathPane::BrowseSDCard()
 {
   QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
-      this, tr("Select a SD Card Image"),
-      QString::fromStdString(SConfig::GetInstance().m_strWiiSDCardPath),
+      this, tr("Select a SD Card Image"), QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)),
       tr("SD Card Image (*.raw);;"
          "All Files (*)")));
   if (!file.isEmpty())
@@ -91,18 +90,12 @@ void PathPane::BrowseSDCard()
 
 void PathPane::OnSDCardPathChanged()
 {
-  const auto sd_card_path = m_sdcard_edit->text().toStdString();
-
-  SConfig::GetInstance().m_strWiiSDCardPath = sd_card_path;
-  File::SetUserPath(F_WIISDCARD_IDX, sd_card_path);
+  Config::SetBase(Config::MAIN_SD_PATH, m_sdcard_edit->text().toStdString());
 }
 
 void PathPane::OnNANDPathChanged()
 {
-  const auto nand_path = m_nand_edit->text().toStdString();
-
-  SConfig::GetInstance().m_NANDPath = nand_path;
-  File::SetUserPath(D_WIIROOT_IDX, nand_path);
+  Config::SetBase(Config::MAIN_FS_PATH, m_nand_edit->text().toStdString());
 }
 
 QGroupBox* PathPane::MakeGameFolderBox()
@@ -170,7 +163,7 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(m_game_edit, 0, 1);
   layout->addWidget(game_open, 0, 2);
 
-  m_nand_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_NANDPath));
+  m_nand_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_FS_PATH)));
   connect(m_nand_edit, &QLineEdit::editingFinished, this, &PathPane::OnNANDPathChanged);
   QPushButton* nand_open = new QPushButton(QStringLiteral("..."));
   connect(nand_open, &QPushButton::pressed, this, &PathPane::BrowseWiiNAND);
@@ -178,16 +171,16 @@ QGridLayout* PathPane::MakePathsLayout()
   layout->addWidget(m_nand_edit, 1, 1);
   layout->addWidget(nand_open, 1, 2);
 
-  m_dump_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_DumpPath));
+  m_dump_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_DUMP_PATH)));
   connect(m_dump_edit, &QLineEdit::editingFinished,
-          [=] { SConfig::GetInstance().m_DumpPath = m_dump_edit->text().toStdString(); });
+          [=] { Config::SetBase(Config::MAIN_DUMP_PATH, m_dump_edit->text().toStdString()); });
   QPushButton* dump_open = new QPushButton(QStringLiteral("..."));
   connect(dump_open, &QPushButton::pressed, this, &PathPane::BrowseDump);
   layout->addWidget(new QLabel(tr("Dump Path:")), 2, 0);
   layout->addWidget(m_dump_edit, 2, 1);
   layout->addWidget(dump_open, 2, 2);
 
-  m_sdcard_edit = new QLineEdit(QString::fromStdString(SConfig::GetInstance().m_strWiiSDCardPath));
+  m_sdcard_edit = new QLineEdit(QString::fromStdString(Config::Get(Config::MAIN_SD_PATH)));
   connect(m_sdcard_edit, &QLineEdit::editingFinished, this, &PathPane::OnSDCardPathChanged);
   QPushButton* sdcard_open = new QPushButton(QStringLiteral("..."));
   connect(sdcard_open, &QPushButton::pressed, this, &PathPane::BrowseSDCard);

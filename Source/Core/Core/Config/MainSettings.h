@@ -78,4 +78,10 @@ extern const ConfigInfo<bool> MAIN_DUMP_UCODE;
 extern const ConfigInfo<std::string> MAIN_AUDIO_BACKEND;
 extern const ConfigInfo<int> MAIN_AUDIO_VOLUME;
 
+// Main.General
+
+extern const ConfigInfo<std::string> MAIN_DUMP_PATH;
+extern const ConfigInfo<std::string> MAIN_FS_PATH;
+extern const ConfigInfo<std::string> MAIN_SD_PATH;
+
 }  // namespace Config

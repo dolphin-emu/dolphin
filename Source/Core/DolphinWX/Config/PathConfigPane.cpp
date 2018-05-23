@@ -15,7 +15,8 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
-#include "Common/FileUtil.h"
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinWX/Config/ConfigMain.h"
@@ -101,9 +102,9 @@ void PathConfigPane::LoadGUIValues()
 
   m_recursive_iso_paths_checkbox->SetValue(SConfig::GetInstance().m_RecursiveISOFolder);
   m_default_iso_filepicker->SetPath(StrToWxStr(startup_params.m_strDefaultISO));
-  m_nand_root_dirpicker->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
-  m_dump_path_dirpicker->SetPath(StrToWxStr(SConfig::GetInstance().m_DumpPath));
-  m_wii_sdcard_filepicker->SetPath(StrToWxStr(SConfig::GetInstance().m_strWiiSDCardPath));
+  m_nand_root_dirpicker->SetPath(StrToWxStr(Config::Get(Config::MAIN_FS_PATH)));
+  m_dump_path_dirpicker->SetPath(StrToWxStr(Config::Get(Config::MAIN_DUMP_PATH)));
+  m_wii_sdcard_filepicker->SetPath(StrToWxStr(Config::Get(Config::MAIN_SD_PATH)));
 
   // Update selected ISO paths
   for (const std::string& folder : SConfig::GetInstance().m_ISOFolder)
@@ -188,18 +189,12 @@ void PathConfigPane::OnDefaultISOChanged(wxCommandEvent& event)
 
 void PathConfigPane::OnSdCardPathChanged(wxCommandEvent& event)
 {
-  std::string sd_card_path = WxStrToStr(m_wii_sdcard_filepicker->GetPath());
-  SConfig::GetInstance().m_strWiiSDCardPath = sd_card_path;
-  File::SetUserPath(F_WIISDCARD_IDX, sd_card_path);
+  Config::SetBase(Config::MAIN_SD_PATH, WxStrToStr(m_wii_sdcard_filepicker->GetPath()));
 }
 
 void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
 {
-  std::string nand_path = SConfig::GetInstance().m_NANDPath =
-      WxStrToStr(m_nand_root_dirpicker->GetPath());
-
-  File::SetUserPath(D_WIIROOT_IDX, nand_path);
-  m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
+  Config::SetBase(Config::MAIN_FS_PATH, WxStrToStr(m_nand_root_dirpicker->GetPath()));
 
   wxCommandEvent update_event{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, GetId()};
   update_event.SetEventObject(this);
@@ -208,10 +203,7 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
 
 void PathConfigPane::OnDumpPathChanged(wxCommandEvent& event)
 {
-  std::string dump_path = SConfig::GetInstance().m_DumpPath =
-      WxStrToStr(m_dump_path_dirpicker->GetPath());
-
-  m_dump_path_dirpicker->SetPath(StrToWxStr(dump_path));
+  Config::SetBase(Config::MAIN_DUMP_PATH, WxStrToStr(m_dump_path_dirpicker->GetPath()));
 }
 
 void PathConfigPane::SaveISOPathChanges()

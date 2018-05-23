@@ -22,6 +22,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -47,9 +48,31 @@
 
 namespace UICommon
 {
+static void CreateDumpPath(const std::string& path)
+{
+  if (path.empty())
+    return;
+  File::SetUserPath(D_DUMP_IDX, path + '/');
+  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+}
+
+static void InitCustomPaths()
+{
+  File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
+  CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
+  const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
+  if (!sd_path.empty())
+    File::SetUserPath(F_WIISDCARD_IDX, sd_path);
+}
+
 void Init()
 {
   Config::Init();
+  Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   LogManager::Init();

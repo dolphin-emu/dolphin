@@ -98,21 +98,6 @@ void SConfig::SaveSettings()
   Config::Save();
 }
 
-namespace
-{
-void CreateDumpPath(const std::string& path)
-{
-  if (path.empty())
-    return;
-  File::SetUserPath(D_DUMP_IDX, path + '/');
-  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-}
-}  // namespace
-
 void SConfig::SaveGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
@@ -138,11 +123,7 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   }
 
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
-  general->Set("NANDRootPath", m_NANDPath);
-  general->Set("DumpPath", m_DumpPath);
-  CreateDumpPath(m_DumpPath);
   general->Set("WirelessMac", m_WirelessMac);
-  general->Set("WiiSDCardPath", m_strWiiSDCardPath);
 
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
@@ -430,13 +411,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
   }
 
   general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
-  general->Get("NANDRootPath", &m_NANDPath);
-  File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
-  general->Get("DumpPath", &m_DumpPath);
-  CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
-  general->Get("WiiSDCardPath", &m_strWiiSDCardPath, File::GetUserPath(F_WIISDCARD_IDX));
-  File::SetUserPath(F_WIISDCARD_IDX, m_strWiiSDCardPath);
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)
@@ -799,7 +774,6 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
-  m_strWiiSDCardPath = File::GetUserPath(F_WIISDCARD_IDX);
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;
