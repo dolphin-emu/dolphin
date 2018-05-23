@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <future>
 #include <thread>
+#include <utility>
 
 #include <QApplication>
 #include <QFontMetrics>
@@ -108,15 +110,64 @@ void MappingButton::Detect()
 
   // Make sure that we don't block event handling
   std::thread thread([this] {
-    const auto dev = m_parent->GetDevice();
-
     setText(QStringLiteral("..."));
 
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
 
-    const auto expr = MappingCommon::DetectExpression(
-        m_reference, dev.get(), m_parent->GetController()->GetDefaultDevice());
+    std::vector<std::future<std::pair<QString, QString>>> futures;
+    QString expr;
+
+    if (m_parent->GetParent()->IsMappingAllDevices())
+    {
+      for (const std::string& device_str : g_controller_interface.GetAllDeviceStrings())
+      {
+        ciface::Core::DeviceQualifier devq;
+        devq.FromString(device_str);
+
+        auto dev = g_controller_interface.FindDevice(devq);
+
+        auto future = std::async(std::launch::async, [this, devq, dev, device_str] {
+          return std::make_pair(
+              QString::fromStdString(device_str),
+              MappingCommon::DetectExpression(m_reference, dev.get(),
+                                              m_parent->GetController()->GetDefaultDevice()));
+        });
+
+        futures.push_back(std::move(future));
+      }
+
+      bool done = false;
+
+      while (!done)
+      {
+        for (auto& future : futures)
+        {
+          const auto status = future.wait_for(std::chrono::milliseconds(10));
+          if (status == std::future_status::ready)
+          {
+            const auto pair = future.get();
+
+            done = true;
+
+            if (pair.second.isEmpty())
+              break;
+
+            expr = QStringLiteral("`%1:%2`")
+                       .arg(pair.first)
+                       .arg(pair.second.startsWith(QLatin1Char('`')) ? pair.second.mid(1) :
+                                                                       pair.second);
+            break;
+          }
+        }
+      }
+    }
+    else
+    {
+      const auto dev = m_parent->GetDevice();
+      expr = MappingCommon::DetectExpression(m_reference, dev.get(),
+                                             m_parent->GetController()->GetDefaultDevice());
+    }
 
     releaseMouse();
     releaseKeyboard();

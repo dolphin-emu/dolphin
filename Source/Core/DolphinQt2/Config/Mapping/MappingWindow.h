@@ -52,6 +52,7 @@ public:
   std::shared_ptr<ciface::Core::Device> GetDevice() const;
   ControllerEmu::EmulatedController* GetController() const;
   bool IsIterativeInput() const;
+  bool IsMappingAllDevices() const;
 
 signals:
   void Update();
