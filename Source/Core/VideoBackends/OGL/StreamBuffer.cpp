@@ -216,7 +216,7 @@ public:
 class BufferStorage : public StreamBuffer
 {
 public:
-  BufferStorage(u32 type, u32 size, bool _coherent = false)
+  BufferStorage(u32 type, u32 size, bool _coherent = true)
       : StreamBuffer(type, size), coherent(_coherent)
   {
     CreateFences();
@@ -368,13 +368,12 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
       return std::make_unique<PinnedMemory>(type, size);
 
     // buffer storage works well in most situations
-    bool coherent = DriverDetails::HasBug(DriverDetails::BUG_BROKEN_EXPLICIT_FLUSH);
     if (g_ogl_config.bSupportsGLBufferStorage &&
         !(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STORAGE) &&
           type == GL_ARRAY_BUFFER) &&
         !(DriverDetails::HasBug(DriverDetails::BUG_INTEL_BROKEN_BUFFER_STORAGE) &&
           type == GL_ELEMENT_ARRAY_BUFFER))
-      return std::make_unique<BufferStorage>(type, size, coherent);
+      return std::make_unique<BufferStorage>(type, size);
 
     // don't fall back to MapAnd* for Nvidia drivers
     if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UNSYNC_MAPPING))

@@ -200,15 +200,6 @@ enum Bug
   // Causes misrenderings on a large amount of things that draw lines.
   BUG_BROKEN_GEOMETRY_SHADERS,
 
-  // Bug: Explicit flush is very slow on Qualcomm
-  // Started Version: -1
-  // Ended Version: -1
-  // Our ARB_buffer_storage code uses explicit flush to avoid coherent mapping.
-  // Qualcomm seems to have lots of overhead on explicit flushing, but the coherent mapping path is
-  // fine.
-  // So let's use coherent mapping there.
-  BUG_BROKEN_EXPLICIT_FLUSH,
-
   // Bug: glGetBufferSubData for bounding box reads is slow on AMD drivers
   // Started Version: -1
   // Ended Version: -1
