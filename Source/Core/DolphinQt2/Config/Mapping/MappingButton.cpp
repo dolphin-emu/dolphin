@@ -104,7 +104,6 @@ void MappingButton::Detect()
 
   installEventFilter(BlockUserInputFilter::Instance());
   grabKeyboard();
-  grabMouse();
 
   // Make sure that we don't block event handling
   std::thread thread([this] {
@@ -118,7 +117,6 @@ void MappingButton::Detect()
     const auto expr = MappingCommon::DetectExpression(
         m_reference, dev.get(), m_parent->GetController()->GetDefaultDevice());
 
-    releaseMouse();
     releaseKeyboard();
     removeEventFilter(BlockUserInputFilter::Instance());
 
