@@ -8,6 +8,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QLabel>
+#include <QMessageBox>
 #include <QPushButton>
 #include <QTextBrowser>
 #include <QVBoxLayout>
@@ -23,12 +24,21 @@ Updater::Updater(QWidget* parent) : m_parent(parent)
 
 void Updater::run()
 {
-  CheckForUpdate();
+  AutoUpdateChecker::CheckForUpdate();
+}
+
+bool Updater::CheckForUpdate()
+{
+  m_update_available = false;
+  AutoUpdateChecker::CheckForUpdate();
+
+  return m_update_available;
 }
 
 void Updater::OnUpdateAvailable(const NewVersionInformation& info)
 {
   bool later = false;
+  m_update_available = true;
 
   std::optional<int> choice = RunOnObject(m_parent, [&] {
     QDialog* dialog = new QDialog(m_parent);

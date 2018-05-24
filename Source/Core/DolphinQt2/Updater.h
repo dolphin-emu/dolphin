@@ -18,7 +18,9 @@ public:
 
   void run() override;
   void OnUpdateAvailable(const NewVersionInformation& info) override;
+  bool CheckForUpdate();
 
 private:
   QWidget* m_parent;
+  bool m_update_available = false;
 };
