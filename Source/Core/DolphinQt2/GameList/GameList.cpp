@@ -91,8 +91,6 @@ void GameList::MakeListView()
   connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionMoved, this, &GameList::OnHeaderViewChanged);
 
-  hor_header->setSectionsMovable(true);
-
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
     m_list->sortByColumn(GameListModel::COL_TITLE, Qt::AscendingOrder);
 
@@ -123,6 +121,9 @@ void GameList::MakeListView()
 
   m_list->verticalHeader()->hide();
   m_list->setFrameStyle(QFrame::NoFrame);
+
+  hor_header->setSectionsMovable(true);
+  hor_header->setHighlightSections(false);
 }
 
 void GameList::MakeEmptyView()
