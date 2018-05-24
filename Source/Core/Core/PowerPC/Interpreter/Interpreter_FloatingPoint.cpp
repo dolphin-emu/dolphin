@@ -410,19 +410,29 @@ void Interpreter::fresx(UGeckoInstruction inst)
 
 void Interpreter::frsqrtex(UGeckoInstruction inst)
 {
-  double b = rPS0(inst.FB);
+  const double b = rPS0(inst.FB);
+  const double result = Common::ApproximateReciprocalSquareRoot(b);
 
   if (b < 0.0)
   {
     SetFPException(FPSCR_VXSQRT);
+
+    if (FPSCR.VE == 0)
+      PowerPC::UpdateFPRF(result);
   }
   else if (b == 0.0)
   {
     SetFPException(FPSCR_ZX);
+
+    if (FPSCR.ZE == 0)
+      PowerPC::UpdateFPRF(result);
+  }
+  else
+  {
+    PowerPC::UpdateFPRF(result);
   }
 
-  rPS0(inst.FD) = Common::ApproximateReciprocalSquareRoot(b);
-  PowerPC::UpdateFPRF(rPS0(inst.FD));
+  rPS0(inst.FD) = result;
 
   if (inst.Rc)
     Helper_UpdateCR1();
