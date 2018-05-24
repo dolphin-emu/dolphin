@@ -11,29 +11,30 @@
 
 HotkeyControllerProfile::HotkeyControllerProfile(MappingWindow* window) : MappingWidget(window)
 {
-	CreateMainLayout();
+  CreateMainLayout();
 }
 
 void HotkeyControllerProfile::CreateMainLayout()
 {
-	m_main_layout = new QHBoxLayout();
+  m_main_layout = new QHBoxLayout();
 
-	m_main_layout->addWidget(CreateGroupBox(tr("Controller Profile"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE)));
+  m_main_layout->addWidget(CreateGroupBox(
+      tr("Controller Profile"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE)));
 
-	setLayout(m_main_layout);
+  setLayout(m_main_layout);
 }
 
 InputConfig* HotkeyControllerProfile::GetConfig()
 {
-	return HotkeyManagerEmu::GetConfig();
+  return HotkeyManagerEmu::GetConfig();
 }
 
 void HotkeyControllerProfile::LoadSettings()
 {
-	HotkeyManagerEmu::LoadConfig();
+  HotkeyManagerEmu::LoadConfig();
 }
 
 void HotkeyControllerProfile::SaveSettings()
 {
-	HotkeyManagerEmu::GetConfig()->SaveConfig();
+  HotkeyManagerEmu::GetConfig()->SaveConfig();
 }

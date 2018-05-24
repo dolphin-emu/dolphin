@@ -109,9 +109,12 @@ void Nunchuk::GetState(u8* const data)
   EmulateSwing(&accel, m_swing_fast, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_FAST));
 
   // shake
-  EmulateShake(&accel, m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM), m_shake_step.data());
-  EmulateShake(&accel, m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT), m_shake_soft_step.data());
-  EmulateShake(&accel, m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD), m_shake_hard_step.data());
+  EmulateShake(&accel, m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
+               m_shake_step.data());
+  EmulateShake(&accel, m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
+               m_shake_soft_step.data());
+  EmulateShake(&accel, m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
+               m_shake_hard_step.data());
 
   // buttons
   m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());

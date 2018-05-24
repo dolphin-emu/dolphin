@@ -128,8 +128,8 @@ struct AccelData
 // shake
 struct DynamicData
 {
-  std::array<int, 3> timing; // Hold length in frames for each axis
-  std::array<double, 3> intensity;  // Swing or shake intensity
+  std::array<int, 3> timing;                 // Hold length in frames for each axis
+  std::array<double, 3> intensity;           // Swing or shake intensity
   std::array<int, 3> executing_frames_left;  // Number of frames to execute the intensity operation
 };
 
@@ -186,8 +186,7 @@ void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const but
 
 void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
                          ControllerEmu::Buttons* const buttons_group,
-                         const DynamicConfiguration& config,
-                         u8* const shake_step);
+                         const DynamicConfiguration& config, u8* const shake_step);
 
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
                  const bool sideways = false, const bool upright = false);
@@ -197,8 +196,8 @@ void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group
 
 void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
                          ControllerEmu::Force* const swing_group,
-                         const DynamicConfiguration& config,
-                         const bool sideways = false, const bool upright = false);
+                         const DynamicConfiguration& config, const bool sideways = false,
+                         const bool upright = false);
 
 enum
 {

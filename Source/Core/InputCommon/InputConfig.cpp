@@ -87,8 +87,8 @@ bool InputConfig::LoadConfig(bool isGC)
       {
         std::string base;
         SplitPath(profile[n], nullptr, &base, nullptr);
-        Core::DisplayMessage("Loading game specific input profile '" + base +
-                                 "' for device '" + controller->GetName() + "'",
+        Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
+                                 controller->GetName() + "'",
                              6000);
 
         IniFile profile_ini;

@@ -123,15 +123,16 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   }
 }
 
-void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data, ControllerEmu::Buttons* const buttons_group,
-  const DynamicConfiguration& config, u8* const shake_step)
+void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
+                         ControllerEmu::Buttons* const buttons_group,
+                         const DynamicConfiguration& config, u8* const shake_step)
 {
   // frame count of one up/down shake
   // < 9 no shake detection in "Wario Land: Shake It"
   auto const shake_step_max = 15;
 
   // shake is a bitfield of X,Y,Z shake button states
-  static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
+  static const unsigned int btns[] = {0x01, 0x02, 0x04};
   unsigned int shake = 0;
   buttons_group->GetState(&shake, btns);
 
@@ -232,12 +233,14 @@ void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const swing_grou
 }
 
 void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
-  ControllerEmu::Force* const swing_group, const DynamicConfiguration& config, const bool sideways, const bool upright)
+                         ControllerEmu::Force* const swing_group,
+                         const DynamicConfiguration& config, const bool sideways,
+                         const bool upright)
 {
   ControlState swing[3];
   swing_group->GetState(swing);
 
-  s8 g_dir[3] = { -1, -1, -1 };
+  s8 g_dir[3] = {-1, -1, -1};
   u8 axis_map[3];
 
   // determine which axis is which direction
@@ -398,9 +401,12 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   groups.emplace_back(m_shake_dynamic = new ControllerEmu::Buttons("Shake Dynamic"));
-  m_shake_dynamic->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
-  m_shake_dynamic->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
-  m_shake_dynamic->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+  m_shake_dynamic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_dynamic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_dynamic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -604,13 +610,18 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   swing_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW);
   swing_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM);
   swing_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST);
-  swing_config.frames_needed_for_high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_FAST);
-  swing_config.frames_needed_for_low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_SLOW);
+  swing_config.frames_needed_for_high_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_FAST);
+  swing_config.frames_needed_for_low_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_SLOW);
   swing_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_LENGTH);
 
-  EmulateSwing(&m_accel, m_swing, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM), is_sideways, is_upright);
-  EmulateSwing(&m_accel, m_swing_slow, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW), is_sideways, is_upright);
-  EmulateSwing(&m_accel, m_swing_fast, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST), is_sideways, is_upright);
+  EmulateSwing(&m_accel, m_swing, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM),
+               is_sideways, is_upright);
+  EmulateSwing(&m_accel, m_swing_slow, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW),
+               is_sideways, is_upright);
+  EmulateSwing(&m_accel, m_swing_fast, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST),
+               is_sideways, is_upright);
   EmulateDynamicSwing(&m_accel, m_swing_dynamic_data, m_swing_dynamic, swing_config, is_sideways,
                       is_upright);
 
@@ -618,16 +629,20 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
   shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
   shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
   shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
-  shake_config.frames_needed_for_high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
-  shake_config.frames_needed_for_low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
+  shake_config.frames_needed_for_high_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
+  shake_config.frames_needed_for_low_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
   shake_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_LENGTH);
 
-  EmulateShake(&m_accel, m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM), m_shake_step.data());
-  EmulateShake(&m_accel, m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT), m_shake_soft_step.data());
-  EmulateShake(&m_accel, m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD), m_shake_hard_step.data());
+  EmulateShake(&m_accel, m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM),
+               m_shake_step.data());
+  EmulateShake(&m_accel, m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT),
+               m_shake_soft_step.data());
+  EmulateShake(&m_accel, m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD),
+               m_shake_hard_step.data());
   EmulateDynamicShake(&m_accel, m_shake_dynamic_data, m_shake_dynamic, shake_config,
                       m_shake_dynamic_step.data());
-
 
   wm_accel& accel = *reinterpret_cast<wm_accel*>(data + rptf.accel);
   wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + rptf.core);

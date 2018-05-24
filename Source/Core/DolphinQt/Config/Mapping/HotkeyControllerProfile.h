@@ -10,17 +10,17 @@ class QHBoxLayout;
 
 class HotkeyControllerProfile final : public MappingWidget
 {
-	Q_OBJECT
+  Q_OBJECT
 public:
-	explicit HotkeyControllerProfile(MappingWindow* window);
+  explicit HotkeyControllerProfile(MappingWindow* window);
 
-	InputConfig* GetConfig() override;
+  InputConfig* GetConfig() override;
 
 private:
-	void LoadSettings() override;
-	void SaveSettings() override;
-	void CreateMainLayout();
+  void LoadSettings() override;
+  void SaveSettings() override;
+  void CreateMainLayout();
 
-	// Main
-	QHBoxLayout* m_main_layout;
+  // Main
+  QHBoxLayout* m_main_layout;
 };

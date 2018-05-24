@@ -311,7 +311,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("Debugging"), new HotkeyDebugging(this));
 
     AddWidget(tr("Wii and Wii Remote"), new HotkeyWii(this));
-	AddWidget(tr("Controller Profile"), new HotkeyControllerProfile(this));
+    AddWidget(tr("Controller Profile"), new HotkeyControllerProfile(this));
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
