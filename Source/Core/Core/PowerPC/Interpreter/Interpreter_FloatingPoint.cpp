@@ -427,6 +427,13 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
     if (FPSCR.ZE == 0)
       PowerPC::UpdateFPRF(result);
   }
+  else if (Common::IsSNAN(b))
+  {
+    SetFPException(FPSCR_VXSNAN);
+
+    if (FPSCR.VE == 0)
+      PowerPC::UpdateFPRF(result);
+  }
   else
   {
     PowerPC::UpdateFPRF(result);
