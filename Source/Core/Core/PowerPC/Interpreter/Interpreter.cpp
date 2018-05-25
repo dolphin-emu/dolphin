@@ -92,7 +92,7 @@ static void Trace(UGeckoInstruction& inst)
                               PowerPC::ppcState.ps[i][1]);
   }
 
-  std::string ppc_inst = GekkoDisassembler::Disassemble(inst.hex, PC);
+  const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
   DEBUG_LOG(POWERPC,
             "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx FPSCR: %08x MSR: %08x LR: "
             "%08x %s %08x %s",
@@ -295,15 +295,18 @@ void Interpreter::Run()
 
 void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
-  std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
+  const u32 opcode = PowerPC::HostRead_U32(last_pc);
+  const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
   NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
   Dolphin_Debugger::PrintCallstack();
   NOTICE_LOG(POWERPC,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
              inst.hex, PC, last_pc, LR);
   for (int i = 0; i < 32; i += 4)
+  {
     NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
                rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
+  }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
              inst.hex, PC, last_pc, LR);

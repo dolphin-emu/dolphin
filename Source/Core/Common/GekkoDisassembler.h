@@ -40,6 +40,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
+namespace Common
+{
 class GekkoDisassembler final
 {
 public:
@@ -152,3 +154,4 @@ private:
   static unsigned short m_sreg;   // Register in load/store instructions
   static u32 m_displacement;      // Branch- or load/store displacement
 };
+}  // namespace Common

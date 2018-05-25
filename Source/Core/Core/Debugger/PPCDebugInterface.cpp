@@ -173,7 +173,7 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
     }
 
     const u32 op = PowerPC::HostRead_Instruction(address);
-    std::string disasm = GekkoDisassembler::Disassemble(op, address);
+    std::string disasm = Common::GekkoDisassembler::Disassemble(op, address);
     const UGeckoInstruction inst{op};
 
     if (inst.OPCD == 1)

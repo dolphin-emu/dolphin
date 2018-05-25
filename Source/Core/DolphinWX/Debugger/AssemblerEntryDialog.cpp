@@ -85,6 +85,6 @@ void AssemblerEntryDialog::OnTextChanged(wxCommandEvent& evt)
   unsigned long code;
   std::string result = "Input text is invalid";
   if (evt.GetString().ToULong(&code, 0) && code <= std::numeric_limits<u32>::max())
-    result = TabsToSpaces(1, GekkoDisassembler::Disassemble(code, m_address));
+    result = TabsToSpaces(1, Common::GekkoDisassembler::Disassemble(code, m_address));
   m_preview->SetLabel(wxString::Format(_("Preview: %s"), result.c_str()));
 }
