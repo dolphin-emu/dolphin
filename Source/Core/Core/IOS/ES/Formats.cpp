@@ -683,14 +683,18 @@ CertReader::CertReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(byt
   if (!IsSignatureValid())
     return;
 
-  static constexpr std::array<std::tuple<SignatureType, PublicKeyType, size_t>, 4> types{{
+  // XXX: in old GCC versions, capturing 'this' does not work for some lambdas. The workaround
+  // is to not use auto for the parameter (even though the type is obvious).
+  // This can be dropped once we require GCC 7.
+  using CertStructInfo = std::tuple<SignatureType, PublicKeyType, size_t>;
+  static constexpr std::array<CertStructInfo, 4> types{{
       {SignatureType::RSA4096, PublicKeyType::RSA2048, sizeof(CertRSA4096RSA2048)},
       {SignatureType::RSA2048, PublicKeyType::RSA2048, sizeof(CertRSA2048RSA2048)},
       {SignatureType::RSA2048, PublicKeyType::ECC, sizeof(CertRSA2048ECC)},
       {SignatureType::ECC, PublicKeyType::ECC, sizeof(CertECC)},
   }};
 
-  const auto info = std::find_if(types.cbegin(), types.cend(), [this](const auto& entry) {
+  const auto info = std::find_if(types.cbegin(), types.cend(), [this](const CertStructInfo& entry) {
     return m_bytes.size() >= std::get<2>(entry) && std::get<0>(entry) == GetSignatureType() &&
            std::get<1>(entry) == GetPublicKeyType();
   });
