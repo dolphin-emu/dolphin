@@ -16,6 +16,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 
@@ -247,6 +248,8 @@ void InterfacePane::OnSaveConfig()
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
   settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
+
+  SetEnableAlert(settings.bUsePanicHandlers);
 
   auto new_language = m_combobox_language->currentData().toString().toStdString();
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
