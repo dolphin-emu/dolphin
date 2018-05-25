@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 
+#include "Core/ConfigManager.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Config/InfoWidget.h"
@@ -54,7 +55,6 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
   QLineEdit* maker = CreateValueDisplay(m_game.GetMaker() + " (0x" + m_game.GetMakerID() + ")");
-  QLineEdit* apploader_date = CreateValueDisplay(m_game.GetApploaderDate());
   QWidget* checksum = CreateChecksumComputer();
 
   layout->addRow(tr("Name:"), internal_name);
@@ -62,7 +62,10 @@ QGroupBox* InfoWidget::CreateISODetails()
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);
-  layout->addRow(tr("Apploader Date:"), apploader_date);
+
+  if (!m_game.GetApploaderDate().empty())
+    layout->addRow(tr("Apploader Date:"), CreateValueDisplay(m_game.GetApploaderDate()));
+
   layout->addRow(tr("MD5 Checksum:"), checksum);
 
   group->setLayout(layout);
