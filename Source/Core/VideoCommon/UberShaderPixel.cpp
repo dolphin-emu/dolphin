@@ -29,7 +29,8 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void ClearUnusedPixelShaderUidBits(APIType ApiType, PixelShaderUid* uid)
+void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
+                                   PixelShaderUid* uid)
 {
   pixel_ubershader_uid_data* uid_data = uid->GetUidData<pixel_ubershader_uid_data>();
 

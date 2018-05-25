@@ -456,12 +456,15 @@ std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXP
   else
     vs = InsertVertexShader(config.vs_uid, CompileVertexShader(config.vs_uid));
 
+  PixelShaderUid ps_uid = config.ps_uid;
+  ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &ps_uid);
+
   const AbstractShader* ps;
-  auto ps_iter = m_ps_cache.shader_map.find(config.ps_uid);
+  auto ps_iter = m_ps_cache.shader_map.find(ps_uid);
   if (ps_iter != m_ps_cache.shader_map.end() && !ps_iter->second.pending)
     ps = ps_iter->second.shader.get();
   else
-    ps = InsertPixelShader(config.ps_uid, CompilePixelShader(config.ps_uid));
+    ps = InsertPixelShader(ps_uid, CompilePixelShader(ps_uid));
 
   if (!vs || !ps)
     return {};
@@ -492,12 +495,15 @@ ShaderCache::GetGXUberPipelineConfig(const GXUberPipelineUid& config)
   else
     vs = InsertVertexUberShader(config.vs_uid, CompileVertexUberShader(config.vs_uid));
 
+  UberShader::PixelShaderUid ps_uid = config.ps_uid;
+  UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &ps_uid);
+
   const AbstractShader* ps;
-  auto ps_iter = m_uber_ps_cache.shader_map.find(config.ps_uid);
+  auto ps_iter = m_uber_ps_cache.shader_map.find(ps_uid);
   if (ps_iter != m_uber_ps_cache.shader_map.end() && !ps_iter->second.pending)
     ps = ps_iter->second.shader.get();
   else
-    ps = InsertPixelUberShader(config.ps_uid, CompilePixelUberShader(config.ps_uid));
+    ps = InsertPixelUberShader(ps_uid, CompilePixelUberShader(ps_uid));
 
   if (!vs || !ps)
     return {};
@@ -802,10 +808,13 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
       if (vs_it == shader_cache->m_vs_cache.shader_map.end())
         shader_cache->QueueVertexShaderCompile(uid.vs_uid, priority);
 
-      auto ps_it = shader_cache->m_ps_cache.shader_map.find(uid.ps_uid);
+      PixelShaderUid ps_uid = uid.ps_uid;
+      ClearUnusedPixelShaderUidBits(shader_cache->m_api_type, shader_cache->m_host_config, &ps_uid);
+
+      auto ps_it = shader_cache->m_ps_cache.shader_map.find(ps_uid);
       stages_ready &= ps_it != shader_cache->m_ps_cache.shader_map.end() && !ps_it->second.pending;
       if (ps_it == shader_cache->m_ps_cache.shader_map.end())
-        shader_cache->QueuePixelShaderCompile(uid.ps_uid, priority);
+        shader_cache->QueuePixelShaderCompile(ps_uid, priority);
 
       return stages_ready;
     }
@@ -870,11 +879,15 @@ void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 pri
       if (vs_it == shader_cache->m_uber_vs_cache.shader_map.end())
         shader_cache->QueueVertexUberShaderCompile(uid.vs_uid, priority);
 
-      auto ps_it = shader_cache->m_uber_ps_cache.shader_map.find(uid.ps_uid);
+      UberShader::PixelShaderUid ps_uid = uid.ps_uid;
+      UberShader::ClearUnusedPixelShaderUidBits(shader_cache->m_api_type,
+                                                shader_cache->m_host_config, &ps_uid);
+
+      auto ps_it = shader_cache->m_uber_ps_cache.shader_map.find(ps_uid);
       stages_ready &=
           ps_it != shader_cache->m_uber_ps_cache.shader_map.end() && !ps_it->second.pending;
       if (ps_it == shader_cache->m_uber_ps_cache.shader_map.end())
-        shader_cache->QueuePixelUberShaderCompile(uid.ps_uid, priority);
+        shader_cache->QueuePixelUberShaderCompile(ps_uid, priority);
 
       return stages_ready;
     }
