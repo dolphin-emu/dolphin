@@ -607,7 +607,7 @@ bool MainWindow::RequestStop()
       Core::SetState(Core::State::Paused);
 
     QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(m_render_widget, tr("Confirm"),
+    confirm = QMessageBox::question(this, tr("Confirm"),
                                     m_stop_requested ?
                                         tr("A shutdown is already in progress. Unsaved data "
                                            "may be lost if you stop the current emulation "
