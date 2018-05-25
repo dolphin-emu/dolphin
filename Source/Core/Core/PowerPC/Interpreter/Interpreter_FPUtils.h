@@ -31,7 +31,9 @@ inline void SetFPException(u32 mask)
   {
     FPSCR.FX = 1;
   }
+
   FPSCR.Hex |= mask;
+  FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
 }
 
 inline void SetFI(int FI)
