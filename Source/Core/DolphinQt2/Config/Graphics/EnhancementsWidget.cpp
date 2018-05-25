@@ -102,9 +102,9 @@ void EnhancementsWidget::CreateWidgets()
   auto* stereoscopy_layout = new QGridLayout();
   stereoscopy_box->setLayout(stereoscopy_layout);
 
-  m_3d_mode =
-      new GraphicsChoice({tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph")},
-                         Config::GFX_STEREO_MODE);
+  m_3d_mode = new GraphicsChoice(
+      {tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"), tr("HDMI 3D")},
+      Config::GFX_STEREO_MODE);
   m_3d_depth = new GraphicsSlider(0, 100, Config::GFX_STEREO_DEPTH);
   m_3d_convergence = new GraphicsSlider(0, 200, Config::GFX_STEREO_CONVERGENCE, 100);
   m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
@@ -131,28 +131,19 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_pp_effect, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
+          [this] {
+            m_block_save = true;
+            LoadPPShaders();
+            m_block_save = false;
+
+            SaveSettings();
+          });
   connect(m_configure_pp_effect, &QPushButton::pressed, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 
-void EnhancementsWidget::LoadSettings()
+void EnhancementsWidget::LoadPPShaders()
 {
-  m_block_save = true;
-  // Anti-Aliasing
-
-  int aa_selection = Config::Get(Config::GFX_MSAA);
-  bool ssaa = Config::Get(Config::GFX_SSAA);
-
-  m_aa_combo->clear();
-  for (const auto& option : VideoUtils::GetAvailableAntialiasingModes(m_msaa_modes))
-    m_aa_combo->addItem(option == "None" ? tr("None") : QString::fromStdString(option));
-
-  m_aa_combo->setCurrentText(
-      QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
-  m_aa_combo->setEnabled(m_aa_combo->count() > 1);
-
-  // Post Processing Shader
   std::vector<std::string> shaders =
       g_Config.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(
@@ -187,7 +178,38 @@ void EnhancementsWidget::LoadSettings()
     pp_shader.LoadShader(selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
+}
+
+void EnhancementsWidget::LoadSettings()
+{
+  m_block_save = true;
+  // Anti-Aliasing
+
+  int aa_selection = Config::Get(Config::GFX_MSAA);
+  bool ssaa = Config::Get(Config::GFX_SSAA);
+
+  m_aa_combo->clear();
+  for (const auto& option : VideoUtils::GetAvailableAntialiasingModes(m_msaa_modes))
+    m_aa_combo->addItem(option == "None" ? tr("None") : QString::fromStdString(option));
+
+  m_aa_combo->setCurrentText(
+      QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
+  m_aa_combo->setEnabled(m_aa_combo->count() > 1);
+
+  // Post Processing Shader
+  LoadPPShaders();
+
+  // Stereoscopy
   bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
+  bool supports_3dvision = g_Config.backend_info.bSupports3DVision;
+
+  bool has_3dvision = m_3d_mode->count() == 6;
+
+  if (has_3dvision && !supports_3dvision)
+    m_3d_mode->removeItem(4);
+
+  if (!has_3dvision && supports_3dvision)
+    m_3d_mode->addItem(tr("NVIDIA 3D Vision"));
 
   m_3d_mode->setEnabled(supports_stereoscopy);
   m_3d_convergence->setEnabled(supports_stereoscopy);
@@ -232,6 +254,8 @@ void EnhancementsWidget::SaveSettings()
   {
     m_configure_pp_effect->setEnabled(false);
   }
+
+  LoadSettings();
 }
 
 void EnhancementsWidget::AddDescriptions()
