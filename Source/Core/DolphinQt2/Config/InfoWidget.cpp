@@ -25,7 +25,9 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   QVBoxLayout* layout = new QVBoxLayout();
 
   layout->addWidget(CreateISODetails());
-  layout->addWidget(CreateBannerDetails());
+
+  if (!game.GetLanguages().empty())
+    layout->addWidget(CreateBannerDetails());
 
   setLayout(layout);
 }
@@ -144,6 +146,7 @@ void InfoWidget::CreateLanguageSelector()
   }
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
+
   connect(m_language_selector,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &InfoWidget::ChangeLanguage);
