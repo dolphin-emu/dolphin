@@ -601,13 +601,13 @@ bool MainWindow::RequestStop()
     const Core::State state = Core::GetState();
 
     // Only pause the game, if NetPlay is not running
-    bool pause = Settings::Instance().GetNetPlayClient() != nullptr;
+    bool pause = !m_netplay_dialog->isVisible();
 
     if (pause)
       Core::SetState(Core::State::Paused);
 
     QMessageBox::StandardButton confirm;
-    confirm = QMessageBox::question(m_render_widget, tr("Confirm"),
+    confirm = QMessageBox::question(this, tr("Confirm"),
                                     m_stop_requested ?
                                         tr("A shutdown is already in progress. Unsaved data "
                                            "may be lost if you stop the current emulation "
