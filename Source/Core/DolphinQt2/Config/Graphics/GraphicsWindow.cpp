@@ -28,6 +28,7 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
     : QDialog(parent), m_xrr_config(xrr_config)
 {
   g_Config.Refresh();
+  g_video_backend->InitBackendInfo();
 
   CreateMainLayout();
 

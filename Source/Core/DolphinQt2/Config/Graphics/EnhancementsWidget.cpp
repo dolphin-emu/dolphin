@@ -24,6 +24,8 @@
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoConfig.h"
 
+constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
+
 EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
     : GraphicsWidget(parent), m_block_save(false)
 {
@@ -131,28 +133,19 @@ void EnhancementsWidget::ConnectWidgets()
   connect(m_pp_effect, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
   connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int) { SaveSettings(); });
+          [this] {
+            m_block_save = true;
+            LoadPPShaders();
+            m_block_save = false;
+
+            SaveSettings();
+          });
   connect(m_configure_pp_effect, &QPushButton::pressed, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 
-void EnhancementsWidget::LoadSettings()
+void EnhancementsWidget::LoadPPShaders()
 {
-  m_block_save = true;
-  // Anti-Aliasing
-
-  int aa_selection = Config::Get(Config::GFX_MSAA);
-  bool ssaa = Config::Get(Config::GFX_SSAA);
-
-  m_aa_combo->clear();
-  for (const auto& option : VideoUtils::GetAvailableAntialiasingModes(m_msaa_modes))
-    m_aa_combo->addItem(option == "None" ? tr("None") : QString::fromStdString(option));
-
-  m_aa_combo->setCurrentText(
-      QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
-  m_aa_combo->setEnabled(m_aa_combo->count() > 1);
-
-  // Post Processing Shader
   std::vector<std::string> shaders =
       g_Config.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(
@@ -187,6 +180,26 @@ void EnhancementsWidget::LoadSettings()
     pp_shader.LoadShader(selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
+}
+
+void EnhancementsWidget::LoadSettings()
+{
+  m_block_save = true;
+  // Anti-Aliasing
+
+  int aa_selection = Config::Get(Config::GFX_MSAA);
+  bool ssaa = Config::Get(Config::GFX_SSAA);
+
+  m_aa_combo->clear();
+  for (const auto& option : VideoUtils::GetAvailableAntialiasingModes(m_msaa_modes))
+    m_aa_combo->addItem(option == "None" ? tr("None") : QString::fromStdString(option));
+
+  m_aa_combo->setCurrentText(
+      QString::fromStdString(std::to_string(aa_selection) + "x " + (ssaa ? "SSAA" : "MSAA")));
+  m_aa_combo->setEnabled(m_aa_combo->count() > 1);
+
+  // Post Processing Shader
+  LoadPPShaders();
   bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
 
   m_3d_mode->setEnabled(supports_stereoscopy);
@@ -232,6 +245,8 @@ void EnhancementsWidget::SaveSettings()
   {
     m_configure_pp_effect->setEnabled(false);
   }
+
+  LoadSettings();
 }
 
 void EnhancementsWidget::AddDescriptions()
