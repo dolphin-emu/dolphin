@@ -14,6 +14,7 @@
 #include <QPushButton>
 #include <QTextEdit>
 
+#include "Core/ConfigManager.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DolphinQt2/Config/InfoWidget.h"
@@ -25,7 +26,9 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   QVBoxLayout* layout = new QVBoxLayout();
 
   layout->addWidget(CreateISODetails());
-  layout->addWidget(CreateBannerDetails());
+
+  if (!game.GetLanguages().empty())
+    layout->addWidget(CreateBannerDetails());
 
   setLayout(layout);
 }
@@ -52,7 +55,6 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
   QLineEdit* maker = CreateValueDisplay(m_game.GetMaker() + " (0x" + m_game.GetMakerID() + ")");
-  QLineEdit* apploader_date = CreateValueDisplay(m_game.GetApploaderDate());
   QWidget* checksum = CreateChecksumComputer();
 
   layout->addRow(tr("Name:"), internal_name);
@@ -60,7 +62,10 @@ QGroupBox* InfoWidget::CreateISODetails()
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);
-  layout->addRow(tr("Apploader Date:"), apploader_date);
+
+  if (!m_game.GetApploaderDate().empty())
+    layout->addRow(tr("Apploader Date:"), CreateValueDisplay(m_game.GetApploaderDate()));
+
   layout->addRow(tr("MD5 Checksum:"), checksum);
 
   group->setLayout(layout);
@@ -144,6 +149,7 @@ void InfoWidget::CreateLanguageSelector()
   }
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
+
   connect(m_language_selector,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
           &InfoWidget::ChangeLanguage);
