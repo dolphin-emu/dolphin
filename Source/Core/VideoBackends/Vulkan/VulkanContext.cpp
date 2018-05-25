@@ -246,6 +246,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsST3CTextures = false;              // Dependent on features.
   config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
+  config->backend_info.bSupportsLogicOp = false;             // Dependent on features.
   config->backend_info.bSupportsCopyToVram = true;           // Assumed support.
   config->backend_info.bSupportsFramebufferFetch = false;
 }
@@ -272,6 +273,7 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
       (features.fragmentStoresAndAtomics == VK_TRUE);
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
+  config->backend_info.bSupportsLogicOp = (features.logicOp == VK_TRUE);
 
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.

@@ -521,6 +521,9 @@ Renderer::Renderer()
     // depth clamping.
     g_Config.backend_info.bSupportsDepthClamp = false;
 
+    // GLES does not support logic op.
+    g_Config.backend_info.bSupportsLogicOp = false;
+
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
       g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;

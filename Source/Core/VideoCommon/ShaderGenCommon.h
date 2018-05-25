@@ -180,7 +180,8 @@ union ShaderHostConfig
     u32 backend_bitfield : 1;
     u32 backend_dynamic_sampler_indexing : 1;
     u32 backend_shader_framebuffer_fetch : 1;
-    u32 pad : 11;
+    u32 backend_logic_op : 1;
+    u32 pad : 10;
   };
 
   static ShaderHostConfig GetCurrent();
