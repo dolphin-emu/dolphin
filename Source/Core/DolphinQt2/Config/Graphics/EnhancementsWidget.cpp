@@ -21,7 +21,9 @@
 #include "DolphinQt2/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/VideoUtils.h"
+
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
@@ -165,12 +167,10 @@ void EnhancementsWidget::LoadPPShaders()
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
 
-  if (!supports_postprocessing)
-  {
-    m_pp_effect->setToolTip(
-        tr("%1 doesn't support this feature.")
-            .arg(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend)));
-  }
+  m_pp_effect->setToolTip(supports_postprocessing ?
+                              QStringLiteral("") :
+                              tr("%1 doesn't support this feature.")
+                                  .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
 
   PostProcessingShaderConfiguration pp_shader;
   if (selected_shader != "(off)")
