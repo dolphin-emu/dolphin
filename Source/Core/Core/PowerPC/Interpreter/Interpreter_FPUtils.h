@@ -94,13 +94,17 @@ inline double MakeQuiet(double d)
 
 inline double NI_mul(double a, double b)
 {
-  double t = a * b;
+  const double t = a * b;
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);
+
     SetFPException(FPSCR_VXIMZ);
     return PPC_NAN;
   }
