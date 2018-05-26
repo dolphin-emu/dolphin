@@ -28,6 +28,8 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
   for (const QString& dir : Settings::Instance().GetPaths())
     m_tracker.AddDirectory(dir);
 
+  m_tracker.Start();
+
   connect(&Settings::Instance(), &Settings::ThemeChanged, [this] {
     // Tell the view to repaint. The signal 'dataChanged' also seems like it would work here, but
     // unfortunately it won't cause a repaint until the view is focused.

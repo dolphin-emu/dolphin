@@ -40,8 +40,12 @@ public:
                                            const Core::TitleDatabase& title_database);
 
   // These functions return true if the call modified the cache.
-  bool Update(const std::vector<std::string>& all_game_paths);
-  bool UpdateAdditionalMetadata(const Core::TitleDatabase& title_database);
+  bool Update(const std::vector<std::string>& all_game_paths,
+              std::function<void(const std::shared_ptr<const GameFile>&)> game_added_to_cache = {},
+              std::function<void(const std::string&)> game_removed_from_cache = {});
+  bool UpdateAdditionalMetadata(
+      const Core::TitleDatabase& title_database,
+      std::function<void(const std::shared_ptr<const GameFile>&)> game_updated = {});
 
   bool Load();
   bool Save();

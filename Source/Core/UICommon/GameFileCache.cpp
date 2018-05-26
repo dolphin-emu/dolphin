@@ -73,7 +73,10 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
   return result;
 }
 
-bool GameFileCache::Update(const std::vector<std::string>& all_game_paths)
+bool GameFileCache::Update(
+    const std::vector<std::string>& all_game_paths,
+    std::function<void(const std::shared_ptr<const GameFile>&)> game_added_to_cache,
+    std::function<void(const std::string&)> game_removed_from_cache)
 {
   // Copy game paths into a set, except ones that match DiscIO::ShouldHideFromGameList.
   // TODO: Prevent DoFileSearch from looking inside /files/ directories of DirectoryBlobs at all?
@@ -102,21 +105,27 @@ bool GameFileCache::Update(const std::vector<std::string>& all_game_paths)
       }
       else
       {
+        if (game_removed_from_cache)
+          game_removed_from_cache((*it)->GetFilePath());
+
         cache_changed = true;
         --end;
         *it = std::move(*end);
+        m_cached_files.pop_back();
       }
     }
-    m_cached_files.erase(it, m_cached_files.end());
   }
 
   // Now that the previous loop has run, game_paths only contains paths that
   // aren't in m_cached_files, so we simply add all of them to m_cached_files.
-  for (const auto& path : game_paths)
+  for (const std::string& path : game_paths)
   {
     auto file = std::make_shared<GameFile>(path);
     if (file->IsValid())
     {
+      if (game_added_to_cache)
+        game_added_to_cache(file);
+
       cache_changed = true;
       m_cached_files.push_back(std::move(file));
     }
@@ -125,12 +134,19 @@ bool GameFileCache::Update(const std::vector<std::string>& all_game_paths)
   return cache_changed;
 }
 
-bool GameFileCache::UpdateAdditionalMetadata(const Core::TitleDatabase& title_database)
+bool GameFileCache::UpdateAdditionalMetadata(
+    const Core::TitleDatabase& title_database,
+    std::function<void(const std::shared_ptr<const GameFile>&)> game_updated)
 {
   bool cache_changed = false;
 
-  for (auto& file : m_cached_files)
-    cache_changed |= UpdateAdditionalMetadata(&file, title_database);
+  for (std::shared_ptr<GameFile>& file : m_cached_files)
+  {
+    const bool updated = UpdateAdditionalMetadata(&file, title_database);
+    cache_changed |= updated;
+    if (game_updated && updated)
+      game_updated(file);
+  }
 
   return cache_changed;
 }

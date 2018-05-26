@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include <QFileSystemWatcher>
 #include <QMap>
@@ -26,6 +27,12 @@ class GameTracker final : public QFileSystemWatcher
 public:
   explicit GameTracker(QObject* parent = nullptr);
 
+  // A GameTracker won't emit any signals until this function has been called.
+  // Before you call this function, make sure to call AddDirectory for all
+  // directories you want to track, otherwise games will briefly disappear
+  // until you call AddDirectory and the GameTracker finishes scanning the file system.
+  void Start();
+
   void AddDirectory(const QString& dir);
   void RemoveDirectory(const QString& dir);
   void ReloadDirectory(const QString& dir);
@@ -35,6 +42,8 @@ signals:
   void GameRemoved(const QString& path);
 
 private:
+  void LoadCache();
+  void StartInternal();
   void UpdateDirectory(const QString& dir);
   void UpdateFile(const QString& path);
   void AddDirectoryInternal(const QString& dir);
@@ -47,6 +56,7 @@ private:
   enum class CommandType
   {
     LoadCache,
+    Start,
     AddDirectory,
     RemoveDirectory,
     UpdateDirectory,
@@ -64,6 +74,9 @@ private:
   Common::WorkQueueThread<Command> m_load_thread;
   UICommon::GameFileCache m_cache;
   Core::TitleDatabase m_title_database;
+  std::mutex m_mutex;
+  bool m_started = false;
+  bool m_initial_games_emitted = false;
 };
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)
