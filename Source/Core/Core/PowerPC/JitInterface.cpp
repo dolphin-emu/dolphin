@@ -64,7 +64,9 @@ CPUCoreBase* InitJitCore(int core)
     break;
 
   default:
-    PanicAlert("Unrecognizable cpu_core: %d", core);
+    PanicAlertT("The selected CPU emulation core (%d) is not available. "
+                "Please select a different CPU emulation core in the settings.",
+                core);
     g_jit = nullptr;
     return nullptr;
   }
