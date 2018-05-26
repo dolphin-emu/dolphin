@@ -21,7 +21,9 @@
 #include "DolphinQt2/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/VideoUtils.h"
+
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
@@ -144,6 +146,7 @@ void EnhancementsWidget::ConnectWidgets()
 
 void EnhancementsWidget::LoadPPShaders()
 {
+  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   std::vector<std::string> shaders =
       g_Config.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(
@@ -151,26 +154,34 @@ void EnhancementsWidget::LoadPPShaders()
           PostProcessingShaderImplementation::GetShaderList(g_Config.backend_info.api_type);
 
   m_pp_effect->clear();
-  m_pp_effect->addItem(tr("(off)"));
 
-  const auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  if (!anaglyph)
+    m_pp_effect->addItem(tr("(off)"));
+
+  auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+
+  bool found = false;
 
   for (const auto& shader : shaders)
   {
     m_pp_effect->addItem(QString::fromStdString(shader));
     if (selected_shader == shader)
+    {
       m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
+      found = true;
+    }
   }
+
+  if (anaglyph && !found)
+    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
 
-  if (!supports_postprocessing)
-  {
-    m_pp_effect->setToolTip(
-        tr("%1 doesn't support this feature.")
-            .arg(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend)));
-  }
+  m_pp_effect->setToolTip(supports_postprocessing ?
+                              QStringLiteral("") :
+                              tr("%1 doesn't support this feature.")
+                                  .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
 
   PostProcessingShaderConfiguration pp_shader;
   if (selected_shader != "(off)")
@@ -206,7 +217,7 @@ void EnhancementsWidget::LoadSettings()
   bool has_3dvision = m_3d_mode->count() == 6;
 
   if (has_3dvision && !supports_3dvision)
-    m_3d_mode->removeItem(4);
+    m_3d_mode->removeItem(5);
 
   if (!has_3dvision && supports_3dvision)
     m_3d_mode->addItem(tr("NVIDIA 3D Vision"));
