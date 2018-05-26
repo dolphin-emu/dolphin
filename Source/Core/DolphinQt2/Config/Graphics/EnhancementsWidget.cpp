@@ -217,7 +217,7 @@ void EnhancementsWidget::LoadSettings()
   bool has_3dvision = m_3d_mode->count() == 6;
 
   if (has_3dvision && !supports_3dvision)
-    m_3d_mode->removeItem(4);
+    m_3d_mode->removeItem(5);
 
   if (!has_3dvision && supports_3dvision)
     m_3d_mode->addItem(tr("NVIDIA 3D Vision"));
