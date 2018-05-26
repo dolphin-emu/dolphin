@@ -61,7 +61,8 @@ static std::string s_android_sys_directory;
 #ifdef _WIN32
 FileInfo::FileInfo(const std::string& path)
 {
-  m_exists = _tstat64(UTF8ToTStr(path).c_str(), &m_stat) == 0;
+  _tstat64(UTF8ToTStr(path).c_str(), &m_stat);
+  m_exists = PathFileExistsW(UTF8ToUTF16(path).c_str());
 }
 
 FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
