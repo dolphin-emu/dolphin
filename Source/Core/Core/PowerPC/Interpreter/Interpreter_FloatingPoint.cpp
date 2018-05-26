@@ -22,13 +22,27 @@ enum class RoundingMode
   TowardsNegativeInfinity = 0b11
 };
 
+// Note that the convert to integer operation is defined
+// in Appendix C.4.2 in PowerPC Microprocessor Family:
+// The Programming Environments Manual for 32 and 64-bit Microprocessors
 void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
 {
   const double b = rPS0(inst.FB);
   u32 value;
 
-  if (b > static_cast<double>(0x7fffffff))
+  if (std::isnan(b))
   {
+    if (Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
+    value = 0x80000000;
+    SetFPException(FPSCR_VXCVI);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
+  }
+  else if (b > static_cast<double>(0x7fffffff))
+  {
+    // Positive large operand or +inf
     value = 0x7fffffff;
     SetFPException(FPSCR_VXCVI);
     FPSCR.FI = 0;
@@ -36,6 +50,7 @@ void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
   }
   else if (b < -static_cast<double>(0x80000000))
   {
+    // Negative large operand or -inf
     value = 0x80000000;
     SetFPException(FPSCR_VXCVI);
     FPSCR.FI = 0;
@@ -84,6 +99,7 @@ void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
     }
     else
     {
+      // Also sets FPSCR[XX]
       SetFI(1);
       FPSCR.FR = fabs(di) > fabs(b);
     }
