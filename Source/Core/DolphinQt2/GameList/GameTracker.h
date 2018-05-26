@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <mutex>
+#include <string>
 
 #include <QFileSystemWatcher>
 #include <QMap>
@@ -39,7 +40,7 @@ public:
 
 signals:
   void GameLoaded(std::shared_ptr<const UICommon::GameFile> game);
-  void GameRemoved(const QString& path);
+  void GameRemoved(const std::string& path);
 
 private:
   void LoadCache();
@@ -80,3 +81,4 @@ private:
 };
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)
+Q_DECLARE_METATYPE(std::string)

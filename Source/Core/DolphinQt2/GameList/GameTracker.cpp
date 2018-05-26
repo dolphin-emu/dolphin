@@ -90,9 +90,7 @@ void GameTracker::StartInternal()
   auto emit_game_loaded = [this](const std::shared_ptr<const UICommon::GameFile>& game) {
     emit GameLoaded(std::move(game));
   };
-  auto emit_game_removed = [this](const std::string& path) {
-    emit GameRemoved(QString::fromStdString(path));
-  };
+  auto emit_game_removed = [this](const std::string& path) { emit GameRemoved(path); };
 
   std::lock_guard<std::mutex> lk(m_mutex);
 
@@ -159,7 +157,7 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
         removePath(path);
         m_tracked_files.remove(path);
         if (m_started)
-          emit GameRemoved(path);
+          emit GameRemoved(path.toStdString());
       }
     }
   }
@@ -195,7 +193,7 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
     {
       m_tracked_files.remove(missing);
       if (m_started)
-        GameRemoved(missing);
+        GameRemoved(missing.toStdString());
     }
   }
 }
@@ -205,7 +203,7 @@ void GameTracker::UpdateFileInternal(const QString& file)
   if (QFileInfo(file).exists())
   {
     if (m_started)
-      GameRemoved(file);
+      GameRemoved(file.toStdString());
     addPath(file);
     LoadGame(file);
   }
@@ -213,7 +211,7 @@ void GameTracker::UpdateFileInternal(const QString& file)
   {
     m_tracked_files.remove(file);
     if (m_started)
-      emit GameRemoved(file);
+      emit GameRemoved(file.toStdString());
   }
 }
 
