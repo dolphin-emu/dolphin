@@ -186,10 +186,22 @@ bool HasDisc()
   return s_disc != nullptr;
 }
 
+bool IsEncryptedAndHashed()
+{
+  // IsEncryptedAndHashed is thread-safe, so calling WaitUntilIdle isn't necessary.
+  return s_disc->IsEncryptedAndHashed();
+}
+
 DiscIO::Platform GetDiscType()
 {
   // GetVolumeType is thread-safe, so calling WaitUntilIdle isn't necessary.
   return s_disc->GetVolumeType();
+}
+
+u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition)
+{
+  // PartitionOffsetToRawOffset is thread-safe, so calling WaitUntilIdle isn't necessary.
+  return s_disc->PartitionOffsetToRawOffset(offset, partition);
 }
 
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition)

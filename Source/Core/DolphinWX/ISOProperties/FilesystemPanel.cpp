@@ -204,7 +204,7 @@ void FilesystemPanel::OnRightClickTree(wxTreeEvent& event)
     else
       menu.Append(ID_EXTRACT_ALL, _("Extract Entire Partition..."));
 
-    if (first_visible_item != selection)
+    if (first_visible_item != selection && m_opened_iso->IsEncryptedAndHashed())
     {
       menu.AppendSeparator();
       menu.Append(ID_CHECK_INTEGRITY, _("Check Partition Integrity"));
