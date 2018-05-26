@@ -390,12 +390,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
   return Core::Init(std::move(boot));
 }
 
-void Stop()
-{
-  Core::Stop();
-  RestoreConfig();
-}
-
 // SYSCONF can be modified during emulation by the user and internally, which makes it
 // a bad idea to just always overwrite it with the settings from the base layer.
 //

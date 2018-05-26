@@ -220,7 +220,6 @@ int main(int argc, char* argv[])
     retval = app.exec();
   }
 
-  BootManager::Stop();
   Core::Shutdown();
   UICommon::Shutdown();
   Host::GetInstance()->deleteLater();
