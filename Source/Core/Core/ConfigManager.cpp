@@ -292,6 +292,10 @@ void SConfig::SaveDSPSettings(IniFile& ini)
   dsp->Set("Backend", sBackend);
   dsp->Set("Volume", m_Volume);
   dsp->Set("CaptureLog", m_DSPCaptureLog);
+
+#ifdef _WIN32
+  dsp->Set("WASAPIDevice", sWASAPIDevice);
+#endif
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -588,6 +592,10 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+
+#ifdef _WIN32
+  dsp->Get("WASAPIDevice", &sWASAPIDevice, "default");
+#endif
 
   m_IsMuted = false;
 }
