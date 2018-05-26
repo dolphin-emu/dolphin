@@ -111,11 +111,6 @@ int main(int argc, char* argv[])
     QFont font = QApplication::font();
     font.setFamily(QString::fromStdString(UTF16ToUTF8(logfont.lfFaceName)));
 
-    // LOGFONT uses a scale from 1 to 1000 to represent font weight while Qt uses a scale from 0
-    // to 99. LOGFONT also has a DONTCARE value which we have to ignore.
-    if (logfont.lfWeight != FW_DONTCARE)
-      font.setWeight((logfont.lfWeight / 10) - 1);
-
     font.setItalic(logfont.lfItalic);
     font.setStrikeOut(logfont.lfStrikeOut);
     font.setUnderline(logfont.lfUnderline);
