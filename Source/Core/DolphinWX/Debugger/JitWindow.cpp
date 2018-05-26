@@ -99,7 +99,7 @@ void CJitWindow::Compare(u32 em_address)
     for (u32 i = 0; i < code_block.m_num_instructions; i++)
     {
       const PPCAnalyst::CodeOp& op = code_buffer[i];
-      std::string opcode = GekkoDisassembler::Disassemble(op.inst.hex, op.address);
+      const std::string opcode = Common::GekkoDisassembler::Disassemble(op.inst.hex, op.address);
       ppc_disasm << std::setfill('0') << std::setw(8) << std::hex << op.address;
       ppc_disasm << " " << opcode << std::endl;
     }

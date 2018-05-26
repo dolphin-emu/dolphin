@@ -38,6 +38,8 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 
+namespace Common
+{
 // version/revision
 #define PPCDISASM_VER 1
 #define PPCDISASM_REV 6
@@ -2315,3 +2317,4 @@ const char* GekkoDisassembler::GetFPRName(u32 index)
 
   return nullptr;
 }
+}  // namespace Common

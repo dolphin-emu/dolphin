@@ -284,11 +284,11 @@ wxString CRegTable::GetValue(int row, int col)
     switch (col)
     {
     case 0:
-      return StrToWxStr(GekkoDisassembler::GetGPRName(row));
+      return StrToWxStr(Common::GekkoDisassembler::GetGPRName(row));
     case 1:
       return FormatGPR(row);
     case 2:
-      return StrToWxStr(GekkoDisassembler::GetFPRName(row));
+      return StrToWxStr(Common::GekkoDisassembler::GetFPRName(row));
     case 3:
       return FormatFPR(row, 0);
     case 4:
