@@ -146,6 +146,7 @@ void EnhancementsWidget::ConnectWidgets()
 
 void EnhancementsWidget::LoadPPShaders()
 {
+  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   std::vector<std::string> shaders =
       g_Config.stereo_mode == StereoMode::Anaglyph ?
           PostProcessingShaderImplementation::GetAnaglyphShaderList(
@@ -153,16 +154,26 @@ void EnhancementsWidget::LoadPPShaders()
           PostProcessingShaderImplementation::GetShaderList(g_Config.backend_info.api_type);
 
   m_pp_effect->clear();
-  m_pp_effect->addItem(tr("(off)"));
 
-  const auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+  if (!anaglyph)
+    m_pp_effect->addItem(tr("(off)"));
+
+  auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
+
+  bool found = false;
 
   for (const auto& shader : shaders)
   {
     m_pp_effect->addItem(QString::fromStdString(shader));
     if (selected_shader == shader)
+    {
       m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
+      found = true;
+    }
   }
+
+  if (anaglyph && !found)
+    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
