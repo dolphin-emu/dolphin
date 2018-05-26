@@ -29,6 +29,7 @@ void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
 {
   const double b = rPS0(inst.FB);
   u32 value;
+  bool exception_occurred = false;
 
   if (std::isnan(b))
   {
@@ -37,24 +38,21 @@ void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
 
     value = 0x80000000;
     SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    exception_occurred = true;
   }
   else if (b > static_cast<double>(0x7fffffff))
   {
     // Positive large operand or +inf
     value = 0x7fffffff;
     SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    exception_occurred = true;
   }
   else if (b < -static_cast<double>(0x80000000))
   {
     // Negative large operand or -inf
     value = 0x80000000;
     SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    exception_occurred = true;
   }
   else
   {
@@ -105,11 +103,21 @@ void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
     }
   }
 
-  // Based on HW tests
-  // FPRF is not affected
-  riPS0(inst.FD) = 0xfff8000000000000ull | value;
-  if (value == 0 && std::signbit(b))
-    riPS0(inst.FD) |= 0x100000000ull;
+  if (exception_occurred)
+  {
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
+  }
+
+  if (!exception_occurred || FPSCR.VE == 0)
+  {
+    // Based on HW tests
+    // FPRF is not affected
+    riPS0(inst.FD) = 0xfff8000000000000ull | value;
+    if (value == 0 && std::signbit(b))
+      riPS0(inst.FD) |= 0x100000000ull;
+  }
+
   if (inst.Rc)
     Helper_UpdateCR1();
 }
