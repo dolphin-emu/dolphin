@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/Settings/GeneralPane.h"
 
+#include <map>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -32,6 +34,13 @@ constexpr const char* AUTO_UPDATE_DISABLE_STRING = "";
 constexpr const char* AUTO_UPDATE_STABLE_STRING = "stable";
 constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
+
+static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
+    {PowerPC::CORE_INTERPRETER, QT_TR_NOOP("Interpreter (slowest)")},
+    {PowerPC::CORE_CACHEDINTERPRETER, QT_TR_NOOP("Cached Interpreter (slower)")},
+    {PowerPC::CORE_JIT64, QT_TR_NOOP("JIT Recompiler (recommended)")},
+    {PowerPC::CORE_JITARM64, QT_TR_NOOP("JIT Arm64 (experimental)")},
+};
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
 {
@@ -68,9 +77,8 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
-  m_radio_interpreter->setEnabled(!running);
-  m_radio_cached_interpreter->setEnabled(!running);
-  m_radio_jit->setEnabled(!running);
+  for (QRadioButton* radio_button : m_cpu_cores)
+    radio_button->setEnabled(!running);
 }
 
 void GeneralPane::ConnectLayout()
@@ -91,9 +99,8 @@ void GeneralPane::ConnectLayout()
   connect(m_combobox_speedlimit,
           static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this]() { OnSaveConfig(); });
-  connect(m_radio_interpreter, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
-  connect(m_radio_cached_interpreter, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
-  connect(m_radio_jit, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
+  for (QRadioButton* radio_button : m_cpu_cores)
+    connect(radio_button, &QRadioButton::toggled, this, &GeneralPane::OnSaveConfig);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   connect(&Settings::Instance(), &Settings::AnalyticsToggled, this, &GeneralPane::LoadConfig);
@@ -180,13 +187,11 @@ void GeneralPane::CreateAdvanced()
   engine_group->setLayout(engine_group_layout);
   advanced_group_layout->addWidget(engine_group);
 
-  m_radio_interpreter = new QRadioButton(tr("Interpreter (slowest)"));
-  m_radio_cached_interpreter = new QRadioButton(tr("Cached Interpreter (slower)"));
-  m_radio_jit = new QRadioButton(tr("JIT Recompiler (recommended)"));
-
-  engine_group_layout->addWidget(m_radio_interpreter);
-  engine_group_layout->addWidget(m_radio_cached_interpreter);
-  engine_group_layout->addWidget(m_radio_jit);
+  for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
+  {
+    m_cpu_cores.emplace_back(new QRadioButton(tr(CPU_CORE_NAMES.at(cpu_core))));
+    engine_group_layout->addWidget(m_cpu_cores.back());
+  }
 }
 
 void GeneralPane::LoadConfig()
@@ -215,22 +220,11 @@ void GeneralPane::LoadConfig()
     m_combobox_speedlimit->setCurrentIndex(selection);
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
 
-  switch (SConfig::GetInstance().iCPUCore)
+  const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
+  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
-  case PowerPC::CPUCore::CORE_INTERPRETER:
-    m_radio_interpreter->setChecked(true);
-    break;
-  case PowerPC::CPUCore::CORE_CACHEDINTERPRETER:
-    m_radio_cached_interpreter->setChecked(true);
-    break;
-  case PowerPC::CPUCore::CORE_JIT64:
-    m_radio_jit->setChecked(true);
-    break;
-  case PowerPC::CPUCore::CORE_JITARM64:
-    // TODO: Implement JITARM
-    break;
-  default:
-    break;
+    if (available_cpu_cores[i] == SConfig::GetInstance().iCPUCore)
+      m_cpu_cores[i]->setChecked(true);
   }
 }
 
@@ -272,17 +266,16 @@ void GeneralPane::OnSaveConfig()
   settings.bCPUThread = m_checkbox_dualcore->isChecked();
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
   settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
-  int engine_value = 0;
-  if (m_radio_interpreter->isChecked())
-    engine_value = PowerPC::CPUCore::CORE_INTERPRETER;
-  else if (m_radio_cached_interpreter->isChecked())
-    engine_value = PowerPC::CPUCore::CORE_CACHEDINTERPRETER;
-  else if (m_radio_jit->isChecked())
-    engine_value = PowerPC::CPUCore::CORE_JIT64;
-  else
-    engine_value = PowerPC::CPUCore::CORE_JIT64;
 
-  settings.iCPUCore = engine_value;
+  for (size_t i = 0; i < m_cpu_cores.size(); ++i)
+  {
+    if (m_cpu_cores[i]->isChecked())
+    {
+      settings.iCPUCore = PowerPC::AvailableCPUCores()[i];
+      break;
+    }
+  }
+
   settings.SaveSettings();
 }
 
