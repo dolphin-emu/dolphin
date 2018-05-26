@@ -141,11 +141,16 @@ QLineEdit* InfoWidget::CreateValueDisplay(const std::string& value)
 
 void InfoWidget::CreateLanguageSelector()
 {
+  const bool is_wii = DiscIO::IsWii(m_game.GetPlatform());
+  const DiscIO::Language preferred_language = SConfig::GetInstance().GetCurrentLanguage(is_wii);
+
   m_language_selector = new QComboBox();
   for (DiscIO::Language language : m_game.GetLanguages())
   {
     m_language_selector->addItem(QString::fromStdString(DiscIO::GetName(language, true)),
                                  static_cast<int>(language));
+    if (language == preferred_language)
+      m_language_selector->setCurrentIndex(m_language_selector->count() - 1);
   }
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
