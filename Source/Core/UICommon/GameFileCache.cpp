@@ -92,7 +92,7 @@ bool GameFileCache::Update(
   bool cache_changed = false;
 
   // Delete paths that aren't in game_paths from m_cached_files,
-  // while simultaneously deleting paths that aren't in m_cached_files from game_paths.
+  // while simultaneously deleting paths that are in m_cached_files from game_paths.
   // For the sake of speed, we don't care about maintaining the order of m_cached_files.
   {
     auto it = m_cached_files.begin();
