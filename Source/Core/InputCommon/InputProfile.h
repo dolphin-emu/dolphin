@@ -16,6 +16,9 @@ class EmulatedController;
 
 namespace InputProfile
 {
+std::vector<std::string> GetProfilesFromSetting(const std::string& setting,
+                                                const std::string& root);
+
 enum class CycleDirection : int
 {
   Forward = 1,
@@ -36,8 +39,6 @@ private:
   void CycleProfileForGame(CycleDirection cycle_direction, InputConfig* device_configuration,
                            int& profile_index, const std::string& setting, int controller_index);
   std::vector<std::string> GetProfilesForDevice(InputConfig* device_configuration);
-  std::vector<std::string> GetProfilesFromSetting(const std::string& setting,
-                                                  InputConfig* device_configuration);
   std::string GetProfile(CycleDirection cycle_direction, int& profile_index,
                          const std::vector<std::string>& profiles);
   std::vector<std::string> GetMatchingProfilesFromSetting(const std::string& setting,

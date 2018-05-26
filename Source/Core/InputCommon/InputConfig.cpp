@@ -15,6 +15,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
@@ -56,22 +57,21 @@ bool InputConfig::LoadConfig(bool isGC)
         std::string profile_setting;
         if (control_section->Get(type + "Profile" + num[i], &profile_setting))
         {
-          // Setting can contain commas, which means there are multiple profiles specified
-          // this is used for controller cycling
-          const auto& profile_options = SplitString(profile_setting, ',');
+          auto profiles = InputProfile::GetProfilesFromSetting(
+              profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
+
+          if (profiles.empty())
+          {
+            const std::string error =
+                "No profiles found for game setting '" + profile_setting + "'";
+            // TODO: PanicAlert shouldn't be used for this.
+            PanicAlertT("%s", error.c_str());
+            continue;
+          }
 
           // Use the first profile by default
-          profile[i] = profile_options[0];
-
-          if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
-          {
-            useProfile[i] = true;
-          }
-          else
-          {
-            // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("Selected controller profile does not exist");
-          }
+          profile[i] = profiles[0];
+          useProfile[i] = true;
         }
       }
     }

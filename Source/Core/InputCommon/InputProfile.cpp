@@ -25,11 +25,37 @@ namespace
 constexpr int display_message_ms = 3000;
 }
 
+std::vector<std::string> GetProfilesFromSetting(const std::string& setting, const std::string& root)
+{
+  const auto& setting_choices = SplitString(setting, ',');
+
+  std::vector<std::string> result;
+  for (const std::string& setting_choice : setting_choices)
+  {
+    const std::string path = root + StripSpaces(setting_choice);
+    if (File::IsDirectory(path))
+    {
+      const auto files_under_directory = Common::DoFileSearch({path}, {".ini"}, true);
+      result.insert(result.end(), files_under_directory.begin(), files_under_directory.end());
+    }
+    else
+    {
+      const std::string file_path = path + ".ini";
+      if (File::Exists(file_path))
+      {
+        result.push_back(file_path);
+      }
+    }
+  }
+
+  return result;
+}
+
 std::vector<std::string> ProfileCycler::GetProfilesForDevice(InputConfig* device_configuration)
 {
   const std::string device_profile_root_location(File::GetUserPath(D_CONFIG_IDX) + "Profiles/" +
                                                  device_configuration->GetProfileName());
-  return Common::DoFileSearch({device_profile_root_location}, {".ini"});
+  return Common::DoFileSearch({device_profile_root_location}, {".ini"}, true);
 }
 
 std::string ProfileCycler::GetProfile(CycleDirection cycle_direction, int& profile_index,
@@ -66,29 +92,15 @@ void ProfileCycler::UpdateToProfile(const std::string& profile_filename,
   }
 }
 
-std::vector<std::string> ProfileCycler::GetProfilesFromSetting(const std::string& setting,
-                                                               InputConfig* device_configuration)
-{
-  const auto& profiles = SplitString(setting, ',');
-
-  const std::string device_profile_root_location(File::GetUserPath(D_CONFIG_IDX) + "Profiles/" +
-                                                 device_configuration->GetProfileName());
-
-  std::vector<std::string> result(profiles.size());
-  std::transform(profiles.begin(), profiles.end(), result.begin(),
-                 [&device_profile_root_location](const std::string& profile) {
-                   return device_profile_root_location + "/" + StripSpaces(profile) + ".ini";
-                 });
-
-  return result;
-}
-
 std::vector<std::string>
 ProfileCycler::GetMatchingProfilesFromSetting(const std::string& setting,
                                               const std::vector<std::string>& profiles,
                                               InputConfig* device_configuration)
 {
-  const auto& profiles_from_setting = GetProfilesFromSetting(setting, device_configuration);
+  const std::string device_profile_root_location(File::GetUserPath(D_CONFIG_IDX) + "Profiles/" +
+                                                 device_configuration->GetProfileName() + "/");
+
+  const auto& profiles_from_setting = GetProfilesFromSetting(setting, device_profile_root_location);
   if (profiles_from_setting.empty())
   {
     return {};
