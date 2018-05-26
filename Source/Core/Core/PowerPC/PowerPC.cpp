@@ -164,20 +164,13 @@ static void InitializeCPUCore(int cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-      s_cpu_core_base = s_interpreter;
+      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.", cpu_core);
+      s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;
   }
 
-  if (s_cpu_core_base != s_interpreter)
-  {
-    s_mode = CoreMode::JIT;
-  }
-  else
-  {
-    s_mode = CoreMode::Interpreter;
-  }
+  s_mode = s_cpu_core_base == s_interpreter ? CoreMode::Interpreter : CoreMode::JIT;
 }
 
 const std::vector<CPUCore>& AvailableCPUCores()
