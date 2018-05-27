@@ -113,13 +113,18 @@ inline double NI_mul(double a, double b)
 
 inline double NI_div(double a, double b)
 {
-  double t = a / b;
+  const double t = a / b;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);
+
     if (b == 0.0)
     {
       SetFPException(FPSCR_ZX);
@@ -130,8 +135,10 @@ inline double NI_div(double a, double b)
     {
       SetFPException(FPSCR_VXIDI);
     }
+
     return PPC_NAN;
   }
+
   return t;
 }
 
