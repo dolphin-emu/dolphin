@@ -59,8 +59,8 @@ enum
 class SymbolDB
 {
 public:
-  typedef std::map<u32, Symbol> XFuncMap;
-  typedef std::map<u32, std::set<Symbol*>> XFuncPtrMap;
+  using XFuncMap = std::map<u32, Symbol>;
+  using XFuncPtrMap = std::map<u32, std::set<Symbol*>>;
 
   SymbolDB() {}
   virtual ~SymbolDB() {}
