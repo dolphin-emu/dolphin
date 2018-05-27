@@ -304,6 +304,10 @@ void GameConfigWidget::SaveSettings()
       m_gameini_local.GetOrCreateSection("Core")->Set("GPUDeterminismMode", determinism_mode);
     }
   }
+  else
+  {
+    m_gameini_local.DeleteKey("Core", "GPUDeterminismMode");
+  }
 
   // Stereoscopy
   int depth_percentage = m_depth_slider->value();
