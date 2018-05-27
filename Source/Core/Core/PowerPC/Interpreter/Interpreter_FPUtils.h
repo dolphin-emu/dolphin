@@ -165,16 +165,22 @@ inline double NI_add(double a, double b)
 
 inline double NI_sub(double a, double b)
 {
-  double t = a - b;
+  const double t = a - b;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);
+
     SetFPException(FPSCR_VXISI);
     return PPC_NAN;
   }
+
   return t;
 }
 
