@@ -166,7 +166,7 @@ void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 {
   m_backup_menu = file_menu->addMenu(tr("&Boot from DVD Backup"));
 
-  const std::vector<std::string> drives = cdio_get_devices();
+  const std::vector<std::string> drives = Common::cdio_get_devices();
   // Windows Limitation of 24 character drives
   for (size_t i = 0; i < drives.size() && i < 24; i++)
   {

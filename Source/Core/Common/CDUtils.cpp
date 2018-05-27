@@ -34,6 +34,8 @@
 #include <linux/cdrom.h>
 #endif
 
+namespace Common
+{
 #ifdef _WIN32
 // takes a root drive path, returns true if it is a cdrom drive
 bool is_cdrom(const TCHAR* drive)
@@ -219,3 +221,4 @@ bool cdio_is_cdrom(std::string device)
   }
   return false;
 }
+}  // namespace Common

@@ -62,7 +62,7 @@ std::unique_ptr<BootParameters>
 BootParameters::GenerateFromFile(const std::string& path,
                                  const std::optional<std::string>& savestate_path)
 {
-  const bool is_drive = cdio_is_cdrom(path);
+  const bool is_drive = Common::cdio_is_cdrom(path);
   // Check if the file exist, we may have gotten it from a --elf command line
   // that gave an incorrect file name
   if (!is_drive && !File::Exists(path))
