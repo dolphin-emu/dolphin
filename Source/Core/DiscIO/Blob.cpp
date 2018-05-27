@@ -176,7 +176,7 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
 {
-  if (Common::cdio_is_cdrom(filename))
+  if (Common::IsCDROMDevice(filename))
     return DriveReader::Create(filename);
 
   File::IOFile file(filename, "rb");
