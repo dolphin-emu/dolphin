@@ -160,7 +160,7 @@ static bool IsDevice(const std::string& source_name)
 }
 
 // Check a device to see if it is a DVD/CD-ROM drive
-static bool IsCDROM(const std::string& drive, char* mnttype)
+static bool IsCDROM(const std::string& drive)
 {
   // Check if the device exists
   if (!IsDevice(drive))
@@ -190,7 +190,7 @@ std::vector<std::string> GetCDDevices()
     for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
     {
       std::string drive = StringFromFormat(checklist[i].format, j);
-      if (IsCDROM(drive, nullptr))
+      if (IsCDROM(drive))
       {
         drives.push_back(std::move(drive));
       }
