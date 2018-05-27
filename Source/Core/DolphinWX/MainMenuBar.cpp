@@ -72,7 +72,7 @@ wxMenu* MainMenuBar::CreateFileMenu() const
 {
   auto* const external_drive_menu = new wxMenu;
 
-  const std::vector<std::string> drives = cdio_get_devices();
+  const std::vector<std::string> drives = Common::GetCDDevices();
   // Windows Limitation of 24 character drives
   for (size_t i = 0; i < drives.size() && i < 24; i++)
   {

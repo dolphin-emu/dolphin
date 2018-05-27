@@ -397,7 +397,7 @@ void GameListCtrl::RefreshList()
   if (SConfig::GetInstance().m_ListDrives)
   {
     std::unique_lock<std::mutex> lk(m_title_database_mutex);
-    for (const auto& drive : cdio_get_devices())
+    for (const auto& drive : Common::GetCDDevices())
     {
       auto file = std::make_shared<UICommon::GameFile>(drive);
       if (file->IsValid())
