@@ -10,8 +10,11 @@
 
 namespace Common::ec
 {
+using Signature = std::array<u8, 60>;
+using PublicKey = std::array<u8, 60>;
+
 /// Generate a signature using ECDSA.
-std::array<u8, 60> Sign(const u8* key, const u8* hash);
+Signature Sign(const u8* key, const u8* hash);
 
 /// Check a signature using ECDSA.
 ///
@@ -24,5 +27,5 @@ bool VerifySignature(const u8* public_key, const u8* signature, const u8* hash);
 std::array<u8, 60> ComputeSharedSecret(const u8* private_key, const u8* public_key);
 
 /// Convert a ECC private key (30 bytes) to a public key (60 bytes).
-std::array<u8, 60> PrivToPub(const u8* key);
+PublicKey PrivToPub(const u8* key);
 }  // namespace Common::ec

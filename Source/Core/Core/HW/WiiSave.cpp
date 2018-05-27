@@ -454,9 +454,10 @@ void WiiSave::do_sig()
   }
 
   // Sign the data.
-  IOS::Certificate ap_cert;
-  IOS::ECCSignature ap_sig;
-  m_ios.GetIOSC().Sign(ap_sig.data(), ap_cert.data(), Titles::SYSTEM_MENU, data.get(), data_size);
+  IOS::CertECC ap_cert;
+  Common::ec::Signature ap_sig;
+  m_ios.GetIOSC().Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
+                       data.get(), data_size);
 
   // Write signatures.
   data_file.Open(m_encrypted_save_path, "ab");
@@ -469,9 +470,9 @@ void WiiSave::do_sig()
   data_file.WriteArray(ap_sig.data(), ap_sig.size());
   const u32 SIGNATURE_END_MAGIC = Common::swap32(0x2f536969);
   data_file.WriteArray(&SIGNATURE_END_MAGIC, 1);
-  const IOS::Certificate device_certificate = m_ios.GetIOSC().GetDeviceCertificate();
-  data_file.WriteArray(device_certificate.data(), device_certificate.size());
-  data_file.WriteArray(ap_cert.data(), ap_cert.size());
+  const IOS::CertECC device_certificate = m_ios.GetIOSC().GetDeviceCertificate();
+  data_file.WriteArray(&device_certificate, 1);
+  data_file.WriteArray(&ap_cert, 1);
 
   m_valid = data_file.IsGood();
 }
