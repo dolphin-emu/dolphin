@@ -30,8 +30,10 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     switch (command.type)
     {
     case CommandType::LoadCache:
-      m_cache.Load();
+      LoadCache();
       break;
+    case CommandType::Start:
+      StartInternal();
     case CommandType::AddDirectory:
       AddDirectoryInternal(command.path);
       break;
@@ -50,6 +52,52 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   m_load_thread.EmplaceItem(Command{CommandType::LoadCache, {}});
 
   // TODO: When language changes, reload m_title_database and call m_cache.UpdateAdditionalMetadata
+}
+
+void GameTracker::LoadCache()
+{
+  std::lock_guard<std::mutex> lk(m_mutex);
+  m_cache.Load();
+}
+
+void GameTracker::Start()
+{
+  if (m_initial_games_emitted)
+    return;
+
+  m_initial_games_emitted = true;
+
+  std::lock_guard<std::mutex> lk(m_mutex);
+
+  m_load_thread.EmplaceItem(Command{CommandType::Start, {}});
+
+  m_cache.ForEach(
+      [this](const std::shared_ptr<const UICommon::GameFile>& game) { emit GameLoaded(game); });
+}
+
+void GameTracker::StartInternal()
+{
+  if (m_started)
+    return;
+
+  m_started = true;
+
+  std::vector<std::string> paths;
+  paths.reserve(m_tracked_files.size());
+  for (const QString& path : m_tracked_files.keys())
+    paths.push_back(path.toStdString());
+
+  auto emit_game_loaded = [this](const std::shared_ptr<const UICommon::GameFile>& game) {
+    emit GameLoaded(std::move(game));
+  };
+  auto emit_game_removed = [this](const std::string& path) { emit GameRemoved(path); };
+
+  std::lock_guard<std::mutex> lk(m_mutex);
+
+  bool cache_updated = m_cache.Update(paths, emit_game_loaded, emit_game_removed);
+  cache_updated |= m_cache.UpdateAdditionalMetadata(m_title_database, emit_game_loaded);
+  if (cache_updated)
+    m_cache.Save();
 }
 
 void GameTracker::AddDirectory(const QString& dir)
@@ -108,7 +156,8 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
       {
         removePath(path);
         m_tracked_files.remove(path);
-        emit GameRemoved(path);
+        if (m_started)
+          emit GameRemoved(path.toStdString());
       }
     }
   }
@@ -143,7 +192,8 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
     if (tracked_file.empty())
     {
       m_tracked_files.remove(missing);
-      GameRemoved(missing);
+      if (m_started)
+        GameRemoved(missing.toStdString());
     }
   }
 }
@@ -152,14 +202,16 @@ void GameTracker::UpdateFileInternal(const QString& file)
 {
   if (QFileInfo(file).exists())
   {
-    GameRemoved(file);
+    if (m_started)
+      GameRemoved(file.toStdString());
     addPath(file);
     LoadGame(file);
   }
   else if (removePath(file))
   {
     m_tracked_files.remove(file);
-    emit GameRemoved(file);
+    if (m_started)
+      emit GameRemoved(file.toStdString());
   }
 }
 
@@ -187,6 +239,9 @@ QSet<QString> GameTracker::FindMissingFiles(const QString& dir)
 
 void GameTracker::LoadGame(const QString& path)
 {
+  if (!m_started)
+    return;
+
   const std::string converted_path = path.toStdString();
   if (!DiscIO::ShouldHideFromGameList(converted_path))
   {
