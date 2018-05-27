@@ -22,6 +22,7 @@
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DPostProcessing.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/DXPipeline.h"
@@ -83,6 +84,8 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   FramebufferManager::BindEFBRenderTarget();
   m_current_framebuffer_width = m_target_width;
   m_current_framebuffer_height = m_target_height;
+
+  m_post_processor = std::make_unique<D3DPostProcessing>();
 }
 
 Renderer::~Renderer()
@@ -855,6 +858,8 @@ void Renderer::BBoxWrite(int index, u16 _value)
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                           u32 src_width, u32 src_height)
 {
+  D3DPostProcessing* post_processor = static_cast<D3DPostProcessing*>(m_post_processor.get());
+
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
   {
@@ -867,16 +872,11 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                                              (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
 
     D3D::context->RSSetViewports(1, &leftVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
-
+    post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                                       leftVp, 0);
     D3D::context->RSSetViewports(1, &rightVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
+    post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                                       rightVp, 1);
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::Nvidia3DVision)
   {
@@ -892,16 +892,11 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     D3D::context->OMSetRenderTargets(1, &m_3d_vision_texture->GetRTV(), nullptr);
 
     D3D::context->RSSetViewports(1, &leftVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
-
+    post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                                       leftVp, 0);
     D3D::context->RSSetViewports(1, &rightVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
+    post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                                       rightVp, 1);
 
     // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
     // recognize the signature and automatically include the right eye frame.
@@ -916,7 +911,6 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
   {
     D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(),
                                         (float)dst.GetHeight());
-    D3D::context->RSSetViewports(1, &vp);
 
     ID3D11PixelShader* pixelShader = (g_Config.stereo_mode == StereoMode::Anaglyph) ?
                                          PixelShaderCache::GetAnaglyphProgram() :
@@ -924,9 +918,11 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     ID3D11GeometryShader* geomShader = (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) ?
                                            GeometryShaderCache::GetCopyGeometryShader() :
                                            nullptr;
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), geomShader);
+
+    // TODO do something with these shaders
+    D3D::context->RSSetViewports(1, &vp);
+    post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                                       vp, 1);
   }
 }
 

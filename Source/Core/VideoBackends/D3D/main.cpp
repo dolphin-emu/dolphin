@@ -57,7 +57,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsGeometryShaders = true;
   g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = true;
-  g_Config.backend_info.bSupportsPostProcessing = false;
+  g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
   g_Config.backend_info.bSupportsDepthClamp = true;

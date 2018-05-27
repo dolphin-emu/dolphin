@@ -70,6 +70,9 @@
     <ClCompile Include="DXPipeline.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="D3DPostProcessing.cpp">
+      <Filter>D3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -129,6 +132,9 @@
     </ClInclude>
     <ClInclude Include="DXPipeline.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DPostProcessing.h">
+      <Filter>D3D</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
