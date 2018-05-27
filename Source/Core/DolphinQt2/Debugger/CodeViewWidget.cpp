@@ -280,17 +280,17 @@ void CodeViewWidget::OnCopyFunction()
 {
   const u32 address = GetContextAddress();
 
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
+  const Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
   if (!symbol)
     return;
 
   std::string text = symbol->name + "\r\n";
   // we got a function
-  u32 start = symbol->address;
-  u32 end = start + symbol->size;
+  const u32 start = symbol->address;
+  const u32 end = start + symbol->size;
   for (u32 addr = start; addr != end; addr += 4)
   {
-    std::string disasm = PowerPC::debug_interface.Disassemble(addr);
+    const std::string disasm = PowerPC::debug_interface.Disassemble(addr);
     text += StringFromFormat("%08x: ", addr) + disasm + "\r\n";
   }
 

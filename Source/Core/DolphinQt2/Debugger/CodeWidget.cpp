@@ -201,10 +201,10 @@ void CodeWidget::OnSelectSymbol()
   if (items.isEmpty())
     return;
 
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(items[0]->data(Qt::UserRole).toUInt());
+  const u32 address = items[0]->data(Qt::UserRole).toUInt();
+  const Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
 
-  m_code_view->SetAddress(items[0]->data(Qt::UserRole).toUInt(),
-                          CodeViewWidget::SetAddressUpdate::WithUpdate);
+  m_code_view->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
   UpdateCallstack();
   UpdateFunctionCalls(symbol);
   UpdateFunctionCallers(symbol);
@@ -252,7 +252,7 @@ void CodeWidget::SetAddress(u32 address, CodeViewWidget::SetAddressUpdate update
 
 void CodeWidget::Update()
 {
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
+  const Symbol* symbol = g_symbolDB.GetSymbolFromAddr(m_code_view->GetAddress());
 
   UpdateCallstack();
 
@@ -321,14 +321,14 @@ void CodeWidget::UpdateSymbols()
   m_symbols_list->sortItems();
 }
 
-void CodeWidget::UpdateFunctionCalls(Symbol* symbol)
+void CodeWidget::UpdateFunctionCalls(const Symbol* symbol)
 {
   m_function_calls_list->clear();
 
   for (const auto& call : symbol->calls)
   {
-    u32 addr = call.function;
-    Symbol* call_symbol = g_symbolDB.GetSymbolFromAddr(addr);
+    const u32 addr = call.function;
+    const Symbol* call_symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
     if (call_symbol)
     {
@@ -341,14 +341,14 @@ void CodeWidget::UpdateFunctionCalls(Symbol* symbol)
   }
 }
 
-void CodeWidget::UpdateFunctionCallers(Symbol* symbol)
+void CodeWidget::UpdateFunctionCallers(const Symbol* symbol)
 {
   m_function_callers_list->clear();
 
   for (const auto& caller : symbol->callers)
   {
-    u32 addr = caller.callAddress;
-    Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(addr);
+    const u32 addr = caller.callAddress;
+    const Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
     if (caller_symbol)
     {
