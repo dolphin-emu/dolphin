@@ -17,7 +17,8 @@ const QSize GAMECUBE_BANNER_SIZE(96, 32);
 
 GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
 {
-  connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
+  connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::AddGame);
+  connect(&m_tracker, &GameTracker::GameUpdated, this, &GameListModel::UpdateGame);
   connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
   connect(&Settings::Instance(), &Settings::PathAdded, &m_tracker, &GameTracker::AddDirectory);
   connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
@@ -218,14 +219,19 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) 
   return m_games[index];
 }
 
+void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)
+{
+  beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
+  m_games.push_back(game);
+  endInsertRows();
+}
+
 void GameListModel::UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
   int index = FindGame(game->GetFilePath());
   if (index < 0)
   {
-    beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
-    m_games.push_back(game);
-    endInsertRows();
+    AddGame(game);
   }
   else
   {

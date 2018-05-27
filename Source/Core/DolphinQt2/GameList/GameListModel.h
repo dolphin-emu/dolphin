@@ -52,6 +52,7 @@ public:
     NUM_COLS
   };
 
+  void AddGame(const std::shared_ptr<const UICommon::GameFile>& game);
   void UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game);
   void RemoveGame(const std::string& path);
 

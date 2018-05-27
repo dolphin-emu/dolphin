@@ -91,15 +91,18 @@ void GameTracker::StartInternal()
   for (const QString& path : m_tracked_files.keys())
     paths.push_back(path.toStdString());
 
-  auto emit_game_loaded = [this](const std::shared_ptr<const UICommon::GameFile>& game) {
-    emit GameLoaded(std::move(game));
+  const auto emit_game_loaded = [this](const std::shared_ptr<const UICommon::GameFile>& game) {
+    emit GameLoaded(game);
   };
-  auto emit_game_removed = [this](const std::string& path) { emit GameRemoved(path); };
+  const auto emit_game_updated = [this](const std::shared_ptr<const UICommon::GameFile>& game) {
+    emit GameUpdated(game);
+  };
+  const auto emit_game_removed = [this](const std::string& path) { emit GameRemoved(path); };
 
   m_initial_games_emitted_event.Wait();
 
   bool cache_updated = m_cache.Update(paths, emit_game_loaded, emit_game_removed);
-  cache_updated |= m_cache.UpdateAdditionalMetadata(m_title_database, emit_game_loaded);
+  cache_updated |= m_cache.UpdateAdditionalMetadata(m_title_database, emit_game_updated);
   if (cache_updated)
     m_cache.Save();
 }
