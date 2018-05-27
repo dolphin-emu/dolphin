@@ -229,7 +229,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
       LDR(INDEX_UNSIGNED, scratch2_reg, src_reg, offset);
 
     if (format != FORMAT_32B_8888)
-      ORR(scratch2_reg, scratch2_reg, 8, 7);  // 0xFF000000
+      ORRI2R(scratch2_reg, scratch2_reg, 0xFF000000);
     STR(INDEX_UNSIGNED, scratch2_reg, dst_reg, m_dst_ofs);
     load_bytes = 3 + (format != FORMAT_24B_888);
     break;
@@ -264,7 +264,7 @@ void VertexLoaderARM64::ReadColor(u64 attribute, int format, s32 offset)
     ORR(scratch1_reg, scratch1_reg, scratch2_reg, ArithOption(scratch2_reg, ST_LSR, 2));
 
     // A
-    ORR(scratch2_reg, scratch2_reg, 8, 7);  // 0xFF000000
+    ORRI2R(scratch1_reg, scratch1_reg, 0xFF000000);
 
     STR(INDEX_UNSIGNED, scratch1_reg, dst_reg, m_dst_ofs);
     load_bytes = 2;
