@@ -62,8 +62,9 @@ public:
   using XFuncMap = std::map<u32, Symbol>;
   using XFuncPtrMap = std::map<u32, std::set<Symbol*>>;
 
-  SymbolDB() {}
-  virtual ~SymbolDB() {}
+  SymbolDB();
+  virtual ~SymbolDB();
+
   virtual Symbol* GetSymbolFromAddr(u32 addr) { return nullptr; }
   virtual Symbol* AddFunction(u32 start_addr) { return nullptr; }
   void AddCompleteSymbol(const Symbol& symbol);

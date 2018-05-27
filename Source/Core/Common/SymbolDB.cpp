@@ -20,6 +20,10 @@ static std::string GetStrippedFunctionName(const std::string& symbol_name)
   return name;
 }
 
+SymbolDB::SymbolDB() = default;
+
+SymbolDB::~SymbolDB() = default;
+
 void Symbol::Rename(const std::string& symbol_name)
 {
   this->name = symbol_name;
