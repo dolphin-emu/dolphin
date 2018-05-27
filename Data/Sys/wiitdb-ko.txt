@@ -1,4 +1,4 @@
-TITLES = http://www.gametdb.com (type: Wii language: KO version: 20170521123950)
+TITLES = https://www.gametdb.com (type: Wii language: KO_unique version: 20180527221400)
 R2PKZ4 = 스윙골프 팡야 2nd 샷!
 R4CK69 = 심시티 나만의 도시
 R4QK01 = 마리오 파워 사커
