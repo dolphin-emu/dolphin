@@ -23,6 +23,8 @@ static const QStringList game_filters{
 GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 {
   qRegisterMetaType<std::shared_ptr<const UICommon::GameFile>>();
+  qRegisterMetaType<std::string>();
+
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
 
