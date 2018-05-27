@@ -56,8 +56,8 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
 void GameTracker::LoadCache()
 {
-  std::lock_guard<std::mutex> lk(m_mutex);
   m_cache.Load();
+  m_cache_loaded_event.Set();
 }
 
 void GameTracker::Start()
@@ -67,12 +67,14 @@ void GameTracker::Start()
 
   m_initial_games_emitted = true;
 
-  std::lock_guard<std::mutex> lk(m_mutex);
-
   m_load_thread.EmplaceItem(Command{CommandType::Start, {}});
+
+  m_cache_loaded_event.Wait();
 
   m_cache.ForEach(
       [this](const std::shared_ptr<const UICommon::GameFile>& game) { emit GameLoaded(game); });
+
+  m_initial_games_emitted_event.Set();
 }
 
 void GameTracker::StartInternal()
@@ -92,7 +94,7 @@ void GameTracker::StartInternal()
   };
   auto emit_game_removed = [this](const std::string& path) { emit GameRemoved(path); };
 
-  std::lock_guard<std::mutex> lk(m_mutex);
+  m_initial_games_emitted_event.Wait();
 
   bool cache_updated = m_cache.Update(paths, emit_game_loaded, emit_game_removed);
   cache_updated |= m_cache.UpdateAdditionalMetadata(m_title_database, emit_game_loaded);
