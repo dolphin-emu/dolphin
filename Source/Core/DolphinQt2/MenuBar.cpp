@@ -49,6 +49,7 @@
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Updater.h"
 
 #include "UICommon/GameFile.h"
 
@@ -490,9 +491,31 @@ void MenuBar::AddOptionsMenu()
   m_change_font = AddAction(options_menu, tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
+#ifdef _WIN32
+void MenuBar::InstallUpdateManually()
+{
+  auto& track = SConfig::GetInstance().m_auto_update_track;
+  auto previous_value = track;
+
+  track = "dev";
+
+  auto* updater = new Updater(this);
+
+  if (!updater->CheckForUpdate())
+  {
+    QMessageBox::information(
+        this, tr("Update"),
+        tr("You are running the latest version available on this update track"));
+  }
+
+  track = previous_value;
+}
+#endif
+
 void MenuBar::AddHelpMenu()
 {
   QMenu* help_menu = addMenu(tr("&Help"));
+
   QAction* website = help_menu->addAction(tr("&Website"));
   connect(website, &QAction::triggered, this,
           []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
@@ -504,6 +527,12 @@ void MenuBar::AddHelpMenu()
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
   });
+
+#ifdef _WIN32
+  help_menu->addSeparator();
+
+  AddAction(help_menu, tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
+#endif
 
   help_menu->addSeparator();
   AddAction(help_menu, tr("&About"), this, &MenuBar::ShowAboutDialog);

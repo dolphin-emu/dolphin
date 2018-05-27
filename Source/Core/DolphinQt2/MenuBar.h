@@ -36,6 +36,10 @@ public:
   void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
 
+#ifdef _WIN32
+  void InstallUpdateManually();
+#endif
+
 signals:
   // File
   void Open();
