@@ -20,6 +20,9 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
   if (config_location.system == Config::System::Main && config_location.section == "NetPlay")
     return true;
 
+  if (config_location.system == Config::System::Main && config_location.section == "General")
+    return true;
+
   const static std::vector<Config::ConfigLocation> s_setting_saveable{
       // Graphics.Hardware
 
