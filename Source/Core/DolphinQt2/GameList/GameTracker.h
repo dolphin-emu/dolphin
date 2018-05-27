@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 #include <string>
 
 #include <QFileSystemWatcher>
@@ -13,6 +12,7 @@
 #include <QSet>
 #include <QString>
 
+#include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
 #include "Core/TitleDatabase.h"
 #include "UICommon/GameFile.h"
@@ -75,9 +75,10 @@ private:
   Common::WorkQueueThread<Command> m_load_thread;
   UICommon::GameFileCache m_cache;
   Core::TitleDatabase m_title_database;
-  std::mutex m_mutex;
-  bool m_started = false;
+  Common::Event m_cache_loaded_event;
+  Common::Event m_initial_games_emitted_event;
   bool m_initial_games_emitted = false;
+  bool m_started = false;
 };
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)
