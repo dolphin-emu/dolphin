@@ -38,15 +38,15 @@ public:
   void ClearWatches() override;
 
   // Memory Patches
-  void SetPatch(u32 address, u32 value);
-  void SetPatch(u32 address, std::vector<u8> value);
-  const std::vector<Common::Debug::MemoryPatch>& GetPatches() const;
-  void UnsetPatch(u32 address);
-  void EnablePatch(std::size_t index);
-  void DisablePatch(std::size_t index);
-  bool HasEnabledPatch(u32 address) const;
-  void RemovePatch(std::size_t index);
-  void ClearPatches();
+  void SetPatch(u32 address, u32 value) override;
+  void SetPatch(u32 address, std::vector<u8> value) override;
+  const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
+  void UnsetPatch(u32 address) override;
+  void EnablePatch(std::size_t index) override;
+  void DisablePatch(std::size_t index) override;
+  bool HasEnabledPatch(u32 address) const override;
+  void RemovePatch(std::size_t index) override;
+  void ClearPatches() override;
 
   std::string Disassemble(unsigned int address) override;
   std::string GetRawMemoryString(int memory, unsigned int address) override;
