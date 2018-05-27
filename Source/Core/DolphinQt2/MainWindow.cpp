@@ -79,6 +79,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/DiscordPresence.h"
 #include "UICommon/UICommon.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -569,6 +570,7 @@ void MainWindow::OnStopComplete()
   m_stop_requested = false;
   HideRenderWidget();
   EnableScreenSaver(true);
+  Discord::UpdateDiscordPresence();
 
   SetFullScreenResolution(false);
 
@@ -719,6 +721,7 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     return;
   }
   ShowRenderWidget();
+  Discord::UpdateDiscordPresence();
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling

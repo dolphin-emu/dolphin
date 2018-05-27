@@ -35,6 +35,16 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
@@ -49,6 +59,7 @@
   <ItemGroup>
     <ClCompile Include="AutoUpdate.cpp" />
     <ClCompile Include="CommandLineParse.cpp" />
+    <ClCompile Include="DiscordPresence.cpp" />
     <ClCompile Include="UICommon.cpp" />
     <ClCompile Include="Disassembler.cpp" />
     <ClCompile Include="USBUtils.cpp">
@@ -61,6 +72,7 @@
   <ItemGroup>
     <ClInclude Include="AutoUpdate.h" />
     <ClInclude Include="CommandLineParse.h" />
+    <ClInclude Include="DiscordPresence.h" />
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="Disassembler.h" />
     <ClInclude Include="USBUtils.h" />
