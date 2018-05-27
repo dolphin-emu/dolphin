@@ -28,31 +28,31 @@ PPCSymbolDB::PPCSymbolDB() : debugger{&PowerPC::debug_interface}
 PPCSymbolDB::~PPCSymbolDB() = default;
 
 // Adds the function to the list, unless it's already there
-Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
+Common::Symbol* PPCSymbolDB::AddFunction(u32 start_addr)
 {
   // It's already in the list
-  if (functions.find(start_addr) != functions.end())
+  if (m_functions.find(start_addr) != m_functions.end())
     return nullptr;
 
-  Symbol symbol;
+  Common::Symbol symbol;
   if (!PPCAnalyst::AnalyzeFunction(start_addr, symbol))
     return nullptr;
 
-  functions[start_addr] = std::move(symbol);
-  Symbol* ptr = &functions[start_addr];
-  ptr->type = Symbol::Type::Function;
-  checksumToFunction[ptr->hash].insert(ptr);
+  m_functions[start_addr] = std::move(symbol);
+  Common::Symbol* ptr = &m_functions[start_addr];
+  ptr->type = Common::Symbol::Type::Function;
+  m_checksum_to_function[ptr->hash].insert(ptr);
   return ptr;
 }
 
 void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
-                                 Symbol::Type type)
+                                 Common::Symbol::Type type)
 {
-  auto iter = functions.find(startAddr);
-  if (iter != functions.end())
+  auto iter = m_functions.find(startAddr);
+  if (iter != m_functions.end())
   {
     // already got it, let's just update name, checksum & size to be sure.
-    Symbol* tempfunc = &iter->second;
+    Common::Symbol* tempfunc = &iter->second;
     tempfunc->Rename(name);
     tempfunc->hash = HashSignatureDB::ComputeCodeChecksum(startAddr, startAddr + size - 4);
     tempfunc->type = type;
@@ -61,11 +61,11 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
   else
   {
     // new symbol. run analyze.
-    Symbol tf;
+    Common::Symbol tf;
     tf.Rename(name);
     tf.type = type;
     tf.address = startAddr;
-    if (tf.type == Symbol::Type::Function)
+    if (tf.type == Common::Symbol::Type::Function)
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
       // Do not truncate symbol when a size is expected
@@ -75,20 +75,20 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
                  name.c_str(), size, tf.size);
         tf.size = size;
       }
-      checksumToFunction[tf.hash].insert(&functions[startAddr]);
+      m_checksum_to_function[tf.hash].insert(&m_functions[startAddr]);
     }
     else
     {
       tf.size = size;
     }
-    functions[startAddr] = tf;
+    m_functions[startAddr] = tf;
   }
 }
 
-Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
+Common::Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  auto it = functions.lower_bound(addr);
-  if (it == functions.end())
+  auto it = m_functions.lower_bound(addr);
+  if (it == m_functions.end())
     return nullptr;
 
   // If the address is exactly the start address of a symbol, we're done.
@@ -96,7 +96,7 @@ Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
     return &it->second;
 
   // Otherwise, check whether the address is within the bounds of a symbol.
-  if (it != functions.begin())
+  if (it != m_functions.begin())
     --it;
   if (addr >= it->second.address && addr < it->second.address + it->second.size)
     return &it->second;
@@ -106,7 +106,7 @@ Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 
 std::string PPCSymbolDB::GetDescription(u32 addr)
 {
-  Symbol* symbol = GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = GetSymbolFromAddr(addr);
   if (symbol)
     return symbol->name;
   else
@@ -115,23 +115,23 @@ std::string PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-  for (auto& p : functions)
+  for (auto& p : m_functions)
   {
     p.second.callers.clear();
   }
 
-  for (auto& entry : functions)
+  for (auto& entry : m_functions)
   {
-    Symbol& f = entry.second;
-    for (const SCall& call : f.calls)
+    Common::Symbol& f = entry.second;
+    for (const Common::SCall& call : f.calls)
     {
-      const SCall new_call(entry.first, call.callAddress);
+      const Common::SCall new_call(entry.first, call.call_address);
       const u32 function_address = call.function;
 
-      auto func_iter = functions.find(function_address);
-      if (func_iter != functions.end())
+      auto func_iter = m_functions.find(function_address);
+      if (func_iter != m_functions.end())
       {
-        Symbol& called_function = func_iter->second;
+        Common::Symbol& called_function = func_iter->second;
         called_function.callers.push_back(new_call);
       }
       else
@@ -146,51 +146,51 @@ void PPCSymbolDB::FillInCallers()
 
 void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 {
-  const auto iter = functions.find(funcAddr);
-  if (iter == functions.end())
+  const auto iter = m_functions.find(funcAddr);
+  if (iter == m_functions.end())
   {
     WARN_LOG(SYMBOLS, "Symbol does not exist");
     return;
   }
 
-  const Symbol& f = iter->second;
+  const Common::Symbol& f = iter->second;
   DEBUG_LOG(SYMBOLS, "The function %s at %08x calls:", f.name.c_str(), f.address);
-  for (const SCall& call : f.calls)
+  for (const Common::SCall& call : f.calls)
   {
-    const auto n = functions.find(call.function);
-    if (n != functions.end())
+    const auto n = m_functions.find(call.function);
+    if (n != m_functions.end())
     {
-      DEBUG_LOG(SYMBOLS, "* %08x : %s", call.callAddress, n->second.name.c_str());
+      DEBUG_LOG(SYMBOLS, "* %08x : %s", call.call_address, n->second.name.c_str());
     }
   }
 }
 
 void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 {
-  const auto iter = functions.find(funcAddr);
-  if (iter == functions.end())
+  const auto iter = m_functions.find(funcAddr);
+  if (iter == m_functions.end())
     return;
 
-  const Symbol& f = iter->second;
+  const Common::Symbol& f = iter->second;
   DEBUG_LOG(SYMBOLS, "The function %s at %08x is called by:", f.name.c_str(), f.address);
-  for (const SCall& caller : f.callers)
+  for (const Common::SCall& caller : f.callers)
   {
-    const auto n = functions.find(caller.function);
-    if (n != functions.end())
+    const auto n = m_functions.find(caller.function);
+    if (n != m_functions.end())
     {
-      DEBUG_LOG(SYMBOLS, "* %08x : %s", caller.callAddress, n->second.name.c_str());
+      DEBUG_LOG(SYMBOLS, "* %08x : %s", caller.call_address, n->second.name.c_str());
     }
   }
 }
 
 void PPCSymbolDB::LogFunctionCall(u32 addr)
 {
-  auto iter = functions.find(addr);
-  if (iter == functions.end())
+  auto iter = m_functions.find(addr);
+  if (iter == m_functions.end())
     return;
 
-  Symbol& f = iter->second;
-  f.numCalls++;
+  Common::Symbol& f = iter->second;
+  f.num_calls++;
 }
 
 // The use case for handling bad map files is when you have a game with a map file on the disc,
@@ -400,9 +400,9 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       {
         ++good_count;
         if (section_name == ".text" || section_name == ".init")
-          AddKnownSymbol(vaddress, size, name, Symbol::Type::Function);
+          AddKnownSymbol(vaddress, size, name, Common::Symbol::Type::Function);
         else
-          AddKnownSymbol(vaddress, size, name, Symbol::Type::Data);
+          AddKnownSymbol(vaddress, size, name, Common::Symbol::Type::Data);
       }
       else
       {
@@ -423,13 +423,13 @@ bool PPCSymbolDB::SaveSymbolMap(const std::string& filename) const
   if (!f)
     return false;
 
-  std::vector<const Symbol*> function_symbols;
-  std::vector<const Symbol*> data_symbols;
+  std::vector<const Common::Symbol*> function_symbols;
+  std::vector<const Common::Symbol*> data_symbols;
 
-  for (const auto& function : functions)
+  for (const auto& function : m_functions)
   {
-    const Symbol& symbol = function.second;
-    if (symbol.type == Symbol::Type::Function)
+    const Common::Symbol& symbol = function.second;
+    if (symbol.type == Common::Symbol::Type::Function)
       function_symbols.push_back(&symbol);
     else
       data_symbols.push_back(&symbol);
@@ -472,9 +472,9 @@ bool PPCSymbolDB::SaveCodeMap(const std::string& filename) const
   fprintf(f.GetHandle(), ".text\n");
 
   u32 next_address = 0;
-  for (const auto& function : functions)
+  for (const auto& function : m_functions)
   {
-    const Symbol& symbol = function.second;
+    const Common::Symbol& symbol = function.second;
 
     // Skip functions which are inside bigger functions
     if (symbol.address + symbol.size <= next_address)

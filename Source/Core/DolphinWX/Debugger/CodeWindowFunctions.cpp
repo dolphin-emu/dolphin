@@ -335,7 +335,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
         std::istringstream ss(line);
         ss >> std::hex >> address >> std::dec >> type >> name;
 
-        Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
+        Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
         if (symbol)
           symbol->Rename(line.substr(12));
       }
@@ -474,10 +474,10 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
   int index = symbols->GetSelection();
   if (index >= 0)
   {
-    Symbol* pSymbol = static_cast<Symbol*>(symbols->GetClientData(index));
+    auto* pSymbol = static_cast<Common::Symbol*>(symbols->GetClientData(index));
     if (pSymbol != nullptr)
     {
-      if (pSymbol->type == Symbol::Type::Data)
+      if (pSymbol->type == Common::Symbol::Type::Data)
       {
         CMemoryWindow* memory = GetPanel<CMemoryWindow>();
         if (memory)

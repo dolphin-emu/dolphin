@@ -280,7 +280,7 @@ void CodeViewWidget::OnCopyFunction()
 {
   const u32 address = GetContextAddress();
 
-  const Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
+  const Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
   if (!symbol)
     return;
 
@@ -361,7 +361,7 @@ void CodeViewWidget::OnRenameSymbol()
 {
   const u32 addr = GetContextAddress();
 
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
@@ -396,7 +396,7 @@ void CodeViewWidget::OnSetSymbolSize()
 {
   const u32 addr = GetContextAddress();
 
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;
@@ -419,7 +419,7 @@ void CodeViewWidget::OnSetSymbolEndAddress()
 {
   const u32 addr = GetContextAddress();
 
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   if (!symbol)
     return;

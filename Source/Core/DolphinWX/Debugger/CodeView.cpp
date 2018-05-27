@@ -57,7 +57,7 @@ enum
   IDM_ADDFUNCTION,
 };
 
-CCodeView::CCodeView(DebugInterface* debuginterface, SymbolDB* symboldb, wxWindow* parent,
+CCodeView::CCodeView(DebugInterface* debuginterface, Common::SymbolDB* symboldb, wxWindow* parent,
                      wxWindowID Id)
     : wxControl(parent, Id), m_debugger(debuginterface), m_symbol_db(symboldb), m_plain(false),
       m_curAddress(debuginterface->GetPC()), m_align(debuginterface->GetInstructionSize(0)),
@@ -243,7 +243,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
   case IDM_COPYFUNCTION:
   {
-    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    Common::Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
     if (symbol)
     {
       std::string text;
@@ -335,7 +335,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
   case IDM_RENAMESYMBOL:
   {
-    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    Common::Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
     if (symbol)
     {
       wxTextEntryDialog input_symbol(this, _("Rename symbol:"), wxGetTextFromUserPromptStr,
@@ -352,7 +352,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
   case IDM_SETSYMBOLSIZE:
   {
-    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    Common::Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
     if (!symbol)
       break;
 
@@ -375,7 +375,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
   case IDM_SETSYMBOLEND:
   {
-    Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
+    Common::Symbol* symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
     if (!symbol)
       break;
 

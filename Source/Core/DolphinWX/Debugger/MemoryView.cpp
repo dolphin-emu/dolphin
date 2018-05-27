@@ -131,7 +131,7 @@ wxString CMemoryView::ReadMemoryAsString(u32 address) const
         str += ' ';
     }
 
-    Symbol* sym = g_symbolDB.GetSymbolFromAddr(mem_data);
+    Common::Symbol* sym = g_symbolDB.GetSymbolFromAddr(mem_data);
     if (sym)
     {
       str += StringFromFormat(" # -> %s", sym->name.c_str());

@@ -14,7 +14,11 @@
 #include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
+
+namespace Common
+{
 struct Symbol;
+}
 
 namespace PPCAnalyst
 {
@@ -216,7 +220,7 @@ private:
 
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db);
-bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size = 0);
-bool ReanalyzeFunction(u32 start_addr, Symbol& func, u32 max_size = 0);
+bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size = 0);
+bool ReanalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size = 0);
 
 }  // namespace

@@ -73,7 +73,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 // Also collect which internal branch goes the farthest.
 // If any one goes farther than the blr or rfi, assume that there is more than
 // one blr or rfi, and keep scanning.
-bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
+bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
 {
   if (func.name.empty())
     func.Rename(StringFromFormat("zz_%08x_", startAddr));
@@ -83,7 +83,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
   func.calls.clear();
   func.callers.clear();
   func.size = 0;
-  func.flags = FFLAG_LEAF;
+  func.flags = Common::FFLAG_LEAF;
 
   u32 farthestInternalBranchTarget = startAddr;
   int numInternalBranches = 0;
@@ -100,7 +100,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
       func.size -= 4;
       func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr - 4);
       if (numInternalBranches == 0)
-        func.flags |= FFLAG_STRAIGHT;
+        func.flags |= Common::FFLAG_STRAIGHT;
       return true;
     }
     const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
@@ -122,18 +122,18 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
         func.analyzed = true;
         func.hash = HashSignatureDB::ComputeCodeChecksum(startAddr, addr);
         if (numInternalBranches == 0)
-          func.flags |= FFLAG_STRAIGHT;
+          func.flags |= Common::FFLAG_STRAIGHT;
         return true;
       }
       else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
       {
-        func.flags &= ~FFLAG_LEAF;
-        func.flags |= FFLAG_EVIL;
+        func.flags &= ~Common::FFLAG_LEAF;
+        func.flags |= Common::FFLAG_EVIL;
       }
       else if (instr.hex == 0x4c000064)
       {
-        func.flags &= ~FFLAG_LEAF;
-        func.flags |= FFLAG_RFI;
+        func.flags &= ~Common::FFLAG_LEAF;
+        func.flags |= Common::FFLAG_RFI;
       }
       else
       {
@@ -146,7 +146,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
         {
           // Found a function call
           func.calls.emplace_back(target, addr);
-          func.flags &= ~FFLAG_LEAF;
+          func.flags &= ~Common::FFLAG_LEAF;
         }
         else if (instr.OPCD == 16)
         {
@@ -166,7 +166,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, u32 max_size)
   }
 }
 
-bool ReanalyzeFunction(u32 start_addr, Symbol& func, u32 max_size)
+bool ReanalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size)
 {
   ASSERT_MSG(SYMBOLS, func.analyzed, "The function wasn't previously analyzed!");
 
@@ -176,17 +176,17 @@ bool ReanalyzeFunction(u32 start_addr, Symbol& func, u32 max_size)
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-static void AnalyzeFunction2(Symbol* func)
+static void AnalyzeFunction2(Common::Symbol* func)
 {
   u32 flags = func->flags;
 
   bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [](const auto& call) {
-    const Symbol* called_func = g_symbolDB.GetSymbolFromAddr(call.function);
-    return called_func && (called_func->flags & FFLAG_LEAF) == 0;
+    const Common::Symbol* called_func = g_symbolDB.GetSymbolFromAddr(call.function);
+    return called_func && (called_func->flags & Common::FFLAG_LEAF) == 0;
   });
 
-  if (nonleafcall && !(flags & FFLAG_EVIL) && !(flags & FFLAG_RFI))
-    flags |= FFLAG_ONLYCALLSNICELEAFS;
+  if (nonleafcall && !(flags & Common::FFLAG_EVIL) && !(flags & Common::FFLAG_RFI))
+    flags |= Common::FFLAG_ONLYCALLSNICELEAFS;
 
   func->flags = flags;
 }
@@ -254,7 +254,7 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 // called by another function. Therefore, let's scan the
 // entire space for bl operations and find what functions
 // get called.
-static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func_db)
+static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, Common::SymbolDB* func_db)
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
@@ -312,7 +312,7 @@ static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
     if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
     {
       // Check if this function is already mapped
-      Symbol* f = func_db->AddFunction(entry.first);
+      Common::Symbol* f = func_db->AddFunction(entry.first);
       if (!f)
         continue;
       f->Rename(entry.second);
@@ -344,7 +344,7 @@ static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
       if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
       {
         // check if this function is already mapped
-        Symbol* f = func_db->AddFunction(location);
+        Common::Symbol* f = func_db->AddFunction(location);
         if (!f)
           break;
         else
@@ -377,20 +377,20 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
       continue;
     }
     AnalyzeFunction2(&(func.second));
-    Symbol& f = func.second;
+    Common::Symbol& f = func.second;
     if (f.name.substr(0, 3) == "zzz")
     {
-      if (f.flags & FFLAG_LEAF)
+      if (f.flags & Common::FFLAG_LEAF)
         f.Rename(f.name + "_leaf");
-      if (f.flags & FFLAG_STRAIGHT)
+      if (f.flags & Common::FFLAG_STRAIGHT)
         f.Rename(f.name + "_straight");
     }
-    if (f.flags & FFLAG_LEAF)
+    if (f.flags & Common::FFLAG_LEAF)
     {
       numLeafs++;
       leafSize += f.size;
     }
-    else if (f.flags & FFLAG_ONLYCALLSNICELEAFS)
+    else if (f.flags & Common::FFLAG_ONLYCALLSNICELEAFS)
     {
       numNice++;
       niceSize += f.size;
@@ -401,11 +401,11 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
       unniceSize += f.size;
     }
 
-    if (f.flags & FFLAG_TIMERINSTRUCTIONS)
+    if (f.flags & Common::FFLAG_TIMERINSTRUCTIONS)
       numTimer++;
-    if (f.flags & FFLAG_RFI)
+    if (f.flags & Common::FFLAG_RFI)
       numRFI++;
-    if ((f.flags & FFLAG_STRAIGHT) && (f.flags & FFLAG_LEAF))
+    if ((f.flags & Common::FFLAG_STRAIGHT) && (f.flags & Common::FFLAG_LEAF))
       numStraightLeaf++;
   }
   if (numLeafs == 0)

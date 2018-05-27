@@ -376,7 +376,7 @@ void RSOView::Apply(PPCSymbolDB* symbol_db) const
     u32 address = GetExportAddress(rso_export);
     if (address != 0)
     {
-      Symbol* symbol = symbol_db->AddFunction(address);
+      Common::Symbol* symbol = symbol_db->AddFunction(address);
       if (!symbol)
         symbol = symbol_db->GetSymbolFromAddr(address);
 
@@ -389,7 +389,7 @@ void RSOView::Apply(PPCSymbolDB* symbol_db) const
       else
       {
         // Data symbol
-        symbol_db->AddKnownSymbol(address, 0, export_name, Symbol::Type::Data);
+        symbol_db->AddKnownSymbol(address, 0, export_name, Common::Symbol::Type::Data);
       }
     }
   }

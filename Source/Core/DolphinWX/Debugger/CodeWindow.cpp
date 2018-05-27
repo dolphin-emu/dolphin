@@ -434,14 +434,14 @@ void CCodeWindow::UpdateLists()
 {
   callers->Clear();
   u32 addr = codeview->GetSelection();
-  Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(addr);
   if (!symbol)
     return;
 
   for (auto& call : symbol->callers)
   {
-    u32 caller_addr = call.callAddress;
-    Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
+    u32 caller_addr = call.call_address;
+    Common::Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
     if (caller_symbol)
     {
       int idx = callers->Append(StrToWxStr(
@@ -454,7 +454,7 @@ void CCodeWindow::UpdateLists()
   for (auto& call : symbol->calls)
   {
     u32 call_addr = call.function;
-    Symbol* call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
+    Common::Symbol* call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
     if (call_symbol)
     {
       int idx = calls->Append(StrToWxStr(
