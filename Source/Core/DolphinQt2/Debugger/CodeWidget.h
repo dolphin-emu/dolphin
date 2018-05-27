@@ -45,8 +45,8 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateCallstack();
-  void UpdateFunctionCalls(Symbol* symbol);
-  void UpdateFunctionCallers(Symbol* symbol);
+  void UpdateFunctionCalls(const Symbol* symbol);
+  void UpdateFunctionCallers(const Symbol* symbol);
 
   void OnSearchAddress();
   void OnSearchSymbols();
