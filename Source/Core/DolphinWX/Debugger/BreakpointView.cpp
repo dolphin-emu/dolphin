@@ -45,7 +45,7 @@ void CBreakPointView::Repopulate()
       int item = InsertItem(0, breakpoint_enabled_str);
       SetItem(item, 1, StrToWxStr("BP"));
 
-      Symbol* symbol = g_symbolDB.GetSymbolFromAddr(rBP.address);
+      Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(rBP.address);
       if (symbol)
       {
         wxString symbol_description = StrToWxStr(g_symbolDB.GetDescription(rBP.address));
@@ -67,7 +67,7 @@ void CBreakPointView::Repopulate()
     int item = InsertItem(0, memcheck_on_str);
     SetItem(item, 1, StrToWxStr("MBP"));
 
-    Symbol* symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.start_address);
+    Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.start_address);
     if (symbol)
     {
       wxString memcheck_start_addr = StrToWxStr(g_symbolDB.GetDescription(rMemCheck.start_address));

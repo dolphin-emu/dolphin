@@ -15,7 +15,11 @@ class QLineEdit;
 class QSplitter;
 class QListWidget;
 class QTableWidget;
+
+namespace Common
+{
 struct Symbol;
+}
 
 class CodeWidget : public QDockWidget
 {
@@ -45,8 +49,8 @@ private:
   void CreateWidgets();
   void ConnectWidgets();
   void UpdateCallstack();
-  void UpdateFunctionCalls(const Symbol* symbol);
-  void UpdateFunctionCallers(const Symbol* symbol);
+  void UpdateFunctionCalls(const Common::Symbol* symbol);
+  void UpdateFunctionCallers(const Common::Symbol* symbol);
 
   void OnSearchAddress();
   void OnSearchSymbols();

@@ -29,7 +29,7 @@ void AddAutoBreakpoints()
 
   for (const char* bp : bps)
   {
-    Symbol* symbol = g_symbolDB.GetSymbolFromName(bp);
+    Common::Symbol* symbol = g_symbolDB.GetSymbolFromName(bp);
     if (symbol)
       PowerPC::breakpoints.Add(symbol->address, false);
   }

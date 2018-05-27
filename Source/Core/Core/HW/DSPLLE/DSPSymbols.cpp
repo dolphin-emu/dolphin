@@ -59,7 +59,7 @@ const char* GetLineText(int line)
   }
 }
 
-Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
+Common::Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 {
   auto it = m_functions.find(addr);
 

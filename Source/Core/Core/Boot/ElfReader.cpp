@@ -204,14 +204,14 @@ bool ElfReader::LoadSymbols() const
       if (bRelocate)
         value += sectionAddrs[sectionIndex];
 
-      auto symtype = Symbol::Type::Data;
+      auto symtype = Common::Symbol::Type::Data;
       switch (type)
       {
       case STT_OBJECT:
-        symtype = Symbol::Type::Data;
+        symtype = Common::Symbol::Type::Data;
         break;
       case STT_FUNC:
-        symtype = Symbol::Type::Function;
+        symtype = Common::Symbol::Type::Function;
         break;
       default:
         continue;

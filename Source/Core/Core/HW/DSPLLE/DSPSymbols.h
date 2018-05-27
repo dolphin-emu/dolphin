@@ -13,12 +13,12 @@ namespace DSP
 {
 namespace Symbols
 {
-class DSPSymbolDB : public SymbolDB
+class DSPSymbolDB : public Common::SymbolDB
 {
 public:
   DSPSymbolDB() {}
   ~DSPSymbolDB() {}
-  Symbol* GetSymbolFromAddr(u32 addr) override;
+  Common::Symbol* GetSymbolFromAddr(u32 addr) override;
 };
 
 extern DSPSymbolDB g_dsp_symbol_db;

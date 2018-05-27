@@ -277,10 +277,10 @@ int DSPDebugInterface::GetColor(unsigned int address)
   if (addr == -1)
     return 0xFFFFFF;
 
-  Symbol* symbol = Symbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
+  Common::Symbol* symbol = Symbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
   if (!symbol)
     return 0xFFFFFF;
-  if (symbol->type != Symbol::Type::Function)
+  if (symbol->type != Common::Symbol::Type::Function)
     return 0xEEEEFF;
   return colors[symbol->index % 6];
 }

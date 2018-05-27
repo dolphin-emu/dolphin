@@ -15,6 +15,8 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 struct SCall
 {
   SCall(u32 a, u32 b) : function(a), call_address(b) {}
@@ -84,3 +86,4 @@ protected:
   XFuncMap m_functions;
   XFuncPtrMap m_checksum_to_function;
 };
+}  // namespace Common

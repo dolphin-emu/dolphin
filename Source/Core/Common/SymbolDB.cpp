@@ -11,6 +11,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/SymbolDB.h"
 
+namespace Common
+{
 static std::string GetStrippedFunctionName(const std::string& symbol_name)
 {
   std::string name = symbol_name.substr(0, symbol_name.find('('));
@@ -103,3 +105,4 @@ void SymbolDB::AddCompleteSymbol(const Symbol& symbol)
 {
   m_functions.emplace(symbol.address, symbol);
 }
+}  // namespace Common

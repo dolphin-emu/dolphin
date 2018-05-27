@@ -133,7 +133,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
     LinkBlock(block);
   }
 
-  Symbol* symbol = nullptr;
+  Common::Symbol* symbol = nullptr;
   if (JitRegister::IsEnabled() &&
       (symbol = g_symbolDB.GetSymbolFromAddr(block.effectiveAddress)) != nullptr)
   {
