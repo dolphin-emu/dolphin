@@ -67,5 +67,5 @@ void SettingsWindow::SelectAudioPane()
 
 void SettingsWindow::SelectGeneralPane()
 {
-  m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::Audio));
+  m_tab_widget->setCurrentIndex(static_cast<int>(TabIndex::General));
 }
