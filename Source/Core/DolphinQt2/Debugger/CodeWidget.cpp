@@ -347,7 +347,7 @@ void CodeWidget::UpdateFunctionCallers(const Symbol* symbol)
 
   for (const auto& caller : symbol->callers)
   {
-    const u32 addr = caller.callAddress;
+    const u32 addr = caller.call_address;
     const Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
     if (caller_symbol)

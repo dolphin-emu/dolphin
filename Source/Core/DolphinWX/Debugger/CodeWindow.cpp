@@ -440,7 +440,7 @@ void CCodeWindow::UpdateLists()
 
   for (auto& call : symbol->callers)
   {
-    u32 caller_addr = call.callAddress;
+    u32 caller_addr = call.call_address;
     Symbol* caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
     if (caller_symbol)
     {

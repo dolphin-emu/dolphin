@@ -61,20 +61,17 @@ const char* GetLineText(int line)
 
 Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  XFuncMap::iterator it = functions.find(addr);
+  auto it = m_functions.find(addr);
 
-  if (it != functions.end())
-  {
+  if (it != m_functions.end())
     return &it->second;
-  }
-  else
+
+  for (auto& func : m_functions)
   {
-    for (auto& func : functions)
-    {
-      if (addr >= func.second.address && addr < func.second.address + func.second.size)
-        return &func.second;
-    }
+    if (addr >= func.second.address && addr < func.second.address + func.second.size)
+      return &func.second;
   }
+
   return nullptr;
 }
 
