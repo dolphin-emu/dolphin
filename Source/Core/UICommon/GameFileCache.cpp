@@ -111,9 +111,9 @@ bool GameFileCache::Update(
         cache_changed = true;
         --end;
         *it = std::move(*end);
-        m_cached_files.pop_back();
       }
     }
+    m_cached_files.erase(it, m_cached_files.end());
   }
 
   // Now that the previous loop has run, game_paths only contains paths that
