@@ -984,10 +984,15 @@ union CopyFilterCoefficients
 
   Values GetCoefficients() const
   {
-    return {
-        static_cast<u8>(w0), static_cast<u8>(w1), static_cast<u8>(w2), static_cast<u8>(w3),
-        static_cast<u8>(w4), static_cast<u8>(w5), static_cast<u8>(w6),
-    };
+    return {{
+        static_cast<u8>(w0),
+        static_cast<u8>(w1),
+        static_cast<u8>(w2),
+        static_cast<u8>(w3),
+        static_cast<u8>(w4),
+        static_cast<u8>(w5),
+        static_cast<u8>(w6),
+    }};
   }
 };
 
