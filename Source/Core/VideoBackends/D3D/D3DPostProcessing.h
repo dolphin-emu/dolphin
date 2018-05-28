@@ -20,6 +20,11 @@ public:
                           D3D11_VIEWPORT viewport, u32 slice);
 
 private:
+  ID3D11Buffer* m_globals_cb = nullptr;
+  ID3D11PixelShader* m_current_ps = nullptr;
+
+  ID3D11PixelShader* CompileShader(const std::string& source);
+  void UpdateConfig();
 };
 
 }  // namespace DX11
