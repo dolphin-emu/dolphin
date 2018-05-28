@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -67,8 +68,7 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
 
 void Drums::GetState(u8* const data)
 {
-  wm_drums_extension* const ddata = reinterpret_cast<wm_drums_extension*>(data);
-  ddata->bt = 0;
+  wm_drums_extension drum_data = {};
 
   // calibration data not figured out yet?
 
@@ -77,8 +77,8 @@ void Drums::GetState(u8* const data)
     ControlState x, y;
     m_stick->GetState(&x, &y);
 
-    ddata->sx = static_cast<u8>((x * 0x1F) + 0x20);
-    ddata->sy = static_cast<u8>((y * 0x1F) + 0x20);
+    drum_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
+    drum_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
   }
 
   // TODO: softness maybe
@@ -86,12 +86,14 @@ void Drums::GetState(u8* const data)
   data[3] = 0xFF;
 
   // buttons
-  m_buttons->GetState(&ddata->bt, drum_button_bitmasks.data());
+  m_buttons->GetState(&drum_data.bt, drum_button_bitmasks.data());
   // pads
-  m_pads->GetState(&ddata->bt, drum_pad_bitmasks.data());
+  m_pads->GetState(&drum_data.bt, drum_pad_bitmasks.data());
 
   // flip button bits
-  ddata->bt ^= 0xFFFF;
+  drum_data.bt ^= 0xFFFF;
+
+  std::memcpy(data, &drum_data, sizeof(wm_drums_extension));
 }
 
 bool Drums::IsButtonPressed() const

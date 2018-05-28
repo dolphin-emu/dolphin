@@ -6,7 +6,7 @@
 
 #include <array>
 #include <cassert>
-
+#include <cstring>
 #include <map>
 
 #include "Common/Common.h"
@@ -100,8 +100,7 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 
 void Guitar::GetState(u8* const data)
 {
-  wm_guitar_extension* const gdata = reinterpret_cast<wm_guitar_extension*>(data);
-  gdata->bt = 0;
+  wm_guitar_extension guitar_data = {};
 
   // calibration data not figured out yet?
 
@@ -110,8 +109,8 @@ void Guitar::GetState(u8* const data)
     ControlState x, y;
     m_stick->GetState(&x, &y);
 
-    gdata->sx = static_cast<u8>((x * 0x1F) + 0x20);
-    gdata->sy = static_cast<u8>((y * 0x1F) + 0x20);
+    guitar_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
+    guitar_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
   }
 
   // slider bar
@@ -119,28 +118,30 @@ void Guitar::GetState(u8* const data)
   {
     ControlState slider_bar;
     m_slider_bar->GetState(&slider_bar);
-    gdata->sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
+    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
   }
   else
   {
     // if user has not mapped controls for slider bar, tell game it's untouched
-    gdata->sb = 0x0F;
+    guitar_data.sb = 0x0F;
   }
 
   // whammy bar
   ControlState whammy;
   m_whammy->GetState(&whammy);
-  gdata->whammy = static_cast<u8>(whammy * 0x1F);
+  guitar_data.whammy = static_cast<u8>(whammy * 0x1F);
 
   // buttons
-  m_buttons->GetState(&gdata->bt, guitar_button_bitmasks.data());
+  m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data());
   // frets
-  m_frets->GetState(&gdata->bt, guitar_fret_bitmasks.data());
+  m_frets->GetState(&guitar_data.bt, guitar_fret_bitmasks.data());
   // strum
-  m_strum->GetState(&gdata->bt, guitar_strum_bitmasks.data());
+  m_strum->GetState(&guitar_data.bt, guitar_strum_bitmasks.data());
 
   // flip button bits
-  gdata->bt ^= 0xFFFF;
+  guitar_data.bt ^= 0xFFFF;
+
+  std::memcpy(data, &guitar_data, sizeof(wm_guitar_extension));
 }
 
 bool Guitar::IsButtonPressed() const
