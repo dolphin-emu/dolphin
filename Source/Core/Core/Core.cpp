@@ -291,7 +291,7 @@ static void CPUSetInitialExecutionState()
     SetState(SConfig::GetInstance().bBootToPause ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
-    Host_Message(WM_USER_CREATE);
+    Host_Message(HostMessageID::WMUserCreate);
   });
 }
 
@@ -924,7 +924,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop)
   }
   // If the the queue was empty then kick the Host to come and get this job.
   if (send_message)
-    Host_Message(WM_USER_JOB_DISPATCH);
+    Host_Message(HostMessageID::WMUserJobDispatch);
 }
 
 void HostDispatchJobs()

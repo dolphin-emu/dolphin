@@ -53,6 +53,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/Host.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -186,11 +187,11 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
   case WM_USER:
     switch (wParam)
     {
-    case WM_USER_STOP:
+    case static_cast<int>(HostMessageID::WMUserStop):
       main_frame->DoStop();
       break;
 
-    case WM_USER_SETCURSOR:
+    case static_cast<int>(HostMessageID::WMUserSetCursor):
       if (SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
           Core::GetState() == Core::State::Running)
         SetCursor(wxCURSOR_BLANK);
@@ -758,7 +759,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   }
   break;
 
-  case WM_USER_CREATE:
+  case static_cast<int>(HostMessageID::WMUserCreate):
     if (SConfig::GetInstance().bHideCursor)
       m_render_parent->SetCursor(wxCURSOR_BLANK);
     if (SConfig::GetInstance().bFullscreen)
@@ -776,7 +777,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   }
   break;
 
-  case WM_USER_STOP:
+  case static_cast<int>(HostMessageID::WMUserStop):
     DoStop();
     break;
 

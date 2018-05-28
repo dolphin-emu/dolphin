@@ -80,11 +80,11 @@ void Host_RefreshDSPDebuggerWindow()
 }
 
 static Common::Event updateMainFrameEvent;
-void Host_Message(int Id)
+void Host_Message(HostMessageID id)
 {
-  if (Id == WM_USER_STOP)
+  if (id == HostMessageID::WMUserStop)
     s_running.Clear();
-  if (Id == WM_USER_JOB_DISPATCH || Id == WM_USER_STOP)
+  if (id == HostMessageID::WMUserJobDispatch || id == HostMessageID::WMUserStop)
     updateMainFrameEvent.Set();
 }
 
