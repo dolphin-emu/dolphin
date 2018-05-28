@@ -149,7 +149,7 @@ struct VideoConfig final
   bool bDumpTevStages;
   bool bDumpTevTextureFetches;
 
-  // Enable API validation layers, currently only supported with Vulkan.
+  // Enable API validation layers, currently only supported with D3D & Vulkan.
   bool bEnableValidationLayer;
 
   // Multithreaded submission, currently only supported with Vulkan.
