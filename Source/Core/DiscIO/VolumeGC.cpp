@@ -244,8 +244,8 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   banner.image_width = GC_BANNER_WIDTH;
   banner.image_height = GC_BANNER_HEIGHT;
   banner.image_buffer = std::vector<u32>(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
-  ColorUtil::decode5A3image(banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH,
-                            GC_BANNER_HEIGHT);
+  Common::decode5A3image(banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH,
+                         GC_BANNER_HEIGHT);
 
   for (u32 i = 0; i < number_of_languages; ++i)
   {
