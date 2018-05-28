@@ -113,13 +113,18 @@ inline double NI_mul(double a, double b)
 
 inline double NI_div(double a, double b)
 {
-  double t = a / b;
+  const double t = a / b;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);
+
     if (b == 0.0)
     {
       SetFPException(FPSCR_ZX);
@@ -130,8 +135,10 @@ inline double NI_div(double a, double b)
     {
       SetFPException(FPSCR_VXIDI);
     }
+
     return PPC_NAN;
   }
+
   return t;
 }
 
@@ -158,16 +165,22 @@ inline double NI_add(double a, double b)
 
 inline double NI_sub(double a, double b)
 {
-  double t = a - b;
+  const double t = a - b;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);
+
     SetFPException(FPSCR_VXISI);
     return PPC_NAN;
   }
+
   return t;
 }
 
@@ -177,51 +190,74 @@ inline double NI_sub(double a, double b)
 inline double NI_madd(double a, double c, double b)
 {
   double t = a * c;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);  // !
     if (std::isnan(c))
       return MakeQuiet(c);
+
     SetFPException(FPSCR_VXIMZ);
     return PPC_NAN;
   }
+
   t += b;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(b))
       return MakeQuiet(b);
+
     SetFPException(FPSCR_VXISI);
     return PPC_NAN;
   }
+
   return t;
 }
 
 inline double NI_msub(double a, double c, double b)
 {
   double t = a * c;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(a))
       return MakeQuiet(a);
     if (std::isnan(b))
       return MakeQuiet(b);  // !
     if (std::isnan(c))
       return MakeQuiet(c);
+
     SetFPException(FPSCR_VXIMZ);
     return PPC_NAN;
   }
 
   t -= b;
+
   if (std::isnan(t))
   {
+    if (Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
     if (std::isnan(b))
       return MakeQuiet(b);
+
     SetFPException(FPSCR_VXISI);
     return PPC_NAN;
   }
+
   return t;
 }
 
