@@ -4,13 +4,6 @@
 
 #pragma once
 
-// Force enable logging in the right modes. For some reason, something had changed
-// so that debugfast no longer logged.
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#undef LOGGING
-#define LOGGING 1
-#endif
-
 #if defined(__GNUC__) || __clang__
 // Disable "unused function" warnings for the ones manually marked as such.
 #define UNUSED __attribute__((unused))
