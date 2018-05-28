@@ -147,6 +147,8 @@ void MappingWidget::Update()
 
   for (auto* checkbox : m_bools)
     checkbox->Update();
+
+  SaveSettings();
 }
 
 ControllerEmu::EmulatedController* MappingWidget::GetController() const

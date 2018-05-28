@@ -216,7 +216,7 @@ void MappingWindow::OnSaveProfilePressed()
   m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
   ini.Save(profile_path);
 
-  if (m_profiles_combo->currentIndex() == 0)
+  if (m_profiles_combo->currentIndex() == 0 || m_profiles_combo->findText(profile_name) == -1)
   {
     m_profiles_combo->addItem(profile_name, QString::fromStdString(profile_path));
     m_profiles_combo->setCurrentIndex(m_profiles_combo->count() - 1);
