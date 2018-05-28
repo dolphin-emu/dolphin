@@ -135,7 +135,7 @@ void OpenGLPostProcessing::ApplyShader()
   m_uniform_bindings.clear();
 
   // load shader code
-  std::string main_code = m_config.LoadShader();
+  std::string main_code = m_config.LoadShader(APIType::OpenGL);
   if (main_code.empty())
     main_code = s_fragment_shader;
   std::string options_code = LoadShaderOptions();
@@ -146,7 +146,7 @@ void OpenGLPostProcessing::ApplyShader()
   {
     ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
     Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
-    code = m_config.LoadShader();
+    code = m_config.LoadShader(APIType::OpenGL);
     ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code);
   }
 

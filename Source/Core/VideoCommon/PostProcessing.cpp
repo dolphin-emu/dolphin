@@ -76,7 +76,7 @@ PostProcessingShaderConfiguration::PostProcessingShaderConfiguration() = default
 
 PostProcessingShaderConfiguration::~PostProcessingShaderConfiguration() = default;
 
-std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
+std::string PostProcessingShaderConfiguration::LoadShader(APIType api_type, std::string shader)
 {
   // Load the shader from the configuration if there isn't one sent to us.
   if (shader == "")
@@ -88,14 +88,15 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 
   // loading shader code
   std::string code;
-  std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
+  std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + GetShaderExtension(api_type);
 
   if (shader != "")
   {
     if (!File::Exists(path))
     {
       // Fallback to shared user dir
-      path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader + ".glsl";
+      path = File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir + shader +
+             GetShaderExtension(api_type);
     }
 
     if (!File::ReadFileToString(path, code))

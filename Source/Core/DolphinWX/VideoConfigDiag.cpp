@@ -1018,7 +1018,7 @@ void VideoConfigDiag::Event_PPShader(wxCommandEvent& ev)
 
   // Should we enable the configuration button?
   PostProcessingShaderConfiguration postprocessing_shader;
-  postprocessing_shader.LoadShader(shader);
+  postprocessing_shader.LoadShader(g_Config.backend_info.api_type, shader);
   button_config_pp->Enable(postprocessing_shader.HasOptions());
 
   ev.Skip();
@@ -1243,7 +1243,7 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 
   // Should the configuration button be loaded by default?
   PostProcessingShaderConfiguration postprocessing_shader;
-  postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
+  postprocessing_shader.LoadShader(g_Config.backend_info.api_type, vconfig.sPostProcessingShader);
   button_config_pp->Enable(postprocessing_shader.HasOptions());
 }
 

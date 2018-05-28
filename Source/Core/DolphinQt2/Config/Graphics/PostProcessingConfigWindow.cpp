@@ -38,7 +38,7 @@ PostProcessingConfigWindow::PostProcessingConfigWindow(EnhancementsWidget* paren
   else
   {
     m_post_processor = new PostProcessingShaderConfiguration();
-    m_post_processor->LoadShader(m_shader);
+    m_post_processor->LoadShader(g_Config.backend_info.api_type, m_shader);
   }
 
   setWindowTitle(tr("Post Processing Shader Configuration"));

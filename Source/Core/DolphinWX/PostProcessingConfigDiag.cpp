@@ -17,6 +17,7 @@
 #include "DolphinWX/PostProcessingConfigDiag.h"
 
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::string& shader)
     : wxDialog(parent, wxID_ANY, _("Post Processing Shader Configuration")), m_shader(shader)
@@ -30,7 +31,7 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
   else
   {
     m_post_processor = new PostProcessingShaderConfiguration();
-    m_post_processor->LoadShader(m_shader);
+    m_post_processor->LoadShader(g_Config.backend_info.api_type, m_shader);
   }
 
   // Create our UI classes

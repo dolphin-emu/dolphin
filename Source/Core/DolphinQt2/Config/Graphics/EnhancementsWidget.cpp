@@ -186,7 +186,7 @@ void EnhancementsWidget::LoadPPShaders()
   PostProcessingShaderConfiguration pp_shader;
   if (selected_shader != "(off)")
   {
-    pp_shader.LoadShader(selected_shader);
+    pp_shader.LoadShader(g_Config.backend_info.api_type, selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
 }
@@ -258,7 +258,8 @@ void EnhancementsWidget::SaveSettings()
   PostProcessingShaderConfiguration pp_shader;
   if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
   {
-    pp_shader.LoadShader(Config::Get(Config::GFX_ENHANCE_POST_SHADER));
+    pp_shader.LoadShader(g_Config.backend_info.api_type,
+                         Config::Get(Config::GFX_ENHANCE_POST_SHADER));
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
   }
   else

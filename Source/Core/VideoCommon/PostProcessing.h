@@ -54,7 +54,7 @@ public:
   // Loads the configuration with a shader
   // If the argument is "" the class will load the shader from the g_activeConfig option.
   // Returns the loaded shader source from file
-  std::string LoadShader(std::string shader = "");
+  std::string LoadShader(APIType api_type, std::string shader = "");
   void SaveOptionsConfiguration();
   void ReloadShader();
   const std::string& GetShader() const { return m_current_shader; }
