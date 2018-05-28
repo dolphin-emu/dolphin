@@ -83,6 +83,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsReversedDepthRange = true;
+  g_Config.backend_info.bSupportsLogicOp = true;
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsCopyToVram = true;
 

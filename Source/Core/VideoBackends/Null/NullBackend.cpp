@@ -47,6 +47,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = false;
+  g_Config.backend_info.bSupportsLogicOp = false;
 
   // aamodes: We only support 1 sample, so no MSAA
   g_Config.backend_info.Adapters.clear();

@@ -414,7 +414,10 @@ HRESULT Create(HWND wnd)
 
   hr = device->QueryInterface<ID3D11Device1>(&device1);
   if (FAILED(hr))
+  {
     WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
+    g_Config.backend_info.bSupportsLogicOp = false;
+  }
 
   // BGRA textures are easier to deal with in TextureCache, but might not be supported
   UINT format_support;

@@ -201,6 +201,7 @@ struct VideoConfig final
     bool bSupportsFragmentStoresAndAtomics;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
+    bool bSupportsLogicOp;
     bool bSupportsMultithreading;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;
