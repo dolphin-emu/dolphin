@@ -415,15 +415,15 @@ CFrame* DolphinApp::GetCFrame()
   return main_frame;
 }
 
-void Host_Message(int Id)
+void Host_Message(HostMessageID id)
 {
-  if (Id == WM_USER_JOB_DISPATCH)
+  if (id == HostMessageID::WMUserJobDispatch)
   {
     // Trigger a wxEVT_IDLE
     wxWakeUpIdle();
     return;
   }
-  wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
+  wxCommandEvent event(wxEVT_HOST_COMMAND, static_cast<int>(id));
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 

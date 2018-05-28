@@ -87,13 +87,13 @@ void Host_RefreshDSPDebuggerWindow()
 {
 }
 
-void Host_Message(int Id)
+void Host_Message(HostMessageID id)
 {
-  if (Id == WM_USER_JOB_DISPATCH)
+  if (id == HostMessageID::WMUserJobDispatch)
   {
     s_update_main_frame_event.Set();
   }
-  else if (Id == WM_USER_STOP)
+  else if (id == HostMessageID::WMUserStop)
   {
     s_have_wm_user_stop = true;
     if (Core::IsRunning())

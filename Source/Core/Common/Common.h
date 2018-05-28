@@ -57,13 +57,3 @@ struct CrtDebugBreak
 // Dummy macro for marking translatable strings that can not be immediately translated.
 // wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a
-
-// Host communication.
-enum HOST_COMM
-{
-  // Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
-  WM_USER_STOP = 10,
-  WM_USER_CREATE,
-  WM_USER_SETCURSOR,
-  WM_USER_JOB_DISPATCH,
-};

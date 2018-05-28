@@ -15,7 +15,7 @@ void Host_NotifyMapLoaded()
 void Host_RefreshDSPDebuggerWindow()
 {
 }
-void Host_Message(int)
+void Host_Message(HostMessageID)
 {
 }
 void* Host_GetRenderHandle()

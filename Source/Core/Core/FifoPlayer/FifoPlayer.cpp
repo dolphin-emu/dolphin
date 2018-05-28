@@ -112,7 +112,7 @@ public:
       {
       case CPU::State::PowerDown:
         CPU::Break();
-        Host_Message(WM_USER_STOP);
+        Host_Message(HostMessageID::WMUserStop);
         break;
 
       case CPU::State::Stepping:

@@ -75,13 +75,13 @@ void Host::ResizeSurface(int new_width, int new_height)
     g_renderer->ResizeSurface(new_width, new_height);
 }
 
-void Host_Message(int id)
+void Host_Message(HostMessageID id)
 {
-  if (id == WM_USER_STOP)
+  if (id == HostMessageID::WMUserStop)
   {
     emit Host::GetInstance()->RequestStop();
   }
-  else if (id == WM_USER_JOB_DISPATCH)
+  else if (id == HostMessageID::WMUserJobDispatch)
   {
     // Just poke the main thread to get it to wake up, job dispatch
     // will happen automatically before it goes back to sleep again.

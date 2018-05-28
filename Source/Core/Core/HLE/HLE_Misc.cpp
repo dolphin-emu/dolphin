@@ -25,7 +25,7 @@ void HBReload()
 {
   // There isn't much we can do. Just stop cleanly.
   CPU::Break();
-  Host_Message(WM_USER_STOP);
+  Host_Message(HostMessageID::WMUserStop);
 }
 
 void GeckoCodeHandlerICacheFlush()
