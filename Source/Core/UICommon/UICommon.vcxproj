@@ -35,16 +35,6 @@
     <Import Project="..\..\VSProps\PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
@@ -54,6 +44,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">
       <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
+    </ProjectReference>
+	<ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
+      <Project>{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -59,6 +59,7 @@
       <PreprocessorDefinitions>_M_X86=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_ANALYTICS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+	  <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--

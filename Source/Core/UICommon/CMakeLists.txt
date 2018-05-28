@@ -2,7 +2,7 @@ add_library(uicommon
   AutoUpdate.cpp
   CommandLineParse.cpp
   Disassembler.cpp
-	DiscordPresence.cpp
+  DiscordPresence.cpp
   GameFile.cpp
   GameFileCache.cpp
   UICommon.cpp
