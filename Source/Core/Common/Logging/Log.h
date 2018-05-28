@@ -81,7 +81,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
 #endif
     ;
 
-#if defined LOGGING || defined _DEBUG || defined DEBUGFAST
+#if defined(_DEBUG) || defined(DEBUGFAST)
 #define MAX_LOGLEVEL LogTypes::LOG_LEVELS::LDEBUG
 #else
 #ifndef MAX_LOGLEVEL
