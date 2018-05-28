@@ -16,8 +16,6 @@
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoConfig.h"
 
-static const char s_default_shader[] = "void main() { SetOutput(Sample()); }\n";
-
 PostProcessingShaderImplementation::PostProcessingShaderImplementation()
 {
   m_timer.Start();
@@ -28,12 +26,29 @@ PostProcessingShaderImplementation::~PostProcessingShaderImplementation()
   m_timer.Stop();
 }
 
-static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
+static std::string GetShaderExtension(APIType api_type)
 {
+  switch (api_type)
+  {
+  case APIType::OpenGL:
+  case APIType::Vulkan:
+    return ".glsl";
+  case APIType::D3D:
+    return ".hlsl";
+  default:
+    return std::string();
+  }
+}
+
+static std::vector<std::string> GetShaders(APIType api_type, const std::string& sub_dir = "")
+{
+  if (api_type != APIType::OpenGL && api_type != APIType::Vulkan && api_type != APIType::D3D)
+    return {};
+
   std::vector<std::string> paths =
       Common::DoFileSearch({File::GetUserPath(D_SHADERS_IDX) + sub_dir,
                             File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir},
-                           {".glsl"});
+                           {GetShaderExtension(api_type)});
   std::vector<std::string> result;
   for (std::string path : paths)
   {
@@ -49,18 +64,12 @@ std::vector<std::string> PostProcessingShaderImplementation::GetShaderList(APITy
   // Currently there is no differentiation between API types and shader languages.
   // This could change in the future, hence the api_type parameter, but ideally,
   // shaders should be compatible across backends.
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    return GetShaders();
-
-  return {};
+  return GetShaders(api_type);
 }
 
 std::vector<std::string> PostProcessingShaderImplementation::GetAnaglyphShaderList(APIType api_type)
 {
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    return GetShaders(ANAGLYPH_DIR DIR_SEP);
-
-  return {};
+  return GetShaders(api_type, ANAGLYPH_DIR DIR_SEP);
 }
 
 PostProcessingShaderConfiguration::PostProcessingShaderConfiguration() = default;
@@ -81,11 +90,7 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
   std::string code;
   std::string path = File::GetUserPath(D_SHADERS_IDX) + sub_dir + shader + ".glsl";
 
-  if (shader == "")
-  {
-    code = s_default_shader;
-  }
-  else
+  if (shader != "")
   {
     if (!File::Exists(path))
     {
@@ -96,7 +101,6 @@ std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
     if (!File::ReadFileToString(path, code))
     {
       ERROR_LOG(VIDEO, "Post-processing shader not found: %s", path.c_str());
-      code = s_default_shader;
     }
   }
 

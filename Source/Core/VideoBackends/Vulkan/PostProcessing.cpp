@@ -253,6 +253,8 @@ bool VulkanPostProcessing::RecompileShader()
 
   // Generate GLSL and compile the new shader.
   std::string main_code = m_config.LoadShader();
+  if (main_code.empty())
+    main_code = DEFAULT_FRAGMENT_SHADER_SOURCE;
   std::string options_code = GetGLSLUniformBlock();
   std::string code = options_code + POSTPROCESSING_SHADER_HEADER + main_code;
   m_fragment_shader = Util::CompileAndCreateFragmentShader(code);

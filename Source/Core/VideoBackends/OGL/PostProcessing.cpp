@@ -28,6 +28,8 @@ static const char s_vertex_shader[] = "out vec2 uv0;\n"
                                       "	uv0 = vec2(mix(src_rect.xy, src_rect.zw, rawpos));\n"
                                       "}\n";
 
+static const char s_fragment_shader[] = "void main(){SetOutput(Sample());}\n";
+
 OpenGLPostProcessing::OpenGLPostProcessing() : m_initialized(false)
 {
   CreateHeader();
@@ -134,6 +136,8 @@ void OpenGLPostProcessing::ApplyShader()
 
   // load shader code
   std::string main_code = m_config.LoadShader();
+  if (main_code.empty())
+    main_code = s_fragment_shader;
   std::string options_code = LoadShaderOptions();
   std::string code = m_glsl_header + options_code + main_code;
 
