@@ -131,8 +131,7 @@ Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
 
 void Classic::GetState(u8* const data)
 {
-  wm_classic_extension* const ccdata = reinterpret_cast<wm_classic_extension*>(data);
-  ccdata->bt.hex = 0;
+  wm_classic_extension classic_data = {};
 
   // not using calibration data, o well
 
@@ -141,48 +140,50 @@ void Classic::GetState(u8* const data)
     ControlState x, y;
     m_left_stick->GetState(&x, &y);
 
-    ccdata->regular_data.lx =
+    classic_data.regular_data.lx =
         static_cast<u8>(Classic::LEFT_STICK_CENTER_X + (x * Classic::LEFT_STICK_RADIUS));
-    ccdata->regular_data.ly =
+    classic_data.regular_data.ly =
         static_cast<u8>(Classic::LEFT_STICK_CENTER_Y + (y * Classic::LEFT_STICK_RADIUS));
   }
 
   // right stick
   {
     ControlState x, y;
-    u8 x_, y_;
     m_right_stick->GetState(&x, &y);
 
-    x_ = static_cast<u8>(Classic::RIGHT_STICK_CENTER_X + (x * Classic::RIGHT_STICK_RADIUS));
-    y_ = static_cast<u8>(Classic::RIGHT_STICK_CENTER_Y + (y * Classic::RIGHT_STICK_RADIUS));
+    const u8 x_ =
+        static_cast<u8>(Classic::RIGHT_STICK_CENTER_X + (x * Classic::RIGHT_STICK_RADIUS));
+    const u8 y_ =
+        static_cast<u8>(Classic::RIGHT_STICK_CENTER_Y + (y * Classic::RIGHT_STICK_RADIUS));
 
-    ccdata->rx1 = x_;
-    ccdata->rx2 = x_ >> 1;
-    ccdata->rx3 = x_ >> 3;
-    ccdata->ry = y_;
+    classic_data.rx1 = x_;
+    classic_data.rx2 = x_ >> 1;
+    classic_data.rx3 = x_ >> 3;
+    classic_data.ry = y_;
   }
 
   // triggers
   {
     ControlState trigs[2] = {0, 0};
-    u8 lt, rt;
-    m_triggers->GetState(&ccdata->bt.hex, classic_trigger_bitmasks.data(), trigs);
+    m_triggers->GetState(&classic_data.bt.hex, classic_trigger_bitmasks.data(), trigs);
 
-    lt = static_cast<u8>(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
-    rt = static_cast<u8>(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
+    const u8 lt = static_cast<u8>(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
+    const u8 rt = static_cast<u8>(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
 
-    ccdata->lt1 = lt;
-    ccdata->lt2 = lt >> 3;
-    ccdata->rt = rt;
+    classic_data.lt1 = lt;
+    classic_data.lt2 = lt >> 3;
+    classic_data.rt = rt;
   }
 
   // buttons
-  m_buttons->GetState(&ccdata->bt.hex, classic_button_bitmasks.data());
+  m_buttons->GetState(&classic_data.bt.hex, classic_button_bitmasks.data());
   // dpad
-  m_dpad->GetState(&ccdata->bt.hex, classic_dpad_bitmasks.data());
+  m_dpad->GetState(&classic_data.bt.hex, classic_dpad_bitmasks.data());
 
   // flip button bits
-  ccdata->bt.hex ^= 0xFFFF;
+  classic_data.bt.hex ^= 0xFFFF;
+
+  std::memcpy(data, &classic_data, sizeof(wm_classic_extension));
 }
 
 bool Classic::IsButtonPressed() const
