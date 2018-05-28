@@ -1164,17 +1164,17 @@ void JitArm64::divwx(UGeckoInstruction inst)
   {
     s32 imm_a = gpr.GetImm(a);
     s32 imm_b = gpr.GetImm(b);
-    s32 imm_d;
-    if (imm_b == 0 || ((u32)imm_a == 0x80000000 && imm_b == -1))
+    u32 imm_d;
+    if (imm_b == 0 || (static_cast<u32>(imm_a) == 0x80000000 && imm_b == -1))
     {
-      if (((u32)imm_a & 0x80000000) && imm_b == 0)
-        imm_d = -1;
+      if (imm_a < 0)
+        imm_d = 0xFFFFFFFF;
       else
         imm_d = 0;
     }
     else
     {
-      imm_d = (u32)(imm_a / imm_b);
+      imm_d = static_cast<u32>(imm_a / imm_b);
     }
     gpr.SetImmediate(d, imm_d);
 
@@ -1217,9 +1217,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
     SetJumpTarget(slow1);
     SetJumpTarget(slow2);
 
-    CMP(RB, 0);
-    CCMP(RA, 0, 0, CC_EQ);
-    CSETM(RD, CC_LT);
+    ASR(RD, RA, 31);
 
     SetJumpTarget(done);
 

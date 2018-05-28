@@ -501,18 +501,18 @@ void Interpreter::divwx(UGeckoInstruction inst)
 {
   const s32 a = rGPR[inst.RA];
   const s32 b = rGPR[inst.RB];
-  const bool overflow = b == 0 || ((u32)a == 0x80000000 && b == -1);
+  const bool overflow = b == 0 || (static_cast<u32>(a) == 0x80000000 && b == -1);
 
   if (overflow)
   {
-    if (((u32)a & 0x80000000) && b == 0)
+    if (a < 0)
       rGPR[inst.RD] = UINT32_MAX;
     else
       rGPR[inst.RD] = 0;
   }
   else
   {
-    rGPR[inst.RD] = (u32)(a / b);
+    rGPR[inst.RD] = static_cast<u32>(a / b);
   }
 
   if (inst.OE)
