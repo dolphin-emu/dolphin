@@ -134,6 +134,8 @@ inline double NI_div(double a, double b)
       else
       {
         SetFPException(FPSCR_ZX);
+        FPSCR.FI = 0;
+        FPSCR.FR = 0;
       }
     }
     else if (std::isinf(a) && std::isinf(b))
