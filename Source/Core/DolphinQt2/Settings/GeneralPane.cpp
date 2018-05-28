@@ -22,7 +22,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinQt2/Settings.h"
+
 #include "UICommon/AutoUpdate.h"
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;

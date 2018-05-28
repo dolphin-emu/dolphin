@@ -17,6 +17,7 @@
 #include "DolphinQt2/Config/PatchesWidget.h"
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/QtUtils/WrapInScrollArea.h"
+
 #include "UICommon/GameFile.h"
 
 PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& game)

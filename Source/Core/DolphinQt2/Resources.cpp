@@ -8,7 +8,9 @@
 #include <QScreen>
 
 #include "Common/FileUtil.h"
+
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 

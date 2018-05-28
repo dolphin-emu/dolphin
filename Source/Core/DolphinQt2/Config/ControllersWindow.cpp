@@ -38,6 +38,7 @@
 #include "DolphinQt2/Settings.h"
 
 #include "InputCommon/GCAdapter.h"
+
 #include "UICommon/UICommon.h"
 
 static const std::map<SerialInterface::SIDevices, int> s_gc_types = {

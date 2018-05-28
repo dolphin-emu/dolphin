@@ -18,8 +18,10 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/WASAPIStream.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "DolphinQt2/Config/SettingsWindow.h"
 #include "DolphinQt2/Settings.h"
 

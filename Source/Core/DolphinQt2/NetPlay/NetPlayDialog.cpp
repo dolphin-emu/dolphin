@@ -30,10 +30,12 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/TraversalClient.h"
+
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayServer.h"
+
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/NetPlay/GameListDialog.h"
 #include "DolphinQt2/NetPlay/MD5Dialog.h"
@@ -41,6 +43,7 @@
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/Settings.h"
+
 #include "VideoCommon/VideoConfig.h"
 
 NetPlayDialog::NetPlayDialog(QWidget* parent)

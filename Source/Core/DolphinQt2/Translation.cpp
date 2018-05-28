@@ -17,7 +17,9 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
+
 #include "UICommon/UICommon.h"
 
 constexpr u32 MO_MAGIC_NUMBER = 0x950412de;

@@ -13,7 +13,9 @@
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Settings.h"
 
 LogConfigWidget::LogConfigWidget(QWidget* parent) : QDockWidget(parent)

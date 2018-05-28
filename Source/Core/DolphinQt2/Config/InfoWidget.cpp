@@ -15,10 +15,13 @@
 #include <QTextEdit>
 
 #include "Core/ConfigManager.h"
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+
 #include "DolphinQt2/Config/InfoWidget.h"
 #include "DolphinQt2/QtUtils/ImageConverter.h"
+
 #include "UICommon/UICommon.h"
 
 InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)

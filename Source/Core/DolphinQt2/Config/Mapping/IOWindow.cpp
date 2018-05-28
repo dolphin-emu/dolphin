@@ -19,9 +19,11 @@
 #include <QVBoxLayout>
 
 #include "Core/Core.h"
+
 #include "DolphinQt2/Config/Mapping/MappingCommon.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/QtUtils/BlockUserInputFilter.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"

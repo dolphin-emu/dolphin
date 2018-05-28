@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Config/Mapping/MappingWindow.h"
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -12,13 +14,13 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-#include "DolphinQt2/Config/Mapping/MappingWindow.h"
-
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+
 #include "Core/Core.h"
+
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
 #include "DolphinQt2/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt2/Config/Mapping/GCPadEmu.h"
@@ -34,6 +36,7 @@
 #include "DolphinQt2/Config/Mapping/WiimoteEmuMotionControl.h"
 #include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt2/Settings.h"
+
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"

@@ -27,6 +27,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "UICommon/GameFile.h"
 
 #include "DolphinQt2/Config/ARCodeWidget.h"

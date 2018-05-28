@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Settings.h"
+
 #include <QApplication>
 #include <QDir>
 #include <QFile>
@@ -9,14 +11,17 @@
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
+
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
-#include "DolphinQt2/Settings.h"
+
 #include "InputCommon/InputConfig.h"
 
 Settings::Settings()

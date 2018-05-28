@@ -13,8 +13,10 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
+
 #include "DolphinQt2/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt2/TAS/StickWidget.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, QSpinBox*& y_value,

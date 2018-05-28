@@ -11,7 +11,9 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
+
 #include "DolphinQt2/TAS/Shared.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)

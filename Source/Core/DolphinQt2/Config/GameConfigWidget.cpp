@@ -20,9 +20,12 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
+
 #include "UICommon/GameFile.h"
 
 constexpr int DETERMINISM_NOT_SET_INDEX = 0;

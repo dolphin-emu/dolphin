@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Settings/USBDeviceAddToWhitelistDialog.h"
+
 #include <QButtonGroup>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -18,9 +20,11 @@
 #include <QWidget>
 
 #include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
-#include "DolphinQt2/Settings/USBDeviceAddToWhitelistDialog.h"
+
 #include "DolphinQt2/Settings/WiiPane.h"
+
 #include "UICommon/USBUtils.h"
 
 static bool IsValidUSBIDString(const std::string& string)

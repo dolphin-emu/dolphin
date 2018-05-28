@@ -7,6 +7,7 @@
 #include <QVBoxLayout>
 
 #include "Common/Version.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Resources.h"
 

@@ -18,6 +18,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt2/Settings.h"

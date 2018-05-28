@@ -2,11 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Config/Mapping/MappingWidget.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QPushButton>
-
-#include "DolphinQt2/Config/Mapping/MappingWidget.h"
 
 #include "DolphinQt2/Config/Mapping/IOWindow.h"
 #include "DolphinQt2/Config/Mapping/MappingBool.h"
@@ -14,6 +14,7 @@
 #include "DolphinQt2/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt2/Config/Mapping/MappingNumeric.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"

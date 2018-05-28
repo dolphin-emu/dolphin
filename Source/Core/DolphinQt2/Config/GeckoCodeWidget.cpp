@@ -16,10 +16,13 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCodeConfig.h"
+
 #include "DolphinQt2/Config/CheatCodeEditor.h"
 #include "DolphinQt2/Config/CheatWarningWidget.h"
+
 #include "UICommon/GameFile.h"
 
 GeckoCodeWidget::GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required)

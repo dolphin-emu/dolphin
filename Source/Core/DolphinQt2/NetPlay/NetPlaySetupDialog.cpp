@@ -4,10 +4,6 @@
 
 #include "DolphinQt2/NetPlay/NetPlaySetupDialog.h"
 
-#include "Core/Config/NetplaySettings.h"
-#include "DolphinQt2/GameList/GameListModel.h"
-#include "DolphinQt2/Settings.h"
-
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -19,6 +15,11 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTabWidget>
+
+#include "Core/Config/NetplaySettings.h"
+
+#include "DolphinQt2/GameList/GameListModel.h"
+#include "DolphinQt2/Settings.h"
 
 NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
     : QDialog(parent), m_game_list_model(Settings::Instance().GetGameListModel())

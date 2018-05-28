@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/GameList/GridProxyModel.h"
+
 #include <QPixmap>
 #include <QSize>
 
 #include "DolphinQt2/GameList/GameListModel.h"
-#include "DolphinQt2/GameList/GridProxyModel.h"
 
 const QSize LARGE_BANNER_SIZE(144, 48);
 
