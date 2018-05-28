@@ -18,10 +18,12 @@ public:
 
   void PostProcessTexture(ID3D11ShaderResourceView* srv, RECT* rect, u32 src_width, u32 src_height,
                           D3D11_VIEWPORT viewport, u32 slice);
+  bool IsActive();
 
 private:
   ID3D11Buffer* m_globals_cb = nullptr;
   ID3D11PixelShader* m_current_ps = nullptr;
+  bool m_ps_is_default = true;
 
   ID3D11PixelShader* CompileShader(const std::string& source);
   void UpdateConfig();

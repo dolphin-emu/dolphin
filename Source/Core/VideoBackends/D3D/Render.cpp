@@ -912,17 +912,26 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(),
                                         (float)dst.GetHeight());
 
-    ID3D11PixelShader* pixelShader = (g_Config.stereo_mode == StereoMode::Anaglyph) ?
-                                         PixelShaderCache::GetAnaglyphProgram() :
-                                         PixelShaderCache::GetColorCopyProgram(false);
-    ID3D11GeometryShader* geomShader = (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) ?
-                                           GeometryShaderCache::GetCopyGeometryShader() :
-                                           nullptr;
-
-    // TODO do something with these shaders
     D3D::context->RSSetViewports(1, &vp);
-    post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                                       vp, 1);
+    if (post_processor->IsActive())
+    {
+      // TODO anaglyph support?
+      post_processor->PostProcessTexture(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                                         vp, 1);
+    }
+    else
+    {
+      ID3D11PixelShader* pixelShader = (g_Config.stereo_mode == StereoMode::Anaglyph) ?
+                                           PixelShaderCache::GetAnaglyphProgram() :
+                                           PixelShaderCache::GetColorCopyProgram(false);
+      ID3D11GeometryShader* geomShader = (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) ?
+                                             GeometryShaderCache::GetCopyGeometryShader() :
+                                             nullptr;
+
+      D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
+                             pixelShader, VertexShaderCache::GetSimpleVertexShader(),
+                             VertexShaderCache::GetSimpleInputLayout(), geomShader, 1);
+    }
   }
 }
 

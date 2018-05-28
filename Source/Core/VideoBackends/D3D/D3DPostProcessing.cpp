@@ -89,6 +89,12 @@ void D3DPostProcessing::PostProcessTexture(ID3D11ShaderResourceView* srv, RECT* 
                          VertexShaderCache::GetSimpleInputLayout(), nullptr, slice);
 }
 
+bool D3DPostProcessing::IsActive()
+{
+  UpdateConfig();
+  return !m_ps_is_default;
+}
+
 ID3D11PixelShader* D3DPostProcessing::CompileShader(const std::string& source)
 {
   return D3D::CompileAndCreatePixelShader(s_hlsl_prefix + source);
@@ -101,7 +107,14 @@ void D3DPostProcessing::UpdateConfig()
 
   std::string source = m_config.LoadShader(APIType::D3D);
   if (source.empty())
+  {
+    m_ps_is_default = true;
     source = s_default_shader;
+  }
+  else
+  {
+    m_ps_is_default = false;
+  }
 
   if (m_current_ps)
     m_current_ps->Release();
