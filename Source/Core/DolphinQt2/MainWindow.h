@@ -138,6 +138,7 @@ private:
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
   void OnConnectWiiRemote(int id);
+  void OnSignal();
 
   void OnUpdateProgressDialog(QString label, int progress, int total);
 
