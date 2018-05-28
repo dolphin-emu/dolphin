@@ -72,6 +72,11 @@ void AdvancedPane::CreateLayout()
   rtc_options->layout()->addWidget(m_custom_rtc_checkbox);
 
   m_custom_rtc_datetime = new QDateTimeEdit();
+
+  // Show seconds
+  m_custom_rtc_datetime->setDisplayFormat(m_custom_rtc_datetime->displayFormat().replace(
+      QStringLiteral("mm"), QStringLiteral("mm:ss")));
+
   if (!m_custom_rtc_datetime->displayFormat().contains(QStringLiteral("yyyy")))
   {
     // Always show the full year, no matter what the locale specifies. Otherwise, two-digit years
