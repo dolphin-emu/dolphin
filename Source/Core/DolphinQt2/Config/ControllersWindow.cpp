@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Config/ControllersWindow.h"
+
 #include <QApplication>
 #include <QBoxLayout>
 #include <QCheckBox>
@@ -29,13 +31,14 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
+
 #include "DolphinQt2/Config/Mapping/GCPadWiiUConfigDialog.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 #include "DolphinQt2/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt2/Settings.h"
-#include "UICommon/UICommon.h"
 
-#include "DolphinQt2/Config/ControllersWindow.h"
+#include "InputCommon/GCAdapter.h"
+#include "UICommon/UICommon.h"
 
 static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
     {SerialInterface::SIDEVICE_NONE, 0},         {SerialInterface::SIDEVICE_GC_CONTROLLER, 1},
@@ -523,5 +526,11 @@ void ControllersWindow::SaveSettings()
 
     m_gc_buttons[i]->setEnabled(index != 0 && index != 6);
   }
+
+  if (GCAdapter::UseAdapter())
+    GCAdapter::StartScanThread();
+  else
+    GCAdapter::StopScanThread();
+
   SConfig::GetInstance().SaveSettings();
 }
