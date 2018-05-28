@@ -35,6 +35,8 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 
 QGroupBox* InfoWidget::CreateISODetails()
 {
+  const QString UNKNOWN_NAME = tr("Unknown");
+
   QGroupBox* group = new QGroupBox(tr("ISO Details"));
   QFormLayout* layout = new QFormLayout;
 
@@ -42,19 +44,35 @@ QGroupBox* InfoWidget::CreateISODetails()
       QStringLiteral("%1 (%2)")
           .arg(QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath())))
           .arg(QString::fromStdString(UICommon::FormatSize(m_game.GetFileSize()))));
+
+  const QString game_name = QString::fromStdString(m_game.GetInternalName());
+
+  bool is_disc_based = m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc ||
+                       m_game.GetPlatform() == DiscIO::Platform::WiiDisc;
+
   QLineEdit* internal_name =
-      CreateValueDisplay(tr("%1 (Disc %2, Revision %3)")
-                             .arg(QString::fromStdString(m_game.GetInternalName()))
-                             .arg(m_game.GetDiscNumber())
-                             .arg(m_game.GetRevision()));
+      CreateValueDisplay(is_disc_based ? tr("%1 (Disc %2, Revision %3)")
+                                             .arg(game_name.isEmpty() ? UNKNOWN_NAME : game_name)
+                                             .arg(m_game.GetDiscNumber())
+                                             .arg(m_game.GetRevision()) :
+                                         tr("%1 (Revision %3)")
+                                             .arg(game_name.isEmpty() ? UNKNOWN_NAME : game_name)
+                                             .arg(m_game.GetRevision()));
 
   QString game_id_string = QString::fromStdString(m_game.GetGameID());
+
   if (const u64 title_id = m_game.GetTitleID())
     game_id_string += QStringLiteral(" (%1)").arg(title_id, 16, 16, QLatin1Char('0'));
+
   QLineEdit* game_id = CreateValueDisplay(game_id_string);
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
-  QLineEdit* maker = CreateValueDisplay(m_game.GetMaker() + " (0x" + m_game.GetMakerID() + ")");
+
+  const std::string game_maker = m_game.GetMaker();
+
+  QLineEdit* maker =
+      CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (0x" +
+                         m_game.GetMakerID() + ")");
   QWidget* checksum = CreateChecksumComputer();
 
   layout->addRow(tr("Name:"), internal_name);
