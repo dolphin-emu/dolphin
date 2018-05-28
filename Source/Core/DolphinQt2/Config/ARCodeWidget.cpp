@@ -12,10 +12,13 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Config/CheatCodeEditor.h"
 #include "DolphinQt2/Config/CheatWarningWidget.h"
+
 #include "UICommon/GameFile.h"
 
 ARCodeWidget::ARCodeWidget(const UICommon::GameFile& game, bool restart_required)

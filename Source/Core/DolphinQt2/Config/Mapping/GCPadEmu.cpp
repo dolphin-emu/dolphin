@@ -2,16 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/Config/Mapping/GCPadEmu.h"
+
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
-#include "DolphinQt2/Config/Mapping/GCPadEmu.h"
-#include "InputCommon/InputConfig.h"
-
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
+
+#include "InputCommon/InputConfig.h"
 
 GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
 {

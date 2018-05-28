@@ -5,6 +5,7 @@
 #include "DolphinQt2/Config/Graphics/GraphicsRadio.h"
 
 #include "Common/Config/Config.h"
+
 #include "DolphinQt2/Settings.h"
 
 GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::ConfigInfo<int>& setting,

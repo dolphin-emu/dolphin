@@ -2,15 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "MD5Dialog.h"
-
-#include "DolphinQt2/Settings.h"
+#include "DolphinQt2/NetPlay/MD5Dialog.h"
 
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QLabel>
 #include <QProgressBar>
 #include <QVBoxLayout>
+
+#include "DolphinQt2/Settings.h"
 
 static QString GetPlayerNameFromPID(int pid)
 {

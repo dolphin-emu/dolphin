@@ -13,6 +13,7 @@
 #include <QVBoxLayout>
 
 #include "Common/Config/Config.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 

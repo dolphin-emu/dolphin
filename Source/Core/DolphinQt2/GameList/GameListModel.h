@@ -11,6 +11,7 @@
 #include <QString>
 
 #include "DolphinQt2/GameList/GameTracker.h"
+
 #include "UICommon/GameFile.h"
 
 class GameListModel final : public QAbstractTableModel

@@ -15,13 +15,17 @@
 #include <QSlider>
 #include <QSpacerItem>
 #include <QStringList>
+
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
+
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/IOS.h"
+
 #include "DolphinQt2/Settings/USBDeviceAddToWhitelistDialog.h"
+
 #include "UICommon/USBUtils.h"
 
 // SYSCONF uses 0 for bottom and 1 for top, but we place them in

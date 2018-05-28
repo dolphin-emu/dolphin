@@ -16,6 +16,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
+
 #include "DolphinQt2/Settings.h"
 
 AdvancedPane::AdvancedPane(QWidget* parent) : QWidget(parent)

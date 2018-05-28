@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/GameList/GameList.h"
+
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -17,16 +19,17 @@
 #include <QUrl>
 
 #include "Common/FileUtil.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 
 #include "DolphinQt2/Config/PropertiesDialog.h"
-#include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/GridProxyModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"

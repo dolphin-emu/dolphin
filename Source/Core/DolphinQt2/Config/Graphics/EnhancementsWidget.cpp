@@ -14,12 +14,14 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt2/Config/Graphics/GraphicsChoice.h"
 #include "DolphinQt2/Config/Graphics/GraphicsSlider.h"
 #include "DolphinQt2/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt2/Config/Graphics/PostProcessingConfigWindow.h"
 #include "DolphinQt2/Settings.h"
+
 #include "UICommon/VideoUtils.h"
 
 #include "VideoCommon/PostProcessing.h"

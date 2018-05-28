@@ -17,10 +17,12 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 
 constexpr int SLOT_A_INDEX = 0;

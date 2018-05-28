@@ -9,13 +9,16 @@
 #include <QProgressDialog>
 
 #include "Common/Common.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 

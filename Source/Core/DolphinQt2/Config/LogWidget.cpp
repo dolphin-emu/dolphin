@@ -16,7 +16,9 @@
 #include <QVBoxLayout>
 
 #include "Common/FileUtil.h"
+
 #include "Core/ConfigManager.h"
+
 #include "DolphinQt2/Settings.h"
 
 // Delay in ms between calls of UpdateLog()

@@ -14,6 +14,7 @@
 #include <QVBoxLayout>
 
 #include "Common/Version.h"
+
 #include "DolphinQt2/QtUtils/RunOnObject.h"
 #include "DolphinQt2/Settings.h"
 

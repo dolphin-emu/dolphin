@@ -12,6 +12,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "DolphinQt2/Settings.h"
 
 CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required,

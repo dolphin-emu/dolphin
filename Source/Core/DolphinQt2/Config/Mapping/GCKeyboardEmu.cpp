@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt2/Config/Mapping/GCKeyboardEmu.h"
+
 #include "InputCommon/InputConfig.h"
 
 #include "Core/HW/GCKeyboard.h"

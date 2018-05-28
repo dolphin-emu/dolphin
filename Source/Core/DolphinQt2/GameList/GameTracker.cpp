@@ -2,13 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinQt2/GameList/GameTracker.h"
+
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
 
 #include "Core/ConfigManager.h"
+
 #include "DiscIO/DirectoryBlob.h"
-#include "DolphinQt2/GameList/GameTracker.h"
+
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/Settings.h"
 

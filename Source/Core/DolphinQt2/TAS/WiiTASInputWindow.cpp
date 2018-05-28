@@ -12,15 +12,18 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 #include "DolphinQt2/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt2/TAS/IRWidget.h"
 #include "DolphinQt2/TAS/Shared.h"
+
 #include "InputCommon/InputConfig.h"
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent), m_num(num)

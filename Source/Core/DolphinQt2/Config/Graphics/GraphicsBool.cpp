@@ -5,6 +5,7 @@
 #include "DolphinQt2/Config/Graphics/GraphicsBool.h"
 
 #include "Common/Config/Config.h"
+
 #include "DolphinQt2/Settings.h"
 
 #include <QFont>

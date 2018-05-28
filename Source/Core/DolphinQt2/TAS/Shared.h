@@ -8,13 +8,13 @@
 
 #include "Common/CommonTypes.h"
 
+struct GCPadStatus;
 class QDialog;
 class QString;
 class QSpinBox;
 class QCheckBox;
 class QBoxLayout;
 class QGroupBox;
-struct GCPadStatus;
 
 QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, QSpinBox*& y_value,
                              u16 max_x, u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key);

@@ -7,10 +7,13 @@
 #include <QPixmap>
 
 #include "Core/ConfigManager.h"
+
 #include "DiscIO/Enums.h"
+
 #include "DolphinQt2/QtUtils/ImageConverter.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+
 #include "UICommon/UICommon.h"
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);

@@ -20,6 +20,7 @@
 #include <QWidget>
 
 #include "DolphinQt2/Config/Graphics/EnhancementsWidget.h"
+
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"

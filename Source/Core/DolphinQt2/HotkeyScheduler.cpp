@@ -10,7 +10,9 @@
 #include <QCoreApplication>
 
 #include "AudioCommon/AudioCommon.h"
+
 #include "Common/Thread.h"
+
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -23,6 +25,7 @@
 #include "DolphinQt2/Settings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"

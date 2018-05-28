@@ -14,13 +14,14 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoConfig.h"
 
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
+
+#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
