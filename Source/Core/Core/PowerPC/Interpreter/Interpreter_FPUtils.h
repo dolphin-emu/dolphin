@@ -127,9 +127,14 @@ inline double NI_div(double a, double b)
 
     if (b == 0.0)
     {
-      SetFPException(FPSCR_ZX);
       if (a == 0.0)
+      {
         SetFPException(FPSCR_VXZDZ);
+      }
+      else
+      {
+        SetFPException(FPSCR_ZX);
+      }
     }
     else if (std::isinf(a) && std::isinf(b))
     {
