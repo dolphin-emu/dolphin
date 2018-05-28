@@ -69,7 +69,7 @@ std::vector<u32> WiiSaveBanner::GetBanner(u32* width, u32* height) const
     return std::vector<u32>();
 
   std::vector<u32> image_buffer(BANNER_WIDTH * BANNER_HEIGHT);
-  ColorUtil::decode5A3image(image_buffer.data(), banner_data.data(), BANNER_WIDTH, BANNER_HEIGHT);
+  Common::Decode5A3Image(image_buffer.data(), banner_data.data(), BANNER_WIDTH, BANNER_HEIGHT);
 
   *width = BANNER_WIDTH;
   *height = BANNER_HEIGHT;

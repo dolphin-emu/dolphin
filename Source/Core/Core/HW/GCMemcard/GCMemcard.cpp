@@ -1082,13 +1082,13 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer) const
     u8* pxdata = (u8*)(mc_data_blocks[DataBlock].block + DataOffset);
     u16* paldata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset + pixels);
 
-    ColorUtil::decodeCI8image(buffer, pxdata, paldata, 96, 32);
+    Common::DecodeCI8Image(buffer, pxdata, paldata, 96, 32);
   }
   else
   {
     u16* pxdata = (u16*)(mc_data_blocks[DataBlock].block + DataOffset);
 
-    ColorUtil::decode5A3image(buffer, pxdata, 96, 32);
+    Common::Decode5A3Image(buffer, pxdata, 96, 32);
   }
   return true;
 }
@@ -1182,16 +1182,16 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
       switch (fmts[i])
       {
       case CI8SHARED:  // CI8 with shared palette
-        ColorUtil::decodeCI8image(buffer, data[i], sharedPal, 32, 32);
+        Common::DecodeCI8Image(buffer, data[i], sharedPal, 32, 32);
         buffer += 32 * 32;
         break;
       case RGB5A3:  // RGB5A3
-        ColorUtil::decode5A3image(buffer, (u16*)(data[i]), 32, 32);
+        Common::Decode5A3Image(buffer, (u16*)(data[i]), 32, 32);
         buffer += 32 * 32;
         break;
       case CI8:  // CI8 with own palette
         const u16* paldata = reinterpret_cast<u16*>(data[i] + 32 * 32);
-        ColorUtil::decodeCI8image(buffer, data[i], paldata, 32, 32);
+        Common::DecodeCI8Image(buffer, data[i], paldata, 32, 32);
         buffer += 32 * 32;
         break;
       }
@@ -1208,15 +1208,15 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
           switch (fmts[j])
           {
           case CI8SHARED:  // CI8 with shared palette
-            ColorUtil::decodeCI8image(buffer, data[j], sharedPal, 32, 32);
+            Common::DecodeCI8Image(buffer, data[j], sharedPal, 32, 32);
             break;
           case RGB5A3:  // RGB5A3
-            ColorUtil::decode5A3image(buffer, (u16*)(data[j]), 32, 32);
+            Common::Decode5A3Image(buffer, (u16*)(data[j]), 32, 32);
             buffer += 32 * 32;
             break;
           case CI8:  // CI8 with own palette
             const u16* paldata = reinterpret_cast<u16*>(data[j] + 32 * 32);
-            ColorUtil::decodeCI8image(buffer, data[j], paldata, 32, 32);
+            Common::DecodeCI8Image(buffer, data[j], paldata, 32, 32);
             buffer += 32 * 32;
             break;
           }
