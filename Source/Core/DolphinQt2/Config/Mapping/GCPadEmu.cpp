@@ -12,6 +12,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/InputConfig.h"
 
 GCPadEmu::GCPadEmu(MappingWindow* window) : MappingWidget(window)
@@ -38,6 +39,14 @@ void GCPadEmu::CreateMainLayout()
   hbox_layout->addWidget(
       CreateGroupBox(tr("Triggers"), Pad::GetGroup(GetPort(), PadGroup::Triggers)));
   hbox_layout->addWidget(CreateGroupBox(tr("Rumble"), Pad::GetGroup(GetPort(), PadGroup::Rumble)));
+
+  // TODO: Get rid of this garbage once wx is removed
+  // Remove "Iterative Input"
+  auto* options_group = Pad::GetGroup(GetPort(), PadGroup::Options);
+  auto& bools = options_group->boolean_settings;
+  bools.erase(bools.end() - 1);
+
+  hbox_layout->addWidget(CreateGroupBox(tr("Options"), options_group));
 
   setLayout(m_main_layout);
 }
