@@ -13,7 +13,7 @@ class DSPEmulator
 {
 public:
   virtual ~DSPEmulator();
-  virtual bool IsLLE() = 0;
+  virtual bool IsLLE() const = 0;
 
   virtual bool Initialize(bool wii, bool dsp_thread) = 0;
   virtual void Shutdown() = 0;
