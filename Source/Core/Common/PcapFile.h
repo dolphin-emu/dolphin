@@ -19,6 +19,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 
+namespace Common
+{
 class PCAP final
 {
 public:
@@ -38,3 +40,4 @@ private:
 
   std::unique_ptr<File::IOFile> m_fp;
 };
+}  // namespace Common
