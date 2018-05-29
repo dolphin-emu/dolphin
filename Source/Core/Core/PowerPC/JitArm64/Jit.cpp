@@ -31,9 +31,9 @@ constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 constexpr size_t FARCODE_SIZE = 1024 * 1024 * 16;
 constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 
-constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
+constexpr size_t STACK_SIZE = 8 * 1024 * 1024;
 constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
-constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
+constexpr size_t GUARD_SIZE = 1024 * 1024;  // two guards - bottom (permanent) and middle (see above)
 constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
 
 void JitArm64::Init()
