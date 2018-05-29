@@ -20,12 +20,12 @@ struct MemoryPatch
     Disabled
   };
 
-  u32 address;
-  std::vector<u8> value;
-  State is_enabled;
-
   MemoryPatch(u32 address, std::vector<u8> value);
   MemoryPatch(u32 address, u32 value);
+
+  u32 address;
+  std::vector<u8> value;
+  State is_enabled = State::Enabled;
 };
 
 class MemoryPatches

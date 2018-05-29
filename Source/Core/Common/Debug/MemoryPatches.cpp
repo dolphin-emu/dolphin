@@ -11,7 +11,7 @@
 namespace Common::Debug
 {
 MemoryPatch::MemoryPatch(u32 address_, std::vector<u8> value_)
-    : address(address_), value(std::move(value_)), is_enabled(State::Enabled)
+    : address(address_), value(std::move(value_))
 {
 }
 
