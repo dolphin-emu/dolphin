@@ -12,7 +12,7 @@ class PointerWrap;
 class DSPEmulator
 {
 public:
-  virtual ~DSPEmulator() {}
+  virtual ~DSPEmulator();
   virtual bool IsLLE() = 0;
 
   virtual bool Initialize(bool wii, bool dsp_thread) = 0;
