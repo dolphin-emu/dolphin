@@ -885,6 +885,8 @@ alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x800000000
 alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
 alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
 alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffffffe0000000);
+alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff,
+                                                                  0xfff7ffffffffffff);
 
 // This is the same algorithm used in the interpreter (and actual hardware)
 // The documentation states that the conversion of a double with an outside the
