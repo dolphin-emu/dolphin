@@ -51,6 +51,8 @@ void GeckoCodeWidget::CreateWidgets()
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
 
+  m_code_list->setSortingEnabled(true);
+
   QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   const auto line_height = QFontMetrics(font()).lineSpacing();
@@ -69,7 +71,6 @@ void GeckoCodeWidget::CreateWidgets()
   m_edit_code = new QPushButton(tr("&Edit Code..."));
   m_remove_code = new QPushButton(tr("&Remove Code"));
   m_download_codes = new QPushButton(tr("Download Codes"));
-  m_sort_codes = new QPushButton(tr("Sort Codes"));
 
   m_download_codes->setToolTip(tr("Download Codes from the WiiRD Database"));
 
@@ -106,7 +107,6 @@ void GeckoCodeWidget::CreateWidgets()
   btn_layout->addWidget(m_edit_code);
   btn_layout->addWidget(m_remove_code);
   btn_layout->addWidget(m_download_codes);
-  btn_layout->addWidget(m_sort_codes);
 
   layout->addLayout(btn_layout);
 
@@ -123,7 +123,6 @@ void GeckoCodeWidget::ConnectWidgets()
   connect(m_remove_code, &QPushButton::pressed, this, &GeckoCodeWidget::RemoveCode);
   connect(m_edit_code, &QPushButton::pressed, this, &GeckoCodeWidget::EditCode);
   connect(m_download_codes, &QPushButton::pressed, this, &GeckoCodeWidget::DownloadCodes);
-  connect(m_sort_codes, &QPushButton::pressed, this, &GeckoCodeWidget::SortCodesLexicographically);
 
   connect(m_warning, &CheatWarningWidget::OpenCheatEnableSettings, this,
           &GeckoCodeWidget::OpenGeneralSettings);
@@ -141,7 +140,9 @@ void GeckoCodeWidget::OnSelectionChanged()
 
   auto selected = items[0];
 
-  const auto& code = m_gecko_codes[m_code_list->row(selected)];
+  const int index = selected->data(Qt::UserRole).toInt();
+
+  const auto& code = m_gecko_codes[index];
 
   m_name_label->setText(QString::fromStdString(code.name));
   m_creator_label->setText(QString::fromStdString(code.creator));
@@ -161,7 +162,8 @@ void GeckoCodeWidget::OnSelectionChanged()
 
 void GeckoCodeWidget::OnItemChanged(QListWidgetItem* item)
 {
-  m_gecko_codes[m_code_list->row(item)].enabled = (item->checkState() == Qt::Checked);
+  const int index = item->data(Qt::UserRole).toInt();
+  m_gecko_codes[index].enabled = (item->checkState() == Qt::Checked);
 
   if (!m_restart_required)
     Gecko::SetActiveCodes(m_gecko_codes);
@@ -192,11 +194,11 @@ void GeckoCodeWidget::EditCode()
   if (item == nullptr)
     return;
 
-  int row = m_code_list->row(item);
+  const int index = item->data(Qt::UserRole).toInt();
 
   CheatCodeEditor ed(this);
 
-  ed.SetGeckoCode(&m_gecko_codes[row]);
+  ed.SetGeckoCode(&m_gecko_codes[index]);
 
   if (ed.exec())
   {
@@ -212,7 +214,7 @@ void GeckoCodeWidget::RemoveCode()
   if (item == nullptr)
     return;
 
-  m_gecko_codes.erase(m_gecko_codes.begin() + m_code_list->row(item));
+  m_gecko_codes.erase(m_gecko_codes.begin() + item->data(Qt::UserRole).toInt());
 
   UpdateList();
   SaveCodes();
@@ -225,12 +227,6 @@ void GeckoCodeWidget::SaveCodes()
   Gecko::SaveCodes(game_ini_local, m_gecko_codes);
 
   game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
-}
-
-void GeckoCodeWidget::SortCodesLexicographically()
-{
-  m_code_list->setSortingEnabled(!m_code_list->isSortingEnabled());
-  GeckoCodeWidget::UpdateList();
 }
 
 void GeckoCodeWidget::UpdateList()
@@ -247,6 +243,7 @@ void GeckoCodeWidget::UpdateList()
 
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsUserCheckable);
     item->setCheckState(code.enabled ? Qt::Checked : Qt::Unchecked);
+    item->setData(Qt::UserRole, static_cast<int>(i));
 
     m_code_list->addItem(item);
   }
