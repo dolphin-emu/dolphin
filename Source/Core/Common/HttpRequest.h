@@ -30,6 +30,8 @@ public:
 
   using Response = std::optional<std::vector<u8>>;
   using Headers = std::map<std::string, std::optional<std::string>>;
+
+  void SetCookies(const std::string& cookies);
   Response Get(const std::string& url, const Headers& headers = {});
   Response Post(const std::string& url, const std::vector<u8>& payload,
                 const Headers& headers = {});
