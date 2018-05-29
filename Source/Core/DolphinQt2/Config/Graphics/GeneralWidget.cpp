@@ -181,10 +181,11 @@ void GeneralWidget::SaveSettings()
       {
         if (backend->GetName() == "Software Renderer")
         {
-          QMessageBox confirm_sw;
+          QMessageBox confirm_sw(this);
 
           confirm_sw.setIcon(QMessageBox::Warning);
           confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+          confirm_sw.setWindowTitle(tr("Confirm backend change"));
           confirm_sw.setText(
               tr("Software rendering is an order of magnitude slower than using the "
                  "other backends.\nIt's only useful for debugging purposes.\nDo you "
