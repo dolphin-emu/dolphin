@@ -123,7 +123,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
         m_jit_loadstore_lwz_off, m_jit_loadstore_floating_off, m_jit_loadstore_paired_off,
         m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off})
   {
-    action->setEnabled(running);
+    action->setEnabled(running && !playing);
   }
 
   // Symbols
@@ -727,19 +727,27 @@ void MenuBar::AddJITMenu()
   m_jit_interpreter_core->setCheckable(true);
   m_jit_interpreter_core->setChecked(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
 
+  connect(m_jit_interpreter_core, &QAction::toggled, [](bool enabled) {
+    PowerPC::SetMode(enabled ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
+  });
+
   m_jit->addSeparator();
 
   m_jit_block_linking = m_jit->addAction(tr("JIT Block Linking Off"));
   m_jit_block_linking->setCheckable(true);
   m_jit_block_linking->setChecked(SConfig::GetInstance().bJITNoBlockLinking);
-  connect(m_jit_block_linking, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITNoBlockLinking = enabled; });
+  connect(m_jit_block_linking, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITNoBlockLinking = enabled;
+    ClearCache();
+  });
 
   m_jit_disable_cache = m_jit->addAction(tr("Disable JIT Cache"));
   m_jit_disable_cache->setCheckable(true);
   m_jit_disable_cache->setChecked(SConfig::GetInstance().bJITNoBlockCache);
-  connect(m_jit_disable_cache, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITNoBlockCache = enabled; });
+  connect(m_jit_disable_cache, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITNoBlockCache = enabled;
+    ClearCache();
+  });
 
   m_jit_clear_cache = AddAction(m_jit, tr("Clear Cache"), this, &MenuBar::ClearCache);
 
@@ -755,68 +763,90 @@ void MenuBar::AddJITMenu()
   m_jit_off = m_jit->addAction(tr("JIT Off (JIT Core)"));
   m_jit_off->setCheckable(true);
   m_jit_off->setChecked(SConfig::GetInstance().bJITOff);
-  connect(m_jit_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITOff = enabled; });
+  connect(m_jit_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITOff = enabled;
+    ClearCache();
+  });
 
   m_jit_loadstore_off = m_jit->addAction(tr("JIT LoadStore Off"));
   m_jit_loadstore_off->setCheckable(true);
   m_jit_loadstore_off->setChecked(SConfig::GetInstance().bJITLoadStoreOff);
-  connect(m_jit_loadstore_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITLoadStoreOff = enabled; });
+  connect(m_jit_loadstore_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITLoadStoreOff = enabled;
+    ClearCache();
+  });
 
   m_jit_loadstore_lbzx_off = m_jit->addAction(tr("JIT LoadStore lbzx Off"));
   m_jit_loadstore_lbzx_off->setCheckable(true);
   m_jit_loadstore_lbzx_off->setChecked(SConfig::GetInstance().bJITLoadStorelbzxOff);
-  connect(m_jit_loadstore_lbzx_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITLoadStorelbzxOff = enabled; });
+  connect(m_jit_loadstore_lbzx_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITLoadStorelbzxOff = enabled;
+    ClearCache();
+  });
 
   m_jit_loadstore_lxz_off = m_jit->addAction(tr("JIT LoadStore lXz Off"));
   m_jit_loadstore_lxz_off->setCheckable(true);
   m_jit_loadstore_lxz_off->setChecked(SConfig::GetInstance().bJITLoadStorelXzOff);
-  connect(m_jit_loadstore_lxz_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITLoadStorelXzOff = enabled; });
+  connect(m_jit_loadstore_lxz_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITLoadStorelXzOff = enabled;
+    ClearCache();
+  });
 
   m_jit_loadstore_lwz_off = m_jit->addAction(tr("JIT LoadStore lwz Off"));
   m_jit_loadstore_lwz_off->setCheckable(true);
   m_jit_loadstore_lwz_off->setChecked(SConfig::GetInstance().bJITLoadStorelwzOff);
-  connect(m_jit_loadstore_lwz_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITLoadStorelwzOff = enabled; });
+  connect(m_jit_loadstore_lwz_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITLoadStorelwzOff = enabled;
+    ClearCache();
+  });
 
   m_jit_loadstore_floating_off = m_jit->addAction(tr("JIT LoadStore Floating Off"));
   m_jit_loadstore_floating_off->setCheckable(true);
   m_jit_loadstore_floating_off->setChecked(SConfig::GetInstance().bJITLoadStoreFloatingOff);
-  connect(m_jit_loadstore_floating_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITLoadStoreFloatingOff = enabled; });
+  connect(m_jit_loadstore_floating_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITLoadStoreFloatingOff = enabled;
+    ClearCache();
+  });
 
   m_jit_loadstore_paired_off = m_jit->addAction(tr("JIT LoadStore Paired Off"));
   m_jit_loadstore_paired_off->setCheckable(true);
   m_jit_loadstore_paired_off->setChecked(SConfig::GetInstance().bJITLoadStorePairedOff);
-  connect(m_jit_loadstore_paired_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITLoadStorePairedOff = enabled; });
+  connect(m_jit_loadstore_paired_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITLoadStorePairedOff = enabled;
+    ClearCache();
+  });
 
   m_jit_floatingpoint_off = m_jit->addAction(tr("JIT FloatingPoint Off"));
   m_jit_floatingpoint_off->setCheckable(true);
   m_jit_floatingpoint_off->setChecked(SConfig::GetInstance().bJITFloatingPointOff);
-  connect(m_jit_floatingpoint_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITFloatingPointOff = enabled; });
+  connect(m_jit_floatingpoint_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITFloatingPointOff = enabled;
+    ClearCache();
+  });
 
   m_jit_integer_off = m_jit->addAction(tr("JIT Integer Off"));
   m_jit_integer_off->setCheckable(true);
   m_jit_integer_off->setChecked(SConfig::GetInstance().bJITIntegerOff);
-  connect(m_jit_integer_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITIntegerOff = enabled; });
+  connect(m_jit_integer_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITIntegerOff = enabled;
+    ClearCache();
+  });
 
   m_jit_paired_off = m_jit->addAction(tr("JIT Paired Off"));
   m_jit_paired_off->setCheckable(true);
   m_jit_paired_off->setChecked(SConfig::GetInstance().bJITPairedOff);
-  connect(m_jit_paired_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITPairedOff = enabled; });
+  connect(m_jit_paired_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITPairedOff = enabled;
+    ClearCache();
+  });
 
   m_jit_systemregisters_off = m_jit->addAction(tr("JIT SystemRegisters Off"));
   m_jit_systemregisters_off->setCheckable(true);
   m_jit_systemregisters_off->setChecked(SConfig::GetInstance().bJITSystemRegistersOff);
-  connect(m_jit_systemregisters_off, &QAction::toggled,
-          [](bool enabled) { SConfig::GetInstance().bJITSystemRegistersOff = enabled; });
+  connect(m_jit_systemregisters_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITSystemRegistersOff = enabled;
+    ClearCache();
+  });
 }
 
 void MenuBar::AddSymbolsMenu()
