@@ -36,7 +36,7 @@ void Jit64AsmRoutineManager::Init(u8* stack_top)
 
 void Jit64AsmRoutineManager::Generate()
 {
-  enterCode = AlignCode16();
+  enter_code = AlignCode16();
   // We need to own the beginning of RSP, so we do an extra stack adjustment
   // for the shadow region before calls in this function.  This call will
   // waste a bit of space for a second shadow, but whatever.
@@ -66,7 +66,7 @@ void Jit64AsmRoutineManager::Generate()
   ABI_PopRegistersAndAdjustStack({}, 0);
   FixupBranch skipToRealDispatch =
       J(SConfig::GetInstance().bEnableDebugging);  // skip the sync and compare first time
-  dispatcherMispredictedBLR = GetCodePtr();
+  dispatcher_mispredicted_blr = GetCodePtr();
   AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
 #if 0  // debug mispredicts
@@ -103,7 +103,7 @@ void Jit64AsmRoutineManager::Generate()
 
   SetJumpTarget(skipToRealDispatch);
 
-  dispatcherNoCheck = GetCodePtr();
+  dispatcher_no_check = GetCodePtr();
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
   const bool assembly_dispatcher = true;
@@ -187,10 +187,10 @@ void Jit64AsmRoutineManager::Generate()
   ABI_CallFunction(JitTrampoline);
   ABI_PopRegistersAndAdjustStack({}, 0);
 
-  JMP(dispatcherNoCheck, true);
+  JMP(dispatcher_no_check, true);
 
   SetJumpTarget(bail);
-  doTiming = GetCodePtr();
+  do_timing = GetCodePtr();
 
   // make sure npc contains the next pc (needed for exception checking in CoreTiming::Advance)
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
@@ -215,7 +215,7 @@ void Jit64AsmRoutineManager::Generate()
   ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
   RET();
 
-  JitRegister::Register(enterCode, GetCodePtr(), "JIT_Loop");
+  JitRegister::Register(enter_code, GetCodePtr(), "JIT_Loop");
 
   GenerateCommon();
 }
