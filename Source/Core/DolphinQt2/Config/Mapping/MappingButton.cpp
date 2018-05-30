@@ -51,7 +51,9 @@ MappingButton::MappingButton(MappingWidget* widget, ControlReference* ref, bool 
   int height = QFontMetrics(qApp->font()).height() + 2 * VERTICAL_PADDING;
 
   setMinimumHeight(height);
-  setMaximumHeight(height);
+
+  // macOS needs some wiggle room to always get round buttons
+  setMaximumHeight(height + 8);
 
   // Make sure that long entries don't throw our layout out of whack
   setMaximumWidth(115);
