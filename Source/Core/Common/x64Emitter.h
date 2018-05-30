@@ -342,7 +342,7 @@ private:
   void CheckFlags();
 
   void Rex(int w, int r, int x, int b);
-  void WriteModRM(int mod, int rm, int reg);
+  void WriteModRM(int mod, int reg, int rm);
   void WriteSIB(int scale, int index, int base);
   void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
   void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
