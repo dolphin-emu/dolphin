@@ -43,6 +43,8 @@ QGroupBox* InfoWidget::CreateISODetails()
   QGroupBox* group = new QGroupBox(tr("ISO Details"));
   QFormLayout* layout = new QFormLayout;
 
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
   QLineEdit* file_path = CreateValueDisplay(
       QStringLiteral("%1 (%2)")
           .arg(QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath())))
@@ -97,6 +99,8 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 {
   QGroupBox* group = new QGroupBox(tr("Banner Details"));
   QFormLayout* layout = new QFormLayout;
+
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   m_name = CreateValueDisplay();
   m_maker = CreateValueDisplay();
