@@ -32,7 +32,7 @@ class VolumeWii : public Volume
 public:
   VolumeWii(std::unique_ptr<BlobReader> reader);
   ~VolumeWii();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const override;
+  bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
   bool IsEncryptedAndHashed() const override;
   std::vector<Partition> GetPartitions() const override;
   Partition GetGamePartition() const override;
@@ -81,7 +81,7 @@ private:
     u32 type;
   };
 
-  std::unique_ptr<BlobReader> m_pReader;
+  std::unique_ptr<BlobReader> m_reader;
   std::map<Partition, PartitionDetails> m_partitions;
   Partition m_game_partition;
   bool m_encrypted;
