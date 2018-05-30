@@ -72,6 +72,9 @@ struct SConfig
   std::string gdb_socket;
 #endif
 #endif
+#ifdef USE_DISCORD_PRESENCE
+  bool bUseDiscordPresence;
+#endif
   bool bAutomaticStart = false;
   bool bBootToPause = false;
 

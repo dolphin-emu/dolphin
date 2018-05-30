@@ -18,6 +18,9 @@ namespace Discord
 void Init()
 {
 #ifdef USE_DISCORD_PRESENCE
+  if (!SConfig::GetInstance().bUseDiscordPresence)
+    return;
+
   DiscordEventHandlers handlers = {};
   // The number is the client ID for Dolphin, it's used for images and the appication name
   Discord_Initialize("450033159212630028", &handlers, 1, nullptr);
@@ -28,6 +31,9 @@ void Init()
 void UpdateDiscordPresence()
 {
 #ifdef USE_DISCORD_PRESENCE
+  if (!SConfig::GetInstance().bUseDiscordPresence)
+    return;
+
   const std::string& title = SConfig::GetInstance().GetTitleDescription();
 
   DiscordRichPresence discord_presence = {};
@@ -42,6 +48,9 @@ void UpdateDiscordPresence()
 void Shutdown()
 {
 #ifdef USE_DISCORD_PRESENCE
+  if (!SConfig::GetInstance().bUseDiscordPresence)
+    return;
+
   Discord_Shutdown();
 #endif
 }

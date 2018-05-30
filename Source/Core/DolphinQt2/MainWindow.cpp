@@ -570,7 +570,9 @@ void MainWindow::OnStopComplete()
   m_stop_requested = false;
   HideRenderWidget();
   EnableScreenSaver(true);
+#ifdef USE_DISCORD_PRESENCE
   Discord::UpdateDiscordPresence();
+#endif
 
   SetFullScreenResolution(false);
 
@@ -721,7 +723,9 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     return;
   }
   ShowRenderWidget();
+#ifdef USE_DISCORD_PRESENCE
   Discord::UpdateDiscordPresence();
+#endif
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling
