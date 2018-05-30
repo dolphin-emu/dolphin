@@ -23,12 +23,12 @@ public:
   {
   }
 
-  virtual void VisitNop()
+  void VisitNop() override
   {
     // Do nothing
   }
-  virtual void VisitDirect(T* addr, u32 mask) { WriteRegToAddr(8 * sizeof(T), addr, mask); }
-  virtual void VisitComplex(const std::function<void(u32, T)>* lambda)
+  void VisitDirect(T* addr, u32 mask) override { WriteRegToAddr(8 * sizeof(T), addr, mask); }
+  void VisitComplex(const std::function<void(u32, T)>* lambda) override
   {
     CallLambda(8 * sizeof(T), lambda);
   }
@@ -103,12 +103,12 @@ public:
   {
   }
 
-  virtual void VisitConstant(T value) { LoadConstantToReg(8 * sizeof(T), value); }
-  virtual void VisitDirect(const T* addr, u32 mask)
+  void VisitConstant(T value) override { LoadConstantToReg(8 * sizeof(T), value); }
+  void VisitDirect(const T* addr, u32 mask) override
   {
     LoadAddrMaskToReg(8 * sizeof(T), addr, mask);
   }
-  virtual void VisitComplex(const std::function<T(u32)>* lambda)
+  void VisitComplex(const std::function<T(u32)>* lambda) override
   {
     CallLambda(8 * sizeof(T), lambda);
   }
