@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstddef>
 #include <string>
 
 #include "Common/BitSet.h"
@@ -306,21 +307,24 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
   if (slow_handler_iter == m_fault_to_handler.end())
     return false;
 
+  const u8* fault_location = slow_handler_iter->first;
+  const u32 fastmem_area_length = slow_handler_iter->second.length;
+
   // no overlapping fastmem area found
-  if ((const u8*)ctx->CTX_PC - slow_handler_iter->first > slow_handler_iter->second.length)
+  if ((const u8*)ctx->CTX_PC - fault_location > fastmem_area_length)
     return false;
 
-  ARM64XEmitter emitter((u8*)slow_handler_iter->first);
+  ARM64XEmitter emitter((u8*)fault_location);
 
   emitter.BL(slow_handler_iter->second.slowmem_code);
 
-  u32 num_insts_max = slow_handler_iter->second.length / 4 - 1;
+  const u32 num_insts_max = fastmem_area_length / 4 - 1;
   for (u32 i = 0; i < num_insts_max; ++i)
     emitter.HINT(HINT_NOP);
 
   m_fault_to_handler.erase(slow_handler_iter);
 
   emitter.FlushIcache();
-  ctx->CTX_PC = (u64)slow_handler_iter->first;
+  ctx->CTX_PC = reinterpret_cast<std::uintptr_t>(fault_location);
   return true;
 }
