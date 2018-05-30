@@ -231,22 +231,25 @@ constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};
 void CommonAsmRoutines::GenQuantizedStores()
 {
   // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
-  pairedStoreQuantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
+  paired_store_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
-    pairedStoreQuantized[type] = GenQuantizedStoreRuntime(false, static_cast<EQuantizeType>(type));
+  {
+    paired_store_quantized[type] =
+        GenQuantizedStoreRuntime(false, static_cast<EQuantizeType>(type));
+  }
 }
 
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedSingleStores()
 {
   // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
-  singleStoreQuantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
+  single_store_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
-    singleStoreQuantized[type] = GenQuantizedStoreRuntime(true, static_cast<EQuantizeType>(type));
+    single_store_quantized[type] = GenQuantizedStoreRuntime(true, static_cast<EQuantizeType>(type));
 }
 
 const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType type)
@@ -263,21 +266,21 @@ const u8* CommonAsmRoutines::GenQuantizedStoreRuntime(bool single, EQuantizeType
 void CommonAsmRoutines::GenQuantizedLoads()
 {
   // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_lXX).
-  pairedLoadQuantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
+  paired_load_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
-    pairedLoadQuantized[type] = GenQuantizedLoadRuntime(false, static_cast<EQuantizeType>(type));
+    paired_load_quantized[type] = GenQuantizedLoadRuntime(false, static_cast<EQuantizeType>(type));
 }
 
 void CommonAsmRoutines::GenQuantizedSingleLoads()
 {
   // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_lXX).
-  singleLoadQuantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
+  single_load_quantized = reinterpret_cast<const u8**>(AlignCodeTo(256));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
-    singleLoadQuantized[type] = GenQuantizedLoadRuntime(true, static_cast<EQuantizeType>(type));
+    single_load_quantized[type] = GenQuantizedLoadRuntime(true, static_cast<EQuantizeType>(type));
 }
 
 const u8* CommonAsmRoutines::GenQuantizedLoadRuntime(bool single, EQuantizeType type)

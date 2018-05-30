@@ -78,9 +78,9 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
       MOV(32, R(RSCRATCH2), Imm32(gqrValue & 0x3F00));
 
       if (w)
-        CALL(asm_routines.singleStoreQuantized[type]);
+        CALL(asm_routines.single_store_quantized[type]);
       else
-        CALL(asm_routines.pairedStoreQuantized[type]);
+        CALL(asm_routines.paired_store_quantized[type]);
     }
   }
   else
@@ -93,7 +93,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     // 0b0011111100000111, or 0x3F07.
     MOV(32, R(RSCRATCH2), Imm32(0x3F07));
     AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-    LEA(64, RSCRATCH, M(w ? asm_routines.singleStoreQuantized : asm_routines.pairedStoreQuantized));
+    LEA(64, RSCRATCH,
+        M(w ? asm_routines.single_store_quantized : asm_routines.paired_store_quantized));
     // 8-bit operations do not zero upper 32-bits of 64-bit registers.
     // Here we know that RSCRATCH's least significant byte is zero.
     OR(8, R(RSCRATCH), R(RSCRATCH2));
@@ -159,7 +160,8 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
     gqr.AddMemOffset(2);
     MOV(32, R(RSCRATCH2), Imm32(0x3F07));
     AND(32, R(RSCRATCH2), gqr);
-    LEA(64, RSCRATCH, M(w ? asm_routines.singleLoadQuantized : asm_routines.pairedLoadQuantized));
+    LEA(64, RSCRATCH,
+        M(w ? asm_routines.single_load_quantized : asm_routines.paired_load_quantized));
     // 8-bit operations do not zero upper 32-bits of 64-bit registers.
     // Here we know that RSCRATCH's least significant byte is zero.
     OR(8, R(RSCRATCH), R(RSCRATCH2));

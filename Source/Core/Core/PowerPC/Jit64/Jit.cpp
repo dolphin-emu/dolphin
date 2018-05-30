@@ -493,7 +493,7 @@ void Jit64::WriteBLRExit()
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, R(RSCRATCH2), Imm32(js.downcountAmount));
   CMP(64, R(RSCRATCH), MDisp(RSP, 8));
-  J_CC(CC_NE, asm_routines.dispatcherMispredictedBLR);
+  J_CC(CC_NE, asm_routines.dispatcher_mispredicted_blr);
   SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
   RET();
 }
@@ -536,13 +536,13 @@ void Jit64::WriteExternalExceptionExit()
 
 void Jit64::Run()
 {
-  CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+  CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
 }
 
 void Jit64::SingleStep()
 {
-  CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+  CompiledCode pExecAddr = (CompiledCode)asm_routines.enter_code;
   pExecAddr();
 }
 
@@ -660,7 +660,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // available.
   FixupBranch skip = J_CC(CC_G);
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
-  JMP(asm_routines.doTiming, true);  // downcount hit zero - go doTiming.
+  JMP(asm_routines.do_timing, true);  // downcount hit zero - go do_timing.
   SetJumpTarget(skip);
 
   const u8* normalEntry = GetCodePtr();
@@ -717,7 +717,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
                         static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       ABI_PopRegistersAndAdjustStack({}, 0);
-      JMP(asm_routines.dispatcherNoCheck, true);
+      JMP(asm_routines.dispatcher_no_check, true);
       SwitchToNearCode();
 
       // Insert a check that the GQRs are still the value we expect at

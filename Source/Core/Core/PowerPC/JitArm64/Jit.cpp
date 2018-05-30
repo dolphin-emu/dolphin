@@ -526,13 +526,13 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
-  CompiledCode pExecAddr = (CompiledCode)enterCode;
+  CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
 }
 
 void JitArm64::SingleStep()
 {
-  CompiledCode pExecAddr = (CompiledCode)enterCode;
+  CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
 }
 
@@ -608,7 +608,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   {
     FixupBranch bail = B(CC_PL);
     MOVI2R(DISPATCHER_PC, js.blockStart);
-    B(doTiming);
+    B(do_timing);
     SetJumpTarget(bail);
   }
 

@@ -15,13 +15,13 @@ alignas(16) extern const float m_dequantizeTableS[128];
 class CommonAsmRoutinesBase
 {
 public:
-  const u8* enterCode;
+  const u8* enter_code;
 
-  const u8* dispatcherMispredictedBLR;
+  const u8* dispatcher_mispredicted_blr;
   const u8* dispatcher;
-  const u8* dispatcherNoCheck;
+  const u8* dispatcher_no_check;
 
-  const u8* doTiming;
+  const u8* do_timing;
 
   const u8* frsqrte;
   const u8* fres;
@@ -33,14 +33,14 @@ public:
   //            converted to a pair of floats.
   // Trashes: all three RSCRATCH
   // Note: Store PC if this could cause an exception
-  const u8** pairedLoadQuantized;
+  const u8** paired_load_quantized;
 
   // In: array index: GQR to use.
   // In: ECX: Address to read from.
   // Out: XMM0: Bottom 32-bit slot holds the read value.
   // Trashes: all three RSCRATCH
   // Note: Store PC if this could cause an exception
-  const u8** singleLoadQuantized;
+  const u8** single_load_quantized;
 
   // In: array index: GQR to use.
   // In: ECX: Address to write to.
@@ -48,11 +48,11 @@ public:
   // Out: Nothing.
   // Trashes: all three RSCRATCH
   // Note: Store PC if this could cause an exception
-  const u8** pairedStoreQuantized;
+  const u8** paired_store_quantized;
 
   // In: array index: GQR to use.
   // In: ECX: Address to write to.
   // In: XMM0: Bottom 32-bit slot holds the float to be written.
   // Note: Store PC if this could cause an exception
-  const u8** singleStoreQuantized;
+  const u8** single_store_quantized;
 };

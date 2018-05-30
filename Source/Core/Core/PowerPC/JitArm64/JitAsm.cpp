@@ -25,7 +25,7 @@ void JitArm64::GenerateAsm()
   const u32 ALL_CALLEE_SAVED_FPR = 0x0000FF00;
   BitSet32 regs_to_save(ALL_CALLEE_SAVED);
   BitSet32 regs_to_save_fpr(ALL_CALLEE_SAVED_FPR);
-  enterCode = GetCodePtr();
+  enter_code = GetCodePtr();
 
   ABI_PushRegisters(regs_to_save);
   m_float_emit.ABI_PushRegisters(regs_to_save_fpr, X30);
@@ -61,11 +61,11 @@ void JitArm64::GenerateAsm()
   //   DISPATCHER_PC = PC;
   //   do
   //   {
-  // dispatcherNoCheck:
+  // dispatcher_no_check:
   //     ExecuteBlock(JitBase::Dispatch());
   // dispatcher:
   //   } while (PowerPC::ppcState.downcount > 0);
-  // doTiming:
+  // do_timing:
   //   NPC = PC = DISPATCHER_PC;
   // } while (CPU::GetState() == CPU::State::Running);
   AlignCodePage();
@@ -77,7 +77,7 @@ void JitArm64::GenerateAsm()
   // IMPORTANT - We jump on negative, not carry!!!
   FixupBranch bail = B(CC_MI);
 
-  dispatcherNoCheck = GetCodePtr();
+  dispatcher_no_check = GetCodePtr();
 
   bool assembly_dispatcher = true;
 
@@ -148,10 +148,10 @@ void JitArm64::GenerateAsm()
   MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
   BLR(X30);
   LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  B(dispatcherNoCheck);
+  B(dispatcher_no_check);
 
   SetJumpTarget(bail);
-  doTiming = GetCodePtr();
+  do_timing = GetCodePtr();
   // Write the current PC out to PPCSTATE
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
@@ -172,7 +172,7 @@ void JitArm64::GenerateAsm()
   LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
   // We can safely assume that downcount >= 1
-  B(dispatcherNoCheck);
+  B(dispatcher_no_check);
 
   SetJumpTarget(Exit);
 
@@ -185,7 +185,7 @@ void JitArm64::GenerateAsm()
   ABI_PopRegisters(regs_to_save);
   RET(X30);
 
-  JitRegister::Register(enterCode, GetCodePtr(), "JIT_Dispatcher");
+  JitRegister::Register(enter_code, GetCodePtr(), "JIT_Dispatcher");
 
   GenerateCommonAsm();
 
@@ -338,29 +338,29 @@ void JitArm64::GenerateCommonAsm()
 
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
-  pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  paired_load_quantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
   ReserveCodeSpace(8 * sizeof(u8*));
 
-  pairedLoadQuantized[0] = loadPairedFloatTwo;
-  pairedLoadQuantized[1] = loadPairedIllegal;
-  pairedLoadQuantized[2] = loadPairedIllegal;
-  pairedLoadQuantized[3] = loadPairedIllegal;
-  pairedLoadQuantized[4] = loadPairedU8Two;
-  pairedLoadQuantized[5] = loadPairedU16Two;
-  pairedLoadQuantized[6] = loadPairedS8Two;
-  pairedLoadQuantized[7] = loadPairedS16Two;
+  paired_load_quantized[0] = loadPairedFloatTwo;
+  paired_load_quantized[1] = loadPairedIllegal;
+  paired_load_quantized[2] = loadPairedIllegal;
+  paired_load_quantized[3] = loadPairedIllegal;
+  paired_load_quantized[4] = loadPairedU8Two;
+  paired_load_quantized[5] = loadPairedU16Two;
+  paired_load_quantized[6] = loadPairedS8Two;
+  paired_load_quantized[7] = loadPairedS16Two;
 
-  singleLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  single_load_quantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
   ReserveCodeSpace(8 * sizeof(u8*));
 
-  singleLoadQuantized[0] = loadPairedFloatOne;
-  singleLoadQuantized[1] = loadPairedIllegal;
-  singleLoadQuantized[2] = loadPairedIllegal;
-  singleLoadQuantized[3] = loadPairedIllegal;
-  singleLoadQuantized[4] = loadPairedU8One;
-  singleLoadQuantized[5] = loadPairedU16One;
-  singleLoadQuantized[6] = loadPairedS8One;
-  singleLoadQuantized[7] = loadPairedS16One;
+  single_load_quantized[0] = loadPairedFloatOne;
+  single_load_quantized[1] = loadPairedIllegal;
+  single_load_quantized[2] = loadPairedIllegal;
+  single_load_quantized[3] = loadPairedIllegal;
+  single_load_quantized[4] = loadPairedU8One;
+  single_load_quantized[5] = loadPairedU16One;
+  single_load_quantized[6] = loadPairedS8One;
+  single_load_quantized[7] = loadPairedS16One;
 
   // Stores
   start = GetCodePtr();
@@ -613,46 +613,46 @@ void JitArm64::GenerateCommonAsm()
 
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
-  pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  paired_store_quantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
   ReserveCodeSpace(32 * sizeof(u8*));
 
   // Fast
-  pairedStoreQuantized[0] = storePairedFloat;
-  pairedStoreQuantized[1] = storePairedIllegal;
-  pairedStoreQuantized[2] = storePairedIllegal;
-  pairedStoreQuantized[3] = storePairedIllegal;
-  pairedStoreQuantized[4] = storePairedU8;
-  pairedStoreQuantized[5] = storePairedU16;
-  pairedStoreQuantized[6] = storePairedS8;
-  pairedStoreQuantized[7] = storePairedS16;
+  paired_store_quantized[0] = storePairedFloat;
+  paired_store_quantized[1] = storePairedIllegal;
+  paired_store_quantized[2] = storePairedIllegal;
+  paired_store_quantized[3] = storePairedIllegal;
+  paired_store_quantized[4] = storePairedU8;
+  paired_store_quantized[5] = storePairedU16;
+  paired_store_quantized[6] = storePairedS8;
+  paired_store_quantized[7] = storePairedS16;
 
-  pairedStoreQuantized[8] = storeSingleFloat;
-  pairedStoreQuantized[9] = storePairedIllegal;
-  pairedStoreQuantized[10] = storePairedIllegal;
-  pairedStoreQuantized[11] = storePairedIllegal;
-  pairedStoreQuantized[12] = storeSingleU8;
-  pairedStoreQuantized[13] = storeSingleU16;
-  pairedStoreQuantized[14] = storeSingleS8;
-  pairedStoreQuantized[15] = storeSingleS16;
+  paired_store_quantized[8] = storeSingleFloat;
+  paired_store_quantized[9] = storePairedIllegal;
+  paired_store_quantized[10] = storePairedIllegal;
+  paired_store_quantized[11] = storePairedIllegal;
+  paired_store_quantized[12] = storeSingleU8;
+  paired_store_quantized[13] = storeSingleU16;
+  paired_store_quantized[14] = storeSingleS8;
+  paired_store_quantized[15] = storeSingleS16;
 
   // Slow
-  pairedStoreQuantized[16] = storePairedFloatSlow;
-  pairedStoreQuantized[17] = storePairedIllegal;
-  pairedStoreQuantized[18] = storePairedIllegal;
-  pairedStoreQuantized[19] = storePairedIllegal;
-  pairedStoreQuantized[20] = storePairedU8Slow;
-  pairedStoreQuantized[21] = storePairedU16Slow;
-  pairedStoreQuantized[22] = storePairedS8Slow;
-  pairedStoreQuantized[23] = storePairedS16Slow;
+  paired_store_quantized[16] = storePairedFloatSlow;
+  paired_store_quantized[17] = storePairedIllegal;
+  paired_store_quantized[18] = storePairedIllegal;
+  paired_store_quantized[19] = storePairedIllegal;
+  paired_store_quantized[20] = storePairedU8Slow;
+  paired_store_quantized[21] = storePairedU16Slow;
+  paired_store_quantized[22] = storePairedS8Slow;
+  paired_store_quantized[23] = storePairedS16Slow;
 
-  pairedStoreQuantized[24] = storeSingleFloatSlow;
-  pairedStoreQuantized[25] = storePairedIllegal;
-  pairedStoreQuantized[26] = storePairedIllegal;
-  pairedStoreQuantized[27] = storePairedIllegal;
-  pairedStoreQuantized[28] = storeSingleU8Slow;
-  pairedStoreQuantized[29] = storeSingleU16Slow;
-  pairedStoreQuantized[30] = storeSingleS8Slow;
-  pairedStoreQuantized[31] = storeSingleS16Slow;
+  paired_store_quantized[24] = storeSingleFloatSlow;
+  paired_store_quantized[25] = storePairedIllegal;
+  paired_store_quantized[26] = storePairedIllegal;
+  paired_store_quantized[27] = storePairedIllegal;
+  paired_store_quantized[28] = storeSingleU8Slow;
+  paired_store_quantized[29] = storeSingleU16Slow;
+  paired_store_quantized[30] = storeSingleS8Slow;
+  paired_store_quantized[31] = storeSingleS16Slow;
 
   GetAsmRoutines()->mfcr = nullptr;
 }
