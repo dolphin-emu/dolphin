@@ -30,7 +30,7 @@ class VolumeGC : public Volume
 public:
   VolumeGC(std::unique_ptr<BlobReader> reader);
   ~VolumeGC();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer,
+  bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
@@ -103,7 +103,7 @@ private:
 
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
-  std::unique_ptr<BlobReader> m_pReader;
+  std::unique_ptr<BlobReader> m_reader;
 };
 
 }  // namespace

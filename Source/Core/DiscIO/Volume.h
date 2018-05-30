@@ -43,7 +43,7 @@ class Volume
 public:
   Volume() {}
   virtual ~Volume() {}
-  virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const = 0;
+  virtual bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const = 0;
   template <typename T>
   std::optional<T> ReadSwapped(u64 offset, const Partition& partition) const
   {
