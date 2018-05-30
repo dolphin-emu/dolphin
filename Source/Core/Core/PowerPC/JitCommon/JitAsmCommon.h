@@ -12,9 +12,8 @@ alignas(16) extern const float m_one[4];
 alignas(16) extern const float m_quantizeTableS[128];
 alignas(16) extern const float m_dequantizeTableS[128];
 
-class CommonAsmRoutinesBase
+struct CommonAsmRoutinesBase
 {
-public:
   const u8* enter_code;
 
   const u8* dispatcher_mispredicted_blr;
