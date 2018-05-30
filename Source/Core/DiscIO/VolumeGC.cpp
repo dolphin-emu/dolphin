@@ -104,7 +104,7 @@ Country VolumeGC::GetCountry(const Partition& partition) const
 std::string VolumeGC::GetMakerID(const Partition& partition) const
 {
   char maker_id[2];
-  if (!Read(0x4, 0x2, reinterpret_cast<u8*>(&maker_id), partition))
+  if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
     return std::string();
 
   return DecodeString(maker_id);
@@ -119,7 +119,7 @@ std::optional<u16> VolumeGC::GetRevision(const Partition& partition) const
 std::string VolumeGC::GetInternalName(const Partition& partition) const
 {
   char name[0x60];
-  if (Read(0x20, 0x60, (u8*)name, partition))
+  if (Read(0x20, sizeof(name), reinterpret_cast<u8*>(name), partition))
     return DecodeString(name);
 
   return "";
@@ -160,7 +160,7 @@ std::vector<u32> VolumeGC::GetBanner(u32* width, u32* height) const
 std::string VolumeGC::GetApploaderDate(const Partition& partition) const
 {
   char date[16];
-  if (!Read(0x2440, 0x10, (u8*)&date, partition))
+  if (!Read(0x2440, sizeof(date), reinterpret_cast<u8*>(&date), partition))
     return std::string();
 
   return DecodeString(date);
