@@ -394,11 +394,11 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
     return false;
 
   // Get partition data size
-  u32 part_size_div4;
-  m_reader->Read(partition.offset + 0x2BC, sizeof(u32), reinterpret_cast<u8*>(&part_size_div4));
-  const u64 part_data_size = static_cast<u64>(Common::swap32(part_size_div4)) * 4;
+  const auto part_data_size = ReadSwappedAndShifted(partition.offset + 0x2BC, PARTITION_NONE);
+  if (!part_data_size)
+    return false;
 
-  const u32 num_clusters = static_cast<u32>(part_data_size / 0x8000);
+  const u32 num_clusters = static_cast<u32>(part_data_size.value() / 0x8000);
   for (u32 cluster_id = 0; cluster_id < num_clusters; ++cluster_id)
   {
     const u64 cluster_offset =
