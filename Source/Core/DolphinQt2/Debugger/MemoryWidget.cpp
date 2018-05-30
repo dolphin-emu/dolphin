@@ -164,6 +164,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addWidget(datatype_group);
   sidebar_layout->addWidget(bp_group);
+  sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
   // Splitter
   m_splitter = new QSplitter(Qt::Horizontal);
