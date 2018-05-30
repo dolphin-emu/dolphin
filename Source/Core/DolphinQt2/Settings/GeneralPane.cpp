@@ -135,9 +135,9 @@ void GeneralPane::CreateBasic()
   {
     QString str;
     if (i != 100)
-      str.sprintf("%i%%", i);
+      str = QStringLiteral("%1%").arg(i);
     else
-      str.sprintf(tr("%i%% (Normal Speed)").toStdString().c_str(), i);
+      str = tr("%1% (Normal Speed)").arg(i);
 
     m_combobox_speedlimit->addItem(str);
   }
