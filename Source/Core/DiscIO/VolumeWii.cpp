@@ -424,10 +424,9 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
     // This may cause some false negatives though: some bad clusters may be
     // skipped because they are *too* bad and are not even recognized as
     // valid clusters. To be improved.
-    bool meaningless = false;
-    for (u32 idx = 0x26C; idx < 0x280; ++idx)
-      if (cluster_metadata[idx] != 0)
-        meaningless = true;
+    const u8* pad_begin = cluster_metadata + 0x26C;
+    const u8* pad_end = pad_begin + 0x14;
+    const bool meaningless = std::any_of(pad_begin, pad_end, [](u8 val) { return val != 0; });
 
     if (meaningless)
       continue;
