@@ -272,7 +272,7 @@ std::string VolumeWii::GetGameID(const Partition& partition) const
 {
   char id[6];
 
-  if (!Read(0, 6, reinterpret_cast<u8*>(id), partition))
+  if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
     return std::string();
 
   return DecodeString(id);
@@ -303,7 +303,7 @@ std::string VolumeWii::GetMakerID(const Partition& partition) const
 {
   char maker_id[2];
 
-  if (!Read(0x4, 0x2, reinterpret_cast<u8*>(&maker_id), partition))
+  if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
     return std::string();
 
   return DecodeString(maker_id);
@@ -318,7 +318,7 @@ std::optional<u16> VolumeWii::GetRevision(const Partition& partition) const
 std::string VolumeWii::GetInternalName(const Partition& partition) const
 {
   char name_buffer[0x60];
-  if (Read(0x20, 0x60, (u8*)&name_buffer, partition))
+  if (Read(0x20, sizeof(name_buffer), reinterpret_cast<u8*>(&name_buffer), partition))
     return DecodeString(name_buffer);
 
   return "";
@@ -348,7 +348,7 @@ std::string VolumeWii::GetApploaderDate(const Partition& partition) const
 {
   char date[16];
 
-  if (!Read(0x2440, 0x10, (u8*)&date, partition))
+  if (!Read(0x2440, sizeof(date), reinterpret_cast<u8*>(&date), partition))
     return std::string();
 
   return DecodeString(date);
@@ -395,7 +395,7 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
 
   // Get partition data size
   u32 part_size_div4;
-  m_reader->Read(partition.offset + 0x2BC, 4, reinterpret_cast<u8*>(&part_size_div4));
+  m_reader->Read(partition.offset + 0x2BC, sizeof(u32), reinterpret_cast<u8*>(&part_size_div4));
   const u64 part_data_size = static_cast<u64>(Common::swap32(part_size_div4)) * 4;
 
   const u32 num_clusters = static_cast<u32>(part_data_size / 0x8000);
@@ -408,13 +408,13 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
     u8 cluster_metadata_crypted[0x400];
     u8 cluster_metadata[0x400];
     u8 iv[16] = {0};
-    if (!m_reader->Read(cluster_offset, 0x400, cluster_metadata_crypted))
+    if (!m_reader->Read(cluster_offset, sizeof(cluster_metadata_crypted), cluster_metadata_crypted))
     {
       WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", cluster_id);
       return false;
     }
-    mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, 0x400, iv, cluster_metadata_crypted,
-                          cluster_metadata);
+    mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(cluster_metadata), iv,
+                          cluster_metadata_crypted, cluster_metadata);
 
     // Some clusters have invalid data and metadata because they aren't
     // meant to be read by the game (for example, holes between files). To
@@ -433,7 +433,7 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
       continue;
 
     u8 cluster_data[0x7C00];
-    if (!Read((u64)cluster_id * 0x7C00, 0x7C00, cluster_data, partition))
+    if (!Read(cluster_id * sizeof(cluster_data), sizeof(cluster_data), cluster_data, partition))
     {
       WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", cluster_id);
       return false;
@@ -443,10 +443,11 @@ bool VolumeWii::CheckIntegrity(const Partition& partition) const
     {
       u8 hash[20];
 
-      mbedtls_sha1(cluster_data + hash_id * 0x400, 0x400, hash);
+      mbedtls_sha1(cluster_data + hash_id * sizeof(cluster_metadata), sizeof(cluster_metadata),
+                   hash);
 
       // Note that we do not use strncmp here
-      if (memcmp(hash, cluster_metadata + hash_id * 20, 20))
+      if (memcmp(hash, cluster_metadata + hash_id * sizeof(hash), sizeof(hash)))
       {
         WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", cluster_id,
                  hash_id);
