@@ -11,12 +11,117 @@
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// Extremely rare - actually, never seen.
-// Star Wars : Rogue Leader spams that at some point :|
-void Interpreter::Helper_UpdateCR1()
+namespace
 {
-  PowerPC::SetCRField(1, (FPSCR.FX << 3) | (FPSCR.FEX << 2) | (FPSCR.VX << 1) | FPSCR.OX);
+// Apply current rounding mode
+enum class RoundingMode
+{
+  Nearest = 0b00,
+  TowardsZero = 0b01,
+  TowardsPositiveInfinity = 0b10,
+  TowardsNegativeInfinity = 0b11
+};
+
+// Note that the convert to integer operation is defined
+// in Appendix C.4.2 in PowerPC Microprocessor Family:
+// The Programming Environments Manual for 32 and 64-bit Microprocessors
+void ConvertToInteger(UGeckoInstruction inst, RoundingMode rounding_mode)
+{
+  const double b = rPS0(inst.FB);
+  u32 value;
+  bool exception_occurred = false;
+
+  if (std::isnan(b))
+  {
+    if (Common::IsSNAN(b))
+      SetFPException(FPSCR_VXSNAN);
+
+    value = 0x80000000;
+    SetFPException(FPSCR_VXCVI);
+    exception_occurred = true;
+  }
+  else if (b > static_cast<double>(0x7fffffff))
+  {
+    // Positive large operand or +inf
+    value = 0x7fffffff;
+    SetFPException(FPSCR_VXCVI);
+    exception_occurred = true;
+  }
+  else if (b < -static_cast<double>(0x80000000))
+  {
+    // Negative large operand or -inf
+    value = 0x80000000;
+    SetFPException(FPSCR_VXCVI);
+    exception_occurred = true;
+  }
+  else
+  {
+    s32 i = 0;
+    switch (rounding_mode)
+    {
+    case RoundingMode::Nearest:
+    {
+      const double t = b + 0.5;
+      i = static_cast<s32>(t);
+
+      if (t - i < 0 || (t - i == 0 && b > 0))
+      {
+        i--;
+      }
+      break;
+    }
+    case RoundingMode::TowardsZero:
+      i = static_cast<s32>(b);
+      break;
+    case RoundingMode::TowardsPositiveInfinity:
+      i = static_cast<s32>(b);
+      if (b - i > 0)
+      {
+        i++;
+      }
+      break;
+    case RoundingMode::TowardsNegativeInfinity:
+      i = static_cast<s32>(b);
+      if (b - i < 0)
+      {
+        i--;
+      }
+      break;
+    }
+    value = static_cast<u32>(i);
+    const double di = i;
+    if (di == b)
+    {
+      FPSCR.FI = 0;
+      FPSCR.FR = 0;
+    }
+    else
+    {
+      // Also sets FPSCR[XX]
+      SetFI(1);
+      FPSCR.FR = fabs(di) > fabs(b);
+    }
+  }
+
+  if (exception_occurred)
+  {
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
+  }
+
+  if (!exception_occurred || FPSCR.VE == 0)
+  {
+    // Based on HW tests
+    // FPRF is not affected
+    riPS0(inst.FD) = 0xfff8000000000000ull | value;
+    if (value == 0 && std::signbit(b))
+      riPS0(inst.FD) |= 0x100000000ull;
+  }
+
+  if (inst.Rc)
+    Helper_UpdateCR1();
 }
+}  // Anonymous namespace
 
 void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction inst, double fa, double fb)
 {
@@ -103,127 +208,14 @@ void Interpreter::fcmpu(UGeckoInstruction inst)
   Helper_FloatCompareUnordered(inst, rPS0(inst.FA), rPS0(inst.FB));
 }
 
-// Apply current rounding mode
 void Interpreter::fctiwx(UGeckoInstruction inst)
 {
-  const double b = rPS0(inst.FB);
-  u32 value;
-
-  if (b > (double)0x7fffffff)
-  {
-    value = 0x7fffffff;
-    SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
-  }
-  else if (b < -(double)0x80000000)
-  {
-    value = 0x80000000;
-    SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
-  }
-  else
-  {
-    s32 i = 0;
-    switch (FPSCR.RN)
-    {
-    case 0:  // nearest
-    {
-      double t = b + 0.5;
-      i = (s32)t;
-
-      if (t - i < 0 || (t - i == 0 && b > 0))
-      {
-        i--;
-      }
-      break;
-    }
-    case 1:  // zero
-      i = (s32)b;
-      break;
-    case 2:  // +inf
-      i = (s32)b;
-      if (b - i > 0)
-      {
-        i++;
-      }
-      break;
-    case 3:  // -inf
-      i = (s32)b;
-      if (b - i < 0)
-      {
-        i--;
-      }
-      break;
-    }
-    value = (u32)i;
-    double di = i;
-    if (di == b)
-    {
-      FPSCR.FI = 0;
-      FPSCR.FR = 0;
-    }
-    else
-    {
-      SetFI(1);
-      FPSCR.FR = fabs(di) > fabs(b);
-    }
-  }
-
-  // based on HW tests
-  // FPRF is not affected
-  riPS0(inst.FD) = 0xfff8000000000000ull | value;
-  if (value == 0 && std::signbit(b))
-    riPS0(inst.FD) |= 0x100000000ull;
-  if (inst.Rc)
-    Helper_UpdateCR1();
+  ConvertToInteger(inst, static_cast<RoundingMode>(FPSCR.RN));
 }
 
-// Always round toward zero
 void Interpreter::fctiwzx(UGeckoInstruction inst)
 {
-  const double b = rPS0(inst.FB);
-  u32 value;
-
-  if (b > (double)0x7fffffff)
-  {
-    value = 0x7fffffff;
-    SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
-  }
-  else if (b < -(double)0x80000000)
-  {
-    value = 0x80000000;
-    SetFPException(FPSCR_VXCVI);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
-  }
-  else
-  {
-    s32 i = (s32)b;
-    double di = i;
-    if (di == b)
-    {
-      FPSCR.FI = 0;
-      FPSCR.FR = 0;
-    }
-    else
-    {
-      SetFI(1);
-      FPSCR.FR = fabs(di) > fabs(b);
-    }
-    value = (u32)i;
-  }
-
-  // based on HW tests
-  // FPRF is not affected
-  riPS0(inst.FD) = 0xfff8000000000000ull | value;
-  if (value == 0 && std::signbit(b))
-    riPS0(inst.FD) |= 0x100000000ull;
-  if (inst.Rc)
-    Helper_UpdateCR1();
+  ConvertToInteger(inst, RoundingMode::TowardsZero);
 }
 
 void Interpreter::fmrx(UGeckoInstruction inst)

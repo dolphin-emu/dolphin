@@ -52,6 +52,11 @@ inline void UpdateFPSCR()
               (FPSCR.ZX & FPSCR.ZE) | (FPSCR.XX & FPSCR.XE);
 }
 
+inline void Helper_UpdateCR1()
+{
+  PowerPC::SetCRField(1, (FPSCR.FX << 3) | (FPSCR.FEX << 2) | (FPSCR.VX << 1) | FPSCR.OX);
+}
+
 inline double ForceSingle(double value)
 {
   // convert to float...
