@@ -24,6 +24,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#include <objc/message.h>
+#endif
+
 namespace Vulkan
 {
 void VideoBackend::InitBackendInfo()
@@ -271,5 +275,34 @@ void VideoBackend::Shutdown()
   g_vulkan_context.reset();
   ShutdownShared();
   UnloadVulkanLibrary();
+}
+
+void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
+{
+#if defined(VK_USE_PLATFORM_MACOS_MVK)
+  // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
+  id view = reinterpret_cast<id>(wsi.render_surface);
+  Class clsCAMetalLayer = objc_getClass("CAMetalLayer");
+  if (!clsCAMetalLayer)
+  {
+    ERROR_LOG(VIDEO, "Failed to get CAMetalLayer class.");
+    return;
+  }
+
+  // [CAMetalLayer layer]
+  id layer = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("CAMetalLayer"),
+                                                                sel_getUid("layer"));
+  if (!layer)
+  {
+    ERROR_LOG(VIDEO, "Failed to create Metal layer.");
+    return;
+  }
+
+  // [view setWantsLayer:YES]
+  reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(view, sel_getUid("setWantsLayer:"), YES);
+
+  // [view setLayer:layer]
+  reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
+#endif
 }
 }  // namespace Vulkan
