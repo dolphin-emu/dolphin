@@ -33,6 +33,7 @@
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
@@ -141,30 +142,37 @@ void StorageDeleter::operator()(Storage* p) const
   delete p;
 }
 
+namespace FS = IOS::HLE::FS;
+
 class NandStorage final : public Storage
 {
 public:
-  explicit NandStorage(u64 tid) : m_tid{tid}
+  explicit NandStorage(FS::FileSystem* fs, u64 tid) : m_fs{fs}, m_tid{tid}
   {
-    m_wii_title_path = Common::GetTitleDataPath(tid, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
-    File::CreateFullPath(m_wii_title_path);
-    ScanForFiles();
+    m_data_dir = Common::GetTitleDataPath(tid);
+    InitTitleUidAndGid();
+    ScanForFiles(m_data_dir);
   }
 
-  bool SaveExists() override { return File::Exists(m_wii_title_path + "/banner.bin"); }
+  bool SaveExists() override
+  {
+    return m_uid && m_gid && m_fs->GetMetadata(*m_uid, *m_gid, m_data_dir + "/banner.bin");
+  }
 
   std::optional<Header> ReadHeader() override
   {
+    if (!m_uid || !m_gid)
+      return {};
+
+    const auto banner = m_fs->OpenFile(*m_uid, *m_gid, m_data_dir + "/banner.bin", FS::Mode::Read);
+    if (!banner)
+      return {};
     Header header{};
-    std::string banner_file_path = m_wii_title_path + "/banner.bin";
-    u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
-    header.banner_size = banner_size;
+    header.banner_size = banner->GetStatus()->size;
     header.tid = m_tid;
     header.md5 = s_md5_blanker;
     header.permissions = 0x3C;
-
-    File::IOFile banner_file(banner_file_path, "rb");
-    if (!banner_file.ReadBytes(header.banner, banner_size))
+    if (!banner->Read(header.banner, header.banner_size))
       return {};
     // remove nocopy flag
     header.banner[7] &= ~1;
@@ -188,58 +196,47 @@ public:
     return bk_hdr;
   }
 
-  std::optional<std::vector<SaveFile>> ReadFiles() override
-  {
-    std::vector<SaveFile> ret(m_files_list.size());
-    std::transform(m_files_list.begin(), m_files_list.end(), ret.begin(), [this](const auto& path) {
-      const File::FileInfo file_info{path};
-      SaveFile save_file;
-      save_file.mode = 0x3c;
-      save_file.attributes = 0;
-      save_file.type = file_info.IsDirectory() ? SaveFile::Type::Directory : SaveFile::Type::File;
-      save_file.path = Common::UnescapeFileName(path.substr(m_wii_title_path.length() + 1));
-      save_file.data = [path]() -> std::optional<std::vector<u8>> {
-        File::IOFile file{path, "rb"};
-        std::vector<u8> data(file.GetSize());
-        if (!file || !file.ReadBytes(data.data(), data.size()))
-          return std::nullopt;
-        return data;
-      };
-      return save_file;
-    });
-    return ret;
-  }
+  std::optional<std::vector<SaveFile>> ReadFiles() override { return m_files_list; }
 
   bool WriteHeader(const Header& header) override
   {
-    File::IOFile banner_file(m_wii_title_path + "/banner.bin", "wb");
-    return banner_file.WriteBytes(header.banner, header.banner_size);
+    if (!m_uid || !m_gid)
+      return false;
+
+    const std::string banner_file_path = m_data_dir + "/banner.bin";
+    const auto file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, banner_file_path, FS::Mode::ReadWrite,
+                                              FS::Mode::ReadWrite, FS::Mode::ReadWrite);
+    return file && file->Write(header.banner, header.banner_size);
   }
 
   bool WriteBkHeader(const BkHeader& bk_header) override { return true; }
 
   bool WriteFiles(const std::vector<SaveFile>& files) override
   {
+    if (!m_uid || !m_gid)
+      return false;
+
     for (const SaveFile& file : files)
     {
-      // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
-      // Special characters in path components will be escaped such as /../
-      std::string file_path = Common::EscapePath(file.path);
-      std::string file_path_full = m_wii_title_path + '/' + file_path;
-      File::CreateFullPath(file_path_full);
-
       if (file.type == SaveFile::Type::File)
       {
-        File::IOFile raw_save_file(file_path_full, "wb");
+        const auto raw_file =
+            m_fs->CreateAndOpenFile(*m_uid, *m_gid, file.path, FS::Mode::ReadWrite,
+                                    FS::Mode::ReadWrite, FS::Mode::ReadWrite);
         const std::optional<std::vector<u8>>& data = *file.data;
-        if (!data)
+        if (!data || !raw_file || !raw_file->Write(data->data(), data->size()))
           return false;
-        raw_save_file.WriteBytes(data->data(), data->size());
       }
       else if (file.type == SaveFile::Type::Directory)
       {
-        File::CreateDir(file_path_full);
-        if (!File::IsDirectory(file_path_full))
+        const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, file.path);
+        if (!meta || meta->is_file)
+          return false;
+
+        const FS::ResultCode result =
+            m_fs->CreateDirectory(*m_uid, *m_gid, file.path, 0, FS::Mode::ReadWrite,
+                                  FS::Mode::ReadWrite, FS::Mode::ReadWrite);
+        if (result != FS::ResultCode::Success)
           return false;
       }
     }
@@ -247,50 +244,65 @@ public:
   }
 
 private:
-  void ScanForFiles()
+  void ScanForFiles(const std::string& dir)
   {
-    std::vector<std::string> directories;
-    directories.push_back(m_wii_title_path);
-    u32 size = 0;
+    if (!m_uid || !m_gid)
+      return;
 
-    for (u32 i = 0; i < directories.size(); ++i)
+    const auto entries = m_fs->ReadDirectory(*m_uid, *m_gid, dir);
+    if (!entries)
+      return;
+
+    for (const std::string& elem : *entries)
     {
-      if (i != 0)
-      {
-        // add dir to fst
-        m_files_list.push_back(directories[i]);
-      }
+      if (elem == "banner.bin")
+        continue;
 
-      File::FSTEntry fst_tmp = File::ScanDirectoryTree(directories[i], false);
-      for (const File::FSTEntry& elem : fst_tmp.children)
-      {
-        if (elem.virtualName != "banner.bin")
-        {
-          size += sizeof(FileHDR);
-          if (elem.isDirectory)
-          {
-            if (elem.virtualName == "nocopy" || elem.virtualName == "nomove")
-            {
-              NOTICE_LOG(CONSOLE,
-                         "This save will likely require homebrew tools to copy to a real Wii.");
-            }
+      const std::string path = dir + '/' + elem;
+      const FS::Result<FS::Metadata> metadata = m_fs->GetMetadata(*m_uid, *m_gid, path);
+      if (!metadata)
+        return;
 
-            directories.push_back(elem.physicalName);
-          }
-          else
-          {
-            m_files_list.push_back(elem.physicalName);
-            size += static_cast<u32>(Common::AlignUp(elem.size, BLOCK_SZ));
-          }
-        }
-      }
+      SaveFile save_file;
+      // TODO: use the correct mode.
+      save_file.mode = 0x3c;
+      save_file.attributes = 0;
+      save_file.type = metadata->is_file ? SaveFile::Type::File : SaveFile::Type::Directory;
+      save_file.path = path;
+      save_file.data = [this, path]() -> std::optional<std::vector<u8>> {
+        const auto file = m_fs->OpenFile(*m_uid, *m_gid, path, FS::Mode::Read);
+        if (!file)
+          return {};
+        std::vector<u8> data(file->GetStatus()->size);
+        if (!file->Read(data.data(), data.size()))
+          return std::nullopt;
+        return data;
+      };
+      m_files_list.emplace_back(std::move(save_file));
+      m_files_size += sizeof(FileHDR);
+
+      if (metadata->is_file)
+        m_files_size += static_cast<u32>(Common::AlignUp(metadata->size, BLOCK_SZ));
+      else
+        ScanForFiles(path);
     }
-    m_files_size = size;
   }
 
+  void InitTitleUidAndGid()
+  {
+    const auto metadata = m_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, m_data_dir);
+    if (!metadata)
+      return;
+    m_uid = metadata->uid;
+    m_gid = metadata->gid;
+  }
+
+  FS::FileSystem* m_fs = nullptr;
+  std::string m_data_dir;
   u64 m_tid = 0;
-  std::string m_wii_title_path;
-  std::vector<std::string> m_files_list;
+  std::optional<u32> m_uid;
+  std::optional<u16> m_gid;
+  std::vector<SaveFile> m_files_list;
   u32 m_files_size = 0;
 };
 
@@ -487,10 +499,9 @@ private:
   File::IOFile m_file;
 };
 
-StoragePointer MakeNandStorage(IOS::HLE::FS::FileSystem* fs, u64 tid)
+StoragePointer MakeNandStorage(FS::FileSystem* fs, u64 tid)
 {
-  // fs parameter is not used yet but will be after WiiSave is migrated to the new FS interface.
-  return StoragePointer{new NandStorage{tid}};
+  return StoragePointer{new NandStorage{fs, tid}};
 }
 
 StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode)
