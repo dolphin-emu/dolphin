@@ -864,20 +864,15 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
   }
 }
 
-// Since the following float conversion functions are used in non-arithmetic PPC float instructions,
-// they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
-// This means we can't use CVTSS2SD/CVTSD2SS :(
-// The x87 FPU doesn't even support flush-to-zero so we can use FLD+FSTP even on denormals.
+// Since the following float conversion functions are used in non-arithmetic PPC float
+// instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
+// into QNaNs. This means we can't use CVTSS2SD/CVTSD2SS. The x87 FPU doesn't even support
+// flush-to-zero so we can use FLD+FSTP even on denormals.
 // If the number is a NaN, make sure to set the QNaN bit back to its original value.
 
 // Another problem is that officially, converting doubles to single format results in undefined
-// behavior.
-// Relying on undefined behavior is a bug so no software should ever do this.
-// In case it does happen, phire's more accurate implementation of ConvertDoubleToSingle() is
-// reproduced below.
-
-//#define MORE_ACCURATE_DOUBLETOSINGLE
-#ifdef MORE_ACCURATE_DOUBLETOSINGLE
+// behavior.  Relying on undefined behavior is a bug so no software should ever do this.
+// Super Mario 64 (on Wii VC) accidentally relies on this behavior.  See issue #11173
 
 alignas(16) static const __m128i double_exponent = _mm_set_epi64x(0, 0x7ff0000000000000);
 alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
@@ -953,65 +948,6 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   SetJumpTarget(end);
   MOVDDUP(dst, R(XMM1));
 }
-
-#else   // MORE_ACCURATE_DOUBLETOSINGLE
-
-alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0xffffffffffffffff,
-                                                                  0x7fffffffffffffff);
-alignas(16) static const __m128i single_qnan_bit = _mm_set_epi64x(0xffffffffffffffff,
-                                                                  0xffffffffffbfffff);
-alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff,
-                                                                  0xfff7ffffffffffff);
-
-// Smallest positive double that results in a normalized single.
-alignas(16) static const double min_norm_single = std::numeric_limits<float>::min();
-
-void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
-{
-  // Most games have flush-to-zero enabled, which causes the single -> double -> single process here
-  // to be lossy.
-  // This is a problem when games use float operations to copy non-float data.
-  // Changing the FPU mode is very expensive, so we can't do that.
-  // Here, check to see if the source is small enough that it will result in a denormal, and pass it
-  // to the x87 unit
-  // if it is.
-  avx_op(&XEmitter::VPAND, &XEmitter::PAND, XMM0, R(src), MConst(double_sign_bit), true, true);
-  UCOMISD(XMM0, MConst(min_norm_single));
-  FixupBranch nanConversion = J_CC(CC_P, true);
-  FixupBranch denormalConversion = J_CC(CC_B, true);
-  CVTSD2SS(dst, R(src));
-
-  SwitchToFarCode();
-  SetJumpTarget(nanConversion);
-  MOVQ_xmm(R(RSCRATCH), src);
-  // Put the quiet bit into CF.
-  BT(64, R(RSCRATCH), Imm8(51));
-  CVTSD2SS(dst, R(src));
-  FixupBranch continue1 = J_CC(CC_C, true);
-  // Clear the quiet bit of the SNaN, which was 0 (signalling) but got set to 1 (quiet) by
-  // conversion.
-  ANDPS(dst, MConst(single_qnan_bit));
-  FixupBranch continue2 = J(true);
-
-  SetJumpTarget(denormalConversion);
-  // We're using 8 bytes on the stack
-  SUB(64, R(RSP), Imm8(8));
-  MOVSD(MatR(RSP), src);
-  FLD(64, MatR(RSP));
-  FSTP(32, MatR(RSP));
-  MOVSS(dst, MatR(RSP));
-  ADD(64, R(RSP), Imm8(8));
-  FixupBranch continue3 = J(true);
-  SwitchToNearCode();
-
-  SetJumpTarget(continue1);
-  SetJumpTarget(continue2);
-  SetJumpTarget(continue3);
-  // We'd normally need to MOVDDUP here to put the single in the top half of the output register
-  // too, but
-  // this function is only used to go directly to a following store, so we omit the MOVDDUP here.
-}
-#endif  // MORE_ACCURATE_DOUBLETOSINGLE
 
 // Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
