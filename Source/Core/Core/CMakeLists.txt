@@ -293,6 +293,7 @@ PUBLIC
   videonull
   videoogl
   videosoftware
+  videovulkan
 
 PRIVATE
   ${LZO}
@@ -320,10 +321,6 @@ if(LIBUSB_FOUND)
     IOS/USB/LibusbDevice.cpp
     IOS/USB/Bluetooth/BTReal.cpp
   )
-endif()
-
-if(NOT APPLE)
-  target_link_libraries(core PUBLIC videovulkan)
 endif()
 
 if(WIN32)
