@@ -123,6 +123,7 @@ public:
   };
 
   virtual ~Storage() = default;
+  virtual bool SaveExists() { return true; }
   virtual std::optional<Header> ReadHeader() = 0;
   virtual std::optional<BkHeader> ReadBkHeader() = 0;
   virtual std::optional<std::vector<SaveFile>> ReadFiles() = 0;
@@ -145,6 +146,8 @@ public:
     File::CreateFullPath(m_wii_title_path);
     ScanForFiles();
   }
+
+  bool SaveExists() override { return File::Exists(m_wii_title_path + "/banner.bin"); }
 
   std::optional<Header> ReadHeader() override
   {
@@ -205,17 +208,8 @@ public:
 
   bool WriteHeader(const Header& header) override
   {
-    const std::string banner_file_path = m_wii_title_path + "/banner.bin";
-    if (!File::Exists(banner_file_path) ||
-        AskYesNoT("%s already exists. Consider making a backup of the current save files before "
-                  "overwriting.\nOverwrite now?",
-                  banner_file_path.c_str()))
-    {
-      File::IOFile banner_file(banner_file_path, "wb");
-      banner_file.WriteBytes(header.banner, header.hdr.banner_size);
-      return true;
-    }
-    return false;
+    File::IOFile banner_file(m_wii_title_path + "/banner.bin", "wb");
+    return banner_file.WriteBytes(header.banner, header.hdr.banner_size);
   }
 
   bool WriteBkHeader(const BkHeader& bk_header) override { return true; }
@@ -518,10 +512,19 @@ bool Import(const std::string& data_bin_path)
 {
   IOS::HLE::Kernel ios;
   const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");
-  if (const std::optional<Header> header = data_bin->ReadHeader())
-    return Copy(data_bin.get(), MakeNandStorage(ios.GetFS().get(), header->hdr.tid).get());
-  ERROR_LOG(CORE, "WiiSave::Import: Failed to read header");
-  return false;
+  const std::optional<Header> header = data_bin->ReadHeader();
+  if (!header)
+  {
+    ERROR_LOG(CORE, "WiiSave::Import: Failed to read header");
+    return false;
+  }
+  const auto nand = MakeNandStorage(ios.GetFS().get(), header->hdr.tid);
+  if (nand->SaveExists() && !AskYesNoT("Save data for this title already exists. Consider backing "
+                                       "up the current data before overwriting.\nOverwrite now?"))
+  {
+    return false;
+  }
+  return Copy(data_bin.get(), nand.get());
 }
 
 static bool Export(u64 tid, const std::string& export_path, IOS::HLE::Kernel* ios)
