@@ -86,12 +86,6 @@ void MemoryViewWidget::Update()
     bp_item->setFlags(Qt::ItemIsEnabled);
     bp_item->setData(Qt::UserRole, addr);
 
-    if (PowerPC::memchecks.OverlapsMemcheck(addr, 16))
-    {
-      bp_item->setData(Qt::DecorationRole,
-                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
-    }
-
     setItem(i, 0, bp_item);
 
     auto* addr_item = new QTableWidgetItem(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
@@ -126,23 +120,32 @@ void MemoryViewWidget::Update()
 
     setItem(i, columnCount() - 1, description_item);
 
-    auto update_values = [this, i, addr](auto value_to_string) {
+    bool row_breakpoint = true;
+
+    auto update_values = [&](auto value_to_string) {
       for (int c = 0; c < GetColumnCount(m_type); c++)
       {
         auto* hex_item = new QTableWidgetItem;
+        hex_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         const u32 address = addr + c * (16 / GetColumnCount(m_type));
+
+        if (PowerPC::memchecks.OverlapsMemcheck(address, 16 / GetColumnCount(m_type)))
+          hex_item->setBackground(Qt::red);
+        else
+          row_breakpoint = false;
+
+        setItem(i, 2 + c, hex_item);
+
         if (PowerPC::HostIsRAMAddress(address))
         {
           hex_item->setText(value_to_string(address));
-          hex_item->setFlags(Qt::ItemIsEnabled);
-          hex_item->setData(Qt::UserRole, addr);
+          hex_item->setData(Qt::UserRole, address);
         }
         else
         {
           hex_item->setFlags(0);
           hex_item->setText(QStringLiteral("-"));
         }
-        setItem(i, 2 + c, hex_item);
       }
     };
 
@@ -175,6 +178,12 @@ void MemoryViewWidget::Update()
     case Type::Float32:
       update_values([](u32 address) { return QString::number(PowerPC::HostRead_F32(address)); });
       break;
+    }
+
+    if (row_breakpoint)
+    {
+      bp_item->setData(Qt::DecorationRole,
+                       Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(24, 24)));
     }
   }
 
@@ -254,17 +263,18 @@ u32 MemoryViewWidget::GetContextAddress() const
   return m_context_address;
 }
 
-void MemoryViewWidget::ToggleBreakpoint()
+void MemoryViewWidget::ToggleRowBreakpoint(bool row)
 {
-  u32 addr = GetContextAddress();
+  TMemCheck check;
 
-  if (!PowerPC::memchecks.OverlapsMemcheck(addr, 16))
+  const u32 addr = row ? GetContextAddress() & 0xFFFFFFF0 : GetContextAddress();
+  const auto length = row ? 16 : (16 / GetColumnCount(m_type));
+
+  if (!PowerPC::memchecks.OverlapsMemcheck(addr, length))
   {
-    TMemCheck check;
-
     check.start_address = addr;
-    check.end_address = check.start_address + 15;
-    check.is_ranged = true;
+    check.end_address = check.start_address + length - 1;
+    check.is_ranged = length > 0;
     check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
     check.is_break_on_write = (m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite);
     check.log_on_hit = m_do_log;
@@ -279,6 +289,11 @@ void MemoryViewWidget::ToggleBreakpoint()
 
   emit BreakpointsChanged();
   Update();
+}
+
+void MemoryViewWidget::ToggleBreakpoint()
+{
+  ToggleRowBreakpoint(false);
 }
 
 void MemoryViewWidget::wheelEvent(QWheelEvent* event)
@@ -303,9 +318,9 @@ void MemoryViewWidget::mousePressEvent(QMouseEvent* event)
   {
   case Qt::LeftButton:
     if (column(item) == 0)
-      ToggleBreakpoint();
+      ToggleRowBreakpoint(true);
     else
-      SetAddress(addr);
+      SetAddress(addr & 0xFFFFFFF0);
 
     Update();
     break;
@@ -324,11 +339,12 @@ void MemoryViewWidget::OnCopyHex()
 {
   u32 addr = GetContextAddress();
 
-  u64 a = PowerPC::HostRead_U64(addr);
-  u64 b = PowerPC::HostRead_U64(addr + sizeof(u64));
+  const auto length = 16 / GetColumnCount(m_type);
+
+  u64 value = PowerPC::HostRead_U64(addr);
 
   QApplication::clipboard()->setText(
-      QStringLiteral("%1%2").arg(a, 16, 16, QLatin1Char('0')).arg(b, 16, 16, QLatin1Char('0')));
+      QStringLiteral("%1").arg(value, length * 2, 16, QLatin1Char('0')).left(length * 2));
 }
 
 void MemoryViewWidget::OnContextMenu()

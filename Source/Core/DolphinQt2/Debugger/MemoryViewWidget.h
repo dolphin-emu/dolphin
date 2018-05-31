@@ -32,6 +32,7 @@ public:
 
   void Update();
   void ToggleBreakpoint();
+  void ToggleRowBreakpoint(bool row);
 
   void SetType(Type type);
   void SetBPType(BPType type);
