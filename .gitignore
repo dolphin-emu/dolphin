@@ -11,12 +11,14 @@ Source/Core/Common/scmrev.h
 # Android cmake builds to here then copies to Source/Android.
 /libs/
 # Ignore various files created by visual studio/msbuild
+*.aps
 *.ipch
 *.opensdf
 *.sdf
 *.suo
 *.vcxproj.user
 *.obj
+*.log
 *.tlog
 *.VC.opendb
 *.VC.db
