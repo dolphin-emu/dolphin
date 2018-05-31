@@ -338,8 +338,15 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   for (const auto& adapter : adapters)
     m_adapter_combo->addItem(QString::fromStdString(adapter));
 
+  const bool supports_adapters = !adapters.empty();
+
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
-  m_adapter_combo->setEnabled(!adapters.empty());
+  m_adapter_combo->setEnabled(supports_adapters);
+
+  m_adapter_combo->setToolTip(
+      supports_adapters ? QStringLiteral("") :
+                          tr("%1 doesn't support this feature.")
+                              .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
 
   m_adapter_combo->blockSignals(old);
 }
