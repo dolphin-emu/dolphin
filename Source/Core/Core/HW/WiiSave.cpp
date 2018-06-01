@@ -116,7 +116,13 @@ class Storage
 public:
   struct SaveFile
   {
-    u8 mode, attributes, type;
+    enum class Type : u8
+    {
+      File = 1,
+      Directory = 2,
+    };
+    u8 mode, attributes;
+    Type type;
     std::string path;
     // Only valid for regular (i.e. non-directory) files.
     Common::Lazy<std::optional<std::vector<u8>>> data;
@@ -192,7 +198,7 @@ public:
       SaveFile save_file;
       save_file.mode = 0x3c;
       save_file.attributes = 0;
-      save_file.type = file_info.IsDirectory() ? 2 : 1;
+      save_file.type = file_info.IsDirectory() ? SaveFile::Type::Directory : SaveFile::Type::File;
       save_file.path = Common::UnescapeFileName(path.substr(m_wii_title_path.length() + 1));
       save_file.data = [path]() -> std::optional<std::vector<u8>> {
         File::IOFile file{path, "rb"};
@@ -224,7 +230,7 @@ public:
       std::string file_path_full = m_wii_title_path + '/' + file_path;
       File::CreateFullPath(file_path_full);
 
-      if (file.type == 1)
+      if (file.type == SaveFile::Type::File)
       {
         File::IOFile raw_save_file(file_path_full, "wb");
         const std::optional<std::vector<u8>>& data = *file.data;
@@ -232,7 +238,7 @@ public:
           return false;
         raw_save_file.WriteBytes(data->data(), data->size());
       }
-      else if (file.type == 2)
+      else if (file.type == SaveFile::Type::Directory)
       {
         File::CreateDir(file_path_full);
         if (!File::IsDirectory(file_path_full))
@@ -360,9 +366,12 @@ public:
 
       save_file.mode = file_hdr.permissions;
       save_file.attributes = file_hdr.attrib;
-      save_file.type = file_hdr.type;
+      const SaveFile::Type type = static_cast<SaveFile::Type>(file_hdr.type);
+      if (type != SaveFile::Type::Directory && type != SaveFile::Type::File)
+        return {};
+      save_file.type = type;
       save_file.path = file_hdr.name.data();
-      if (file_hdr.type == 1)
+      if (type == SaveFile::Type::File)
       {
         const u32 rounded_size = Common::AlignUp<u32>(file_hdr.size, BLOCK_SZ);
         const u64 pos = m_file.Tell();
@@ -409,7 +418,7 @@ public:
       file_hdr.magic = FILE_HDR_MAGIC;
       file_hdr.permissions = save_file.mode;
       file_hdr.attrib = save_file.attributes;
-      file_hdr.type = save_file.type;
+      file_hdr.type = static_cast<u8>(save_file.type);
       if (save_file.path.length() > 0x44)
         return false;
       std::strncpy(file_hdr.name.data(), save_file.path.data(), file_hdr.name.size());
