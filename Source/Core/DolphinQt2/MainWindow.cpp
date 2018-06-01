@@ -86,6 +86,8 @@
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/VideoConfig.h"
+
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <qpa/qplatformnativeinterface.h>
 #include "UICommon/X11Utils.h"
@@ -624,6 +626,10 @@ bool MainWindow::RequestStop()
   if (!m_render_widget->isFullScreen())
   {
     m_render_widget_geometry = m_render_widget->saveGeometry();
+  }
+  else if (g_ActiveConfig.ExclusiveFullscreenEnabled())
+  {
+    FullScreen();
   }
 
   if (SConfig::GetInstance().bConfirmStop)
