@@ -78,6 +78,7 @@ struct Header
   DataBinHeader hdr;
   u8 banner[FULL_BNR_MAX];
 };
+static_assert(sizeof(Header) == 0xf0c0, "Header has an incorrect size");
 
 struct BkHeader
 {
@@ -96,6 +97,7 @@ struct BkHeader
   std::array<u8, 6> mac_address;
   std::array<u8, 0x12> padding;
 };
+static_assert(sizeof(BkHeader) == 0x80, "BkHeader has an incorrect size");
 
 struct FileHDR
 {
@@ -464,9 +466,9 @@ private:
       return false;
 
     // Read data to sign.
-    const u32 data_size = bk_header->size_of_files + 0x80;
+    const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
     auto data = std::make_unique<u8[]>(data_size);
-    m_file.Seek(0xf0c0, SEEK_SET);
+    m_file.Seek(sizeof(Header), SEEK_SET);
     if (!m_file.ReadBytes(data.get(), data_size))
       return false;
 
