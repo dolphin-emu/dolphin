@@ -63,7 +63,7 @@ enum
 };
 
 #pragma pack(push, 1)
-struct DataBinHeader
+struct Header
 {
   Common::BigEndianValue<u64> tid;
   Common::BigEndianValue<u32> banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
@@ -71,11 +71,6 @@ struct DataBinHeader
   u8 unk1;                   // maybe permissions is a be16
   std::array<u8, 0x10> md5;  // md5 of plaintext header with md5 blanker applied
   Common::BigEndianValue<u16> unk2;
-};
-
-struct Header
-{
-  DataBinHeader hdr;
   u8 banner[FULL_BNR_MAX];
 };
 static_assert(sizeof(Header) == 0xf0c0, "Header has an incorrect size");
@@ -163,10 +158,10 @@ public:
     Header header{};
     std::string banner_file_path = m_wii_title_path + "/banner.bin";
     u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
-    header.hdr.banner_size = banner_size;
-    header.hdr.tid = m_tid;
-    header.hdr.md5 = s_md5_blanker;
-    header.hdr.permissions = 0x3C;
+    header.banner_size = banner_size;
+    header.tid = m_tid;
+    header.md5 = s_md5_blanker;
+    header.permissions = 0x3C;
 
     File::IOFile banner_file(banner_file_path, "rb");
     if (!banner_file.ReadBytes(header.banner, banner_size))
@@ -176,7 +171,7 @@ public:
 
     Md5 md5_calc;
     mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
-    header.hdr.md5 = std::move(md5_calc);
+    header.md5 = std::move(md5_calc);
     return header;
   }
 
@@ -218,7 +213,7 @@ public:
   bool WriteHeader(const Header& header) override
   {
     File::IOFile banner_file(m_wii_title_path + "/banner.bin", "wb");
-    return banner_file.WriteBytes(header.banner, header.hdr.banner_size);
+    return banner_file.WriteBytes(header.banner, header.banner_size);
   }
 
   bool WriteBkHeader(const BkHeader& bk_header) override { return true; }
@@ -318,7 +313,7 @@ public:
     std::array<u8, 0x10> iv = s_sd_initial_iv;
     m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
                    sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
-    u32 banner_size = header.hdr.banner_size;
+    u32 banner_size = header.banner_size;
     if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
         (((banner_size - BNR_SZ) % ICON_SZ) != 0))
     {
@@ -326,8 +321,8 @@ public:
       return {};
     }
 
-    Md5 md5_file = header.hdr.md5;
-    header.hdr.md5 = s_md5_blanker;
+    Md5 md5_file = header.md5;
+    header.md5 = s_md5_blanker;
     Md5 md5_calc;
     mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     if (md5_file != md5_calc)
@@ -531,7 +526,7 @@ bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrit
     ERROR_LOG(CORE, "WiiSave::Import: Failed to read header");
     return false;
   }
-  const auto nand = MakeNandStorage(ios.GetFS().get(), header->hdr.tid);
+  const auto nand = MakeNandStorage(ios.GetFS().get(), header->tid);
   if (nand->SaveExists() && !can_overwrite())
     return false;
   return Copy(data_bin.get(), nand.get());
