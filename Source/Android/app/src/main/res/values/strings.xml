@@ -29,14 +29,14 @@
     <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
-    <string name="wiimote_extensions_descrip">Choose and bind the Wii Remote extension.</string>
+    <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
     <string name="wiimote_ir">IR</string>
     <string name="wiimote_swing">Swing</string>
     <string name="wiimote_tilt">Tilt</string>
     <string name="wiimote_shake">Shake</string>
 
     <string name="input_binding">Input Binding</string>
-    <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
+    <string name="input_binding_description">Press or move an input to bind it to %1$s.</string>
 
     <!-- Generic buttons (Shared with lots of stuff) -->
     <string name="generic_buttons">Buttons</string>
@@ -111,9 +111,9 @@
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
     <string name="cpu_core">CPU Core</string>
-    <string name="cpu_core_desc">%s</string>
+    <string name="cpu_core_description">%s</string>
     <string name="dual_core">Dual Core</string>
-    <string name="dual_core_descrip">Split workload to two CPU cores instead of one. Increases speed.</string>
+    <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
@@ -136,64 +136,66 @@
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
-    <string name="video_backend_descrip">Select the API used for graphics rendering.</string>
+    <string name="video_backend_description">Select the API used for graphics rendering.</string>
     <string name="show_fps">Show FPS</string>
-    <string name="show_fps_descrip">Show the number of frames rendered per second as a measure of emulation speed.</string>
+    <string name="show_fps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
 
     <string name="enhancements_submenu">Enhancements</string>
     <string name="internal_resolution">Internal Resolution</string>
-    <string name="internal_resolution_descrip">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
+    <string name="internal_resolution_description">Specifies the resolution used to render at. A high resolution will improve visual quality a lot but is also quite heavy on performance and might cause glitches in certain games.</string>
     <string name="FSAA">Full-scene Anti-aliasing</string>
-    <string name="FSAA_descrip">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
+    <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
-    <string name="anisotropic_filtering_descrip">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="anisotropic_filtering_description">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
     <string name="postprocessing_shader">Post Processing Shader</string>
-    <string name="postprocessing_shader_descrip">Apply a post-processing effect after finishing a frame.</string>
+    <string name="postprocessing_shader_description">Apply a post-processing effect after finishing a frame.</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
-    <string name="scaled_efb_copy_descrip">Greatly increases quality of textures generated using render to texture effects. Raising the internal resolution will improve the effect of this setting. Slightly decreases performance and possibly causes issues (although unlikely).</string>
+    <string name="scaled_efb_copy_description">Greatly increases quality of textures generated using render to texture effects. Raising the internal resolution will improve the effect of this setting. Slightly decreases performance and possibly causes issues (although unlikely).</string>
     <string name="per_pixel_lighting">Per-Pixel Lighting</string>
-    <string name="per_pixel_lighting_descrip">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU). This usually is a safe enhancement, but might cause issues sometimes.</string>
+    <string name="per_pixel_lighting_description">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU). This usually is a safe enhancement, but might cause issues sometimes.</string>
     <string name="force_texture_filtering">Force Texture Filtering</string>
-    <string name="force_texture_filtering_descrip">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
+    <string name="force_texture_filtering_description">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
     <string name="disable_fog">Disable Fog</string>
-    <string name="disable_fog_descrip">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
+    <string name="disable_fog_description">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
+    <string name="disable_copy_filter">Disable Copy Filter</string>
+    <string name="disable_copy_filter_description">Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". Disabling the filter is usually safe, and may result in a sharper image.</string>
     <string name="stereoscopy_submenu">Stereoscopy</string>
-    <string name="stereoscopy_submenu_descrip">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
+    <string name="stereoscopy_submenu_description">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
     <string name="stereoscopy_mode">Stereoscopy Mode</string>
-    <string name="stereoscopy_mode_descrip">Select the stereoscopic 3D mode.</string>
+    <string name="stereoscopy_mode_description">Select the stereoscopic 3D mode.</string>
     <string name="stereoscopy_depth">Depth</string>
-    <string name="stereoscopy_depth_descrip">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
+    <string name="stereoscopy_depth_description">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
     <string name="stereoscopy_convergence">Convergence</string>
-    <string name="stereoscopy_convergence_descrip">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
+    <string name="stereoscopy_convergence_description">Control the distance of the convergence plane, this is the distance at which objects will appear to be in front of the screen.\nA higher value creates stronger out-of-screen effects while a lower value is more comfortable.</string>
     <string name="stereoscopy_swap_eyes">Swap Eyes</string>
-    <string name="stereoscopy_swap_eyes_descrip">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
+    <string name="stereoscopy_swap_eyes_description">Swap the left and right eye, mostly useful if you want to view side-by-side cross-eyed.</string>
 
     <string name="hacks_submenu">Hacks</string>
     <string name="embedded_frame_buffer">Embedded Frame Buffer</string>
     <string name="skip_efb_access">Skip EFB Access from CPU</string>
-    <string name="skip_efb_access_descrip">Ignore any requests from the CPU to read/write to the EFB.</string>
+    <string name="skip_efb_access_description">Ignore any requests from the CPU to read/write to the EFB.</string>
     <string name="ignore_format_changes">Ignore Format Changes</string>
-    <string name="ignore_format_changes_descrip">Ignore any changes to the EFB format.</string>
+    <string name="ignore_format_changes_description">Ignore any changes to the EFB format.</string>
     <string name="efb_copy_method">Store EFB Copies to Texture Only</string>
-    <string name="efb_copy_method_descrip">Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games. If unsure, leave this checked.</string>
+    <string name="efb_copy_method_description">Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games. If unsure, leave this checked.</string>
     <string name="texture_cache">Texture Cache</string>
     <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
-    <string name="texture_cache_accuracy_descrip">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
+    <string name="texture_cache_accuracy_description">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>
     <string name="gpu_texture_decoding">GPU Texture Decoding</string>
-    <string name="gpu_texture_decoding_descrip">Decodes textures on the GPU using compute shaders where supported. May improve performance in some scenarios.</string>
+    <string name="gpu_texture_decoding_description">Decodes textures on the GPU using compute shaders where supported. May improve performance in some scenarios.</string>
     <string name="external_frame_buffer">External Frame Buffer</string>
     <string name="xfb_copy_method">Store XFB Copies to Texture Only</string>
-    <string name="xfb_copy_method_descrip">Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games that need to readback from memory. If unsure, leave this checked.</string>
+    <string name="xfb_copy_method_description">Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games that need to readback from memory. If unsure, leave this checked.</string>
     <string name="immediate_xfb">Immediately Present XFB</string>
-    <string name="immediate_xfb_descrip">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
+    <string name="immediate_xfb_description">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
-    <string name="disable_destination_alpha_descrip">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
+    <string name="disable_destination_alpha_description">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>
-    <string name="fast_depth_calculation_descrip">Uses a less accurate algorithm to calculate depth values.</string>
+    <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
-    <string name="aspect_ratio_descrip">Select what aspect ratio to use when rendering</string>
+    <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
-    <string name="shader_compilation_mode_descrip">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
+    <string name="shader_compilation_mode_description">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
 
     <!-- Miscellaneous -->

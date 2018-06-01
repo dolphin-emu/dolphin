@@ -233,7 +233,7 @@ public final class SettingsFragmentPresenter
 			emuCoresValues = R.array.emuCoresValuesGeneric;
 		}
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.cpu_core, 0, emuCoresEntries, emuCoresValues, defaultCpuCore, cpuCore));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.dual_core, R.string.dual_core_descrip, true, dualCore));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.dual_core, R.string.dual_core_description, true, dualCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_title, 0, 400, "%", 100, overclock));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
@@ -306,9 +306,9 @@ public final class SettingsFragmentPresenter
 			mView.passSettingsToActivity(mSettings);
 		}
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_descrip, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, R.string.show_fps_descrip, false, showFps));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.shader_compilation_mode, R.string.shader_compilation_mode_descrip, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, R.string.show_fps_description, false, showFps));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.shader_compilation_mode, R.string.shader_compilation_mode_description, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.wait_for_shaders, 0, false, waitForShaders));
 
 		sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, SettingsFile.SECTION_GFX_ENHANCEMENTS));
@@ -328,19 +328,19 @@ public final class SettingsFragmentPresenter
 		Setting shaderCompilationMode = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE);
 		Setting waitForShaders = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_WAIT_FOR_SHADERS);
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.internal_resolution, R.string.internal_resolution_descrip, R.array.internalResolutionEntries, R.array.internalResolutionValues, 0, resolution));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_descrip, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ANISOTROPY, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.anisotropic_filtering, R.string.anisotropic_filtering_descrip, R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues, 0, anisotropic));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.internal_resolution, R.string.internal_resolution_description, R.array.internalResolutionEntries, R.array.internalResolutionValues, 0, resolution));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ANISOTROPY, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.anisotropic_filtering, R.string.anisotropic_filtering_description, R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues, 0, anisotropic));
 
 		// TODO
 //		Setting shader = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_POST_SHADER)
-//		sl.add(new SingleChoiceSetting(.getKey(), , R.string., R.string._descrip, R.array., R.array.));
+//		sl.add(new SingleChoiceSetting(.getKey(), , R.string., R.string._description, R.array., R.array.));
 
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.scaled_efb_copy, R.string.scaled_efb_copy_descrip, true, efbScaledCopy));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_descrip, false, perPixel));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.force_texture_filtering, R.string.force_texture_filtering_descrip, false, forceFilter));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_descrip, false, disableFog));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_copy_filter, R.string.disable_copy_filter_descrip, false, disableCopyFilter));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.scaled_efb_copy, R.string.scaled_efb_copy_description, true, efbScaledCopy));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_description, false, perPixel));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.force_texture_filtering, R.string.force_texture_filtering_description, false, forceFilter));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_description, false, disableFog));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_copy_filter, R.string.disable_copy_filter_description, false, disableCopyFilter));
 
 		 /*
 		 Check if we support stereo
@@ -352,7 +352,7 @@ public final class SettingsFragmentPresenter
 		if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
 				(helper.supportsGLES3() && helper.GetVersion() >= 310 && helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
 		{
-			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu, R.string.stereoscopy_submenu_descrip, SettingsFile.SECTION_STEREOSCOPY));
+			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu, R.string.stereoscopy_submenu_description, SettingsFile.SECTION_STEREOSCOPY));
 		}
 	}
 
@@ -372,21 +372,21 @@ public final class SettingsFragmentPresenter
 		Setting aspectRatio = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
 		sl.add(new HeaderSetting(null, null, R.string.embedded_frame_buffer, 0));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.skip_efb_access, R.string.skip_efb_access_descrip, false, skipEFB));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.ignore_format_changes, R.string.ignore_format_changes_descrip, true, ignoreFormat));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_EFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.efb_copy_method, R.string.efb_copy_method_descrip, true, efbToTexture));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.skip_efb_access, R.string.skip_efb_access_description, false, skipEFB));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.ignore_format_changes, R.string.ignore_format_changes_description, true, ignoreFormat));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_EFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.efb_copy_method, R.string.efb_copy_method_description, true, efbToTexture));
 
 		sl.add(new HeaderSetting(null, null, R.string.texture_cache, 0));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_TEXCACHE_ACCURACY, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.texture_cache_accuracy, R.string.texture_cache_accuracy_descrip, R.array.textureCacheAccuracyEntries, R.array.textureCacheAccuracyValues, 128, texCacheAccuracy));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.gpu_texture_decoding, R.string.gpu_texture_decoding_descrip, false, gpuTextureDecoding));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_TEXCACHE_ACCURACY, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.texture_cache_accuracy, R.string.texture_cache_accuracy_description, R.array.textureCacheAccuracyEntries, R.array.textureCacheAccuracyValues, 128, texCacheAccuracy));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.gpu_texture_decoding, R.string.gpu_texture_decoding_description, false, gpuTextureDecoding));
 
 		sl.add(new HeaderSetting(null, null, R.string.external_frame_buffer, 0));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_XFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.xfb_copy_method, R.string.xfb_copy_method_descrip, true, xfbToTexture));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_IMMEDIATE_XFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.immediate_xfb, R.string.immediate_xfb_descrip, false, immediateXfb));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_XFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.xfb_copy_method, R.string.xfb_copy_method_description, true, xfbToTexture));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_IMMEDIATE_XFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.immediate_xfb, R.string.immediate_xfb_description, false, immediateXfb));
 
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.fast_depth_calculation, R.string.fast_depth_calculation_descrip, true, fastDepth));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.fast_depth_calculation, R.string.fast_depth_calculation_description, true, fastDepth));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.aspect_ratio, R.string.aspect_ratio_description, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
 	}
 
 	private void addStereoSettings(ArrayList<SettingsItem> sl)
@@ -396,10 +396,10 @@ public final class SettingsFragmentPresenter
 		Setting convergence = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_CONV);
 		Setting swapEyes = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_STEREOSCOPY).getSetting(SettingsFile.KEY_STEREO_SWAP);
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_mode, R.string.stereoscopy_mode_descrip, R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
-		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_depth, R.string.stereoscopy_depth_descrip, 100, "%", 20, stereoDepth));
-		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_CONV, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_descrip, 200, "%", 0, convergence));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_STEREO_SWAP, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_swap_eyes, R.string.stereoscopy_swap_eyes_descrip, false, swapEyes));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_mode, R.string.stereoscopy_mode_description, R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
+		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_depth, R.string.stereoscopy_depth_description, 100, "%", 20, stereoDepth));
+		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_CONV, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 200, "%", 0, convergence));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_STEREO_SWAP, SettingsFile.SECTION_STEREOSCOPY, SettingsFile.SETTINGS_GFX, R.string.stereoscopy_swap_eyes, R.string.stereoscopy_swap_eyes_description, false, swapEyes));
 	}
 
 	private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)
@@ -504,7 +504,7 @@ public final class SettingsFragmentPresenter
 		Setting bindDPadLeft = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber);
 		Setting bindDPadRight = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_BINDINGS).getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
 
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_extensions, R.string.wiimote_extensions_descrip, R.array.wiimoteExtensionsEntries, R.array.wiimoteExtensionsValues, 0, extension));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_extensions, R.string.wiimote_extensions_description, R.array.wiimoteExtensionsEntries, R.array.wiimoteExtensionsValues, 0, extension));
 
 		sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
 		sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber, SettingsFile.SECTION_BINDINGS, SettingsFile.SETTINGS_DOLPHIN, R.string.button_a, bindA));

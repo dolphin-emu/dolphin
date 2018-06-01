@@ -199,7 +199,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 	{
 		final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item);
 		dialog.setTitle(R.string.input_binding);
-		dialog.setMessage(String.format(mContext.getString(R.string.input_binding_descrip), mContext.getString(item.getNameId())));
+		dialog.setMessage(String.format(mContext.getString(R.string.input_binding_description), mContext.getString(item.getNameId())));
 		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
 		dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear), (dialogInterface, i) ->
 		{
