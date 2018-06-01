@@ -110,7 +110,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	public void refresh()
 	{
 		getContentResolver().insert(GameProvider.URI_REFRESH, null);
-		refreshFragment();
+		refreshAllFragments();
 	}
 
 	@Override
@@ -203,14 +203,15 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		return mPresenter.handleOptionSelection(item.getItemId());
 	}
 
-	private void refreshFragment()
+	private void refreshAllFragments()
 	{
-
-		Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
-		PlatformGamesView fragment = getPlatformGamesView(platform);
-		if (fragment != null)
+		for (Platform platform : Platform.values())
 		{
-			fragment.refresh();
+			PlatformGamesView fragment = getPlatformGamesView(platform);
+			if (fragment != null)
+			{
+				fragment.refresh();
+			}
 		}
 	}
 
