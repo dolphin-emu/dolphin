@@ -2,9 +2,11 @@ package org.dolphinemu.dolphinemu.model;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -37,8 +39,6 @@ public final class GameDatabase extends SQLiteOpenHelper
 	public static final int GAME_COLUMN_COMPANY = 7;
 	public static final int GAME_COLUMN_SCREENSHOT_PATH = 8;
 
-	public static final int FOLDER_COLUMN_PATH = 1;
-
 	public static final String KEY_DB_ID = "_id";
 
 	public static final String KEY_GAME_PATH = "path";
@@ -49,17 +49,11 @@ public final class GameDatabase extends SQLiteOpenHelper
 	public static final String KEY_GAME_ID = "game_id";
 	public static final String KEY_GAME_COMPANY = "company";
 	public static final String KEY_GAME_SCREENSHOT_PATH = "screenshot_path";
-
-	public static final String KEY_FOLDER_PATH = "path";
-
-	public static final String TABLE_NAME_FOLDERS = "folders";
 	public static final String TABLE_NAME_GAMES = "games";
 
 	private static final String TYPE_PRIMARY = " INTEGER PRIMARY KEY";
 	private static final String TYPE_INTEGER = " INTEGER";
 	private static final String TYPE_STRING = " TEXT";
-
-	private static final String CONSTRAINT_UNIQUE = " UNIQUE";
 
 	private static final String SEPARATOR = ", ";
 
@@ -74,17 +68,19 @@ public final class GameDatabase extends SQLiteOpenHelper
 			+ KEY_GAME_COMPANY + TYPE_STRING + SEPARATOR
 			+ KEY_GAME_SCREENSHOT_PATH + TYPE_STRING + ")";
 
-	private static final String SQL_CREATE_FOLDERS = "CREATE TABLE " + TABLE_NAME_FOLDERS + "("
-			+ KEY_DB_ID + TYPE_PRIMARY + SEPARATOR
-			+ KEY_FOLDER_PATH + TYPE_STRING + CONSTRAINT_UNIQUE + ")";
-
-	private static final String SQL_DELETE_FOLDERS = "DROP TABLE IF EXISTS " + TABLE_NAME_FOLDERS;
 	private static final String SQL_DELETE_GAMES = "DROP TABLE IF EXISTS " + TABLE_NAME_GAMES;
+
+	private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
+
+	private static final Set<String> EMPTY_SET = new HashSet<>();
+
+	private Context mContext;
 
 	public GameDatabase(Context context)
 	{
 		// Superclass constructor builds a database or uses an existing one.
 		super(context, "games.db", null, DB_VERSION);
+		mContext = context;
 	}
 
 	@Override
@@ -93,16 +89,12 @@ public final class GameDatabase extends SQLiteOpenHelper
 		Log.debug("[GameDatabase] GameDatabase - Creating database...");
 
 		execSqlAndLog(database, SQL_CREATE_GAMES);
-		execSqlAndLog(database, SQL_CREATE_FOLDERS);
 	}
 
 	@Override
 	public void onDowngrade(SQLiteDatabase database, int oldVersion, int newVersion)
 	{
 		Log.verbose("[GameDatabase] Downgrades not supporting, clearing databases..");
-		execSqlAndLog(database, SQL_DELETE_FOLDERS);
-		execSqlAndLog(database, SQL_CREATE_FOLDERS);
-
 		execSqlAndLog(database, SQL_DELETE_GAMES);
 		execSqlAndLog(database, SQL_CREATE_GAMES);
 	}
@@ -118,6 +110,19 @@ public final class GameDatabase extends SQLiteOpenHelper
 
 		Log.verbose("[GameDatabase] Re-scanning library with new schema.");
 		scanLibrary(database);
+	}
+
+	public void addGameFolder(String path)
+	{
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
+		Set<String> newFolderPaths = new HashSet<>(folderPaths);
+		newFolderPaths.add(path);
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
+		editor.apply();
+
+		scanLibrary(getWritableDatabase());
 	}
 
 	public void scanLibrary(SQLiteDatabase database)
@@ -148,28 +153,17 @@ public final class GameDatabase extends SQLiteOpenHelper
 			}
 		}
 
-
-		// Get a cursor listing all the folders the user has added to the library.
-		Cursor folderCursor = database.query(TABLE_NAME_FOLDERS,
-				null,    // Get all columns.
-				null,    // Get all rows.
-				null,
-				null,    // No grouping.
-				null,
-				null);    // Order of folders is irrelevant.
-
 		Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(
 				".ciso", ".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".tgc", ".wad", ".wbfs"));
 
-		// Possibly overly defensive, but ensures that moveToNext() does not skip a row.
-		folderCursor.moveToPosition(-1);
-
 		// Iterate through all results of the DB query (i.e. all folders in the library.)
-		while (folderCursor.moveToNext())
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
+		Set<String> newFolderPaths = new HashSet<>();
+		for (String folderPath : folderPaths)
 		{
-
-			String folderPath = folderCursor.getString(FOLDER_COLUMN_PATH);
 			File folder = new File(folderPath);
+			boolean deleteFolder = false;
 
 			Log.info("[GameDatabase] Reading files from library folder: " + folderPath);
 
@@ -245,19 +239,29 @@ public final class GameDatabase extends SQLiteOpenHelper
 			else if (!folder.exists())
 			{
 				Log.error("[GameDatabase] Folder no longer exists. Removing from the library: " + folderPath);
-				database.delete(TABLE_NAME_FOLDERS,
-						KEY_DB_ID + " = ?",
-						new String[]{Long.toString(folderCursor.getLong(COLUMN_DB_ID))});
+				deleteFolder = true;
 			}
 			else
 			{
 				Log.error("[GameDatabase] Folder contains no games: " + folderPath);
 			}
+
+			if (!deleteFolder)
+			{
+				newFolderPaths.add(folderPath);
+			}
 		}
 
 		fileCursor.close();
-		folderCursor.close();
 		database.close();
+
+		if (folderPaths.size() != newFolderPaths.size())
+		{
+			// One or more folders are being deleted
+			SharedPreferences.Editor editor = preferences.edit();
+			editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
+			editor.apply();
+		}
 	}
 
 	public Observable<Cursor> getGamesForPlatform(final Platform platform)

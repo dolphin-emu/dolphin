@@ -19,7 +19,6 @@ public final class GameProvider extends ContentProvider
 	public static final String REFRESH_LIBRARY = "refresh";
 
 	public static final String AUTHORITY = "content://" + BuildConfig.APPLICATION_ID + ".provider";
-	public static final Uri URI_FOLDER = Uri.parse(AUTHORITY + "/" + GameDatabase.TABLE_NAME_FOLDERS + "/");
 	public static final Uri URI_GAME = Uri.parse(AUTHORITY + "/" + GameDatabase.TABLE_NAME_GAMES + "/");
 	public static final Uri URI_REFRESH = Uri.parse(AUTHORITY + "/" + REFRESH_LIBRARY + "/");
 
@@ -72,11 +71,7 @@ public final class GameProvider extends ContentProvider
 			return null;
 		}
 
-		if (lastSegment.equals(GameDatabase.TABLE_NAME_FOLDERS))
-		{
-			return MIME_TYPE_FOLDER;
-		}
-		else if (lastSegment.equals(GameDatabase.TABLE_NAME_GAMES))
+		if (lastSegment.equals(GameDatabase.TABLE_NAME_GAMES))
 		{
 			return MIME_TYPE_GAME;
 		}
@@ -109,12 +104,6 @@ public final class GameProvider extends ContentProvider
 			// If insertion was successful...
 			if (id > 0)
 			{
-				// If we just added a folder, add its contents to the game list.
-				if (table.equals(GameDatabase.TABLE_NAME_FOLDERS))
-				{
-					mDbHelper.scanLibrary(database);
-				}
-
 				// Notify the UI that its contents should be refreshed.
 				getContext().getContentResolver().notifyChange(uri, null);
 				uri = Uri.withAppendedPath(uri, Long.toString(id));

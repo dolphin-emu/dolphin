@@ -1,12 +1,10 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.content.AsyncQueryHandler;
-import android.content.ContentValues;
 import android.content.Context;
-import android.net.Uri;
+import android.os.AsyncTask;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
-import org.dolphinemu.dolphinemu.model.GameProvider;
 
 public class AddDirectoryHelper
 {
@@ -24,21 +22,23 @@ public class AddDirectoryHelper
 
     public void addDirectory(String dir, AddDirectoryListener addDirectoryListener)
     {
-        AsyncQueryHandler handler = new AsyncQueryHandler(mContext.getContentResolver())
+        new AsyncTask<String, Void, Void>()
         {
             @Override
-            protected void onInsertComplete(int token, Object cookie, Uri uri)
+            protected Void doInBackground(String... params)
             {
-                addDirectoryListener.onDirectoryAdded();
-            }
-        };
+                for (String path : params)
+                {
+                    DolphinApplication.databaseHelper.addGameFolder(path);
+                }
+                return null;
+             }
 
-        ContentValues file = new ContentValues();
-        file.put(GameDatabase.KEY_FOLDER_PATH, dir);
-
-        handler.startInsert(0,                // We don't need to identify this call to the handler
-                null,                        // We don't need to pass additional data to the handler
-                GameProvider.URI_FOLDER,    // Tell the GameProvider we are adding a folder
-                file);
+             @Override
+             protected void onPostExecute(Void result)
+             {
+                 addDirectoryListener.onDirectoryAdded();
+             }
+        }.execute(dir);
     }
 }
