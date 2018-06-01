@@ -36,6 +36,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
+import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -74,10 +75,12 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean activityRecreated;
 	private String mScreenPath;
 	private String mSelectedTitle;
+	private int mPlatform;
 	private String mPath;
 
 	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
 	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
+	public static final String EXTRA_PLATFORM = "Platform";
 	public static final String EXTRA_SCREEN_PATH = "ScreenPath";
 	public static final String EXTRA_GRID_POSITION = "GridPosition";
 
@@ -146,13 +149,14 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
 	}
 
-	public static void launch(FragmentActivity activity, String path, String title, String screenshotPath, int position, View sharedView)
+	public static void launch(FragmentActivity activity, GameFile gameFile, int position, View sharedView)
 	{
 		Intent launcher = new Intent(activity, EmulationActivity.class);
 
-		launcher.putExtra(EXTRA_SELECTED_GAME, path);
-		launcher.putExtra(EXTRA_SELECTED_TITLE, title);
-		launcher.putExtra(EXTRA_SCREEN_PATH, screenshotPath);
+		launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
+		launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
+		launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
+		launcher.putExtra(EXTRA_SCREEN_PATH, gameFile.getScreenshotPath());
 		launcher.putExtra(EXTRA_GRID_POSITION, position);
 
 		ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
@@ -176,6 +180,7 @@ public final class EmulationActivity extends AppCompatActivity
 			Intent gameToEmulate = getIntent();
 			mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
 			mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
+			mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
 			mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
 			mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
 			activityRecreated = false;
@@ -186,7 +191,9 @@ public final class EmulationActivity extends AppCompatActivity
 			restoreState(savedInstanceState);
 		}
 
-		sIsGameCubeGame = Platform.fromNativeInt(NativeLibrary.GetPlatform(mPath)) == Platform.GAMECUBE;
+		// TODO: The accurate way to find out which console we're emulating is to
+		// first launch emulation and then ask the core which console we're emulating
+		sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
 		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 		mControllerMappingHelper = new ControllerMappingHelper();
 
@@ -284,6 +291,7 @@ public final class EmulationActivity extends AppCompatActivity
 		mEmulationFragment.saveTemporaryState();
 		outState.putString(EXTRA_SELECTED_GAME, mPath);
 		outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
+		outState.putInt(EXTRA_PLATFORM, mPlatform);
 		outState.putString(EXTRA_SCREEN_PATH, mScreenPath);
 		outState.putInt(EXTRA_GRID_POSITION, mPosition);
 		super.onSaveInstanceState(outState);
@@ -293,6 +301,7 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
 		mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
+		mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
 		mScreenPath = savedInstanceState.getString(EXTRA_SCREEN_PATH);
 		mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
 	}

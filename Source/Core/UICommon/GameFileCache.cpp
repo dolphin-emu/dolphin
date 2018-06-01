@@ -12,6 +12,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "Common/ChunkFile.h"
@@ -38,10 +39,23 @@ std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& direct
   return Common::DoFileSearch(directories_to_scan, search_extensions, recursive_scan);
 }
 
+GameFileCache::GameFileCache() : m_path(File::GetUserPath(D_CACHE_IDX) + "gamelist.cache")
+{
+}
+
+GameFileCache::GameFileCache(std::string path) : m_path(std::move(path))
+{
+}
+
 void GameFileCache::ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const
 {
   for (const std::shared_ptr<const GameFile>& item : m_cached_files)
     f(item);
+}
+
+size_t GameFileCache::GetSize() const
+{
+  return m_cached_files.size();
 }
 
 void GameFileCache::Clear()
@@ -179,9 +193,8 @@ bool GameFileCache::Save()
 
 bool GameFileCache::SyncCacheFile(bool save)
 {
-  std::string filename(File::GetUserPath(D_CACHE_IDX) + "gamelist.cache");
   const char* open_mode = save ? "wb" : "rb";
-  File::IOFile f(filename, open_mode);
+  File::IOFile f(m_path, open_mode);
   if (!f)
     return false;
   bool success = false;
@@ -217,7 +230,7 @@ bool GameFileCache::SyncCacheFile(bool save)
   {
     // If some file operation failed, try to delete the probably-corrupted cache
     f.Close();
-    File::Delete(filename);
+    File::Delete(m_path);
   }
   return success;
 }

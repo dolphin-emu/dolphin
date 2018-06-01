@@ -1,4 +1,8 @@
 add_library(main SHARED
+  AndroidCommon/AndroidCommon.cpp
+  AndroidCommon/IDCache.cpp
+  GameList/GameFile.cpp
+  GameList/GameFileCache.cpp
   ButtonManager.cpp
   MainAndroid.cpp
 )

@@ -2,8 +2,6 @@ package org.dolphinemu.dolphinemu.adapters;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.database.Cursor;
-import android.database.DataSetObserver;
 import android.graphics.Rect;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
@@ -14,38 +12,30 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
-import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * This adapter gets its information from a database Cursor. This fact, paired with the usage of
- * ContentProviders and Loaders, allows for efficient display of a limited view into a (possibly)
- * large dataset.
- */
 public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> implements
 		View.OnClickListener,
 		View.OnLongClickListener
 {
-	private Cursor mCursor;
-	private GameDataSetObserver mObserver;
-
-	private boolean mDatasetValid;
+	private List<GameFile> mGameFiles;
 
 	/**
 	 * Initializes the adapter's observer, which watches for changes to the dataset. The adapter will
-	 * display no data until a Cursor is supplied by a CursorLoader.
+	 * display no data until swapDataSet is called.
 	 */
 	public GameAdapter()
 	{
-		mDatasetValid = false;
-		mObserver = new GameDataSetObserver();
+		mGameFiles = new ArrayList<>();
 	}
 
 	/**
@@ -80,34 +70,13 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	@Override
 	public void onBindViewHolder(GameViewHolder holder, int position)
 	{
-		if (mDatasetValid)
-		{
-			if (mCursor.moveToPosition(position))
-			{
-				String screenPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
-				PicassoUtils.loadGameBanner(holder.imageScreenshot, screenPath, mCursor.getString(GameDatabase.GAME_COLUMN_PATH));
+		GameFile gameFile = mGameFiles.get(position);
+		PicassoUtils.loadGameBanner(holder.imageScreenshot, gameFile);
 
-				holder.textGameTitle.setText(mCursor.getString(GameDatabase.GAME_COLUMN_TITLE));
-				holder.textCompany.setText(mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY));
+		holder.textGameTitle.setText(gameFile.getTitle());
+		holder.textCompany.setText(gameFile.getCompany());
 
-				// TODO These shouldn't be necessary once the move to a DB-based model is complete.
-				holder.gameId = mCursor.getString(GameDatabase.GAME_COLUMN_GAME_ID);
-				holder.path = mCursor.getString(GameDatabase.GAME_COLUMN_PATH);
-				holder.title = mCursor.getString(GameDatabase.GAME_COLUMN_TITLE);
-				holder.description = mCursor.getString(GameDatabase.GAME_COLUMN_DESCRIPTION);
-				holder.country = mCursor.getInt(GameDatabase.GAME_COLUMN_COUNTRY);
-				holder.company = mCursor.getString(GameDatabase.GAME_COLUMN_COMPANY);
-				holder.screenshotPath = mCursor.getString(GameDatabase.GAME_COLUMN_SCREENSHOT_PATH);
-			}
-			else
-			{
-				Log.error("[GameAdapter] Can't bind view; Cursor is not valid.");
-			}
-		}
-		else
-		{
-			Log.error("[GameAdapter] Can't bind view; dataset is not valid.");
-		}
+		holder.gameFile = gameFile;
 	}
 
 	/**
@@ -118,84 +87,27 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	@Override
 	public int getItemCount()
 	{
-		if (mDatasetValid && mCursor != null)
-		{
-			return mCursor.getCount();
-		}
-		Log.error("[GameAdapter] Dataset is not valid.");
-		return 0;
-	}
-
-	/**
-	 * Return the contents of the _id column for a given row.
-	 *
-	 * @param position The row for which Android wants an ID.
-	 * @return A valid ID from the database, or 0 if not available.
-	 */
-	@Override
-	public long getItemId(int position)
-	{
-		if (mDatasetValid && mCursor != null)
-		{
-			if (mCursor.moveToPosition(position))
-			{
-				return mCursor.getLong(GameDatabase.COLUMN_DB_ID);
-			}
-		}
-
-		Log.error("[GameAdapter] Dataset is not valid.");
-		return 0;
+		return mGameFiles.size();
 	}
 
 	/**
 	 * Tell Android whether or not each item in the dataset has a stable identifier.
-	 * Which it does, because it's a database, so always tell Android 'true'.
 	 *
 	 * @param hasStableIds ignored.
 	 */
 	@Override
 	public void setHasStableIds(boolean hasStableIds)
 	{
-		super.setHasStableIds(true);
+		super.setHasStableIds(false);
 	}
 
 	/**
-	 * When a load is finished, call this to replace the existing data with the newly-loaded
-	 * data.
-	 *
-	 * @param cursor The newly-loaded Cursor.
+	 * When a load is finished, call this to replace the existing data
+	 * with the newly-loaded data.
 	 */
-	public void swapCursor(Cursor cursor)
+	public void swapDataSet(List<GameFile> gameFiles)
 	{
-		// Sanity check.
-		if (cursor == mCursor)
-		{
-			return;
-		}
-
-		// Before getting rid of the old cursor, disassociate it from the Observer.
-		final Cursor oldCursor = mCursor;
-		if (oldCursor != null && mObserver != null)
-		{
-			oldCursor.unregisterDataSetObserver(mObserver);
-		}
-
-		mCursor = cursor;
-		if (mCursor != null)
-		{
-			// Attempt to associate the new Cursor with the Observer.
-			if (mObserver != null)
-			{
-				mCursor.registerDataSetObserver(mObserver);
-			}
-
-			mDatasetValid = true;
-		}
-		else
-		{
-			mDatasetValid = false;
-		}
-
+		mGameFiles = gameFiles;
 		notifyDataSetChanged();
 	}
 
@@ -210,9 +122,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 
 		EmulationActivity.launch((FragmentActivity) view.getContext(),
-				holder.path,
-				holder.title,
-				holder.screenshotPath,
+				holder.gameFile,
 				holder.getAdapterPosition(),
 				holder.imageScreenshot);
 	}
@@ -227,12 +137,9 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	public boolean onLongClick(View view)
 	{
 		GameViewHolder holder = (GameViewHolder) view.getTag();
-
-		// Get the ID of the game we want to look at.
-		String gameId = (String) holder.gameId;
+		String gameId = holder.gameFile.getGameId();
 
 		FragmentActivity activity = (FragmentActivity) view.getContext();
-
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 		builder.setTitle("Game Settings")
@@ -288,27 +195,6 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			outRect.right = space;
 			outRect.bottom = space;
 			outRect.top = space;
-		}
-	}
-
-	private final class GameDataSetObserver extends DataSetObserver
-	{
-		@Override
-		public void onChanged()
-		{
-			super.onChanged();
-
-			mDatasetValid = true;
-			notifyDataSetChanged();
-		}
-
-		@Override
-		public void onInvalidated()
-		{
-			super.onInvalidated();
-
-			mDatasetValid = false;
-			notifyDataSetChanged();
 		}
 	}
 }

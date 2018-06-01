@@ -2,13 +2,10 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.app.BrowseSupportFragment;
-import android.support.v17.leanback.database.CursorMapper;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
-import android.support.v17.leanback.widget.CursorObjectAdapter;
 import android.support.v17.leanback.widget.HeaderItem;
 import android.support.v17.leanback.widget.ListRow;
 import android.support.v17.leanback.widget.ListRowPresenter;
@@ -21,20 +18,22 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
-import org.dolphinemu.dolphinemu.model.Game;
+import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
-import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
+import java.util.Collection;
+
 public final class TvMainActivity extends FragmentActivity implements MainView
 {
-	private MainPresenter mPresenter = new MainPresenter(this);
+	private MainPresenter mPresenter = new MainPresenter(this, this);
 
 	private BrowseSupportFragment mBrowseFragment;
 
@@ -59,7 +58,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	protected void onResume()
 	{
 		super.onResume();
-		mPresenter.addDirIfNeeded(new AddDirectoryHelper(this));
+		mPresenter.addDirIfNeeded(this);
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		mPresenter.onDestroy();
 	}
 
 	void setupUI() {
@@ -82,7 +88,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
                     if (item instanceof TvSettingsItem)
                     {
                         TvSettingsItem settingsItem = (TvSettingsItem) item;
-                        mPresenter.handleOptionSelection(settingsItem.getItemId());
+                        mPresenter.handleOptionSelection(settingsItem.getItemId(), this);
                     }
                     else
                     {
@@ -90,9 +96,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
                         // Start the emulation activity and send the path of the clicked ISO to it.
                         EmulationActivity.launch(TvMainActivity.this,
-                                holder.path,
-                                holder.title,
-                                holder.screenshotPath,
+                                holder.gameFile,
                                 -1,
                                 holder.imageScreenshot);
                     }
@@ -106,12 +110,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	public void setVersionString(String version)
 	{
 		mBrowseFragment.setTitle(version);
-	}
-
-	@Override
-	public void refresh()
-	{
-		recreate();
 	}
 
 	@Override
@@ -133,15 +131,9 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	}
 
 	@Override
-	public void showGames(Platform platform, Cursor games)
+	public void showGames()
 	{
-		ListRow row = buildGamesRow(platform, games);
-
-		// Add row to the adapter only if it is not empty.
-		if (row != null)
-		{
-			mRowsAdapter.add(row);
-		}
+		recreate();
 	}
 
 	/**
@@ -176,7 +168,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 					DirectoryInitializationService.startService(this);
-					loadGames();
+					GameFileCacheService.startLoad(this);
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
 							.show();
@@ -194,48 +186,36 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
 		if (PermissionsHandler.hasWriteAccess(this))
 		{
-			loadGames();
+			GameFileCacheService.startLoad(this);
 		}
 
 		mRowsAdapter.add(buildSettingsRow());
 
+		for (Platform platform : Platform.values())
+		{
+			ListRow row = buildGamesRow(platform, GameFileCacheService.getGameFilesForPlatform(platform));
+
+			// Add row to the adapter only if it is not empty.
+			if (row != null)
+			{
+				mRowsAdapter.add(row);
+			}
+		}
+
 		mBrowseFragment.setAdapter(mRowsAdapter);
 	}
 
-	private void loadGames() {
-		for (Platform platform : Platform.values()) {
-			mPresenter.loadGames(platform);
-		}
-	}
-
-	private ListRow buildGamesRow(Platform platform, Cursor games)
+	private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)
 	{
-		// Create an adapter for this row.
-		CursorObjectAdapter row = new CursorObjectAdapter(new GameRowPresenter());
-
-		// If cursor is empty, don't return a Row.
-		if (!games.moveToFirst())
+		// If there are no games, don't return a Row.
+		if (gameFiles.size() == 0)
 		{
 			return null;
 		}
 
-		row.changeCursor(games);
-		row.setMapper(new CursorMapper()
-		{
-			@Override
-			protected void bindColumns(Cursor cursor)
-			{
-				// No-op? Not sure what this does.
-			}
-
-			@Override
-			protected Object bind(Cursor cursor)
-			{
-				return Game.fromCursor(cursor);
-			}
-		});
-
-		String headerName = platform.getHeaderName();
+		// Create an adapter for this row.
+		ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
+		row.addAll(0, gameFiles);
 
 		// Create a header for this row.
 		HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());

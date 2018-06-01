@@ -6,6 +6,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.GameFile;
 
 /**
  * A simple class that stores references to views so that the GameAdapter doesn't need to
@@ -17,15 +18,7 @@ public class GameViewHolder extends RecyclerView.ViewHolder
 	public TextView textGameTitle;
 	public TextView textCompany;
 
-	public String gameId;
-
-	// TODO Not need any of this stuff. Currently only the properties dialog needs it.
-	public String path;
-	public String title;
-	public String description;
-	public int country;
-	public String company;
-	public String screenshotPath;
+	public GameFile gameFile;
 
 	public GameViewHolder(View itemView)
 	{
@@ -33,8 +26,8 @@ public class GameViewHolder extends RecyclerView.ViewHolder
 
 		itemView.setTag(this);
 
-		imageScreenshot = (ImageView) itemView.findViewById(R.id.image_game_screen);
-		textGameTitle = (TextView) itemView.findViewById(R.id.text_game_title);
-		textCompany = (TextView) itemView.findViewById(R.id.text_company);
+		imageScreenshot = itemView.findViewById(R.id.image_game_screen);
+		textGameTitle = itemView.findViewById(R.id.text_game_title);
+		textCompany = itemView.findViewById(R.id.text_company);
 	}
 }

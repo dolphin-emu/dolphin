@@ -7,17 +7,18 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.GameFile;
 
 import java.io.File;
 import java.net.URI;
 
 public class PicassoUtils {
-	public static void loadGameBanner(ImageView imageView, String screenshotPath, String gamePath) {
-		File file = new File(URI.create(screenshotPath));
-		if (file.exists()) {
+	public static void loadGameBanner(ImageView imageView, GameFile gameFile) {
+		File screenshotFile = new File(URI.create(gameFile.getScreenshotPath()));
+		if (screenshotFile.exists()) {
 			// Fill in the view contents.
 			Picasso.with(imageView.getContext())
-					.load(screenshotPath)
+					.load(gameFile.getScreenshotPath())
 					.fit()
 					.centerCrop()
 					.noFade()
@@ -27,11 +28,11 @@ public class PicassoUtils {
 					.into(imageView);
 		} else {
 			Picasso picassoInstance = new Picasso.Builder(imageView.getContext())
-					.addRequestHandler(new GameBannerRequestHandler())
+					.addRequestHandler(new GameBannerRequestHandler(gameFile))
 					.build();
 
 			picassoInstance
-					.load(Uri.parse("iso:/" + gamePath))
+					.load(Uri.parse("iso:/" + gameFile.getPath()))
 					.fit()
 					.noFade()
 					.noPlaceholder()

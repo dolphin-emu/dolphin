@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -18,12 +17,11 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
-import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
-import org.dolphinemu.dolphinemu.utils.AddDirectoryHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -39,7 +37,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	private TabLayout mTabLayout;
 	private FloatingActionButton mFab;
 
-	private MainPresenter mPresenter = new MainPresenter(this);
+	private MainPresenter mPresenter = new MainPresenter(this, this);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -67,7 +65,11 @@ public final class MainActivity extends AppCompatActivity implements MainView
 			PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
 					getSupportFragmentManager(), this);
 			mViewPager.setAdapter(platformPagerAdapter);
-		} else {
+			showGames();
+			GameFileCacheService.startLoad(this);
+		}
+		else
+		{
 			mViewPager.setVisibility(View.INVISIBLE);
 		}
 	}
@@ -76,7 +78,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	protected void onResume()
 	{
 		super.onResume();
-		mPresenter.addDirIfNeeded(new AddDirectoryHelper(this));
+		mPresenter.addDirIfNeeded(this);
+	}
+
+	@Override
+	protected void onDestroy()
+	{
+		super.onDestroy();
+		mPresenter.onDestroy();
 	}
 
 	// TODO: Replace with a ButterKnife injection.
@@ -107,13 +116,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	}
 
 	@Override
-	public void refresh()
-	{
-		getContentResolver().insert(GameProvider.URI_REFRESH, null);
-		refreshAllFragments();
-	}
-
-	@Override
 	public void refreshFragmentScreenshot(int fragmentPosition)
 	{
 		// Invalidate Picasso image so that the new screenshot is animated in.
@@ -136,12 +138,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	public void launchFileListActivity()
 	{
 		FileBrowserHelper.openDirectoryPicker(this);
-	}
-
-	@Override
-	public void showGames(Platform platform, Cursor games)
-	{
-		// no-op. Handled by PlatformGamesFragment.
 	}
 
 	/**
@@ -174,12 +170,12 @@ public final class MainActivity extends AppCompatActivity implements MainView
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 					DirectoryInitializationService.startService(this);
-
 					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
 							getSupportFragmentManager(), this);
 					mViewPager.setAdapter(platformPagerAdapter);
 					mTabLayout.setupWithViewPager(mViewPager);
 					mViewPager.setVisibility(View.VISIBLE);
+					GameFileCacheService.startLoad(this);
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
 							.show();
@@ -200,17 +196,17 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
-		return mPresenter.handleOptionSelection(item.getItemId());
+		return mPresenter.handleOptionSelection(item.getItemId(), this);
 	}
 
-	private void refreshAllFragments()
+	public void showGames()
 	{
 		for (Platform platform : Platform.values())
 		{
 			PlatformGamesView fragment = getPlatformGamesView(platform);
 			if (fragment != null)
 			{
-				fragment.refresh();
+				fragment.showGames();
 			}
 		}
 	}
