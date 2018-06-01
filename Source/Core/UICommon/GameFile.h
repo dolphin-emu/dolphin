@@ -9,21 +9,14 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 
 class PointerWrap;
 
 namespace Core
 {
 class TitleDatabase;
-}
-
-namespace DiscIO
-{
-enum class BlobType;
-enum class Country;
-enum class Language;
-enum class Region;
-enum class Platform;
 }
 
 namespace UICommon
