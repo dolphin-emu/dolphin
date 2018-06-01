@@ -105,10 +105,12 @@ struct FileHDR
   u8 permissions;
   u8 attrib;
   u8 type;  // (1=file, 2=directory)
-  std::array<char, 0x45> name;
+  std::array<char, 0x40> name;
+  std::array<u8, 5> padding;
   std::array<u8, 0x10> iv;
   std::array<u8, 0x20> unk;
 };
+static_assert(sizeof(FileHDR) == 0x80, "FileHDR has an incorrect size");
 #pragma pack(pop)
 
 class Storage
@@ -370,7 +372,8 @@ public:
       if (type != SaveFile::Type::Directory && type != SaveFile::Type::File)
         return {};
       save_file.type = type;
-      save_file.path = file_hdr.name.data();
+      save_file.path =
+          std::string{file_hdr.name.data(), strnlen(file_hdr.name.data(), file_hdr.name.size())};
       if (type == SaveFile::Type::File)
       {
         const u32 rounded_size = Common::AlignUp<u32>(file_hdr.size, BLOCK_SZ);
@@ -419,7 +422,7 @@ public:
       file_hdr.permissions = save_file.mode;
       file_hdr.attrib = save_file.attributes;
       file_hdr.type = static_cast<u8>(save_file.type);
-      if (save_file.path.length() > 0x44)
+      if (save_file.path.length() > file_hdr.name.size())
         return false;
       std::strncpy(file_hdr.name.data(), save_file.path.data(), file_hdr.name.size());
 
