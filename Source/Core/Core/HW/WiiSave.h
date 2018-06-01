@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -37,7 +38,7 @@ StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path,
 bool Copy(Storage* source, Storage* destination);
 
 /// Import a save into the NAND from a .bin file.
-bool Import(const std::string& data_bin_path);
+bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite);
 /// Export a save to a .bin file.
 bool Export(u64 tid, const std::string& export_path);
 /// Export all saves that are in the NAND. Returns the number of exported saves.

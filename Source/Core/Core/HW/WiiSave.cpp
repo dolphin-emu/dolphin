@@ -28,7 +28,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Lazy.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -520,7 +519,7 @@ bool Copy(Storage* source, Storage* dest)
          Copy("files", source, &Storage::ReadFiles, dest, &Storage::WriteFiles);
 }
 
-bool Import(const std::string& data_bin_path)
+bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
 {
   IOS::HLE::Kernel ios;
   const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");
@@ -531,11 +530,8 @@ bool Import(const std::string& data_bin_path)
     return false;
   }
   const auto nand = MakeNandStorage(ios.GetFS().get(), header->hdr.tid);
-  if (nand->SaveExists() && !AskYesNoT("Save data for this title already exists. Consider backing "
-                                       "up the current data before overwriting.\nOverwrite now?"))
-  {
+  if (nand->SaveExists() && !can_overwrite())
     return false;
-  }
   return Copy(data_bin.get(), nand.get());
 }
 
