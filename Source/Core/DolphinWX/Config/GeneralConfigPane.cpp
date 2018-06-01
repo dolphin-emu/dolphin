@@ -24,6 +24,9 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxEventUtils.h"
+#ifdef USE_DISCORD_PRESENCE
+#include "UICommon/DiscordPresence.h"
+#endif
 
 static const std::map<PowerPC::CPUCore, std::string> CPU_CORE_NAMES = {
     {PowerPC::CORE_INTERPRETER, _trans("Interpreter (slowest)")},
@@ -55,6 +58,10 @@ void GeneralConfigPane::InitializeGUI()
 
   m_dual_core_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
   m_cheats_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
+#ifdef USE_DISCORD_PRESENCE
+  m_discord_presence_checkbox =
+      new wxCheckBox(this, wxID_ANY, _("Show Activity in Your Discord Status"));
+#endif
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Usage Statistics Reporting"));
 #ifdef __APPLE__
@@ -74,6 +81,11 @@ void GeneralConfigPane::InitializeGUI()
       _("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major "
         "speed improvements on most modern PCs, but can cause occasional crashes/glitches."));
   m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
+#ifdef USE_DISCORD_PRESENCE
+  m_discord_presence_checkbox->SetToolTip(
+      _("Allow other people on Discord to see your current activity in Dolphin. Activities such as "
+        "games you are playing, and how long you've been doing something in Dolphin"));
+#endif
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetToolTip(
       _("Enables the collection and sharing of usage statistics data with the Dolphin development "
@@ -106,6 +118,10 @@ void GeneralConfigPane::InitializeGUI()
   basic_settings_sizer->AddSpacer(space5);
   basic_settings_sizer->Add(m_cheats_checkbox, 0, wxLEFT | wxRIGHT, space5);
   basic_settings_sizer->AddSpacer(space5);
+#ifdef USE_DISCORD_PRESENCE
+  basic_settings_sizer->Add(m_discord_presence_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  basic_settings_sizer->AddSpacer(space5);
+#endif
   basic_settings_sizer->Add(throttler_sizer);
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -145,6 +161,10 @@ void GeneralConfigPane::LoadGUIValues()
   m_dual_core_checkbox->SetValue(startup_params.bCPUThread);
   m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
 
+#ifdef USE_DISCORD_PRESENCE
+  m_discord_presence_checkbox->SetValue(startup_params.bUseDiscordPresence);
+#endif
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetValue(startup_params.m_analytics_enabled);
 #endif
@@ -168,6 +188,11 @@ void GeneralConfigPane::BindEvents()
 
   m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
   m_cheats_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+#ifdef USE_DISCORD_PRESENCE
+  m_discord_presence_checkbox->Bind(wxEVT_CHECKBOX,
+                                    &GeneralConfigPane::OnDiscordPresenceCheckBoxChanged, this);
+#endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnAnalyticsCheckBoxChanged, this);
@@ -193,6 +218,19 @@ void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().bEnableCheats = m_cheats_checkbox->IsChecked();
 }
+
+#ifdef USE_DISCORD_PRESENCE
+void GeneralConfigPane::OnDiscordPresenceCheckBoxChanged(wxCommandEvent& event)
+{
+  if (SConfig::GetInstance().bUseDiscordPresence)
+    Discord::Shutdown();
+
+  SConfig::GetInstance().bUseDiscordPresence = m_discord_presence_checkbox->IsChecked();
+
+  if (SConfig::GetInstance().bUseDiscordPresence)
+    Discord::Init();
+}
+#endif
 
 void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 {

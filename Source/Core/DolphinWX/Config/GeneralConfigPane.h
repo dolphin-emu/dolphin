@@ -25,6 +25,9 @@ private:
 
   void OnDualCoreCheckBoxChanged(wxCommandEvent&);
   void OnCheatCheckBoxChanged(wxCommandEvent&);
+#ifdef USE_DISCORD_PRESENCE
+  void OnDiscordPresenceCheckBoxChanged(wxCommandEvent&);
+#endif
   void OnThrottlerChoiceChanged(wxCommandEvent&);
   void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
   void OnAnalyticsCheckBoxChanged(wxCommandEvent&);
@@ -35,6 +38,9 @@ private:
 
   wxCheckBox* m_dual_core_checkbox;
   wxCheckBox* m_cheats_checkbox;
+#ifdef USE_DISCORD_PRESENCE
+  wxCheckBox* m_discord_presence_checkbox;
+#endif
 
   wxCheckBox* m_analytics_checkbox;
   wxButton* m_analytics_new_id;
