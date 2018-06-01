@@ -85,6 +85,9 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+#ifdef USE_DISCORD_PRESENCE
+  connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+#endif
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
@@ -122,6 +125,11 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
   basic_group_layout->addWidget(m_checkbox_cheats);
+
+#ifdef USE_DISCORD_PRESENCE
+  m_checkbox_discord_presence = new QCheckBox(tr("Show Activity in Your Discord Status"));
+  basic_group_layout->addWidget(m_checkbox_discord_presence);
+#endif
 
   auto* speed_limit_layout = new QFormLayout;
   basic_group_layout->addLayout(speed_limit_layout);
@@ -215,6 +223,9 @@ void GeneralPane::LoadConfig()
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
+#ifdef USE_DISCORD_PRESENCE
+  m_checkbox_discord_presence->setChecked(SConfig::GetInstance().bUseDiscordPresence);
+#endif
   int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
@@ -259,6 +270,10 @@ void GeneralPane::OnSaveConfig()
     Settings::Instance().SetAutoUpdateTrack(
         UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
   }
+
+#ifdef USE_DISCORD_PRESENCE
+  Settings::Instance().SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
+#endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());

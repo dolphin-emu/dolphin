@@ -127,6 +127,9 @@ public:
 
   // Other
   GameListModel* GetGameListModel() const;
+#ifdef USE_DISCORD_PRESENCE
+  void SetDiscordPresenceEnabled(bool enabled);
+#endif
 signals:
   void ConfigChanged();
   void EmulationStateChanged(Core::State new_state);

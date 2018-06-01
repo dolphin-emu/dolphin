@@ -51,6 +51,7 @@ void Shutdown()
   if (!SConfig::GetInstance().bUseDiscordPresence)
     return;
 
+  Discord_ClearPresence();
   Discord_Shutdown();
 #endif
 }
