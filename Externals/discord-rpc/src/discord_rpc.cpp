@@ -89,10 +89,11 @@ public:
         keepRunning.store(true);
         ioThread = std::thread([&]() {
             const std::chrono::duration<int64_t, std::milli> maxWait{500LL};
+            Discord_UpdateConnection();
             while (keepRunning.load()) {
-                Discord_UpdateConnection();
                 std::unique_lock<std::mutex> lock(waitForIOMutex);
                 waitForIOActivity.wait_for(lock, maxWait);
+                Discord_UpdateConnection();
             }
         });
     }
