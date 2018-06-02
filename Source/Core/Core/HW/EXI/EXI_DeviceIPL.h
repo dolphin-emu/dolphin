@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "Core/HW/EXI/EXI_Device.h"
@@ -56,7 +57,7 @@ private:
 
   // STATE_TO_SAVE
   //! RealTimeClock
-  u8 m_rtc[4] = {};
+  std::array<u8, 4> m_rtc{};
 
   //! Helper
   u32 m_position = 0;

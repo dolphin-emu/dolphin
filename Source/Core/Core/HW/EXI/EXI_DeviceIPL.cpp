@@ -236,8 +236,8 @@ void CEXIIPL::SetCS(int cs)
 
 void CEXIIPL::UpdateRTC()
 {
-  u32 rtc = Common::swap32(GetEmulatedTime(GC_EPOCH));
-  std::memcpy(m_rtc, &rtc, sizeof(u32));
+  const u32 rtc = Common::swap32(GetEmulatedTime(GC_EPOCH));
+  std::memcpy(m_rtc.data(), &rtc, sizeof(u32));
 }
 
 bool CEXIIPL::IsPresent() const
