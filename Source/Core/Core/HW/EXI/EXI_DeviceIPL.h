@@ -56,15 +56,15 @@ private:
 
   // STATE_TO_SAVE
   //! RealTimeClock
-  u8 m_RTC[4];
+  u8 m_RTC[4] = {};
 
   //! Helper
-  u32 m_uPosition;
-  u32 m_uAddress;
-  u32 m_uRWOffset;
+  u32 m_uPosition = 0;
+  u32 m_uAddress = 0;
+  u32 m_uRWOffset = 0;
 
   std::string m_buffer;
-  bool m_FontsLoaded;
+  bool m_FontsLoaded = false;
 
   void UpdateRTC();
 

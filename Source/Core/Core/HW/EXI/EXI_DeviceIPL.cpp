@@ -95,7 +95,7 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
   }
 }
 
-CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoaded(false)
+CEXIIPL::CEXIIPL()
 {
   // Create the IPL
   m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
@@ -122,9 +122,6 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
   }
-
-  // Clear RTC
-  memset(m_RTC, 0, sizeof(m_RTC));
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
