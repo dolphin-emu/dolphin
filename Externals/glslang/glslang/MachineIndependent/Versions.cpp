@@ -1,12 +1,13 @@
 //
-//Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
-//Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2017 ARM Limited.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -20,24 +21,24 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 //
 // Help manage multiple profiles, versions, extensions etc.
 //
-// These don't return error codes, as the presumption is parsing will 
+// These don't return error codes, as the presumption is parsing will
 // always continue as if the tested feature were enabled, and thus there
 // is no error recovery needed.
 //
@@ -47,25 +48,25 @@
 //
 // To add a new hypothetical "Feature F" to the front end, where an extension
 // "XXX_extension_X" can be used to enable the feature, do the following.
-// 
+//
 // OVERVIEW: Specific features are what are error-checked for, not
-//    extensions:  A specific Feature F might be enabled by an extension, or a 
+//    extensions:  A specific Feature F might be enabled by an extension, or a
 //    particular version in a particular profile, or a stage, or combinations, etc.
-//    
-//    The basic mechanism is to use the following to "declare" all the things that 
+//
+//    The basic mechanism is to use the following to "declare" all the things that
 //    enable/disable Feature F, in a code path that implements Feature F:
-//    
+//
 //        requireProfile()
 //        profileRequires()
 //        requireStage()
 //        checkDeprecated()
 //        requireNotRemoved()
 //        requireExtensions()
-//    
-//    Typically, only the first two calls are needed.  They go into a code path that 
-//    implements Feature F, and will log the proper error/warning messages.  Parsing 
+//
+//    Typically, only the first two calls are needed.  They go into a code path that
+//    implements Feature F, and will log the proper error/warning messages.  Parsing
 //    will then always continue as if the tested feature was enabled.
-//    
+//
 //    There is typically no if-testing or conditional parsing, just insertion of the calls above.
 //    However, if symbols specific to the extension are added (step 5), they will
 //    only be added under tests that the minimum version and profile are present.
@@ -73,10 +74,10 @@
 // 1) Add a symbol name for the extension string at the bottom of Versions.h:
 //
 //     const char* const XXX_extension_X = "XXX_extension_X";
-// 
+//
 // 2) Add extension initialization to TParseVersions::initializeExtensionBehavior(),
 //    the first function below:
-// 
+//
 //     extensionBehavior[XXX_extension_X] = EBhDisable;
 //
 // 3) Add any preprocessor directives etc. in the next function, TParseVersions::getPreamble():
@@ -84,50 +85,50 @@
 //           "#define XXX_extension_X 1\n"
 //
 //    The new-line is important, as that ends preprocess tokens.
-// 
+//
 // 4) Insert a profile check in the feature's path (unless all profiles support the feature,
 //    for some version level).  That is, call requireProfile() to constrain the profiles, e.g.:
-// 
+//
 //         // ... in a path specific to Feature F...
 //         requireProfile(loc,
 //                        ECoreProfile | ECompatibilityProfile,
 //                        "Feature F");
-// 
+//
 // 5) For each profile that supports the feature, insert version/extension checks:
-// 
+//
 //    The mostly likely scenario is that Feature F can only be used with a
 //    particular profile if XXX_extension_X is present or the version is
 //    high enough that the core specification already incorporated it.
-// 
+//
 //        // following the requireProfile() call...
-//        profileRequires(loc, 
+//        profileRequires(loc,
 //                        ECoreProfile | ECompatibilityProfile,
 //                        420,             // 0 if no version incorporated the feature into the core spec.
 //                        XXX_extension_X, // can be a list of extensions that all add the feature
 //                        "Feature F Description");
-// 
+//
 //    This allows the feature if either A) one of the extensions is enabled or
 //    B) the version is high enough.  If no version yet incorporates the feature
 //    into core, pass in 0.
-// 
+//
 //    This can be called multiple times, if different profiles support the
-//    feature starting at different version numbers or with different 
+//    feature starting at different version numbers or with different
 //    extensions.
-// 
+//
 //    This must be called for each profile allowed by the initial call to requireProfile().
-// 
+//
 //    Profiles are all masks, which can be "or"-ed together.
-// 
+//
 //        ENoProfile
 //        ECoreProfile
 //        ECompatibilityProfile
 //        EEsProfile
-// 
+//
 //    The ENoProfile profile is only for desktop, before profiles showed up in version 150;
 //    All other #version with no profile default to either es or core, and so have profiles.
-// 
+//
 //    You can select all but a particular profile using ~.  The following basically means "desktop":
-// 
+//
 //        ~EEsProfile
 //
 // 6) If built-in symbols are added by the extension, add them in Initialize.cpp:  Their use
@@ -154,8 +155,9 @@ void TParseVersions::initializeExtensionBehavior()
     extensionBehavior[E_GL_OES_standard_derivatives]         = EBhDisable;
     extensionBehavior[E_GL_EXT_frag_depth]                   = EBhDisable;
     extensionBehavior[E_GL_OES_EGL_image_external]           = EBhDisable;
+    extensionBehavior[E_GL_OES_EGL_image_external_essl3]     = EBhDisable;
     extensionBehavior[E_GL_EXT_shader_texture_lod]           = EBhDisable;
-                                                          
+    extensionBehavior[E_GL_EXT_shadow_samplers]              = EBhDisable;
     extensionBehavior[E_GL_ARB_texture_rectangle]            = EBhDisable;
     extensionBehavior[E_GL_3DL_array_objects]                = EBhDisable;
     extensionBehavior[E_GL_ARB_shading_language_420pack]     = EBhDisable;
@@ -179,13 +181,54 @@ void TParseVersions::initializeExtensionBehavior()
     extensionBehavior[E_GL_ARB_shader_ballot]                = EBhDisable;
     extensionBehavior[E_GL_ARB_sparse_texture2]              = EBhDisable;
     extensionBehavior[E_GL_ARB_sparse_texture_clamp]         = EBhDisable;
+    extensionBehavior[E_GL_ARB_shader_stencil_export]        = EBhDisable;
 //    extensionBehavior[E_GL_ARB_cull_distance]                = EBhDisable;    // present for 4.5, but need extension control over block members
+    extensionBehavior[E_GL_ARB_post_depth_coverage]          = EBhDisable;
+    extensionBehavior[E_GL_ARB_shader_viewport_layer_array]  = EBhDisable;
+
+    extensionBehavior[E_GL_KHR_shader_subgroup_basic]            = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_vote]             = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_arithmetic]       = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_ballot]           = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_shuffle]          = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_shuffle_relative] = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_clustered]        = EBhDisable;
+    extensionBehavior[E_GL_KHR_shader_subgroup_quad]             = EBhDisable;
 
     extensionBehavior[E_GL_EXT_shader_non_constant_global_initializers] = EBhDisable;
+    extensionBehavior[E_GL_EXT_shader_image_load_formatted]             = EBhDisable;
+    extensionBehavior[E_GL_EXT_post_depth_coverage]                     = EBhDisable;
+    extensionBehavior[E_GL_EXT_control_flow_attributes]                 = EBhDisable;
+    extensionBehavior[E_GL_EXT_nonuniform_qualifier]                    = EBhDisable;
 
     // #line and #include
     extensionBehavior[E_GL_GOOGLE_cpp_style_line_directive]          = EBhDisable;
     extensionBehavior[E_GL_GOOGLE_include_directive]                 = EBhDisable;
+
+#ifdef AMD_EXTENSIONS
+    extensionBehavior[E_GL_AMD_shader_ballot]                        = EBhDisable;
+    extensionBehavior[E_GL_AMD_shader_trinary_minmax]                = EBhDisable;
+    extensionBehavior[E_GL_AMD_shader_explicit_vertex_parameter]     = EBhDisable;
+    extensionBehavior[E_GL_AMD_gcn_shader]                           = EBhDisable;
+    extensionBehavior[E_GL_AMD_gpu_shader_half_float]                = EBhDisable;
+    extensionBehavior[E_GL_AMD_texture_gather_bias_lod]              = EBhDisable;
+    extensionBehavior[E_GL_AMD_gpu_shader_int16]                     = EBhDisable;
+    extensionBehavior[E_GL_AMD_shader_image_load_store_lod]          = EBhDisable;
+    extensionBehavior[E_GL_AMD_shader_fragment_mask]                 = EBhDisable;
+    extensionBehavior[E_GL_AMD_gpu_shader_half_float_fetch]          = EBhDisable;
+#endif
+
+#ifdef NV_EXTENSIONS
+    extensionBehavior[E_GL_NV_sample_mask_override_coverage]         = EBhDisable;
+    extensionBehavior[E_SPV_NV_geometry_shader_passthrough]          = EBhDisable;
+    extensionBehavior[E_GL_NV_viewport_array2]                       = EBhDisable;
+    extensionBehavior[E_GL_NV_stereo_view_rendering]                 = EBhDisable;
+    extensionBehavior[E_GL_NVX_multiview_per_view_attributes]        = EBhDisable;
+    extensionBehavior[E_GL_NV_shader_atomic_int64]                   = EBhDisable;
+    extensionBehavior[E_GL_NV_conservative_raster_underestimation]   = EBhDisable;
+    extensionBehavior[E_GL_NV_shader_noperspective_interpolation]    = EBhDisable;
+    extensionBehavior[E_GL_NV_shader_subgroup_partitioned]           = EBhDisable;
+#endif
 
     // AEP
     extensionBehavior[E_GL_ANDROID_extension_pack_es31a]             = EBhDisable;
@@ -214,6 +257,24 @@ void TParseVersions::initializeExtensionBehavior()
     extensionBehavior[E_GL_OES_tessellation_point_size]  = EBhDisable;
     extensionBehavior[E_GL_OES_texture_buffer]           = EBhDisable;
     extensionBehavior[E_GL_OES_texture_cube_map_array]   = EBhDisable;
+
+    // EXT extensions
+    extensionBehavior[E_GL_EXT_device_group]             = EBhDisable;
+    extensionBehavior[E_GL_EXT_multiview]                = EBhDisable;
+
+    // OVR extensions
+    extensionBehavior[E_GL_OVR_multiview]                = EBhDisable;
+    extensionBehavior[E_GL_OVR_multiview2]               = EBhDisable;
+
+    // explicit types
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types]         = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_int8]    = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_int16]   = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_int32]   = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_int64]   = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_float16] = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_float32] = EBhDisable;
+    extensionBehavior[E_GL_KHX_shader_explicit_arithmetic_types_float64] = EBhDisable;
 }
 
 // Get code that is not part of a shared symbol table, is specific to this shader,
@@ -221,14 +282,16 @@ void TParseVersions::initializeExtensionBehavior()
 void TParseVersions::getPreamble(std::string& preamble)
 {
     if (profile == EEsProfile) {
-        preamble = 
+        preamble =
             "#define GL_ES 1\n"
             "#define GL_FRAGMENT_PRECISION_HIGH 1\n"
             "#define GL_OES_texture_3D 1\n"
             "#define GL_OES_standard_derivatives 1\n"
             "#define GL_EXT_frag_depth 1\n"
             "#define GL_OES_EGL_image_external 1\n"
+            "#define GL_OES_EGL_image_external_essl3 1\n"
             "#define GL_EXT_shader_texture_lod 1\n"
+            "#define GL_EXT_shadow_samplers 1\n"
 
             // AEP
             "#define GL_ANDROID_extension_pack_es31a 1\n"
@@ -259,8 +322,15 @@ void TParseVersions::getPreamble(std::string& preamble)
             "#define GL_OES_texture_cube_map_array 1\n"
             "#define GL_EXT_shader_non_constant_global_initializers 1\n"
             ;
+
+#ifdef NV_EXTENSIONS
+            if (profile == EEsProfile && version >= 300) {
+                preamble += "#define GL_NV_shader_noperspective_interpolation 1\n";
+            }
+#endif
+
     } else {
-        preamble = 
+        preamble =
             "#define GL_FRAGMENT_PRECISION_HIGH 1\n"
             "#define GL_ARB_texture_rectangle 1\n"
             "#define GL_ARB_shading_language_420pack 1\n"
@@ -284,13 +354,82 @@ void TParseVersions::getPreamble(std::string& preamble)
             "#define GL_ARB_shader_ballot 1\n"
             "#define GL_ARB_sparse_texture2 1\n"
             "#define GL_ARB_sparse_texture_clamp 1\n"
+            "#define GL_ARB_shader_stencil_export 1\n"
 //            "#define GL_ARB_cull_distance 1\n"    // present for 4.5, but need extension control over block members
+            "#define GL_ARB_post_depth_coverage 1\n"
             "#define GL_EXT_shader_non_constant_global_initializers 1\n"
+            "#define GL_EXT_shader_image_load_formatted 1\n"
+            "#define GL_EXT_post_depth_coverage 1\n"
+            "#define GL_EXT_control_flow_attributes 1\n"
+            "#define GL_EXT_nonuniform_qualifier 1\n"
+
+            // GL_KHR_shader_subgroup
+            "#define GL_KHR_shader_subgroup_basic 1\n"
+            "#define GL_KHR_shader_subgroup_vote 1\n"
+            "#define GL_KHR_shader_subgroup_arithmetic 1\n"
+            "#define GL_KHR_shader_subgroup_ballot 1\n"
+            "#define GL_KHR_shader_subgroup_shuffle 1\n"
+            "#define GL_KHR_shader_subgroup_shuffle_relative 1\n"
+            "#define GL_KHR_shader_subgroup_clustered 1\n"
+            "#define GL_KHR_shader_subgroup_quad 1\n"
+
+#ifdef AMD_EXTENSIONS
+            "#define GL_AMD_shader_ballot 1\n"
+            "#define GL_AMD_shader_trinary_minmax 1\n"
+            "#define GL_AMD_shader_explicit_vertex_parameter 1\n"
+            "#define GL_AMD_gcn_shader 1\n"
+            "#define GL_AMD_gpu_shader_half_float 1\n"
+            "#define GL_AMD_texture_gather_bias_lod 1\n"
+            "#define GL_AMD_gpu_shader_int16 1\n"
+            "#define GL_AMD_shader_image_load_store_lod 1\n"
+            "#define GL_AMD_shader_fragment_mask 1\n"
+            "#define GL_AMD_gpu_shader_half_float_fetch 1\n"
+#endif
+
+#ifdef NV_EXTENSIONS
+            "#define GL_NV_sample_mask_override_coverage 1\n"
+            "#define GL_NV_geometry_shader_passthrough 1\n"
+            "#define GL_NV_viewport_array2 1\n"
+            "#define GL_NV_shader_atomic_int64 1\n"
+            "#define GL_NV_conservative_raster_underestimation 1\n"
+            "#define GL_NV_shader_subgroup_partitioned 1\n"
+#endif
+            "#define GL_KHX_shader_explicit_arithmetic_types 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_int8 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_int16 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_int32 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_int64 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_float16 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_float32 1\n"
+            "#define GL_KHX_shader_explicit_arithmetic_types_float64 1\n"
+            ;
+
+        if (version >= 150) {
+            // define GL_core_profile and GL_compatibility_profile
+            preamble += "#define GL_core_profile 1\n";
+
+            if (profile == ECompatibilityProfile)
+                preamble += "#define GL_compatibility_profile 1\n";
+        }
+    }
+
+    if ((profile != EEsProfile && version >= 140) ||
+        (profile == EEsProfile && version >= 310)) {
+        preamble +=
+            "#define GL_EXT_device_group 1\n"
+            "#define GL_EXT_multiview 1\n"
+            ;
+    }
+
+    if (version >= 300 /* both ES and non-ES */) {
+        preamble +=
+            "#define GL_OVR_multiview 1\n"
+            "#define GL_OVR_multiview2 1\n"
             ;
     }
 
     // #line and #include
-    preamble += 
+    preamble +=
             "#define GL_GOOGLE_cpp_style_line_directive 1\n"
             "#define GL_GOOGLE_include_directive 1\n"
             ;
@@ -298,9 +437,9 @@ void TParseVersions::getPreamble(std::string& preamble)
     // #define VULKAN XXXX
     const int numberBufSize = 12;
     char numberBuf[numberBufSize];
-    if (spvVersion.vulkan > 0) {
+    if (spvVersion.vulkanGlsl > 0) {
         preamble += "#define VULKAN ";
-        snprintf(numberBuf, numberBufSize, "%d", spvVersion.vulkan);
+        snprintf(numberBuf, numberBufSize, "%d", spvVersion.vulkanGlsl);
         preamble += numberBuf;
         preamble += "\n";
     }
@@ -317,7 +456,7 @@ void TParseVersions::getPreamble(std::string& preamble)
 //
 // When to use requireProfile():
 //
-//     Use if only some profiles support a feature.  However, if within a profile the feature 
+//     Use if only some profiles support a feature.  However, if within a profile the feature
 //     is version or extension specific, follow this call with calls to profileRequires().
 //
 // Operation:  If the current profile is not one of the profileMask,
@@ -332,7 +471,7 @@ void TParseVersions::requireProfile(const TSourceLoc& loc, int profileMask, cons
 //
 // Map from stage enum to externally readable text name.
 //
-const char* StageName(EShLanguage stage) 
+const char* StageName(EShLanguage stage)
 {
     switch(stage) {
     case EShLangVertex:         return "vertex";
@@ -357,7 +496,7 @@ const char* StageName(EShLanguage stage)
 // Operation: Will issue warnings/errors based on the current profile, version, and extension
 // behaviors.  It only checks extensions when the current profile is one of the profileMask.
 //
-// A minVersion of 0 means no version of the profileMask support this in core, 
+// A minVersion of 0 means no version of the profileMask support this in core,
 // the extension must be present.
 //
 
@@ -395,7 +534,7 @@ void TParseVersions::profileRequires(const TSourceLoc& loc, int profileMask, int
 //
 // When to use requireStage()
 //
-//     If only some stages support a feature.  
+//     If only some stages support a feature.
 //
 // Operation: If the current stage is not present, give an error message.
 //
@@ -445,6 +584,11 @@ void TParseVersions::requireNotRemoved(const TSourceLoc& loc, int profileMask, i
     }
 }
 
+void TParseVersions::unimplemented(const TSourceLoc& loc, const char* featureDesc)
+{
+    error(loc, "feature not yet implemented", featureDesc, "");
+}
+
 // Returns true if at least one of the extensions in the extensions parameter is requested. Otherwise, returns false.
 // Warns appropriately if the requested behavior of an extension is "warn".
 bool TParseVersions::checkExtensionsRequested(const TSourceLoc& loc, int numExtensions, const char* const extensions[], const char* featureDesc)
@@ -480,7 +624,8 @@ bool TParseVersions::checkExtensionsRequested(const TSourceLoc& loc, int numExte
 //
 void TParseVersions::requireExtensions(const TSourceLoc& loc, int numExtensions, const char* const extensions[], const char* featureDesc)
 {
-    if (checkExtensionsRequested(loc, numExtensions, extensions, featureDesc)) return;
+    if (checkExtensionsRequested(loc, numExtensions, extensions, featureDesc))
+        return;
 
     // If we get this far, give errors explaining what extensions are needed
     if (numExtensions == 1)
@@ -498,7 +643,8 @@ void TParseVersions::requireExtensions(const TSourceLoc& loc, int numExtensions,
 //
 void TParseVersions::ppRequireExtensions(const TSourceLoc& loc, int numExtensions, const char* const extensions[], const char* featureDesc)
 {
-    if (checkExtensionsRequested(loc, numExtensions, extensions, featureDesc)) return;
+    if (checkExtensionsRequested(loc, numExtensions, extensions, featureDesc))
+        return;
 
     // If we get this far, give errors explaining what extensions are needed
     if (numExtensions == 1)
@@ -536,7 +682,8 @@ bool TParseVersions::extensionTurnedOn(const char* const extension)
 bool TParseVersions::extensionsTurnedOn(int numExtensions, const char* const extensions[])
 {
     for (int i = 0; i < numExtensions; ++i) {
-        if (extensionTurnedOn(extensions[i])) return true;
+        if (extensionTurnedOn(extensions[i]))
+            return true;
     }
     return false;
 }
@@ -592,6 +739,25 @@ void TParseVersions::updateExtensionBehavior(int line, const char* extension, co
         updateExtensionBehavior(line, "GL_OES_shader_io_blocks", behaviorString);
     else if (strcmp(extension, "GL_GOOGLE_include_directive") == 0)
         updateExtensionBehavior(line, "GL_GOOGLE_cpp_style_line_directive", behaviorString);
+    // subgroup_* to subgroup_basic
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_vote") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_arithmetic") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_ballot") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_shuffle") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_shuffle_relative") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_clustered") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+    else if (strcmp(extension, "GL_KHR_shader_subgroup_quad") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+#ifdef NV_EXTENSIONS
+    else if (strcmp(extension, "GL_NV_shader_subgroup_partitioned") == 0)
+        updateExtensionBehavior(line, "GL_KHR_shader_subgroup_basic", behaviorString);
+#endif
 }
 
 void TParseVersions::updateExtensionBehavior(const char* extension, TExtensionBehavior behavior)
@@ -637,7 +803,7 @@ void TParseVersions::updateExtensionBehavior(const char* extension, TExtensionBe
 // Call for any operation needing full GLSL integer data-type support.
 void TParseVersions::fullIntegerCheck(const TSourceLoc& loc, const char* op)
 {
-    profileRequires(loc, ENoProfile, 130, nullptr, op); 
+    profileRequires(loc, ENoProfile, 130, nullptr, op);
     profileRequires(loc, EEsProfile, 300, nullptr, op);
 }
 
@@ -649,11 +815,118 @@ void TParseVersions::doubleCheck(const TSourceLoc& loc, const char* op)
     profileRequires(loc, ECompatibilityProfile, 400, nullptr, op);
 }
 
+// Call for any operation needing GLSL float16 data-type support.
+void TParseVersions::float16Check(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (!builtIn) {
+#if AMD_EXTENSIONS
+        const char* const extensions[3] = {E_GL_AMD_gpu_shader_half_float,
+                                           E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_float16};
+
+#else
+        const char* const extensions[2] = {E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_float16};
+#endif
+        requireExtensions(loc, sizeof(extensions)/sizeof(extensions[0]), extensions, "explicit types");
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+
+// Call for any operation needing GLSL float32 data-type support.
+void TParseVersions::explicitFloat32Check(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (!builtIn) {
+        const char* const extensions[2] = {E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_float32};
+        requireExtensions(loc, 2, extensions, "explicit types");
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+
+// Call for any operation needing GLSL float64 data-type support.
+void TParseVersions::explicitFloat64Check(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (!builtIn) {
+        const char* const extensions[2] = {E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_float64};
+        requireExtensions(loc, 2, extensions, "explicit types");
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+
+// Call for any operation needing GLSL explicit int8 data-type support.
+void TParseVersions::explicitInt8Check(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (! builtIn) {
+        const char* const extensions[2] = {E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_int8};
+        requireExtensions(loc, 2, extensions, "explicit types");
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+
+#ifdef AMD_EXTENSIONS
+// Call for any operation needing GLSL float16 opaque-type support
+void TParseVersions::float16OpaqueCheck(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (! builtIn) {
+        requireExtensions(loc, 1, &E_GL_AMD_gpu_shader_half_float_fetch, op);
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+#endif
+
+// Call for any operation needing GLSL explicit int16 data-type support.
+void TParseVersions::explicitInt16Check(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (! builtIn) {
+#if AMD_EXTENSIONS
+        const char* const extensions[3] = {E_GL_AMD_gpu_shader_int16,
+                                            E_GL_KHX_shader_explicit_arithmetic_types,
+                                            E_GL_KHX_shader_explicit_arithmetic_types_int16};
+#else
+        const char* const extensions[2] = {E_GL_KHX_shader_explicit_arithmetic_types,
+                                            E_GL_KHX_shader_explicit_arithmetic_types_int16};
+#endif
+        requireExtensions(loc, sizeof(extensions)/sizeof(extensions[0]), extensions, "explicit types");
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+
+// Call for any operation needing GLSL explicit int32 data-type support.
+void TParseVersions::explicitInt32Check(const TSourceLoc& loc, const char* op, bool builtIn)
+{
+    if (! builtIn) {
+        const char* const extensions[2] = {E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_int32};
+        requireExtensions(loc, 2, extensions, "explicit types");
+        requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
+        profileRequires(loc, ECoreProfile, 450, nullptr, op);
+        profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
+    }
+}
+
 // Call for any operation needing GLSL 64-bit integer data-type support.
 void TParseVersions::int64Check(const TSourceLoc& loc, const char* op, bool builtIn)
 {
     if (! builtIn) {
-        requireExtensions(loc, 1, &E_GL_ARB_gpu_shader_int64, "shader int64");
+        const char* const extensions[3] = {E_GL_ARB_gpu_shader_int64,
+                                           E_GL_KHX_shader_explicit_arithmetic_types,
+                                           E_GL_KHX_shader_explicit_arithmetic_types_int64};
+        requireExtensions(loc, 3, extensions, "shader int64");
         requireProfile(loc, ECoreProfile | ECompatibilityProfile, op);
         profileRequires(loc, ECoreProfile, 450, nullptr, op);
         profileRequires(loc, ECompatibilityProfile, 450, nullptr, op);
@@ -670,7 +943,7 @@ void TParseVersions::spvRemoved(const TSourceLoc& loc, const char* op)
 // Call for any operation removed because Vulkan SPIR-V is being generated.
 void TParseVersions::vulkanRemoved(const TSourceLoc& loc, const char* op)
 {
-    if (spvVersion.vulkan >= 100)
+    if (spvVersion.vulkan > 0)
         error(loc, "not allowed when using GLSL for Vulkan", op, "");
 }
 

@@ -1,11 +1,11 @@
 //
-//Copyright (C) 2013 LunarG, Inc.
+// Copyright (C) 2013-2016 LunarG, Inc.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -19,22 +19,23 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "../Include/Common.h"
 #include "reflection.h"
+#include "LiveTraverser.h"
 #include "localintermediate.h"
 
 #include "gl_types.h"
@@ -48,7 +49,7 @@
 //
 // High-level algorithm for one stage:
 //
-// 1. Put main() on list of live functions.
+// 1. Put the entry point on the list of live functions.
 //
 // 2. Traverse any live function, while skipping if-tests with a compile-time constant
 //    condition of false, and while adding any encountered function calls to the live
@@ -59,40 +60,28 @@
 // 3. Add any encountered uniform variables and blocks to the reflection database.
 //
 // Can be attempted with a failed link, but will return false if recursion had been detected, or
-// there wasn't exactly one main.
+// there wasn't exactly one entry point.
 //
 
 namespace glslang {
 
 //
 // The traverser: mostly pass through, except
-//  - processing function-call nodes to push live functions onto the stack of functions to process
 //  - processing binary nodes to see if they are dereferences of an aggregates to track
 //  - processing symbol nodes to see if they are non-aggregate objects to track
-//  - processing selection nodes to trim semantically dead code
+//
+// This ignores semantically dead code by using TLiveTraverser.
 //
 // This is in the glslang namespace directly so it can be a friend of TReflection.
 //
 
-class TLiveTraverser : public TIntermTraverser {
+class TReflectionTraverser : public TLiveTraverser {
 public:
-    TLiveTraverser(const TIntermediate& i, TReflection& r) : intermediate(i), reflection(r) { }
+    TReflectionTraverser(const TIntermediate& i, TReflection& r) :
+         TLiveTraverser(i), reflection(r) { }
 
-    virtual bool visitAggregate(TVisit, TIntermAggregate* node);
     virtual bool visitBinary(TVisit, TIntermBinary* node);
     virtual void visitSymbol(TIntermSymbol* base);
-    virtual bool visitSelection(TVisit, TIntermSelection* node);
-
-    // Track live funtions as well as uniforms, so that we don't visit dead functions
-    // and only visit each function once.
-    void addFunctionCall(TIntermAggregate* call)
-    {
-        // just use the map to ensure we process each function at most once
-        if (reflection.nameToIndex.find(call->getName()) == reflection.nameToIndex.end()) {
-            reflection.nameToIndex[call->getName()] = -1;
-            pushFunction(call->getName());
-        }
-    }
 
     // Add a simple reference to a uniform variable to the uniform database, no dereference involved.
     // However, no dereference doesn't mean simple... it could be a complex aggregate.
@@ -119,7 +108,7 @@ public:
             TReflection::TNameToIndex::const_iterator it = reflection.nameToIndex.find(name);
             if (it == reflection.nameToIndex.end()) {
                 reflection.nameToIndex[name] = (int)reflection.indexToAttribute.size();
-                reflection.indexToAttribute.push_back(TObjectReflection(name, 0, mapToGlType(type), 0, 0));
+                reflection.indexToAttribute.push_back(TObjectReflection(name, type, 0, mapToGlType(type), 0, 0));
             }
         }
     }
@@ -142,8 +131,11 @@ public:
         for (int m = 0; m <= index; ++m) {
             // modify just the children's view of matrix layout, if there is one for this member
             TLayoutMatrix subMatrixLayout = memberList[m].type->getQualifier().layoutMatrix;
-            int memberAlignment = intermediate.getBaseAlignment(*memberList[m].type, memberSize, dummyStride, type.getQualifier().layoutPacking == ElpStd140,
-                                                                subMatrixLayout != ElmNone ? subMatrixLayout == ElmRowMajor : type.getQualifier().layoutMatrix == ElmRowMajor);
+            int memberAlignment = intermediate.getBaseAlignment(*memberList[m].type, memberSize, dummyStride,
+                                                                type.getQualifier().layoutPacking == ElpStd140,
+                                                                subMatrixLayout != ElmNone
+                                                                    ? subMatrixLayout == ElmRowMajor
+                                                                    : type.getQualifier().layoutMatrix == ElmRowMajor);
             RoundToPow2(offset, memberAlignment);
             if (m < index)
                 offset += memberSize;
@@ -162,7 +154,8 @@ public:
 
         int lastMemberSize;
         int dummyStride;
-        intermediate.getBaseAlignment(*memberList[lastIndex].type, lastMemberSize, dummyStride, blockType.getQualifier().layoutPacking == ElpStd140,
+        intermediate.getBaseAlignment(*memberList[lastIndex].type, lastMemberSize, dummyStride,
+                                      blockType.getQualifier().layoutPacking == ElpStd140,
                                       blockType.getQualifier().layoutMatrix == ElmRowMajor);
 
         return lastOffset + lastMemberSize;
@@ -178,7 +171,7 @@ public:
     void blowUpActiveAggregate(const TType& baseType, const TString& baseName, const TList<TIntermBinary*>& derefs,
                                TList<TIntermBinary*>::const_iterator deref, int offset, int blockIndex, int arraySize)
     {
-        // process the part of the derefence chain that was explicit in the shader
+        // process the part of the dereference chain that was explicit in the shader
         TString name = baseName;
         const TType* terminalType = &baseType;
         for (; deref != derefs.end(); ++deref) {
@@ -188,7 +181,7 @@ public:
             switch (visitNode->getOp()) {
             case EOpIndexIndirect:
                 // Visit all the indices of this array, and for each one add on the remaining dereferencing
-                for (int i = 0; i < visitNode->getLeft()->getType().getOuterArraySize(); ++i) {
+                for (int i = 0; i < std::max(visitNode->getLeft()->getType().getOuterArraySize(), 1); ++i) {
                     TString newBaseName = name;
                     if (baseType.getBasicType() != EbtBlock)
                         newBaseName.append(TString("[") + String(i) + "]");
@@ -223,7 +216,7 @@ public:
             if (terminalType->isArray()) {
                 // Visit all the indices of this array, and for each one,
                 // fully explode the remaining aggregate to dereference
-                for (int i = 0; i < terminalType->getOuterArraySize(); ++i) {
+                for (int i = 0; i < std::max(terminalType->getOuterArraySize(), 1); ++i) {
                     TString newBaseName = name;
                     newBaseName.append(TString("[") + String(i) + "]");
                     TType derefType(*terminalType, 0);
@@ -246,7 +239,7 @@ public:
         }
 
         // Finally, add a full string to the reflection database, and update the array size if necessary.
-        // If the derefenced entity to record is an array, compute the size and update the maximum size.
+        // If the dereferenced entity to record is an array, compute the size and update the maximum size.
 
         // there might not be a final array dereference, it could have been copied as an array object
         if (arraySize == 0)
@@ -255,7 +248,9 @@ public:
         TReflection::TNameToIndex::const_iterator it = reflection.nameToIndex.find(name);
         if (it == reflection.nameToIndex.end()) {
             reflection.nameToIndex[name] = (int)reflection.indexToUniform.size();
-            reflection.indexToUniform.push_back(TObjectReflection(name, offset, mapToGlType(*terminalType), arraySize, blockIndex));
+            reflection.indexToUniform.push_back(TObjectReflection(name, *terminalType, offset,
+                                                                  mapToGlType(*terminalType),
+                                                                  arraySize, blockIndex));
         } else if (arraySize > 1) {
             int& reflectedArraySize = reflection.indexToUniform[it->second].size;
             reflectedArraySize = std::max(arraySize, reflectedArraySize);
@@ -306,12 +301,18 @@ public:
         if (block) {
             offset = 0;
             anonymous = IsAnonymous(base->getName());
+
+            const TString& blockName = base->getType().getTypeName();
+
             if (base->getType().isArray()) {
+                TType derefType(base->getType(), 0);
+
                 assert(! anonymous);
                 for (int e = 0; e < base->getType().getCumulativeArraySize(); ++e)
-                    blockIndex = addBlockName(base->getType().getTypeName() + "[" + String(e) + "]", getBlockSize(base->getType()));
+                    blockIndex = addBlockName(blockName + "[" + String(e) + "]", derefType,
+                                              getBlockSize(base->getType()));
             } else
-                blockIndex = addBlockName(base->getType().getTypeName(), getBlockSize(base->getType()));
+                blockIndex = addBlockName(blockName, base->getType(), getBlockSize(base->getType()));
         }
 
         // Process the dereference chain, backward, accumulating the pieces for later forward traversal.
@@ -344,34 +345,18 @@ public:
         blowUpActiveAggregate(base->getType(), baseName, derefs, derefs.begin(), offset, blockIndex, arraySize);
     }
 
-    int addBlockName(const TString& name, int size)
+    int addBlockName(const TString& name, const TType& type, int size)
     {
         int blockIndex;
         TReflection::TNameToIndex::const_iterator it = reflection.nameToIndex.find(name);
         if (reflection.nameToIndex.find(name) == reflection.nameToIndex.end()) {
             blockIndex = (int)reflection.indexToUniformBlock.size();
             reflection.nameToIndex[name] = blockIndex;
-            reflection.indexToUniformBlock.push_back(TObjectReflection(name, -1, -1, size, -1));
+            reflection.indexToUniformBlock.push_back(TObjectReflection(name, type, -1, -1, size, -1));
         } else
             blockIndex = it->second;
 
         return blockIndex;
-    }
-
-    //
-    // Given a function name, find its subroot in the tree, and push it onto the stack of
-    // functions left to process.
-    //
-    void pushFunction(const TString& name)
-    {
-        TIntermSequence& globals = intermediate.getTreeRoot()->getAsAggregate()->getSequence();
-        for (unsigned int f = 0; f < globals.size(); ++f) {
-            TIntermAggregate* candidate = globals[f]->getAsAggregate();
-            if (candidate && candidate->getOp() == EOpFunction && candidate->getName() == name) {
-                functions.push_back(candidate);
-                break;
-            }
-        }
     }
 
     // Are we at a level in a dereference chain at which individual active uniform queries are made?
@@ -430,6 +415,36 @@ public:
                 case EsdBuffer:
                     return GL_SAMPLER_BUFFER;
                 }
+#ifdef AMD_EXTENSIONS
+            case EbtFloat16:
+                switch ((int)sampler.dim) {
+                case Esd1D:
+                    switch ((int)sampler.shadow) {
+                    case false: return sampler.arrayed ? GL_FLOAT16_SAMPLER_1D_ARRAY_AMD : GL_FLOAT16_SAMPLER_1D_AMD;
+                    case true:  return sampler.arrayed ? GL_FLOAT16_SAMPLER_1D_ARRAY_SHADOW_AMD : GL_FLOAT16_SAMPLER_1D_SHADOW_AMD;
+                    }
+                case Esd2D:
+                    switch ((int)sampler.ms) {
+                    case false:
+                        switch ((int)sampler.shadow) {
+                        case false: return sampler.arrayed ? GL_FLOAT16_SAMPLER_2D_ARRAY_AMD : GL_FLOAT16_SAMPLER_2D_AMD;
+                        case true:  return sampler.arrayed ? GL_FLOAT16_SAMPLER_2D_ARRAY_SHADOW_AMD : GL_FLOAT16_SAMPLER_2D_SHADOW_AMD;
+                        }
+                    case true:      return sampler.arrayed ? GL_FLOAT16_SAMPLER_2D_MULTISAMPLE_ARRAY_AMD : GL_FLOAT16_SAMPLER_2D_MULTISAMPLE_AMD;
+                    }
+                case Esd3D:
+                    return GL_FLOAT16_SAMPLER_3D_AMD;
+                case EsdCube:
+                    switch ((int)sampler.shadow) {
+                    case false: return sampler.arrayed ? GL_FLOAT16_SAMPLER_CUBE_MAP_ARRAY_AMD : GL_FLOAT16_SAMPLER_CUBE_AMD;
+                    case true:  return sampler.arrayed ? GL_FLOAT16_SAMPLER_CUBE_MAP_ARRAY_SHADOW_AMD : GL_FLOAT16_SAMPLER_CUBE_SHADOW_AMD;
+                    }
+                case EsdRect:
+                    return sampler.shadow ? GL_FLOAT16_SAMPLER_2D_RECT_SHADOW_AMD : GL_FLOAT16_SAMPLER_2D_RECT_AMD;
+                case EsdBuffer:
+                    return GL_FLOAT16_SAMPLER_BUFFER_AMD;
+                }
+#endif
             case EbtInt:
                 switch ((int)sampler.dim) {
                 case Esd1D:
@@ -437,7 +452,8 @@ public:
                 case Esd2D:
                     switch ((int)sampler.ms) {
                     case false:  return sampler.arrayed ? GL_INT_SAMPLER_2D_ARRAY : GL_INT_SAMPLER_2D;
-                    case true:   return sampler.arrayed ? GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY : GL_INT_SAMPLER_2D_MULTISAMPLE;
+                    case true:   return sampler.arrayed ? GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY
+                                                        : GL_INT_SAMPLER_2D_MULTISAMPLE;
                     }
                 case Esd3D:
                     return GL_INT_SAMPLER_3D;
@@ -455,7 +471,8 @@ public:
                 case Esd2D:
                     switch ((int)sampler.ms) {
                     case false:  return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_2D_ARRAY : GL_UNSIGNED_INT_SAMPLER_2D;
-                    case true:   return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY : GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE;
+                    case true:   return sampler.arrayed ? GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY
+                                                        : GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE;
                     }
                 case Esd3D:
                     return GL_UNSIGNED_INT_SAMPLER_3D;
@@ -490,6 +507,26 @@ public:
                 case EsdBuffer:
                     return GL_IMAGE_BUFFER;
                 }
+#ifdef AMD_EXTENSIONS
+            case EbtFloat16:
+                switch ((int)sampler.dim) {
+                case Esd1D:
+                    return sampler.arrayed ? GL_FLOAT16_IMAGE_1D_ARRAY_AMD : GL_FLOAT16_IMAGE_1D_AMD;
+                case Esd2D:
+                    switch ((int)sampler.ms) {
+                    case false:     return sampler.arrayed ? GL_FLOAT16_IMAGE_2D_ARRAY_AMD : GL_FLOAT16_IMAGE_2D_AMD;
+                    case true:      return sampler.arrayed ? GL_FLOAT16_IMAGE_2D_MULTISAMPLE_ARRAY_AMD : GL_FLOAT16_IMAGE_2D_MULTISAMPLE_AMD;
+                    }
+                case Esd3D:
+                    return GL_FLOAT16_IMAGE_3D_AMD;
+                case EsdCube:
+                    return sampler.arrayed ? GL_FLOAT16_IMAGE_CUBE_MAP_ARRAY_AMD : GL_FLOAT16_IMAGE_CUBE_AMD;
+                case EsdRect:
+                    return GL_FLOAT16_IMAGE_2D_RECT_AMD;
+                case EsdBuffer:
+                    return GL_FLOAT16_IMAGE_BUFFER_AMD;
+                }
+#endif
             case EbtInt:
                 switch ((int)sampler.dim) {
                 case Esd1D:
@@ -515,7 +552,8 @@ public:
                 case Esd2D:
                     switch ((int)sampler.ms) {
                     case false:  return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_2D_ARRAY : GL_UNSIGNED_INT_IMAGE_2D;
-                    case true:   return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY : GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE;
+                    case true:   return sampler.arrayed ? GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY
+                                                        : GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE;
                     }
                 case Esd3D:
                     return GL_UNSIGNED_INT_IMAGE_3D;
@@ -554,6 +592,9 @@ public:
             switch (type.getBasicType()) {
             case EbtFloat:      return GL_FLOAT_VEC2                  + offset;
             case EbtDouble:     return GL_DOUBLE_VEC2                 + offset;
+#ifdef AMD_EXTENSIONS
+            case EbtFloat16:    return GL_FLOAT16_VEC2_NV             + offset;
+#endif
             case EbtInt:        return GL_INT_VEC2                    + offset;
             case EbtUint:       return GL_UNSIGNED_INT_VEC2           + offset;
             case EbtInt64:      return GL_INT64_ARB                   + offset;
@@ -613,6 +654,32 @@ public:
                     default:   return 0;
                     }
                 }
+#ifdef AMD_EXTENSIONS
+            case EbtFloat16:
+                switch (type.getMatrixCols()) {
+                case 2:
+                    switch (type.getMatrixRows()) {
+                    case 2:    return GL_FLOAT16_MAT2_AMD;
+                    case 3:    return GL_FLOAT16_MAT2x3_AMD;
+                    case 4:    return GL_FLOAT16_MAT2x4_AMD;
+                    default:   return 0;
+                    }
+                case 3:
+                    switch (type.getMatrixRows()) {
+                    case 2:    return GL_FLOAT16_MAT3x2_AMD;
+                    case 3:    return GL_FLOAT16_MAT3_AMD;
+                    case 4:    return GL_FLOAT16_MAT3x4_AMD;
+                    default:   return 0;
+                    }
+                case 4:
+                    switch (type.getMatrixRows()) {
+                    case 2:    return GL_FLOAT16_MAT4x2_AMD;
+                    case 3:    return GL_FLOAT16_MAT4x3_AMD;
+                    case 4:    return GL_FLOAT16_MAT4_AMD;
+                    default:   return 0;
+                    }
+                }
+#endif
             default:
                 return 0;
             }
@@ -621,6 +688,9 @@ public:
             switch (type.getBasicType()) {
             case EbtFloat:      return GL_FLOAT;
             case EbtDouble:     return GL_DOUBLE;
+#ifdef AMD_EXTENSIONS
+            case EbtFloat16:    return GL_FLOAT16_NV;
+#endif
             case EbtInt:        return GL_INT;
             case EbtUint:       return GL_UNSIGNED_INT;
             case EbtInt64:      return GL_INT64_ARB;
@@ -639,33 +709,21 @@ public:
         return type.isArray() ? type.getOuterArraySize() : 1;
     }
 
-    typedef std::list<TIntermAggregate*> TFunctionStack;
-    TFunctionStack functions;
-    const TIntermediate& intermediate;
     TReflection& reflection;
     std::set<const TIntermNode*> processedDerefs;
 
 protected:
-    TLiveTraverser(TLiveTraverser&);
-    TLiveTraverser& operator=(TLiveTraverser&);
+    TReflectionTraverser(TReflectionTraverser&);
+    TReflectionTraverser& operator=(TReflectionTraverser&);
 };
 
 //
 // Implement the traversal functions of interest.
 //
 
-// To catch which function calls are not dead, and hence which functions must be visited.
-bool TLiveTraverser::visitAggregate(TVisit /* visit */, TIntermAggregate* node)
-{
-    if (node->getOp() == EOpFunctionCall)
-        addFunctionCall(node);
-
-    return true; // traverse this subtree
-}
-
 // To catch dereferenced aggregates that must be reflected.
 // This catches them at the highest level possible in the tree.
-bool TLiveTraverser::visitBinary(TVisit /* visit */, TIntermBinary* node)
+bool TReflectionTraverser::visitBinary(TVisit /* visit */, TIntermBinary* node)
 {
     switch (node->getOp()) {
     case EOpIndexDirect:
@@ -683,7 +741,7 @@ bool TLiveTraverser::visitBinary(TVisit /* visit */, TIntermBinary* node)
 }
 
 // To reflect non-dereferenced objects.
-void TLiveTraverser::visitSymbol(TIntermSymbol* base)
+void TReflectionTraverser::visitSymbol(TIntermSymbol* base)
 {
     if (base->getQualifier().storage == EvqUniform)
         addUniform(*base);
@@ -692,38 +750,50 @@ void TLiveTraverser::visitSymbol(TIntermSymbol* base)
         addAttribute(*base);
 }
 
-// To prune semantically dead paths.
-bool TLiveTraverser::visitSelection(TVisit /* visit */,  TIntermSelection* node)
-{
-    TIntermConstantUnion* constant = node->getCondition()->getAsConstantUnion();
-    if (constant) {
-        // cull the path that is dead
-        if (constant->getConstArray()[0].getBConst() == true && node->getTrueBlock())
-            node->getTrueBlock()->traverse(this);
-        if (constant->getConstArray()[0].getBConst() == false && node->getFalseBlock())
-            node->getFalseBlock()->traverse(this);
-
-        return false; // don't traverse any more, we did it all above
-    } else
-        return true; // traverse the whole subtree
-}
-
 //
 // Implement TReflection methods.
 //
 
+// Track any required attribute reflection, such as compute shader numthreads.
+//
+void TReflection::buildAttributeReflection(EShLanguage stage, const TIntermediate& intermediate)
+{
+    if (stage == EShLangCompute) {
+        // Remember thread dimensions
+        for (int dim=0; dim<3; ++dim)
+            localSize[dim] = intermediate.getLocalSize(dim);
+    }
+}
+
+// build counter block index associations for buffers
+void TReflection::buildCounterIndices(const TIntermediate& intermediate)
+{
+    // search for ones that have counters
+    for (int i = 0; i < int(indexToUniformBlock.size()); ++i) {
+        const TString counterName(intermediate.addCounterBufferName(indexToUniformBlock[i].name));
+        const int index = getIndex(counterName);
+
+        if (index >= 0)
+            indexToUniformBlock[i].counterIndex = index;
+    }
+}
+
 // Merge live symbols from 'intermediate' into the existing reflection database.
 //
 // Returns false if the input is too malformed to do this.
-bool TReflection::addStage(EShLanguage, const TIntermediate& intermediate)
+bool TReflection::addStage(EShLanguage stage, const TIntermediate& intermediate)
 {
-    if (intermediate.getNumMains() != 1 || intermediate.isRecursive())
+    if (intermediate.getTreeRoot() == nullptr ||
+        intermediate.getNumEntryPoints() != 1 ||
+        intermediate.isRecursive())
         return false;
 
-    TLiveTraverser it(intermediate, *this);
+    buildAttributeReflection(stage, intermediate);
 
-    // put main() on functions to process
-    it.pushFunction("main(");
+    TReflectionTraverser it(intermediate, *this);
+
+    // put the entry point on the list of functions to process
+    it.pushFunction(intermediate.getEntryPointMangledName().c_str());
 
     // process all the functions
     while (! it.functions.empty()) {
@@ -731,6 +801,8 @@ bool TReflection::addStage(EShLanguage, const TIntermediate& intermediate)
         it.functions.pop_back();
         function->traverse(&it);
     }
+
+    buildCounterIndices(intermediate);
 
     return true;
 }
@@ -752,10 +824,20 @@ void TReflection::dump()
         indexToAttribute[i].dump();
     printf("\n");
 
-    //printf("Live names\n");
-    //for (TNameToIndex::const_iterator it = nameToIndex.begin(); it != nameToIndex.end(); ++it)
+    if (getLocalSize(0) > 1) {
+        static const char* axis[] = { "X", "Y", "Z" };
+
+        for (int dim=0; dim<3; ++dim)
+            if (getLocalSize(dim) > 1)
+                printf("Local size %s: %d\n", axis[dim], getLocalSize(dim));
+
+        printf("\n");
+    }
+
+    // printf("Live names\n");
+    // for (TNameToIndex::const_iterator it = nameToIndex.begin(); it != nameToIndex.end(); ++it)
     //    printf("%s: %d\n", it->first.c_str(), it->second);
-    //printf("\n");
+    // printf("\n");
 }
 
 } // end namespace glslang

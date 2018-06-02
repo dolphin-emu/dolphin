@@ -1,12 +1,12 @@
 //
-//Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
-//Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// Copyright (C) 2012-2013 LunarG, Inc.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -20,18 +20,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 //
@@ -40,6 +40,8 @@
 
 #ifndef _ARRAYS_INCLUDED
 #define _ARRAYS_INCLUDED
+
+#include <algorithm>
 
 namespace glslang {
 
@@ -130,10 +132,10 @@ struct TSmallArrayVector {
         sizes->push_back(pair);
     }
 
-    void push_front(const TSmallArrayVector& newDims)
+    void push_back(const TSmallArrayVector& newDims)
     {
         alloc();
-        sizes->insert(sizes->begin(), newDims.sizes->begin(), newDims.sizes->end());
+        sizes->insert(sizes->end(), newDims.sizes->begin(), newDims.sizes->end());
     }
 
     void pop_front()
@@ -220,12 +222,13 @@ protected:
 struct TArraySizes {
     POOL_ALLOCATOR_NEW_DELETE(GetThreadPoolAllocator())
 
-    TArraySizes() : implicitArraySize(1) { }
+    TArraySizes() : implicitArraySize(1), variablyIndexed(false) { }
 
     // For breaking into two non-shared copies, independently modifiable.
     TArraySizes& operator=(const TArraySizes& from)
     {
         implicitArraySize = from.implicitArraySize;
+        variablyIndexed = from.variablyIndexed;
         sizes = from.sizes;
 
         return *this;
@@ -252,10 +255,11 @@ struct TArraySizes {
     void addInnerSize(int s) { addInnerSize((unsigned)s, nullptr); }
     void addInnerSize(int s, TIntermTyped* n) { sizes.push_back((unsigned)s, n); }
     void addInnerSize(TArraySize pair) { sizes.push_back(pair.size, pair.node); }
+    void addInnerSizes(const TArraySizes& s) { sizes.push_back(s.sizes); }
     void changeOuterSize(int s) { sizes.changeFront((unsigned)s); }
-    int getImplicitSize() const { return (int)implicitArraySize; }
-    void setImplicitSize(int s) { implicitArraySize = s; }
-    bool isInnerImplicit() const
+    int getImplicitSize() const { return implicitArraySize; }
+    void updateImplicitSize(int s) { implicitArraySize = std::max(implicitArraySize, s); }
+    bool isInnerUnsized() const
     {
         for (int d = 1; d < sizes.size(); ++d) {
             if (sizes.getDimSize(d) == (unsigned)UnsizedArraySize)
@@ -264,8 +268,31 @@ struct TArraySizes {
 
         return false;
     }
-    bool isImplicit() const { return getOuterSize() == UnsizedArraySize || isInnerImplicit(); }
-    void addOuterSizes(const TArraySizes& s) { sizes.push_front(s.sizes); }
+    bool clearInnerUnsized()
+    {
+        for (int d = 1; d < sizes.size(); ++d) {
+            if (sizes.getDimSize(d) == (unsigned)UnsizedArraySize)
+                setDimSize(d, 1);
+        }
+
+        return false;
+    }
+    bool isInnerSpecialization() const
+    {
+        for (int d = 1; d < sizes.size(); ++d) {
+            if (sizes.getDimNode(d) != nullptr)
+                return true;
+        }
+
+        return false;
+    }
+    bool isOuterSpecialization()
+    {
+        return sizes.getDimNode(0) != nullptr;
+    }
+
+    bool hasUnsized() const { return getOuterSize() == UnsizedArraySize || isInnerUnsized(); }
+    bool isSized() const { return getOuterSize() != UnsizedArraySize; }
     void dereference() { sizes.pop_front(); }
     void copyDereferenced(const TArraySizes& rhs)
     {
@@ -288,17 +315,8 @@ struct TArraySizes {
         return true;
     }
 
-    // Returns true if any of the dimensions of the array is sized with a node
-    // instead of a front-end compile-time constant.
-    bool containsNode()
-    {
-        for (int d = 0; d < sizes.size(); ++d) {
-            if (sizes.getDimNode(d) != nullptr)
-                return true;
-        }
-
-        return false;
-    }
+    void setVariablyIndexed() { variablyIndexed = true; }
+    bool isVariablyIndexed() const { return variablyIndexed; }
 
     bool operator==(const TArraySizes& rhs) { return sizes == rhs.sizes; }
     bool operator!=(const TArraySizes& rhs) { return sizes != rhs.sizes; }
@@ -308,9 +326,12 @@ protected:
 
     TArraySizes(const TArraySizes&);
 
-    // for tracking maximum referenced index, before an explicit size is given
-    // applies only to the outer-most dimension
+    // For tracking maximum referenced compile-time constant index.
+    // Applies only to the outer-most dimension. Potentially becomes
+    // the implicit size of the array, if not variably indexed and
+    // otherwise legal.
     int implicitArraySize;
+    bool variablyIndexed;  // true if array is indexed with a non compile-time constant
 };
 
 } // end namespace glslang

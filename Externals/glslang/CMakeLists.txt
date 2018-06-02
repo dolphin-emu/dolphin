@@ -1,6 +1,7 @@
 set(SRCS
 	glslang/GenericCodeGen/CodeGen.cpp
 	glslang/GenericCodeGen/Link.cpp
+	glslang/MachineIndependent/attribute.cpp
 	glslang/MachineIndependent/Constant.cpp
 	glslang/MachineIndependent/glslang_tab.cpp
 	glslang/MachineIndependent/InfoSink.cpp
@@ -8,17 +9,17 @@ set(SRCS
 	glslang/MachineIndependent/Intermediate.cpp
 	glslang/MachineIndependent/intermOut.cpp
 	glslang/MachineIndependent/IntermTraverse.cpp
+	glslang/MachineIndependent/iomapper.cpp
 	glslang/MachineIndependent/limits.cpp
 	glslang/MachineIndependent/linkValidate.cpp
 	glslang/MachineIndependent/parseConst.cpp
+	glslang/MachineIndependent/ParseContextBase.cpp
 	glslang/MachineIndependent/ParseHelper.cpp
 	glslang/MachineIndependent/PoolAlloc.cpp
 	glslang/MachineIndependent/preprocessor/Pp.cpp
 	glslang/MachineIndependent/preprocessor/PpAtom.cpp
 	glslang/MachineIndependent/preprocessor/PpContext.cpp
-	glslang/MachineIndependent/preprocessor/PpMemory.cpp
 	glslang/MachineIndependent/preprocessor/PpScanner.cpp
-	glslang/MachineIndependent/preprocessor/PpSymbols.cpp
 	glslang/MachineIndependent/preprocessor/PpTokens.cpp
 	glslang/MachineIndependent/propagateNoContraction.cpp
 	glslang/MachineIndependent/reflection.cpp
@@ -27,13 +28,6 @@ set(SRCS
 	glslang/MachineIndependent/ShaderLang.cpp
 	glslang/MachineIndependent/SymbolTable.cpp
 	glslang/MachineIndependent/Versions.cpp
-
-	hlsl/hlslGrammar.cpp
-	hlsl/hlslOpMap.cpp
-	hlsl/hlslParseables.cpp
-	hlsl/hlslParseHelper.cpp
-	hlsl/hlslScanContext.cpp
-	hlsl/hlslTokenStream.cpp
 	OGLCompilersDLL/InitializeDll.cpp
 	SPIRV/disassemble.cpp
 	SPIRV/doc.cpp

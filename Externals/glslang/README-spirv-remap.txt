@@ -98,7 +98,7 @@ options.  See REMAPPING AND OPTIMIZATION OPTIONS.
 On error, the function supplied to registerErrorHandler() will be invoked.
 This can be a standard C/C++ function, a lambda function, or a functor.
 The default handler simply calls exit(5); The error handler is a static
-members, so need only be set up once, not once per spirvbin_t instance.
+member, so need only be set up once, not once per spirvbin_t instance.
 
 Log messages are supplied to registerLogHandler().  By default, log
 messages are eaten silently.  The log handler is also a static member.

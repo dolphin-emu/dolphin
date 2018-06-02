@@ -35,6 +35,8 @@
 #ifndef GLSLANG_GTESTS_SETTINGS_H
 #define GLSLANG_GTESTS_SETTINGS_H
 
+#include <string>
+
 namespace glslangtest {
 
 class GlslangInitializer;
@@ -45,6 +47,8 @@ struct GTestSettings {
     // An indicator of whether GTest should write real output to the file for
     // the expected output.
     bool updateMode;
+    // The root directory for test files.
+    std::string testRoot;
 };
 
 extern GTestSettings GlobalTestSettings;
