@@ -17,7 +17,7 @@ class CEXIIPL : public IEXIDevice
 {
 public:
   CEXIIPL();
-  virtual ~CEXIIPL();
+  ~CEXIIPL() override;
 
   void SetCS(int cs) override;
   bool IsPresent() const override;
