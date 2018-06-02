@@ -25,6 +25,8 @@
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 
+#include "UICommon/UICommon.h"
+
 constexpr int ENTRY_PARTITION = Qt::UserRole;
 constexpr int ENTRY_NAME = Qt::UserRole + 1;
 constexpr int ENTRY_TYPE = Qt::UserRole + 2;
@@ -52,11 +54,18 @@ void FilesystemWidget::CreateWidgets()
 {
   auto* layout = new QVBoxLayout;
 
-  m_tree_model = new QStandardItemModel(0, 1);
+  m_tree_model = new QStandardItemModel(0, 2);
+  m_tree_model->setHorizontalHeaderLabels({tr("Name"), tr("Size")});
+
   m_tree_view = new QTreeView(this);
   m_tree_view->setModel(m_tree_model);
   m_tree_view->setContextMenuPolicy(Qt::CustomContextMenu);
-  m_tree_view->header()->hide();
+
+  auto* header = m_tree_view->header();
+
+  header->setSectionResizeMode(0, QHeaderView::Stretch);
+  header->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+  header->setStretchLastSection(false);
 
 // Windows: Set style to (old) windows, which draws branch lines
 #ifdef _WIN32
@@ -132,7 +141,14 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
     item->setData(QString::fromStdString(info.GetPath()), ENTRY_NAME);
     item->setData(QVariant::fromValue(info.IsDirectory() ? EntryType::Dir : EntryType::File),
                   ENTRY_TYPE);
-    root->appendRow(item);
+
+    const auto size = info.GetTotalSize();
+
+    auto* size_item = new QStandardItem(QString::fromStdString(UICommon::FormatSize(size)));
+    size_item->setTextAlignment(Qt::AlignRight);
+    size_item->setEditable(false);
+
+    root->appendRow({item, size_item});
   }
 }
 
