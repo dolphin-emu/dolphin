@@ -86,6 +86,8 @@ public:
   // The size of a file.
   // Not guaranteed to return a meaningful value for directories.
   virtual u32 GetSize() const = 0;
+  // For a file, returns its size. For a directory, returns the total size of its contents.
+  u64 GetTotalSize() const;
   virtual bool IsDirectory() const = 0;
   // The number of files and directories in a directory, including those in subdirectories.
   // Not guaranteed to return a meaningful value for files.
@@ -124,4 +126,4 @@ public:
 // because it will check IsValid for you, will automatically pick the right type of filesystem,
 // and will cache the filesystem in case it's needed again later.
 
-}  // namespace
+}  // namespace DiscIO
