@@ -60,6 +60,18 @@ private:
     };
   };
 
+  static long DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
+                           void* output_buffer, long nframes);
+
+  void TransferByte(u8& byte) override;
+
+  void StreamLog(const char* msg);
+  void StreamInit();
+  void StreamTerminate();
+  void StreamStart();
+  void StreamStop();
+  void StreamReadOne();
+
   // 64 is the max size, can be 16 or 32 as well
   int ring_pos;
   u8 ring_buffer[64 * sample_size];
@@ -73,14 +85,6 @@ private:
   std::shared_ptr<cubeb> m_cubeb_ctx = nullptr;
   cubeb_stream* m_cubeb_stream = nullptr;
 
-  void StreamLog(const char* msg);
-  void StreamInit();
-  void StreamTerminate();
-  void StreamStart();
-  void StreamStop();
-  void StreamReadOne();
-
-public:
   UStatus status;
 
   std::mutex ring_lock;
@@ -97,8 +101,5 @@ public:
   int stream_wpos;
   int stream_rpos;
   int samples_avail;
-
-protected:
-  void TransferByte(u8& byte) override;
 };
 }  // namespace ExpansionInterface
