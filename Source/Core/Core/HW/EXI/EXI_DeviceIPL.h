@@ -18,7 +18,7 @@ public:
   CEXIIPL();
   virtual ~CEXIIPL();
 
-  void SetCS(int _iCS) override;
+  void SetCS(int cs) override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
 
@@ -52,25 +52,25 @@ private:
   };
 
   //! IPL
-  u8* m_pIPL;
+  u8* m_ipl;
 
   // STATE_TO_SAVE
   //! RealTimeClock
-  u8 m_RTC[4] = {};
+  u8 m_rtc[4] = {};
 
   //! Helper
-  u32 m_uPosition = 0;
-  u32 m_uAddress = 0;
-  u32 m_uRWOffset = 0;
+  u32 m_position = 0;
+  u32 m_address = 0;
+  u32 m_rw_offset = 0;
 
   std::string m_buffer;
-  bool m_FontsLoaded = false;
+  bool m_fonts_loaded = false;
 
   void UpdateRTC();
 
-  void TransferByte(u8& _uByte) override;
-  bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
-  u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
+  void TransferByte(u8& byte) override;
+  bool IsWriteCommand() const { return !!(m_address & (1 << 31)); }
+  u32 CommandRegion() const { return (m_address & ~(1 << 31)) >> 8; }
   bool LoadFileToIPL(const std::string& filename, u32 offset);
   void LoadFontFile(const std::string& filename, u32 offset);
   std::string FindIPLDump(const std::string& path_prefix);
