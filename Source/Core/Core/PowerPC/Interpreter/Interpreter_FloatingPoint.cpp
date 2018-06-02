@@ -432,6 +432,8 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
   if (b < 0.0)
   {
     SetFPException(FPSCR_VXSQRT);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
 
     if (FPSCR.VE == 0)
       compute_result(b);
@@ -446,6 +448,8 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
   else if (Common::IsSNAN(b))
   {
     SetFPException(FPSCR_VXSNAN);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
 
     if (FPSCR.VE == 0)
       compute_result(b);
