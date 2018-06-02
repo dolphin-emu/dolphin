@@ -36,6 +36,7 @@ public:
 
   void SetPatch(u32 address, u32 value);
   void SetPatch(u32 address, std::vector<u8> value);
+  const MemoryPatch& GetPatch(std::size_t index) const;
   const std::vector<MemoryPatch>& GetPatches() const;
   void UnsetPatch(u32 address);
   void EnablePatch(std::size_t index);
