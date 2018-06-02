@@ -124,6 +124,11 @@ void PPCDebugInterface::SetPatch(u32 address, std::vector<u8> value)
   m_patches.SetPatch(address, value);
 }
 
+const Common::Debug::MemoryPatch& PPCDebugInterface::GetPatch(std::size_t index) const
+{
+  return m_patches.GetPatch(index);
+}
+
 const std::vector<Common::Debug::MemoryPatch>& PPCDebugInterface::GetPatches() const
 {
   return m_patches.GetPatches();

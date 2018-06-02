@@ -43,6 +43,7 @@ public:
   // Memory Patches
   void SetPatch(u32 address, u32 value) override;
   void SetPatch(u32 address, std::vector<u8> value) override;
+  const Common::Debug::MemoryPatch& GetPatch(std::size_t index) const override;
   const std::vector<Common::Debug::MemoryPatch>& GetPatches() const override;
   void UnsetPatch(u32 address) override;
   void EnablePatch(std::size_t index) override;

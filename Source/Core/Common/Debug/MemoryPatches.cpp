@@ -38,6 +38,11 @@ void MemoryPatches::SetPatch(u32 address, std::vector<u8> value)
   Patch(index);
 }
 
+const MemoryPatch& MemoryPatches::GetPatch(std::size_t index) const
+{
+  return m_patches.at(index);
+}
+
 const std::vector<MemoryPatch>& MemoryPatches::GetPatches() const
 {
   return m_patches;

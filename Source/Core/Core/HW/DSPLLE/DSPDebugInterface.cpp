@@ -102,6 +102,11 @@ void DSPDebugInterface::SetPatch(u32 address, std::vector<u8> value)
   m_patches.SetPatch(address, value);
 }
 
+const Common::Debug::MemoryPatch& DSPDebugInterface::GetPatch(std::size_t index) const
+{
+  return m_patches.GetPatch(index);
+}
+
 const std::vector<Common::Debug::MemoryPatch>& DSPDebugInterface::GetPatches() const
 {
   return m_patches.GetPatches();
