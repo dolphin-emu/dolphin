@@ -65,7 +65,6 @@ private:
 
   void TransferByte(u8& byte) override;
 
-  void StreamLog(const char* msg);
   void StreamInit();
   void StreamTerminate();
   void StreamStart();
