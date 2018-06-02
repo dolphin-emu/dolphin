@@ -30,7 +30,7 @@ namespace HLE
 class CBigEndianBuffer
 {
 public:
-  CBigEndianBuffer(u8* pBuffer) : m_pBuffer(pBuffer) {}
+  explicit CBigEndianBuffer(u8* pBuffer) : m_pBuffer(pBuffer) {}
   u8 Read8(u32 offset) const { return m_pBuffer[offset]; }
   u16 Read16(u32 offset) const { return Common::swap16(&m_pBuffer[offset]); }
   u32 Read32(u32 offset) const { return Common::swap32(&m_pBuffer[offset]); }
