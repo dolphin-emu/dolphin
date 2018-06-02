@@ -1,12 +1,13 @@
 //
-//Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
-//Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2017 ARM Limited.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -20,18 +21,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 #ifndef _BASICTYPES_INCLUDED_
@@ -46,6 +47,11 @@ enum TBasicType {
     EbtVoid,
     EbtFloat,
     EbtDouble,
+    EbtFloat16,
+    EbtInt8,
+    EbtUint8,
+    EbtInt16,
+    EbtUint16,
     EbtInt,
     EbtUint,
     EbtInt64,
@@ -55,6 +61,10 @@ enum TBasicType {
     EbtSampler,
     EbtStruct,
     EbtBlock,
+
+    // HLSL types that live only temporarily.
+    EbtString,
+
     EbtNumTypes
 };
 
@@ -77,7 +87,7 @@ enum TStorageQualifier {
     EvqUniform,       // read only, shared with app
     EvqBuffer,        // read/write, shared with app
     EvqShared,        // compute shader's read/write 'shared' qualifier
-    
+
     // parameters
     EvqIn,            // also, for 'in' in the grammar before we know if it's a pipeline input or an 'in' parameter
     EvqOut,           // also, for 'out' in the grammar before we know if it's a pipeline output or an 'out' parameter
@@ -130,6 +140,8 @@ enum TBuiltInVariable {
     EbvLocalInvocationId,
     EbvGlobalInvocationId,
     EbvLocalInvocationIndex,
+    EbvNumSubgroups,
+    EbvSubgroupID,
     EbvSubGroupSize,
     EbvSubGroupInvocation,
     EbvSubGroupEqMask,
@@ -137,6 +149,13 @@ enum TBuiltInVariable {
     EbvSubGroupGtMask,
     EbvSubGroupLeMask,
     EbvSubGroupLtMask,
+    EbvSubgroupSize2,
+    EbvSubgroupInvocation2,
+    EbvSubgroupEqMask2,
+    EbvSubgroupGeMask2,
+    EbvSubgroupGtMask2,
+    EbvSubgroupLeMask2,
+    EbvSubgroupLtMask2,
     EbvVertexId,
     EbvInstanceId,
     EbvVertexIndex,
@@ -182,16 +201,54 @@ enum TBuiltInVariable {
     EbvFragColor,
     EbvFragData,
     EbvFragDepth,
+    EbvFragStencilRef,
     EbvSampleId,
     EbvSamplePosition,
     EbvSampleMask,
     EbvHelperInvocation,
 
+#ifdef AMD_EXTENSIONS
+    EbvBaryCoordNoPersp,
+    EbvBaryCoordNoPerspCentroid,
+    EbvBaryCoordNoPerspSample,
+    EbvBaryCoordSmooth,
+    EbvBaryCoordSmoothCentroid,
+    EbvBaryCoordSmoothSample,
+    EbvBaryCoordPullModel,
+#endif
+
+    EbvViewIndex,
+    EbvDeviceIndex,
+
+#ifdef NV_EXTENSIONS
+    EbvViewportMaskNV,
+    EbvSecondaryPositionNV,
+    EbvSecondaryViewportMaskNV,
+    EbvPositionPerViewNV,
+    EbvViewportMaskPerViewNV,
+    EbvFragFullyCoveredNV,
+#endif 
+
+    // HLSL built-ins that live only temporarily, until they get remapped
+    // to one of the above.
+    EbvFragDepthGreater,
+    EbvFragDepthLesser,
+    EbvGsOutputStream,
+    EbvOutputPatch,
+    EbvInputPatch,
+
+    // structbuffer types
+    EbvAppendConsume, // no need to differentiate append and consume
+    EbvRWStructuredBuffer,
+    EbvStructuredBuffer,
+    EbvByteAddressBuffer,
+    EbvRWByteAddressBuffer,
+
     EbvLast
 };
 
 // These will show up in error messages
-__inline const char* GetStorageQualifierString(TStorageQualifier q) 
+__inline const char* GetStorageQualifierString(TStorageQualifier q)
 {
     switch (q) {
     case EvqTemporary:      return "temp";           break;
@@ -282,10 +339,33 @@ __inline const char* GetBuiltInVariableString(TBuiltInVariable v)
     case EbvFragColor:            return "FragColor";
     case EbvFragData:             return "FragData";
     case EbvFragDepth:            return "FragDepth";
+    case EbvFragStencilRef:       return "FragStencilRef";
     case EbvSampleId:             return "SampleId";
     case EbvSamplePosition:       return "SamplePosition";
     case EbvSampleMask:           return "SampleMaskIn";
     case EbvHelperInvocation:     return "HelperInvocation";
+
+#ifdef AMD_EXTENSIONS
+    case EbvBaryCoordNoPersp:           return "BaryCoordNoPersp";
+    case EbvBaryCoordNoPerspCentroid:   return "BaryCoordNoPerspCentroid";
+    case EbvBaryCoordNoPerspSample:     return "BaryCoordNoPerspSample";
+    case EbvBaryCoordSmooth:            return "BaryCoordSmooth";
+    case EbvBaryCoordSmoothCentroid:    return "BaryCoordSmoothCentroid";
+    case EbvBaryCoordSmoothSample:      return "BaryCoordSmoothSample";
+    case EbvBaryCoordPullModel:         return "BaryCoordPullModel";
+#endif
+
+    case EbvViewIndex:                  return "ViewIndex";
+    case EbvDeviceIndex:                return "DeviceIndex";
+
+#ifdef NV_EXTENSIONS
+    case EbvViewportMaskNV:             return "ViewportMaskNV";
+    case EbvSecondaryPositionNV:        return "SecondaryPositionNV";
+    case EbvSecondaryViewportMaskNV:    return "SecondaryViewportMaskNV";
+    case EbvPositionPerViewNV:          return "PositionPerViewNV";
+    case EbvViewportMaskPerViewNV:      return "ViewportMaskPerViewNV";
+    case EbvFragFullyCoveredNV:         return "FragFullyCoveredNV";
+#endif 
     default:                      return "unknown built-in variable";
     }
 }
@@ -301,13 +381,82 @@ enum TPrecisionQualifier {
 
 __inline const char* GetPrecisionQualifierString(TPrecisionQualifier p)
 {
-    switch(p) {
+    switch (p) {
     case EpqNone:   return "";        break;
     case EpqLow:    return "lowp";    break;
     case EpqMedium: return "mediump"; break;
     case EpqHigh:   return "highp";   break;
     default:        return "unknown precision qualifier";
     }
+}
+
+__inline bool isTypeSignedInt(TBasicType type)
+{
+    switch (type) {
+    case EbtInt8:
+    case EbtInt16:
+    case EbtInt:
+    case EbtInt64:
+        return true;
+    default:
+        return false;
+    }
+}
+
+__inline bool isTypeUnsignedInt(TBasicType type)
+{
+    switch (type) {
+    case EbtUint8:
+    case EbtUint16:
+    case EbtUint:
+    case EbtUint64:
+        return true;
+    default:
+        return false;
+    }
+}
+
+__inline bool isTypeInt(TBasicType type)
+{
+    return isTypeSignedInt(type) || isTypeUnsignedInt(type);
+}
+
+__inline bool isTypeFloat(TBasicType type)
+{
+    switch (type) {
+    case EbtFloat:
+    case EbtDouble:
+    case EbtFloat16:
+        return true;
+    default:
+        return false;
+    }
+}
+
+__inline int getTypeRank(TBasicType type) {
+    int res = -1;
+    switch(type) {
+    case EbtInt8:
+    case EbtUint8:
+        res = 0;
+        break;
+    case EbtInt16:
+    case EbtUint16:
+        res = 1;
+        break;
+    case EbtInt:
+    case EbtUint:
+        res = 2;
+        break;
+    case EbtInt64:
+    case EbtUint64:
+        res = 3;
+        break;
+    default:
+        assert(false);
+        break;
+    }
+    return res;
 }
 
 } // end namespace glslang

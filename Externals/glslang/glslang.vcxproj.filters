@@ -7,13 +7,7 @@
     <ClCompile Include="glslang\GenericCodeGen\CodeGen.cpp">
       <Filter>glslang\GenericCodeGen</Filter>
     </ClCompile>
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\PpMemory.cpp">
-      <Filter>glslang\MachineIndependant\preprocessor</Filter>
-    </ClCompile>
     <ClCompile Include="glslang\MachineIndependent\preprocessor\PpScanner.cpp">
-      <Filter>glslang\MachineIndependant\preprocessor</Filter>
-    </ClCompile>
-    <ClCompile Include="glslang\MachineIndependent\preprocessor\PpSymbols.cpp">
       <Filter>glslang\MachineIndependant\preprocessor</Filter>
     </ClCompile>
     <ClCompile Include="glslang\MachineIndependent\preprocessor\PpTokens.cpp">
@@ -27,6 +21,9 @@
     </ClCompile>
     <ClCompile Include="glslang\MachineIndependent\preprocessor\PpContext.cpp">
       <Filter>glslang\MachineIndependant\preprocessor</Filter>
+    </ClCompile>
+    <ClCompile Include="glslang\MachineIndependent\attribute.cpp">
+      <Filter>glslang\MachineIndependant</Filter>
     </ClCompile>
     <ClCompile Include="glslang\MachineIndependent\linkValidate.cpp">
       <Filter>glslang\MachineIndependant</Filter>
@@ -112,23 +109,11 @@
     <ClCompile Include="OGLCompilersDLL\InitializeDll.cpp">
       <Filter>OGLCompilersDLL</Filter>
     </ClCompile>
-    <ClCompile Include="hlsl\hlslGrammar.cpp">
-      <Filter>hlsl</Filter>
+    <ClCompile Include="glslang\MachineIndependent\iomapper.cpp">
+      <Filter>glslang\MachineIndependant</Filter>
     </ClCompile>
-    <ClCompile Include="hlsl\hlslOpMap.cpp">
-      <Filter>hlsl</Filter>
-    </ClCompile>
-    <ClCompile Include="hlsl\hlslParseHelper.cpp">
-      <Filter>hlsl</Filter>
-    </ClCompile>
-    <ClCompile Include="hlsl\hlslScanContext.cpp">
-      <Filter>hlsl</Filter>
-    </ClCompile>
-    <ClCompile Include="hlsl\hlslTokenStream.cpp">
-      <Filter>hlsl</Filter>
-    </ClCompile>
-    <ClCompile Include="hlsl\hlslParseables.cpp">
-      <Filter>hlsl</Filter>
+    <ClCompile Include="glslang\MachineIndependent\ParseContextBase.cpp">
+      <Filter>glslang\MachineIndependant</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -173,6 +158,9 @@
     </ClInclude>
     <ClInclude Include="glslang\MachineIndependent\preprocessor\PpContext.h">
       <Filter>glslang\MachineIndependant\preprocessor</Filter>
+    </ClInclude>
+    <ClInclude Include="glslang\MachineIndependent\attribute.h">
+      <Filter>glslang\MachineIndependant</Filter>
     </ClInclude>
     <ClInclude Include="glslang\MachineIndependent\localintermediate.h">
       <Filter>glslang\MachineIndependant</Filter>
@@ -249,26 +237,11 @@
     <ClInclude Include="OGLCompilersDLL\InitializeDll.h">
       <Filter>OGLCompilersDLL</Filter>
     </ClInclude>
-    <ClInclude Include="hlsl\hlslGrammar.h">
-      <Filter>hlsl</Filter>
+    <ClInclude Include="glslang\MachineIndependent\iomapper.h">
+      <Filter>glslang\MachineIndependant</Filter>
     </ClInclude>
-    <ClInclude Include="hlsl\hlslOpMap.h">
-      <Filter>hlsl</Filter>
-    </ClInclude>
-    <ClInclude Include="hlsl\hlslParseHelper.h">
-      <Filter>hlsl</Filter>
-    </ClInclude>
-    <ClInclude Include="hlsl\hlslScanContext.h">
-      <Filter>hlsl</Filter>
-    </ClInclude>
-    <ClInclude Include="hlsl\hlslTokens.h">
-      <Filter>hlsl</Filter>
-    </ClInclude>
-    <ClInclude Include="hlsl\hlslTokenStream.h">
-      <Filter>hlsl</Filter>
-    </ClInclude>
-    <ClInclude Include="hlsl\hlslParseables.h">
-      <Filter>hlsl</Filter>
+    <ClInclude Include="glslang\MachineIndependent\LiveTraverser.h">
+      <Filter>glslang\MachineIndependant</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -298,9 +271,6 @@
     </Filter>
     <Filter Include="SPIRV">
       <UniqueIdentifier>{7039de2e-63ef-409d-a895-3c0dd307e201}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="hlsl">
-      <UniqueIdentifier>{e465129b-44ff-46e1-b876-76c529f3a945}</UniqueIdentifier>
     </Filter>
     <Filter Include="OGLCompilersDLL">
       <UniqueIdentifier>{8d950cfc-7fb5-4612-b23c-f4d569404955}</UniqueIdentifier>

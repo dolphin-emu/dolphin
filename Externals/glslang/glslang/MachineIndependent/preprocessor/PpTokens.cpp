@@ -1,11 +1,11 @@
 //
-//Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
-//Copyright (C) 2013 LunarG, Inc.
-//All rights reserved.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// Copyright (C) 2013 LunarG, Inc.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -19,18 +19,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 /****************************************************************************\
 Copyright (c) 2002, NVIDIA Corporation.
@@ -57,7 +57,7 @@ Except as expressly stated in this notice, no other rights or licenses
 express or implied, are granted by NVIDIA herein, including but not
 limited to any patent rights that may be infringed by your derivative
 works or by other works in which the NVIDIA Software may be
-incorporated. No hardware is licensed hereunder. 
+incorporated. No hardware is licensed hereunder.
 
 THE NVIDIA SOFTWARE IS BEING PROVIDED ON AN "AS IS" BASIS, WITHOUT
 WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
@@ -80,182 +80,242 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // For recording and playing back the stream of tokens in a macro definition.
 //
 
-#if (defined(_MSC_VER) && _MSC_VER < 1900 /*vs2015*/)
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
+#endif
+#if (defined(_MSC_VER) && _MSC_VER < 1900 /*vs2015*/)
 #define snprintf sprintf_s
 #endif
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
 
 #include "PpContext.h"
 #include "PpTokens.h"
 
 namespace glslang {
 
-void TPpContext::lAddByte(TokenStream *fTok, unsigned char fVal)
-{
-    fTok->data.push_back(fVal);
+
+namespace {
+
+    // When recording (and playing back) should the backing name string
+    // be saved (restored)?
+    bool SaveName(int atom)
+    {
+        switch (atom) {
+        case PpAtomIdentifier:
+        case PpAtomConstString:
+        case PpAtomConstInt:
+        case PpAtomConstUint:
+        case PpAtomConstInt64:
+        case PpAtomConstUint64:
+    #ifdef AMD_EXTENSIONS
+        case PpAtomConstInt16:
+        case PpAtomConstUint16:
+    #endif
+        case PpAtomConstFloat:
+        case PpAtomConstDouble:
+        case PpAtomConstFloat16:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    // When recording (and playing back) should the numeric value
+    // be saved (restored)?
+    bool SaveValue(int atom)
+    {
+        switch (atom) {
+        case PpAtomConstInt:
+        case PpAtomConstUint:
+        case PpAtomConstInt64:
+        case PpAtomConstUint64:
+    #ifdef AMD_EXTENSIONS
+        case PpAtomConstInt16:
+        case PpAtomConstUint16:
+    #endif
+        case PpAtomConstFloat:
+        case PpAtomConstDouble:
+        case PpAtomConstFloat16:
+            return true;
+        default:
+            return false;
+        }
+    }
 }
 
-/*
-* Get the next byte from a stream.
-*/
-int TPpContext::lReadByte(TokenStream *pTok)
+// push onto back of stream
+void TPpContext::TokenStream::putSubtoken(char subtoken)
 {
-    if (pTok->current < pTok->data.size())
-        return pTok->data[pTok->current++];
+    data.push_back(static_cast<unsigned char>(subtoken));
+}
+
+// get the next token in stream
+int TPpContext::TokenStream::getSubtoken()
+{
+    if (current < data.size())
+        return data[current++];
     else
         return EndOfInput;
 }
 
-void TPpContext::lUnreadByte(TokenStream *pTok)
+// back up one position in the stream
+void TPpContext::TokenStream::ungetSubtoken()
 {
-    if (pTok->current > 0)
-        --pTok->current;
+    if (current > 0)
+        --current;
 }
 
-/*
-* Add a token to the end of a list for later playback.
-*/
-void TPpContext::RecordToken(TokenStream *pTok, int token, TPpToken* ppToken)
+// Add a complete token (including backing string) to the end of a list
+// for later playback.
+void TPpContext::TokenStream::putToken(int atom, TPpToken* ppToken)
 {
-    const char* s;
-    char* str = NULL;
+    // save the atom
+    assert((atom & ~0xff) == 0);
+    putSubtoken(static_cast<char>(atom));
 
-    if (token > PpAtomMaxSingle)
-        lAddByte(pTok, (unsigned char)((token & 0x7f) + 0x80));
-    else
-        lAddByte(pTok, (unsigned char)(token & 0x7f));
-
-    switch (token) {
-    case PpAtomIdentifier:
-    case PpAtomConstString:
-        s = ppToken->name;
+    // save the backing name string
+    if (SaveName(atom)) {
+        const char* s = ppToken->name;
         while (*s)
-            lAddByte(pTok, (unsigned char) *s++);
-        lAddByte(pTok, 0);
-        break;
-    case PpAtomConstInt:
-    case PpAtomConstUint:
-    case PpAtomConstInt64:
-    case PpAtomConstUint64:
-    case PpAtomConstFloat:
-    case PpAtomConstDouble:
-        str = ppToken->name;
-        while (*str) {
-            lAddByte(pTok, (unsigned char) *str);
-            str++;
-        }
-        lAddByte(pTok, 0);
-        break;
-    default:
-        break;
+            putSubtoken(*s++);
+        putSubtoken(0);
+    }
+
+    // save the numeric value
+    if (SaveValue(atom)) {
+        const char* n = reinterpret_cast<const char*>(&ppToken->i64val);
+        for (int i = 0; i < sizeof(ppToken->i64val); ++i)
+            putSubtoken(*n++);
     }
 }
 
-/*
-* Reset a token stream in preperation for reading.
-*/
-void TPpContext::RewindTokenStream(TokenStream *pTok)
+// Read the next token from a token stream.
+// (Not the source stream, but a stream used to hold a tokenized macro).
+int TPpContext::TokenStream::getToken(TParseContextBase& parseContext, TPpToken *ppToken)
 {
-    pTok->current = 0;
-}
+    // get the atom
+    int atom = getSubtoken();
+    if (atom == EndOfInput)
+        return atom;
 
-/*
-* Read the next token from a token stream (not the source stream, but stream used to hold a tokenized macro).
-*/
-int TPpContext::ReadToken(TokenStream *pTok, TPpToken *ppToken)
-{
-    char* tokenText = ppToken->name;
-    int ltoken, len;
-    int ch;
-
-    ltoken = lReadByte(pTok);
+    // init the token
+    ppToken->clear();
     ppToken->loc = parseContext.getCurrentLoc();
-    if (ltoken > 127)
-        ltoken += 128;
-    switch (ltoken) {
-    case '#':        
-        if (lReadByte(pTok) == '#') {
-            parseContext.requireProfile(ppToken->loc, ~EEsProfile, "token pasting (##)");
-            parseContext.profileRequires(ppToken->loc, ~EEsProfile, 130, 0, "token pasting (##)");
-            parseContext.error(ppToken->loc, "token pasting not implemented (internal error)", "##", "");
-            //return PpAtomPaste;
-            return ReadToken(pTok, ppToken);
-        } else
-            lUnreadByte(pTok);
-        break;
-    case PpAtomConstString:
-    case PpAtomIdentifier:
-    case PpAtomConstFloat:
-    case PpAtomConstDouble:
-    case PpAtomConstInt:
-    case PpAtomConstUint:
-    case PpAtomConstInt64:
-    case PpAtomConstUint64:
-        len = 0;
-        ch = lReadByte(pTok);
+
+    // get the backing name string
+    if (SaveName(atom)) {
+        int ch = getSubtoken();
+        int len = 0;
         while (ch != 0 && ch != EndOfInput) {
             if (len < MaxTokenLength) {
-                tokenText[len] = (char)ch;
+                ppToken->name[len] = (char)ch;
                 len++;
-                ch = lReadByte(pTok);
+                ch = getSubtoken();
             } else {
                 parseContext.error(ppToken->loc, "token too long", "", "");
                 break;
             }
         }
-        tokenText[len] = 0;
+        ppToken->name[len] = 0;
+    }
 
-        switch (ltoken) {
-        case PpAtomIdentifier:
-            ppToken->atom = LookUpAddString(tokenText);
-            break;
-        case PpAtomConstString:
-            break;
-        case PpAtomConstFloat:
-        case PpAtomConstDouble:
-            ppToken->dval = atof(ppToken->name);
-            break;
-        case PpAtomConstInt:
-        case PpAtomConstUint:
-            if (len > 0 && tokenText[0] == '0') {
-                if (len > 1 && (tokenText[1] == 'x' || tokenText[1] == 'X'))
-                    ppToken->ival = strtol(ppToken->name, 0, 16);
-                else
-                    ppToken->ival = strtol(ppToken->name, 0, 8);
+    // Check for ##, unless the current # is the last character
+    if (atom == '#') {
+        if (current < data.size()) {
+            if (getSubtoken() == '#') {
+                parseContext.requireProfile(ppToken->loc, ~EEsProfile, "token pasting (##)");
+                parseContext.profileRequires(ppToken->loc, ~EEsProfile, 130, 0, "token pasting (##)");
+                atom = PpAtomPaste;
             } else
-                ppToken->ival = atoi(ppToken->name);
-            break;
-        case PpAtomConstInt64:
-        case PpAtomConstUint64:
-            if (len > 0 && tokenText[0] == '0') {
-                if (len > 1 && (tokenText[1] == 'x' || tokenText[1] == 'X'))
-                    ppToken->i64val = strtoll(ppToken->name, nullptr, 16);
-                else
-                    ppToken->i64val = strtoll(ppToken->name, nullptr, 8);
-            } else
-                ppToken->i64val = atoll(ppToken->name);
-            break;
+                ungetSubtoken();
         }
     }
 
-    return ltoken;
+    // get the numeric value
+    if (SaveValue(atom)) {
+        char* n = reinterpret_cast<char*>(&ppToken->i64val);
+        for (int i = 0; i < sizeof(ppToken->i64val); ++i)
+            *n++ = getSubtoken();
+    }
+
+    return atom;
 }
 
-int TPpContext::tTokenInput::scan(TPpToken* ppToken)
+// We are pasting if
+//   1. we are preceding a pasting operator within this stream
+// or
+//   2. the entire macro is preceding a pasting operator (lastTokenPastes)
+//      and we are also on the last token
+bool TPpContext::TokenStream::peekTokenizedPasting(bool lastTokenPastes)
 {
-    return pp->ReadToken(tokens, ppToken);
+    // 1. preceding ##?
+
+    size_t savePos = current;
+    int subtoken;
+    // skip white space
+    do {
+        subtoken = getSubtoken();
+    } while (subtoken == ' ');
+    current = savePos;
+    if (subtoken == PpAtomPaste)
+        return true;
+
+    // 2. last token and we've been told after this there will be a ##
+
+    if (! lastTokenPastes)
+        return false;
+    // Getting here means the last token will be pasted, after this
+
+    // Are we at the last non-whitespace token?
+    savePos = current;
+    bool moreTokens = false;
+    do {
+        subtoken = getSubtoken();
+        if (subtoken == EndOfInput)
+            break;
+        if (subtoken != ' ') {
+            moreTokens = true;
+            break;
+        }
+    } while (true);
+    current = savePos;
+
+    return !moreTokens;
 }
 
-void TPpContext::pushTokenStreamInput(TokenStream* ts)
+// See if the next non-white-space tokens are two consecutive #
+bool TPpContext::TokenStream::peekUntokenizedPasting()
 {
-    pushInput(new tTokenInput(this, ts));
-    RewindTokenStream(ts);
+    // don't return early, have to restore this
+    size_t savePos = current;
+
+    // skip white-space
+    int subtoken;
+    do {
+        subtoken = getSubtoken();
+    } while (subtoken == ' ');
+
+    // check for ##
+    bool pasting = false;
+    if (subtoken == '#') {
+        subtoken = getSubtoken();
+        if (subtoken == '#')
+            pasting = true;
+    }
+
+    current = savePos;
+
+    return pasting;
+}
+
+void TPpContext::pushTokenStreamInput(TokenStream& ts, bool prepasting)
+{
+    pushInput(new tTokenInput(this, &ts, prepasting));
+    ts.reset();
 }
 
 int TPpContext::tUngotTokenInput::scan(TPpToken* ppToken)

@@ -1,10 +1,10 @@
 //
-//Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
-//All rights reserved.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -18,18 +18,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "../Include/Common.h"
@@ -40,35 +40,22 @@
 
 namespace glslang {
 
+// Process-wide TLS index
 OS_TLSIndex PoolIndex;
 
-void InitializeMemoryPools()
+// Return the thread-specific current pool.
+TPoolAllocator& GetThreadPoolAllocator()
 {
-    TThreadMemoryPools* pools = static_cast<TThreadMemoryPools*>(OS_GetTLSValue(PoolIndex));    
-    if (pools)
-        return;
-
-    TPoolAllocator *threadPoolAllocator = new TPoolAllocator();
-
-    TThreadMemoryPools* threadData = new TThreadMemoryPools();
-    
-    threadData->threadPoolAllocator = threadPoolAllocator;
-    	
-    OS_SetTLSValue(PoolIndex, threadData);
+    return *static_cast<TPoolAllocator*>(OS_GetTLSValue(PoolIndex));
 }
 
-void FreeGlobalPools()
+// Set the thread-specific current pool.
+void SetThreadPoolAllocator(TPoolAllocator* poolAllocator)
 {
-    // Release the allocated memory for this thread.
-    TThreadMemoryPools* globalPools = static_cast<TThreadMemoryPools*>(OS_GetTLSValue(PoolIndex));    
-    if (! globalPools)
-        return;
-	
-    GetThreadPoolAllocator().popAll();
-    delete &GetThreadPoolAllocator();       
-    delete globalPools;
+    OS_SetTLSValue(PoolIndex, poolAllocator);
 }
 
+// Process-wide set up of the TLS pool storage.
 bool InitializePoolIndex()
 {
     // Allocate a TLS index.
@@ -78,35 +65,15 @@ bool InitializePoolIndex()
     return true;
 }
 
-void FreePoolIndex()
-{
-    // Release the TLS index.
-    OS_FreeTLSIndex(PoolIndex);
-}
-
-TPoolAllocator& GetThreadPoolAllocator()
-{
-    TThreadMemoryPools* threadData = static_cast<TThreadMemoryPools*>(OS_GetTLSValue(PoolIndex));
-
-    return *threadData->threadPoolAllocator;
-}
-
-void SetThreadPoolAllocator(TPoolAllocator& poolAllocator)
-{
-    TThreadMemoryPools* threadData = static_cast<TThreadMemoryPools*>(OS_GetTLSValue(PoolIndex));
-
-    threadData->threadPoolAllocator = &poolAllocator;
-}
-
 //
 // Implement the functionality of the TPoolAllocator class, which
 // is documented in PoolAlloc.h.
 //
-TPoolAllocator::TPoolAllocator(int growthIncrement, int allocationAlignment) : 
+TPoolAllocator::TPoolAllocator(int growthIncrement, int allocationAlignment) :
     pageSize(growthIncrement),
     alignment(allocationAlignment),
-    freeList(0),
-    inUseList(0),
+    freeList(nullptr),
+    inUseList(nullptr),
     numCalls(0)
 {
     //
@@ -149,12 +116,12 @@ TPoolAllocator::TPoolAllocator(int growthIncrement, int allocationAlignment) :
 
 TPoolAllocator::~TPoolAllocator()
 {
-	while (inUseList) {
-	    tHeader* next = inUseList->nextPage;
+    while (inUseList) {
+        tHeader* next = inUseList->nextPage;
         inUseList->~tHeader();
         delete [] reinterpret_cast<char*>(inUseList);
-	    inUseList = next;
-	}
+        inUseList = next;
+    }
 
     //
     // Always delete the free list memory - it can't be being
@@ -206,13 +173,12 @@ void TAllocation::checkGuardBlock(unsigned char*, unsigned char, const char*) co
 #endif
 }
 
-
 void TPoolAllocator::push()
 {
     tAllocState state = { currentPageOffset, inUseList };
 
     stack.push_back(state);
-        
+
     //
     // Indicate there is no current page to allocate from.
     //
@@ -235,13 +201,16 @@ void TPoolAllocator::pop()
     currentPageOffset = stack.back().offset;
 
     while (inUseList != page) {
-        // invoke destructor to free allocation list
-        inUseList->~tHeader();
-        
         tHeader* nextInUse = inUseList->nextPage;
-        if (inUseList->pageCount > 1)
+        size_t pageCount = inUseList->pageCount;
+
+        // This technically ends the lifetime of the header as C++ object,
+        // but we will still control the memory and reuse it.
+        inUseList->~tHeader(); // currently, just a debug allocation checker
+
+        if (pageCount > 1) {
             delete [] reinterpret_cast<char*>(inUseList);
-        else {
+        } else {
             inUseList->nextPage = freeList;
             freeList = inUseList;
         }
@@ -269,7 +238,7 @@ void* TPoolAllocator::allocate(size_t numBytes)
     // size including guard blocks.  In release build,
     // guardBlockSize=0 and this all gets optimized away.
     size_t allocationSize = TAllocation::allocationSize(numBytes);
-    
+
     //
     // Just keep some interesting statistics.
     //
@@ -327,13 +296,12 @@ void* TPoolAllocator::allocate(size_t numBytes)
     // Use placement-new to initialize header
     new(memory) tHeader(inUseList, 1);
     inUseList = memory;
-    
+
     unsigned char* ret = reinterpret_cast<unsigned char*>(inUseList) + headerSkip;
     currentPageOffset = (headerSkip + allocationSize + alignmentMask) & ~alignmentMask;
 
     return initializeAllocation(inUseList, ret, numBytes);
 }
-
 
 //
 // Check all allocations in a list for damage by calling check on each.

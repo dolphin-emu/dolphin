@@ -1,12 +1,13 @@
 //
-//Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
-//Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2002-2005  3Dlabs Inc. Ltd.
+// Copyright (C) 2012-2013 LunarG, Inc.
+// Copyright (C) 2017 ARM Limited.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -20,18 +21,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef _VERSIONS_INCLUDED_
 #define _VERSIONS_INCLUDED_
@@ -72,14 +73,19 @@ inline const char* ProfileName(EProfile profile)
 }
 
 //
-// SPIR-V has versions for multiple things; tie them together.
-// 0 means a target or rule set is not enabled.
+// What source rules, validation rules, target language, etc. are needed
+// desired for SPIR-V?
+//
+// 0 means a target or rule set is not enabled (ignore rules from that entity).
+// Non-0 means to apply semantic rules arising from that version of its rule set.
+// The union of all requested rule sets will be applied.
 //
 struct SpvVersion {
-    SpvVersion() : spv(0), vulkan(0), openGl(0) {}
-    unsigned int spv; // the version of the targeted SPIR-V, as defined by SPIR-V in word 1 of the SPIR-V binary header
-    int vulkan;       // the version of semantics for Vulkan; e.g., for GLSL from KHR_vulkan_glsl "#define VULKAN"
-    int openGl;       // the version of semantics for OpenGL; e.g., for GLSL from KHR_vulkan_glsl "#define GL_SPIRV"
+    SpvVersion() : spv(0), vulkanGlsl(0), vulkan(0), openGl(0) {}
+    unsigned int spv; // the version of SPIR-V to target, as defined by "word 1" of the SPIR-V binary header
+    int vulkanGlsl;   // the version of GLSL semantics for Vulkan, from GL_KHR_vulkan_glsl, for "#define VULKAN XXX"
+    int vulkan;       // the version of Vulkan, for which SPIR-V execution environment rules to use
+    int openGl;       // the version of GLSL semantics for OpenGL, from GL_ARB_gl_spirv, for "#define GL_SPIRV XXX"
 };
 
 //
@@ -102,7 +108,9 @@ const char* const E_GL_OES_texture_3D                   = "GL_OES_texture_3D";
 const char* const E_GL_OES_standard_derivatives         = "GL_OES_standard_derivatives";
 const char* const E_GL_EXT_frag_depth                   = "GL_EXT_frag_depth";
 const char* const E_GL_OES_EGL_image_external           = "GL_OES_EGL_image_external";
+const char* const E_GL_OES_EGL_image_external_essl3     = "GL_OES_EGL_image_external_essl3";
 const char* const E_GL_EXT_shader_texture_lod           = "GL_EXT_shader_texture_lod";
+const char* const E_GL_EXT_shadow_samplers              = "GL_EXT_shadow_samplers";
 
 const char* const E_GL_ARB_texture_rectangle            = "GL_ARB_texture_rectangle";
 const char* const E_GL_3DL_array_objects                = "GL_3DL_array_objects";
@@ -127,13 +135,76 @@ const char* const E_GL_ARB_gpu_shader_int64             = "GL_ARB_gpu_shader_int
 const char* const E_GL_ARB_shader_ballot                = "GL_ARB_shader_ballot";
 const char* const E_GL_ARB_sparse_texture2              = "GL_ARB_sparse_texture2";
 const char* const E_GL_ARB_sparse_texture_clamp         = "GL_ARB_sparse_texture_clamp";
-//const char* const E_GL_ARB_cull_distance            = "GL_ARB_cull_distance";  // present for 4.5, but need extension control over block members
+const char* const E_GL_ARB_shader_stencil_export        = "GL_ARB_shader_stencil_export";
+// const char* const E_GL_ARB_cull_distance            = "GL_ARB_cull_distance";  // present for 4.5, but need extension control over block members
+const char* const E_GL_ARB_post_depth_coverage          = "GL_ARB_post_depth_coverage";
+const char* const E_GL_ARB_shader_viewport_layer_array  = "GL_ARB_shader_viewport_layer_array";
+
+const char* const E_GL_KHR_shader_subgroup_basic            = "GL_KHR_shader_subgroup_basic";
+const char* const E_GL_KHR_shader_subgroup_vote             = "GL_KHR_shader_subgroup_vote";
+const char* const E_GL_KHR_shader_subgroup_arithmetic       = "GL_KHR_shader_subgroup_arithmetic";
+const char* const E_GL_KHR_shader_subgroup_ballot           = "GL_KHR_shader_subgroup_ballot";
+const char* const E_GL_KHR_shader_subgroup_shuffle          = "GL_KHR_shader_subgroup_shuffle";
+const char* const E_GL_KHR_shader_subgroup_shuffle_relative = "GL_KHR_shader_subgroup_shuffle_relative";
+const char* const E_GL_KHR_shader_subgroup_clustered        = "GL_KHR_shader_subgroup_clustered";
+const char* const E_GL_KHR_shader_subgroup_quad             = "GL_KHR_shader_subgroup_quad";
 
 const char* const E_GL_EXT_shader_non_constant_global_initializers = "GL_EXT_shader_non_constant_global_initializers";
+const char* const E_GL_EXT_shader_image_load_formatted = "GL_EXT_shader_image_load_formatted";
+
+// EXT extensions
+const char* const E_GL_EXT_device_group                 = "GL_EXT_device_group";
+const char* const E_GL_EXT_multiview                    = "GL_EXT_multiview";
+const char* const E_GL_EXT_post_depth_coverage          = "GL_EXT_post_depth_coverage";
+const char* const E_GL_EXT_control_flow_attributes      = "GL_EXT_control_flow_attributes";
+const char* const E_GL_EXT_nonuniform_qualifier         = "GL_EXT_nonuniform_qualifier";
+
+// Arrays of extensions for the above viewportEXTs duplications
+
+const char* const post_depth_coverageEXTs[] = { E_GL_ARB_post_depth_coverage, E_GL_EXT_post_depth_coverage };
+const int Num_post_depth_coverageEXTs = sizeof(post_depth_coverageEXTs) / sizeof(post_depth_coverageEXTs[0]);
+
+// OVR extensions
+const char* const E_GL_OVR_multiview                    = "GL_OVR_multiview";
+const char* const E_GL_OVR_multiview2                   = "GL_OVR_multiview2";
+
+const char* const OVR_multiview_EXTs[] = { E_GL_OVR_multiview, E_GL_OVR_multiview2 };
+const int Num_OVR_multiview_EXTs = sizeof(OVR_multiview_EXTs) / sizeof(OVR_multiview_EXTs[0]);
 
 // #line and #include
 const char* const E_GL_GOOGLE_cpp_style_line_directive          = "GL_GOOGLE_cpp_style_line_directive";
 const char* const E_GL_GOOGLE_include_directive                 = "GL_GOOGLE_include_directive";
+
+#ifdef AMD_EXTENSIONS
+const char* const E_GL_AMD_shader_ballot                        = "GL_AMD_shader_ballot";
+const char* const E_GL_AMD_shader_trinary_minmax                = "GL_AMD_shader_trinary_minmax";
+const char* const E_GL_AMD_shader_explicit_vertex_parameter     = "GL_AMD_shader_explicit_vertex_parameter";
+const char* const E_GL_AMD_gcn_shader                           = "GL_AMD_gcn_shader";
+const char* const E_GL_AMD_gpu_shader_half_float                = "GL_AMD_gpu_shader_half_float";
+const char* const E_GL_AMD_texture_gather_bias_lod              = "GL_AMD_texture_gather_bias_lod";
+const char* const E_GL_AMD_gpu_shader_int16                     = "GL_AMD_gpu_shader_int16";
+const char* const E_GL_AMD_shader_image_load_store_lod          = "GL_AMD_shader_image_load_store_lod";
+const char* const E_GL_AMD_shader_fragment_mask                 = "GL_AMD_shader_fragment_mask";
+const char* const E_GL_AMD_gpu_shader_half_float_fetch          = "GL_AMD_gpu_shader_half_float_fetch";
+#endif
+
+#ifdef NV_EXTENSIONS
+
+const char* const E_GL_NV_sample_mask_override_coverage         = "GL_NV_sample_mask_override_coverage";
+const char* const E_SPV_NV_geometry_shader_passthrough          = "GL_NV_geometry_shader_passthrough";
+const char* const E_GL_NV_viewport_array2                       = "GL_NV_viewport_array2";
+const char* const E_GL_NV_stereo_view_rendering                 = "GL_NV_stereo_view_rendering";
+const char* const E_GL_NVX_multiview_per_view_attributes        = "GL_NVX_multiview_per_view_attributes";
+const char* const E_GL_NV_shader_atomic_int64                   = "GL_NV_shader_atomic_int64";
+const char* const E_GL_NV_conservative_raster_underestimation   = "GL_NV_conservative_raster_underestimation";
+const char* const E_GL_NV_shader_noperspective_interpolation    = "GL_NV_shader_noperspective_interpolation";
+const char* const E_GL_NV_shader_subgroup_partitioned           = "GL_NV_shader_subgroup_partitioned";
+
+// Arrays of extensions for the above viewportEXTs duplications
+
+const char* const viewportEXTs[] = { E_GL_ARB_shader_viewport_layer_array, E_GL_NV_viewport_array2 };
+const int Num_viewportEXTs = sizeof(viewportEXTs) / sizeof(viewportEXTs[0]);
+#endif
 
 // AEP
 const char* const E_GL_ANDROID_extension_pack_es31a             = "GL_ANDROID_extension_pack_es31a";
@@ -162,6 +233,16 @@ const char* const E_GL_OES_tessellation_shader                  = "GL_OES_tessel
 const char* const E_GL_OES_tessellation_point_size              = "GL_OES_tessellation_point_size";
 const char* const E_GL_OES_texture_buffer                       = "GL_OES_texture_buffer";
 const char* const E_GL_OES_texture_cube_map_array               = "GL_OES_texture_cube_map_array";
+
+// KHX
+const char* const E_GL_KHX_shader_explicit_arithmetic_types          = "GL_KHX_shader_explicit_arithmetic_types";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_int8     = "GL_KHX_shader_explicit_arithmetic_types_int8";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_int16    = "GL_KHX_shader_explicit_arithmetic_types_int16";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_int32    = "GL_KHX_shader_explicit_arithmetic_types_int32";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_int64    = "GL_KHX_shader_explicit_arithmetic_types_int64";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_float16  = "GL_KHX_shader_explicit_arithmetic_types_float16";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_float32  = "GL_KHX_shader_explicit_arithmetic_types_float32";
+const char* const E_GL_KHX_shader_explicit_arithmetic_types_float64  = "GL_KHX_shader_explicit_arithmetic_types_float64";
 
 // Arrays of extensions for the above AEP duplications
 
