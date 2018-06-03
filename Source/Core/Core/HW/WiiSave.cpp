@@ -9,13 +9,16 @@
 
 #include "Core/HW/WiiSave.h"
 
+#include <algorithm>
+#include <array>
 #include <cinttypes>
-#include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <mbedtls/md5.h>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/Align.h"
@@ -23,16 +26,19 @@
 #include "Common/Crypto/ec.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/Lazy.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 
+namespace WiiSave
+{
 using Md5 = std::array<u8, 0x10>;
 
 constexpr std::array<u8, 0x10> s_sd_initial_iv{{0x21, 0x67, 0x12, 0xE6, 0xAA, 0x1F, 0x68, 0x9F,
@@ -41,525 +47,515 @@ constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xA
                              0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
 
-bool WiiSave::Import(std::string filename)
+enum
 {
-  IOS::HLE::Kernel ios;
-  WiiSave save_file{ios, std::move(filename)};
-  return save_file.Import();
+  BLOCK_SZ = 0x40,
+  ICON_SZ = 0x1200,
+  BNR_SZ = 0x60a0,
+  FULL_BNR_MIN = 0x72a0,  // BNR_SZ + 1*ICON_SZ
+  FULL_BNR_MAX = 0xF0A0,  // BNR_SZ + 8*ICON_SZ
+  BK_LISTED_SZ = 0x70,    // Size before rounding to nearest block
+  SIG_SZ = 0x40,
+  FULL_CERT_SZ = 0x3C0,  // SIG_SZ + NG_CERT_SZ + AP_CERT_SZ + 0x80?
+
+  BK_HDR_MAGIC = 0x426B0001,
+  FILE_HDR_MAGIC = 0x03adf17e
+};
+
+#pragma pack(push, 1)
+struct Header
+{
+  Common::BigEndianValue<u64> tid;
+  Common::BigEndianValue<u32> banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
+  u8 permissions;
+  u8 unk1;                   // maybe permissions is a be16
+  std::array<u8, 0x10> md5;  // md5 of plaintext header with md5 blanker applied
+  Common::BigEndianValue<u16> unk2;
+  u8 banner[FULL_BNR_MAX];
+};
+static_assert(sizeof(Header) == 0xf0c0, "Header has an incorrect size");
+
+struct BkHeader
+{
+  Common::BigEndianValue<u32> size;  // 0x00000070
+  // u16 magic;  // 'Bk'
+  // u16 magic2; // or version (0x0001)
+  Common::BigEndianValue<u32> magic;  // 0x426B0001
+  Common::BigEndianValue<u32> ngid;
+  Common::BigEndianValue<u32> number_of_files;
+  Common::BigEndianValue<u32> size_of_files;
+  Common::BigEndianValue<u32> unk1;
+  Common::BigEndianValue<u32> unk2;
+  Common::BigEndianValue<u32> total_size;
+  std::array<u8, 64> unk3;
+  Common::BigEndianValue<u64> tid;
+  std::array<u8, 6> mac_address;
+  std::array<u8, 0x12> padding;
+};
+static_assert(sizeof(BkHeader) == 0x80, "BkHeader has an incorrect size");
+
+struct FileHDR
+{
+  Common::BigEndianValue<u32> magic;  // 0x03adf17e
+  Common::BigEndianValue<u32> size;
+  u8 permissions;
+  u8 attrib;
+  u8 type;  // (1=file, 2=directory)
+  std::array<char, 0x40> name;
+  std::array<u8, 5> padding;
+  std::array<u8, 0x10> iv;
+  std::array<u8, 0x20> unk;
+};
+static_assert(sizeof(FileHDR) == 0x80, "FileHDR has an incorrect size");
+#pragma pack(pop)
+
+class Storage
+{
+public:
+  struct SaveFile
+  {
+    enum class Type : u8
+    {
+      File = 1,
+      Directory = 2,
+    };
+    u8 mode, attributes;
+    Type type;
+    std::string path;
+    // Only valid for regular (i.e. non-directory) files.
+    Common::Lazy<std::optional<std::vector<u8>>> data;
+  };
+
+  virtual ~Storage() = default;
+  virtual bool SaveExists() { return true; }
+  virtual std::optional<Header> ReadHeader() = 0;
+  virtual std::optional<BkHeader> ReadBkHeader() = 0;
+  virtual std::optional<std::vector<SaveFile>> ReadFiles() = 0;
+  virtual bool WriteHeader(const Header& header) = 0;
+  virtual bool WriteBkHeader(const BkHeader& bk_header) = 0;
+  virtual bool WriteFiles(const std::vector<SaveFile>& files) = 0;
+};
+
+void StorageDeleter::operator()(Storage* p) const
+{
+  delete p;
 }
 
-bool WiiSave::Export(u64 title_id, std::string export_path)
+class NandStorage final : public Storage
 {
-  IOS::HLE::Kernel ios;
-  WiiSave export_save{ios, title_id, std::move(export_path)};
-  return export_save.Export();
+public:
+  explicit NandStorage(u64 tid) : m_tid{tid}
+  {
+    m_wii_title_path = Common::GetTitleDataPath(tid, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+    File::CreateFullPath(m_wii_title_path);
+    ScanForFiles();
+  }
+
+  bool SaveExists() override { return File::Exists(m_wii_title_path + "/banner.bin"); }
+
+  std::optional<Header> ReadHeader() override
+  {
+    Header header{};
+    std::string banner_file_path = m_wii_title_path + "/banner.bin";
+    u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
+    header.banner_size = banner_size;
+    header.tid = m_tid;
+    header.md5 = s_md5_blanker;
+    header.permissions = 0x3C;
+
+    File::IOFile banner_file(banner_file_path, "rb");
+    if (!banner_file.ReadBytes(header.banner, banner_size))
+      return {};
+    // remove nocopy flag
+    header.banner[7] &= ~1;
+
+    Md5 md5_calc;
+    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    header.md5 = std::move(md5_calc);
+    return header;
+  }
+
+  std::optional<BkHeader> ReadBkHeader() override
+  {
+    BkHeader bk_hdr{};
+    bk_hdr.size = BK_LISTED_SZ;
+    bk_hdr.magic = BK_HDR_MAGIC;
+    bk_hdr.ngid = s_ng_id;
+    bk_hdr.number_of_files = static_cast<u32>(m_files_list.size());
+    bk_hdr.size_of_files = m_files_size;
+    bk_hdr.total_size = m_files_size + FULL_CERT_SZ;
+    bk_hdr.tid = m_tid;
+    return bk_hdr;
+  }
+
+  std::optional<std::vector<SaveFile>> ReadFiles() override
+  {
+    std::vector<SaveFile> ret(m_files_list.size());
+    std::transform(m_files_list.begin(), m_files_list.end(), ret.begin(), [this](const auto& path) {
+      const File::FileInfo file_info{path};
+      SaveFile save_file;
+      save_file.mode = 0x3c;
+      save_file.attributes = 0;
+      save_file.type = file_info.IsDirectory() ? SaveFile::Type::Directory : SaveFile::Type::File;
+      save_file.path = Common::UnescapeFileName(path.substr(m_wii_title_path.length() + 1));
+      save_file.data = [path]() -> std::optional<std::vector<u8>> {
+        File::IOFile file{path, "rb"};
+        std::vector<u8> data(file.GetSize());
+        if (!file || !file.ReadBytes(data.data(), data.size()))
+          return std::nullopt;
+        return data;
+      };
+      return save_file;
+    });
+    return ret;
+  }
+
+  bool WriteHeader(const Header& header) override
+  {
+    File::IOFile banner_file(m_wii_title_path + "/banner.bin", "wb");
+    return banner_file.WriteBytes(header.banner, header.banner_size);
+  }
+
+  bool WriteBkHeader(const BkHeader& bk_header) override { return true; }
+
+  bool WriteFiles(const std::vector<SaveFile>& files) override
+  {
+    for (const SaveFile& file : files)
+    {
+      // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
+      // Special characters in path components will be escaped such as /../
+      std::string file_path = Common::EscapePath(file.path);
+      std::string file_path_full = m_wii_title_path + '/' + file_path;
+      File::CreateFullPath(file_path_full);
+
+      if (file.type == SaveFile::Type::File)
+      {
+        File::IOFile raw_save_file(file_path_full, "wb");
+        const std::optional<std::vector<u8>>& data = *file.data;
+        if (!data)
+          return false;
+        raw_save_file.WriteBytes(data->data(), data->size());
+      }
+      else if (file.type == SaveFile::Type::Directory)
+      {
+        File::CreateDir(file_path_full);
+        if (!File::IsDirectory(file_path_full))
+          return false;
+      }
+    }
+    return true;
+  }
+
+private:
+  void ScanForFiles()
+  {
+    std::vector<std::string> directories;
+    directories.push_back(m_wii_title_path);
+    u32 size = 0;
+
+    for (u32 i = 0; i < directories.size(); ++i)
+    {
+      if (i != 0)
+      {
+        // add dir to fst
+        m_files_list.push_back(directories[i]);
+      }
+
+      File::FSTEntry fst_tmp = File::ScanDirectoryTree(directories[i], false);
+      for (const File::FSTEntry& elem : fst_tmp.children)
+      {
+        if (elem.virtualName != "banner.bin")
+        {
+          size += sizeof(FileHDR);
+          if (elem.isDirectory)
+          {
+            if (elem.virtualName == "nocopy" || elem.virtualName == "nomove")
+            {
+              NOTICE_LOG(CONSOLE,
+                         "This save will likely require homebrew tools to copy to a real Wii.");
+            }
+
+            directories.push_back(elem.physicalName);
+          }
+          else
+          {
+            m_files_list.push_back(elem.physicalName);
+            size += static_cast<u32>(Common::AlignUp(elem.size, BLOCK_SZ));
+          }
+        }
+      }
+    }
+    m_files_size = size;
+  }
+
+  u64 m_tid = 0;
+  std::string m_wii_title_path;
+  std::vector<std::string> m_files_list;
+  u32 m_files_size = 0;
+};
+
+class DataBinStorage final : public Storage
+{
+public:
+  explicit DataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode)
+      : m_iosc{*iosc}
+  {
+    File::CreateFullPath(path);
+    m_file = File::IOFile{path, mode};
+  }
+
+  std::optional<Header> ReadHeader() override
+  {
+    Header header;
+    if (!m_file.Seek(0, SEEK_SET) || !m_file.ReadArray(&header, 1))
+      return {};
+
+    std::array<u8, 0x10> iv = s_sd_initial_iv;
+    m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
+                   sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
+    u32 banner_size = header.banner_size;
+    if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
+        (((banner_size - BNR_SZ) % ICON_SZ) != 0))
+    {
+      ERROR_LOG(CONSOLE, "Not a Wii save or read failure for file header size %x", banner_size);
+      return {};
+    }
+
+    Md5 md5_file = header.md5;
+    header.md5 = s_md5_blanker;
+    Md5 md5_calc;
+    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    if (md5_file != md5_calc)
+    {
+      ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
+                Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
+                Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
+      return {};
+    }
+    return header;
+  }
+
+  std::optional<BkHeader> ReadBkHeader() override
+  {
+    BkHeader bk_header;
+    m_file.Seek(sizeof(Header), SEEK_SET);
+    if (!m_file.ReadArray(&bk_header, 1))
+      return {};
+    if (bk_header.size != BK_LISTED_SZ || bk_header.magic != BK_HDR_MAGIC)
+      return {};
+    if (bk_header.size_of_files + FULL_CERT_SZ != bk_header.total_size)
+      return {};
+    return bk_header;
+  }
+
+  std::optional<std::vector<SaveFile>> ReadFiles() override
+  {
+    const std::optional<BkHeader> bk_header = ReadBkHeader();
+    if (!bk_header || !m_file.Seek(sizeof(Header) + sizeof(BkHeader), SEEK_SET))
+      return {};
+
+    std::vector<SaveFile> files;
+    for (u32 i = 0; i < bk_header->number_of_files; ++i)
+    {
+      SaveFile save_file;
+      FileHDR file_hdr;
+      if (!m_file.ReadArray(&file_hdr, 1) || file_hdr.magic != FILE_HDR_MAGIC)
+        return {};
+
+      save_file.mode = file_hdr.permissions;
+      save_file.attributes = file_hdr.attrib;
+      const SaveFile::Type type = static_cast<SaveFile::Type>(file_hdr.type);
+      if (type != SaveFile::Type::Directory && type != SaveFile::Type::File)
+        return {};
+      save_file.type = type;
+      save_file.path =
+          std::string{file_hdr.name.data(), strnlen(file_hdr.name.data(), file_hdr.name.size())};
+      if (type == SaveFile::Type::File)
+      {
+        const u32 rounded_size = Common::AlignUp<u32>(file_hdr.size, BLOCK_SZ);
+        const u64 pos = m_file.Tell();
+        std::array<u8, 0x10> iv = file_hdr.iv;
+
+        save_file.data = [this, rounded_size, iv, pos]() mutable -> std::optional<std::vector<u8>> {
+          std::vector<u8> file_data(rounded_size);
+          if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
+            return {};
+
+          m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
+                         file_data.data(), IOS::PID_ES);
+          return file_data;
+        };
+        m_file.Seek(pos + rounded_size, SEEK_SET);
+      }
+      files.emplace_back(std::move(save_file));
+    }
+    return files;
+  }
+
+  bool WriteHeader(const Header& header) override
+  {
+    Header encrypted_header;
+    std::array<u8, 0x10> iv = s_sd_initial_iv;
+    m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
+                   sizeof(Header), reinterpret_cast<u8*>(&encrypted_header), IOS::PID_ES);
+    return m_file.Seek(0, SEEK_SET) && m_file.WriteArray(&encrypted_header, 1);
+  }
+
+  bool WriteBkHeader(const BkHeader& bk_header) override
+  {
+    return m_file.Seek(sizeof(Header), SEEK_SET) && m_file.WriteArray(&bk_header, 1);
+  }
+
+  bool WriteFiles(const std::vector<SaveFile>& files) override
+  {
+    if (!m_file.Seek(sizeof(Header) + sizeof(BkHeader), SEEK_SET))
+      return false;
+
+    for (const SaveFile& save_file : files)
+    {
+      FileHDR file_hdr{};
+      file_hdr.magic = FILE_HDR_MAGIC;
+      file_hdr.permissions = save_file.mode;
+      file_hdr.attrib = save_file.attributes;
+      file_hdr.type = static_cast<u8>(save_file.type);
+      if (save_file.path.length() > file_hdr.name.size())
+        return false;
+      std::strncpy(file_hdr.name.data(), save_file.path.data(), file_hdr.name.size());
+
+      std::optional<std::vector<u8>> data;
+      if (file_hdr.type == 1)
+      {
+        data = *save_file.data;
+        if (!data)
+          return false;
+        file_hdr.size = static_cast<u32>(data->size());
+      }
+
+      if (!m_file.WriteArray(&file_hdr, 1))
+        return false;
+
+      if (data)
+      {
+        std::vector<u8> file_data_enc(Common::AlignUp(data->size(), BLOCK_SZ));
+        std::copy(data->cbegin(), data->cend(), file_data_enc.begin());
+        m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr.iv.data(), file_data_enc.data(),
+                       file_data_enc.size(), file_data_enc.data(), IOS::PID_ES);
+        if (!m_file.WriteBytes(file_data_enc.data(), file_data_enc.size()))
+          return false;
+      }
+    }
+
+    if (!WriteSignatures())
+    {
+      ERROR_LOG(CORE, "WiiSave::WriteFiles: Failed to write signatures");
+      return false;
+    }
+    return true;
+  }
+
+private:
+  bool WriteSignatures()
+  {
+    const std::optional<BkHeader> bk_header = ReadBkHeader();
+    if (!bk_header)
+      return false;
+
+    // Read data to sign.
+    const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
+    auto data = std::make_unique<u8[]>(data_size);
+    m_file.Seek(sizeof(Header), SEEK_SET);
+    if (!m_file.ReadBytes(data.get(), data_size))
+      return false;
+
+    // Sign the data.
+    IOS::CertECC ap_cert;
+    Common::ec::Signature ap_sig;
+    m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU, data.get(),
+                data_size);
+
+    // Write signatures.
+    if (!m_file.Seek(0, SEEK_END))
+      return false;
+    const u32 SIGNATURE_END_MAGIC = Common::swap32(0x2f536969);
+    const IOS::CertECC device_certificate = m_iosc.GetDeviceCertificate();
+    return m_file.WriteArray(ap_sig.data(), ap_sig.size()) &&
+           m_file.WriteArray(&SIGNATURE_END_MAGIC, 1) &&
+           m_file.WriteArray(&device_certificate, 1) && m_file.WriteArray(&ap_cert, 1);
+  }
+
+  IOS::HLE::IOSC& m_iosc;
+  File::IOFile m_file;
+};
+
+StoragePointer MakeNandStorage(IOS::HLE::FS::FileSystem* fs, u64 tid)
+{
+  // fs parameter is not used yet but will be after WiiSave is migrated to the new FS interface.
+  return StoragePointer{new NandStorage{tid}};
 }
 
-size_t WiiSave::ExportAll(std::string export_path)
+StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode)
+{
+  return StoragePointer{new DataBinStorage{iosc, path, mode}};
+}
+
+template <typename T>
+static bool Copy(const char* description, Storage* source, std::optional<T> (Storage::*read_fn)(),
+                 Storage* dest, bool (Storage::*write_fn)(const T&))
+{
+  const std::optional<T> data = (source->*read_fn)();
+  if (data && (dest->*write_fn)(*data))
+    return true;
+  ERROR_LOG(CORE, "WiiSave::Copy: Failed to %s %s", !data ? "read" : "write", description);
+  return false;
+}
+
+bool Copy(Storage* source, Storage* dest)
+{
+  return Copy("header", source, &Storage::ReadHeader, dest, &Storage::WriteHeader) &&
+         Copy("bk header", source, &Storage::ReadBkHeader, dest, &Storage::WriteBkHeader) &&
+         Copy("files", source, &Storage::ReadFiles, dest, &Storage::WriteFiles);
+}
+
+bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite)
+{
+  IOS::HLE::Kernel ios;
+  const auto data_bin = MakeDataBinStorage(&ios.GetIOSC(), data_bin_path, "rb");
+  const std::optional<Header> header = data_bin->ReadHeader();
+  if (!header)
+  {
+    ERROR_LOG(CORE, "WiiSave::Import: Failed to read header");
+    return false;
+  }
+  const auto nand = MakeNandStorage(ios.GetFS().get(), header->tid);
+  if (nand->SaveExists() && !can_overwrite())
+    return false;
+  return Copy(data_bin.get(), nand.get());
+}
+
+static bool Export(u64 tid, const std::string& export_path, IOS::HLE::Kernel* ios)
+{
+  std::string path = StringFromFormat("%s/private/wii/title/%c%c%c%c/data.bin", export_path.c_str(),
+                                      static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
+                                      static_cast<char>(tid >> 8), static_cast<char>(tid));
+  return Copy(MakeNandStorage(ios->GetFS().get(), tid).get(),
+              MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
+}
+
+bool Export(u64 tid, const std::string& export_path)
+{
+  IOS::HLE::Kernel ios;
+  return Export(tid, export_path, &ios);
+}
+
+size_t ExportAll(const std::string& export_path)
 {
   IOS::HLE::Kernel ios;
   size_t exported_save_count = 0;
   for (const u64 title : ios.GetES()->GetInstalledTitles())
   {
-    WiiSave export_save{ios, title, export_path};
-    if (export_save.Export())
+    if (Export(title, export_path, &ios))
       ++exported_save_count;
   }
   return exported_save_count;
 }
-
-WiiSave::WiiSave(IOS::HLE::Kernel& ios, std::string filename)
-    : m_ios{ios}, m_sd_iv{s_sd_initial_iv},
-      m_encrypted_save_path(std::move(filename)), m_valid{true}
-{
-}
-
-bool WiiSave::Import()
-{
-  ReadHDR();
-  ReadBKHDR();
-  ImportWiiSaveFiles();
-  // TODO: check_sig()
-  return m_valid;
-}
-
-WiiSave::WiiSave(IOS::HLE::Kernel& ios, u64 title_id, std::string export_path)
-    : m_ios{ios}, m_sd_iv{s_sd_initial_iv},
-      m_encrypted_save_path(std::move(export_path)), m_title_id{title_id}
-{
-  if (getPaths(true))
-    m_valid = true;
-}
-
-bool WiiSave::Export()
-{
-  WriteHDR();
-  WriteBKHDR();
-  ExportWiiSaveFiles();
-  do_sig();
-  return m_valid;
-}
-
-void WiiSave::ReadHDR()
-{
-  File::IOFile data_file(m_encrypted_save_path, "rb");
-  if (!data_file)
-  {
-    ERROR_LOG(CONSOLE, "Cannot open %s", m_encrypted_save_path.c_str());
-    m_valid = false;
-    return;
-  }
-  if (!data_file.ReadBytes(&m_encrypted_header, HEADER_SZ))
-  {
-    ERROR_LOG(CONSOLE, "Failed to read header");
-    m_valid = false;
-    return;
-  }
-  data_file.Close();
-
-  m_ios.GetIOSC().Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, m_sd_iv.data(),
-                          reinterpret_cast<const u8*>(&m_encrypted_header), HEADER_SZ,
-                          reinterpret_cast<u8*>(&m_header), IOS::PID_ES);
-  u32 banner_size = m_header.hdr.banner_size;
-  if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
-      (((banner_size - BNR_SZ) % ICON_SZ) != 0))
-  {
-    ERROR_LOG(CONSOLE, "Not a Wii save or read failure for file header size %x", banner_size);
-    m_valid = false;
-    return;
-  }
-  m_title_id = m_header.hdr.save_game_title;
-
-  Md5 md5_file = m_header.hdr.md5;
-  m_header.hdr.md5 = s_md5_blanker;
-  Md5 md5_calc;
-  mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc.data());
-  if (md5_file != md5_calc)
-  {
-    ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
-              Common::swap64(md5_file.data()), Common::swap64(md5_file.data() + 8),
-              Common::swap64(md5_calc.data()), Common::swap64(md5_calc.data() + 8));
-    m_valid = false;
-  }
-
-  if (!getPaths())
-  {
-    m_valid = false;
-    return;
-  }
-  std::string banner_file_path = m_wii_title_path + "/banner.bin";
-  if (!File::Exists(banner_file_path) ||
-      AskYesNoT("%s already exists. Consider making a backup of the current save files before "
-                "overwriting.\nOverwrite now?",
-                banner_file_path.c_str()))
-  {
-    INFO_LOG(CONSOLE, "Creating file %s", banner_file_path.c_str());
-    File::IOFile banner_file(banner_file_path, "wb");
-    banner_file.WriteBytes(m_header.banner, banner_size);
-  }
-  else
-  {
-    m_valid = false;
-  }
-}
-
-void WiiSave::WriteHDR()
-{
-  if (!m_valid)
-    return;
-  memset(&m_header, 0, HEADER_SZ);
-
-  std::string banner_file_path = m_wii_title_path + "/banner.bin";
-  u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
-  m_header.hdr.banner_size = banner_size;
-
-  m_header.hdr.save_game_title = m_title_id;
-  m_header.hdr.md5 = s_md5_blanker;
-  m_header.hdr.permissions = 0x3C;
-
-  File::IOFile banner_file(banner_file_path, "rb");
-  if (!banner_file.ReadBytes(m_header.banner, banner_size))
-  {
-    ERROR_LOG(CONSOLE, "Failed to read banner.bin");
-    m_valid = false;
-    return;
-  }
-  // remove nocopy flag
-  m_header.banner[7] &= ~1;
-
-  Md5 md5_calc;
-  mbedtls_md5((u8*)&m_header, HEADER_SZ, md5_calc.data());
-  m_header.hdr.md5 = std::move(md5_calc);
-
-  m_ios.GetIOSC().Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, m_sd_iv.data(),
-                          reinterpret_cast<const u8*>(&m_header), HEADER_SZ,
-                          reinterpret_cast<u8*>(&m_encrypted_header), IOS::PID_ES);
-
-  File::IOFile data_file(m_encrypted_save_path, "wb");
-  if (!data_file.WriteBytes(&m_encrypted_header, HEADER_SZ))
-  {
-    ERROR_LOG(CONSOLE, "Failed to write header for %s", m_encrypted_save_path.c_str());
-    m_valid = false;
-  }
-}
-
-void WiiSave::ReadBKHDR()
-{
-  if (!m_valid)
-    return;
-
-  File::IOFile fpData_bin(m_encrypted_save_path, "rb");
-  if (!fpData_bin)
-  {
-    ERROR_LOG(CONSOLE, "Cannot open %s", m_encrypted_save_path.c_str());
-    m_valid = false;
-    return;
-  }
-  fpData_bin.Seek(HEADER_SZ, SEEK_SET);
-  if (!fpData_bin.ReadBytes(&m_bk_hdr, BK_SZ))
-  {
-    ERROR_LOG(CONSOLE, "Failed to read bk header");
-    m_valid = false;
-    return;
-  }
-  fpData_bin.Close();
-
-  if (m_bk_hdr.size != BK_LISTED_SZ || m_bk_hdr.magic != BK_HDR_MAGIC)
-  {
-    ERROR_LOG(CONSOLE, "Invalid Size(%x) or Magic word (%x)", u32(m_bk_hdr.size),
-              u32(m_bk_hdr.magic));
-    m_valid = false;
-    return;
-  }
-
-  if (m_bk_hdr.size_of_files + FULL_CERT_SZ != m_bk_hdr.total_size)
-  {
-    WARN_LOG(CONSOLE, "Size(%x) + cert(%x) does not equal totalsize(%x)",
-             u32(m_bk_hdr.size_of_files), FULL_CERT_SZ, u32(m_bk_hdr.total_size));
-  }
-  if (m_title_id != m_bk_hdr.save_game_title)
-  {
-    WARN_LOG(CONSOLE,
-             "Encrypted title (%" PRIx64 ") does not match unencrypted title (%" PRIx64 ")",
-             m_title_id, u64(m_bk_hdr.save_game_title));
-  }
-}
-
-void WiiSave::WriteBKHDR()
-{
-  if (!m_valid)
-    return;
-  u32 number_of_files = 0, size_of_files = 0;
-  ScanForFiles(m_wii_title_path, m_files_list, &number_of_files, &size_of_files);
-  memset(&m_bk_hdr, 0, BK_SZ);
-  m_bk_hdr.size = BK_LISTED_SZ;
-  m_bk_hdr.magic = BK_HDR_MAGIC;
-  m_bk_hdr.ngid = s_ng_id;
-  m_bk_hdr.number_of_files = number_of_files;
-  m_bk_hdr.size_of_files = size_of_files;
-  m_bk_hdr.total_size = size_of_files + FULL_CERT_SZ;
-  m_bk_hdr.save_game_title = m_title_id;
-
-  File::IOFile data_file(m_encrypted_save_path, "ab");
-  if (!data_file.WriteBytes(&m_bk_hdr, BK_SZ))
-  {
-    ERROR_LOG(CONSOLE, "Failed to write bkhdr");
-    m_valid = false;
-  }
-}
-
-void WiiSave::ImportWiiSaveFiles()
-{
-  if (!m_valid)
-    return;
-
-  File::IOFile data_file(m_encrypted_save_path, "rb");
-  if (!data_file)
-  {
-    ERROR_LOG(CONSOLE, "Cannot open %s", m_encrypted_save_path.c_str());
-    m_valid = false;
-    return;
-  }
-
-  data_file.Seek(HEADER_SZ + BK_SZ, SEEK_SET);
-
-  FileHDR file_hdr_tmp;
-
-  for (u32 i = 0; i < m_bk_hdr.number_of_files; ++i)
-  {
-    memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
-    m_iv.fill(0);
-
-    if (!data_file.ReadBytes(&file_hdr_tmp, FILE_HDR_SZ))
-    {
-      ERROR_LOG(CONSOLE, "Failed to read header for file %d", i);
-      m_valid = false;
-    }
-
-    if (file_hdr_tmp.magic != FILE_HDR_MAGIC)
-    {
-      ERROR_LOG(CONSOLE, "Bad File Header");
-      break;
-    }
-    else
-    {
-      // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
-      // Special characters in path components will be escaped such as /../
-      std::string file_path = Common::EscapePath(file_hdr_tmp.name.data());
-
-      std::string file_path_full = m_wii_title_path + '/' + file_path;
-      File::CreateFullPath(file_path_full);
-      const File::FileInfo file_info(file_path_full);
-      if (file_hdr_tmp.type == 1)
-      {
-        u32 file_size_rounded = Common::AlignUp<u32>(file_hdr_tmp.size, BLOCK_SZ);
-        std::vector<u8> file_data(file_size_rounded);
-        std::vector<u8> file_data_enc(file_size_rounded);
-
-        if (!data_file.ReadBytes(file_data_enc.data(), file_size_rounded))
-        {
-          ERROR_LOG(CONSOLE, "Failed to read data from file %d", i);
-          m_valid = false;
-          break;
-        }
-
-        m_iv = file_hdr_tmp.iv;
-        m_ios.GetIOSC().Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, m_iv.data(), file_data_enc.data(),
-                                file_size_rounded, file_data.data(), IOS::PID_ES);
-
-        INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
-
-        File::IOFile raw_save_file(file_path_full, "wb");
-        raw_save_file.WriteBytes(file_data.data(), file_hdr_tmp.size);
-      }
-      else if (file_hdr_tmp.type == 2)
-      {
-        if (!file_info.Exists())
-        {
-          if (!File::CreateDir(file_path_full))
-            ERROR_LOG(CONSOLE, "Failed to create directory %s", file_path_full.c_str());
-        }
-        else if (!file_info.IsDirectory())
-        {
-          ERROR_LOG(CONSOLE,
-                    "Failed to create directory %s because a file with the same name exists",
-                    file_path_full.c_str());
-        }
-      }
-    }
-  }
-}
-
-void WiiSave::ExportWiiSaveFiles()
-{
-  if (!m_valid)
-    return;
-
-  for (u32 i = 0; i < m_bk_hdr.number_of_files; i++)
-  {
-    FileHDR file_hdr_tmp;
-    memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
-
-    u32 file_size = 0;
-    const File::FileInfo file_info(m_files_list[i]);
-    if (file_info.IsDirectory())
-    {
-      file_hdr_tmp.type = 2;
-    }
-    else
-    {
-      file_size = static_cast<u32>(file_info.GetSize());
-      file_hdr_tmp.type = 1;
-    }
-
-    u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
-    file_hdr_tmp.magic = FILE_HDR_MAGIC;
-    file_hdr_tmp.size = file_size;
-    file_hdr_tmp.permissions = 0x3c;
-
-    std::string name =
-        Common::UnescapeFileName(m_files_list[i].substr(m_wii_title_path.length() + 1));
-
-    if (name.length() > 0x44)
-    {
-      ERROR_LOG(CONSOLE, "\"%s\" is too long for the filename, max length is 0x44 + \\0",
-                name.c_str());
-      m_valid = false;
-      return;
-    }
-    std::strncpy(file_hdr_tmp.name.data(), name.c_str(), file_hdr_tmp.name.size());
-
-    {
-      File::IOFile fpData_bin(m_encrypted_save_path, "ab");
-      fpData_bin.WriteBytes(&file_hdr_tmp, FILE_HDR_SZ);
-    }
-
-    if (file_hdr_tmp.type == 1)
-    {
-      if (file_size == 0)
-      {
-        ERROR_LOG(CONSOLE, "%s is a 0 byte file", m_files_list[i].c_str());
-        m_valid = false;
-        return;
-      }
-      File::IOFile raw_save_file(m_files_list[i], "rb");
-      if (!raw_save_file)
-      {
-        ERROR_LOG(CONSOLE, "%s failed to open", m_files_list[i].c_str());
-        m_valid = false;
-      }
-
-      std::vector<u8> file_data(file_size_rounded);
-      std::vector<u8> file_data_enc(file_size_rounded);
-
-      if (!raw_save_file.ReadBytes(file_data.data(), file_size))
-      {
-        ERROR_LOG(CONSOLE, "Failed to read data from file: %s", m_files_list[i].c_str());
-        m_valid = false;
-      }
-
-      m_ios.GetIOSC().Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr_tmp.iv.data(),
-                              file_data.data(), file_size_rounded, file_data_enc.data(),
-                              IOS::PID_ES);
-
-      File::IOFile fpData_bin(m_encrypted_save_path, "ab");
-      if (!fpData_bin.WriteBytes(file_data_enc.data(), file_size_rounded))
-      {
-        ERROR_LOG(CONSOLE, "Failed to write data to file: %s", m_encrypted_save_path.c_str());
-      }
-    }
-  }
-}
-
-void WiiSave::do_sig()
-{
-  if (!m_valid)
-    return;
-
-  File::IOFile data_file(m_encrypted_save_path, "rb");
-  if (!data_file)
-  {
-    m_valid = false;
-    return;
-  }
-
-  // Read data to sign.
-  const u32 data_size = m_bk_hdr.size_of_files + 0x80;
-  auto data = std::make_unique<u8[]>(data_size);
-  data_file.Seek(0xf0c0, SEEK_SET);
-  if (!data_file.ReadBytes(data.get(), data_size))
-  {
-    m_valid = false;
-    return;
-  }
-
-  // Sign the data.
-  IOS::CertECC ap_cert;
-  Common::ec::Signature ap_sig;
-  m_ios.GetIOSC().Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
-                       data.get(), data_size);
-
-  // Write signatures.
-  data_file.Open(m_encrypted_save_path, "ab");
-  if (!data_file)
-  {
-    m_valid = false;
-    return;
-  }
-
-  data_file.WriteArray(ap_sig.data(), ap_sig.size());
-  const u32 SIGNATURE_END_MAGIC = Common::swap32(0x2f536969);
-  data_file.WriteArray(&SIGNATURE_END_MAGIC, 1);
-  const IOS::CertECC device_certificate = m_ios.GetIOSC().GetDeviceCertificate();
-  data_file.WriteArray(&device_certificate, 1);
-  data_file.WriteArray(&ap_cert, 1);
-
-  m_valid = data_file.IsGood();
-}
-
-bool WiiSave::getPaths(bool for_export)
-{
-  if (m_title_id)
-  {
-    // CONFIGURED because this whole class is only used from the GUI, not directly by games.
-    m_wii_title_path = Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
-  }
-
-  if (for_export)
-  {
-    char game_id[5];
-    sprintf(game_id, "%c%c%c%c", (u8)(m_title_id >> 24) & 0xFF, (u8)(m_title_id >> 16) & 0xFF,
-            (u8)(m_title_id >> 8) & 0xFF, (u8)m_title_id & 0xFF);
-
-    if (!File::IsDirectory(m_wii_title_path))
-    {
-      m_valid = false;
-      ERROR_LOG(CONSOLE, "No save folder found for title %s", game_id);
-      return false;
-    }
-
-    if (!File::Exists(m_wii_title_path + "/banner.bin"))
-    {
-      m_valid = false;
-      ERROR_LOG(CONSOLE, "No banner file found for title %s", game_id);
-      return false;
-    }
-    m_encrypted_save_path += StringFromFormat("/private/wii/title/%s/data.bin", game_id);
-    File::CreateFullPath(m_encrypted_save_path);
-  }
-  else
-  {
-    File::CreateFullPath(m_wii_title_path);
-  }
-  return true;
-}
-
-void WiiSave::ScanForFiles(const std::string& save_directory, std::vector<std::string>& file_list,
-                           u32* num_files, u32* size_files)
-{
-  std::vector<std::string> directories;
-  directories.push_back(save_directory);
-  u32 num = 0;
-  u32 size = 0;
-
-  for (u32 i = 0; i < directories.size(); ++i)
-  {
-    if (i != 0)
-    {
-      // add dir to fst
-      file_list.push_back(directories[i]);
-    }
-
-    File::FSTEntry fst_tmp = File::ScanDirectoryTree(directories[i], false);
-    for (const File::FSTEntry& elem : fst_tmp.children)
-    {
-      if (elem.virtualName != "banner.bin")
-      {
-        num++;
-        size += FILE_HDR_SZ;
-        if (elem.isDirectory)
-        {
-          if (elem.virtualName == "nocopy" || elem.virtualName == "nomove")
-          {
-            NOTICE_LOG(CONSOLE,
-                       "This save will likely require homebrew tools to copy to a real Wii.");
-          }
-
-          directories.push_back(elem.physicalName);
-        }
-        else
-        {
-          file_list.push_back(elem.physicalName);
-          size += static_cast<u32>(Common::AlignUp(elem.size, BLOCK_SZ));
-        }
-      }
-    }
-  }
-
-  *num_files = num;
-  *size_files = size;
-}
-
-WiiSave::~WiiSave()
-{
-}
+}  // namespace WiiSave

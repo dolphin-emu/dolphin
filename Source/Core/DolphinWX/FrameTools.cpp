@@ -1214,8 +1214,14 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED(event))
                      _("Wii save files (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
                      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
 
+  auto can_overwrite = [this] {
+    return wxMessageBox(_("Save data for this title already exists in the NAND. Consider backing "
+                          "up the current data before overwriting.\nOverwrite now?"),
+                        _("Save Import"), wxYES_NO, this) == wxYES;
+  };
+
   if (!path.IsEmpty())
-    WiiSave::Import(WxStrToStr(path));
+    WiiSave::Import(WxStrToStr(path), can_overwrite);
 }
 
 void CFrame::OnShowCheatsWindow(wxCommandEvent& WXUNUSED(event))

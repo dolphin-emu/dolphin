@@ -958,9 +958,18 @@ void MenuBar::ImportWiiSave()
   if (file.isEmpty())
     return;
 
-  if (WiiSave::Import(file.toStdString()))
+  bool cancelled = false;
+  auto can_overwrite = [&] {
+    bool yes = QMessageBox::question(
+                   this, tr("Save Import"),
+                   tr("Save data for this title already exists in the NAND. Consider backing up "
+                      "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
+    cancelled = !yes;
+    return yes;
+  };
+  if (WiiSave::Import(file.toStdString(), can_overwrite))
     QMessageBox::information(this, tr("Save Import"), tr("Successfully imported save files."));
-  else
+  else if (!cancelled)
     QMessageBox::critical(this, tr("Save Import"), tr("Failed to import save files."));
 }
 
