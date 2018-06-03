@@ -74,6 +74,7 @@
     <QtMoc Include="Config\Mapping\HotkeyGeneral.h" />
     <QtMoc Include="Config\Mapping\HotkeyGraphics.h" />
     <QtMoc Include="Config\Mapping\HotkeyStates.h" />
+    <QtMoc Include="Config\Mapping\HotkeyStatesOther.h" />
     <QtMoc Include="Config\Mapping\HotkeyTAS.h" />
     <QtMoc Include="Config\Mapping\HotkeyWii.h" />
     <QtMoc Include="Config\Mapping\IOWindow.h" />
@@ -207,6 +208,7 @@
     <ClCompile Include="$(QtMocOutPrefix)HotkeyGraphics.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyScheduler.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyStates.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)HotkeyStatesOther.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyTAS.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyWii.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)IOWindow.cpp" />
@@ -285,6 +287,7 @@
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyStatesOther.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyTAS.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyWii.cpp" />
     <ClCompile Include="Config\Mapping\IOWindow.cpp" />

@@ -29,6 +29,7 @@
 #include "DolphinQt2/Config/Mapping/HotkeyGeneral.h"
 #include "DolphinQt2/Config/Mapping/HotkeyGraphics.h"
 #include "DolphinQt2/Config/Mapping/HotkeyStates.h"
+#include "DolphinQt2/Config/Mapping/HotkeyStatesOther.h"
 #include "DolphinQt2/Config/Mapping/HotkeyTAS.h"
 #include "DolphinQt2/Config/Mapping/HotkeyWii.h"
 #include "DolphinQt2/Config/Mapping/WiimoteEmuExtension.h"
@@ -318,6 +319,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
+    AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }
