@@ -332,11 +332,6 @@ std::string ValueToString(bool value)
   return value ? "True" : "False";
 }
 
-std::string ValueToString(const std::string& value)
-{
-  return value;
-}
-
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
                std::string* _pExtension)
 {
