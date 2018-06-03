@@ -790,6 +790,8 @@ void SConfig::LoadDefaults()
   iLatency = 20;
   m_audio_stretch = false;
   m_audio_stretch_max_latency = 80;
+  bUsePanicHandlers = true;
+  bOnScreenDisplayMessages = true;
 
   iPosX = INT_MIN;
   iPosY = INT_MIN;
