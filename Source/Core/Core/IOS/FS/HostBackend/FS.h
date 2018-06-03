@@ -38,12 +38,10 @@ public:
   Result<FileStatus> GetFileStatus(Fd fd) override;
 
   ResultCode CreateFile(Uid caller_uid, Gid caller_gid, const std::string& path,
-                        FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                        Mode other_mode) override;
+                        FileAttribute attribute, Modes modes) override;
 
   ResultCode CreateDirectory(Uid caller_uid, Gid caller_gid, const std::string& path,
-                             FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                             Mode other_mode) override;
+                             FileAttribute attribute, Modes modes) override;
 
   ResultCode Delete(Uid caller_uid, Gid caller_gid, const std::string& path) override;
   ResultCode Rename(Uid caller_uid, Gid caller_gid, const std::string& old_path,
@@ -54,8 +52,7 @@ public:
 
   Result<Metadata> GetMetadata(Uid caller_uid, Gid caller_gid, const std::string& path) override;
   ResultCode SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                         FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                         Mode other_mode) override;
+                         FileAttribute attribute, Modes modes) override;
 
   Result<NandStats> GetNandStats() override;
   Result<DirectoryStats> GetDirectoryStats(const std::string& path) override;

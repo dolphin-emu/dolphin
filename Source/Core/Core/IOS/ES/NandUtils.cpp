@@ -222,15 +222,19 @@ static bool DeleteDirectoriesIfEmpty(FS::FileSystem* fs, const std::string& path
   return true;
 }
 
+constexpr FS::Modes title_dir_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read};
+constexpr FS::Modes content_dir_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None};
+constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
+
 bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
 {
   const auto fs = m_ios.GetFS();
 
   const std::string content_dir = Common::GetTitleContentPath(title_id);
-  const auto result1 = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, content_dir + '/', 0,
-                                          FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read);
-  const auto result2 = fs->SetMetadata(PID_KERNEL, content_dir, PID_KERNEL, PID_KERNEL, 0,
-                                       FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None);
+  const auto result1 =
+      fs->CreateFullPath(PID_KERNEL, PID_KERNEL, content_dir + '/', 0, title_dir_modes);
+  const auto result2 =
+      fs->SetMetadata(PID_KERNEL, content_dir, PID_KERNEL, PID_KERNEL, 0, content_dir_modes);
   if (result1 != FS::ResultCode::Success || result2 != FS::ResultCode::Success)
   {
     ERROR_LOG(IOS_ES, "Failed to create or set metadata on content dir for %016" PRIx64, title_id);
@@ -239,10 +243,9 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
 
   const std::string data_dir = Common::GetTitleDataPath(title_id);
   const auto data_dir_contents = fs->ReadDirectory(PID_KERNEL, PID_KERNEL, data_dir);
-  if (!data_dir_contents &&
-      (data_dir_contents.Error() != FS::ResultCode::NotFound ||
-       fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, FS::Mode::ReadWrite, FS::Mode::None,
-                           FS::Mode::None) != FS::ResultCode::Success))
+  if (!data_dir_contents && (data_dir_contents.Error() != FS::ResultCode::NotFound ||
+                             fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0,
+                                                 data_dir_modes) != FS::ResultCode::Success))
   {
     ERROR_LOG(IOS_ES, "Failed to create data dir for %016" PRIx64, title_id);
     return false;
@@ -250,8 +253,7 @@ bool ES::CreateTitleDirectories(u64 title_id, u16 group_id) const
 
   IOS::ES::UIDSys uid_sys{fs};
   const u32 uid = uid_sys.GetOrInsertUIDForTitle(title_id);
-  if (fs->SetMetadata(0, data_dir, uid, group_id, 0, FS::Mode::ReadWrite, FS::Mode::None,
-                      FS::Mode::None) != FS::ResultCode::Success)
+  if (fs->SetMetadata(0, data_dir, uid, group_id, 0, data_dir_modes) != FS::ResultCode::Success)
   {
     ERROR_LOG(IOS_ES, "Failed to set metadata on data dir for %016" PRIx64, title_id);
     return false;
@@ -267,8 +269,8 @@ bool ES::InitImport(const IOS::ES::TMDReader& tmd)
 
   const auto fs = m_ios.GetFS();
   const std::string import_content_dir = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content";
-  const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, import_content_dir + '/', 0,
-                                         FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None);
+  const auto result =
+      fs->CreateFullPath(PID_KERNEL, PID_KERNEL, import_content_dir + '/', 0, content_dir_modes);
   if (result != FS::ResultCode::Success)
   {
     ERROR_LOG(IOS_ES, "InitImport: Failed to create content dir for %016" PRIx64, tmd.GetTitleId());
@@ -330,8 +332,7 @@ bool ES::WriteImportTMD(const IOS::ES::TMDReader& tmd)
   const auto fs = m_ios.GetFS();
   const std::string tmd_path = "/tmp/title.tmd";
   {
-    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, tmd_path, FS::Mode::ReadWrite,
-                                            FS::Mode::ReadWrite, FS::Mode::None);
+    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, tmd_path, content_dir_modes);
     if (!file || !file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
       return false;
   }

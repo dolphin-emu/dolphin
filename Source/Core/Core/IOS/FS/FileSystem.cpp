@@ -69,17 +69,17 @@ Result<FileStatus> FileHandle::GetStatus() const
 void FileSystem::Init()
 {
   if (Delete(0, 0, "/tmp") == ResultCode::Success)
-    CreateDirectory(0, 0, "/tmp", 0, Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite);
+    CreateDirectory(0, 0, "/tmp", 0, {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite});
 }
 
 Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
-                                                 Mode owner_mode, Mode group_mode, Mode other_mode)
+                                                 Modes modes)
 {
   Result<FileHandle> file = OpenFile(uid, gid, path, Mode::ReadWrite);
   if (file.Succeeded())
     return file;
 
-  const ResultCode result = CreateFile(uid, gid, path, 0, owner_mode, group_mode, other_mode);
+  const ResultCode result = CreateFile(uid, gid, path, 0, modes);
   if (result != ResultCode::Success)
     return result;
 
@@ -87,7 +87,7 @@ Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::st
 }
 
 ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
-                                      FileAttribute attribute, Mode owner, Mode group, Mode other)
+                                      FileAttribute attribute, Modes modes)
 {
   std::string::size_type position = 1;
   while (true)
@@ -103,7 +103,7 @@ ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
     if (metadata && metadata->is_file)
       return ResultCode::Invalid;
 
-    const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, owner, group, other);
+    const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, modes);
     if (result != ResultCode::Success && result != ResultCode::AlreadyExists)
       return result;
 

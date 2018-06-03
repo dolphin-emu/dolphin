@@ -39,24 +39,22 @@ struct DirectoryToCreate
 {
   const char* path;
   FS::FileAttribute attribute;
-  FS::Mode owner_mode;
-  FS::Mode group_mode;
-  FS::Mode other_mode;
+  FS::Modes modes;
   FS::Uid uid = PID_KERNEL;
   FS::Gid gid = PID_KERNEL;
 };
 
+constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
 constexpr std::array<DirectoryToCreate, 9> s_directories_to_create = {{
-    {"/sys", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
-    {"/ticket", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
-    {"/title", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read},
-    {"/shared1", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
-    {"/shared2", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite},
-    {"/tmp", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite},
-    {"/import", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None},
-    {"/meta", 0, FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite, SYSMENU_UID,
-     SYSMENU_GID},
-    {"/wfs", 0, FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None, PID_UNKNOWN, PID_UNKNOWN},
+    {"/sys", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/ticket", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/title", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read}},
+    {"/shared1", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/shared2", 0, public_modes},
+    {"/tmp", 0, public_modes},
+    {"/import", 0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None}},
+    {"/meta", 0, public_modes, SYSMENU_UID, SYSMENU_GID},
+    {"/wfs", 0, {FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None}, PID_UNKNOWN, PID_UNKNOWN},
 }};
 
 ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
@@ -66,14 +64,13 @@ ES::ES(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
     // Note: ES sets its own UID and GID to 0/0 at boot, so all filesystem accesses in ES are done
     // as UID 0 even though its PID is 1.
     const auto result = m_ios.GetFS()->CreateDirectory(PID_KERNEL, PID_KERNEL, directory.path,
-                                                       directory.attribute, directory.owner_mode,
-                                                       directory.group_mode, directory.other_mode);
+                                                       directory.attribute, directory.modes);
     if (result != FS::ResultCode::Success && result != FS::ResultCode::AlreadyExists)
       ERROR_LOG(IOS_ES, "Failed to create %s: error %d", directory.path, FS::ConvertResult(result));
 
     // Now update the UID/GID and other attributes.
     m_ios.GetFS()->SetMetadata(0, directory.path, directory.uid, directory.gid, directory.attribute,
-                               directory.owner_mode, directory.group_mode, directory.other_mode);
+                               directory.modes);
   }
 
   FinishAllStaleImports();
@@ -623,9 +620,9 @@ static s32 WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd
 {
   const std::string temp_path = "/tmp/title.tmd";
   fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
+  constexpr FS::Modes internal_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::None};
   {
-    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, FS::Mode::ReadWrite,
-                                            FS::Mode::ReadWrite, FS::Mode::None);
+    const auto file = fs->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, temp_path, internal_modes);
     if (!file)
       return FS::ConvertResult(file.Error());
     if (!file->Write(tmd.GetBytes().data(), tmd.GetBytes().size()))
@@ -634,13 +631,12 @@ static s32 WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd
 
   const std::string tmd_dir = Common::GetTitleContentPath(tmd.GetTitleId());
   const std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId());
-  const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, tmd_path, 0, FS::Mode::ReadWrite,
-                                         FS::Mode::ReadWrite, FS::Mode::Read);
+  constexpr FS::Modes parent_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read};
+  const auto result = fs->CreateFullPath(PID_KERNEL, PID_KERNEL, tmd_path, 0, parent_modes);
   if (result != FS::ResultCode::Success)
     return FS::ConvertResult(result);
 
-  fs->SetMetadata(PID_KERNEL, tmd_dir, PID_KERNEL, PID_KERNEL, 0, FS::Mode::ReadWrite,
-                  FS::Mode::ReadWrite, FS::Mode::None);
+  fs->SetMetadata(PID_KERNEL, tmd_dir, PID_KERNEL, PID_KERNEL, 0, internal_modes);
   return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
 }
 
@@ -678,10 +674,10 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
 
   const std::string data_dir = Common::GetTitleDataPath(tmd.GetTitleId());
   // Might already exist, so we only need to check whether the second operation succeeded.
-  fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, FS::Mode::ReadWrite, FS::Mode::None,
-                      FS::Mode::None);
-  return FS::ConvertResult(fs->SetMetadata(0, data_dir, m_ios.GetUidForPPC(), m_ios.GetGidForPPC(),
-                                           0, FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None));
+  constexpr FS::Modes data_dir_modes{FS::Mode::ReadWrite, FS::Mode::None, FS::Mode::None};
+  fs->CreateDirectory(PID_KERNEL, PID_KERNEL, data_dir, 0, data_dir_modes);
+  return FS::ConvertResult(
+      fs->SetMetadata(0, data_dir, m_ios.GetUidForPPC(), m_ios.GetGidForPPC(), 0, data_dir_modes));
 }
 
 ReturnCode ES::CheckStreamKeyPermissions(const u32 uid, const u8* ticket_view,
@@ -877,8 +873,8 @@ ReturnCode ES::WriteNewCertToStore(const IOS::ES::CertReader& cert)
 
   // Otherwise, write the new cert at the end of the store.
   const auto store_file =
-      m_ios.GetFS()->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::ReadWrite,
-                                       FS::Mode::ReadWrite, FS::Mode::Read);
+      m_ios.GetFS()->CreateAndOpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH,
+                                       {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::Read});
   if (!store_file || !store_file->Seek(0, FS::SeekMode::End) ||
       !store_file->Write(cert.GetBytes().data(), cert.GetBytes().size()))
   {

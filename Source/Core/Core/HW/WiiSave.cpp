@@ -205,9 +205,8 @@ public:
       return false;
 
     const std::string banner_file_path = m_data_dir + "/banner.bin";
-    const std::tuple<FS::Mode, FS::Mode, FS::Mode> modes = GetFsMode(header.permissions);
-    const auto file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, banner_file_path, std::get<0>(modes),
-                                              std::get<1>(modes), std::get<2>(modes));
+    const FS::Modes modes = GetFsMode(header.permissions);
+    const auto file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, banner_file_path, modes);
     return file && file->Write(header.banner, header.banner_size);
   }
 
@@ -220,11 +219,10 @@ public:
 
     for (const SaveFile& file : files)
     {
-      const std::tuple<FS::Mode, FS::Mode, FS::Mode> modes = GetFsMode(file.mode);
+      const FS::Modes modes = GetFsMode(file.mode);
       if (file.type == SaveFile::Type::File)
       {
-        const auto raw_file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, file.path, std::get<0>(modes),
-                                                      std::get<1>(modes), std::get<2>(modes));
+        const auto raw_file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, file.path, modes);
         const std::optional<std::vector<u8>>& data = *file.data;
         if (!data || !raw_file || !raw_file->Write(data->data(), data->size()))
           return false;
@@ -235,9 +233,7 @@ public:
         if (!meta || meta->is_file)
           return false;
 
-        const FS::ResultCode result =
-            m_fs->CreateDirectory(*m_uid, *m_gid, file.path, 0, std::get<0>(modes),
-                                  std::get<1>(modes), std::get<2>(modes));
+        const FS::ResultCode result = m_fs->CreateDirectory(*m_uid, *m_gid, file.path, 0, modes);
         if (result != FS::ResultCode::Success)
           return false;
       }
@@ -266,7 +262,7 @@ private:
         return;
 
       SaveFile save_file;
-      save_file.mode = GetBinMode(*metadata);
+      save_file.mode = GetBinMode(metadata->modes);
       save_file.attributes = 0;
       save_file.type = metadata->is_file ? SaveFile::Type::File : SaveFile::Type::Directory;
       save_file.path = path;
@@ -298,20 +294,20 @@ private:
     m_gid = metadata->gid;
   }
 
-  static constexpr std::tuple<FS::Mode, FS::Mode, FS::Mode> GetFsMode(u8 bin_mode)
+  static constexpr FS::Modes GetFsMode(u8 bin_mode)
   {
     return {FS::Mode(bin_mode >> 4 & 3), FS::Mode(bin_mode >> 2 & 3), FS::Mode(bin_mode >> 0 & 3)};
   }
 
-  static constexpr u8 GetBinMode(const FS::Metadata& meta)
+  static constexpr u8 GetBinMode(const FS::Modes& modes)
   {
-    return u8(meta.owner_mode) << 4 | u8(meta.group_mode) << 2 | u8(meta.other_mode) << 0;
+    return u8(modes.owner) << 4 | u8(modes.group) << 2 | u8(modes.other) << 0;
   }
 
   u8 GetBinMode(const std::string& path) const
   {
     if (const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path))
-      return GetBinMode(*meta);
+      return GetBinMode(meta->modes);
     return 0;
   }
 

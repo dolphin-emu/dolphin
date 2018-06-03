@@ -167,8 +167,7 @@ ResultCode HostFileSystem::Format(Uid uid)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAttribute attribute,
-                                      Mode owner_mode, Mode group_mode, Mode other_mode)
+ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAttribute, Modes)
 {
   std::string file_name(BuildFilename(path));
   // check if the file already exist
@@ -186,9 +185,7 @@ ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAtt
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path,
-                                           FileAttribute attribute, Mode owner_mode,
-                                           Mode group_mode, Mode other_mode)
+ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path, FileAttribute, Modes)
 {
   if (!IsValidWiiPath(path))
     return ResultCode::Invalid;
@@ -310,9 +307,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
     return ResultCode::Invalid;
 
   std::string file_name = BuildFilename(path);
-  metadata.owner_mode = Mode::ReadWrite;
-  metadata.group_mode = Mode::ReadWrite;
-  metadata.other_mode = Mode::ReadWrite;
+  metadata.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
   metadata.attribute = 0x00;  // no attributes
 
   // Hack: if the path that is being accessed is within an installed title directory, get the
@@ -335,8 +330,7 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
 }
 
 ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                       FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                                       Mode other_mode)
+                                       FileAttribute, Modes)
 {
   if (!IsValidWiiPath(path))
     return ResultCode::Invalid;

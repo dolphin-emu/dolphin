@@ -282,9 +282,7 @@ struct ISFSParams
   Common::BigEndianValue<Uid> uid;
   Common::BigEndianValue<Gid> gid;
   char path[64];
-  Mode owner_mode;
-  Mode group_mode;
-  Mode other_mode;
+  Modes modes;
   FileAttribute attribute;
 };
 
@@ -406,9 +404,8 @@ IPCCommandResult FS::CreateDirectory(const Handle& handle, const IOCtlRequest& r
   if (!params)
     return GetFSReply(ConvertResult(params.Error()));
 
-  const ResultCode result =
-      m_ios.GetFS()->CreateDirectory(handle.uid, handle.gid, params->path, params->attribute,
-                                     params->owner_mode, params->group_mode, params->other_mode);
+  const ResultCode result = m_ios.GetFS()->CreateDirectory(handle.uid, handle.gid, params->path,
+                                                           params->attribute, params->modes);
   LogResult(StringFromFormat("CreateDirectory(%s)", params->path), result);
   return GetReplyForSuperblockOperation(result);
 }
@@ -474,8 +471,7 @@ IPCCommandResult FS::SetAttribute(const Handle& handle, const IOCtlRequest& requ
     return GetFSReply(ConvertResult(params.Error()));
 
   const ResultCode result = m_ios.GetFS()->SetMetadata(
-      handle.uid, params->path, params->uid, params->gid, params->attribute, params->owner_mode,
-      params->group_mode, params->other_mode);
+      handle.uid, params->path, params->uid, params->gid, params->attribute, params->modes);
   LogResult(StringFromFormat("SetMetadata(%s)", params->path), result);
   return GetReplyForSuperblockOperation(result);
 }
@@ -499,9 +495,7 @@ IPCCommandResult FS::GetAttribute(const Handle& handle, const IOCtlRequest& requ
   out.uid = metadata->uid;
   out.gid = metadata->gid;
   out.attribute = metadata->attribute;
-  out.owner_mode = metadata->owner_mode;
-  out.group_mode = metadata->group_mode;
-  out.other_mode = metadata->other_mode;
+  out.modes = metadata->modes;
   Memory::CopyToEmu(request.buffer_out, &out, sizeof(out));
   return GetFSReply(IPC_SUCCESS, ticks);
 }
@@ -535,9 +529,8 @@ IPCCommandResult FS::CreateFile(const Handle& handle, const IOCtlRequest& reques
   if (!params)
     return GetFSReply(ConvertResult(params.Error()));
 
-  const ResultCode result =
-      m_ios.GetFS()->CreateFile(handle.uid, handle.gid, params->path, params->attribute,
-                                params->owner_mode, params->group_mode, params->other_mode);
+  const ResultCode result = m_ios.GetFS()->CreateFile(handle.uid, handle.gid, params->path,
+                                                      params->attribute, params->modes);
   LogResult(StringFromFormat("CreateFile(%s)", params->path), result);
   return GetReplyForSuperblockOperation(result);
 }
