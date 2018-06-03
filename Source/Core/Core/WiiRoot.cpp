@@ -28,10 +28,12 @@ namespace Core
 {
 static std::string s_temp_wii_root;
 
-static void InitializeDeterministicWiiSaves(IOS::HLE::FS::FileSystem* session_fs)
+namespace FS = IOS::HLE::FS;
+
+static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
 {
   const u64 title_id = SConfig::GetInstance().GetTitleID();
-  const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+  const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
   if (Movie::IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
@@ -87,7 +89,7 @@ void ShutdownWiiRoot()
 /// Copy a directory from host_source_path (on the host FS) to nand_target_path on the NAND.
 ///
 /// Both paths should not have trailing slashes. To specify the NAND root, use "".
-static bool CopySysmenuFilesToFS(IOS::HLE::FS::FileSystem* fs, const std::string& host_source_path,
+static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_source_path,
                                  const std::string& nand_target_path)
 {
   const auto entries = File::ScanDirectoryTree(host_source_path, false);
@@ -95,8 +97,7 @@ static bool CopySysmenuFilesToFS(IOS::HLE::FS::FileSystem* fs, const std::string
   {
     const std::string host_path = host_source_path + '/' + entry.virtualName;
     const std::string nand_path = nand_target_path + '/' + entry.virtualName;
-    constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-    constexpr IOS::HLE::FS::Modes public_modes{rw_mode, rw_mode, rw_mode};
+    constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
 
     if (entry.isDirectory)
     {
@@ -155,7 +156,7 @@ void CleanUpWiiFileSystemContents()
   IOS::HLE::EmulationKernel* ios = IOS::HLE::GetIOS();
   const auto session_save = WiiSave::MakeNandStorage(ios->GetFS().get(), title_id);
 
-  const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+  const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
   const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
 
   const std::string backup_path =
