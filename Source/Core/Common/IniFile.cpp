@@ -57,53 +57,9 @@ void IniFile::Section::Set(const std::string& key, const std::string& newValue)
   }
 }
 
-void IniFile::Section::Set(const std::string& key, const std::string& newValue,
-                           const std::string& defaultValue)
-{
-  if (newValue != defaultValue)
-    Set(key, newValue);
-  else
-    Delete(key);
-}
-
 void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
 {
   Set(key, JoinStrings(newValues, ","));
-}
-
-void IniFile::Section::Set(const std::string& key, u32 newValue)
-{
-  Set(key, StringFromFormat("0x%08x", newValue));
-}
-
-void IniFile::Section::Set(const std::string& key, u64 new_value)
-{
-  Set(key, StringFromFormat("0x%016" PRIx64, new_value));
-}
-
-void IniFile::Section::Set(const std::string& key, float newValue)
-{
-  Set(key, StringFromFormat("%#.9g", newValue));
-}
-
-void IniFile::Section::Set(const std::string& key, double newValue)
-{
-  Set(key, StringFromFormat("%#.17g", newValue));
-}
-
-void IniFile::Section::Set(const std::string& key, int newValue)
-{
-  Set(key, std::to_string(newValue));
-}
-
-void IniFile::Section::Set(const std::string& key, s64 newValue)
-{
-  Set(key, StringFromFormat("%" PRId64, newValue));
-}
-
-void IniFile::Section::Set(const std::string& key, bool newValue)
-{
-  Set(key, ValueToString(newValue));
 }
 
 bool IniFile::Section::Get(const std::string& key, std::string* value,

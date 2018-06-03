@@ -12,6 +12,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {
@@ -35,20 +36,17 @@ public:
     bool Delete(const std::string& key);
 
     void Set(const std::string& key, const std::string& newValue);
-    void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
-    void Set(const std::string& key, u32 newValue);
-    void Set(const std::string& key, u64 new_value);
-    void Set(const std::string& key, float newValue);
-    void Set(const std::string& key, double newValue);
-    void Set(const std::string& key, int newValue);
-    void Set(const std::string& key, s64 new_value);
-    void Set(const std::string& key, bool newValue);
+    template <typename T>
+    void Set(const std::string& key, const T& new_value)
+    {
+      Set(key, ValueToString(new_value));
+    }
 
     template <typename T>
-    void Set(const std::string& key, T newValue, const T defaultValue)
+    void Set(const std::string& key, const T& new_value, const std::common_type_t<T>& default_value)
     {
-      if (newValue != defaultValue)
-        Set(key, newValue);
+      if (new_value != default_value)
+        Set(key, new_value);
       else
         Delete(key);
     }
