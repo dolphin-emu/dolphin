@@ -103,7 +103,10 @@ inline double NI_mul(double a, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(a))
       return MakeQuiet(a);
@@ -111,6 +114,7 @@ inline double NI_mul(double a, double b)
       return MakeQuiet(b);
 
     SetFPException(FPSCR_VXIMZ);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
   return t;
@@ -123,7 +127,10 @@ inline double NI_div(double a, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(a))
       return MakeQuiet(a);
@@ -135,17 +142,18 @@ inline double NI_div(double a, double b)
       if (a == 0.0)
       {
         SetFPException(FPSCR_VXZDZ);
+        FPSCR.ClearFIFR();
       }
       else
       {
         SetFPException(FPSCR_ZX);
-        FPSCR.FI = 0;
-        FPSCR.FR = 0;
+        FPSCR.ClearFIFR();
       }
     }
     else if (std::isinf(a) && std::isinf(b))
     {
       SetFPException(FPSCR_VXIDI);
+      FPSCR.ClearFIFR();
     }
 
     return PPC_NAN;
@@ -161,7 +169,10 @@ inline double NI_add(double a, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(a))
       return MakeQuiet(a);
@@ -169,6 +180,7 @@ inline double NI_add(double a, double b)
       return MakeQuiet(b);
 
     SetFPException(FPSCR_VXISI);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
 
@@ -182,7 +194,10 @@ inline double NI_sub(double a, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(a))
       return MakeQuiet(a);
@@ -190,6 +205,7 @@ inline double NI_sub(double a, double b)
       return MakeQuiet(b);
 
     SetFPException(FPSCR_VXISI);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
 
@@ -206,7 +222,10 @@ inline double NI_madd(double a, double c, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(a))
       return MakeQuiet(a);
@@ -216,6 +235,7 @@ inline double NI_madd(double a, double c, double b)
       return MakeQuiet(c);
 
     SetFPException(FPSCR_VXIMZ);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
 
@@ -224,12 +244,16 @@ inline double NI_madd(double a, double c, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(b))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(b))
       return MakeQuiet(b);
 
     SetFPException(FPSCR_VXISI);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
 
@@ -243,7 +267,10 @@ inline double NI_msub(double a, double c, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(a))
       return MakeQuiet(a);
@@ -253,6 +280,7 @@ inline double NI_msub(double a, double c, double b)
       return MakeQuiet(c);
 
     SetFPException(FPSCR_VXIMZ);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
 
@@ -261,12 +289,16 @@ inline double NI_msub(double a, double c, double b)
   if (std::isnan(t))
   {
     if (Common::IsSNAN(b))
+    {
       SetFPException(FPSCR_VXSNAN);
+      FPSCR.ClearFIFR();
+    }
 
     if (std::isnan(b))
       return MakeQuiet(b);
 
     SetFPException(FPSCR_VXISI);
+    FPSCR.ClearFIFR();
     return PPC_NAN;
   }
 
