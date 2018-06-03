@@ -19,6 +19,8 @@
 
 namespace Core
 {
+static const std::string EMPTY_STRING;
+
 static std::string GetLanguageCode(DiscIO::Language language)
 {
   switch (language)
@@ -157,16 +159,16 @@ TitleDatabase::TitleDatabase()
 
 TitleDatabase::~TitleDatabase() = default;
 
-std::string TitleDatabase::GetTitleName(const std::string& game_id, TitleType type) const
+const std::string& TitleDatabase::GetTitleName(const std::string& game_id, TitleType type) const
 {
   const auto& map = IsWiiTitle(game_id) ? m_wii_title_map : m_gc_title_map;
   const std::string key =
       type == TitleType::Channel && game_id.length() == 6 ? game_id.substr(0, 4) : game_id;
   const auto iterator = map.find(key);
-  return iterator != map.end() ? iterator->second : "";
+  return iterator != map.end() ? iterator->second : EMPTY_STRING;
 }
 
-std::string TitleDatabase::GetChannelName(u64 title_id) const
+const std::string& TitleDatabase::GetChannelName(u64 title_id) const
 {
   const std::string id{
       {static_cast<char>((title_id >> 24) & 0xff), static_cast<char>((title_id >> 16) & 0xff),
@@ -176,7 +178,7 @@ std::string TitleDatabase::GetChannelName(u64 title_id) const
 
 std::string TitleDatabase::Describe(const std::string& game_id, TitleType type) const
 {
-  const std::string title_name = GetTitleName(game_id, type);
+  const std::string& title_name = GetTitleName(game_id, type);
   if (title_name.empty())
     return game_id;
   return StringFromFormat("%s (%s)", title_name.c_str(), game_id.c_str());

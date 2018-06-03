@@ -141,20 +141,6 @@ bool GameFile::IsValid() const
   return true;
 }
 
-bool GameFile::CustomNameChanged(const Core::TitleDatabase& title_database)
-{
-  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
-                        Core::TitleDatabase::TitleType::Channel :
-                        Core::TitleDatabase::TitleType::Other;
-  m_pending.custom_name = title_database.GetTitleName(m_game_id, type);
-  return m_custom_name != m_pending.custom_name;
-}
-
-void GameFile::CustomNameCommit()
-{
-  m_custom_name = std::move(m_pending.custom_name);
-}
-
 void GameBanner::DoState(PointerWrap& p)
 {
   p.Do(buffer);
@@ -191,7 +177,6 @@ void GameFile::DoState(PointerWrap& p)
 
   m_volume_banner.DoState(p);
   m_custom_banner.DoState(p);
-  p.Do(m_custom_name);
 }
 
 bool GameFile::IsElfOrDol() const
@@ -280,11 +265,17 @@ void GameFile::CustomBannerCommit()
   m_custom_banner = std::move(m_pending.custom_banner);
 }
 
+const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) const
+{
+  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
+                        Core::TitleDatabase::TitleType::Channel :
+                        Core::TitleDatabase::TitleType::Other;
+  const std::string& custom_name = title_database.GetTitleName(m_game_id, type);
+  return custom_name.empty() ? GetName() : custom_name;
+}
+
 const std::string& GameFile::GetName(bool long_name) const
 {
-  if (!m_custom_name.empty())
-    return m_custom_name;
-
   const std::string& name = long_name ? GetLongName() : GetShortName();
   if (!name.empty())
     return name;
@@ -323,9 +314,7 @@ std::string GameFile::GetUniqueIdentifier() const
   if (GetRevision() != 0)
     info.push_back("Revision " + std::to_string(GetRevision()));
 
-  std::string name(GetLongName(lang));
-  if (name.empty())
-    name = GetName();
+  const std::string& name = GetName();
 
   int disc_number = GetDiscNumber() + 1;
 

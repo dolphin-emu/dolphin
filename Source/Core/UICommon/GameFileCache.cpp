@@ -20,15 +20,13 @@
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 
-#include "Core/TitleDatabase.h"
-
 #include "DiscIO/DirectoryBlob.h"
 
 #include "UICommon/GameFile.h"
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 10;  // Last changed in PR 6429
+static constexpr u32 CACHE_REVISION = 11;  // Last changed in PR 7058
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -52,8 +50,7 @@ void GameFileCache::Clear()
 }
 
 std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
-                                                        bool* cache_changed,
-                                                        const Core::TitleDatabase& title_database)
+                                                        bool* cache_changed)
 {
   auto it = std::find_if(
       m_cached_files.begin(), m_cached_files.end(),
@@ -67,7 +64,7 @@ std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
     m_cached_files.emplace_back(std::move(game));
   }
   std::shared_ptr<GameFile>& result = found ? *it : m_cached_files.back();
-  if (UpdateAdditionalMetadata(&result, title_database) || !found)
+  if (UpdateAdditionalMetadata(&result) || !found)
     *cache_changed = true;
 
   return result;
@@ -135,14 +132,13 @@ bool GameFileCache::Update(
 }
 
 bool GameFileCache::UpdateAdditionalMetadata(
-    const Core::TitleDatabase& title_database,
     std::function<void(const std::shared_ptr<const GameFile>&)> game_updated)
 {
   bool cache_changed = false;
 
   for (std::shared_ptr<GameFile>& file : m_cached_files)
   {
-    const bool updated = UpdateAdditionalMetadata(&file, title_database);
+    const bool updated = UpdateAdditionalMetadata(&file);
     cache_changed |= updated;
     if (game_updated && updated)
       game_updated(file);
@@ -151,13 +147,11 @@ bool GameFileCache::UpdateAdditionalMetadata(
   return cache_changed;
 }
 
-bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file,
-                                             const Core::TitleDatabase& title_database)
+bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file)
 {
   const bool wii_banner_changed = (*game_file)->WiiBannerChanged();
   const bool custom_banner_changed = (*game_file)->CustomBannerChanged();
-  const bool custom_title_changed = (*game_file)->CustomNameChanged(title_database);
-  if (!wii_banner_changed && !custom_banner_changed && !custom_title_changed)
+  if (!wii_banner_changed && !custom_banner_changed)
     return false;
 
   // If a cached file needs an update, apply the updates to a copy and delete the original.
@@ -168,8 +162,6 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
     copy->WiiBannerCommit();
   if (custom_banner_changed)
     copy->CustomBannerCommit();
-  if (custom_title_changed)
-    copy->CustomNameCommit();
   *game_file = std::move(copy);
 
   return true;

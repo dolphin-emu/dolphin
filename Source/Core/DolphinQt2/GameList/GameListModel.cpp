@@ -80,7 +80,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_TITLE:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
-      QString name = QString::fromStdString(game.GetName());
+      QString name = QString::fromStdString(game.GetName(m_title_database));
       const int disc_nr = game.GetDiscNumber() + 1;
       if (disc_nr > 1)
       {
@@ -161,8 +161,10 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
   const UICommon::GameFile& game = *m_games[index];
 
   if (!m_term.isEmpty() &&
-      !QString::fromStdString(game.GetName()).contains(m_term, Qt::CaseInsensitive))
+      !QString::fromStdString(game.GetName(m_title_database)).contains(m_term, Qt::CaseInsensitive))
+  {
     return false;
+  }
 
   const bool show_platform = [&game] {
     switch (game.GetPlatform())

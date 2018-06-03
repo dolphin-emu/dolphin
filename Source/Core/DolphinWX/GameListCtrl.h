@@ -35,6 +35,7 @@ public:
 
   void BrowseForDirectory();
   const UICommon::GameFile* GetISO(size_t index) const;
+  const std::string& GetShownName(size_t index) const;
   const UICommon::GameFile* GetSelectedISO() const;
 
   static bool IsHidingItems();
@@ -111,13 +112,12 @@ private:
   UICommon::GameFileCache m_cache;
   // Locks the cache object, not the shared_ptr<GameFile>s obtained from it
   std::mutex m_cache_mutex;
-  Core::TitleDatabase m_title_database;
-  std::mutex m_title_database_mutex;
   std::thread m_scan_thread;
   Common::Event m_scan_trigger;
   Common::Flag m_scan_exiting;
   // UI thread's view into the cache
   std::vector<std::shared_ptr<const UICommon::GameFile>> m_shown_files;
+  std::vector<std::string> m_shown_names;
 
   int m_last_column;
   int m_last_sort;

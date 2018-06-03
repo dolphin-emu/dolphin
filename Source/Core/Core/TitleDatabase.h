@@ -26,10 +26,10 @@ public:
 
   // Get a user friendly title name for a game ID.
   // This falls back to returning an empty string if none could be found.
-  std::string GetTitleName(const std::string& game_id, TitleType = TitleType::Other) const;
+  const std::string& GetTitleName(const std::string& game_id, TitleType = TitleType::Other) const;
 
   // Same as above, but takes a title ID instead of a game ID, and can only find names of channels.
-  std::string GetChannelName(u64 title_id) const;
+  const std::string& GetChannelName(u64 title_id) const;
 
   // Get a description for a game ID (title name if available + game ID).
   std::string Describe(const std::string& game_id, TitleType = TitleType::Other) const;
