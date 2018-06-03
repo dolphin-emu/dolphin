@@ -397,6 +397,8 @@ void Interpreter::fresx(UGeckoInstruction inst)
   if (b == 0.0)
   {
     SetFPException(FPSCR_ZX);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
 
     if (FPSCR.ZE == 0)
       compute_result(b);
@@ -441,6 +443,8 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
   else if (b == 0.0)
   {
     SetFPException(FPSCR_ZX);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
 
     if (FPSCR.ZE == 0)
       compute_result(b);
