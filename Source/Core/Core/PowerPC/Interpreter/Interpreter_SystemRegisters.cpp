@@ -398,7 +398,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    PowerPC::SetXER(rSPR(index));
+    PowerPC::SetXER(UReg_XER{rSPR(index)});
     break;
 
   case SPR_DBAT0L:

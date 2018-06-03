@@ -1170,9 +1170,9 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
   // TODO: Check how hardware reacts to invalid BATs (bad mask etc).
   for (int i = 0; i < 4; ++i)
   {
-    u32 spr = base_spr + i * 2;
-    UReg_BAT_Up batu = PowerPC::ppcState.spr[spr];
-    UReg_BAT_Lo batl = PowerPC::ppcState.spr[spr + 1];
+    const u32 spr = base_spr + i * 2;
+    const UReg_BAT_Up batu{ppcState.spr[spr]};
+    const UReg_BAT_Lo batl{ppcState.spr[spr + 1]};
     if (batu.VS == 0 && batu.VP == 0)
       continue;
 
