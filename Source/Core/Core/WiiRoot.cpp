@@ -4,6 +4,7 @@
 
 #include "Core/WiiRoot.h"
 
+#include <cinttypes>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/WiiSave.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
@@ -26,12 +28,12 @@ namespace Core
 {
 static std::string s_temp_wii_root;
 
-static void InitializeDeterministicWiiSaves()
+namespace FS = IOS::HLE::FS;
+
+static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
 {
-  std::string save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_SESSION_ROOT);
-  std::string user_save_path =
-      Common::GetTitleDataPath(SConfig::GetInstance().GetTitleID(), Common::FROM_CONFIGURED_ROOT);
+  const u64 title_id = SConfig::GetInstance().GetTitleID();
+  const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
   if (Movie::IsRecordingInput())
   {
     if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
@@ -41,7 +43,8 @@ static void InitializeDeterministicWiiSaves()
     else
     {
       // TODO: Check for the actual save data
-      Movie::SetClearSave(!File::Exists(user_save_path + "/banner.bin"));
+      const std::string path = Common::GetTitleDataPath(title_id) + "/banner.bin";
+      Movie::SetClearSave(!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, path));
     }
   }
 
@@ -49,10 +52,9 @@ static void InitializeDeterministicWiiSaves()
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND
-    if (File::Exists(user_save_path + "/banner.bin"))
-    {
-      File::CopyDir(user_save_path, save_path);
-    }
+    const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
+    const auto session_save = WiiSave::MakeNandStorage(session_fs, title_id);
+    WiiSave::Copy(user_save.get(), session_save.get());
   }
 }
 
@@ -87,7 +89,7 @@ void ShutdownWiiRoot()
 /// Copy a directory from host_source_path (on the host FS) to nand_target_path on the NAND.
 ///
 /// Both paths should not have trailing slashes. To specify the NAND root, use "".
-static bool CopySysmenuFilesToFS(IOS::HLE::FS::FileSystem* fs, const std::string& host_source_path,
+static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_source_path,
                                  const std::string& nand_target_path)
 {
   const auto entries = File::ScanDirectoryTree(host_source_path, false);
@@ -95,8 +97,7 @@ static bool CopySysmenuFilesToFS(IOS::HLE::FS::FileSystem* fs, const std::string
   {
     const std::string host_path = host_source_path + '/' + entry.virtualName;
     const std::string nand_path = nand_target_path + '/' + entry.virtualName;
-    constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
-    constexpr IOS::HLE::FS::Modes public_modes{rw_mode, rw_mode, rw_mode};
+    constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
 
     if (entry.isDirectory)
     {
@@ -142,32 +143,28 @@ void InitializeWiiFileSystemContents()
   SysConf sysconf{fs};
   sysconf.Save();
 
-  InitializeDeterministicWiiSaves();
+  InitializeDeterministicWiiSaves(fs.get());
 }
 
 void CleanUpWiiFileSystemContents()
 {
-  if (s_temp_wii_root.empty())
+  if (s_temp_wii_root.empty() || !SConfig::GetInstance().bEnableMemcardSdWriting)
     return;
 
   const u64 title_id = SConfig::GetInstance().GetTitleID();
-  std::string save_path = Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT);
-  std::string user_save_path = Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT);
-  std::string user_backup_path =
-      File::GetUserPath(D_BACKUP_IDX) +
-      StringFromFormat("%08x/%08x/", static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
-  if (File::Exists(save_path + "/banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)
-  {
-    // Backup the existing save just in case it's still needed.
-    if (File::Exists(user_save_path + "/banner.bin"))
-    {
-      if (File::Exists(user_backup_path))
-        File::DeleteDirRecursively(user_backup_path);
-      File::CopyDir(user_save_path, user_backup_path);
-      File::DeleteDirRecursively(user_save_path);
-    }
-    File::CopyDir(save_path, user_save_path);
-    File::DeleteDirRecursively(save_path);
-  }
+
+  IOS::HLE::EmulationKernel* ios = IOS::HLE::GetIOS();
+  const auto session_save = WiiSave::MakeNandStorage(ios->GetFS().get(), title_id);
+
+  const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
+  const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
+
+  const std::string backup_path =
+      File::GetUserPath(D_BACKUP_IDX) + StringFromFormat("/%016" PRIx64 ".bin", title_id);
+  const auto backup_save = WiiSave::MakeDataBinStorage(&ios->GetIOSC(), backup_path, "w+b");
+
+  // Backup the existing save just in case it's still needed.
+  WiiSave::Copy(user_save.get(), backup_save.get());
+  WiiSave::Copy(session_save.get(), user_save.get());
 }
 }  // namespace Core
