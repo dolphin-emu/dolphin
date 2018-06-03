@@ -19,19 +19,6 @@ namespace Config
 {
 namespace detail
 {
-std::string ValueToString(u16 value);
-std::string ValueToString(u32 value);
-std::string ValueToString(float value);
-std::string ValueToString(double value);
-std::string ValueToString(int value);
-std::string ValueToString(bool value);
-std::string ValueToString(const std::string& value);
-template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
-std::string ValueToString(T value)
-{
-  return ValueToString(static_cast<std::underlying_type_t<T>>(value));
-}
-
 template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
 std::optional<T> TryParse(const std::string& str_value)
 {
@@ -139,7 +126,7 @@ public:
   template <typename T>
   void Set(const ConfigLocation& location, const T& value)
   {
-    const std::string new_value = detail::ValueToString(value);
+    const std::string new_value = ValueToString(value);
     std::optional<std::string>& current_value = m_map[location];
     if (current_value == new_value)
       return;

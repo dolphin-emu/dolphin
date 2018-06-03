@@ -103,7 +103,7 @@ void IniFile::Section::Set(const std::string& key, s64 newValue)
 
 void IniFile::Section::Set(const std::string& key, bool newValue)
 {
-  Set(key, StringFromBool(newValue));
+  Set(key, ValueToString(newValue));
 }
 
 bool IniFile::Section::Get(const std::string& key, std::string* value,

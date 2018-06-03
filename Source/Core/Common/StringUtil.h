@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -40,8 +41,6 @@ std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spac
 
 std::string StripSpaces(const std::string& s);
 std::string StripQuotes(const std::string& s);
-
-std::string StringFromBool(bool value);
 
 bool TryParse(const std::string& str, bool* output);
 bool TryParse(const std::string& str, u16* output);
@@ -81,6 +80,21 @@ bool TryParseVector(const std::string& str, std::vector<N>* output, const char d
     output->push_back(tmp);
   }
   return true;
+}
+
+std::string ValueToString(u16 value);
+std::string ValueToString(u32 value);
+std::string ValueToString(u64 value);
+std::string ValueToString(float value);
+std::string ValueToString(double value);
+std::string ValueToString(int value);
+std::string ValueToString(s64 value);
+std::string ValueToString(bool value);
+std::string ValueToString(const std::string& value);
+template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+std::string ValueToString(T value)
+{
+  return ValueToString(static_cast<std::underlying_type_t<T>>(value));
 }
 
 // Generates an hexdump-like representation of a binary data blob.

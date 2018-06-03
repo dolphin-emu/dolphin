@@ -11,44 +11,6 @@
 
 namespace Config
 {
-namespace detail
-{
-std::string ValueToString(u16 value)
-{
-  return StringFromFormat("0x%04x", value);
-}
-
-std::string ValueToString(u32 value)
-{
-  return StringFromFormat("0x%08x", value);
-}
-
-std::string ValueToString(float value)
-{
-  return StringFromFormat("%#.9g", value);
-}
-
-std::string ValueToString(double value)
-{
-  return StringFromFormat("%#.17g", value);
-}
-
-std::string ValueToString(int value)
-{
-  return std::to_string(value);
-}
-
-std::string ValueToString(bool value)
-{
-  return StringFromBool(value);
-}
-
-std::string ValueToString(const std::string& value)
-{
-  return value;
-}
-}
-
 ConfigLayerLoader::ConfigLayerLoader(LayerType layer) : m_layer(layer)
 {
 }
