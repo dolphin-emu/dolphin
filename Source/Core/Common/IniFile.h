@@ -55,13 +55,17 @@ public:
 
     bool Get(const std::string& key, std::string* value,
              const std::string& defaultValue = NULL_STRING) const;
-    bool Get(const std::string& key, int* value, int defaultValue = 0) const;
-    bool Get(const std::string& key, s64* value, s64 default_value = 0) const;
-    bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
-    bool Get(const std::string& key, u64* value, u64 default_value = 0) const;
-    bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
-    bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
-    bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
+    template <typename T>
+    bool Get(const std::string& key, T* value,
+             const std::common_type_t<T>& default_value = {}) const
+    {
+      std::string temp;
+      bool retval = Get(key, &temp);
+      if (retval && TryParse(temp, value))
+        return true;
+      *value = default_value;
+      return false;
+    }
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     void SetLines(const std::vector<std::string>& lines);
