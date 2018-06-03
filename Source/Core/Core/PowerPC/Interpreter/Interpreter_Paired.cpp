@@ -121,6 +121,8 @@ void Interpreter::ps_res(UGeckoInstruction inst)
   if (a == 0.0 || b == 0.0)
   {
     SetFPException(FPSCR_ZX);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
   }
 
   rPS0(inst.FD) = Common::ApproximateReciprocal(a);
@@ -136,11 +138,15 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
   if (rPS0(inst.FB) == 0.0 || rPS1(inst.FB) == 0.0)
   {
     SetFPException(FPSCR_ZX);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
   }
 
   if (rPS0(inst.FB) < 0.0 || rPS1(inst.FB) < 0.0)
   {
     SetFPException(FPSCR_VXSQRT);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
   }
 
   rPS0(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(rPS0(inst.FB)));
