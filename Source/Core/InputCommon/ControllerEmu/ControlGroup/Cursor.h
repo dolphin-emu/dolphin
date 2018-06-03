@@ -22,8 +22,15 @@ private:
   // to something that makes sense with the default range.
   static constexpr double SPEED_MULTIPLIER = 0.04;
 
+  // Sets the length for the auto-hide timer
+  static constexpr int TIMER_VALUE = 500;
+
   ControlState m_x = 0.0;
   ControlState m_y = 0.0;
   ControlState m_z = 0.0;
+
+  int m_autohide_timer = TIMER_VALUE;
+  ControlState m_prev_xx;
+  ControlState m_prev_yy;
 };
 }  // namespace ControllerEmu

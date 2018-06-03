@@ -36,6 +36,7 @@ Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 20));
   boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Relative Input"), false));
+  boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Auto-Hide"), false));
 }
 
 void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState* const z,
@@ -51,17 +52,31 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
 
   *z = m_z;
 
+  if (m_autohide_timer > -1)
+  {
+    --m_autohide_timer;
+  }
+
+  ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+  ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+
+  const ControlState deadzone = numeric_settings[3]->GetValue();
+
+  // reset auto-hide timer
+  if (std::abs(m_prev_xx - xx) > deadzone || std::abs(m_prev_yy - yy) > deadzone)
+  {
+    m_autohide_timer = TIMER_VALUE;
+  }
+
   // hide
-  if (controls[6]->control_ref->State() > 0.5)
+  bool autohide = boolean_settings[1]->GetValue() && m_autohide_timer < 0;
+  if (controls[6]->control_ref->State() > 0.5 || autohide)
   {
     *x = 10000;
     *y = 0;
   }
   else
   {
-    ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-    ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
-
     // adjust cursor according to settings
     if (adjusted)
     {
@@ -73,7 +88,6 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
     // relative input
     if (boolean_settings[0]->GetValue())
     {
-      const ControlState deadzone = numeric_settings[3]->GetValue();
       // deadzone to avoid the cursor slowly drifting
       if (std::abs(xx) > deadzone)
         m_x = MathUtil::Clamp(m_x + xx * SPEED_MULTIPLIER, -1.0, 1.0);
@@ -96,5 +110,8 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
     *x = m_x;
     *y = m_y;
   }
+
+  m_prev_xx = xx;
+  m_prev_yy = yy;
 }
 }  // namespace ControllerEmu
