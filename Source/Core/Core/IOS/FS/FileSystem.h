@@ -67,12 +67,17 @@ enum class SeekMode : u32
 
 using FileAttribute = u8;
 
+struct Modes
+{
+  Mode owner, group, other;
+};
+
 struct Metadata
 {
   Uid uid;
   Gid gid;
   FileAttribute attribute;
-  Mode owner_mode, group_mode, other_mode;
+  Modes modes;
   bool is_file;
   u32 size;
   u16 fst_index;
@@ -142,8 +147,7 @@ public:
   /// Get a file descriptor for accessing a file. The FD will be automatically closed after use.
   virtual Result<FileHandle> OpenFile(Uid uid, Gid gid, const std::string& path, Mode mode) = 0;
   /// Create a file if it doesn't exist and open it in read/write mode.
-  Result<FileHandle> CreateAndOpenFile(Uid uid, Gid gid, const std::string& path, Mode owner_mode,
-                                       Mode group_mode, Mode other_mode);
+  Result<FileHandle> CreateAndOpenFile(Uid uid, Gid gid, const std::string& path, Modes modes);
   /// Close a file descriptor.
   virtual ResultCode Close(Fd fd) = 0;
   /// Read `size` bytes from the file descriptor. Returns the number of bytes read.
@@ -157,17 +161,15 @@ public:
 
   /// Create a file with the specified path and metadata.
   virtual ResultCode CreateFile(Uid caller_uid, Gid caller_gid, const std::string& path,
-                                FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                                Mode other_mode) = 0;
+                                FileAttribute attribute, Modes modes) = 0;
   /// Create a directory with the specified path and metadata.
   virtual ResultCode CreateDirectory(Uid caller_uid, Gid caller_gid, const std::string& path,
-                                     FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                                     Mode other_mode) = 0;
+                                     FileAttribute attribute, Modes modes) = 0;
 
   /// Create any parent directories for a path with the specified metadata.
   /// Example: "/a/b" to create directory /a; "/a/b/" to create directories /a and /a/b
   ResultCode CreateFullPath(Uid caller_uid, Gid caller_gid, const std::string& path,
-                            FileAttribute attribute, Mode ownerm, Mode group, Mode other);
+                            FileAttribute attribute, Modes modes);
 
   /// Delete a file or directory with the specified path.
   virtual ResultCode Delete(Uid caller_uid, Gid caller_gid, const std::string& path) = 0;
@@ -183,8 +185,7 @@ public:
   virtual Result<Metadata> GetMetadata(Uid caller_uid, Gid caller_gid, const std::string& path) = 0;
   /// Set metadata for a file.
   virtual ResultCode SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                 FileAttribute attribute, Mode owner_mode, Mode group_mode,
-                                 Mode other_mode) = 0;
+                                 FileAttribute attribute, Modes modes) = 0;
 
   /// Get usage information about the NAND (block size, cluster and inode counts).
   virtual Result<NandStats> GetNandStats() = 0;

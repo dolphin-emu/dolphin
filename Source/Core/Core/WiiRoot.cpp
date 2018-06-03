@@ -96,12 +96,11 @@ static bool CopySysmenuFilesToFS(IOS::HLE::FS::FileSystem* fs, const std::string
     const std::string host_path = host_source_path + '/' + entry.virtualName;
     const std::string nand_path = nand_target_path + '/' + entry.virtualName;
     constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+    constexpr IOS::HLE::FS::Modes public_modes{rw_mode, rw_mode, rw_mode};
 
     if (entry.isDirectory)
     {
-      fs->CreateDirectory(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path, 0, rw_mode, rw_mode,
-                          rw_mode);
-
+      fs->CreateDirectory(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path, 0, public_modes);
       if (!CopySysmenuFilesToFS(fs, host_path, nand_path))
         return false;
     }
@@ -116,8 +115,8 @@ static bool CopySysmenuFilesToFS(IOS::HLE::FS::FileSystem* fs, const std::string
       if (!host_file.ReadBytes(file_data.data(), file_data.size()))
         return false;
 
-      const auto nand_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path,
-                                                   rw_mode, rw_mode, rw_mode);
+      const auto nand_file =
+          fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path, public_modes);
       if (!nand_file || !nand_file->Write(file_data.data(), file_data.size()))
         return false;
     }

@@ -16,6 +16,8 @@
 
 using namespace IOS::HLE::FS;
 
+constexpr Modes modes{Mode::ReadWrite, Mode::None, Mode::None};
+
 class FileSystemTest : public testing::Test
 {
 protected:
@@ -50,8 +52,7 @@ TEST_F(FileSystemTest, CreateFile)
 {
   const std::string PATH = "/tmp/f";
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, Mode::Read, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
@@ -60,8 +61,7 @@ TEST_F(FileSystemTest, CreateFile)
   // TODO: After we start saving metadata correctly, check the UID, GID, permissions
   // as well (issue 10234).
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, Mode::Read, Mode::None, Mode::None),
-            ResultCode::AlreadyExists);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
 
   const Result<std::vector<std::string>> tmp_files = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp");
   ASSERT_TRUE(tmp_files.Succeeded());
@@ -72,8 +72,7 @@ TEST_F(FileSystemTest, CreateDirectory)
 {
   const std::string PATH = "/tmp/d";
 
-  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, Mode::Read, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
@@ -112,15 +111,9 @@ TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
   // Test directory -> existing, non-empty directory.
   // IOS's FS sysmodule is not POSIX compliant and will remove the existing directory
   // if it exists, even when there are files in it.
-  ASSERT_EQ(
-      m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/d", 0, Mode::ReadWrite, Mode::None, Mode::None),
-      ResultCode::Success);
-  ASSERT_EQ(
-      m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/d2", 0, Mode::ReadWrite, Mode::None, Mode::None),
-      ResultCode::Success);
-  ASSERT_EQ(
-      m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/d2/file", 0, Mode::ReadWrite, Mode::None, Mode::None),
-      ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/d", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/d2", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/d2/file", 0, modes), ResultCode::Success);
   EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/d", "/tmp/d2"), ResultCode::Success);
 
   EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/d").Error(), ResultCode::NotFound);
@@ -132,8 +125,7 @@ TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
 TEST_F(FileSystemTest, RenameWithExistingTargetFile)
 {
   // Create the test source file and write some data (so that we can check its size later on).
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, Mode::ReadWrite, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, modes), ResultCode::Success);
   const std::vector<u8> TEST_DATA{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
   std::vector<u8> read_buffer(TEST_DATA.size());
   {
@@ -143,8 +135,7 @@ TEST_F(FileSystemTest, RenameWithExistingTargetFile)
   }
 
   // Create the test target file and leave it empty.
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f2", 0, Mode::ReadWrite, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f2", 0, modes), ResultCode::Success);
 
   // Rename f1 to f2 and check that f1 replaced f2.
   EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/f1", "/tmp/f2"), ResultCode::Success);
@@ -169,8 +160,7 @@ TEST_F(FileSystemTest, GetDirectoryStats)
 
   check_stats(0u, 1u);
 
-  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/file", 0, Mode::Read, Mode::None, Mode::None),
-            ResultCode::Success);
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/file", 0, modes), ResultCode::Success);
   // Still no clusters (because the file is empty), but 2 inodes now.
   check_stats(0u, 2u);
 
@@ -204,8 +194,7 @@ TEST_F(FileSystemTest, Seek)
 {
   const std::vector<u8> TEST_DATA(10);
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, Mode::ReadWrite, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
   ASSERT_TRUE(file.Succeeded());
@@ -244,8 +233,7 @@ TEST_F(FileSystemTest, WriteAndSimpleReadback)
   const std::vector<u8> TEST_DATA{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
   std::vector<u8> read_buffer(TEST_DATA.size());
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, Mode::ReadWrite, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
   ASSERT_TRUE(file.Succeeded());
@@ -264,8 +252,7 @@ TEST_F(FileSystemTest, WriteAndRead)
   const std::vector<u8> TEST_DATA{{0xf, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
   std::vector<u8> buffer(TEST_DATA.size());
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, Mode::ReadWrite, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   Result<FileHandle> tmp_handle = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
   ASSERT_TRUE(tmp_handle.Succeeded());
@@ -298,8 +285,7 @@ TEST_F(FileSystemTest, WriteAndRead)
 
 TEST_F(FileSystemTest, MultipleHandles)
 {
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, Mode::ReadWrite, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   {
     const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f", Mode::ReadWrite);
@@ -333,8 +319,7 @@ TEST_F(FileSystemTest, MultipleHandles)
 // If it is not a file, ResultCode::Invalid must be returned.
 TEST_F(FileSystemTest, ReadDirectoryOnFile)
 {
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, Mode::Read, Mode::None, Mode::None),
-            ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f", 0, modes), ResultCode::Success);
 
   const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/f");
   ASSERT_FALSE(result.Succeeded());

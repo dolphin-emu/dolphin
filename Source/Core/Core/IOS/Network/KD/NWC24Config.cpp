@@ -44,9 +44,9 @@ void NWC24Config::ReadConfig()
 
 void NWC24Config::WriteConfig() const
 {
-  constexpr FS::Mode rw_mode = FS::Mode::ReadWrite;
-  m_fs->CreateFullPath(PID_KD, PID_KD, CONFIG_PATH, 0, rw_mode, rw_mode, rw_mode);
-  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CONFIG_PATH, rw_mode, rw_mode, rw_mode);
+  constexpr FS::Modes public_modes{FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite};
+  m_fs->CreateFullPath(PID_KD, PID_KD, CONFIG_PATH, 0, public_modes);
+  const auto file = m_fs->CreateAndOpenFile(PID_KD, PID_KD, CONFIG_PATH, public_modes);
   if (!file || !file->Write(&m_data, 1))
     ERROR_LOG(IOS_WC24, "Failed to open or write WC24 config file");
 }
