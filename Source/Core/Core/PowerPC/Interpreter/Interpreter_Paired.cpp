@@ -115,12 +115,19 @@ void Interpreter::ps_div(UGeckoInstruction inst)
 void Interpreter::ps_res(UGeckoInstruction inst)
 {
   // this code is based on the real hardware tests
-  double a = rPS0(inst.FB);
-  double b = rPS1(inst.FB);
+  const double a = rPS0(inst.FB);
+  const double b = rPS1(inst.FB);
 
   if (a == 0.0 || b == 0.0)
   {
     SetFPException(FPSCR_ZX);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
+  }
+
+  if (Common::IsSNAN(a) || Common::IsSNAN(b))
+  {
+    SetFPException(FPSCR_VXSNAN);
     FPSCR.FI = 0;
     FPSCR.FR = 0;
   }
@@ -135,22 +142,32 @@ void Interpreter::ps_res(UGeckoInstruction inst)
 
 void Interpreter::ps_rsqrte(UGeckoInstruction inst)
 {
-  if (rPS0(inst.FB) == 0.0 || rPS1(inst.FB) == 0.0)
+  const double ps0 = rPS0(inst.FB);
+  const double ps1 = rPS1(inst.FB);
+
+  if (ps0 == 0.0 || ps1 == 0.0)
   {
     SetFPException(FPSCR_ZX);
     FPSCR.FI = 0;
     FPSCR.FR = 0;
   }
 
-  if (rPS0(inst.FB) < 0.0 || rPS1(inst.FB) < 0.0)
+  if (ps0 < 0.0 || ps1 < 0.0)
   {
     SetFPException(FPSCR_VXSQRT);
     FPSCR.FI = 0;
     FPSCR.FR = 0;
   }
 
-  rPS0(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(rPS0(inst.FB)));
-  rPS1(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(rPS1(inst.FB)));
+  if (Common::IsSNAN(ps0) || Common::IsSNAN(ps1))
+  {
+    SetFPException(FPSCR_VXSNAN);
+    FPSCR.FI = 0;
+    FPSCR.FR = 0;
+  }
+
+  rPS0(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps0));
+  rPS1(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps1));
 
   PowerPC::UpdateFPRF(rPS0(inst.FD));
 
