@@ -304,16 +304,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("General"), widget);
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
 
-    HotkeyDebugging* debugging_widget = new HotkeyDebugging(this);
-    QWidget* debugging_widget_wrapper = GetWrappedWidget(debugging_widget, this, 150, 205);
-    connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [=](bool enabled) {
-      if (enabled)
-        m_tab_widget->insertTab(2, debugging_widget_wrapper, tr("Debugging"));
-      else
-        m_tab_widget->removeTab(2);
-    });
-    if (Settings::Instance().IsDebugModeEnabled())
-      AddWidget(tr("Debugging"), debugging_widget);
+    AddWidget(tr("Debugging"), new HotkeyDebugging(this));
 
     AddWidget(tr("Wii and Wii Remote"), new HotkeyWii(this));
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
