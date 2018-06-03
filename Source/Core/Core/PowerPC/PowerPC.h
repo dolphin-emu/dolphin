@@ -303,7 +303,7 @@ inline UReg_XER GetXER()
   xer |= PowerPC::ppcState.xer_stringctrl;
   xer |= PowerPC::ppcState.xer_ca << XER_CA_SHIFT;
   xer |= PowerPC::ppcState.xer_so_ov << XER_OV_SHIFT;
-  return xer;
+  return UReg_XER{xer};
 }
 
 inline void SetXER(UReg_XER new_xer)

@@ -322,7 +322,7 @@ union UGQR
   u32 Hex = 0;
 
   UGQR() = default;
-  UGQR(u32 hex_) : Hex{hex_} {}
+  explicit UGQR(u32 hex_) : Hex{hex_} {}
 };
 
 #define XER_CA_SHIFT 29
@@ -346,7 +346,7 @@ union UReg_XER
   u32 Hex = 0;
 
   UReg_XER() = default;
-  UReg_XER(u32 hex_) : Hex{hex_} {}
+  explicit UReg_XER(u32 hex_) : Hex{hex_} {}
 };
 
 // Machine State Register
@@ -546,7 +546,7 @@ union UReg_HID2
   u32 Hex = 0;
 
   UReg_HID2() = default;
-  UReg_HID2(u32 hex_) : Hex{hex_} {}
+  explicit UReg_HID2(u32 hex_) : Hex{hex_} {}
 };
 
 // Hardware Implementation-Dependent Register 4
@@ -569,7 +569,7 @@ union UReg_HID4
   u32 Hex = 0;
 
   UReg_HID4() = default;
-  UReg_HID4(u32 hex_) : Hex{hex_} {}
+  explicit UReg_HID4(u32 hex_) : Hex{hex_} {}
 };
 
 // SPR1 - Page Table format
@@ -632,7 +632,7 @@ union UReg_WPAR
   u32 Hex = 0;
 
   UReg_WPAR() = default;
-  UReg_WPAR(u32 hex_) : Hex{hex_} {}
+  explicit UReg_WPAR(u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Upper register
@@ -646,7 +646,7 @@ union UReg_DMAU
   u32 Hex = 0;
 
   UReg_DMAU() = default;
-  UReg_DMAU(u32 hex_) : Hex{hex_} {}
+  explicit UReg_DMAU(u32 hex_) : Hex{hex_} {}
 };
 
 // Direct Memory Access Lower (DMAL) register
@@ -663,7 +663,7 @@ union UReg_DMAL
   u32 Hex = 0;
 
   UReg_DMAL() = default;
-  UReg_DMAL(u32 hex_) : Hex{hex_} {}
+  explicit UReg_DMAL(u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_BAT_Up
@@ -679,7 +679,7 @@ union UReg_BAT_Up
   u32 Hex = 0;
 
   UReg_BAT_Up() = default;
-  UReg_BAT_Up(u32 hex_) : Hex{hex_} {}
+  explicit UReg_BAT_Up(u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_BAT_Lo
@@ -695,7 +695,7 @@ union UReg_BAT_Lo
   u32 Hex = 0;
 
   UReg_BAT_Lo() = default;
-  UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
+  explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
 union UReg_PTE
