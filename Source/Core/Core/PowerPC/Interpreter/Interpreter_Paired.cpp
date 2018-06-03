@@ -121,15 +121,13 @@ void Interpreter::ps_res(UGeckoInstruction inst)
   if (a == 0.0 || b == 0.0)
   {
     SetFPException(FPSCR_ZX);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    FPSCR.ClearFIFR();
   }
 
   if (Common::IsSNAN(a) || Common::IsSNAN(b))
   {
     SetFPException(FPSCR_VXSNAN);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    FPSCR.ClearFIFR();
   }
 
   rPS0(inst.FD) = Common::ApproximateReciprocal(a);
@@ -148,22 +146,19 @@ void Interpreter::ps_rsqrte(UGeckoInstruction inst)
   if (ps0 == 0.0 || ps1 == 0.0)
   {
     SetFPException(FPSCR_ZX);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    FPSCR.ClearFIFR();
   }
 
   if (ps0 < 0.0 || ps1 < 0.0)
   {
     SetFPException(FPSCR_VXSQRT);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    FPSCR.ClearFIFR();
   }
 
   if (Common::IsSNAN(ps0) || Common::IsSNAN(ps1))
   {
     SetFPException(FPSCR_VXSNAN);
-    FPSCR.FI = 0;
-    FPSCR.FR = 0;
+    FPSCR.ClearFIFR();
   }
 
   rPS0(inst.FD) = ForceSingle(Common::ApproximateReciprocalSquareRoot(ps0));

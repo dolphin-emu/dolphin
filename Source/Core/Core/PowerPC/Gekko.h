@@ -476,6 +476,12 @@ union UReg_FPSCR
 
   UReg_FPSCR() = default;
   explicit UReg_FPSCR(u32 hex_) : Hex{hex_} {}
+
+  void ClearFIFR()
+  {
+    FI = 0;
+    FR = 0;
+  }
 };
 
 // Hardware Implementation-Dependent Register 0
