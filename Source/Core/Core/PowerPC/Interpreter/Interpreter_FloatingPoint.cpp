@@ -409,6 +409,9 @@ void Interpreter::fresx(UGeckoInstruction inst)
   }
   else
   {
+    if (std::isnan(b) || std::isinf(b))
+      FPSCR.ClearFIFR();
+
     compute_result(b);
   }
 
@@ -452,6 +455,9 @@ void Interpreter::frsqrtex(UGeckoInstruction inst)
   }
   else
   {
+    if (std::isnan(b) || std::isinf(b))
+      FPSCR.ClearFIFR();
+
     compute_result(b);
   }
 
