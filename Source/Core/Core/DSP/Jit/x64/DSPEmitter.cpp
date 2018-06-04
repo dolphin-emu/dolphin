@@ -365,7 +365,7 @@ void DSPEmitter::Compile(u16 start_addr)
   JMP(m_return_dispatcher, true);
 }
 
-static void CompileCurrent(DSPEmitter& emitter)
+void DSPEmitter::CompileCurrent(DSPEmitter& emitter)
 {
   emitter.Compile(g_dsp.pc);
 

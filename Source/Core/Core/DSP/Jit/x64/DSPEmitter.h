@@ -205,9 +205,11 @@ public:
   void madd(UDSPInstruction opc);
   void msub(UDSPInstruction opc);
 
-  std::array<std::list<u16>, MAX_BLOCKS> m_unresolved_jumps;
-
 private:
+  // The emitter emits calls to this function. It's present here
+  // within the class itself to allow access to member variables.
+  static void CompileCurrent(DSPEmitter& emitter);
+
   void WriteBranchExit();
   void WriteBlockLink(u16 dest);
 
@@ -306,6 +308,8 @@ private:
   std::vector<u16> m_block_size;
   std::vector<Block> m_block_links;
   Block m_block_link_entry;
+
+  std::array<std::list<u16>, MAX_BLOCKS> m_unresolved_jumps;
 
   u16 m_cycles_left = 0;
 
