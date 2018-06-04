@@ -637,7 +637,7 @@ bool MainWindow::RequestStop()
     const Core::State state = Core::GetState();
 
     // Only pause the game, if NetPlay is not running
-    bool pause = !m_netplay_dialog->isVisible();
+    bool pause = Settings::Instance().GetNetPlayClient() == nullptr;
 
     if (pause)
       Core::SetState(Core::State::Paused);
