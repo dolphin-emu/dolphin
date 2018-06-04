@@ -155,7 +155,8 @@ void WritePair<u32>(u32 val1, u32 val2, u32 addr)
 template <typename T>
 void QuantizeAndStore(double ps0, double ps1, u32 addr, u32 instW, u32 stScale)
 {
-  typedef typename std::make_unsigned<T>::type U;
+  using U = std::make_unsigned_t<T>;
+
   U convPS0 = (U)ScaleAndClamp<T>(ps0, stScale);
   if (instW)
   {
@@ -225,7 +226,8 @@ void Interpreter::Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW)
 template <typename T>
 std::pair<float, float> LoadAndDequantize(u32 addr, u32 instW, u32 ldScale)
 {
-  typedef typename std::make_unsigned<T>::type U;
+  using U = std::make_unsigned_t<T>;
+
   float ps0, ps1;
   if (instW)
   {
