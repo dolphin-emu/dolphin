@@ -44,6 +44,7 @@ public:
   bool IsValid() const;
   const std::string& GetFilePath() const { return m_file_path; }
   const std::string& GetFileName() const { return m_file_name; }
+  const std::string& GetName(const Core::TitleDatabase& title_database) const;
   const std::string& GetName(bool long_name = true) const;
   const std::string& GetMaker(bool long_maker = true) const;
   const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
@@ -79,8 +80,6 @@ public:
   void WiiBannerCommit();
   bool CustomBannerChanged();
   void CustomBannerCommit();
-  bool CustomNameChanged(const Core::TitleDatabase& title_database);
-  void CustomNameCommit();
 
 private:
   static const std::string& Lookup(DiscIO::Language language,
@@ -121,8 +120,6 @@ private:
 
   GameBanner m_volume_banner{};
   GameBanner m_custom_banner{};
-  // Overridden name from TitleDatabase
-  std::string m_custom_name{};
 
   // The following data members allow GameFileCache to construct updated versions
   // of GameFiles in a threadsafe way. They should not be handled in DoState.
@@ -130,7 +127,6 @@ private:
   {
     GameBanner volume_banner;
     GameBanner custom_banner;
-    std::string custom_name;
   } m_pending{};
 };
 

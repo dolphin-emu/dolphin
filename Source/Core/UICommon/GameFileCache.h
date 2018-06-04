@@ -16,11 +16,6 @@
 
 class PointerWrap;
 
-namespace Core
-{
-class TitleDatabase;
-}
-
 namespace UICommon
 {
 class GameFile;
@@ -36,23 +31,20 @@ public:
   void Clear();
 
   // Returns nullptr if the file is invalid.
-  std::shared_ptr<const GameFile> AddOrGet(const std::string& path, bool* cache_changed,
-                                           const Core::TitleDatabase& title_database);
+  std::shared_ptr<const GameFile> AddOrGet(const std::string& path, bool* cache_changed);
 
   // These functions return true if the call modified the cache.
   bool Update(const std::vector<std::string>& all_game_paths,
               std::function<void(const std::shared_ptr<const GameFile>&)> game_added_to_cache = {},
               std::function<void(const std::string&)> game_removed_from_cache = {});
   bool UpdateAdditionalMetadata(
-      const Core::TitleDatabase& title_database,
       std::function<void(const std::shared_ptr<const GameFile>&)> game_updated = {});
 
   bool Load();
   bool Save();
 
 private:
-  bool UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file,
-                                const Core::TitleDatabase& title_database);
+  bool UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_file);
 
   bool SyncCacheFile(bool save);
   void DoState(PointerWrap* p, u64 size = 0);

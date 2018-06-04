@@ -10,6 +10,8 @@
 #include <QAbstractTableModel>
 #include <QString>
 
+#include "Core/TitleDatabase.h"
+
 #include "DolphinQt2/GameList/GameTracker.h"
 
 #include "UICommon/GameFile.h"
@@ -63,5 +65,6 @@ private:
 
   GameTracker m_tracker;
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
+  Core::TitleDatabase m_title_database;
   QString m_term;
 };

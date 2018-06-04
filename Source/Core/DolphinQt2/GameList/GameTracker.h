@@ -14,7 +14,6 @@
 
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
-#include "Core/TitleDatabase.h"
 #include "UICommon/GameFile.h"
 #include "UICommon/GameFileCache.h"
 
@@ -75,7 +74,6 @@ private:
   QMap<QString, QSet<QString>> m_tracked_files;
   Common::WorkQueueThread<Command> m_load_thread;
   UICommon::GameFileCache m_cache;
-  Core::TitleDatabase m_title_database;
   Common::Event m_cache_loaded_event;
   Common::Event m_initial_games_emitted_event;
   bool m_initial_games_emitted = false;

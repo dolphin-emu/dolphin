@@ -82,9 +82,18 @@ public:
 
 static bool sorted = false;
 
-static int CompareGameListItems(const UICommon::GameFile* iso1, const UICommon::GameFile* iso2,
-                                long sortData = GameListCtrl::COLUMN_TITLE)
+static int CompareGameListItems(size_t item1, size_t item2, long sortData,
+                                const GameListCtrl* caller)
 {
+  // return 1 if item1 > item2
+  // return -1 if item1 < item2
+  // return 0 for identity
+  const UICommon::GameFile* iso1 = caller->GetISO(item1);
+  const UICommon::GameFile* iso2 = caller->GetISO(item2);
+
+  if (iso1 == iso2)
+    return 0;
+
   int t = 1;
 
   if (sortData < 0)
@@ -136,7 +145,8 @@ static int CompareGameListItems(const UICommon::GameFile* iso1, const UICommon::
   if (sortData != GameListCtrl::COLUMN_TITLE)
     t = 1;
 
-  int name_cmp = strcasecmp(iso1->GetName().c_str(), iso2->GetName().c_str()) * t;
+  int name_cmp =
+      strcasecmp(caller->GetShownName(item1).c_str(), caller->GetShownName(item2).c_str()) * t;
   if (name_cmp != 0)
     return name_cmp;
 
@@ -383,28 +393,34 @@ void GameListCtrl::RefreshList()
   if (Core::GetState() != Core::State::Uninitialized)
     return;
 
+  // Use a newly loaded title database (it might have gotten updated)
+  const Core::TitleDatabase title_database;
+
+  m_shown_names.clear();
   m_shown_files.clear();
   {
     std::unique_lock<std::mutex> lk(m_cache_mutex);
-    m_cache.ForEach([this](const std::shared_ptr<const UICommon::GameFile>& game_file) {
-      if (ShouldDisplayGameListItem(*game_file))
-        m_shown_files.push_back(game_file);
-    });
+    m_cache.ForEach(
+        [this, &title_database](const std::shared_ptr<const UICommon::GameFile>& game_file) {
+          if (ShouldDisplayGameListItem(*game_file))
+          {
+            m_shown_names.push_back(game_file->GetName(title_database));
+            m_shown_files.push_back(game_file);
+          }
+        });
   }
 
   // Drives are not cached. Not sure if this is required, but better to err on the
   // side of caution if cross-platform issues could come into play.
   if (SConfig::GetInstance().m_ListDrives)
   {
-    std::unique_lock<std::mutex> lk(m_title_database_mutex);
     for (const auto& drive : Common::GetCDDevices())
     {
       auto file = std::make_shared<UICommon::GameFile>(drive);
       if (file->IsValid())
       {
-        if (file->CustomNameChanged(m_title_database))
-          file->CustomNameCommit();
-        m_shown_files.push_back(file);
+        m_shown_names.push_back(file->GetName(title_database));
+        m_shown_files.push_back(std::move(file));
       }
     }
   }
@@ -501,7 +517,8 @@ void GameListCtrl::RefreshList()
 // Update the column content of the item at index
 void GameListCtrl::UpdateItemAtColumn(long index, int column)
 {
-  const auto& iso_file = *GetISO(GetItemData(index));
+  const size_t item_data = GetItemData(index);
+  const auto& iso_file = *GetISO(item_data);
 
   switch (column)
   {
@@ -527,7 +544,7 @@ void GameListCtrl::UpdateItemAtColumn(long index, int column)
   }
   case COLUMN_TITLE:
   {
-    wxString name = StrToWxStr(iso_file.GetName());
+    wxString name = StrToWxStr(GetShownName(item_data));
     int disc_number = iso_file.GetDiscNumber() + 1;
 
     if (disc_number > 1 &&
@@ -628,12 +645,6 @@ void GameListCtrl::RescanList()
   const std::vector<std::string> game_paths = UICommon::FindAllGamePaths(
       SConfig::GetInstance().m_ISOFolder, SConfig::GetInstance().m_RecursiveISOFolder);
 
-  // Reload the TitleDatabase
-  {
-    std::unique_lock<std::mutex> lock(m_title_database_mutex);
-    m_title_database = {};
-  }
-
   bool cache_changed = false;
 
   {
@@ -647,7 +658,7 @@ void GameListCtrl::RescanList()
 
   {
     std::unique_lock<std::mutex> lk(m_cache_mutex);
-    if (m_cache.UpdateAdditionalMetadata(m_title_database))
+    if (m_cache.UpdateAdditionalMetadata())
     {
       cache_changed = true;
       QueueEvent(new wxCommandEvent(DOLPHIN_EVT_REFRESH_GAMELIST));
@@ -701,19 +712,15 @@ const UICommon::GameFile* GameListCtrl::GetISO(size_t index) const
   return nullptr;
 }
 
+const std::string& GameListCtrl::GetShownName(size_t index) const
+{
+  return m_shown_names[index];
+}
+
 static GameListCtrl* caller;
 static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
-  // return 1 if item1 > item2
-  // return -1 if item1 < item2
-  // return 0 for identity
-  const UICommon::GameFile* iso1 = caller->GetISO(item1);
-  const UICommon::GameFile* iso2 = caller->GetISO(item2);
-
-  if (iso1 == iso2)
-    return 0;
-
-  return CompareGameListItems(iso1, iso2, sortData);
+  return CompareGameListItems(item1, item2, sortData, caller);
 }
 
 void GameListCtrl::OnColumnClick(wxListEvent& event)

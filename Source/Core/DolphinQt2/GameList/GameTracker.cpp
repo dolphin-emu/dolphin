@@ -105,7 +105,7 @@ void GameTracker::StartInternal()
   m_initial_games_emitted_event.Wait();
 
   bool cache_updated = m_cache.Update(paths, emit_game_loaded, emit_game_removed);
-  cache_updated |= m_cache.UpdateAdditionalMetadata(m_title_database, emit_game_updated);
+  cache_updated |= m_cache.UpdateAdditionalMetadata(emit_game_updated);
   if (cache_updated)
     m_cache.Save();
 }
@@ -256,7 +256,7 @@ void GameTracker::LoadGame(const QString& path)
   if (!DiscIO::ShouldHideFromGameList(converted_path))
   {
     bool cache_changed = false;
-    auto game = m_cache.AddOrGet(converted_path, &cache_changed, m_title_database);
+    auto game = m_cache.AddOrGet(converted_path, &cache_changed);
     if (game)
       emit GameLoaded(std::move(game));
     if (cache_changed)
