@@ -58,7 +58,7 @@ void Accelerator::WriteD3(u16 value)
   }
 }
 
-u16 Accelerator::Read(s16* coefs)
+u16 Accelerator::Read(const s16* coefs)
 {
   if (m_reads_stopped)
     return 0x0000;
