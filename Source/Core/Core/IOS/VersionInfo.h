@@ -8,9 +8,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 struct MemoryValues
 {
@@ -85,5 +83,4 @@ bool HasFeature(u32 major_version, Feature feature);
 Feature GetFeatures(u32 major_version);
 bool IsEmulated(u32 major_version);
 bool IsEmulated(u64 title_id);
-}
-}
+}  // namespace IOS::HLE

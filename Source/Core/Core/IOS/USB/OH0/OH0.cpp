@@ -20,11 +20,7 @@
 #include "Core/IOS/USB/USBV0.h"
 #include "Core/IOS/VersionInfo.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
@@ -350,6 +346,4 @@ s32 OH0::SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv)
     return IPC_EINVAL;
   }
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

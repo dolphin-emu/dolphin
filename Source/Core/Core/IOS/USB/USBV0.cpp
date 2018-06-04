@@ -11,11 +11,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 V0CtrlMessage::V0CtrlMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
     : CtrlMessage(ios, ioctlv, ioctlv.io_vectors[0].address)
@@ -54,6 +50,4 @@ V0IsoMessage::V0IsoMessage(Kernel& ios, const IOCtlVRequest& ioctlv)
   for (size_t i = 0; i < num_packets; ++i)
     packet_sizes.push_back(Memory::Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16))));
 }
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB

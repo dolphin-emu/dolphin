@@ -9,11 +9,7 @@
 #include "Core/IOS/USB/Host.h"
 #include "Core/IOS/USB/USBV5.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class USB_HIDv5 final : public USBV5ResourceManager
 {
@@ -38,6 +34,4 @@ private:
   };
   std::array<AdditionalDeviceData, 32> m_additional_device_data{};
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

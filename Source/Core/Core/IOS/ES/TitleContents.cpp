@@ -14,11 +14,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
 {
@@ -168,6 +164,4 @@ IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
 
   return GetDefaultReply(SeekContent(cfd, offset, mode, uid));
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

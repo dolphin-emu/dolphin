@@ -16,9 +16,7 @@
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace WFS
 {
@@ -484,5 +482,4 @@ bool WFSSRV::FileDescriptor::Open()
   return file.Open(WFS::NativePath(path), mode_string);
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

@@ -11,9 +11,7 @@
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/Formats.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 constexpr u32 MEM1_SIZE = 0x01800000;
 constexpr u32 MEM1_END = 0x81800000;
@@ -397,5 +395,4 @@ bool IsEmulated(u64 title_id)
   const u32 version = static_cast<u32>(title_id);
   return IsEmulated(version);
 }
-}
-}
+}  // namespace IOS::HLE

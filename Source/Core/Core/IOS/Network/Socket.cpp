@@ -31,9 +31,7 @@
 #define closesocket close
 #endif
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 constexpr int WII_SOCKET_FD_MAX = 24;
 
@@ -757,5 +755,4 @@ void WiiSockMan::UpdateWantDeterminism(bool want)
 
 #undef ERRORCODE
 #undef EITHER
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

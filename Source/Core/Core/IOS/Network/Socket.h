@@ -55,9 +55,7 @@ typedef struct pollfd pollfd_t;
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/SSL.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 enum
 {
@@ -259,5 +257,4 @@ private:
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last;
 };
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

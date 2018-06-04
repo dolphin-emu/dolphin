@@ -9,11 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class NetKDTime : public Device
 {
@@ -48,6 +44,4 @@ private:
   u64 rtc = 0;
   s64 utcdiff = 0;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

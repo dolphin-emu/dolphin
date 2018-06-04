@@ -14,9 +14,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace USB
 {
@@ -274,5 +272,4 @@ void USBV5ResourceManager::TriggerDeviceChangeReply()
   INFO_LOG(IOS_USB, "%d USBv5 device(s), including interfaces", num_devices);
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

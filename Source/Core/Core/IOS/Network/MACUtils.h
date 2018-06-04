@@ -6,10 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace IOS
-{
-namespace Net
+namespace IOS::Net
 {
 void GetMACAddress(u8* mac);
-}  // namespace Net
-}  // namespace IOS
+}  // namespace IOS::Net

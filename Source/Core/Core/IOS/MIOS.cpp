@@ -23,11 +23,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace MIOS
+namespace IOS::HLE::MIOS
 {
 static void ReinitHardware()
 {
@@ -81,6 +77,4 @@ bool Load()
   DVDInterface::UpdateRunningGameMetadata();
   return true;
 }
-}  // namespace MIOS
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::MIOS

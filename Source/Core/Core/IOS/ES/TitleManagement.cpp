@@ -22,11 +22,7 @@
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 static ReturnCode WriteTicket(FS::FileSystem* fs, const IOS::ES::TicketReader& ticket)
 {
@@ -849,6 +845,4 @@ IPCCommandResult ES::DeleteSharedContent(const IOCtlVRequest& request)
   Memory::CopyFromEmu(sha1.data(), request.in_vectors[0].address, request.in_vectors[0].size);
   return GetDefaultReply(DeleteSharedContent(sha1));
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

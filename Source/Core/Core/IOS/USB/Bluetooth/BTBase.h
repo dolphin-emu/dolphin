@@ -14,9 +14,7 @@
 class PointerWrap;
 class SysConf;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 void BackUpBTInfoSection(const SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
@@ -46,5 +44,4 @@ protected:
   };
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

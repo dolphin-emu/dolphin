@@ -15,11 +15,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 NetWDCommand::NetWDCommand(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
@@ -97,6 +93,4 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
 
   return GetDefaultReply(return_value);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

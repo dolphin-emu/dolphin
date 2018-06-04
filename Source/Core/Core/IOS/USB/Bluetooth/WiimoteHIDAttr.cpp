@@ -7,9 +7,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 static u8 packet1[] = {
     0x00, 0x7b, 0x00, 0x76, 0x36, 0x01, 0xcc, 0x09, 0x00, 0x00, 0x0a, 0x00, 0x01, 0x00, 0x00, 0x09,
@@ -101,5 +99,4 @@ const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size)
 
   return nullptr;
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

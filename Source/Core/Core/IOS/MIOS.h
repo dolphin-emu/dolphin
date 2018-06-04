@@ -4,13 +4,7 @@
 
 #pragma once
 
-namespace IOS
-{
-namespace HLE
-{
-namespace MIOS
+namespace IOS::HLE::MIOS
 {
 bool Load();
-}  // namespace MIOS
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::MIOS

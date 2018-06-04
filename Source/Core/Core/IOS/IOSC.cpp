@@ -95,9 +95,7 @@ static_assert(sizeof(BootMiiKeyDump) == 0x400, "Wrong size");
 #pragma pack(pop)
 }  // end of anonymous namespace
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 constexpr u32 DEFAULT_DEVICE_ID = 0x0403AC68;
 constexpr u32 DEFAULT_KEY_ID = 0x6AAB8C59;
@@ -655,5 +653,4 @@ void IOSC::KeyEntry::DoState(PointerWrap& p)
   p.Do(data);
   p.Do(owner_mask);
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

@@ -34,9 +34,7 @@ std::string GroupIdStr(u16 gid)
 }
 }  // namespace
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 void ARCUnpacker::Reset()
 {
@@ -573,5 +571,4 @@ s32 WFSI::CancelPatchImport(bool continue_install)
   return IPC_SUCCESS;
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE
