@@ -56,7 +56,10 @@ int PadMappingDialog::exec()
   players.append(tr("None"));
 
   for (const auto& player : m_players)
-    players.append(QString::fromStdString(player->name));
+  {
+    players.append(
+        QStringLiteral("%1 (%2)").arg(QString::fromStdString(player->name)).arg(player->pid));
+  }
 
   for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
