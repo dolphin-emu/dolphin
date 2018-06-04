@@ -624,13 +624,9 @@ bool MainWindow::RequestStop()
   }
 
   if (!m_render_widget->isFullScreen())
-  {
     m_render_widget_geometry = m_render_widget->saveGeometry();
-  }
-  else if (g_ActiveConfig.ExclusiveFullscreenEnabled())
-  {
+  else
     FullScreen();
-  }
 
   if (SConfig::GetInstance().bConfirmStop)
   {
