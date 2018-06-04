@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -291,7 +292,42 @@ bool TryParse(const std::string& str, bool* const output)
   return true;
 }
 
-std::string StringFromBool(bool value)
+std::string ValueToString(u16 value)
+{
+  return StringFromFormat("0x%04x", value);
+}
+
+std::string ValueToString(u32 value)
+{
+  return StringFromFormat("0x%08x", value);
+}
+
+std::string ValueToString(u64 value)
+{
+  return StringFromFormat("0x%016" PRIx64, value);
+}
+
+std::string ValueToString(float value)
+{
+  return StringFromFormat("%#.9g", value);
+}
+
+std::string ValueToString(double value)
+{
+  return StringFromFormat("%#.17g", value);
+}
+
+std::string ValueToString(int value)
+{
+  return std::to_string(value);
+}
+
+std::string ValueToString(s64 value)
+{
+  return StringFromFormat("%" PRId64, value);
+}
+
+std::string ValueToString(bool value)
 {
   return value ? "True" : "False";
 }
