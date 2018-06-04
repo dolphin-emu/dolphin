@@ -442,6 +442,7 @@ void MainWindow::ConnectToolBar()
   addToolBar(m_tool_bar);
 
   connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
+  connect(m_tool_bar, &ToolBar::RefreshPressed, this, &MainWindow::RefreshGameList);
 
   connect(m_tool_bar, &ToolBar::PlayPressed, this, [this]() { Play(); });
   connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
@@ -514,6 +515,14 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
   tabifyDockWidget(m_log_widget, m_memory_widget);
   tabifyDockWidget(m_log_widget, m_jit_widget);
+}
+
+void MainWindow::RefreshGameList()
+{
+  Settings::Instance().ReloadTitleDB();
+
+  for (const auto& path : Settings::Instance().GetPaths())
+    Settings::Instance().ReloadPath(path);
 }
 
 QString MainWindow::PromptFileName()

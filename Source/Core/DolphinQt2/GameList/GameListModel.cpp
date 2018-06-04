@@ -27,6 +27,8 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
   connect(&Settings::Instance(), &Settings::PathRemoved, &m_tracker, &GameTracker::RemoveDirectory);
   connect(&Settings::Instance(), &Settings::PathReloadRequested, &m_tracker,
           &GameTracker::ReloadDirectory);
+  connect(&Settings::Instance(), &Settings::TitleDBReloadRequested, this,
+          [this] { m_title_database = Core::TitleDatabase(); });
 
   for (const QString& dir : Settings::Instance().GetPaths())
     m_tracker.AddDirectory(dir);

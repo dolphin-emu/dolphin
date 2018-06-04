@@ -70,6 +70,7 @@ public:
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
   void ReloadPath(const QString& qpath);
+  void ReloadTitleDB();
 
   // Emulation
   int GetStateSlot() const;
@@ -135,6 +136,7 @@ signals:
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
   void PathReloadRequested(const QString&);
+  void TitleDBReloadRequested();
   void HideCursorChanged();
   void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);
