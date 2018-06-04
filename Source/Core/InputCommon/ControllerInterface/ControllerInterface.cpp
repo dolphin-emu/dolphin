@@ -158,8 +158,7 @@ void ControllerInterface::Shutdown()
   ciface::Quartz::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
-  // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-  SDL_Quit();
+  ciface::SDL::DeInit();
 #endif
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
