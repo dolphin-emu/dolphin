@@ -46,6 +46,7 @@ public:
   void UpdateSymbols();
 signals:
   void BreakpointsChanged();
+  void MemoryPatchesChanged();
   void RequestPPCComparison(u32 addr);
   void ShowMemory(u32 address);
 

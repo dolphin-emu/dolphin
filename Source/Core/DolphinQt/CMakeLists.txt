@@ -216,6 +216,8 @@ add_executable(dolphin-emu
   Debugger/CodeWidget.h
   Debugger/JITWidget.cpp
   Debugger/JITWidget.h
+  Debugger/MemoryPatchWidget.cpp
+  Debugger/MemoryPatchWidget.h
   Debugger/MemoryViewWidget.cpp
   Debugger/MemoryViewWidget.h
   Debugger/MemoryWidget.cpp
