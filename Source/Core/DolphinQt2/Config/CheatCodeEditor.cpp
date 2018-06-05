@@ -106,6 +106,9 @@ void CheatCodeEditor::CreateWidgets()
 
   m_code_edit->setFont(monospace);
 
+  m_code_edit->setAcceptRichText(false);
+  m_notes_edit->setAcceptRichText(false);
+
   setLayout(grid_layout);
 }
 
