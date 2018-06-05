@@ -76,7 +76,7 @@ QGroupBox* InfoWidget::CreateISODetails()
   const std::string game_maker = m_game.GetMaker();
 
   QLineEdit* maker =
-      CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (0x" +
+      CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (" +
                          m_game.GetMakerID() + ")");
   QWidget* checksum = CreateChecksumComputer();
 
