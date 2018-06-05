@@ -139,6 +139,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 		String gameId = holder.gameFile.getGameId();
 
+		if (gameId.isEmpty())
+		{
+			// We can't make a game-specific INI file if there is no game ID
+			return true;
+		}
+
 		FragmentActivity activity = (FragmentActivity) view.getContext();
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);

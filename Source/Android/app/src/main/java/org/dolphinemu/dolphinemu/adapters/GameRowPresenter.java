@@ -87,6 +87,12 @@ public final class GameRowPresenter extends Presenter
 				FragmentActivity activity = (FragmentActivity) view.getContext();
 				String gameId = gameFile.getGameId();
 
+				if (gameId.isEmpty())
+				{
+					// We can't make a game-specific INI file if there is no game ID
+					return true;
+				}
+
 				AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 				builder.setTitle("Game Settings")
 					.setItems(R.array.gameSettingsMenus, new DialogInterface.OnClickListener() {
