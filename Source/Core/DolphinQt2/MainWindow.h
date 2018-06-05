@@ -68,6 +68,7 @@ signals:
 
 private:
   void Open();
+  void RefreshGameList();
   void Play(const std::optional<std::string>& savestate_path = {});
   void Pause();
   void TogglePause();

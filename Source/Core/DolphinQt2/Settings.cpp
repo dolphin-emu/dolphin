@@ -128,6 +128,11 @@ void Settings::ReloadPath(const QString& qpath)
   emit PathReloadRequested(qpath);
 }
 
+void Settings::ReloadTitleDB()
+{
+  emit TitleDBReloadRequested();
+}
+
 QString Settings::GetDefaultGame() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);

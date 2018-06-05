@@ -99,6 +99,10 @@ void ToolBar::MakeActions()
   m_set_pc_action = AddAction(this, tr("Set PC"), this, &ToolBar::SetPCPressed);
 
   m_open_action = AddAction(this, tr("Open"), this, &ToolBar::OpenPressed);
+  m_refresh_action = AddAction(this, tr("Refresh"), this, &ToolBar::RefreshPressed);
+
+  addSeparator();
+
   m_pause_play_action = AddAction(this, tr("Play"), this, &ToolBar::PlayPressed);
 
   m_stop_action = AddAction(this, tr("Stop"), this, &ToolBar::StopPressed);
@@ -160,6 +164,7 @@ void ToolBar::UpdateIcons()
   m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
 
   m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
+  m_refresh_action->setIcon(Resources::GetScaledThemeIcon("refresh"));
 
   const Core::State state = Core::GetState();
   const bool playing = state != Core::State::Uninitialized && state != Core::State::Paused;
