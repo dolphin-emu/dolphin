@@ -527,10 +527,20 @@ void MainWindow::RefreshGameList()
 
 QString MainWindow::PromptFileName()
 {
-  return QFileDialog::getOpenFileName(
-      this, tr("Select a File"), QDir::currentPath(),
+  auto& settings = Settings::Instance().GetQSettings();
+  QString path = QFileDialog::getOpenFileName(
+      this, tr("Select a File"),
+      settings.value(QStringLiteral("mainwindow/lastdir"), QStringLiteral("")).toString(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
          "All Files (*)"));
+
+  if (!path.isEmpty())
+  {
+    settings.setValue(QStringLiteral("mainwindow/lastdir"),
+                      QFileInfo(path).absoluteDir().absolutePath());
+  }
+
+  return path;
 }
 
 void MainWindow::ChangeDisc()
