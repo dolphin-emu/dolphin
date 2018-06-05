@@ -62,6 +62,7 @@
 #include "DolphinQt2/Debugger/CodeViewWidget.h"
 #include "DolphinQt2/Debugger/CodeWidget.h"
 #include "DolphinQt2/Debugger/JITWidget.h"
+#include "DolphinQt2/Debugger/MemoryPatchWidget.h"
 #include "DolphinQt2/Debugger/MemoryWidget.h"
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 #include "DolphinQt2/Debugger/WatchWidget.h"
@@ -264,6 +265,7 @@ void MainWindow::CreateComponents()
   m_register_widget = new RegisterWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
+  m_memory_patch_widget = new MemoryPatchWidget(this);
   m_code_widget = new CodeWidget(this);
   m_cheats_manager = new CheatsManager(this);
 
@@ -277,6 +279,8 @@ void MainWindow::CreateComponents()
   connect(m_code_widget, &CodeWidget::RequestPPCComparison, m_jit_widget, &JITWidget::Compare);
   connect(m_memory_widget, &MemoryWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
+  connect(m_code_widget, &CodeWidget::MemoryPatchesChanged, m_memory_patch_widget,
+          &MemoryPatchWidget::Update);
 
   connect(m_breakpoint_widget, &BreakpointWidget::BreakpointsChanged, m_code_widget,
           &CodeWidget::Update);
@@ -286,6 +290,8 @@ void MainWindow::CreateComponents()
     if (Core::GetState() == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
   });
+  connect(m_memory_patch_widget, &MemoryPatchWidget::MemoryPatchesChanged, m_code_widget,
+          &CodeWidget::Update);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
@@ -507,6 +513,7 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::LeftDockWidgetArea, m_register_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_memory_patch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
 
@@ -515,6 +522,7 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_register_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
+  tabifyDockWidget(m_log_widget, m_memory_patch_widget);
   tabifyDockWidget(m_log_widget, m_memory_widget);
   tabifyDockWidget(m_log_widget, m_jit_widget);
 }

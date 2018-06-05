@@ -38,6 +38,7 @@ signals:
   void RequestPPCComparison(u32 addr);
   void SymbolsChanged();
   void BreakpointsChanged();
+  void MemoryPatchesChanged();
 
 private:
   enum class ReplaceWith

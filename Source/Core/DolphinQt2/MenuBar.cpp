@@ -147,6 +147,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_registers->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
+  m_show_memory_patches->setVisible(enabled);
   m_show_memory->setVisible(enabled);
   m_show_jit->setVisible(enabled);
 
@@ -431,6 +432,15 @@ void MenuBar::AddViewMenu()
   connect(m_show_breakpoints, &QAction::toggled, &Settings::Instance(),
           &Settings::SetBreakpointsVisible);
   connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, m_show_breakpoints,
+          &QAction::setChecked);
+
+  m_show_memory_patches = view_menu->addAction(tr("&Patches"));
+  m_show_memory_patches->setCheckable(true);
+  m_show_memory_patches->setChecked(Settings::Instance().IsMemoryPatchesVisible());
+
+  connect(m_show_memory_patches, &QAction::toggled, &Settings::Instance(),
+          &Settings::SetMemoryPatchesVisible);
+  connect(&Settings::Instance(), &Settings::MemoryPatchesVisibilityChanged, m_show_memory_patches,
           &QAction::setChecked);
 
   m_show_memory = view_menu->addAction(tr("&Memory"));

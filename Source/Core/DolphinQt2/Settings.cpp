@@ -332,6 +332,21 @@ bool Settings::IsWatchVisible() const
   return GetQSettings().value(QStringLiteral("debugger/showwatch")).toBool();
 }
 
+void Settings::SetMemoryPatchesVisible(bool enabled)
+{
+  if (IsBreakpointsVisible() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showmemorypatches"), enabled);
+
+  emit MemoryPatchesVisibilityChanged(enabled);
+}
+
+bool Settings::IsMemoryPatchesVisible() const
+{
+  return GetQSettings().value(QStringLiteral("debugger/showmemorypatches")).toBool();
+}
+
 void Settings::SetBreakpointsVisible(bool enabled)
 {
   if (IsBreakpointsVisible() != enabled)

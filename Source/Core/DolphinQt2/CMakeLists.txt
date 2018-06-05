@@ -76,6 +76,7 @@ add_executable(dolphin-emu
   Debugger/CodeViewWidget.cpp
   Debugger/CodeWidget.cpp
   Debugger/JITWidget.cpp
+  Debugger/MemoryPatchWidget.cpp
   Debugger/MemoryViewWidget.cpp
   Debugger/MemoryWidget.cpp
   Debugger/NewBreakpointDialog.cpp

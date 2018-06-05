@@ -34,6 +34,7 @@ class JITWidget;
 class LogConfigWidget;
 class LogWidget;
 class MappingWindow;
+class MemoryPatchWidget;
 class MemoryWidget;
 class NetPlayClient;
 class NetPlayDialog;
@@ -195,6 +196,7 @@ private:
   JITWidget* m_jit_widget;
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
+  MemoryPatchWidget* m_memory_patch_widget;
   MemoryWidget* m_memory_widget;
   FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;

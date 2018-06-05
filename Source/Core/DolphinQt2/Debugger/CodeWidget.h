@@ -41,8 +41,10 @@ public:
 
   void Update();
   void UpdateSymbols();
+
 signals:
   void BreakpointsChanged();
+  void MemoryPatchesChanged();
   void RequestPPCComparison(u32 addr);
 
 private:

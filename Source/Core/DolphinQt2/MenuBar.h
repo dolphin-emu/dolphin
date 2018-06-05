@@ -214,6 +214,7 @@ private:
   QAction* m_show_registers;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
+  QAction* m_show_memory_patches;
   QAction* m_show_memory;
   QAction* m_show_jit;
 
