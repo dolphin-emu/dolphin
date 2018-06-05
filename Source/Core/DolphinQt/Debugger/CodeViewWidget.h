@@ -50,6 +50,7 @@ signals:
   void ShowMemory(u32 address);
   void SymbolsChanged();
   void BreakpointsChanged();
+  void MemoryPatchesChanged();
   void UpdateCodeWidget();
 
 private:
