@@ -170,9 +170,14 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
   DiscIO::Platform platform = game->GetPlatform();
-  AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
-  AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
-  menu->addSeparator();
+
+  if (platform != DiscIO::Platform::ELFOrDOL)
+  {
+    AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
+    AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
+
+    menu->addSeparator();
+  }
 
   if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
   {
