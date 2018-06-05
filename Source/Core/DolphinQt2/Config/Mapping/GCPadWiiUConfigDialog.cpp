@@ -19,9 +19,9 @@ GCPadWiiUConfigDialog::GCPadWiiUConfigDialog(int port, QWidget* parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateLayout();
-  ConnectWidgets();
 
   LoadSettings();
+  ConnectWidgets();
 }
 
 void GCPadWiiUConfigDialog::CreateLayout()
