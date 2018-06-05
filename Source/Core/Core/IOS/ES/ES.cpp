@@ -612,7 +612,7 @@ IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
   return GetDefaultReply(ES_EINVAL);
 }
 
-static s32 WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd)
+static ReturnCode WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd)
 {
   const std::string temp_path = "/tmp/title.tmd";
   fs->Delete(PID_KERNEL, PID_KERNEL, temp_path);
@@ -636,7 +636,7 @@ static s32 WriteTmdForDiVerify(FS::FileSystem* fs, const IOS::ES::TMDReader& tmd
   return FS::ConvertResult(fs->Rename(PID_KERNEL, PID_KERNEL, temp_path, tmd_path));
 }
 
-s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
+ReturnCode ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
   m_title_context.Clear();
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
@@ -656,7 +656,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   const auto fs = m_ios.GetFS();
   if (!FindInstalledTMD(tmd.GetTitleId()).IsValid())
   {
-    if (const s32 ret = WriteTmdForDiVerify(fs.get(), tmd))
+    if (const ReturnCode ret = WriteTmdForDiVerify(fs.get(), tmd))
     {
       ERROR_LOG(IOS_ES, "DiVerify failed to write disc TMD to NAND.");
       return ret;
