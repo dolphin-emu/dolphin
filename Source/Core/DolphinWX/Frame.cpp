@@ -1324,12 +1324,6 @@ void CFrame::ParseHotkeys()
     Core::SaveScreenShot();
   if (IsHotkey(HK_EXIT))
     wxPostEvent(this, wxCommandEvent(wxEVT_MENU, wxID_EXIT));
-  if (IsHotkey(HK_VOLUME_DOWN))
-    AudioCommon::DecreaseVolume(3);
-  if (IsHotkey(HK_VOLUME_UP))
-    AudioCommon::IncreaseVolume(3);
-  if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
-    AudioCommon::ToggleMuteVolume();
 
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
   {
@@ -1422,6 +1416,24 @@ void CFrame::ParseHotkeys()
     if (g_renderer)
       g_renderer->ShowOSDMessage(message);
   };
+
+  if (IsHotkey(HK_VOLUME_DOWN))
+  {
+    show_msg(OSDMessage::VolumeChanged);
+    AudioCommon::DecreaseVolume(3);
+  }
+
+  if (IsHotkey(HK_VOLUME_UP))
+  {
+    show_msg(OSDMessage::VolumeChanged);
+    AudioCommon::IncreaseVolume(3);
+  }
+
+  if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
+  {
+    show_msg(OSDMessage::VolumeChanged);
+    AudioCommon::ToggleMuteVolume();
+  }
 
   if (IsHotkey(HK_INCREASE_IR))
   {

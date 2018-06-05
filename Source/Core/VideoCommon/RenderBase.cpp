@@ -329,6 +329,9 @@ void Renderer::DrawDebugText()
       ar_text = "Auto";
       break;
     }
+    const std::string audio_text = SConfig::GetInstance().m_IsMuted ?
+                                       "Muted" :
+                                       std::to_string(SConfig::GetInstance().m_Volume) + "%";
 
     const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
     const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
@@ -345,6 +348,7 @@ void Renderer::DrawDebugText()
                              std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
         std::string("Copy XFB: ") + xfbcopy_text +
             (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
+        "Volume: " + audio_text,
     };
 
     enum

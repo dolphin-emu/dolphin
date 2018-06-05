@@ -200,16 +200,6 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_READ_ONLY_MODE))
         emit ToggleReadOnlyMode();
 
-      // Volume
-      if (IsHotkey(HK_VOLUME_DOWN))
-        settings.DecreaseVolume(3);
-
-      if (IsHotkey(HK_VOLUME_UP))
-        settings.IncreaseVolume(3);
-
-      if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
-        AudioCommon::ToggleMuteVolume();
-
       // Wiimote
       if (SConfig::GetInstance().m_bt_passthrough_enabled)
       {
@@ -250,6 +240,25 @@ void HotkeyScheduler::Run()
         if (g_renderer)
           g_renderer->ShowOSDMessage(message);
       };
+
+      // Volume
+      if (IsHotkey(HK_VOLUME_DOWN))
+      {
+        show_msg(OSDMessage::VolumeChanged);
+        settings.DecreaseVolume(3);
+      }
+
+      if (IsHotkey(HK_VOLUME_UP))
+      {
+        show_msg(OSDMessage::VolumeChanged);
+        settings.IncreaseVolume(3);
+      }
+
+      if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
+      {
+        show_msg(OSDMessage::VolumeChanged);
+        AudioCommon::ToggleMuteVolume();
+      }
 
       // Graphics
       const auto efb_scale = Config::Get(Config::GFX_EFB_SCALE);
