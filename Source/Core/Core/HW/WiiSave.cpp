@@ -122,6 +122,7 @@ public:
     };
     u8 mode, attributes;
     Type type;
+    /// File name relative to the title data directory.
     std::string path;
     // Only valid for regular (i.e. non-directory) files.
     Common::Lazy<std::optional<std::vector<u8>>> data;
@@ -220,20 +221,21 @@ public:
     for (const SaveFile& file : files)
     {
       const FS::Modes modes = GetFsMode(file.mode);
+      const std::string path = m_data_dir + '/' + file.path;
       if (file.type == SaveFile::Type::File)
       {
-        const auto raw_file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, file.path, modes);
+        const auto raw_file = m_fs->CreateAndOpenFile(*m_uid, *m_gid, path, modes);
         const std::optional<std::vector<u8>>& data = *file.data;
         if (!data || !raw_file || !raw_file->Write(data->data(), data->size()))
           return false;
       }
       else if (file.type == SaveFile::Type::Directory)
       {
-        const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, file.path);
+        const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path);
         if (!meta || meta->is_file)
           return false;
 
-        const FS::ResultCode result = m_fs->CreateDirectory(*m_uid, *m_gid, file.path, 0, modes);
+        const FS::ResultCode result = m_fs->CreateDirectory(*m_uid, *m_gid, path, 0, modes);
         if (result != FS::ResultCode::Success)
           return false;
       }
@@ -265,7 +267,7 @@ private:
       save_file.mode = GetBinMode(metadata->modes);
       save_file.attributes = 0;
       save_file.type = metadata->is_file ? SaveFile::Type::File : SaveFile::Type::Directory;
-      save_file.path = path;
+      save_file.path = path.substr(m_data_dir.size() + 1);
       save_file.data = [this, path]() -> std::optional<std::vector<u8>> {
         const auto file = m_fs->OpenFile(*m_uid, *m_gid, path, FS::Mode::Read);
         if (!file)
