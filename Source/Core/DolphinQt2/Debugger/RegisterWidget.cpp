@@ -8,7 +8,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Host.h"
-#include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
 
 #include <QHeaderView>
@@ -116,8 +115,8 @@ void RegisterWidget::ShowContextMenu()
     auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
     auto display = item->GetDisplay();
 
-    AddAction(menu, tr("Add to &watch"), this,
-              [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
+    menu->addAction(tr("Add to &watch"), this,
+                    [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
     menu->addAction(tr("View &memory"));
     menu->addAction(tr("View &code"));
 
@@ -209,7 +208,7 @@ void RegisterWidget::ShowContextMenu()
     menu->addSeparator();
   }
 
-  AddAction(menu, tr("Update"), this, [this] { emit RequestTableUpdate(); });
+  menu->addAction(tr("Update"), this, [this] { emit RequestTableUpdate(); });
 
   menu->exec(QCursor::pos());
 }
