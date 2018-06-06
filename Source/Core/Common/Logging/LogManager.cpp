@@ -135,6 +135,7 @@ LogManager::LogManager()
   m_log[PIXELENGINE] = {"PE", "Pixel Engine"};
   m_log[PROCESSORINTERFACE] = {"PI", "Processor Interface"};
   m_log[POWERPC] = {"PowerPC", "PowerPC IBM CPU"};
+  m_log[SCRIPTING] = {"Scripting", "Scripting"};
   m_log[SERIALINTERFACE] = {"SI", "Serial Interface"};
   m_log[SP1] = {"SP1", "Serial Port 1"};
   m_log[SYMBOLS] = {"SYMBOLS", "Symbols"};
