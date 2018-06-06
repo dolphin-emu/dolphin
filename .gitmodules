@@ -3,3 +3,7 @@
 	url = https://github.com/dolphin-emu/ext-win-qt.git
 	branch = master
 	shallow = true
+[submodule "Externals/python"]
+	path = Externals/python
+	url = https://github.com/Felk/ext-python.git
+	branch = master
