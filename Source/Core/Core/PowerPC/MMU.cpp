@@ -71,7 +71,15 @@ inline u32 bswap(u32 val)
 {
   return Common::swap32(val);
 }
+inline s32 bswap(s32 val)
+{
+  return Common::swap32(val);
+}
 inline u64 bswap(u64 val)
+{
+  return Common::swap64(val);
+}
+inline s64 bswap(s64 val)
 {
   return Common::swap64(val);
 }
@@ -589,6 +597,26 @@ u64 HostRead_U64(const u32 address)
   return ReadFromHardware<XCheckTLBFlag::NoException, u64, TranslateCondition::Always>(address);
 }
 
+s8 HostRead_S8(const u32 address)
+{
+  return static_cast<s8>(HostRead_U8(address));
+}
+
+s16 HostRead_S16(const u32 address)
+{
+  return static_cast<s16>(HostRead_U16(address));
+}
+
+s32 HostRead_S32(const u32 address)
+{
+  return static_cast<s32>(HostRead_U32(address));
+}
+
+s64 HostRead_S64(const u32 address)
+{
+  return static_cast<s64>(HostRead_U64(address));
+}
+
 float HostRead_F32(const u32 address)
 {
   const u32 integral = HostRead_U32(address);
@@ -621,6 +649,26 @@ void HostWrite_U32(const u32 var, const u32 address)
 void HostWrite_U64(const u64 var, const u32 address)
 {
   WriteToHardware<XCheckTLBFlag::NoException, u64, TranslateCondition::Always>(address, var);
+}
+
+void HostWrite_S8(const s8 var, const u32 address)
+{
+  HostWrite_U8(static_cast<u8>(var), address);
+}
+
+void HostWrite_S16(const s16 var, const u32 address)
+{
+  HostWrite_U16(static_cast<u16>(var), address);
+}
+
+void HostWrite_S32(const s32 var, const u32 address)
+{
+  HostWrite_U32(static_cast<u32>(var), address);
+}
+
+void HostWrite_S64(const s64 var, const u32 address)
+{
+  HostWrite_U64(static_cast<u64>(var), address);
 }
 
 void HostWrite_F32(const float var, const u32 address)

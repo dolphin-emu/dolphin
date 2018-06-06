@@ -15,11 +15,15 @@ namespace PowerPC
 {
 // Routines for debugger UI, cheats, etc. to access emulated memory from the
 // perspective of the CPU.  Not for use by core emulation routines.
-// Use "Host_" prefix.
+// Use "Host" prefix.
 u8 HostRead_U8(u32 address);
 u16 HostRead_U16(u32 address);
 u32 HostRead_U32(u32 address);
 u64 HostRead_U64(u32 address);
+s8 HostRead_S8(u32 address);
+s16 HostRead_S16(u32 address);
+s32 HostRead_S32(u32 address);
+s64 HostRead_S64(u32 address);
 float HostRead_F32(u32 address);
 double HostRead_F64(u32 address);
 u32 HostRead_Instruction(u32 address);
@@ -28,6 +32,10 @@ void HostWrite_U8(u8 var, u32 address);
 void HostWrite_U16(u16 var, u32 address);
 void HostWrite_U32(u32 var, u32 address);
 void HostWrite_U64(u64 var, u32 address);
+void HostWrite_S8(s8 var, u32 address);
+void HostWrite_S16(s16 var, u32 address);
+void HostWrite_S32(s32 var, u32 address);
+void HostWrite_S64(s64 var, u32 address);
 void HostWrite_F32(float var, u32 address);
 void HostWrite_F64(double var, u32 address);
 
