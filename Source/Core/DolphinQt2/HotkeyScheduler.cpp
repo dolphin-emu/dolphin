@@ -165,6 +165,10 @@ void HotkeyScheduler::Run()
         Common::SleepCurrentThread(100);
       }
 
+      // Refresh Game List
+      if (IsHotkey(HK_REFRESH_LIST))
+        emit RefreshGameListHotkey();
+
       // Pause and Unpause
       if (IsHotkey(HK_PLAY_PAUSE))
         emit TogglePauseHotkey();
