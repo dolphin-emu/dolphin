@@ -161,7 +161,12 @@ void SoftwareRendererWidget::AddDescriptions()
       QT_TR_NOOP("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                  "this unchecked.");
 
+  static const char* TR_DUMP_OBJECTS_DESCRIPTION =
+      QT_TR_NOOP("Dump objects to User/Dump/Objects/.\n\nIf unsure, leave "
+                 "this unchecked.");
+
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
   AddDescription(m_show_statistics, TR_SHOW_STATISTICS_DESCRIPTION);
   AddDescription(m_dump_textures, TR_DUMP_TEXTURES_DESCRIPTION);
+  AddDescription(m_dump_objects, TR_DUMP_OBJECTS_DESCRIPTION);
 }
