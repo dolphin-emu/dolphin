@@ -147,21 +147,21 @@ void SoftwareRendererWidget::SaveSettings()
 
 void SoftwareRendererWidget::AddDescriptions()
 {
-  static const char* TR_BACKEND_DESCRIPTION =
+  static const char TR_BACKEND_DESCRIPTION[] =
       QT_TR_NOOP("Selects what graphics API to use internally.\nThe software renderer is extremely "
                  "slow and only useful for debugging, so you'll want to use either Direct3D or "
                  "OpenGL. Different games and different GPUs will behave differently on each "
                  "backend, so for the best emulation experience it's recommended to try both and "
                  "choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
 
-  static const char* TR_SHOW_STATISTICS_DESCRIPTION =
+  static const char TR_SHOW_STATISTICS_DESCRIPTION[] =
       QT_TR_NOOP("Show various rendering statistics.\n\nIf unsure, leave this unchecked.");
 
-  static const char* TR_DUMP_TEXTURES_DESCRIPTION =
+  static const char TR_DUMP_TEXTURES_DESCRIPTION[] =
       QT_TR_NOOP("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                  "this unchecked.");
 
-  static const char* TR_DUMP_OBJECTS_DESCRIPTION =
+  static const char TR_DUMP_OBJECTS_DESCRIPTION[] =
       QT_TR_NOOP("Dump objects to User/Dump/Objects/.\n\nIf unsure, leave "
                  "this unchecked.");
 
