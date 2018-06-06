@@ -24,7 +24,7 @@
 NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
     : QDialog(parent), m_game_list_model(Settings::Instance().GetGameListModel())
 {
-  setWindowTitle(tr("Dolphin NetPlay Setup"));
+  setWindowTitle(tr("NetPlay Setup"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateMainLayout();
