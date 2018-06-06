@@ -13,12 +13,15 @@
 
 #endif
 
+const Config::ConfigInfo<bool> MAIN_USE_DISCORD_PRESENCE{
+    {Config::System::Main, "General", "UseDiscordPresence"}, true};
+
 namespace Discord
 {
 void Init()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!SConfig::GetInstance().bUseDiscordPresence)
+  if (!Config::Get(MAIN_USE_DISCORD_PRESENCE))
     return;
 
   DiscordEventHandlers handlers = {};
@@ -31,7 +34,7 @@ void Init()
 void UpdateDiscordPresence()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!SConfig::GetInstance().bUseDiscordPresence)
+  if (!Config::Get(MAIN_USE_DISCORD_PRESENCE))
     return;
 
   const std::string& title = SConfig::GetInstance().GetTitleDescription();
@@ -48,11 +51,26 @@ void UpdateDiscordPresence()
 void Shutdown()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!SConfig::GetInstance().bUseDiscordPresence)
+  if (!Config::Get(MAIN_USE_DISCORD_PRESENCE))
     return;
 
   Discord_ClearPresence();
   Discord_Shutdown();
 #endif
 }
+
+void SetDiscordPresenceEnabled(bool enabled)
+{
+  if (Config::Get(MAIN_USE_DISCORD_PRESENCE) == enabled)
+    return;
+
+  if (Config::Get(MAIN_USE_DISCORD_PRESENCE))
+    Discord::Shutdown();
+
+  Config::SetBase(MAIN_USE_DISCORD_PRESENCE, enabled);
+
+  if (Config::Get(MAIN_USE_DISCORD_PRESENCE))
+    Discord::Init();
+}
+
 }  // namespace Discord

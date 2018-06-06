@@ -59,8 +59,7 @@ void GeneralConfigPane::InitializeGUI()
   m_dual_core_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
   m_cheats_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
 #ifdef USE_DISCORD_PRESENCE
-  m_discord_presence_checkbox =
-      new wxCheckBox(this, wxID_ANY, _("Show Activity in Your Discord Status"));
+  m_discord_presence_checkbox = new wxCheckBox(this, wxID_ANY, _("Show Current Game on Discord"));
 #endif
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Usage Statistics Reporting"));
@@ -83,8 +82,8 @@ void GeneralConfigPane::InitializeGUI()
   m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
 #ifdef USE_DISCORD_PRESENCE
   m_discord_presence_checkbox->SetToolTip(
-      _("Allow other people on Discord to see your current activity in Dolphin. Activities such as "
-        "games you are playing, and how long you've been doing something in Dolphin"));
+      _("Allow other people on Discord to see the current activity in Dolphin. Activities such as "
+        "the game being played, and for how long"));
 #endif
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   m_analytics_checkbox->SetToolTip(
@@ -162,7 +161,7 @@ void GeneralConfigPane::LoadGUIValues()
   m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
 
 #ifdef USE_DISCORD_PRESENCE
-  m_discord_presence_checkbox->SetValue(startup_params.bUseDiscordPresence);
+  m_discord_presence_checkbox->SetValue(Config::Get(MAIN_USE_DISCORD_PRESENCE));
 #endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
@@ -222,13 +221,7 @@ void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)
 #ifdef USE_DISCORD_PRESENCE
 void GeneralConfigPane::OnDiscordPresenceCheckBoxChanged(wxCommandEvent& event)
 {
-  if (SConfig::GetInstance().bUseDiscordPresence)
-    Discord::Shutdown();
-
-  SConfig::GetInstance().bUseDiscordPresence = m_discord_presence_checkbox->IsChecked();
-
-  if (SConfig::GetInstance().bUseDiscordPresence)
-    Discord::Init();
+  Discord::SetDiscordPresenceEnabled(m_discord_presence_checkbox->IsChecked());
 }
 #endif
 

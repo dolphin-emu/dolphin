@@ -131,10 +131,6 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 #endif
   general->Set("GDBPort", iGDBPort);
 #endif
-
-#ifdef USE_DISCORD_PRESENCE
-  general->Set("UseDiscordPresence", bUseDiscordPresence);
-#endif
 }
 
 void SConfig::SaveInterfaceSettings(IniFile& ini)
@@ -420,9 +416,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
   general->Get("WirelessMac", &m_WirelessMac);
-#ifdef USE_DISCORD_PRESENCE
-  general->Get("UseDiscordPresence", &bUseDiscordPresence, true);
-#endif
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)

@@ -480,19 +480,3 @@ void Settings::SetBatchModeEnabled(bool batch)
 {
   m_batch = batch;
 }
-
-#ifdef USE_DISCORD_PRESENCE
-void Settings::SetDiscordPresenceEnabled(bool enabled)
-{
-  if (SConfig::GetInstance().bUseDiscordPresence == enabled)
-    return;
-
-  if (SConfig::GetInstance().bUseDiscordPresence)
-    Discord::Shutdown();
-
-  SConfig::GetInstance().bUseDiscordPresence = enabled;
-
-  if (SConfig::GetInstance().bUseDiscordPresence)
-    Discord::Init();
-}
-#endif

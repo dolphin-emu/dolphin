@@ -24,6 +24,9 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Settings.h"
 #include "UICommon/AutoUpdate.h"
+#ifdef USE_DISCORD_PRESENCE
+#include "UICommon/DiscordPresence.h"
+#endif
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
 constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
@@ -127,7 +130,7 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_cheats);
 
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence = new QCheckBox(tr("Show Activity in Your Discord Status"));
+  m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
   basic_group_layout->addWidget(m_checkbox_discord_presence);
 #endif
 
@@ -224,7 +227,7 @@ void GeneralPane::LoadConfig()
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence->setChecked(SConfig::GetInstance().bUseDiscordPresence);
+  m_checkbox_discord_presence->setChecked(Config::Get(MAIN_USE_DISCORD_PRESENCE));
 #endif
   int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
   if (selection < m_combobox_speedlimit->count())
@@ -272,7 +275,7 @@ void GeneralPane::OnSaveConfig()
   }
 
 #ifdef USE_DISCORD_PRESENCE
-  Settings::Instance().SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
+  Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
 #endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
