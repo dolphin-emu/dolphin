@@ -30,6 +30,15 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
+  connect(&Settings::Instance(), &Settings::AutoRefreshToggled, this, [this] {
+    const auto paths = Settings::Instance().GetPaths();
+
+    for (const auto& path : paths)
+    {
+      Settings::Instance().RemovePath(path);
+      Settings::Instance().AddPath(path);
+    }
+  });
 
   m_load_thread.Reset([this](Command command) {
     switch (command.type)
@@ -110,6 +119,31 @@ void GameTracker::StartInternal()
     m_cache.Save();
 }
 
+bool GameTracker::AddPath(const QString& dir)
+{
+  if (Settings::Instance().IsAutoRefreshEnabled())
+    return addPath(dir);
+
+  m_tracked_paths.push_back(dir);
+
+  return true;
+}
+
+bool GameTracker::RemovePath(const QString& dir)
+{
+  if (Settings::Instance().IsAutoRefreshEnabled())
+    return removePath(dir);
+
+  const auto index = m_tracked_paths.indexOf(dir);
+
+  if (index == -1)
+    return false;
+
+  m_tracked_paths.remove(index);
+
+  return true;
+}
+
 void GameTracker::AddDirectory(const QString& dir)
 {
   m_load_thread.EmplaceItem(Command{CommandType::AddDirectory, dir});
@@ -140,7 +174,7 @@ void GameTracker::AddDirectoryInternal(const QString& dir)
 {
   if (!QFileInfo(dir).exists())
     return;
-  addPath(dir);
+  AddPath(dir);
   UpdateDirectoryInternal(dir);
 }
 
@@ -154,7 +188,7 @@ static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
 
 void GameTracker::RemoveDirectoryInternal(const QString& dir)
 {
-  removePath(dir);
+  RemovePath(dir);
   auto it = GetIterator(dir);
   while (it->hasNext())
   {
@@ -164,7 +198,7 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
       m_tracked_files[path].remove(dir);
       if (m_tracked_files[path].empty())
       {
-        removePath(path);
+        RemovePath(path);
         m_tracked_files.remove(path);
         if (m_started)
           emit GameRemoved(path.toStdString());
@@ -188,7 +222,7 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
     }
     else
     {
-      addPath(path);
+      AddPath(path);
       m_tracked_files[path] = QSet<QString>{dir};
       LoadGame(path);
     }
@@ -214,10 +248,10 @@ void GameTracker::UpdateFileInternal(const QString& file)
   {
     if (m_started)
       GameRemoved(file.toStdString());
-    addPath(file);
+    AddPath(file);
     LoadGame(file);
   }
-  else if (removePath(file))
+  else if (RemovePath(file))
   {
     m_tracked_files.remove(file);
     if (m_started)

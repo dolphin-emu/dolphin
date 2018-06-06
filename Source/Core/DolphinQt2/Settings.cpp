@@ -133,6 +133,21 @@ void Settings::ReloadTitleDB()
   emit TitleDBReloadRequested();
 }
 
+bool Settings::IsAutoRefreshEnabled() const
+{
+  return GetQSettings().value(QStringLiteral("gamelist/autorefresh"), true).toBool();
+}
+
+void Settings::SetAutoRefreshEnabled(bool enabled)
+{
+  if (IsAutoRefreshEnabled() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("gamelist/autorefresh"), enabled);
+
+  emit AutoRefreshToggled(enabled);
+}
+
 QString Settings::GetDefaultGame() const
 {
   return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);

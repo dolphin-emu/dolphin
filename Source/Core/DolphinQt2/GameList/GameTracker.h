@@ -11,6 +11,7 @@
 #include <QMap>
 #include <QSet>
 #include <QString>
+#include <QVector>
 
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
@@ -54,6 +55,9 @@ private:
   QSet<QString> FindMissingFiles(const QString& dir);
   void LoadGame(const QString& path);
 
+  bool AddPath(const QString& path);
+  bool RemovePath(const QString& path);
+
   enum class CommandType
   {
     LoadCache,
@@ -72,6 +76,7 @@ private:
 
   // game path -> directories that track it
   QMap<QString, QSet<QString>> m_tracked_files;
+  QVector<QString> m_tracked_paths;
   Common::WorkQueueThread<Command> m_load_thread;
   UICommon::GameFileCache m_cache;
   Common::Event m_cache_loaded_event;
