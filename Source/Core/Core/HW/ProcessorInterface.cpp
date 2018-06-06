@@ -9,6 +9,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Core/API/Events.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
@@ -182,11 +183,13 @@ void SetInterrupt(u32 cause_mask, bool set)
 
   if (set && !(m_InterruptCause & cause_mask))
   {
+    API::GetEventHub().EmitEvent(API::Events::SetInterrupt{cause_mask});
     DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(cause_mask));
   }
 
   if (!set && (m_InterruptCause & cause_mask))
   {
+    API::GetEventHub().EmitEvent(API::Events::ClearInterrupt{cause_mask});
     DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)",
               Debug_GetInterruptName(cause_mask));
   }

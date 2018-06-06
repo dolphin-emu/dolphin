@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/Logging/Log.h"
+#include "Core/API/Events.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
@@ -238,6 +239,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
 bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 addr, bool write,
                        size_t size, u32 pc)
 {
+  API::GetEventHub().EmitEvent(API::Events::MemoryBreakpoint{write, addr, value});
   if ((write && is_break_on_write) || (!write && is_break_on_read))
   {
     if (log_on_hit)

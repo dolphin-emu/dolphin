@@ -36,6 +36,7 @@
 #include "Common/Timer.h"
 #include "Common/Version.h"
 
+#include "Core/API/Events.h"
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -884,6 +885,8 @@ void Callback_NewField()
         s_on_state_changed_callback(Core::GetState());
     }
   }
+
+  API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
 }
 
 void UpdateTitle()
