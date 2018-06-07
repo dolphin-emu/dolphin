@@ -405,7 +405,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DEC:
     if (!(old_value >> 31) && (rGPR[inst.RD] >> 31))  // top bit from 0 to 1
     {
-      PanicAlert("Interesting - Software triggered Decrementer exception");
+      INFO_LOG(POWERPC, "Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
     }
     SystemTimers::DecrementerSet();
