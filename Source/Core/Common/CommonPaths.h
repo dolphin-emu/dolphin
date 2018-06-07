@@ -47,6 +47,7 @@
 #define DUMP_DIR "Dump"
 #define DUMP_TEXTURES_DIR "Textures"
 #define DUMP_FRAMES_DIR "Frames"
+#define DUMP_OBJECTS_DIR "Objects"
 #define DUMP_AUDIO_DIR "Audio"
 #define DUMP_DSP_DIR "DSP"
 #define DUMP_SSL_DIR "SSL"

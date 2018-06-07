@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/IOS/IOSC.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
@@ -116,7 +117,7 @@ private:
   static bool Load_BS2(const std::string& boot_rom_filename);
 
   static void SetupGCMemory();
-  static bool SetupWiiMemory();
+  static bool SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type);
 };
 
 class BootExecutableReader

@@ -34,6 +34,7 @@ add_library(common
   PerformanceCounter.cpp
   Profiler.cpp
   QoSSession.cpp
+  Random.cpp
   SDCardUtil.cpp
   SettingsHandler.cpp
   StringUtil.cpp
@@ -156,6 +157,7 @@ endif()
 if(UNIX)
   # Posix networking code needs to be fixed for Windows
   add_executable(traversal_server TraversalServer.cpp)
+  target_link_libraries(traversal_server PRIVATE common)
   if(SYSTEMD_FOUND)
     target_link_libraries(traversal_server ${SYSTEMD_LIBRARIES})
   endif()

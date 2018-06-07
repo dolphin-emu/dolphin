@@ -25,6 +25,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -214,7 +215,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume& volume)
   return RunApploader(/*is_wii*/ false, volume);
 }
 
-bool CBoot::SetupWiiMemory()
+bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
@@ -294,9 +295,10 @@ bool CBoot::SetupWiiMemory()
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x00000028);  // MEM1 size 24MB
-  Memory::Write_U32(0x00000023, 0x0000002c);            // Production Board Model
-  Memory::Write_U32(0x00000000, 0x00000030);            // Init
-  Memory::Write_U32(0x817FEC60, 0x00000034);            // Init
+  u32 board_model = console_type == IOS::HLE::IOSC::ConsoleType::RVT ? 0x10000021 : 0x00000023;
+  Memory::Write_U32(board_model, 0x0000002c);  // Board Model
+  Memory::Write_U32(0x00000000, 0x00000030);   // Init
+  Memory::Write_U32(0x817FEC60, 0x00000034);   // Init
   // 38, 3C should get start, size of FST through apploader
   Memory::Write_U32(0x8008f7b8, 0x000000e4);            // Thread Init
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x000000f0);  // "Simulated memory size" (debug mode?)
@@ -381,7 +383,8 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
   Memory::Write_U32(0, 0x3194);
   Memory::Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
-  if (!SetupWiiMemory() || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
+  const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
+  if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
   DVDRead(volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code

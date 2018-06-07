@@ -43,6 +43,7 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -370,7 +371,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
         // Because there is no TMD to get the requested system (IOS) version from,
         // we default to IOS58, which is the version used by the Homebrew Channel.
-        SetupWiiMemory();
+        SetupWiiMemory(IOS::HLE::IOSC::ConsoleType::Retail);
         IOS::HLE::GetIOS()->BootIOS(Titles::IOS(58));
       }
       else

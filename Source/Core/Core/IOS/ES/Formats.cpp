@@ -443,10 +443,13 @@ std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
 
 std::array<u8, 16> TicketReader::GetTitleKey() const
 {
-  const bool is_rvt = (GetIssuer() == "Root-CA00000002-XS00000006");
-  const HLE::IOSC::ConsoleType console_type =
-      is_rvt ? HLE::IOSC::ConsoleType::RVT : HLE::IOSC::ConsoleType::Retail;
-  return GetTitleKey(HLE::IOSC{console_type});
+  return GetTitleKey(HLE::IOSC{GetConsoleType()});
+}
+
+HLE::IOSC::ConsoleType TicketReader::GetConsoleType() const
+{
+  const bool is_rvt = GetIssuer() == "Root-CA00000002-XS00000006";
+  return is_rvt ? HLE::IOSC::ConsoleType::RVT : HLE::IOSC::ConsoleType::Retail;
 }
 
 void TicketReader::DeleteTicket(u64 ticket_id_to_delete)

@@ -37,7 +37,7 @@ class ES final : public Device
 public:
   ES(Kernel& ios, const std::string& device_name);
 
-  s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
+  ReturnCode DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
   bool LaunchTitle(u64 title_id, bool skip_reload = false);
 
   void DoState(PointerWrap& p) override;

@@ -58,15 +58,24 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
     Helper_UpdateCR1();
 }
 
+// This instruction can affect FX
 void Interpreter::mtfsb1x(UGeckoInstruction inst)
 {
-  // this instruction can affect FX
-  u32 b = 0x80000000 >> inst.CRBD;
-  if (b & FPSCR_ANY_X)
-    SetFPException(b);
-  else
-    FPSCR.Hex |= b;
-  FPSCRtoFPUSettings(FPSCR);
+  const u32 bit = inst.CRBD;
+
+  // Bit 20 in the FPSCR is reserved and defined as zero,
+  // so we ensure that we don't set it.
+  if (bit != 20)
+  {
+    const u32 b = 0x80000000 >> bit;
+
+    if (b & FPSCR_ANY_X)
+      SetFPException(b);
+    else
+      FPSCR.Hex |= b;
+
+    FPSCRtoFPUSettings(FPSCR);
+  }
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -74,10 +83,14 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
 
 void Interpreter::mtfsfix(UGeckoInstruction inst)
 {
-  u32 mask = (0xF0000000 >> (4 * inst.CRFD));
-  u32 imm = (inst.hex << 16) & 0xF0000000;
+  // Bit 20 of the FPSCR is reserved and defined as zero on hardware,
+  // so ensure that we don't set it.
+  const u32 field = inst.CRFD;
+  const u32 pre_shifted_mask = field == 4 ? 0x70000000 : 0xF0000000;
+  const u32 mask = (pre_shifted_mask >> (4 * field));
+  const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 
-  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * inst.CRFD));
+  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
   FPSCRtoFPUSettings(FPSCR);
 
@@ -94,6 +107,12 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
     if (fm & (1U << i))
       m |= (0xFU << (i * 4));
   }
+
+  // Bit 20 of the FPSCR is defined as always being zero
+  // (bit 11 in a little endian context), so ensure that
+  // we don't actually set that bit.
+  if ((fm & 0b100) != 0)
+    m &= 0xFFFFF7FF;
 
   FPSCR.Hex = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
   FPSCRtoFPUSettings(FPSCR);
@@ -386,7 +405,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DEC:
     if (!(old_value >> 31) && (rGPR[inst.RD] >> 31))  // top bit from 0 to 1
     {
-      PanicAlert("Interesting - Software triggered Decrementer exception");
+      INFO_LOG(POWERPC, "Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
     }
     SystemTimers::DecrementerSet();

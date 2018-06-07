@@ -51,7 +51,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  setWindowTitle(tr("Dolphin NetPlay"));
+  setWindowTitle(tr("NetPlay"));
 
   m_pad_mapping = new PadMappingDialog(this);
   m_md5_dialog = new MD5Dialog(this);

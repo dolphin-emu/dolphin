@@ -30,6 +30,7 @@ signals:
   void ResetHotkey();
   void TogglePauseHotkey();
   void ScreenShotHotkey();
+  void RefreshGameListHotkey();
   void SetStateSlotHotkey(int slot);
   void StateLoadSlotHotkey();
   void StateSaveSlotHotkey();
