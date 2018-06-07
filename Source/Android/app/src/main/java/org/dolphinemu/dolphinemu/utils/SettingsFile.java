@@ -69,6 +69,7 @@ public final class SettingsFile
 	public static final String SECTION_CONFIG_INTERFACE = "Interface";
 
 	public static final String SECTION_GFX_SETTINGS = "Settings";
+	public static final String SECTION_GFX_SHADER_COMPILATION = "Shader Compilation Mode";
 	public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
 	public static final String SECTION_GFX_HACKS = "Hacks";
 
