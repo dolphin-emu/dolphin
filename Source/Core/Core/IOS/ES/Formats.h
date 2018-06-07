@@ -242,6 +242,9 @@ public:
   // and constructs a temporary IOSC instance.
   std::array<u8, 16> GetTitleKey() const;
 
+  // Infers the console type (retail or devkit) based on the certificate issuer.
+  HLE::IOSC::ConsoleType GetConsoleType() const;
+
   // Deletes a ticket with the given ticket ID from the internal buffer.
   void DeleteTicket(u64 ticket_id);
 
