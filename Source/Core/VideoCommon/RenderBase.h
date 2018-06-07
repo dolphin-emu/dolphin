@@ -62,7 +62,8 @@ enum class OSDMessage : s32
   EFBCopyToggled = 3,
   FogToggled = 4,
   SpeedChanged = 5,
-  XFBChanged = 6
+  XFBChanged = 6,
+  VolumeChanged = 7,
 };
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
