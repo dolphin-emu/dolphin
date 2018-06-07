@@ -4,7 +4,6 @@
 #include <mbedtls/sha1.h>
 #include <memory>
 #include <mutex>
-#include <random>
 #include <string>
 
 #if defined(_WIN32)
@@ -16,6 +15,7 @@
 #include "Common/Analytics.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Random.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/ConfigManager.h"
@@ -73,9 +73,9 @@ void DolphinAnalytics::ReloadConfig()
 
 void DolphinAnalytics::GenerateNewIdentity()
 {
-  std::random_device rd;
-  u64 id_high = (static_cast<u64>(rd()) << 32) | rd();
-  u64 id_low = (static_cast<u64>(rd()) << 32) | rd();
+  u64 id_high, id_low;
+  Common::Random::Generate(&id_high, sizeof(id_high));
+  Common::Random::Generate(&id_low, sizeof(id_low));
   m_unique_id = StringFromFormat("%016" PRIx64 "%016" PRIx64, id_high, id_low);
 
   // Save the new id in the configuration.

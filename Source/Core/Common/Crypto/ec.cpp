@@ -15,6 +15,8 @@
 #include "Common/Common.h"
 #include "Common/Crypto/bn.h"
 #include "Common/Crypto/ec.h"
+#include "Common/Random.h"
+#include "Common/StringUtil.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -230,30 +232,18 @@ static Point operator*(const u8* a, const Point& b)
   return d;
 }
 
-static void silly_random(u8* rndArea, u8 count)
-{
-  u16 i;
-  srand((unsigned)(time(nullptr)));
-
-  for (i = 0; i < count; i++)
-  {
-    rndArea[i] = rand();
-  }
-}
-
 Signature Sign(const u8* key, const u8* hash)
 {
   u8 e[30]{};
   memcpy(e + 10, hash, 20);
 
-  // Changing random number generator to a lame one...
   u8 m[30];
-  silly_random(m, sizeof(m));
-  // fp = fopen("/dev/random", "rb");
-  // if (fread(m, sizeof m, 1, fp) != 1)
-  //	fatal("reading random");
-  // fclose(fp);
-  m[0] = 0;
+  do
+  {
+    // Generate 240 bits and keep 233.
+    Common::Random::Generate(m, sizeof(m));
+    m[0] &= 1;
+  } while (bn_compare(m, ec_N, sizeof(m)) >= 0);
 
   Elt r = (m * ec_G).X();
   if (bn_compare(r.data.data(), ec_N, 30) >= 0)
