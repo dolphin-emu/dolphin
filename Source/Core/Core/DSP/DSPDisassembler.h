@@ -5,16 +5,15 @@
 
 #pragma once
 
-#include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
-#include "Core/DSP/DSPTables.h"
-
 namespace DSP
 {
+struct DSPOPCTemplate;
+
 struct AssemblerSettings
 {
   bool print_tabs = false;

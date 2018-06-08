@@ -4,15 +4,12 @@
 
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
-#include <cctype>
-#include <list>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
