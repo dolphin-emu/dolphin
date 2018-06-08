@@ -209,6 +209,12 @@ void MainWindow::InitCoreCallbacks()
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
     if (state == Core::State::Uninitialized)
       OnStopComplete();
+
+    if (state == Core::State::Running && m_fullscreen_requested)
+    {
+      FullScreen();
+      m_fullscreen_requested = false;
+    }
   });
   installEventFilter(this);
   m_render_widget->installEventFilter(this);
@@ -771,7 +777,11 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
     return;
   }
+
   ShowRenderWidget();
+
+  if (SConfig::GetInstance().bFullscreen)
+    m_fullscreen_requested = true;
 
 #ifdef Q_OS_WIN
   // Prevents Windows from sleeping, turning off the display, or idling
@@ -810,13 +820,6 @@ void MainWindow::SetFullScreenResolution(bool fullscreen)
 
 void MainWindow::ShowRenderWidget()
 {
-  if (SConfig::GetInstance().bFullscreen && !m_render_widget->isFullScreen())
-  {
-    m_render_widget->showFullScreen();
-    SetFullScreenResolution(true);
-    return;
-  }
-
   SetFullScreenResolution(false);
   Host::GetInstance()->SetRenderFullscreen(false);
 

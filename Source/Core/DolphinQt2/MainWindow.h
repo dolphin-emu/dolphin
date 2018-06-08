@@ -175,6 +175,7 @@ private:
   bool m_rendering_to_main;
   bool m_stop_requested = false;
   bool m_exit_requested = false;
+  bool m_fullscreen_requested = false;
   int m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 
