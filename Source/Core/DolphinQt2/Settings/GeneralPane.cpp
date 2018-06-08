@@ -19,6 +19,7 @@
 #include <QWidget>
 
 #include "Core/Analytics.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -227,7 +228,7 @@ void GeneralPane::LoadConfig()
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
 #ifdef USE_DISCORD_PRESENCE
-  m_checkbox_discord_presence->setChecked(Config::Get(MAIN_USE_DISCORD_PRESENCE));
+  m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
   int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
   if (selection < m_combobox_speedlimit->count())

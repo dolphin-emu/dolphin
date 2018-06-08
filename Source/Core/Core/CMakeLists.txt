@@ -29,6 +29,7 @@ add_library(core
   Config/MainSettings.cpp
   Config/NetplaySettings.cpp
   Config/SYSCONFSettings.cpp
+  Config/UISettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp

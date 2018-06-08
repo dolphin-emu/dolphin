@@ -19,10 +19,6 @@
 #include "DolphinQt2/Settings.h"
 #include "InputCommon/InputConfig.h"
 
-#ifdef USE_DISCORD_PRESENCE
-#include "UICommon/DiscordPresence.h"
-#endif
-
 Settings::Settings()
 {
   qRegisterMetaType<Core::State>();

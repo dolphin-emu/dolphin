@@ -9,7 +9,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
-#include "UICommon/DiscordPresence.h"
+#include "Core/Config/UISettings.h"
 
 namespace ConfigLoaders
 {
@@ -116,9 +116,9 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
 
       Config::GFX_PERF_QUERIES_ENABLE.location,
 
-      // Main.General
+      // UI.General
 
-      MAIN_USE_DISCORD_PRESENCE.location,
+      Config::MAIN_USE_DISCORD_PRESENCE.location,
 
   };
 

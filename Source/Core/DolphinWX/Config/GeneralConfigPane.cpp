@@ -20,6 +20,7 @@
 
 #include "Common/Common.h"
 #include "Core/Analytics.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -161,7 +162,7 @@ void GeneralConfigPane::LoadGUIValues()
   m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
 
 #ifdef USE_DISCORD_PRESENCE
-  m_discord_presence_checkbox->SetValue(Config::Get(MAIN_USE_DISCORD_PRESENCE));
+  m_discord_presence_checkbox->SetValue(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
 #endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

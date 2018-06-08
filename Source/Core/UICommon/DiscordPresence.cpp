@@ -2,31 +2,28 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#ifdef USE_DISCORD_PRESENCE
-
 #include "UICommon/DiscordPresence.h"
+#include "Core/Config/UISettings.h"
+#include "Core/ConfigManager.h"
+
+#ifdef USE_DISCORD_PRESENCE
 
 #include <ctime>
 #include <discord-rpc/include/discord_rpc.h>
 
-#include "Core/ConfigManager.h"
-
 #endif
-
-const Config::ConfigInfo<bool> MAIN_USE_DISCORD_PRESENCE{
-    {Config::System::Main, "General", "UseDiscordPresence"}, true};
 
 namespace Discord
 {
 void Init()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(MAIN_USE_DISCORD_PRESENCE))
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   DiscordEventHandlers handlers = {};
   // The number is the client ID for Dolphin, it's used for images and the appication name
-  Discord_Initialize("450033159212630028", &handlers, 1, nullptr);
+  Discord_Initialize("455712169795780630", &handlers, 1, nullptr);
   UpdateDiscordPresence();
 #endif
 }
@@ -34,7 +31,7 @@ void Init()
 void UpdateDiscordPresence()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(MAIN_USE_DISCORD_PRESENCE))
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   const std::string& title = SConfig::GetInstance().GetTitleDescription();
@@ -51,7 +48,7 @@ void UpdateDiscordPresence()
 void Shutdown()
 {
 #ifdef USE_DISCORD_PRESENCE
-  if (!Config::Get(MAIN_USE_DISCORD_PRESENCE))
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
   Discord_ClearPresence();
@@ -61,15 +58,15 @@ void Shutdown()
 
 void SetDiscordPresenceEnabled(bool enabled)
 {
-  if (Config::Get(MAIN_USE_DISCORD_PRESENCE) == enabled)
+  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE) == enabled)
     return;
 
-  if (Config::Get(MAIN_USE_DISCORD_PRESENCE))
+  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     Discord::Shutdown();
 
-  Config::SetBase(MAIN_USE_DISCORD_PRESENCE, enabled);
+  Config::SetBase(Config::MAIN_USE_DISCORD_PRESENCE, enabled);
 
-  if (Config::Get(MAIN_USE_DISCORD_PRESENCE))
+  if (Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     Discord::Init();
 }
 

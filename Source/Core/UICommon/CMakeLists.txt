@@ -37,3 +37,8 @@ if(ENABLE_LLVM)
     target_include_directories(uicommon PRIVATE ${LLVM_INCLUDE_DIRS})
   endif()
 endif()
+
+if(USE_DISCORD_PRESENCE)
+  target_compile_definitions(uicommon PRIVATE -DUSE_DISCORD_PRESENCE)
+  target_link_libraries(uicommon PRIVATE discord-rpc)
+endif()
