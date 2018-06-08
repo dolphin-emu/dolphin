@@ -36,6 +36,12 @@ constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
 constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
 constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
 
+JitArm64::JitArm64() : m_float_emit(this)
+{
+}
+
+JitArm64::~JitArm64() = default;
+
 void JitArm64::Init()
 {
   InitializeInstructionTables();
@@ -553,7 +559,7 @@ void JitArm64::Jit(u32)
     ClearCache();
   }
 
-  std::size_t block_size = code_buffer.size();
+  std::size_t block_size = m_code_buffer.size();
   const u32 em_address = PowerPC::ppcState.pc;
 
   if (SConfig::GetInstance().bEnableDebugging)
@@ -565,7 +571,7 @@ void JitArm64::Jit(u32)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, block_size);
+  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
@@ -651,7 +657,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = code_buffer[i];
+    PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
     js.compilerPC = op.address;
     js.op = &op;

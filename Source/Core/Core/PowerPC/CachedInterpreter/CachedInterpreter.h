@@ -42,5 +42,4 @@ private:
 
   BlockCache m_block_cache{*this};
   std::vector<Instruction> m_code;
-  PPCAnalyst::CodeBuffer code_buffer;
 };
