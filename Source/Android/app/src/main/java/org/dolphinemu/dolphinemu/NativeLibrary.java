@@ -261,34 +261,6 @@ public final class NativeLibrary
 	public static native void SetConfig(String configFile, String Section, String Key, String Value);
 
 	/**
-	 * Gets the embedded banner within the given ISO/ROM.
-	 *
-	 * @param filename the file path to the ISO/ROM.
-	 *
-	 * @return an integer array containing the color data for the banner.
-	 */
-	public static native int[] GetBanner(String filename);
-
-	/**
-	 * Gets the embedded title of the given ISO/ROM.
-	 *
-	 * @param filename The file path to the ISO/ROM.
-	 *
-	 * @return the embedded title of the ISO/ROM.
-	 */
-	public static native String GetTitle(String filename);
-
-	public static native String GetDescription(String filename);
-	public static native String GetGameId(String filename);
-
-	public static native int GetCountry(String filename);
-
-	public static native String GetCompany(String filename);
-	public static native long GetFilesize(String filename);
-
-	public static native int GetPlatform(String filename);
-
-	/**
 	 * Gets the Dolphin version string.
 	 *
 	 * @return the Dolphin version string.
@@ -393,27 +365,6 @@ public final class NativeLibrary
 	 * Provides a way to refresh the connections on Wiimotes
 	 */
 	public static native void RefreshWiimotes();
-
-	/**
-	 * The methods C++ uses to find references to Java classes and methods
-	 * are really expensive. Rather than calling them every time we want to
-	 * run them, do it once when we load the native library.
-	 */
-	private static native void CacheClassesAndMethods();
-
-	static
-	{
-		try
-		{
-			System.loadLibrary("main");
-		}
-		catch (UnsatisfiedLinkError ex)
-		{
-			Log.error("[NativeLibrary] " + ex.toString());
-		}
-
-		CacheClassesAndMethods();
-	}
 
 	private static boolean alertResult = false;
 	public static boolean displayAlertMsg(final String caption, final String text, final boolean yesNo)

@@ -6,9 +6,7 @@
 
 #include <cstddef>
 #include <functional>
-#include <list>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <vector>
 
@@ -26,8 +24,12 @@ std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& direct
 class GameFileCache
 {
 public:
+  GameFileCache();  // Uses the default path
+  explicit GameFileCache(std::string path);
+
   void ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const;
 
+  size_t GetSize() const;
   void Clear();
 
   // Returns nullptr if the file is invalid.
@@ -49,6 +51,7 @@ private:
   bool SyncCacheFile(bool save);
   void DoState(PointerWrap* p, u64 size = 0);
 
+  std::string m_path;
   std::vector<std::shared_ptr<GameFile>> m_cached_files;
 };
 

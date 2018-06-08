@@ -23,11 +23,9 @@ public enum Platform
 
 	public static Platform fromNativeInt(int i)
 	{
-		// If the game's platform field is empty, file under Wiiware. // TODO Something less dum
-		if (i == -1) {
-			return Platform.WIIWARE;
-		}
-		return values()[i];
+		// TODO: Proper support for DOL and ELF files
+		boolean in_range = i >= 0 && i < values().length;
+		return values()[in_range ? i : WIIWARE.value];
 	}
 
 	public static Platform fromPosition(int position)

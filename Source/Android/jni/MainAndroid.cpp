@@ -16,8 +16,6 @@
 #include <thread>
 #include <utility>
 
-#include "ButtonManager.h"
-
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -51,16 +49,15 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-#define DOLPHIN_TAG "DolphinEmuNative"
-
-JavaVM* g_java_vm;
+#include "jni/AndroidCommon/AndroidCommon.h"
+#include "jni/AndroidCommon/IDCache.h"
+#include "jni/ButtonManager.h"
 
 namespace
 {
-ANativeWindow* s_surf;
+static constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
 
-jclass s_jni_class;
-jmethodID s_jni_method_alert;
+ANativeWindow* s_surf;
 
 // The Core only supports using a single Host thread.
 // If multiple threads want to call host functions then they need to queue
@@ -69,16 +66,6 @@ std::mutex s_host_identity_lock;
 Common::Event s_update_main_frame_event;
 bool s_have_wm_user_stop = false;
 }  // Anonymous namespace
-
-/*
- * Cache the JavaVM so that we can call into it later.
- */
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
-{
-  g_java_vm = vm;
-
-  return JNI_VERSION_1_6;
-}
 
 void Host_NotifyMapLoaded()
 {
@@ -156,227 +143,17 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, MsgType
 
   // Associate the current Thread with the Java VM.
   JNIEnv* env;
-  g_java_vm->AttachCurrentThread(&env, NULL);
+  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
 
   // Execute the Java method.
-  jboolean result =
-      env->CallStaticBooleanMethod(s_jni_class, s_jni_method_alert, env->NewStringUTF(caption),
-                                   env->NewStringUTF(text), yes_no ? JNI_TRUE : JNI_FALSE);
+  jboolean result = env->CallStaticBooleanMethod(
+      IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
+      ToJString(env, text), yes_no ? JNI_TRUE : JNI_FALSE);
 
   // Must be called before the current thread exits; might as well do it here.
-  g_java_vm->DetachCurrentThread();
+  IDCache::GetJavaVM()->DetachCurrentThread();
 
   return result != JNI_FALSE;
-}
-
-#define DVD_BANNER_WIDTH 96
-#define DVD_BANNER_HEIGHT 32
-
-static inline u32 Average32(u32 a, u32 b)
-{
-  return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
-}
-
-static inline u32 GetPixel(u32* buffer, unsigned int x, unsigned int y)
-{
-  // thanks to unsignedness, these also check for <0 automatically.
-  if (x > 191)
-    return 0;
-  if (y > 63)
-    return 0;
-  return buffer[y * 192 + x];
-}
-
-static bool LoadBanner(std::string filename, u32* Banner)
-{
-  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
-
-  if (pVolume != nullptr)
-  {
-    u32 Width, Height;
-    std::vector<u32> BannerVec = pVolume->GetBanner(&Width, &Height);
-    // This code (along with above inlines) is moved from
-    // elsewhere.  Someone who knows anything about Android
-    // please get rid of it and use proper high-resolution
-    // images.
-    if (Height == 64 && Width == 192)
-    {
-      u32* Buffer = &BannerVec[0];
-      for (int y = 0; y < 32; y++)
-      {
-        for (int x = 0; x < 96; x++)
-        {
-          // simplified plus-shaped "gaussian"
-          u32 surround = Average32(
-              Average32(GetPixel(Buffer, x * 2 - 1, y * 2), GetPixel(Buffer, x * 2 + 1, y * 2)),
-              Average32(GetPixel(Buffer, x * 2, y * 2 - 1), GetPixel(Buffer, x * 2, y * 2 + 1)));
-          Banner[y * 96 + x] = Average32(GetPixel(Buffer, x * 2, y * 2), surround);
-        }
-      }
-      return true;
-    }
-    else if (Height == 32 && Width == 96)
-    {
-      memcpy(Banner, &BannerVec[0], 96 * 32 * 4);
-      return true;
-    }
-  }
-
-  return false;
-}
-
-static int GetCountry(std::string filename)
-{
-  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
-
-  if (pVolume != nullptr)
-  {
-    int country = static_cast<int>(pVolume->GetCountry());
-
-    __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Country Code: %i", country);
-
-    return country;
-  }
-
-  return static_cast<int>(DiscIO::Country::Unknown);
-}
-
-static int GetPlatform(std::string filename)
-{
-  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
-
-  if (pVolume != nullptr)
-  {
-    switch (pVolume->GetVolumeType())
-    {
-    case DiscIO::Platform::GameCubeDisc:
-      __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a GameCube disc.");
-      return 0;
-    case DiscIO::Platform::WiiDisc:
-      __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii disc.");
-      return 1;
-    case DiscIO::Platform::WiiWAD:
-      __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii WAD.");
-      return 2;
-    }
-  }
-
-  return -1;
-}
-
-static std::string GetTitle(std::string filename)
-{
-  __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Title for file: %s",
-                      filename.c_str());
-
-  std::unique_ptr<DiscIO::Volume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
-
-  if (pVolume != nullptr)
-  {
-    std::map<DiscIO::Language, std::string> titles = pVolume->GetLongNames();
-    if (titles.empty())
-      titles = pVolume->GetShortNames();
-
-    auto end = titles.end();
-
-    // English tends to be a good fallback when the requested language isn't available
-    // if (language != DiscIO::Language::English) {
-    auto it = titles.find(DiscIO::Language::English);
-    if (it != end)
-      return it->second;
-    //}
-
-    // If English isn't available either, just pick something
-    if (!titles.empty())
-      return titles.cbegin()->second;
-
-    // No usable name, return filename (better than nothing)
-    std::string name;
-    SplitPath(filename, nullptr, &name, nullptr);
-    return name;
-  }
-
-  return std::string("");
-}
-
-static std::string GetDescription(std::string filename)
-{
-  __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Description for file: %s",
-                      filename.c_str());
-
-  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
-
-  if (volume != nullptr)
-  {
-    std::map<DiscIO::Language, std::string> descriptions = volume->GetDescriptions();
-
-    auto end = descriptions.end();
-
-    // English tends to be a good fallback when the requested language isn't available
-    // if (language != DiscIO::Language::English) {
-    auto it = descriptions.find(DiscIO::Language::English);
-    if (it != end)
-      return it->second;
-    //}
-
-    // If English isn't available either, just pick something
-    if (!descriptions.empty())
-      return descriptions.cbegin()->second;
-  }
-
-  return std::string();
-}
-
-static std::string GetGameId(std::string filename)
-{
-  __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting ID for file: %s", filename.c_str());
-
-  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
-  if (volume == nullptr)
-    return std::string();
-
-  std::string id = volume->GetGameID();
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Game ID: %s", id.c_str());
-  return id;
-}
-
-static std::string GetCompany(std::string filename)
-{
-  __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting Company for file: %s",
-                      filename.c_str());
-
-  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
-  if (volume == nullptr)
-    return std::string();
-
-  std::string company = DiscIO::GetCompanyFromID(volume->GetMakerID());
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Company: %s", company.c_str());
-  return company;
-}
-
-static u64 GetFileSize(std::string filename)
-{
-  __android_log_print(ANDROID_LOG_WARN, DOLPHIN_TAG, "Getting size of file: %s", filename.c_str());
-
-  std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolumeFromFilename(filename));
-  if (volume == nullptr)
-    return -1;
-
-  u64 size = volume->GetSize();
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Size: %" PRIu64, size);
-  return size;
-}
-
-static std::string GetJString(JNIEnv* env, jstring jstr)
-{
-  std::string result = "";
-  if (!jstr)
-    return result;
-
-  const char* s = env->GetStringUTFChars(jstr, nullptr);
-  result = s;
-  env->ReleaseStringUTFChars(jstr, s);
-  return result;
 }
 
 #ifdef __cplusplus
@@ -395,28 +172,6 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePa
     JNIEnv* env, jobject obj, jstring jDevice, jint Button, jint Action);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(
     JNIEnv* env, jobject obj, jstring jDevice, jint Axis, jfloat Value);
-JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv* env,
-                                                                                   jobject obj,
-                                                                                   jstring jFile);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring jFilename);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDescription(
-    JNIEnv* env, jobject obj, jstring jFilename);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameId(JNIEnv* env,
-                                                                                 jobject obj,
-                                                                                 jstring jFilename);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCountry(JNIEnv* env,
-                                                                               jobject obj,
-                                                                               jstring jFilename);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCompany(
-    JNIEnv* env, jobject obj, jstring jFilename);
-JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize(JNIEnv* env,
-                                                                                 jobject obj,
-                                                                                 jstring jFilename);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring jFilename);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env, jobject obj);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
@@ -461,8 +216,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
                                                                                  jboolean enable);
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv* env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2(
     JNIEnv* env, jobject obj, jstring jFile);
 JNIEXPORT void JNICALL
@@ -518,93 +271,16 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
   ButtonManager::GamepadAxisEvent(GetJString(env, jDevice), Axis, Value);
 }
 
-JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetBanner(JNIEnv* env,
-                                                                                   jobject obj,
-                                                                                   jstring jFile)
-{
-  std::string file = GetJString(env, jFile);
-  u32 uBanner[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
-  jintArray Banner = env->NewIntArray(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT);
-
-  if (LoadBanner(file, uBanner))
-  {
-    env->SetIntArrayRegion(Banner, 0, DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT, (jint*)uBanner);
-  }
-  return Banner;
-}
-
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetTitle(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  std::string name = GetTitle(filename);
-  return env->NewStringUTF(name.c_str());
-}
-
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetDescription(
-    JNIEnv* env, jobject obj, jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  std::string description = GetDescription(filename);
-  return env->NewStringUTF(description.c_str());
-}
-
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGameId(JNIEnv* env,
-                                                                                 jobject obj,
-                                                                                 jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  std::string id = GetGameId(filename);
-  return env->NewStringUTF(id.c_str());
-}
-
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCompany(JNIEnv* env,
-                                                                                  jobject obj,
-                                                                                  jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  std::string company = GetCompany(filename);
-  return env->NewStringUTF(company.c_str());
-}
-
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCountry(JNIEnv* env,
-                                                                               jobject obj,
-                                                                               jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  int country = GetCountry(filename);
-  return country;
-}
-
-JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetFilesize(JNIEnv* env,
-                                                                                 jobject obj,
-                                                                                 jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  u64 size = GetFileSize(filename);
-  return size;
-}
-
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring jFilename)
-{
-  std::string filename = GetJString(env, jFilename);
-  int platform = GetPlatform(filename);
-  return platform;
-}
-
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return env->NewStringUTF(Common::scm_rev_str.c_str());
+  return ToJString(env, Common::scm_rev_str.c_str());
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
                                                                                       jobject obj)
 {
-  return env->NewStringUTF(Common::scm_rev_git_str.c_str());
+  return ToJString(env, Common::scm_rev_git_str.c_str());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
@@ -646,7 +322,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserSe
 
   ini.GetOrCreateSection(section)->Get(key, &value, "-1");
 
-  return env->NewStringUTF(value.c_str());
+  return ToJString(env, value.c_str());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserSetting(
@@ -686,8 +362,9 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 
   ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
 
-  return env->NewStringUTF(value.c_str());
+  return ToJString(env, value.c_str());
 }
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
     JNIEnv* env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jValue)
 {
@@ -762,7 +439,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return env->NewStringUTF(File::GetUserPath(D_USER_IDX).c_str());
+  return ToJString(env, File::GetUserPath(D_USER_IDX).c_str());
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
@@ -789,25 +466,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfile
   std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
   File::CreateFullPath(filename);
   JitInterface::WriteProfileResults(filename);
-}
-
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv* env, jobject obj)
-{
-  // This class reference is only valid for the lifetime of this method.
-  jclass localClass = env->FindClass("org/dolphinemu/dolphinemu/NativeLibrary");
-
-  // This reference, however, is valid until we delete it.
-  s_jni_class = reinterpret_cast<jclass>(env->NewGlobalRef(localClass));
-
-  // TODO Find a place for this.
-  // So we don't leak a reference to NativeLibrary.class.
-  // env->DeleteGlobalRef(s_jni_class);
-
-  // Method signature taken from javap -s
-  // Source/Android/app/build/intermediates/classes/arm/debug/org/dolphinemu/dolphinemu/NativeLibrary.class
-  s_jni_method_alert = env->GetStaticMethodID(s_jni_class, "displayAlertMsg",
-                                              "(Ljava/lang/String;Ljava/lang/String;Z)Z");
 }
 
 // Surface Handling

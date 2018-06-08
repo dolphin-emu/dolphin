@@ -78,8 +78,15 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
 const std::string&
 GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const
 {
+#ifdef ANDROID
+  // TODO: Make the Android app load the config at app start instead of emulation start
+  // so that we can access the user's preference here
+  const DiscIO::Language language = DiscIO::Language::English;
+#else
   const bool wii = DiscIO::IsWii(m_platform);
-  return Lookup(SConfig::GetInstance().GetCurrentLanguage(wii), strings);
+  const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(wii);
+#endif
+  return Lookup(language, strings);
 }
 
 GameFile::GameFile(const std::string& path)

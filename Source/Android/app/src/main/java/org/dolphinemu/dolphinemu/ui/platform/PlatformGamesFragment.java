@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.ui.platform;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,12 +11,14 @@ import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
+import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+
+import java.util.List;
 
 public final class PlatformGamesFragment extends Fragment implements PlatformGamesView
 {
 	private static final String ARG_PLATFORM = "platform";
-
-	private PlatformGamesPresenter mPresenter = new PlatformGamesPresenter(this);
 
 	private GameAdapter mAdapter;
 	private RecyclerView mRecyclerView;
@@ -37,8 +38,6 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 	public void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-
-		mPresenter.onCreate((Platform) getArguments().getSerializable(ARG_PLATFORM));
 	}
 
 	@Nullable
@@ -48,8 +47,6 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 		View rootView = inflater.inflate(R.layout.fragment_grid, container, false);
 
 		findViews(rootView);
-
-		mPresenter.onCreateView();
 
 		return rootView;
 	}
@@ -65,6 +62,8 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 		mRecyclerView.setAdapter(mAdapter);
 
 		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
+
+		showGames();
 	}
 
 	@Override
@@ -74,23 +73,18 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 	}
 
 	@Override
-	public void refresh()
-	{
-		mPresenter.refresh();
-	}
-
-	@Override
 	public void onItemClick(String gameId)
 	{
 		// No-op for now
 	}
 
 	@Override
-	public void showGames(Cursor games)
+	public void showGames()
 	{
 		if (mAdapter != null)
 		{
-			mAdapter.swapCursor(games);
+			Platform platform = (Platform) getArguments().getSerializable(ARG_PLATFORM);
+			mAdapter.swapDataSet(GameFileCacheService.getGameFilesForPlatform(platform));
 		}
 	}
 

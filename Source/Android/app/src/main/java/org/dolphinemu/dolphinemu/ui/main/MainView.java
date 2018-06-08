@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.database.Cursor;
 
+import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 /**
@@ -20,11 +21,6 @@ public interface MainView
 	void setVersionString(String version);
 
 	/**
-	 * Tell the view to refresh its contents.
-	 */
-	void refresh();
-
-	/**
 	 * Tell the view to tell the currently displayed {@link android.support.v4.app.Fragment}
 	 * to refresh the screenshot at the given position in its list of games.
 	 *
@@ -38,11 +34,7 @@ public interface MainView
 	void launchFileListActivity();
 
 	/**
-	 * To be called when an asynchronous database read completes. Passes the
-	 * result, in this case a {@link Cursor} to the view.
-	 *
-	 * @param platform Which platform to show games for.
-	 * @param games A Cursor containing the games read from the database.
+	 * To be called when the game file cache is updated.
 	 */
-	void showGames(Platform platform, Cursor games);
+	void showGames();
 }

@@ -7,22 +7,28 @@ import com.squareup.picasso.Request;
 import com.squareup.picasso.RequestHandler;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.model.GameFile;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
 
 public class GameBannerRequestHandler extends RequestHandler {
+	GameFile mGameFile;
+
+	public GameBannerRequestHandler(GameFile gameFile)
+	{
+		mGameFile = gameFile;
+	}
 	@Override
 	public boolean canHandleRequest(Request data) {
-		return "iso".equals(data.uri.getScheme());
+		return true;
 	}
 
 	@Override
-	public Result load(Request request, int networkPolicy) throws IOException {
-		String url = request.uri.getHost() + request.uri.getPath();
-		int[] vector = NativeLibrary.GetBanner(url);
-		int width = 96;
-		int height = 32;
+	public Result load(Request request, int networkPolicy) {
+		int[] vector = mGameFile.getBanner();
+		int width = mGameFile.getBannerWidth();
+		int height = mGameFile.getBannerHeight();
 		Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 		bitmap.setPixels(vector, 0, width, 0, 0, width, height);
 		return new Result(bitmap, Picasso.LoadedFrom.DISK);

@@ -71,13 +71,7 @@
         </activity>
 
         <service android:name=".services.DirectoryInitializationService"/>
-
-        <provider
-            android:name=".model.GameProvider"
-            android:authorities="${applicationId}.provider"
-            android:enabled="true"
-            android:exported="false">
-        </provider>
+        <service android:name=".services.GameFileCacheService"/>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

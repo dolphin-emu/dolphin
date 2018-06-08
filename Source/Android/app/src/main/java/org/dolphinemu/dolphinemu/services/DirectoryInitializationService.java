@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class DirectoryInitializationService extends IntentService
 {
-    public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.BROADCAST";
+    public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
     public static final String EXTRA_STATE = "directoryState";
     private static volatile DirectoryInitializationState directoryState = null;
