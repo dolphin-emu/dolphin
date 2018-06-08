@@ -482,6 +482,10 @@ void MainWindow::ConnectRenderWidget()
   m_rendering_to_main = false;
   m_render_widget->hide();
   connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+  connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
+    if (m_render_widget->isFullScreen())
+      SetFullScreenResolution(focus);
+  });
 }
 
 void MainWindow::ConnectHost()
@@ -874,6 +878,10 @@ void MainWindow::HideRenderWidget(bool reinit)
 
     m_render_widget->installEventFilter(this);
     connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
+    connect(m_render_widget, &RenderWidget::FocusChanged, this, [this](bool focus) {
+      if (m_render_widget->isFullScreen())
+        SetFullScreenResolution(focus);
+    });
   }
 }
 
