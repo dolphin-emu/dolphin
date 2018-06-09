@@ -903,7 +903,7 @@ union AlphaTest
     PASS = 2,
   };
 
-  __forceinline TEST_RESULT TestResult() const
+  DOLPHIN_FORCE_INLINE TEST_RESULT TestResult() const
   {
     switch (logic)
     {

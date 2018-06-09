@@ -12,6 +12,8 @@
 #define UNUSED
 #endif
 
-#ifndef _WIN32
-#define __forceinline inline __attribute__((always_inline))
+#ifdef _WIN32
+#define DOLPHIN_FORCE_INLINE __forceinline
+#else
+#define DOLPHIN_FORCE_INLINE inline __attribute__((always_inline))
 #endif

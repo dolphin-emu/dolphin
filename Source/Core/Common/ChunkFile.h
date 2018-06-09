@@ -257,7 +257,7 @@ private:
     DoEachElement(x, [](PointerWrap& p, typename T::value_type& elem) { p.Do(elem); });
   }
 
-  __forceinline void DoVoid(void* data, u32 size)
+  DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
     switch (mode)
     {
