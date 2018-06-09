@@ -61,16 +61,18 @@ private:
     Complete
   };
 
+  struct HIDChannelState
+  {
+    bool connected = false;
+    bool connected_wait = false;
+    bool config = false;
+    bool config_wait = false;
+  };
+
   ConnectionState m_ConnectionState;
 
-  bool m_HIDControlChannel_Connected = false;
-  bool m_HIDControlChannel_ConnectedWait = false;
-  bool m_HIDControlChannel_Config = false;
-  bool m_HIDControlChannel_ConfigWait = false;
-  bool m_HIDInterruptChannel_Connected = false;
-  bool m_HIDInterruptChannel_ConnectedWait = false;
-  bool m_HIDInterruptChannel_Config = false;
-  bool m_HIDInterruptChannel_ConfigWait = false;
+  HIDChannelState m_hid_control_channel;
+  HIDChannelState m_hid_interrupt_channel;
 
   // STATE_TO_SAVE
   bdaddr_t m_BD;

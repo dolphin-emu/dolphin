@@ -96,14 +96,14 @@ void WiimoteDevice::DoState(PointerWrap& p)
 
   p.Do(m_ConnectionState);
 
-  p.Do(m_HIDControlChannel_Connected);
-  p.Do(m_HIDControlChannel_ConnectedWait);
-  p.Do(m_HIDControlChannel_Config);
-  p.Do(m_HIDControlChannel_ConfigWait);
-  p.Do(m_HIDInterruptChannel_Connected);
-  p.Do(m_HIDInterruptChannel_ConnectedWait);
-  p.Do(m_HIDInterruptChannel_Config);
-  p.Do(m_HIDInterruptChannel_ConfigWait);
+  p.Do(m_hid_control_channel.connected);
+  p.Do(m_hid_control_channel.connected_wait);
+  p.Do(m_hid_control_channel.config);
+  p.Do(m_hid_control_channel.config_wait);
+  p.Do(m_hid_interrupt_channel.connected);
+  p.Do(m_hid_interrupt_channel.connected_wait);
+  p.Do(m_hid_interrupt_channel.config);
+  p.Do(m_hid_interrupt_channel.config_wait);
 
   p.Do(m_BD);
   p.Do(m_ConnectionHandle);
@@ -134,45 +134,45 @@ bool WiimoteDevice::LinkChannel()
     return false;
 
   // try to connect L2CAP_PSM_HID_CNTL
-  if (!m_HIDControlChannel_Connected)
+  if (!m_hid_control_channel.connected)
   {
-    if (m_HIDControlChannel_ConnectedWait)
+    if (m_hid_control_channel.connected_wait)
       return false;
 
-    m_HIDControlChannel_ConnectedWait = true;
+    m_hid_control_channel.connected_wait = true;
     SendConnectionRequest(0x0040, L2CAP_PSM_HID_CNTL);
     return true;
   }
 
   // try to config L2CAP_PSM_HID_CNTL
-  if (!m_HIDControlChannel_Config)
+  if (!m_hid_control_channel.config)
   {
-    if (m_HIDControlChannel_ConfigWait)
+    if (m_hid_control_channel.config_wait)
       return false;
 
-    m_HIDControlChannel_ConfigWait = true;
+    m_hid_control_channel.config_wait = true;
     SendConfigurationRequest(0x0040);
     return true;
   }
 
   // try to connect L2CAP_PSM_HID_INTR
-  if (!m_HIDInterruptChannel_Connected)
+  if (!m_hid_interrupt_channel.connected)
   {
-    if (m_HIDInterruptChannel_ConnectedWait)
+    if (m_hid_interrupt_channel.connected_wait)
       return false;
 
-    m_HIDInterruptChannel_ConnectedWait = true;
+    m_hid_interrupt_channel.connected_wait = true;
     SendConnectionRequest(0x0041, L2CAP_PSM_HID_INTR);
     return true;
   }
 
   // try to config L2CAP_PSM_HID_INTR
-  if (!m_HIDInterruptChannel_Config)
+  if (!m_hid_interrupt_channel.config)
   {
-    if (m_HIDInterruptChannel_ConfigWait)
+    if (m_hid_interrupt_channel.config_wait)
       return false;
 
-    m_HIDInterruptChannel_ConfigWait = true;
+    m_hid_interrupt_channel.config_wait = true;
     SendConfigurationRequest(0x0041);
     return true;
   }
@@ -230,14 +230,8 @@ bool WiimoteDevice::EventPagingChanged(u8 page_mode) const
 void WiimoteDevice::ResetChannels()
 {
   // reset connection process
-  m_HIDControlChannel_Connected = false;
-  m_HIDControlChannel_Config = false;
-  m_HIDInterruptChannel_Connected = false;
-  m_HIDInterruptChannel_Config = false;
-  m_HIDControlChannel_ConnectedWait = false;
-  m_HIDControlChannel_ConfigWait = false;
-  m_HIDInterruptChannel_ConnectedWait = false;
-  m_HIDInterruptChannel_ConfigWait = false;
+  m_hid_control_channel = {};
+  m_hid_interrupt_channel = {};
 }
 
 //
@@ -422,9 +416,9 @@ void WiimoteDevice::ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
 
   // update state machine
   if (rChannel.PSM == L2CAP_PSM_HID_CNTL)
-    m_HIDControlChannel_Connected = true;
+    m_hid_control_channel.connected = true;
   else if (rChannel.PSM == L2CAP_PSM_HID_INTR)
-    m_HIDInterruptChannel_Connected = true;
+    m_hid_interrupt_channel.connected = true;
 }
 
 void WiimoteDevice::ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size)
@@ -498,9 +492,9 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size)
 
   // update state machine
   if (rChannel.PSM == L2CAP_PSM_HID_CNTL)
-    m_HIDControlChannel_Connected = true;
+    m_hid_control_channel.connected = true;
   else if (rChannel.PSM == L2CAP_PSM_HID_INTR)
-    m_HIDInterruptChannel_Connected = true;
+    m_hid_interrupt_channel.connected = true;
 }
 
 void WiimoteDevice::ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size)
@@ -518,9 +512,9 @@ void WiimoteDevice::ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Siz
   SChannel& rChannel = m_Channel[rsp->scid];
 
   if (rChannel.PSM == L2CAP_PSM_HID_CNTL)
-    m_HIDControlChannel_Config = true;
+    m_hid_control_channel.config = true;
   else if (rChannel.PSM == L2CAP_PSM_HID_INTR)
-    m_HIDInterruptChannel_Config = true;
+    m_hid_interrupt_channel.config = true;
 }
 
 void WiimoteDevice::ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size)
