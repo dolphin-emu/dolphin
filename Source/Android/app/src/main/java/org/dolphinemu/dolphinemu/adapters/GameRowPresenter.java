@@ -89,7 +89,11 @@ public final class GameRowPresenter extends Presenter
 
 				if (gameId.isEmpty())
 				{
-					// We can't make a game-specific INI file if there is no game ID
+					AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+					builder.setTitle("Game Settings");
+					builder.setMessage("Files without game IDs don't support game-specific settings.");
+
+					builder.show();
 					return true;
 				}
 
