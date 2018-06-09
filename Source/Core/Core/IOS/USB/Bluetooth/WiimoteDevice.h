@@ -40,7 +40,7 @@ public:
 
   void EventConnectionAccepted();
   void EventDisconnect();
-  bool EventPagingChanged(u8 page_mode);
+  bool EventPagingChanged(u8 page_mode) const;
 
   const bdaddr_t& GetBD() const { return m_BD; }
   const uint8_t* GetClass() const { return uclass; }

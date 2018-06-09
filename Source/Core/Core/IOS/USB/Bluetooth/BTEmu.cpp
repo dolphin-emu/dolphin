@@ -339,7 +339,7 @@ void BluetoothEmu::Update()
   // Create ACL connection
   if (m_HCIEndpoint && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
   {
-    for (auto& wiimote : m_WiiMotes)
+    for (const auto& wiimote : m_WiiMotes)
     {
       if (wiimote.EventPagingChanged(m_ScanEnable))
         SendEventRequestConnection(wiimote);
@@ -524,7 +524,7 @@ bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& _bd)
 }
 
 // This is called from Update() after ScanEnable has been enabled.
-bool BluetoothEmu::SendEventRequestConnection(WiimoteDevice& _rWiiMote)
+bool BluetoothEmu::SendEventRequestConnection(const WiimoteDevice& _rWiiMote)
 {
   SQueuedEvent Event(sizeof(SHCIEventRequestConnection), 0);
 

@@ -222,7 +222,7 @@ void WiimoteDevice::EventDisconnect()
   ResetChannels();
 }
 
-bool WiimoteDevice::EventPagingChanged(u8 page_mode)
+bool WiimoteDevice::EventPagingChanged(u8 page_mode) const
 {
   return (m_ConnectionState == ConnectionState::Ready) && (page_mode & HCI_PAGE_SCAN_ENABLE);
 }
