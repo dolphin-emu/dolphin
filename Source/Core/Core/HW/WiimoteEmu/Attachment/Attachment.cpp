@@ -19,7 +19,7 @@ namespace WiimoteEmu
 // The id for nothing inserted
 constexpr std::array<u8, 6> nothing_id{{0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e}};
 // The id for a partially inserted extension (currently unused)
-UNUSED constexpr std::array<u8, 6> partially_id{{0x00, 0x00, 0x00, 0x00, 0xff, 0xff}};
+DOLPHIN_UNUSED constexpr std::array<u8, 6> partially_id{{0x00, 0x00, 0x00, 0x00, 0xff, 0xff}};
 
 Attachment::Attachment(const char* const name, ExtensionReg& reg) : m_name(name), m_reg(reg)
 {

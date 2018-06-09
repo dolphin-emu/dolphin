@@ -6,10 +6,10 @@
 
 #if defined(__GNUC__) || __clang__
 // Disable "unused function" warnings for the ones manually marked as such.
-#define UNUSED __attribute__((unused))
+#define DOLPHIN_UNUSED __attribute__((unused))
 #else
 // Not sure MSVC even checks this...
-#define UNUSED
+#define DOLPHIN_UNUSED
 #endif
 
 #ifdef _WIN32
