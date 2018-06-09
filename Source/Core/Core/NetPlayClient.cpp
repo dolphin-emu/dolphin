@@ -18,6 +18,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/FileUtil.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/QoSSession.h"
