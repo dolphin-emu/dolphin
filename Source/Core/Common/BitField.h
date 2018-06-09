@@ -35,7 +35,7 @@
 #include <limits>
 #include <type_traits>
 
-#include "Common.h"
+#include "Common/Compiler.h"
 
 /*
  * Abstract bitfield class
@@ -137,7 +137,7 @@ public:
   BitField& operator=(const BitField&) = delete;
 #endif
 
-  __forceinline BitField& operator=(T val)
+  DOLPHIN_FORCE_INLINE BitField& operator=(T val)
   {
     storage = (storage & ~GetMask()) | ((static_cast<StorageType>(val) << position) & GetMask());
     return *this;

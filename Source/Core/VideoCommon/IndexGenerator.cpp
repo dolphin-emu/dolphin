@@ -4,8 +4,8 @@
 
 #include <cstddef>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 #include "Common/Logging/Log.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -58,7 +58,8 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
 
 // Triangles
 template <bool pr>
-__forceinline u16* IndexGenerator::WriteTriangle(u16* Iptr, u32 index1, u32 index2, u32 index3)
+DOLPHIN_FORCE_INLINE u16* IndexGenerator::WriteTriangle(u16* Iptr, u32 index1, u32 index2,
+                                                        u32 index3)
 {
   *Iptr++ = index1;
   *Iptr++ = index2;
