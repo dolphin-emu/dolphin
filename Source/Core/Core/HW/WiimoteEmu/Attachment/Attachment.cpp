@@ -8,8 +8,8 @@
 #include <array>
 #include <cstring>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 

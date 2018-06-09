@@ -7,8 +7,8 @@
 #include <cmath>
 #include <type_traits>
 
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Compiler.h"
 
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"

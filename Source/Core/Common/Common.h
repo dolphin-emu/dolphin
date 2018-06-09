@@ -4,14 +4,6 @@
 
 #pragma once
 
-#if defined(__GNUC__) || __clang__
-// Disable "unused function" warnings for the ones manually marked as such.
-#define UNUSED __attribute__((unused))
-#else
-// Not sure MSVC even checks this...
-#define UNUSED
-#endif
-
 #if defined _WIN32
 
 // Memory leak checks
@@ -42,8 +34,6 @@ struct CrtDebugBreak
 #ifndef _WIN32
 #include <limits.h>
 #define MAX_PATH PATH_MAX
-
-#define __forceinline inline __attribute__((always_inline))
 #endif
 
 #ifdef _MSC_VER

@@ -7,12 +7,9 @@
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
 #include <algorithm>
-#include <cstdio>
-#include <cstdlib>
-#include <ctime>
-#include <string.h>
+#include <cstring>
 
-#include "Common/Common.h"
+#include "Common/Compiler.h"
 #include "Common/Crypto/bn.h"
 #include "Common/Crypto/ec.h"
 #include "Common/Random.h"
