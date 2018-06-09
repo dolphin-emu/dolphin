@@ -30,8 +30,8 @@ public:
   // ugly Host handling....
   // we really have to clean all this code
 
-  bool IsConnected() const { return m_ConnectionState == CONN_COMPLETE; }
-  bool IsInactive() const { return m_ConnectionState == CONN_INACTIVE; }
+  bool IsConnected() const { return m_ConnectionState == ConnectionState::Complete; }
+  bool IsInactive() const { return m_ConnectionState == ConnectionState::Inactive; }
   bool LinkChannel();
   void ResetChannels();
   void Activate(bool ready);
@@ -40,7 +40,7 @@ public:
 
   void EventConnectionAccepted();
   void EventDisconnect();
-  bool EventPagingChanged(u8 _pageMode);
+  bool EventPagingChanged(u8 page_mode);
 
   const bdaddr_t& GetBD() const { return m_BD; }
   const uint8_t* GetClass() const { return uclass; }
@@ -53,13 +53,14 @@ public:
   const u8* GetLinkKey() const { return m_LinkKey; }
 
 private:
-  enum ConnectionState
+  enum class ConnectionState
   {
-    CONN_INACTIVE = -1,
-    CONN_READY,
-    CONN_LINKING,
-    CONN_COMPLETE
+    Inactive = -1,
+    Ready,
+    Linking,
+    Complete
   };
+
   ConnectionState m_ConnectionState;
 
   bool m_HIDControlChannel_Connected = false;
