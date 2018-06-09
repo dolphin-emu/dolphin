@@ -96,7 +96,7 @@ private:
   typedef std::map<u32, SChannel> CChannelMap;
   CChannelMap m_Channel;
 
-  bool DoesChannelExist(u16 _SCID) { return m_Channel.find(_SCID) != m_Channel.end(); }
+  bool DoesChannelExist(u16 scid) const { return m_Channel.find(scid) != m_Channel.end(); }
   void SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLength, u8* _pCommandData);
 
   void SignalChannel(u8* _pData, u32 _Size);
