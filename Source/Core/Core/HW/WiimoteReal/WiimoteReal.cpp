@@ -12,8 +12,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
