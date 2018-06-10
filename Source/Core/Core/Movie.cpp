@@ -139,7 +139,7 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
 }
 
 // NOTE: GPU Thread
-std::string GetInputDisplay()
+InputDisplayText GetInputDisplay()
 {
   if (!IsMovieActive())
   {
@@ -153,13 +153,16 @@ std::string GetInputDisplay()
     }
   }
 
-  std::string input_display;
+  InputDisplayText input_display;
   {
     std::lock_guard<std::mutex> guard(s_input_display_lock);
     for (int i = 0; i < 8; ++i)
     {
       if ((s_controllers & (1 << i)) != 0)
-        input_display += s_InputDisplay[i] + '\n';
+      {
+        input_display.cyan += s_InputDisplay[i] + '\n';
+        input_display.yellow += '\n';
+      }
     }
   }
   return input_display;

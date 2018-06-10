@@ -280,8 +280,8 @@ void Renderer::DrawDebugText()
 
   if (SConfig::GetInstance().m_ShowInputDisplay)
   {
-    final_cyan += Movie::GetInputDisplay();
-    final_yellow += "\n";
+    final_cyan += Movie::GetInputDisplay().cyan;
+    final_yellow += Movie::GetInputDisplay().yellow;
   }
 
   if (SConfig::GetInstance().m_ShowRTC)

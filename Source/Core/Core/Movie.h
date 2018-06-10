@@ -175,7 +175,12 @@ void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
 void CheckWiimoteStatus(int wiimote, const u8* data, const struct WiimoteEmu::ReportFeatures& rptf,
                         int ext, const wiimote_key key);
 
-std::string GetInputDisplay();
+struct InputDisplayText
+{
+  std::string cyan;
+  std::string yellow;
+};
+InputDisplayText GetInputDisplay();
 std::string GetRTCDisplay();
 
 // Done this way to avoid mixing of core and gui code
