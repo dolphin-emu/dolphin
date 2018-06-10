@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "Common/CommonTypes.h"
+#include "Common/Network.h"
 
 namespace IOS::Net
 {
-void GetMACAddress(u8* mac);
+Common::MACAddress GetMACAddress();
 }  // namespace IOS::Net

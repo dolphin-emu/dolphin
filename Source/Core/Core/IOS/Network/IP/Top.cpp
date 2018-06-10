@@ -878,10 +878,11 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
     break;
 
   case 0x1004:  // mac address
-    u8 address[Common::MAC_ADDRESS_SIZE];
-    IOS::Net::GetMACAddress(address);
-    Memory::CopyToEmu(request.io_vectors[0].address, address, sizeof(address));
+  {
+    const Common::MACAddress address = IOS::Net::GetMACAddress();
+    Memory::CopyToEmu(request.io_vectors[0].address, address.data(), address.size());
     break;
+  }
 
   case 0x1005:  // link state
     Memory::Write_U32(1, request.io_vectors[0].address);
