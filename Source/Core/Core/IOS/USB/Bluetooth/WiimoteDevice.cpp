@@ -271,14 +271,14 @@ void WiimoteDevice::ExecuteL2capCmd(u8* _pData, u32 _Size)
   {
     DEBUG_ASSERT_MSG(IOS_WIIMOTE, DoesChannelExist(pHeader->dcid),
                      "L2CAP: SendACLPacket to unknown channel %i", pHeader->dcid);
-    CChannelMap::iterator itr = m_Channel.find(pHeader->dcid);
 
+    const auto itr = m_Channel.find(pHeader->dcid);
     const int number = m_ConnectionHandle & 0xFF;
 
     if (itr != m_Channel.end())
     {
-      SChannel& rChannel = itr->second;
-      switch (rChannel.PSM)
+      const SChannel& channel = itr->second;
+      switch (channel.PSM)
       {
       case L2CAP_PSM_SDP:
         HandleSDP(pHeader->dcid, pData, DataSize);
@@ -304,7 +304,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* _pData, u32 _Size)
       break;
 
       default:
-        ERROR_LOG(IOS_WIIMOTE, "Channel 0x04%x has unknown PSM %x", pHeader->dcid, rChannel.PSM);
+        ERROR_LOG(IOS_WIIMOTE, "Channel 0x04%x has unknown PSM %x", pHeader->dcid, channel.PSM);
         break;
       }
     }
