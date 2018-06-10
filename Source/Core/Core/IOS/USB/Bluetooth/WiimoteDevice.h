@@ -30,8 +30,8 @@ public:
   // ugly Host handling....
   // we really have to clean all this code
 
-  bool IsConnected() const { return m_ConnectionState == ConnectionState::Complete; }
-  bool IsInactive() const { return m_ConnectionState == ConnectionState::Inactive; }
+  bool IsConnected() const { return m_connection_state == ConnectionState::Complete; }
+  bool IsInactive() const { return m_connection_state == ConnectionState::Inactive; }
   bool LinkChannel();
   void ResetChannels();
   void Activate(bool ready);
@@ -42,15 +42,15 @@ public:
   void EventDisconnect();
   bool EventPagingChanged(u8 page_mode) const;
 
-  const bdaddr_t& GetBD() const { return m_BD; }
-  const uint8_t* GetClass() const { return uclass; }
-  u16 GetConnectionHandle() const { return m_ConnectionHandle; }
-  const u8* GetFeatures() const { return features; }
-  const char* GetName() const { return m_Name.c_str(); }
-  u8 GetLMPVersion() const { return lmp_version; }
-  u16 GetLMPSubVersion() const { return lmp_subversion; }
+  const bdaddr_t& GetBD() const { return m_bd; }
+  const u8* GetClass() const { return m_uclass; }
+  u16 GetConnectionHandle() const { return m_connection_handle; }
+  const u8* GetFeatures() const { return m_features; }
+  const char* GetName() const { return m_name.c_str(); }
+  u8 GetLMPVersion() const { return m_lmp_version; }
+  u16 GetLMPSubVersion() const { return m_lmp_subversion; }
   u16 GetManufactorID() const { return 0x000F; }  // Broadcom Corporation
-  const u8* GetLinkKey() const { return m_LinkKey; }
+  const u8* GetLinkKey() const { return m_link_key; }
 
 private:
   enum class ConnectionState
@@ -69,36 +69,36 @@ private:
     bool config_wait = false;
   };
 
-  ConnectionState m_ConnectionState;
+  ConnectionState m_connection_state;
 
   HIDChannelState m_hid_control_channel;
   HIDChannelState m_hid_interrupt_channel;
 
   // STATE_TO_SAVE
-  bdaddr_t m_BD;
-  u16 m_ConnectionHandle;
-  uint8_t uclass[HCI_CLASS_SIZE];
-  u8 features[HCI_FEATURES_SIZE];
-  u8 lmp_version;
-  u16 lmp_subversion;
-  u8 m_LinkKey[HCI_KEY_SIZE];
-  std::string m_Name;
-  Device::BluetoothEmu* m_pHost;
+  bdaddr_t m_bd;
+  u16 m_connection_handle;
+  u8 m_uclass[HCI_CLASS_SIZE];
+  u8 m_features[HCI_FEATURES_SIZE];
+  u8 m_lmp_version;
+  u16 m_lmp_subversion;
+  u8 m_link_key[HCI_KEY_SIZE];
+  std::string m_name;
+  Device::BluetoothEmu* m_host;
 
   struct SChannel
   {
-    u16 SCID;
-    u16 DCID;
-    u16 PSM;
+    u16 scid;
+    u16 dcid;
+    u16 psm;
 
-    u16 MTU;
-    u16 FlushTimeOut;
+    u16 mtu;
+    u16 flush_time_out;
   };
 
   typedef std::map<u32, SChannel> CChannelMap;
-  CChannelMap m_Channel;
+  CChannelMap m_channel;
 
-  bool DoesChannelExist(u16 scid) const { return m_Channel.find(scid) != m_Channel.end(); }
+  bool DoesChannelExist(u16 scid) const { return m_channel.find(scid) != m_channel.end(); }
   void SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data);
 
   void SignalChannel(u8* data, u32 size);

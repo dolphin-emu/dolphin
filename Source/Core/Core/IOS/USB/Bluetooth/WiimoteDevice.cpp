@@ -50,34 +50,34 @@ private:
 };
 
 WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd, bool ready)
-    : m_BD(bd),
-      m_Name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01"),
-      m_pHost(host)
+    : m_bd(bd),
+      m_name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01"),
+      m_host(host)
 {
   INFO_LOG(IOS_WIIMOTE, "Wiimote: #%i Constructed", number);
 
-  m_ConnectionState = ready ? ConnectionState::Ready : ConnectionState::Inactive;
-  m_ConnectionHandle = 0x100 + number;
-  memset(m_LinkKey, 0xA0 + number, HCI_KEY_SIZE);
+  m_connection_state = ready ? ConnectionState::Ready : ConnectionState::Inactive;
+  m_connection_handle = 0x100 + number;
+  memset(m_link_key, 0xA0 + number, HCI_KEY_SIZE);
 
-  if (m_BD == BDADDR_ANY)
-    m_BD = {{0x11, 0x02, 0x19, 0x79, static_cast<u8>(number)}};
+  if (m_bd == BDADDR_ANY)
+    m_bd = {{0x11, 0x02, 0x19, 0x79, static_cast<u8>(number)}};
 
-  uclass[0] = 0x00;
-  uclass[1] = 0x04;
-  uclass[2] = 0x48;
+  m_uclass[0] = 0x00;
+  m_uclass[1] = 0x04;
+  m_uclass[2] = 0x48;
 
-  features[0] = 0xBC;
-  features[1] = 0x02;
-  features[2] = 0x04;
-  features[3] = 0x38;
-  features[4] = 0x08;
-  features[5] = 0x00;
-  features[6] = 0x00;
-  features[7] = 0x00;
+  m_features[0] = 0xBC;
+  m_features[1] = 0x02;
+  m_features[2] = 0x04;
+  m_features[3] = 0x38;
+  m_features[4] = 0x08;
+  m_features[5] = 0x00;
+  m_features[6] = 0x00;
+  m_features[7] = 0x00;
 
-  lmp_version = 0x2;
-  lmp_subversion = 0x229;
+  m_lmp_version = 0x2;
+  m_lmp_subversion = 0x229;
 }
 
 void WiimoteDevice::DoState(PointerWrap& p)
@@ -94,7 +94,7 @@ void WiimoteDevice::DoState(PointerWrap& p)
 
   // this function is usually not called... see Device::BluetoothEmu::DoState
 
-  p.Do(m_ConnectionState);
+  p.Do(m_connection_state);
 
   p.Do(m_hid_control_channel.connected);
   p.Do(m_hid_control_channel.connected_wait);
@@ -105,16 +105,16 @@ void WiimoteDevice::DoState(PointerWrap& p)
   p.Do(m_hid_interrupt_channel.config);
   p.Do(m_hid_interrupt_channel.config_wait);
 
-  p.Do(m_BD);
-  p.Do(m_ConnectionHandle);
-  p.Do(uclass);
-  p.Do(features);
-  p.Do(lmp_version);
-  p.Do(lmp_subversion);
-  p.Do(m_LinkKey);
-  p.Do(m_Name);
+  p.Do(m_bd);
+  p.Do(m_connection_handle);
+  p.Do(m_uclass);
+  p.Do(m_features);
+  p.Do(m_lmp_version);
+  p.Do(m_lmp_subversion);
+  p.Do(m_link_key);
+  p.Do(m_name);
 
-  p.Do(m_Channel);
+  p.Do(m_channel);
 }
 
 //
@@ -130,7 +130,7 @@ void WiimoteDevice::DoState(PointerWrap& p)
 
 bool WiimoteDevice::LinkChannel()
 {
-  if (m_ConnectionState != ConnectionState::Linking)
+  if (m_connection_state != ConnectionState::Linking)
     return false;
 
   // try to connect L2CAP_PSM_HID_CNTL
@@ -178,7 +178,7 @@ bool WiimoteDevice::LinkChannel()
   }
 
   DEBUG_LOG(IOS_WIIMOTE, "ConnectionState CONN_LINKING -> CONN_COMPLETE");
-  m_ConnectionState = ConnectionState::Complete;
+  m_connection_state = ConnectionState::Complete;
 
   return false;
 }
@@ -195,36 +195,36 @@ bool WiimoteDevice::LinkChannel()
 //
 void WiimoteDevice::Activate(bool ready)
 {
-  if (ready && (m_ConnectionState == ConnectionState::Inactive))
+  if (ready && (m_connection_state == ConnectionState::Inactive))
   {
-    m_ConnectionState = ConnectionState::Ready;
+    m_connection_state = ConnectionState::Ready;
   }
   else if (!ready)
   {
-    m_pHost->RemoteDisconnect(m_ConnectionHandle);
+    m_host->RemoteDisconnect(m_connection_handle);
     EventDisconnect();
   }
 }
 
 void WiimoteDevice::EventConnectionAccepted()
 {
-  DEBUG_LOG(IOS_WIIMOTE, "ConnectionState %x -> CONN_LINKING", m_ConnectionState);
-  m_ConnectionState = ConnectionState::Linking;
+  DEBUG_LOG(IOS_WIIMOTE, "ConnectionState %x -> CONN_LINKING", m_connection_state);
+  m_connection_state = ConnectionState::Linking;
 }
 
 void WiimoteDevice::EventDisconnect()
 {
   // Send disconnect message to plugin
-  Wiimote::ControlChannel(m_ConnectionHandle & 0xFF, 99, nullptr, 0);
+  Wiimote::ControlChannel(m_connection_handle & 0xFF, 99, nullptr, 0);
 
-  m_ConnectionState = ConnectionState::Inactive;
+  m_connection_state = ConnectionState::Inactive;
   // Clear channel flags
   ResetChannels();
 }
 
 bool WiimoteDevice::EventPagingChanged(u8 page_mode) const
 {
-  return (m_ConnectionState == ConnectionState::Ready) && (page_mode & HCI_PAGE_SCAN_ENABLE);
+  return (m_connection_state == ConnectionState::Ready) && (page_mode & HCI_PAGE_SCAN_ENABLE);
 }
 
 void WiimoteDevice::ResetChannels()
@@ -272,13 +272,13 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
     DEBUG_ASSERT_MSG(IOS_WIIMOTE, DoesChannelExist(header->dcid),
                      "L2CAP: SendACLPacket to unknown channel %i", header->dcid);
 
-    const auto itr = m_Channel.find(header->dcid);
-    const int number = m_ConnectionHandle & 0xFF;
+    const auto itr = m_channel.find(header->dcid);
+    const int number = m_connection_handle & 0xFF;
 
-    if (itr != m_Channel.end())
+    if (itr != m_channel.end())
     {
       const SChannel& channel = itr->second;
-      switch (channel.PSM)
+      switch (channel.psm)
       {
       case L2CAP_PSM_SDP:
         HandleSDP(header->dcid, data, data_size);
@@ -304,7 +304,7 @@ void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
       break;
 
       default:
-        ERROR_LOG(IOS_WIIMOTE, "Channel 0x04%x has unknown PSM %x", header->dcid, channel.PSM);
+        ERROR_LOG(IOS_WIIMOTE, "Channel 0x04%x has unknown PSM %x", header->dcid, channel.psm);
         break;
       }
     }
@@ -373,21 +373,21 @@ void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
   l2cap_con_req_cp* command_connection_req = (l2cap_con_req_cp*)data;
 
   // create the channel
-  SChannel& channel = m_Channel[command_connection_req->scid];
-  channel.PSM = command_connection_req->psm;
-  channel.SCID = command_connection_req->scid;
-  channel.DCID = command_connection_req->scid;
+  SChannel& channel = m_channel[command_connection_req->scid];
+  channel.psm = command_connection_req->psm;
+  channel.scid = command_connection_req->scid;
+  channel.dcid = command_connection_req->scid;
 
   DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveConnectionRequest");
   DEBUG_LOG(IOS_WIIMOTE, "    Ident: 0x%02x", ident);
-  DEBUG_LOG(IOS_WIIMOTE, "    PSM: 0x%04x", channel.PSM);
-  DEBUG_LOG(IOS_WIIMOTE, "    SCID: 0x%04x", channel.SCID);
-  DEBUG_LOG(IOS_WIIMOTE, "    DCID: 0x%04x", channel.DCID);
+  DEBUG_LOG(IOS_WIIMOTE, "    PSM: 0x%04x", channel.psm);
+  DEBUG_LOG(IOS_WIIMOTE, "    SCID: 0x%04x", channel.scid);
+  DEBUG_LOG(IOS_WIIMOTE, "    DCID: 0x%04x", channel.dcid);
 
   // response
   l2cap_con_rsp_cp rsp;
-  rsp.scid = channel.SCID;
-  rsp.dcid = channel.DCID;
+  rsp.scid = channel.scid;
+  rsp.dcid = channel.dcid;
   rsp.result = L2CAP_SUCCESS;
   rsp.status = L2CAP_NO_INFO;
 
@@ -411,13 +411,13 @@ void WiimoteDevice::ReceiveConnectionResponse(u8 ident, u8* data, u32 size)
   DEBUG_ASSERT(rsp->status == L2CAP_NO_INFO);
   DEBUG_ASSERT(DoesChannelExist(rsp->scid));
 
-  SChannel& channel = m_Channel[rsp->scid];
-  channel.DCID = rsp->dcid;
+  SChannel& channel = m_channel[rsp->scid];
+  channel.dcid = rsp->dcid;
 
   // update state machine
-  if (channel.PSM == L2CAP_PSM_HID_CNTL)
+  if (channel.psm == L2CAP_PSM_HID_CNTL)
     m_hid_control_channel.connected = true;
-  else if (channel.PSM == L2CAP_PSM_HID_INTR)
+  else if (channel.psm == L2CAP_PSM_HID_INTR)
     m_hid_interrupt_channel.connected = true;
 }
 
@@ -430,7 +430,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
   DEBUG_ASSERT(command_config_req->flags == 0x00);
   DEBUG_ASSERT(DoesChannelExist(command_config_req->dcid));
 
-  SChannel& channel = m_Channel[command_config_req->dcid];
+  SChannel& channel = m_channel[command_config_req->dcid];
 
   DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] ReceiveConfigurationRequest");
   DEBUG_LOG(IOS_WIIMOTE, "    Ident: 0x%02x", ident);
@@ -443,7 +443,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
   u32 resp_len = 0;
 
   l2cap_cfg_rsp_cp* rsp = (l2cap_cfg_rsp_cp*)temp_buffer;
-  rsp->scid = channel.DCID;
+  rsp->scid = channel.dcid;
   rsp->flags = 0x00;
   rsp->result = L2CAP_SUCCESS;
 
@@ -461,7 +461,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
     {
       DEBUG_ASSERT(options->length == L2CAP_OPT_MTU_SIZE);
       l2cap_cfg_opt_val_t* mtu = (l2cap_cfg_opt_val_t*)&data[offset];
-      channel.MTU = mtu->mtu;
+      channel.mtu = mtu->mtu;
       DEBUG_LOG(IOS_WIIMOTE, "    MTU: 0x%04x", mtu->mtu);
     }
     break;
@@ -470,7 +470,7 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
     {
       DEBUG_ASSERT(options->length == L2CAP_OPT_FLUSH_TIMO_SIZE);
       l2cap_cfg_opt_val_t* flush_time_out = (l2cap_cfg_opt_val_t*)&data[offset];
-      channel.FlushTimeOut = flush_time_out->flush_timo;
+      channel.flush_time_out = flush_time_out->flush_timo;
       DEBUG_LOG(IOS_WIIMOTE, "    FlushTimeOut: 0x%04x", flush_time_out->flush_timo);
     }
     break;
@@ -491,9 +491,9 @@ void WiimoteDevice::ReceiveConfigurationReq(u8 ident, u8* data, u32 size)
   SendCommandToACL(ident, L2CAP_CONFIG_RSP, resp_len, temp_buffer);
 
   // update state machine
-  if (channel.PSM == L2CAP_PSM_HID_CNTL)
+  if (channel.psm == L2CAP_PSM_HID_CNTL)
     m_hid_control_channel.connected = true;
-  else if (channel.PSM == L2CAP_PSM_HID_INTR)
+  else if (channel.psm == L2CAP_PSM_HID_INTR)
     m_hid_interrupt_channel.connected = true;
 }
 
@@ -509,11 +509,11 @@ void WiimoteDevice::ReceiveConfigurationResponse(u8 ident, u8* data, u32 size)
   DEBUG_ASSERT(rsp->result == L2CAP_SUCCESS);
 
   // update state machine
-  const SChannel& channel = m_Channel[rsp->scid];
+  const SChannel& channel = m_channel[rsp->scid];
 
-  if (channel.PSM == L2CAP_PSM_HID_CNTL)
+  if (channel.psm == L2CAP_PSM_HID_CNTL)
     m_hid_control_channel.config = true;
-  else if (channel.PSM == L2CAP_PSM_HID_INTR)
+  else if (channel.psm == L2CAP_PSM_HID_INTR)
     m_hid_interrupt_channel.config = true;
 }
 
@@ -550,9 +550,9 @@ void WiimoteDevice::ReceiveDisconnectionReq(u8 ident, u8* data, u32 size)
 void WiimoteDevice::SendConnectionRequest(u16 scid, u16 psm)
 {
   // create the channel
-  SChannel& channel = m_Channel[scid];
-  channel.PSM = psm;
-  channel.SCID = scid;
+  SChannel& channel = m_channel[scid];
+  channel.psm = psm;
+  channel.scid = scid;
 
   l2cap_con_req_cp cr;
   cr.psm = psm;
@@ -569,11 +569,11 @@ void WiimoteDevice::SendConnectionRequest(u16 scid, u16 psm)
 void WiimoteDevice::SendDisconnectRequest(u16 scid)
 {
   // create the channel
-  const SChannel& channel = m_Channel[scid];
+  const SChannel& channel = m_channel[scid];
 
   l2cap_discon_req_cp cr;
-  cr.dcid = channel.DCID;
-  cr.scid = channel.SCID;
+  cr.dcid = channel.dcid;
+  cr.scid = channel.scid;
 
   DEBUG_LOG(IOS_WIIMOTE, "[L2CAP] SendDisconnectionRequest");
   DEBUG_LOG(IOS_WIIMOTE, "    Dcid: 0x%04x", cr.dcid);
@@ -586,13 +586,13 @@ void WiimoteDevice::SendDisconnectRequest(u16 scid)
 void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_out)
 {
   DEBUG_ASSERT(DoesChannelExist(scid));
-  const SChannel& channel = m_Channel[scid];
+  const SChannel& channel = m_channel[scid];
 
   u8 buffer[1024];
   int offset = 0;
 
   l2cap_cfg_req_cp* cr = (l2cap_cfg_req_cp*)&buffer[offset];
-  cr->dcid = channel.DCID;
+  cr->dcid = channel.dcid;
   cr->flags = 0;
   offset += sizeof(l2cap_cfg_req_cp);
 
@@ -606,10 +606,10 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_o
   // negotiate after trying to set MTU = 0 fails (stack will respond with
   // "configuration failed" msg...). This is still fine, we'll just use whatever the
   // Bluetooth stack defaults to.
-  if (mtu || channel.MTU)
+  if (mtu || channel.mtu)
   {
     if (mtu == 0)
-      mtu = channel.MTU;
+      mtu = channel.mtu;
     options = (l2cap_cfg_opt_t*)&buffer[offset];
     offset += sizeof(l2cap_cfg_opt_t);
     options->type = L2CAP_OPT_MTU;
@@ -619,10 +619,10 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_o
     DEBUG_LOG(IOS_WIIMOTE, "    MTU: 0x%04x", mtu);
   }
 
-  if (flush_time_out || channel.FlushTimeOut)
+  if (flush_time_out || channel.flush_time_out)
   {
     if (flush_time_out == 0)
-      flush_time_out = channel.FlushTimeOut;
+      flush_time_out = channel.flush_time_out;
     options = (l2cap_cfg_opt_t*)&buffer[offset];
     offset += sizeof(l2cap_cfg_opt_t);
     options->type = L2CAP_OPT_FLUSH_TIMO;
@@ -691,7 +691,7 @@ void WiimoteDevice::SDPSendServiceSearchResponse(u16 cid, u16 transaction_id,
   offset++;  // No continuation state;
 
   header->length = (u16)(offset - sizeof(l2cap_hdr_t));
-  m_pHost->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
+  m_host->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
 }
 
 static u32 ParseCont(u8* cont)
@@ -785,7 +785,7 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id,
   offset += packet_size;
 
   header->length = (u16)(offset - sizeof(l2cap_hdr_t));
-  m_pHost->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
+  m_host->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
 
   // Debugger::PrintDataBuffer(LogTypes::WIIMOTE, data_frame, header->length + sizeof(l2cap_hdr_t),
   // "test response: ");
@@ -880,7 +880,7 @@ void WiimoteDevice::SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* c
   DEBUG_LOG(IOS_WIIMOTE, "    Code: 0x%02x", code);
 
   // send ....
-  m_pHost->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
+  m_host->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
 
   // Debugger::PrintDataBuffer(LogTypes::WIIMOTE, data_frame, header->length + sizeof(l2cap_hdr_t),
   // "m_pHost->SendACLPacket: ");
@@ -896,10 +896,10 @@ void WiimoteDevice::ReceiveL2capData(u16 scid, const void* data, u32 size)
 
   // Check if we are already reporting on this channel
   DEBUG_ASSERT(DoesChannelExist(scid));
-  const SChannel& channel = m_Channel[scid];
+  const SChannel& channel = m_channel[scid];
 
   // Add an additional 4 byte header to the Wiimote report
-  header->dcid = channel.DCID;
+  header->dcid = channel.dcid;
   header->length = size;
 
   // Copy the Wiimote report to data_frame
@@ -908,7 +908,7 @@ void WiimoteDevice::ReceiveL2capData(u16 scid, const void* data, u32 size)
   offset += size;
 
   // Send the report
-  m_pHost->SendACLPacket(GetConnectionHandle(), data_frame, offset);
+  m_host->SendACLPacket(GetConnectionHandle(), data_frame, offset);
 }
 }  // namespace IOS::HLE
 
