@@ -295,8 +295,8 @@ void WiimoteDevice::ExecuteL2capCmd(u8* _pData, u32 _Size)
         {
           DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
           DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", pHeader->dcid);
-          std::string Temp = ArrayToString((const u8*)pData, DataSize);
-          DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
+          const std::string temp = ArrayToString(pData, DataSize);
+          DEBUG_LOG(WIIMOTE, "    Data: %s", temp.c_str());
 
           Wiimote::InterruptChannel(number, pHeader->dcid, pData, DataSize);
         }
