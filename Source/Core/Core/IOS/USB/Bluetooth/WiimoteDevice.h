@@ -23,7 +23,7 @@ class BluetoothEmu;
 class WiimoteDevice
 {
 public:
-  WiimoteDevice(Device::BluetoothEmu* _pHost, int _Number, bdaddr_t _BD, bool ready = false);
+  WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd, bool ready = false);
 
   void DoState(PointerWrap& p);
 
@@ -35,8 +35,8 @@ public:
   bool LinkChannel();
   void ResetChannels();
   void Activate(bool ready);
-  void ExecuteL2capCmd(u8* _pData, u32 _Size);                     // From CPU
-  void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size);  // From Wiimote
+  void ExecuteL2capCmd(u8* ptr, u32 size);                      // From CPU
+  void ReceiveL2capData(u16 scid, const void* data, u32 size);  // From Wiimote
 
   void EventConnectionAccepted();
   void EventDisconnect();
@@ -99,28 +99,28 @@ private:
   CChannelMap m_Channel;
 
   bool DoesChannelExist(u16 scid) const { return m_Channel.find(scid) != m_Channel.end(); }
-  void SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLength, u8* _pCommandData);
+  void SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data);
 
-  void SignalChannel(u8* _pData, u32 _Size);
+  void SignalChannel(u8* data, u32 size);
 
-  void SendConnectionRequest(u16 _SCID, u16 _PSM);
-  void SendConfigurationRequest(u16 _SCID, u16 _pMTU = 0, u16 _pFlushTimeOut = 0);
-  void SendDisconnectRequest(u16 _SCID);
+  void SendConnectionRequest(u16 scid, u16 psm);
+  void SendConfigurationRequest(u16 scid, u16 mtu = 0, u16 flush_time_out = 0);
+  void SendDisconnectRequest(u16 scid);
 
-  void ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-  void ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
-  void ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-  void ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size);
-  void ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
+  void ReceiveConnectionReq(u8 ident, u8* data, u32 size);
+  void ReceiveConnectionResponse(u8 ident, u8* data, u32 size);
+  void ReceiveDisconnectionReq(u8 ident, u8* data, u32 size);
+  void ReceiveConfigurationReq(u8 ident, u8* data, u32 size);
+  void ReceiveConfigurationResponse(u8 ident, u8* data, u32 size);
 
   // some new ugly stuff
   // should be inside the plugin
-  void HandleSDP(u16 _SCID, u8* _pData, u32 _Size);
-  void SDPSendServiceSearchResponse(u16 _SCID, u16 _TransactionID, u8* _pServiceSearchPattern,
-                                    u16 _MaximumServiceRecordCount);
+  void HandleSDP(u16 cid, u8* data, u32 size);
+  void SDPSendServiceSearchResponse(u16 cid, u16 transaction_id, u8* service_search_pattern,
+                                    u16 maximum_service_record_count);
 
-  void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle,
-                                       u16 _StartAttrID, u16 _EndAttrID,
-                                       u16 _MaximumAttributeByteCount, u8* _pContinuationState);
+  void SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id, u32 service_handle,
+                                       u16 start_attr_id, u16 end_attr_id,
+                                       u16 maximum_attribute_byte_count, u8* continuation_state);
 };
 }  // namespace IOS::HLE
