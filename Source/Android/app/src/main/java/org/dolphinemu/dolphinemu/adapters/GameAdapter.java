@@ -136,16 +136,19 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	@Override
 	public boolean onLongClick(View view)
 	{
+		FragmentActivity activity = (FragmentActivity) view.getContext();
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 		String gameId = holder.gameFile.getGameId();
 
 		if (gameId.isEmpty())
 		{
-			// We can't make a game-specific INI file if there is no game ID
+			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+			builder.setTitle("Game Settings");
+			builder.setMessage("Files without game IDs don't support game-specific settings.");
+
+			builder.show();
 			return true;
 		}
-
-		FragmentActivity activity = (FragmentActivity) view.getContext();
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
 		builder.setTitle("Game Settings")
