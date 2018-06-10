@@ -48,9 +48,7 @@ struct CachedInterpreter::Instruction
   Type type = Type::Abort;
 };
 
-CachedInterpreter::CachedInterpreter() : code_buffer(32000)
-{
-}
+CachedInterpreter::CachedInterpreter() = default;
 
 CachedInterpreter::~CachedInterpreter() = default;
 
@@ -194,7 +192,7 @@ void CachedInterpreter::Jit(u32 address)
     ClearCache();
   }
 
-  const u32 nextPC = analyzer.Analyze(PC, &code_block, &code_buffer, code_buffer.size());
+  const u32 nextPC = analyzer.Analyze(PC, &code_block, &m_code_buffer, m_code_buffer.size());
   if (code_block.m_memory_exception)
   {
     // Address of instruction could not be translated
@@ -218,7 +216,7 @@ void CachedInterpreter::Jit(u32 address)
 
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = code_buffer[i];
+    PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
     js.downcountAmount += op.opinfo->numCycles;
 

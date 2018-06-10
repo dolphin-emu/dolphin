@@ -21,8 +21,9 @@
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
-  JitArm64() : code_buffer(32000), m_float_emit(this) {}
-  ~JitArm64() {}
+  JitArm64();
+  ~JitArm64() override;
+
   void Init() override;
   void Shutdown() override;
 
@@ -244,8 +245,6 @@ private:
   Arm64FPRCache fpr;
 
   JitArm64BlockCache blocks{*this};
-
-  PPCAnalyst::CodeBuffer code_buffer;
 
   Arm64Gen::ARM64FloatEmitter m_float_emit;
 

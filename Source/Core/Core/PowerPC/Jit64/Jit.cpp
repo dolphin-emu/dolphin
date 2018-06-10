@@ -33,6 +33,7 @@
 #include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -144,6 +145,10 @@ enum
   GUARD_SIZE = 0x10000,  // two guards - bottom (permanent) and middle (see above)
   GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE,
 };
+
+Jit64::Jit64() = default;
+
+Jit64::~Jit64() = default;
 
 void Jit64::AllocStack()
 {
@@ -594,7 +599,7 @@ void Jit64::Jit(u32 em_address)
     ClearCache();
   }
 
-  std::size_t block_size = code_buffer.size();
+  std::size_t block_size = m_code_buffer.size();
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
@@ -624,7 +629,7 @@ void Jit64::Jit(u32 em_address)
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, block_size);
+  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
@@ -741,7 +746,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    PPCAnalyst::CodeOp& op = code_buffer[i];
+    PPCAnalyst::CodeOp& op = m_code_buffer[i];
 
     js.compilerPC = op.address;
     js.op = &op;
@@ -950,7 +955,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   b->originalSize = code_block.m_num_instructions;
 
 #ifdef JIT_LOG_X86
-  LogGeneratedX86(code_block.m_num_instructions, code_buffer, start, b);
+  LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
 #endif
 
   return normalEntry;

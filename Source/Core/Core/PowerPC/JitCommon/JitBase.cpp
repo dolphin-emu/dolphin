@@ -28,7 +28,9 @@ u32 Helper_Mask(u8 mb, u8 me)
   return mb > me ? ~mask : mask;
 }
 
-JitBase::JitBase() = default;
+JitBase::JitBase() : m_code_buffer(code_buffer_size)
+{
+}
 
 JitBase::~JitBase() = default;
 

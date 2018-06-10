@@ -8,6 +8,7 @@
 //#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
 
+#include <cstddef>
 #include <map>
 #include <unordered_set>
 
@@ -102,6 +103,7 @@ protected:
   };
 
   PPCAnalyst::CodeBlock code_block;
+  PPCAnalyst::CodeBuffer m_code_buffer;
   PPCAnalyst::PPCAnalyzer analyzer;
 
   bool CanMergeNextInstructions(int count) const;
@@ -109,10 +111,6 @@ protected:
   void UpdateMemoryOptions();
 
 public:
-  // This should probably be removed from public:
-  JitOptions jo{};
-  JitState js{};
-
   JitBase();
   ~JitBase() override;
 
@@ -125,6 +123,12 @@ public:
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
   virtual bool HandleStackFault() { return false; }
+
+  static constexpr std::size_t code_buffer_size = 32000;
+
+  // This should probably be removed from public:
+  JitOptions jo{};
+  JitState js{};
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);

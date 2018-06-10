@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -35,8 +36,6 @@
 
 namespace PPCAnalyst
 {
-constexpr int CODEBUFFER_SIZE = 32000;
-
 // 0 does not perform block merging
 constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
 
@@ -90,7 +89,7 @@ bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size)
   for (u32 addr = startAddr; true; addr += 4)
   {
     func.size += 4;
-    if (func.size >= CODEBUFFER_SIZE * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))  // weird
+    if (func.size >= JitBase::code_buffer_size * 4 || !PowerPC::HostIsInstructionRAMAddress(addr))
       return false;
 
     if (max_size && func.size > max_size)
