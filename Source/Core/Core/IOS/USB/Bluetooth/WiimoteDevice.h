@@ -30,8 +30,8 @@ public:
   // ugly Host handling....
   // we really have to clean all this code
 
-  bool IsConnected() const { return m_ConnectionState == CONN_COMPLETE; }
-  bool IsInactive() const { return m_ConnectionState == CONN_INACTIVE; }
+  bool IsConnected() const { return m_ConnectionState == ConnectionState::Complete; }
+  bool IsInactive() const { return m_ConnectionState == ConnectionState::Inactive; }
   bool LinkChannel();
   void ResetChannels();
   void Activate(bool ready);
@@ -40,7 +40,7 @@ public:
 
   void EventConnectionAccepted();
   void EventDisconnect();
-  bool EventPagingChanged(u8 _pageMode);
+  bool EventPagingChanged(u8 page_mode) const;
 
   const bdaddr_t& GetBD() const { return m_BD; }
   const uint8_t* GetClass() const { return uclass; }
@@ -53,23 +53,26 @@ public:
   const u8* GetLinkKey() const { return m_LinkKey; }
 
 private:
-  enum ConnectionState
+  enum class ConnectionState
   {
-    CONN_INACTIVE = -1,
-    CONN_READY,
-    CONN_LINKING,
-    CONN_COMPLETE
+    Inactive = -1,
+    Ready,
+    Linking,
+    Complete
   };
+
+  struct HIDChannelState
+  {
+    bool connected = false;
+    bool connected_wait = false;
+    bool config = false;
+    bool config_wait = false;
+  };
+
   ConnectionState m_ConnectionState;
 
-  bool m_HIDControlChannel_Connected = false;
-  bool m_HIDControlChannel_ConnectedWait = false;
-  bool m_HIDControlChannel_Config = false;
-  bool m_HIDControlChannel_ConfigWait = false;
-  bool m_HIDInterruptChannel_Connected = false;
-  bool m_HIDInterruptChannel_ConnectedWait = false;
-  bool m_HIDInterruptChannel_Config = false;
-  bool m_HIDInterruptChannel_ConfigWait = false;
+  HIDChannelState m_hid_control_channel;
+  HIDChannelState m_hid_interrupt_channel;
 
   // STATE_TO_SAVE
   bdaddr_t m_BD;
@@ -95,7 +98,7 @@ private:
   typedef std::map<u32, SChannel> CChannelMap;
   CChannelMap m_Channel;
 
-  bool DoesChannelExist(u16 _SCID) { return m_Channel.find(_SCID) != m_Channel.end(); }
+  bool DoesChannelExist(u16 scid) const { return m_Channel.find(scid) != m_Channel.end(); }
   void SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLength, u8* _pCommandData);
 
   void SignalChannel(u8* _pData, u32 _Size);

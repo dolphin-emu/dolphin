@@ -112,7 +112,7 @@ private:
   bool SendEventInquiryResponse();
   bool SendEventInquiryComplete();
   bool SendEventRemoteNameReq(const bdaddr_t& _bd);
-  bool SendEventRequestConnection(WiimoteDevice& _rWiiMote);
+  bool SendEventRequestConnection(const WiimoteDevice& _rWiiMote);
   bool SendEventConnectionComplete(const bdaddr_t& _bd);
   bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
   bool SendEventConPacketTypeChange(u16 _connectionHandle, u16 _packetType);
