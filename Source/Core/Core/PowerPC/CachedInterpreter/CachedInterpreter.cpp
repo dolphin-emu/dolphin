@@ -109,6 +109,7 @@ void CachedInterpreter::ExecuteOneBlock()
 
 void CachedInterpreter::Run()
 {
+  const CPU::State* state_ptr = CPU::GetStatePtr();
   while (CPU::GetState() == CPU::State::Running)
   {
     // Start new timing slice
@@ -118,7 +119,7 @@ void CachedInterpreter::Run()
     do
     {
       ExecuteOneBlock();
-    } while (PowerPC::ppcState.downcount > 0);
+    } while (PowerPC::ppcState.downcount > 0 && *state_ptr == CPU::State::Running);
   }
 }
 
@@ -163,6 +164,17 @@ static bool CheckDSI(u32 data)
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
     PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
+    return true;
+  }
+  return false;
+}
+
+static bool CheckBreakpoint(u32 data)
+{
+  PowerPC::CheckBreakPoints();
+  if (CPU::GetState() != CPU::State::Running)
+  {
     PowerPC::ppcState.downcount -= data;
     return true;
   }
@@ -225,9 +237,17 @@ void CachedInterpreter::Jit(u32 address)
 
     if (!op.skip)
     {
+      const bool breakpoint = SConfig::GetInstance().bEnableDebugging &&
+                              PowerPC::breakpoints.IsAddressBreakPoint(op.address);
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
       const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;
+
+      if (breakpoint)
+      {
+        m_code.emplace_back(WritePC, op.address);
+        m_code.emplace_back(CheckBreakpoint, js.downcountAmount);
+      }
 
       if (check_fpu)
       {
