@@ -474,8 +474,37 @@ union UReg_FPSCR
   };
   u32 Hex = 0;
 
+  // The FPSCR's 20th bit (11th from a little endian perspective)
+  // is defined as reserved and set to zero. Attempts to modify it
+  // are ignored by hardware, so we do the same.
+  static constexpr u32 mask = 0xFFFFF7FF;
+
   UReg_FPSCR() = default;
-  explicit UReg_FPSCR(u32 hex_) : Hex{hex_} {}
+  explicit UReg_FPSCR(u32 hex_) : Hex{hex_ & mask} {}
+
+  UReg_FPSCR& operator=(u32 value)
+  {
+    Hex = value & mask;
+    return *this;
+  }
+
+  UReg_FPSCR& operator|=(u32 value)
+  {
+    Hex |= value & mask;
+    return *this;
+  }
+
+  UReg_FPSCR& operator&=(u32 value)
+  {
+    Hex &= value;
+    return *this;
+  }
+
+  UReg_FPSCR& operator^=(u32 value)
+  {
+    Hex ^= value & mask;
+    return *this;
+  }
 
   void ClearFIFR()
   {
