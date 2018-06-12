@@ -52,6 +52,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           Qt::DirectConnection);
   connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
           Qt::DirectConnection);
+  connect(this, &RenderWidget::FocusChanged, Host::GetInstance(), &Host::SetRenderFocus,
+          Qt::DirectConnection);
 
   emit HandleChanged((void*)winId());
 
@@ -145,14 +147,16 @@ bool RenderWidget::event(QEvent* event)
     emit HandleChanged((void*)winId());
     break;
   case QEvent::WindowActivate:
-    Host::GetInstance()->SetRenderFocus(true);
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
       Core::SetState(Core::State::Running);
+
+    emit FocusChanged(true);
     break;
   case QEvent::WindowDeactivate:
-    Host::GetInstance()->SetRenderFocus(false);
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
       Core::SetState(Core::State::Paused);
+
+    emit FocusChanged(false);
     break;
   case QEvent::Resize:
   {
