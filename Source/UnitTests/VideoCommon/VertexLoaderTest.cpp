@@ -110,7 +110,6 @@ class VertexLoaderParamTest : public VertexLoaderTest,
                               public ::testing::WithParamInterface<std::tuple<int, int, int, int>>
 {
 };
-extern int gtest_AllCombinationsVertexLoaderParamTest_dummy_;
 INSTANTIATE_TEST_CASE_P(AllCombinations, VertexLoaderParamTest,
                         ::testing::Combine(::testing::Values(DIRECT, INDEX8, INDEX16),
                                            ::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
@@ -250,7 +249,6 @@ class VertexLoaderSpeedTest : public VertexLoaderTest,
                               public ::testing::WithParamInterface<std::tuple<int, int>>
 {
 };
-extern int gtest_FormatsAndElementsVertexLoaderSpeedTest_dummy_;
 INSTANTIATE_TEST_CASE_P(FormatsAndElements, VertexLoaderSpeedTest,
                         ::testing::Combine(::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
                                                              FORMAT_USHORT, FORMAT_SHORT,
