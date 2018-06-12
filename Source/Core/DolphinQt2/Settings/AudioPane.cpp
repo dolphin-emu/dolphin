@@ -88,6 +88,8 @@ void AudioPane::CreateWidgets()
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
 
+  backend_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  backend_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   backend_layout->addRow(m_backend_label, m_backend_combo);
   if (m_latency_control_supported)
     backend_layout->addRow(m_latency_label, m_latency_spin);
