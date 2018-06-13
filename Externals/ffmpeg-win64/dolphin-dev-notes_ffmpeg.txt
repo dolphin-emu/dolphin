@@ -1,0 +1,28 @@
+****************************************************
+DOLPHIN DEV NOTES - FFMPEG DELAYED LOADING FOR WIN64
+****************************************************
+
+ffmpeg externals source from Zeranoe: https://ffmpeg.zeranoe.com/builds/win64/dev/
+
+The standard .lib files provided in the Zeranoe package are not valid for VS/MSVC and DelayLoading will not work!!!
+
+The .lib files have to be rebuilt with one of VS additional tools from the provided .def files in the same package.
+
+Locate the command line utility "lib.exe" in the Vistual Studio installation, for example:
+\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\xx.xx.xxxxx\bin\Hostx64\x64
+
+Copy the .def files into the root directors where "lib.exe" is for example, and use the Command Prompt to produce the proper .lib files:
+
+lib /machine:x64 /def:avcodec-58.def /out:avcodec.lib
+lib /machine:x64 /def:avformat-58.def /out:avformat.lib
+lib /machine:x64 /def:avutil-56.def /out:avutil.lib
+lib /machine:x64 /def:swresample-3.def /out:swresample.lib
+lib /machine:x64 /def:swscale-5.def /out:swscale.lib
+
+The "inlcude" files do not need any modifications at this time.
+
+////////////////
+Delayed Loading:
+Configured in the "Linker --> Input" options page of the Dolphin's main executable project properties window.
+swresample-5.dll does not require DelayLoading, it is a smaller avcodec cross dependency, otherwise VS will produce a warning.
+vcxproj: <DelayLoadDLLs>avcodec-58.dll;avformat-58.dll;avutil-56.dll;swscale-5.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
