@@ -461,7 +461,7 @@ endif()
 
 if(ENCODE_FRAMEDUMPS)
   if(WIN32)
-    set(FFMPEG_DIR Externals/ffmpeg)
+    set(FFMPEG_DIR Externals/ffmpeg-win64)
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
   if(FFmpeg_FOUND)

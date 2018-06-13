@@ -40,8 +40,9 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(IntDir)..\discord-rpc\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg-win64\lib;$(IntDir)..\discord-rpc\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Shlwapi.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <DelayLoadDLLs>avcodec-58.dll;avformat-58.dll;avutil-56.dll;swscale-5.dll;%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;$(ProjectDir)FIFO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
