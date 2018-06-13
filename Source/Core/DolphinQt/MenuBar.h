@@ -101,12 +101,11 @@ signals:
   void StopRecording();
   void ExportRecording();
   void ShowTASInput();
-
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void RecordingStatusChanged(bool recording);
   void ReadOnlyModeChanged(bool read_only);
 
-  // Synbols
+  // Symbols
   void NotifySymbolsUpdated();
 
 private:
@@ -133,6 +132,7 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
 
+  void DumpFramesFFmpegNotFoundWin32();
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
@@ -209,6 +209,7 @@ private:
   QAction* m_recording_start;
   QAction* m_recording_stop;
   QAction* m_recording_read_only;
+  QAction* m_dump_frames_ffmpeg_notfound_win32;
 
   // Options
   QAction* m_boot_to_pause;

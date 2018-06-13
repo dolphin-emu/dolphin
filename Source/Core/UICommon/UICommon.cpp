@@ -326,6 +326,20 @@ void SetUserDirectory(const std::string& custom_path)
   File::SetUserPath(D_USER_IDX, user_path);
 }
 
+#if defined(_WIN32)
+bool FFmpegWin32Exists()
+{
+  const std::string avcodec = File::GetExeDirectory() + DIR_SEP + "avcodec-58.dll";
+  const std::string avformat = File::GetExeDirectory() + DIR_SEP + "avformat-58.dll";
+  const std::string avutil = File::GetExeDirectory() + DIR_SEP + "avutil-56.dll";
+  const std::string swresample = File::GetExeDirectory() + DIR_SEP + "swresample-3.dll";
+  const std::string swscale = File::GetExeDirectory() + DIR_SEP + "swscale-5.dll";
+
+  return File::Exists(avcodec) && File::Exists(avformat) && File::Exists(avutil) &&
+         File::Exists(swresample) && File::Exists(swscale);
+}
+#endif
+
 void SaveWiimoteSources()
 {
   std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
@@ -371,8 +385,8 @@ void EnableScreenSaver(Window win, bool enable)
 void EnableScreenSaver(bool enable)
 #endif
 {
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
+  // Inhibit the screensaver. Depending on the operating system this may also
+  // disable low-power states and/or screen dimming.
 
 #if defined(HAVE_X11) && HAVE_X11
   if (SConfig::GetInstance().bDisableScreenSaver)

@@ -28,6 +28,8 @@ void SetUserDirectory(const std::string& custom_path);
 
 bool TriggerSTMPowerEvent();
 
+bool FFmpegWin32Exists();
+
 void SaveWiimoteSources();
 
 // Return a pretty file size string from byte count.

@@ -7,6 +7,7 @@
 #include <cinttypes>
 
 #include <QAction>
+#include <QApplication>
 #include <QDesktopServices>
 #include <QFileDialog>
 #include <QFontDialog>
@@ -51,6 +52,7 @@
 #include "DolphinQt/Updater.h"
 
 #include "UICommon/GameFile.h"
+#include "UICommon/UICommon.h"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
@@ -708,11 +710,28 @@ void MenuBar::AddMovieMenu()
 
   movie_menu->addSeparator();
 
-  auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
-  dump_frames->setCheckable(true);
-  dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
-  connect(dump_frames, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
+  static bool ffmpeg_notfound_win32 = false;
+#if defined(_WIN32)
+  if (!UICommon::FFmpegWin32Exists())
+  {
+    ffmpeg_notfound_win32 = true;
+  }
+#endif
+
+  if (ffmpeg_notfound_win32)
+  {
+    SConfig::GetInstance().m_DumpFrames = false;
+    m_dump_frames_ffmpeg_notfound_win32 = movie_menu->addAction(
+        tr("Dump Frames (Missing FFmpeg DLLs)"), this, &MenuBar::DumpFramesFFmpegNotFoundWin32);
+  }
+  else
+  {
+    auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
+    dump_frames->setCheckable(true);
+    dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
+    connect(dump_frames, &QAction::toggled,
+            [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
+  }
 
   auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
   dump_audio->setCheckable(true);
@@ -940,6 +959,29 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     wii_remote->setEnabled(enable_wiimotes);
     if (enable_wiimotes)
       wii_remote->setChecked(bt->AccessWiimoteByIndex(i)->IsConnected());
+  }
+}
+
+void MenuBar::DumpFramesFFmpegNotFoundWin32()
+{
+  int reply = QMessageBox::warning(
+      this, tr("Frame Dumping - Missing Prerequisites"),
+      tr("<p>One or more FFmpeg libraries is either missing, corrupt, inaccessible or invalid."
+         "<br><br>Detailed frame dumping instructions are available <a "
+         "href=\"https://wiki.dolphin-emu.org/index.php?title=FFmpeg\">online on our wiki "
+         "page</a>."),
+      tr("Open Wiki"), tr("Show URL"), tr("Close"));
+
+  if (reply == 0)
+  {
+    QString wiki_ffmpeg_url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=FFmpeg");
+    QDesktopServices::openUrl(QUrl(wiki_ffmpeg_url));
+  }
+
+  if (reply == 1)
+  {
+    QMessageBox::information(this, tr("Frame Dumping - Wiki"),
+                             tr("https://wiki.dolphin-emu.org/index.php?title=FFmpeg"));
   }
 }
 
