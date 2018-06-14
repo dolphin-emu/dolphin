@@ -168,7 +168,8 @@ void GameCubePane::OnConfigPressed(int slot)
   }
 
   QString filename =
-      QFileDialog::getOpenFileName(this, tr("Choose a file to open"), QStringLiteral(""), filter);
+      QFileDialog::getOpenFileName(this, tr("Choose a file to open"),
+                                   QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)), filter);
 
   if (filename.isEmpty() || !File::Exists(filename.toStdString()))
     return;
