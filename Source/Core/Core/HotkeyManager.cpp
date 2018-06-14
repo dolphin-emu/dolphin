@@ -160,7 +160,7 @@ static_assert(NUM_HOTKEYS == hotkey_labels.size(), "Wrong count of hotkey_labels
 
 namespace HotkeyManagerEmu
 {
-static u32 s_hotkeyDown[NUM_HOTKEY_GROUPS];
+static std::array<u32, NUM_HOTKEY_GROUPS> s_hotkeyDown;
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
@@ -217,8 +217,7 @@ void Initialize()
   // load the saved controller config
   s_config.LoadConfig(true);
 
-  for (u32& key : s_hotkeyDown)
-    key = 0;
+  s_hotkeyDown = {};
 
   s_enabled = true;
 }
@@ -269,7 +268,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
 
 HotkeyManager::HotkeyManager()
 {
-  for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
+  for (std::size_t group = 0; group < m_hotkey_groups.size(); group++)
   {
     m_hotkey_groups[group] =
         (m_keys[group] = new ControllerEmu::Buttons("Keys", groups_info[group].name));
@@ -294,7 +293,7 @@ std::string HotkeyManager::GetName() const
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
   const auto lock = GetStateLock();
-  for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
+  for (std::size_t group = 0; group < groups_info.size(); group++)
   {
     const int group_count = (groups_info[group].last - groups_info[group].first) + 1;
     std::vector<u32> bitmasks(group_count);

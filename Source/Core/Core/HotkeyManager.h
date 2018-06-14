@@ -182,7 +182,7 @@ enum HotkeyGroup : int
 
 struct HotkeyStatus
 {
-  u32 button[NUM_HOTKEY_GROUPS];
+  std::array<u32, NUM_HOTKEY_GROUPS> button;
   s8 err;
 };
 
@@ -200,7 +200,7 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  ControllerEmu::Buttons* m_keys[NUM_HOTKEY_GROUPS];
+  std::array<ControllerEmu::Buttons*, NUM_HOTKEY_GROUPS> m_keys;
   std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups;
 };
 
