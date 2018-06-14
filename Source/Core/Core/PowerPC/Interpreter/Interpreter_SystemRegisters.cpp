@@ -62,20 +62,14 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
 void Interpreter::mtfsb1x(UGeckoInstruction inst)
 {
   const u32 bit = inst.CRBD;
+  const u32 b = 0x80000000 >> bit;
 
-  // Bit 20 in the FPSCR is reserved and defined as zero,
-  // so we ensure that we don't set it.
-  if (bit != 20)
-  {
-    const u32 b = 0x80000000 >> bit;
+  if (b & FPSCR_ANY_X)
+    SetFPException(b);
+  else
+    FPSCR |= b;
 
-    if (b & FPSCR_ANY_X)
-      SetFPException(b);
-    else
-      FPSCR.Hex |= b;
-
-    FPSCRtoFPUSettings(FPSCR);
-  }
+  FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
     Helper_UpdateCR1();
@@ -83,14 +77,12 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
 
 void Interpreter::mtfsfix(UGeckoInstruction inst)
 {
-  // Bit 20 of the FPSCR is reserved and defined as zero on hardware,
-  // so ensure that we don't set it.
   const u32 field = inst.CRFD;
-  const u32 pre_shifted_mask = field == 4 ? 0x70000000 : 0xF0000000;
+  const u32 pre_shifted_mask = 0xF0000000;
   const u32 mask = (pre_shifted_mask >> (4 * field));
   const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 
-  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
+  FPSCR = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
   FPSCRtoFPUSettings(FPSCR);
 
@@ -108,13 +100,7 @@ void Interpreter::mtfsfx(UGeckoInstruction inst)
       m |= (0xFU << (i * 4));
   }
 
-  // Bit 20 of the FPSCR is defined as always being zero
-  // (bit 11 in a little endian context), so ensure that
-  // we don't actually set that bit.
-  if ((fm & 0b100) != 0)
-    m &= 0xFFFFF7FF;
-
-  FPSCR.Hex = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
+  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
