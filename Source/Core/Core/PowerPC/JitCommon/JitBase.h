@@ -4,10 +4,6 @@
 
 #pragma once
 
-//#define JIT_LOG_X86     // Enables logging of the generated x86 code
-//#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
-//#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
-
 #include <cstddef>
 #include <map>
 #include <unordered_set>
@@ -20,6 +16,10 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+//#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
+//#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
+//#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
