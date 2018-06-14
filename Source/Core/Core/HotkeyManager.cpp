@@ -239,7 +239,14 @@ void Shutdown()
 }
 }
 
-const std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
+struct HotkeyGroupInfo
+{
+  const char* name;
+  Hotkey first;
+  Hotkey last;
+};
+
+constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
     {{_trans("General"), HK_OPEN, HK_EXIT},
      {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
      {_trans("Emulation Speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},

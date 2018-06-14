@@ -180,13 +180,6 @@ enum HotkeyGroup : int
   NUM_HOTKEY_GROUPS,
 };
 
-struct HotkeyGroupInfo
-{
-  std::string name;
-  Hotkey first;
-  Hotkey last;
-};
-
 struct HotkeyStatus
 {
   u32 button[NUM_HOTKEY_GROUPS];
