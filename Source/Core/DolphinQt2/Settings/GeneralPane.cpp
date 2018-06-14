@@ -126,6 +126,8 @@ void GeneralPane::CreateBasic()
   basic_group_layout->addWidget(m_checkbox_cheats);
 
   auto* speed_limit_layout = new QFormLayout;
+  speed_limit_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  speed_limit_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
   basic_group_layout->addLayout(speed_limit_layout);
 
   m_combobox_speedlimit = new QComboBox();

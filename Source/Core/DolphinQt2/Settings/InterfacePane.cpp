@@ -99,6 +99,9 @@ void InterfacePane::CreateUI()
   m_main_layout->addWidget(groupbox);
 
   auto* combobox_layout = new QFormLayout;
+  combobox_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
+  combobox_layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+
   groupbox_layout->addLayout(combobox_layout);
 
   m_combobox_language = MakeLanguageComboBox();
