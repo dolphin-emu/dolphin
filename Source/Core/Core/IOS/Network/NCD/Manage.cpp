@@ -65,12 +65,13 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
     break;
 
   case IOCTLV_NCD_GETWIRELESSMACADDRESS:
+  {
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
 
-    u8 address[Common::MAC_ADDRESS_SIZE];
-    IOS::Net::GetMACAddress(address);
-    Memory::CopyToEmu(request.io_vectors.at(1).address, address, sizeof(address));
+    const Common::MACAddress address = IOS::Net::GetMACAddress();
+    Memory::CopyToEmu(request.io_vectors.at(1).address, address.data(), address.size());
     break;
+  }
 
   default:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE IOCtlV: %#x", request.request);

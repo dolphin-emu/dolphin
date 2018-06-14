@@ -4,6 +4,7 @@
 
 #include "Core/IOS/Network/WD/Command.h"
 
+#include <algorithm>
 #include <cstring>
 #include <string>
 
@@ -65,9 +66,8 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
     memcpy(info->country, "US", 2);
     info->ntr_allowed_channels = Common::swap16(0xfffe);
 
-    u8 address[Common::MAC_ADDRESS_SIZE];
-    IOS::Net::GetMACAddress(address);
-    memcpy(info->mac, address, sizeof(info->mac));
+    const Common::MACAddress address = IOS::Net::GetMACAddress();
+    std::copy(address.begin(), address.end(), info->mac);
   }
   break;
 
