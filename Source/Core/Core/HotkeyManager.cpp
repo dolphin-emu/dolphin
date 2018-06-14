@@ -20,7 +20,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-const std::string hotkey_labels[] = {
+constexpr std::array<const char*, 114> hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -154,10 +154,9 @@ const std::string hotkey_labels[] = {
     _trans("Undo Save State"),
     _trans("Save State"),
     _trans("Load State"),
-};
+}};
 // clang-format on
-static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]),
-              "Wrong count of hotkey_labels");
+static_assert(NUM_HOTKEYS == hotkey_labels.size(), "Wrong count of hotkey_labels");
 
 namespace HotkeyManagerEmu
 {
