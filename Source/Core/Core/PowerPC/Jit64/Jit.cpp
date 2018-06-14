@@ -954,7 +954,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   b->codeSize = (u32)(GetCodePtr() - start);
   b->originalSize = code_block.m_num_instructions;
 
-#ifdef JIT_LOG_X86
+#ifdef JIT_LOG_GENERATED_CODE
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
 #endif
 
