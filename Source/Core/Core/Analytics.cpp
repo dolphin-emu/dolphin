@@ -73,9 +73,8 @@ void DolphinAnalytics::ReloadConfig()
 
 void DolphinAnalytics::GenerateNewIdentity()
 {
-  u64 id_high, id_low;
-  Common::Random::Generate(&id_high, sizeof(id_high));
-  Common::Random::Generate(&id_low, sizeof(id_low));
+  const u64 id_high = Common::Random::GenerateValue<u64>();
+  const u64 id_low = Common::Random::GenerateValue<u64>();
   m_unique_id = StringFromFormat("%016" PRIx64 "%016" PRIx64, id_high, id_low);
 
   // Save the new id in the configuration.

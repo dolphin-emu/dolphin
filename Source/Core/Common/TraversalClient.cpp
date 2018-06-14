@@ -270,7 +270,7 @@ TraversalRequestId TraversalClient::SendTraversalPacket(const TraversalPacket& p
 {
   OutgoingTraversalPacketInfo info;
   info.packet = packet;
-  Common::Random::Generate(&info.packet.requestId, sizeof(info.packet.requestId));
+  info.packet.requestId = Common::Random::GenerateValue<TraversalRequestId>();
   info.tries = 0;
   m_OutgoingTraversalPackets.push_back(info);
   ResendPacket(&m_OutgoingTraversalPackets.back());

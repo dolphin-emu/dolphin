@@ -169,8 +169,7 @@ static sockaddr_in6 MakeSinAddr(const TraversalInetAddress& addr)
 static void GetRandomHostId(TraversalHostId* hostId)
 {
   char buf[9];
-  u32 num;
-  Common::Random::Generate(&num, sizeof(num));
+  const u32 num = Common::Random::GenerateValue<u32>();
   sprintf(buf, "%08x", num);
   memcpy(hostId->data(), buf, 8);
 }
