@@ -170,7 +170,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
   // Initialize JIT, if necessary
-  if (opts.core_type == DSPInitOptions::CORE_JIT)
+  if (opts.core_type == DSPInitOptions::CoreType::JIT)
     g_dsp_jit = std::make_unique<JIT::x64::DSPEmitter>();
 
   g_dsp_cap.reset(opts.capture_logger);
