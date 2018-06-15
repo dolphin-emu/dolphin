@@ -218,7 +218,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 
   core->Set("SkipIPL", bHLE_BS2);
   core->Set("TimingVariance", iTimingVariance);
-  core->Set("CPUCore", iCPUCore);
+  core->Set("CPUCore", cpu_core);
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
   core->Set("DSPHLE", bDSPHLE);
@@ -505,11 +505,11 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 
   core->Get("SkipIPL", &bHLE_BS2, true);
 #ifdef _M_X86
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JIT64);
+  core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::JIT64);
 #elif _M_ARM_64
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JITARM64);
+  core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::JITARM64);
 #else
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_INTERPRETER);
+  core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::Interpreter);
 #endif
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
@@ -763,7 +763,7 @@ void SConfig::LoadDefaults()
 #endif
 #endif
 
-  iCPUCore = PowerPC::DefaultCPUCore();
+  cpu_core = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;

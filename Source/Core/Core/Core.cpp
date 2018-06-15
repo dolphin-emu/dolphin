@@ -530,7 +530,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   Fifo::Prepare();
 
   // Setup our core, but can't use dynarec if we are compare server
-  if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER &&
+  if (core_parameter.cpu_core != PowerPC::CPUCore::Interpreter &&
       (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
   {
     PowerPC::SetMode(PowerPC::CoreMode::JIT);

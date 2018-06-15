@@ -8,12 +8,17 @@
 
 #include "Common/Config/Config.h"
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 namespace Config
 {
 // Main.Core
 
 extern const ConfigInfo<bool> MAIN_SKIP_IPL;
-extern const ConfigInfo<int> MAIN_CPU_CORE;
+extern const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE;
 extern const ConfigInfo<bool> MAIN_FASTMEM;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const ConfigInfo<bool> MAIN_DSP_HLE;

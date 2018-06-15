@@ -16,7 +16,8 @@ namespace Config
 // Main.Core
 
 const ConfigInfo<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
-const ConfigInfo<int> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"}, PowerPC::DefaultCPUCore()};
+const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
+                                                 PowerPC::DefaultCPUCore()};
 const ConfigInfo<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
 const ConfigInfo<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const ConfigInfo<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};

@@ -12,6 +12,11 @@
 class CPUCoreBase;
 class PointerWrap;
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 namespace Profiler
 {
 struct ProfileStats;
@@ -28,7 +33,7 @@ enum class ExceptionType
 
 void DoState(PointerWrap& p);
 
-CPUCoreBase* InitJitCore(int core);
+CPUCoreBase* InitJitCore(PowerPC::CPUCore core);
 CPUCoreBase* GetCore();
 
 // Debugging

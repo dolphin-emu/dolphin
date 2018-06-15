@@ -11,6 +11,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -815,10 +816,10 @@ bool NetPlayServer::StartGame()
 
   // tell clients to start game
   sf::Packet spac;
-  spac << (MessageId)NP_MSG_START_GAME;
+  spac << static_cast<MessageId>(NP_MSG_START_GAME);
   spac << m_current_game;
   spac << m_settings.m_CPUthread;
-  spac << m_settings.m_CPUcore;
+  spac << static_cast<std::underlying_type_t<PowerPC::CPUCore>>(m_settings.m_CPUcore);
   spac << m_settings.m_EnableCheats;
   spac << m_settings.m_SelectedLanguage;
   spac << m_settings.m_OverrideGCLanguage;
@@ -832,8 +833,8 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_OCFactor;
   spac << m_settings.m_EXIDevice[0];
   spac << m_settings.m_EXIDevice[1];
-  spac << (u32)g_netplay_initial_rtc;
-  spac << (u32)(g_netplay_initial_rtc >> 32);
+  spac << static_cast<u32>(g_netplay_initial_rtc);
+  spac << static_cast<u32>(g_netplay_initial_rtc >> 32);
 
   SendAsyncToClients(std::move(spac));
 

@@ -1137,7 +1137,7 @@ void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
   if (GetMenuBar()->FindItem(IDM_INTERPRETER)->IsChecked())
     return;
 
-  event.Check(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
+  event.Check(SConfig::GetInstance().cpu_core == PowerPC::CPUCore::Interpreter);
 }
 
 void CFrame::ClearStatusBar()
