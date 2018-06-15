@@ -153,10 +153,10 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
   if (!LoadDSPRom(opts->coef_contents.data(), coef_file, DSP_COEF_BYTE_SIZE))
     return false;
 
-  opts->core_type = DSPInitOptions::CORE_INTERPRETER;
+  opts->core_type = DSPInitOptions::CoreType::Interpreter;
 #ifdef _M_X86
   if (SConfig::GetInstance().m_DSPEnableJIT)
-    opts->core_type = DSPInitOptions::CORE_JIT;
+    opts->core_type = DSPInitOptions::CoreType::JIT64;
 #endif
 
   if (SConfig::GetInstance().m_DSPCaptureLog)
