@@ -12,6 +12,7 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
+#include <type_traits>
 
 #include <mbedtls/md5.h>
 
@@ -35,6 +36,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -412,7 +414,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
       packet >> m_current_game;
       packet >> g_NetPlaySettings.m_CPUthread;
-      packet >> g_NetPlaySettings.m_CPUcore;
+
+      {
+        std::underlying_type_t<PowerPC::CPUCore> core;
+        if (packet >> core)
+          g_NetPlaySettings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
+        else
+          g_NetPlaySettings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
+      }
+
       packet >> g_NetPlaySettings.m_EnableCheats;
       packet >> g_NetPlaySettings.m_SelectedLanguage;
       packet >> g_NetPlaySettings.m_OverrideGCLanguage;

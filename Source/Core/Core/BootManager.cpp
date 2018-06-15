@@ -28,16 +28,12 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Common/Config/Config.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
-#include "Core/ConfigLoaders/GameConfigLoader.h"
-#include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -47,6 +43,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
 
@@ -88,7 +85,7 @@ private:
   bool bDSPHLE;
   bool bHLE_BS2;
   int iSelectedLanguage;
-  int iCPUCore;
+  PowerPC::CPUCore cpu_core;
   int Volume;
   float m_EmulationSpeed;
   float m_OCFactor;
@@ -118,7 +115,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bDSPHLE = config.bDSPHLE;
   bHLE_BS2 = config.bHLE_BS2;
   iSelectedLanguage = config.SelectedLanguage;
-  iCPUCore = config.iCPUCore;
+  cpu_core = config.cpu_core;
   Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
   strBackend = config.m_strVideoBackend;
@@ -159,7 +156,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bDSPHLE = bDSPHLE;
   config->bHLE_BS2 = bHLE_BS2;
   config->SelectedLanguage = iSelectedLanguage;
-  config->iCPUCore = iCPUCore;
+  config->cpu_core = cpu_core;
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -255,7 +252,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
     core_section->Get("DSPHLE", &StartUp.bDSPHLE, StartUp.bDSPHLE);
     core_section->Get("GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
-    core_section->Get("CPUCore", &StartUp.iCPUCore, StartUp.iCPUCore);
+    core_section->Get("CPUCore", &StartUp.cpu_core, StartUp.cpu_core);
     core_section->Get("HLE_BS2", &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
     core_section->Get("GameCubeLanguage", &StartUp.SelectedLanguage, StartUp.SelectedLanguage);
     if (core_section->Get("EmulationSpeed", &StartUp.m_EmulationSpeed, StartUp.m_EmulationSpeed))
@@ -317,7 +314,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
     StartUp.bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
     StartUp.bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
-    StartUp.iCPUCore = Config::Get(Config::MAIN_CPU_CORE);
+    StartUp.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
     StartUp.bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
     if (!StartUp.bWii)
       StartUp.SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
@@ -343,7 +340,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
     StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
     StartUp.bCopyWiiSaveNetplay = g_NetPlaySettings.m_CopyWiiSave;
-    StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
+    StartUp.cpu_core = g_NetPlaySettings.m_CPUcore;
     StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
     StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
     StartUp.m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;

@@ -23,6 +23,7 @@ enum class Region;
 struct Partition;
 class Volume;
 }  // namespace DiscIO
+
 namespace IOS
 {
 namespace ES
@@ -30,6 +31,11 @@ namespace ES
 class TMDReader;
 }
 }  // namespace IOS
+
+namespace PowerPC
+{
+enum class CPUCore;
+}  // namespace PowerPC
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No Audio Output")
@@ -75,7 +81,7 @@ struct SConfig
   bool bAutomaticStart = false;
   bool bBootToPause = false;
 
-  int iCPUCore;  // Uses the values of PowerPC::CPUCore
+  PowerPC::CPUCore cpu_core;
 
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;

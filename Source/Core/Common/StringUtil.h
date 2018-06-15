@@ -55,14 +55,14 @@ static bool TryParse(const std::string& str, N* const output)
   // separators
   iss.imbue(std::locale("C"));
 
-  N tmp = 0;
+  N tmp;
   if (iss >> tmp)
   {
     *output = tmp;
     return true;
   }
-  else
-    return false;
+
+  return false;
 }
 
 template <typename N>

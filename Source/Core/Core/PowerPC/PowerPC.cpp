@@ -5,6 +5,9 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include <cstring>
+#include <istream>
+#include <ostream>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -42,6 +45,30 @@ static CoreTiming::EventType* s_invalidate_cache_thread_safe;
 static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
 {
   ppcState.iCache.Invalidate(static_cast<u32>(userdata));
+}
+
+std::istream& operator>>(std::istream& is, CPUCore& core)
+{
+  std::underlying_type_t<CPUCore> val{};
+
+  if (is >> val)
+  {
+    core = static_cast<CPUCore>(val);
+  }
+  else
+  {
+    // Upon failure, fall back to the cached interpreter
+    // to ensure we always initialize our core reference.
+    core = CPUCore::CachedInterpreter;
+  }
+
+  return is;
+}
+
+std::ostream& operator<<(std::ostream& os, CPUCore core)
+{
+  os << static_cast<std::underlying_type_t<CPUCore>>(core);
+  return os;
 }
 
 u32 CompactCR()
@@ -148,7 +175,7 @@ static void ResetRegisters()
   SystemTimers::DecrementerSet();
 }
 
-static void InitializeCPUCore(int cpu_core)
+static void InitializeCPUCore(CPUCore cpu_core)
 {
   // We initialize the interpreter because
   // it is used on boot and code window independently.
@@ -156,7 +183,7 @@ static void InitializeCPUCore(int cpu_core)
 
   switch (cpu_core)
   {
-  case PowerPC::CORE_INTERPRETER:
+  case CPUCore::Interpreter:
     s_cpu_core_base = s_interpreter;
     break;
 
@@ -176,12 +203,12 @@ static void InitializeCPUCore(int cpu_core)
 const std::vector<CPUCore>& AvailableCPUCores()
 {
   static const std::vector<CPUCore> cpu_cores = {
-      CORE_INTERPRETER,
-      CORE_CACHEDINTERPRETER,
+      CPUCore::Interpreter,
+      CPUCore::CachedInterpreter,
 #ifdef _M_X86_64
-      CORE_JIT64,
+      CPUCore::JIT64,
 #elif defined(_M_ARM_64)
-      CORE_JITARM64,
+      CPUCore::JITARM64,
 #endif
   };
 
@@ -191,15 +218,15 @@ const std::vector<CPUCore>& AvailableCPUCores()
 CPUCore DefaultCPUCore()
 {
 #ifdef _M_X86_64
-  return CORE_JIT64;
+  return CPUCore::JIT64;
 #elif defined(_M_ARM_64)
-  return CORE_JITARM64;
+  return CPUCore::JITARM64;
 #else
-  return CORE_CACHEDINTERPRETER;
+  return CPUCore::CachedInterpreter;
 #endif
 }
 
-void Init(int cpu_core)
+void Init(CPUCore cpu_core)
 {
   // NOTE: This function runs on EmuThread, not the CPU Thread.
   //   Changing the rounding mode has a limited effect.

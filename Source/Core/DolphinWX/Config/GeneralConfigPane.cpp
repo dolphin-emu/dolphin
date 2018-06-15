@@ -26,10 +26,10 @@
 #include "DolphinWX/WxEventUtils.h"
 
 static const std::map<PowerPC::CPUCore, std::string> CPU_CORE_NAMES = {
-    {PowerPC::CORE_INTERPRETER, _trans("Interpreter (slowest)")},
-    {PowerPC::CORE_CACHEDINTERPRETER, _trans("Cached Interpreter (slower)")},
-    {PowerPC::CORE_JIT64, _trans("JIT Recompiler (recommended)")},
-    {PowerPC::CORE_JITARM64, _trans("JIT Arm64 (experimental)")},
+    {PowerPC::CPUCore::Interpreter, _trans("Interpreter (slowest)")},
+    {PowerPC::CPUCore::CachedInterpreter, _trans("Cached Interpreter (slower)")},
+    {PowerPC::CPUCore::JIT64, _trans("JIT Recompiler (recommended)")},
+    {PowerPC::CPUCore::JITARM64, _trans("JIT Arm64 (experimental)")},
 };
 
 GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
@@ -156,7 +156,7 @@ void GeneralConfigPane::LoadGUIValues()
   const std::vector<PowerPC::CPUCore>& cpu_cores = PowerPC::AvailableCPUCores();
   for (size_t i = 0; i < cpu_cores.size(); ++i)
   {
-    if (cpu_cores[i] == startup_params.iCPUCore)
+    if (cpu_cores[i] == startup_params.cpu_core)
       m_cpu_engine_radiobox->SetSelection(i);
   }
 }
@@ -202,7 +202,7 @@ void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().iCPUCore = PowerPC::AvailableCPUCores()[event.GetSelection()];
+  SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[event.GetSelection()];
 }
 
 void GeneralConfigPane::OnAnalyticsCheckBoxChanged(wxCommandEvent& event)

@@ -278,7 +278,7 @@ void NetPlayDialog::OnStart()
   // Copy all relevant settings
   SConfig& instance = SConfig::GetInstance();
   settings.m_CPUthread = instance.bCPUThread;
-  settings.m_CPUcore = instance.iCPUCore;
+  settings.m_CPUcore = instance.cpu_core;
   settings.m_EnableCheats = instance.bEnableCheats;
   settings.m_SelectedLanguage = instance.SelectedLanguage;
   settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;

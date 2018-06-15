@@ -38,10 +38,10 @@ constexpr const char* AUTO_UPDATE_BETA_STRING = "beta";
 constexpr const char* AUTO_UPDATE_DEV_STRING = "dev";
 
 static const std::map<PowerPC::CPUCore, const char*> CPU_CORE_NAMES = {
-    {PowerPC::CORE_INTERPRETER, QT_TR_NOOP("Interpreter (slowest)")},
-    {PowerPC::CORE_CACHEDINTERPRETER, QT_TR_NOOP("Cached Interpreter (slower)")},
-    {PowerPC::CORE_JIT64, QT_TR_NOOP("JIT Recompiler (recommended)")},
-    {PowerPC::CORE_JITARM64, QT_TR_NOOP("JIT Arm64 (experimental)")},
+    {PowerPC::CPUCore::Interpreter, QT_TR_NOOP("Interpreter (slowest)")},
+    {PowerPC::CPUCore::CachedInterpreter, QT_TR_NOOP("Cached Interpreter (slower)")},
+    {PowerPC::CPUCore::JIT64, QT_TR_NOOP("JIT Recompiler (recommended)")},
+    {PowerPC::CPUCore::JITARM64, QT_TR_NOOP("JIT Arm64 (experimental)")},
 };
 
 GeneralPane::GeneralPane(QWidget* parent) : QWidget(parent)
@@ -227,7 +227,7 @@ void GeneralPane::LoadConfig()
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
   for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
-    if (available_cpu_cores[i] == SConfig::GetInstance().iCPUCore)
+    if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
       m_cpu_cores[i]->setChecked(true);
   }
 }
@@ -275,7 +275,7 @@ void GeneralPane::OnSaveConfig()
   {
     if (m_cpu_cores[i]->isChecked())
     {
-      settings.iCPUCore = PowerPC::AvailableCPUCores()[i];
+      settings.cpu_core = PowerPC::AvailableCPUCores()[i];
       break;
     }
   }

@@ -45,7 +45,7 @@ static bool s_state_system_request_stepping = false;
 static bool s_state_cpu_step_instruction = false;
 static Common::Event* s_state_cpu_step_instruction_sync = nullptr;
 
-void Init(int cpu_core)
+void Init(PowerPC::CPUCore cpu_core)
 {
   PowerPC::Init(cpu_core);
   s_state = State::Stepping;

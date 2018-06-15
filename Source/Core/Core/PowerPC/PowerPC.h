@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstddef>
+#include <iosfwd>
 #include <tuple>
 #include <vector>
 
@@ -23,13 +24,17 @@ namespace PowerPC
 {
 // The gaps in the CPUCore numbering are from cores that only existed in the past.
 // We avoid re-numbering cores so that settings will be compatible across versions.
-enum CPUCore
+enum class CPUCore
 {
-  CORE_INTERPRETER = 0,
-  CORE_JIT64 = 1,
-  CORE_JITARM64 = 4,
-  CORE_CACHEDINTERPRETER = 5,
+  Interpreter = 0,
+  JIT64 = 1,
+  JITARM64 = 4,
+  CachedInterpreter = 5,
 };
+
+// For reading from and writing to our config.
+std::istream& operator>>(std::istream& is, CPUCore& core);
+std::ostream& operator<<(std::ostream& os, CPUCore core);
 
 enum class CoreMode
 {
@@ -142,7 +147,7 @@ extern PPCDebugInterface debug_interface;
 const std::vector<CPUCore>& AvailableCPUCores();
 CPUCore DefaultCPUCore();
 
-void Init(int cpu_core);
+void Init(CPUCore cpu_core);
 void Reset();
 void Shutdown();
 void DoState(PointerWrap& p);

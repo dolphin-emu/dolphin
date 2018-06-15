@@ -371,7 +371,7 @@ wxMenu* MainMenuBar::CreateJITMenu() const
       _("This is necessary to get break points"
         " and stepping to work as explained in the Developer Documentation. But it can be very"
         " slow, perhaps slower than 1 fps."));
-  interpreter->Check(config_instance.iCPUCore == PowerPC::CORE_INTERPRETER);
+  interpreter->Check(config_instance.cpu_core == PowerPC::CPUCore::Interpreter);
 
   jit_menu->AppendSeparator();
   jit_menu->AppendCheckItem(IDM_JIT_NO_BLOCK_LINKING, _("&JIT Block Linking Off"),

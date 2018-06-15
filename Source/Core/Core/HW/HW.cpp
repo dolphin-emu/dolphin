@@ -45,7 +45,7 @@ void Init()
   DSP::Init(SConfig::GetInstance().bDSPHLE);
   DVDInterface::Init();
   GPFifo::Init();
-  CPU::Init(SConfig::GetInstance().iCPUCore);
+  CPU::Init(SConfig::GetInstance().cpu_core);
   SystemTimers::Init();
 
   if (SConfig::GetInstance().bWii)
