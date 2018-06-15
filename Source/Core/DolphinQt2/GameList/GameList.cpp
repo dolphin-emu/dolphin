@@ -100,15 +100,18 @@ void GameList::MakeListView()
   hor_header->restoreState(
       Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
 
-  hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
-  hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
+  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
+
+  // It's a bit too narrow by default
+  m_list->setColumnWidth(GameListModel::COL_SIZE, 70);
 
   m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
   m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
