@@ -111,12 +111,12 @@
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
     <string name="cpu_core">CPU Core</string>
-    <string name="cpu_core_description">%s</string>
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
+    <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate.</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
@@ -194,8 +194,16 @@
     <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
     <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
-    <string name="shader_compilation_mode">Shader Compilation Mode</string>
-    <string name="shader_compilation_mode_description">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
+    <string name="shader_compilation_submenu">Shader Compilation Mode</string>
+    <string name="shader_compilation_submenu_description">Specify when to use Ubershaders.</string>
+    <string name="shader_compilation_sync">Synchronous</string>
+    <string name="shader_compilation_sync_description">Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf unsure, select this mode.</string>
+    <string name="shader_compilation_sync_uber">Synchronous (Ubershaders)</string>
+    <string name="shader_compilation_sync_uber_description">Ubershaders will always be used. Provides a near stutter-free experience at the cost of high GPU performance requirements. Only recommended for high-end systems.</string>
+    <string name="shader_compilation_async_uber">Asynchronous (Ubershaders)</string>
+    <string name="shader_compilation_async_uber_description">Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering. In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.</string>
+    <string name="shader_compilation_async_skip">Asynchronous (Skip Drawing)</string>
+    <string name="shader_compilation_async_skip_description">Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn\'t, at the cost of introducing visual glitches and broken effects. Not recommended, only use if the other options give poor results on your system.</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
 
     <!-- Miscellaneous -->
