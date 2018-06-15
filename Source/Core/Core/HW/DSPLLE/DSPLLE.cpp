@@ -156,7 +156,7 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
   opts->core_type = DSPInitOptions::CoreType::Interpreter;
 #ifdef _M_X86
   if (SConfig::GetInstance().m_DSPEnableJIT)
-    opts->core_type = DSPInitOptions::CoreType::JIT;
+    opts->core_type = DSPInitOptions::CoreType::JIT64;
 #endif
 
   if (SConfig::GetInstance().m_DSPCaptureLog)

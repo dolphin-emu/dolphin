@@ -329,13 +329,13 @@ struct DSPInitOptions
   std::array<u16, DSP_COEF_SIZE> coef_contents;
 
   // Core used to emulate the DSP.
-  // Default: JIT.
+  // Default: JIT64.
   enum class CoreType
   {
     Interpreter,
-    JIT,
+    JIT64,
   };
-  CoreType core_type = CoreType::JIT;
+  CoreType core_type = CoreType::JIT64;
 
   // Optional capture logger used to log internal DSP data transfers.
   // Default: dummy implementation, does nothing.
