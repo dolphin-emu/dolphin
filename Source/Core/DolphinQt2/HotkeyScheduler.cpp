@@ -348,7 +348,7 @@ void HotkeyScheduler::Run()
         emit StateLoadSlotHotkey();
 
       // Stereoscopy
-      if (IsHotkey(HK_TOGGLE_STEREO_SBS) || IsHotkey(HK_TOGGLE_STEREO_TAB))
+      if (IsHotkey(HK_TOGGLE_STEREO_SBS))
       {
         if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::SBS)
         {
@@ -356,8 +356,23 @@ void HotkeyScheduler::Run()
           if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
             Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
 
-          Config::SetCurrent(Config::GFX_STEREO_MODE,
-                             IsHotkey(HK_TOGGLE_STEREO_SBS) ? StereoMode::SBS : StereoMode::TAB);
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::SBS);
+        }
+        else
+        {
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::Off);
+        }
+      }
+
+      if (IsHotkey(HK_TOGGLE_STEREO_TAB))
+      {
+        if (Config::Get(Config::GFX_STEREO_MODE) != StereoMode::TAB)
+        {
+          // Disable post-processing shader, as stereoscopy itself is currently a shader
+          if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) == DUBOIS_ALGORITHM_SHADER)
+            Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
+
+          Config::SetCurrent(Config::GFX_STEREO_MODE, StereoMode::TAB);
         }
         else
         {
