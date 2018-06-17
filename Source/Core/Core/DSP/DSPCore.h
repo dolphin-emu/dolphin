@@ -208,15 +208,15 @@ enum : u16
 };
 
 // Exception vectors
-enum ExceptionType : int
+enum class ExceptionType
 {
-  EXP_STOVF = 1,  // 0x0002 stack under/over flow
-  EXP_2 = 2,      // 0x0004
-  EXP_3 = 3,      // 0x0006
-  EXP_4 = 4,      // 0x0008
-  EXP_ACCOV = 5,  // 0x000a accelerator address overflow
-  EXP_6 = 6,      // 0x000c
-  EXP_INT = 7     // 0x000e external int (message from CPU)
+  StackOverflow = 1,        // 0x0002 stack under/over flow
+  EXP_2 = 2,                // 0x0004
+  EXP_3 = 3,                // 0x0006
+  EXP_4 = 4,                // 0x0008
+  AcceleratorOverflow = 5,  // 0x000a accelerator address overflow
+  EXP_6 = 6,                // 0x000c
+  ExternalInterrupt = 7     // 0x000e external int (message from CPU)
 };
 
 struct DSP_Regs
