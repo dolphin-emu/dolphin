@@ -202,9 +202,9 @@ void DSPCore_Reset()
   Analyzer::Analyze();
 }
 
-void DSPCore_SetException(u8 level)
+void DSPCore_SetException(ExceptionType exception)
 {
-  g_dsp.exceptions |= 1 << level;
+  g_dsp.exceptions |= 1 << exception;
 }
 
 // Notify that an external interrupt is pending (used by thread mode)

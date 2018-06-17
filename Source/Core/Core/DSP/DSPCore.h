@@ -208,7 +208,7 @@ enum : u16
 };
 
 // Exception vectors
-enum : int
+enum ExceptionType : int
 {
   EXP_STOVF = 1,  // 0x0002 stack under/over flow
   EXP_2 = 2,      // 0x0004
@@ -356,7 +356,7 @@ void DSPCore_CheckExceptions();
 void DSPCore_SetExternalInterrupt(bool val);
 
 // sets a flag in the pending exception register.
-void DSPCore_SetException(u8 level);
+void DSPCore_SetException(ExceptionType exception);
 
 enum class State
 {
