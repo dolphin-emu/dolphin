@@ -209,6 +209,21 @@ void GameCubePane::OnConfigPressed(int slot)
     }
   }
 
+  QString path_old;
+  if (memcard)
+  {
+    path_old =
+        QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardA :
+                                                     SConfig::GetInstance().m_strMemoryCardB))
+            .absoluteFilePath();
+  }
+  else
+  {
+    path_old = QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strGbaCartA :
+                                                            SConfig::GetInstance().m_strGbaCartB))
+                   .absoluteFilePath();
+  }
+
   if (memcard)
   {
     if (slot == SLOT_A_INDEX)
@@ -230,6 +245,17 @@ void GameCubePane::OnConfigPressed(int slot)
     {
       SConfig::GetInstance().m_strGbaCartB = path_abs.toStdString();
     }
+  }
+
+  if (Core::IsRunning() && path_abs != path_old)
+  {
+    ExpansionInterface::ChangeDevice(
+        // SlotB is on channel 1, slotA and SP1 are on 0
+        slot,
+        // The device enum to change to
+        memcard ? ExpansionInterface::EXIDEVICE_MEMORYCARD : ExpansionInterface::EXIDEVICE_AGP,
+        // SP1 is device 2, slots are device 0
+        0);
   }
 }
 
@@ -350,9 +376,12 @@ void GameCubePane::SaveSettings()
     if (Core::IsRunning() && SConfig::GetInstance().m_EXIDevice[i] != dev)
     {
       ExpansionInterface::ChangeDevice(
-          (index == 1) ? 1 : 0,   // SlotB is on channel 1, slotA and SP1 are on 0
-          dev,                    // The device enum to change to
-          (index == 2) ? 2 : 0);  // SP1 is device 2, slots are device 0
+          // SlotB is on channel 1, slotA and SP1 are on 0
+          (i == 1) ? 1 : 0,
+          // The device enum to change to
+          dev,
+          // SP1 is device 2, slots are device 0
+          (i == 2) ? 2 : 0);
     }
 
     SConfig::GetInstance().m_EXIDevice[i] = dev;
