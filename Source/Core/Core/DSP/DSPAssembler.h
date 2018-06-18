@@ -118,7 +118,7 @@ private:
   std::string m_last_error_str;
   AssemblerError m_last_error = AssemblerError::OK;
 
-  typedef std::map<std::string, std::string> AliasMap;
+  using AliasMap = std::map<std::string, std::string>;
   AliasMap m_aliases;
 
   segment_t m_cur_segment = SEGMENT_CODE;
