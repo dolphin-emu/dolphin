@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <type_traits>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -118,7 +119,7 @@ class LLEAccelerator final : public Accelerator
 protected:
   u8 ReadMemory(u32 address) override { return Host::ReadHostMemory(address); }
   void WriteMemory(u32 address, u8 value) override { Host::WriteHostMemory(value, address); }
-  void OnEndException() override { DSPCore_SetException(EXP_ACCOV); }
+  void OnEndException() override { DSPCore_SetException(ExceptionType::AcceleratorOverflow); }
 };
 
 bool DSPCore_Init(const DSPInitOptions& opts)
@@ -202,9 +203,9 @@ void DSPCore_Reset()
   Analyzer::Analyze();
 }
 
-void DSPCore_SetException(u8 level)
+void DSPCore_SetException(ExceptionType exception)
 {
-  g_dsp.exceptions |= 1 << level;
+  g_dsp.exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
 }
 
 // Notify that an external interrupt is pending (used by thread mode)
@@ -220,7 +221,7 @@ void DSPCore_CheckExternalInterrupt()
     return;
 
   // Signal the SPU about new mail
-  DSPCore_SetException(EXP_INT);
+  DSPCore_SetException(ExceptionType::ExternalInterrupt);
 
   g_dsp.cr &= ~CR_EXTERNAL_INT;
 }
@@ -236,7 +237,8 @@ void DSPCore_CheckExceptions()
     // Seems exp int are not masked by sr_int_enable
     if (g_dsp.exceptions & (1 << i))
     {
-      if (Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
+      if (Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) ||
+          i == static_cast<int>(ExceptionType::ExternalInterrupt))
       {
         // store pc and sr until RTI
         dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
