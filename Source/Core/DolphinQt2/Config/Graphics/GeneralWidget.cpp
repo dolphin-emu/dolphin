@@ -231,12 +231,12 @@ void GeneralWidget::AddDescriptions()
 {
 // We need QObject::tr
 #if defined(_WIN32)
-  static const char TR_BACKEND_DESCRIPTION[] =
-      QT_TR_NOOP("Selects what graphics API to use internally.\nThe software renderer is extremely "
-                 "slow and only useful for debugging, so you'll want to use either Direct3D or "
-                 "OpenGL. Different games and different GPUs will behave differently on each "
-                 "backend, so for the best emulation experience it's recommended to try both and "
-                 "choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
+  static const char TR_BACKEND_DESCRIPTION[] = QT_TR_NOOP(
+      "Selects which graphics API to use internally.\n\nThe software renderer is extremely "
+      "slow and only useful for debugging, so you will want to use either OpenGL, Direct3D, "
+      "or Vulkan. Different games and different GPUs will behave differently on each "
+      "backend, so for the best emulation experience it is recommended to try each and "
+      "select the backend that is least problematic.\n\nIf unsure, select OpenGL.");
 #else
   static const char TR_BACKEND_DESCRIPTION[] =
       QT_TR_NOOP("Selects what graphics API to use internally.\nThe software renderer is extremely "
