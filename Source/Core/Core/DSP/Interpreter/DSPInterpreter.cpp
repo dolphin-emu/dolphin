@@ -12,6 +12,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPIntTables.h"
 
 namespace DSP
 {
@@ -25,10 +26,10 @@ void ExecuteInstruction(const UDSPInstruction inst)
 
   if (opcode_template->extended)
   {
-    GetExtOpTemplate(inst)->intFunc(inst);
+    GetExtOp(inst)(inst);
   }
 
-  opcode_template->intFunc(inst);
+  GetOp(inst)(inst);
 
   if (opcode_template->extended)
   {

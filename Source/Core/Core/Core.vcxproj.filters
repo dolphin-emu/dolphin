@@ -240,6 +240,9 @@
     <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="DSP\Interpreter\DSPIntTables.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\Jit\x64\DSPJitRegCache.cpp">
       <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
@@ -265,6 +268,9 @@
       <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\x64\DSPEmitter.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\x64\DSPJitTables.cpp">
       <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\x64\DSPJitUtil.cpp">
@@ -960,10 +966,16 @@
     <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\Interpreter\DSPIntTables.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Jit\x64\DSPJitRegCache.h">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\Jit\x64\DSPJitTables.h">
       <Filter>DSPCore\Jit\x64</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Jit\x64\DSPEmitter.h">

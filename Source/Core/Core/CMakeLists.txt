@@ -58,6 +58,7 @@ add_library(core
   DSP/Interpreter/DSPIntLoadStore.cpp
   DSP/Interpreter/DSPIntMisc.cpp
   DSP/Interpreter/DSPIntMultiplier.cpp
+  DSP/Interpreter/DSPIntTables.cpp
   DSP/Jit/x64/DSPEmitter.cpp
   DSP/Jit/x64/DSPJitRegCache.cpp
   DSP/Jit/x64/DSPJitExtOps.cpp
@@ -65,9 +66,10 @@ add_library(core
   DSP/Jit/x64/DSPJitCCUtil.cpp
   DSP/Jit/x64/DSPJitArithmetic.cpp
   DSP/Jit/x64/DSPJitLoadStore.cpp
-  DSP/Jit/x64/DSPJitMultiplier.cpp
-  DSP/Jit/x64/DSPJitUtil.cpp
   DSP/Jit/x64/DSPJitMisc.cpp
+  DSP/Jit/x64/DSPJitMultiplier.cpp
+  DSP/Jit/x64/DSPJitTables.cpp
+  DSP/Jit/x64/DSPJitUtil.cpp
   FifoPlayer/FifoAnalyzer.cpp
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoPlaybackAnalyzer.cpp
