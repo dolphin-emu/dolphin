@@ -61,8 +61,8 @@ public:
   bool Assemble(const std::string& text, std::vector<u16>& code,
                 std::vector<int>* line_numbers = nullptr);
 
-  std::string GetErrorString() const { return last_error_str; }
-  AssemblerError GetError() const { return last_error; }
+  std::string GetErrorString() const { return m_last_error_str; }
+  AssemblerError GetError() const { return m_last_error; }
 
 private:
   struct param_t
@@ -104,26 +104,26 @@ private:
 
   std::vector<u16> m_output_buffer;
 
-  std::string include_dir;
-  std::string cur_line;
+  std::string m_include_dir;
+  std::string m_cur_line;
 
   u32 m_cur_addr = 0;
-  int m_totalSize = 0;
+  int m_total_size = 0;
   u8 m_cur_pass = 0;
 
-  LabelMap labels;
+  LabelMap m_labels;
 
-  u32 code_line = 0;
-  bool failed = false;
-  std::string last_error_str;
-  AssemblerError last_error = AssemblerError::OK;
+  u32 m_code_line = 0;
+  bool m_failed = false;
+  std::string m_last_error_str;
+  AssemblerError m_last_error = AssemblerError::OK;
 
   typedef std::map<std::string, std::string> AliasMap;
-  AliasMap aliases;
+  AliasMap m_aliases;
 
-  segment_t cur_segment = SEGMENT_CODE;
-  u32 segment_addr[SEGMENT_MAX] = {};
+  segment_t m_cur_segment = SEGMENT_CODE;
+  u32 m_segment_addr[SEGMENT_MAX] = {};
   int m_current_param = 0;
-  const AssemblerSettings settings_;
+  const AssemblerSettings m_settings;
 };
 }  // namespace DSP

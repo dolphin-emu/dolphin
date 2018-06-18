@@ -51,7 +51,7 @@ static const char* err_string[] = {"",
                                    "Number out of range",
                                    "Program counter out of range"};
 
-DSPAssembler::DSPAssembler(const AssemblerSettings& settings) : settings_(settings)
+DSPAssembler::DSPAssembler(const AssemblerSettings& settings) : m_settings(settings)
 {
 }
 
@@ -67,10 +67,10 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
     return false;
 
   // We now have the size of the output buffer
-  if (m_totalSize <= 0)
+  if (m_total_size <= 0)
     return false;
 
-  m_output_buffer.resize(m_totalSize);
+  m_output_buffer.resize(m_total_size);
 
   InitPass(2);
   if (!AssemblePass(text, 2))
@@ -80,18 +80,18 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
   m_output_buffer.clear();
   m_output_buffer.shrink_to_fit();
 
-  last_error_str = "(no errors)";
-  last_error = AssemblerError::OK;
+  m_last_error_str = "(no errors)";
+  m_last_error = AssemblerError::OK;
 
   return true;
 }
 
 void DSPAssembler::ShowError(AssemblerError err_code, const char* extra_info)
 {
-  if (!settings_.force)
-    failed = true;
+  if (!m_settings.force)
+    m_failed = true;
 
-  std::string error = StringFromFormat("%u : %s ", code_line, cur_line.c_str());
+  std::string error = StringFromFormat("%u : %s ", m_code_line, m_cur_line.c_str());
   if (!extra_info)
     extra_info = "-";
 
@@ -99,16 +99,16 @@ void DSPAssembler::ShowError(AssemblerError err_code, const char* extra_info)
 
   if (m_current_param == 0)
   {
-    error += StringFromFormat("ERROR: %s Line: %u : %s\n", error_string, code_line, extra_info);
+    error += StringFromFormat("ERROR: %s Line: %u : %s\n", error_string, m_code_line, extra_info);
   }
   else
   {
-    error += StringFromFormat("ERROR: %s Line: %u Param: %d : %s\n", error_string, code_line,
+    error += StringFromFormat("ERROR: %s Line: %u Param: %d : %s\n", error_string, m_code_line,
                               m_current_param, extra_info);
   }
 
-  last_error_str = std::move(error);
-  last_error = err_code;
+  m_last_error_str = std::move(error);
+  m_last_error = err_code;
 }
 
 static char* skip_spaces(char* ptr)
@@ -201,7 +201,7 @@ s32 DSPAssembler::ParseValue(const char* str)
     {
       // Lookup label
       u16 value;
-      if (labels.GetLabelValue(ptr, &value))
+      if (m_labels.GetLabelValue(ptr, &value))
         return value;
       if (m_cur_pass == 2)
         ShowError(AssemblerError::UnknownLabel, str);
@@ -333,7 +333,7 @@ u32 DSPAssembler::ParseExpression(const char* ptr)
       val = 0x10000 +
             (val &
              0xffff);  // ATTENTION: avoid a terrible bug!!! number cannot write with '-' in sprintf
-      fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", code_line);
+      fprintf(stderr, "WARNING: Number Underflow at Line: %d \n", m_code_line);
     }
     sprintf(d_buffer, "%d", val);
   }
@@ -433,8 +433,8 @@ const DSPOPCTemplate* DSPAssembler::FindOpcode(std::string name, size_t par_coun
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
 
-  const auto alias_iter = aliases.find(name);
-  if (alias_iter != aliases.end())
+  const auto alias_iter = m_aliases.find(name);
+  if (alias_iter != m_aliases.end())
     name = alias_iter->second;
 
   const DSPOPCTemplate* const info =
@@ -499,7 +499,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
+            fprintf(stderr, "%s   (param %zu)", m_cur_line.c_str(), current_param);
             ShowError(AssemblerError::InvalidRegister);
           }
           break;
@@ -509,7 +509,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
             if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
-            fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
+            fprintf(stderr, "%s   (param %zu)", m_cur_line.c_str(), current_param);
             ShowError(AssemblerError::InvalidRegister);
           }
           break;
@@ -521,11 +521,11 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
             {
-              fprintf(stderr, "%i : %s ", code_line, cur_line.c_str());
+              fprintf(stderr, "%i : %s ", m_code_line, m_cur_line.c_str());
               fprintf(stderr,
                       "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
                       "Param: %zu Ext: %d\n",
-                      (par[i].val & 1), (par[i].val & 1), code_line, current_param,
+                      (par[i].val & 1), (par[i].val & 1), m_code_line, current_param,
                       static_cast<int>(type));
             }
             else if (par[i].val >= 0x1c && par[i].val <= 0x1d)
@@ -533,7 +533,7 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
               fprintf(
                   stderr,
                   "WARNING: $ACL%d register used instead of $ACC%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else
             {
@@ -552,14 +552,14 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
               fprintf(
                   stderr,
                   "WARNING: $ACL%d register used instead of $ACM%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else if (par[i].val >= 0x20 && par[i].val <= 0x21)
             {
               fprintf(
                   stderr,
                   "WARNING: $ACC%d register used instead of $ACM%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else
             {
@@ -576,19 +576,19 @@ bool DSPAssembler::VerifyParams(const DSPOPCTemplate* opc, param_t* par, size_t 
 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
             {
-              fprintf(stderr, "%s ", cur_line.c_str());
+              fprintf(stderr, "%s ", m_cur_line.c_str());
               fprintf(
                   stderr,
                   "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else if (par[i].val >= 0x20 && par[i].val <= 0x21)
             {
-              fprintf(stderr, "%s ", cur_line.c_str());
+              fprintf(stderr, "%s ", m_cur_line.c_str());
               fprintf(
                   stderr,
                   "WARNING: $ACC%d register used instead of $ACL%d register Line: %d Param: %zu\n",
-                  (par[i].val & 1), (par[i].val & 1), code_line, current_param);
+                  (par[i].val & 1), (par[i].val & 1), m_code_line, current_param);
             }
             else
             {
@@ -729,23 +729,23 @@ void DSPAssembler::BuildCode(const DSPOPCTemplate* opc, param_t* par, u32 par_co
 
 void DSPAssembler::InitPass(int pass)
 {
-  failed = false;
+  m_failed = false;
   if (pass == 1)
   {
     // Reset label table. Pre-populate with hw addresses and registers.
-    labels.Clear();
-    labels.RegisterDefaults();
-    aliases.clear();
-    aliases["S15"] = "SET15";
-    aliases["S16"] = "SET16";
-    aliases["S40"] = "SET40";
+    m_labels.Clear();
+    m_labels.RegisterDefaults();
+    m_aliases.clear();
+    m_aliases["S15"] = "SET15";
+    m_aliases["S16"] = "SET16";
+    m_aliases["S40"] = "SET40";
   }
   m_cur_addr = 0;
-  m_totalSize = 0;
-  cur_segment = SEGMENT_CODE;
-  segment_addr[SEGMENT_CODE] = 0;
-  segment_addr[SEGMENT_DATA] = 0;
-  segment_addr[SEGMENT_OVERLAY] = 0;
+  m_total_size = 0;
+  m_cur_segment = SEGMENT_CODE;
+  m_segment_addr[SEGMENT_CODE] = 0;
+  m_segment_addr[SEGMENT_DATA] = 0;
+  m_segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
 bool DSPAssembler::AssemblePass(const std::string& text, int pass)
@@ -755,21 +755,21 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
   std::istringstream fsrc(text);
 
   // printf("%s: Pass %d\n", fname, pass);
-  code_line = 0;
+  m_code_line = 0;
   m_cur_pass = pass;
 
 #define LINEBUF_SIZE 1024
   char line[LINEBUF_SIZE] = {0};
-  while (!failed && !fsrc.fail() && !fsrc.eof())
+  while (!m_failed && !fsrc.fail() && !fsrc.eof())
   {
     int opcode_size = 0;
     fsrc.getline(line, LINEBUF_SIZE);
     if (fsrc.fail())
       break;
 
-    cur_line = line;
+    m_cur_line = line;
     // printf("A: %s\n", line);
-    code_line++;
+    m_code_line++;
 
     param_t params[10] = {{0, P_NONE, nullptr}};
     param_t params_ext[10] = {{0, P_NONE, nullptr}};
@@ -895,7 +895,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
         }
       }
       if (pass == 1)
-        labels.RegisterLabel(label, lval);
+        m_labels.RegisterLabel(label, lval);
     }
 
     if (opcode == nullptr)
@@ -907,22 +907,22 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       if (params[0].type == P_STR)
       {
         std::string include_file_path;
-        const u32 this_code_line = code_line;
+        const u32 this_code_line = m_code_line;
 
-        if (include_dir.empty())
+        if (m_include_dir.empty())
         {
           include_file_path = params[0].str;
         }
         else
         {
-          include_file_path = include_dir + '/' + params[0].str;
+          include_file_path = m_include_dir + '/' + params[0].str;
         }
 
         std::string included_text;
         File::ReadFileToString(include_file_path, included_text);
         AssemblePass(included_text, pass);
 
-        code_line = this_code_line;
+        m_code_line = this_code_line;
       }
       else
       {
@@ -934,7 +934,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     if (strcmp("INCDIR", opcode) == 0)
     {
       if (params[0].type == P_STR)
-        include_dir = params[0].str;
+        m_include_dir = params[0].str;
       else
         ShowError(AssemblerError::ExpectedParamStr);
       continue;
@@ -944,7 +944,7 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     {
       if (params[0].type == P_VAL)
       {
-        m_totalSize = std::max(m_cur_addr, params[0].val);
+        m_total_size = std::max(m_cur_addr, params[0].val);
         m_cur_addr = params[0].val;
       }
       else
@@ -976,12 +976,12 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     {
       if (params[0].type == P_STR)
       {
-        segment_addr[cur_segment] = m_cur_addr;
+        m_segment_addr[m_cur_segment] = m_cur_addr;
         if (strcmp("DATA", params[0].str) == 0)
-          cur_segment = SEGMENT_DATA;
+          m_cur_segment = SEGMENT_DATA;
         if (strcmp("CODE", params[0].str) == 0)
-          cur_segment = SEGMENT_CODE;
-        m_cur_addr = segment_addr[cur_segment];
+          m_cur_segment = SEGMENT_CODE;
+        m_cur_addr = m_segment_addr[m_cur_segment];
       }
       else
         ShowError(AssemblerError::ExpectedParamStr);
@@ -1028,9 +1028,9 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
     }
 
     m_cur_addr += opcode_size;
-    m_totalSize += opcode_size;
+    m_total_size += opcode_size;
   };
 
-  return !failed;
+  return !m_failed;
 }
 }  // namespace DSP
