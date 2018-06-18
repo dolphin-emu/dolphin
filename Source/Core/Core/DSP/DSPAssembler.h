@@ -107,23 +107,23 @@ private:
   std::string include_dir;
   std::string cur_line;
 
-  u32 m_cur_addr;
-  int m_totalSize;
-  u8 m_cur_pass;
+  u32 m_cur_addr = 0;
+  int m_totalSize = 0;
+  u8 m_cur_pass = 0;
 
   LabelMap labels;
 
-  u32 code_line;
-  bool failed;
+  u32 code_line = 0;
+  bool failed = false;
   std::string last_error_str;
-  AssemblerError last_error;
+  AssemblerError last_error = AssemblerError::OK;
 
   typedef std::map<std::string, std::string> AliasMap;
   AliasMap aliases;
 
-  segment_t cur_segment;
-  u32 segment_addr[SEGMENT_MAX];
-  int m_current_param;
+  segment_t cur_segment = SEGMENT_CODE;
+  u32 segment_addr[SEGMENT_MAX] = {};
+  int m_current_param = 0;
   const AssemblerSettings settings_;
 };
 }  // namespace DSP

@@ -51,9 +51,7 @@ static const char* err_string[] = {"",
                                    "Number out of range",
                                    "Program counter out of range"};
 
-DSPAssembler::DSPAssembler(const AssemblerSettings& settings)
-    : m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
-
+DSPAssembler::DSPAssembler(const AssemblerSettings& settings) : settings_(settings)
 {
 }
 
