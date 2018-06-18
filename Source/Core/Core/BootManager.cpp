@@ -203,14 +203,14 @@ static ConfigCache config_cache;
 static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 {
   if (mode == "auto")
-    return GPU_DETERMINISM_AUTO;
+    return GPUDeterminismMode::Auto;
   if (mode == "none")
-    return GPU_DETERMINISM_NONE;
+    return GPUDeterminismMode::Disabled;
   if (mode == "fake-completion")
-    return GPU_DETERMINISM_FAKE_COMPLETION;
+    return GPUDeterminismMode::FakeCompletion;
 
   NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
-  return GPU_DETERMINISM_AUTO;
+  return GPUDeterminismMode::Auto;
 }
 
 // Boot the ISO or file

@@ -37,6 +37,8 @@ namespace PowerPC
 enum class CPUCore;
 }  // namespace PowerPC
 
+struct BootParameters;
+
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No Audio Output")
 #define BACKEND_ALSA "ALSA"
@@ -47,16 +49,14 @@ enum class CPUCore;
 #define BACKEND_OPENSLES "OpenSLES"
 #define BACKEND_WASAPI "WASAPI (Exclusive Mode)"
 
-enum GPUDeterminismMode
+enum class GPUDeterminismMode
 {
-  GPU_DETERMINISM_AUTO,
-  GPU_DETERMINISM_NONE,
+  Auto,
+  Disabled,
   // This is currently the only mode.  There will probably be at least
   // one more at some point.
-  GPU_DETERMINISM_FAKE_COMPLETION,
+  FakeCompletion,
 };
-
-struct BootParameters;
 
 struct SConfig
 {
