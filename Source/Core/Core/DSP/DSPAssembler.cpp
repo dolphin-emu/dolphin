@@ -754,7 +754,6 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
 
   std::istringstream fsrc(text);
 
-  // printf("%s: Pass %d\n", fname, pass);
   m_code_line = 0;
   m_cur_pass = pass;
 
@@ -768,7 +767,6 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       break;
 
     m_cur_line = line;
-    // printf("A: %s\n", line);
     m_code_line++;
 
     param_t params[10] = {{0, P_NONE, nullptr}};
