@@ -97,206 +97,280 @@ inline double MakeQuiet(double d)
 // these functions allow globally modify operations behaviour
 // also, these may be used to set flags like FR, FI, OX, UX
 
-inline double NI_mul(double a, double b)
+struct FPResult
 {
-  const double t = a * b;
-  if (std::isnan(t))
+  bool HasNoInvalidExceptions() const { return (exception & FPSCR_VX_ANY) == 0; }
+
+  void SetException(FPSCRExceptionFlag flag)
+  {
+    exception = flag;
+    SetFPException(flag);
+  }
+
+  double value = 0.0;
+  FPSCRExceptionFlag exception{};
+};
+
+inline FPResult NI_mul(double a, double b)
+{
+  FPResult result{a * b};
+
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      SetFPException(FPSCR_VXSNAN);
+    {
+      result.SetException(FPSCR_VXSNAN);
+    }
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXIMZ);
-    return PPC_NAN;
+    result.value = PPC_NAN;
+    result.SetException(FPSCR_VXIMZ);
+    return result;
   }
-  return t;
+
+  return result;
 }
 
-inline double NI_div(double a, double b)
+inline FPResult NI_div(double a, double b)
 {
-  const double t = a / b;
+  FPResult result{a / b};
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
 
     if (b == 0.0)
     {
       if (a == 0.0)
       {
-        SetFPException(FPSCR_VXZDZ);
+        result.SetException(FPSCR_VXZDZ);
       }
       else
       {
-        SetFPException(FPSCR_ZX);
+        result.SetException(FPSCR_ZX);
       }
     }
     else if (std::isinf(a) && std::isinf(b))
     {
-      SetFPException(FPSCR_VXIDI);
+      result.SetException(FPSCR_VXIDI);
     }
 
-    return PPC_NAN;
+    result.value = PPC_NAN;
+    return result;
   }
 
-  return t;
+  return result;
 }
 
-inline double NI_add(double a, double b)
+inline FPResult NI_add(double a, double b)
 {
-  const double t = a + b;
+  FPResult result{a + b};
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    result.SetException(FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
 
   if (std::isinf(a) || std::isinf(b))
     FPSCR.ClearFIFR();
 
-  return t;
+  return result;
 }
 
-inline double NI_sub(double a, double b)
+inline FPResult NI_sub(double a, double b)
 {
-  const double t = a - b;
+  FPResult result{a - b};
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    result.SetException(FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
 
   if (std::isinf(a) || std::isinf(b))
     FPSCR.ClearFIFR();
 
-  return t;
+  return result;
 }
 
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline double NI_madd(double a, double c, double b)
+inline FPResult NI_madd(double a, double c, double b)
 {
-  double t = a * c;
+  FPResult result{a * c};
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);  // !
+    {
+      result.value = MakeQuiet(b);  // !
+      return result;
+    }
     if (std::isnan(c))
-      return MakeQuiet(c);
+    {
+      result.value = MakeQuiet(c);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXIMZ);
-    return PPC_NAN;
+    result.SetException(FPSCR_VXIMZ);
+    result.value = PPC_NAN;
+    return result;
   }
 
-  t += b;
+  result.value += b;
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(b))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    result.SetException(FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
 
   if (std::isinf(a) || std::isinf(b) || std::isinf(c))
     FPSCR.ClearFIFR();
 
-  return t;
+  return result;
 }
 
-inline double NI_msub(double a, double c, double b)
+inline FPResult NI_msub(double a, double c, double b)
 {
-  double t = a * c;
+  FPResult result{a * c};
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(a))
-      return MakeQuiet(a);
+    {
+      result.value = MakeQuiet(a);
+      return result;
+    }
     if (std::isnan(b))
-      return MakeQuiet(b);  // !
+    {
+      result.value = MakeQuiet(b);  // !
+      return result;
+    }
     if (std::isnan(c))
-      return MakeQuiet(c);
+    {
+      result.value = MakeQuiet(c);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXIMZ);
-    return PPC_NAN;
+    result.SetException(FPSCR_VXIMZ);
+    result.value = PPC_NAN;
+    return result;
   }
 
-  t -= b;
+  result.value -= b;
 
-  if (std::isnan(t))
+  if (std::isnan(result.value))
   {
     if (Common::IsSNAN(b))
-      SetFPException(FPSCR_VXSNAN);
+      result.SetException(FPSCR_VXSNAN);
 
     FPSCR.ClearFIFR();
 
     if (std::isnan(b))
-      return MakeQuiet(b);
+    {
+      result.value = MakeQuiet(b);
+      return result;
+    }
 
-    SetFPException(FPSCR_VXISI);
-    return PPC_NAN;
+    result.SetException(FPSCR_VXISI);
+    result.value = PPC_NAN;
+    return result;
   }
 
   if (std::isinf(a) || std::isinf(b) || std::isinf(c))
     FPSCR.ClearFIFR();
 
-  return t;
+  return result;
 }
 
 // used by stfsXX instructions and ps_rsqrte
