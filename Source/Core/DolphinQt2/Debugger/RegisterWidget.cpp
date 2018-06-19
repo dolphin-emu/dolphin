@@ -4,17 +4,19 @@
 
 #include "DolphinQt2/Debugger/RegisterWidget.h"
 
+#include <utility>
+
+#include <QHeaderView>
+#include <QMenu>
+#include <QTableWidget>
+#include <QVBoxLayout>
+
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Settings.h"
-
-#include <QHeaderView>
-#include <QMenu>
-#include <QTableWidget>
-#include <QVBoxLayout>
 
 RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 {
@@ -335,7 +337,7 @@ void RegisterWidget::PopulateTable()
 void RegisterWidget::AddRegister(int row, int column, RegisterType type, std::string register_name,
                                  std::function<u64()> get_reg, std::function<void(u64)> set_reg)
 {
-  auto* value = new RegisterColumn(type, get_reg, set_reg);
+  auto* value = new RegisterColumn(type, std::move(get_reg), std::move(set_reg));
 
   if (m_table->rowCount() <= row)
     m_table->setRowCount(row + 1);
