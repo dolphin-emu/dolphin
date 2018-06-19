@@ -285,6 +285,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   u32 size = info->GetTotalChildren();
 
   QProgressDialog* dialog = new QProgressDialog(this);
+  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
   dialog->setMinimum(0);
   dialog->setMaximum(size);
   dialog->show();
