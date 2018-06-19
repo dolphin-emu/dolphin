@@ -315,7 +315,6 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 
 std::string GameFile::GetUniqueIdentifier() const
 {
-  const DiscIO::Language lang = DiscIO::Language::English;
   std::vector<std::string> info;
   if (!GetGameID().empty())
     info.push_back(GetGameID());
