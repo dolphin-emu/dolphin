@@ -505,10 +505,10 @@ bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& _bd)
   if (pWiimote)
     pWiimote->EventConnectionAccepted();
 
-  static char s_szLinkType[][128] = {
-      {"HCI_LINK_SCO     0x00 - Voice"},
-      {"HCI_LINK_ACL     0x01 - Data"},
-      {"HCI_LINK_eSCO    0x02 - eSCO"},
+  static constexpr const char* link_type[] = {
+      "HCI_LINK_SCO     0x00 - Voice",
+      "HCI_LINK_ACL     0x01 - Data",
+      "HCI_LINK_eSCO    0x02 - eSCO",
   };
 
   DEBUG_LOG(IOS_WIIMOTE, "Event: SendEventConnectionComplete");
@@ -517,7 +517,7 @@ bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& _bd)
             pConnectionComplete->bdaddr[1], pConnectionComplete->bdaddr[2],
             pConnectionComplete->bdaddr[3], pConnectionComplete->bdaddr[4],
             pConnectionComplete->bdaddr[5]);
-  DEBUG_LOG(IOS_WIIMOTE, "  LinkType: %s", s_szLinkType[pConnectionComplete->LinkType]);
+  DEBUG_LOG(IOS_WIIMOTE, "  LinkType: %s", link_type[pConnectionComplete->LinkType]);
   DEBUG_LOG(IOS_WIIMOTE, "  EncryptionEnabled: %i", pConnectionComplete->EncryptionEnabled);
 
   return true;
@@ -540,10 +540,10 @@ bool BluetoothEmu::SendEventRequestConnection(const WiimoteDevice& _rWiiMote)
 
   AddEventToQueue(Event);
 
-  static char LinkType[][128] = {
-      {"HCI_LINK_SCO     0x00 - Voice"},
-      {"HCI_LINK_ACL     0x01 - Data"},
-      {"HCI_LINK_eSCO    0x02 - eSCO"},
+  static constexpr const char* link_type[] = {
+      "HCI_LINK_SCO     0x00 - Voice",
+      "HCI_LINK_ACL     0x01 - Data",
+      "HCI_LINK_eSCO    0x02 - eSCO",
   };
 
   DEBUG_LOG(IOS_WIIMOTE, "Event: SendEventRequestConnection");
@@ -554,7 +554,7 @@ bool BluetoothEmu::SendEventRequestConnection(const WiimoteDevice& _rWiiMote)
   DEBUG_LOG(IOS_WIIMOTE, "  COD[0]: 0x%02x", pEventRequestConnection->uclass[0]);
   DEBUG_LOG(IOS_WIIMOTE, "  COD[1]: 0x%02x", pEventRequestConnection->uclass[1]);
   DEBUG_LOG(IOS_WIIMOTE, "  COD[2]: 0x%02x", pEventRequestConnection->uclass[2]);
-  DEBUG_LOG(IOS_WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
+  DEBUG_LOG(IOS_WIIMOTE, "  LinkType: %s", link_type[pEventRequestConnection->LinkType]);
 
   return true;
 }
@@ -1202,9 +1202,9 @@ void BluetoothEmu::CommandAcceptCon(const u8* input)
 {
   const hci_accept_con_cp* accept_connection = reinterpret_cast<const hci_accept_con_cp*>(input);
 
-  static char roles[][128] = {
-      {"Master (0x00)"},
-      {"Slave (0x01)"},
+  static constexpr const char* roles[] = {
+      "Master (0x00)",
+      "Slave (0x01)",
   };
 
   INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_ACCEPT_CON");
@@ -1505,11 +1505,11 @@ void BluetoothEmu::CommandWriteScanEnable(const u8* input)
   hci_write_scan_enable_rp reply;
   reply.status = 0x00;
 
-  static char scanning[][128] = {
-      {"HCI_NO_SCAN_ENABLE"},
-      {"HCI_INQUIRY_SCAN_ENABLE"},
-      {"HCI_PAGE_SCAN_ENABLE"},
-      {"HCI_INQUIRY_AND_PAGE_SCAN_ENABLE"},
+  static constexpr const char* scanning[] = {
+      "HCI_NO_SCAN_ENABLE",
+      "HCI_INQUIRY_SCAN_ENABLE",
+      "HCI_PAGE_SCAN_ENABLE",
+      "HCI_INQUIRY_AND_PAGE_SCAN_ENABLE",
   };
 
   DEBUG_LOG(IOS_WIIMOTE, "Command: HCI_CMD_WRITE_SCAN_ENABLE: (0x%02x)",
@@ -1593,10 +1593,11 @@ void BluetoothEmu::CommandWriteInquiryMode(const u8* input)
   hci_write_inquiry_mode_rp reply;
   reply.status = 0x00;
 
-  static char inquiry_mode_tag[][128] = {
-      {"Standard Inquiry Result event format (default)"},
-      {"Inquiry Result format with RSSI"},
-      {"Inquiry Result with RSSI format or Extended Inquiry Result format"}};
+  static constexpr const char* inquiry_mode_tag[] = {
+      "Standard Inquiry Result event format (default)",
+      "Inquiry Result format with RSSI",
+      "Inquiry Result with RSSI format or Extended Inquiry Result format",
+  };
   INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_WRITE_INQUIRY_MODE:");
   DEBUG_LOG(IOS_WIIMOTE, "  mode: %s", inquiry_mode_tag[inquiry_mode->mode]);
 
@@ -1611,8 +1612,10 @@ void BluetoothEmu::CommandWritePageScanType(const u8* input)
   hci_write_page_scan_type_rp reply;
   reply.status = 0x00;
 
-  static char page_scan_type[][128] = {{"Mandatory: Standard Scan (default)"},
-                                       {"Optional: Interlaced Scan"}};
+  static constexpr const char* page_scan_type[] = {
+      "Mandatory: Standard Scan (default)",
+      "Optional: Interlaced Scan",
+  };
 
   INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_WRITE_PAGE_SCAN_TYPE:");
   DEBUG_LOG(IOS_WIIMOTE, "  type: %s", page_scan_type[write_page_scan_type->type]);
