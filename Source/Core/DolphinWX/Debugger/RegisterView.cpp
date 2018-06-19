@@ -334,9 +334,7 @@ wxString CRegTable::GetValue(int row, int col)
                                     PowerPC::ppcState.spr[SPR_IBAT4L + (row - 16) * 2]);
 
       if (row == 16)
-        return wxString::Format("%016" PRIx64, static_cast<u64>(PowerPC::ppcState.spr[SPR_TU])
-                                                       << 32 |
-                                                   PowerPC::ppcState.spr[SPR_TL]);
+        return wxString::Format("%016" PRIx64, PowerPC::ReadFullTimeBaseValue());
 
       break;
     }

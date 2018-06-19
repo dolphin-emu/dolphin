@@ -4,8 +4,6 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
@@ -253,12 +251,8 @@ void Interpreter::mfspr(UGeckoInstruction inst)
 
   case SPR_TL:
   case SPR_TU:
-  {
-    // works since we are little endian and TL comes first :)
-    const u64 time_base = SystemTimers::GetFakeTimeBase();
-    std::memcpy(&TL, &time_base, sizeof(u64));
-  }
-  break;
+    PowerPC::WriteFullTimeBaseValue(SystemTimers::GetFakeTimeBase());
+    break;
 
   case SPR_WPAR:
   {

@@ -261,12 +261,7 @@ void RegisterWidget::PopulateTable()
 
   // Special registers
   // TB
-  AddRegister(16, 5, RegisterType::tb, "TB",
-              [] {
-                return static_cast<u64>(PowerPC::ppcState.spr[SPR_TU]) << 32 |
-                       PowerPC::ppcState.spr[SPR_TL];
-              },
-              nullptr);
+  AddRegister(16, 5, RegisterType::tb, "TB", PowerPC::ReadFullTimeBaseValue, nullptr);
 
   // PC
   AddRegister(17, 5, RegisterType::pc, "PC", [] { return PowerPC::ppcState.pc; },
