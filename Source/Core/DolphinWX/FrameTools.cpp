@@ -1539,7 +1539,7 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
     const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
         ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
     const unsigned int wiimote_index = event.GetId() - IDM_CONNECT_WIIMOTE1;
-    const bool is_connected = bt && bt->AccessWiiMote(wiimote_index | 0x100)->IsConnected();
+    const bool is_connected = bt && bt->AccessWiiMoteByIndex(wiimote_index)->IsConnected();
     Wiimote::Connect(wiimote_index, !is_connected);
   });
 }
@@ -1699,22 +1699,27 @@ void CFrame::UpdateGUI()
   const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
                             ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
                         nullptr;
-  bool ShouldEnableWiimotes = Running && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(ShouldEnableWiimotes);
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(ShouldEnableWiimotes);
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(ShouldEnableWiimotes);
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(ShouldEnableWiimotes);
-  GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(ShouldEnableWiimotes);
-  if (ShouldEnableWiimotes)
+  const bool should_enable_wiimotes =
+      Running && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
+  auto* const wiimote_1 = GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1);
+  auto* const wiimote_2 = GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2);
+  auto* const wiimote_3 = GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3);
+  auto* const wiimote_4 = GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4);
+  auto* const balance_board = GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD);
+
+  wiimote_1->Enable(should_enable_wiimotes);
+  wiimote_2->Enable(should_enable_wiimotes);
+  wiimote_3->Enable(should_enable_wiimotes);
+  wiimote_4->Enable(should_enable_wiimotes);
+  balance_board->Enable(should_enable_wiimotes);
+  if (should_enable_wiimotes)
   {
     Core::RunAsCPUThread([&] {
-      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(bt->AccessWiiMote(0x0100)->IsConnected());
-      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(bt->AccessWiiMote(0x0101)->IsConnected());
-      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(bt->AccessWiiMote(0x0102)->IsConnected());
-      GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(bt->AccessWiiMote(0x0103)->IsConnected());
-      GetMenuBar()
-          ->FindItem(IDM_CONNECT_BALANCEBOARD)
-          ->Check(bt->AccessWiiMote(0x0104)->IsConnected());
+      wiimote_1->Check(bt->AccessWiiMoteByIndex(0)->IsConnected());
+      wiimote_2->Check(bt->AccessWiiMoteByIndex(1)->IsConnected());
+      wiimote_3->Check(bt->AccessWiiMoteByIndex(2)->IsConnected());
+      wiimote_4->Check(bt->AccessWiiMoteByIndex(3)->IsConnected());
+      balance_board->Check(bt->AccessWiiMoteByIndex(4)->IsConnected());
     });
   }
 

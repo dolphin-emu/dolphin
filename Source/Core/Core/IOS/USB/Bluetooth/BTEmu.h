@@ -4,10 +4,9 @@
 
 #pragma once
 
-#include <algorithm>
+#include <cstddef>
 #include <deque>
 #include <memory>
-#include <queue>
 #include <string>
 #include <vector>
 
@@ -57,8 +56,7 @@ public:
 
   bool RemoteDisconnect(u16 _connectionHandle);
 
-  WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
-  WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
+  WiimoteDevice* AccessWiiMoteByIndex(std::size_t index);
 
   void DoState(PointerWrap& p) override;
 
@@ -101,6 +99,9 @@ private:
 
   u32 m_PacketCount[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
+
+  WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
+  WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
 
   // Send ACL data to a device (wiimote)
   void IncDataPacket(u16 _ConnectionHandle);

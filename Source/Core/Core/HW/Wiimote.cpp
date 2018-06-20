@@ -104,9 +104,9 @@ void Connect(unsigned int index, bool connect)
       ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
 
   if (bluetooth)
-    bluetooth->AccessWiiMote(index | 0x100)->Activate(connect);
+    bluetooth->AccessWiiMoteByIndex(index)->Activate(connect);
 
-  const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
+  const char* message = connect ? "Wii Remote %u connected" : "Wii Remote %u disconnected";
   Core::DisplayMessage(StringFromFormat(message, index + 1), 3000);
 }
 
