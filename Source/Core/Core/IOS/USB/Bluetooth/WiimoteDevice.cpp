@@ -914,12 +914,10 @@ void WiimoteDevice::ReceiveL2capData(u16 scid, const void* data, u32 size)
 
 namespace Core
 {
-/* This is called continuously from the Wiimote plugin as soon as it has received
-   a reporting mode. size is the byte size of the report. */
-void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const void* opaque_data, u32 size)
+// This is called continuously from the Wiimote plugin as soon as it has received
+// a reporting mode. size is the byte size of the report.
+void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data, u32 size)
 {
-  const u8* data = (const u8*)opaque_data;
-
   DEBUG_LOG(WIIMOTE, "====================");
   DEBUG_LOG(WIIMOTE, "Callback_WiimoteInterruptChannel: (Wiimote: #%i)", number);
   DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(data, size, 50).c_str());
@@ -928,6 +926,6 @@ void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const void* op
   const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
       IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/oh1/57e/305"));
   if (bt)
-    bt->AccessWiiMote(0x100 + number)->ReceiveL2capData(channel_id, opaque_data, size);
+    bt->AccessWiiMote(0x100 + number)->ReceiveL2capData(channel_id, data, size);
 }
 }
