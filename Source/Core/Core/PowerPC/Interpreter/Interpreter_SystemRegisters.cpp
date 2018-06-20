@@ -312,6 +312,11 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     SystemTimers::TimeBaseSet();
     break;
 
+  case SPR_PVR:
+    // PVR is a read-only register so maintain its value.
+    rSPR(index) = old_value;
+    break;
+
   case SPR_HID0:  // HID0
   {
     UReg_HID0 old_hid0;
@@ -334,6 +339,14 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     }
   }
   break;
+
+  case SPR_HID1:
+    // Despite being documented as a read-only register, it actually isn't. Bits
+    // 0-4 (27-31 from a little endian perspective) are modifiable. The rest are not
+    // affected, as those bits are reserved and ignore writes to them.
+    rSPR(index) &= 0xF8000000;
+    break;
+
   case SPR_HID2:  // HID2
     // TODO: generate illegal instruction for paired inst if PSE or LSQE
     // not set.
