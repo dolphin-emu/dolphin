@@ -215,7 +215,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
 // Here we handle the USB::IOCTLV_USBV0_BLKMSG Ioctlv
 void BluetoothEmu::SendToDevice(u16 connection_handle, u8* data, u32 size)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return;
 
@@ -482,7 +482,7 @@ bool BluetoothEmu::SendEventInquiryResponse()
 
 bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& bd)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(bd);
+  WiimoteDevice* wiimote = AccessWiimote(bd);
   if (wiimote == nullptr)
     return false;
 
@@ -500,7 +500,7 @@ bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& bd)
 
   AddEventToQueue(event);
 
-  WiimoteDevice* connection_wiimote = AccessWiiMote(connection_complete->Connection_Handle);
+  WiimoteDevice* connection_wiimote = AccessWiimote(connection_complete->Connection_Handle);
   if (connection_wiimote)
     connection_wiimote->EventConnectionAccepted();
 
@@ -560,7 +560,7 @@ bool BluetoothEmu::SendEventRequestConnection(const WiimoteDevice& wiimote)
 
 bool BluetoothEmu::SendEventDisconnect(u16 connection_handle, u8 reason)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -584,7 +584,7 @@ bool BluetoothEmu::SendEventDisconnect(u16 connection_handle, u8 reason)
 
 bool BluetoothEmu::SendEventAuthenticationCompleted(u16 connection_handle)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -608,7 +608,7 @@ bool BluetoothEmu::SendEventAuthenticationCompleted(u16 connection_handle)
 
 bool BluetoothEmu::SendEventRemoteNameReq(const bdaddr_t& bd)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(bd);
+  WiimoteDevice* wiimote = AccessWiimote(bd);
   if (wiimote == nullptr)
     return false;
 
@@ -635,7 +635,7 @@ bool BluetoothEmu::SendEventRemoteNameReq(const bdaddr_t& bd)
 
 bool BluetoothEmu::SendEventReadRemoteFeatures(u16 connection_handle)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -671,7 +671,7 @@ bool BluetoothEmu::SendEventReadRemoteFeatures(u16 connection_handle)
 
 bool BluetoothEmu::SendEventReadRemoteVerInfo(u16 connection_handle)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -741,7 +741,7 @@ bool BluetoothEmu::SendEventCommandStatus(u16 opcode)
 
 bool BluetoothEmu::SendEventRoleChange(bdaddr_t bd, bool master)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(bd);
+  WiimoteDevice* wiimote = AccessWiimote(bd);
   if (wiimote == nullptr)
     return false;
 
@@ -813,7 +813,7 @@ bool BluetoothEmu::SendEventNumberOfCompletedPackets()
 
 bool BluetoothEmu::SendEventModeChange(u16 connection_handle, u8 mode, u16 value)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -892,7 +892,7 @@ bool BluetoothEmu::SendEventRequestLinkKey(const bdaddr_t& bd)
 
 bool BluetoothEmu::SendEventReadClockOffsetComplete(u16 connection_handle)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -918,7 +918,7 @@ bool BluetoothEmu::SendEventReadClockOffsetComplete(u16 connection_handle)
 
 bool BluetoothEmu::SendEventConPacketTypeChange(u16 connection_handle, u16 packet_type)
 {
-  WiimoteDevice* wiimote = AccessWiiMote(connection_handle);
+  WiimoteDevice* wiimote = AccessWiimote(connection_handle);
   if (wiimote == nullptr)
     return false;
 
@@ -1192,7 +1192,7 @@ void BluetoothEmu::CommandDisconnect(const u8* input)
   SendEventCommandStatus(HCI_CMD_DISCONNECT);
   SendEventDisconnect(disconnect->con_handle, disconnect->reason);
 
-  WiimoteDevice* wiimote = AccessWiiMote(disconnect->con_handle);
+  WiimoteDevice* wiimote = AccessWiimote(disconnect->con_handle);
   if (wiimote)
     wiimote->EventDisconnect();
 }
@@ -1449,7 +1449,7 @@ void BluetoothEmu::CommandDeleteStoredLinkKey(const u8* input)
             delete_stored_link_key->bdaddr[5]);
   DEBUG_LOG(IOS_WIIMOTE, "  delete_all: 0x%01x", delete_stored_link_key->delete_all);
 
-  WiimoteDevice* wiimote = AccessWiiMote(delete_stored_link_key->bdaddr);
+  WiimoteDevice* wiimote = AccessWiimote(delete_stored_link_key->bdaddr);
   if (wiimote == nullptr)
     return;
 
@@ -1739,13 +1739,13 @@ void BluetoothEmu::CommandVendorSpecific_FC4C(const u8* input, u32 size)
 // --- helper
 //
 //
-WiimoteDevice* BluetoothEmu::AccessWiiMoteByIndex(std::size_t index)
+WiimoteDevice* BluetoothEmu::AccessWiimoteByIndex(std::size_t index)
 {
   const u16 connection_handle = static_cast<u16>(0x100 + index);
-  return AccessWiiMote(connection_handle);
+  return AccessWiimote(connection_handle);
 }
 
-WiimoteDevice* BluetoothEmu::AccessWiiMote(const bdaddr_t& address)
+WiimoteDevice* BluetoothEmu::AccessWiimote(const bdaddr_t& address)
 {
   const auto iterator =
       std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
@@ -1753,7 +1753,7 @@ WiimoteDevice* BluetoothEmu::AccessWiiMote(const bdaddr_t& address)
   return iterator != m_wiimotes.cend() ? &*iterator : nullptr;
 }
 
-WiimoteDevice* BluetoothEmu::AccessWiiMote(u16 connection_handle)
+WiimoteDevice* BluetoothEmu::AccessWiimote(u16 connection_handle)
 {
   for (auto& wiimote : m_wiimotes)
   {

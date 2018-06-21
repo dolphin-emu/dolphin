@@ -56,7 +56,7 @@ public:
 
   bool RemoteDisconnect(u16 connection_handle);
 
-  WiimoteDevice* AccessWiiMoteByIndex(std::size_t index);
+  WiimoteDevice* AccessWiimoteByIndex(std::size_t index);
 
   void DoState(PointerWrap& p) override;
 
@@ -100,8 +100,8 @@ private:
   u32 m_packet_count[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
 
-  WiimoteDevice* AccessWiiMote(const bdaddr_t& address);
-  WiimoteDevice* AccessWiiMote(u16 connection_handle);
+  WiimoteDevice* AccessWiimote(const bdaddr_t& address);
+  WiimoteDevice* AccessWiimote(u16 connection_handle);
 
   // Send ACL data to a device (wiimote)
   void IncDataPacket(u16 connection_handle);

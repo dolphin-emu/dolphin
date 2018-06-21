@@ -1539,7 +1539,7 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
     const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
         ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
     const unsigned int wiimote_index = event.GetId() - IDM_CONNECT_WIIMOTE1;
-    const bool is_connected = bt && bt->AccessWiiMoteByIndex(wiimote_index)->IsConnected();
+    const bool is_connected = bt && bt->AccessWiimoteByIndex(wiimote_index)->IsConnected();
     Wiimote::Connect(wiimote_index, !is_connected);
   });
 }
@@ -1715,11 +1715,11 @@ void CFrame::UpdateGUI()
   if (should_enable_wiimotes)
   {
     Core::RunAsCPUThread([&] {
-      wiimote_1->Check(bt->AccessWiiMoteByIndex(0)->IsConnected());
-      wiimote_2->Check(bt->AccessWiiMoteByIndex(1)->IsConnected());
-      wiimote_3->Check(bt->AccessWiiMoteByIndex(2)->IsConnected());
-      wiimote_4->Check(bt->AccessWiiMoteByIndex(3)->IsConnected());
-      balance_board->Check(bt->AccessWiiMoteByIndex(4)->IsConnected());
+      wiimote_1->Check(bt->AccessWiimoteByIndex(0)->IsConnected());
+      wiimote_2->Check(bt->AccessWiimoteByIndex(1)->IsConnected());
+      wiimote_3->Check(bt->AccessWiimoteByIndex(2)->IsConnected());
+      wiimote_4->Check(bt->AccessWiimoteByIndex(3)->IsConnected());
+      balance_board->Check(bt->AccessWiimoteByIndex(4)->IsConnected());
     });
   }
 

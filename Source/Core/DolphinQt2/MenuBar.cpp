@@ -923,7 +923,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
 
     wii_remote->setEnabled(enable_wiimotes);
     if (enable_wiimotes)
-      wii_remote->setChecked(bt->AccessWiiMoteByIndex(i)->IsConnected());
+      wii_remote->setChecked(bt->AccessWiimoteByIndex(i)->IsConnected());
   }
 }
 
