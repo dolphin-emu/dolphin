@@ -54,7 +54,7 @@ public:
   // Send ACL data back to Bluetooth stack
   void SendACLPacket(u16 connection_handle, const u8* data, u32 size);
 
-  bool RemoteDisconnect(u16 _connectionHandle);
+  bool RemoteDisconnect(u16 connection_handle);
 
   WiimoteDevice* AccessWiiMoteByIndex(std::size_t index);
 
@@ -100,32 +100,32 @@ private:
   u32 m_packet_count[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
 
-  WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
-  WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
+  WiimoteDevice* AccessWiiMote(const bdaddr_t& address);
+  WiimoteDevice* AccessWiiMote(u16 connection_handle);
 
   // Send ACL data to a device (wiimote)
-  void IncDataPacket(u16 _ConnectionHandle);
-  void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
+  void IncDataPacket(u16 connection_handle);
+  void SendToDevice(u16 connection_handle, u8* data, u32 size);
 
   // Events
-  void AddEventToQueue(const SQueuedEvent& _event);
-  bool SendEventCommandStatus(u16 _Opcode);
+  void AddEventToQueue(const SQueuedEvent& event);
+  bool SendEventCommandStatus(u16 opcode);
   void SendEventCommandComplete(u16 opcode, const void* data, u32 data_size);
   bool SendEventInquiryResponse();
   bool SendEventInquiryComplete();
-  bool SendEventRemoteNameReq(const bdaddr_t& _bd);
-  bool SendEventRequestConnection(const WiimoteDevice& _rWiiMote);
-  bool SendEventConnectionComplete(const bdaddr_t& _bd);
-  bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
-  bool SendEventConPacketTypeChange(u16 _connectionHandle, u16 _packetType);
-  bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
-  bool SendEventReadRemoteFeatures(u16 _connectionHandle);
-  bool SendEventRoleChange(bdaddr_t _bd, bool _master);
+  bool SendEventRemoteNameReq(const bdaddr_t& bd);
+  bool SendEventRequestConnection(const WiimoteDevice& wiimote);
+  bool SendEventConnectionComplete(const bdaddr_t& bd);
+  bool SendEventReadClockOffsetComplete(u16 connection_handle);
+  bool SendEventConPacketTypeChange(u16 connection_handle, u16 packet_type);
+  bool SendEventReadRemoteVerInfo(u16 connection_handle);
+  bool SendEventReadRemoteFeatures(u16 connection_handle);
+  bool SendEventRoleChange(bdaddr_t bd, bool master);
   bool SendEventNumberOfCompletedPackets();
-  bool SendEventAuthenticationCompleted(u16 _connectionHandle);
-  bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
-  bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
-  bool SendEventRequestLinkKey(const bdaddr_t& _bd);
+  bool SendEventAuthenticationCompleted(u16 connection_handle);
+  bool SendEventModeChange(u16 connection_handle, u8 mode, u16 value);
+  bool SendEventDisconnect(u16 connection_handle, u8 reason);
+  bool SendEventRequestLinkKey(const bdaddr_t& bd);
   bool SendEventLinkKeyNotification(const u8 num_to_send);
 
   // Execute HCI Message
@@ -176,7 +176,7 @@ private:
   void CommandVendorSpecific_FC4C(const u8* input, u32 size);
   void CommandVendorSpecific_FC4F(const u8* input, u32 size);
 
-  static void DisplayDisconnectMessage(const int wiimoteNumber, const int reason);
+  static void DisplayDisconnectMessage(int wiimote_number, int reason);
 
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10
