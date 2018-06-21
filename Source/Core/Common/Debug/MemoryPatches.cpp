@@ -15,9 +15,9 @@ MemoryPatch::MemoryPatch(u32 address_, std::vector<u8> value_)
 {
 }
 
-MemoryPatch::MemoryPatch(u32 address, u32 value)
-    : MemoryPatch(address, {static_cast<u8>(value >> 24), static_cast<u8>(value >> 16),
-                            static_cast<u8>(value >> 8), static_cast<u8>(value)})
+MemoryPatch::MemoryPatch(u32 address_, u32 value_)
+    : MemoryPatch(address_, {static_cast<u8>(value_ >> 24), static_cast<u8>(value_ >> 16),
+                             static_cast<u8>(value_ >> 8), static_cast<u8>(value_)})
 {
 }
 

@@ -20,8 +20,8 @@ struct MemoryPatch
     Disabled
   };
 
-  MemoryPatch(u32 address, std::vector<u8> value);
-  MemoryPatch(u32 address, u32 value);
+  MemoryPatch(u32 address_, std::vector<u8> value_);
+  MemoryPatch(u32 address_, u32 value_);
 
   u32 address;
   std::vector<u8> value;
