@@ -500,11 +500,14 @@ public:
     if (levels.size() < 2)
       return false;
 
+    if (!g_ActiveConfig.bArbitraryMipmapDetection)
+      return false;
+
     // This is the average per-pixel, per-channel difference in percent between what we
     // expect a normal blurred mipmap to look like and what we actually received
     // 4.5% was chosen because it's just below the lowest clearly-arbitrary texture
     // I found in my tests, the background clouds in Mario Galaxy's Observatory lobby.
-    constexpr auto THRESHOLD_PERCENT = 4.5f;
+    const auto threshold = g_ActiveConfig.fArbitraryMipmapDetectionThreshold;
 
     auto* src = downsample_buffer;
     auto* dst = downsample_buffer + levels[1].shape.row_length * levels[1].shape.height * 4;
@@ -530,7 +533,7 @@ public:
     }
 
     auto all_levels = total_diff / (levels.size() - 1);
-    return all_levels > THRESHOLD_PERCENT;
+    return all_levels > threshold;
   }
 
 private:
@@ -605,10 +608,14 @@ private:
         const auto* row2 = ptr2;
         for (u32 j = 0; j < shape.width; ++j, row1 += 4, row2 += 4)
         {
-          average_diff += std::abs(static_cast<float>(row1[0]) - static_cast<float>(row2[0]));
-          average_diff += std::abs(static_cast<float>(row1[1]) - static_cast<float>(row2[1]));
-          average_diff += std::abs(static_cast<float>(row1[2]) - static_cast<float>(row2[2]));
-          average_diff += std::abs(static_cast<float>(row1[3]) - static_cast<float>(row2[3]));
+          int pixel_diff = 0;
+          for (int channel = 0; channel < 4; channel++)
+          {
+            const int diff = static_cast<int>(row1[channel]) - static_cast<int>(row2[channel]);
+            const int diff_squared = diff * diff;
+            pixel_diff += diff_squared;
+          }
+          average_diff += pixel_diff;
         }
         ptr1 += shape.row_length;
         ptr2 += shape.row_length;

@@ -74,6 +74,8 @@ struct VideoConfig final
   std::string sPostProcessingShader;
   bool bForceTrueColor;
   bool bDisableCopyFilter;
+  bool bArbitraryMipmapDetection;
+  float fArbitraryMipmapDetectionThreshold;
 
   // Information
   bool bShowFPS;

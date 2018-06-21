@@ -120,6 +120,9 @@ void VideoConfig::Refresh()
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   bDisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  fArbitraryMipmapDetectionThreshold =
+      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
 
   stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
