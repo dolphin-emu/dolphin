@@ -58,12 +58,8 @@ void WiimoteEmuGeneral::CreateMainLayout()
   vbox_layout->addWidget(CreateGroupBox(
       tr("Rumble"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Rumble)));
 
-  // TODO: Get rid of this garbage once wx is removed
-  // Remove "Iterative Input"
-  auto* options_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options);
-  options_group->boolean_settings.pop_back();
-
-  vbox_layout->addWidget(CreateGroupBox(tr("Options"), options_group));
+  vbox_layout->addWidget(CreateGroupBox(
+      tr("Options"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options)));
 
   m_main_layout->addLayout(vbox_layout);
 
