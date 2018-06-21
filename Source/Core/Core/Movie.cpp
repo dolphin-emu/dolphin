@@ -466,9 +466,11 @@ void ChangeWiiPads(bool instantly)
                         nullptr;
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
+    const bool is_using_wiimote = IsUsingWiimote(i);
+
+    g_wiimote_sources[i] = is_using_wiimote ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
     if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
-      bt->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
+      bt->AccessWiiMoteByIndex(i)->Activate(is_using_wiimote);
   }
 }
 

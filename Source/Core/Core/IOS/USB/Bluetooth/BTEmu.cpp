@@ -1740,6 +1740,12 @@ void BluetoothEmu::CommandVendorSpecific_FC4C(const u8* input, u32 size)
 // --- helper
 //
 //
+WiimoteDevice* BluetoothEmu::AccessWiiMoteByIndex(std::size_t index)
+{
+  const u16 connection_handle = static_cast<u16>(0x100 + index);
+  return AccessWiiMote(connection_handle);
+}
+
 WiimoteDevice* BluetoothEmu::AccessWiiMote(const bdaddr_t& address)
 {
   const auto iterator =

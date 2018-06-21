@@ -4,10 +4,9 @@
 
 #pragma once
 
-#include <algorithm>
+#include <cstddef>
 #include <deque>
 #include <memory>
-#include <queue>
 #include <string>
 #include <vector>
 
@@ -57,13 +56,13 @@ public:
 
   bool RemoteDisconnect(u16 _connectionHandle);
 
-  std::vector<WiimoteDevice> m_WiiMotes;
-  WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
-  WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
+  WiimoteDevice* AccessWiiMoteByIndex(std::size_t index);
 
   void DoState(PointerWrap& p) override;
 
 private:
+  std::vector<WiimoteDevice> m_WiiMotes;
+
   bdaddr_t m_ControllerBD{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
 
   // this is used to trigger connecting via ACL
@@ -100,6 +99,9 @@ private:
 
   u32 m_PacketCount[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
+
+  WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
+  WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
 
   // Send ACL data to a device (wiimote)
   void IncDataPacket(u16 _ConnectionHandle);

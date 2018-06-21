@@ -914,14 +914,16 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
   const auto bt = ios ? std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
                             ios->GetDeviceByName("/dev/usb/oh1/57e/305")) :
                         nullptr;
-  bool enable_wiimotes =
+  const bool enable_wiimotes =
       emulation_started && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
 
-  for (int i = 0; i < 5; i++)
+  for (std::size_t i = 0; i < m_wii_remotes.size(); i++)
   {
-    m_wii_remotes[i]->setEnabled(enable_wiimotes);
+    QAction* const wii_remote = m_wii_remotes[i];
+
+    wii_remote->setEnabled(enable_wiimotes);
     if (enable_wiimotes)
-      m_wii_remotes[i]->setChecked(bt->AccessWiiMote(0x0100 + i)->IsConnected());
+      wii_remote->setChecked(bt->AccessWiiMoteByIndex(i)->IsConnected());
   }
 }
 
