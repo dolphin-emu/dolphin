@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstring>
 #include <iomanip>
 #include <iterator>
 #include <mbedtls/config.h>
@@ -642,7 +643,7 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 }
 
 // NOTE: CPU Thread
-static void SetWiiInputDisplayString(int remoteID, u8* const data,
+static void SetWiiInputDisplayString(int remoteID, const u8* const data,
                                      const WiimoteEmu::ReportFeatures& rptf, int ext,
                                      const wiimote_key key)
 {
@@ -650,14 +651,16 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
 
   std::string display_str = StringFromFormat("R%d:", remoteID + 1);
 
-  u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
-  u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
-  u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
-  u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
+  const u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
+  const u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+  const u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+  const u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
 
   if (coreData)
   {
-    wm_buttons buttons = *(wm_buttons*)coreData;
+    wm_buttons buttons;
+    std::memcpy(&buttons, coreData, sizeof(buttons));
+
     if (buttons.left)
       display_str += " LEFT";
     if (buttons.right)
@@ -684,10 +687,12 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
     // A few bits of accelData are actually inside the coreData struct.
     if (accelData)
     {
-      wm_accel* dt = (wm_accel*)accelData;
-      display_str += StringFromFormat(" ACC:%d,%d,%d", dt->x << 2 | buttons.acc_x_lsb,
-                                      dt->y << 2 | buttons.acc_y_lsb << 1,
-                                      dt->z << 2 | buttons.acc_z_lsb << 1);
+      wm_accel dt;
+      std::memcpy(&dt, accelData, sizeof(dt));
+
+      display_str +=
+          StringFromFormat(" ACC:%d,%d,%d", dt.x << 2 | buttons.acc_x_lsb,
+                           dt.y << 2 | buttons.acc_y_lsb << 1, dt.z << 2 | buttons.acc_z_lsb << 1);
     }
   }
 
@@ -764,7 +769,7 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
 }
 
 // NOTE: CPU Thread
-void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
+void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID)
 {
   s_padState.A = ((PadStatus->button & PAD_BUTTON_A) != 0);
   s_padState.B = ((PadStatus->button & PAD_BUTTON_B) != 0);
@@ -800,7 +805,7 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void RecordInput(GCPadStatus* PadStatus, int controllerID)
+void RecordInput(const GCPadStatus* PadStatus, int controllerID)
 {
   if (!IsRecordingInput() || !IsUsingPad(controllerID))
     return;
@@ -813,8 +818,8 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void CheckWiimoteStatus(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, int ext,
-                        const wiimote_key key)
+void CheckWiimoteStatus(int wiimote, const u8* data, const WiimoteEmu::ReportFeatures& rptf,
+                        int ext, const wiimote_key key)
 {
   SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
 
@@ -822,7 +827,7 @@ void CheckWiimoteStatus(int wiimote, u8* data, const WiimoteEmu::ReportFeatures&
     RecordWiimote(wiimote, data, rptf.size);
 }
 
-void RecordWiimote(int wiimote, u8* data, u8 size)
+void RecordWiimote(int wiimote, const u8* data, u8 size)
 {
   if (!IsRecordingInput() || !IsUsingWiimote(wiimote))
     return;
