@@ -11,7 +11,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
@@ -84,8 +83,8 @@ void WatchWidget::CreateWidgets()
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 
-  m_load = AddAction(m_toolbar, tr("Load"), this, &WatchWidget::OnLoad);
-  m_save = AddAction(m_toolbar, tr("Save"), this, &WatchWidget::OnSave);
+  m_load = m_toolbar->addAction(tr("Load"), this, &WatchWidget::OnLoad);
+  m_save = m_toolbar->addAction(tr("Save"), this, &WatchWidget::OnSave);
 
   m_load->setEnabled(false);
   m_save->setEnabled(false);
@@ -238,16 +237,16 @@ void WatchWidget::ShowContextMenu()
       {
         // i18n: This kind of "watch" is used for watching emulated memory.
         // It's not related to timekeeping devices.
-        AddAction(menu, tr("&Delete Watch"), this, [this, row] { DeleteWatch(row); });
-        AddAction(menu, tr("&Add Memory Breakpoint"), this,
-                  [this, row] { AddWatchBreakpoint(row); });
+        menu->addAction(tr("&Delete Watch"), this, [this, row] { DeleteWatch(row); });
+        menu->addAction(tr("&Add Memory Breakpoint"), this,
+                        [this, row] { AddWatchBreakpoint(row); });
       }
     }
   }
 
   menu->addSeparator();
 
-  AddAction(menu, tr("Update"), this, &WatchWidget::Update);
+  menu->addAction(tr("Update"), this, &WatchWidget::Update);
 
   menu->exec(QCursor::pos());
 }
