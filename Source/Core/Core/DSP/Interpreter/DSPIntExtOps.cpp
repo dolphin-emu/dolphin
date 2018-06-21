@@ -34,13 +34,10 @@ namespace Interpreter
 {
 namespace Ext
 {
-inline bool IsSameMemArea(u16 a, u16 b)
+static bool IsSameMemArea(u16 a, u16 b)
 {
   // LM: tested on Wii
-  if ((a >> 10) == (b >> 10))
-    return true;
-  else
-    return false;
+  return (a >> 10) == (b >> 10);
 }
 
 // DR $arR
