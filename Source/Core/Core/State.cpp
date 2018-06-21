@@ -146,17 +146,18 @@ static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
   return true;
 }
 
-static std::string DoState(PointerWrap& p)
+static void DoState(PointerWrap& p)
 {
   std::string version_created_by;
   if (!DoStateVersion(p, &version_created_by))
   {
-    // because the version doesn't match, fail.
-    // this will trigger an OSD message like "Can't load state from other revisions"
-    // we could use the version numbers to maintain some level of backward compatibility, but
-    // currently don't.
+    const std::string message =
+        version_created_by.empty() ?
+            "This savestate was created using an incompatible version of Dolphin" :
+            "This savestate was created using the incompatible version " + version_created_by;
+    Core::DisplayMessage(message, OSD::Duration::NORMAL);
     p.SetMode(PointerWrap::MODE_MEASURE);
-    return version_created_by;
+    return;
   }
 
   bool is_wii = SConfig::GetInstance().bWii || SConfig::GetInstance().m_is_mios;
@@ -168,7 +169,7 @@ static std::string DoState(PointerWrap& p)
                                      is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
                     OSD::Duration::NORMAL, OSD::Color::RED);
     p.SetMode(PointerWrap::MODE_MEASURE);
-    return version_created_by;
+    return;
   }
 
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
@@ -196,8 +197,6 @@ static std::string DoState(PointerWrap& p)
 #if defined(HAVE_FFMPEG)
   AVIDump::DoState();
 #endif
-
-  return version_created_by;
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
@@ -547,7 +546,6 @@ void LoadAs(const std::string& filename)
 
     bool loaded = false;
     bool loadedSuccessfully = false;
-    std::string version_created_by;
 
     // brackets here are so buffer gets freed ASAP
     {
@@ -558,7 +556,7 @@ void LoadAs(const std::string& filename)
       {
         u8* ptr = &buffer[0];
         PointerWrap p(&ptr, PointerWrap::MODE_READ);
-        version_created_by = DoState(p);
+        DoState(p);
         loaded = true;
         loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
       }
@@ -577,10 +575,7 @@ void LoadAs(const std::string& filename)
       }
       else
       {
-        // failed to load
-        Core::DisplayMessage("Unable to load: Can't load state from other versions!", 4000);
-        if (!version_created_by.empty())
-          Core::DisplayMessage("The savestate was created using " + version_created_by, 4000);
+        Core::DisplayMessage("The savestate could not be loaded", OSD::Duration::NORMAL);
 
         // since we could be in an inconsistent state now (and might crash or whatever), undo.
         if (g_loadDepth < 2)
