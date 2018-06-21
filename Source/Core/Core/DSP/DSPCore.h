@@ -20,10 +20,7 @@ class Accelerator;
 
 namespace JIT
 {
-namespace x64
-{
 class DSPEmitter;
-}
 }
 
 enum : u32
@@ -317,7 +314,7 @@ struct SDSP
 extern SDSP g_dsp;
 extern DSPBreakpoints g_dsp_breakpoints;
 extern bool g_init_hax;
-extern std::unique_ptr<JIT::x64::DSPEmitter> g_dsp_jit;
+extern std::unique_ptr<JIT::DSPEmitter> g_dsp_jit;
 extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 
 struct DSPInitOptions

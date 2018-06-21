@@ -14,6 +14,7 @@
 #include "Common/x64Emitter.h"
 
 #include "Core/DSP/DSPCommon.h"
+#include "Core/DSP/Jit/DSPEmitterBase.h"
 #include "Core/DSP/Jit/x64/DSPJitRegCache.h"
 
 class PointerWrap;
@@ -24,7 +25,7 @@ enum class StackRegister;
 
 namespace JIT::x64
 {
-class DSPEmitter : public Gen::X64CodeBlock
+class DSPEmitter final : public JIT::DSPEmitter, public Gen::X64CodeBlock
 {
 public:
   using DSPCompiledCode = u32 (*)();
@@ -33,14 +34,13 @@ public:
   static constexpr size_t MAX_BLOCKS = 0x10000;
 
   DSPEmitter();
-  ~DSPEmitter();
+  ~DSPEmitter() override;
 
-  u16 RunCycles(u16 cycles);
-
-  void DoState(PointerWrap& p);
+  u16 RunCycles(u16 cycles) override;
+  void DoState(PointerWrap& p) override;
+  void ClearIRAM() override;
 
   void EmitInstruction(UDSPInstruction inst);
-  void ClearIRAM();
   void ClearIRAMandDSPJITCodespaceReset();
 
   void CompileDispatcher();

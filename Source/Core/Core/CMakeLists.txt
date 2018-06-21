@@ -38,18 +38,18 @@ add_library(core
   Debugger/Dump.cpp
   Debugger/PPCDebugInterface.cpp
   Debugger/RSO.cpp
-  DSP/DSPAssembler.cpp
-  DSP/DSPDisassembler.cpp
   DSP/DSPAccelerator.cpp
+  DSP/DSPAnalyzer.cpp
+  DSP/DSPAssembler.cpp
   DSP/DSPCaptureLogger.cpp
+  DSP/DSPCodeUtil.cpp
+  DSP/DSPCore.cpp
+  DSP/DSPDisassembler.cpp
   DSP/DSPHWInterface.cpp
   DSP/DSPMemoryMap.cpp
   DSP/DSPStacks.cpp
-  DSP/DSPAnalyzer.cpp
-  DSP/DSPCodeUtil.cpp
-  DSP/LabelMap.cpp
-  DSP/DSPCore.cpp
   DSP/DSPTables.cpp
+  DSP/LabelMap.cpp
   DSP/Interpreter/DSPIntArithmetic.cpp
   DSP/Interpreter/DSPIntBranch.cpp
   DSP/Interpreter/DSPIntCCUtil.cpp
@@ -59,6 +59,7 @@ add_library(core
   DSP/Interpreter/DSPIntMisc.cpp
   DSP/Interpreter/DSPIntMultiplier.cpp
   DSP/Interpreter/DSPIntTables.cpp
+  DSP/Jit/DSPEmitterBase.cpp
   DSP/Jit/x64/DSPEmitter.cpp
   DSP/Jit/x64/DSPJitRegCache.cpp
   DSP/Jit/x64/DSPJitExtOps.cpp
