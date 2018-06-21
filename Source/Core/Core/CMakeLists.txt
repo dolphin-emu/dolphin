@@ -60,17 +60,6 @@ add_library(core
   DSP/Interpreter/DSPIntMultiplier.cpp
   DSP/Interpreter/DSPIntTables.cpp
   DSP/Jit/DSPEmitterBase.cpp
-  DSP/Jit/x64/DSPEmitter.cpp
-  DSP/Jit/x64/DSPJitRegCache.cpp
-  DSP/Jit/x64/DSPJitExtOps.cpp
-  DSP/Jit/x64/DSPJitBranch.cpp
-  DSP/Jit/x64/DSPJitCCUtil.cpp
-  DSP/Jit/x64/DSPJitArithmetic.cpp
-  DSP/Jit/x64/DSPJitLoadStore.cpp
-  DSP/Jit/x64/DSPJitMisc.cpp
-  DSP/Jit/x64/DSPJitMultiplier.cpp
-  DSP/Jit/x64/DSPJitTables.cpp
-  DSP/Jit/x64/DSPJitUtil.cpp
   FifoPlayer/FifoAnalyzer.cpp
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoPlaybackAnalyzer.cpp
@@ -235,6 +224,17 @@ add_library(core
 
 if(_M_X86)
   target_sources(core PRIVATE
+    DSP/Jit/x64/DSPEmitter.cpp
+    DSP/Jit/x64/DSPJitRegCache.cpp
+    DSP/Jit/x64/DSPJitExtOps.cpp
+    DSP/Jit/x64/DSPJitBranch.cpp
+    DSP/Jit/x64/DSPJitCCUtil.cpp
+    DSP/Jit/x64/DSPJitArithmetic.cpp
+    DSP/Jit/x64/DSPJitLoadStore.cpp
+    DSP/Jit/x64/DSPJitMisc.cpp
+    DSP/Jit/x64/DSPJitMultiplier.cpp
+    DSP/Jit/x64/DSPJitTables.cpp
+    DSP/Jit/x64/DSPJitUtil.cpp
     PowerPC/Jit64/FPURegCache.cpp
     PowerPC/Jit64/GPRRegCache.cpp
     PowerPC/Jit64/Jit64_Tables.cpp
