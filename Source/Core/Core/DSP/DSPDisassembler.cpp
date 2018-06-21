@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "Core/DSP/DSPTables.h"
@@ -144,9 +145,8 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, u16* pc, std::string&
 
   // Find main opcode
   const DSPOPCTemplate* opc = FindOpInfoByOpcode(op1);
-  const DSPOPCTemplate fake_op = {
-      "CW",  0x0000, 0x0000, nullptr, nullptr, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}},
-      false, false,  false,  false,   false};
+  const DSPOPCTemplate fake_op = {"CW",  0x0000, 0x0000, 1,     1,    {{P_VAL, 2, 0, 0, 0xffff}},
+                                  false, false,  false,  false, false};
   if (!opc)
     opc = &fake_op;
 

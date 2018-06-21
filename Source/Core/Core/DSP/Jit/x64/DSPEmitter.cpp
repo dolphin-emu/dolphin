@@ -19,6 +19,8 @@
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPIntTables.h"
+#include "Core/DSP/Jit/x64/DSPJitTables.h"
 
 using namespace Gen;
 
@@ -32,6 +34,7 @@ DSPEmitter::DSPEmitter()
     : m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}, m_blocks(MAX_BLOCKS),
       m_block_size(MAX_BLOCKS), m_block_links(MAX_BLOCKS)
 {
+  x64::InitInstructionTables();
   AllocCodeSpace(COMPILED_CODE_SIZE);
 
   CompileDispatcher();
@@ -139,9 +142,11 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   }
 
   // Fall back to interpreter
+  const auto interpreter_function = Interpreter::GetOp(inst);
+
   m_gpr.PushRegs();
-  ASSERT_MSG(DSPLLE, op_template->intFunc, "No function for %04x", inst);
-  ABI_CallFunctionC16(op_template->intFunc, inst);
+  ASSERT_MSG(DSPLLE, interpreter_function != nullptr, "No function for %04x", inst);
+  ABI_CallFunctionC16(interpreter_function, inst);
   m_gpr.PopRegs();
 }
 
@@ -153,33 +158,36 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
   // Call extended
   if (op_template->extended)
   {
-    const DSPOPCTemplate* const ext_op_template = GetExtOpTemplate(inst);
+    const auto jit_function = GetExtOp(inst);
 
-    if (!ext_op_template->jitFunc)
+    if (jit_function)
+    {
+      (this->*jit_function)(inst);
+      ext_is_jit = true;
+    }
+    else
     {
       // Fall back to interpreter
+      const auto interpreter_function = Interpreter::GetExtOp(inst);
+
       m_gpr.PushRegs();
-      ABI_CallFunctionC16(ext_op_template->intFunc, inst);
+      ABI_CallFunctionC16(interpreter_function, inst);
       m_gpr.PopRegs();
       INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
       ext_is_jit = false;
     }
-    else
-    {
-      (this->*ext_op_template->jitFunc)(inst);
-      ext_is_jit = true;
-    }
   }
 
   // Main instruction
-  if (!op_template->jitFunc)
+  const auto jit_function = GetOp(inst);
+  if (jit_function)
   {
-    FallBackToInterpreter(inst);
-    INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x", inst);
+    (this->*jit_function)(inst);
   }
   else
   {
-    (this->*op_template->jitFunc)(inst);
+    FallBackToInterpreter(inst);
+    INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x", inst);
   }
 
   // Backlog
@@ -281,7 +289,9 @@ void DSPEmitter::Compile(u16 start_addr)
       {
         break;
       }
-      else if (!opcode->jitFunc)
+
+      const auto jit_function = GetOp(inst);
+      if (!jit_function)
       {
         // look at g_dsp.pc if we actually branched
         MOV(16, R(AX), M_SDSP_pc());
