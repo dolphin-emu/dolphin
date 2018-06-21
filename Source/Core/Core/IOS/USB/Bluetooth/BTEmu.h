@@ -25,11 +25,11 @@ namespace IOS::HLE
 {
 struct SQueuedEvent
 {
-  u8 m_buffer[1024] = {0};
-  u32 m_size = 0;
-  u16 m_connectionHandle = 0;
+  u8 buffer[1024] = {};
+  u32 size = 0;
+  u16 connection_handle = 0;
 
-  SQueuedEvent(u32 size, u16 handle);
+  SQueuedEvent(u32 size_, u16 handle);
   SQueuedEvent() = default;
 };
 
@@ -61,17 +61,17 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  std::vector<WiimoteDevice> m_WiiMotes;
+  std::vector<WiimoteDevice> m_wiimotes;
 
-  bdaddr_t m_ControllerBD{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
+  bdaddr_t m_controller_bd{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
 
   // this is used to trigger connecting via ACL
-  u8 m_ScanEnable = 0;
+  u8 m_scan_enable = 0;
 
-  std::unique_ptr<USB::V0CtrlMessage> m_CtrlSetup;
-  std::unique_ptr<USB::V0IntrMessage> m_HCIEndpoint;
-  std::unique_ptr<USB::V0BulkMessage> m_ACLEndpoint;
-  std::deque<SQueuedEvent> m_EventQueue;
+  std::unique_ptr<USB::V0CtrlMessage> m_ctrl_setup;
+  std::unique_ptr<USB::V0IntrMessage> m_hci_endpoint;
+  std::unique_ptr<USB::V0BulkMessage> m_acl_endpoint;
+  std::deque<SQueuedEvent> m_event_queue;
 
   class ACLPool
   {
@@ -97,7 +97,7 @@ private:
     std::deque<Packet> m_queue;
   } m_acl_pool{m_ios};
 
-  u32 m_PacketCount[MAX_BBMOTES] = {};
+  u32 m_packet_count[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
 
   WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
@@ -181,18 +181,18 @@ private:
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10
 
-  struct _conf_pad_device
+  struct ConfPadDevice
   {
     u8 bdaddr[6];
     char name[0x40];
   };
 
-  struct _conf_pads
+  struct ConfPads
   {
     u8 num_registered;
-    _conf_pad_device registered[CONF_PAD_MAX_REGISTERED];
-    _conf_pad_device active[MAX_BBMOTES];
-    _conf_pad_device unknown;
+    ConfPadDevice registered[CONF_PAD_MAX_REGISTERED];
+    ConfPadDevice active[MAX_BBMOTES];
+    ConfPadDevice unknown;
   };
 #pragma pack(pop)
 };
