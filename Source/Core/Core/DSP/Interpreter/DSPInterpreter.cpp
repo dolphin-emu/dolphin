@@ -33,7 +33,7 @@ void ExecuteInstruction(const UDSPInstruction inst)
 
   if (opcode_template->extended)
   {
-    applyWriteBackLog();
+    ApplyWriteBackLog();
   }
 }
 }  // Anonymous namespace
