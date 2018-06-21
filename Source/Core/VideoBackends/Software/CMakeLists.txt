@@ -20,7 +20,4 @@ target_link_libraries(videosoftware
 PUBLIC
   common
   videocommon
-
-PRIVATE
-  ${X11_LIBRARIES}
 )
