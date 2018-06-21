@@ -16,6 +16,7 @@
 #include "DolphinQt2/Config/Mapping/WiimoteEmuExtension.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/InputConfig.h"
 
 WiimoteEmuGeneral::WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
@@ -56,8 +57,13 @@ void WiimoteEmuGeneral::CreateMainLayout()
   vbox_layout->addWidget(extension);
   vbox_layout->addWidget(CreateGroupBox(
       tr("Rumble"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Rumble)));
-  vbox_layout->addWidget(CreateGroupBox(
-      tr("Options"), Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options)));
+
+  // TODO: Get rid of this garbage once wx is removed
+  // Remove "Iterative Input"
+  auto* options_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Options);
+  options_group->boolean_settings.pop_back();
+
+  vbox_layout->addWidget(CreateGroupBox(tr("Options"), options_group));
 
   m_main_layout->addLayout(vbox_layout);
 

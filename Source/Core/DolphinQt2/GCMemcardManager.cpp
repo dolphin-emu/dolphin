@@ -212,6 +212,10 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     table->setItem(i, 5, create_item(block_count));
     table->resizeRowToContents(i);
   }
+
+  m_slot_stat_label[slot]->setText(tr("%1 Free Blocks; %2 Free Dir Entries")
+                                       .arg(memcard->GetFreeBlocks())
+                                       .arg(DIRLEN - memcard->GetNumFiles()));
 }
 
 void GCMemcardManager::UpdateActions()
@@ -235,10 +239,6 @@ void GCMemcardManager::SetSlotFile(int slot, QString path)
 
   if (!memcard->IsValid())
     return;
-
-  m_slot_stat_label[slot]->setText(tr("%1 Free Blocks; %2 Free Dir Entries")
-                                       .arg(memcard->GetFreeBlocks())
-                                       .arg(DIRLEN - memcard->GetNumFiles()));
 
   m_slot_file_edit[slot]->setText(path);
   m_slot_memcard[slot] = std::move(memcard);
