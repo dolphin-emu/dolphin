@@ -511,14 +511,6 @@ std::array<const DSPOPCTemplate*, OPTABLE_SIZE> s_op_table;
 std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> s_ext_op_table;
 
 template <size_t N>
-auto FindByOpcode(UDSPInstruction opcode, const std::array<DSPOPCTemplate, N>& data)
-{
-  return std::find_if(data.cbegin(), data.cend(), [opcode](const auto& info) {
-    return (opcode & info.opcode_mask) == info.opcode;
-  });
-}
-
-template <size_t N>
 auto FindByName(const std::string& name, const std::array<DSPOPCTemplate, N>& data)
 {
   return std::find_if(data.cbegin(), data.cend(),

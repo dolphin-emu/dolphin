@@ -4,10 +4,10 @@
 
 #include "Core/DSP/Interpreter/DSPIntTables.h"
 
-#include <algorithm>
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPIntExtOps.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
@@ -16,7 +16,7 @@ namespace DSP::Interpreter
 struct InterpreterOpInfo
 {
   u16 opcode;
-  u16 mask;
+  u16 opcode_mask;
   InterpreterFunction function;
 };
 
@@ -331,13 +331,6 @@ namespace
 std::array<InterpreterFunction, 65536> s_op_table;
 std::array<InterpreterFunction, 256> s_ext_op_table;
 bool s_tables_initialized = false;
-
-template <size_t N>
-auto FindByOpcode(UDSPInstruction opcode, const std::array<InterpreterOpInfo, N>& data)
-{
-  return std::find_if(data.cbegin(), data.cend(),
-                      [opcode](const auto& info) { return (opcode & info.mask) == info.opcode; });
-}
 }  // Anonymous namespace
 
 InterpreterFunction GetOp(UDSPInstruction inst)
