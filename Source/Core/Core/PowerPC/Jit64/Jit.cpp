@@ -422,7 +422,17 @@ void Jit64::WriteExit(u32 destination, bool bl, u32 after)
   if (!m_enable_blr_optimization)
     bl = false;
 
-  Cleanup();
+  MOV(32, PPCSTATE(pc), Imm32(destination));
+  bool exception = Cleanup();
+  if (exception) {
+    MOV(32, R(RSCRATCH), PPCSTATE(pc));
+    MOV(32, PPCSTATE(npc), R(RSCRATCH));
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_CallFunction(PowerPC::CheckExceptions);
+    ABI_PopRegistersAndAdjustStack({}, 0);
+    SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+    JMP(asm_routines.dispatcher, true);
+  }
 
   if (bl)
   {
@@ -464,7 +474,16 @@ void Jit64::WriteExitDestInRSCRATCH(bool bl, u32 after)
   if (!m_enable_blr_optimization)
     bl = false;
   MOV(32, PPCSTATE(pc), R(RSCRATCH));
-  Cleanup();
+  bool exception = Cleanup();
+  if (exception) {
+    MOV(32, R(RSCRATCH), PPCSTATE(pc));
+    MOV(32, PPCSTATE(npc), R(RSCRATCH));
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_CallFunction(PowerPC::CheckExceptions);
+    ABI_PopRegistersAndAdjustStack({}, 0);
+    SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+    JMP(asm_routines.dispatcher, true);
+  }
 
   if (bl)
   {
@@ -495,7 +514,15 @@ void Jit64::WriteBLRExit()
   MOV(32, PPCSTATE(pc), R(RSCRATCH));
   bool disturbed = Cleanup();
   if (disturbed)
+  {
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
+    MOV(32, PPCSTATE(npc), R(RSCRATCH));
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_CallFunction(PowerPC::CheckExceptions);
+    ABI_PopRegistersAndAdjustStack({}, 0);
+    SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
+    JMP(asm_routines.dispatcher, true);
+  }
   MOV(32, R(RSCRATCH2), Imm32(js.downcountAmount));
   CMP(64, R(RSCRATCH), MDisp(RSP, 8));
   J_CC(CC_NE, asm_routines.dispatcher_mispredicted_blr);
@@ -767,50 +794,6 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       js.isLastInstruction = true;
     }
 
-    // Gather pipe writes using a non-immediate address are discovered by profiling.
-    bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
-
-    // Gather pipe writes using an immediate address are explicitly tracked.
-    if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
-    {
-      js.fifoBytesSinceCheck = 0;
-      js.mustCheckFifo = false;
-      BitSet32 registersInUse = CallerSavedRegistersInUse();
-      ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-      ABI_CallFunction(GPFifo::FastCheckGatherPipe);
-      ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-      gatherPipeIntCheck = true;
-    }
-
-    // Gather pipe writes can generate an exception; add an exception check.
-    // TODO: This doesn't really match hardware; the CP interrupt is
-    // asynchronous.
-    if (gatherPipeIntCheck)
-    {
-      TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
-      FixupBranch extException = J_CC(CC_NZ, true);
-
-      SwitchToFarCode();
-      SetJumpTarget(extException);
-      TEST(32, PPCSTATE(msr), Imm32(0x0008000));
-      FixupBranch noExtIntEnable = J_CC(CC_Z, true);
-      MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
-      TEST(32, MatR(RSCRATCH),
-           Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
-                 ProcessorInterface::INT_CAUSE_PE_FINISH));
-      FixupBranch noCPInt = J_CC(CC_Z, true);
-
-      gpr.Flush(RegCache::FlushMode::MaintainState);
-      fpr.Flush(RegCache::FlushMode::MaintainState);
-
-      MOV(32, PPCSTATE(pc), Imm32(op.address));
-      WriteExternalExceptionExit();
-      SwitchToNearCode();
-
-      SetJumpTarget(noCPInt);
-      SetJumpTarget(noExtIntEnable);
-    }
-
     if (HandleFunctionHooking(op.address))
       break;
 
@@ -925,6 +908,50 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         gpr.StoreFromRegister(j);
       for (int j : ~op.fprInUse)
         fpr.StoreFromRegister(j);
+
+      // Gather pipe writes using a non-immediate address are discovered by profiling.
+      bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
+
+      // Gather pipe writes using an immediate address are explicitly tracked.
+      if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
+      {
+        js.fifoBytesSinceCheck = 0;
+        js.mustCheckFifo = false;
+        BitSet32 registersInUse = CallerSavedRegistersInUse();
+        ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+        ABI_CallFunction(GPFifo::FastCheckGatherPipe);
+        ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+        gatherPipeIntCheck = true;
+      }
+
+      // Gather pipe writes can generate an exception; add an exception check.
+      // TODO: This doesn't really match hardware; the CP interrupt is
+      // asynchronous.
+      if (gatherPipeIntCheck)
+      {
+        TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT));
+        FixupBranch extException = J_CC(CC_NZ, true);
+
+        SwitchToFarCode();
+        SetJumpTarget(extException);
+        TEST(32, PPCSTATE(msr), Imm32(0x0008000));
+        FixupBranch noExtIntEnable = J_CC(CC_Z, true);
+        MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
+        TEST(32, MatR(RSCRATCH),
+            Imm32(ProcessorInterface::INT_CAUSE_CP | ProcessorInterface::INT_CAUSE_PE_TOKEN |
+                  ProcessorInterface::INT_CAUSE_PE_FINISH));
+        FixupBranch noCPInt = J_CC(CC_Z, true);
+
+        gpr.Flush(RegCache::FlushMode::MaintainState);
+        fpr.Flush(RegCache::FlushMode::MaintainState);
+
+        MOV(32, PPCSTATE(pc), Imm32(op.address));
+        WriteExternalExceptionExit();
+        SwitchToNearCode();
+
+        SetJumpTarget(noCPInt);
+        SetJumpTarget(noExtIntEnable);
+      }
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
