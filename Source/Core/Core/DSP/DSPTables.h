@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <string>
@@ -118,4 +119,12 @@ const DSPOPCTemplate* FindExtOpInfoByName(const std::string& name);
 // Used by the interpreter and JIT for instruction emulation
 const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst);
 const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst);
+
+template <typename T, size_t N>
+auto FindByOpcode(UDSPInstruction opcode, const std::array<T, N>& data)
+{
+  return std::find_if(data.cbegin(), data.cend(), [opcode](const auto& info) {
+    return (opcode & info.opcode_mask) == info.opcode;
+  });
+}
 }  // namespace DSP

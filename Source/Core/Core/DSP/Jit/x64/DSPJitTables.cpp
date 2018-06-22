@@ -4,10 +4,10 @@
 
 #include "Core/DSP/Jit/x64/DSPJitTables.h"
 
-#include <algorithm>
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 
 namespace DSP::JIT::x64
@@ -15,7 +15,7 @@ namespace DSP::JIT::x64
 struct JITOpInfo
 {
   u16 opcode;
-  u16 mask;
+  u16 opcode_mask;
   JITFunction function;
 };
 
@@ -330,13 +330,6 @@ namespace
 std::array<JITFunction, 65536> s_op_table;
 std::array<JITFunction, 256> s_ext_op_table;
 bool s_tables_initialized = false;
-
-template <size_t N>
-auto FindByOpcode(UDSPInstruction opcode, const std::array<JITOpInfo, N>& data)
-{
-  return std::find_if(data.cbegin(), data.cend(),
-                      [opcode](const auto& info) { return (opcode & info.mask) == info.opcode; });
-}
 }  // Anonymous namespace
 
 JITFunction GetOp(UDSPInstruction inst)
