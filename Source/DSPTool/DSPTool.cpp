@@ -73,46 +73,46 @@ static std::string CodeToHeader(const std::vector<u16>& code, const std::string&
   return header;
 }
 
-static std::string CodesToHeader(const std::vector<u16>* codes,
-                                 const std::vector<std::string>* filenames, u32 num_codes)
+static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
+                                 const std::vector<std::string>& filenames)
 {
   std::vector<std::vector<u16>> codes_padded;
-  std::size_t reserveSize = 0;
-  for (u32 i = 0; i < num_codes; i++)
+  std::size_t reserve_size = 0;
+  for (std::size_t i = 0; i < codes.size(); i++)
   {
     codes_padded.push_back(codes[i]);
     // Pad with nops to 32byte boundary
-    while (codes_padded.at(i).size() & 0x7f)
-      codes_padded.at(i).push_back(0);
+    while (codes_padded[i].size() & 0x7f)
+      codes_padded[i].push_back(0);
 
-    reserveSize += codes_padded.at(i).size();
+    reserve_size += codes_padded[i].size();
   }
 
   std::string header;
-  header.reserve(reserveSize * 4);
-  header.append(StringFromFormat("#define NUM_UCODES %u\n\n", num_codes));
+  header.reserve(reserve_size * 4);
+  header.append(StringFromFormat("#define NUM_UCODES %zu\n\n", codes.size()));
   header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
-  for (u32 i = 0; i < num_codes; i++)
+  for (const std::string& in_filename : filenames)
   {
     std::string filename;
-    if (!SplitPath(filenames->at(i), nullptr, &filename, nullptr))
-      filename = filenames->at(i);
+    if (!SplitPath(in_filename, nullptr, &filename, nullptr))
+      filename = in_filename;
     header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
   }
   header.append("};\n\n");
   header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-  for (u32 i = 0; i < num_codes; i++)
+  for (std::size_t i = 0; i < codes.size(); i++)
   {
-    if (codes[i].size() == 0)
+    if (codes[i].empty())
       continue;
 
     header.append("\t{\n\t\t");
-    for (u32 j = 0; j < codes_padded.at(i).size(); j++)
+    for (std::size_t j = 0; j < codes_padded[i].size(); j++)
     {
       if (j && ((j & 15) == 0))
         header.append("\n\t\t");
-      header.append(StringFromFormat("0x%04x, ", codes_padded.at(i).at(j)));
+      header.append(StringFromFormat("0x%04x, ", codes_padded[i][j]));
     }
     header.append("\n\t},\n");
   }
@@ -290,7 +290,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
         return false;
       }
 
-      std::vector<u16>* codes = new std::vector<u16>[lines];
+      std::vector<std::vector<u16>> codes(lines);
 
       for (int i = 0; i < lines; i++)
       {
@@ -313,10 +313,8 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
         }
       }
 
-      const std::string header = CodesToHeader(codes, &files, lines);
+      const std::string header = CodesToHeader(codes, files);
       File::WriteStringToFile(header, output_header_name + ".h");
-
-      delete[] codes;
     }
     else
     {
