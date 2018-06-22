@@ -28,28 +28,12 @@ namespace JIT::x64
 class DSPEmitter final : public JIT::DSPEmitter, public Gen::X64CodeBlock
 {
 public:
-  using DSPCompiledCode = u32 (*)();
-  using Block = const u8*;
-
-  static constexpr size_t MAX_BLOCKS = 0x10000;
-
   DSPEmitter();
   ~DSPEmitter() override;
 
   u16 RunCycles(u16 cycles) override;
   void DoState(PointerWrap& p) override;
   void ClearIRAM() override;
-
-  void EmitInstruction(UDSPInstruction inst);
-  void ClearIRAMandDSPJITCodespaceReset();
-
-  void CompileDispatcher();
-  Block CompileStub();
-  void Compile(u16 start_addr);
-
-  bool FlagsNeeded() const;
-
-  void FallBackToInterpreter(UDSPInstruction inst);
 
   // Ext commands
   void l(UDSPInstruction opc);
@@ -206,9 +190,23 @@ public:
   void msub(UDSPInstruction opc);
 
 private:
+  using DSPCompiledCode = u32 (*)();
+  using Block = const u8*;
+
   // The emitter emits calls to this function. It's present here
   // within the class itself to allow access to member variables.
   static void CompileCurrent(DSPEmitter& emitter);
+
+  void EmitInstruction(UDSPInstruction inst);
+  void ClearIRAMandDSPJITCodespaceReset();
+
+  void CompileDispatcher();
+  Block CompileStub();
+  void Compile(u16 start_addr);
+
+  bool FlagsNeeded() const;
+
+  void FallBackToInterpreter(UDSPInstruction inst);
 
   void WriteBranchExit();
   void WriteBlockLink(u16 dest);
@@ -297,6 +295,8 @@ private:
   void multiply_add();
   void multiply_sub();
   void multiply_mulx(u8 axh0, u8 axh1);
+
+  static constexpr size_t MAX_BLOCKS = 0x10000;
 
   DSPJitRegCache m_gpr{*this};
 
