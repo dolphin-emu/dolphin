@@ -156,8 +156,8 @@ void ChangeWiiPads(bool instantly = false);
 void SetReadOnly(bool bEnabled);
 
 bool BeginRecordingInput(int controllers);
-void RecordInput(GCPadStatus* PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8* data, u8 size);
+void RecordInput(const GCPadStatus* PadStatus, int controllerID);
+void RecordWiimote(int wiimote, const u8* data, u8 size);
 
 bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
 void LoadInput(const std::string& movie_path);
@@ -169,8 +169,8 @@ void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
-void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf,
+void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
+void CheckWiimoteStatus(int wiimote, const u8* data, const struct WiimoteEmu::ReportFeatures& rptf,
                         int ext, const wiimote_key key);
 
 std::string GetInputDisplay();
