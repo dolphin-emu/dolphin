@@ -1401,7 +1401,7 @@ void MainWindow::OnConnectWiiRemote(int id)
   Core::RunAsCPUThread([&] {
     const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
         ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-    const bool is_connected = bt && bt->AccessWiiMoteByIndex(id)->IsConnected();
+    const bool is_connected = bt && bt->AccessWiimoteByIndex(id)->IsConnected();
     Wiimote::Connect(id, !is_connected);
   });
 }

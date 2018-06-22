@@ -471,7 +471,7 @@ void ChangeWiiPads(bool instantly)
 
     g_wiimote_sources[i] = is_using_wiimote ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
     if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
-      bt->AccessWiiMoteByIndex(i)->Activate(is_using_wiimote);
+      bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
 }
 

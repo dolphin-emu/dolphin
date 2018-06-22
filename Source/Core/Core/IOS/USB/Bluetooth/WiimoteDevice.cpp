@@ -926,6 +926,6 @@ void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data
   const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
       IOS::HLE::GetIOS()->GetDeviceByName("/dev/usb/oh1/57e/305"));
   if (bt)
-    bt->AccessWiiMoteByIndex(number)->ReceiveL2capData(channel_id, data, size);
+    bt->AccessWiimoteByIndex(number)->ReceiveL2capData(channel_id, data, size);
 }
 }
