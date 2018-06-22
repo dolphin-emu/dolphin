@@ -44,8 +44,6 @@ add_library(common
   TraversalClient.cpp
   UPnP.cpp
   Version.cpp
-  x64ABI.cpp
-  x64Emitter.cpp
 )
 
 target_link_libraries(common
@@ -93,6 +91,8 @@ if(_M_ARM_64)
 else()
   if(_M_X86) #X86
     target_sources(common PRIVATE
+      x64ABI.cpp
+      x64Emitter.cpp
       x64FPURoundMode.cpp
       x64CPUDetect.cpp
     )
