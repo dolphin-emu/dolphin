@@ -2,7 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
@@ -235,6 +239,23 @@ static bool PerformDisassembly(const std::string& input_name, const std::string&
   return true;
 }
 
+static std::vector<std::string> GetAssemblerFiles(const std::string& source)
+{
+  std::vector<std::string> files;
+  std::size_t last_pos = 0;
+  std::size_t pos = 0;
+
+  while ((pos = source.find('\n', last_pos)) != std::string::npos)
+  {
+    std::string temp = source.substr(last_pos, pos - last_pos);
+    if (!temp.empty())
+      files.push_back(std::move(temp));
+    last_pos = pos + 1;
+  }
+
+  return files;
+}
+
 static bool PerformAssembly(const std::string& input_name, const std::string& output_name,
                             const std::string& output_header_name, bool multiple, bool force,
                             bool output_size)
@@ -250,34 +271,23 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
   {
     if (multiple)
     {
+      source.append("\n");
+
       // When specifying a list of files we must compile a header
       // (we can't assemble multiple files to one binary)
       // since we checked it before, we assume output_header_name isn't empty
-      int lines;
-      std::vector<u16>* codes;
-      std::vector<std::string> files;
-      std::string header, currentSource;
-      size_t lastPos = 0, pos = 0;
+      std::string header;
+      std::string currentSource;
+      const std::vector<std::string> files = GetAssemblerFiles(source);
 
-      source.append("\n");
-
-      while ((pos = source.find('\n', lastPos)) != std::string::npos)
-      {
-        std::string temp = source.substr(lastPos, pos - lastPos);
-        if (!temp.empty())
-          files.push_back(temp);
-        lastPos = pos + 1;
-      }
-
-      lines = (int)files.size();
-
+      int lines = static_cast<int>(files.size());
       if (lines == 0)
       {
         printf("ERROR: Must specify at least one file\n");
         return false;
       }
 
-      codes = new std::vector<u16>[lines];
+      std::vector<u16>* codes = new std::vector<u16>[lines];
 
       for (int i = 0; i < lines; i++)
       {
