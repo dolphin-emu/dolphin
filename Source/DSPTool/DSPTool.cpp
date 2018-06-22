@@ -43,14 +43,15 @@ void DSP::Host::UpdateDebugger()
 {
 }
 
-static void CodeToHeader(const std::vector<u16>& code, std::string filename, const char* name,
-                         std::string& header)
+static std::string CodeToHeader(const std::vector<u16>& code, const std::string& filename)
 {
   std::vector<u16> code_padded = code;
+
   // Pad with nops to 32byte boundary
   while (code_padded.size() & 0x7f)
     code_padded.push_back(0);
-  header.clear();
+
+  std::string header;
   header.reserve(code_padded.size() * 4);
   header.append("#define NUM_UCODES 1\n\n");
   std::string filename_without_extension;
@@ -69,13 +70,14 @@ static void CodeToHeader(const std::vector<u16>& code, std::string filename, con
   header.append("\n\t},\n");
 
   header.append("};\n");
+  return header;
 }
 
-static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::string>* filenames,
-                          u32 num_codes, const char* name, std::string& header)
+static std::string CodesToHeader(const std::vector<u16>* codes,
+                                 const std::vector<std::string>* filenames, u32 num_codes)
 {
   std::vector<std::vector<u16>> codes_padded;
-  u32 reserveSize = 0;
+  std::size_t reserveSize = 0;
   for (u32 i = 0; i < num_codes; i++)
   {
     codes_padded.push_back(codes[i]);
@@ -83,9 +85,10 @@ static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::
     while (codes_padded.at(i).size() & 0x7f)
       codes_padded.at(i).push_back(0);
 
-    reserveSize += (u32)codes_padded.at(i).size();
+    reserveSize += codes_padded.at(i).size();
   }
-  header.clear();
+
+  std::string header;
   header.reserve(reserveSize * 4);
   header.append(StringFromFormat("#define NUM_UCODES %u\n\n", num_codes));
   header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
@@ -114,6 +117,7 @@ static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::
     header.append("\n\t},\n");
   }
   header.append("};\n");
+  return header;
 }
 
 static void PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
@@ -276,7 +280,6 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       // When specifying a list of files we must compile a header
       // (we can't assemble multiple files to one binary)
       // since we checked it before, we assume output_header_name isn't empty
-      std::string header;
       std::string currentSource;
       const std::vector<std::string> files = GetAssemblerFiles(source);
 
@@ -310,7 +313,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
         }
       }
 
-      CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
+      const std::string header = CodesToHeader(codes, &files, lines);
       File::WriteStringToFile(header, output_header_name + ".h");
 
       delete[] codes;
@@ -337,8 +340,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       }
       if (!output_header_name.empty())
       {
-        std::string header;
-        CodeToHeader(code, input_name, output_header_name.c_str(), header);
+        const std::string header = CodeToHeader(code, input_name);
         File::WriteStringToFile(header, output_header_name + ".h");
       }
     }
