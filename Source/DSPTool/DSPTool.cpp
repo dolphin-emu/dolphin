@@ -283,7 +283,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       std::string currentSource;
       const std::vector<std::string> files = GetAssemblerFiles(source);
 
-      int lines = static_cast<int>(files.size());
+      std::size_t lines = files.size();
       if (lines == 0)
       {
         printf("ERROR: Must specify at least one file\n");
@@ -292,7 +292,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 
       std::vector<std::vector<u16>> codes(lines);
 
-      for (int i = 0; i < lines; i++)
+      for (std::size_t i = 0; i < lines; i++)
       {
         if (!File::ReadFileToString(files[i], currentSource))
         {
@@ -308,7 +308,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
           }
           if (output_size)
           {
-            printf("%s: %d\n", files[i].c_str(), (int)codes[i].size());
+            printf("%s: %zu\n", files[i].c_str(), codes[i].size());
           }
         }
       }
@@ -328,7 +328,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 
       if (output_size)
       {
-        printf("%s: %d\n", input_name.c_str(), (int)code.size());
+        printf("%s: %zu\n", input_name.c_str(), code.size());
       }
 
       if (!output_name.empty())
