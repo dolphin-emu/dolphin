@@ -267,7 +267,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
   }
 
   std::string source;
-  if (File::ReadFileToString(input_name.c_str(), source))
+  if (File::ReadFileToString(input_name, source))
   {
     if (multiple)
     {
@@ -291,7 +291,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 
       for (int i = 0; i < lines; i++)
       {
-        if (!File::ReadFileToString(files[i].c_str(), currentSource))
+        if (!File::ReadFileToString(files[i], currentSource))
         {
           printf("ERROR reading %s, skipping...\n", files[i].c_str());
           lines--;
