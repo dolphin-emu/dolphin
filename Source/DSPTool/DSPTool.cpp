@@ -2,7 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
@@ -39,14 +43,15 @@ void DSP::Host::UpdateDebugger()
 {
 }
 
-static void CodeToHeader(const std::vector<u16>& code, std::string filename, const char* name,
-                         std::string& header)
+static std::string CodeToHeader(const std::vector<u16>& code, const std::string& filename)
 {
   std::vector<u16> code_padded = code;
+
   // Pad with nops to 32byte boundary
   while (code_padded.size() & 0x7f)
     code_padded.push_back(0);
-  header.clear();
+
+  std::string header;
   header.reserve(code_padded.size() * 4);
   header.append("#define NUM_UCODES 1\n\n");
   std::string filename_without_extension;
@@ -65,51 +70,54 @@ static void CodeToHeader(const std::vector<u16>& code, std::string filename, con
   header.append("\n\t},\n");
 
   header.append("};\n");
+  return header;
 }
 
-static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::string>* filenames,
-                          u32 num_codes, const char* name, std::string& header)
+static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
+                                 const std::vector<std::string>& filenames)
 {
   std::vector<std::vector<u16>> codes_padded;
-  u32 reserveSize = 0;
-  for (u32 i = 0; i < num_codes; i++)
+  std::size_t reserve_size = 0;
+  for (std::size_t i = 0; i < codes.size(); i++)
   {
     codes_padded.push_back(codes[i]);
     // Pad with nops to 32byte boundary
-    while (codes_padded.at(i).size() & 0x7f)
-      codes_padded.at(i).push_back(0);
+    while (codes_padded[i].size() & 0x7f)
+      codes_padded[i].push_back(0);
 
-    reserveSize += (u32)codes_padded.at(i).size();
+    reserve_size += codes_padded[i].size();
   }
-  header.clear();
-  header.reserve(reserveSize * 4);
-  header.append(StringFromFormat("#define NUM_UCODES %u\n\n", num_codes));
+
+  std::string header;
+  header.reserve(reserve_size * 4);
+  header.append(StringFromFormat("#define NUM_UCODES %zu\n\n", codes.size()));
   header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
-  for (u32 i = 0; i < num_codes; i++)
+  for (const std::string& in_filename : filenames)
   {
     std::string filename;
-    if (!SplitPath(filenames->at(i), nullptr, &filename, nullptr))
-      filename = filenames->at(i);
+    if (!SplitPath(in_filename, nullptr, &filename, nullptr))
+      filename = in_filename;
     header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
   }
   header.append("};\n\n");
   header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-  for (u32 i = 0; i < num_codes; i++)
+  for (std::size_t i = 0; i < codes.size(); i++)
   {
-    if (codes[i].size() == 0)
+    if (codes[i].empty())
       continue;
 
     header.append("\t{\n\t\t");
-    for (u32 j = 0; j < codes_padded.at(i).size(); j++)
+    for (std::size_t j = 0; j < codes_padded[i].size(); j++)
     {
       if (j && ((j & 15) == 0))
         header.append("\n\t\t");
-      header.append(StringFromFormat("0x%04x, ", codes_padded.at(i).at(j)));
+      header.append(StringFromFormat("0x%04x, ", codes_padded[i][j]));
     }
     header.append("\n\t},\n");
   }
   header.append("};\n");
+  return header;
 }
 
 static void PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
@@ -235,6 +243,23 @@ static bool PerformDisassembly(const std::string& input_name, const std::string&
   return true;
 }
 
+static std::vector<std::string> GetAssemblerFiles(const std::string& source)
+{
+  std::vector<std::string> files;
+  std::size_t last_pos = 0;
+  std::size_t pos = 0;
+
+  while ((pos = source.find('\n', last_pos)) != std::string::npos)
+  {
+    std::string temp = source.substr(last_pos, pos - last_pos);
+    if (!temp.empty())
+      files.push_back(std::move(temp));
+    last_pos = pos + 1;
+  }
+
+  return files;
+}
+
 static bool PerformAssembly(const std::string& input_name, const std::string& output_name,
                             const std::string& output_header_name, bool multiple, bool force,
                             bool output_size)
@@ -246,42 +271,30 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
   }
 
   std::string source;
-  if (File::ReadFileToString(input_name.c_str(), source))
+  if (File::ReadFileToString(input_name, source))
   {
     if (multiple)
     {
+      source.append("\n");
+
       // When specifying a list of files we must compile a header
       // (we can't assemble multiple files to one binary)
       // since we checked it before, we assume output_header_name isn't empty
-      int lines;
-      std::vector<u16>* codes;
-      std::vector<std::string> files;
-      std::string header, currentSource;
-      size_t lastPos = 0, pos = 0;
+      std::string currentSource;
+      const std::vector<std::string> files = GetAssemblerFiles(source);
 
-      source.append("\n");
-
-      while ((pos = source.find('\n', lastPos)) != std::string::npos)
-      {
-        std::string temp = source.substr(lastPos, pos - lastPos);
-        if (!temp.empty())
-          files.push_back(temp);
-        lastPos = pos + 1;
-      }
-
-      lines = (int)files.size();
-
+      std::size_t lines = files.size();
       if (lines == 0)
       {
         printf("ERROR: Must specify at least one file\n");
         return false;
       }
 
-      codes = new std::vector<u16>[lines];
+      std::vector<std::vector<u16>> codes(lines);
 
-      for (int i = 0; i < lines; i++)
+      for (std::size_t i = 0; i < lines; i++)
       {
-        if (!File::ReadFileToString(files[i].c_str(), currentSource))
+        if (!File::ReadFileToString(files[i], currentSource))
         {
           printf("ERROR reading %s, skipping...\n", files[i].c_str());
           lines--;
@@ -295,15 +308,13 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
           }
           if (output_size)
           {
-            printf("%s: %d\n", files[i].c_str(), (int)codes[i].size());
+            printf("%s: %zu\n", files[i].c_str(), codes[i].size());
           }
         }
       }
 
-      CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
+      const std::string header = CodesToHeader(codes, files);
       File::WriteStringToFile(header, output_header_name + ".h");
-
-      delete[] codes;
     }
     else
     {
@@ -317,7 +328,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 
       if (output_size)
       {
-        printf("%s: %d\n", input_name.c_str(), (int)code.size());
+        printf("%s: %zu\n", input_name.c_str(), code.size());
       }
 
       if (!output_name.empty())
@@ -327,8 +338,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       }
       if (!output_header_name.empty())
       {
-        std::string header;
-        CodeToHeader(code, input_name, output_header_name.c_str(), header);
+        const std::string header = CodeToHeader(code, input_name);
         File::WriteStringToFile(header, output_header_name + ".h");
       }
     }
