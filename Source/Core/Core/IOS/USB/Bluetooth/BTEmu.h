@@ -79,7 +79,7 @@ private:
     explicit ACLPool(Kernel& ios) : m_ios(ios), m_queue() {}
     void Store(const u8* data, const u16 size, const u16 conn_handle);
 
-    void WriteToEndpoint(USB::V0BulkMessage& endpoint);
+    void WriteToEndpoint(const USB::V0BulkMessage& endpoint);
 
     bool IsEmpty() const { return m_queue.empty(); }
     // For SaveStates

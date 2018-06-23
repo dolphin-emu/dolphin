@@ -390,7 +390,7 @@ void BluetoothEmu::ACLPool::Store(const u8* data, const u16 size, const u16 conn
   packet.conn_handle = conn_handle;
 }
 
-void BluetoothEmu::ACLPool::WriteToEndpoint(USB::V0BulkMessage& endpoint)
+void BluetoothEmu::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endpoint)
 {
   auto& packet = m_queue.front();
 
