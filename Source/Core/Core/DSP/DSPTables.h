@@ -105,9 +105,9 @@ const char* pdregname(int val);
 const char* pdregnamelong(int val);
 
 void InitInstructionTable();
-void applyWriteBackLog();
-void zeroWriteBackLog();
-void zeroWriteBackLogPreserveAcc(u8 acc);
+void ApplyWriteBackLog();
+void ZeroWriteBackLog();
+void ZeroWriteBackLogPreserveAcc(u8 acc);
 
 // Used by the assembler and disassembler for info retrieval.
 const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode);

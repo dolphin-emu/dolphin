@@ -27,7 +27,7 @@ void clr(const UDSPInstruction opc)
 
   dsp_set_long_acc(reg, 0);
   Update_SR_Register64(0);
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 // CLRL $acR.l
@@ -40,7 +40,7 @@ void clrl(const UDSPInstruction opc)
   u8 reg = (opc >> 8) & 0x1;
   s64 acc = dsp_round_long_acc(dsp_get_long_acc(reg));
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(reg, acc);
   Update_SR_Register64(acc);
@@ -94,7 +94,7 @@ void tst(const UDSPInstruction opc)
 
   s64 acc = dsp_get_long_acc(reg);
   Update_SR_Register64(acc);
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 // TSTAXH $axR.h
@@ -108,7 +108,7 @@ void tstaxh(const UDSPInstruction opc)
 
   s16 val = dsp_get_ax_h(reg);
   Update_SR_Register16(val);
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 //----
@@ -126,7 +126,7 @@ void cmp(const UDSPInstruction opc)
 
   Update_SR_Register64(res, isCarry2(acc0, res),
                        isOverflow(acc0, -acc1, res));  // CF -> influence on ABS/0xa100
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 // CMPAR $acS axR.h
@@ -146,7 +146,7 @@ void cmpar(const UDSPInstruction opc)
   s64 res = dsp_convert_long_acc(sr - rr);
 
   Update_SR_Register64(res, isCarry2(sr, res), isOverflow(sr, -rr, res));
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 // CMPI $amD, #I
@@ -202,7 +202,7 @@ void xorr(const UDSPInstruction opc)
   u8 sreg = (opc >> 9) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m ^ g_dsp.r.ax[sreg].h;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -221,7 +221,7 @@ void andr(const UDSPInstruction opc)
   u8 sreg = (opc >> 9) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m & g_dsp.r.ax[sreg].h;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -240,7 +240,7 @@ void orr(const UDSPInstruction opc)
   u8 sreg = (opc >> 9) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m | g_dsp.r.ax[sreg].h;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -258,7 +258,7 @@ void andc(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m & g_dsp.r.ac[1 - dreg].m;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -276,7 +276,7 @@ void orc(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m | g_dsp.r.ac[1 - dreg].m;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -293,7 +293,7 @@ void xorc(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m ^ g_dsp.r.ac[1 - dreg].m;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -310,7 +310,7 @@ void notc(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u16 accm = g_dsp.r.ac[dreg].m ^ 0xffff;
 
-  zeroWriteBackLogPreserveAcc(dreg);
+  ZeroWriteBackLogPreserveAcc(dreg);
 
   g_dsp.r.ac[dreg].m = accm;
   Update_SR_Register16((s16)accm, false, false, isOverS32(dsp_get_long_acc(dreg)));
@@ -395,7 +395,7 @@ void addr(const UDSPInstruction opc)
   ax <<= 16;
   s64 res = acc + ax;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -416,7 +416,7 @@ void addax(const UDSPInstruction opc)
   s64 ax = dsp_get_long_acx(sreg);
   s64 res = acc + ax;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -436,7 +436,7 @@ void add(const UDSPInstruction opc)
   s64 acc1 = dsp_get_long_acc(1 - dreg);
   s64 res = acc0 + acc1;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -456,7 +456,7 @@ void addp(const UDSPInstruction opc)
   s64 prod = dsp_get_long_prod();
   s64 res = acc + prod;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -479,7 +479,7 @@ void addaxl(const UDSPInstruction opc)
 
   u64 res = acc + acx;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, (s64)res);
   res = dsp_get_long_acc(dreg);
@@ -538,7 +538,7 @@ void incm(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(dreg);
   s64 res = acc + sub;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -557,7 +557,7 @@ void inc(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(dreg);
   s64 res = acc + 1;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -597,7 +597,7 @@ void subr(const UDSPInstruction opc)
   ax <<= 16;
   s64 res = acc - ax;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -618,7 +618,7 @@ void subax(const UDSPInstruction opc)
   s64 acx = dsp_get_long_acx(sreg);
   s64 res = acc - acx;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -638,7 +638,7 @@ void sub(const UDSPInstruction opc)
   s64 acc2 = dsp_get_long_acc(1 - dreg);
   s64 res = acc1 - acc2;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -658,7 +658,7 @@ void subp(const UDSPInstruction opc)
   s64 prod = dsp_get_long_prod();
   s64 res = acc - prod;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -678,7 +678,7 @@ void decm(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(dreg);
   s64 res = acc - sub;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -697,7 +697,7 @@ void dec(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(dreg);
   s64 res = acc - 1;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -718,7 +718,7 @@ void neg(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(dreg);
   acc = 0 - acc;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));
@@ -738,7 +738,7 @@ void abs(const UDSPInstruction opc)
   if (acc < 0)
     acc = 0 - acc;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));
@@ -774,7 +774,7 @@ void movr(const UDSPInstruction opc)
   ax <<= 16;
   ax &= ~0xffff;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(areg, ax);
   Update_SR_Register64(ax);
@@ -792,7 +792,7 @@ void movax(const UDSPInstruction opc)
 
   s64 acx = dsp_get_long_acx(sreg);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acx);
   Update_SR_Register64(acx);
@@ -808,7 +808,7 @@ void mov(const UDSPInstruction opc)
   u8 dreg = (opc >> 8) & 0x1;
   u64 acc = dsp_get_long_acc(1 - dreg);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(acc);
@@ -828,7 +828,7 @@ void lsl16(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(areg);
   acc <<= 16;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(areg, acc);
   Update_SR_Register64(dsp_get_long_acc(areg));
@@ -848,7 +848,7 @@ void lsr16(const UDSPInstruction opc)
       0x000000FFFFFFFFFFULL;  // Lop off the extraneous sign extension our 64-bit fake accum causes
   acc >>= 16;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(areg, (s64)acc);
   Update_SR_Register64(dsp_get_long_acc(areg));
@@ -866,7 +866,7 @@ void asr16(const UDSPInstruction opc)
   s64 acc = dsp_get_long_acc(areg);
   acc >>= 16;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(areg, acc);
   Update_SR_Register64(dsp_get_long_acc(areg));
@@ -1052,7 +1052,7 @@ void lsrnrx(const UDSPInstruction opc)
     acc >>= -shift;
   }
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, (s64)acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));
@@ -1089,7 +1089,7 @@ void asrnrx(const UDSPInstruction opc)
     acc >>= -shift;
   }
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));
@@ -1122,7 +1122,7 @@ void lsrnr(const UDSPInstruction opc)
   else if (shift < 0)
     acc >>= -shift;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, (s64)acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));
@@ -1154,7 +1154,7 @@ void asrnr(const UDSPInstruction opc)
   else if (shift < 0)
     acc >>= -shift;
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));

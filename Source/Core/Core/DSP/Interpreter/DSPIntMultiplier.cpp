@@ -82,7 +82,7 @@ s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 // direct use of prod regs by AX/AXWII (look @that part of ucode).
 void clrp(const UDSPInstruction opc)
 {
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   g_dsp.r.prod.l = 0x0000;
   g_dsp.r.prod.m = 0xfff0;
@@ -99,7 +99,7 @@ void tstprod(const UDSPInstruction opc)
 {
   s64 prod = dsp_get_long_prod();
   Update_SR_Register64(prod);
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 }
 
 //----
@@ -115,7 +115,7 @@ void movp(const UDSPInstruction opc)
 
   s64 acc = dsp_get_long_prod();
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(acc);
@@ -133,7 +133,7 @@ void movnp(const UDSPInstruction opc)
 
   s64 acc = -dsp_get_long_prod();
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(acc);
@@ -151,7 +151,7 @@ void movpz(const UDSPInstruction opc)
 
   s64 acc = dsp_get_long_prod_round_prodl();
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(acc);
@@ -174,7 +174,7 @@ void addpaxz(const UDSPInstruction opc)
   s64 ax = dsp_get_long_acx(sreg);
   s64 res = prod + (ax & ~0xffff);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_acc(dreg, res);
   res = dsp_get_long_acc(dreg);
@@ -190,7 +190,7 @@ void mulaxh(const UDSPInstruction opc)
 {
   s64 prod = dsp_multiply(dsp_get_ax_h(0), dsp_get_ax_h(0));
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -209,7 +209,7 @@ void mul(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(sreg);
   s64 prod = dsp_multiply(axh, axl);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -231,7 +231,7 @@ void mulac(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(sreg);
   s64 prod = dsp_multiply(axl, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -255,7 +255,7 @@ void mulmv(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(sreg);
   s64 prod = dsp_multiply(axl, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -280,7 +280,7 @@ void mulmvz(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(sreg);
   s64 prod = dsp_multiply(axl, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -302,7 +302,7 @@ void mulx(const UDSPInstruction opc)
   u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
   s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -325,7 +325,7 @@ void mulxac(const UDSPInstruction opc)
   u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
   s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -350,7 +350,7 @@ void mulxmv(const UDSPInstruction opc)
   u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
   s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -376,7 +376,7 @@ void mulxmvz(const UDSPInstruction opc)
   u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
   s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -398,7 +398,7 @@ void mulc(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(treg);
   s64 prod = dsp_multiply(accm, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -421,7 +421,7 @@ void mulcac(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(treg);
   s64 prod = dsp_multiply(accm, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -447,7 +447,7 @@ void mulcmv(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(treg);
   s64 prod = dsp_multiply(accm, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -474,7 +474,7 @@ void mulcmvz(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(treg);
   s64 prod = dsp_multiply(accm, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
   dsp_set_long_acc(rreg, acc);
@@ -497,7 +497,7 @@ void maddx(const UDSPInstruction opc)
   u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
   s64 prod = dsp_multiply_add(val1, val2);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -516,7 +516,7 @@ void msubx(const UDSPInstruction opc)
   u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
   s64 prod = dsp_multiply_sub(val1, val2);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -535,7 +535,7 @@ void maddc(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(treg);
   s64 prod = dsp_multiply_add(accm, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -554,7 +554,7 @@ void msubc(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(treg);
   s64 prod = dsp_multiply_sub(accm, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -572,7 +572,7 @@ void madd(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(sreg);
   s64 prod = dsp_multiply_add(axl, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }
@@ -590,7 +590,7 @@ void msub(const UDSPInstruction opc)
   u16 axh = dsp_get_ax_h(sreg);
   s64 prod = dsp_multiply_sub(axl, axh);
 
-  zeroWriteBackLog();
+  ZeroWriteBackLog();
 
   dsp_set_long_prod(prod);
 }

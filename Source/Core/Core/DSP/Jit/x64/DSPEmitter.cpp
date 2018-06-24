@@ -198,7 +198,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       // need to call the online cleanup function because
       // the writeBackLog gets populated at runtime
       m_gpr.PushRegs();
-      ABI_CallFunction(applyWriteBackLog);
+      ABI_CallFunction(ApplyWriteBackLog);
       m_gpr.PopRegs();
     }
     else
