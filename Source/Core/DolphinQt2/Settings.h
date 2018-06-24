@@ -71,6 +71,8 @@ public:
   void SetDefaultGame(QString path);
   void ReloadPath(const QString& qpath);
   void ReloadTitleDB();
+  bool IsAutoRefreshEnabled() const;
+  void SetAutoRefreshEnabled(bool enabled);
 
   // Emulation
   int GetStateSlot() const;
@@ -137,6 +139,7 @@ signals:
   void DefaultGameChanged(const QString&);
   void PathReloadRequested(const QString&);
   void TitleDBReloadRequested();
+  void AutoRefreshToggled(bool enabled);
   void HideCursorChanged();
   void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);

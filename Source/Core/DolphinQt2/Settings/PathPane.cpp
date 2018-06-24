@@ -127,19 +127,26 @@ QGroupBox* PathPane::MakeGameFolderBox()
 
   m_remove_path->setEnabled(false);
 
-  auto* checkbox = new QCheckBox(tr("Search Subfolders"));
-  checkbox->setChecked(SConfig::GetInstance().m_RecursiveISOFolder);
+  auto* recursive_checkbox = new QCheckBox(tr("Search Subfolders"));
+  recursive_checkbox->setChecked(SConfig::GetInstance().m_RecursiveISOFolder);
+
+  auto* auto_checkbox = new QCheckBox(tr("Check for Game List Changes in the Background"));
+  auto_checkbox->setChecked(Settings::Instance().IsAutoRefreshEnabled());
 
   hlayout->addWidget(add);
   hlayout->addWidget(m_remove_path);
   vlayout->addLayout(hlayout);
-  vlayout->addWidget(checkbox);
+  vlayout->addWidget(recursive_checkbox);
+  vlayout->addWidget(auto_checkbox);
 
-  connect(checkbox, &QCheckBox::toggled, this, [](bool checked) {
+  connect(recursive_checkbox, &QCheckBox::toggled, this, [](bool checked) {
     SConfig::GetInstance().m_RecursiveISOFolder = checked;
     for (const auto& path : Settings::Instance().GetPaths())
       Settings::Instance().ReloadPath(path);
   });
+
+  connect(auto_checkbox, &QCheckBox::toggled, &Settings::Instance(),
+          &Settings::SetAutoRefreshEnabled);
 
   connect(add, &QPushButton::pressed, this, &PathPane::Browse);
   connect(m_remove_path, &QPushButton::pressed, this, &PathPane::RemovePath);
