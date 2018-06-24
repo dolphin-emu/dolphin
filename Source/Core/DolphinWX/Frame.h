@@ -176,6 +176,8 @@ private:
   wxString m_aui_fullscreen_perspective;
   wxString m_aui_current_perspective;
 
+  bool m_qt_nag_shown = false;
+
 #ifdef __WXGTK__
   std::recursive_mutex m_keystate_lock;
 #endif

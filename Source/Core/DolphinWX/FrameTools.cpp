@@ -17,10 +17,12 @@
 #include <wx/bitmap.h>
 #include <wx/filedlg.h>
 #include <wx/filefn.h>
+#include <wx/hyperlink.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/progdlg.h>
+#include <wx/stattext.h>
 #include <wx/statusbr.h>
 #include <wx/toolbar.h>
 #include <wx/toplevel.h>
@@ -297,6 +299,72 @@ void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 
 // Menu items
 
+class QtFeedback : public wxDialog
+{
+public:
+  QtFeedback(wxWindow* parent)
+      : wxDialog(parent, wxID_ANY, _("Feedback Request"), wxDefaultPosition, wxDefaultSize,
+                 wxDEFAULT_DIALOG_STYLE & ~wxCLOSE_BOX)
+  {
+    const wxString text = _("You are currently running the wxWidgets version of Dolphin.\n"
+                            "Dolphin will soon complete the move to the Qt-based user "
+                            "interface, and this wxWidgets version will be removed.\n"
+                            "\n"
+                            "Please use the Qt version in the future.\n"
+                            "\n"
+                            "If you're purposefully not using the Qt version for any reason, "
+                            "please let us know why at this forum thread:");
+    wxStaticText* const text_window = new wxStaticText(this, wxID_ANY, text);
+
+    wxHyperlinkCtrl* const thread_link =
+        new wxHyperlinkCtrl(this, wxID_ANY, _("Qt Feedback Thread"),
+                            "https://forums.dolphin-emu.org/"
+                            "Thread-feedback-required-what-benefits-are-there-"
+                            "to-the-wxwidgets-gui");
+
+    m_dismiss = new wxButton(this, wxID_CLOSE);
+    m_dismiss->Bind(wxEVT_BUTTON, &QtFeedback::OnCloseClicked, this);
+    m_dismiss->Disable();
+
+    const int space20 = FromDIP(20);
+    const int space40 = FromDIP(40);
+
+    wxStdDialogButtonSizer* buttons = new wxStdDialogButtonSizer();
+    buttons->AddButton(m_dismiss);
+    buttons->Realize();
+
+    wxBoxSizer* const message_sizer = new wxBoxSizer(wxVERTICAL);
+    message_sizer->Add(text_window, wxSizerFlags().Center());
+    message_sizer->Add(thread_link, wxSizerFlags().Left());
+    message_sizer->Add(buttons, 0, wxALIGN_CENTER_HORIZONTAL);
+
+    wxBoxSizer* const pad_sizer = new wxBoxSizer(wxHORIZONTAL);
+    pad_sizer->AddSpacer(space40);
+    pad_sizer->Add(message_sizer);
+    pad_sizer->AddSpacer(space40);
+
+    wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
+    main_sizer->AddSpacer(space20);
+    main_sizer->Add(pad_sizer);
+    main_sizer->AddSpacer(space20);
+
+    SetSizerAndFit(main_sizer);
+    Center();
+    SetFocus();
+
+    m_dimiss_lock.SetOwner(this);
+    Bind(wxEVT_TIMER, &QtFeedback::DismissLockExpired, this, m_dimiss_lock.GetId());
+    m_dimiss_lock.Start(10 * 1000, wxTIMER_ONE_SHOT);
+  }
+
+private:
+  void DismissLockExpired(wxTimerEvent&) { m_dismiss->Enable(); }
+  void OnCloseClicked(wxCommandEvent&) { Close(); }
+
+  wxButton* m_dismiss = nullptr;
+  wxTimer m_dimiss_lock;
+};
+
 // Start the game or change the disc.
 // Boot priority:
 // 1. Show the game list and boot the selected game.
@@ -309,6 +377,15 @@ void CFrame::BootGame(const std::string& filename, const std::optional<std::stri
 
   if (Core::GetState() != Core::State::Uninitialized)
     return;
+
+  if (!m_qt_nag_shown)
+  {
+    m_qt_nag_shown = true;
+    QtFeedback feedback(this);
+    HotkeyManagerEmu::Enable(false);
+    feedback.ShowModal();
+    HotkeyManagerEmu::Enable(true);
+  }
 
   // Start filename if non empty.
   // Start the selected ISO, or try one of the saved paths.
