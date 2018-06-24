@@ -898,10 +898,9 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   MOVD_xmm(R(RSCRATCH), XMM1);
 
   // Check if the double is in the range of valid single subnormal
-  CMP(16, R(RSCRATCH), Imm16(896));
-  FixupBranch NoDenormalize = J_CC(CC_G);
-  CMP(16, R(RSCRATCH), Imm16(874));
-  FixupBranch NoDenormalize2 = J_CC(CC_L);
+  SUB(16, R(RSCRATCH), Imm16(874));
+  CMP(16, R(RSCRATCH), Imm16(896 - 874));
+  FixupBranch NoDenormalize = J_CC(CC_A);
 
   // Denormalise
 
@@ -927,7 +926,6 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   FixupBranch end = J(false);  // Goto end
 
   SetJumpTarget(NoDenormalize);
-  SetJumpTarget(NoDenormalize2);
 
   // Don't Denormalize
 
