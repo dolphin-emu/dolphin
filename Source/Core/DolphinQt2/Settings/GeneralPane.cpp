@@ -19,6 +19,7 @@
 #include <QWidget>
 
 #include "Core/Analytics.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -26,6 +27,9 @@
 #include "DolphinQt2/Settings.h"
 
 #include "UICommon/AutoUpdate.h"
+#ifdef USE_DISCORD_PRESENCE
+#include "UICommon/DiscordPresence.h"
+#endif
 
 constexpr int AUTO_UPDATE_DISABLE_INDEX = 0;
 constexpr int AUTO_UPDATE_STABLE_INDEX = 1;
@@ -87,6 +91,9 @@ void GeneralPane::ConnectLayout()
 {
   connect(m_checkbox_dualcore, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
   connect(m_checkbox_cheats, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+#ifdef USE_DISCORD_PRESENCE
+  connect(m_checkbox_discord_presence, &QCheckBox::toggled, this, &GeneralPane::OnSaveConfig);
+#endif
 
   if (AutoUpdateChecker::SystemSupportsAutoUpdates())
   {
@@ -124,6 +131,11 @@ void GeneralPane::CreateBasic()
 
   m_checkbox_cheats = new QCheckBox(tr("Enable Cheats"));
   basic_group_layout->addWidget(m_checkbox_cheats);
+
+#ifdef USE_DISCORD_PRESENCE
+  m_checkbox_discord_presence = new QCheckBox(tr("Show Current Game on Discord"));
+  basic_group_layout->addWidget(m_checkbox_discord_presence);
+#endif
 
   auto* speed_limit_layout = new QFormLayout;
   speed_limit_layout->setFormAlignment(Qt::AlignLeft | Qt::AlignTop);
@@ -219,6 +231,9 @@ void GeneralPane::LoadConfig()
 #endif
   m_checkbox_dualcore->setChecked(SConfig::GetInstance().bCPUThread);
   m_checkbox_cheats->setChecked(Settings::Instance().GetCheatsEnabled());
+#ifdef USE_DISCORD_PRESENCE
+  m_checkbox_discord_presence->setChecked(Config::Get(Config::MAIN_USE_DISCORD_PRESENCE));
+#endif
   int selection = qRound(SConfig::GetInstance().m_EmulationSpeed * 10);
   if (selection < m_combobox_speedlimit->count())
     m_combobox_speedlimit->setCurrentIndex(selection);
@@ -263,6 +278,10 @@ void GeneralPane::OnSaveConfig()
     Settings::Instance().SetAutoUpdateTrack(
         UpdateTrackFromIndex(m_combobox_update_track->currentIndex()));
   }
+
+#ifdef USE_DISCORD_PRESENCE
+  Discord::SetDiscordPresenceEnabled(m_checkbox_discord_presence->isChecked());
+#endif
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());

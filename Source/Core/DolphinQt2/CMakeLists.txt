@@ -220,3 +220,7 @@ if(APPLE)
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()
+
+if(USE_DISCORD_PRESENCE)
+  target_compile_definitions(dolphin-emu PRIVATE -DUSE_DISCORD_PRESENCE)
+endif()

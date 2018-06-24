@@ -84,6 +84,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/DiscordPresence.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -632,6 +633,9 @@ void MainWindow::OnStopComplete()
   m_stop_requested = false;
   HideRenderWidget();
   EnableScreenSaver(true);
+#ifdef USE_DISCORD_PRESENCE
+  Discord::UpdateDiscordPresence();
+#endif
 
   SetFullScreenResolution(false);
 
@@ -783,6 +787,9 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
   }
 
   ShowRenderWidget();
+#ifdef USE_DISCORD_PRESENCE
+  Discord::UpdateDiscordPresence();
+#endif
 
   if (SConfig::GetInstance().bFullscreen)
     m_fullscreen_requested = true;

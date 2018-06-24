@@ -48,6 +48,7 @@
     <ClCompile Include="Config\GraphicsSettings.cpp" />
     <ClCompile Include="Config\MainSettings.cpp" />
     <ClCompile Include="Config\NetplaySettings.cpp" />
+    <ClCompile Include="Config\UISettings.cpp" />
     <ClCompile Include="Config\SYSCONFSettings.cpp" />
     <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
@@ -319,6 +320,7 @@
     <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="Config\UISettings.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />

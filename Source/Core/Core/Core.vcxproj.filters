@@ -907,6 +907,9 @@
     <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
+    <ClCompile Include="Config\UISettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1597,6 +1600,9 @@
     </ClInclude>
     <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h">
       <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\UISettings.h">
+      <Filter>Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

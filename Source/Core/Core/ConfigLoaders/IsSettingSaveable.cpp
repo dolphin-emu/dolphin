@@ -9,6 +9,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/UISettings.h"
 
 namespace ConfigLoaders
 {
@@ -117,6 +118,10 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       // Graphics.GameSpecific
 
       Config::GFX_PERF_QUERIES_ENABLE.location,
+
+      // UI.General
+
+      Config::MAIN_USE_DISCORD_PRESENCE.location,
 
   };
 

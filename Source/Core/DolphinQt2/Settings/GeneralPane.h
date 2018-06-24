@@ -44,6 +44,9 @@ private:
   QComboBox* m_combobox_update_track;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
+#ifdef USE_DISCORD_PRESENCE
+  QCheckBox* m_checkbox_discord_presence;
+#endif
   QLabel* m_label_speedlimit;
 
   std::vector<QRadioButton*> m_cpu_cores;

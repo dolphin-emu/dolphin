@@ -187,4 +187,8 @@ else()
   install(TARGETS dolphin-emu-wx RUNTIME DESTINATION ${bindir})
 endif()
 
+if(USE_DISCORD_PRESENCE)
+  target_compile_definitions(dolphin-emu-wx PRIVATE -DUSE_DISCORD_PRESENCE)
+endif()
+
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} dolphin-emu-wx)
