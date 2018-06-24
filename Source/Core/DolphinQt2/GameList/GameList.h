@@ -23,6 +23,8 @@ class GameList final : public QStackedWidget
 public:
   explicit GameList(QWidget* parent = nullptr);
   std::shared_ptr<const UICommon::GameFile> GetSelectedGame() const;
+  QList<std::shared_ptr<const UICommon::GameFile>> GetSelectedGames() const;
+  bool HasMultipleSelected() const;
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
@@ -48,7 +50,7 @@ private:
   void InstallWAD();
   void UninstallWAD();
   void ExportWiiSave();
-  void CompressISO();
+  void CompressISO(bool decompress);
   void ChangeDisc();
   void OnHeaderViewChanged();
 
