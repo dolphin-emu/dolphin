@@ -34,6 +34,7 @@
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/WiiUpdate.h"
 
@@ -105,12 +106,13 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Interactive);
-  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
 
-  // It's a bit too narrow by default
+  m_list->setColumnWidth(GameListModel::COL_PLATFORM, Resources::GetPlatform(0).width());
+  m_list->setColumnWidth(GameListModel::COL_COUNTRY, Resources::GetCountry(0).width());
   m_list->setColumnWidth(GameListModel::COL_SIZE, 70);
 
   m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
