@@ -338,7 +338,6 @@ void Arm64GPRCache::GetAllocationOrder()
       W19,
 
       // Caller saved
-      W18,
       W17,
       W16,
       W15,
