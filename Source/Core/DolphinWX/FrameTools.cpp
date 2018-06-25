@@ -627,6 +627,8 @@ void CFrame::OnPlay(wxCommandEvent& event)
     if (m_use_debugger)
     {
       bool was_stopped = CPU::IsStepping();
+      // Force/Restore SyncGPU to prevent desync
+      Core::UpdateWantSyncGPU(!was_stopped);
       CPU::EnableStepping(!was_stopped);
       // When the CPU stops it generates a IDM_UPDATE_DISASM_DIALOG which automatically refreshes
       // the UI, the UI only needs to be refreshed manually when unpausing.
@@ -891,6 +893,8 @@ void CFrame::DoPause()
 {
   if (Core::GetState() == Core::State::Running)
   {
+    // Force SyncGPU to prevent desync
+    Core::UpdateWantSyncGPU(true);
     Core::SetState(Core::State::Paused);
     if (SConfig::GetInstance().bHideCursor)
       m_render_parent->SetCursor(wxNullCursor);
@@ -898,6 +902,8 @@ void CFrame::DoPause()
   }
   else
   {
+    // Restore SyncGPU settings
+    Core::UpdateWantSyncGPU();
     Core::SetState(Core::State::Running);
     if (SConfig::GetInstance().bHideCursor && RendererHasFocus())
       m_render_parent->SetCursor(wxCURSOR_BLANK);
