@@ -22,6 +22,8 @@ class GameList final : public QStackedWidget
 
 public:
   explicit GameList(QWidget* parent = nullptr);
+  ~GameList();
+
   std::shared_ptr<const UICommon::GameFile> GetSelectedGame() const;
 
   void SetListView() { SetPreferredView(true); }
@@ -31,6 +33,9 @@ public:
 
   void OnColumnVisibilityToggled(const QString& row, bool visible);
   void OnGameListVisibilityChanged();
+
+  void resizeEvent(QResizeEvent* event) override;
+
 signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);
@@ -51,6 +56,7 @@ private:
   void CompressISO();
   void ChangeDisc();
   void OnHeaderViewChanged();
+  void OnSectionResized(int index, int, int);
 
   void MakeListView();
   void MakeGridView();

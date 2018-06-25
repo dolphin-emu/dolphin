@@ -4,6 +4,9 @@
 
 #include "DolphinQt2/GameList/GameList.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include <QDesktopServices>
 #include <QDir>
 #include <QErrorMessage>
@@ -16,6 +19,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
+#include <QScrollBar>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
@@ -34,6 +38,7 @@
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/QtUtils/ActionHelper.h"
 #include "DolphinQt2/QtUtils/DoubleClickEventFilter.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/WiiUpdate.h"
 
@@ -89,20 +94,20 @@ void GameList::MakeListView()
 
   QHeaderView* hor_header = m_list->horizontalHeader();
 
+  hor_header->restoreState(
+      Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
+
   connect(hor_header, &QHeaderView::sortIndicatorChanged, this, &GameList::OnHeaderViewChanged);
-  connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionCountChanged, this, &GameList::OnHeaderViewChanged);
   connect(hor_header, &QHeaderView::sectionMoved, this, &GameList::OnHeaderViewChanged);
+  connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnSectionResized);
 
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
     m_list->sortByColumn(GameListModel::COL_TITLE, Qt::AscendingOrder);
 
-  hor_header->restoreState(
-      Settings::GetQSettings().value(QStringLiteral("tableheader/state")).toByteArray());
-
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::Fixed);
-  hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
+  hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::Fixed);
@@ -110,8 +115,11 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
 
-  // It's a bit too narrow by default
-  m_list->setColumnWidth(GameListModel::COL_SIZE, 70);
+  m_list->setColumnWidth(GameListModel::COL_BANNER, 100);
+  m_list->setColumnWidth(GameListModel::COL_PLATFORM, 40);
+  m_list->setColumnWidth(GameListModel::COL_COUNTRY, 40);
+  m_list->setColumnWidth(GameListModel::COL_SIZE, 85);
+  m_list->setColumnWidth(GameListModel::COL_ID, 70);
 
   m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
   m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
@@ -126,10 +134,17 @@ void GameList::MakeListView()
                           !SConfig::GetInstance().m_showFileNameColumn);
 
   m_list->verticalHeader()->hide();
+  m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   m_list->setFrameStyle(QFrame::NoFrame);
 
   hor_header->setSectionsMovable(true);
   hor_header->setHighlightSections(false);
+}
+
+GameList::~GameList()
+{
+  Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
+                                    m_list->horizontalHeader()->saveState());
 }
 
 void GameList::MakeEmptyView()
@@ -147,6 +162,11 @@ void GameList::MakeEmptyView()
     if (!dir.isEmpty())
       Settings::Instance().AddPath(dir);
   });
+}
+
+void GameList::resizeEvent(QResizeEvent* event)
+{
+  OnHeaderViewChanged();
 }
 
 void GameList::MakeGridView()
@@ -529,16 +549,102 @@ static bool CompressCB(const std::string& text, float percent, void* ptr)
 {
   if (ptr == nullptr)
     return false;
+
   auto* progress_dialog = static_cast<QProgressDialog*>(ptr);
 
   progress_dialog->setValue(percent * 100);
   return !progress_dialog->wasCanceled();
 }
 
+void GameList::OnSectionResized(int index, int, int)
+{
+  auto* hor_header = m_list->horizontalHeader();
+
+  std::vector<int> sections;
+
+  const int vis_index = hor_header->visualIndex(index);
+  const int col_count = hor_header->count() - hor_header->hiddenSectionCount();
+
+  bool last = true;
+
+  for (int i = vis_index + 1; i < col_count; i++)
+  {
+    if (hor_header->sectionResizeMode(i) != QHeaderView::Interactive)
+      continue;
+
+    last = false;
+    break;
+  }
+
+  if (!last)
+  {
+    for (int i = 0; i < vis_index; i++)
+    {
+      if (hor_header->sectionResizeMode(i) != QHeaderView::Interactive)
+        continue;
+
+      hor_header->setSectionResizeMode(hor_header->logicalIndex(i), QHeaderView::Fixed);
+      sections.push_back(i);
+    }
+
+    OnHeaderViewChanged();
+
+    for (int i : sections)
+    {
+      hor_header->setSectionResizeMode(hor_header->logicalIndex(i), QHeaderView::Interactive);
+    }
+  }
+  else
+  {
+    OnHeaderViewChanged();
+  }
+}
+
 void GameList::OnHeaderViewChanged()
 {
-  Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
-                                    m_list->horizontalHeader()->saveState());
+  static bool block = false;
+
+  if (block)
+    return;
+
+  block = true;
+
+  // So here's the deal: Qt's way of resizing stuff around stretched columns sucks ass
+  // That's why instead of using Stretch, we'll just make resizable columns take all the available
+  // space ourselves!
+
+  int available_width = width() - style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+  int previous_width = 0;
+
+  std::vector<int> candidate_columns;
+
+  // Iterate through all columns
+  for (int i = 0; i < GameListModel::NUM_COLS; i++)
+  {
+    if (m_list->isColumnHidden(i))
+      continue;
+
+    if (m_list->horizontalHeader()->sectionResizeMode(i) == QHeaderView::Fixed)
+    {
+      available_width -= m_list->columnWidth(i);
+    }
+    else
+    {
+      candidate_columns.push_back(i);
+      previous_width += m_list->columnWidth(i);
+    }
+  }
+
+  for (int column : candidate_columns)
+  {
+    int column_width = static_cast<int>(
+        std::max(5.f, std::ceil(available_width * (static_cast<float>(m_list->columnWidth(column)) /
+                                                   previous_width))));
+
+    m_list->setColumnWidth(column, column_width);
+  }
+
+  block = false;
 }
 
 void GameList::SetSearchTerm(const QString& term)
