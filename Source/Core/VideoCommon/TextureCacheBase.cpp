@@ -486,6 +486,7 @@ class ArbitraryMipmapDetector
 {
 private:
   using PixelRGBAf = std::array<float, 4>;
+  using PixelRGBAu8 = std::array<u8, 4>;
 
 public:
   explicit ArbitraryMipmapDetector() = default;
@@ -518,6 +519,12 @@ public:
     {
       const auto& level = levels[i];
       const auto& mip = levels[i + 1];
+
+      u64 level_pixel_count = level.shape.width;
+      level_pixel_count *= level.shape.height;
+
+      // AverageDiff stores the difference sum in a u64, so make sure we can't overflow
+      ASSERT(level_pixel_count < (std::numeric_limits<u64>::max() / (255 * 255 * 4)));
 
       // Manually downsample the past downsample with a simple box blur
       // This is not necessarily close to whatever the original artists used, however
@@ -568,6 +575,12 @@ private:
       return {{SRGBToLinear(p[0]), SRGBToLinear(p[1]), SRGBToLinear(p[2]), SRGBToLinear(p[3])}};
     }
 
+    static PixelRGBAu8 SampleLinear(const u8* src, const Shape& src_shape, u32 x, u32 y)
+    {
+      const auto* p = src + (x + y * src_shape.row_length) * 4;
+      return {{p[0], p[1], p[2], p[3]}};
+    }
+
     // Puts a downsampled image in dst. dst must be at least width*height*4
     static void Downsample(const u8* src, const Shape& src_shape, u8* dst, const Shape& dst_shape)
     {
@@ -577,29 +590,32 @@ private:
         {
           auto x = j * 2;
           auto y = i * 2;
-          const std::array<PixelRGBAf, 4> samples{{
-              Sample(src, src_shape, x, y),
-              Sample(src, src_shape, x + 1, y),
-              Sample(src, src_shape, x, y + 1),
-              Sample(src, src_shape, x + 1, y + 1),
+          const std::array<PixelRGBAu8, 4> samples{{
+              SampleLinear(src, src_shape, x, y),
+              SampleLinear(src, src_shape, x + 1, y),
+              SampleLinear(src, src_shape, x, y + 1),
+              SampleLinear(src, src_shape, x + 1, y + 1),
           }};
 
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
-          dst_pixel[0] =
-              LinearToSRGB((samples[0][0] + samples[1][0] + samples[2][0] + samples[3][0]) * 0.25f);
-          dst_pixel[1] =
-              LinearToSRGB((samples[0][1] + samples[1][1] + samples[2][1] + samples[3][1]) * 0.25f);
-          dst_pixel[2] =
-              LinearToSRGB((samples[0][2] + samples[1][2] + samples[2][2] + samples[3][2]) * 0.25f);
-          dst_pixel[3] =
-              LinearToSRGB((samples[0][3] + samples[1][3] + samples[2][3] + samples[3][3]) * 0.25f);
+          for (int channel = 0; channel < 4; channel++)
+          {
+            uint32_t channel_value = samples[0][channel] + samples[1][channel] +
+                                     samples[2][channel] + samples[3][channel];
+            dst_pixel[channel] = (channel_value + 2) / 4;
+          }
         }
       }
     }
 
     float AverageDiff(const u8* other) const
     {
-      float average_diff = 0.f;
+      // As textures are stored in (at most) 8 bit precision, each channel can
+      // have a max diff of (2^8)^2, multiply by 4 channels = 2^18 per pixel.
+      // That means to overflow, we must have a texture with more than 2^46
+      // pixels - which is way beyond anything the original hardware could do,
+      // and likely a sane assumption going forward for some significant time.
+      u64 current_diff_sum = 0;
       const auto* ptr1 = pixels;
       const auto* ptr2 = other;
       for (u32 i = 0; i < shape.height; ++i)
@@ -615,13 +631,16 @@ private:
             const int diff_squared = diff * diff;
             pixel_diff += diff_squared;
           }
-          average_diff += pixel_diff;
+          current_diff_sum += pixel_diff;
         }
         ptr1 += shape.row_length;
         ptr2 += shape.row_length;
       }
+      // calculate the MSE over all pixels, divide by 2.56 to make it a percent
+      // (IE scale to 0..100 instead of 0..256)
 
-      return average_diff / (shape.width * shape.height * 4) / 2.56f;
+      return std::sqrt(static_cast<float>(current_diff_sum) / (shape.width * shape.height * 4)) /
+             2.56f;
     }
   };
   std::vector<Level> levels;
