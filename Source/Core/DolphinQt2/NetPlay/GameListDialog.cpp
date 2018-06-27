@@ -41,6 +41,8 @@ void GameListDialog::ConnectWidgets()
     m_button_box->setEnabled(row != -1);
     m_game_id = m_game_list->currentItem()->text();
   });
+
+  connect(m_game_list, &QListWidget::itemDoubleClicked, this, &GameListDialog::accept);
   connect(m_button_box, &QDialogButtonBox::accepted, this, &GameListDialog::accept);
 }
 
