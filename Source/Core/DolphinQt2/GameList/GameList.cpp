@@ -614,6 +614,8 @@ void GameList::OnHeaderViewChanged()
 
   block = true;
 
+  UpdateColumnVisibility();
+
   // So here's the deal: Qt's way of resizing stuff around stretched columns sucks ass
   // That's why instead of using Stretch, we'll just make resizable columns take all the available
   // space ourselves!
