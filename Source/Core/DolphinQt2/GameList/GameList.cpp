@@ -121,17 +121,7 @@ void GameList::MakeListView()
   m_list->setColumnWidth(GameListModel::COL_SIZE, 85);
   m_list->setColumnWidth(GameListModel::COL_ID, 70);
 
-  m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
-  m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
-  m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
-  m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
-                          !SConfig::GetInstance().m_showDescriptionColumn);
-  m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
-  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
-  m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
-  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
-  m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
-                          !SConfig::GetInstance().m_showFileNameColumn);
+  UpdateColumnVisibility();
 
   m_list->verticalHeader()->hide();
   m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -145,6 +135,21 @@ GameList::~GameList()
 {
   Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
                                     m_list->horizontalHeader()->saveState());
+}
+
+void GameList::UpdateColumnVisibility()
+{
+  m_list->setColumnHidden(GameListModel::COL_PLATFORM, !SConfig::GetInstance().m_showSystemColumn);
+  m_list->setColumnHidden(GameListModel::COL_BANNER, !SConfig::GetInstance().m_showBannerColumn);
+  m_list->setColumnHidden(GameListModel::COL_TITLE, !SConfig::GetInstance().m_showTitleColumn);
+  m_list->setColumnHidden(GameListModel::COL_DESCRIPTION,
+                          !SConfig::GetInstance().m_showDescriptionColumn);
+  m_list->setColumnHidden(GameListModel::COL_MAKER, !SConfig::GetInstance().m_showMakerColumn);
+  m_list->setColumnHidden(GameListModel::COL_ID, !SConfig::GetInstance().m_showIDColumn);
+  m_list->setColumnHidden(GameListModel::COL_COUNTRY, !SConfig::GetInstance().m_showRegionColumn);
+  m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
+  m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
+                          !SConfig::GetInstance().m_showFileNameColumn);
 }
 
 void GameList::MakeEmptyView()
@@ -653,4 +658,6 @@ void GameList::SetSearchTerm(const QString& term)
 
   m_list_proxy->invalidate();
   m_grid_proxy->invalidate();
+
+  UpdateColumnVisibility();
 }
