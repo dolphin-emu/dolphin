@@ -55,6 +55,8 @@ private:
   void ExportWiiSave();
   void CompressISO();
   void ChangeDisc();
+  void UpdateColumnVisibility();
+
   void OnHeaderViewChanged();
   void OnSectionResized(int index, int, int);
 
