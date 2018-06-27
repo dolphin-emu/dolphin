@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QCoreApplication>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
 #include <QMessageBox>
@@ -244,7 +245,8 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
     break;
   case EntryType::File:
     AddAction(menu, tr("Extract File..."), this, [this, partition, path] {
-      auto dest = QFileDialog::getSaveFileName(this, tr("Save File to"));
+      auto dest =
+          QFileDialog::getSaveFileName(this, tr("Save File to"), QFileInfo(path).fileName());
 
       if (!dest.isEmpty())
         ExtractFile(partition, path, dest);
