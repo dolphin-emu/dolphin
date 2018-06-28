@@ -115,6 +115,9 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
 
+  // There's some odd platform-specific behavior with default minimum section size
+  hor_header->setMinimumSectionSize(38);
+
   // Cells have 3 pixels of padding, so the width of these needs to be image width + 6. Banners are
   // 96 pixels wide, platform and country icons are 32 pixels wide.
   m_list->setColumnWidth(GameListModel::COL_BANNER, 102);
