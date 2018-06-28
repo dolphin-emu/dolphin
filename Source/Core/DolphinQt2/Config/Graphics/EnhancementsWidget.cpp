@@ -81,6 +81,8 @@ void EnhancementsWidget::CreateWidgets()
       new GraphicsBool(tr("Force 24-Bit Color"), Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
   m_disable_copy_filter =
       new GraphicsBool(tr("Disable Copy Filter"), Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
+                                                  Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
 
   enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
   enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
@@ -100,6 +102,7 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_disable_fog, 7, 0);
   enhancements_layout->addWidget(m_force_24bit_color, 7, 1);
   enhancements_layout->addWidget(m_disable_copy_filter, 8, 0);
+  enhancements_layout->addWidget(m_arbitrary_mipmap_detection, 8, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -336,7 +339,7 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_FORCE_24BIT_DESCRIPTION[] =
       QT_TR_NOOP("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
                  "quality by reducing color banding.\nIt has no impact on performance and causes "
-                 "few graphical issues.\n\n\nIf unsure, leave this checked.");
+                 "few graphical issues.\n\nIf unsure, leave this checked.");
   static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] =
       QT_TR_NOOP("Filter all textures, including any that the game explicitly set as "
                  "unfiltered.\nMay improve quality of certain textures in some games, but will "
@@ -345,7 +348,13 @@ void EnhancementsWidget::AddDescriptions()
       QT_TR_NOOP("Disables the blending of adjacent rows when copying the EFB. This is known in "
                  "some games as \"deflickering\" or \"smoothing\". Disabling the filter has no "
                  "effect on performance, but may result in a sharper image, and causes few "
-                 "graphical issues.\n\n\nIf unsure, leave this checked.");
+                 "graphical issues.\n\nIf unsure, leave this checked.");
+  static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] =
+      QT_TR_NOOP("Enables detection of arbitrary mipmaps, which some games use for special "
+                 "distance-based effects.\nMay have false positives that result in blurry textures "
+                 "at increased internal resolution, such as in games that use very low resolution "
+                 "mipmaps.\nDisabling this can also reduce stutter in games that "
+                 "frequently load new textures.\n\nIf unsure, leave this checked.");
 
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
@@ -358,6 +367,7 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_force_24bit_color, TR_FORCE_24BIT_DESCRIPTION);
   AddDescription(m_force_texture_filtering, TR_FORCE_TEXTURE_FILTERING_DESCRIPTION);
   AddDescription(m_disable_copy_filter, TR_DISABLE_COPY_FILTER_DESCRIPTION);
+  AddDescription(m_arbitrary_mipmap_detection, TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION);
   AddDescription(m_3d_mode, TR_3D_MODE_DESCRIPTION);
   AddDescription(m_3d_depth, TR_3D_DEPTH_DESCRIPTION);
   AddDescription(m_3d_convergence, TR_3D_CONVERGENCE_DESCRIPTION);
