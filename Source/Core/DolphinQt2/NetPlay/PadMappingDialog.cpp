@@ -45,11 +45,24 @@ void PadMappingDialog::CreateWidgets()
 void PadMappingDialog::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
+  for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
+  {
+    for (auto& combo : combo_group)
+    {
+      connect(combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+              &PadMappingDialog::OnMappingChanged);
+    }
+  }
 }
 
 int PadMappingDialog::exec()
 {
-  m_players = Settings::Instance().GetNetPlayClient()->GetPlayers();
+  auto* client = Settings::Instance().GetNetPlayClient();
+  auto* server = Settings::Instance().GetNetPlayServer();
+  // Load Settings
+  m_players = client->GetPlayers();
+  m_pad_mapping = server->GetPadMapping();
+  m_wii_mapping = server->GetWiimoteMapping();
 
   QStringList players;
 
@@ -63,18 +76,24 @@ int PadMappingDialog::exec()
 
   for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
-    for (auto& combo : combo_group)
+    bool gc = combo_group == m_gc_boxes;
+    for (size_t i = 0; i < combo_group.size(); i++)
     {
+      auto& combo = combo_group[i];
+      const bool old = combo->blockSignals(true);
+
       combo->clear();
       combo->addItems(players);
-      connect(combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-              &PadMappingDialog::OnMappingChanged);
+
+      const auto index = gc ? m_pad_mapping[i] : m_wii_mapping[i];
+
+      combo->setCurrentIndex(index == -1 ? 0 : index);
+      combo->blockSignals(old);
     }
   }
 
   return QDialog::exec();
 }
-
 PadMappingArray PadMappingDialog::GetGCPadArray()
 {
   return m_pad_mapping;

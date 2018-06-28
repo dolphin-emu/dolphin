@@ -28,6 +28,7 @@ public:
 private:
   void CreateWidgets();
   void ConnectWidgets();
+
   void OnMappingChanged();
 
   PadMappingArray m_pad_mapping;
