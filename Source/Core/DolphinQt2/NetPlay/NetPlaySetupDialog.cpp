@@ -164,6 +164,9 @@ void NetPlaySetupDialog::ConnectWidgets()
           [](int index) {
             Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"), index);
           });
+
+  connect(m_host_games, &QListWidget::itemDoubleClicked, this, &NetPlaySetupDialog::accept);
+
   connect(m_host_force_port_check, &QCheckBox::toggled,
           [this](int value) { m_host_force_port_box->setEnabled(value); });
 #ifdef USE_UPNP
