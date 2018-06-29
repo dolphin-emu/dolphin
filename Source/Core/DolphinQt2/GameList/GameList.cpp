@@ -574,7 +574,8 @@ void GameList::OnSectionResized(int index, int, int)
 
   for (int i = vis_index + 1; i < col_count; i++)
   {
-    if (hor_header->sectionResizeMode(i) != QHeaderView::Interactive)
+    const int logical_index = hor_header->logicalIndex(i);
+    if (hor_header->sectionResizeMode(logical_index) != QHeaderView::Interactive)
       continue;
 
     last = false;
@@ -585,10 +586,11 @@ void GameList::OnSectionResized(int index, int, int)
   {
     for (int i = 0; i < vis_index; i++)
     {
-      if (hor_header->sectionResizeMode(i) != QHeaderView::Interactive)
+      const int logical_index = hor_header->logicalIndex(i);
+      if (hor_header->sectionResizeMode(logical_index) != QHeaderView::Interactive)
         continue;
 
-      hor_header->setSectionResizeMode(hor_header->logicalIndex(i), QHeaderView::Fixed);
+      hor_header->setSectionResizeMode(logical_index, QHeaderView::Fixed);
       sections.push_back(i);
     }
 
