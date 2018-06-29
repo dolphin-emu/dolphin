@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/TAS/GCTASInputWindow.h"
 
+#include <map>
+
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -12,6 +14,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/TAS/Shared.h"
 
 #include "InputCommon/GCPadStatus.h"
@@ -89,10 +92,45 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
 static void SetButton(QCheckBox* button, GCPadStatus* pad, u16 mask)
 {
+  static std::map<QCheckBox*, bool> set_by_keyboard;
+  const bool pressed = (pad->button & mask) != 0;
+
+  if (pressed)
+  {
+    set_by_keyboard[button] = true;
+    QueueOnObject(button, [button] { button->setChecked(true); });
+  }
+  else if (set_by_keyboard.count(button) && set_by_keyboard[button])
+  {
+    set_by_keyboard[button] = false;
+    QueueOnObject(button, [button] { button->setChecked(false); });
+  }
+
   if (button->isChecked())
     pad->button |= mask;
   else
     pad->button &= ~mask;
+}
+
+static void SetSpinBox(QSpinBox* spin, u8& trigger_value, int default_value)
+{
+  static std::map<QSpinBox*, bool> set_by_keyboard;
+
+  if (trigger_value != default_value)
+  {
+    set_by_keyboard[spin] = true;
+    QueueOnObject(spin, [spin, trigger_value] { spin->setValue(trigger_value); });
+    return;
+  }
+
+  if (set_by_keyboard.count(spin) && set_by_keyboard[spin])
+  {
+    set_by_keyboard[spin] = false;
+    QueueOnObject(spin, [spin, trigger_value] { spin->setValue(trigger_value); });
+    return;
+  }
+
+  trigger_value = spin->value();
 }
 
 void GCTASInputWindow::GetValues(GCPadStatus* pad)
@@ -123,11 +161,12 @@ void GCTASInputWindow::GetValues(GCPadStatus* pad)
   else
     pad->analogB = 0x00;
 
-  pad->triggerLeft = m_l_trigger_value->value();
-  pad->triggerRight = m_r_trigger_value->value();
+  SetSpinBox(m_l_trigger_value, pad->triggerLeft, 0);
+  SetSpinBox(m_r_trigger_value, pad->triggerRight, 0);
 
-  pad->stickX = m_x_main_stick_value->value();
-  pad->stickY = m_y_main_stick_value->value();
-  pad->substickX = m_x_c_stick_value->value();
-  pad->substickY = m_y_c_stick_value->value();
+  SetSpinBox(m_x_main_stick_value, pad->stickX, 128);
+  SetSpinBox(m_y_main_stick_value, pad->stickY, 128);
+
+  SetSpinBox(m_x_c_stick_value, pad->substickX, 128);
+  SetSpinBox(m_y_c_stick_value, pad->substickY, 128);
 }
