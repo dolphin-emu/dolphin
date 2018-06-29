@@ -93,6 +93,11 @@
             <item
                 android:id="@+id/menu_emulation_adjust_scale"
                 android:title="@string/emulation_control_scale"/>
+
+            <item
+                android:id="@+id/menu_emulation_joystick_rel_center"
+                android:checkable="true"
+                android:title="@string/emulation_control_joystick_rel_center"/>
         </menu>
     </item>
 
