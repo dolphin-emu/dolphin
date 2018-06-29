@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/TAS/WiiTASInputWindow.h"
 
+#include <cmath>
+
 #include <QCheckBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -55,8 +57,8 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
   connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
 
-  m_ir_x_value->setValue(ir_max_x / 2);
-  m_ir_y_value->setValue(ir_max_y / 2);
+  m_ir_x_value->setValue(static_cast<int>(std::round(ir_max_x / 2.)));
+  m_ir_y_value->setValue(static_cast<int>(std::round(ir_max_y / 2.)));
 
   auto* visual_ar = new AspectRatioWidget(visual, ir_max_x, ir_max_y);
 
