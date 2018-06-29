@@ -831,6 +831,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_CopyWiiSave;
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
+  spac << m_settings.m_ReducePollingRate;
   spac << m_settings.m_EXIDevice[0];
   spac << m_settings.m_EXIDevice[1];
   spac << static_cast<u32>(g_netplay_initial_rtc);

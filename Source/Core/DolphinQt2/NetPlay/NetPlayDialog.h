@@ -98,6 +98,7 @@ private:
   QCheckBox* m_save_sd_box;
   QCheckBox* m_load_wii_box;
   QCheckBox* m_record_input_box;
+  QCheckBox* m_reduce_polling_rate_box;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 

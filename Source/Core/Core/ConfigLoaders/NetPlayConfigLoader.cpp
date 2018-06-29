@@ -33,6 +33,7 @@ public:
     layer->Set(Config::MAIN_SLOT_A, static_cast<int>(m_settings.m_EXIDevice[0]));
     layer->Set(Config::MAIN_SLOT_B, static_cast<int>(m_settings.m_EXIDevice[1]));
     layer->Set(Config::MAIN_WII_SD_CARD_WRITABLE, m_settings.m_WriteToMemcard);
+    layer->Set(Config::MAIN_REDUCE_POLLING_RATE, m_settings.m_ReducePollingRate);
 
     layer->Set(Config::MAIN_DSP_JIT, m_settings.m_DSPEnableJIT);
 
@@ -54,4 +55,4 @@ std::unique_ptr<Config::ConfigLayerLoader> GenerateNetPlayConfigLoader(const Net
 {
   return std::make_unique<NetPlayConfigLayerLoader>(settings);
 }
-}
+}  // namespace ConfigLoaders

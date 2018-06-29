@@ -27,6 +27,7 @@ struct NetSettings
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
   bool m_CopyWiiSave;
+  bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
   ExpansionInterface::TEXIDevices m_EXIDevice[2];

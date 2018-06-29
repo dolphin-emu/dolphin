@@ -72,6 +72,7 @@ extern const ConfigInfo<std::string> MAIN_PERF_MAP_DIR;
 extern const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE;
 extern const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS;
+extern const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE;
 
 // Main.DSP
 
