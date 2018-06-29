@@ -167,11 +167,11 @@ void GameCubePane::OnConfigPressed(int slot)
     return;
   }
 
-  QString filename =
-      QFileDialog::getOpenFileName(this, tr("Choose a file to open"),
-                                   QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)), filter);
+  QString filename = QFileDialog::getSaveFileName(
+      this, tr("Choose a file to open"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+      filter, 0, QFileDialog::DontConfirmOverwrite);
 
-  if (filename.isEmpty() || !File::Exists(filename.toStdString()))
+  if (filename.isEmpty())
     return;
 
   QString path_abs = QFileInfo(filename).absoluteFilePath();
@@ -179,16 +179,19 @@ void GameCubePane::OnConfigPressed(int slot)
   // Memcard validity checks
   if (memcard)
   {
-    GCMemcard mc(filename.toStdString());
-
-    if (!mc.IsValid())
+    if (File::Exists(filename.toStdString()))
     {
-      QMessageBox::critical(this, tr("Error"),
-                            tr("Cannot use that file as a memory card.\n%1\n"
-                               "is not a valid GameCube memory card file")
-                                .arg(filename));
+      GCMemcard mc(filename.toStdString());
 
-      return;
+      if (!mc.IsValid())
+      {
+        QMessageBox::critical(this, tr("Error"),
+                              tr("Cannot use that file as a memory card.\n%1\n"
+                                 "is not a valid GameCube memory card file")
+                                  .arg(filename));
+
+        return;
+      }
     }
 
     bool other_slot_memcard =
