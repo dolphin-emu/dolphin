@@ -4,6 +4,8 @@
 
 #include "DolphinQt2/TAS/Shared.h"
 
+#include <cmath>
+
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -47,8 +49,8 @@ QGroupBox* CreateStickInputs(QDialog* window, QString name, QSpinBox*& x_value, 
   window->connect(visual, &StickWidget::ChangedX, x_value, &QSpinBox::setValue);
   window->connect(visual, &StickWidget::ChangedY, y_value, &QSpinBox::setValue);
 
-  x_value->setValue(max_x / 2);
-  y_value->setValue(max_y / 2);
+  x_value->setValue(static_cast<int>(std::round(max_x / 2.)));
+  y_value->setValue(static_cast<int>(std::round(max_y / 2.)));
 
   auto* visual_ar = new AspectRatioWidget(visual, max_x, max_y);
 
