@@ -75,7 +75,7 @@ void GameList::MakeListView()
   m_list = new QTableView(this);
   m_list->setModel(m_list_proxy);
 
-  m_list->setSelectionMode(QAbstractItemView::SingleSelection);
+  m_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_list->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_list->setAlternatingRowColors(true);
   m_list->setShowGrid(false);
@@ -180,6 +180,7 @@ void GameList::MakeGridView()
 {
   m_grid = new QListView(this);
   m_grid->setModel(m_grid_proxy);
+  m_grid->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_grid->setViewMode(QListView::IconMode);
   m_grid->setResizeMode(QListView::Adjust);
   m_grid->setUniformItemSizes(true);
@@ -194,94 +195,138 @@ void GameList::MakeGridView()
 
 void GameList::ShowContextMenu(const QPoint&)
 {
-  const auto game = GetSelectedGame();
-  if (!game)
+  if (!GetSelectedGame())
     return;
 
   QMenu* menu = new QMenu(this);
-  DiscIO::Platform platform = game->GetPlatform();
 
-  if (platform != DiscIO::Platform::ELFOrDOL)
+  if (HasMultipleSelected())
   {
-    AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
-    AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
+    bool wii_saves = true;
+    bool compress = false;
+    bool decompress = false;
 
-    menu->addSeparator();
-  }
-
-  if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
-  {
-    AddAction(menu, tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
-    const auto blob_type = game->GetBlobType();
-
-    if (blob_type == DiscIO::BlobType::GCZ)
-      AddAction(menu, tr("Decompress ISO..."), this, &GameList::CompressISO);
-    else if (blob_type == DiscIO::BlobType::PLAIN)
-      AddAction(menu, tr("Compress ISO..."), this, &GameList::CompressISO);
-
-    QAction* change_disc = AddAction(menu, tr("Change &Disc"), this, &GameList::ChangeDisc);
-
-    connect(&Settings::Instance(), &Settings::EmulationStateChanged, change_disc,
-            [change_disc] { change_disc->setEnabled(Core::IsRunning()); });
-    change_disc->setEnabled(Core::IsRunning());
-
-    menu->addSeparator();
-  }
-
-  if (platform == DiscIO::Platform::WiiDisc)
-  {
-    auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
-      WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
-    });
-    perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
-  }
-
-  if (platform == DiscIO::Platform::WiiWAD)
-  {
-    QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
-    QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
-
-    connect(wad_install_action, &QAction::triggered, this, &GameList::InstallWAD);
-    connect(wad_uninstall_action, &QAction::triggered, this, &GameList::UninstallWAD);
-
-    for (QAction* a : {wad_install_action, wad_uninstall_action})
+    for (const auto& game : GetSelectedGames())
     {
-      a->setEnabled(!Core::IsRunning());
-      menu->addAction(a);
+      DiscIO::Platform platform = game->GetPlatform();
+
+      if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
+      {
+        const auto blob_type = game->GetBlobType();
+        if (blob_type == DiscIO::BlobType::GCZ)
+          decompress = true;
+        else if (blob_type == DiscIO::BlobType::PLAIN)
+          compress = true;
+      }
+
+      if (platform != DiscIO::Platform::WiiWAD && platform != DiscIO::Platform::WiiDisc)
+        wii_saves = false;
     }
-    if (!Core::IsRunning())
-      wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
+
+    if (compress)
+      AddAction(menu, tr("Compress selected ISOs..."), this, [this] { CompressISO(false); });
+    if (decompress)
+      AddAction(menu, tr("Decompress selected ISOs..."), this, [this] { CompressISO(true); });
+    if (compress || decompress)
+      menu->addSeparator();
+
+    if (wii_saves)
+    {
+      AddAction(menu, tr("Export Wii saves (Experimental)"), this, &GameList::ExportWiiSave);
+      menu->addSeparator();
+    }
+
+    AddAction(menu, tr("Delete selected ISOs..."), this, &GameList::DeleteFile);
+  }
+  else
+  {
+    const auto game = GetSelectedGame();
+    DiscIO::Platform platform = game->GetPlatform();
+
+    if (platform != DiscIO::Platform::ELFOrDOL)
+    {
+      AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
+      AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
+
+      menu->addSeparator();
+    }
+
+    if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
+    {
+      AddAction(menu, tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
+      const auto blob_type = game->GetBlobType();
+
+      if (blob_type == DiscIO::BlobType::GCZ)
+        AddAction(menu, tr("Decompress ISO..."), this, [this] { CompressISO(true); });
+      else if (blob_type == DiscIO::BlobType::PLAIN)
+        AddAction(menu, tr("Compress ISO..."), this, [this] { CompressISO(false); });
+
+      QAction* change_disc = AddAction(menu, tr("Change &Disc"), this, &GameList::ChangeDisc);
+
+      connect(&Settings::Instance(), &Settings::EmulationStateChanged, change_disc,
+              [change_disc] { change_disc->setEnabled(Core::IsRunning()); });
+      change_disc->setEnabled(Core::IsRunning());
+
+      menu->addSeparator();
+    }
+
+    if (platform == DiscIO::Platform::WiiDisc)
+    {
+      auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
+        WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
+      });
+      perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+    }
+
+    if (platform == DiscIO::Platform::WiiWAD)
+    {
+      QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
+      QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
+
+      connect(wad_install_action, &QAction::triggered, this, &GameList::InstallWAD);
+      connect(wad_uninstall_action, &QAction::triggered, this, &GameList::UninstallWAD);
+
+      for (QAction* a : {wad_install_action, wad_uninstall_action})
+      {
+        a->setEnabled(!Core::IsRunning());
+        menu->addAction(a);
+      }
+      if (!Core::IsRunning())
+        wad_uninstall_action->setEnabled(WiiUtils::IsTitleInstalled(game->GetTitleID()));
+
+      connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu,
+              [=](Core::State state) {
+                wad_install_action->setEnabled(state == Core::State::Uninitialized);
+                wad_uninstall_action->setEnabled(state == Core::State::Uninitialized &&
+                                                 WiiUtils::IsTitleInstalled(game->GetTitleID()));
+              });
+
+      menu->addSeparator();
+    }
+
+    if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
+    {
+      AddAction(menu, tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
+      AddAction(menu, tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
+      menu->addSeparator();
+    }
+
+    AddAction(menu, tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
+    AddAction(menu, tr("Delete File..."), this, &GameList::DeleteFile);
+
+    QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
+
+    connect(netplay_host, &QAction::triggered, [this, game] {
+      emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier()));
+    });
 
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
-      wad_install_action->setEnabled(state == Core::State::Uninitialized);
-      wad_uninstall_action->setEnabled(state == Core::State::Uninitialized &&
-                                       WiiUtils::IsTitleInstalled(game->GetTitleID()));
+      netplay_host->setEnabled(state == Core::State::Uninitialized);
     });
+    netplay_host->setEnabled(!Core::IsRunning());
 
-    menu->addSeparator();
+    menu->addAction(netplay_host);
   }
-
-  if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
-  {
-    AddAction(menu, tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
-    AddAction(menu, tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
-    menu->addSeparator();
-  }
-
-  AddAction(menu, tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
-  AddAction(menu, tr("Delete File..."), this, &GameList::DeleteFile);
-
-  QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
-
-  connect(netplay_host, &QAction::triggered,
-          [this, game] { emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier())); });
-
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
-    netplay_host->setEnabled(state == Core::State::Uninitialized);
-  });
-  netplay_host->setEnabled(!Core::IsRunning());
-
-  menu->addAction(netplay_host);
 
   menu->exec(QCursor::pos());
 }
@@ -303,10 +348,25 @@ void GameList::ExportWiiSave()
   if (export_dir.isEmpty())
     return;
 
-  if (WiiSave::Export(GetSelectedGame()->GetTitleID(), export_dir.toStdString()))
-    QMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
+  QList<std::string> failed;
+  for (const auto& game : GetSelectedGames())
+  {
+    if (!WiiSave::Export(game->GetTitleID(), export_dir.toStdString()))
+      failed.push_back(game->GetName());
+  }
+
+  if (!failed.isEmpty())
+  {
+    QString failed_str;
+    for (const std::string& str : failed)
+      failed_str.append(QStringLiteral("\n")).append(QString::fromStdString(str));
+    QMessageBox::critical(this, tr("Save Export"),
+                          tr("Failed to export the following save files:") + failed_str);
+  }
   else
-    QMessageBox::critical(this, tr("Save Export"), tr("Failed to export save files."));
+  {
+    QMessageBox::information(this, tr("Save Export"), tr("Successfully exported save files"));
+  }
 }
 
 void GameList::OpenWiki()
@@ -316,69 +376,133 @@ void GameList::OpenWiki()
   QDesktopServices::openUrl(QUrl(url));
 }
 
-void GameList::CompressISO()
+void GameList::CompressISO(bool decompress)
 {
-  auto file = GetSelectedGame();
-  const auto original_path = file->GetFilePath();
+  auto files = GetSelectedGames();
 
-  const bool compressed = (file->GetBlobType() == DiscIO::BlobType::GCZ);
-
-  if (!compressed && file->GetPlatform() == DiscIO::Platform::WiiDisc)
+  bool wii_warning_given = false;
+  for (QMutableListIterator<std::shared_ptr<const UICommon::GameFile>> it(files); it.hasNext();)
   {
-    QMessageBox wii_warning(this);
-    wii_warning.setIcon(QMessageBox::Warning);
-    wii_warning.setText(tr("Are you sure?"));
-    wii_warning.setInformativeText(
-        tr("Compressing a Wii disc image will irreversibly change the compressed copy by removing "
-           "padding data. Your disc image will still work. Continue?"));
-    wii_warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    auto file = it.next();
 
-    if (wii_warning.exec() == QMessageBox::No)
+    if ((file->GetPlatform() != DiscIO::Platform::GameCubeDisc &&
+         file->GetPlatform() != DiscIO::Platform::WiiDisc) ||
+        (decompress && file->GetBlobType() != DiscIO::BlobType::GCZ) ||
+        (!decompress && file->GetBlobType() != DiscIO::BlobType::PLAIN))
+    {
+      it.remove();
+      continue;
+    }
+
+    if (!wii_warning_given && !decompress && file->GetPlatform() == DiscIO::Platform::WiiDisc)
+    {
+      QMessageBox wii_warning(this);
+      wii_warning.setIcon(QMessageBox::Warning);
+      wii_warning.setText(tr("Are you sure?"));
+      wii_warning.setInformativeText(tr(
+          "Compressing a Wii disc image will irreversibly change the compressed copy by removing "
+          "padding data. Your disc image will still work. Continue?"));
+      wii_warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+      if (wii_warning.exec() == QMessageBox::No)
+        return;
+
+      wii_warning_given = true;
+    }
+  }
+
+  if (files.size() == 0)
+    return;  // We shouldn't get here normally...
+
+  QString dst_dir;
+  QString dst_path;
+
+  if (files.size() > 1)
+  {
+    dst_dir = QFileDialog::getExistingDirectory(
+        this,
+        decompress ? tr("Select where you want to save the decompressed images") :
+                     tr("Select where you want to save the compressed images"),
+        QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath())).dir().absolutePath());
+
+    if (dst_dir.isEmpty())
       return;
   }
-
-  QString dst_path = QFileDialog::getSaveFileName(
-      this,
-      compressed ? tr("Select where you want to save the decompressed image") :
-                   tr("Select where you want to save the compressed image"),
-      QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
-          .dir()
-          .absoluteFilePath(QString::fromStdString(file->GetGameID()))
-          .append(compressed ? QStringLiteral(".gcm") : QStringLiteral(".gcz")),
-      compressed ? tr("Uncompressed GC/Wii images (*.iso *.gcm)") :
-                   tr("Compressed GC/Wii images (*.gcz)"));
-
-  if (dst_path.isEmpty())
-    return;
-
-  QProgressDialog progress_dialog(compressed ? tr("Decompressing...") : tr("Compressing..."),
-                                  tr("Abort"), 0, 100, this);
-  progress_dialog.setWindowModality(Qt::WindowModal);
-
-  bool good;
-
-  if (compressed)
-  {
-    good = DiscIO::DecompressBlobToFile(original_path, dst_path.toStdString(), &CompressCB,
-                                        &progress_dialog);
-  }
   else
   {
-    good = DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
-                                      file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
-                                      16384, &CompressCB, &progress_dialog);
+    dst_path = QFileDialog::getSaveFileName(
+        this,
+        decompress ? tr("Select where you want to save the decompressed image") :
+                     tr("Select where you want to save the compressed image"),
+        QFileInfo(QString::fromStdString(GetSelectedGame()->GetFilePath()))
+            .dir()
+            .absoluteFilePath(
+                QFileInfo(QString::fromStdString(files[0]->GetFilePath())).completeBaseName())
+            .append(decompress ? QStringLiteral(".gcm") : QStringLiteral(".gcz")),
+        decompress ? tr("Uncompressed GC/Wii images (*.iso *.gcm)") :
+                     tr("Compressed GC/Wii images (*.gcz)"));
   }
 
-  if (good)
+  for (const auto& file : files)
   {
-    QMessageBox(QMessageBox::Information, tr("Success!"), tr("Successfully compressed image."),
-                QMessageBox::Ok, this)
-        .exec();
+    const auto original_path = file->GetFilePath();
+    if (files.size() > 1)
+    {
+      dst_path =
+          QDir(dst_dir)
+              .absoluteFilePath(QFileInfo(QString::fromStdString(original_path)).completeBaseName())
+              .append(decompress ? QStringLiteral(".gcm") : QStringLiteral(".gcz"));
+      QFileInfo dst_info = QFileInfo(dst_path);
+      if (dst_info.exists())
+      {
+        QMessageBox confirm_replace(this);
+        confirm_replace.setIcon(QMessageBox::Warning);
+        confirm_replace.setText(tr("The file %1 already exists.\n"
+                                   "Do you wish to replace it?")
+                                    .arg(dst_info.fileName()));
+        confirm_replace.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+        if (confirm_replace.exec() == QMessageBox::No)
+          continue;
+      }
+    }
+
+    QProgressDialog progress_dialog(decompress ? tr("Decompressing...") : tr("Compressing..."),
+                                    tr("Abort"), 0, 100, this);
+    progress_dialog.setWindowModality(Qt::WindowModal);
+
+    bool good;
+
+    if (decompress)
+    {
+      if (files.size() > 1)
+        progress_dialog.setLabelText(tr("Decompressing...") + QStringLiteral("\n") +
+                                     QFileInfo(QString::fromStdString(original_path)).fileName());
+      good = DiscIO::DecompressBlobToFile(original_path, dst_path.toStdString(), &CompressCB,
+                                          &progress_dialog);
+    }
+    else
+    {
+      if (files.size() > 1)
+        progress_dialog.setLabelText(tr("Compressing...") + QStringLiteral("\n") +
+                                     QFileInfo(QString::fromStdString(original_path)).fileName());
+      good = DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
+                                        file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
+                                        16384, &CompressCB, &progress_dialog);
+    }
+
+    if (!good)
+    {
+      QErrorMessage(this).showMessage(tr("Dolphin failed to complete the requested action."));
+      return;
+    }
   }
-  else
-  {
-    QErrorMessage(this).showMessage(tr("Dolphin failed to complete the requested action."));
-  }
+
+  QMessageBox(QMessageBox::Information, tr("Success!"),
+              decompress ? tr("Successfully decompressed %n image(s).", "", files.size()) :
+                           tr("Successfully compressed %n image(s).", "", files.size()),
+              QMessageBox::Ok, this)
+      .exec();
 }
 
 void GameList::InstallWAD()
@@ -435,7 +559,6 @@ void GameList::OpenSaveFolder()
 
 void GameList::DeleteFile()
 {
-  const std::string game = GetSelectedGame()->GetFilePath();
   QMessageBox confirm_dialog(this);
 
   confirm_dialog.setIcon(QMessageBox::Warning);
@@ -446,29 +569,35 @@ void GameList::DeleteFile()
 
   if (confirm_dialog.exec() == QMessageBox::Yes)
   {
-    bool deletion_successful = false;
-
-    while (!deletion_successful)
+    for (const auto& game : GetSelectedGames())
     {
-      deletion_successful = File::Delete(game);
+      bool deletion_successful = false;
 
-      if (deletion_successful)
+      while (!deletion_successful)
       {
-        m_model->RemoveGame(game);
-      }
-      else
-      {
-        QMessageBox error_dialog(this);
+        deletion_successful = File::Delete(game->GetFilePath());
 
-        error_dialog.setIcon(QMessageBox::Critical);
-        error_dialog.setText(tr("Failed to delete the selected file."));
-        error_dialog.setInformativeText(tr("Check whether you have the permissions required to "
-                                           "delete the file or whether it's still in use."));
-        error_dialog.setStandardButtons(QMessageBox::Retry | QMessageBox::Abort);
+        if (deletion_successful)
+        {
+          m_model->RemoveGame(game->GetFilePath());
+        }
+        else
+        {
+          QMessageBox error_dialog(this);
 
-        if (error_dialog.exec() == QMessageBox::Abort)
-          break;
+          error_dialog.setIcon(QMessageBox::Critical);
+          error_dialog.setText(tr("Failed to delete the selected file."));
+          error_dialog.setInformativeText(tr("Check whether you have the permissions required to "
+                                             "delete the file or whether it's still in use."));
+          error_dialog.setStandardButtons(QMessageBox::Retry | QMessageBox::Abort);
+
+          if (error_dialog.exec() == QMessageBox::Abort)
+            break;
+        }
       }
+
+      if (!deletion_successful)
+        break;  // Something is wrong, so we should abort the whole thing
     }
   }
 }
@@ -499,6 +628,41 @@ std::shared_ptr<const UICommon::GameFile> GameList::GetSelectedGame() const
     return m_model->GetGameFile(model_index.row());
   }
   return {};
+}
+
+QList<std::shared_ptr<const UICommon::GameFile>> GameList::GetSelectedGames() const
+{
+  QAbstractItemView* view;
+  QSortFilterProxyModel* proxy;
+  if (currentWidget() == m_list)
+  {
+    view = m_list;
+    proxy = m_list_proxy;
+  }
+  else
+  {
+    view = m_grid;
+    proxy = m_grid_proxy;
+  }
+  QList<std::shared_ptr<const UICommon::GameFile>> selected_list;
+  QItemSelectionModel* sel_model = view->selectionModel();
+  if (sel_model->hasSelection())
+  {
+    QModelIndexList index_list =
+        currentWidget() == m_list ? sel_model->selectedRows() : sel_model->selectedIndexes();
+    for (const auto& index : index_list)
+    {
+      QModelIndex model_index = proxy->mapToSource(index);
+      selected_list.push_back(m_model->GetGameFile(model_index.row()));
+    }
+  }
+  return selected_list;
+}
+
+bool GameList::HasMultipleSelected() const
+{
+  return currentWidget() == m_list ? m_list->selectionModel()->selectedRows().size() > 1 :
+                                     m_grid->selectionModel()->selectedIndexes().size() > 1;
 }
 
 void GameList::SetPreferredView(bool list)
