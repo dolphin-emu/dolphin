@@ -38,6 +38,7 @@ Make AA apply instantly during gameplay if possible
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
@@ -66,9 +67,9 @@ std::string VideoBackend::GetName() const
 std::string VideoBackend::GetDisplayName() const
 {
   if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-    return "OpenGLES";
+    return _trans("OpenGL ES");
   else
-    return "OpenGL";
+    return _trans("OpenGL");
 }
 
 void VideoBackend::InitBackendInfo()

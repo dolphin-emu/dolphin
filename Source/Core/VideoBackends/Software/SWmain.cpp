@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
 
@@ -51,7 +52,7 @@ std::string VideoSoftware::GetName() const
 
 std::string VideoSoftware::GetDisplayName() const
 {
-  return "Software Renderer";
+  return _trans("Software Renderer");
 }
 
 void VideoSoftware::InitBackendInfo()

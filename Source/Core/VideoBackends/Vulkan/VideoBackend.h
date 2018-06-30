@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/Common.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace Vulkan
@@ -15,7 +16,7 @@ public:
   void Shutdown() override;
 
   std::string GetName() const override { return "Vulkan"; }
-  std::string GetDisplayName() const override { return "Vulkan"; }
+  std::string GetDisplayName() const override { return _trans("Vulkan"); }
   void InitBackendInfo() override;
 };
 }
