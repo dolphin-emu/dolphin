@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -34,7 +35,7 @@ std::string VideoBackend::GetName() const
 
 std::string VideoBackend::GetDisplayName() const
 {
-  return "Direct3D 11";
+  return _trans("Direct3D 11");
 }
 
 void VideoBackend::InitBackendInfo()
