@@ -30,8 +30,8 @@ QWidget* GetWrappedWidget(QWidget* wrapped_widget, QWidget* to_resize, int margi
                       std::max(recommended_height, to_resize->height()));
   }
 
-#ifdef _WIN32
-  // Transparency can cause unwanted side-effects on OSes other than Windows
+#if defined(_WIN32) || defined(__APPLE__)
+  // Transparency can cause unwanted side-effects on OSes other than Windows / macOS
 
   // Make sure the background color stays consistent with the parent widget
   QPalette p = wrapped_widget->palette();
