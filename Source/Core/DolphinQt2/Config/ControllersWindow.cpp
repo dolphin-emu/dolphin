@@ -330,6 +330,7 @@ void ControllersWindow::OnBluetoothPassthroughResetPressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Warning);
+    error.setWindowTitle(tr("Warning"));
     error.setText(tr("Saved Wii Remote pairings can only be reset when a Wii game is running."));
     error.exec();
     return;
@@ -350,6 +351,7 @@ void ControllersWindow::OnBluetoothPassthroughSyncPressed()
   {
     QMessageBox error(this);
     error.setIcon(QMessageBox::Warning);
+    error.setWindowTitle(tr("Warning"));
     error.setText(tr("A sync can only be triggered when a Wii game is running."));
     error.exec();
     return;
@@ -462,6 +464,7 @@ void ControllersWindow::UnimplementedButton()
   QMessageBox error_dialog(this);
 
   error_dialog.setIcon(QMessageBox::Warning);
+  error_dialog.setWindowTitle(tr("Unimplemented"));
   error_dialog.setText(tr("Not implemented yet."));
   error_dialog.exec();
 }

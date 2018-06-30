@@ -401,6 +401,7 @@ void GameList::CompressISO(bool decompress)
     {
       QMessageBox wii_warning(this);
       wii_warning.setIcon(QMessageBox::Warning);
+      wii_warning.setWindowTitle(tr("Confirm"));
       wii_warning.setText(tr("Are you sure?"));
       wii_warning.setInformativeText(tr(
           "Compressing a Wii disc image will irreversibly change the compressed copy by removing "
@@ -460,6 +461,7 @@ void GameList::CompressISO(bool decompress)
       {
         QMessageBox confirm_replace(this);
         confirm_replace.setIcon(QMessageBox::Warning);
+        confirm_replace.setWindowTitle(tr("Confirm"));
         confirm_replace.setText(tr("The file %1 already exists.\n"
                                    "Do you wish to replace it?")
                                     .arg(dst_info.fileName()));
@@ -501,7 +503,7 @@ void GameList::CompressISO(bool decompress)
     }
   }
 
-  QMessageBox(QMessageBox::Information, tr("Success!"),
+  QMessageBox(QMessageBox::Information, tr("Success"),
               decompress ? tr("Successfully decompressed %n image(s).", "", files.size()) :
                            tr("Successfully compressed %n image(s).", "", files.size()),
               QMessageBox::Ok, this)
@@ -515,6 +517,7 @@ void GameList::InstallWAD()
   const bool success = WiiUtils::InstallWAD(GetSelectedGame()->GetFilePath());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
+  result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully installed this title to the NAND.") :
                                   tr("Failed to install this title to the NAND."));
   result_dialog.exec();
@@ -525,6 +528,7 @@ void GameList::UninstallWAD()
   QMessageBox warning_dialog(this);
 
   warning_dialog.setIcon(QMessageBox::Information);
+  warning_dialog.setWindowTitle(tr("Confirm"));
   warning_dialog.setText(tr("Uninstalling the WAD will remove the currently installed version of "
                             "this title from the NAND without deleting its save data. Continue?"));
   warning_dialog.setStandardButtons(QMessageBox::No | QMessageBox::Yes);
@@ -537,6 +541,7 @@ void GameList::UninstallWAD()
   const bool success = WiiUtils::UninstallTitle(GetSelectedGame()->GetTitleID());
 
   result_dialog.setIcon(success ? QMessageBox::Information : QMessageBox::Critical);
+  result_dialog.setWindowTitle(success ? tr("Success") : tr("Failure"));
   result_dialog.setText(success ? tr("Successfully removed this title from the NAND.") :
                                   tr("Failed to remove this title from the NAND."));
   result_dialog.exec();
@@ -589,6 +594,7 @@ void GameList::DeleteFile()
           QMessageBox error_dialog(this);
 
           error_dialog.setIcon(QMessageBox::Critical);
+          error_dialog.setWindowTitle(tr("Failure"));
           error_dialog.setText(tr("Failed to delete the selected file."));
           error_dialog.setInformativeText(tr("Check whether you have the permissions required to "
                                              "delete the file or whether it's still in use."));
