@@ -111,8 +111,8 @@ void GraphicsWindow::OnBackendChanged(const QString& backend_name)
     }
   }
 
-  setWindowTitle(tr("%1 Graphics Configuration")
-                     .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
+  setWindowTitle(
+      tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));
   if (backend_name == QStringLiteral("Software Renderer") && m_tab_widget->count() > 1)
   {
     m_tab_widget->clear();
