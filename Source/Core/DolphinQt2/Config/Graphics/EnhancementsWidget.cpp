@@ -183,13 +183,17 @@ void EnhancementsWidget::LoadPPShaders()
   m_pp_effect->setToolTip(supports_postprocessing ?
                               QStringLiteral("") :
                               tr("%1 doesn't support this feature.")
-                                  .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
+                                  .arg(tr(g_video_backend->GetDisplayName().c_str())));
 
   PostProcessingShaderConfiguration pp_shader;
-  if (selected_shader != "(off)")
+  if (selected_shader != "(off)" && supports_postprocessing)
   {
     pp_shader.LoadShader(selected_shader);
     m_configure_pp_effect->setEnabled(pp_shader.HasOptions());
+  }
+  else
+  {
+    m_configure_pp_effect->setEnabled(false);
   }
 }
 
@@ -254,8 +258,9 @@ void EnhancementsWidget::SaveSettings()
 
   Config::SetBaseOrCurrent(Config::GFX_SSAA, is_ssaa);
 
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
-                           m_pp_effect->currentText().toStdString());
+  Config::SetBaseOrCurrent(
+      Config::GFX_ENHANCE_POST_SHADER,
+      m_pp_effect->currentIndex() == 0 ? "(off)" : m_pp_effect->currentText().toStdString());
 
   PostProcessingShaderConfiguration pp_shader;
   if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
