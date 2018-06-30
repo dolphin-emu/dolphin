@@ -187,6 +187,8 @@ void CodeWidget::OnSearchAddress()
     m_code_view->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
 
   Update();
+
+  m_search_address->setFocus();
 }
 
 void CodeWidget::OnSearchSymbols()
