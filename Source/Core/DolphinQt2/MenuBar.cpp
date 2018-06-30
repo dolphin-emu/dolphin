@@ -941,11 +941,13 @@ void MenuBar::InstallWAD()
   {
     Settings::Instance().NANDRefresh();
     result_dialog.setIcon(QMessageBox::Information);
+    result_dialog.setWindowTitle(tr("Success"));
     result_dialog.setText(tr("Successfully installed this title to the NAND."));
   }
   else
   {
     result_dialog.setIcon(QMessageBox::Critical);
+    result_dialog.setWindowTitle(tr("Failure"));
     result_dialog.setText(tr("Failed to install this title to the NAND."));
   }
 
