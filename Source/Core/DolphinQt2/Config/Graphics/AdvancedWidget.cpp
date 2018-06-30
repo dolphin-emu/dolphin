@@ -142,62 +142,60 @@ void AdvancedWidget::OnEmulationStateChanged(bool running)
 void AdvancedWidget::AddDescriptions()
 {
   static const char TR_WIREFRAME_DESCRIPTION[] =
-      QT_TR_NOOP("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Renders the scene as a wireframe.\n\nIf unsure, leave unchecked.");
   static const char TR_SHOW_STATS_DESCRIPTION[] =
-      QT_TR_NOOP("Show various rendering statistics.\n\nIf unsure, leave this unchecked.");
-  static const char TR_TEXTURE_FORMAT_DECRIPTION[] =
-      QT_TR_NOOP("Modify textures to show the format they're encoded in. Needs an emulation reset "
-                 "in most cases.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Shows various rendering statistics.\n\nIf unsure, leave unchecked.");
+  static const char TR_TEXTURE_FORMAT_DECRIPTION[] = QT_TR_NOOP(
+      "Modifies textures to show the format that they are encoded in.\n\nMay require "
+      "an emulation reset to apply in some cases.\n\nIf unsure, leave unchecked.");
   static const char TR_VALIDATION_LAYER_DESCRIPTION[] =
       QT_TR_NOOP("Enables validation of API calls made by the video backend, which may assist in "
-                 "debugging graphical issues.\n\nIf unsure, leave this unchecked.");
-  static const char TR_DUMP_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
-                 "this unchecked.");
-  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this "
+                 "debugging graphical issues.\n\nIf unsure, leave unchecked.");
+  static const char TR_DUMP_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+      "Dumps decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
       "unchecked.");
-  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] =
-      QT_TR_NOOP("Cache custom textures to system RAM on startup.\nThis can require exponentially "
-                 "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
-  static const char TR_DUMP_EFB_DESCRIPTION[] =
-      QT_TR_NOOP("Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this "
-                 "unchecked.");
-  static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] =
-      QT_TR_NOOP("Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
-                 "upscaling.\n\nIf unsure, leave this unchecked.");
+  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+      "Loads custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave "
+      "unchecked.");
+  static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
+      "Caches custom textures to system RAM on startup.\n\nThis can require exponentially "
+      "more RAM but fixes possible stuttering.\n\nIf unsure, leave unchecked.");
+  static const char TR_DUMP_EFB_DESCRIPTION[] = QT_TR_NOOP(
+      "Dumps the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave "
+      "unchecked.");
+  static const char TR_DISABLE_VRAM_COPIES_DESCRIPTION[] = QT_TR_NOOP(
+      "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
+      "upscaling.\n\nIf unsure, leave unchecked.");
   static const char TR_INTERNAL_RESOLUTION_FRAME_DUMPING_DESCRIPTION[] = QT_TR_NOOP(
-      "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
-      "the size of the window it is displayed within. If the aspect ratio is widescreen, the "
-      "output "
+      "Creates frame dumps and screenshots at the internal resolution of the "
+      "renderer, rather than the size of the window it is displayed within. "
+      "\n\nIf the aspect ratio is widescreen, the output "
       "image will be scaled horizontally to preserve the vertical resolution.\n\nIf unsure, leave "
-      "this unchecked.");
+      "unchecked.");
 #if defined(HAVE_FFMPEG)
   static const char TR_USE_FFV1_DESCRIPTION[] =
-      QT_TR_NOOP("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Encodes frame dumps using the FFV1 codec.\n\nIf unsure, leave unchecked.");
 #endif
   static const char TR_FREE_LOOK_DESCRIPTION[] = QT_TR_NOOP(
-      "This feature allows you to change the game's camera.\nMove the mouse while holding the "
-      "right "
-      "mouse button to pan and while holding the middle button to move.\nHold SHIFT and press "
-      "one of "
-      "the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and "
-      "SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the "
-      "speed.\n\nIf unsure, leave this unchecked.");
+      "Allows the user to manipulate the game camera.\n\nMove the mouse and hold the right "
+      "button to pan or middle button to move. Hold SHIFT and use the WASD keys to move "
+      "the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
+      "to reset the camera or SHIFT+F to reset the speed. "
+      "\n\nIf unsure, leave unchecked.");
   static const char TR_CROPPING_DESCRIPTION[] =
-      QT_TR_NOOP("Crop the picture from its native aspect ratio to 4:3 or "
-                 "16:9.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Crops the picture from its native aspect ratio to 4:3 or "
+                 "16:9.\n\nIf unsure, leave unchecked.");
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
-      "Enables progressive scan if supported by the emulated software.\nMost games don't "
-      "care about this.\n\nIf unsure, leave this unchecked.");
+      "Enables progressive scan if supported by the emulated software. Most "
+      "games are completely unaffected by this.\n\nIf unsure, leave unchecked.");
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
-      "Implement fullscreen mode with a borderless window spanning the whole screen instead of "
+      "Implements fullscreen mode with a borderless window spanning the whole screen instead of "
       "using "
-      "exclusive mode.\nAllows for faster transitions between fullscreen and windowed mode, but "
+      "exclusive mode.\n\nAllows for faster transitions between fullscreen and windowed mode, but "
       "slightly increases input latency, makes movement less smooth and slightly decreases "
-      "performance.\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D "
-      "backend.\n\nIf unsure, leave this unchecked.");
+      "performance.\n\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D "
+      "backend.\n\nIf unsure, leave unchecked.");
 #endif
 
   AddDescription(m_enable_wireframe, TR_WIREFRAME_DESCRIPTION);

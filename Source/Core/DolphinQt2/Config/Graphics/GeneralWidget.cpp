@@ -239,43 +239,43 @@ void GeneralWidget::AddDescriptions()
       "select the backend that is least problematic.\n\nIf unsure, select OpenGL.");
 #else
   static const char TR_BACKEND_DESCRIPTION[] =
-      QT_TR_NOOP("Selects what graphics API to use internally.\nThe software renderer is extremely "
-                 "slow and only useful for debugging, so unless you have a reason to use it you'll "
+      QT_TR_NOOP("Selects which graphics API to use internally.\n\nThe software renderer is extremely "
+                 "slow and only useful for debugging, so unless you have a reason to use it you will "
                  "want to select OpenGL here.\n\nIf unsure, select OpenGL.");
 #endif
   static const char TR_ADAPTER_DESCRIPTION[] =
-      QT_TR_NOOP("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
+      QT_TR_NOOP("Selects a hardware adapter to use.\n\nIf unsure, select the first option.");
   static const char TR_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
-      "Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a "
-      "render window will be created instead.\n\nIf unsure, leave this unchecked.");
+      "Uses the entire screen for rendering.\n\nIf disabled, a "
+      "render window will be created instead.\n\nIf unsure, leave unchecked.");
   static const char TR_AUTOSIZE_DESCRIPTION[] =
       QT_TR_NOOP("Automatically adjusts the window size to your internal resolution.\n\nIf unsure, "
-                 "leave this unchecked.");
+                 "leave unchecked.");
 
   static const char TR_RENDER_TO_MAINWINDOW_DESCRIPTION[] =
-      QT_TR_NOOP("Enable this if you want to use the main Dolphin window for rendering rather than "
-                 "a separate render window.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Uses the main Dolphin window for rendering rather than "
+                 "a separate render window.\n\nIf unsure, leave unchecked.");
   static const char TR_ASPECT_RATIO_DESCRIPTION[] = QT_TR_NOOP(
-      "Select what aspect ratio to use when rendering:\nAuto: Use the native aspect "
-      "ratio\nForce 16:9: Mimic an analog TV with a widescreen aspect ratio.\nForce 4:3: "
-      "Mimic a standard 4:3 analog TV.\nStretch to Window: Stretch the picture to the "
+      "Selects which aspect ratio to use when rendering:\nAuto: Uses the native aspect "
+      "ratio.\nForce 16:9: Mimics an analog TV with a widescreen aspect ratio.\nForce 4:3: "
+      "Mimics a standard 4:3 analog TV.\nStretch to Window: Stretches the picture to the "
       "window size.\n\nIf unsure, select Auto.");
   static const char TR_VSYNC_DESCRIPTION[] =
-      QT_TR_NOOP("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if "
-                 "emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Waits for vertical blanks in order to reduce tearing.\n\nDecreases performance if "
+                 "emulation speed is below 100%.\n\nIf unsure, leave unchecked.");
   static const char TR_SHOW_FPS_DESCRIPTION[] =
-      QT_TR_NOOP("Show the number of frames rendered per second as a measure of "
-                 "emulation speed.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Shows the number of frames rendered per second as a measure of "
+                 "emulation speed.\n\nIf unsure, leave unchecked.");
   static const char TR_SHOW_NETPLAY_PING_DESCRIPTION[] =
-      QT_TR_NOOP("Show the players' maximum Ping while playing on "
-                 "NetPlay.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Shows players' maximum ping while playing on "
+                 "NetPlay.\n\nIf unsure, leave unchecked.");
   static const char TR_LOG_RENDERTIME_DESCRIPTION[] =
-      QT_TR_NOOP("Log the render time of every frame to User/Logs/render_time.txt. Use this "
-                 "feature when you want to measure the performance of Dolphin.\n\nIf "
-                 "unsure, leave this unchecked.");
+      QT_TR_NOOP("Logs the render time of every frame to User/Logs/render_time.txt. \n\nUse "
+                 "this feature when you want to measure the performance of Dolphin.\n\nIf "
+                 "unsure, leave unchecked.");
   static const char TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION[] =
-      QT_TR_NOOP("When playing on NetPlay, show chat messages, buffer changes and "
-                 "desync alerts.\n\nIf unsure, leave this unchecked.");
+      QT_TR_NOOP("Shows chat messages, buffer changes, and desync alerts while playing "
+                 "on NetPlay.\n\nIf unsure, leave unchecked.");
   static const char TR_SHADER_COMPILE_SYNC_DESCRIPTION[] =
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
@@ -293,11 +293,11 @@ void GeneralWidget::AddDescriptions()
       "scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken "
       "effects. Not recommended, only use if the other options give poor results on your system.");
   static const char TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION[] =
-      QT_TR_NOOP("Waits for all shaders to finish compiling before starting a game. Enabling this "
-                 "option may reduce stuttering or hitching for a short time after the game is "
+      QT_TR_NOOP("Waits for all shaders to finish compiling before starting a game.\n\nEnabling "
+                 "this option may reduce stuttering or hitching for a short time after the game is "
                  "started, at the cost of a longer delay before the game starts. For systems with "
                  "two or fewer cores, it is recommended to enable this option, as a large shader "
-                 "queue may reduce frame rates. Otherwise, if unsure, leave this unchecked.");
+                 "queue may reduce frame rates.\n\nOtherwise, if unsure, leave unchecked.");
 
   AddDescription(m_backend_combo, TR_BACKEND_DESCRIPTION);
   AddDescription(m_adapter_combo, TR_ADAPTER_DESCRIPTION);
