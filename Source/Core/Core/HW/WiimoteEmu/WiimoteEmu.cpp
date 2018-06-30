@@ -314,8 +314,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_options->boolean_settings.emplace_back(
       m_upright_setting = new ControllerEmu::BooleanSetting("Upright Wiimote",
                                                             _trans("Upright Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
-      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
       std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
   m_options->numeric_settings.emplace_back(

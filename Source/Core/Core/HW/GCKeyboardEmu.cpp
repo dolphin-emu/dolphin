@@ -80,8 +80,6 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
-      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
 
 std::string GCKeyboard::GetName() const

@@ -98,8 +98,6 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
       // i18n: Treat a controller as always being connected regardless of what
       // devices the user actually has plugged in
       m_always_connected = new ControllerEmu::BooleanSetting(_trans("Always Connected"), false));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
-      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
 
 std::string GCPad::GetName() const
