@@ -62,7 +62,8 @@ void GeneralWidget::CreateWidgets()
   m_video_box->setLayout(m_video_layout);
 
   for (auto& backend : g_available_video_backends)
-    m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()));
+    m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()),
+                             QVariant(QString::fromStdString(backend->GetName())));
 
   m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
   m_video_layout->addWidget(m_backend_combo, 0, 1);
@@ -148,16 +149,8 @@ void GeneralWidget::ConnectWidgets()
 void GeneralWidget::LoadSettings()
 {
   // Video Backend
-  for (const auto& backend : g_available_video_backends)
-  {
-    if (backend->GetName() == SConfig::GetInstance().m_strVideoBackend)
-    {
-      backend->InitBackendInfo();
-      m_backend_combo->setCurrentIndex(
-          m_backend_combo->findText(tr(backend->GetDisplayName().c_str())));
-      break;
-    }
-  }
+  m_backend_combo->setCurrentIndex(m_backend_combo->findData(
+      QVariant(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend))));
 
   // Enable Fullscreen
   m_enable_fullscreen->setChecked(SConfig::GetInstance().bFullscreen);
@@ -172,43 +165,28 @@ void GeneralWidget::LoadSettings()
 void GeneralWidget::SaveSettings()
 {
   // Video Backend
-  for (const auto& backend : g_available_video_backends)
+  const auto current_backend = m_backend_combo->currentData().toString().toStdString();
+  if (SConfig::GetInstance().m_strVideoBackend != current_backend)
   {
-    if (backend->GetDisplayName() == m_backend_combo->currentText().toStdString())
+    if (current_backend == "Software Renderer")
     {
-      const auto current_backend = backend->GetName();
-      if (SConfig::GetInstance().m_strVideoBackend != current_backend)
+      QMessageBox confirm_sw(this);
+
+      confirm_sw.setIcon(QMessageBox::Warning);
+      confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+      confirm_sw.setWindowTitle(tr("Confirm backend change"));
+      confirm_sw.setText(tr("Software rendering is an order of magnitude slower than using the "
+                            "other backends.\nIt's only useful for debugging purposes.\nDo you "
+                            "really want to enable software rendering? If unsure, select 'No'."));
+
+      if (confirm_sw.exec() != QMessageBox::Yes)
       {
-        if (backend->GetName() == "Software Renderer")
-        {
-          QMessageBox confirm_sw(this);
-
-          confirm_sw.setIcon(QMessageBox::Warning);
-          confirm_sw.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-          confirm_sw.setWindowTitle(tr("Confirm backend change"));
-          confirm_sw.setText(
-              tr("Software rendering is an order of magnitude slower than using the "
-                 "other backends.\nIt's only useful for debugging purposes.\nDo you "
-                 "really want to enable software rendering? If unsure, select 'No'."));
-
-          if (confirm_sw.exec() != QMessageBox::Yes)
-          {
-            for (const auto& prv_backend : g_available_video_backends)
-            {
-              if (prv_backend->GetName() == SConfig::GetInstance().m_strVideoBackend)
-              {
-                m_backend_combo->setCurrentIndex(
-                    m_backend_combo->findText(tr(prv_backend->GetDisplayName().c_str())));
-                break;
-              }
-            }
-            return;
-          }
-        }
-        emit BackendChanged(QString::fromStdString(current_backend));
-        break;
+        m_backend_combo->setCurrentIndex(m_backend_combo->findData(
+            QVariant(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend))));
+        return;
       }
     }
+    emit BackendChanged(QString::fromStdString(current_backend));
   }
 
   // Enable Fullscreen
@@ -319,15 +297,7 @@ void GeneralWidget::AddDescriptions()
 
 void GeneralWidget::OnBackendChanged(const QString& backend_name)
 {
-  for (const auto& backend : g_available_video_backends)
-  {
-    if (QString::fromStdString(backend->GetName()) == backend_name)
-    {
-      m_backend_combo->setCurrentIndex(
-          m_backend_combo->findText(tr(backend->GetDisplayName().c_str())));
-      break;
-    }
-  }
+  m_backend_combo->setCurrentIndex(m_backend_combo->findData(QVariant(backend_name)));
 
   const bool old = m_adapter_combo->blockSignals(true);
 
@@ -343,10 +313,10 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
   m_adapter_combo->setCurrentIndex(g_Config.iAdapter);
   m_adapter_combo->setEnabled(supports_adapters);
 
-  m_adapter_combo->setToolTip(
-      supports_adapters ? QStringLiteral("") :
-                          tr("%1 doesn't support this feature.")
-                              .arg(QString::fromStdString(g_video_backend->GetDisplayName())));
+  m_adapter_combo->setToolTip(supports_adapters ?
+                                  QStringLiteral("") :
+                                  tr("%1 doesn't support this feature.")
+                                      .arg(tr(g_video_backend->GetDisplayName().c_str())));
 
   m_adapter_combo->blockSignals(old);
 }
