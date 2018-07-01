@@ -1014,6 +1014,10 @@ void MainWindow::SetStateSlot(int slot)
 {
   Settings::Instance().SetStateSlot(slot);
   m_state_slot = slot;
+
+  Core::DisplayMessage(StringFromFormat("Selected slot %d - %s", m_state_slot,
+                                        State::GetInfoStringOfSlot(m_state_slot, false).c_str()),
+                       2500);
 }
 
 void MainWindow::PerformOnlineUpdate(const std::string& region)
