@@ -30,12 +30,12 @@ namespace Host
 {
 u8 ReadHostMemory(u32 addr)
 {
-  return DSP::ReadARAM(addr);
+  return DSP::ReadARAM_U8(addr);
 }
 
 void WriteHostMemory(u8 value, u32 addr)
 {
-  DSP::WriteARAM(value, addr);
+  DSP::WriteARAM_U8(value, addr);
 }
 
 void OSD_AddMessage(const std::string& str, u32 ms)

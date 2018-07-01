@@ -126,6 +126,32 @@ inline u64 swap64(const u8* data)
   return swap64(value);
 }
 
+// Overloaded byteswap functions.
+inline u8 bswap(u8 val)
+{
+  return val;
+}
+inline s8 bswap(s8 val)
+{
+  return val;
+}
+inline u16 bswap(u16 val)
+{
+  return Common::swap16(val);
+}
+inline s16 bswap(s16 val)
+{
+  return Common::swap16(val);
+}
+inline u32 bswap(u32 val)
+{
+  return Common::swap32(val);
+}
+inline u64 bswap(u64 val)
+{
+  return Common::swap64(val);
+}
+
 template <int count>
 void swap(u8*);
 

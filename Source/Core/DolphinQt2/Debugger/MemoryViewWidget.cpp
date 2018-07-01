@@ -15,6 +15,7 @@
 #include <cmath>
 
 #include "Core/Core.h"
+#include "Core/HW/DSP.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -73,6 +74,7 @@ void MemoryViewWidget::Update()
 
   // Calculate (roughly) how many rows will fit in our table
   int rows = std::round((height() / static_cast<float>(rowHeight(0))) - 0.25);
+  const bool is_mram = m_mem_type == MemoryType::RAM;
 
   setRowCount(rows);
 
@@ -98,7 +100,7 @@ void MemoryViewWidget::Update()
     if (addr == m_address)
       addr_item->setSelected(true);
 
-    if (Core::GetState() != Core::State::Paused || !PowerPC::HostIsRAMAddress(addr))
+    if (Core::GetState() != Core::State::Paused || (is_mram && !PowerPC::HostIsRAMAddress(addr)))
     {
       for (int c = 2; c < columnCount(); c++)
       {
@@ -129,14 +131,14 @@ void MemoryViewWidget::Update()
         hex_item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
         const u32 address = addr + c * (16 / GetColumnCount(m_type));
 
-        if (PowerPC::memchecks.OverlapsMemcheck(address, 16 / GetColumnCount(m_type)))
+        if (is_mram && PowerPC::memchecks.OverlapsMemcheck(address, 16 / GetColumnCount(m_type)))
           hex_item->setBackground(Qt::red);
         else
           row_breakpoint = false;
 
         setItem(i, 2 + c, hex_item);
 
-        if (PowerPC::HostIsRAMAddress(address))
+        if (!is_mram || PowerPC::HostIsRAMAddress(address))
         {
           hex_item->setText(value_to_string(address));
           hex_item->setData(Qt::UserRole, address);
@@ -152,31 +154,35 @@ void MemoryViewWidget::Update()
     switch (m_type)
     {
     case Type::U8:
-      update_values([](u32 address) {
-        const u8 value = PowerPC::HostRead_U8(address);
+      update_values([is_mram](u32 address) {
+        const u8 value = is_mram ? PowerPC::HostRead_U8(address) : DSP::ReadARAM_U8(address);
         return QStringLiteral("%1").arg(value, 2, 16, QLatin1Char('0'));
       });
       break;
     case Type::ASCII:
-      update_values([](u32 address) {
-        const char value = PowerPC::HostRead_U8(address);
-        return std::isprint(value) ? QString{QChar::fromLatin1(value)} : QStringLiteral(".");
+      update_values([is_mram](u32 address) {
+        const char value = (is_mram ? PowerPC::HostRead_U8(address) : DSP::ReadARAM_U8(address));
+        return std::isprint(static_cast<u8>(value)) ? QString{QChar::fromLatin1(value)} :
+                                                      QStringLiteral(".");
       });
       break;
     case Type::U16:
-      update_values([](u32 address) {
-        const u16 value = PowerPC::HostRead_U16(address);
+      update_values([is_mram](u32 address) {
+        const u16 value = is_mram ? PowerPC::HostRead_U16(address) : DSP::ReadARAM_U16(address);
         return QStringLiteral("%1").arg(value, 4, 16, QLatin1Char('0'));
       });
       break;
     case Type::U32:
-      update_values([](u32 address) {
-        const u32 value = PowerPC::HostRead_U32(address);
+      update_values([is_mram](u32 address) {
+        const u32 value = is_mram ? PowerPC::HostRead_U32(address) : DSP::ReadARAM_U32(address);
         return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
       });
       break;
     case Type::Float32:
-      update_values([](u32 address) { return QString::number(PowerPC::HostRead_F32(address)); });
+      update_values([is_mram](u32 address) {
+        return QString::number(is_mram ? PowerPC::HostRead_F32(address) :
+                                         DSP::ReadARAM_F32(address));
+      });
       break;
     }
 
@@ -205,6 +211,15 @@ void MemoryViewWidget::SetType(Type type)
     return;
 
   m_type = type;
+  Update();
+}
+
+void MemoryViewWidget::SetMemoryType(MemoryType type)
+{
+  if (m_mem_type == type)
+    return;
+
+  m_mem_type = type;
   Update();
 }
 
@@ -263,32 +278,40 @@ u32 MemoryViewWidget::GetContextAddress() const
   return m_context_address;
 }
 
+MemoryViewWidget::MemoryType MemoryViewWidget::GetMemoryType() const
+{
+  return m_mem_type;
+}
+
 void MemoryViewWidget::ToggleRowBreakpoint(bool row)
 {
-  TMemCheck check;
-
-  const u32 addr = row ? GetContextAddress() & 0xFFFFFFF0 : GetContextAddress();
-  const auto length = row ? 16 : (16 / GetColumnCount(m_type));
-
-  if (!PowerPC::memchecks.OverlapsMemcheck(addr, length))
+  if (m_mem_type == MemoryType::RAM)
   {
-    check.start_address = addr;
-    check.end_address = check.start_address + length - 1;
-    check.is_ranged = length > 0;
-    check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
-    check.is_break_on_write = (m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite);
-    check.log_on_hit = m_do_log;
-    check.break_on_hit = true;
+    TMemCheck check;
 
-    PowerPC::memchecks.Add(check);
-  }
-  else
-  {
-    PowerPC::memchecks.Remove(addr);
-  }
+    const u32 addr = row ? GetContextAddress() & 0xFFFFFFF0 : GetContextAddress();
+    const auto length = row ? 16 : (16 / GetColumnCount(m_type));
 
-  emit BreakpointsChanged();
-  Update();
+    if (!PowerPC::memchecks.OverlapsMemcheck(addr, length))
+    {
+      check.start_address = addr;
+      check.end_address = check.start_address + length - 1;
+      check.is_ranged = length > 0;
+      check.is_break_on_read = (m_bp_type == BPType::ReadOnly || m_bp_type == BPType::ReadWrite);
+      check.is_break_on_write = (m_bp_type == BPType::WriteOnly || m_bp_type == BPType::ReadWrite);
+      check.log_on_hit = m_do_log;
+      check.break_on_hit = true;
+
+      PowerPC::memchecks.Add(check);
+    }
+    else
+    {
+      PowerPC::memchecks.Remove(addr);
+    }
+
+    emit BreakpointsChanged();
+    Update();
+  }
 }
 
 void MemoryViewWidget::ToggleBreakpoint()

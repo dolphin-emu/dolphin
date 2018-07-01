@@ -12,6 +12,12 @@ class MemoryViewWidget : public QTableWidget
 {
   Q_OBJECT
 public:
+  enum class MemoryType
+  {
+    RAM,
+    ExRAM
+  };
+
   enum class Type
   {
     U8,
@@ -35,12 +41,14 @@ public:
   void ToggleRowBreakpoint(bool row);
 
   void SetType(Type type);
+  void SetMemoryType(MemoryType type);
   void SetBPType(BPType type);
   void SetAddress(u32 address);
 
   void SetBPLoggingEnabled(bool enabled);
 
   u32 GetContextAddress() const;
+  MemoryType GetMemoryType() const;
 
   void resizeEvent(QResizeEvent*) override;
   void keyPressEvent(QKeyEvent* event) override;
@@ -55,6 +63,7 @@ private:
   void OnCopyAddress();
   void OnCopyHex();
 
+  MemoryType m_mem_type = MemoryType::RAM;
   Type m_type = Type::U8;
   BPType m_bp_type = BPType::ReadWrite;
   bool m_do_log = true;

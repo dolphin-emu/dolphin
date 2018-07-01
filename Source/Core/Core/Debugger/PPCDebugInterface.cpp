@@ -216,8 +216,7 @@ unsigned int PPCDebugInterface::ReadExtraMemory(int memory, unsigned int address
   case 0:
     return PowerPC::HostRead_U32(address);
   case 1:
-    return (DSP::ReadARAM(address) << 24) | (DSP::ReadARAM(address + 1) << 16) |
-           (DSP::ReadARAM(address + 2) << 8) | (DSP::ReadARAM(address + 3));
+    return DSP::ReadARAM_U32(address);
   default:
     return 0;
   }

@@ -27,6 +27,7 @@
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
@@ -582,25 +583,92 @@ static void Do_ARAM_DMA()
 // (shuffle2) I still don't believe that this hack is actually needed... :(
 // Maybe the Wii Sports ucode is processed incorrectly?
 // (LM) It just means that DSP reads via '0xffdd' on Wii can end up in EXRAM or main RAM
-u8 ReadARAM(u32 address)
+template <typename T>
+static T ReadARAM(u32 address)
 {
-  if (s_ARAM.wii_mode)
-  {
-    if (address & 0x10000000)
-      return s_ARAM.ptr[address & s_ARAM.mask];
-    else
-      return Memory::Read_U8(address & Memory::RAM_MASK);
-  }
-  else
-  {
-    return s_ARAM.ptr[address & s_ARAM.mask];
-  }
+  T value = 0;
+  for (u64 addr = address; addr < address + sizeof(T); addr++)
+    value = (value << 8) | s_ARAM.ptr[static_cast<u32>(addr & s_ARAM.mask)];
+
+  return value;
 }
 
-void WriteARAM(u8 value, u32 address)
+u8 ReadARAM_U8(const u32 address)
+{
+  return ReadARAM<u8>(address);
+}
+
+u16 ReadARAM_U16(const u32 address)
+{
+  return ReadARAM<u16>(address);
+}
+
+u32 ReadARAM_U32(const u32 address)
+{
+  return ReadARAM<u32>(address);
+}
+
+u64 ReadARAM_U64(const u32 address)
+{
+  return ReadARAM<u64>(address);
+}
+
+float ReadARAM_F32(const u32 address)
+{
+  const u32 integral = ReadARAM_U32(address);
+
+  return Common::BitCast<float>(integral);
+}
+
+double ReadARAM_F64(const u32 address)
+{
+  const u64 integral = ReadARAM_U64(address);
+
+  return Common::BitCast<double>(integral);
+}
+
+template <typename T>
+static void WriteARAM(const T value, u32 address)
 {
   // TODO: verify this on Wii
-  s_ARAM.ptr[address & s_ARAM.mask] = value;
+  T val = Common::bswap(value);
+
+  for (size_t i = 0; i < sizeof(T); i++, address++)
+    s_ARAM.ptr[address & s_ARAM.mask] = static_cast<u8>(val >> (i * 8));
+}
+
+void WriteARAM_U8(const u8 value, const u32 address)
+{
+  WriteARAM(value, address);
+}
+
+void WriteARAM_U16(const u16 value, const u32 address)
+{
+  WriteARAM(value, address);
+}
+
+void WriteARAM_U32(const u32 value, const u32 address)
+{
+  WriteARAM(value, address);
+}
+
+void WriteARAM_U64(const u64 value, const u32 address)
+{
+  WriteARAM(value, address);
+}
+
+void WriteARAM_F32(const float var, const u32 address)
+{
+  const u32 integral = Common::BitCast<u32>(var);
+
+  WriteARAM_U32(integral, address);
+}
+
+void WriteARAM_F64(const double var, const u32 address)
+{
+  const u64 integral = Common::BitCast<u64>(var);
+
+  WriteARAM_U64(integral, address);
 }
 
 u8* GetARAMPtr()

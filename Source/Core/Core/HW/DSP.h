@@ -73,8 +73,19 @@ void DoState(PointerWrap& p);
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type, int cycles_into_future = 0);
 
 // Audio/DSP Helper
-u8 ReadARAM(u32 address);
-void WriteARAM(u8 value, u32 address);
+u8 ReadARAM_U8(u32 address);
+u16 ReadARAM_U16(u32 address);
+u32 ReadARAM_U32(u32 address);
+u64 ReadARAM_U64(u32 address);
+float ReadARAM_F32(u32 address);
+double ReadARAM_F64(u32 address);
+
+void WriteARAM_U8(u8 value, u32 address);
+void WriteARAM_U16(u16 value, u32 address);
+void WriteARAM_U32(u32 value, u32 address);
+void WriteARAM_U64(u64 value, u32 address);
+void WriteARAM_F32(float value, u32 address);
+void WriteARAM_F64(double value, u32 address);
 
 // Debugger Helper
 u8* GetARAMPtr();

@@ -46,37 +46,6 @@ GXPeekZ
 80322e0c: blr
 */
 
-// =================================
-// From Memmap.cpp
-// ----------------
-
-// Overloaded byteswap functions, for use within the templated functions below.
-inline u8 bswap(u8 val)
-{
-  return val;
-}
-inline s8 bswap(s8 val)
-{
-  return val;
-}
-inline u16 bswap(u16 val)
-{
-  return Common::swap16(val);
-}
-inline s16 bswap(s16 val)
-{
-  return Common::swap16(val);
-}
-inline u32 bswap(u32 val)
-{
-  return Common::swap32(val);
-}
-inline u64 bswap(u64 val)
-{
-  return Common::swap64(val);
-}
-// =================
-
 enum class XCheckTLBFlag
 {
   NoException,
@@ -214,7 +183,7 @@ static T ReadFromHardware(u32 em_address)
     // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
     T value;
     std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::RAM_MASK], sizeof(T));
-    return bswap(value);
+    return Common::bswap(value);
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
@@ -222,7 +191,7 @@ static T ReadFromHardware(u32 em_address)
   {
     T value;
     std::memcpy(&value, &Memory::m_pEXRAM[em_address & 0x0FFFFFFF], sizeof(T));
-    return bswap(value);
+    return Common::bswap(value);
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
@@ -230,7 +199,7 @@ static T ReadFromHardware(u32 em_address)
   {
     T value;
     std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
-    return bswap(value);
+    return Common::bswap(value);
   }
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
@@ -239,7 +208,7 @@ static T ReadFromHardware(u32 em_address)
   {
     T value;
     std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK], sizeof(T));
-    return bswap(value);
+    return Common::bswap(value);
   }
 
   if (flag == XCheckTLBFlag::Read && (em_address & 0xF8000000) == 0x08000000)
@@ -281,7 +250,7 @@ static void WriteToHardware(u32 em_address, const T data)
           GenerateDSIException(em_address_next_page, true);
         return;
       }
-      T val = bswap(data);
+      T val = Common::bswap(data);
       u32 addr_translated = translated_addr.address;
       for (size_t i = 0; i < sizeof(T); i++, addr_translated++)
       {
@@ -301,7 +270,7 @@ static void WriteToHardware(u32 em_address, const T data)
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
     // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
-    const T swapped_data = bswap(data);
+    const T swapped_data = Common::bswap(data);
     std::memcpy(&Memory::m_pRAM[em_address & Memory::RAM_MASK], &swapped_data, sizeof(T));
     return;
   }
@@ -309,7 +278,7 @@ static void WriteToHardware(u32 em_address, const T data)
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
       (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
   {
-    const T swapped_data = bswap(data);
+    const T swapped_data = Common::bswap(data);
     std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
     return;
   }
@@ -317,7 +286,7 @@ static void WriteToHardware(u32 em_address, const T data)
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
   {
-    const T swapped_data = bswap(data);
+    const T swapped_data = Common::bswap(data);
     std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
     return;
   }
@@ -327,7 +296,7 @@ static void WriteToHardware(u32 em_address, const T data)
   // [0x7E000000, 0x80000000).
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
-    const T swapped_data = bswap(data);
+    const T swapped_data = Common::bswap(data);
     std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK], &swapped_data, sizeof(T));
     return;
   }

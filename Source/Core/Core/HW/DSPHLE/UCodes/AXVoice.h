@@ -208,8 +208,8 @@ protected:
     }
   }
 
-  u8 ReadMemory(u32 address) override { return ReadARAM(address); }
-  void WriteMemory(u32 address, u8 value) override { WriteARAM(value, address); }
+  u8 ReadMemory(u32 address) override { return ReadARAM_U8(address); }
+  void WriteMemory(u32 address, u8 value) override { WriteARAM_U8(value, address); }
 };
 
 static std::unique_ptr<Accelerator> s_accelerator = std::make_unique<HLEAccelerator>();

@@ -37,6 +37,7 @@ private:
   void SaveSettings();
 
   void OnTypeChanged();
+  void OnMemoryTypeChanged();
   void OnBPLogChanged();
   void OnBPTypeChanged();
 
@@ -79,6 +80,10 @@ private:
   QRadioButton* m_type_u32;
   QRadioButton* m_type_ascii;
   QRadioButton* m_type_float;
+
+  // Memory Types
+  QRadioButton* m_mem_type_ram;
+  QRadioButton* m_mem_type_exram;
 
   // Breakpoint options
   QRadioButton* m_bp_read_write;

@@ -59,6 +59,7 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   ConnectWidgets();
   Update();
   OnTypeChanged();
+  OnMemoryTypeChanged();
 }
 
 MemoryWidget::~MemoryWidget()
@@ -123,6 +124,17 @@ void MemoryWidget::CreateWidgets()
   datatype_layout->addWidget(m_type_ascii);
   datatype_layout->addWidget(m_type_float);
 
+  // Memory Type
+  auto* mem_type_group = new QGroupBox(tr("Memory Type"));
+  auto* mem_type_layout = new QVBoxLayout;
+  mem_type_group->setLayout(mem_type_layout);
+
+  m_mem_type_ram = new QRadioButton(tr("RAM"));
+  m_mem_type_exram = new QRadioButton(tr("ExRAM"));
+
+  mem_type_layout->addWidget(m_mem_type_ram);
+  mem_type_layout->addWidget(m_mem_type_exram);
+
   // MBP options
   auto* bp_group = new QGroupBox(tr("Memory breakpoint options"));
   auto* bp_layout = new QVBoxLayout;
@@ -163,6 +175,7 @@ void MemoryWidget::CreateWidgets()
   sidebar_layout->addWidget(m_dump_fake_vmem);
   sidebar_layout->addWidget(search_group);
   sidebar_layout->addWidget(datatype_group);
+  sidebar_layout->addWidget(mem_type_group);
   sidebar_layout->addWidget(bp_group);
   sidebar_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
@@ -206,6 +219,9 @@ void MemoryWidget::ConnectWidgets()
   for (auto* radio : {m_type_u8, m_type_u16, m_type_u32, m_type_ascii, m_type_float})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnTypeChanged);
 
+  for (auto* radio : {m_mem_type_ram, m_mem_type_exram})
+    connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnMemoryTypeChanged);
+
   for (auto* radio : {m_bp_read_write, m_bp_read_only, m_bp_write_only})
     connect(radio, &QRadioButton::toggled, this, &MemoryWidget::OnBPTypeChanged);
 
@@ -248,6 +264,14 @@ void MemoryWidget::LoadSettings()
   m_type_float->setChecked(type_float);
   m_type_ascii->setChecked(type_ascii);
 
+  const bool mem_type_ram =
+    settings.value(QStringLiteral("memorywidget/memtyperam"), true).toBool();
+  const bool mem_type_exram =
+    settings.value(QStringLiteral("memorywidget/memtypeexram"), true).toBool();
+
+  m_mem_type_ram->setChecked(mem_type_ram);
+  m_mem_type_exram->setChecked(mem_type_exram);
+
   bool bp_rw = settings.value(QStringLiteral("memorywidget/bpreadwrite"), true).toBool();
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
   bool bp_w = settings.value(QStringLiteral("memorywidget/bpwrite"), false).toBool();
@@ -272,6 +296,9 @@ void MemoryWidget::SaveSettings()
   settings.setValue(QStringLiteral("memorywidget/typeascii"), m_type_ascii->isChecked());
   settings.setValue(QStringLiteral("memorywidget/typefloat"), m_type_float->isChecked());
 
+  settings.setValue(QStringLiteral("memorywidget/memtyperam"), m_mem_type_ram->isChecked());
+  settings.setValue(QStringLiteral("memorywidget/memtypeexram"), m_mem_type_exram->isChecked());
+
   settings.setValue(QStringLiteral("memorywidget/bpreadwrite"), m_bp_read_write->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpread"), m_bp_read_only->isChecked());
   settings.setValue(QStringLiteral("memorywidget/bpwrite"), m_bp_write_only->isChecked());
@@ -294,6 +321,20 @@ void MemoryWidget::OnTypeChanged()
     type = MemoryViewWidget::Type::Float32;
 
   m_memory_view->SetType(type);
+
+  SaveSettings();
+}
+
+void MemoryWidget::OnMemoryTypeChanged()
+{
+  MemoryViewWidget::MemoryType type;
+
+  if (m_mem_type_ram->isChecked())
+    type = MemoryViewWidget::MemoryType::RAM;
+  else
+    type = MemoryViewWidget::MemoryType::ExRAM;
+
+  m_memory_view->SetMemoryType(type);
 
   SaveSettings();
 }
@@ -389,12 +430,16 @@ void MemoryWidget::OnSetValue()
     const QByteArray bytes = m_data_edit->text().toUtf8();
 
     for (char c : bytes)
-      PowerPC::HostWrite_U8(static_cast<u8>(c), addr++);
+      if (m_memory_view->GetMemoryType() == MemoryViewWidget::MemoryType::RAM)
+        PowerPC::HostWrite_U8(static_cast<u8>(c), addr++);
+      else
+        DSP::WriteARAM_U8(static_cast<u8>(c), addr++);
   }
   else
   {
     bool good_value;
     u64 value = m_data_edit->text().toULongLong(&good_value, 16);
+    MemoryViewWidget::MemoryType mem_type = m_memory_view->GetMemoryType();
 
     if (!good_value)
     {
@@ -404,18 +449,32 @@ void MemoryWidget::OnSetValue()
 
     if (value == static_cast<u8>(value))
     {
-      PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      if (mem_type == MemoryViewWidget::MemoryType::RAM)
+        PowerPC::HostWrite_U8(static_cast<u8>(value), addr);
+      else
+        DSP::WriteARAM_U8(static_cast<u8>(value), addr);
     }
     else if (value == static_cast<u16>(value))
     {
-      PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      if (mem_type == MemoryViewWidget::MemoryType::RAM)
+        PowerPC::HostWrite_U16(static_cast<u16>(value), addr);
+      else
+        DSP::WriteARAM_U16(static_cast<u16>(value), addr);
     }
     else if (value == static_cast<u32>(value))
     {
-      PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
+      if (mem_type == MemoryViewWidget::MemoryType::RAM)
+        PowerPC::HostWrite_U32(static_cast<u32>(value), addr);
+      else
+        DSP::WriteARAM_U32(static_cast<u32>(value), addr);
     }
     else
-      PowerPC::HostWrite_U64(value, addr);
+    {
+      if (mem_type == MemoryViewWidget::MemoryType::RAM)
+        PowerPC::HostWrite_U64(value, addr);
+      else
+        DSP::WriteARAM_U64(static_cast<u64>(value), addr);
+    }
   }
 
   Update();
