@@ -131,6 +131,14 @@ public final class SettingsFragmentPresenter
                 addInterfaceSettings(sl);
                 break;
 
+			case CONFIG_GAME_CUBE:
+				addGameCubeSettings(sl);
+				break;
+
+			case CONFIG_WII:
+				addWiiSettings(sl);
+				break;
+
 			case GRAPHICS:
 				addGraphicsSettings(sl);
 				break;
@@ -189,6 +197,9 @@ public final class SettingsFragmentPresenter
 	{
 		sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, MenuTag.CONFIG_GENERAL));
 		sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, MenuTag.CONFIG_INTERFACE));
+
+		sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
+		sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, 0, MenuTag.CONFIG_WII));
 	}
 
 	private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -198,10 +209,6 @@ public final class SettingsFragmentPresenter
 		Setting overclockEnable = null;
 		Setting overclock = null;
 		Setting speedLimit = null;
-		Setting slotADevice = null;
-		Setting slotBDevice = null;
-		Setting continuousScan = null;
-		Setting wiimoteSpeaker = null;
 		Setting audioStretch = null;
 
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
@@ -211,10 +218,6 @@ public final class SettingsFragmentPresenter
 			overclockEnable = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
 			overclock = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
             speedLimit = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SPEED_LIMIT);
-			slotADevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
-			slotBDevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
-			continuousScan = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
-			wiimoteSpeaker = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 			audioStretch = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		}
 		else
@@ -248,10 +251,6 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_title, R.string.overclock_title_description, 400, "%", 100, overclock));
         sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.speed_limit, 0, 200, "%", 100, speedLimit));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_B_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_b_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 255, slotBDevice));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 	}
 
@@ -267,6 +266,43 @@ public final class SettingsFragmentPresenter
 		}
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.panic_handlers, R.string.panic_handlers_description, true, usePanicHandlers));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OSD_MESSAGES, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.osd_messages, R.string.osd_messages_description, true, onScreenDisplayMessages));
+	}
+
+	private void addGameCubeSettings(ArrayList<SettingsItem> sl)
+	{
+		Setting slotADevice = null;
+		Setting slotBDevice = null;
+		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
+		{
+
+			slotADevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
+			slotBDevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
+		}
+		else
+		{
+			mView.passSettingsToActivity(mSettings);
+		}
+
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_B_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_b_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 255, slotBDevice));
+	}
+
+	private void addWiiSettings(ArrayList<SettingsItem> sl)
+	{
+		Setting continuousScan = null;
+		Setting wiimoteSpeaker = null;
+		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
+		{
+			continuousScan = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
+			wiimoteSpeaker = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
+		}
+		else
+		{
+			mView.passSettingsToActivity(mSettings);
+		}
+
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl)

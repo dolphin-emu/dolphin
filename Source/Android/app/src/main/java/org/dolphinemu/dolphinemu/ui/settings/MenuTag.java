@@ -5,6 +5,8 @@ public enum MenuTag
     CONFIG("config"),
     CONFIG_GENERAL("config_general"),
     CONFIG_INTERFACE("config_interface"),
+    CONFIG_GAME_CUBE("config_gamecube"),
+    CONFIG_WII("config_wii"),
     WIIMOTE("wiimote"),
     WIIMOTE_EXTENSION("wiimote_extension"),
     GCPAD_TYPE("gc_pad_type"),
