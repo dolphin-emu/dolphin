@@ -483,6 +483,12 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_UNDO_SAVE_STATE))
       emit StateSaveUndo();
+
+    if (IsHotkey(HK_LOAD_STATE_FILE))
+      emit StateLoadFile();
+
+    if (IsHotkey(HK_SAVE_STATE_FILE))
+      emit StateSaveFile();
   }
 }
 

@@ -413,6 +413,8 @@ void MainWindow::ConnectHotkeys()
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveUndo, this, &MainWindow::StateSaveUndo);
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveOldest, this,
           &MainWindow::StateSaveOldest);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateSaveFile, this, &MainWindow::StateSave);
+  connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadFile, this, &MainWindow::StateLoad);
 
   connect(m_hotkey_scheduler, &HotkeyScheduler::StateLoadSlotHotkey, this,
           &MainWindow::StateLoadSlot);
