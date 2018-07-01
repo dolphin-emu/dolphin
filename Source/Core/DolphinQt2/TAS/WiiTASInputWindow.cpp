@@ -23,6 +23,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "DolphinQt2/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/TAS/IRWidget.h"
 #include "DolphinQt2/TAS/Shared.h"
 
@@ -313,12 +314,47 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
 }
 
 template <typename UX>
-static void SetButton(QCheckBox* check_box, UX* buttons, UX mask)
+static void SetButton(QCheckBox* button, UX* buttons, UX mask)
 {
-  if (check_box->isChecked())
+  static std::map<QCheckBox*, bool> set_by_keyboard;
+  const bool pressed = (*buttons & mask) != 0;
+
+  if (pressed)
+  {
+    set_by_keyboard[button] = true;
+    QueueOnObject(button, [button] { button->setChecked(true); });
+  }
+  else if (set_by_keyboard.count(button) && set_by_keyboard[button])
+  {
+    set_by_keyboard[button] = false;
+    QueueOnObject(button, [button] { button->setChecked(false); });
+  }
+
+  if (button->isChecked())
     *buttons |= mask;
   else
     *buttons &= ~mask;
+}
+
+static void SetSpinBox(QSpinBox* spin, u8& trigger_value, int default_value)
+{
+  static std::map<QSpinBox*, bool> set_by_keyboard;
+
+  if (trigger_value != default_value)
+  {
+    set_by_keyboard[spin] = true;
+    QueueOnObject(spin, [spin, trigger_value] { spin->setValue(trigger_value); });
+    return;
+  }
+
+  if (set_by_keyboard.count(spin) && set_by_keyboard[spin])
+  {
+    set_by_keyboard[spin] = false;
+    QueueOnObject(spin, [spin, trigger_value] { spin->setValue(trigger_value); });
+    return;
+  }
+
+  trigger_value = spin->value();
 }
 
 void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rptf, int ext,
@@ -355,13 +391,21 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     wm_accel& accel = *reinterpret_cast<wm_accel*>(accel_data);
     wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
 
-    accel.x = m_remote_orientation_x_value->value() >> 2;
-    accel.y = m_remote_orientation_y_value->value() >> 2;
-    accel.z = m_remote_orientation_z_value->value() >> 2;
+    u8 accel_x = accel.x << 2;
+    u8 accel_y = accel.y << 2;
+    u8 accel_z = accel.z << 2;
 
-    buttons.acc_x_lsb = m_remote_orientation_x_value->value() & 0x3;
-    buttons.acc_y_lsb = m_remote_orientation_y_value->value() >> 1 & 0x1;
-    buttons.acc_z_lsb = m_remote_orientation_z_value->value() >> 1 & 0x1;
+    SetSpinBox(m_remote_orientation_x_value, accel_x, 0);
+    SetSpinBox(m_remote_orientation_y_value, accel_y, 0);
+    SetSpinBox(m_remote_orientation_z_value, accel_z, 0);
+
+    accel.x = accel_x >> 2;
+    accel.y = accel_y >> 2;
+    accel.z = accel_z >> 2;
+
+    buttons.acc_x_lsb = accel_x & 0x3;
+    buttons.acc_y_lsb = accel_y >> 1 & 0x1;
+    buttons.acc_z_lsb = accel_z >> 1 & 0x1;
   }
 
   if (m_ir_box->isVisible() && ir_data)
@@ -429,15 +473,25 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
   if (ext_data && m_nunchuk_stick_box->isVisible())
   {
     wm_nc& nunchuk = *reinterpret_cast<wm_nc*>(ext_data);
+
     nunchuk.jx = m_nunchuk_stick_x_value->value();
     nunchuk.jy = m_nunchuk_stick_y_value->value();
 
-    nunchuk.ax = m_nunchuk_orientation_x_value->value() >> 2;
-    nunchuk.bt.acc_x_lsb = m_nunchuk_orientation_x_value->value() & 0x3;
-    nunchuk.ay = m_nunchuk_orientation_y_value->value() >> 2;
-    nunchuk.bt.acc_y_lsb = m_nunchuk_orientation_y_value->value() & 0x3;
-    nunchuk.az = m_nunchuk_orientation_z_value->value() >> 2;
-    nunchuk.bt.acc_z_lsb = m_nunchuk_orientation_z_value->value() & 0x3;
+    u8 accel_x = nunchuk.ax << 2;
+    u8 accel_y = nunchuk.ay << 2;
+    u8 accel_z = nunchuk.az << 2;
+
+    SetSpinBox(m_nunchuk_orientation_x_value, accel_x, 0);
+    SetSpinBox(m_nunchuk_orientation_y_value, accel_y, 0);
+    SetSpinBox(m_nunchuk_orientation_z_value, accel_z, 0);
+
+    nunchuk.ax = accel_x >> 2;
+    nunchuk.ay = accel_y >> 2;
+    nunchuk.az = accel_z >> 2;
+
+    nunchuk.bt.acc_x_lsb = accel_x & 0x3;
+    nunchuk.bt.acc_y_lsb = accel_y & 0x3;
+    nunchuk.bt.acc_z_lsb = accel_z & 0x3;
 
     SetButton<u8>(m_c_button, &nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_C);
     SetButton<u8>(m_z_button, &nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
