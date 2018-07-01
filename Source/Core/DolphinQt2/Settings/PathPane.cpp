@@ -41,17 +41,13 @@ void PathPane::Browse()
 
 void PathPane::BrowseDefaultGame()
 {
-  auto& default_iso = SConfig::GetInstance().m_strDefaultISO;
-
   QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
-      this, tr("Select a Game"), QString::fromStdString(default_iso),
+      this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
       tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
          "All Files (*)")));
+
   if (!file.isEmpty())
-  {
-    m_game_edit->setText(file);
-    default_iso = file.toStdString();
-  }
+    Settings::Instance().SetDefaultGame(file);
 }
 
 void PathPane::BrowseWiiNAND()
