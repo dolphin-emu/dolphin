@@ -90,6 +90,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_ENHANCE_POST_SHADER.location,
       Config::GFX_ENHANCE_FORCE_TRUE_COLOR.location,
       Config::GFX_ENHANCE_DISABLE_COPY_FILTER.location,
+      Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION.location,
 
       // Graphics.Stereoscopy
 
@@ -128,4 +129,4 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
   return std::find(s_setting_saveable.begin(), s_setting_saveable.end(), config_location) !=
          s_setting_saveable.end();
 }
-}  // namespace ConfigLoader
+}  // namespace ConfigLoaders
