@@ -121,6 +121,8 @@
     <string name="speed_limit">Speed Limit</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
+    <string name="gamecube_system_language">System Language</string>
+    <string name="override_gamecube_language">Override Language on NTSC games</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wii_submenu">Wii</string>

@@ -85,6 +85,8 @@ public final class SettingsFile
 	public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+	public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
+    public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";
 	public static final String KEY_SLOT_B_DEVICE = "SlotB";
 
