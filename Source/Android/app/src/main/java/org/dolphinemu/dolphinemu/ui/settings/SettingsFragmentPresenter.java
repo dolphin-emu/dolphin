@@ -386,6 +386,7 @@ public final class SettingsFragmentPresenter
 		Setting forceFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_FORCE_FILTERING);
 		Setting disableFog = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_FOG);
 		Setting disableCopyFilter = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_DISABLE_COPY_FILTER);
+		Setting arbitraryMipmapDetection = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION);
 		Setting wideScreenHack = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_ENHANCEMENTS).getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
 		Setting force24BitColor = mSettings.get(SettingsFile.SETTINGS_GFX).get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
 
@@ -408,6 +409,7 @@ public final class SettingsFragmentPresenter
         sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.force_24bit_color, R.string.force_24bit_color_description, true, force24BitColor));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_description, false, disableFog));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_copy_filter, R.string.disable_copy_filter_description, false, disableCopyFilter));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.arbitrary_mipmap_detection, R.string.arbitrary_mipmap_detection_description, true, arbitraryMipmapDetection));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.wide_screen_hack, R.string.wide_screen_hack_description, false, wideScreenHack));
 
 		 /*
