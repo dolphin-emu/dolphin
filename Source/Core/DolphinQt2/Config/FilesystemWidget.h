@@ -35,6 +35,8 @@ private:
   void PopulateDirectory(int partition_id, QStandardItem* root, const DiscIO::Partition& partition);
   void PopulateDirectory(int partition_id, QStandardItem* root, const DiscIO::FileInfo& directory);
 
+  QString SelectFolder();
+
   void ShowContextMenu(const QPoint&);
 
   void ExtractPartition(const DiscIO::Partition& partition, const QString& out);
