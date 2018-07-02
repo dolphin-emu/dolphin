@@ -239,7 +239,7 @@ void GameList::ShowContextMenu(const QPoint&)
       menu->addSeparator();
     }
 
-    AddAction(menu, tr("Delete selected ISOs..."), this, &GameList::DeleteFile);
+    AddAction(menu, tr("Delete selected files..."), this, &GameList::DeleteFile);
   }
   else
   {
