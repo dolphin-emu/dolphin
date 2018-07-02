@@ -13,6 +13,7 @@
 #include "DolphinQt2/Config/Mapping/MappingButton.h"
 #include "DolphinQt2/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt2/Config/Mapping/MappingNumeric.h"
+#include "DolphinQt2/Config/Mapping/MappingRadio.h"
 #include "DolphinQt2/Config/Mapping/MappingWindow.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -114,7 +115,22 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   for (auto& boolean : group->boolean_settings)
   {
+    if (!boolean->IsExclusive())
+      continue;
+
+    auto* checkbox = new MappingRadio(this, boolean.get());
+
+    form_layout->addRow(checkbox);
+    m_radio.push_back(checkbox);
+  }
+
+  for (auto& boolean : group->boolean_settings)
+  {
+    if (boolean->IsExclusive())
+      continue;
+
     auto* checkbox = new MappingBool(this, boolean.get());
+
     form_layout->addRow(checkbox);
     m_bools.push_back(checkbox);
   }
@@ -135,6 +151,9 @@ void MappingWidget::OnClearFields()
 
   for (auto* checkbox : m_bools)
     checkbox->Clear();
+
+  for (auto* radio : m_radio)
+    radio->Clear();
 }
 
 void MappingWidget::Update()
@@ -147,6 +166,9 @@ void MappingWidget::Update()
 
   for (auto* checkbox : m_bools)
     checkbox->Update();
+
+  for (auto* radio : m_radio)
+    radio->Update();
 
   SaveSettings();
 }

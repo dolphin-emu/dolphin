@@ -17,6 +17,7 @@ class MappingBool;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;
+class MappingRadio;
 class QGroupBox;
 
 namespace ControllerEmu
@@ -64,6 +65,7 @@ private:
   MappingWindow* m_parent;
   bool m_first = true;
   std::vector<MappingBool*> m_bools;
+  std::vector<MappingRadio*> m_radio;
   std::vector<MappingButton*> m_buttons;
   std::vector<MappingNumeric*> m_numerics;
 };

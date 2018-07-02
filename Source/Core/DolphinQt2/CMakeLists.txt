@@ -63,6 +63,7 @@ add_executable(dolphin-emu
   Config/Mapping/MappingCommon.cpp
   Config/Mapping/MappingIndicator.cpp
   Config/Mapping/MappingNumeric.cpp
+	Config/Mapping/MappingRadio.cpp
   Config/Mapping/MappingWidget.cpp
   Config/Mapping/MappingWindow.cpp
   Config/Mapping/WiimoteEmuExtension.cpp
