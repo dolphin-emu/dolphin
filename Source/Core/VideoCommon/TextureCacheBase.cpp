@@ -544,19 +544,6 @@ public:
   }
 
 private:
-  static float SRGBToLinear(u8 srgb_byte)
-  {
-    auto srgb_float = static_cast<float>(srgb_byte) / 256.f;
-    // approximations found on
-    // http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
-    return srgb_float * (srgb_float * (srgb_float * 0.305306011f + 0.682171111f) + 0.012522878f);
-  }
-
-  static u8 LinearToSRGB(float linear)
-  {
-    return static_cast<u8>(std::max(1.055f * std::pow(linear, 0.416666667f) - 0.055f, 0.f) * 256.f);
-  }
-
   struct Shape
   {
     u32 width;
@@ -568,12 +555,6 @@ private:
   {
     Shape shape;
     const u8* pixels;
-
-    static PixelRGBAf Sample(const u8* src, const Shape& src_shape, u32 x, u32 y)
-    {
-      const auto* p = src + (x + y * src_shape.row_length) * 4;
-      return {{SRGBToLinear(p[0]), SRGBToLinear(p[1]), SRGBToLinear(p[2]), SRGBToLinear(p[3])}};
-    }
 
     static PixelRGBAu8 SampleLinear(const u8* src, const Shape& src_shape, u32 x, u32 y)
     {
