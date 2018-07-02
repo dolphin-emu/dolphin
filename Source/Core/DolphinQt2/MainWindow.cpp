@@ -1085,8 +1085,6 @@ bool MainWindow::NetPlayJoin()
 
   if (!Settings::Instance().GetNetPlayClient()->IsConnected())
   {
-    QMessageBox::critical(nullptr, QObject::tr("Error"),
-                          QObject::tr("Failed to connect to server"));
     NetPlayQuit();
     return false;
   }
