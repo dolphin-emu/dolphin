@@ -142,7 +142,7 @@ elseif(USE_X11)
   target_link_libraries(common PUBLIC ${XRANDR_LIBRARIES})
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(common PUBLIC dl rt)
 endif()
 
