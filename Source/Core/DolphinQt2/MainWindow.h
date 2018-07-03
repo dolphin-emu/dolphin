@@ -33,7 +33,6 @@ class HotkeyScheduler;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
-class MappingWindow;
 class MemoryWidget;
 class NetPlayClient;
 class NetPlayDialog;
@@ -182,7 +181,6 @@ private:
   HotkeyScheduler* m_hotkey_scheduler;
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
-  MappingWindow* m_hotkey_window;
   NetPlayDialog* m_netplay_dialog;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;

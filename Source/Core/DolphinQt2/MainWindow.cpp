@@ -258,8 +258,6 @@ void MainWindow::CreateComponents()
     m_wii_tas_input_windows[controller_id]->GetValues(input_data, rptf, ext, key);
   });
 
-  m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
-
   m_jit_widget = new JITWidget(this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
@@ -304,7 +302,6 @@ void MainWindow::CreateComponents()
   m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
 
-  InstallHotkeyFilter(m_hotkey_window);
   InstallHotkeyFilter(m_controllers_window);
   InstallHotkeyFilter(m_settings_window);
   InstallHotkeyFilter(m_graphics_window);
@@ -928,9 +925,13 @@ void MainWindow::ShowAboutDialog()
 
 void MainWindow::ShowHotkeyDialog()
 {
-  m_hotkey_window->show();
-  m_hotkey_window->raise();
-  m_hotkey_window->activateWindow();
+  auto* hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+
+  InstallHotkeyFilter(hotkey_window);
+
+  hotkey_window->show();
+  hotkey_window->raise();
+  hotkey_window->activateWindow();
 }
 
 void MainWindow::ShowGraphicsWindow()
