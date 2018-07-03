@@ -245,8 +245,12 @@ void NetPlayDialog::ConnectWidgets()
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [=](Core::State state) {
-    if (state == Core::State::Uninitialized && isVisible())
-      GameStatusChanged(false);
+    if (isVisible())
+    {
+      GameStatusChanged(state != Core::State::Uninitialized);
+      if (state == Core::State::Uninitialized)
+        DisplayMessage(tr("Stopped game"), "red");
+    }
   });
 }
 
@@ -452,11 +456,16 @@ void NetPlayDialog::UpdateGUI()
 
 void NetPlayDialog::BootGame(const std::string& filename)
 {
+  m_got_stop_request = false;
   emit Boot(QString::fromStdString(filename));
 }
 
 void NetPlayDialog::StopGame()
 {
+  if (m_got_stop_request)
+    return;
+
+  m_got_stop_request = true;
   emit Stop();
 }
 
@@ -508,6 +517,9 @@ void NetPlayDialog::OnMsgChangeGame(const std::string& title)
 
 void NetPlayDialog::GameStatusChanged(bool running)
 {
+  if (!running && !m_got_stop_request)
+    Settings::Instance().GetNetPlayClient()->RequestStopGame();
+
   QueueOnObject(this, [this, running] {
     if (Settings::Instance().GetNetPlayServer() != nullptr)
     {
@@ -525,7 +537,6 @@ void NetPlayDialog::GameStatusChanged(bool running)
 void NetPlayDialog::OnMsgStartGame()
 {
   DisplayMessage(tr("Started game"), "green");
-  GameStatusChanged(true);
 
   QueueOnObject(this, [this] {
     Settings::Instance().GetNetPlayClient()->StartGame(FindGame(m_current_game));
@@ -534,8 +545,6 @@ void NetPlayDialog::OnMsgStartGame()
 
 void NetPlayDialog::OnMsgStopGame()
 {
-  DisplayMessage(tr("Stopped game"), "red");
-  GameStatusChanged(false);
 }
 
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)

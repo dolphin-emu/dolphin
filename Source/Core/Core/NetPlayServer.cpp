@@ -607,14 +607,17 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case NP_MSG_STOP_GAME:
   {
+    if (!m_is_running)
+      break;
+
+    m_is_running = false;
+
     // tell clients to stop game
     sf::Packet spac;
     spac << (MessageId)NP_MSG_STOP_GAME;
 
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
     SendToClients(spac);
-
-    m_is_running = false;
   }
   break;
 
