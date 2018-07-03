@@ -67,6 +67,7 @@
 #include "DolphinQt/Debugger/MemoryWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
+#include "DolphinQt/DiscordHandler.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/GameList/GameList.h"
@@ -1043,7 +1044,12 @@ void MainWindow::BootWiiSystemMenu()
 void MainWindow::NetPlayInit()
 {
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
+<<<<<<< HEAD:Source/Core/DolphinQt/MainWindow.cpp
   m_netplay_dialog = new NetPlayDialog;
+=======
+  m_netplay_dialog = new NetPlayDialog(this);
+  m_netplay_discord = new DiscordHandler();
+>>>>>>> Add Discord Join Net Play functionally:Source/Core/DolphinQt2/MainWindow.cpp
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
           [this](const QString& path) { StartGame(path); });
@@ -1051,6 +1057,10 @@ void MainWindow::NetPlayInit()
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
+  connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
+
+  Discord::InitNetPlayFunctionality([this] { m_netplay_discord->DiscordJoin(); });
+  m_netplay_discord->Start();
 }
 
 bool MainWindow::NetPlayJoin()
@@ -1169,6 +1179,7 @@ void MainWindow::NetPlayQuit()
 {
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
+  Discord::UpdateDiscordPresence();
 }
 
 void MainWindow::EnableScreenSaver(bool enable)

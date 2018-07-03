@@ -2,9 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "UICommon/DiscordPresence.h"
+#include "Common/Hash.h"
+
+#include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
+
+#include "UICommon/DiscordPresence.h"
 
 #ifdef USE_DISCORD_PRESENCE
 
@@ -15,6 +19,61 @@
 
 namespace Discord
 {
+#ifdef USE_DISCORD_PRESENCE
+static JoinFunction join_function = nullptr;
+static const char* username = "";
+
+static void HandleDiscordReady(const DiscordUser* user)
+{
+  username = user->username;
+}
+
+static void HandleDiscordJoin(const char* join_secret)
+{
+  if (join_function == nullptr)
+    return;
+
+  if (Config::Get(Config::NETPLAY_NICKNAME) == Config::NETPLAY_NICKNAME.default_value)
+    Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, username);
+
+  std::string secret(join_secret);
+
+  size_t offset = 0;
+  std::string type = secret.substr(offset, secret.find('\n'));
+  offset += type.length() + 1;
+
+  switch (static_cast<SecretType>(std::stol(type)))
+  {
+  default:
+  case SecretType::Empty:
+    return;
+
+  case SecretType::IPAddress:
+  {
+    Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "direct");
+
+    std::string host = secret.substr(offset, secret.find_last_of(':') - offset);
+    Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, host);
+
+    offset += host.length();
+    if (secret[offset] == ':')
+      Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, std::stoul(secret.substr(offset + 1)));
+  }
+  break;
+
+  case SecretType::RoomID:
+  {
+    Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "traversal");
+
+    Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, secret.substr(offset));
+  }
+  break;
+  }
+
+  join_function();
+}
+#endif
+
 void Init()
 {
 #ifdef USE_DISCORD_PRESENCE
@@ -22,13 +81,34 @@ void Init()
     return;
 
   DiscordEventHandlers handlers = {};
+
+  handlers.ready = HandleDiscordReady;
+  handlers.joinGame = HandleDiscordJoin;
   // The number is the client ID for Dolphin, it's used for images and the appication name
   Discord_Initialize("455712169795780630", &handlers, 1, nullptr);
   UpdateDiscordPresence();
 #endif
 }
 
-void UpdateDiscordPresence()
+void CallPendingCallbacks()
+{
+#ifdef USE_DISCORD_PRESENCE
+  if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
+    return;
+
+  Discord_RunCallbacks();
+
+#endif
+}
+
+void InitNetPlayFunctionality(const JoinFunction& join)
+{
+#ifdef USE_DISCORD_PRESENCE
+  join_function = std::move(join);
+#endif
+}
+
+void UpdateDiscordPresence(const int party_size, SecretType type, const std::string& secret)
 {
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
@@ -41,6 +121,44 @@ void UpdateDiscordPresence()
   discord_presence.largeImageText = "Dolphin is an emulator for the GameCube and the Wii.";
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
+
+  if (0 < party_size)
+  {
+    if (party_size < 4)
+    {
+      discord_presence.state = "In a party";
+      discord_presence.partySize = party_size;
+      discord_presence.partyMax = 4;
+    }
+    else
+    {
+      // others can still join to spectate
+      discord_presence.state = "In a full party";
+      discord_presence.partySize = party_size;
+      // Note: joining still works without partyMax
+    }
+  }
+
+  std::string party_ID;
+  std::string secret_final;
+  if (type != SecretType::Empty)
+  {
+    // Declearing party_ID or secret_final here will deallocate the variable before passing the
+    // values over to Discord_UpdatePresence.
+
+    const size_t secret_length = secret.length();
+    party_ID = std::to_string(
+        Common::HashAdler32(reinterpret_cast<const u8*>(secret.c_str()), secret_length));
+
+    const std::string secret_type = std::to_string(static_cast<int>(type));
+    secret_final.reserve(secret_type.length() + 1 + secret_length);
+    secret_final += secret_type;
+    secret_final += '\n';
+    secret_final += secret;
+  }
+  discord_presence.partyId = party_ID.c_str();
+  discord_presence.joinSecret = secret_final.c_str();
+
   Discord_UpdatePresence(&discord_presence);
 #endif
 }

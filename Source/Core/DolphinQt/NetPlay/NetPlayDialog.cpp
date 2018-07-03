@@ -29,6 +29,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/HttpRequest.h"
 #include "Common/TraversalClient.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -49,6 +50,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -418,6 +420,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_nickname = nickname;
   m_use_traversal = use_traversal;
   m_buffer_size = 0;
+  m_old_player_count = 0;
 
   m_room_box->clear();
   m_chat_edit->clear();
@@ -564,6 +567,41 @@ void NetPlayDialog::UpdateGUI()
         server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
     m_hostcode_action_button->setText(tr("Copy"));
     m_hostcode_action_button->setEnabled(true);
+  }
+
+  if (m_old_player_count != player_count)
+  {
+    if (m_use_traversal)
+    {
+      const auto host_id = g_TraversalClient->GetHostID();
+      Discord::UpdateDiscordPresence(player_count, Discord::SecretType::RoomID,
+                                     std::string(host_id.begin(), host_id.end()));
+    }
+    else
+    {
+      // Temporary soluation
+      // To Do: Don't rely on a service that Dolphin devs aren't in control of. Ask one of the
+      // project managers about this.
+
+      Common::HttpRequest request;
+      Common::HttpRequest::Response response = request.Get("https://www.myexternalip.com/raw");
+
+      if (!response.has_value())
+        return;
+
+      // The response ends with a /n and the - 1 removes that
+      std::string exernalIPAddress = std::string(response->begin(), response->end() - 1);
+      std::string port = std::to_string(Settings::Instance().GetNetPlayServer()->GetPort());
+      std::string secret;
+      secret.reserve(exernalIPAddress.length() + 1 + port.length());
+      secret += exernalIPAddress;
+      secret += ':';
+      secret += port;
+
+      Discord::UpdateDiscordPresence(player_count, Discord::SecretType::IPAddress, secret);
+    }
+
+    m_old_player_count = player_count;
   }
 }
 
