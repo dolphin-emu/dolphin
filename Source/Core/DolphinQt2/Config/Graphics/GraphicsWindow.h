@@ -29,6 +29,8 @@ class GraphicsWindow final : public QDialog
 public:
   explicit GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent);
 
+  void Initialize();
+
   void RegisterWidget(GraphicsWidget* widget);
   bool eventFilter(QObject* object, QEvent* event) override;
 signals:
@@ -38,6 +40,8 @@ private:
   void CreateMainLayout();
   void OnBackendChanged(const QString& backend);
   void OnDescriptionAdded(QWidget* widget, const char* description);
+
+  bool m_lazy_initialized = false;
 
   QTabWidget* m_tab_widget;
   QLabel* m_description;
