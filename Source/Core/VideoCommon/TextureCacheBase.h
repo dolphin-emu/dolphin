@@ -357,6 +357,7 @@ private:
     bool efb_mono_depth;
     bool gpu_texture_decoding;
     bool disable_vram_copies;
+    bool arbitrary_mipmap_detection;
   };
   BackupConfig backup_config = {};
 };
