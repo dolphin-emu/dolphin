@@ -935,6 +935,7 @@ void MainWindow::ShowHotkeyDialog()
 
 void MainWindow::ShowGraphicsWindow()
 {
+  m_graphics_window->Initialize();
   m_graphics_window->show();
   m_graphics_window->raise();
   m_graphics_window->activateWindow();
