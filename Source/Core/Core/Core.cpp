@@ -237,7 +237,7 @@ static void ResetRumble()
 // Called from GUI thread
 void Stop()  // - Hammertime!
 {
-  if (GetState() == State::Stopping)
+  if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
 
   const SConfig& _CoreParameter = SConfig::GetInstance();
