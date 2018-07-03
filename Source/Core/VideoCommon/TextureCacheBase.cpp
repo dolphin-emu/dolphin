@@ -126,7 +126,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
       config.bTexFmtOverlayCenter != backup_config.texfmt_overlay_center ||
       config.bHiresTextures != backup_config.hires_textures ||
       config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding ||
-      config.bDisableCopyToVRAM != backup_config.disable_vram_copies)
+      config.bDisableCopyToVRAM != backup_config.disable_vram_copies ||
+      config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection)
   {
     Invalidate();
 
@@ -230,6 +231,7 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.efb_mono_depth = config.bStereoEFBMonoDepth;
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
   backup_config.disable_vram_copies = config.bDisableCopyToVRAM;
+  backup_config.arbitrary_mipmap_detection = config.bArbitraryMipmapDetection;
 }
 
 TextureCacheBase::TCacheEntry*

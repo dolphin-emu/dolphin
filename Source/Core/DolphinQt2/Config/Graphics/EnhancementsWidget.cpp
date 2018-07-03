@@ -349,12 +349,12 @@ void EnhancementsWidget::AddDescriptions()
                  "some games as \"deflickering\" or \"smoothing\". Disabling the filter has no "
                  "effect on performance, but may result in a sharper image, and causes few "
                  "graphical issues.\n\nIf unsure, leave this checked.");
-  static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] =
-      QT_TR_NOOP("Enables detection of arbitrary mipmaps, which some games use for special "
-                 "distance-based effects.\nMay have false positives that result in blurry textures "
-                 "at increased internal resolution, such as in games that use very low resolution "
-                 "mipmaps.\nDisabling this can also reduce stutter in games that "
-                 "frequently load new textures.\n\nIf unsure, leave this checked.");
+  static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
+      "Enables detection of arbitrary mipmaps, which some games use for special distance-based "
+      "effects. May have false positives that result in blurry textures at increased internal "
+      "resolution, such as in games that use very low resolution mipmaps.\nDisabling this can also "
+      "reduce stutter in games that frequently load new textures.\nThis feature is not compatible "
+      "with GPU Texture Decoding.\n\nIf unsure, leave this checked.");
 
   AddDescription(m_ir_combo, TR_INTERNAL_RESOLUTION_DESCRIPTION);
   AddDescription(m_aa_combo, TR_ANTIALIAS_DESCRIPTION);
