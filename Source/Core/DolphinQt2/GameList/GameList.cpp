@@ -549,7 +549,8 @@ void GameList::UninstallWAD()
 
 void GameList::SetDefaultISO()
 {
-  SConfig::GetInstance().m_strDefaultISO = GetSelectedGame()->GetFilePath();
+  Settings::Instance().SetDefaultGame(
+      QDir::toNativeSeparators(QString::fromStdString(GetSelectedGame()->GetFilePath())));
 }
 
 void GameList::OpenContainingFolder()
