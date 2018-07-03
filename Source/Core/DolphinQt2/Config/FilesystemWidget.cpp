@@ -153,9 +153,9 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
   }
 }
 
-static QString SelectFolder()
+QString FilesystemWidget::SelectFolder()
 {
-  return QFileDialog::getExistingDirectory(nullptr, QObject::tr("Choose the folder to extract to"));
+  return QFileDialog::getExistingDirectory(this, QObject::tr("Choose the folder to extract to"));
 }
 
 void FilesystemWidget::ShowContextMenu(const QPoint&)
@@ -197,9 +197,9 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
         return;
 
       if (ExtractSystemData(partition, folder))
-        QMessageBox::information(nullptr, tr("Success"), tr("Successfully extracted system data."));
+        QMessageBox::information(this, tr("Success"), tr("Successfully extracted system data."));
       else
-        QMessageBox::critical(nullptr, tr("Error"), tr("Failed to extract system data."));
+        QMessageBox::critical(this, tr("Error"), tr("Failed to extract system data."));
     });
   }
 
@@ -291,6 +291,7 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   dialog->setMinimum(0);
   dialog->setMaximum(size);
   dialog->show();
+  dialog->setWindowTitle(tr("Progress"));
 
   bool all = path.isEmpty();
 
@@ -320,9 +321,9 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 
   if (success)
-    QMessageBox::information(nullptr, tr("Success"), tr("Successfully extracted file."));
+    QMessageBox::information(this, tr("Success"), tr("Successfully extracted file."));
   else
-    QMessageBox::critical(nullptr, tr("Error"), tr("Failed to extract file."));
+    QMessageBox::critical(this, tr("Error"), tr("Failed to extract file."));
 }
 
 void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
@@ -345,10 +346,10 @@ void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
   dialog->close();
 
   if (is_valid.get())
-    QMessageBox::information(nullptr, tr("Success"),
+    QMessageBox::information(this, tr("Success"),
                              tr("Integrity check completed. No errors have been found."));
   else
-    QMessageBox::critical(nullptr, tr("Error"),
+    QMessageBox::critical(this, tr("Error"),
                           tr("Integrity check for partition failed. The disc image is most "
                              "likely corrupted or has been patched incorrectly."));
 }
