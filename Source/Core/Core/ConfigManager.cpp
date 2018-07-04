@@ -227,8 +227,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("AudioLatency", iLatency);
   core->Set("AudioStretch", m_audio_stretch);
   core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
-  core->Set("MemcardAPath", m_strMemoryCardA);
-  core->Set("MemcardBPath", m_strMemoryCardB);
   core->Set("AgpCartAPath", m_strGbaCartA);
   core->Set("AgpCartBPath", m_strGbaCartB);
   core->Set("SlotA", m_EXIDevice[0]);
@@ -505,8 +503,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("AudioLatency", &iLatency, 20);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
-  core->Get("MemcardAPath", &m_strMemoryCardA);
-  core->Get("MemcardBPath", &m_strMemoryCardB);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
@@ -947,60 +943,10 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
 
   // Set up paths
   const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, region_dir, true);
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, region_dir, false);
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
   m_strBootROM = GetBootROMPath(region_dir);
 
   return true;
-}
-
-void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion,
-                               bool isSlotA)
-{
-  std::string ext("." + gameRegion + ".raw");
-  if (memcardPath.empty())
-  {
-    // Use default memcard path if there is no user defined name
-    std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
-  }
-  else
-  {
-    std::string filename = memcardPath;
-    std::string region = filename.substr(filename.size() - 7, 3);
-    bool hasregion = false;
-    hasregion |= region.compare(USA_DIR) == 0;
-    hasregion |= region.compare(JAP_DIR) == 0;
-    hasregion |= region.compare(EUR_DIR) == 0;
-    if (!hasregion)
-    {
-      // filename doesn't have region in the extension
-      if (File::Exists(filename))
-      {
-        // If the old file exists we are polite and ask if we should copy it
-        std::string oldFilename = filename;
-        filename.replace(filename.size() - 4, 4, ext);
-        if (PanicYesNoT("Memory Card filename in Slot %c is incorrect\n"
-                        "Region not specified\n\n"
-                        "Slot %c path was changed to\n"
-                        "%s\n"
-                        "Would you like to copy the old file to this new location?\n",
-                        isSlotA ? 'A' : 'B', isSlotA ? 'A' : 'B', filename.c_str()))
-        {
-          if (!File::Copy(oldFilename, filename))
-            PanicAlertT("Copy failed");
-        }
-      }
-      memcardPath = filename;  // Always correct the path!
-    }
-    else if (region.compare(gameRegion) != 0)
-    {
-      // filename has region, but it's not == gameRegion
-      // Just set the correct filename, the EXI Device will create it if it doesn't exist
-      memcardPath = filename.replace(filename.size() - ext.size(), ext.size(), ext);
-    }
-  }
 }
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const

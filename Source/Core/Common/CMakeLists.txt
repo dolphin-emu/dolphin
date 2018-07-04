@@ -36,6 +36,7 @@ add_library(common
   QoSSession.cpp
   Random.cpp
   SDCardUtil.cpp
+  SFMLHelper.cpp
   SettingsHandler.cpp
   StringUtil.cpp
   SymbolDB.cpp

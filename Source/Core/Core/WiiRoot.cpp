@@ -26,9 +26,9 @@
 
 namespace Core
 {
-static std::string s_temp_wii_root;
-
 namespace FS = IOS::HLE::FS;
+
+static std::string s_temp_wii_root;
 
 static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
 {
@@ -52,7 +52,9 @@ static void InitializeDeterministicWiiSaves(FS::FileSystem* session_fs)
       (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
     // Copy the current user's save to the Blank NAND
-    const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
+    auto* sync_fs = NetPlay::GetWiiSyncFS();
+    const auto user_save =
+        WiiSave::MakeNandStorage(sync_fs ? sync_fs : configured_fs.get(), title_id);
     const auto session_save = WiiSave::MakeNandStorage(session_fs, title_id);
     WiiSave::Copy(user_save.get(), session_save.get());
   }
@@ -62,13 +64,26 @@ void InitializeWiiRoot(bool use_temporary)
 {
   if (use_temporary)
   {
-    s_temp_wii_root = File::CreateTempDir();
-    if (s_temp_wii_root.empty())
-    {
-      ERROR_LOG(IOS_FS, "Could not create temporary directory");
-      return;
-    }
+    s_temp_wii_root = File::GetUserPath(D_USER_IDX) + "WiiSession" DIR_SEP;
     WARN_LOG(IOS_FS, "Using temporary directory %s for minimal Wii FS", s_temp_wii_root.c_str());
+
+    // If directory exists, make a backup
+    if (File::Exists(s_temp_wii_root))
+    {
+      const std::string backup_path =
+          s_temp_wii_root.substr(0, s_temp_wii_root.size() - 1) + ".backup" DIR_SEP;
+      WARN_LOG(IOS_FS, "Temporary Wii FS directory exists, moving to backup...");
+
+      // If backup exists, delete it as we don't want a mess
+      if (File::Exists(backup_path))
+      {
+        WARN_LOG(IOS_FS, "Temporary Wii FS backup directory exists, deleting...");
+        File::DeleteDirRecursively(backup_path);
+      }
+
+      File::CopyDir(s_temp_wii_root, backup_path, true);
+    }
+
     File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
   }
   else
@@ -148,8 +163,11 @@ void InitializeWiiFileSystemContents()
 
 void CleanUpWiiFileSystemContents()
 {
-  if (s_temp_wii_root.empty() || !SConfig::GetInstance().bEnableMemcardSdWriting)
+  if (s_temp_wii_root.empty() || !SConfig::GetInstance().bEnableMemcardSdWriting ||
+      NetPlay::GetWiiSyncFS())
+  {
     return;
+  }
 
   const u64 title_id = SConfig::GetInstance().GetTitleID();
 
@@ -157,6 +175,16 @@ void CleanUpWiiFileSystemContents()
   const auto session_save = WiiSave::MakeNandStorage(ios->GetFS().get(), title_id);
 
   const auto configured_fs = FS::MakeFileSystem(FS::Location::Configured);
+
+  // FS won't write the save if the directory doesn't exist
+  const std::string title_path = Common::GetTitleDataPath(title_id);
+  if (!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path))
+  {
+    configured_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path, 0,
+                                   {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
+                                    IOS::HLE::FS::Mode::ReadWrite});
+  }
+
   const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
 
   const std::string backup_path =

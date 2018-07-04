@@ -12,10 +12,12 @@
 #include <thread>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -68,6 +70,53 @@ MemoryCard::~MemoryCard()
     m_flush_trigger.Set();
 
     m_flush_thread.join();
+  }
+}
+
+void MemoryCard::CheckPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA)
+{
+  std::string ext("." + gameRegion + ".raw");
+  if (memcardPath.empty())
+  {
+    // Use default memcard path if there is no user defined name
+    std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
+    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+  }
+  else
+  {
+    std::string filename = memcardPath;
+    std::string region = filename.substr(filename.size() - 7, 3);
+    bool hasregion = false;
+    hasregion |= region.compare(USA_DIR) == 0;
+    hasregion |= region.compare(JAP_DIR) == 0;
+    hasregion |= region.compare(EUR_DIR) == 0;
+    if (!hasregion)
+    {
+      // filename doesn't have region in the extension
+      if (File::Exists(filename))
+      {
+        // If the old file exists we are polite and ask if we should copy it
+        std::string oldFilename = filename;
+        filename.replace(filename.size() - 4, 4, ext);
+        if (PanicYesNoT("Memory Card filename in Slot %c is incorrect\n"
+                        "Region not specified\n\n"
+                        "Slot %c path was changed to\n"
+                        "%s\n"
+                        "Would you like to copy the old file to this new location?\n",
+                        isSlotA ? 'A' : 'B', isSlotA ? 'A' : 'B', filename.c_str()))
+        {
+          if (!File::Copy(oldFilename, filename))
+            PanicAlertT("Copy failed");
+        }
+      }
+      memcardPath = filename;  // Always correct the path!
+    }
+    else if (region.compare(gameRegion) != 0)
+    {
+      // filename has region, but it's not == gameRegion
+      // Just set the correct filename, the EXI Device will create it if it doesn't exist
+      memcardPath = filename.replace(filename.size() - ext.size(), ext.size(), ext);
+    }
   }
 }
 

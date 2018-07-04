@@ -12,4 +12,4 @@ void ShutdownWiiRoot();
 // Initialize or clean up the filesystem contents.
 void InitializeWiiFileSystemContents();
 void CleanUpWiiFileSystemContents();
-}
+}  // namespace Core

@@ -1100,6 +1100,9 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
+  if (Settings::Instance().GetNetPlayServer() != nullptr)
+    Settings::Instance().GetNetPlayServer()->SetNetPlayUI(m_netplay_dialog);
+
   m_netplay_setup_dialog->close();
   m_netplay_dialog->show(nickname, is_traversal);
 

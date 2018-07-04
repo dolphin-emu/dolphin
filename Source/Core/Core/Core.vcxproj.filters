@@ -1272,6 +1272,9 @@
     <ClInclude Include="HW\WiiSave.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
+    <ClInclude Include="HW\WiiSaveStructs.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\DSPAssembler.h">
       <Filter>DSPCore</Filter>
     </ClInclude>

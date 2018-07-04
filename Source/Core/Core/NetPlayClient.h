@@ -7,16 +7,24 @@
 #include <SFML/Network/Packet.hpp>
 #include <array>
 #include <map>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
+
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/SPSCQueue.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
+
+namespace UICommon
+{
+class GameFile;
+}
 
 namespace NetPlay
 {
@@ -26,6 +34,7 @@ public:
   virtual ~NetPlayUI() {}
   virtual void BootGame(const std::string& filename) = 0;
   virtual void StopGame() = 0;
+  virtual bool IsHosting() const = 0;
 
   virtual void Update() = 0;
   virtual void AppendChat(const std::string& msg) = 0;
@@ -38,8 +47,11 @@ public:
   virtual void OnConnectionLost() = 0;
   virtual void OnConnectionError(const std::string& message) = 0;
   virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
+  virtual void OnSaveDataSyncFailure() = 0;
+
   virtual bool IsRecording() = 0;
   virtual std::string FindGame(const std::string& game) = 0;
+  virtual std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) = 0;
   virtual void ShowMD5Dialog(const std::string& file_identifier) = 0;
   virtual void SetMD5Progress(int pid, int progress) = 0;
   virtual void SetMD5Result(int pid, const std::string& result) = 0;
@@ -159,6 +171,10 @@ private:
   void SendStartGamePacket();
   void SendStopGamePacket();
 
+  void SyncSaveDataResponse(bool success);
+  bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path);
+  std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet);
+
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
@@ -184,6 +200,8 @@ private:
   bool m_should_compute_MD5 = false;
   Common::Event m_gc_pad_event;
   Common::Event m_wii_pad_event;
+  u8 m_sync_save_data_count = 0;
+  u8 m_sync_save_data_success_count = 0;
 
   u32 m_timebase_frame = 0;
 };

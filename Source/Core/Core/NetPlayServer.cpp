@@ -9,24 +9,38 @@
 #include <cstdio>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <type_traits>
 #include <unordered_set>
 #include <vector>
 
+#include <lzo/lzo1x.h>
+
+#include "Common/CommonPaths.h"
 #include "Common/ENetUtil.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/SFMLHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/GCMemcard/GCMemcardDirectory.h"
+#include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/WiiSave.h"
+#include "Core/HW/WiiSaveStructs.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
+#include "DiscIO/Enums.h"
 #include "InputCommon/GCPadStatus.h"
+#include "UICommon/GameFile.h"
 
 #if !defined(_WIN32)
 #include <sys/socket.h>
@@ -650,15 +664,13 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case NP_MSG_TIMEBASE:
   {
-    u32 x, y, frame;
-    packet >> x;
-    packet >> y;
+    u64 timebase = Common::PacketReadU64(packet);
+    u32 frame;
     packet >> frame;
 
     if (m_desync_detected)
       break;
 
-    u64 timebase = x | ((u64)y << 32);
     std::vector<std::pair<PlayerId, u64>>& timebases = m_timebase_by_frame[frame];
     timebases.emplace_back(player.pid, timebase);
     if (timebases.size() >= m_players.size())
@@ -737,12 +749,50 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_SYNC_SAVE_DATA:
+  {
+    MessageId sub_id;
+    packet >> sub_id;
+
+    switch (sub_id)
+    {
+    case SYNC_SAVE_DATA_SUCCESS:
+    {
+      if (m_start_pending)
+      {
+        m_save_data_synced_players++;
+        if (m_save_data_synced_players >= m_players.size() - 1)
+        {
+          m_dialog->AppendChat(GetStringT("All players synchronized."));
+          StartGame();
+        }
+      }
+    }
+    break;
+
+    case SYNC_SAVE_DATA_FAILURE:
+    {
+      m_dialog->AppendChat(
+          StringFromFormat(GetStringT("%s failed to synchronize.").c_str(), player.name.c_str()));
+      m_dialog->OnSaveDataSyncFailure();
+      m_start_pending = false;
+    }
+    break;
+
+    default:
+      PanicAlertT(
+          "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking player!",
+          sub_id, player.pid);
+      return 1;
+    }
+  }
+  break;
+
   default:
     PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid,
                 player.pid);
     // unknown message, kick the client
     return 1;
-    break;
   }
 
   return 0;
@@ -812,6 +862,27 @@ void NetPlayServer::SetNetSettings(const NetSettings& settings)
 }
 
 // called from ---GUI--- thread
+bool NetPlayServer::RequestStartGame()
+{
+  if (m_settings.m_SyncSaveData && m_players.size() > 1)
+  {
+    if (!SyncSaveData())
+    {
+      PanicAlertT("Error synchronizing save data!");
+      return false;
+    }
+
+    m_start_pending = true;
+  }
+  else
+  {
+    return StartGame();
+  }
+
+  return true;
+}
+
+// called from multiple threads
 bool NetPlayServer::StartGame()
 {
   m_timebase_by_frame.clear();
@@ -826,6 +897,9 @@ bool NetPlayServer::StartGame()
     g_netplay_initial_rtc = SConfig::GetInstance().m_customRTCValue;
   else
     g_netplay_initial_rtc = Common::Timer::GetLocalTimeSinceJan1970();
+
+  const std::string region = SConfig::GetDirectoryForRegion(
+      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
 
   // tell clients to start game
   sf::Packet spac;
@@ -847,12 +921,317 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ReducePollingRate;
   spac << m_settings.m_EXIDevice[0];
   spac << m_settings.m_EXIDevice[1];
-  spac << static_cast<u32>(g_netplay_initial_rtc);
-  spac << static_cast<u32>(g_netplay_initial_rtc >> 32);
+  Common::PacketWriteU64(spac, g_netplay_initial_rtc);
+  spac << m_settings.m_SyncSaveData;
+  spac << region;
 
   SendAsyncToClients(std::move(spac));
 
+  m_start_pending = false;
   m_is_running = true;
+
+  return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::SyncSaveData()
+{
+  m_save_data_synced_players = 0;
+
+  u8 save_count = 0;
+
+  constexpr size_t exi_device_count = 2;
+  for (size_t i = 0; i < exi_device_count; i++)
+  {
+    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+        SConfig::GetInstance().m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+    {
+      save_count++;
+    }
+  }
+
+  const auto game = m_dialog->FindGameFile(m_selected_game);
+  if (game == nullptr)
+  {
+    PanicAlertT("Selected game doesn't exist in game list!");
+    return false;
+  }
+
+  bool wii_save = false;
+  if (m_settings.m_CopyWiiSave && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
+                                   game->GetPlatform() == DiscIO::Platform::WiiWAD))
+  {
+    wii_save = true;
+    save_count++;
+  }
+
+  {
+    sf::Packet pac;
+    pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+    pac << static_cast<MessageId>(SYNC_SAVE_DATA_NOTIFY);
+    pac << save_count;
+
+    SendAsyncToClients(std::move(pac));
+  }
+
+  if (save_count == 0)
+    return true;
+
+  const std::string region =
+      SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(game->GetRegion()));
+
+  for (size_t i = 0; i < exi_device_count; i++)
+  {
+    const bool is_slot_a = i == 0;
+
+    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD)
+    {
+      std::string path = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                     Config::Get(Config::MAIN_MEMCARD_B_PATH);
+
+      MemoryCard::CheckPath(path, region, is_slot_a);
+
+      bool mc251;
+      IniFile gameIni = SConfig::LoadGameIni(game->GetGameID(), game->GetRevision());
+      gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &mc251, false);
+
+      if (mc251)
+        path.insert(path.find_last_of('.'), ".251");
+
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+      pac << static_cast<MessageId>(SYNC_SAVE_DATA_RAW);
+      pac << is_slot_a << region << mc251;
+
+      if (File::Exists(path))
+      {
+        if (!CompressFileIntoPacket(path, pac))
+          return false;
+      }
+      else
+      {
+        // No file, so we'll say the size is 0
+        Common::PacketWriteU64(pac, 0);
+      }
+
+      SendAsyncToClients(std::move(pac));
+    }
+    else if (SConfig::GetInstance().m_EXIDevice[i] ==
+             ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+    {
+      const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
+                               StringFromFormat("Card %c", is_slot_a ? 'A' : 'B');
+
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+      pac << static_cast<MessageId>(SYNC_SAVE_DATA_GCI);
+      pac << is_slot_a;
+
+      if (File::IsDirectory(path))
+      {
+        std::vector<std::string> files =
+            GCMemcardDirectory::GetFileNamesForGameID(path + DIR_SEP, game->GetGameID());
+
+        pac << static_cast<u8>(files.size());
+
+        for (const std::string& file : files)
+        {
+          pac << file.substr(file.find_last_of('/') + 1);
+          if (!CompressFileIntoPacket(file, pac))
+            return false;
+        }
+      }
+      else
+      {
+        pac << static_cast<u8>(0);
+      }
+
+      SendAsyncToClients(std::move(pac));
+    }
+  }
+
+  if (wii_save)
+  {
+    const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+    const auto save = WiiSave::MakeNandStorage(configured_fs.get(), game->GetTitleID());
+
+    sf::Packet pac;
+    pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+    pac << static_cast<MessageId>(SYNC_SAVE_DATA_WII);
+
+    if (save->SaveExists())
+    {
+      const std::optional<WiiSave::Header> header = save->ReadHeader();
+      const std::optional<WiiSave::BkHeader> bk_header = save->ReadBkHeader();
+      const std::optional<std::vector<WiiSave::Storage::SaveFile>> files = save->ReadFiles();
+      if (!header || !bk_header || !files)
+        return false;
+
+      pac << true;  // save exists
+
+      // Header
+      Common::PacketWriteU64(pac, header->tid);
+      pac << header->banner_size << header->permissions << header->unk1;
+      for (size_t i = 0; i < header->md5.size(); i++)
+        pac << header->md5[i];
+      pac << header->unk2;
+      for (size_t i = 0; i < header->banner_size; i++)
+        pac << header->banner[i];
+
+      // BkHeader
+      pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
+          << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
+          << bk_header->total_size;
+      for (size_t i = 0; i < bk_header->unk3.size(); i++)
+        pac << bk_header->unk3[i];
+      Common::PacketWriteU64(pac, bk_header->tid);
+      for (size_t i = 0; i < bk_header->mac_address.size(); i++)
+        pac << bk_header->mac_address[i];
+
+      // Files
+      for (const WiiSave::Storage::SaveFile& file : *files)
+      {
+        pac << file.mode << file.attributes << static_cast<u8>(file.type) << file.path;
+
+        if (file.type == WiiSave::Storage::SaveFile::Type::File)
+        {
+          const std::optional<std::vector<u8>>& data = *file.data;
+          if (!data || !CompressBufferIntoPacket(*data, pac))
+            return false;
+        }
+      }
+    }
+    else
+    {
+      pac << false;  // save does not exist
+    }
+
+    SendAsyncToClients(std::move(pac));
+  }
+
+  return true;
+}
+
+bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
+{
+  File::IOFile file(file_path, "rb");
+  if (!file)
+  {
+    PanicAlertT("Failed to open file \"%s\".", file_path.c_str());
+    return false;
+  }
+
+  const u64 size = file.GetSize();
+  Common::PacketWriteU64(packet, size);
+
+  if (size == 0)
+    return true;
+
+  std::vector<u8> in_buffer(NETPLAY_LZO_IN_LEN);
+  std::vector<u8> out_buffer(NETPLAY_LZO_OUT_LEN);
+  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
+
+  lzo_uint i = 0;
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;  // number of bytes to read
+    lzo_uint out_len = 0;    // number of bytes to write
+
+    if ((i + NETPLAY_LZO_IN_LEN) >= size)
+    {
+      cur_len = static_cast<lzo_uint32>(size - i);
+    }
+    else
+    {
+      cur_len = NETPLAY_LZO_IN_LEN;
+    }
+
+    if (cur_len <= 0)
+      break;  // EOF
+
+    if (!file.ReadBytes(in_buffer.data(), cur_len))
+    {
+      PanicAlertT("Error reading file: %s", file_path.c_str());
+      return false;
+    }
+
+    if (lzo1x_1_compress(in_buffer.data(), cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
+        LZO_E_OK)
+    {
+      PanicAlertT("Internal LZO Error - compression failed");
+      return false;
+    }
+
+    // The size of the data to write is 'out_len'
+    packet << static_cast<u32>(out_len);
+    for (size_t j = 0; j < out_len; j++)
+    {
+      packet << out_buffer[j];
+    }
+
+    if (cur_len != NETPLAY_LZO_IN_LEN)
+      break;
+
+    i += cur_len;
+  }
+
+  // Mark end of data
+  packet << static_cast<u32>(0);
+
+  return true;
+}
+
+bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
+{
+  const u64 size = in_buffer.size();
+  Common::PacketWriteU64(packet, size);
+
+  if (size == 0)
+    return true;
+
+  std::vector<u8> out_buffer(NETPLAY_LZO_OUT_LEN);
+  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
+
+  lzo_uint i = 0;
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;  // number of bytes to read
+    lzo_uint out_len = 0;    // number of bytes to write
+
+    if ((i + NETPLAY_LZO_IN_LEN) >= size)
+    {
+      cur_len = static_cast<lzo_uint32>(size - i);
+    }
+    else
+    {
+      cur_len = NETPLAY_LZO_IN_LEN;
+    }
+
+    if (cur_len <= 0)
+      break;  // end of buffer
+
+    if (lzo1x_1_compress(&in_buffer[i], cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
+        LZO_E_OK)
+    {
+      PanicAlertT("Internal LZO Error - compression failed");
+      return false;
+    }
+
+    // The size of the data to write is 'out_len'
+    packet << static_cast<u32>(out_len);
+    for (size_t j = 0; j < out_len; j++)
+    {
+      packet << out_buffer[j];
+    }
+
+    if (cur_len != NETPLAY_LZO_IN_LEN)
+      break;
+
+    i += cur_len;
+  }
+
+  // Mark end of data
+  packet << static_cast<u32>(0);
 
   return true;
 }

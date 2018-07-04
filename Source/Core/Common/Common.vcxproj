@@ -147,6 +147,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
+    <ClInclude Include="SFMLHelper.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="SPSCQueue.h" />
@@ -210,6 +211,7 @@
     <ClCompile Include="QoSSession.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
+    <ClCompile Include="SFMLHelper.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
