@@ -23,6 +23,7 @@ import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
@@ -119,7 +120,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	}
 
 	@Override
-	public void launchSettingsActivity(String menuTag)
+	public void launchSettingsActivity(MenuTag menuTag)
 	{
 		SettingsActivity.launch(this, menuTag, "");
 	}
@@ -230,11 +231,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
 		rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
 				R.drawable.ic_settings_core_tv,
-				R.string.grid_menu_core_settings));
+				R.string.grid_menu_config));
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings_video,
+		rowItems.add(new TvSettingsItem(R.id.menu_settings_graphics,
 				R.drawable.ic_settings_graphics_tv,
-				R.string.grid_menu_video_settings));
+				R.string.grid_menu_graphics_settings));
 
 		rowItems.add(new TvSettingsItem(R.id.menu_settings_gcpad,
 				R.drawable.ic_settings_gcpad,

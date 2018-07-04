@@ -25,20 +25,18 @@ import java.util.HashMap;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
-	private static final String ARG_FILE_NAME = "file_name";
+	private static final String ARG_MENU_TAG = "menu_tag";
 	private static final String ARG_GAME_ID = "game_id";
-
 	private static final String FRAGMENT_TAG = "settings";
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
 
 	private ProgressDialog dialog;
 
-	public static void launch(Context context, String menuTag, String gameId)
+	public static void launch(Context context, MenuTag menuTag, String gameId)
 	{
 		Intent settings = new Intent(context, SettingsActivity.class);
-		settings.putExtra(ARG_FILE_NAME, menuTag);
+		settings.putExtra(ARG_MENU_TAG, menuTag);
 		settings.putExtra(ARG_GAME_ID, gameId);
-
 		context.startActivity(settings);
 	}
 
@@ -50,10 +48,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		setContentView(R.layout.activity_settings);
 
 		Intent launcher = getIntent();
-		String filename = launcher.getStringExtra(ARG_FILE_NAME);
 		String gameID = launcher.getStringExtra(ARG_GAME_ID);
-
-		mPresenter.onCreate(savedInstanceState, filename, gameID);
+        MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
+		mPresenter.onCreate(savedInstanceState, menuTag, gameID);
 	}
 
 	@Override
@@ -107,7 +104,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 
 	@Override
-	public void showSettingsFragment(String menuTag, boolean addToStack, String gameID)
+	public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameID)
 	{
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
@@ -125,7 +122,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 			transaction.addToBackStack(null);
 			mPresenter.addToStack();
 		}
-		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID), FRAGMENT_TAG);
+		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID, extras), FRAGMENT_TAG);
 
 		transaction.commit();
 	}
@@ -242,21 +239,21 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	public void onGcPadSettingChanged(String key, int value)
+	public void onGcPadSettingChanged(MenuTag key, int value)
 	{
 		mPresenter.onGcPadSettingChanged(key, value);
 	}
 
 	@Override
-	public void onWiimoteSettingChanged(String section, int value)
+	public void onWiimoteSettingChanged(MenuTag section, int value)
 	{
 		mPresenter.onWiimoteSettingChanged(section, value);
 	}
 
 	@Override
-	public void onExtensionSettingChanged(String key, int value)
+	public void onExtensionSettingChanged(MenuTag menuTag, int value)
 	{
-		mPresenter.onExtensionSettingChanged(key, value);
+		mPresenter.onExtensionSettingChanged(menuTag, value);
 	}
 
 	private SettingsFragment getFragment()

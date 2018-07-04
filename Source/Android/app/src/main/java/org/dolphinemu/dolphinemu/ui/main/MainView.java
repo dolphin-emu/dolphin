@@ -1,9 +1,6 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.database.Cursor;
-
-import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 
 /**
  * Abstraction for the screen that shows on application launch.
@@ -29,7 +26,7 @@ public interface MainView
 	void refreshFragmentScreenshot(int fragmentPosition);
 
 
-	void launchSettingsActivity(String menuTag);
+	void launchSettingsActivity(MenuTag menuTag);
 
 	void launchFileListActivity();
 

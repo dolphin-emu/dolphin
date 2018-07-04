@@ -10,7 +10,7 @@ import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
-import org.dolphinemu.dolphinemu.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 
 public final class MainPresenter
 {
@@ -64,19 +64,19 @@ public final class MainPresenter
 		switch (itemId)
 		{
 			case R.id.menu_settings_core:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_DOLPHIN);
+				mView.launchSettingsActivity(MenuTag.CONFIG);
 				return true;
 
-			case R.id.menu_settings_video:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_GFX);
+			case R.id.menu_settings_graphics:
+				mView.launchSettingsActivity(MenuTag.GRAPHICS);
 				return true;
 
 			case R.id.menu_settings_gcpad:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_GCPAD);
+				mView.launchSettingsActivity(MenuTag.GCPAD_TYPE);
 				return true;
 
 			case R.id.menu_settings_wiimote:
-				mView.launchSettingsActivity(SettingsFile.FILE_NAME_WIIMOTE);
+				mView.launchSettingsActivity(MenuTag.WIIMOTE);
 				return true;
 
 			case R.id.menu_refresh:

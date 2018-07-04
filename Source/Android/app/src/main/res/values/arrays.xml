@@ -33,6 +33,24 @@
         <item>5</item>
     </integer-array>
 
+    <!-- GameCube System Languages -->
+    <string-array name="gameCubeSystemLanguageEntries" translatable="false">
+        <item>English</item>
+        <item>German</item>
+        <item>French</item>
+        <item>Spanish</item>
+        <item>Italian</item>
+        <item>Dutch</item>
+    </string-array>
+    <integer-array name="gameCubeSystemLanguageValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
     <!-- Slot A Device Selection -->
     <string-array name="slotDeviceEntries" translatable="false">
         <item>Nothing</item>

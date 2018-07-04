@@ -118,9 +118,14 @@
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
+    <string name="speed_limit">Speed Limit</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
+    <string name="gamecube_submenu">GameCube</string>
+    <string name="gamecube_system_language">System Language</string>
+    <string name="override_gamecube_language">Override Language on NTSC games</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
+    <string name="wii_submenu">Wii</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
@@ -135,6 +140,10 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
 
+    <!-- Graphics Settings -->
+    <string name="graphics_general">General</string>
+    <string name="graphics_enhancements_and_hacks">Enhancements &amp; Hacks</string>
+
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
     <string name="video_backend_description">Select the API used for graphics rendering.</string>
@@ -148,6 +157,8 @@
     <string name="FSAA_description">Reduces the amount of aliasing caused by rasterizing 3D graphics. This makes the rendered picture look less blocky. Heavily decreases emulation speed and sometimes causes issues.</string>
     <string name="anisotropic_filtering">Anisotropic Filtering</string>
     <string name="anisotropic_filtering_description">Enhances visual quality of textures that are at oblique viewing angles. Might cause issues in a small number of games.</string>
+    <string name="post_processing_shader">Post-Processing Effect</string>
+    <string name="post_processing_shader_description">Apply a post-processing effect after finishing a frame</string>
     <string name="postprocessing_shader">Post Processing Shader</string>
     <string name="postprocessing_shader_description">Apply a post-processing effect after finishing a frame.</string>
     <string name="scaled_efb_copy">Scaled EFB Copy</string>
@@ -156,12 +167,18 @@
     <string name="per_pixel_lighting_description">Calculate lighting of 3D graphics per-pixel rather than per vertex. Decreases emulation speed by some percent (depending on your GPU). This usually is a safe enhancement, but might cause issues sometimes.</string>
     <string name="force_texture_filtering">Force Texture Filtering</string>
     <string name="force_texture_filtering_description">Force texture filtering even if the emulated game explicitly disabled it. Improves texture quality slightly but causes glitches in some games.</string>
+    <string name="force_24bit_color">Force 24-Bit Color</string>
+    <string name="force_24bit_color_description">Forces the game to render the RGB color channels in 24-bit, thereby increasing quality by reducing color banding.\nIt has no impact on performance and causes few graphical issues. If unsure, leave this checked.</string>
     <string name="disable_fog">Disable Fog</string>
     <string name="disable_fog_description">Makes distant objects more visible by removing fog, thus increasing the overall detail. Disabling fog will break some games which rely on proper fog emulation.</string>
     <string name="disable_copy_filter">Disable Copy Filter</string>
     <string name="disable_copy_filter_description">Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". Disabling the filter is usually safe, and may result in a sharper image.</string>
+    <string name="arbitrary_mipmap_detection">Arbitrary Mipmap Detection</string>
+    <string name="arbitrary_mipmap_detection_description">Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.\nMay have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures.\n\nIf unsure, leave this checked.</string>
     <string name="stereoscopy_submenu">Stereoscopy</string>
     <string name="stereoscopy_submenu_description">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
+    <string name="wide_screen_hack">Widescreen Hack</string>
+    <string name="wide_screen_hack_description">Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9. Rarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches. If unsure, leave this unchecked.</string>
     <string name="stereoscopy_mode">Stereoscopy Mode</string>
     <string name="stereoscopy_mode_description">Select the stereoscopic 3D mode.</string>
     <string name="stereoscopy_depth">Depth</string>
@@ -209,8 +226,8 @@
     <string name="other">Other</string>
 
     <!-- Game Grid Screen-->
-    <string name="grid_menu_core_settings">CPU Settings</string>
-    <string name="grid_menu_video_settings">Video Settings</string>
+    <string name="grid_menu_config">Config</string>
+    <string name="grid_menu_graphics_settings">Graphics Settings</string>
     <string name="grid_menu_gcpad_settings">GameCube Input</string>
     <string name="grid_menu_wiimote_settings">Wii Input</string>
     <string name="grid_menu_refresh">Refresh Library</string>
