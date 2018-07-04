@@ -1155,6 +1155,15 @@ void NetPlayClient::Stop()
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
     SendStopGamePacket();
+  else
+    StopGame();
+}
+
+void NetPlayClient::RequestStopGame()
+{
+  // Tell the server to stop if we have a pad mapped in game.
+  if (LocalPlayerHasControllerMapped())
+    SendStopGamePacket();
 }
 
 // called from ---GUI--- thread
