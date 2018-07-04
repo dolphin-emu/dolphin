@@ -95,6 +95,7 @@ const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCust
 const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"}, 946684800};
 const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS{{System::Main, "Core", "EnableSignatureChecks"},
                                                     true};
+const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE{{System::Main, "Core", "ReducePollingRate"}, false};
 
 // Main.DSP
 

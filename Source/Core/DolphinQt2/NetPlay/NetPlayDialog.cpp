@@ -85,6 +85,7 @@ void NetPlayDialog::CreateMainLayout()
   m_save_sd_box = new QCheckBox(tr("Write save/SD data"));
   m_load_wii_box = new QCheckBox(tr("Load Wii Save"));
   m_record_input_box = new QCheckBox(tr("Record inputs"));
+  m_reduce_polling_rate_box = new QCheckBox(tr("Reduce Polling Rate"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -119,6 +120,10 @@ void NetPlayDialog::CreateMainLayout()
   m_md5_button->setPopupMode(QToolButton::MenuButtonPopup);
   m_md5_button->setMenu(menu);
 
+  m_reduce_polling_rate_box->setToolTip(
+      tr("This will reduce bandwidth usage, but may add up to one frame of additional latency, as "
+         "controllers will be polled only once per frame."));
+
   m_main_layout->addWidget(m_game_button, 0, 0);
   m_main_layout->addWidget(m_md5_button, 0, 1);
   m_main_layout->addWidget(m_splitter, 1, 0, 1, -1);
@@ -134,6 +139,7 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_save_sd_box);
   options_widget->addWidget(m_load_wii_box);
   options_widget->addWidget(m_record_input_box);
+  options_widget->addWidget(m_reduce_polling_rate_box);
   options_widget->addWidget(m_quit_button);
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
 
@@ -294,6 +300,7 @@ void NetPlayDialog::OnStart()
   settings.m_CopyWiiSave = m_load_wii_box->isChecked();
   settings.m_OCEnable = instance.m_OCEnable;
   settings.m_OCFactor = instance.m_OCFactor;
+  settings.m_ReducePollingRate = m_reduce_polling_rate_box->isChecked();
   settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
   settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
 
@@ -337,6 +344,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_start_button->setHidden(!is_hosting);
   m_save_sd_box->setHidden(!is_hosting);
   m_load_wii_box->setHidden(!is_hosting);
+  m_reduce_polling_rate_box->setHidden(!is_hosting);
   m_buffer_size_box->setHidden(!is_hosting);
   m_buffer_label->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
@@ -528,6 +536,7 @@ void NetPlayDialog::GameStatusChanged(bool running)
       m_load_wii_box->setEnabled(!running);
       m_save_sd_box->setEnabled(!running);
       m_assign_ports_button->setEnabled(!running);
+      m_reduce_polling_rate_box->setEnabled(!running);
     }
 
     m_record_input_box->setEnabled(!running);

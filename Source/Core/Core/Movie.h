@@ -103,7 +103,8 @@ struct DTMHeader
   bool bNetPlay;
   bool bPAL60;
   u8 language;
-  std::array<u8, 11> reserved;      // Padding for any new config options
+  bool bReducePollingRate;
+  std::array<u8, 10> reserved;      // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
@@ -186,4 +187,4 @@ void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key);
-}
+}  // namespace Movie
