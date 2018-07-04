@@ -156,6 +156,7 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
 MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
+  m_netplay_dialog->deleteLater();
   ShutdownControllers();
 
   QSettings& settings = Settings::GetQSettings();
@@ -1037,7 +1038,7 @@ void MainWindow::BootWiiSystemMenu()
 void MainWindow::NetPlayInit()
 {
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
-  m_netplay_dialog = new NetPlayDialog(this);
+  m_netplay_dialog = new NetPlayDialog;
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
           [this](const QString& path) { StartGame(path); });

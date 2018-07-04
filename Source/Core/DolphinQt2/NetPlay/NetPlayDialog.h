@@ -30,7 +30,7 @@ class NetPlayDialog : public QDialog, public NetPlayUI
 {
   Q_OBJECT
 public:
-  explicit NetPlayDialog(QWidget* parent);
+  explicit NetPlayDialog(QWidget* parent = nullptr);
   ~NetPlayDialog();
 
   void show(std::string nickname, bool use_traversal);

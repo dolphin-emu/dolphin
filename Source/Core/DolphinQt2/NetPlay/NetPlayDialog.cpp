@@ -42,6 +42,7 @@
 #include "DolphinQt2/NetPlay/PadMappingDialog.h"
 #include "DolphinQt2/QtUtils/QueueOnObject.h"
 #include "DolphinQt2/QtUtils/RunOnObject.h"
+#include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -52,6 +53,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   setWindowTitle(tr("NetPlay"));
+  setWindowIcon(Resources::GetAppIcon());
 
   m_pad_mapping = new PadMappingDialog(this);
   m_md5_dialog = new MD5Dialog(this);
