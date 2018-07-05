@@ -76,6 +76,7 @@ private:
   void OnSaveProfilePressed();
   void OnDefaultFieldsPressed();
   void OnDeviceChanged(int index);
+  void OnGlobalDevicesChanged();
 
   ControllerEmu::EmulatedController* m_controller = nullptr;
 
