@@ -4,6 +4,9 @@
 
 #include "DolphinQt2/NetPlay/MD5Dialog.h"
 
+#include <algorithm>
+#include <functional>
+
 #include <QDialogButtonBox>
 #include <QGroupBox>
 #include <QLabel>
@@ -73,6 +76,8 @@ void MD5Dialog::show(const QString& title)
 
   m_progress_bars.clear();
   m_status_labels.clear();
+  m_results.clear();
+  m_check_label->setText(QString::fromStdString(""));
 
   for (const auto* player : Settings::Instance().GetNetPlayClient()->GetPlayers())
   {
@@ -82,8 +87,6 @@ void MD5Dialog::show(const QString& title)
     m_progress_layout->addWidget(m_progress_bars[player->pid]);
     m_progress_layout->addWidget(m_status_labels[player->pid]);
   }
-
-  m_last_result = "";
 
   QDialog::show();
 }
@@ -110,18 +113,20 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
   m_status_labels[pid]->setText(
       tr("%1[%2]: %3").arg(player_name, QString::number(pid), QString::fromStdString(result)));
 
-  if (m_last_result.empty())
-  {
-    m_check_label->setText(tr("The hashes match!"));
-    return;
-  }
+  m_results.push_back(result);
 
-  if (m_last_result != result)
+  if (m_results.size() >= Settings::Instance().GetNetPlayClient()->GetPlayers().size())
   {
-    m_check_label->setText(tr("The hashes do not match!"));
+    if (std::adjacent_find(m_results.begin(), m_results.end(), std::not_equal_to<>()) ==
+        m_results.end())
+    {
+      m_check_label->setText(tr("The hashes match!"));
+    }
+    else
+    {
+      m_check_label->setText(tr("The hashes do not match!"));
+    }
   }
-
-  m_last_result = result;
 }
 
 void MD5Dialog::reject()
