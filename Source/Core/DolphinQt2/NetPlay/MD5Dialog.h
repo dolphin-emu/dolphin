@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <map>
+#include <string>
+#include <vector>
+
 #include <QDialog>
 
 class QDialogButtonBox;
@@ -32,7 +36,7 @@ private:
   std::map<int, QProgressBar*> m_progress_bars;
   std::map<int, QLabel*> m_status_labels;
 
-  std::string m_last_result;
+  std::vector<std::string> m_results;
 
   QGroupBox* m_progress_box;
   QVBoxLayout* m_progress_layout;
