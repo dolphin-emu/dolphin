@@ -1066,6 +1066,9 @@ bool MainWindow::NetPlayJoin()
   }
 
   // Settings
+  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
+  const bool is_traversal = traversal_choice == "traversal";
+
   std::string host_ip;
   u16 host_port;
   if (Settings::Instance().GetNetPlayServer() != nullptr)
@@ -1075,12 +1078,10 @@ bool MainWindow::NetPlayJoin()
   }
   else
   {
-    host_ip = Config::Get(Config::NETPLAY_HOST_CODE);
-    host_port = Config::Get(Config::NETPLAY_HOST_PORT);
+    host_ip = is_traversal ? Config::Get(Config::NETPLAY_HOST_CODE) :
+                             Config::Get(Config::NETPLAY_ADDRESS);
+    host_port = Config::Get(Config::NETPLAY_CONNECT_PORT);
   }
-
-  const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
-  const bool is_traversal = traversal_choice == "traversal";
 
   const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
