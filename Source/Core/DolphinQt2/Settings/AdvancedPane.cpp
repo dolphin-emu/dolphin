@@ -104,8 +104,6 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
-  m_cpu_clock_override_slider->setValue(
-      static_cast<int>(std::ceil(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     // Vaguely exponential scaling?
     SConfig::GetInstance().m_OCFactor =
@@ -136,6 +134,9 @@ void AdvancedPane::Update()
 
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
+
+  m_cpu_clock_override_slider->setValue(
+      static_cast<int>(std::ceil(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
