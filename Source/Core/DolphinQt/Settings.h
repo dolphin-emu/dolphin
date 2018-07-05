@@ -159,6 +159,7 @@ signals:
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);
   void AnalyticsToggled(bool enabled);
+  void DevicesChanged();
 
 private:
   bool m_batch = false;
