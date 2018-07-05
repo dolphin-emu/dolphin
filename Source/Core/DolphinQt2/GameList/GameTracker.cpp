@@ -119,9 +119,36 @@ void GameTracker::StartInternal()
     m_cache.Save();
 }
 
+// Works around a bug in QtCore that will cause crashes when QFileSystemWatcher::addPath
+// is called on a directory that is located on a removable device
+static bool IsOnRemovableMedia(const QString& dir)
+{
+#ifdef _WIN32
+  const QString absolute_dir = QFileInfo(dir).absolutePath();
+  if (absolute_dir.startsWith(QStringLiteral("//")))
+    return true;
+  const QString root_dir = QDir::toNativeSeparators(absolute_dir.left(3));
+  auto type = GetDriveType(root_dir.toStdWString().c_str());
+
+  switch (type)
+  {
+  case DRIVE_REMOVABLE:
+  case DRIVE_REMOTE:
+  case DRIVE_CDROM:
+  case DRIVE_UNKNOWN:
+  case DRIVE_NO_ROOT_DIR:
+    return true;
+  default:
+    return false;
+  }
+#else
+  return false;
+#endif
+}
+
 bool GameTracker::AddPath(const QString& dir)
 {
-  if (Settings::Instance().IsAutoRefreshEnabled())
+  if (Settings::Instance().IsAutoRefreshEnabled() && !IsOnRemovableMedia(dir))
     return addPath(dir);
 
   m_tracked_paths.push_back(dir);
@@ -131,7 +158,7 @@ bool GameTracker::AddPath(const QString& dir)
 
 bool GameTracker::RemovePath(const QString& dir)
 {
-  if (Settings::Instance().IsAutoRefreshEnabled())
+  if (Settings::Instance().IsAutoRefreshEnabled() && !IsOnRemovableMedia(dir))
     return removePath(dir);
 
   const auto index = m_tracked_paths.indexOf(dir);
