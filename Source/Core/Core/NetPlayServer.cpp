@@ -173,7 +173,7 @@ void NetPlayServer::ThreadFunc()
             delete (PlayerId*)netEvent.peer->data;
             netEvent.peer->data = nullptr;
           }
-          enet_peer_disconnect(accept_peer, 0);
+          enet_peer_disconnect_later(accept_peer, 0);
         }
       }
       break;

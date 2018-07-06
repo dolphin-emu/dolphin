@@ -578,6 +578,14 @@ void NetPlayDialog::OnConnectionLost()
   DisplayMessage(tr("Lost connection to NetPlay server..."), "red");
 }
 
+void NetPlayDialog::OnConnectionError(const std::string& message)
+{
+  QueueOnObject(this, [this, message] {
+    QMessageBox::critical(this, tr("Error"),
+                          tr("Failed to connect to server: %1").arg(tr(message.c_str())));
+  });
+}
+
 void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
 {
   QueueOnObject(this, [this, error] {

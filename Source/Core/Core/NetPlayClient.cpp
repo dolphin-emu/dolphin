@@ -93,7 +93,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
     if (m_client == nullptr)
     {
-      PanicAlertT("Couldn't Create Client");
+      m_dialog->OnConnectionError(_trans("Could not create client."));
+      return;
     }
 
     ENetAddress addr;
@@ -104,7 +105,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
     if (m_server == nullptr)
     {
-      PanicAlertT("Couldn't create peer.");
+      m_dialog->OnConnectionError(_trans("Could not create peer."));
+      return;
     }
 
     ENetEvent netEvent;
@@ -119,14 +121,15 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     }
     else
     {
-      PanicAlertT("Failed to Connect!");
+      m_dialog->OnConnectionError(_trans("Could not communicate with host."));
     }
   }
   else
   {
     if (address.size() > NETPLAY_CODE_SIZE)
     {
-      PanicAlertT("Host code size is to large.\nPlease recheck that you have the correct code");
+      m_dialog->OnConnectionError(
+          _trans("Host code size is too large.\nPlease recheck that you have the correct code."));
       return;
     }
 
@@ -174,7 +177,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       if (connect_timer.GetTimeElapsed() > 5000)
         break;
     }
-    PanicAlertT("Failed To Connect!");
+    m_dialog->OnConnectionError(_trans("Could not communicate with host."));
   }
 }
 
@@ -209,16 +212,17 @@ bool NetPlayClient::Connect()
     switch (error)
     {
     case CON_ERR_SERVER_FULL:
-      PanicAlertT("The server is full!");
+      m_dialog->OnConnectionError(_trans("The server is full."));
       break;
     case CON_ERR_VERSION_MISMATCH:
-      PanicAlertT("The server and client's NetPlay versions are incompatible!");
+      m_dialog->OnConnectionError(
+          _trans("The server and client's NetPlay versions are incompatible."));
       break;
     case CON_ERR_GAME_RUNNING:
-      PanicAlertT("The server responded: the game is currently running!");
+      m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
     default:
-      PanicAlertT("The server sent an unknown error message!");
+      m_dialog->OnConnectionError(_trans("The server sent an unknown error message."));
       break;
     }
 
