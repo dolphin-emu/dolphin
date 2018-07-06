@@ -701,11 +701,10 @@ if(NOT ANDROID)
   endif()
 endif()
 
-
 if(USE_DISCORD_PRESENCE)
   message(STATUS "Using static DiscordRPC from Externals")
   add_subdirectory(Externals/discord-rpc)
-endif() 
+endif()
 
 find_package(Libsystemd)
 if(SYSTEMD_FOUND)
