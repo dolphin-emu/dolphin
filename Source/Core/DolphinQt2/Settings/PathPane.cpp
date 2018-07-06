@@ -137,8 +137,7 @@ QGroupBox* PathPane::MakeGameFolderBox()
 
   connect(recursive_checkbox, &QCheckBox::toggled, this, [](bool checked) {
     SConfig::GetInstance().m_RecursiveISOFolder = checked;
-    for (const auto& path : Settings::Instance().GetPaths())
-      Settings::Instance().ReloadPath(path);
+    Settings::Instance().RefreshGameList();
   });
 
   connect(auto_checkbox, &QCheckBox::toggled, &Settings::Instance(),

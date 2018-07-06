@@ -69,7 +69,7 @@ public:
   void SetPreferredView(bool list);
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
-  void ReloadPath(const QString& qpath);
+  void RefreshGameList();
   void ReloadTitleDB();
   bool IsAutoRefreshEnabled() const;
   void SetAutoRefreshEnabled(bool enabled);
@@ -137,7 +137,7 @@ signals:
   void PathAdded(const QString&);
   void PathRemoved(const QString&);
   void DefaultGameChanged(const QString&);
-  void PathReloadRequested(const QString&);
+  void GameListRefreshRequested();
   void TitleDBReloadRequested();
   void AutoRefreshToggled(bool enabled);
   void HideCursorChanged();

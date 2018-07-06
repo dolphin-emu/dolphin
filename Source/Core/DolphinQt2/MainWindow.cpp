@@ -533,9 +533,7 @@ void MainWindow::ConnectStack()
 void MainWindow::RefreshGameList()
 {
   Settings::Instance().ReloadTitleDB();
-
-  for (const auto& path : Settings::Instance().GetPaths())
-    Settings::Instance().ReloadPath(path);
+  Settings::Instance().RefreshGameList();
 }
 
 QString MainWindow::PromptFileName()

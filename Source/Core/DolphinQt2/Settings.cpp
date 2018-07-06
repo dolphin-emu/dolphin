@@ -123,9 +123,9 @@ void Settings::RemovePath(const QString& qpath)
   emit PathRemoved(qpath);
 }
 
-void Settings::ReloadPath(const QString& qpath)
+void Settings::RefreshGameList()
 {
-  emit PathReloadRequested(qpath);
+  emit GameListRefreshRequested();
 }
 
 void Settings::ReloadTitleDB()

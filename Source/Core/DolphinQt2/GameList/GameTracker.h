@@ -36,7 +36,7 @@ public:
 
   void AddDirectory(const QString& dir);
   void RemoveDirectory(const QString& dir);
-  void ReloadDirectory(const QString& dir);
+  void RefreshAll();
 
 signals:
   void GameLoaded(const std::shared_ptr<const UICommon::GameFile>& game);

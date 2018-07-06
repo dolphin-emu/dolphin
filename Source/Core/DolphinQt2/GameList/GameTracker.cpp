@@ -156,10 +156,18 @@ void GameTracker::RemoveDirectory(const QString& dir)
   m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
 }
 
-void GameTracker::ReloadDirectory(const QString& dir)
+void GameTracker::RefreshAll()
 {
-  m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
-  m_load_thread.EmplaceItem(Command{CommandType::AddDirectory, dir});
+  for (auto& file : m_tracked_files.keys())
+    emit GameRemoved(file.toStdString());
+
+  m_tracked_files.clear();
+
+  for (const QString& dir : Settings::Instance().GetPaths())
+  {
+    m_load_thread.EmplaceItem(Command{CommandType::RemoveDirectory, dir});
+    m_load_thread.EmplaceItem(Command{CommandType::AddDirectory, dir});
+  }
 }
 
 void GameTracker::UpdateDirectory(const QString& dir)
