@@ -1515,14 +1515,15 @@ TextureCacheBase::CopyFilterCoefficientArray TextureCacheBase::GetRAMCopyFilterC
 {
   // To simplify the backend, we precalculate the three coefficients in common. Coefficients 0, 1
   // are for the row above, 2, 3, 4 are for the current pixel, and 5, 6 are for the row below.
-  return {
+  return {{
       static_cast<float>(static_cast<u32>(coefficients[0]) + static_cast<u32>(coefficients[1])) /
           64.0f,
       static_cast<float>(static_cast<u32>(coefficients[2]) + static_cast<u32>(coefficients[3]) +
                          static_cast<u32>(coefficients[4])) /
           64.0f,
       static_cast<float>(static_cast<u32>(coefficients[5]) + static_cast<u32>(coefficients[6])) /
-          64.0f};
+          64.0f,
+  }};
 }
 
 TextureCacheBase::CopyFilterCoefficientArray TextureCacheBase::GetVRAMCopyFilterCoefficients(
