@@ -7,7 +7,7 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # This is inserted into the Info.plist as well.
 # Note that the SDK determines the maximum version of which optional
 # features can be used, not the minimum required version to run.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "")
 
 project(dolphin-emu)
 
