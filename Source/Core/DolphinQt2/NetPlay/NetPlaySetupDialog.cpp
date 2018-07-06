@@ -183,7 +183,9 @@ void NetPlaySetupDialog::ConnectWidgets()
 void NetPlaySetupDialog::SaveSettings()
 {
   Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, m_nickname_edit->text().toStdString());
-  Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, m_ip_edit->text().toStdString());
+  Config::SetBaseOrCurrent(m_connection_type->currentIndex() == 0 ? Config::NETPLAY_ADDRESS :
+                                                                    Config::NETPLAY_HOST_CODE,
+                           m_ip_edit->text().toStdString());
   Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT,
                            static_cast<u16>(m_connect_port_box->value()));
   Config::SetBaseOrCurrent(Config::NETPLAY_HOST_PORT, static_cast<u16>(m_host_port_box->value()));
@@ -211,7 +213,8 @@ void NetPlaySetupDialog::OnConnectionTypeChanged(int index)
 
   m_reset_traversal_button->setHidden(index == 0);
 
-  std::string address = Config::Get(Config::NETPLAY_HOST_CODE);
+  std::string address =
+      index == 0 ? Config::Get(Config::NETPLAY_ADDRESS) : Config::Get(Config::NETPLAY_HOST_CODE);
 
   m_ip_label->setText(index == 0 ? tr("IP Address:") : tr("Host Code:"));
   m_ip_edit->setText(QString::fromStdString(address));
