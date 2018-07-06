@@ -680,8 +680,8 @@ else()
 endif()
 
 if (NOT ANDROID)
-	find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
-	find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+  find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
+  find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
 endif()
 
 if (NOT ANDROID AND ICONV_LIBRARIES AND ICONV_INCLUDE_DIR)
