@@ -15,17 +15,24 @@ class BooleanSetting
 {
 public:
   BooleanSetting(const std::string& setting_name, const std::string& ui_name,
-                 const bool default_value, const SettingType setting_type = SettingType::NORMAL);
+                 const bool default_value, const SettingType setting_type = SettingType::NORMAL,
+                 const bool exclusive = false);
   BooleanSetting(const std::string& setting_name, const bool default_value,
-                 const SettingType setting_type = SettingType::NORMAL);
+                 const SettingType setting_type = SettingType::NORMAL,
+                 const bool exclusive = false);
 
   bool GetValue() const;
   void SetValue(bool value);
+  bool IsExclusive() const;
+
   const SettingType m_type;
   const std::string m_name;
   const std::string m_ui_name;
   const bool m_default_value;
   bool m_value;
+
+private:
+  const bool m_exclusive;
 };
 
 }  // namespace ControllerEmu
