@@ -41,6 +41,8 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
+namespace NetPlay
+{
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 NetSettings g_NetPlaySettings;
@@ -1306,41 +1308,59 @@ const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
   return m_wiimote_map;
 }
 
+bool IsNetPlayRunning()
+{
+  return netplay_client != nullptr;
+}
+
+void NetPlay_Enable(NetPlayClient* const np)
+{
+  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  netplay_client = np;
+}
+
+void NetPlay_Disable()
+{
+  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  netplay_client = nullptr;
+}
+}  // namespace NetPlay
+
 // stuff hacked into dolphin
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
 bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
 {
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
-  if (netplay_client)
-    return netplay_client->GetNetPads(numPAD, PadStatus);
-  else
-    return false;
+  if (NetPlay::netplay_client)
+    return NetPlay::netplay_client->GetNetPads(numPAD, PadStatus);
+
+  return false;
 }
 
 bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode)
 {
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
-  if (netplay_client)
-    return netplay_client->WiimoteUpdate(wiimote, data, size, reporting_mode);
-  else
-    return false;
+  if (NetPlay::netplay_client)
+    return NetPlay::netplay_client->WiimoteUpdate(wiimote, data, size, reporting_mode);
+
+  return false;
 }
 
 // Sync the info whether a button was pressed or not. Used for the reconnect on button press feature
 bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
 {
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
   // Use the reporting mode 0 for the button pressed event, the real ones start at RT_REPORT_CORE
   u8 data[2] = {static_cast<u8>(pressed), 0};
 
-  if (netplay_client)
+  if (NetPlay::netplay_client)
   {
-    if (netplay_client->WiimoteUpdate(wiimote, data, 2, 0))
+    if (NetPlay::netplay_client->WiimoteUpdate(wiimote, data, 2, 0))
     {
       return data[0];
     }
@@ -1357,39 +1377,22 @@ bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
 // also called from ---GUI--- thread when starting input recording
 u64 ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime()
 {
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
-  if (netplay_client)
-    return g_netplay_initial_rtc;
-  else
-    return 0;
+  if (NetPlay::netplay_client)
+    return NetPlay::g_netplay_initial_rtc;
+
+  return 0;
 }
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
 int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
 {
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
+  std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
-  if (netplay_client)
-    return netplay_client->InGamePadToLocalPad(numPAD);
-  else
-    return numPAD;
-}
+  if (NetPlay::netplay_client)
+    return NetPlay::netplay_client->InGamePadToLocalPad(numPAD);
 
-bool NetPlay::IsNetPlayRunning()
-{
-  return netplay_client != nullptr;
-}
-
-void NetPlay_Enable(NetPlayClient* const np)
-{
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
-  netplay_client = np;
-}
-
-void NetPlay_Disable()
-{
-  std::lock_guard<std::mutex> lk(crit_netplay_client);
-  netplay_client = nullptr;
+  return numPAD;
 }

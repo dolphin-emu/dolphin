@@ -14,6 +14,8 @@ namespace PowerPC
 enum class CPUCore;
 }
 
+namespace NetPlay
+{
 struct NetSettings
 {
   bool m_CPUthread;
@@ -109,7 +111,5 @@ using FrameNum = u32;
 using PadMapping = s8;
 using PadMappingArray = std::array<PadMapping, 4>;
 
-namespace NetPlay
-{
 bool IsNetPlayRunning();
-}
+}  // namespace NetPlay

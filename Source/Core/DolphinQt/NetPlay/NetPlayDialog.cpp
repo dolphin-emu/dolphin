@@ -285,7 +285,7 @@ void NetPlayDialog::OnStart()
       return;
   }
 
-  NetSettings settings;
+  NetPlay::NetSettings settings;
 
   // Copy all relevant settings
   SConfig& instance = SConfig::GetInstance();
@@ -379,7 +379,8 @@ void NetPlayDialog::UpdateGUI()
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
   m_players_list->setRowCount(player_count);
 
-  const auto get_mapping_string = [](const Player* player, const PadMappingArray& array) {
+  const auto get_mapping_string = [](const NetPlay::Player* player,
+                                     const NetPlay::PadMappingArray& array) {
     std::string str;
     for (size_t i = 0; i < array.size(); i++)
     {
@@ -392,8 +393,10 @@ void NetPlayDialog::UpdateGUI()
     return '|' + str + '|';
   };
 
-  static const std::map<PlayerGameStatus, QString> player_status{
-      {PlayerGameStatus::Ok, tr("OK")}, {PlayerGameStatus::NotFound, tr("Not Found")}};
+  static const std::map<NetPlay::PlayerGameStatus, QString> player_status{
+      {NetPlay::PlayerGameStatus::Ok, tr("OK")},
+      {NetPlay::PlayerGameStatus::NotFound, tr("Not Found")},
+  };
 
   for (int i = 0; i < player_count; i++)
   {

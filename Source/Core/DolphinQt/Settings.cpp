@@ -267,22 +267,22 @@ GameListModel* Settings::GetGameListModel() const
   return model;
 }
 
-NetPlayClient* Settings::GetNetPlayClient()
+NetPlay::NetPlayClient* Settings::GetNetPlayClient()
 {
   return m_client.get();
 }
 
-void Settings::ResetNetPlayClient(NetPlayClient* client)
+void Settings::ResetNetPlayClient(NetPlay::NetPlayClient* client)
 {
   m_client.reset(client);
 }
 
-NetPlayServer* Settings::GetNetPlayServer()
+NetPlay::NetPlayServer* Settings::GetNetPlayServer()
 {
   return m_server.get();
 }
 
-void Settings::ResetNetPlayServer(NetPlayServer* server)
+void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 {
   m_server.reset(server);
 }

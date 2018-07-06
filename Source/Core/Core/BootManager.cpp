@@ -334,20 +334,21 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
 
   if (NetPlay::IsNetPlayRunning())
   {
-    Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(g_NetPlaySettings));
-    StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
-    StartUp.bEnableCheats = g_NetPlaySettings.m_EnableCheats;
-    StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
-    StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
-    StartUp.bCopyWiiSaveNetplay = g_NetPlaySettings.m_CopyWiiSave;
-    StartUp.cpu_core = g_NetPlaySettings.m_CPUcore;
-    StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
-    StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
-    StartUp.m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
-    StartUp.m_OCEnable = g_NetPlaySettings.m_OCEnable;
-    StartUp.m_OCFactor = g_NetPlaySettings.m_OCFactor;
-    StartUp.m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
-    StartUp.m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
+    const NetPlay::NetSettings& netplay_settings = NetPlay::g_NetPlaySettings;
+    Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
+    StartUp.bCPUThread = netplay_settings.m_CPUthread;
+    StartUp.bEnableCheats = netplay_settings.m_EnableCheats;
+    StartUp.bDSPHLE = netplay_settings.m_DSPHLE;
+    StartUp.bEnableMemcardSdWriting = netplay_settings.m_WriteToMemcard;
+    StartUp.bCopyWiiSaveNetplay = netplay_settings.m_CopyWiiSave;
+    StartUp.cpu_core = netplay_settings.m_CPUcore;
+    StartUp.SelectedLanguage = netplay_settings.m_SelectedLanguage;
+    StartUp.bOverrideGCLanguage = netplay_settings.m_OverrideGCLanguage;
+    StartUp.m_DSPEnableJIT = netplay_settings.m_DSPEnableJIT;
+    StartUp.m_OCEnable = netplay_settings.m_OCEnable;
+    StartUp.m_OCFactor = netplay_settings.m_OCFactor;
+    StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
+    StartUp.m_EXIDevice[1] = netplay_settings.m_EXIDevice[1];
     config_cache.bSetEXIDevice[0] = true;
     config_cache.bSetEXIDevice[1] = true;
   }

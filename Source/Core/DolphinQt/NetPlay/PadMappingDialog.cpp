@@ -94,12 +94,13 @@ int PadMappingDialog::exec()
 
   return QDialog::exec();
 }
-PadMappingArray PadMappingDialog::GetGCPadArray()
+
+NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray()
 {
   return m_pad_mapping;
 }
 
-PadMappingArray PadMappingDialog::GetWiimoteArray()
+NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray()
 {
   return m_wii_mapping;
 }
