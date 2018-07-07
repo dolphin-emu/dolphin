@@ -31,6 +31,7 @@
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
@@ -291,9 +292,9 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 
 static void SetDefaultDisc()
 {
-  const SConfig& config = SConfig::GetInstance();
-  if (!config.m_strDefaultISO.empty())
-    SetDisc(DiscIO::CreateVolumeFromFilename(config.m_strDefaultISO));
+  const std::string default_iso = Config::Get(Config::MAIN_DEFAULT_ISO);
+  if (!default_iso.empty())
+    SetDisc(DiscIO::CreateVolumeFromFilename(default_iso));
 }
 
 static void CopyDefaultExceptionHandlers()

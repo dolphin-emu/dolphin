@@ -30,6 +30,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -595,7 +596,7 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     }
     else
     {
-      QString default_path = QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+      const QString default_path = QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, savestate_path);

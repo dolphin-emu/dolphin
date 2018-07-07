@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -150,14 +151,14 @@ void Settings::SetAutoRefreshEnabled(bool enabled)
 
 QString Settings::GetDefaultGame() const
 {
-  return QString::fromStdString(SConfig::GetInstance().m_strDefaultISO);
+  return QString::fromStdString(Config::Get(Config::MAIN_DEFAULT_ISO));
 }
 
 void Settings::SetDefaultGame(QString path)
 {
   if (GetDefaultGame() != path)
   {
-    SConfig::GetInstance().m_strDefaultISO = path.toStdString();
+    Config::SetBase(Config::MAIN_DEFAULT_ISO, path.toStdString());
     emit DefaultGameChanged(path);
   }
 }
