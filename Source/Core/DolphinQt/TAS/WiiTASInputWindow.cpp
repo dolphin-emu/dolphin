@@ -2,8 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinQt/TAS/WiiTASInputWindow.h"
-
 #include <cmath>
 
 #include <QCheckBox>
@@ -23,15 +21,14 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/TAS/IRWidget.h"
-#include "DolphinQt/TAS/Shared.h"
+#include "DolphinQt/TAS/WiiTASInputWindow.h"
 
 #include "InputCommon/InputConfig.h"
 
-WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent), m_num(num)
+WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
 {
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
-
   const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_F);
   const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_G);
 
@@ -41,12 +38,12 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
                                     ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   auto* x_layout = new QHBoxLayout;
-  m_ir_x_value = CreateSliderValuePair(this, x_layout, ir_max_x, ir_x_shortcut_key_sequence,
+  m_ir_x_value = CreateSliderValuePair(x_layout, ir_max_x, ir_x_shortcut_key_sequence,
                                        Qt::Horizontal, m_ir_box, true);
 
   auto* y_layout = new QVBoxLayout;
-  m_ir_y_value = CreateSliderValuePair(this, y_layout, ir_max_y, ir_y_shortcut_key_sequence,
-                                       Qt::Vertical, m_ir_box, true);
+  m_ir_y_value = CreateSliderValuePair(y_layout, ir_max_y, ir_y_shortcut_key_sequence, Qt::Vertical,
+                                       m_ir_box, true);
   m_ir_y_value->setMaximumWidth(60);
 
   auto* visual = new IRWidget(this);
@@ -71,15 +68,15 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   ir_layout->addLayout(visual_layout);
   m_ir_box->setLayout(ir_layout);
 
-  m_nunchuk_stick_box = CreateStickInputs(this, tr("Nunchuk Stick"), m_nunchuk_stick_x_value,
+  m_nunchuk_stick_box = CreateStickInputs(tr("Nunchuk Stick"), m_nunchuk_stick_x_value,
                                           m_nunchuk_stick_y_value, 255, 255, Qt::Key_X, Qt::Key_Y);
 
   m_classic_left_stick_box =
-      CreateStickInputs(this, tr("Left Stick"), m_classic_left_stick_x_value,
+      CreateStickInputs(tr("Left Stick"), m_classic_left_stick_x_value,
                         m_classic_left_stick_y_value, 63, 63, Qt::Key_F, Qt::Key_G);
 
   m_classic_right_stick_box =
-      CreateStickInputs(this, tr("Right Stick"), m_classic_right_stick_x_value,
+      CreateStickInputs(tr("Right Stick"), m_classic_right_stick_x_value,
                         m_classic_right_stick_y_value, 31, 31, Qt::Key_Q, Qt::Key_W);
 
   // Need to enforce the same minimum width because otherwise the different lengths in the labels
@@ -97,16 +94,20 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
   auto* remote_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("X"), m_remote_orientation_x_value, 1023, Qt::Key_Q,
+      CreateSliderValuePairLayout(tr("X"), m_remote_orientation_x_value, 1023, Qt::Key_Q,
                                   m_remote_orientation_box);
   auto* remote_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Y"), m_remote_orientation_y_value, 1023, Qt::Key_W,
+      CreateSliderValuePairLayout(tr("Y"), m_remote_orientation_y_value, 1023, Qt::Key_W,
                                   m_remote_orientation_box);
   auto* remote_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Z"), m_remote_orientation_z_value, 1023, Qt::Key_E,
+      CreateSliderValuePairLayout(tr("Z"), m_remote_orientation_z_value, 1023, Qt::Key_E,
                                   m_remote_orientation_box);
+
+  m_remote_orientation_x_value->setValue(512);
+  m_remote_orientation_y_value->setValue(512);
+  m_remote_orientation_z_value->setValue(616);
 
   auto* remote_orientation_layout = new QVBoxLayout;
   remote_orientation_layout->addLayout(remote_orientation_x_layout);
@@ -118,16 +119,20 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
 
   auto* nunchuk_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("X"), m_nunchuk_orientation_x_value, 1023, Qt::Key_I,
+      CreateSliderValuePairLayout(tr("X"), m_nunchuk_orientation_x_value, 1023, Qt::Key_I,
                                   m_nunchuk_orientation_box);
   auto* nunchuk_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Y"), m_nunchuk_orientation_y_value, 1023, Qt::Key_O,
+      CreateSliderValuePairLayout(tr("Y"), m_nunchuk_orientation_y_value, 1023, Qt::Key_O,
                                   m_nunchuk_orientation_box);
   auto* nunchuk_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(this, tr("Z"), m_nunchuk_orientation_z_value, 1023, Qt::Key_P,
+      CreateSliderValuePairLayout(tr("Z"), m_nunchuk_orientation_z_value, 1023, Qt::Key_P,
                                   m_nunchuk_orientation_box);
+
+  m_nunchuk_orientation_x_value->setValue(512);
+  m_nunchuk_orientation_y_value->setValue(512);
+  m_nunchuk_orientation_z_value->setValue(512);
 
   auto* nunchuk_orientation_layout = new QVBoxLayout;
   nunchuk_orientation_layout->addLayout(nunchuk_orientation_x_layout);
@@ -136,9 +141,9 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   m_nunchuk_orientation_box->setLayout(nunchuk_orientation_layout);
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
-  auto* l_trigger_layout = CreateSliderValuePairLayout(this, tr("Left"), m_left_trigger_value, 31,
-                                                       Qt::Key_N, m_triggers_box);
-  auto* r_trigger_layout = CreateSliderValuePairLayout(this, tr("Right"), m_right_trigger_value, 31,
+  auto* l_trigger_layout =
+      CreateSliderValuePairLayout(tr("Left"), m_left_trigger_value, 31, Qt::Key_N, m_triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), m_right_trigger_value, 31,
                                                        Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
@@ -241,6 +246,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   layout->addWidget(m_remote_buttons_box);
   layout->addWidget(m_nunchuk_buttons_box);
   layout->addWidget(m_classic_buttons_box);
+  layout->addWidget(m_use_controller);
   layout->setAlignment(m_nunchuk_buttons_box, Qt::AlignLeft);
 
   setLayout(layout);
@@ -312,15 +318,6 @@ void WiiTASInputWindow::UpdateExt(u8 ext)
   }
 }
 
-template <typename UX>
-static void SetButton(QCheckBox* check_box, UX* buttons, UX mask)
-{
-  if (check_box->isChecked())
-    *buttons |= mask;
-  else
-    *buttons &= ~mask;
-}
-
 void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rptf, int ext,
                                   wiimote_key key)
 {
@@ -336,18 +333,18 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
 
   if (m_remote_buttons_box->isVisible() && buttons_data)
   {
-    u16* buttons = &(reinterpret_cast<wm_buttons*>(buttons_data))->hex;
-    SetButton<u16>(m_a_button, buttons, WiimoteEmu::Wiimote::BUTTON_A);
-    SetButton<u16>(m_b_button, buttons, WiimoteEmu::Wiimote::BUTTON_B);
-    SetButton<u16>(m_1_button, buttons, WiimoteEmu::Wiimote::BUTTON_ONE);
-    SetButton<u16>(m_2_button, buttons, WiimoteEmu::Wiimote::BUTTON_TWO);
-    SetButton<u16>(m_plus_button, buttons, WiimoteEmu::Wiimote::BUTTON_PLUS);
-    SetButton<u16>(m_minus_button, buttons, WiimoteEmu::Wiimote::BUTTON_MINUS);
-    SetButton<u16>(m_home_button, buttons, WiimoteEmu::Wiimote::BUTTON_HOME);
-    SetButton<u16>(m_left_button, buttons, WiimoteEmu::Wiimote::PAD_LEFT);
-    SetButton<u16>(m_up_button, buttons, WiimoteEmu::Wiimote::PAD_UP);
-    SetButton<u16>(m_down_button, buttons, WiimoteEmu::Wiimote::PAD_DOWN);
-    SetButton<u16>(m_right_button, buttons, WiimoteEmu::Wiimote::PAD_RIGHT);
+    u16& buttons = (reinterpret_cast<wm_buttons*>(buttons_data))->hex;
+    GetButton<u16>(m_a_button, buttons, WiimoteEmu::Wiimote::BUTTON_A);
+    GetButton<u16>(m_b_button, buttons, WiimoteEmu::Wiimote::BUTTON_B);
+    GetButton<u16>(m_1_button, buttons, WiimoteEmu::Wiimote::BUTTON_ONE);
+    GetButton<u16>(m_2_button, buttons, WiimoteEmu::Wiimote::BUTTON_TWO);
+    GetButton<u16>(m_plus_button, buttons, WiimoteEmu::Wiimote::BUTTON_PLUS);
+    GetButton<u16>(m_minus_button, buttons, WiimoteEmu::Wiimote::BUTTON_MINUS);
+    GetButton<u16>(m_home_button, buttons, WiimoteEmu::Wiimote::BUTTON_HOME);
+    GetButton<u16>(m_left_button, buttons, WiimoteEmu::Wiimote::PAD_LEFT);
+    GetButton<u16>(m_up_button, buttons, WiimoteEmu::Wiimote::PAD_UP);
+    GetButton<u16>(m_down_button, buttons, WiimoteEmu::Wiimote::PAD_DOWN);
+    GetButton<u16>(m_right_button, buttons, WiimoteEmu::Wiimote::PAD_RIGHT);
   }
 
   if (m_remote_orientation_box->isVisible() && accel_data && buttons_data)
@@ -355,16 +352,24 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
     wm_accel& accel = *reinterpret_cast<wm_accel*>(accel_data);
     wm_buttons& buttons = *reinterpret_cast<wm_buttons*>(buttons_data);
 
-    accel.x = m_remote_orientation_x_value->value() >> 2;
-    accel.y = m_remote_orientation_y_value->value() >> 2;
-    accel.z = m_remote_orientation_z_value->value() >> 2;
+    u16 accel_x = (accel.x << 2) & (buttons.acc_x_lsb & 0b11);
+    u16 accel_y = (accel.y << 2) & ((buttons.acc_y_lsb & 0b1) << 1);
+    u16 accel_z = (accel.z << 2) & ((buttons.acc_z_lsb & 0b1) << 1);
 
-    buttons.acc_x_lsb = m_remote_orientation_x_value->value() & 0x3;
-    buttons.acc_y_lsb = m_remote_orientation_y_value->value() >> 1 & 0x1;
-    buttons.acc_z_lsb = m_remote_orientation_z_value->value() >> 1 & 0x1;
+    GetSpinBoxU16(m_remote_orientation_x_value, accel_x);
+    GetSpinBoxU16(m_remote_orientation_y_value, accel_y);
+    GetSpinBoxU16(m_remote_orientation_z_value, accel_z);
+
+    accel.x = accel_x >> 2;
+    accel.y = accel_y >> 2;
+    accel.z = accel_z >> 2;
+
+    buttons.acc_x_lsb = accel_x & 0b11;
+    buttons.acc_y_lsb = (accel_y >> 1) & 0b1;
+    buttons.acc_z_lsb = (accel_z >> 1) & 0b1;
   }
 
-  if (m_ir_box->isVisible() && ir_data)
+  if (m_ir_box->isVisible() && ir_data && !m_use_controller->isChecked())
   {
     u16 y = m_ir_y_value->value();
     std::array<u16, 4> x;
@@ -429,19 +434,30 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
   if (ext_data && m_nunchuk_stick_box->isVisible())
   {
     wm_nc& nunchuk = *reinterpret_cast<wm_nc*>(ext_data);
-    nunchuk.jx = m_nunchuk_stick_x_value->value();
-    nunchuk.jy = m_nunchuk_stick_y_value->value();
 
-    nunchuk.ax = m_nunchuk_orientation_x_value->value() >> 2;
-    nunchuk.bt.acc_x_lsb = m_nunchuk_orientation_x_value->value() & 0x3;
-    nunchuk.ay = m_nunchuk_orientation_y_value->value() >> 2;
-    nunchuk.bt.acc_y_lsb = m_nunchuk_orientation_y_value->value() & 0x3;
-    nunchuk.az = m_nunchuk_orientation_z_value->value() >> 2;
-    nunchuk.bt.acc_z_lsb = m_nunchuk_orientation_z_value->value() & 0x3;
+    GetSpinBoxU8(m_nunchuk_stick_x_value, nunchuk.jx);
+    GetSpinBoxU8(m_nunchuk_stick_y_value, nunchuk.jy);
 
-    SetButton<u8>(m_c_button, &nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_C);
-    SetButton<u8>(m_z_button, &nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
-    nunchuk.bt.hex ^= 0x3;
+    u16 accel_x = nunchuk.ax << 2 & (nunchuk.bt.acc_x_lsb & 0b11);
+    u16 accel_y = nunchuk.ay << 2 & (nunchuk.bt.acc_y_lsb & 0b11);
+    u16 accel_z = nunchuk.az << 2 & (nunchuk.bt.acc_z_lsb & 0b11);
+
+    GetSpinBoxU16(m_nunchuk_orientation_x_value, accel_x);
+    GetSpinBoxU16(m_nunchuk_orientation_y_value, accel_y);
+    GetSpinBoxU16(m_nunchuk_orientation_z_value, accel_z);
+
+    nunchuk.ax = accel_x >> 2;
+    nunchuk.ay = accel_y >> 2;
+    nunchuk.az = accel_z >> 2;
+
+    nunchuk.bt.acc_x_lsb = accel_x & 0b11;
+    nunchuk.bt.acc_y_lsb = accel_y & 0b11;
+    nunchuk.bt.acc_z_lsb = accel_z & 0b11;
+
+    nunchuk.bt.hex ^= 0b11;
+    GetButton<u8>(m_c_button, nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_C);
+    GetButton<u8>(m_z_button, nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
+    nunchuk.bt.hex ^= 0b11;
 
     WiimoteEncrypt(&key, reinterpret_cast<u8*>(&nunchuk), 0, sizeof(wm_nc));
   }
@@ -450,36 +466,51 @@ void WiiTASInputWindow::GetValues(u8* report_data, WiimoteEmu::ReportFeatures rp
   {
     wm_classic_extension& cc = *reinterpret_cast<wm_classic_extension*>(ext_data);
     WiimoteDecrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
-    cc.bt.hex = 0;
 
-    SetButton<u16>(m_classic_a_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_A);
-    SetButton<u16>(m_classic_b_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_B);
-    SetButton<u16>(m_classic_x_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_X);
-    SetButton<u16>(m_classic_y_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_Y);
-    SetButton<u16>(m_classic_plus_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_PLUS);
-    SetButton<u16>(m_classic_minus_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_MINUS);
-    SetButton<u16>(m_classic_l_button, &cc.bt.hex, WiimoteEmu::Classic::TRIGGER_L);
-    SetButton<u16>(m_classic_r_button, &cc.bt.hex, WiimoteEmu::Classic::TRIGGER_R);
-    SetButton<u16>(m_classic_zl_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_ZL);
-    SetButton<u16>(m_classic_zr_button, &cc.bt.hex, WiimoteEmu::Classic::BUTTON_ZR);
-    SetButton<u16>(m_classic_left_button, &cc.bt.hex, WiimoteEmu::Classic::PAD_LEFT);
-    SetButton<u16>(m_classic_up_button, &cc.bt.hex, WiimoteEmu::Classic::PAD_UP);
-    SetButton<u16>(m_classic_down_button, &cc.bt.hex, WiimoteEmu::Classic::PAD_DOWN);
-    SetButton<u16>(m_classic_right_button, &cc.bt.hex, WiimoteEmu::Classic::PAD_RIGHT);
+    cc.bt.hex ^= 0xFFFF;
+    GetButton<u16>(m_classic_a_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_A);
+    GetButton<u16>(m_classic_b_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_B);
+    GetButton<u16>(m_classic_x_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_X);
+    GetButton<u16>(m_classic_y_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_Y);
+    GetButton<u16>(m_classic_plus_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_PLUS);
+    GetButton<u16>(m_classic_minus_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_MINUS);
+    GetButton<u16>(m_classic_l_button, cc.bt.hex, WiimoteEmu::Classic::TRIGGER_L);
+    GetButton<u16>(m_classic_r_button, cc.bt.hex, WiimoteEmu::Classic::TRIGGER_R);
+    GetButton<u16>(m_classic_zl_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_ZL);
+    GetButton<u16>(m_classic_zr_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_ZR);
+    GetButton<u16>(m_classic_home_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_HOME);
+    GetButton<u16>(m_classic_left_button, cc.bt.hex, WiimoteEmu::Classic::PAD_LEFT);
+    GetButton<u16>(m_classic_up_button, cc.bt.hex, WiimoteEmu::Classic::PAD_UP);
+    GetButton<u16>(m_classic_down_button, cc.bt.hex, WiimoteEmu::Classic::PAD_DOWN);
+    GetButton<u16>(m_classic_right_button, cc.bt.hex, WiimoteEmu::Classic::PAD_RIGHT);
     cc.bt.hex ^= 0xFFFF;
 
-    u16 rx = m_classic_right_stick_x_value->value();
-    cc.rx1 = rx & 0x1;
-    cc.rx2 = (rx >> 1) & 0x3;
-    cc.rx3 = (rx >> 3) & 0x3;
-    cc.ry = m_classic_right_stick_y_value->value();
+    u8 rx = (cc.rx1 & 0b1) & ((cc.rx2 & 0b11) << 1) & ((cc.rx3 & 0b11) << 3);
+    GetSpinBoxU8(m_classic_right_stick_x_value, rx);
+    cc.rx1 = rx & 0b1;
+    cc.rx2 = (rx >> 1) & 0b11;
+    cc.rx3 = (rx >> 3) & 0b11;
 
-    cc.regular_data.lx = m_classic_left_stick_x_value->value();
-    cc.regular_data.ly = m_classic_left_stick_y_value->value();
+    u8 ry = cc.ry;
+    GetSpinBoxU8(m_classic_right_stick_y_value, ry);
+    cc.ry = ry;
 
-    cc.rt = m_right_trigger_value->value();
-    cc.lt1 = m_left_trigger_value->value() & 0x7;
-    cc.lt2 = (m_left_trigger_value->value() >> 3) & 0x3;
+    u8 lx = cc.regular_data.lx;
+    GetSpinBoxU8(m_classic_left_stick_x_value, lx);
+    cc.regular_data.lx = lx;
+
+    u8 ly = cc.regular_data.ly;
+    GetSpinBoxU8(m_classic_left_stick_y_value, ly);
+    cc.regular_data.ly = ly;
+
+    u8 rt = cc.rt;
+    GetSpinBoxU8(m_right_trigger_value, rt);
+    cc.rt = rt;
+
+    u8 lt = (cc.lt1 & 0b111) & (cc.lt2 >> 3);
+    GetSpinBoxU8(m_left_trigger_value, lt);
+    cc.lt1 = lt & 0b111;
+    cc.lt2 = (lt >> 3) & 0b11;
 
     WiimoteEncrypt(&key, reinterpret_cast<u8*>(&cc), 0, sizeof(wm_classic_extension));
   }

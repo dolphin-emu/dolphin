@@ -63,7 +63,7 @@ add_executable(dolphin-emu
   Config/Mapping/MappingCommon.cpp
   Config/Mapping/MappingIndicator.cpp
   Config/Mapping/MappingNumeric.cpp
-	Config/Mapping/MappingRadio.cpp
+  Config/Mapping/MappingRadio.cpp
   Config/Mapping/MappingWidget.cpp
   Config/Mapping/MappingWindow.cpp
   Config/Mapping/WiimoteEmuExtension.cpp
@@ -113,7 +113,7 @@ add_executable(dolphin-emu
   Settings/USBDeviceAddToWhitelistDialog.cpp
   TAS/GCTASInputWindow.cpp
   TAS/WiiTASInputWindow.cpp
-  TAS/Shared.cpp
+  TAS/TASInputWindow.cpp
   TAS/StickWidget.cpp
   TAS/IRWidget.cpp
   Updater.cpp
