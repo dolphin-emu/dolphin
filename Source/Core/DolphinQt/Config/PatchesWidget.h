@@ -48,7 +48,6 @@ private:
   QPushButton* m_remove_button;
 
   std::vector<PatchEngine::Patch> m_patches;
-  const UICommon::GameFile& m_game;
   std::string m_game_id;
   u16 m_game_revision;
 };

@@ -20,7 +20,7 @@
 #include "UICommon/GameFile.h"
 
 PatchesWidget::PatchesWidget(const UICommon::GameFile& game)
-    : m_game(game), m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
+    : m_game_id(game.GetGameID()), m_game_revision(game.GetRevision())
 {
   IniFile game_ini_local;
   game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
