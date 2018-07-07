@@ -9,6 +9,7 @@
 
 #include "Common/Config/Config.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 
 namespace ConfigLoaders
@@ -25,6 +26,8 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
     return true;
 
   const static std::vector<Config::ConfigLocation> s_setting_saveable{
+      Config::MAIN_DEFAULT_ISO.location,
+
       // Graphics.Hardware
 
       Config::GFX_VSYNC.location,
