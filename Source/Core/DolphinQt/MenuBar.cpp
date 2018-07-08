@@ -121,7 +121,8 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   for (QAction* action :
        {m_jit_off, m_jit_loadstore_off, m_jit_loadstore_lbzx_off, m_jit_loadstore_lxz_off,
         m_jit_loadstore_lwz_off, m_jit_loadstore_floating_off, m_jit_loadstore_paired_off,
-        m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off})
+        m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off,
+        m_jit_branch_off})
   {
     action->setEnabled(running && !playing);
   }
@@ -846,6 +847,14 @@ void MenuBar::AddJITMenu()
   m_jit_systemregisters_off->setChecked(SConfig::GetInstance().bJITSystemRegistersOff);
   connect(m_jit_systemregisters_off, &QAction::toggled, [this](bool enabled) {
     SConfig::GetInstance().bJITSystemRegistersOff = enabled;
+    ClearCache();
+  });
+
+  m_jit_branch_off = m_jit->addAction(tr("JIT Branch Off"));
+  m_jit_branch_off->setCheckable(true);
+  m_jit_branch_off->setChecked(SConfig::GetInstance().bJITBranchOff);
+  connect(m_jit_branch_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITBranchOff = enabled;
     ClearCache();
   });
 }
