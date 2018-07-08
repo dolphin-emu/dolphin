@@ -3,6 +3,8 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
+    <string name="host">app</string>
+    <string name="scheme">dolphinemu</string>
 
     <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
             is made that they are placed together so that we can access them sequentially in a loop. -->
@@ -281,4 +283,7 @@
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
+
+    <!-- Extra Leanback Homescreen Channels-->
+    <string name="homescreen_favorites">Favorites</string>
 </resources>
