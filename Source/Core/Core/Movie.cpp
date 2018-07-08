@@ -851,6 +851,7 @@ void ReadHeader()
   {
     s_bSaveConfig = true;
     Config::AddLayer(ConfigLoaders::GenerateMovieConfigLoader(&tmpHeader));
+    SConfig::GetInstance().bJITFollowBranch = tmpHeader.bFollowBranch;
     s_bClearSave = tmpHeader.bClearSave;
     s_memcards = tmpHeader.memcards;
     s_bongos = tmpHeader.bongos;
@@ -1307,6 +1308,7 @@ void SaveRecording(const std::string& filename)
   header.filetype[3] = 0x1A;
   strncpy(header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6);
   header.bWii = SConfig::GetInstance().bWii;
+  header.bFollowBranch = SConfig::GetInstance().bJITFollowBranch;
   header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
 
   header.bFromSaveState = s_bRecordingFromSaveState;

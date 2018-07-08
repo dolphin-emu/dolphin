@@ -240,6 +240,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
+
+    core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
