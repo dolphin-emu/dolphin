@@ -110,6 +110,7 @@
     <QtMoc Include="FIFO\FIFOPlayerWindow.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
     <QtMoc Include="TAS\WiiTASInputWindow.h" />
+    <QtMoc Include="TAS\TASInputWindow.h" />
     <QtMoc Include="TAS\StickWidget.h" />
     <QtMoc Include="TAS\IRWidget.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />
@@ -246,6 +247,7 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SoftwareRendererWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)StickWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)TASInputWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)USBDeviceAddToWhitelistDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Updater.cpp" />
@@ -318,9 +320,9 @@
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
+    <ClCompile Include="TAS\TASInputWindow.cpp" />
     <ClCompile Include="TAS\StickWidget.cpp" />
     <ClCompile Include="TAS\IRWidget.cpp" />
-    <ClCompile Include="TAS\Shared.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
     <ClCompile Include="Debugger\NewBreakpointDialog.cpp" />
     <ClCompile Include="Debugger\RegisterColumn.cpp" />
@@ -377,7 +379,6 @@
     <ClInclude Include="QtUtils\RunOnObject.h" />
     <ClInclude Include="QtUtils\WinIconHelper.h" />
     <ClInclude Include="Resources.h" />
-    <ClInclude Include="TAS\Shared.h" />
     <ClInclude Include="Translation.h" />
     <ClInclude Include="WiiUpdate.h" />
   </ItemGroup>

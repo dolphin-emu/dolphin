@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <QDialog>
-
-#include "Common/CommonTypes.h"
+#include "DolphinQt/TAS/TASInputWindow.h"
 
 namespace WiimoteEmu
 {
@@ -17,7 +15,7 @@ class QGroupBox;
 class QSpinBox;
 struct wiimote_key;
 
-class WiiTASInputWindow : public QDialog
+class WiiTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:

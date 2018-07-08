@@ -12,35 +12,32 @@
 
 #include "Common/CommonTypes.h"
 
-#include "DolphinQt/TAS/Shared.h"
-
 #include "InputCommon/GCPadStatus.h"
 
-GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
+GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent)
 {
   setWindowTitle(tr("GameCube TAS Input %1").arg(num + 1));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  auto* main_stick_box = CreateStickInputs(this, tr("Main Stick"), m_x_main_stick_value,
-                                           m_y_main_stick_value, 255, 255, Qt::Key_F, Qt::Key_G);
-  auto* c_stick_box = CreateStickInputs(this, tr("C Stick"), m_x_c_stick_value, m_y_c_stick_value,
-                                        255, 255, Qt::Key_H, Qt::Key_J);
+  m_main_stick_box = CreateStickInputs(tr("Main Stick"), m_x_main_stick_value, m_y_main_stick_value,
+                                       255, 255, Qt::Key_F, Qt::Key_G);
+  m_c_stick_box = CreateStickInputs(tr("C Stick"), m_x_c_stick_value, m_y_c_stick_value, 255, 255,
+                                    Qt::Key_H, Qt::Key_J);
 
   auto* top_layout = new QHBoxLayout;
-  top_layout->addWidget(main_stick_box);
-  top_layout->addWidget(c_stick_box);
+  top_layout->addWidget(m_main_stick_box);
+  top_layout->addWidget(m_c_stick_box);
 
-  auto* triggers_box = new QGroupBox(tr("Triggers"));
+  m_triggers_box = new QGroupBox(tr("Triggers"));
 
-  auto* l_trigger_layout = CreateSliderValuePairLayout(this, tr("Left"), m_l_trigger_value, 255,
-                                                       Qt::Key_N, triggers_box);
-  auto* r_trigger_layout = CreateSliderValuePairLayout(this, tr("Right"), m_r_trigger_value, 255,
-                                                       Qt::Key_M, triggers_box);
+  auto* l_trigger_layout =
+      CreateSliderValuePairLayout(tr("Left"), m_l_trigger_value, 255, Qt::Key_N, m_triggers_box);
+  auto* r_trigger_layout =
+      CreateSliderValuePairLayout(tr("Right"), m_r_trigger_value, 255, Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
   triggers_layout->addLayout(l_trigger_layout);
   triggers_layout->addLayout(r_trigger_layout);
-  triggers_box->setLayout(triggers_layout);
+  m_triggers_box->setLayout(triggers_layout);
 
   m_a_button = new QCheckBox(QStringLiteral("&A"));
   m_b_button = new QCheckBox(QStringLiteral("&B"));
@@ -76,23 +73,16 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : QDialog(parent)
   buttons_layout->addLayout(buttons_layout1);
   buttons_layout->addLayout(buttons_layout2);
 
-  auto* buttons_box = new QGroupBox(tr("Buttons"));
-  buttons_box->setLayout(buttons_layout);
+  m_buttons_box = new QGroupBox(tr("Buttons"));
+  m_buttons_box->setLayout(buttons_layout);
 
   auto* layout = new QVBoxLayout;
   layout->addLayout(top_layout);
-  layout->addWidget(triggers_box);
-  layout->addWidget(buttons_box);
+  layout->addWidget(m_triggers_box);
+  layout->addWidget(m_buttons_box);
+  layout->addWidget(m_use_controller);
 
   setLayout(layout);
-}
-
-static void SetButton(QCheckBox* button, GCPadStatus* pad, u16 mask)
-{
-  if (button->isChecked())
-    pad->button |= mask;
-  else
-    pad->button &= ~mask;
 }
 
 void GCTASInputWindow::GetValues(GCPadStatus* pad)
@@ -100,18 +90,18 @@ void GCTASInputWindow::GetValues(GCPadStatus* pad)
   if (!isVisible())
     return;
 
-  SetButton(m_a_button, pad, PAD_BUTTON_A);
-  SetButton(m_b_button, pad, PAD_BUTTON_B);
-  SetButton(m_x_button, pad, PAD_BUTTON_X);
-  SetButton(m_y_button, pad, PAD_BUTTON_Y);
-  SetButton(m_z_button, pad, PAD_TRIGGER_Z);
-  SetButton(m_l_button, pad, PAD_TRIGGER_L);
-  SetButton(m_r_button, pad, PAD_TRIGGER_R);
-  SetButton(m_left_button, pad, PAD_BUTTON_LEFT);
-  SetButton(m_up_button, pad, PAD_BUTTON_UP);
-  SetButton(m_down_button, pad, PAD_BUTTON_DOWN);
-  SetButton(m_right_button, pad, PAD_BUTTON_RIGHT);
-  SetButton(m_start_button, pad, PAD_BUTTON_START);
+  GetButton<u16>(m_a_button, pad->button, PAD_BUTTON_A);
+  GetButton<u16>(m_b_button, pad->button, PAD_BUTTON_B);
+  GetButton<u16>(m_x_button, pad->button, PAD_BUTTON_X);
+  GetButton<u16>(m_y_button, pad->button, PAD_BUTTON_Y);
+  GetButton<u16>(m_z_button, pad->button, PAD_TRIGGER_Z);
+  GetButton<u16>(m_l_button, pad->button, PAD_TRIGGER_L);
+  GetButton<u16>(m_r_button, pad->button, PAD_TRIGGER_R);
+  GetButton<u16>(m_left_button, pad->button, PAD_BUTTON_LEFT);
+  GetButton<u16>(m_up_button, pad->button, PAD_BUTTON_UP);
+  GetButton<u16>(m_down_button, pad->button, PAD_BUTTON_DOWN);
+  GetButton<u16>(m_right_button, pad->button, PAD_BUTTON_RIGHT);
+  GetButton<u16>(m_start_button, pad->button, PAD_BUTTON_START);
 
   if (m_a_button->isChecked())
     pad->analogA = 0xFF;
@@ -123,11 +113,12 @@ void GCTASInputWindow::GetValues(GCPadStatus* pad)
   else
     pad->analogB = 0x00;
 
-  pad->triggerLeft = m_l_trigger_value->value();
-  pad->triggerRight = m_r_trigger_value->value();
+  GetSpinBoxU8(m_l_trigger_value, pad->triggerLeft);
+  GetSpinBoxU8(m_r_trigger_value, pad->triggerRight);
 
-  pad->stickX = m_x_main_stick_value->value();
-  pad->stickY = m_y_main_stick_value->value();
-  pad->substickX = m_x_c_stick_value->value();
-  pad->substickY = m_y_c_stick_value->value();
+  GetSpinBoxU8(m_x_main_stick_value, pad->stickX);
+  GetSpinBoxU8(m_y_main_stick_value, pad->stickY);
+
+  GetSpinBoxU8(m_x_c_stick_value, pad->substickX);
+  GetSpinBoxU8(m_y_c_stick_value, pad->substickY);
 }

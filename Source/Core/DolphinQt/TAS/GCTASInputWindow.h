@@ -4,15 +4,14 @@
 
 #pragma once
 
-#include <QDialog>
-
-#include "Common/CommonTypes.h"
+#include "DolphinQt/TAS/TASInputWindow.h"
 
 class QCheckBox;
+class QGroupBox;
 class QSpinBox;
 struct GCPadStatus;
 
-class GCTASInputWindow : public QDialog
+class GCTASInputWindow : public TASInputWindow
 {
   Q_OBJECT
 public:
@@ -38,4 +37,8 @@ private:
   QSpinBox* m_y_main_stick_value;
   QSpinBox* m_x_c_stick_value;
   QSpinBox* m_y_c_stick_value;
+  QGroupBox* m_main_stick_box;
+  QGroupBox* m_c_stick_box;
+  QGroupBox* m_triggers_box;
+  QGroupBox* m_buttons_box;
 };
