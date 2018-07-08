@@ -31,9 +31,7 @@
 #include "Core/IOS/Device.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE::Device
 {
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
@@ -56,8 +54,6 @@ static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
          descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH;
 }
 
-namespace Device
-{
 BluetoothReal::BluetoothReal(Kernel& ios, const std::string& device_name)
     : BluetoothBase(ios, device_name)
 {
@@ -360,15 +356,17 @@ void BluetoothReal::TriggerSyncButtonHeldEvent()
 void BluetoothReal::WaitForHCICommandComplete(const u16 opcode)
 {
   int actual_length;
-  std::vector<u8> buffer(1024);
+  SHCIEventCommand packet;
   // Only try 100 transfers at most, to avoid being stuck in an infinite loop
   for (int tries = 0; tries < 100; ++tries)
   {
-    if (libusb_interrupt_transfer(m_handle, HCI_EVENT, buffer.data(),
-                                  static_cast<int>(buffer.size()), &actual_length, 20) == 0 &&
-        reinterpret_cast<hci_event_hdr_t*>(buffer.data())->event == HCI_EVENT_COMMAND_COMPL &&
-        reinterpret_cast<SHCIEventCommand*>(buffer.data())->Opcode == opcode)
+    const int ret = libusb_interrupt_transfer(m_handle, HCI_EVENT, reinterpret_cast<u8*>(&packet),
+                                              sizeof(packet), &actual_length, 20);
+    if (ret == 0 && actual_length == sizeof(packet) &&
+        packet.EventType == HCI_EVENT_COMMAND_COMPL && packet.Opcode == opcode)
+    {
       break;
+    }
   }
 }
 
@@ -385,18 +383,19 @@ void BluetoothReal::SendHCIResetCommand()
 void BluetoothReal::SendHCIDeleteLinkKeyCommand()
 {
   const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
-  std::vector<u8> packet(sizeof(hci_cmd_hdr_t) + sizeof(hci_delete_stored_link_key_cp));
+  struct Payload
+  {
+    hci_cmd_hdr_t header;
+    hci_delete_stored_link_key_cp command;
+  };
+  Payload payload;
+  payload.header.opcode = HCI_CMD_DELETE_STORED_LINK_KEY;
+  payload.header.length = sizeof(payload.command);
+  payload.command.bdaddr = {};
+  payload.command.delete_all = true;
 
-  auto* header = reinterpret_cast<hci_cmd_hdr_t*>(packet.data());
-  header->opcode = HCI_CMD_DELETE_STORED_LINK_KEY;
-  header->length = sizeof(hci_delete_stored_link_key_cp);
-  auto* cmd =
-      reinterpret_cast<hci_delete_stored_link_key_cp*>(packet.data() + sizeof(hci_cmd_hdr_t));
-  cmd->bdaddr = {};
-  cmd->delete_all = true;
-
-  libusb_control_transfer(m_handle, type, 0, 0, 0, packet.data(), static_cast<u16>(packet.size()),
-                          TIMEOUT);
+  libusb_control_transfer(m_handle, type, 0, 0, 0, reinterpret_cast<u8*>(&payload),
+                          static_cast<u16>(sizeof(payload)), TIMEOUT);
 }
 
 bool BluetoothReal::SendHCIStoreLinkKeyCommand()
@@ -411,13 +410,14 @@ bool BluetoothReal::SendHCIStoreLinkKeyCommand()
       (sizeof(bdaddr_t) + sizeof(linkkey_t)) * static_cast<u8>(m_link_keys.size());
   std::vector<u8> packet(sizeof(hci_cmd_hdr_t) + payload_size);
 
-  auto* header = reinterpret_cast<hci_cmd_hdr_t*>(packet.data());
-  header->opcode = HCI_CMD_WRITE_STORED_LINK_KEY;
-  header->length = payload_size;
+  hci_cmd_hdr_t header{};
+  header.opcode = HCI_CMD_WRITE_STORED_LINK_KEY;
+  header.length = payload_size;
+  std::memcpy(packet.data(), &header, sizeof(header));
 
-  auto* cmd =
-      reinterpret_cast<hci_write_stored_link_key_cp*>(packet.data() + sizeof(hci_cmd_hdr_t));
-  cmd->num_keys_write = static_cast<u8>(m_link_keys.size());
+  hci_write_stored_link_key_cp command{};
+  command.num_keys_write = static_cast<u8>(m_link_keys.size());
+  std::memcpy(packet.data() + sizeof(hci_cmd_hdr_t), &command, sizeof(command));
 
   // This is really ugly, but necessary because of the HCI command structure:
   //   u8 num_keys;
@@ -518,9 +518,17 @@ void BluetoothReal::LoadLinkKeys()
     if (index == std::string::npos)
       continue;
 
-    bdaddr_t address;
-    Common::StringToMacAddress(pair.substr(0, index), address.data());
-    std::reverse(address.begin(), address.end());
+    const std::string address_string = pair.substr(0, index);
+    std::optional<bdaddr_t> address = Common::StringToMacAddress(address_string);
+    if (!address)
+    {
+      ERROR_LOG(IOS_WIIMOTE, "Malformed MAC address (%s). Skipping loading of current link key.",
+                address_string.c_str());
+      continue;
+    }
+
+    auto& mac = address.value();
+    std::reverse(mac.begin(), mac.end());
 
     const std::string& key_string = pair.substr(index + 1);
     linkkey_t key{};
@@ -532,7 +540,7 @@ void BluetoothReal::LoadLinkKeys()
       key[pos++] = value;
     }
 
-    m_link_keys[address] = key;
+    m_link_keys[mac] = key;
   }
 }
 
@@ -544,7 +552,7 @@ void BluetoothReal::SaveLinkKeys()
     bdaddr_t address;
     // Reverse the address so that it is stored in the correct order in the config file
     std::reverse_copy(entry.first.begin(), entry.first.end(), address.begin());
-    oss << Common::MacAddressToString(address.data());
+    oss << Common::MacAddressToString(address);
     oss << '=';
     oss << std::hex;
     for (const u16& data : entry.second)
@@ -664,21 +672,21 @@ void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
 
   if (tr->status == LIBUSB_TRANSFER_COMPLETED && tr->endpoint == HCI_EVENT)
   {
-    const auto* event = reinterpret_cast<hci_event_hdr_t*>(tr->buffer);
-    if (event->event == HCI_EVENT_LINK_KEY_NOTIFICATION)
+    const u8 event = tr->buffer[0];
+    if (event == HCI_EVENT_LINK_KEY_NOTIFICATION)
     {
-      const auto* notification =
-          reinterpret_cast<hci_link_key_notification_ep*>(tr->buffer + sizeof(hci_event_hdr_t));
-
+      hci_link_key_notification_ep notification;
+      std::memcpy(&notification, tr->buffer + sizeof(hci_event_hdr_t), sizeof(notification));
       linkkey_t key;
-      std::copy(std::begin(notification->key), std::end(notification->key), std::begin(key));
-      m_link_keys[notification->bdaddr] = key;
+      std::copy(std::begin(notification.key), std::end(notification.key), std::begin(key));
+      m_link_keys[notification.bdaddr] = key;
     }
-    else if (event->event == HCI_EVENT_COMMAND_COMPL &&
-             reinterpret_cast<hci_command_compl_ep*>(tr->buffer + sizeof(*event))->opcode ==
-                 HCI_CMD_RESET)
+    else if (event == HCI_EVENT_COMMAND_COMPL)
     {
-      m_need_reset_keys.Set();
+      hci_command_compl_ep complete_event;
+      std::memcpy(&complete_event, tr->buffer + sizeof(hci_event_hdr_t), sizeof(complete_event));
+      if (complete_event.opcode == HCI_CMD_RESET)
+        m_need_reset_keys.Set();
     }
   }
 
@@ -688,6 +696,4 @@ void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
                         CoreTiming::FromThread::NON_CPU);
   m_current_transfers.erase(tr);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

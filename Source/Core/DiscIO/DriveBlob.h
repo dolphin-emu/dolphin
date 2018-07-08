@@ -26,6 +26,7 @@ public:
   BlobType GetBlobType() const override { return BlobType::DRIVE; }
   u64 GetDataSize() const override { return m_size; }
   u64 GetRawSize() const override { return m_size; }
+
 private:
   DriveReader(const std::string& drive);
   bool GetBlock(u64 block_num, u8* out_ptr) override;

@@ -20,8 +20,4 @@ target_link_libraries(videosoftware
 PUBLIC
   common
   videocommon
-
-PRIVATE
-  SOIL
-  ${X11_LIBRARIES}
 )

@@ -21,6 +21,8 @@
 ** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
 */
 
+#pragma once
+
 #define GL_FLOAT                          0x1406
 #define GL_FLOAT_VEC2                     0x8B50
 #define GL_FLOAT_VEC3                     0x8B51
@@ -76,6 +78,24 @@
 #define GL_DOUBLE_MAT4x2                  0x8F4D
 #define GL_DOUBLE_MAT4x3                  0x8F4E
 
+#ifdef AMD_EXTENSIONS
+// Those constants are borrowed from extension NV_gpu_shader5
+#define GL_FLOAT16_NV                     0x8FF8
+#define GL_FLOAT16_VEC2_NV                0x8FF9
+#define GL_FLOAT16_VEC3_NV                0x8FFA
+#define GL_FLOAT16_VEC4_NV                0x8FFB
+
+#define GL_FLOAT16_MAT2_AMD               0x91C5
+#define GL_FLOAT16_MAT3_AMD               0x91C6
+#define GL_FLOAT16_MAT4_AMD               0x91C7
+#define GL_FLOAT16_MAT2x3_AMD             0x91C8
+#define GL_FLOAT16_MAT2x4_AMD             0x91C9
+#define GL_FLOAT16_MAT3x2_AMD             0x91CA
+#define GL_FLOAT16_MAT3x4_AMD             0x91CB
+#define GL_FLOAT16_MAT4x2_AMD             0x91CC
+#define GL_FLOAT16_MAT4x3_AMD             0x91CD
+#endif
+
 #define GL_SAMPLER_1D                     0x8B5D
 #define GL_SAMPLER_2D                     0x8B5E
 #define GL_SAMPLER_3D                     0x8B5F
@@ -96,6 +116,40 @@
 #define GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW  0x900D
 #define GL_SAMPLER_CUBE_MAP_ARRAY_ARB     0x900C
 #define GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW_ARB 0x900D
+
+#ifdef AMD_EXTENSIONS
+#define GL_FLOAT16_SAMPLER_1D_AMD                       0x91CE
+#define GL_FLOAT16_SAMPLER_2D_AMD                       0x91CF
+#define GL_FLOAT16_SAMPLER_3D_AMD                       0x91D0
+#define GL_FLOAT16_SAMPLER_CUBE_AMD                     0x91D1
+#define GL_FLOAT16_SAMPLER_2D_RECT_AMD                  0x91D2
+#define GL_FLOAT16_SAMPLER_1D_ARRAY_AMD                 0x91D3
+#define GL_FLOAT16_SAMPLER_2D_ARRAY_AMD                 0x91D4
+#define GL_FLOAT16_SAMPLER_CUBE_MAP_ARRAY_AMD           0x91D5
+#define GL_FLOAT16_SAMPLER_BUFFER_AMD                   0x91D6
+#define GL_FLOAT16_SAMPLER_2D_MULTISAMPLE_AMD           0x91D7
+#define GL_FLOAT16_SAMPLER_2D_MULTISAMPLE_ARRAY_AMD     0x91D8
+
+#define GL_FLOAT16_SAMPLER_1D_SHADOW_AMD                0x91D9
+#define GL_FLOAT16_SAMPLER_2D_SHADOW_AMD                0x91DA
+#define GL_FLOAT16_SAMPLER_2D_RECT_SHADOW_AMD           0x91DB
+#define GL_FLOAT16_SAMPLER_1D_ARRAY_SHADOW_AMD          0x91DC
+#define GL_FLOAT16_SAMPLER_2D_ARRAY_SHADOW_AMD          0x91DD
+#define GL_FLOAT16_SAMPLER_CUBE_SHADOW_AMD              0x91DE
+#define GL_FLOAT16_SAMPLER_CUBE_MAP_ARRAY_SHADOW_AMD    0x91DF
+
+#define GL_FLOAT16_IMAGE_1D_AMD                         0x91E0
+#define GL_FLOAT16_IMAGE_2D_AMD                         0x91E1
+#define GL_FLOAT16_IMAGE_3D_AMD                         0x91E2
+#define GL_FLOAT16_IMAGE_2D_RECT_AMD                    0x91E3
+#define GL_FLOAT16_IMAGE_CUBE_AMD                       0x91E4
+#define GL_FLOAT16_IMAGE_1D_ARRAY_AMD                   0x91E5
+#define GL_FLOAT16_IMAGE_2D_ARRAY_AMD                   0x91E6
+#define GL_FLOAT16_IMAGE_CUBE_MAP_ARRAY_AMD             0x91E7
+#define GL_FLOAT16_IMAGE_BUFFER_AMD                     0x91E8
+#define GL_FLOAT16_IMAGE_2D_MULTISAMPLE_AMD             0x91E9
+#define GL_FLOAT16_IMAGE_2D_MULTISAMPLE_ARRAY_AMD       0x91EA
+#endif
 
 #define GL_INT_SAMPLER_1D                 0x8DC9
 #define GL_INT_SAMPLER_2D                 0x8DCA

@@ -74,7 +74,7 @@ void VideoBackendBase::Video_ExitLoop()
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
+void VideoBackendBase::Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                                         u64 ticks)
 {
   if (m_initialized && g_renderer && !g_ActiveConfig.bImmediateXFB)
@@ -85,15 +85,15 @@ void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, 
     e.time = ticks;
     e.type = AsyncRequests::Event::SWAP_EVENT;
 
-    e.swap_event.xfbAddr = xfbAddr;
-    e.swap_event.fbWidth = fbWidth;
-    e.swap_event.fbStride = fbStride;
-    e.swap_event.fbHeight = fbHeight;
+    e.swap_event.xfbAddr = xfb_addr;
+    e.swap_event.fbWidth = fb_width;
+    e.swap_event.fbStride = fb_stride;
+    e.swap_event.fbHeight = fb_height;
     AsyncRequests::GetInstance()->PushEvent(e, false);
   }
 }
 
-u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
+u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 data)
 {
   if (!g_ActiveConfig.bEFBAccessEnable || x >= EFB_WIDTH || y >= EFB_HEIGHT)
   {
@@ -106,7 +106,7 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 Inpu
     e.type = type == EFBAccessType::PokeColor ? AsyncRequests::Event::EFB_POKE_COLOR :
                                                 AsyncRequests::Event::EFB_POKE_Z;
     e.time = 0;
-    e.efb_poke.data = InputData;
+    e.efb_poke.data = data;
     e.efb_poke.x = x;
     e.efb_poke.y = y;
     AsyncRequests::GetInstance()->PushEvent(e, false);

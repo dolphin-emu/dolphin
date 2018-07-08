@@ -14,9 +14,7 @@
 class PointerWrap;
 class SysConf;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 void BackUpBTInfoSection(const SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
@@ -30,6 +28,7 @@ public:
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
   virtual void TriggerSyncButtonHeldEvent() {}
+
 protected:
   static constexpr int ACL_PKT_SIZE = 339;
   static constexpr int ACL_PKT_NUM = 10;
@@ -45,5 +44,4 @@ protected:
   };
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

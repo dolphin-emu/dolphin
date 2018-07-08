@@ -5,7 +5,6 @@
 #include "VideoBackends/OGL/FramebufferManager.h"
 
 #include <memory>
-#include <sstream>
 #include <vector>
 
 #include "Common/Common.h"
@@ -24,6 +23,152 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoBackendBase.h"
+
+constexpr const char* GLSL_REINTERPRET_PIXELFMT_VS = R"GLSL(
+flat out int layer;
+void main(void) {
+  layer = 0;
+  vec2 rawpos = vec2(gl_VertexID & 1, gl_VertexID & 2);
+  gl_Position = vec4(rawpos* 2.0 - 1.0, 0.0, 1.0);
+})GLSL";
+
+constexpr const char* GLSL_SHADER_FS = R"GLSL(
+#define MULTILAYER %d
+#define MSAA %d
+
+#if MSAA
+
+#if MULTILAYER
+SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;
+#else
+SAMPLER_BINDING(9) uniform sampler2DMS samp9;
+#endif
+
+#else
+SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+#endif
+
+vec4 sampleEFB(ivec3 pos) {
+#if MSAA
+
+#if MULTILAYER
+  return texelFetch(samp9, pos, gl_SampleID);
+#else
+  return texelFetch(samp9, pos.xy, gl_SampleID);
+#endif
+
+#else
+  return texelFetch(samp9, pos, 0);
+#endif
+})GLSL";
+
+constexpr const char* GLSL_SAMPLE_EFB_FS = R"GLSL(
+#define MULTILAYER %d
+
+#if MULTILAYER
+SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;
+#else
+SAMPLER_BINDING(9) uniform sampler2DMS samp9;
+#endif
+vec4 sampleEFB(ivec3 pos) {
+  vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+  for (int i = 0; i < %d; i++)
+#if MULTILAYER
+    color += texelFetch(samp9, pos, i);
+#else
+    color += texelFetch(samp9, pos.xy, i);
+#endif
+
+  return color / %d;
+})GLSL";
+
+constexpr const char* GLSL_RGBA6_TO_RGB8_FS = R"GLSL(
+flat in int layer;
+out vec4 ocol0;
+void main() {
+  ivec4 src6 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 63.f));
+  ivec4 dst8;
+
+  dst8.r = (src6.r << 2) | (src6.g >> 4);
+  dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);
+  dst8.b = ((src6.b & 0x3) << 6) | src6.a;
+  dst8.a = 255;
+
+  ocol0 = float4(dst8) / 255.f;
+})GLSL";
+
+constexpr const char* GLSL_RGB8_TO_RGBA6_FS = R"GLSL(
+flat in int layer;
+out vec4 ocol0;
+void main() {
+  ivec4 src8 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 255.f));
+  ivec4 dst6;
+
+  dst6.r = src8.r >> 2;
+  dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);
+  dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);
+  dst6.a = src8.b & 0x3F;
+  ocol0 = float4(dst6) / 63.f;
+})GLSL";
+
+constexpr const char* GLSL_GS = R"GLSL(
+layout(triangles) in;
+layout(triangle_strip, max_vertices = %d) out;
+flat out int layer;
+void main() {
+  for (int j = 0; j < %d; ++j) {
+    for (int i = 0; i < 3; ++i) {
+      layer = j;
+      gl_Layer = j;
+      gl_Position = gl_in[i].gl_Position;
+      EmitVertex();
+    }
+    EndPrimitive();
+  }
+})GLSL";
+
+constexpr const char* GLSL_EFB_POKE_VERTEX_VS = R"GLSL(
+in vec2 rawpos;
+in vec4 rawcolor0; // color
+in int rawcolor1;  // depth
+out vec4 v_c;
+out float v_z;
+void main(void) {
+  gl_Position = vec4(((rawpos + 0.5) / vec2(640.0, 528.0) * 2.0 - 1.0) * vec2(1.0, -1.0), 0.0, 1.0);
+  gl_PointSize = %d.0 / 640.0;
+
+  v_c = rawcolor0.bgra;
+  v_z = float(rawcolor1 & 0xFFFFFF) / 16777216.0;
+})GLSL";
+
+constexpr const char* GLSL_EFB_POKE_PIXEL_FS = R"GLSL(
+in vec4 %s_c;
+in float %s_z;
+out vec4 ocol0;
+void main(void) {
+  ocol0 = %s_c;
+  gl_FragDepth = %s_z;
+})GLSL";
+
+constexpr const char* GLSL_EFB_POKE_GEOMETRY_GS = R"GLSL(
+layout(points) in;
+layout(points, max_vertices = %d) out;
+in vec4 v_c[1];
+in float v_z[1];
+out vec4 g_c;
+out float g_z;
+void main() {
+  for (int j = 0; j < %d; ++j) {
+    gl_Layer = j;
+    gl_Position = gl_in[0].gl_Position;
+    gl_PointSize = %d.0 / 640.0;
+    g_c = v_c[0];
+    g_z = v_z[0];
+
+    EmitVertex();
+    EndPrimitive();
+  }
+})GLSL";
 
 namespace OGL
 {
@@ -149,6 +294,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
   }
 
+  const bool multilayer = m_EFBLayers > 1;
+
   if (m_msaaSamples <= 1)
   {
     m_textureType = GL_TEXTURE_2D_ARRAY;
@@ -157,16 +304,12 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   {
     // Only use a layered multisample texture if needed. Some drivers
     // slow down significantly with single-layered multisample textures.
-    if (m_EFBLayers > 1)
-      m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
-    else
-      m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
+    m_textureType = multilayer ? GL_TEXTURE_2D_MULTISAMPLE_ARRAY : GL_TEXTURE_2D_MULTISAMPLE;
 
-    // Although we are able to access the multisampled texture directly, we don't do it everywhere.
-    // The old way is to "resolve" this multisampled texture by copying it into a non-sampled
-    // texture.
-    // This would lead to an unneeded copy of the EFB, so we are going to avoid it.
-    // But as this job isn't done right now, we do need that texture for resolving:
+    // Although we are able to access the multisampled texture directly, we don't do it
+    // everywhere. The old way is to "resolve" this multisampled texture by copying it into a
+    // non-sampled texture. This would lead to an unneeded copy of the EFB, so we are going to
+    // avoid it. But as this job isn't done right now, we do need that texture for resolving:
     GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
     m_resolvedColorTexture = CreateTexture(resolvedType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
@@ -209,180 +352,52 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   }
 
   // reinterpret pixel format
-  const char* vs = m_EFBLayers > 1 ? "void main(void) {\n"
-                                     "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-                                     "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-                                     "}\n" :
-                                     "flat out int layer;\n"
-                                     "void main(void) {\n"
-                                     "	layer = 0;\n"
-                                     "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-                                     "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-                                     "}\n";
+  std::string vs = GLSL_REINTERPRET_PIXELFMT_VS;
 
   // The way to sample the EFB is based on the on the current configuration.
   // As we use the same sampling way for both interpreting shaders, the sampling
   // shader are generated first:
   std::string sampler;
+
   if (m_msaaSamples <= 1)
   {
     // non-msaa, so just fetch the pixel
-    sampler = "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-              "vec4 sampleEFB(ivec3 pos) {\n"
-              "	return texelFetch(samp9, pos, 0);\n"
-              "}\n";
+    sampler = StringFromFormat(GLSL_SHADER_FS, multilayer, false);
   }
   else if (g_ActiveConfig.backend_info.bSupportsSSAA)
   {
     // msaa + sample shading available, so just fetch the sample
     // This will lead to sample shading, but it's the only way to not loose
     // the values of each sample.
-    if (m_EFBLayers > 1)
-    {
-      sampler = "SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
-                "vec4 sampleEFB(ivec3 pos) {\n"
-                "	return texelFetch(samp9, pos, gl_SampleID);\n"
-                "}\n";
-    }
-    else
-    {
-      sampler = "SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-                "vec4 sampleEFB(ivec3 pos) {\n"
-                "	return texelFetch(samp9, pos.xy, gl_SampleID);\n"
-                "}\n";
-    }
+    sampler = StringFromFormat(GLSL_SHADER_FS, multilayer, true);
   }
   else
   {
     // msaa without sample shading: calculate the mean value of the pixel
-    std::stringstream samples;
-    samples << m_msaaSamples;
-    if (m_EFBLayers > 1)
-    {
-      sampler = "SAMPLER_BINDING(9) uniform sampler2DMSArray samp9;\n"
-                "vec4 sampleEFB(ivec3 pos) {\n"
-                "	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
-                "	for(int i=0; i<" +
-                samples.str() + "; i++)\n"
-                                "		color += texelFetch(samp9, pos, i);\n"
-                                "	return color / " +
-                samples.str() + ";\n"
-                                "}\n";
-    }
-    else
-    {
-      sampler = "SAMPLER_BINDING(9) uniform sampler2DMS samp9;\n"
-                "vec4 sampleEFB(ivec3 pos) {\n"
-                "	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
-                "	for(int i=0; i<" +
-                samples.str() + "; i++)\n"
-                                "		color += texelFetch(samp9, pos.xy, i);\n"
-                                "	return color / " +
-                samples.str() + ";\n"
-                                "}\n";
-    }
+    sampler = StringFromFormat(GLSL_SAMPLE_EFB_FS, multilayer, m_msaaSamples, m_msaaSamples);
   }
 
-  std::string ps_rgba6_to_rgb8 =
-      sampler + "flat in int layer;\n"
-                "out vec4 ocol0;\n"
-                "void main()\n"
-                "{\n"
-                "	ivec4 src6 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 63.f));\n"
-                "	ivec4 dst8;\n"
-                "	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
-                "	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
-                "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
-                "	dst8.a = 255;\n"
-                "	ocol0 = float4(dst8) / 255.f;\n"
-                "}";
+  std::string ps_rgba6_to_rgb8 = sampler + GLSL_RGBA6_TO_RGB8_FS;
 
-  std::string ps_rgb8_to_rgba6 =
-      sampler + "flat in int layer;\n"
-                "out vec4 ocol0;\n"
-                "void main()\n"
-                "{\n"
-                "	ivec4 src8 = ivec4(round(sampleEFB(ivec3(gl_FragCoord.xy, layer)) * 255.f));\n"
-                "	ivec4 dst6;\n"
-                "	dst6.r = src8.r >> 2;\n"
-                "	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
-                "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
-                "	dst6.a = src8.b & 0x3F;\n"
-                "	ocol0 = float4(dst6) / 63.f;\n"
-                "}";
+  std::string ps_rgb8_to_rgba6 = sampler + GLSL_RGB8_TO_RGBA6_FS;
 
-  std::stringstream vertices, layers;
-  vertices << m_EFBLayers * 3;
-  layers << m_EFBLayers;
-  std::string gs = "layout(triangles) in;\n"
-                   "layout(triangle_strip, max_vertices = " +
-                   vertices.str() + ") out;\n"
-                                    "flat out int layer;\n"
-                                    "void main()\n"
-                                    "{\n"
-                                    "	for (int j = 0; j < " +
-                   layers.str() + "; ++j) {\n"
-                                  "		for (int i = 0; i < 3; ++i) {\n"
-                                  "			layer = j;\n"
-                                  "			gl_Layer = j;\n"
-                                  "			gl_Position = gl_in[i].gl_Position;\n"
-                                  "			EmitVertex();\n"
-                                  "		}\n"
-                                  "		EndPrimitive();\n"
-                                  "	}\n"
-                                  "}\n";
+  std::string gs = StringFromFormat(GLSL_GS, m_EFBLayers * 3, m_EFBLayers);
 
   ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6,
-                                    (m_EFBLayers > 1) ? gs : "");
+                                    multilayer ? gs : "");
   ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8,
-                                    (m_EFBLayers > 1) ? gs : "");
+                                    multilayer ? gs : "");
+
+  const auto prefix = multilayer ? "g" : "v";
 
   ProgramShaderCache::CompileShader(
-      m_EfbPokes,
-      StringFromFormat("in vec2 rawpos;\n"
-                       "in vec4 rawcolor0;\n"  // color
-                       "in int rawcolor1;\n"   // depth
-                       "out vec4 v_c;\n"
-                       "out float v_z;\n"
-                       "void main(void) {\n"
-                       "	gl_Position = vec4(((rawpos + 0.5) / vec2(640.0, 528.0) * 2.0 - 1.0) * "
-                       "vec2(1.0, -1.0), 0.0, 1.0);\n"
-                       "	gl_PointSize = %d.0 / 640.0;\n"
-                       "	v_c = rawcolor0.bgra;\n"
-                       "	v_z = float(rawcolor1 & 0xFFFFFF) / 16777216.0;\n"
-                       "}\n",
-                       m_targetWidth),
+      m_EfbPokes, StringFromFormat(GLSL_EFB_POKE_VERTEX_VS, m_targetWidth),
 
-      StringFromFormat("in vec4 %s_c;\n"
-                       "in float %s_z;\n"
-                       "out vec4 ocol0;\n"
-                       "void main(void) {\n"
-                       "	ocol0 = %s_c;\n"
-                       "	gl_FragDepth = %s_z;\n"
-                       "}\n",
-                       m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v",
-                       m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v"),
+      StringFromFormat(GLSL_EFB_POKE_PIXEL_FS, prefix, prefix, prefix, prefix),
 
-      m_EFBLayers > 1 ? StringFromFormat("layout(points) in;\n"
-                                         "layout(points, max_vertices = %d) out;\n"
-                                         "in vec4 v_c[1];\n"
-                                         "in float v_z[1];\n"
-                                         "out vec4 g_c;\n"
-                                         "out float g_z;\n"
-                                         "void main()\n"
-                                         "{\n"
-                                         "	for (int j = 0; j < %d; ++j) {\n"
-                                         "		gl_Layer = j;\n"
-                                         "		gl_Position = gl_in[0].gl_Position;\n"
-                                         "		gl_PointSize = %d.0 / 640.0;\n"
-                                         "		g_c = v_c[0];\n"
-                                         "		g_z = v_z[0];\n"
-                                         "		EmitVertex();\n"
-                                         "		EndPrimitive();\n"
-                                         "	}\n"
-                                         "}\n",
-                                         m_EFBLayers, m_EFBLayers, m_targetWidth) :
-                        "");
+      multilayer ?
+          StringFromFormat(GLSL_EFB_POKE_GEOMETRY_GS, m_EFBLayers, m_EFBLayers, m_targetWidth) :
+          "");
   glGenBuffers(1, &m_EfbPokes_VBO);
   glGenVertexArrays(1, &m_EfbPokes_VAO);
   glBindBuffer(GL_ARRAY_BUFFER, m_EfbPokes_VBO);

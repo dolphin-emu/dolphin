@@ -11,6 +11,7 @@
 #include "Common/Align.h"
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
@@ -201,8 +202,12 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // (1 + 2^d + 2^(2d) + ...), i.e. 0x0001000100010001 or similar. These can
   // be derived using a table lookup on CLZ(d).
   static const std::array<uint64_t, 6> multipliers = {{
-      0x0000000000000001UL, 0x0000000100000001UL, 0x0001000100010001UL, 0x0101010101010101UL,
-      0x1111111111111111UL, 0x5555555555555555UL,
+      0x0000000000000001UL,
+      0x0000000100000001UL,
+      0x0001000100010001UL,
+      0x0101010101010101UL,
+      0x1111111111111111UL,
+      0x5555555555555555UL,
   }};
 
   int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
@@ -264,35 +269,34 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   return true;
 }
 
-float FPImm8ToFloat(uint8_t bits)
+float FPImm8ToFloat(u8 bits)
 {
-  int sign = bits >> 7;
-  uint32_t f = (sign << 31);
-  int bit6 = (bits >> 6) & 1;
-  uint32_t exp = ((!bit6) << 7) | (0x7C * bit6) | ((bits >> 4) & 3);
-  uint32_t mantissa = (bits & 0xF) << 19;
-  f |= exp << 23;
-  f |= mantissa;
-  float fl;
-  memcpy(&fl, &f, sizeof(float));
-  return fl;
+  const u32 sign = bits >> 7;
+  const u32 bit6 = (bits >> 6) & 1;
+  const u32 exp = ((!bit6) << 7) | (0x7C * bit6) | ((bits >> 4) & 3);
+  const u32 mantissa = (bits & 0xF) << 19;
+  const u32 f = (sign << 31) | (exp << 23) | mantissa;
+
+  return Common::BitCast<float>(f);
 }
 
-bool FPImm8FromFloat(float value, uint8_t* immOut)
+bool FPImm8FromFloat(float value, u8* imm_out)
 {
-  uint32_t f;
-  memcpy(&f, &value, sizeof(float));
-  uint32_t mantissa4 = (f & 0x7FFFFF) >> 19;
-  uint32_t exponent = (f >> 23) & 0xFF;
-  uint32_t sign = f >> 31;
+  const u32 f = Common::BitCast<u32>(value);
+  const u32 mantissa4 = (f & 0x7FFFFF) >> 19;
+  const u32 exponent = (f >> 23) & 0xFF;
+  const u32 sign = f >> 31;
+
   if ((exponent >> 7) == ((exponent >> 6) & 1))
     return false;
-  uint8_t imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
-  float newFloat = FPImm8ToFloat(imm8);
-  if (newFloat == value)
-    *immOut = imm8;
+
+  const u8 imm8 = (sign << 7) | ((!(exponent >> 7)) << 6) | ((exponent & 3) << 4) | mantissa4;
+  const float new_float = FPImm8ToFloat(imm8);
+  if (new_float == value)
+    *imm_out = imm8;
   else
     return false;
+
   return true;
 }
 }  // Anonymous namespace
@@ -4342,11 +4346,10 @@ void ARM64FloatEmitter::MOVI2F(ARM64Reg Rd, float value, ARM64Reg scratch, bool 
   {
     ASSERT_MSG(DYNA_REC, scratch != INVALID_REG,
                "Failed to find a way to generate FP immediate %f without scratch", value);
-    u32 ival;
     if (negate)
       value = -value;
 
-    memcpy(&ival, &value, sizeof(ival));
+    const u32 ival = Common::BitCast<u32>(value);
     m_emit->MOVI2R(scratch, ival);
     FMOV(Rd, scratch);
   }

@@ -27,13 +27,19 @@
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/PPCAnalyst.h"
+
+namespace PPCAnalyst
+{
+struct CodeBlock;
+struct CodeOp;
+}
 
 class Jit64 : public Jitx86Base
 {
 public:
-  Jit64() : code_buffer(32000) {}
-  ~Jit64() {}
+  Jit64();
+  ~Jit64() override;
+
   void Init() override;
   void Shutdown() override;
 
@@ -46,7 +52,7 @@ public:
   // Jit!
 
   void Jit(u32 em_address) override;
-  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  const u8* DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
   BitSet32 CallerSavedRegistersInUse() const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
@@ -234,15 +240,14 @@ private:
   static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
+  bool HandleFunctionHooking(u32 address);
+
   void AllocStack();
   void FreeStack();
 
   GPRRegCache gpr{*this};
   FPURegCache fpr{*this};
 
-  // The default code buffer. We keep it around to not have to alloc/dealloc a
-  // large chunk of memory for each recompiled block.
-  PPCAnalyst::CodeBuffer code_buffer;
   Jit64AsmRoutineManager asm_routines{*this};
 
   bool m_enable_blr_optimization;

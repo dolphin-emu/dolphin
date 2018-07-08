@@ -22,14 +22,22 @@ enum class Language;
 enum class Region;
 struct Partition;
 class Volume;
-}
+}  // namespace DiscIO
+
 namespace IOS
 {
 namespace ES
 {
 class TMDReader;
 }
-}
+}  // namespace IOS
+
+namespace PowerPC
+{
+enum class CPUCore;
+}  // namespace PowerPC
+
+struct BootParameters;
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No Audio Output")
@@ -39,17 +47,16 @@ class TMDReader;
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
+#define BACKEND_WASAPI "WASAPI (Exclusive Mode)"
 
-enum GPUDeterminismMode
+enum class GPUDeterminismMode
 {
-  GPU_DETERMINISM_AUTO,
-  GPU_DETERMINISM_NONE,
+  Auto,
+  Disabled,
   // This is currently the only mode.  There will probably be at least
   // one more at some point.
-  GPU_DETERMINISM_FAKE_COMPLETION,
+  FakeCompletion,
 };
-
-struct BootParameters;
 
 struct SConfig
 {
@@ -74,7 +81,7 @@ struct SConfig
   bool bAutomaticStart = false;
   bool bBootToPause = false;
 
-  int iCPUCore;  // Uses the values of PowerPC::CPUCore
+  PowerPC::CPUCore cpu_core;
 
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
@@ -192,8 +199,6 @@ struct SConfig
   // files
   std::string m_strBootROM;
   std::string m_strSRAM;
-  std::string m_strDefaultISO;
-  std::string m_strWiiSDCardPath;
 
   std::string m_perfDir;
 
@@ -226,9 +231,6 @@ struct SConfig
   static IniFile LoadDefaultGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
-
-  std::string m_NANDPath;
-  std::string m_DumpPath;
 
   std::string m_strMemoryCardA;
   std::string m_strMemoryCardB;
@@ -309,6 +311,11 @@ struct SConfig
   bool m_DumpUCode;
   int m_Volume;
   std::string sBackend;
+
+#ifdef _WIN32
+  // WSAPI settings
+  std::string sWASAPIDevice;
+#endif
 
   // Input settings
   bool m_BackgroundInput;

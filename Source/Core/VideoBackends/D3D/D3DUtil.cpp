@@ -89,6 +89,7 @@ public:
   void EndAppendData() { context->Unmap(buf, 0); }
   void AddWrapObserver(bool* observer) { observers.push_back(observer); }
   inline ID3D11Buffer*& GetBuffer() { return buf; }
+
 private:
   ID3D11Buffer* buf = nullptr;
   unsigned int offset = 0;
@@ -486,11 +487,7 @@ static ID3D11SamplerState* point_copy_sampler = nullptr;
 
 struct STQVertex
 {
-  float x, y, z, u, v, w, g;
-};
-struct STSQVertex
-{
-  float x, y, z, u, v, w, g;
+  float x, y, z, u, v, w;
 };
 struct ClearVertex
 {
@@ -588,7 +585,7 @@ void SetLinearCopySampler()
 void drawShadedTexQuad(ID3D11ShaderResourceView* texture, const D3D11_RECT* rSource,
                        int SourceWidth, int SourceHeight, ID3D11PixelShader* PShader,
                        ID3D11VertexShader* VShader, ID3D11InputLayout* layout,
-                       ID3D11GeometryShader* GShader, float Gamma, u32 slice)
+                       ID3D11GeometryShader* GShader, u32 slice)
 {
   float sw = 1.0f / (float)SourceWidth;
   float sh = 1.0f / (float)SourceHeight;
@@ -597,18 +594,17 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture, const D3D11_RECT* rSou
   float v1 = ((float)rSource->top) * sh;
   float v2 = ((float)rSource->bottom) * sh;
   float S = (float)slice;
-  float G = 1.0f / Gamma;
 
   STQVertex coords[4] = {
-      {-1.0f, 1.0f, 0.0f, u1, v1, S, G},
-      {1.0f, 1.0f, 0.0f, u2, v1, S, G},
-      {-1.0f, -1.0f, 0.0f, u1, v2, S, G},
-      {1.0f, -1.0f, 0.0f, u2, v2, S, G},
+      {-1.0f, 1.0f, 0.0f, u1, v1, S},
+      {1.0f, 1.0f, 0.0f, u2, v1, S},
+      {-1.0f, -1.0f, 0.0f, u1, v2, S},
+      {1.0f, -1.0f, 0.0f, u2, v2, S},
   };
 
   // only upload the data to VRAM if it changed
   if (stq_observer || tex_quad_data.u1 != u1 || tex_quad_data.v1 != v1 || tex_quad_data.u2 != u2 ||
-      tex_quad_data.v2 != v2 || tex_quad_data.S != S || tex_quad_data.G != G)
+      tex_quad_data.v2 != v2 || tex_quad_data.S != S)
   {
     stq_offset = util_vbuf->AppendData(coords, sizeof(coords), sizeof(STQVertex));
     stq_observer = false;
@@ -618,7 +614,6 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture, const D3D11_RECT* rSou
     tex_quad_data.u2 = u2;
     tex_quad_data.v2 = v2;
     tex_quad_data.S = S;
-    tex_quad_data.G = G;
   }
   UINT stride = sizeof(STQVertex);
   UINT offset = 0;
@@ -645,7 +640,10 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture, const D3D11_RECT* rSou
 void drawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2)
 {
   ColVertex coords[4] = {
-      {x1, y1, z, Color}, {x2, y1, z, Color}, {x1, y2, z, Color}, {x2, y2, z, Color},
+      {x1, y1, z, Color},
+      {x2, y1, z, Color},
+      {x1, y2, z, Color},
+      {x2, y2, z, Color},
   };
 
   if (cq_observer || draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||

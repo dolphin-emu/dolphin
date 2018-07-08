@@ -186,10 +186,22 @@ bool HasDisc()
   return s_disc != nullptr;
 }
 
+bool IsEncryptedAndHashed()
+{
+  // IsEncryptedAndHashed is thread-safe, so calling WaitUntilIdle isn't necessary.
+  return s_disc->IsEncryptedAndHashed();
+}
+
 DiscIO::Platform GetDiscType()
 {
   // GetVolumeType is thread-safe, so calling WaitUntilIdle isn't necessary.
   return s_disc->GetVolumeType();
+}
+
+u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition)
+{
+  // PartitionOffsetToRawOffset is thread-safe, so calling WaitUntilIdle isn't necessary.
+  return s_disc->PartitionOffsetToRawOffset(offset, partition);
 }
 
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition)
@@ -311,9 +323,10 @@ static void FinishRead(u64 id, s64 cycles_late)
   const ReadRequest& request = result.first;
   const std::vector<u8>& buffer = result.second;
 
-  DEBUG_LOG(DVDINTERFACE, "Disc has been read. Real time: %" PRIu64 " us. "
-                          "Real time including delay: %" PRIu64 " us. "
-                          "Emulated time including delay: %" PRIu64 " us.",
+  DEBUG_LOG(DVDINTERFACE,
+            "Disc has been read. Real time: %" PRIu64 " us. "
+            "Real time including delay: %" PRIu64 " us. "
+            "Emulated time including delay: %" PRIu64 " us.",
             request.realtime_done_us - request.realtime_started_us,
             Common::Timer::GetTimeUs() - request.realtime_started_us,
             (CoreTiming::GetTicks() - request.time_started_ticks) /

@@ -16,16 +16,17 @@
 
 namespace DiscIO
 {
-constexpr unsigned int BANNER_WIDTH = 192;
-constexpr unsigned int BANNER_HEIGHT = 64;
-constexpr unsigned int BANNER_SIZE = BANNER_WIDTH * BANNER_HEIGHT * 2;
+constexpr u32 BANNER_WIDTH = 192;
+constexpr u32 BANNER_HEIGHT = 64;
+constexpr u32 BANNER_SIZE = BANNER_WIDTH * BANNER_HEIGHT * 2;
 
-constexpr unsigned int ICON_WIDTH = 48;
-constexpr unsigned int ICON_HEIGHT = 48;
-constexpr unsigned int ICON_SIZE = ICON_WIDTH * ICON_HEIGHT * 2;
+constexpr u32 ICON_WIDTH = 48;
+constexpr u32 ICON_HEIGHT = 48;
+constexpr u32 ICON_SIZE = ICON_WIDTH * ICON_HEIGHT * 2;
 
 WiiSaveBanner::WiiSaveBanner(u64 title_id)
-    : WiiSaveBanner(Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT) + "banner.bin")
+    : WiiSaveBanner(Common::GetTitleDataPath(title_id, Common::FROM_CONFIGURED_ROOT) +
+                    "/banner.bin")
 {
 }
 
@@ -54,7 +55,7 @@ std::string WiiSaveBanner::GetDescription() const
   return UTF16BEToUTF8(m_header.description, ArraySize(m_header.description));
 }
 
-std::vector<u32> WiiSaveBanner::GetBanner(int* width, int* height) const
+std::vector<u32> WiiSaveBanner::GetBanner(u32* width, u32* height) const
 {
   *width = 0;
   *height = 0;
@@ -68,7 +69,7 @@ std::vector<u32> WiiSaveBanner::GetBanner(int* width, int* height) const
     return std::vector<u32>();
 
   std::vector<u32> image_buffer(BANNER_WIDTH * BANNER_HEIGHT);
-  ColorUtil::decode5A3image(image_buffer.data(), banner_data.data(), BANNER_WIDTH, BANNER_HEIGHT);
+  Common::Decode5A3Image(image_buffer.data(), banner_data.data(), BANNER_WIDTH, BANNER_HEIGHT);
 
   *width = BANNER_WIDTH;
   *height = BANNER_HEIGHT;

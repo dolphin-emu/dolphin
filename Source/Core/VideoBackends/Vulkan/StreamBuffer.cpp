@@ -22,8 +22,9 @@ StreamBuffer::StreamBuffer(VkBufferUsageFlags usage, size_t max_size)
 {
   // Add a callback that fires on fence point creation and signal
   g_command_buffer_mgr->AddFencePointCallback(
-      this, std::bind(&StreamBuffer::OnCommandBufferQueued, this, std::placeholders::_1,
-                      std::placeholders::_2),
+      this,
+      std::bind(&StreamBuffer::OnCommandBufferQueued, this, std::placeholders::_1,
+                std::placeholders::_2),
       std::bind(&StreamBuffer::OnCommandBufferExecuted, this, std::placeholders::_1));
 }
 

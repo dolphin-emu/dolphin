@@ -498,13 +498,13 @@ void UpdateWantDeterminism(bool want)
   bool gpu_thread = false;
   switch (param.m_GPUDeterminismMode)
   {
-  case GPU_DETERMINISM_AUTO:
+  case GPUDeterminismMode::Auto:
     gpu_thread = want;
     break;
-  case GPU_DETERMINISM_NONE:
+  case GPUDeterminismMode::Disabled:
     gpu_thread = false;
     break;
-  case GPU_DETERMINISM_FAKE_COMPLETION:
+  case GPUDeterminismMode::FakeCompletion:
     gpu_thread = true;
     break;
   }

@@ -20,11 +20,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/VersionInfo.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name), m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
@@ -67,7 +63,7 @@ void SDIOSlot0::OpenInternal()
   if (!m_card)
   {
     WARN_LOG(IOS_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
-    if (SDCardCreate(128, filename))
+    if (Common::SDCardCreate(128, filename))
     {
       INFO_LOG(IOS_SD, "Successfully created %s", filename.c_str());
       m_card.Open(filename, "r+b");
@@ -561,7 +557,9 @@ std::array<u32, 4> SDIOSlot0::GetCSDv1() const
 
   // Form the csd using the description above
   return {{
-      0x007f003, 0x5b5f8000 | (c_size >> 2), 0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
+      0x007f003,
+      0x5b5f8000 | (c_size >> 2),
+      0x3ffc7f80 | (c_size << 30) | (c_size_mult << 15),
       0x07c04001 | (crc << 1),
   }};
 }
@@ -616,7 +614,10 @@ std::array<u32, 4> SDIOSlot0::GetCSDv2() const
 
   // Form the csd using the description above
   return {{
-      0x400e005a, 0x5f590000 | (c_size >> 16), 0x00007f80 | (c_size << 16), 0x0a400001 | (crc << 1),
+      0x400e005a,
+      0x5f590000 | (c_size >> 16),
+      0x00007f80 | (c_size << 16),
+      0x0a400001 | (crc << 1),
   }};
 }
 
@@ -634,6 +635,4 @@ void SDIOSlot0::InitSDHC()
   m_status |= CARD_INITIALIZED;
 }
 
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

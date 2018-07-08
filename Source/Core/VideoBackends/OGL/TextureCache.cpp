@@ -68,10 +68,18 @@ constexpr const char* geometry_program = "layout(triangles) in;\n"
 
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           const EFBRectangle& src_rect, bool scale_by_half)
+                           const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
+                           float gamma, bool clamp_top, bool clamp_bottom,
+                           const CopyFilterCoefficientArray& filter_coefficients)
 {
+  // Flip top/bottom due to lower-left coordinate system.
+  float clamp_top_val =
+      clamp_bottom ? (1.0f - src_rect.bottom / static_cast<float>(EFB_HEIGHT)) : 0.0f;
+  float clamp_bottom_val =
+      clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 1.0f;
   TextureConverter::EncodeToRamFromTexture(dst, params, native_width, bytes_per_row, num_blocks_y,
-                                           memory_stride, src_rect, scale_by_half);
+                                           memory_stride, src_rect, scale_by_half, y_scale, gamma,
+                                           clamp_top_val, clamp_bottom_val, filter_coefficients);
 }
 
 TextureCache::TextureCache()
@@ -483,7 +491,9 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntry* entry, u32 dst_level, const u
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       EFBCopyFormat dst_format, bool is_intensity)
+                                       EFBCopyFormat dst_format, bool is_intensity, float gamma,
+                                       bool clamp_top, bool clamp_bottom,
+                                       const CopyFilterCoefficientArray& filter_coefficients)
 {
   auto* destination_texture = static_cast<OGLTexture*>(entry->texture.get());
   g_renderer->ResetAPIState();  // reset any game specific settings
@@ -505,7 +515,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   glViewport(0, 0, destination_texture->GetConfig().width, destination_texture->GetConfig().height);
 
   auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
-                                                      scale_by_half);
+                                                      scale_by_half,
+                                                      NeedsCopyFilterInShader(filter_coefficients));
 
   auto it = m_efb_copy_programs.emplace(uid, EFBCopyShader());
   EFBCopyShader& shader = it.first->second;
@@ -528,6 +539,11 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                       code.GetBuffer(), geo_program);
 
     shader.position_uniform = glGetUniformLocation(shader.shader.glprogid, "copy_position");
+    shader.pixel_height_uniform = glGetUniformLocation(shader.shader.glprogid, "pixel_height");
+    shader.gamma_rcp_uniform = glGetUniformLocation(shader.shader.glprogid, "gamma_rcp");
+    shader.clamp_tb_uniform = glGetUniformLocation(shader.shader.glprogid, "clamp_tb");
+    shader.filter_coefficients_uniform =
+        glGetUniformLocation(shader.shader.glprogid, "filter_coefficients");
   }
 
   shader.shader.Bind();
@@ -535,10 +551,19 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   TargetRectangle R = g_renderer->ConvertEFBRectangle(src_rect);
   glUniform4f(shader.position_uniform, static_cast<float>(R.left), static_cast<float>(R.top),
               static_cast<float>(R.right), static_cast<float>(R.bottom));
+  glUniform1f(shader.pixel_height_uniform, g_ActiveConfig.bCopyEFBScaled ?
+                                               1.0f / g_renderer->GetTargetHeight() :
+                                               1.0f / EFB_HEIGHT);
+  glUniform1f(shader.gamma_rcp_uniform, 1.0f / gamma);
+  glUniform2f(shader.clamp_tb_uniform,
+              clamp_bottom ? (1.0f - src_rect.bottom / static_cast<float>(EFB_HEIGHT)) : 0.0f,
+              clamp_top ? (1.0f - src_rect.top / static_cast<float>(EFB_HEIGHT)) : 1.0f);
+  glUniform3f(shader.filter_coefficients_uniform, filter_coefficients[0], filter_coefficients[1],
+              filter_coefficients[2]);
 
   ProgramShaderCache::BindVertexFormat(nullptr);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   g_renderer->RestoreAPIState();
 }
-}
+}  // namespace OGL

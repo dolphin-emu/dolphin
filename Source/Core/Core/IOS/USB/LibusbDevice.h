@@ -22,11 +22,7 @@ struct libusb_device_descriptor;
 struct libusb_device_handle;
 struct libusb_transfer;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 // Simple wrapper around libusb_get_config_descriptor and libusb_free_config_descriptor.
 class LibusbConfigDescriptor final
@@ -36,6 +32,7 @@ public:
   ~LibusbConfigDescriptor();
   libusb_config_descriptor* Get() const { return m_descriptor; }
   bool IsValid() const { return m_descriptor != nullptr; }
+
 private:
   libusb_config_descriptor* m_descriptor = nullptr;
 };
@@ -91,7 +88,5 @@ private:
   int AttachInterface(u8 interface);
   int DetachInterface();
 };
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB
 #endif

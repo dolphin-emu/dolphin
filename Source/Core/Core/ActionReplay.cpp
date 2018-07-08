@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
@@ -39,7 +40,7 @@
 
 #include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 
 namespace ActionReplay
 {
@@ -474,10 +475,10 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("--------");
 
     const u32 read = PowerPC::HostRead_U32(new_addr);
-    const float read_float = reinterpret_cast<const float&>(read);
+    const float read_float = Common::BitCast<float>(read);
     // data contains an (unsigned?) integer value
     const float fread = read_float + static_cast<float>(data);
-    const u32 newval = reinterpret_cast<const u32&>(fread);
+    const u32 newval = Common::BitCast<u32>(fread);
     PowerPC::HostWrite_U32(newval, new_addr);
     LogInfo("Old Value %08x", read);
     LogInfo("Increment %08x", data);

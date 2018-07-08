@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "Core/HW/EXI/EXI_Device.h"
@@ -16,17 +17,14 @@ class CEXIIPL : public IEXIDevice
 {
 public:
   CEXIIPL();
-  virtual ~CEXIIPL();
+  ~CEXIIPL() override;
 
-  void SetCS(int _iCS) override;
+  void SetCS(int cs) override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
 
-  static constexpr u32 UNIX_EPOCH = 0;          // 1970-01-01 00:00:00
-  static constexpr u32 GC_EPOCH = 0x386D4380;   // 2000-01-01 00:00:00
-  static constexpr u32 WII_EPOCH = 0x477E5826;  // 2008-01-04 16:00:38
-  // The Wii epoch is suspiciously random, and the Wii was even
-  // released before it, but apparently it works anyway?
+  static constexpr u32 UNIX_EPOCH = 0;         // 1970-01-01 00:00:00
+  static constexpr u32 GC_EPOCH = 0x386D4380;  // 2000-01-01 00:00:00
 
   static u32 GetEmulatedTime(u32 epoch);
   static u64 NetPlay_GetEmulatedTime();
@@ -55,25 +53,25 @@ private:
   };
 
   //! IPL
-  u8* m_pIPL;
+  u8* m_ipl;
 
   // STATE_TO_SAVE
   //! RealTimeClock
-  u8 m_RTC[4];
+  std::array<u8, 4> m_rtc{};
 
   //! Helper
-  u32 m_uPosition;
-  u32 m_uAddress;
-  u32 m_uRWOffset;
+  u32 m_position = 0;
+  u32 m_address = 0;
+  u32 m_rw_offset = 0;
 
   std::string m_buffer;
-  bool m_FontsLoaded;
+  bool m_fonts_loaded = false;
 
   void UpdateRTC();
 
-  void TransferByte(u8& _uByte) override;
-  bool IsWriteCommand() const { return !!(m_uAddress & (1 << 31)); }
-  u32 CommandRegion() const { return (m_uAddress & ~(1 << 31)) >> 8; }
+  void TransferByte(u8& byte) override;
+  bool IsWriteCommand() const { return !!(m_address & (1 << 31)); }
+  u32 CommandRegion() const { return (m_address & ~(1 << 31)) >> 8; }
   bool LoadFileToIPL(const std::string& filename, u32 offset);
   void LoadFontFile(const std::string& filename, u32 offset);
   std::string FindIPLDump(const std::string& path_prefix);

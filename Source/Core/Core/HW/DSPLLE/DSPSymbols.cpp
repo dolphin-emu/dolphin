@@ -4,15 +4,12 @@
 
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
-#include <cctype>
-#include <list>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
@@ -59,22 +56,19 @@ const char* GetLineText(int line)
   }
 }
 
-Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
+Common::Symbol* DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 {
-  XFuncMap::iterator it = functions.find(addr);
+  auto it = m_functions.find(addr);
 
-  if (it != functions.end())
-  {
+  if (it != m_functions.end())
     return &it->second;
-  }
-  else
+
+  for (auto& func : m_functions)
   {
-    for (auto& func : functions)
-    {
-      if (addr >= func.second.address && addr < func.second.address + func.second.size)
-        return &func.second;
-    }
+    if (addr >= func.second.address && addr < func.second.address + func.second.size)
+      return &func.second;
   }
+
   return nullptr;
 }
 

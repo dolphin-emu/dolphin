@@ -42,7 +42,7 @@ public:
     return "";
   }
   std::map<Language, std::string> GetLongNames() const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override
   {
     return "";

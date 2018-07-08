@@ -17,6 +17,7 @@ public abstract class SettingsItem
 	public static final int TYPE_SLIDER = 3;
 	public static final int TYPE_SUBMENU = 4;
 	public static final int TYPE_INPUT_BINDING = 5;
+	public static final int TYPE_STRING_SINGLE_CHOICE = 6;
 
 	private String mKey;
 	private String mSection;

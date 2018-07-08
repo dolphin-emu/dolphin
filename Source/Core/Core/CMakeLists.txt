@@ -16,6 +16,7 @@ add_library(core
   NetPlayServer.cpp
   PatchEngine.cpp
   State.cpp
+  SysConf.cpp
   TitleDatabase.cpp
   WiiRoot.cpp
   WiiUtils.cpp
@@ -28,6 +29,7 @@ add_library(core
   Config/MainSettings.cpp
   Config/NetplaySettings.cpp
   Config/SYSCONFSettings.cpp
+  Config/UISettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp
@@ -37,18 +39,18 @@ add_library(core
   Debugger/Dump.cpp
   Debugger/PPCDebugInterface.cpp
   Debugger/RSO.cpp
-  DSP/DSPAssembler.cpp
-  DSP/DSPDisassembler.cpp
   DSP/DSPAccelerator.cpp
+  DSP/DSPAnalyzer.cpp
+  DSP/DSPAssembler.cpp
   DSP/DSPCaptureLogger.cpp
+  DSP/DSPCodeUtil.cpp
+  DSP/DSPCore.cpp
+  DSP/DSPDisassembler.cpp
   DSP/DSPHWInterface.cpp
   DSP/DSPMemoryMap.cpp
   DSP/DSPStacks.cpp
-  DSP/DSPAnalyzer.cpp
-  DSP/DSPCodeUtil.cpp
-  DSP/LabelMap.cpp
-  DSP/DSPCore.cpp
   DSP/DSPTables.cpp
+  DSP/LabelMap.cpp
   DSP/Interpreter/DSPIntArithmetic.cpp
   DSP/Interpreter/DSPIntBranch.cpp
   DSP/Interpreter/DSPIntCCUtil.cpp
@@ -57,16 +59,8 @@ add_library(core
   DSP/Interpreter/DSPIntLoadStore.cpp
   DSP/Interpreter/DSPIntMisc.cpp
   DSP/Interpreter/DSPIntMultiplier.cpp
-  DSP/Jit/x64/DSPEmitter.cpp
-  DSP/Jit/x64/DSPJitRegCache.cpp
-  DSP/Jit/x64/DSPJitExtOps.cpp
-  DSP/Jit/x64/DSPJitBranch.cpp
-  DSP/Jit/x64/DSPJitCCUtil.cpp
-  DSP/Jit/x64/DSPJitArithmetic.cpp
-  DSP/Jit/x64/DSPJitLoadStore.cpp
-  DSP/Jit/x64/DSPJitMultiplier.cpp
-  DSP/Jit/x64/DSPJitUtil.cpp
-  DSP/Jit/x64/DSPJitMisc.cpp
+  DSP/Interpreter/DSPIntTables.cpp
+  DSP/Jit/DSPEmitterBase.cpp
   FifoPlayer/FifoAnalyzer.cpp
   FifoPlayer/FifoDataFile.cpp
   FifoPlayer/FifoPlaybackAnalyzer.cpp
@@ -149,7 +143,7 @@ add_library(core
   HW/WiimoteEmu/Encryption.cpp
   HW/WiimoteEmu/Speaker.cpp
   HW/WiimoteReal/WiimoteReal.cpp
-  HW/WiiSaveCrypted.cpp
+  HW/WiiSave.cpp
   IOS/Device.cpp
   IOS/DeviceStub.cpp
   IOS/IOS.cpp
@@ -165,8 +159,10 @@ add_library(core
   IOS/ES/TitleInformation.cpp
   IOS/ES/TitleManagement.cpp
   IOS/ES/Views.cpp
-  IOS/FS/FileIO.cpp
-  IOS/FS/FS.cpp
+  IOS/FS/FileSystem.cpp
+  IOS/FS/FileSystemProxy.cpp
+  IOS/FS/HostBackend/File.cpp
+  IOS/FS/HostBackend/FS.cpp
   IOS/Network/ICMPLin.cpp
   IOS/Network/MACUtils.cpp
   IOS/Network/Socket.cpp
@@ -229,6 +225,17 @@ add_library(core
 
 if(_M_X86)
   target_sources(core PRIVATE
+    DSP/Jit/x64/DSPEmitter.cpp
+    DSP/Jit/x64/DSPJitRegCache.cpp
+    DSP/Jit/x64/DSPJitExtOps.cpp
+    DSP/Jit/x64/DSPJitBranch.cpp
+    DSP/Jit/x64/DSPJitCCUtil.cpp
+    DSP/Jit/x64/DSPJitArithmetic.cpp
+    DSP/Jit/x64/DSPJitLoadStore.cpp
+    DSP/Jit/x64/DSPJitMisc.cpp
+    DSP/Jit/x64/DSPJitMultiplier.cpp
+    DSP/Jit/x64/DSPJitTables.cpp
+    DSP/Jit/x64/DSPJitUtil.cpp
     PowerPC/Jit64/FPURegCache.cpp
     PowerPC/Jit64/GPRRegCache.cpp
     PowerPC/Jit64/Jit64_Tables.cpp
@@ -274,7 +281,6 @@ endif()
 target_link_libraries(core
 PUBLIC
   audiocommon
-  bdisasm
   common
   cubeb
   discio
@@ -287,10 +293,11 @@ PUBLIC
   videonull
   videoogl
   videosoftware
-  z
 
 PRIVATE
+  bdisasm
   ${LZO}
+  ZLIB::ZLIB
 )
 
 if (APPLE)

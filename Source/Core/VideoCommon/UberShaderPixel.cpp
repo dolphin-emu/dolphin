@@ -29,13 +29,15 @@ PixelShaderUid GetPixelShaderUid()
   return out;
 }
 
-void ClearUnusedPixelShaderUidBits(APIType ApiType, PixelShaderUid* uid)
+void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
+                                   PixelShaderUid* uid)
 {
   pixel_ubershader_uid_data* uid_data = uid->GetUidData<pixel_ubershader_uid_data>();
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
-  // Therefore, it is not necessary to use a uint output on these backends.
-  if (ApiType != APIType::D3D)
+  // Therefore, it is not necessary to use a uint output on these backends. We also disable the
+  // uint output when logic op is not supported (i.e. driver/device does not support D3D11.1).
+  if (ApiType != APIType::D3D || !host_config.backend_logic_op)
     uid_data->uint_output = 0;
 }
 
@@ -924,9 +926,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "      int3 color_D = selectColorInput(s, ss, %scolors_0, %scolors_1, color_d);  // 10 "
             "bits + sign\n"
             "\n",  // TODO: do we need to sign extend?
-            color_input_prefix,
             color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix,
-            color_input_prefix, color_input_prefix, color_input_prefix);
+            color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix);
   out.Write(
       "      int3 color;\n"
       "      if(color_bias != 3u) { // Normal mode\n"
@@ -998,9 +999,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       "      int alpha_D = selectAlphaInput(s, ss, %scolors_0, %scolors_1, alpha_d); // 10 bits + "
       "sign\n"
       "\n",  // TODO: do we need to sign extend?
-      color_input_prefix,
       color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix,
-      color_input_prefix, color_input_prefix, color_input_prefix);
+      color_input_prefix, color_input_prefix, color_input_prefix, color_input_prefix);
   out.Write("\n"
             "      int alpha;\n"
             "      if(alpha_bias != 3u) { // Normal mode\n"

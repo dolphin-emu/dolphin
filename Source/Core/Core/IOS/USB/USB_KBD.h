@@ -11,11 +11,7 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class USB_KBD : public Device
 {
@@ -64,6 +60,4 @@ private:
   static u8 m_KeyCodesQWERTY[256];
   static u8 m_KeyCodesAZERTY[256];
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

@@ -101,6 +101,13 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
         ASSERT_MSG(DYNA_REC, 0, "Jit64 - Flush unhandled case, reg %u PC: %08x", i, PC);
       }
     }
+    else if (m_regs[i].location.IsImm())
+    {
+      // We can have a cached value without a host register through speculative constants.
+      // It must be cleared when flushing, otherwise it may be out of sync with PPCSTATE,
+      // if PPCSTATE is modified externally (e.g. fallback to interpreter).
+      m_regs[i].location = GetDefaultLocation(i);
+    }
   }
 }
 

@@ -11,6 +11,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 
+namespace Common
+{
 // Everything that needs to generate code should inherit from this.
 // You get memory management for free, plus, you can use all emitter functions without
 // having to prefix them with gen-> or something similar.
@@ -116,3 +118,4 @@ public:
     m_children.emplace_back(child);
   }
 };
+}  // namespace Common

@@ -28,6 +28,7 @@ public:
   explicit Impl(std::chrono::milliseconds timeout_ms, ProgressCallback callback);
 
   bool IsValid() const;
+  void SetCookies(const std::string& cookies);
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size);
 
@@ -54,6 +55,11 @@ HttpRequest::~HttpRequest() = default;
 bool HttpRequest::IsValid() const
 {
   return m_impl->IsValid();
+}
+
+void HttpRequest::SetCookies(const std::string& cookies)
+{
+  m_impl->SetCookies(cookies);
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers)
@@ -108,7 +114,12 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
   // libcurl may not have been built with async DNS support, so we disable
   // signal handlers to avoid a possible and likely crash if a resolve times out.
   curl_easy_setopt(m_curl.get(), CURLOPT_NOSIGNAL, true);
-  curl_easy_setopt(m_curl.get(), CURLOPT_TIMEOUT_MS, static_cast<long>(timeout_ms.count()));
+  curl_easy_setopt(m_curl.get(), CURLOPT_CONNECTTIMEOUT_MS, static_cast<long>(timeout_ms.count()));
+  // Sadly CURLOPT_LOW_SPEED_TIME doesn't have a millisecond variant so we have to use seconds
+  curl_easy_setopt(
+      m_curl.get(), CURLOPT_LOW_SPEED_TIME,
+      static_cast<long>(std::chrono::duration_cast<std::chrono::seconds>(timeout_ms).count()));
+  curl_easy_setopt(m_curl.get(), CURLOPT_LOW_SPEED_LIMIT, 1);
 #ifdef _WIN32
   // ALPN support is enabled by default but requires Windows >= 8.1.
   curl_easy_setopt(m_curl.get(), CURLOPT_SSL_ENABLE_ALPN, false);
@@ -118,6 +129,11 @@ HttpRequest::Impl::Impl(std::chrono::milliseconds timeout_ms, ProgressCallback c
 bool HttpRequest::Impl::IsValid() const
 {
   return m_curl != nullptr;
+}
+
+void HttpRequest::Impl::SetCookies(const std::string& cookies)
+{
+  curl_easy_setopt(m_curl.get(), CURLOPT_COOKIE, cookies.c_str());
 }
 
 static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* userdata)

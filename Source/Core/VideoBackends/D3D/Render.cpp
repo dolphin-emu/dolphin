@@ -627,8 +627,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
-                        float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks)
 {
   ResetAPIState();
 
@@ -650,7 +649,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   auto* xfb_texture = static_cast<DXTexture*>(texture);
 
   BlitScreen(xfb_region, targetRc, xfb_texture->GetRawTexIdentifier(),
-             xfb_texture->GetConfig().width, xfb_texture->GetConfig().height, Gamma);
+             xfb_texture->GetConfig().width, xfb_texture->GetConfig().height);
 
   // Reset viewport for drawing text
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
@@ -854,7 +853,7 @@ void Renderer::BBoxWrite(int index, u16 _value)
 }
 
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
-                          u32 src_width, u32 src_height, float Gamma)
+                          u32 src_width, u32 src_height)
 {
   if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
       g_ActiveConfig.stereo_mode == StereoMode::TAB)
@@ -871,13 +870,13 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
 
     D3D::context->RSSetViewports(1, &rightVp);
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
   }
   else if (g_ActiveConfig.stereo_mode == StereoMode::Nvidia3DVision)
   {
@@ -896,13 +895,13 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
 
     D3D::context->RSSetViewports(1, &rightVp);
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
                            PixelShaderCache::GetColorCopyProgram(false),
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
 
     // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
     // recognize the signature and automatically include the right eye frame.
@@ -927,7 +926,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                                            nullptr;
     D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,
                            VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), geomShader, Gamma);
+                           VertexShaderCache::GetSimpleInputLayout(), geomShader);
   }
 }
 

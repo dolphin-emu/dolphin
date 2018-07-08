@@ -7,8 +7,8 @@
 #include <memory>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/ShaderCache.h"
 
@@ -37,10 +37,10 @@ private:
 
 public:
   static constexpr u32 MAXVBUFFERSIZE =
-      ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
+      MathUtil::NextPowerOf2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
 
   // We may convert triangle-fans to triangle-lists, almost 3x as many indices.
-  static constexpr u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
+  static constexpr u32 MAXIBUFFERSIZE = MathUtil::NextPowerOf2(MAX_PRIMITIVES_PER_COMMAND * 3);
 
   VertexManagerBase();
   // needs to be virtual for DX11's dtor

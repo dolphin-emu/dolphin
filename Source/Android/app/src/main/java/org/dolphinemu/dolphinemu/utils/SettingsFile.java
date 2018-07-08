@@ -62,7 +62,11 @@ public final class SettingsFile
 	public static final String FILE_NAME_GCPAD = "GCPadNew";
 	public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
 
-	public static final String SECTION_CORE = "Core";
+	public static final String SECTION_INI_CORE = "Core";
+	public static final String SECTION_INI_INTERFACE = "Interface";
+
+	public static final String SECTION_CONFIG_GENERAL = "General";
+	public static final String SECTION_CONFIG_INTERFACE = "Interface";
 
 	public static final String SECTION_GFX_SETTINGS = "Settings";
 	public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
@@ -78,10 +82,16 @@ public final class SettingsFile
 	public static final String KEY_DUAL_CORE = "CPUThread";
 	public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
 	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
+	public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+	public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
+    public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";
 	public static final String KEY_SLOT_B_DEVICE = "SlotB";
+
+	public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
+	public static final String KEY_OSD_MESSAGES = "OnScreenDisplayMessages";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
 	public static final String KEY_INTERNAL_RES = "InternalResolution";
@@ -92,6 +102,10 @@ public final class SettingsFile
 	public static final String KEY_PER_PIXEL = "EnablePixelLighting";
 	public static final String KEY_FORCE_FILTERING = "ForceFiltering";
 	public static final String KEY_DISABLE_FOG = "DisableFog";
+	public static final String KEY_DISABLE_COPY_FILTER = "DisableCopyFilter";
+	public static final String KEY_ARBITRARY_MIPMAP_DETECTION = "ArbitraryMipmapDetection";
+	public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
+	public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
 
 	public static final String KEY_STEREO_MODE = "StereoMode";
 	public static final String KEY_STEREO_DEPTH = "StereoDepth";
@@ -403,19 +417,19 @@ public final class SettingsFile
 
 	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
 	{
-		SettingSection coreSection = sections.get(SettingsFile.SECTION_CORE);
+		SettingSection coreSection = sections.get(SettingsFile.SECTION_INI_CORE);
 
 		for (int i = 0; i < 4; i++)
 		{
 			String key = SettingsFile.KEY_GCPAD_TYPE + i;
 			if (coreSection.getSetting(key) == null)
 			{
-				Setting gcPadSetting = new IntSetting(key, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, 0);
+				Setting gcPadSetting = new IntSetting(key, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, 0);
 				coreSection.putSetting(gcPadSetting);
 			}
 		}
 
-		sections.put(SettingsFile.SECTION_CORE, coreSection);
+		sections.put(SettingsFile.SECTION_INI_CORE, coreSection);
 	}
 
 	/**

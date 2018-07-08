@@ -776,9 +776,9 @@ void Tev::Draw()
       // Based on that, choose the index such that points which are far away from the z-axis use the
       // 10th "k" value and such that central points use the first value.
       float floatindex = 9.f - std::abs(offset) * 9.f;
-      floatindex = (floatindex < 0.f) ? 0.f : (floatindex > 9.f) ?
-                                        9.f :
-                                        floatindex;  // TODO: This shouldn't be necessary!
+      floatindex = (floatindex < 0.f) ?
+                       0.f :
+                       (floatindex > 9.f) ? 9.f : floatindex;  // TODO: This shouldn't be necessary!
 
       // Get the two closest integer indices, look up the corresponding samples
       const int indexlower = (int)floor(floatindex);

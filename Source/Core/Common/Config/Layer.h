@@ -8,6 +8,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "Common/Config/ConfigInfo.h"
@@ -18,21 +19,22 @@ namespace Config
 {
 namespace detail
 {
-std::string ValueToString(u16 value);
-std::string ValueToString(u32 value);
-std::string ValueToString(float value);
-std::string ValueToString(double value);
-std::string ValueToString(int value);
-std::string ValueToString(bool value);
-std::string ValueToString(const std::string& value);
-
-template <typename T>
+template <typename T, std::enable_if_t<!std::is_enum<T>::value>* = nullptr>
 std::optional<T> TryParse(const std::string& str_value)
 {
   T value;
   if (!::TryParse(str_value, &value))
     return std::nullopt;
   return value;
+}
+
+template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
+std::optional<T> TryParse(const std::string& str_value)
+{
+  const auto result = TryParse<std::underlying_type_t<T>>(str_value);
+  if (result)
+    return static_cast<T>(*result);
+  return {};
 }
 
 template <>
@@ -69,6 +71,7 @@ public:
   Section(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
   iterator begin() const { return m_begin; }
   iterator end() const { return m_end; }
+
 private:
   iterator m_begin;
   iterator m_end;
@@ -81,6 +84,7 @@ public:
   ConstSection(iterator begin_, iterator end_) : m_begin(begin_), m_end(end_) {}
   iterator begin() const { return m_begin; }
   iterator end() const { return m_end; }
+
 private:
   iterator m_begin;
   iterator m_end;
@@ -114,15 +118,19 @@ public:
   }
 
   template <typename T>
-  void Set(const ConfigInfo<T>& config_info, const T& value)
+  void Set(const ConfigInfo<T>& config_info, const std::common_type_t<T>& value)
   {
-    Set<T>(config_info.location, value);
+    Set(config_info.location, value);
   }
 
   template <typename T>
   void Set(const ConfigLocation& location, const T& value)
   {
-    const std::string new_value = detail::ValueToString(value);
+    Set(location, ValueToString(value));
+  }
+
+  void Set(const ConfigLocation& location, const std::string& new_value)
+  {
     std::optional<std::string>& current_value = m_map[location];
     if (current_value == new_value)
       return;

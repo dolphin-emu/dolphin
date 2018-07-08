@@ -91,7 +91,7 @@ struct hash<PortableVertexDeclaration>
 {
   size_t operator()(const PortableVertexDeclaration& decl) const
   {
-    return HashFletcher((u8*)&decl, sizeof(decl));
+    return Common::HashFletcher(reinterpret_cast<const u8*>(&decl), sizeof(decl));
   }
 };
 }
@@ -112,6 +112,7 @@ public:
 
   u32 GetVertexStride() const { return vtx_decl.stride; }
   const PortableVertexDeclaration& GetVertexDeclaration() const { return vtx_decl; }
+
 protected:
   // Let subclasses construct.
   NativeVertexFormat() {}

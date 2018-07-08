@@ -36,6 +36,12 @@ constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
 constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
 constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
 
+JitArm64::JitArm64() : m_float_emit(this)
+{
+}
+
+JitArm64::~JitArm64() = default;
+
 void JitArm64::Init()
 {
   InitializeInstructionTables();
@@ -526,13 +532,13 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
-  CompiledCode pExecAddr = (CompiledCode)enterCode;
+  CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
 }
 
 void JitArm64::SingleStep()
 {
-  CompiledCode pExecAddr = (CompiledCode)enterCode;
+  CompiledCode pExecAddr = (CompiledCode)enter_code;
   pExecAddr();
 }
 
@@ -553,19 +559,19 @@ void JitArm64::Jit(u32)
     ClearCache();
   }
 
-  int blockSize = code_buffer.GetSize();
-  u32 em_address = PowerPC::ppcState.pc;
+  std::size_t block_size = m_code_buffer.size();
+  const u32 em_address = PowerPC::ppcState.pc;
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
     // Comment out the following to disable breakpoints (speed-up)
-    blockSize = 1;
+    block_size = 1;
   }
 
   // Analyze the block, collect all instructions it is made of (including inlining,
   // if that is enabled), reorder instructions for optimal performance, and join joinable
   // instructions.
-  u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+  const u32 nextPC = analyzer.Analyze(em_address, &code_block, &m_code_buffer, block_size);
 
   if (code_block.m_memory_exception)
   {
@@ -578,11 +584,11 @@ void JitArm64::Jit(u32)
   }
 
   JitBlock* b = blocks.AllocateBlock(em_address);
-  DoJit(em_address, &code_buffer, b, nextPC);
+  DoJit(em_address, b, nextPC);
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
-void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
+void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
   if (em_address == 0)
   {
@@ -601,8 +607,6 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   js.curBlock = b;
   js.carryFlagSet = false;
 
-  PPCAnalyst::CodeOp* ops = code_buf->codebuffer;
-
   const u8* start = GetCodePtr();
   b->checkedEntry = start;
 
@@ -610,7 +614,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   {
     FixupBranch bail = B(CC_PL);
     MOVI2R(DISPATCHER_PC, js.blockStart);
-    B(doTiming);
+    B(do_timing);
     SetJumpTarget(bail);
   }
 
@@ -653,11 +657,13 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
-    js.compilerPC = ops[i].address;
-    js.op = &ops[i];
+    PPCAnalyst::CodeOp& op = m_code_buffer[i];
+
+    js.compilerPC = op.address;
+    js.op = &op;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
-    const GekkoOPInfo* opinfo = ops[i].opinfo;
+    const GekkoOPInfo* opinfo = op.opinfo;
     js.downcountAmount += opinfo->numCycles;
     js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
@@ -665,8 +671,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Gather pipe writes using a non-immediate address are discovered by profiling.
-    bool gatherPipeIntCheck =
-        js.fifoWriteAddresses.find(ops[i].address) != js.fifoWriteAddresses.end();
+    bool gatherPipeIntCheck = js.fifoWriteAddresses.find(op.address) != js.fifoWriteAddresses.end();
 
     if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
     {
@@ -740,7 +745,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       SetJumpTarget(exit);
     }
 
-    if (!ops[i].skip)
+    if (!op.skip)
     {
       if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
@@ -771,13 +776,13 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
         js.firstFPInstructionFound = true;
       }
 
-      CompileInstruction(ops[i]);
+      CompileInstruction(op);
       if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
         FlushCarry();
 
       // If we have a register that will never be used again, flush it.
-      gpr.StoreRegisters(~ops[i].gprInUse);
-      fpr.StoreRegisters(~ops[i].fprInUse);
+      gpr.StoreRegisters(~op.gprInUse);
+      fpr.StoreRegisters(~op.fprInUse);
     }
 
     i += js.skipInstructions;

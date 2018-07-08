@@ -9,28 +9,15 @@
 #include "Common/Swap.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 bool Interpreter::m_reserve;
 u32 Interpreter::m_reserve_address;
-
-namespace
-{
-void GenerateAlignmentException(u32 address)
-{
-  PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
-  PowerPC::ppcState.spr[SPR_DAR] = address;
-}
-
-void GenerateDSIException(u32 address)
-{
-  PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
-  PowerPC::ppcState.spr[SPR_DAR] = address;
-}
-}
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction inst)
 {
@@ -273,7 +260,7 @@ void Interpreter::lmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
-  if ((address & 0b11) != 0 || UReg_MSR{MSR}.LE)
+  if ((address & 0b11) != 0 || MSR.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -301,7 +288,7 @@ void Interpreter::stmw(UGeckoInstruction inst)
 {
   u32 address = Helper_Get_EA(inst);
 
-  if ((address & 0b11) != 0 || UReg_MSR{MSR}.LE)
+  if ((address & 0b11) != 0 || MSR.LE)
   {
     GenerateAlignmentException(address);
     return;
@@ -469,6 +456,12 @@ void Interpreter::dcbf(UGeckoInstruction inst)
 
 void Interpreter::dcbi(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   // TODO: Implement some sort of L2 emulation.
   // TODO: Raise DSI if translation fails (except for direct-store segments).
 
@@ -493,11 +486,17 @@ void Interpreter::dcbst(UGeckoInstruction inst)
 
 void Interpreter::dcbt(UGeckoInstruction inst)
 {
+  if (HID0.NOOPTI)
+    return;
+
   // TODO: Implement some sort of L2 emulation.
 }
 
 void Interpreter::dcbtst(UGeckoInstruction inst)
 {
+  if (HID0.NOOPTI)
+    return;
+
   // TODO: Implement some sort of L2 emulation.
 }
 
@@ -526,6 +525,12 @@ void Interpreter::dcbz(UGeckoInstruction inst)
 
 void Interpreter::dcbz_l(UGeckoInstruction inst)
 {
+  if (!HID2.LCE)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   const u32 address = Helper_Get_EA_X(inst);
 
   if (!HID0.DCE)
@@ -661,7 +666,7 @@ void Interpreter::lhzux(UGeckoInstruction inst)
 
 void Interpreter::lhzx(UGeckoInstruction inst)
 {
-  const u32 temp = (u32)PowerPC::Read_U16(Helper_Get_EA_X(inst));
+  const u32 temp = PowerPC::Read_U16(Helper_Get_EA_X(inst));
 
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
@@ -674,7 +679,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(inst);
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -856,7 +861,7 @@ void Interpreter::lswi(UGeckoInstruction inst)
   else
     EA = rGPR[inst.RA];
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -907,7 +912,7 @@ void Interpreter::stswi(UGeckoInstruction inst)
   else
     EA = rGPR[inst.RA];
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -947,7 +952,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
 {
   u32 EA = Helper_Get_EA_X(inst);
 
-  if (UReg_MSR{MSR}.LE)
+  if (MSR.LE)
   {
     GenerateAlignmentException(EA);
     return;
@@ -1055,6 +1060,12 @@ void Interpreter::sync(UGeckoInstruction inst)
 
 void Interpreter::tlbie(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   // Invalidate TLB entry
   const u32 address = rGPR[inst.RB];
 
@@ -1063,5 +1074,10 @@ void Interpreter::tlbie(UGeckoInstruction inst)
 
 void Interpreter::tlbsync(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+  }
+
   // Ignored
 }

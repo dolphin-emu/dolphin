@@ -10,6 +10,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Profiler
+{
+extern bool g_ProfileBlocks;
+
 struct BlockStat
 {
   BlockStat(u32 _addr, u64 c, u64 ticks, u64 run, u32 size)
@@ -32,9 +36,5 @@ struct ProfileStats
   u64 countsPerSec;
 };
 
-namespace Profiler
-{
-extern bool g_ProfileBlocks;
-
 void WriteProfileResults(const std::string& filename);
-}
+}  // namespace Profiler

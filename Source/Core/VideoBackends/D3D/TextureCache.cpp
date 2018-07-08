@@ -33,10 +33,12 @@ static std::unique_ptr<PSTextureEncoder> g_encoder;
 
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           const EFBRectangle& src_rect, bool scale_by_half)
+                           const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
+                           float gamma, bool clamp_top, bool clamp_bottom,
+                           const CopyFilterCoefficientArray& filter_coefficients)
 {
   g_encoder->Encode(dst, params, native_width, bytes_per_row, num_blocks_y, memory_stride, src_rect,
-                    scale_by_half);
+                    scale_by_half, y_scale, gamma, clamp_top, clamp_bottom, filter_coefficients);
 }
 
 const char palette_shader[] =
@@ -137,9 +139,9 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
   D3D::stateman->SetTexture(1, palette_buf_srv);
 
   // TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
-  float params[4] = {source->format == TextureFormat::I4 ? 15.f : 255.f};
-  D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
-  D3D::stateman->SetPixelConstants(palette_uniform);
+  float params[8] = {source->format == TextureFormat::I4 ? 15.f : 255.f};
+  D3D::context->UpdateSubresource(uniform_buffer, 0, nullptr, &params, 0, 0);
+  D3D::stateman->SetPixelConstants(uniform_buffer);
 
   const D3D11_RECT sourcerect = CD3D11_RECT(0, 0, source->GetWidth(), source->GetHeight());
 
@@ -180,7 +182,7 @@ TextureCache::TextureCache()
 
   palette_buf = nullptr;
   palette_buf_srv = nullptr;
-  palette_uniform = nullptr;
+  uniform_buffer = nullptr;
   palette_pixel_shader[static_cast<int>(TLUTFormat::IA8)] = GetConvertShader("IA8");
   palette_pixel_shader[static_cast<int>(TLUTFormat::RGB565)] = GetConvertShader("RGB565");
   palette_pixel_shader[static_cast<int>(TLUTFormat::RGB5A3)] = GetConvertShader("RGB5A3");
@@ -195,10 +197,10 @@ TextureCache::TextureCache()
   CHECK(SUCCEEDED(hr), "create palette decoder lut srv");
   D3D::SetDebugObjectName(palette_buf_srv, "texture decoder lut srv");
   const D3D11_BUFFER_DESC cbdesc =
-      CD3D11_BUFFER_DESC(16, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
-  hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &palette_uniform);
+      CD3D11_BUFFER_DESC(sizeof(float) * 8, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
+  hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &uniform_buffer);
   CHECK(SUCCEEDED(hr), "Create palette decoder constant buffer");
-  D3D::SetDebugObjectName(palette_uniform,
+  D3D::SetDebugObjectName(uniform_buffer,
                           "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 }
 
@@ -209,7 +211,7 @@ TextureCache::~TextureCache()
 
   SAFE_RELEASE(palette_buf);
   SAFE_RELEASE(palette_buf_srv);
-  SAFE_RELEASE(palette_uniform);
+  SAFE_RELEASE(uniform_buffer);
   for (auto*& shader : palette_pixel_shader)
     SAFE_RELEASE(shader);
   for (auto& iter : m_efb_to_tex_pixel_shaders)
@@ -218,7 +220,9 @@ TextureCache::~TextureCache()
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       EFBCopyFormat dst_format, bool is_intensity)
+                                       EFBCopyFormat dst_format, bool is_intensity, float gamma,
+                                       bool clamp_top, bool clamp_bottom,
+                                       const CopyFilterCoefficientArray& filter_coefficients)
 {
   auto* destination_texture = static_cast<DXTexture*>(entry->texture.get());
 
@@ -236,7 +240,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   }
 
   auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
-                                                      scale_by_half);
+                                                      scale_by_half,
+                                                      NeedsCopyFilterInShader(filter_coefficients));
   ID3D11PixelShader* pixel_shader = GetEFBToTexPixelShader(uid);
   if (!pixel_shader)
     return;
@@ -259,6 +264,27 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
     D3D::SetLinearCopySampler();
   else
     D3D::SetPointCopySampler();
+
+  struct PixelConstants
+  {
+    float filter_coefficients[3];
+    float gamma_rcp;
+    float clamp_top;
+    float clamp_bottom;
+    float pixel_height;
+    u32 padding;
+  };
+  PixelConstants constants;
+  for (size_t i = 0; i < filter_coefficients.size(); i++)
+    constants.filter_coefficients[i] = filter_coefficients[i];
+  constants.gamma_rcp = 1.0f / gamma;
+  constants.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
+  constants.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 1.0f;
+  constants.pixel_height =
+      g_ActiveConfig.bCopyEFBScaled ? 1.0f / g_renderer->GetTargetHeight() : 1.0f / EFB_HEIGHT;
+  constants.padding = 0;
+  D3D::context->UpdateSubresource(uniform_buffer, 0, nullptr, &constants, 0, 0);
+  D3D::stateman->SetPixelConstants(uniform_buffer);
 
   // Make sure we don't draw with the texture set as both a source and target.
   // (This can happen because we don't unbind textures when we free them.)
@@ -289,4 +315,4 @@ TextureCache::GetEFBToTexPixelShader(const TextureConversionShaderGen::TCShaderU
   m_efb_to_tex_pixel_shaders.emplace(uid, shader);
   return shader;
 }
-}
+}  // namespace DX11

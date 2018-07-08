@@ -5,14 +5,14 @@
 #include <cstddef>
 #include <initializer_list>
 #include <type_traits>
-#include "CommonTypes.h"
-
-// Helper functions:
+#include "Common/CommonTypes.h"
 
 #ifdef _WIN32
 
 #include <intrin.h>
 
+namespace Common
+{
 template <typename T>
 constexpr int CountSetBits(T v)
 {
@@ -49,6 +49,8 @@ inline int LeastSignificantSetBit(u64 val)
   return (int)index;
 }
 #else
+namespace Common
+{
 constexpr int CountSetBits(u8 val)
 {
   return __builtin_popcount(val);
@@ -83,9 +85,6 @@ inline int LeastSignificantSetBit(u64 val)
 }
 #endif
 
-// namespace avoids conflict with OS X Carbon; don't use BitSet<T> directly
-namespace BS
-{
 // Similar to std::bitset, this is a class which encapsulates a bitset, i.e.
 // using the set bits of an integer to represent a set of integers.  Like that
 // class, it acts like an array of bools:
@@ -164,6 +163,7 @@ public:
     constexpr int operator*() const { return m_bit; }
     constexpr bool operator==(Iterator other) const { return m_bit == other.m_bit; }
     constexpr bool operator!=(Iterator other) const { return m_bit != other.m_bit; }
+
   private:
     IntTy m_val;
     int m_bit;
@@ -206,9 +206,9 @@ public:
   constexpr Iterator end() const { return Iterator(m_val, -1); }
   IntTy m_val;
 };
-}
+}  // namespace Common
 
-typedef BS::BitSet<u8> BitSet8;
-typedef BS::BitSet<u16> BitSet16;
-typedef BS::BitSet<u32> BitSet32;
-typedef BS::BitSet<u64> BitSet64;
+using BitSet8 = Common::BitSet<u8>;
+using BitSet16 = Common::BitSet<u16>;
+using BitSet32 = Common::BitSet<u32>;
+using BitSet64 = Common::BitSet<u64>;

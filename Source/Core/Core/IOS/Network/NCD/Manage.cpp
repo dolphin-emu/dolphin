@@ -13,14 +13,11 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 NetNCDManage::NetNCDManage(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
+  config.ReadConfig(ios.GetFS().get());
 }
 
 IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
@@ -51,14 +48,14 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
 
   case IOCTLV_NCD_READCONFIG:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
-    config.ReadConfig();
+    config.ReadConfig(m_ios.GetFS().get());
     config.WriteToMem(request.io_vectors.at(0).address);
     break;
 
   case IOCTLV_NCD_WRITECONFIG:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_WRITECONFIG");
     config.ReadFromMem(request.in_vectors.at(0).address);
-    config.WriteConfig();
+    config.WriteConfig(m_ios.GetFS().get());
     break;
 
   case IOCTLV_NCD_GETLINKSTATUS:
@@ -68,12 +65,13 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
     break;
 
   case IOCTLV_NCD_GETWIRELESSMACADDRESS:
+  {
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
 
-    u8 address[Common::MAC_ADDRESS_SIZE];
-    IOS::Net::GetMACAddress(address);
-    Memory::CopyToEmu(request.io_vectors.at(1).address, address, sizeof(address));
+    const Common::MACAddress address = IOS::Net::GetMACAddress();
+    Memory::CopyToEmu(request.io_vectors.at(1).address, address.data(), address.size());
     break;
+  }
 
   default:
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE IOCtlV: %#x", request.request);
@@ -87,6 +85,4 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
   }
   return GetDefaultReply(return_value);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

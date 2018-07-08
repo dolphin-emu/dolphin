@@ -29,6 +29,7 @@ public:
   bool SetRunning(bool running) override;
 
   static bool isValid() { return true; }
+
 private:
   // maximum number of frames the buffer can hold
   static constexpr size_t BUFFER_SIZE_MAX = 8192;

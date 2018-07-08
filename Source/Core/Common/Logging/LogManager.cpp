@@ -48,6 +48,7 @@ public:
   bool IsValid() const { return m_logfile.good(); }
   bool IsEnabled() const { return m_enable; }
   void SetEnable(bool enable) { m_enable = enable; }
+
 private:
   std::mutex m_log_lock;
   std::ofstream m_logfile;
@@ -99,7 +100,7 @@ LogManager::LogManager()
   m_log[LogTypes::IOS] = {"IOS", "IOS"};
   m_log[LogTypes::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
   m_log[LogTypes::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
-  m_log[LogTypes::IOS_FILEIO] = {"IOS_FILEIO", "IOS - FileIO"};
+  m_log[LogTypes::IOS_FS] = {"IOS_FS", "IOS - Filesystem Services"};
   m_log[LogTypes::IOS_SD] = {"IOS_SD", "IOS - SDIO"};
   m_log[LogTypes::IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
   m_log[LogTypes::IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
@@ -168,8 +169,11 @@ void LogManager::SaveSettings()
   Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
 
   for (const auto& container : m_log)
-    Config::SetBaseOrCurrent({{Config::System::Logger, "Logs", container.m_short_name}, false},
-                             container.m_enable);
+  {
+    const Config::ConfigInfo<bool> info{{Config::System::Logger, "Logs", container.m_short_name},
+                                        false};
+    Config::SetBaseOrCurrent(info, container.m_enable);
+  }
 
   Config::Save();
 }

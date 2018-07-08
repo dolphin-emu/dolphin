@@ -19,11 +19,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/VersionInfo.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 // HACK: Since we do not want to require users to install disc updates when launching
 //       Wii games from the game list (which is the inaccurate game boot path anyway),
@@ -412,6 +408,4 @@ IPCCommandResult ES::DIGetTMD(const IOCtlVRequest& request)
   Memory::CopyToEmu(request.io_vectors[0].address, tmd_bytes.data(), tmd_bytes.size());
   return GetDefaultReply(IPC_SUCCESS);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

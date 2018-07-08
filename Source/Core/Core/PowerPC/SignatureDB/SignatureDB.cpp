@@ -10,8 +10,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
 
 // Format Handlers
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"

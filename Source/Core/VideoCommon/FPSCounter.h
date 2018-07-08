@@ -18,6 +18,7 @@ public:
   void Update();
 
   float GetFPS() const { return m_fps; }
+
 private:
   u64 m_last_time = 0;
   u64 m_time_since_update = 0;

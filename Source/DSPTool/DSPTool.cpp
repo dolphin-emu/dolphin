@@ -2,7 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/DSP/DSPCodeUtil.h"
@@ -39,14 +43,15 @@ void DSP::Host::UpdateDebugger()
 {
 }
 
-static void CodeToHeader(const std::vector<u16>& code, std::string filename, const char* name,
-                         std::string& header)
+static std::string CodeToHeader(const std::vector<u16>& code, const std::string& filename)
 {
   std::vector<u16> code_padded = code;
+
   // Pad with nops to 32byte boundary
   while (code_padded.size() & 0x7f)
     code_padded.push_back(0);
-  header.clear();
+
+  std::string header;
   header.reserve(code_padded.size() * 4);
   header.append("#define NUM_UCODES 1\n\n");
   std::string filename_without_extension;
@@ -65,51 +70,286 @@ static void CodeToHeader(const std::vector<u16>& code, std::string filename, con
   header.append("\n\t},\n");
 
   header.append("};\n");
+  return header;
 }
 
-static void CodesToHeader(const std::vector<u16>* codes, const std::vector<std::string>* filenames,
-                          u32 num_codes, const char* name, std::string& header)
+static std::string CodesToHeader(const std::vector<std::vector<u16>>& codes,
+                                 const std::vector<std::string>& filenames)
 {
   std::vector<std::vector<u16>> codes_padded;
-  u32 reserveSize = 0;
-  for (u32 i = 0; i < num_codes; i++)
+  std::size_t reserve_size = 0;
+  for (std::size_t i = 0; i < codes.size(); i++)
   {
     codes_padded.push_back(codes[i]);
     // Pad with nops to 32byte boundary
-    while (codes_padded.at(i).size() & 0x7f)
-      codes_padded.at(i).push_back(0);
+    while (codes_padded[i].size() & 0x7f)
+      codes_padded[i].push_back(0);
 
-    reserveSize += (u32)codes_padded.at(i).size();
+    reserve_size += codes_padded[i].size();
   }
-  header.clear();
-  header.reserve(reserveSize * 4);
-  header.append(StringFromFormat("#define NUM_UCODES %u\n\n", num_codes));
+
+  std::string header;
+  header.reserve(reserve_size * 4);
+  header.append(StringFromFormat("#define NUM_UCODES %zu\n\n", codes.size()));
   header.append("const char* UCODE_NAMES[NUM_UCODES] = {\n");
-  for (u32 i = 0; i < num_codes; i++)
+  for (const std::string& in_filename : filenames)
   {
     std::string filename;
-    if (!SplitPath(filenames->at(i), nullptr, &filename, nullptr))
-      filename = filenames->at(i);
+    if (!SplitPath(in_filename, nullptr, &filename, nullptr))
+      filename = in_filename;
     header.append(StringFromFormat("\t\"%s\",\n", filename.c_str()));
   }
   header.append("};\n\n");
   header.append("const unsigned short dsp_code[NUM_UCODES][0x1000] = {\n");
 
-  for (u32 i = 0; i < num_codes; i++)
+  for (std::size_t i = 0; i < codes.size(); i++)
   {
-    if (codes[i].size() == 0)
+    if (codes[i].empty())
       continue;
 
     header.append("\t{\n\t\t");
-    for (u32 j = 0; j < codes_padded.at(i).size(); j++)
+    for (std::size_t j = 0; j < codes_padded[i].size(); j++)
     {
       if (j && ((j & 15) == 0))
         header.append("\n\t\t");
-      header.append(StringFromFormat("0x%04x, ", codes_padded.at(i).at(j)));
+      header.append(StringFromFormat("0x%04x, ", codes_padded[i][j]));
     }
     header.append("\n\t},\n");
   }
   header.append("};\n");
+  return header;
+}
+
+static void PerformBinaryComparison(const std::string& lhs, const std::string& rhs)
+{
+  std::string binary_code;
+
+  File::ReadFileToString(lhs, binary_code);
+  const std::vector<u16> code1 = DSP::BinaryStringBEToCode(binary_code);
+
+  File::ReadFileToString(rhs, binary_code);
+  const std::vector<u16> code2 = DSP::BinaryStringBEToCode(binary_code);
+
+  DSP::Compare(code1, code2);
+}
+
+static void PrintResults(const std::string& input_name, const std::string& output_name,
+                         bool print_results_srhack, bool print_results_prodhack)
+{
+  std::string dumpfile;
+
+  File::ReadFileToString(input_name, dumpfile);
+  const std::vector<u16> reg_vector = DSP::BinaryStringBEToCode(dumpfile);
+
+  std::string results("Start:\n");
+  for (int initial_reg = 0; initial_reg < 32; initial_reg++)
+  {
+    results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
+    if ((initial_reg + 1) % 8 == 0)
+      results.append("\n");
+  }
+
+  results.append("\n");
+  results.append("Step [number]:\n[Reg] [last value] [current value]\n\n");
+
+  for (unsigned int step = 1; step < reg_vector.size() / 32; step++)
+  {
+    bool changed = false;
+    u16 current_reg;
+    u16 last_reg;
+    u32 htemp;
+    // results.append(StringFromFormat("Step %3d: (CW 0x%04x) UC:%03d\n", step, 0x8fff+step,
+    // (step-1)/32));
+    results.append(StringFromFormat("Step %3d:\n", step));
+    for (int reg = 0; reg < 32; reg++)
+    {
+      if (reg >= 0x0c && reg <= 0x0f)
+        continue;
+      if (print_results_srhack && reg == 0x13)
+        continue;
+
+      if (print_results_prodhack && reg >= 0x15 && reg <= 0x17)
+      {
+        switch (reg)
+        {
+        case 0x15:  // DSP_REG_PRODM
+          last_reg =
+              reg_vector.at((step * 32 - 32) + reg) + reg_vector.at((step * 32 - 32) + reg + 2);
+          current_reg = reg_vector.at(step * 32 + reg) + reg_vector.at(step * 32 + reg + 2);
+          break;
+        case 0x16:  // DSP_REG_PRODH
+          htemp = ((reg_vector.at(step * 32 + reg - 1) + reg_vector.at(step * 32 + reg + 1)) &
+                   ~0xffff) >>
+                  16;
+          current_reg = (u8)(reg_vector.at(step * 32 + reg) + htemp);
+          htemp =
+              ((reg_vector.at(step * 32 - 32 + reg - 1) + reg_vector.at(step * 32 - 32 + reg + 1)) &
+               ~0xffff) >>
+              16;
+          last_reg = (u8)(reg_vector.at(step * 32 - 32 + reg) + htemp);
+          break;
+        case 0x17:  // DSP_REG_PRODM2
+        default:
+          current_reg = 0;
+          last_reg = 0;
+          break;
+        }
+      }
+      else
+      {
+        current_reg = reg_vector.at(step * 32 + reg);
+        last_reg = reg_vector.at((step * 32 - 32) + reg);
+      }
+      if (last_reg != current_reg)
+      {
+        results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, DSP::pdregname(reg),
+                                        last_reg, current_reg));
+        changed = true;
+      }
+    }
+
+    if (changed)
+      results.append("\n");
+    else
+      results.append("No Change\n\n");
+  }
+
+  if (output_name.empty())
+    printf("%s", results.c_str());
+  else
+    File::WriteStringToFile(results, output_name.c_str());
+}
+
+static bool PerformDisassembly(const std::string& input_name, const std::string& output_name)
+{
+  if (input_name.empty())
+  {
+    printf("Disassemble: Must specify input.\n");
+    return false;
+  }
+
+  std::string binary_code;
+  File::ReadFileToString(input_name, binary_code);
+  const std::vector<u16> code = DSP::BinaryStringBEToCode(binary_code);
+  std::string text;
+  DSP::Disassemble(code, true, text);
+
+  if (output_name.empty())
+    printf("%s", text.c_str());
+  else
+    File::WriteStringToFile(text, output_name);
+
+  printf("Disassembly completed successfully!\n");
+  return true;
+}
+
+static std::vector<std::string> GetAssemblerFiles(const std::string& source)
+{
+  std::vector<std::string> files;
+  std::size_t last_pos = 0;
+  std::size_t pos = 0;
+
+  while ((pos = source.find('\n', last_pos)) != std::string::npos)
+  {
+    std::string temp = source.substr(last_pos, pos - last_pos);
+    if (!temp.empty())
+      files.push_back(std::move(temp));
+    last_pos = pos + 1;
+  }
+
+  return files;
+}
+
+static bool PerformAssembly(const std::string& input_name, const std::string& output_name,
+                            const std::string& output_header_name, bool multiple, bool force,
+                            bool output_size)
+{
+  if (input_name.empty())
+  {
+    printf("Assemble: Must specify input.\n");
+    return false;
+  }
+
+  std::string source;
+  if (File::ReadFileToString(input_name, source))
+  {
+    if (multiple)
+    {
+      source.append("\n");
+
+      // When specifying a list of files we must compile a header
+      // (we can't assemble multiple files to one binary)
+      // since we checked it before, we assume output_header_name isn't empty
+      std::string currentSource;
+      const std::vector<std::string> files = GetAssemblerFiles(source);
+
+      std::size_t lines = files.size();
+      if (lines == 0)
+      {
+        printf("ERROR: Must specify at least one file\n");
+        return false;
+      }
+
+      std::vector<std::vector<u16>> codes(lines);
+
+      for (std::size_t i = 0; i < lines; i++)
+      {
+        if (!File::ReadFileToString(files[i], currentSource))
+        {
+          printf("ERROR reading %s, skipping...\n", files[i].c_str());
+          lines--;
+        }
+        else
+        {
+          if (!DSP::Assemble(currentSource, codes[i], force))
+          {
+            printf("Assemble: Assembly of %s failed due to errors\n", files[i].c_str());
+            lines--;
+          }
+          if (output_size)
+          {
+            printf("%s: %zu\n", files[i].c_str(), codes[i].size());
+          }
+        }
+      }
+
+      const std::string header = CodesToHeader(codes, files);
+      File::WriteStringToFile(header, output_header_name + ".h");
+    }
+    else
+    {
+      std::vector<u16> code;
+
+      if (!DSP::Assemble(source, code, force))
+      {
+        printf("Assemble: Assembly failed due to errors\n");
+        return false;
+      }
+
+      if (output_size)
+      {
+        printf("%s: %zu\n", input_name.c_str(), code.size());
+      }
+
+      if (!output_name.empty())
+      {
+        const std::string binary_code = DSP::CodeToBinaryStringBE(code);
+        File::WriteStringToFile(binary_code, output_name);
+      }
+      if (!output_header_name.empty())
+      {
+        const std::string header = CodeToHeader(code, input_name);
+        File::WriteStringToFile(header, output_header_name + ".h");
+      }
+    }
+  }
+
+  source.clear();
+
+  if (!output_size)
+    printf("Assembly completed successfully!\n");
+
+  return true;
 }
 
 // Usage:
@@ -210,226 +450,25 @@ int main(int argc, const char* argv[])
 
   if (compare)
   {
-    // Two binary inputs, let's diff.
-    std::string binary_code;
-
-    File::ReadFileToString(input_name, binary_code);
-    const std::vector<u16> code1 = DSP::BinaryStringBEToCode(binary_code);
-
-    File::ReadFileToString(output_name, binary_code);
-    const std::vector<u16> code2 = DSP::BinaryStringBEToCode(binary_code);
-
-    DSP::Compare(code1, code2);
+    PerformBinaryComparison(input_name, output_name);
     return 0;
   }
 
   if (print_results)
   {
-    std::string dumpfile;
-
-    File::ReadFileToString(input_name, dumpfile);
-    const std::vector<u16> reg_vector = DSP::BinaryStringBEToCode(dumpfile);
-
-    std::string results("Start:\n");
-    for (int initial_reg = 0; initial_reg < 32; initial_reg++)
-    {
-      results.append(StringFromFormat("%02x %04x ", initial_reg, reg_vector.at(initial_reg)));
-      if ((initial_reg + 1) % 8 == 0)
-        results.append("\n");
-    }
-    results.append("\n");
-    results.append("Step [number]:\n[Reg] [last value] [current value]\n\n");
-    for (unsigned int step = 1; step < reg_vector.size() / 32; step++)
-    {
-      bool changed = false;
-      u16 current_reg;
-      u16 last_reg;
-      u32 htemp;
-      // results.append(StringFromFormat("Step %3d: (CW 0x%04x) UC:%03d\n", step, 0x8fff+step,
-      // (step-1)/32));
-      results.append(StringFromFormat("Step %3d:\n", step));
-      for (int reg = 0; reg < 32; reg++)
-      {
-        if ((reg >= 0x0c) && (reg <= 0x0f))
-          continue;
-        if (print_results_srhack && (reg == 0x13))
-          continue;
-
-        if ((print_results_prodhack) && (reg >= 0x15) && (reg <= 0x17))
-        {
-          switch (reg)
-          {
-          case 0x15:  // DSP_REG_PRODM
-            last_reg =
-                reg_vector.at((step * 32 - 32) + reg) + reg_vector.at((step * 32 - 32) + reg + 2);
-            current_reg = reg_vector.at(step * 32 + reg) + reg_vector.at(step * 32 + reg + 2);
-            break;
-          case 0x16:  // DSP_REG_PRODH
-            htemp = ((reg_vector.at(step * 32 + reg - 1) + reg_vector.at(step * 32 + reg + 1)) &
-                     ~0xffff) >>
-                    16;
-            current_reg = (u8)(reg_vector.at(step * 32 + reg) + htemp);
-            htemp = ((reg_vector.at(step * 32 - 32 + reg - 1) +
-                      reg_vector.at(step * 32 - 32 + reg + 1)) &
-                     ~0xffff) >>
-                    16;
-            last_reg = (u8)(reg_vector.at(step * 32 - 32 + reg) + htemp);
-            break;
-          case 0x17:  // DSP_REG_PRODM2
-          default:
-            current_reg = 0;
-            last_reg = 0;
-            break;
-          }
-        }
-        else
-        {
-          current_reg = reg_vector.at(step * 32 + reg);
-          last_reg = reg_vector.at((step * 32 - 32) + reg);
-        }
-        if (last_reg != current_reg)
-        {
-          results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, DSP::pdregname(reg),
-                                          last_reg, current_reg));
-          changed = true;
-        }
-      }
-      if (!changed)
-        results.append("No Change\n\n");
-      else
-        results.append("\n");
-    }
-
-    if (!output_name.empty())
-      File::WriteStringToFile(results, output_name.c_str());
-    else
-      printf("%s", results.c_str());
+    PrintResults(input_name, output_name, print_results_srhack, print_results_prodhack);
     return 0;
   }
 
   if (disassemble)
   {
-    if (input_name.empty())
-    {
-      printf("Disassemble: Must specify input.\n");
+    if (!PerformDisassembly(input_name, output_name))
       return 1;
-    }
-    std::string binary_code;
-    File::ReadFileToString(input_name, binary_code);
-    const std::vector<u16> code = DSP::BinaryStringBEToCode(binary_code);
-    std::string text;
-    DSP::Disassemble(code, true, text);
-    if (!output_name.empty())
-      File::WriteStringToFile(text, output_name);
-    else
-      printf("%s", text.c_str());
   }
   else
   {
-    if (input_name.empty())
-    {
-      printf("Assemble: Must specify input.\n");
+    if (!PerformAssembly(input_name, output_name, output_header_name, multiple, force, outputSize))
       return 1;
-    }
-    std::string source;
-    if (File::ReadFileToString(input_name.c_str(), source))
-    {
-      if (multiple)
-      {
-        // When specifying a list of files we must compile a header
-        // (we can't assemble multiple files to one binary)
-        // since we checked it before, we assume output_header_name isn't empty
-        int lines;
-        std::vector<u16>* codes;
-        std::vector<std::string> files;
-        std::string header, currentSource;
-        size_t lastPos = 0, pos = 0;
-
-        source.append("\n");
-
-        while ((pos = source.find('\n', lastPos)) != std::string::npos)
-        {
-          std::string temp = source.substr(lastPos, pos - lastPos);
-          if (!temp.empty())
-            files.push_back(temp);
-          lastPos = pos + 1;
-        }
-
-        lines = (int)files.size();
-
-        if (lines == 0)
-        {
-          printf("ERROR: Must specify at least one file\n");
-          return 1;
-        }
-
-        codes = new std::vector<u16>[lines];
-
-        for (int i = 0; i < lines; i++)
-        {
-          if (!File::ReadFileToString(files[i].c_str(), currentSource))
-          {
-            printf("ERROR reading %s, skipping...\n", files[i].c_str());
-            lines--;
-          }
-          else
-          {
-            if (!DSP::Assemble(currentSource, codes[i], force))
-            {
-              printf("Assemble: Assembly of %s failed due to errors\n", files[i].c_str());
-              lines--;
-            }
-            if (outputSize)
-            {
-              printf("%s: %d\n", files[i].c_str(), (int)codes[i].size());
-            }
-          }
-        }
-
-        CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
-        File::WriteStringToFile(header, output_header_name + ".h");
-
-        delete[] codes;
-      }
-      else
-      {
-        std::vector<u16> code;
-
-        if (!DSP::Assemble(source, code, force))
-        {
-          printf("Assemble: Assembly failed due to errors\n");
-          return 1;
-        }
-
-        if (outputSize)
-        {
-          printf("%s: %d\n", input_name.c_str(), (int)code.size());
-        }
-
-        if (!output_name.empty())
-        {
-          const std::string binary_code = DSP::CodeToBinaryStringBE(code);
-          File::WriteStringToFile(binary_code, output_name);
-        }
-        if (!output_header_name.empty())
-        {
-          std::string header;
-          CodeToHeader(code, input_name, output_header_name.c_str(), header);
-          File::WriteStringToFile(header, output_header_name + ".h");
-        }
-      }
-    }
-    source.clear();
-  }
-
-  if (disassemble)
-  {
-    printf("Disassembly completed successfully!\n");
-  }
-  else
-  {
-    if (!outputSize)
-      printf("Assembly completed successfully!\n");
   }
 
   return 0;

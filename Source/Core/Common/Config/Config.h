@@ -70,26 +70,26 @@ LayerType GetActiveLayerForConfig(const ConfigInfo<T>& info)
 }
 
 template <typename T>
-void Set(LayerType layer, const ConfigInfo<T>& info, const T& value)
+void Set(LayerType layer, const ConfigInfo<T>& info, const std::common_type_t<T>& value)
 {
   GetLayer(layer)->Set(info, value);
   InvokeConfigChangedCallbacks();
 }
 
 template <typename T>
-void SetBase(const ConfigInfo<T>& info, const T& value)
+void SetBase(const ConfigInfo<T>& info, const std::common_type_t<T>& value)
 {
   Set<T>(LayerType::Base, info, value);
 }
 
 template <typename T>
-void SetCurrent(const ConfigInfo<T>& info, const T& value)
+void SetCurrent(const ConfigInfo<T>& info, const std::common_type_t<T>& value)
 {
   Set<T>(LayerType::CurrentRun, info, value);
 }
 
 template <typename T>
-void SetBaseOrCurrent(const ConfigInfo<T>& info, const T& value)
+void SetBaseOrCurrent(const ConfigInfo<T>& info, const std::common_type_t<T>& value)
 {
   if (GetActiveLayerForConfig(info) == LayerType::Base)
     Set<T>(LayerType::Base, info, value);

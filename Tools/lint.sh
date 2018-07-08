@@ -9,8 +9,8 @@ if ! [ -x "$(command -v git)" ]; then
   exit 1
 fi
 
-REQUIRED_CLANG_FORMAT_MAJOR=3
-REQUIRED_CLANG_FORMAT_MINOR=8
+REQUIRED_CLANG_FORMAT_MAJOR=5
+REQUIRED_CLANG_FORMAT_MINOR=0
 
 if ! [ -x "$(command -v clang-format)" ]; then
   echo >&2 "error: clang-format is not installed"

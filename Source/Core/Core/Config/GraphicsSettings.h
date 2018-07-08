@@ -8,6 +8,10 @@
 
 #include "Common/Config/Config.h"
 
+enum class AspectMode : int;
+enum class ShaderCompilationMode : int;
+enum class StereoMode : int;
+
 namespace Config
 {
 // Configuration Information
@@ -20,8 +24,8 @@ extern const ConfigInfo<int> GFX_ADAPTER;
 // Graphics.Settings
 
 extern const ConfigInfo<bool> GFX_WIDESCREEN_HACK;
-extern const ConfigInfo<int> GFX_ASPECT_RATIO;
-extern const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO;
+extern const ConfigInfo<AspectMode> GFX_ASPECT_RATIO;
+extern const ConfigInfo<AspectMode> GFX_SUGGESTED_ASPECT_RATIO;
 extern const ConfigInfo<bool> GFX_CROP;
 extern const ConfigInfo<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES;
 extern const ConfigInfo<bool> GFX_SHOW_FPS;
@@ -60,7 +64,7 @@ extern const ConfigInfo<bool> GFX_BACKEND_MULTITHREADING;
 extern const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL;
 extern const ConfigInfo<bool> GFX_SHADER_CACHE;
 extern const ConfigInfo<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING;
-extern const ConfigInfo<int> GFX_SHADER_COMPILATION_MODE;
+extern const ConfigInfo<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE;
 extern const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS;
 extern const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS;
 
@@ -80,10 +84,13 @@ extern const ConfigInfo<bool> GFX_ENHANCE_FORCE_FILTERING;
 extern const ConfigInfo<int> GFX_ENHANCE_MAX_ANISOTROPY;  // NOTE - this is x in (1 << x)
 extern const ConfigInfo<std::string> GFX_ENHANCE_POST_SHADER;
 extern const ConfigInfo<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
+extern const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
+extern const ConfigInfo<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION;
+extern const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD;
 
 // Graphics.Stereoscopy
 
-extern const ConfigInfo<int> GFX_STEREO_MODE;
+extern const ConfigInfo<StereoMode> GFX_STEREO_MODE;
 extern const ConfigInfo<int> GFX_STEREO_DEPTH;
 extern const ConfigInfo<int> GFX_STEREO_CONVERGENCE_PERCENTAGE;
 extern const ConfigInfo<bool> GFX_STEREO_SWAP_EYES;
@@ -107,11 +114,6 @@ extern const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING;
 
 // Graphics.GameSpecific
 
-extern const ConfigInfo<int> GFX_PROJECTION_HACK;
-extern const ConfigInfo<int> GFX_PROJECTION_HACK_SZNEAR;
-extern const ConfigInfo<int> GFX_PROJECTION_HACK_SZFAR;
-extern const ConfigInfo<std::string> GFX_PROJECTION_HACK_ZNEAR;
-extern const ConfigInfo<std::string> GFX_PROJECTION_HACK_ZFAR;
 extern const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE;
 
 }  // namespace Config

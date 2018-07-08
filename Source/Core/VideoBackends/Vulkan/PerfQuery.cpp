@@ -52,8 +52,9 @@ bool PerfQuery::Initialize()
   }
 
   g_command_buffer_mgr->AddFencePointCallback(
-      this, std::bind(&PerfQuery::OnCommandBufferQueued, this, std::placeholders::_1,
-                      std::placeholders::_2),
+      this,
+      std::bind(&PerfQuery::OnCommandBufferQueued, this, std::placeholders::_1,
+                std::placeholders::_2),
       std::bind(&PerfQuery::OnCommandBufferExecuted, this, std::placeholders::_1));
 
   return true;

@@ -20,10 +20,7 @@ class Accelerator;
 
 namespace JIT
 {
-namespace x64
-{
 class DSPEmitter;
-}
 }
 
 enum : u32
@@ -208,15 +205,15 @@ enum : u16
 };
 
 // Exception vectors
-enum : int
+enum class ExceptionType
 {
-  EXP_STOVF = 1,  // 0x0002 stack under/over flow
-  EXP_2 = 2,      // 0x0004
-  EXP_3 = 3,      // 0x0006
-  EXP_4 = 4,      // 0x0008
-  EXP_ACCOV = 5,  // 0x000a accelerator address overflow
-  EXP_6 = 6,      // 0x000c
-  EXP_INT = 7     // 0x000e external int (message from CPU)
+  StackOverflow = 1,        // 0x0002 stack under/over flow
+  EXP_2 = 2,                // 0x0004
+  EXP_3 = 3,                // 0x0006
+  EXP_4 = 4,                // 0x0008
+  AcceleratorOverflow = 5,  // 0x000a accelerator address overflow
+  EXP_6 = 6,                // 0x000c
+  ExternalInterrupt = 7     // 0x000e external int (message from CPU)
 };
 
 struct DSP_Regs
@@ -317,7 +314,7 @@ struct SDSP
 extern SDSP g_dsp;
 extern DSPBreakpoints g_dsp_breakpoints;
 extern bool g_init_hax;
-extern std::unique_ptr<JIT::x64::DSPEmitter> g_dsp_jit;
+extern std::unique_ptr<JIT::DSPEmitter> g_dsp_jit;
 extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 
 struct DSPInitOptions
@@ -329,19 +326,19 @@ struct DSPInitOptions
   std::array<u16, DSP_COEF_SIZE> coef_contents;
 
   // Core used to emulate the DSP.
-  // Default: CORE_JIT.
-  enum CoreType
+  // Default: JIT64.
+  enum class CoreType
   {
-    CORE_INTERPRETER,
-    CORE_JIT,
+    Interpreter,
+    JIT64,
   };
-  CoreType core_type;
+  CoreType core_type = CoreType::JIT64;
 
   // Optional capture logger used to log internal DSP data transfers.
   // Default: dummy implementation, does nothing.
   DSPCaptureLogger* capture_logger;
 
-  DSPInitOptions() : core_type(CORE_JIT), capture_logger(new DefaultDSPCaptureLogger()) {}
+  DSPInitOptions() : capture_logger(new DefaultDSPCaptureLogger()) {}
 };
 
 // Initializes the DSP emulator using the provided options. Takes ownership of
@@ -356,7 +353,7 @@ void DSPCore_CheckExceptions();
 void DSPCore_SetExternalInterrupt(bool val);
 
 // sets a flag in the pending exception register.
-void DSPCore_SetException(u8 level);
+void DSPCore_SetException(ExceptionType exception);
 
 enum class State
 {

@@ -131,12 +131,14 @@ void VKTexture::CopyRectangleFromTexture(const AbstractTexture* src,
 {
   Texture2D* src_texture = static_cast<const VKTexture*>(src)->GetRawTexIdentifier();
 
-  ASSERT_MSG(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
-                        static_cast<u32>(src_rect.GetHeight()) <= src_texture->GetHeight(),
+  ASSERT_MSG(VIDEO,
+             static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
+                 static_cast<u32>(src_rect.GetHeight()) <= src_texture->GetHeight(),
              "Source rect is too large for CopyRectangleFromTexture");
 
-  ASSERT_MSG(VIDEO, static_cast<u32>(dst_rect.GetWidth()) <= m_config.width &&
-                        static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
+  ASSERT_MSG(VIDEO,
+             static_cast<u32>(dst_rect.GetWidth()) <= m_config.width &&
+                 static_cast<u32>(dst_rect.GetHeight()) <= m_config.height,
              "Dest rect is too large for CopyRectangleFromTexture");
 
   VkImageCopy image_copy = {

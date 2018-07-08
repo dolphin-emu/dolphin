@@ -1,17 +1,14 @@
 package org.dolphinemu.dolphinemu.ui.platform;
 
-import android.database.Cursor;
+import org.dolphinemu.dolphinemu.model.GameFile;
+
+import java.util.List;
 
 /**
  * Abstraction for a screen representing a single platform's games.
  */
 public interface PlatformGamesView
 {
-	/**
-	 * Tell the view to refresh its contents.
-	 */
-	void refresh();
-
 	/**
 	 * Tell the view that a certain game's screenshot has been updated,
 	 * and should be redrawn on-screen.
@@ -29,10 +26,7 @@ public interface PlatformGamesView
 	void onItemClick(String gameId);
 
 	/**
-	 * To be called when an asynchronous database read completes. Passes the
-	 * result, in this case a {@link Cursor}, to the view.
-	 *
-	 * @param games A Cursor containing the games read from the database.
+	 * To be called when the game file cache is updated.
 	 */
-	void showGames(Cursor games);
+	void showGames();
 }

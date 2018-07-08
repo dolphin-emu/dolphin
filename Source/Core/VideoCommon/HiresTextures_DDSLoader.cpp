@@ -12,6 +12,7 @@
 
 #include "Common/Align.h"
 #include "Common/File.h"
+#include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -155,14 +156,9 @@ u32 GetBlockCount(u32 extent, u32 block_size)
   return std::max(Common::AlignUp(extent, block_size) / block_size, 1u);
 }
 
-HiresTexture::ImageDataPointer AllocateLevelData(size_t size)
-{
-  return HiresTexture::ImageDataPointer(new u8[size], [](u8* data) { delete[] data; });
-}
-
 void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
 {
-  u8* data_ptr = level->data.get();
+  u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
   {
     for (u32 x = 0; x < level->row_length; x++)
@@ -176,7 +172,7 @@ void ConvertTexture_X8B8G8R8(HiresTexture::Level* level)
 
 void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
 {
-  u8* data_ptr = level->data.get();
+  u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
   {
     for (u32 x = 0; x < level->row_length; x++)
@@ -193,7 +189,7 @@ void ConvertTexture_A8R8G8B8(HiresTexture::Level* level)
 
 void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
 {
-  u8* data_ptr = level->data.get();
+  u8* data_ptr = level->data.data();
   for (u32 row = 0; row < level->height; row++)
   {
     for (u32 x = 0; x < level->row_length; x++)
@@ -210,14 +206,10 @@ void ConvertTexture_X8R8G8B8(HiresTexture::Level* level)
 
 void ConvertTexture_R8G8B8(HiresTexture::Level* level)
 {
-  // Have to reallocate the buffer for this one, since the data in the file
-  // does not have an alpha byte.
-  level->data_size = level->row_length * level->height * sizeof(u32);
-  HiresTexture::ImageDataPointer rgb_data = AllocateLevelData(level->data_size);
-  std::swap(level->data, rgb_data);
+  std::vector<u8> new_data(level->row_length * level->height * sizeof(u32));
 
-  const u8* rgb_data_ptr = rgb_data.get();
-  u8* data_ptr = level->data.get();
+  const u8* rgb_data_ptr = level->data.data();
+  u8* data_ptr = new_data.data();
 
   for (u32 row = 0; row < level->height; row++)
   {
@@ -232,6 +224,8 @@ void ConvertTexture_R8G8B8(HiresTexture::Level* level)
       rgb_data_ptr += 3;
     }
   }
+
+  level->data = std::move(new_data);
 }
 
 bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
@@ -407,22 +401,30 @@ bool ParseDDSHeader(File::IOFile& file, DDSLoadInfo* info)
   return true;
 }
 
-bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const DDSLoadInfo& info,
-                  u32 width, u32 height, u32 row_length, size_t size)
+bool ReadMipLevel(HiresTexture::Level* level, File::IOFile& file, const std::string& filename,
+                  u32 mip_level, const DDSLoadInfo& info, u32 width, u32 height, u32 row_length,
+                  size_t size)
 {
-  // Copy to the final storage location. The deallocator here is simple, nothing extra is
-  // needed, compared to the SOIL-based loader.
+  // D3D11 cannot handle block compressed textures where the first mip level is
+  // not a multiple of the block size.
+  if (mip_level == 0 && info.block_size > 1 &&
+      ((width % info.block_size) != 0 || (height % info.block_size) != 0))
+  {
+    ERROR_LOG(VIDEO,
+              "Invalid dimensions for DDS texture %s. For compressed textures of this format, "
+              "the width/height of the first mip level must be a multiple of %u.",
+              filename.c_str(), info.block_size);
+    return false;
+  }
+
+  // Copy to the final storage location.
   level->width = width;
   level->height = height;
   level->format = info.format;
   level->row_length = row_length;
-  level->data_size = size;
-  level->data = AllocateLevelData(level->data_size);
-  if (!file.ReadBytes(level->data.get(), level->data_size))
-  {
-    level->data.reset();
+  level->data.resize(size);
+  if (!file.ReadBytes(level->data.data(), level->data.size()))
     return false;
-  }
 
   // Apply conversion function for uncompressed textures.
   if (info.conversion_function)
@@ -447,8 +449,8 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
   // Read first mip level, as it may have a custom pitch.
   Level first_level;
   if (!file.Seek(info.first_mip_offset, SEEK_SET) ||
-      !ReadMipLevel(&first_level, file, info, info.width, info.height, info.first_mip_row_length,
-                    info.first_mip_size))
+      !ReadMipLevel(&first_level, file, filename, 0, info, info.width, info.height,
+                    info.first_mip_row_length, info.first_mip_size))
   {
     return false;
   }
@@ -470,7 +472,8 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
     u32 mip_row_length = blocks_wide * info.block_size;
     size_t mip_size = blocks_wide * static_cast<size_t>(info.bytes_per_block) * blocks_high;
     Level level;
-    if (!ReadMipLevel(&level, file, info, mip_width, mip_height, mip_row_length, mip_size))
+    if (!ReadMipLevel(&level, file, filename, i, info, mip_width, mip_height, mip_row_length,
+                      mip_size))
       break;
 
     tex->m_levels.push_back(std::move(level));
@@ -479,7 +482,7 @@ bool HiresTexture::LoadDDSTexture(HiresTexture* tex, const std::string& filename
   return true;
 }
 
-bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename)
+bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename, u32 mip_level)
 {
   // Only loading a single mip level.
   File::IOFile file;
@@ -491,6 +494,6 @@ bool HiresTexture::LoadDDSTexture(Level& level, const std::string& filename)
   if (!ParseDDSHeader(file, &info))
     return false;
 
-  return ReadMipLevel(&level, file, info, info.width, info.height, info.first_mip_row_length,
-                      info.first_mip_size);
+  return ReadMipLevel(&level, file, filename, mip_level, info, info.width, info.height,
+                      info.first_mip_row_length, info.first_mip_size);
 }

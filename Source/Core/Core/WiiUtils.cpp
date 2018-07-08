@@ -29,13 +29,14 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
-#include "Common/SysConf.h"
 #include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/SysConf.h"
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
@@ -136,7 +137,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
   }
 
   // Delete a previous temporary title, if it exists.
-  SysConf sysconf{Common::FROM_SESSION_ROOT};
+  SysConf sysconf{ios.GetFS()};
   SysConf::Entry* tid_entry = sysconf.GetOrAddEntry("IPL.TID", SysConf::Entry::Type::LongLong);
   if (const u64 previous_temporary_title_id = Common::swap64(tid_entry->GetData<u64>(0)))
     ios.GetES()->DeleteTitleContent(previous_temporary_title_id);
@@ -168,18 +169,17 @@ bool UninstallTitle(u64 title_id)
 
 bool IsTitleInstalled(u64 title_id)
 {
-  const std::string content_dir =
-      Common::GetTitleContentPath(title_id, Common::FromWhichRoot::FROM_CONFIGURED_ROOT);
+  IOS::HLE::Kernel ios;
+  const auto entries = ios.GetFS()->ReadDirectory(0, 0, Common::GetTitleContentPath(title_id));
 
-  if (!File::IsDirectory(content_dir))
+  if (!entries)
     return false;
 
   // Since this isn't IOS and we only need a simple way to figure out if a title is installed,
   // we make the (reasonable) assumption that having more than just the TMD in the content
   // directory means that the title is installed.
-  const auto entries = File::ScanDirectoryTree(content_dir, false);
-  return std::any_of(entries.children.begin(), entries.children.end(),
-                     [](const auto& file) { return file.virtualName != "title.tmd"; });
+  return std::any_of(entries->begin(), entries->end(),
+                     [](const std::string& file) { return file != "title.tmd"; });
 }
 
 // Common functionality for system updaters.
@@ -575,8 +575,8 @@ class DiscSystemUpdater final : public SystemUpdater
 {
 public:
   DiscSystemUpdater(UpdateCallback update_callback, const std::string& image_path)
-      : m_update_callback{std::move(update_callback)},
-        m_volume{DiscIO::CreateVolumeFromFilename(image_path)}
+      : m_update_callback{std::move(update_callback)}, m_volume{DiscIO::CreateVolumeFromFilename(
+                                                           image_path)}
   {
   }
   UpdateResult DoDiscUpdate();

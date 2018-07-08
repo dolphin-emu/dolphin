@@ -11,6 +11,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -90,7 +91,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
 
     m_server = g_MainNetHost.get();
 
-    if (g_TraversalClient->m_State == TraversalClient::Failure)
+    if (g_TraversalClient->GetState() == TraversalClient::Failure)
       g_TraversalClient->ReconnectToServer();
   }
   else
@@ -172,7 +173,7 @@ void NetPlayServer::ThreadFunc()
             delete (PlayerId*)netEvent.peer->data;
             netEvent.peer->data = nullptr;
           }
-          enet_peer_disconnect(accept_peer, 0);
+          enet_peer_disconnect_later(accept_peer, 0);
         }
       }
       break;
@@ -606,14 +607,17 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case NP_MSG_STOP_GAME:
   {
+    if (!m_is_running)
+      break;
+
+    m_is_running = false;
+
     // tell clients to stop game
     sf::Packet spac;
     spac << (MessageId)NP_MSG_STOP_GAME;
 
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
     SendToClients(spac);
-
-    m_is_running = false;
   }
   break;
 
@@ -736,8 +740,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  if (m_dialog && m_traversal_client->m_State == TraversalClient::Failure)
-    m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
+  if (m_dialog && m_traversal_client->GetState() == TraversalClient::Failure)
+    m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
 }
 
 // called from ---GUI--- thread
@@ -815,10 +819,10 @@ bool NetPlayServer::StartGame()
 
   // tell clients to start game
   sf::Packet spac;
-  spac << (MessageId)NP_MSG_START_GAME;
+  spac << static_cast<MessageId>(NP_MSG_START_GAME);
   spac << m_current_game;
   spac << m_settings.m_CPUthread;
-  spac << m_settings.m_CPUcore;
+  spac << static_cast<std::underlying_type_t<PowerPC::CPUCore>>(m_settings.m_CPUcore);
   spac << m_settings.m_EnableCheats;
   spac << m_settings.m_SelectedLanguage;
   spac << m_settings.m_OverrideGCLanguage;
@@ -830,10 +834,11 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_CopyWiiSave;
   spac << m_settings.m_OCEnable;
   spac << m_settings.m_OCFactor;
+  spac << m_settings.m_ReducePollingRate;
   spac << m_settings.m_EXIDevice[0];
   spac << m_settings.m_EXIDevice[1];
-  spac << (u32)g_netplay_initial_rtc;
-  spac << (u32)(g_netplay_initial_rtc >> 32);
+  spac << static_cast<u32>(g_netplay_initial_rtc);
+  spac << static_cast<u32>(g_netplay_initial_rtc >> 32);
 
   SendAsyncToClients(std::move(spac));
 

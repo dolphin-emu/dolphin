@@ -14,11 +14,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/USB/Common.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
@@ -194,6 +190,4 @@ bool USB_HIDv5::ShouldAddDevice(const USB::Device& device) const
   constexpr u8 HID_CLASS = 0x03;
   return device.HasClass(HID_CLASS);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

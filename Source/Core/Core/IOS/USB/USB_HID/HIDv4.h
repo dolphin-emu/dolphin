@@ -16,11 +16,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class USB_HIDv4 final : public USBHost
 {
@@ -57,6 +53,4 @@ private:
   std::map<s32, u64> m_ios_ids;
   std::map<u64, s32> m_device_ids;
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

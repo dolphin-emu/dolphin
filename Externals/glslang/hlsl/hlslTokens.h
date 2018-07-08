@@ -1,12 +1,12 @@
 //
-//Copyright (C) 2016 Google, Inc.
-//Copyright (C) 2016 LunarG, Inc.
+// Copyright (C) 2016 Google, Inc.
+// Copyright (C) 2016 LunarG, Inc.
 //
-//All rights reserved.
+// All rights reserved.
 //
-//Redistribution and use in source and binary forms, with or without
-//modification, are permitted provided that the following conditions
-//are met:
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions
+// are met:
 //
 //    Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
@@ -20,18 +20,18 @@
 //    contributors may be used to endorse or promote products derived
 //    from this software without specific prior written permission.
 //
-//THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-//"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-//LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-//FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-//COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-//BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-//CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-//LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-//ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-//POSSIBILITY OF SUCH DAMAGE.
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+// INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+// BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+// LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+// ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
 //
 
 #ifndef EHLSLTOKENS_H_
@@ -64,6 +64,25 @@ enum EHlslTokenClass {
     EHTokIn,
     EHTokOut,
     EHTokInOut,
+    EHTokLayout,
+    EHTokGloballyCoherent,
+    EHTokInline,
+
+    // primitive types
+    EHTokPoint,
+    EHTokLine,
+    EHTokTriangle,
+    EHTokLineAdj,
+    EHTokTriangleAdj,
+
+    // stream out types
+    EHTokPointStream,
+    EHTokLineStream,
+    EHTokTriangleStream,
+
+    // Tessellation patches
+    EHTokInputPatch,
+    EHTokOutputPatch,
 
     // template types
     EHTokBuffer,
@@ -72,9 +91,11 @@ enum EHlslTokenClass {
 
     // scalar types
     EHTokVoid,
+    EHTokString,
     EHTokBool,
     EHTokInt,
     EHTokUint,
+    EHTokUint64,
     EHTokDword,
     EHTokHalf,
     EHTokFloat,
@@ -106,6 +127,30 @@ enum EHlslTokenClass {
     EHTokUint2,
     EHTokUint3,
     EHTokUint4,
+    EHTokHalf1,
+    EHTokHalf2,
+    EHTokHalf3,
+    EHTokHalf4,
+    EHTokMin16float1,
+    EHTokMin16float2,
+    EHTokMin16float3,
+    EHTokMin16float4,
+    EHTokMin10float1,
+    EHTokMin10float2,
+    EHTokMin10float3,
+    EHTokMin10float4,
+    EHTokMin16int1,
+    EHTokMin16int2,
+    EHTokMin16int3,
+    EHTokMin16int4,
+    EHTokMin12int1,
+    EHTokMin12int2,
+    EHTokMin12int3,
+    EHTokMin12int4,
+    EHTokMin16uint1,
+    EHTokMin16uint2,
+    EHTokMin16uint3,
+    EHTokMin16uint4,
 
     // matrix types
     EHTokInt1x1,
@@ -172,6 +217,22 @@ enum EHlslTokenClass {
     EHTokFloat4x2,
     EHTokFloat4x3,
     EHTokFloat4x4,
+    EHTokHalf1x1,
+    EHTokHalf1x2,
+    EHTokHalf1x3,
+    EHTokHalf1x4,
+    EHTokHalf2x1,
+    EHTokHalf2x2,
+    EHTokHalf2x3,
+    EHTokHalf2x4,
+    EHTokHalf3x1,
+    EHTokHalf3x2,
+    EHTokHalf3x3,
+    EHTokHalf3x4,
+    EHTokHalf4x1,
+    EHTokHalf4x2,
+    EHTokHalf4x3,
+    EHTokHalf4x4,
     EHTokDouble1x1,
     EHTokDouble1x2,
     EHTokDouble1x3,
@@ -207,19 +268,43 @@ enum EHlslTokenClass {
     EHTokTextureCubearray,
     EHTokTexture2DMS,
     EHTokTexture2DMSarray,
+    EHTokRWTexture1d,
+    EHTokRWTexture1darray,
+    EHTokRWTexture2d,
+    EHTokRWTexture2darray,
+    EHTokRWTexture3d,
+    EHTokRWBuffer,
+    EHTokSubpassInput,
+    EHTokSubpassInputMS,
+
+    // Structure buffer variants
+    EHTokAppendStructuredBuffer,
+    EHTokByteAddressBuffer,
+    EHTokConsumeStructuredBuffer,
+    EHTokRWByteAddressBuffer,
+    EHTokRWStructuredBuffer,
+    EHTokStructuredBuffer,
+    EHTokTextureBuffer,
 
     // variable, user type, ...
     EHTokIdentifier,
-    EHTokTypeName,
+    EHTokClass,
     EHTokStruct,
+    EHTokCBuffer,
+    EHTokTBuffer,
     EHTokTypedef,
+    EHTokThis,
+    EHTokNamespace,
+    EHTokConstantBuffer,
 
     // constant
+    EHTokFloat16Constant,
     EHTokFloatConstant,
     EHTokDoubleConstant,
     EHTokIntConstant,
     EHTokUintConstant,
     EHTokBoolConstant,
+    EHTokStringConstant,
 
     // control flow
     EHTokFor,
@@ -267,6 +352,7 @@ enum EHlslTokenClass {
     EHTokDot,
     EHTokComma,
     EHTokColon,
+    EHTokColonColon,
     EHTokSemicolon,
     EHTokBang,
     EHTokDash,

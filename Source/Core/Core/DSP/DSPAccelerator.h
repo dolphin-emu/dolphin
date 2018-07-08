@@ -15,7 +15,7 @@ class Accelerator
 public:
   virtual ~Accelerator() = default;
 
-  u16 Read(s16* coefs);
+  u16 Read(const s16* coefs);
   // Zelda ucode reads ARAM through 0xffd3.
   u16 ReadD3();
   void WriteD3(u16 value);

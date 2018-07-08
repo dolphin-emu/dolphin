@@ -31,8 +31,8 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/DeviceStub.h"
 #include "Core/IOS/ES/ES.h"
-#include "Core/IOS/FS/FS.h"
-#include "Core/IOS/FS/FileIO.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/FileSystemProxy.h"
 #include "Core/IOS/MIOS.h"
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/KD/NetKDRequest.h"
@@ -188,14 +188,6 @@ Kernel::Kernel()
 
 Kernel::~Kernel()
 {
-  // Close all devices that were opened
-  for (auto& device : m_fdmap)
-  {
-    if (!device)
-      continue;
-    device->Close(0);
-  }
-
   {
     std::lock_guard<std::mutex> lock(m_device_map_mutex);
     m_device_map.clear();
@@ -242,9 +234,9 @@ u32 Kernel::GetVersion() const
   return static_cast<u32>(m_title_id);
 }
 
-std::shared_ptr<Device::FS> Kernel::GetFS()
+std::shared_ptr<FS::FileSystem> Kernel::GetFS()
 {
-  return std::static_pointer_cast<Device::FS>(m_device_map.at("/dev/fs"));
+  return m_fs;
 }
 
 std::shared_ptr<Device::ES> Kernel::GetES()
@@ -274,11 +266,27 @@ u16 Kernel::GetGidForPPC() const
   return m_ppc_gid;
 }
 
+static std::vector<u8> ReadBootContent(FS::FileSystem* fs, const std::string& path, size_t max_size)
+{
+  const auto file = fs->OpenFile(0, 0, path, FS::Mode::Read);
+  if (!file)
+    return {};
+
+  const size_t file_size = file->GetStatus()->size;
+  if (max_size != 0 && file_size > max_size)
+    return {};
+
+  std::vector<u8> buffer(file_size);
+  if (!file->Read(buffer.data(), buffer.size()))
+    return {};
+  return buffer;
+}
+
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
 // Unlike 0x42, IOS will set up some constants in memory before booting the PPC.
 bool Kernel::BootstrapPPC(const std::string& boot_content_path)
 {
-  const DolReader dol{boot_content_path};
+  const DolReader dol{ReadBootContent(m_fs.get(), boot_content_path, 0)};
 
   if (!dol.IsValid())
     return false;
@@ -292,7 +300,7 @@ bool Kernel::BootstrapPPC(const std::string& boot_content_path)
   // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
   // The state of other CPU registers (like the BAT registers) doesn't matter much
   // because the realmode code at 0x3400 initializes everything itself anyway.
-  MSR = 0;
+  MSR.Hex = 0;
   PC = 0x3400;
 
   return true;
@@ -318,6 +326,7 @@ struct ARMBinary final
   u32 GetHeaderSize() const { return Common::swap32(m_bytes.data()); }
   u32 GetElfOffset() const { return Common::swap32(m_bytes.data() + 0x4); }
   u32 GetElfSize() const { return Common::swap32(m_bytes.data() + 0x8); }
+
 private:
   std::vector<u8> m_bytes;
 };
@@ -336,16 +345,7 @@ bool Kernel::BootIOS(const u64 ios_title_id, const std::string& boot_content_pat
     // Load the ARM binary to memory (if possible).
     // Because we do not actually emulate the Starlet, only load the sections that are in MEM1.
 
-    File::IOFile file{boot_content_path, "rb"};
-    // TODO: should return IPC_ERROR_MAX.
-    if (file.GetSize() > 0xB00000)
-      return false;
-
-    std::vector<u8> data(file.GetSize());
-    if (!file.ReadBytes(data.data(), data.size()))
-      return false;
-
-    ARMBinary binary{std::move(data)};
+    ARMBinary binary{ReadBootContent(m_fs.get(), boot_content_path, 0xB00000)};
     if (!binary.IsValid())
       return false;
 
@@ -368,6 +368,9 @@ void Kernel::AddDevice(std::unique_ptr<Device::Device> device)
 
 void Kernel::AddCoreDevices()
 {
+  m_fs = FS::MakeFileSystem();
+  ASSERT(m_fs);
+
   std::lock_guard<std::mutex> lock(m_device_map_mutex);
   AddDevice(std::make_unique<Device::FS>(*this, "/dev/fs"));
   AddDevice(std::make_unique<Device::ES>(*this, "/dev/es"));
@@ -491,7 +494,7 @@ IPCCommandResult Kernel::OpenDevice(OpenRequest& request)
   }
   else if (request.path.find('/') == 0)
   {
-    device = std::make_shared<Device::FileIO>(*this, request.path);
+    device = GetDeviceByName("/dev/fs");
   }
 
   if (!device)
@@ -691,6 +694,7 @@ void Kernel::DoState(PointerWrap& p)
   p.Do(m_ppc_gid);
 
   m_iosc.DoState(p);
+  m_fs->DoState(p);
 
   if (m_title_id == Titles::MIOS)
     return;
@@ -725,10 +729,6 @@ void Kernel::DoState(PointerWrap& p)
           m_fdmap[i] = GetDeviceByName(device_name);
           break;
         }
-        case Device::Device::DeviceType::FileIO:
-          m_fdmap[i] = std::make_shared<Device::FileIO>(*this, "");
-          m_fdmap[i]->DoState(p);
-          break;
         case Device::Device::DeviceType::OH0:
           m_fdmap[i] = std::make_shared<Device::OH0Device>(*this, "");
           m_fdmap[i]->DoState(p);

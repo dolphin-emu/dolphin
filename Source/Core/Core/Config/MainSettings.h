@@ -8,12 +8,17 @@
 
 #include "Common/Config/Config.h"
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 namespace Config
 {
 // Main.Core
 
 extern const ConfigInfo<bool> MAIN_SKIP_IPL;
-extern const ConfigInfo<int> MAIN_CPU_CORE;
+extern const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE;
 extern const ConfigInfo<bool> MAIN_FASTMEM;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const ConfigInfo<bool> MAIN_DSP_HLE;
@@ -67,6 +72,7 @@ extern const ConfigInfo<std::string> MAIN_PERF_MAP_DIR;
 extern const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE;
 extern const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS;
+extern const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE;
 
 // Main.DSP
 
@@ -77,5 +83,11 @@ extern const ConfigInfo<bool> MAIN_DUMP_AUDIO_SILENT;
 extern const ConfigInfo<bool> MAIN_DUMP_UCODE;
 extern const ConfigInfo<std::string> MAIN_AUDIO_BACKEND;
 extern const ConfigInfo<int> MAIN_AUDIO_VOLUME;
+
+// Main.General
+
+extern const ConfigInfo<std::string> MAIN_DUMP_PATH;
+extern const ConfigInfo<std::string> MAIN_FS_PATH;
+extern const ConfigInfo<std::string> MAIN_SD_PATH;
 
 }  // namespace Config

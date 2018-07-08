@@ -28,6 +28,9 @@
 #include "Core/State.h"
 
 #include "UICommon/CommandLineParse.h"
+#ifdef USE_DISCORD_PRESENCE
+#include "UICommon/DiscordPresence.h"
+#endif
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -80,11 +83,11 @@ void Host_RefreshDSPDebuggerWindow()
 }
 
 static Common::Event updateMainFrameEvent;
-void Host_Message(int Id)
+void Host_Message(HostMessageID id)
 {
-  if (Id == WM_USER_STOP)
+  if (id == HostMessageID::WMUserStop)
     s_running.Clear();
-  if (Id == WM_USER_JOB_DISPATCH || Id == WM_USER_STOP)
+  if (id == HostMessageID::WMUserJobDispatch || id == HostMessageID::WMUserStop)
     updateMainFrameEvent.Set();
 }
 
@@ -191,7 +194,7 @@ class PlatformX11 : public Platform
     s_window_handle = (void*)win;
 
     if (SConfig::GetInstance().bDisableScreenSaver)
-      X11Utils::InhibitScreensaver(dpy, win, true);
+      X11Utils::InhibitScreensaver(win, true);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
     XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
@@ -439,6 +442,10 @@ int main(int argc, char* argv[])
     fprintf(stderr, "Could not boot the specified file\n");
     return 1;
   }
+
+#ifdef USE_DISCORD_PRESENCE
+  Discord::UpdateDiscordPresence();
+#endif
 
   while (!Core::IsRunning() && s_running.IsSet())
   {

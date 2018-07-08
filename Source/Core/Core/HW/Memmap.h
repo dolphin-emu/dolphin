@@ -7,10 +7,10 @@
 #include <memory>
 #include <string>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/Swap.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 
 // Global declarations
 class PointerWrap;
@@ -44,7 +44,7 @@ enum
   // Note: Writing to lowmem is done by IPL. If using retail IPL, it will
   // always be set to 24MB.
   REALRAM_SIZE = 0x01800000,
-  RAM_SIZE = ROUND_UP_POW2(REALRAM_SIZE),
+  RAM_SIZE = MathUtil::NextPowerOf2(REALRAM_SIZE),
   RAM_MASK = RAM_SIZE - 1,
   FAKEVMEM_SIZE = 0x02000000,
   FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,

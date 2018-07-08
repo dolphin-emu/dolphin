@@ -2,24 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstddef>
+#include <cinttypes>
 #include <memory>
-#include <string>
 
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/CommonTitles.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
 #include "Core/WiiUtils.h"
-
 #include "DiscIO/WiiWad.h"
 
 bool CBoot::BootNANDTitle(const u64 title_id)
@@ -28,12 +23,15 @@ bool CBoot::BootNANDTitle(const u64 title_id)
     state->type = 0x04;  // TYPE_NANDBOOT
   });
 
-  if (title_id == Titles::SYSTEM_MENU)
-    IOS::HLE::CreateVirtualFATFilesystem();
-
-  SetupWiiMemory();
-  auto* ios = IOS::HLE::GetIOS();
-  return ios->GetES()->LaunchTitle(title_id);
+  auto es = IOS::HLE::GetIOS()->GetES();
+  const IOS::ES::TicketReader ticket = es->FindSignedTicket(title_id);
+  auto console_type = IOS::HLE::IOSC::ConsoleType::Retail;
+  if (ticket.IsValid())
+    console_type = ticket.GetConsoleType();
+  else
+    ERROR_LOG(BOOT, "No ticket was found for %016" PRIx64, title_id);
+  SetupWiiMemory(console_type);
+  return es->LaunchTitle(title_id);
 }
 
 bool CBoot::Boot_WiiWAD(const DiscIO::WiiWAD& wad)

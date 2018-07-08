@@ -81,7 +81,7 @@ TextureCacheBase::TextureCacheBase()
 
   HiresTexture::Init();
 
-  SetHash64Function();
+  Common::SetHash64Function();
 
   InvalidateAllBindPoints();
 }
@@ -125,7 +125,9 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
       config.bTexFmtOverlayEnable != backup_config.texfmt_overlay ||
       config.bTexFmtOverlayCenter != backup_config.texfmt_overlay_center ||
       config.bHiresTextures != backup_config.hires_textures ||
-      config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding)
+      config.bEnableGPUTextureDecoding != backup_config.gpu_texture_decoding ||
+      config.bDisableCopyToVRAM != backup_config.disable_vram_copies ||
+      config.bArbitraryMipmapDetection != backup_config.arbitrary_mipmap_detection)
   {
     Invalidate();
 
@@ -228,6 +230,8 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.stereo_3d = config.stereo_mode != StereoMode::Off;
   backup_config.efb_mono_depth = config.bStereoEFBMonoDepth;
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
+  backup_config.disable_vram_copies = config.bDisableCopyToVRAM;
+  backup_config.arbitrary_mipmap_detection = config.bArbitraryMipmapDetection;
 }
 
 TextureCacheBase::TCacheEntry*
@@ -484,6 +488,7 @@ class ArbitraryMipmapDetector
 {
 private:
   using PixelRGBAf = std::array<float, 4>;
+  using PixelRGBAu8 = std::array<u8, 4>;
 
 public:
   explicit ArbitraryMipmapDetector() = default;
@@ -498,11 +503,14 @@ public:
     if (levels.size() < 2)
       return false;
 
+    if (!g_ActiveConfig.bArbitraryMipmapDetection)
+      return false;
+
     // This is the average per-pixel, per-channel difference in percent between what we
     // expect a normal blurred mipmap to look like and what we actually received
     // 4.5% was chosen because it's just below the lowest clearly-arbitrary texture
     // I found in my tests, the background clouds in Mario Galaxy's Observatory lobby.
-    constexpr auto THRESHOLD_PERCENT = 4.5f;
+    const auto threshold = g_ActiveConfig.fArbitraryMipmapDetectionThreshold;
 
     auto* src = downsample_buffer;
     auto* dst = downsample_buffer + levels[1].shape.row_length * levels[1].shape.height * 4;
@@ -513,6 +521,12 @@ public:
     {
       const auto& level = levels[i];
       const auto& mip = levels[i + 1];
+
+      u64 level_pixel_count = level.shape.width;
+      level_pixel_count *= level.shape.height;
+
+      // AverageDiff stores the difference sum in a u64, so make sure we can't overflow
+      ASSERT(level_pixel_count < (std::numeric_limits<u64>::max() / (255 * 255 * 4)));
 
       // Manually downsample the past downsample with a simple box blur
       // This is not necessarily close to whatever the original artists used, however
@@ -528,23 +542,10 @@ public:
     }
 
     auto all_levels = total_diff / (levels.size() - 1);
-    return all_levels > THRESHOLD_PERCENT;
+    return all_levels > threshold;
   }
 
 private:
-  static float SRGBToLinear(u8 srgb_byte)
-  {
-    auto srgb_float = static_cast<float>(srgb_byte) / 256.f;
-    // approximations found on
-    // http://chilliant.blogspot.com/2012/08/srgb-approximations-for-hlsl.html
-    return srgb_float * (srgb_float * (srgb_float * 0.305306011f + 0.682171111f) + 0.012522878f);
-  }
-
-  static u8 LinearToSRGB(float linear)
-  {
-    return static_cast<u8>(std::max(1.055f * std::pow(linear, 0.416666667f) - 0.055f, 0.f) * 256.f);
-  }
-
   struct Shape
   {
     u32 width;
@@ -557,10 +558,10 @@ private:
     Shape shape;
     const u8* pixels;
 
-    static PixelRGBAf Sample(const u8* src, const Shape& src_shape, u32 x, u32 y)
+    static PixelRGBAu8 SampleLinear(const u8* src, const Shape& src_shape, u32 x, u32 y)
     {
       const auto* p = src + (x + y * src_shape.row_length) * 4;
-      return {{SRGBToLinear(p[0]), SRGBToLinear(p[1]), SRGBToLinear(p[2]), SRGBToLinear(p[3])}};
+      return {{p[0], p[1], p[2], p[3]}};
     }
 
     // Puts a downsampled image in dst. dst must be at least width*height*4
@@ -572,27 +573,32 @@ private:
         {
           auto x = j * 2;
           auto y = i * 2;
-          const std::array<PixelRGBAf, 4> samples{{
-              Sample(src, src_shape, x, y), Sample(src, src_shape, x + 1, y),
-              Sample(src, src_shape, x, y + 1), Sample(src, src_shape, x + 1, y + 1),
+          const std::array<PixelRGBAu8, 4> samples{{
+              SampleLinear(src, src_shape, x, y),
+              SampleLinear(src, src_shape, x + 1, y),
+              SampleLinear(src, src_shape, x, y + 1),
+              SampleLinear(src, src_shape, x + 1, y + 1),
           }};
 
           auto* dst_pixel = dst + (j + i * dst_shape.row_length) * 4;
-          dst_pixel[0] =
-              LinearToSRGB((samples[0][0] + samples[1][0] + samples[2][0] + samples[3][0]) * 0.25f);
-          dst_pixel[1] =
-              LinearToSRGB((samples[0][1] + samples[1][1] + samples[2][1] + samples[3][1]) * 0.25f);
-          dst_pixel[2] =
-              LinearToSRGB((samples[0][2] + samples[1][2] + samples[2][2] + samples[3][2]) * 0.25f);
-          dst_pixel[3] =
-              LinearToSRGB((samples[0][3] + samples[1][3] + samples[2][3] + samples[3][3]) * 0.25f);
+          for (int channel = 0; channel < 4; channel++)
+          {
+            uint32_t channel_value = samples[0][channel] + samples[1][channel] +
+                                     samples[2][channel] + samples[3][channel];
+            dst_pixel[channel] = (channel_value + 2) / 4;
+          }
         }
       }
     }
 
     float AverageDiff(const u8* other) const
     {
-      float average_diff = 0.f;
+      // As textures are stored in (at most) 8 bit precision, each channel can
+      // have a max diff of (2^8)^2, multiply by 4 channels = 2^18 per pixel.
+      // That means to overflow, we must have a texture with more than 2^46
+      // pixels - which is way beyond anything the original hardware could do,
+      // and likely a sane assumption going forward for some significant time.
+      u64 current_diff_sum = 0;
       const auto* ptr1 = pixels;
       const auto* ptr2 = other;
       for (u32 i = 0; i < shape.height; ++i)
@@ -601,16 +607,23 @@ private:
         const auto* row2 = ptr2;
         for (u32 j = 0; j < shape.width; ++j, row1 += 4, row2 += 4)
         {
-          average_diff += std::abs(static_cast<float>(row1[0]) - static_cast<float>(row2[0]));
-          average_diff += std::abs(static_cast<float>(row1[1]) - static_cast<float>(row2[1]));
-          average_diff += std::abs(static_cast<float>(row1[2]) - static_cast<float>(row2[2]));
-          average_diff += std::abs(static_cast<float>(row1[3]) - static_cast<float>(row2[3]));
+          int pixel_diff = 0;
+          for (int channel = 0; channel < 4; channel++)
+          {
+            const int diff = static_cast<int>(row1[channel]) - static_cast<int>(row2[channel]);
+            const int diff_squared = diff * diff;
+            pixel_diff += diff_squared;
+          }
+          current_diff_sum += pixel_diff;
         }
         ptr1 += shape.row_length;
         ptr2 += shape.row_length;
       }
+      // calculate the MSE over all pixels, divide by 2.56 to make it a percent
+      // (IE scale to 0..100 instead of 0..256)
 
-      return average_diff / (shape.width * shape.height * 4) / 2.56f;
+      return std::sqrt(static_cast<float>(current_diff_sum) / (shape.width * shape.height * 4)) /
+             2.56f;
     }
   };
   std::vector<Level> levels;
@@ -729,13 +742,13 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
-  base_hash = GetHash64(src_data, texture_size, textureCacheSafetyColorSampleSize);
+  base_hash = Common::GetHash64(src_data, texture_size, textureCacheSafetyColorSampleSize);
   u32 palette_size = 0;
   if (isPaletteTexture)
   {
     palette_size = TexDecoder_GetPaletteSize(texformat);
-    full_hash =
-        base_hash ^ GetHash64(&texMem[tlutaddr], palette_size, textureCacheSafetyColorSampleSize);
+    full_hash = base_hash ^ Common::GetHash64(&texMem[tlutaddr], palette_size,
+                                              textureCacheSafetyColorSampleSize);
   }
   else
   {
@@ -953,8 +966,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
   if (hires_tex)
   {
     const auto& level = hires_tex->m_levels[0];
-    entry->texture->Load(0, level.width, level.height, level.row_length, level.data.get(),
-                         level.data_size);
+    entry->texture->Load(0, level.width, level.height, level.row_length, level.data.data(),
+                         level.data.size());
   }
 
   // Initialized to null because only software loading uses this buffer
@@ -1038,7 +1051,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     {
       const auto& level = hires_tex->m_levels[level_index];
       entry->texture->Load(level_index, level.width, level.height, level.row_length,
-                           level.data.get(), level.data_size);
+                           level.data.data(), level.data.size());
     }
   }
   else
@@ -1221,17 +1234,17 @@ std::optional<TextureLookupInformation> TextureCacheBase::ComputeTextureInformat
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
-  tex_info.base_hash = GetHash64(tex_info.src_data, tex_info.total_bytes,
-                                 tex_info.texture_cache_safety_color_sample_size);
+  tex_info.base_hash = Common::GetHash64(tex_info.src_data, tex_info.total_bytes,
+                                         tex_info.texture_cache_safety_color_sample_size);
 
   tex_info.is_palette_texture = IsColorIndexed(tex_format);
 
   if (tex_info.is_palette_texture)
   {
     tex_info.palette_size = TexDecoder_GetPaletteSize(tex_format);
-    tex_info.full_hash =
-        tex_info.base_hash ^ GetHash64(&texMem[tex_info.tlut_address], tex_info.palette_size,
-                                       tex_info.texture_cache_safety_color_sample_size);
+    tex_info.full_hash = tex_info.base_hash ^
+                         Common::GetHash64(&texMem[tex_info.tlut_address], tex_info.palette_size,
+                                           tex_info.texture_cache_safety_color_sample_size);
   }
   else
   {
@@ -1497,10 +1510,50 @@ void TextureCacheBase::LoadTextureLevelZeroFromMemory(TCacheEntry* entry_to_upda
   }
 }
 
-void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstFormat, u32 width,
-                                                 u32 height, u32 dstStride, bool is_depth_copy,
-                                                 const EFBRectangle& srcRect, bool isIntensity,
-                                                 bool scaleByHalf, float y_scale, float gamma)
+TextureCacheBase::CopyFilterCoefficientArray TextureCacheBase::GetRAMCopyFilterCoefficients(
+    const CopyFilterCoefficients::Values& coefficients) const
+{
+  // To simplify the backend, we precalculate the three coefficients in common. Coefficients 0, 1
+  // are for the row above, 2, 3, 4 are for the current pixel, and 5, 6 are for the row below.
+  return {{
+      static_cast<float>(static_cast<u32>(coefficients[0]) + static_cast<u32>(coefficients[1])) /
+          64.0f,
+      static_cast<float>(static_cast<u32>(coefficients[2]) + static_cast<u32>(coefficients[3]) +
+                         static_cast<u32>(coefficients[4])) /
+          64.0f,
+      static_cast<float>(static_cast<u32>(coefficients[5]) + static_cast<u32>(coefficients[6])) /
+          64.0f,
+  }};
+}
+
+TextureCacheBase::CopyFilterCoefficientArray TextureCacheBase::GetVRAMCopyFilterCoefficients(
+    const CopyFilterCoefficients::Values& coefficients) const
+{
+  // If the user disables the copy filter, only apply it to the VRAM copy.
+  // This way games which are sensitive to changes to the RAM copy of the XFB will be unaffected.
+  CopyFilterCoefficientArray res = GetRAMCopyFilterCoefficients(coefficients);
+  if (!g_ActiveConfig.bDisableCopyFilter)
+    return res;
+
+  // Disabling the copy filter in options should not ignore the values the game sets completely,
+  // as some games use the filter coefficients to control the brightness of the screen. Instead,
+  // add all coefficients to the middle sample, so the deflicker/vertical filter has no effect.
+  res[1] += res[0] + res[2];
+  res[0] = 0;
+  res[2] = 0;
+  return res;
+}
+
+bool TextureCacheBase::NeedsCopyFilterInShader(const CopyFilterCoefficientArray& coefficients) const
+{
+  // If the top/bottom coefficients are zero, no point sampling/blending from these rows.
+  return coefficients[0] != 0 || coefficients[2] != 0;
+}
+
+void TextureCacheBase::CopyRenderTargetToTexture(
+    u32 dstAddr, EFBCopyFormat dstFormat, u32 width, u32 height, u32 dstStride, bool is_depth_copy,
+    const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf, float y_scale, float gamma,
+    bool clamp_top, bool clamp_bottom, const CopyFilterCoefficients::Values& filter_coefficients)
 {
   // Emulation methods:
   //
@@ -1619,9 +1672,12 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
 
   if (copy_to_ram)
   {
+    CopyFilterCoefficientArray coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
     PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity, y_scale);
-    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf);
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
+                         NeedsCopyFilterInShader(coefficients));
+    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf,
+            y_scale, gamma, clamp_top, clamp_bottom, coefficients);
   }
   else
   {
@@ -1740,8 +1796,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
     {
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
       entry->SetDimensions(tex_w, tex_h, 1);
-      entry->gamma = gamma;
-
       entry->frameCount = FRAMECOUNT_INVALID;
       if (is_xfb_copy)
       {
@@ -1755,7 +1809,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, EFBCopyFormat dstF
       entry->may_have_overlapping_textures = false;
       entry->is_custom_tex = false;
 
-      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity);
+      CopyEFBToCacheEntry(entry, is_depth_copy, srcRect, scaleByHalf, dstFormat, isIntensity, gamma,
+                          clamp_top, clamp_bottom,
+                          GetVRAMCopyFilterCoefficients(filter_coefficients));
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);
@@ -2008,7 +2064,7 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
   u8* ptr = Memory::GetPointer(addr);
   if (memory_stride == BytesPerRow())
   {
-    return GetHash64(ptr, size_in_bytes, HashSampleSize());
+    return Common::GetHash64(ptr, size_in_bytes, HashSampleSize());
   }
   else
   {
@@ -2027,7 +2083,7 @@ u64 TextureCacheBase::TCacheEntry::CalculateHash() const
     {
       // Multiply by a prime number to mix the hash up a bit. This prevents identical blocks from
       // canceling each other out
-      temp_hash = (temp_hash * 397) ^ GetHash64(ptr, BytesPerRow(), samples_per_row);
+      temp_hash = (temp_hash * 397) ^ Common::GetHash64(ptr, BytesPerRow(), samples_per_row);
       ptr += memory_stride;
     }
     return temp_hash;

@@ -63,6 +63,10 @@ std::vector<std::string> PostProcessingShaderImplementation::GetAnaglyphShaderLi
   return {};
 }
 
+PostProcessingShaderConfiguration::PostProcessingShaderConfiguration() = default;
+
+PostProcessingShaderConfiguration::~PostProcessingShaderConfiguration() = default;
+
 std::string PostProcessingShaderConfiguration::LoadShader(std::string shader)
 {
   // Load the shader from the configuration if there isn't one sent to us.

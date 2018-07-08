@@ -20,7 +20,7 @@ class DolReader final : public BootExecutableReader
 public:
   explicit DolReader(const std::string& filename);
   explicit DolReader(File::IOFile file);
-  explicit DolReader(const std::vector<u8>& buffer);
+  explicit DolReader(std::vector<u8> buffer);
   ~DolReader();
 
   bool IsValid() const override { return m_is_valid; }
@@ -28,6 +28,7 @@ public:
   u32 GetEntryPoint() const override { return m_dolheader.entryPoint; }
   bool LoadIntoMemory(bool only_in_mem1 = false) const override;
   bool LoadSymbols() const override { return false; }
+
 private:
   enum
   {

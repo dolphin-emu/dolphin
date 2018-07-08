@@ -120,8 +120,10 @@ struct OpArg
   }
   constexpr bool operator==(const OpArg& b) const
   {
-    return std::tie(scale, offsetOrBaseReg, indexReg, offset, operandReg) ==
-           std::tie(b.scale, b.offsetOrBaseReg, b.indexReg, b.offset, b.operandReg);
+    // TODO: Use std::tie here once Dolphin requires C++17. (We can't do it immediately,
+    // (because we still support some older versions of GCC where std::tie is not constexpr.)
+    return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
+           indexReg == b.indexReg && offset == b.offset;
   }
   constexpr bool operator!=(const OpArg& b) const { return !operator==(b); }
   u64 Imm64() const
@@ -320,8 +322,14 @@ inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
 
 struct FixupBranch
 {
+  enum class Type
+  {
+    Branch8Bit,
+    Branch32Bit
+  };
+
   u8* ptr;
-  int type;  // 0 = 8bit 1 = 32bit
+  Type type;
 };
 
 class XEmitter
@@ -334,7 +342,7 @@ private:
   void CheckFlags();
 
   void Rex(int w, int r, int x, int b);
-  void WriteModRM(int mod, int rm, int reg);
+  void WriteModRM(int mod, int reg, int rm);
   void WriteSIB(int scale, int index, int base);
   void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
   void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
@@ -381,10 +389,10 @@ public:
   virtual ~XEmitter() = default;
   void SetCodePtr(u8* ptr);
   void ReserveCodeSpace(int bytes);
-  const u8* AlignCodeTo(size_t alignment);
-  const u8* AlignCode4();
-  const u8* AlignCode16();
-  const u8* AlignCodePage();
+  u8* AlignCodeTo(size_t alignment);
+  u8* AlignCode4();
+  u8* AlignCode16();
+  u8* AlignCodePage();
   const u8* GetCodePtr() const;
   u8* GetWritableCodePtr();
 
@@ -1147,7 +1155,7 @@ public:
   }
 };  // class XEmitter
 
-class X64CodeBlock : public CodeBlock<XEmitter>
+class X64CodeBlock : public Common::CodeBlock<XEmitter>
 {
 private:
   void PoisonMemory() override

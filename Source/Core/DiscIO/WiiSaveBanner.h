@@ -22,7 +22,7 @@ public:
   std::string GetName() const;
   std::string GetDescription() const;
 
-  std::vector<u32> GetBanner(int* width, int* height) const;
+  std::vector<u32> GetBanner(u32* width, u32* height) const;
 
 private:
   struct Header

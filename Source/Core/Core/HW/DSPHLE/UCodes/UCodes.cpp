@@ -182,8 +182,9 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
     m_needs_resume_mail = true;
     m_upload_setup_in_progress = false;
 
-    u32 ector_crc =
-        HashEctor((u8*)HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size);
+    const u32 ector_crc =
+        Common::HashEctor(static_cast<u8*>(HLEMemory_Get_Pointer(m_next_ucode.iram_mram_addr)),
+                          m_next_ucode.iram_size);
 
     if (SConfig::GetInstance().m_DumpUCode)
     {

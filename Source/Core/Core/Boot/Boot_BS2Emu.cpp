@@ -9,8 +9,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
@@ -25,7 +23,11 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
+#include "Core/IOS/IOSC.h"
+#include "Core/IOS/Uids.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
@@ -55,11 +57,10 @@ void CBoot::RunFunction(u32 address)
 
 void CBoot::SetupMSR()
 {
-  UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
-  m_MSR.FP = 1;
-  m_MSR.DR = 1;
-  m_MSR.IR = 1;
-  m_MSR.EE = 1;
+  MSR.FP = 1;
+  MSR.DR = 1;
+  MSR.IR = 1;
+  MSR.EE = 1;
 }
 
 void CBoot::SetupBAT(bool is_wii)
@@ -214,7 +215,7 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::Volume& volume)
   return RunApploader(/*is_wii*/ false, volume);
 }
 
-bool CBoot::SetupWiiMemory()
+bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
       {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
@@ -224,24 +225,32 @@ bool CBoot::SetupWiiMemory()
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
   const RegionSetting& region_setting = entryPos->second;
 
-  SettingsHandler gen;
+  Common::SettingsHandler gen;
   std::string serno;
-  const std::string settings_file_path(
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
-  if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
-  {
-    serno = gen.GetValue("SERNO");
-    gen.Reset();
+  CreateSystemMenuTitleDirs();
+  const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
+                                       "/" WII_SETTING);
 
-    File::Delete(settings_file_path);
+  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  {
+    Common::SettingsHandler::Buffer data;
+    const auto file = fs->OpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path,
+                                   IOS::HLE::FS::Mode::Read);
+    if (file && file->Read(data.data(), data.size()))
+    {
+      gen.SetBytes(std::move(data));
+      serno = gen.GetValue("SERNO");
+      gen.Reset();
+    }
   }
+  fs->Delete(IOS::SYSMENU_UID, IOS::SYSMENU_GID, settings_file_path);
 
   if (serno.empty() || serno == "000000000")
   {
     if (Core::WantsDeterminism())
       serno = "123456789";
     else
-      serno = SettingsHandler::GenerateSerialNumber();
+      serno = Common::SettingsHandler::GenerateSerialNumber();
     INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
   }
   else
@@ -259,14 +268,17 @@ bool CBoot::SetupWiiMemory()
   gen.AddSetting("VIDEO", region_setting.video);
   gen.AddSetting("GAME", region_setting.game);
 
-  if (!gen.Save(settings_file_path))
+  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  const auto settings_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID,
+                                                   settings_file_path, {rw_mode, rw_mode, rw_mode});
+  if (!settings_file || !settings_file->Write(gen.GetBytes().data(), gen.GetBytes().size()))
   {
     PanicAlertT("SetupWiiMemory: Can't create setting.txt file");
     return false;
   }
 
   // Write the 256 byte setting.txt to memory.
-  Memory::CopyToEmu(0x3800, gen.GetData(), SettingsHandler::SETTINGS_SIZE);
+  Memory::CopyToEmu(0x3800, gen.GetBytes().data(), gen.GetBytes().size());
 
   INFO_LOG(BOOT, "Setup Wii Memory...");
 
@@ -283,9 +295,10 @@ bool CBoot::SetupWiiMemory()
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x00000028);  // MEM1 size 24MB
-  Memory::Write_U32(0x00000023, 0x0000002c);            // Production Board Model
-  Memory::Write_U32(0x00000000, 0x00000030);            // Init
-  Memory::Write_U32(0x817FEC60, 0x00000034);            // Init
+  u32 board_model = console_type == IOS::HLE::IOSC::ConsoleType::RVT ? 0x10000021 : 0x00000023;
+  Memory::Write_U32(board_model, 0x0000002c);  // Board Model
+  Memory::Write_U32(0x00000000, 0x00000030);   // Init
+  Memory::Write_U32(0x817FEC60, 0x00000034);   // Init
   // 38, 3C should get start, size of FST through apploader
   Memory::Write_U32(0x8008f7b8, 0x000000e4);            // Thread Init
   Memory::Write_U32(Memory::REALRAM_SIZE, 0x000000f0);  // "Simulated memory size" (debug mode?)
@@ -327,11 +340,16 @@ bool CBoot::SetupWiiMemory()
 
 static void WriteEmptyPlayRecord()
 {
-  const std::string file_path =
-      Common::GetTitleDataPath(Titles::SYSTEM_MENU, Common::FROM_SESSION_ROOT) + "play_rec.dat";
-  File::IOFile playrec_file(file_path, "r+b");
+  CreateSystemMenuTitleDirs();
+  const std::string file_path = Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/play_rec.dat";
+  const auto fs = IOS::HLE::GetIOS()->GetFS();
+  constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::ReadWrite;
+  const auto playrec_file = fs->CreateAndOpenFile(IOS::SYSMENU_UID, IOS::SYSMENU_GID, file_path,
+                                                  {rw_mode, rw_mode, rw_mode});
+  if (!playrec_file)
+    return;
   std::vector<u8> empty_record(0x80);
-  playrec_file.WriteBytes(empty_record.data(), empty_record.size());
+  playrec_file->Write(empty_record.data(), empty_record.size());
 }
 
 // __________________________________________________________________________________________________
@@ -365,7 +383,8 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::Volume& volume)
   Memory::Write_U32(0, 0x3194);
   Memory::Write_U32(static_cast<u32>(data_partition.offset >> 2), 0x3198);
 
-  if (!SetupWiiMemory() || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
+  const auto console_type = volume.GetTicket(data_partition).GetConsoleType();
+  if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
   DVDRead(volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code

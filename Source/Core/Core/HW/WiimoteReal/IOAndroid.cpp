@@ -14,8 +14,7 @@
 
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 
-// Global java_vm class
-extern JavaVM* g_java_vm;
+#include "jni/AndroidCommon/IDCache.h"
 
 namespace WiimoteReal
 {
@@ -31,10 +30,11 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   NOTICE_LOG(WIIMOTE, "Finding Wiimotes");
 
   JNIEnv* env;
-  int get_env_status = g_java_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+  int get_env_status =
+      IDCache::GetJavaVM()->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
 
   if (get_env_status == JNI_EDETACHED)
-    g_java_vm->AttachCurrentThread(&env, nullptr);
+    IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
 
   jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
   jmethodID queryadapter_func = env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
@@ -47,7 +47,7 @@ void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
   }
 
   if (get_env_status == JNI_EDETACHED)
-    g_java_vm->DetachCurrentThread();
+    IDCache::GetJavaVM()->DetachCurrentThread();
 }
 
 WiimoteAndroid::WiimoteAndroid(int index) : Wiimote(), m_mayflash_index(index)
@@ -62,7 +62,7 @@ WiimoteAndroid::~WiimoteAndroid()
 // Connect to a Wiimote with a known address.
 bool WiimoteAndroid::ConnectInternal()
 {
-  g_java_vm->AttachCurrentThread(&m_env, nullptr);
+  IDCache::GetJavaVM()->AttachCurrentThread(&m_env, nullptr);
 
   jfieldID payload_field = m_env->GetStaticFieldID(s_adapter_class, "wiimote_payload", "[[B");
   jobjectArray payload_object =
@@ -81,7 +81,7 @@ bool WiimoteAndroid::ConnectInternal()
 
 void WiimoteAndroid::DisconnectInternal()
 {
-  g_java_vm->DetachCurrentThread();
+  IDCache::GetJavaVM()->DetachCurrentThread();
 }
 
 bool WiimoteAndroid::IsConnected() const
@@ -117,7 +117,7 @@ int WiimoteAndroid::IOWrite(u8 const* buf, size_t len)
 void InitAdapterClass()
 {
   JNIEnv* env;
-  g_java_vm->AttachCurrentThread(&env, nullptr);
+  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
 
   jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_WiimoteAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));

@@ -31,6 +31,7 @@ extern "C" {
 #include "VideoCommon/VideoConfig.h"
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
+#define AV_CODEC_FLAG_GLOBAL_HEADER CODEC_FLAG_GLOBAL_HEADER
 #define av_frame_alloc avcodec_alloc_frame
 #define av_frame_free avcodec_free_frame
 #endif
@@ -191,7 +192,7 @@ bool AVIDump::CreateVideoFile()
   s_codec_context->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
   if (output_format->flags & AVFMT_GLOBALHEADER)
-    s_codec_context->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    s_codec_context->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
   if (avcodec_open2(s_codec_context, codec, nullptr) < 0)
   {

@@ -12,11 +12,7 @@
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 std::unique_ptr<u8[]> TransferCommand::MakeBuffer(const size_t size) const
 {
@@ -95,6 +91,4 @@ std::string Device::GetErrorName(const int error_code) const
 {
   return StringFromFormat("unknown error %d", error_code);
 }
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB

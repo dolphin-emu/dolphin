@@ -12,12 +12,9 @@
 #include "Common/MsgHandler.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/Uids.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
 {
@@ -33,11 +30,13 @@ s32 ES::OpenContent(const IOS::ES::TMDReader& tmd, u16 content_index, u32 uid)
     if (entry.m_opened)
       continue;
 
-    if (!entry.m_file.Open(GetContentPath(title_id, content), "rb"))
-      return FS_ENOENT;
+    auto file = m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, GetContentPath(title_id, content),
+                                        FS::Mode::Read);
+    if (!file)
+      return FS::ConvertResult(file.Error());
 
     entry.m_opened = true;
-    entry.m_position = 0;
+    entry.m_fd = file->Release();
     entry.m_content = content;
     entry.m_title_id = title_id;
     entry.m_uid = uid;
@@ -78,7 +77,7 @@ IPCCommandResult ES::OpenActiveTitleContent(u32 caller_uid, const IOCtlVRequest&
   if (!m_title_context.active)
     return GetDefaultReply(ES_EINVAL);
 
-  IOS::ES::UIDSys uid_map{Common::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_map{m_ios.GetFS()};
   const u32 uid = uid_map.GetOrInsertUIDForTitle(m_title_context.tmd.GetTitleId());
   if (caller_uid != 0 && caller_uid != uid)
     return GetDefaultReply(ES_EACCES);
@@ -97,21 +96,8 @@ s32 ES::ReadContent(u32 cfd, u8* buffer, u32 size, u32 uid)
   if (!entry.m_opened)
     return IPC_EINVAL;
 
-  // XXX: make this reuse the FS code... ES just does a simple "IOS_Read" call here
-  //      instead of all this duplicated filesystem logic.
-
-  if (entry.m_position + size > entry.m_file.GetSize())
-    size = static_cast<u32>(entry.m_file.GetSize()) - entry.m_position;
-
-  entry.m_file.Seek(entry.m_position, SEEK_SET);
-  if (!entry.m_file.ReadBytes(buffer, size))
-  {
-    ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", size, entry.m_position);
-    return ES_SHORT_READ;
-  }
-
-  entry.m_position += size;
-  return size;
+  const auto result = m_ios.GetFS()->ReadBytesFromFile(entry.m_fd, buffer, size);
+  return result.Succeeded() ? *result : FS::ConvertResult(result.Error());
 }
 
 IPCCommandResult ES::ReadContent(u32 uid, const IOCtlVRequest& request)
@@ -137,6 +123,7 @@ ReturnCode ES::CloseContent(u32 cfd, u32 uid)
   if (!entry.m_opened)
     return IPC_EINVAL;
 
+  m_ios.GetFS()->Close(entry.m_fd);
   entry = {};
   INFO_LOG(IOS_ES, "CloseContent: CFD %u", cfd);
   return IPC_SUCCESS;
@@ -162,26 +149,8 @@ s32 ES::SeekContent(u32 cfd, u32 offset, SeekMode mode, u32 uid)
   if (!entry.m_opened)
     return IPC_EINVAL;
 
-  // XXX: This should be a simple IOS_Seek.
-  switch (mode)
-  {
-  case SeekMode::IOS_SEEK_SET:
-    entry.m_position = offset;
-    break;
-
-  case SeekMode::IOS_SEEK_CUR:
-    entry.m_position += offset;
-    break;
-
-  case SeekMode::IOS_SEEK_END:
-    entry.m_position = static_cast<u32>(entry.m_content.size) + offset;
-    break;
-
-  default:
-    return FS_EINVAL;
-  }
-
-  return entry.m_position;
+  const auto result = m_ios.GetFS()->SeekFile(entry.m_fd, offset, static_cast<FS::SeekMode>(mode));
+  return result.Succeeded() ? *result : FS::ConvertResult(result.Error());
 }
 
 IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
@@ -195,6 +164,4 @@ IPCCommandResult ES::SeekContent(u32 uid, const IOCtlVRequest& request)
 
   return GetDefaultReply(SeekContent(cfd, offset, mode, uid));
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

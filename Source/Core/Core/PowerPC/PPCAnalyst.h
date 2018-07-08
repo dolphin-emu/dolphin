@@ -5,10 +5,8 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdlib>
-#include <map>
+#include <cstddef>
 #include <set>
-#include <string>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -16,7 +14,11 @@
 #include "Core/PowerPC/PPCTables.h"
 
 class PPCSymbolDB;
+
+namespace Common
+{
 struct Symbol;
+}
 
 namespace PPCAnalyst
 {
@@ -117,18 +119,7 @@ struct BlockRegStats
   }
 };
 
-class CodeBuffer
-{
-public:
-  CodeBuffer(int size);
-  ~CodeBuffer();
-
-  int GetSize() const { return size_; }
-  PPCAnalyst::CodeOp* codebuffer;
-
-private:
-  int size_;
-};
+using CodeBuffer = std::vector<CodeOp>;
 
 struct CodeBlock
 {
@@ -166,21 +157,6 @@ struct CodeBlock
 
 class PPCAnalyzer
 {
-private:
-  enum ReorderType
-  {
-    REORDER_CARRY,
-    REORDER_CMP,
-    REORDER_CROR
-  };
-
-  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
-  void ReorderInstructions(u32 instructions, CodeOp* code);
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
-
-  // Options
-  u32 m_options;
-
 public:
   enum AnalystOption
   {
@@ -220,17 +196,31 @@ public:
     OPTION_CROR_MERGE = (1 << 6),
   };
 
-  PPCAnalyzer() : m_options(0) {}
   // Option setting/getting
   void SetOption(AnalystOption option) { m_options |= option; }
   void ClearOption(AnalystOption option) { m_options &= ~(option); }
   bool HasOption(AnalystOption option) const { return !!(m_options & option); }
-  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 blockSize);
+  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size);
+
+private:
+  enum class ReorderType
+  {
+    Carry,
+    CMP,
+    CROR
+  };
+
+  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
+  void ReorderInstructions(u32 instructions, CodeOp* code);
+  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
+
+  // Options
+  u32 m_options = 0;
 };
 
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db);
-bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size = 0);
-bool ReanalyzeFunction(u32 start_addr, Symbol& func, int max_size = 0);
+bool AnalyzeFunction(u32 startAddr, Common::Symbol& func, u32 max_size = 0);
+bool ReanalyzeFunction(u32 start_addr, Common::Symbol& func, u32 max_size = 0);
 
 }  // namespace

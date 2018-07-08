@@ -11,3 +11,5 @@ add_dolphin_test(DSPAssemblyTest
 )
 
 add_dolphin_test(ESFormatsTest IOS/ES/FormatsTest.cpp IOS/ES/TestBinaryData.cpp)
+
+add_dolphin_test(FileSystemTest IOS/FS/FileSystemTest.cpp)

@@ -21,3 +21,8 @@ add_library(discio
   WiiSaveBanner.cpp
   WiiWad.cpp
 )
+
+target_link_libraries(discio
+PRIVATE
+  ZLIB::ZLIB
+)

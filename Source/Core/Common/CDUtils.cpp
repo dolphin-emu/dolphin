@@ -34,15 +34,17 @@
 #include <linux/cdrom.h>
 #endif
 
+namespace Common
+{
 #ifdef _WIN32
 // takes a root drive path, returns true if it is a cdrom drive
-bool is_cdrom(const TCHAR* drive)
+static bool IsCDROM(const TCHAR* drive)
 {
   return (DRIVE_CDROM == GetDriveType(drive));
 }
 
 // Returns a vector with the device names
-std::vector<std::string> cdio_get_devices()
+std::vector<std::string> GetCDDevices()
 {
   std::vector<std::string> drives;
 
@@ -53,7 +55,7 @@ std::vector<std::string> cdio_get_devices()
     auto drive = buff.data();
     while (*drive)
     {
-      if (is_cdrom(drive))
+      if (IsCDROM(drive))
       {
         std::string str(TStrToUTF8(drive));
         str.pop_back();  // we don't want the final backslash
@@ -70,7 +72,7 @@ std::vector<std::string> cdio_get_devices()
 }
 #elif defined __APPLE__
 // Returns a pointer to an array of strings with the device names
-std::vector<std::string> cdio_get_devices()
+std::vector<std::string> GetCDDevices()
 {
   io_object_t next_media;
   mach_port_t master_port;
@@ -148,7 +150,7 @@ static struct
     {nullptr, 0, 0}};
 
 // Returns true if a device is a block or char device and not a symbolic link
-static bool is_device(const std::string& source_name)
+static bool IsDevice(const std::string& source_name)
 {
   struct stat buf;
   if (0 != lstat(source_name.c_str(), &buf))
@@ -158,10 +160,10 @@ static bool is_device(const std::string& source_name)
 }
 
 // Check a device to see if it is a DVD/CD-ROM drive
-static bool is_cdrom(const std::string& drive, char* mnttype)
+static bool IsCDROM(const std::string& drive)
 {
   // Check if the device exists
-  if (!is_device(drive))
+  if (!IsDevice(drive))
     return false;
 
   bool is_cd = false;
@@ -179,7 +181,7 @@ static bool is_cdrom(const std::string& drive, char* mnttype)
 }
 
 // Returns a pointer to an array of strings with the device names
-std::vector<std::string> cdio_get_devices()
+std::vector<std::string> GetCDDevices()
 {
   std::vector<std::string> drives;
   // Scan the system for DVD/CD-ROM drives.
@@ -188,7 +190,7 @@ std::vector<std::string> cdio_get_devices()
     for (unsigned int j = checklist[i].num_min; j <= checklist[i].num_max; ++j)
     {
       std::string drive = StringFromFormat(checklist[i].format, j);
-      if (is_cdrom(drive, nullptr))
+      if (IsCDROM(drive))
       {
         drives.push_back(std::move(drive));
       }
@@ -199,7 +201,7 @@ std::vector<std::string> cdio_get_devices()
 #endif
 
 // Returns true if device is a cdrom/dvd drive
-bool cdio_is_cdrom(std::string device)
+bool IsCDROMDevice(std::string device)
 {
 #ifndef _WIN32
   // Resolve symbolic links. This allows symbolic links to valid
@@ -211,7 +213,7 @@ bool cdio_is_cdrom(std::string device)
   device = devname;
 #endif
 
-  std::vector<std::string> devices = cdio_get_devices();
+  std::vector<std::string> devices = GetCDDevices();
   for (const std::string& d : devices)
   {
     if (d == device)
@@ -219,3 +221,4 @@ bool cdio_is_cdrom(std::string device)
   }
   return false;
 }
+}  // namespace Common

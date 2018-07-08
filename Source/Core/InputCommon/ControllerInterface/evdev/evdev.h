@@ -74,6 +74,7 @@ public:
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }
   bool IsInteresting() const { return m_initialized && m_interesting; }
+
 private:
   const std::string m_devfile;
   int m_fd;

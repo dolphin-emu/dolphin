@@ -5,8 +5,8 @@
 #include "VideoBackends/OGL/StreamBuffer.h"
 
 #include "Common/Align.h"
-#include "Common/CommonFuncs.h"
 #include "Common/GL/GLUtil.h"
+#include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 
 #include "VideoBackends/OGL/Render.h"
@@ -25,8 +25,8 @@ static u32 GenBuffer()
 }
 
 StreamBuffer::StreamBuffer(u32 type, u32 size)
-    : m_buffer(GenBuffer()), m_buffertype(type), m_size(ROUND_UP_POW2(size)),
-      m_bit_per_slot(IntLog2(ROUND_UP_POW2(size) / SYNC_POINTS))
+    : m_buffer(GenBuffer()), m_buffertype(type), m_size(MathUtil::NextPowerOf2(size)),
+      m_bit_per_slot(IntLog2(MathUtil::NextPowerOf2(size) / SYNC_POINTS))
 {
   m_iterator = 0;
   m_used_iterator = 0;
@@ -216,7 +216,7 @@ public:
 class BufferStorage : public StreamBuffer
 {
 public:
-  BufferStorage(u32 type, u32 size, bool _coherent = false)
+  BufferStorage(u32 type, u32 size, bool _coherent = true)
       : StreamBuffer(type, size), coherent(_coherent)
   {
     CreateFences();
@@ -226,11 +226,13 @@ public:
     // COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
     // CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then
     // server side
-    glBufferStorage(m_buffertype, m_size, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                                       (coherent ? GL_MAP_COHERENT_BIT : 0));
-    m_pointer = (u8*)glMapBufferRange(
-        m_buffertype, 0, m_size, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                     (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
+    glBufferStorage(m_buffertype, m_size, nullptr,
+                    GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+                        (coherent ? GL_MAP_COHERENT_BIT : 0));
+    m_pointer =
+        (u8*)glMapBufferRange(m_buffertype, 0, m_size,
+                              GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+                                  (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
   }
 
   ~BufferStorage()
@@ -366,13 +368,12 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
       return std::make_unique<PinnedMemory>(type, size);
 
     // buffer storage works well in most situations
-    bool coherent = DriverDetails::HasBug(DriverDetails::BUG_BROKEN_EXPLICIT_FLUSH);
     if (g_ogl_config.bSupportsGLBufferStorage &&
         !(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STORAGE) &&
           type == GL_ARRAY_BUFFER) &&
         !(DriverDetails::HasBug(DriverDetails::BUG_INTEL_BROKEN_BUFFER_STORAGE) &&
           type == GL_ELEMENT_ARRAY_BUFFER))
-      return std::make_unique<BufferStorage>(type, size, coherent);
+      return std::make_unique<BufferStorage>(type, size);
 
     // don't fall back to MapAnd* for Nvidia drivers
     if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UNSYNC_MAPPING))

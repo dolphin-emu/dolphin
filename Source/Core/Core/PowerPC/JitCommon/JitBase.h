@@ -4,10 +4,7 @@
 
 #pragma once
 
-//#define JIT_LOG_X86     // Enables logging of the generated x86 code
-//#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
-//#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
-
+#include <cstddef>
 #include <map>
 #include <unordered_set>
 
@@ -19,6 +16,10 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+//#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
+//#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
+//#define JIT_LOG_FPR             // Enables logging of the PPC floating point regs
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
@@ -92,7 +93,6 @@ protected:
     PPCAnalyst::BlockRegStats gpa;
     PPCAnalyst::BlockRegStats fpa;
     PPCAnalyst::CodeOp* op;
-    u8* rewriteStart;
 
     JitBlock* curBlock;
 
@@ -102,6 +102,7 @@ protected:
   };
 
   PPCAnalyst::CodeBlock code_block;
+  PPCAnalyst::CodeBuffer m_code_buffer;
   PPCAnalyst::PPCAnalyzer analyzer;
 
   bool CanMergeNextInstructions(int count) const;
@@ -109,10 +110,6 @@ protected:
   void UpdateMemoryOptions();
 
 public:
-  // This should probably be removed from public:
-  JitOptions jo{};
-  JitState js{};
-
   JitBase();
   ~JitBase() override;
 
@@ -125,6 +122,12 @@ public:
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
   virtual bool HandleStackFault() { return false; }
+
+  static constexpr std::size_t code_buffer_size = 32000;
+
+  // This should probably be removed from public:
+  JitOptions jo{};
+  JitState js{};
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);

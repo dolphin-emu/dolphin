@@ -54,12 +54,15 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Compiler.h" />
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="Config\ConfigInfo.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
+    <ClInclude Include="Debug\MemoryPatches.h" />
+    <ClInclude Include="Debug\Watches.h" />
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="File.h" />
@@ -121,8 +124,10 @@
     <ClInclude Include="GL\GLInterfaceBase.h" />
     <ClInclude Include="GL\GLInterface\WGL.h" />
     <ClInclude Include="GL\GLUtil.h" />
+    <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="Lazy.h" />
@@ -138,6 +143,8 @@
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="QoSSession.h" />
+    <ClInclude Include="Random.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="Semaphore.h" />
@@ -146,7 +153,6 @@
     <ClInclude Include="StringUtil.h" />
     <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
-    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
     <ClInclude Include="Timer.h" />
     <ClInclude Include="TraversalClient.h" />
@@ -173,10 +179,13 @@
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
+    <ClCompile Include="Debug\MemoryPatches.cpp" />
+    <ClCompile Include="Debug\Watches.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
+    <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
     <ClCompile Include="GL\GLInterface\GLInterface.cpp" />
@@ -184,6 +193,7 @@
     <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="LdrWatcher.cpp" />
@@ -198,11 +208,11 @@
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="QoSSession.cpp" />
+    <ClCompile Include="Random.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
-    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="Thread.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
@@ -226,6 +236,9 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
       <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>

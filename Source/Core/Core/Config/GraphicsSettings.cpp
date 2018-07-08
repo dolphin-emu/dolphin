@@ -21,10 +21,10 @@ const ConfigInfo<int> GFX_ADAPTER{{System::GFX, "Hardware", "Adapter"}, 0};
 // Graphics.Settings
 
 const ConfigInfo<bool> GFX_WIDESCREEN_HACK{{System::GFX, "Settings", "wideScreenHack"}, false};
-const ConfigInfo<int> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"},
-                                       static_cast<int>(AspectMode::Auto)};
-const ConfigInfo<int> GFX_SUGGESTED_ASPECT_RATIO{{System::GFX, "Settings", "SuggestedAspectRatio"},
-                                                 static_cast<int>(AspectMode::Auto)};
+const ConfigInfo<AspectMode> GFX_ASPECT_RATIO{{System::GFX, "Settings", "AspectRatio"},
+                                              AspectMode::Auto};
+const ConfigInfo<AspectMode> GFX_SUGGESTED_ASPECT_RATIO{
+    {System::GFX, "Settings", "SuggestedAspectRatio"}, AspectMode::Auto};
 const ConfigInfo<bool> GFX_CROP{{System::GFX, "Settings", "Crop"}, false};
 const ConfigInfo<int> GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES{
     {System::GFX, "Settings", "SafeTextureCacheColorSamples"}, 128};
@@ -78,9 +78,8 @@ const ConfigInfo<int> GFX_COMMAND_BUFFER_EXECUTE_INTERVAL{
 const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}, true};
 const ConfigInfo<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING{
     {System::GFX, "Settings", "WaitForShadersBeforeStarting"}, false};
-const ConfigInfo<int> GFX_SHADER_COMPILATION_MODE{
-    {System::GFX, "Settings", "ShaderCompilationMode"},
-    static_cast<int>(ShaderCompilationMode::Synchronous)};
+const ConfigInfo<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE{
+    {System::GFX, "Settings", "ShaderCompilationMode"}, ShaderCompilationMode::Synchronous};
 const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
     {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{
@@ -106,10 +105,17 @@ const ConfigInfo<std::string> GFX_ENHANCE_POST_SHADER{
     {System::GFX, "Enhancements", "PostProcessingShader"}, ""};
 const ConfigInfo<bool> GFX_ENHANCE_FORCE_TRUE_COLOR{{System::GFX, "Enhancements", "ForceTrueColor"},
                                                     true};
+const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER{
+    {System::GFX, "Enhancements", "DisableCopyFilter"}, true};
+const ConfigInfo<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
+    {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, true};
+const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
+    {System::GFX, "Enhancements", "ArbitraryMipmapDetectionThreshold"}, 14.0f};
 
 // Graphics.Stereoscopy
 
-const ConfigInfo<int> GFX_STEREO_MODE{{System::GFX, "Stereoscopy", "StereoMode"}, 0};
+const ConfigInfo<StereoMode> GFX_STEREO_MODE{{System::GFX, "Stereoscopy", "StereoMode"},
+                                             StereoMode::Off};
 const ConfigInfo<int> GFX_STEREO_DEPTH{{System::GFX, "Stereoscopy", "StereoDepth"}, 20};
 const ConfigInfo<int> GFX_STEREO_CONVERGENCE_PERCENTAGE{
     {System::GFX, "Stereoscopy", "StereoConvergencePercentage"}, 100};

@@ -32,11 +32,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class DirectoryInitializationService extends IntentService
 {
-    public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.BROADCAST";
+    public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
     public static final String EXTRA_STATE = "directoryState";
     private static volatile DirectoryInitializationState directoryState = null;
     private static String userPath;
+    private static String internalPath;
     private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
 
     public enum DirectoryInitializationState
@@ -110,6 +111,7 @@ public final class DirectoryInitializationService extends IntentService
     private void initializeInternalStorage()
     {
         File sysDirectory = new File(getFilesDir(), "Sys");
+        internalPath = sysDirectory.getAbsolutePath();
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String revision = NativeLibrary.GetGitRevision();
@@ -174,6 +176,20 @@ public final class DirectoryInitializationService extends IntentService
             throw new IllegalStateException("DirectoryInitializationService has to finish running first!");
         }
         return userPath;
+
+    }
+
+    public static String getDolphinInternalDirectory()
+    {
+        if (directoryState == null)
+        {
+            throw new IllegalStateException("DirectoryInitializationService has to run at least once!");
+        }
+        else if (isDolphinDirectoryInitializationRunning.get())
+        {
+            throw new IllegalStateException("DirectoryInitializationService has to finish running first!");
+        }
+        return internalPath;
 
     }
 

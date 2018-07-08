@@ -5,17 +5,13 @@
 #include <algorithm>
 #include <list>
 #include <map>
-#include <tuple>
 
-#include "Common/Assert.h"
 #include "Common/Config/Config.h"
 
 namespace Config
 {
 static Layers s_layers;
 static std::list<ConfigChangedCallback> s_callbacks;
-
-void InvokeConfigChangedCallbacks();
 
 Layers* GetLayers()
 {
@@ -66,12 +62,14 @@ void Load()
 {
   for (auto& layer : s_layers)
     layer.second->Load();
+  InvokeConfigChangedCallbacks();
 }
 
 void Save()
 {
   for (auto& layer : s_layers)
     layer.second->Save();
+  InvokeConfigChangedCallbacks();
 }
 
 void Init()
@@ -92,9 +90,9 @@ void ClearCurrentRunLayer()
 }
 
 static const std::map<System, std::string> system_to_name = {
-    {System::Main, "Dolphin"},          {System::GCPad, "GCPad"},  {System::WiiPad, "Wiimote"},
-    {System::GCKeyboard, "GCKeyboard"}, {System::GFX, "Graphics"}, {System::Logger, "Logger"},
-    {System::Debugger, "Debugger"},     {System::UI, "UI"},        {System::SYSCONF, "SYSCONF"}};
+    {System::Main, "Dolphin"},          {System::GCPad, "GCPad"},    {System::WiiPad, "Wiimote"},
+    {System::GCKeyboard, "GCKeyboard"}, {System::GFX, "Graphics"},   {System::Logger, "Logger"},
+    {System::Debugger, "Debugger"},     {System::SYSCONF, "SYSCONF"}};
 
 const std::string& GetSystemName(System system)
 {

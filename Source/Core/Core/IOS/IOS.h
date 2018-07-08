@@ -23,11 +23,15 @@ namespace IOS
 {
 namespace HLE
 {
+namespace FS
+{
+class FileSystem;
+}
+
 namespace Device
 {
 class Device;
 class ES;
-class FS;
 }
 
 struct Request;
@@ -53,30 +57,6 @@ enum IPCCommandType : u32
   IPC_REPLY = 8,
 };
 
-enum ProcessId : u32
-{
-  PID_KERNEL = 0,
-  PID_ES = 1,
-  PID_FS = 2,
-  PID_DI = 3,
-  PID_OH0 = 4,
-  PID_OH1 = 5,
-  PID_EHCI = 6,
-  PID_SDI = 7,
-  PID_USBETH = 8,
-  PID_NET = 9,
-  PID_WD = 10,
-  PID_WL = 11,
-  PID_KD = 12,
-  PID_NCD = 13,
-  PID_STM = 14,
-  PID_PPCBOOT = 15,
-  PID_SSL = 16,
-  PID_USB = 17,
-  PID_P2P = 18,
-  PID_UNKNOWN = 19,
-};
-
 void WriteReturnValue(s32 value, u32 address);
 
 // HLE for the IOS kernel: IPC, device management, syscalls, and Dolphin-specific, IOS-wide calls.
@@ -94,7 +74,7 @@ public:
 
   // These are *always* part of the IOS kernel and always available.
   // They are also the only available resource managers even before loading any module.
-  std::shared_ptr<Device::FS> GetFS();
+  std::shared_ptr<FS::FileSystem> GetFS();
   std::shared_ptr<Device::ES> GetES();
 
   void SDIO_EventNotify();
@@ -146,6 +126,7 @@ protected:
   u64 m_last_reply_time = 0;
 
   IOSC m_iosc;
+  std::shared_ptr<FS::FileSystem> m_fs;
 };
 
 // HLE for an IOS tied to emulation: base kernel which may have additional modules loaded.

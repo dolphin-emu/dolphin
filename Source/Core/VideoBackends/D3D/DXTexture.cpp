@@ -180,11 +180,10 @@ void DXTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
   srcRC.right = srcrect.right;
   srcRC.top = srcrect.top;
   srcRC.bottom = srcrect.bottom;
-  D3D::drawShadedTexQuad(srcentry->m_texture->GetSRV(), &srcRC, srcentry->m_config.width,
-                         srcentry->m_config.height, PixelShaderCache::GetColorCopyProgram(false),
-                         VertexShaderCache::GetSimpleVertexShader(),
-                         VertexShaderCache::GetSimpleInputLayout(),
-                         GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
+  D3D::drawShadedTexQuad(
+      srcentry->m_texture->GetSRV(), &srcRC, srcentry->m_config.width, srcentry->m_config.height,
+      PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(),
+      VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader(), 0);
 
   g_renderer->RestoreAPIState();
 }

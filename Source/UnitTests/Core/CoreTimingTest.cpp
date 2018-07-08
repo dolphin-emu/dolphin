@@ -43,7 +43,7 @@ public:
     UICommon::SetUserDirectory(m_profile_path);
     Config::Init();
     SConfig::Init();
-    PowerPC::Init(PowerPC::CORE_INTERPRETER);
+    PowerPC::Init(PowerPC::CPUCore::Interpreter);
     CoreTiming::Init();
   }
   ~ScopeInit()

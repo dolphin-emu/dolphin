@@ -4,15 +4,15 @@
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
-#include <cstring>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 /*
@@ -56,14 +56,17 @@ void Interpreter::mtfsb0x(UGeckoInstruction inst)
     Helper_UpdateCR1();
 }
 
+// This instruction can affect FX
 void Interpreter::mtfsb1x(UGeckoInstruction inst)
 {
-  // this instruction can affect FX
-  u32 b = 0x80000000 >> inst.CRBD;
+  const u32 bit = inst.CRBD;
+  const u32 b = 0x80000000 >> bit;
+
   if (b & FPSCR_ANY_X)
     SetFPException(b);
   else
-    FPSCR.Hex |= b;
+    FPSCR |= b;
+
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
@@ -72,10 +75,12 @@ void Interpreter::mtfsb1x(UGeckoInstruction inst)
 
 void Interpreter::mtfsfix(UGeckoInstruction inst)
 {
-  u32 mask = (0xF0000000 >> (4 * inst.CRFD));
-  u32 imm = (inst.hex << 16) & 0xF0000000;
+  const u32 field = inst.CRFD;
+  const u32 pre_shifted_mask = 0xF0000000;
+  const u32 mask = (pre_shifted_mask >> (4 * field));
+  const u32 imm = (inst.hex << 16) & pre_shifted_mask;
 
-  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * inst.CRFD));
+  FPSCR = (FPSCR.Hex & ~mask) | (imm >> (4 * field));
 
   FPSCRtoFPUSettings(FPSCR);
 
@@ -85,15 +90,15 @@ void Interpreter::mtfsfix(UGeckoInstruction inst)
 
 void Interpreter::mtfsfx(UGeckoInstruction inst)
 {
-  u32 fm = inst.FM;
+  const u32 fm = inst.FM;
   u32 m = 0;
-  for (int i = 0; i < 8; i++)
+  for (u32 i = 0; i < 8; i++)
   {
-    if (fm & (1 << i))
-      m |= (0xF << (i * 4));
+    if (fm & (1U << i))
+      m |= (0xFU << (i * 4));
   }
 
-  FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(inst.FB)) & m);
+  FPSCR = (FPSCR.Hex & ~m) | (static_cast<u32>(riPS0(inst.FB)) & m);
   FPSCRtoFPUSettings(FPSCR);
 
   if (inst.Rc)
@@ -114,7 +119,7 @@ void Interpreter::mfcr(UGeckoInstruction inst)
 
 void Interpreter::mtcrf(UGeckoInstruction inst)
 {
-  u32 crm = inst.CRM;
+  const u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
     PowerPC::SetCR(rGPR[inst.RS]);
@@ -123,10 +128,10 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
   {
     // TODO: use lookup table? probably not worth it
     u32 mask = 0;
-    for (int i = 0; i < 8; i++)
+    for (u32 i = 0; i < 8; i++)
     {
-      if (crm & (1 << i))
-        mask |= 0xF << (i * 4);
+      if (crm & (1U << i))
+        mask |= 0xFU << (i * 4);
     }
 
     PowerPC::SetCR((PowerPC::GetCR() & ~mask) | (rGPR[inst.RS] & mask));
@@ -135,32 +140,54 @@ void Interpreter::mtcrf(UGeckoInstruction inst)
 
 void Interpreter::mfmsr(UGeckoInstruction inst)
 {
-  // Privileged?
-  rGPR[inst.RD] = MSR;
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
+  rGPR[inst.RD] = MSR.Hex;
 }
 
 void Interpreter::mfsr(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR];
 }
 
 void Interpreter::mfsrin(UGeckoInstruction inst)
 {
-  int index = (rGPR[inst.RB] >> 28) & 0xF;
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
+  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
   rGPR[inst.RD] = PowerPC::ppcState.sr[index];
 }
 
 void Interpreter::mtmsr(UGeckoInstruction inst)
 {
-  // Privileged?
-  MSR = rGPR[inst.RS];
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
+  MSR.Hex = rGPR[inst.RS];
   PowerPC::CheckExceptions();
   m_end_block = true;
 }
 
 // Segment registers. MMU control.
 
-static void SetSR(int index, u32 value)
+static void SetSR(u32 index, u32 value)
 {
   DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index,
             value);
@@ -169,51 +196,63 @@ static void SetSR(int index, u32 value)
 
 void Interpreter::mtsr(UGeckoInstruction inst)
 {
-  int index = inst.SR;
-  u32 value = rGPR[inst.RS];
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
+  const u32 index = inst.SR;
+  const u32 value = rGPR[inst.RS];
   SetSR(index, value);
 }
 
 void Interpreter::mtsrin(UGeckoInstruction inst)
 {
-  int index = (rGPR[inst.RB] >> 28) & 0xF;
-  u32 value = rGPR[inst.RS];
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
+  const u32 index = (rGPR[inst.RB] >> 28) & 0xF;
+  const u32 value = rGPR[inst.RS];
   SetSR(index, value);
 }
 
 void Interpreter::mftb(UGeckoInstruction inst)
 {
-  int iIndex = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
-  DEBUG_ASSERT_MSG(POWERPC, (iIndex == SPR_TL) || (iIndex == SPR_TU), "Invalid mftb");
-  (void)iIndex;
+  const u32 index = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
+  DEBUG_ASSERT_MSG(POWERPC, (index == SPR_TL) || (index == SPR_TU), "Invalid mftb");
+  (void)index;
   mfspr(inst);
 }
 
 void Interpreter::mfspr(UGeckoInstruction inst)
 {
-  u32 iIndex = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
+  const u32 index = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
 
-  // TODO - check processor privilege level - many of these require privilege
-  // XER LR CTR are the only ones available in user mode, time base can be read too.
-  // GameCube games always run in superuser mode, but hey....
+  // XER, LR, CTR, and timebase halves are the only ones available in user mode.
+  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR && index != SPR_TL &&
+      index != SPR_TU)
+  {
+    GenerateProgramException();
+    return;
+  }
 
-  switch (iIndex)
+  switch (index)
   {
   case SPR_DEC:
-    if ((rSPR(iIndex) & 0x80000000) == 0)  // We are still decrementing
+    if ((rSPR(index) & 0x80000000) == 0)  // We are still decrementing
     {
-      rSPR(iIndex) = SystemTimers::GetFakeDecrementer();
+      rSPR(index) = SystemTimers::GetFakeDecrementer();
     }
     break;
 
   case SPR_TL:
   case SPR_TU:
-  {
-    // works since we are little endian and TL comes first :)
-    const u64 time_base = SystemTimers::GetFakeTimeBase();
-    std::memcpy(&TL, &time_base, sizeof(u64));
-  }
-  break;
+    PowerPC::WriteFullTimeBaseValue(SystemTimers::GetFakeTimeBase());
+    break;
 
   case SPR_WPAR:
   {
@@ -221,32 +260,36 @@ void Interpreter::mfspr(UGeckoInstruction inst)
     // Maybe WPAR is automatically flushed after a certain amount of time?
     bool wpar_empty = true;  // GPFifo::IsEmpty();
     if (!wpar_empty)
-      rSPR(iIndex) |= 1;  // BNE = buffer not empty
+      rSPR(index) |= 1;  // BNE = buffer not empty
     else
-      rSPR(iIndex) &= ~1;
+      rSPR(index) &= ~1;
   }
   break;
   case SPR_XER:
-    rSPR(iIndex) = PowerPC::GetXER().Hex;
+    rSPR(index) = PowerPC::GetXER().Hex;
     break;
   }
-  rGPR[inst.RD] = rSPR(iIndex);
+  rGPR[inst.RD] = rSPR(index);
 }
 
 void Interpreter::mtspr(UGeckoInstruction inst)
 {
-  u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-  u32 oldValue = rSPR(iIndex);
-  rSPR(iIndex) = rGPR[inst.RD];
+  const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
-  // TODO - check processor privilege level - many of these require privilege
-  // XER LR CTR are the only ones available in user mode, time base can be read too.
-  // GameCube games always run in superuser mode, but hey....
+  // XER, LR, and CTR are the only ones available to be written to in user mode
+  if (MSR.PR && index != SPR_XER && index != SPR_LR && index != SPR_CTR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
+  const u32 old_value = rSPR(index);
+  rSPR(index) = rGPR[inst.RD];
 
   // Our DMA emulation is highly inaccurate - instead of properly emulating the queue
   // and so on, we simply make all DMA:s complete instantaneously.
 
-  switch (iIndex)
+  switch (index)
   {
   case SPR_TL:
   case SPR_TU:
@@ -263,10 +306,15 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     SystemTimers::TimeBaseSet();
     break;
 
+  case SPR_PVR:
+    // PVR is a read-only register so maintain its value.
+    rSPR(index) = old_value;
+    break;
+
   case SPR_HID0:  // HID0
   {
     UReg_HID0 old_hid0;
-    old_hid0.Hex = oldValue;
+    old_hid0.Hex = old_value;
     if (HID0.ICE != old_hid0.ICE)
     {
       INFO_LOG(POWERPC, "Instruction Cache Enable (HID0.ICE) = %d", (int)HID0.ICE);
@@ -285,6 +333,14 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     }
   }
   break;
+
+  case SPR_HID1:
+    // Despite being documented as a read-only register, it actually isn't. Bits
+    // 0-4 (27-31 from a little endian perspective) are modifiable. The rest are not
+    // affected, as those bits are reserved and ignore writes to them.
+    rSPR(index) &= 0xF8000000;
+    break;
+
   case SPR_HID2:  // HID2
     // TODO: generate illegal instruction for paired inst if PSE or LSQE
     // not set.
@@ -293,9 +349,9 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_HID4:
-    if (oldValue != rSPR(iIndex))
+    if (old_value != rSPR(index))
     {
-      INFO_LOG(POWERPC, "HID4 updated %x %x", oldValue, rSPR(iIndex));
+      INFO_LOG(POWERPC, "HID4 updated %x %x", old_value, rSPR(index));
       PowerPC::IBATUpdated();
       PowerPC::DBATUpdated();
     }
@@ -322,16 +378,16 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // Total fake, we ignore that DMAs take time.
     if (DMAL.DMA_T)
     {
-      u32 dwMemAddress = DMAU.MEM_ADDR << 5;
-      u32 dwCacheAddress = DMAL.LC_ADDR << 5;
-      u32 iLength = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
+      const u32 mem_address = DMAU.MEM_ADDR << 5;
+      const u32 cache_address = DMAL.LC_ADDR << 5;
+      u32 length = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
 
-      if (iLength == 0)
-        iLength = 128;
+      if (length == 0)
+        length = 128;
       if (DMAL.DMA_LD)
-        PowerPC::DMA_MemoryToLC(dwCacheAddress, dwMemAddress, iLength);
+        PowerPC::DMA_MemoryToLC(cache_address, mem_address, length);
       else
-        PowerPC::DMA_LCToMemory(dwMemAddress, dwCacheAddress, iLength);
+        PowerPC::DMA_LCToMemory(mem_address, cache_address, length);
     }
     DMAL.DMA_T = 0;
     break;
@@ -340,9 +396,9 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_DEC:
-    if (!(oldValue >> 31) && (rGPR[inst.RD] >> 31))  // top bit from 0 to 1
+    if (!(old_value >> 31) && (rGPR[inst.RD] >> 31))  // top bit from 0 to 1
     {
-      PanicAlert("Interesting - Software triggered Decrementer exception");
+      INFO_LOG(POWERPC, "Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
     }
     SystemTimers::DecrementerSet();
@@ -354,7 +410,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    PowerPC::SetXER(rSPR(iIndex));
+    PowerPC::SetXER(UReg_XER{rSPR(index)});
     break;
 
   case SPR_DBAT0L:
@@ -373,9 +429,9 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_DBAT6U:
   case SPR_DBAT7L:
   case SPR_DBAT7U:
-    if (oldValue != rSPR(iIndex))
+    if (old_value != rSPR(index))
     {
-      INFO_LOG(POWERPC, "DBAT updated %d %x %x", iIndex, oldValue, rSPR(iIndex));
+      INFO_LOG(POWERPC, "DBAT updated %u %x %x", index, old_value, rSPR(index));
       PowerPC::DBATUpdated();
     }
     break;
@@ -396,9 +452,9 @@ void Interpreter::mtspr(UGeckoInstruction inst)
   case SPR_IBAT6U:
   case SPR_IBAT7L:
   case SPR_IBAT7U:
-    if (oldValue != rSPR(iIndex))
+    if (old_value != rSPR(index))
     {
-      INFO_LOG(POWERPC, "IBAT updated %d %x %x", iIndex, oldValue, rSPR(iIndex));
+      INFO_LOG(POWERPC, "IBAT updated %u %x %x", index, old_value, rSPR(index));
       PowerPC::IBATUpdated();
     }
     break;
@@ -447,7 +503,7 @@ void Interpreter::crxor(UGeckoInstruction inst)
 
 void Interpreter::mcrf(UGeckoInstruction inst)
 {
-  int cr_f = PowerPC::GetCRField(inst.CRFS);
+  const u32 cr_f = PowerPC::GetCRField(inst.CRFS);
   PowerPC::SetCRField(inst.CRFD, cr_f);
 }
 

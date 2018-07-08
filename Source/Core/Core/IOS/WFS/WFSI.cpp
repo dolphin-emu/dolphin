@@ -34,9 +34,7 @@ std::string GroupIdStr(u16 gid)
 }
 }  // namespace
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 void ARCUnpacker::Reset()
 {
@@ -178,7 +176,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_WFSI_PREPARE_PROFILE:
     m_base_extract_path = StringFromFormat("/vol/%s/tmp/", m_device_name.c_str());
-  // Fall through intended.
+    // Fall through intended.
 
   case IOCTL_WFSI_PREPARE_CONTENT:
   {
@@ -573,5 +571,4 @@ s32 WFSI::CancelPatchImport(bool continue_install)
   return IPC_SUCCESS;
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

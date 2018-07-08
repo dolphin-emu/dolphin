@@ -9,6 +9,8 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPLLE/DSPLLE.h"
 
+DSPEmulator::~DSPEmulator() = default;
+
 std::unique_ptr<DSPEmulator> CreateDSPEmulator(bool hle)
 {
   if (hle)

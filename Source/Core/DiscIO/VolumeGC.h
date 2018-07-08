@@ -30,7 +30,7 @@ class VolumeGC : public Volume
 public:
   VolumeGC(std::unique_ptr<BlobReader> reader);
   ~VolumeGC();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer,
+  bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
@@ -42,7 +42,7 @@ public:
   std::map<Language, std::string> GetShortMakers() const override;
   std::map<Language, std::string> GetLongMakers() const override;
   std::map<Language, std::string> GetDescriptions() const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
@@ -54,8 +54,8 @@ public:
   u64 GetRawSize() const override;
 
 private:
-  static const int GC_BANNER_WIDTH = 96;
-  static const int GC_BANNER_HEIGHT = 32;
+  static const u32 GC_BANNER_WIDTH = 96;
+  static const u32 GC_BANNER_HEIGHT = 32;
 
   struct GCBannerInformation
   {
@@ -89,8 +89,8 @@ private:
     std::map<Language, std::string> descriptions;
 
     std::vector<u32> image_buffer;
-    int image_height = 0;
-    int image_width = 0;
+    u32 image_height = 0;
+    u32 image_width = 0;
   };
 
   ConvertedGCBanner LoadBannerFile() const;
@@ -103,7 +103,7 @@ private:
 
   Common::Lazy<std::unique_ptr<FileSystem>> m_file_system;
 
-  std::unique_ptr<BlobReader> m_pReader;
+  std::unique_ptr<BlobReader> m_reader;
 };
 
 }  // namespace

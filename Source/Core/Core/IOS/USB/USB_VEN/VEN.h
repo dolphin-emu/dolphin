@@ -9,11 +9,7 @@
 #include "Core/IOS/USB/Host.h"
 #include "Core/IOS/USB/USBV5.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 class USB_VEN final : public USBV5ResourceManager
 {
@@ -31,6 +27,4 @@ private:
   s32 SubmitTransfer(USB::Device& device, const IOCtlVRequest& ioctlv);
   bool HasInterfaceNumberInIDs() const override { return false; }
 };
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

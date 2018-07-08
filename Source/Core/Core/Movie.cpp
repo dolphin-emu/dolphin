@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <cstring>
 #include <iomanip>
 #include <iterator>
 #include <mbedtls/config.h>
@@ -84,9 +85,9 @@ static bool s_bDiscChange = false;
 static bool s_bReset = false;
 static std::string s_author = "";
 static std::string s_discChange = "";
-static u8 s_MD5[16];
+static std::array<u8, 16> s_MD5;
 static u8 s_bongos, s_memcards;
-static u8 s_revision[20];
+static std::array<u8, 20> s_revision;
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
 
@@ -103,7 +104,7 @@ static WiiManipFunction s_wii_manip_func;
 static std::string s_current_file_name;
 
 static void GetSettings();
-static bool IsMovieHeader(u8 magic[4])
+static bool IsMovieHeader(const std::array<u8, 4>& magic)
 {
   return magic[0] == 'D' && magic[1] == 'T' && magic[2] == 'M' && magic[3] == 0x1A;
 }
@@ -215,10 +216,10 @@ void Init(const BootParameters& boot)
     ReadHeader();
     std::thread md5thread(CheckMD5);
     md5thread.detach();
-    if (strncmp(tmpHeader.gameID, SConfig::GetInstance().GetGameID().c_str(), 6))
+    if (strncmp(tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6))
     {
       PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)",
-                  tmpHeader.gameID, SConfig::GetInstance().GetGameID().c_str());
+                  tmpHeader.gameID.data(), SConfig::GetInstance().GetGameID().c_str());
       EndPlayInput(false);
     }
   }
@@ -466,9 +467,11 @@ void ChangeWiiPads(bool instantly)
                         nullptr;
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
+    const bool is_using_wiimote = IsUsingWiimote(i);
+
+    g_wiimote_sources[i] = is_using_wiimote ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
     if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
-      bt->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
+      bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
 }
 
@@ -640,7 +643,7 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
 }
 
 // NOTE: CPU Thread
-static void SetWiiInputDisplayString(int remoteID, u8* const data,
+static void SetWiiInputDisplayString(int remoteID, const u8* const data,
                                      const WiimoteEmu::ReportFeatures& rptf, int ext,
                                      const wiimote_key key)
 {
@@ -648,14 +651,16 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
 
   std::string display_str = StringFromFormat("R%d:", remoteID + 1);
 
-  u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
-  u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
-  u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
-  u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
+  const u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
+  const u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
+  const u8* const irData = rptf.ir ? (data + rptf.ir) : nullptr;
+  const u8* const extData = rptf.ext ? (data + rptf.ext) : nullptr;
 
   if (coreData)
   {
-    wm_buttons buttons = *(wm_buttons*)coreData;
+    wm_buttons buttons;
+    std::memcpy(&buttons, coreData, sizeof(buttons));
+
     if (buttons.left)
       display_str += " LEFT";
     if (buttons.right)
@@ -682,10 +687,12 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
     // A few bits of accelData are actually inside the coreData struct.
     if (accelData)
     {
-      wm_accel* dt = (wm_accel*)accelData;
-      display_str += StringFromFormat(" ACC:%d,%d,%d", dt->x << 2 | buttons.acc_x_lsb,
-                                      dt->y << 2 | buttons.acc_y_lsb << 1,
-                                      dt->z << 2 | buttons.acc_z_lsb << 1);
+      wm_accel dt;
+      std::memcpy(&dt, accelData, sizeof(dt));
+
+      display_str +=
+          StringFromFormat(" ACC:%d,%d,%d", dt.x << 2 | buttons.acc_x_lsb,
+                           dt.y << 2 | buttons.acc_y_lsb << 1, dt.z << 2 | buttons.acc_z_lsb << 1);
     }
   }
 
@@ -762,7 +769,7 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
 }
 
 // NOTE: CPU Thread
-void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
+void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID)
 {
   s_padState.A = ((PadStatus->button & PAD_BUTTON_A) != 0);
   s_padState.B = ((PadStatus->button & PAD_BUTTON_B) != 0);
@@ -798,7 +805,7 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void RecordInput(GCPadStatus* PadStatus, int controllerID)
+void RecordInput(const GCPadStatus* PadStatus, int controllerID)
 {
   if (!IsRecordingInput() || !IsUsingPad(controllerID))
     return;
@@ -811,8 +818,8 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 }
 
 // NOTE: CPU Thread
-void CheckWiimoteStatus(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, int ext,
-                        const wiimote_key key)
+void CheckWiimoteStatus(int wiimote, const u8* data, const WiimoteEmu::ReportFeatures& rptf,
+                        int ext, const wiimote_key key)
 {
   SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
 
@@ -820,7 +827,7 @@ void CheckWiimoteStatus(int wiimote, u8* data, const WiimoteEmu::ReportFeatures&
     RecordWiimote(wiimote, data, rptf.size);
 }
 
-void RecordWiimote(int wiimote, u8* data, u8 size)
+void RecordWiimote(int wiimote, const u8* data, u8 size)
 {
   if (!IsRecordingInput() || !IsUsingWiimote(wiimote))
     return;
@@ -848,16 +855,16 @@ void ReadHeader()
     s_memcards = tmpHeader.memcards;
     s_bongos = tmpHeader.bongos;
     s_bNetPlay = tmpHeader.bNetPlay;
-    memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
+    s_revision = tmpHeader.revision;
   }
   else
   {
     GetSettings();
   }
 
-  s_discChange = (char*)tmpHeader.discChange;
-  s_author = (char*)tmpHeader.author;
-  memcpy(s_MD5, tmpHeader.md5, 16);
+  s_discChange = {tmpHeader.discChange.begin(), tmpHeader.discChange.end()};
+  s_author = {tmpHeader.author.begin(), tmpHeader.author.end()};
+  s_MD5 = tmpHeader.md5;
   s_DSPiromHash = tmpHeader.DSPiromHash;
   s_DSPcoefHash = tmpHeader.DSPcoefHash;
 }
@@ -1298,7 +1305,7 @@ void SaveRecording(const std::string& filename)
   header.filetype[1] = 'T';
   header.filetype[2] = 'M';
   header.filetype[3] = 0x1A;
-  strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
+  strncpy(header.gameID.data(), SConfig::GetInstance().GetGameID().c_str(), 6);
   header.bWii = SConfig::GetInstance().bWii;
   header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
 
@@ -1314,11 +1321,11 @@ void SaveRecording(const std::string& filename)
   header.memcards = s_memcards;
   header.bClearSave = s_bClearSave;
   header.bNetPlay = s_bNetPlay;
-  strncpy((char*)header.discChange, s_discChange.c_str(), ArraySize(header.discChange));
-  strncpy((char*)header.author, s_author.c_str(), ArraySize(header.author));
-  memcpy(header.md5, s_MD5, 16);
+  strncpy(header.discChange.data(), s_discChange.c_str(), header.discChange.size());
+  strncpy(header.author.data(), s_author.c_str(), header.author.size());
+  header.md5 = s_MD5;
   header.bongos = s_bongos;
-  memcpy(header.revision, s_revision, ArraySize(header.revision));
+  header.revision = s_revision;
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
@@ -1384,8 +1391,8 @@ void GetSettings()
   if (SConfig::GetInstance().bWii)
   {
     u64 title_id = SConfig::GetInstance().GetTitleID();
-    s_bClearSave =
-        !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
+    s_bClearSave = !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) +
+                                 "/banner.bin");
   }
   else
   {
@@ -1400,8 +1407,7 @@ void GetSettings()
        SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
       << 1;
 
-  std::array<u8, 20> revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
-  std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
+  s_revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
 
   if (!Config::Get(Config::MAIN_DSP_HLE))
   {
@@ -1427,8 +1433,10 @@ void GetSettings()
     file_coef.Close();
     for (u16& entry : coef)
       entry = Common::swap16(entry);
-    s_DSPiromHash = HashAdler32(reinterpret_cast<u8*>(irom.data()), DSP::DSP_IROM_BYTE_SIZE);
-    s_DSPcoefHash = HashAdler32(reinterpret_cast<u8*>(coef.data()), DSP::DSP_COEF_BYTE_SIZE);
+    s_DSPiromHash =
+        Common::HashAdler32(reinterpret_cast<u8*>(irom.data()), DSP::DSP_IROM_BYTE_SIZE);
+    s_DSPcoefHash =
+        Common::HashAdler32(reinterpret_cast<u8*>(coef.data()), DSP::DSP_COEF_BYTE_SIZE);
   }
   else
   {
@@ -1455,10 +1463,10 @@ static void CheckMD5()
   }
   Core::DisplayMessage("Verifying checksum...", 2000);
 
-  unsigned char gameMD5[16];
-  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), gameMD5);
+  std::array<u8, 16> game_md5;
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), game_md5.data());
 
-  if (memcmp(gameMD5, s_MD5, 16) == 0)
+  if (game_md5 == s_MD5)
     Core::DisplayMessage("Checksum of current game matches the recorded game.", 2000);
   else
     Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
@@ -1471,8 +1479,7 @@ static void GetMD5()
     return;
 
   Core::DisplayMessage("Calculating checksum of game file...", 2000);
-  memset(s_MD5, 0, sizeof(s_MD5));
-  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5);
+  mbedtls_md_file(s_md5_info, s_current_file_name.c_str(), s_MD5.data());
   Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 

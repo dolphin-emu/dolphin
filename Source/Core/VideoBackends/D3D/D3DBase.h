@@ -35,8 +35,7 @@ namespace DX11
 #define CHECK(cond, Message, ...)                                                                  \
   if (!(cond))                                                                                     \
   {                                                                                                \
-    PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__,               \
-               __VA_ARGS__);                                                                       \
+    PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__, __VA_ARGS__); \
   }
 
 class D3DTexture2D;

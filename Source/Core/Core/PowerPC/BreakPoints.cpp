@@ -15,7 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -210,7 +210,7 @@ TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
   return &*iter;
 }
 
-bool MemChecks::OverlapsMemcheck(u32 address, u32 length)
+bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
 {
   if (!HasAny())
     return false;
@@ -242,84 +242,4 @@ bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, boo
       return true;
   }
   return false;
-}
-
-bool Watches::IsAddressWatch(u32 address) const
-{
-  return std::any_of(m_watches.begin(), m_watches.end(),
-                     [address](const auto& watch) { return watch.address == address; });
-}
-
-Watches::TWatchesStr Watches::GetStrings() const
-{
-  TWatchesStr watch_strings;
-  for (const TWatch& watch : m_watches)
-  {
-    std::stringstream ss;
-    ss << std::hex << watch.address << " " << watch.name;
-    watch_strings.push_back(ss.str());
-  }
-
-  return watch_strings;
-}
-
-void Watches::AddFromStrings(const TWatchesStr& watch_strings)
-{
-  for (const std::string& watch_string : watch_strings)
-  {
-    TWatch watch;
-    std::stringstream ss;
-    ss << std::hex << watch_string;
-    ss >> watch.address;
-    ss >> std::ws;
-    std::getline(ss, watch.name);
-    Add(watch);
-  }
-}
-
-void Watches::Add(const TWatch& watch)
-{
-  if (IsAddressWatch(watch.address))
-    return;
-
-  m_watches.push_back(watch);
-}
-
-void Watches::Add(u32 address)
-{
-  // Only add new addresses
-  if (IsAddressWatch(address))
-    return;
-
-  TWatch watch;  // watch settings
-  watch.is_enabled = true;
-  watch.address = address;
-
-  m_watches.push_back(watch);
-}
-
-void Watches::Update(int count, u32 address)
-{
-  m_watches.at(count).address = address;
-}
-
-void Watches::UpdateName(int count, const std::string name)
-{
-  m_watches.at(count).name = name;
-}
-
-void Watches::Remove(u32 address)
-{
-  const auto iter = std::find_if(m_watches.cbegin(), m_watches.cend(),
-                                 [address](const auto& watch) { return watch.address == address; });
-
-  if (iter == m_watches.cend())
-    return;
-
-  m_watches.erase(iter);
-}
-
-void Watches::Clear()
-{
-  m_watches.clear();
 }

@@ -33,6 +33,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.backend_dynamic_sampler_indexing =
       g_ActiveConfig.backend_info.bSupportsDynamicSamplerIndexing;
   bits.backend_shader_framebuffer_fetch = g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+  bits.backend_logic_op = g_ActiveConfig.backend_info.bSupportsLogicOp;
   return bits;
 }
 

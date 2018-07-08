@@ -229,10 +229,13 @@ static void BPWritten(const BPCmd& bp)
     {
       // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
+      static constexpr CopyFilterCoefficients::Values filter_coefficients = {
+          {0, 0, 21, 22, 21, 0, 0}};
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
       g_texture_cache->CopyRenderTargetToTexture(
           destAddr, PE_copy.tp_realFormat(), srcRect.GetWidth(), srcRect.GetHeight(), destStride,
-          is_depth_copy, srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f);
+          is_depth_copy, srcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale, 1.0f, 1.0f,
+          bpmem.triggerEFBCopy.clamp_top, bpmem.triggerEFBCopy.clamp_bottom, filter_coefficients);
     }
     else
     {
@@ -253,15 +256,17 @@ static void BPWritten(const BPCmd& bp)
 
       u32 height = static_cast<u32>(num_xfb_lines);
 
-      DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
-                       "fbStride: %u | fbHeight: %u | yScale: %f",
+      DEBUG_LOG(VIDEO,
+                "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | fbWidth: %u | "
+                "fbStride: %u | fbHeight: %u | yScale: %f",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                 bpmem.copyTexSrcWH.x + 1, destStride, height, yScale);
 
       bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
-      g_texture_cache->CopyRenderTargetToTexture(destAddr, EFBCopyFormat::XFB, srcRect.GetWidth(),
-                                                 height, destStride, is_depth_copy, srcRect, false,
-                                                 false, yScale, s_gammaLUT[PE_copy.gamma]);
+      g_texture_cache->CopyRenderTargetToTexture(
+          destAddr, EFBCopyFormat::XFB, srcRect.GetWidth(), height, destStride, is_depth_copy,
+          srcRect, false, false, yScale, s_gammaLUT[PE_copy.gamma], bpmem.triggerEFBCopy.clamp_top,
+          bpmem.triggerEFBCopy.clamp_bottom, bpmem.copyfilter.GetCoefficients());
 
       // This stays in to signal end of a "frame"
       g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
@@ -1002,27 +1007,28 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_TRIGGER_EFB_COPY);
     UPE_Copy copy;
     copy.Hex = cmddata;
-    *desc = StringFromFormat("Clamping: %s\n"
-                             "Converting from RGB to YUV: %s\n"
-                             "Target pixel format: 0x%X\n"
-                             "Gamma correction: %s\n"
-                             "Mipmap filter: %s\n"
-                             "Vertical scaling: %s\n"
-                             "Clear: %s\n"
-                             "Frame to field: 0x%01X\n"
-                             "Copy to XFB: %s\n"
-                             "Intensity format: %s\n"
-                             "Automatic color conversion: %s",
-                             (copy.clamp0 && copy.clamp1) ? "Top and Bottom" : (copy.clamp0) ?
-                                                            "Top only" :
-                                                            (copy.clamp1) ? "Bottom only" : "None",
-                             no_yes[copy.yuv], static_cast<int>(copy.tp_realFormat()),
-                             (copy.gamma == 0) ? "1.0" : (copy.gamma == 1) ?
-                                                 "1.7" :
-                                                 (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
-                             no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
-                             (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb],
-                             no_yes[copy.intensity_fmt], no_yes[copy.auto_conv]);
+    *desc = StringFromFormat(
+        "Clamping: %s\n"
+        "Converting from RGB to YUV: %s\n"
+        "Target pixel format: 0x%X\n"
+        "Gamma correction: %s\n"
+        "Mipmap filter: %s\n"
+        "Vertical scaling: %s\n"
+        "Clear: %s\n"
+        "Frame to field: 0x%01X\n"
+        "Copy to XFB: %s\n"
+        "Intensity format: %s\n"
+        "Automatic color conversion: %s",
+        (copy.clamp_top && copy.clamp_bottom) ?
+            "Top and Bottom" :
+            (copy.clamp_top) ? "Top only" : (copy.clamp_bottom) ? "Bottom only" : "None",
+        no_yes[copy.yuv], static_cast<int>(copy.tp_realFormat()),
+        (copy.gamma == 0) ?
+            "1.0" :
+            (copy.gamma == 1) ? "1.7" : (copy.gamma == 2) ? "2.2" : "Invalid value 0x3?",
+        no_yes[copy.half_scale], no_yes[copy.scale_invert], no_yes[copy.clear],
+        (u32)copy.frame_to_field, no_yes[copy.copy_to_xfb], no_yes[copy.intensity_fmt],
+        no_yes[copy.auto_conv]);
   }
   break;
 

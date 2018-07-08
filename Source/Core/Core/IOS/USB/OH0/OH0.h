@@ -18,9 +18,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace USB
 {
@@ -84,5 +82,4 @@ private:
   std::mutex m_hooks_mutex;
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

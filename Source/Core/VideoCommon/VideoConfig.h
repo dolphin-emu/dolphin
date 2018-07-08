@@ -73,6 +73,9 @@ struct VideoConfig final
   int iMaxAnisotropy;
   std::string sPostProcessingShader;
   bool bForceTrueColor;
+  bool bDisableCopyFilter;
+  bool bArbitraryMipmapDetection;
+  float fArbitraryMipmapDetectionThreshold;
 
   // Information
   bool bShowFPS;
@@ -200,6 +203,7 @@ struct VideoConfig final
     bool bSupportsFragmentStoresAndAtomics;  // a.k.a. OpenGL SSBOs a.k.a. Direct3D UAVs
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
+    bool bSupportsLogicOp;
     bool bSupportsMultithreading;
     bool bSupportsGPUTextureDecoding;
     bool bSupportsST3CTextures;

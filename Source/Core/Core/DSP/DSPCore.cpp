@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <type_traits>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -21,8 +22,7 @@
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
-#include "Core/DSP/Jit/x64/DSPEmitter.h"
-#include "Core/HW/DSP.h"
+#include "Core/DSP/Jit/DSPEmitterBase.h"
 
 namespace DSP
 {
@@ -30,7 +30,7 @@ SDSP g_dsp;
 DSPBreakpoints g_dsp_breakpoints;
 static State core_state = State::Stopped;
 bool g_init_hax = false;
-std::unique_ptr<JIT::x64::DSPEmitter> g_dsp_jit;
+std::unique_ptr<JIT::DSPEmitter> g_dsp_jit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 static Common::Event step_event;
 
@@ -64,8 +64,8 @@ static bool VerifyRoms()
       {0x128ea7a2, 0xa4a575f5},
   }};
 
-  u32 hash_irom = HashAdler32((u8*)g_dsp.irom, DSP_IROM_BYTE_SIZE);
-  u32 hash_drom = HashAdler32((u8*)g_dsp.coef, DSP_COEF_BYTE_SIZE);
+  const u32 hash_irom = Common::HashAdler32(reinterpret_cast<u8*>(g_dsp.irom), DSP_IROM_BYTE_SIZE);
+  const u32 hash_drom = Common::HashAdler32(reinterpret_cast<u8*>(g_dsp.coef), DSP_COEF_BYTE_SIZE);
   int rom_idx = -1;
 
   for (size_t i = 0; i < known_roms.size(); ++i)
@@ -118,7 +118,7 @@ class LLEAccelerator final : public Accelerator
 protected:
   u8 ReadMemory(u32 address) override { return Host::ReadHostMemory(address); }
   void WriteMemory(u32 address, u8 value) override { Host::WriteHostMemory(value, address); }
-  void OnEndException() override { DSPCore_SetException(EXP_ACCOV); }
+  void OnEndException() override { DSPCore_SetException(ExceptionType::AcceleratorOverflow); }
 };
 
 bool DSPCore_Init(const DSPInitOptions& opts)
@@ -170,8 +170,8 @@ bool DSPCore_Init(const DSPInitOptions& opts)
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
   // Initialize JIT, if necessary
-  if (opts.core_type == DSPInitOptions::CORE_JIT)
-    g_dsp_jit = std::make_unique<JIT::x64::DSPEmitter>();
+  if (opts.core_type == DSPInitOptions::CoreType::JIT64)
+    g_dsp_jit = JIT::CreateDSPEmitter();
 
   g_dsp_cap.reset(opts.capture_logger);
 
@@ -202,9 +202,9 @@ void DSPCore_Reset()
   Analyzer::Analyze();
 }
 
-void DSPCore_SetException(u8 level)
+void DSPCore_SetException(ExceptionType exception)
 {
-  g_dsp.exceptions |= 1 << level;
+  g_dsp.exceptions |= 1 << static_cast<std::underlying_type_t<ExceptionType>>(exception);
 }
 
 // Notify that an external interrupt is pending (used by thread mode)
@@ -220,7 +220,7 @@ void DSPCore_CheckExternalInterrupt()
     return;
 
   // Signal the SPU about new mail
-  DSPCore_SetException(EXP_INT);
+  DSPCore_SetException(ExceptionType::ExternalInterrupt);
 
   g_dsp.cr &= ~CR_EXTERNAL_INT;
 }
@@ -236,7 +236,8 @@ void DSPCore_CheckExceptions()
     // Seems exp int are not masked by sr_int_enable
     if (g_dsp.exceptions & (1 << i))
     {
-      if (Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
+      if (Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) ||
+          i == static_cast<int>(ExceptionType::ExternalInterrupt))
       {
         // store pc and sr until RTI
         dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);

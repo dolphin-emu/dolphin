@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
 
@@ -38,11 +39,8 @@ public:
   ~PerfQuery() {}
   void EnableQuery(PerfQueryGroup type) override {}
   void DisableQuery(PerfQueryGroup type) override {}
-  void ResetQuery() override
-  {
-    memset(EfbInterface::perf_values, 0, sizeof(EfbInterface::perf_values));
-  }
-  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::perf_values[type]; }
+  void ResetQuery() override { EfbInterface::ResetPerfQuery(); }
+  u32 GetQueryResult(PerfQueryType type) override { return EfbInterface::GetPerfQueryResult(type); }
   void FlushResults() override {}
   bool IsFlushed() const override { return true; }
 };
@@ -54,7 +52,7 @@ std::string VideoSoftware::GetName() const
 
 std::string VideoSoftware::GetDisplayName() const
 {
-  return "Software Renderer";
+  return _trans("Software Renderer");
 }
 
 void VideoSoftware::InitBackendInfo()
@@ -74,6 +72,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsCopyToVram = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = false;
+  g_Config.backend_info.bSupportsLogicOp = true;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

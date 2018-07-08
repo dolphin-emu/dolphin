@@ -8,11 +8,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/Core.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 IPCCommandResult BluetoothStub::Open(const OpenRequest& request)
 {
@@ -26,6 +22,4 @@ void BluetoothStub::DoState(PointerWrap& p)
   Core::DisplayMessage("The current IPC_HLE_Device_usb is a stub. Aborting load.", 4000);
   p.SetMode(PointerWrap::MODE_VERIFY);
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

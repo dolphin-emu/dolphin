@@ -17,12 +17,14 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
-#include "Common/SysConf.h"
 
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/SysConf.h"
 
 namespace ConfigLoaders
 {
@@ -31,7 +33,8 @@ void SaveToSYSCONF(Config::LayerType layer)
   if (Core::IsRunning())
     return;
 
-  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  IOS::HLE::Kernel ios;
+  SysConf sysconf{ios.GetFS()};
 
   for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
   {
@@ -46,6 +49,9 @@ void SaveToSYSCONF(Config::LayerType layer)
         },
         setting.config_info);
   }
+
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    sysconf.SetData<u32>("IPL.CB", SysConf::Entry::Type::Long, 0);
 
   // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
   // shutdown commands in the State Transition Manager (STM).
@@ -69,7 +75,6 @@ const std::map<Config::System, int> system_to_ini = {
     {Config::System::GFX, F_GFXCONFIG_IDX},
     {Config::System::Logger, F_LOGGERCONFIG_IDX},
     {Config::System::Debugger, F_DEBUGGERCONFIG_IDX},
-    {Config::System::UI, F_UICONFIG_IDX},
 };
 
 // INI layer configuration loader
@@ -154,7 +159,8 @@ private:
     if (Core::IsRunning())
       return;
 
-    SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+    IOS::HLE::Kernel ios;
+    SysConf sysconf{ios.GetFS()};
     for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
     {
       std::visit(
@@ -175,4 +181,4 @@ std::unique_ptr<Config::ConfigLayerLoader> GenerateBaseConfigLoader()
 {
   return std::make_unique<BaseConfigLayerLoader>();
 }
-}
+}  // namespace ConfigLoaders

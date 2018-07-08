@@ -24,6 +24,7 @@ public:
   ~Semaphore() { CloseHandle(m_handle); }
   void Wait() { WaitForSingleObject(m_handle, INFINITE); }
   void Post() { ReleaseSemaphore(m_handle, 1, nullptr); }
+
 private:
   HANDLE m_handle;
 };
@@ -42,6 +43,7 @@ public:
   ~Semaphore() { sem_destroy(&m_handle); }
   void Wait() { sem_wait(&m_handle); }
   void Post() { sem_post(&m_handle); }
+
 private:
   sem_t m_handle;
 };

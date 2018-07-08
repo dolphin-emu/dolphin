@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
+#include "Core/PowerPC/Interpreter/ExceptionUtils.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
 void Interpreter::bx(UGeckoInstruction inst)
@@ -37,9 +39,9 @@ void Interpreter::bcx(UGeckoInstruction inst)
   const bool true_false = ((inst.BO >> 3) & 1);
   const bool only_counter_check = ((inst.BO >> 4) & 1);
   const bool only_condition_check = ((inst.BO >> 2) & 1);
-  int ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
-  bool counter = only_condition_check || ctr_check;
-  bool condition = only_counter_check || (PowerPC::GetCRBit(inst.BI) == u32(true_false));
+  const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
+  const bool counter = only_condition_check || ctr_check;
+  const bool condition = only_counter_check || (PowerPC::GetCRBit(inst.BI) == u32(true_false));
 
   if (counter && condition)
   {
@@ -78,7 +80,8 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
   DEBUG_ASSERT_MSG(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
                    "bcctrx with decrement and test CTR option is invalid!");
 
-  int condition = ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+  const u32 condition =
+      ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (condition)
   {
@@ -95,8 +98,9 @@ void Interpreter::bclrx(UGeckoInstruction inst)
   if ((inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0)
     CTR--;
 
-  int counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
-  int condition = ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+  const u32 counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
+  const u32 condition =
+      ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (counter & condition)
   {
@@ -116,12 +120,18 @@ void Interpreter::HLEFunction(UGeckoInstruction inst)
 
 void Interpreter::rfi(UGeckoInstruction inst)
 {
+  if (MSR.PR)
+  {
+    GenerateProgramException();
+    return;
+  }
+
   // Restore saved bits from SRR1 to MSR.
   // Gecko/Broadway can save more bits than explicitly defined in ppc spec
-  const int mask = 0x87C0FFFF;
-  MSR = (MSR & ~mask) | (SRR1 & mask);
+  const u32 mask = 0x87C0FFFF;
+  MSR.Hex = (MSR.Hex & ~mask) | (SRR1 & mask);
   // MSR[13] is set to 0.
-  MSR &= 0xFFFBFFFF;
+  MSR.Hex &= 0xFFFBFFFF;
   // Here we should check if there are pending exceptions, and if their corresponding enable bits
   // are set
   // if above is true, we'd do:

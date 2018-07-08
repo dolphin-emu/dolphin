@@ -78,70 +78,90 @@ void Pos_ReadIndex(VertexLoader* loader)
 static TPipelineFunction tableReadPosition[4][8][2] = {
     {
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
-        },
-    },
-    {
-        {
-            Pos_ReadDirect<u8, 2>, Pos_ReadDirect<u8, 3>,
-        },
-        {
-            Pos_ReadDirect<s8, 2>, Pos_ReadDirect<s8, 3>,
-        },
-        {
-            Pos_ReadDirect<u16, 2>, Pos_ReadDirect<u16, 3>,
-        },
-        {
-            Pos_ReadDirect<s16, 2>, Pos_ReadDirect<s16, 3>,
-        },
-        {
-            Pos_ReadDirect<float, 2>, Pos_ReadDirect<float, 3>,
+            nullptr,
+            nullptr,
         },
     },
     {
         {
-            Pos_ReadIndex<u8, u8, 2>, Pos_ReadIndex<u8, u8, 3>,
+            Pos_ReadDirect<u8, 2>,
+            Pos_ReadDirect<u8, 3>,
         },
         {
-            Pos_ReadIndex<u8, s8, 2>, Pos_ReadIndex<u8, s8, 3>,
+            Pos_ReadDirect<s8, 2>,
+            Pos_ReadDirect<s8, 3>,
         },
         {
-            Pos_ReadIndex<u8, u16, 2>, Pos_ReadIndex<u8, u16, 3>,
+            Pos_ReadDirect<u16, 2>,
+            Pos_ReadDirect<u16, 3>,
         },
         {
-            Pos_ReadIndex<u8, s16, 2>, Pos_ReadIndex<u8, s16, 3>,
+            Pos_ReadDirect<s16, 2>,
+            Pos_ReadDirect<s16, 3>,
         },
         {
-            Pos_ReadIndex<u8, float, 2>, Pos_ReadIndex<u8, float, 3>,
+            Pos_ReadDirect<float, 2>,
+            Pos_ReadDirect<float, 3>,
         },
     },
     {
         {
-            Pos_ReadIndex<u16, u8, 2>, Pos_ReadIndex<u16, u8, 3>,
+            Pos_ReadIndex<u8, u8, 2>,
+            Pos_ReadIndex<u8, u8, 3>,
         },
         {
-            Pos_ReadIndex<u16, s8, 2>, Pos_ReadIndex<u16, s8, 3>,
+            Pos_ReadIndex<u8, s8, 2>,
+            Pos_ReadIndex<u8, s8, 3>,
         },
         {
-            Pos_ReadIndex<u16, u16, 2>, Pos_ReadIndex<u16, u16, 3>,
+            Pos_ReadIndex<u8, u16, 2>,
+            Pos_ReadIndex<u8, u16, 3>,
         },
         {
-            Pos_ReadIndex<u16, s16, 2>, Pos_ReadIndex<u16, s16, 3>,
+            Pos_ReadIndex<u8, s16, 2>,
+            Pos_ReadIndex<u8, s16, 3>,
         },
         {
-            Pos_ReadIndex<u16, float, 2>, Pos_ReadIndex<u16, float, 3>,
+            Pos_ReadIndex<u8, float, 2>,
+            Pos_ReadIndex<u8, float, 3>,
+        },
+    },
+    {
+        {
+            Pos_ReadIndex<u16, u8, 2>,
+            Pos_ReadIndex<u16, u8, 3>,
+        },
+        {
+            Pos_ReadIndex<u16, s8, 2>,
+            Pos_ReadIndex<u16, s8, 3>,
+        },
+        {
+            Pos_ReadIndex<u16, u16, 2>,
+            Pos_ReadIndex<u16, u16, 3>,
+        },
+        {
+            Pos_ReadIndex<u16, s16, 2>,
+            Pos_ReadIndex<u16, s16, 3>,
+        },
+        {
+            Pos_ReadIndex<u16, float, 2>,
+            Pos_ReadIndex<u16, float, 3>,
         },
     },
 };
@@ -149,70 +169,90 @@ static TPipelineFunction tableReadPosition[4][8][2] = {
 static int tableReadPositionVertexSize[4][8][2] = {
     {
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
-        },
-    },
-    {
-        {
-            2, 3,
-        },
-        {
-            2, 3,
-        },
-        {
-            4, 6,
-        },
-        {
-            4, 6,
-        },
-        {
-            8, 12,
+            0,
+            0,
         },
     },
     {
         {
-            1, 1,
+            2,
+            3,
         },
         {
-            1, 1,
+            2,
+            3,
         },
         {
-            1, 1,
+            4,
+            6,
         },
         {
-            1, 1,
+            4,
+            6,
         },
         {
-            1, 1,
+            8,
+            12,
         },
     },
     {
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
+        },
+    },
+    {
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
         },
     },
 };

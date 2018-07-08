@@ -43,7 +43,7 @@ using PreprocessingTest = GlslangTest<::testing::TestWithParam<std::string>>;
 
 TEST_P(PreprocessingTest, FromFile)
 {
-    loadFilePreprocessAndCheck(GLSLANG_TEST_DIRECTORY, GetParam());
+    loadFilePreprocessAndCheck(GlobalTestSettings.testRoot, GetParam());
 }
 
 // clang-format off

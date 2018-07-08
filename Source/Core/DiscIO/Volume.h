@@ -43,7 +43,7 @@ class Volume
 public:
   Volume() {}
   virtual ~Volume() {}
-  virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const = 0;
+  virtual bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const = 0;
   template <typename T>
   std::optional<T> ReadSwapped(u64 offset, const Partition& partition) const
   {
@@ -58,6 +58,7 @@ public:
     return temp ? static_cast<u64>(*temp) << GetOffsetShift() : std::optional<u64>();
   }
 
+  virtual bool IsEncryptedAndHashed() const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
   virtual std::optional<u32> GetPartitionType(const Partition& partition) const { return {}; }
@@ -70,6 +71,10 @@ public:
   virtual const IOS::ES::TMDReader& GetTMD(const Partition& partition) const { return INVALID_TMD; }
   // Returns a non-owning pointer. Returns nullptr if the file system couldn't be read.
   virtual const FileSystem* GetFileSystem(const Partition& partition) const = 0;
+  virtual u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const
+  {
+    return offset;
+  }
   std::string GetGameID() const { return GetGameID(GetGamePartition()); }
   virtual std::string GetGameID(const Partition& partition) const = 0;
   std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }
@@ -83,7 +88,7 @@ public:
   virtual std::map<Language, std::string> GetShortMakers() const { return {}; }
   virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
   virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
-  virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
+  virtual std::vector<u32> GetBanner(u32* width, u32* height) const = 0;
   std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }
   virtual std::string GetApploaderDate(const Partition& partition) const = 0;
   // 0 is the first disc, 1 is the second disc

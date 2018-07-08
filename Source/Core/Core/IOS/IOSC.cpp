@@ -27,6 +27,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/Device.h"
+#include "Core/IOS/ES/Formats.h"
 
 namespace
 {
@@ -69,10 +70,10 @@ struct BootMiiKeyDump
   u32 unk2;                         // 0x17C
   std::array<u8, 0x80> eeprom_pad;  // 0x180
 
-  u32 ms_id;                 // 0x200
-  u32 ca_id;                 // 0x204
-  u32 ng_key_id;             // 0x208
-  IOS::ECCSignature ng_sig;  // 0x20c
+  u32 ms_id;                     // 0x200
+  u32 ca_id;                     // 0x204
+  u32 ng_key_id;                 // 0x208
+  Common::ec::Signature ng_sig;  // 0x20c
   struct Counter
   {
     u8 boot2version;
@@ -94,17 +95,18 @@ static_assert(sizeof(BootMiiKeyDump) == 0x400, "Wrong size");
 #pragma pack(pop)
 }  // end of anonymous namespace
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 constexpr u32 DEFAULT_DEVICE_ID = 0x0403AC68;
 constexpr u32 DEFAULT_KEY_ID = 0x6AAB8C59;
+
 constexpr std::array<u8, 30> DEFAULT_PRIVATE_KEY = {{
     0x00, 0xAB, 0xEE, 0xC1, 0xDD, 0xB4, 0xA6, 0x16, 0x6B, 0x70, 0xFD, 0x7E, 0x56, 0x67, 0x70,
     0x57, 0x55, 0x27, 0x38, 0xA3, 0x26, 0xC5, 0x46, 0x16, 0xF7, 0x62, 0xC9, 0xED, 0x73, 0xF2,
 }};
-constexpr ECCSignature DEFAULT_SIGNATURE = {{
+
+// clang-format off
+constexpr Common::ec::Signature DEFAULT_SIGNATURE = {{
     // R
     0x00, 0xD8, 0x81, 0x63, 0xB2, 0x00, 0x6B, 0x0B, 0x54, 0x82, 0x88, 0x63, 0x81, 0x1C, 0x00, 0x71,
     0x12, 0xED, 0xB7, 0xFD, 0x21, 0xAB, 0x0E, 0x50, 0x0E, 0x1F, 0xBF, 0x78, 0xAD, 0x37,
@@ -112,6 +114,7 @@ constexpr ECCSignature DEFAULT_SIGNATURE = {{
     0x00, 0x71, 0x8D, 0x82, 0x41, 0xEE, 0x45, 0x11, 0xC7, 0x3B, 0xAC, 0x08, 0xB6, 0x83, 0xDC, 0x05,
     0xB8, 0xA8, 0x90, 0x1F, 0xA8, 0x2A, 0x0E, 0x4E, 0x76, 0xEF, 0x44, 0x72, 0x99, 0xF8,
 }};
+// clang-format on
 
 const std::map<std::pair<IOSC::ObjectType, IOSC::ObjectSubType>, size_t> s_type_to_size_map = {{
     {{IOSC::TYPE_SECRET_KEY, IOSC::SUBTYPE_AES128}, 16},
@@ -245,8 +248,8 @@ ReturnCode IOSC::ComputeSharedKey(Handle dest_handle, Handle private_handle, Han
   }
 
   // Calculate the ECC shared secret.
-  std::array<u8, 0x3c> shared_secret;
-  point_mul(shared_secret.data(), private_entry->data.data(), public_entry->data.data());
+  const std::array<u8, 0x3c> shared_secret =
+      Common::ec::ComputeSharedSecret(private_entry->data.data(), public_entry->data.data());
 
   std::array<u8, 20> sha1;
   mbedtls_sha1(shared_secret.data(), shared_secret.size() / 2, sha1.data());
@@ -291,7 +294,7 @@ ReturnCode IOSC::Decrypt(Handle key_handle, u8* iv, const u8* input, size_t size
 }
 
 ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
-                                     const u8* signature, u32 pid) const
+                                     const std::vector<u8>& signature, u32 pid) const
 {
   if (!HasOwnership(signer_handle, pid))
     return IOSC_EACCES;
@@ -311,6 +314,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
   {
     const size_t expected_key_size = entry->subtype == SUBTYPE_RSA2048 ? 0x100 : 0x200;
     ASSERT(entry->data.size() == expected_key_size);
+    ASSERT(signature.size() == expected_key_size);
 
     mbedtls_rsa_context rsa;
     mbedtls_rsa_init(&rsa, MBEDTLS_RSA_PKCS_V15, 0);
@@ -321,7 +325,7 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     rsa.len = entry->data.size();
 
     const int ret = mbedtls_rsa_pkcs1_verify(&rsa, nullptr, nullptr, MBEDTLS_RSA_PUBLIC,
-                                             MBEDTLS_MD_SHA1, 0, sha1.data(), signature);
+                                             MBEDTLS_MD_SHA1, 0, sha1.data(), signature.data());
     if (ret != 0)
     {
       WARN_LOG(IOS, "VerifyPublicKeySign: RSA verification failed (error %d)", ret);
@@ -331,60 +335,19 @@ ReturnCode IOSC::VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle sign
     return IPC_SUCCESS;
   }
   case SUBTYPE_ECC233:
-    ERROR_LOG(IOS, "VerifyPublicKeySign: SUBTYPE_ECC233 is unimplemented");
-  // [[fallthrough]]
+  {
+    ASSERT(entry->data.size() == sizeof(CertECC::public_key));
+
+    const bool ok = Common::ec::VerifySignature(entry->data.data(), signature.data(), sha1.data());
+    return ok ? IPC_SUCCESS : IOSC_FAIL_CHECKVALUE;
+  }
   default:
     return IOSC_INVALID_OBJTYPE;
   }
 }
 
-struct ImportCertParameters
-{
-  size_t offset;
-  size_t size;
-  size_t signature_offset;
-  size_t public_key_offset;
-  size_t public_key_exponent_offset;
-};
-
-static ReturnCode GetImportCertParameters(const u8* cert, ImportCertParameters* parameters)
-{
-  // TODO: Add support for ECC signature type.
-  const u32 signature_type = Common::swap32(cert + offsetof(Cert, type));
-  switch (static_cast<SignatureType>(signature_type))
-  {
-  case SignatureType::RSA2048:
-  {
-    const u32 key_type = Common::swap32(cert + offsetof(Cert, rsa2048.header.public_key_type));
-
-    // TODO: Add support for ECC public key type.
-    if (static_cast<PublicKeyType>(key_type) != PublicKeyType::RSA2048)
-      return IOSC_INVALID_FORMAT;
-
-    parameters->offset = offsetof(Cert, rsa2048.signature.issuer);
-    parameters->size = sizeof(Cert::rsa2048) - parameters->offset;
-    parameters->signature_offset = offsetof(Cert, rsa2048.signature.sig);
-    parameters->public_key_offset = offsetof(Cert, rsa2048.public_key);
-    parameters->public_key_exponent_offset = offsetof(Cert, rsa2048.exponent);
-    return IPC_SUCCESS;
-  }
-  case SignatureType::RSA4096:
-  {
-    parameters->offset = offsetof(Cert, rsa4096.signature.issuer);
-    parameters->size = sizeof(Cert::rsa4096) - parameters->offset;
-    parameters->signature_offset = offsetof(Cert, rsa4096.signature.sig);
-    parameters->public_key_offset = offsetof(Cert, rsa4096.public_key);
-    parameters->public_key_exponent_offset = offsetof(Cert, rsa4096.exponent);
-    return IPC_SUCCESS;
-  }
-  default:
-    WARN_LOG(IOS, "Unknown signature type: %08x", signature_type);
-    return IOSC_INVALID_FORMAT;
-  }
-}
-
-ReturnCode IOSC::ImportCertificate(const u8* cert, Handle signer_handle, Handle dest_handle,
-                                   u32 pid)
+ReturnCode IOSC::ImportCertificate(const IOS::ES::CertReader& cert, Handle signer_handle,
+                                   Handle dest_handle, u32 pid)
 {
   if (!HasOwnership(signer_handle, pid) || !HasOwnership(dest_handle, pid))
     return IOSC_EACCES;
@@ -397,22 +360,17 @@ ReturnCode IOSC::ImportCertificate(const u8* cert, Handle signer_handle, Handle 
   if (signer_entry->type != TYPE_PUBLIC_KEY || dest_entry->type != TYPE_PUBLIC_KEY)
     return IOSC_INVALID_OBJTYPE;
 
-  ImportCertParameters parameters;
-  const ReturnCode ret = GetImportCertParameters(cert, &parameters);
-  if (ret != IPC_SUCCESS)
-    return ret;
+  if (!cert.IsValid())
+    return IOSC_INVALID_FORMAT;
 
-  std::array<u8, 20> sha1;
-  mbedtls_sha1(cert + parameters.offset, parameters.size, sha1.data());
-
-  if (VerifyPublicKeySign(sha1, signer_handle, cert + parameters.signature_offset, pid) !=
-      IPC_SUCCESS)
-  {
+  const std::vector<u8> signature = cert.GetSignatureData();
+  if (VerifyPublicKeySign(cert.GetSha1(), signer_handle, signature, pid) != IPC_SUCCESS)
     return IOSC_FAIL_CHECKVALUE;
-  }
 
-  return ImportPublicKey(dest_handle, cert + parameters.public_key_offset,
-                         cert + parameters.public_key_exponent_offset, pid);
+  const std::vector<u8> public_key = cert.GetPublicKey();
+  const bool is_rsa = cert.GetSignatureType() != SignatureType::ECC;
+  const u8* exponent = is_rsa ? (public_key.data() + public_key.size() - 4) : nullptr;
+  return ImportPublicKey(dest_handle, public_key.data(), exponent, pid);
 }
 
 ReturnCode IOSC::GetOwnership(Handle handle, u32* owner) const
@@ -457,28 +415,25 @@ u32 IOSC::GetDeviceId() const
 // Copyright 2007,2008  Segher Boessenkool  <segher@kernel.crashing.org>
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
-static Certificate MakeBlankSigECCert(const char* signer, const char* name, const u8* private_key,
-                                      u32 key_id)
+static CertECC MakeBlankEccCert(const std::string& issuer, const std::string& name,
+                                const u8* private_key, u32 key_id)
 {
-  Certificate cert_out{};
-  const u32 type = Common::swap32(static_cast<u32>(SignatureType::ECC));
-  std::memcpy(cert_out.data(), &type, sizeof(type));
-  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0x80, signer, 0x40);
-  const u32 two = Common::swap32(2);
-  std::memcpy(cert_out.data() + 0xc0, &two, sizeof(two));
-  std::strncpy(reinterpret_cast<char*>(cert_out.data()) + 0xc4, name, 0x40);
-  const u32 swapped_key_id = Common::swap32(key_id);
-  std::memcpy(cert_out.data() + 0x104, &swapped_key_id, sizeof(swapped_key_id));
-  ec_priv_to_pub(private_key, cert_out.data() + 0x108);
-  return cert_out;
+  CertECC cert{};
+  cert.signature.type = SignatureType(Common::swap32(u32(SignatureType::ECC)));
+  std::strncpy(cert.signature.issuer, issuer.c_str(), 0x40);
+  cert.header.public_key_type = PublicKeyType(Common::swap32(u32(PublicKeyType::ECC)));
+  std::strncpy(cert.header.name, name.c_str(), 0x40);
+  cert.header.id = Common::swap32(key_id);
+  cert.public_key = Common::ec::PrivToPub(private_key);
+  return cert;
 }
 
-Certificate IOSC::GetDeviceCertificate() const
+CertECC IOSC::GetDeviceCertificate() const
 {
   const std::string name = StringFromFormat("NG%08x", GetDeviceId());
-  auto cert = MakeBlankSigECCert("Root-CA00000001-MS00000002", name.c_str(),
-                                 m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
-  std::copy(m_console_signature.begin(), m_console_signature.end(), cert.begin() + 4);
+  auto cert = MakeBlankEccCert(StringFromFormat("Root-CA%08x-MS%08x", m_ca_id, m_ms_id), name,
+                               m_key_entries[HANDLE_CONSOLE_KEY].data.data(), m_console_key_id);
+  cert.signature.sig = m_console_signature;
   return cert;
 }
 
@@ -492,17 +447,20 @@ void IOSC::Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 
   // get_rand_bytes(ap_priv, 0x1e);
   // ap_priv[0] &= 1;
 
-  const std::string signer = StringFromFormat("Root-CA00000001-MS00000002-NG%08x", GetDeviceId());
+  const std::string signer =
+      StringFromFormat("Root-CA%08x-MS%08x-NG%08x", m_ca_id, m_ms_id, GetDeviceId());
   const std::string name = StringFromFormat("AP%016" PRIx64, title_id);
-  const auto cert = MakeBlankSigECCert(signer.c_str(), name.c_str(), ap_priv.data(), 0);
-  std::copy(cert.begin(), cert.end(), ap_cert_out);
+  CertECC cert = MakeBlankEccCert(signer, name, ap_priv.data(), 0);
+  // Sign the AP cert.
+  const size_t skip = offsetof(CertECC, signature.issuer);
+  mbedtls_sha1(reinterpret_cast<const u8*>(&cert) + skip, sizeof(cert) - skip, hash.data());
+  cert.signature.sig = Common::ec::Sign(m_key_entries[HANDLE_CONSOLE_KEY].data.data(), hash.data());
+  std::memcpy(ap_cert_out, &cert, sizeof(cert));
 
-  mbedtls_sha1(ap_cert_out + 0x80, 0x100, hash.data());
-  generate_ecdsa(ap_cert_out + 4, ap_cert_out + 34, m_key_entries[HANDLE_CONSOLE_KEY].data.data(),
-                 hash.data());
-
+  // Sign the data.
   mbedtls_sha1(data, data_size, hash.data());
-  generate_ecdsa(sig_out, sig_out + 30, ap_priv.data(), hash.data());
+  const auto signature = Common::ec::Sign(ap_priv.data(), hash.data());
+  std::copy(signature.cbegin(), signature.cend(), sig_out);
 }
 
 constexpr std::array<u8, 512> ROOT_PUBLIC_KEY = {
@@ -616,6 +574,8 @@ void IOSC::LoadEntries()
 
   m_key_entries[HANDLE_CONSOLE_KEY].data = {dump.ng_priv.begin(), dump.ng_priv.end()};
   m_console_signature = dump.ng_sig;
+  m_ms_id = Common::swap32(dump.ms_id);
+  m_ca_id = Common::swap32(dump.ca_id);
   m_console_key_id = Common::swap32(dump.ng_key_id);
   m_key_entries[HANDLE_CONSOLE_ID].misc_data = Common::swap32(dump.ng_id);
   m_key_entries[HANDLE_FS_KEY].data = {dump.nand_key.begin(), dump.nand_key.end()};
@@ -679,6 +639,10 @@ void IOSC::DoState(PointerWrap& p)
 {
   for (auto& entry : m_key_entries)
     entry.DoState(p);
+  p.Do(m_console_signature);
+  p.Do(m_ms_id);
+  p.Do(m_ca_id);
+  p.Do(m_console_key_id);
 }
 
 void IOSC::KeyEntry::DoState(PointerWrap& p)
@@ -689,5 +653,4 @@ void IOSC::KeyEntry::DoState(PointerWrap& p)
   p.Do(data);
   p.Do(owner_mask);
 }
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

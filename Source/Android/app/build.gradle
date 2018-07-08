@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion '27.0.3'
 
     compileOptions {
@@ -23,7 +23,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 27
 
         versionCode(getBuildVersionCode())
 
@@ -75,7 +75,7 @@ android {
 }
 
 ext {
-    androidSupportVersion = '26.1.0'
+    androidSupportVersion = '27.1.1'
 }
 
 dependencies {

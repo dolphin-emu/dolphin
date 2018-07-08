@@ -13,11 +13,17 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/Crypto/ec.h"
 
 class PointerWrap;
 
 namespace IOS
 {
+namespace ES
+{
+class CertReader;
+}  // namespace ES
+
 enum class SignatureType : u32
 {
   RSA4096 = 0x00010000,
@@ -29,6 +35,7 @@ enum class PublicKeyType : u32
 {
   RSA4096 = 0,
   RSA2048 = 1,
+  ECC = 2,
 };
 
 #pragma pack(push, 4)
@@ -53,7 +60,7 @@ static_assert(sizeof(SignatureRSA2048) == 0x180, "Wrong size for SignatureRSA204
 struct SignatureECC
 {
   SignatureType type;
-  u8 sig[0x3c];
+  Common::ec::Signature sig;
   u8 fill[0x40];
   char issuer[0x40];
 };
@@ -67,38 +74,48 @@ struct CertHeader
   u32 id;
 };
 
-struct CertRSA4096
+using RSA2048PublicKey = std::array<u8, 0x100>;
+
+struct CertRSA4096RSA2048
 {
   SignatureRSA4096 signature;
   CertHeader header;
-  // The signature is RSA4096, but the key is a RSA2048 public key,
-  // so its size is 0x100, not 0x200, as one would expect from the name.
-  u8 public_key[0x100];
+  RSA2048PublicKey public_key;
   u8 exponent[0x4];
   u8 pad[0x34];
 };
-static_assert(sizeof(CertRSA4096) == 0x400, "Wrong size for CertRSA4096");
+static_assert(sizeof(CertRSA4096RSA2048) == 0x400, "Wrong size for CertRSA4096RSA2048");
 
-struct CertRSA2048
+struct CertRSA2048RSA2048
 {
   SignatureRSA2048 signature;
   CertHeader header;
-  u8 public_key[0x100];
+  RSA2048PublicKey public_key;
   u8 exponent[0x4];
   u8 pad[0x34];
 };
-static_assert(sizeof(CertRSA2048) == 0x300, "Wrong size for CertRSA2048");
+static_assert(sizeof(CertRSA2048RSA2048) == 0x300, "Wrong size for CertRSA2048RSA2048");
 
-union Cert
+/// Used for device certificates
+struct CertRSA2048ECC
 {
-  SignatureType type;
-  CertRSA4096 rsa4096;
-  CertRSA2048 rsa2048;
+  SignatureRSA2048 signature;
+  CertHeader header;
+  Common::ec::PublicKey public_key;
+  std::array<u8, 60> padding;
 };
-#pragma pack(pop)
+static_assert(sizeof(CertRSA2048ECC) == 0x240, "Wrong size for CertRSA2048ECC");
 
-using ECCSignature = std::array<u8, 60>;
-using Certificate = std::array<u8, 0x180>;
+/// Used for device signed certificates
+struct CertECC
+{
+  SignatureECC signature;
+  CertHeader header;
+  Common::ec::PublicKey public_key;
+  std::array<u8, 60> padding;
+};
+static_assert(sizeof(CertECC) == 0x180, "Wrong size for CertECC");
+#pragma pack(pop)
 
 namespace HLE
 {
@@ -192,9 +209,10 @@ public:
                      u32 pid) const;
 
   ReturnCode VerifyPublicKeySign(const std::array<u8, 20>& sha1, Handle signer_handle,
-                                 const u8* signature, u32 pid) const;
+                                 const std::vector<u8>& signature, u32 pid) const;
   // Import a certificate (signed by the certificate in signer_handle) into dest_handle.
-  ReturnCode ImportCertificate(const u8* cert, Handle signer_handle, Handle dest_handle, u32 pid);
+  ReturnCode ImportCertificate(const IOS::ES::CertReader& cert, Handle signer_handle,
+                               Handle dest_handle, u32 pid);
 
   // Ownership
   ReturnCode GetOwnership(Handle handle, u32* owner) const;
@@ -202,7 +220,7 @@ public:
 
   bool IsUsingDefaultId() const;
   u32 GetDeviceId() const;
-  Certificate GetDeviceCertificate() const;
+  CertECC GetDeviceCertificate() const;
   void Sign(u8* sig_out, u8* ap_cert_out, u64 title_id, const u8* data, u32 data_size) const;
 
   void DoState(PointerWrap& p);
@@ -247,7 +265,10 @@ private:
 
   KeyEntries m_key_entries;
   KeyEntry m_root_key_entry;
-  ECCSignature m_console_signature{};
+  Common::ec::Signature m_console_signature{};
+  // Retail keyblob are issued by CA00000001. Default to 1 even though IOSC actually defaults to 2.
+  u32 m_ms_id = 2;
+  u32 m_ca_id = 1;
   u32 m_console_key_id = 0;
 };
 }  // namespace HLE

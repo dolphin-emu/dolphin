@@ -83,9 +83,9 @@ void Interpreter::andis_rc(UGeckoInstruction inst)
 
 void Interpreter::cmpi(UGeckoInstruction inst)
 {
-  s32 a = rGPR[inst.RA];
-  s32 b = inst.SIMM_16;
-  int f;
+  const s32 a = static_cast<s32>(rGPR[inst.RA]);
+  const s32 b = inst.SIMM_16;
+  u32 f;
 
   if (a < b)
     f = 0x8;
@@ -102,9 +102,9 @@ void Interpreter::cmpi(UGeckoInstruction inst)
 
 void Interpreter::cmpli(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = inst.UIMM;
-  int f;
+  const u32 a = rGPR[inst.RA];
+  const u32 b = inst.UIMM;
+  u32 f;
 
   if (a < b)
     f = 0x8;
@@ -213,40 +213,40 @@ void Interpreter::andcx(UGeckoInstruction inst)
 
 void Interpreter::cmp(UGeckoInstruction inst)
 {
-  s32 a = (s32)rGPR[inst.RA];
-  s32 b = (s32)rGPR[inst.RB];
-  int fTemp;
+  const s32 a = static_cast<s32>(rGPR[inst.RA]);
+  const s32 b = static_cast<s32>(rGPR[inst.RB]);
+  u32 temp;
 
   if (a < b)
-    fTemp = 0x8;
+    temp = 0x8;
   else if (a > b)
-    fTemp = 0x4;
+    temp = 0x4;
   else  // Equals
-    fTemp = 0x2;
+    temp = 0x2;
 
   if (PowerPC::GetXER_SO())
-    fTemp |= 0x1;
+    temp |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, fTemp);
+  PowerPC::SetCRField(inst.CRFD, temp);
 }
 
 void Interpreter::cmpl(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  u32 fTemp;
+  const u32 a = rGPR[inst.RA];
+  const u32 b = rGPR[inst.RB];
+  u32 temp;
 
   if (a < b)
-    fTemp = 0x8;
+    temp = 0x8;
   else if (a > b)
-    fTemp = 0x4;
+    temp = 0x4;
   else  // Equals
-    fTemp = 0x2;
+    temp = 0x2;
 
   if (PowerPC::GetXER_SO())
-    fTemp |= 0x1;
+    temp |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, fTemp);
+  PowerPC::SetCRField(inst.CRFD, temp);
 }
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)
@@ -501,18 +501,18 @@ void Interpreter::divwx(UGeckoInstruction inst)
 {
   const s32 a = rGPR[inst.RA];
   const s32 b = rGPR[inst.RB];
-  const bool overflow = b == 0 || ((u32)a == 0x80000000 && b == -1);
+  const bool overflow = b == 0 || (static_cast<u32>(a) == 0x80000000 && b == -1);
 
   if (overflow)
   {
-    if (((u32)a & 0x80000000) && b == 0)
+    if (a < 0)
       rGPR[inst.RD] = UINT32_MAX;
     else
       rGPR[inst.RD] = 0;
   }
   else
   {
-    rGPR[inst.RD] = (u32)(a / b);
+    rGPR[inst.RD] = static_cast<u32>(a / b);
   }
 
   if (inst.OE)
@@ -546,27 +546,26 @@ void Interpreter::divwux(UGeckoInstruction inst)
 
 void Interpreter::mulhwx(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-
-  // This can be done better. Not in plain C/C++ though.
-  u32 d = (u32)((u64)(((s64)(s32)a * (s64)(s32)b)) >> 32);
+  const s64 a = static_cast<s32>(rGPR[inst.RA]);
+  const s64 b = static_cast<s32>(rGPR[inst.RB]);
+  const u32 d = static_cast<u32>((a * b) >> 32);
 
   rGPR[inst.RD] = d;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(d);
 }
 
 void Interpreter::mulhwux(UGeckoInstruction inst)
 {
-  u32 a = rGPR[inst.RA];
-  u32 b = rGPR[inst.RB];
-  u32 d = (u32)(((u64)a * (u64)b) >> 32);
+  const u64 a = rGPR[inst.RA];
+  const u64 b = rGPR[inst.RB];
+  const u32 d = static_cast<u32>((a * b) >> 32);
+
   rGPR[inst.RD] = d;
 
   if (inst.Rc)
-    Helper_UpdateCR0(rGPR[inst.RD]);
+    Helper_UpdateCR0(d);
 }
 
 void Interpreter::mullwx(UGeckoInstruction inst)

@@ -28,7 +28,9 @@ u32 Helper_Mask(u8 mb, u8 me)
   return mb > me ? ~mask : mask;
 }
 
-JitBase::JitBase() = default;
+JitBase::JitBase() : m_code_buffer(code_buffer_size)
+{
+}
 
 JitBase::~JitBase() = default;
 
@@ -51,6 +53,6 @@ bool JitBase::CanMergeNextInstructions(int count) const
 void JitBase::UpdateMemoryOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && (UReg_MSR(MSR).DR || !any_watchpoints);
+  jo.fastmem = SConfig::GetInstance().bFastmem && (MSR.DR || !any_watchpoints);
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
 }

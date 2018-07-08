@@ -23,6 +23,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SliderSetting;
+import org.dolphinemu.dolphinemu.model.settings.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.ui.settings.viewholder.CheckBoxSettingViewHolder;
 import org.dolphinemu.dolphinemu.ui.settings.viewholder.HeaderViewHolder;
@@ -71,6 +72,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				view = inflater.inflate(R.layout.list_item_setting_checkbox, parent, false);
 				return new CheckBoxSettingViewHolder(view, this);
 
+			case SettingsItem.TYPE_STRING_SINGLE_CHOICE:
 			case SettingsItem.TYPE_SINGLE_CHOICE:
 				view = inflater.inflate(R.layout.list_item_setting, parent, false);
 				return new SingleChoiceViewHolder(view, this);
@@ -161,6 +163,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		mDialog = builder.show();
 	}
 
+	public void onStringSingleChoiceClick(StringSingleChoiceSetting item)
+	{
+		mClickedItem = item;
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
+
+		builder.setTitle(item.getNameId());
+		builder.setSingleChoiceItems(item.getChoicesId(), item.getSelectValueIndex(), this);
+
+		mDialog = builder.show();
+	}
+
 	public void onSliderClick(SliderSetting item)
 	{
 		mClickedItem = item;
@@ -186,6 +200,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		seekbar.setMax(item.getMax());
 		seekbar.setProgress(mSeekbarProgress);
+		seekbar.setKeyProgressIncrement(5);
 
 		seekbar.setOnSeekBarChangeListener(this);
 	}
@@ -199,7 +214,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 	{
 		final MotionAlertDialog dialog = new MotionAlertDialog(mContext, item);
 		dialog.setTitle(R.string.input_binding);
-		dialog.setMessage(String.format(mContext.getString(R.string.input_binding_descrip), mContext.getString(item.getNameId())));
+		dialog.setMessage(String.format(mContext.getString(R.string.input_binding_description), mContext.getString(item.getNameId())));
 		dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
 		dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear), (dialogInterface, i) ->
 		{
@@ -234,20 +249,23 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			SingleChoiceSetting scSetting = (SingleChoiceSetting) mClickedItem;
 
 			int value = getValueForSingleChoiceSelection(scSetting, which);
-
-			if (scSetting.getKey().startsWith(SettingsFile.KEY_GCPAD_TYPE))
+			MenuTag menuTag = scSetting.getMenuTag();
+			if(menuTag != null)
 			{
-				mView.onGcPadSettingChanged(scSetting.getKey(), value);
-			}
+				if (menuTag.isGCPadMenu())
+				{
+					mView.onGcPadSettingChanged(menuTag, value);
+				}
 
-			if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_TYPE))
-			{
-				mView.onWiimoteSettingChanged(scSetting.getSection(), value);
-			}
+				if (menuTag.isWiimoteMenu())
+				{
+					mView.onWiimoteSettingChanged(menuTag, value);
+				}
 
-			if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
-			{
-				mView.onExtensionSettingChanged(scSetting.getKey() + Character.getNumericValue(scSetting.getSection().charAt(scSetting.getSection().length() - 1)), value);
+				if (menuTag.isWiimoteExtensionMenu())
+				{
+					mView.onExtensionSettingChanged(menuTag, value);
+				}
 			}
 
 			// Get the backing Setting, which may be null (if for example it was missing from the file)
@@ -270,6 +288,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 			closeDialog();
 		}
+		else if (mClickedItem instanceof StringSingleChoiceSetting)
+		{
+			StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
+			String value = scSetting.getValueAt(which);
+			StringSetting setting = scSetting.setSelectedValue(value);
+			if (setting != null)
+			{
+				mView.putSetting(setting);
+			}
+
+			closeDialog();
+		}
 		else if (mClickedItem instanceof SliderSetting)
 		{
 			SliderSetting sliderSetting = (SliderSetting) mClickedItem;
@@ -277,7 +307,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			{
 				float value;
 
-				if (sliderSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT))
+				if (sliderSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
+						|| sliderSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT))
 				{
 					value = mSeekbarProgress / 100.0f;
 				}
@@ -379,19 +410,19 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		switch (which)
 		{
 			case 0:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "OGL");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "OGL");
 				break;
 
 			case 1:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Vulkan");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Vulkan");
 				break;
 
 			case 2:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Software Renderer");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Software Renderer");
 				break;
 
 			case 3:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Null");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Null");
 				break;
 		}
 

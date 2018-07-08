@@ -10,6 +10,8 @@
 #include <optional>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
@@ -50,8 +52,9 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
 
   const u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
 
-  DEBUG_LOG(DISCIO, "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
-                    " Size: %" PRIx32,
+  DEBUG_LOG(DISCIO,
+            "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
+            " Size: %" PRIx32,
             read_length, offset_in_file, file_info->GetPath().c_str(), file_info->GetOffset(),
             file_info->GetSize());
 
@@ -360,7 +363,8 @@ bool ExportSystemData(const Volume& volume, const Partition& partition,
     success &= ExportTicket(volume, partition, export_folder + "/ticket.bin");
     success &= ExportTMD(volume, partition, export_folder + "/tmd.bin");
     success &= ExportCertificateChain(volume, partition, export_folder + "/cert.bin");
-    success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
+    if (volume.IsEncryptedAndHashed())
+      success &= ExportH3Hashes(volume, partition, export_folder + "/h3.bin");
   }
 
   return success;

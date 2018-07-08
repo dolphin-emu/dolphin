@@ -75,13 +75,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-// Android and OSX haven't implemented the keyword yet.
-#if defined __ANDROID__ || defined __APPLE__
-#include <pthread.h>
-#else  // Everything besides OSX and Android
-#define ThreadLocalStorage thread_local
-#endif
-
 namespace Core
 {
 static bool s_wants_determinism;
@@ -112,16 +105,7 @@ struct HostJob
 static std::mutex s_host_jobs_lock;
 static std::queue<HostJob> s_host_jobs_queue;
 
-#ifdef ThreadLocalStorage
-static ThreadLocalStorage bool tls_is_cpu_thread = false;
-#else
-static pthread_key_t s_tls_is_cpu_key;
-static pthread_once_t s_cpu_key_is_init = PTHREAD_ONCE_INIT;
-static void InitIsCPUKey()
-{
-  pthread_key_create(&s_tls_is_cpu_key, nullptr);
-}
-#endif
+static thread_local bool tls_is_cpu_thread = false;
 
 static void EmuThread(std::unique_ptr<BootParameters> boot);
 
@@ -183,14 +167,7 @@ bool IsRunningInCurrentThread()
 
 bool IsCPUThread()
 {
-#ifdef ThreadLocalStorage
   return tls_is_cpu_thread;
-#else
-  // Use pthread implementation for Android and Mac
-  // Make sure that s_tls_is_cpu_key is initialized
-  pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
-  return pthread_getspecific(s_tls_is_cpu_key);
-#endif
 }
 
 bool IsGPUThread()
@@ -260,7 +237,7 @@ static void ResetRumble()
 // Called from GUI thread
 void Stop()  // - Hammertime!
 {
-  if (GetState() == State::Stopping)
+  if (GetState() == State::Stopping || GetState() == State::Uninitialized)
     return;
 
   const SConfig& _CoreParameter = SConfig::GetInstance();
@@ -297,26 +274,12 @@ void Stop()  // - Hammertime!
 
 void DeclareAsCPUThread()
 {
-#ifdef ThreadLocalStorage
   tls_is_cpu_thread = true;
-#else
-  // Use pthread implementation for Android and Mac
-  // Make sure that s_tls_is_cpu_key is initialized
-  pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
-  pthread_setspecific(s_tls_is_cpu_key, (void*)true);
-#endif
 }
 
 void UndeclareAsCPUThread()
 {
-#ifdef ThreadLocalStorage
   tls_is_cpu_thread = false;
-#else
-  // Use pthread implementation for Android and Mac
-  // Make sure that s_tls_is_cpu_key is initialized
-  pthread_once(&s_cpu_key_is_init, InitIsCPUKey);
-  pthread_setspecific(s_tls_is_cpu_key, (void*)false);
-#endif
 }
 
 // For the CPU Thread only.
@@ -328,7 +291,7 @@ static void CPUSetInitialExecutionState()
     SetState(SConfig::GetInstance().bBootToPause ? State::Paused : State::Running);
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
-    Host_Message(WM_USER_CREATE);
+    Host_Message(HostMessageID::WMUserCreate);
   });
 }
 
@@ -554,11 +517,20 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   if (!CBoot::BootUp(std::move(boot)))
     return;
 
+  // Initialise Wii filesystem contents.
+  // This is done here after Boot and not in HW to ensure that we operate
+  // with the correct title context since save copying requires title directories to exist.
+  Common::ScopeGuard wiifs_guard{Core::CleanUpWiiFileSystemContents};
+  if (SConfig::GetInstance().bWii)
+    Core::InitializeWiiFileSystemContents();
+  else
+    wiifs_guard.Dismiss();
+
   // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
   Fifo::Prepare();
 
   // Setup our core, but can't use dynarec if we are compare server
-  if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER &&
+  if (core_parameter.cpu_core != PowerPC::CPUCore::Interpreter &&
       (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
   {
     PowerPC::SetMode(PowerPC::CoreMode::JIT);
@@ -931,10 +903,6 @@ void UpdateWantDeterminism(bool initial)
       // We need to clear the cache because some parts of the JIT depend on want_determinism,
       // e.g. use of FMA.
       JitInterface::ClearCache();
-
-      // Don't call InitializeWiiRoot during boot, because IOS already does it.
-      if (!initial)
-        Core::InitializeWiiRoot(s_wants_determinism);
     });
   }
 }
@@ -952,7 +920,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop)
   }
   // If the the queue was empty then kick the Host to come and get this job.
   if (send_message)
-    Host_Message(WM_USER_JOB_DISPATCH);
+    Host_Message(HostMessageID::WMUserJobDispatch);
 }
 
 void HostDispatchJobs()

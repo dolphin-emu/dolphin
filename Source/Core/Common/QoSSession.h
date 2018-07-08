@@ -27,6 +27,7 @@ public:
   QoSSession& operator=(QoSSession&& session);
   QoSSession(QoSSession&& session) { *this = std::move(session); }
   bool Successful() const { return m_success; }
+
 private:
 #if defined(_WIN32)
   void* m_qos_handle = nullptr;

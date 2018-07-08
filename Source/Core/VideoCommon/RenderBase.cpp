@@ -68,8 +68,6 @@
 
 // TODO: Move these out of here.
 int frameCount;
-int OSDChoice;
-static int OSDTime;
 
 std::unique_ptr<Renderer> g_renderer;
 
@@ -84,9 +82,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   UpdateActiveConfig();
   UpdateDrawRectangle();
   CalculateTargetSize();
-
-  OSDChoice = 0;
-  OSDTime = 0;
 
   if (SConfig::GetInstance().bWii)
     m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
@@ -151,7 +146,7 @@ bool Renderer::CalculateTargetSize()
   {
     // Set a scale based on the window size
     int width = EFB_WIDTH * m_target_rectangle.GetWidth() / m_last_xfb_width;
-    int height = EFB_HEIGHT * m_target_rectangle.GetWidth() / m_last_xfb_height;
+    int height = EFB_HEIGHT * m_target_rectangle.GetHeight() / m_last_xfb_height;
     m_efb_scale = std::max((width - 1) / EFB_WIDTH + 1, (height - 1) / EFB_HEIGHT + 1);
   }
   else
@@ -296,13 +291,13 @@ void Renderer::DrawDebugText()
   }
 
   // OSD Menu messages
-  if (OSDChoice > 0)
+  if (m_osd_message > 0)
   {
-    OSDTime = Common::Timer::GetTimeMs() + 3000;
-    OSDChoice = -OSDChoice;
+    m_osd_time = Common::Timer::GetTimeMs() + 3000;
+    m_osd_message = -m_osd_message;
   }
 
-  if ((u32)OSDTime > Common::Timer::GetTimeMs())
+  if (static_cast<u32>(m_osd_time) > Common::Timer::GetTimeMs())
   {
     std::string res_text;
     switch (g_ActiveConfig.iEFBScale)
@@ -334,6 +329,9 @@ void Renderer::DrawDebugText()
       ar_text = "Auto";
       break;
     }
+    const std::string audio_text = SConfig::GetInstance().m_IsMuted ?
+                                       "Muted" :
+                                       std::to_string(SConfig::GetInstance().m_Volume) + "%";
 
     const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
     const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
@@ -350,6 +348,7 @@ void Renderer::DrawDebugText()
                              std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
         std::string("Copy XFB: ") + xfbcopy_text +
             (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
+        "Volume: " + audio_text,
     };
 
     enum
@@ -360,7 +359,7 @@ void Renderer::DrawDebugText()
     // The latest changed setting in yellow
     for (int i = 0; i != lines_count; ++i)
     {
-      if (OSDChoice == -i - 1)
+      if (m_osd_message == -i - 1)
         final_yellow += lines[i];
       final_yellow += '\n';
     }
@@ -368,7 +367,7 @@ void Renderer::DrawDebugText()
     // The other settings in cyan
     for (int i = 0; i != lines_count; ++i)
     {
-      if (OSDChoice != -i - 1)
+      if (m_osd_message != -i - 1)
         final_cyan += lines[i];
       final_cyan += '\n';
     }
@@ -539,6 +538,10 @@ void Renderer::UpdateDrawRectangle()
     crop_width = win_width;
   }
 
+  // Clamp the draw width/height to the screen size, to ensure we don't render off-screen.
+  draw_width = std::min(draw_width, win_width);
+  draw_height = std::min(draw_height, win_height);
+
   // ensure divisibility by 4 to make it compatible with all the video encoders
   draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
   draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
@@ -680,7 +683,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // TODO: merge more generic parts into VideoCommon
       {
         std::lock_guard<std::mutex> guard(m_swap_mutex);
-        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks, xfb_entry->gamma);
+        g_renderer->SwapImpl(xfb_entry->texture.get(), xfb_rect, ticks);
       }
 
       // Update the window size based on the frame that was just rendered.
@@ -1031,4 +1034,9 @@ bool Renderer::UseVertexDepthRange() const
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
 {
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
+}
+
+void Renderer::ShowOSDMessage(OSDMessage message)
+{
+  m_osd_message = static_cast<s32>(message);
 }

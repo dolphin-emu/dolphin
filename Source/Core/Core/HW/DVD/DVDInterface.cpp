@@ -207,6 +207,8 @@ static UDICR s_DICR;
 static UDIIMMBUF s_DIIMMBUF;
 static UDICFG s_DICFG;
 
+static StreamADPCM::ADPCMDecoder s_adpcm_decoder;
+
 // DTK
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
@@ -286,7 +288,7 @@ void DoState(PointerWrap& p)
 
   DVDThread::DoState(p);
 
-  StreamADPCM::DoState(p);
+  s_adpcm_decoder.DoState(p);
 }
 
 static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data)
@@ -295,7 +297,7 @@ static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8
   size_t bytes_processed = 0;
   while (samples_processed < temp_pcm->size() / 2 && bytes_processed < audio_data.size())
   {
-    StreamADPCM::DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
+    s_adpcm_decoder.DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
     for (size_t i = 0; i < StreamADPCM::SAMPLES_PER_BLOCK * 2; ++i)
     {
       // TODO: Fix the mixer so it can accept non-byte-swapped samples.
@@ -316,8 +318,9 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
   {
     if (s_audio_position >= s_current_start + s_current_length)
     {
-      DEBUG_LOG(DVDINTERFACE, "AdvanceDTK: NextStart=%08" PRIx64 ", NextLength=%08x, "
-                              "CurrentStart=%08" PRIx64 ", CurrentLength=%08x, AudioPos=%08" PRIx64,
+      DEBUG_LOG(DVDINTERFACE,
+                "AdvanceDTK: NextStart=%08" PRIx64 ", NextLength=%08x, "
+                "CurrentStart=%08" PRIx64 ", CurrentLength=%08x, AudioPos=%08" PRIx64,
                 s_next_start, s_next_length, s_current_start, s_current_length, s_audio_position);
 
       s_audio_position = s_next_start;
@@ -331,7 +334,7 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
         break;
       }
 
-      StreamADPCM::InitFilter();
+      s_adpcm_decoder.ResetFilter();
     }
 
     s_audio_position += StreamADPCM::ONE_BLOCK_SIZE;
@@ -586,15 +589,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void UpdateInterrupts()
 {
-  if ((s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
-      (s_DISR.BRKINT & s_DISR.BRKINTMASK) || (s_DICVR.CVRINT & s_DICVR.CVRINTMASK))
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, true);
-  }
-  else
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, false);
-  }
+  const bool set_mask = (s_DISR.DEINT & s_DISR.DEINITMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
+                        (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
+                        (s_DICVR.CVRINT & s_DICVR.CVRINTMASK);
+
+  ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, set_mask);
 
   // Required for Summoner: A Goddess Reborn
   CoreTiming::ForceExceptionCheck(50);
@@ -827,8 +826,9 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     {
       u64 iDVDOffset = (u64)command_1 << 2;
 
-      INFO_LOG(DVDINTERFACE, "Read: DVDOffset=%08" PRIx64
-                             ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
+      INFO_LOG(DVDINTERFACE,
+               "Read: DVDOffset=%08" PRIx64
+               ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
                iDVDOffset, output_address, command_2, output_length);
 
       command_handled_by_thread =
@@ -933,7 +933,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
           s_current_start = s_next_start;
           s_current_length = s_next_length;
           s_audio_position = s_current_start;
-          StreamADPCM::InitFilter();
+          s_adpcm_decoder.ResetFilter();
           s_stream = true;
         }
       }
@@ -950,9 +950,10 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     switch (command_0 >> 16 & 0xFF)
     {
     case 0x00:  // Returns streaming status
-      INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status "
-                             "AudioPos:%08" PRIx64 "/%08" PRIx64 " "
-                             "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
+      INFO_LOG(DVDINTERFACE,
+               "(Audio): Stream Status: Request Audio status "
+               "AudioPos:%08" PRIx64 "/%08" PRIx64 " "
+               "CurrentStart:%08" PRIx64 " CurrentLength:%08x",
                s_audio_position, s_current_start + s_current_length, s_current_start,
                s_current_length);
       WriteImmediate(s_stream ? 1 : 0, output_address, reply_to_ios);
@@ -1141,7 +1142,7 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   // The variable dvd_offset tracks the actual offset on the DVD
   // that the disc drive starts reading at, which differs in two ways:
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
-  u64 dvd_offset = DiscIO::VolumeWii::PartitionOffsetToRawOffset(offset, partition);
+  u64 dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset, partition);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
 
   if (SConfig::GetInstance().bFastDiscSpeed)
@@ -1208,7 +1209,9 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
   u32 unbuffered_blocks = 0;
 
   const u32 bytes_per_chunk =
-      partition == DiscIO::PARTITION_NONE ? DVD_ECC_BLOCK_SIZE : DiscIO::VolumeWii::BLOCK_DATA_SIZE;
+      partition != DiscIO::PARTITION_NONE && DVDThread::IsEncryptedAndHashed() ?
+          DiscIO::VolumeWii::BLOCK_DATA_SIZE :
+          DVD_ECC_BLOCK_SIZE;
 
   do
   {
@@ -1297,8 +1300,9 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
                              s_read_buffer_end_offset - s_read_buffer_start_offset, wii_disc));
   }
 
-  DEBUG_LOG(DVDINTERFACE, "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
-                          "ticks=%" PRId64 ", time=%" PRId64 " us",
+  DEBUG_LOG(DVDINTERFACE,
+            "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
+            "ticks=%" PRId64 ", time=%" PRId64 " us",
             unbuffered_blocks, buffered_blocks, ticks_until_completion,
             ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }

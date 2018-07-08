@@ -89,70 +89,90 @@ void TexCoord_ReadIndex(VertexLoader* loader)
 static TPipelineFunction tableReadTexCoord[4][8][2] = {
     {
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
+            nullptr,
+            nullptr,
         },
         {
-            nullptr, nullptr,
-        },
-    },
-    {
-        {
-            TexCoord_ReadDirect<u8, 1>, TexCoord_ReadDirect<u8, 2>,
-        },
-        {
-            TexCoord_ReadDirect<s8, 1>, TexCoord_ReadDirect<s8, 2>,
-        },
-        {
-            TexCoord_ReadDirect<u16, 1>, TexCoord_ReadDirect<u16, 2>,
-        },
-        {
-            TexCoord_ReadDirect<s16, 1>, TexCoord_ReadDirect<s16, 2>,
-        },
-        {
-            TexCoord_ReadDirect<float, 1>, TexCoord_ReadDirect<float, 2>,
+            nullptr,
+            nullptr,
         },
     },
     {
         {
-            TexCoord_ReadIndex<u8, u8, 1>, TexCoord_ReadIndex<u8, u8, 2>,
+            TexCoord_ReadDirect<u8, 1>,
+            TexCoord_ReadDirect<u8, 2>,
         },
         {
-            TexCoord_ReadIndex<u8, s8, 1>, TexCoord_ReadIndex<u8, s8, 2>,
+            TexCoord_ReadDirect<s8, 1>,
+            TexCoord_ReadDirect<s8, 2>,
         },
         {
-            TexCoord_ReadIndex<u8, u16, 1>, TexCoord_ReadIndex<u8, u16, 2>,
+            TexCoord_ReadDirect<u16, 1>,
+            TexCoord_ReadDirect<u16, 2>,
         },
         {
-            TexCoord_ReadIndex<u8, s16, 1>, TexCoord_ReadIndex<u8, s16, 2>,
+            TexCoord_ReadDirect<s16, 1>,
+            TexCoord_ReadDirect<s16, 2>,
         },
         {
-            TexCoord_ReadIndex<u8, float, 1>, TexCoord_ReadIndex<u8, float, 2>,
+            TexCoord_ReadDirect<float, 1>,
+            TexCoord_ReadDirect<float, 2>,
         },
     },
     {
         {
-            TexCoord_ReadIndex<u16, u8, 1>, TexCoord_ReadIndex<u16, u8, 2>,
+            TexCoord_ReadIndex<u8, u8, 1>,
+            TexCoord_ReadIndex<u8, u8, 2>,
         },
         {
-            TexCoord_ReadIndex<u16, s8, 1>, TexCoord_ReadIndex<u16, s8, 2>,
+            TexCoord_ReadIndex<u8, s8, 1>,
+            TexCoord_ReadIndex<u8, s8, 2>,
         },
         {
-            TexCoord_ReadIndex<u16, u16, 1>, TexCoord_ReadIndex<u16, u16, 2>,
+            TexCoord_ReadIndex<u8, u16, 1>,
+            TexCoord_ReadIndex<u8, u16, 2>,
         },
         {
-            TexCoord_ReadIndex<u16, s16, 1>, TexCoord_ReadIndex<u16, s16, 2>,
+            TexCoord_ReadIndex<u8, s16, 1>,
+            TexCoord_ReadIndex<u8, s16, 2>,
         },
         {
-            TexCoord_ReadIndex<u16, float, 1>, TexCoord_ReadIndex<u16, float, 2>,
+            TexCoord_ReadIndex<u8, float, 1>,
+            TexCoord_ReadIndex<u8, float, 2>,
+        },
+    },
+    {
+        {
+            TexCoord_ReadIndex<u16, u8, 1>,
+            TexCoord_ReadIndex<u16, u8, 2>,
+        },
+        {
+            TexCoord_ReadIndex<u16, s8, 1>,
+            TexCoord_ReadIndex<u16, s8, 2>,
+        },
+        {
+            TexCoord_ReadIndex<u16, u16, 1>,
+            TexCoord_ReadIndex<u16, u16, 2>,
+        },
+        {
+            TexCoord_ReadIndex<u16, s16, 1>,
+            TexCoord_ReadIndex<u16, s16, 2>,
+        },
+        {
+            TexCoord_ReadIndex<u16, float, 1>,
+            TexCoord_ReadIndex<u16, float, 2>,
         },
     },
 };
@@ -160,70 +180,90 @@ static TPipelineFunction tableReadTexCoord[4][8][2] = {
 static int tableReadTexCoordVertexSize[4][8][2] = {
     {
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
+            0,
+            0,
         },
         {
-            0, 0,
-        },
-    },
-    {
-        {
-            1, 2,
-        },
-        {
-            1, 2,
-        },
-        {
-            2, 4,
-        },
-        {
-            2, 4,
-        },
-        {
-            4, 8,
+            0,
+            0,
         },
     },
     {
         {
-            1, 1,
+            1,
+            2,
         },
         {
-            1, 1,
+            1,
+            2,
         },
         {
-            1, 1,
+            2,
+            4,
         },
         {
-            1, 1,
+            2,
+            4,
         },
         {
-            1, 1,
+            4,
+            8,
         },
     },
     {
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
         },
         {
-            2, 2,
+            1,
+            1,
+        },
+    },
+    {
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
+        },
+        {
+            2,
+            2,
         },
     },
 };

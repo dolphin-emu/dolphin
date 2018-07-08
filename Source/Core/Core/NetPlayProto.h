@@ -9,10 +9,15 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 struct NetSettings
 {
   bool m_CPUthread;
-  int m_CPUcore;
+  PowerPC::CPUCore m_CPUcore;
   bool m_EnableCheats;
   int m_SelectedLanguage;
   bool m_OverrideGCLanguage;
@@ -22,6 +27,7 @@ struct NetSettings
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
   bool m_CopyWiiSave;
+  bool m_ReducePollingRate;
   bool m_OCEnable;
   float m_OCFactor;
   ExpansionInterface::TEXIDevices m_EXIDevice[2];

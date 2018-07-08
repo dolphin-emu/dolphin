@@ -9,6 +9,11 @@ namespace Common
 class Event;
 }
 
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
 namespace CPU
 {
 enum class State
@@ -19,7 +24,7 @@ enum class State
 };
 
 // Init
-void Init(int cpu_core);
+void Init(PowerPC::CPUCore cpu_core);
 
 // Shutdown
 void Shutdown();

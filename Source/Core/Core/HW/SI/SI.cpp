@@ -11,6 +11,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
@@ -24,19 +26,12 @@
 
 namespace SerialInterface
 {
-static CoreTiming::EventType* s_change_device_event;
-static CoreTiming::EventType* s_tranfer_pending_event;
-
-static void RunSIBuffer(u64 user_data, s64 cycles_late);
-static void UpdateInterrupts();
-
 // SI Interrupt Types
 enum SIInterruptType
 {
   INT_RDSTINT = 0,
   INT_TCINT = 1,
 };
-static void GenerateSIInterrupt(SIInterruptType type);
 
 // SI Internal Hardware Addresses
 enum
@@ -207,6 +202,9 @@ union USIEXIClockCount
   };
 };
 
+static CoreTiming::EventType* s_change_device_event;
+static CoreTiming::EventType* s_tranfer_pending_event;
+
 // STATE_TO_SAVE
 static std::array<SSIChannel, MAX_SI_CHANNELS> s_channel;
 static USIPoll s_poll;
@@ -214,6 +212,115 @@ static USIComCSR s_com_csr;
 static USIStatusReg s_status_reg;
 static USIEXIClockCount s_exi_clock_count;
 static std::array<u8, 128> s_si_buffer;
+
+static void SetNoResponse(u32 channel)
+{
+  // raise the NO RESPONSE error
+  switch (channel)
+  {
+  case 0:
+    s_status_reg.NOREP0 = 1;
+    break;
+  case 1:
+    s_status_reg.NOREP1 = 1;
+    break;
+  case 2:
+    s_status_reg.NOREP2 = 1;
+    break;
+  case 3:
+    s_status_reg.NOREP3 = 1;
+    break;
+  }
+  s_com_csr.COMERR = 1;
+}
+
+static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
+{
+  u8 channel = (u8)(user_data >> 32);
+  SIDevices device = (SIDevices)(u32)user_data;
+
+  // Skip redundant (spammed) device changes
+  if (GetDeviceType(channel) != device)
+  {
+    s_channel[channel].out.hex = 0;
+    s_channel[channel].in_hi.hex = 0;
+    s_channel[channel].in_lo.hex = 0;
+
+    SetNoResponse(channel);
+
+    AddDevice(device, channel);
+  }
+}
+
+static void UpdateInterrupts()
+{
+  // check if we have to update the RDSTINT flag
+  if (s_status_reg.RDST0 || s_status_reg.RDST1 || s_status_reg.RDST2 || s_status_reg.RDST3)
+    s_com_csr.RDSTINT = 1;
+  else
+    s_com_csr.RDSTINT = 0;
+
+  // check if we have to generate an interrupt
+  if ((s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) || (s_com_csr.TCINT & s_com_csr.TCINTMSK))
+  {
+    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
+  }
+  else
+  {
+    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, false);
+  }
+}
+
+static void GenerateSIInterrupt(SIInterruptType type)
+{
+  switch (type)
+  {
+  case INT_RDSTINT:
+    s_com_csr.RDSTINT = 1;
+    break;
+  case INT_TCINT:
+    s_com_csr.TCINT = 1;
+    break;
+  }
+
+  UpdateInterrupts();
+}
+
+static void RunSIBuffer(u64 user_data, s64 cycles_late)
+{
+  if (s_com_csr.TSTART)
+  {
+    // Math in_length
+    int in_length = s_com_csr.INLNGTH;
+    if (in_length == 0)
+      in_length = 128;
+    else
+      in_length++;
+
+    // Math out_length
+    int out_length = s_com_csr.OUTLNGTH;
+    if (out_length == 0)
+      out_length = 128;
+    else
+      out_length++;
+
+    std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
+    int numOutput = device->RunBuffer(s_si_buffer.data(), in_length);
+
+    DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i",
+              s_com_csr.CHANNEL, in_length, out_length, numOutput);
+
+    if (numOutput != 0)
+    {
+      s_com_csr.TSTART = 0;
+      GenerateSIInterrupt(INT_TCINT);
+    }
+    else
+    {
+      CoreTiming::ScheduleEvent(device->TransferInterval() - cycles_late, s_tranfer_pending_event);
+    }
+  }
+}
 
 void DoState(PointerWrap& p)
 {
@@ -250,9 +357,6 @@ void DoState(PointerWrap& p)
   p.Do(s_exi_clock_count);
   p.Do(s_si_buffer);
 }
-
-static void ChangeDeviceCallback(u64 user_data, s64 cycles_late);
-static void RunSIBuffer(u64 user_data, s64 cycles_late);
 
 void Init()
 {
@@ -445,40 +549,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::DirectWrite<u32>(&s_exi_clock_count.hex));
 }
 
-static void UpdateInterrupts()
-{
-  // check if we have to update the RDSTINT flag
-  if (s_status_reg.RDST0 || s_status_reg.RDST1 || s_status_reg.RDST2 || s_status_reg.RDST3)
-    s_com_csr.RDSTINT = 1;
-  else
-    s_com_csr.RDSTINT = 0;
-
-  // check if we have to generate an interrupt
-  if ((s_com_csr.RDSTINT & s_com_csr.RDSTINTMSK) || (s_com_csr.TCINT & s_com_csr.TCINTMSK))
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
-  }
-  else
-  {
-    ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, false);
-  }
-}
-
-void GenerateSIInterrupt(SIInterruptType type)
-{
-  switch (type)
-  {
-  case INT_RDSTINT:
-    s_com_csr.RDSTINT = 1;
-    break;
-  case INT_TCINT:
-    s_com_csr.TCINT = 1;
-    break;
-  }
-
-  UpdateInterrupts();
-}
-
 void RemoveDevice(int device_number)
 {
   s_channel.at(device_number).device.reset();
@@ -498,45 +568,6 @@ void AddDevice(std::unique_ptr<ISIDevice> device)
 void AddDevice(const SIDevices device, int device_number)
 {
   AddDevice(SIDevice_Create(device, device_number));
-}
-
-static void SetNoResponse(u32 channel)
-{
-  // raise the NO RESPONSE error
-  switch (channel)
-  {
-  case 0:
-    s_status_reg.NOREP0 = 1;
-    break;
-  case 1:
-    s_status_reg.NOREP1 = 1;
-    break;
-  case 2:
-    s_status_reg.NOREP2 = 1;
-    break;
-  case 3:
-    s_status_reg.NOREP3 = 1;
-    break;
-  }
-  s_com_csr.COMERR = 1;
-}
-
-static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
-{
-  u8 channel = (u8)(user_data >> 32);
-  SIDevices device = (SIDevices)(u32)user_data;
-
-  // Skip redundant (spammed) device changes
-  if (GetDeviceType(channel) != device)
-  {
-    s_channel[channel].out.hex = 0;
-    s_channel[channel].in_hi.hex = 0;
-    s_channel[channel].in_lo.hex = 0;
-
-    SetNoResponse(channel);
-
-    AddDevice(device, channel);
-  }
 }
 
 void ChangeDevice(SIDevices device, int channel)
@@ -594,45 +625,13 @@ SIDevices GetDeviceType(int channel)
   return s_channel[channel].device->GetDeviceType();
 }
 
-static void RunSIBuffer(u64 user_data, s64 cycles_late)
-{
-  if (s_com_csr.TSTART)
-  {
-    // Math in_length
-    int in_length = s_com_csr.INLNGTH;
-    if (in_length == 0)
-      in_length = 128;
-    else
-      in_length++;
-
-    // Math out_length
-    int out_length = s_com_csr.OUTLNGTH;
-    if (out_length == 0)
-      out_length = 128;
-    else
-      out_length++;
-
-    std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    int numOutput = device->RunBuffer(s_si_buffer.data(), in_length);
-
-    DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i",
-              s_com_csr.CHANNEL, in_length, out_length, numOutput);
-
-    if (numOutput != 0)
-    {
-      s_com_csr.TSTART = 0;
-      GenerateSIInterrupt(INT_TCINT);
-    }
-    else
-    {
-      CoreTiming::ScheduleEvent(device->TransferInterval() - cycles_late, s_tranfer_pending_event);
-    }
-  }
-}
-
 u32 GetPollXLines()
 {
-  return s_poll.X;
+  // Returning 0 here effectively makes polling happen once per frame, as this is used to increment
+  // a value in VI for when the next SI poll happens. This should normally only be set during
+  // NetPlay, as it does not matter for a non-networked session. However, it may also be set during
+  // movie playback for movies recorded during NetPlay.
+  return Config::Get(Config::MAIN_REDUCE_POLLING_RATE) ? 0 : s_poll.X;
 }
 
 }  // end of namespace SerialInterface

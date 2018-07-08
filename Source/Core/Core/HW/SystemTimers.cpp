@@ -156,7 +156,7 @@ u32 GetFakeDecrementer()
 void TimeBaseSet()
 {
   CoreTiming::SetFakeTBStartTicks(CoreTiming::GetTicks());
-  CoreTiming::SetFakeTBStartValue(*((u64*)&TL));
+  CoreTiming::SetFakeTBStartValue(PowerPC::ReadFullTimeBaseValue());
 }
 
 u64 GetFakeTimeBase()

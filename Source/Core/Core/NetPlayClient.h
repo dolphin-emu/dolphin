@@ -34,6 +34,7 @@ public:
   virtual void OnPadBufferChanged(u32 buffer) = 0;
   virtual void OnDesync(u32 frame, const std::string& player) = 0;
   virtual void OnConnectionLost() = 0;
+  virtual void OnConnectionError(const std::string& message) = 0;
   virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
   virtual bool IsRecording() = 0;
   virtual std::string FindGame(const std::string& game) = 0;
@@ -80,6 +81,7 @@ public:
   void Stop();
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
+  void RequestStopGame();
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
@@ -97,6 +99,9 @@ public:
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
+
+  const PadMappingArray& GetPadMapping() const;
+  const PadMappingArray& GetWiimoteMapping() const;
 
 protected:
   void ClearBuffers();

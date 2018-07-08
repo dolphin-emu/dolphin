@@ -29,29 +29,15 @@
 #include <string>
 
 #include "Common/Assert.h"
-#include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
+#include "Common/Compiler.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 
-// ewww
-
-#ifndef __has_feature
-#define __has_feature(x) (0)
-#endif
-
-#if (__has_feature(is_trivially_copyable) &&                                                       \
-     (defined(_LIBCPP_VERSION) || defined(__GLIBCXX__))) ||                                        \
-    (defined(__GNUC__) && __GNUC__ >= 5) || defined(_MSC_VER)
-#define IsTriviallyCopyable(T)                                                                     \
-  std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
-#elif __GNUC__
-#define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
-#else
-#error No version of is_trivially_copyable
-#endif
+// XXX: Replace this with std::is_trivially_copyable<T> once we stop using volatile
+// on things that are put in savestates, as volatile types are not trivially copyable.
+template <typename T>
+constexpr bool IsTriviallyCopyable = std::is_trivially_copyable<std::remove_volatile_t<T>>::value;
 
 // Wrapper class
 class PointerWrap
@@ -170,7 +156,7 @@ public:
   template <typename T>
   void DoArray(T* x, u32 count)
   {
-    static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
+    static_assert(IsTriviallyCopyable<T>, "Only sane for trivially copyable types");
     DoVoid(x, count * sizeof(T));
   }
 
@@ -200,7 +186,7 @@ public:
   template <typename T>
   void Do(T& x)
   {
-    static_assert(IsTriviallyCopyable(T), "Only sane for trivially copyable types");
+    static_assert(IsTriviallyCopyable<T>, "Only sane for trivially copyable types");
     // Note:
     // Usually we can just use x = **ptr, etc.  However, this doesn't work
     // for unions containing BitFields (long story, stupid language rules)
@@ -283,7 +269,7 @@ private:
     DoEachElement(x, [](PointerWrap& p, typename T::value_type& elem) { p.Do(elem); });
   }
 
-  __forceinline void DoVoid(void* data, u32 size)
+  DOLPHIN_FORCE_INLINE void DoVoid(void* data, u32 size)
   {
     switch (mode)
     {

@@ -28,9 +28,9 @@
 
 namespace DiscIO
 {
-VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_pReader(std::move(reader))
+VolumeGC::VolumeGC(std::unique_ptr<BlobReader> reader) : m_reader(std::move(reader))
 {
-  ASSERT(m_pReader);
+  ASSERT(m_reader);
 
   m_file_system = [this]() -> std::unique_ptr<FileSystem> {
     auto file_system = std::make_unique<FileSystemGCWii>(this, PARTITION_NONE);
@@ -44,12 +44,12 @@ VolumeGC::~VolumeGC()
 {
 }
 
-bool VolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const
+bool VolumeGC::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {
   if (partition != PARTITION_NONE)
     return false;
 
-  return m_pReader->Read(_Offset, _Length, _pBuffer);
+  return m_reader->Read(offset, length, buffer);
 }
 
 const FileSystem* VolumeGC::GetFileSystem(const Partition& partition) const
@@ -61,15 +61,15 @@ std::string VolumeGC::GetGameID(const Partition& partition) const
 {
   static const std::string NO_UID("NO_UID");
 
-  char ID[6];
+  char id[6];
 
-  if (!Read(0, sizeof(ID), reinterpret_cast<u8*>(ID), partition))
+  if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
   {
     PanicAlertT("Failed to read unique ID from disc image");
     return NO_UID;
   }
 
-  return DecodeString(ID);
+  return DecodeString(id);
 }
 
 Region VolumeGC::GetRegion() const
@@ -103,11 +103,11 @@ Country VolumeGC::GetCountry(const Partition& partition) const
 
 std::string VolumeGC::GetMakerID(const Partition& partition) const
 {
-  char makerID[2];
-  if (!Read(0x4, 0x2, (u8*)&makerID, partition))
+  char maker_id[2];
+  if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
     return std::string();
 
-  return DecodeString(makerID);
+  return DecodeString(maker_id);
 }
 
 std::optional<u16> VolumeGC::GetRevision(const Partition& partition) const
@@ -119,7 +119,7 @@ std::optional<u16> VolumeGC::GetRevision(const Partition& partition) const
 std::string VolumeGC::GetInternalName(const Partition& partition) const
 {
   char name[0x60];
-  if (Read(0x20, 0x60, (u8*)name, partition))
+  if (Read(0x20, sizeof(name), reinterpret_cast<u8*>(name), partition))
     return DecodeString(name);
 
   return "";
@@ -150,7 +150,7 @@ std::map<Language, std::string> VolumeGC::GetDescriptions() const
   return m_converted_banner->descriptions;
 }
 
-std::vector<u32> VolumeGC::GetBanner(int* width, int* height) const
+std::vector<u32> VolumeGC::GetBanner(u32* width, u32* height) const
 {
   *width = m_converted_banner->image_width;
   *height = m_converted_banner->image_height;
@@ -160,7 +160,7 @@ std::vector<u32> VolumeGC::GetBanner(int* width, int* height) const
 std::string VolumeGC::GetApploaderDate(const Partition& partition) const
 {
   char date[16];
-  if (!Read(0x2440, 0x10, (u8*)&date, partition))
+  if (!Read(0x2440, sizeof(date), reinterpret_cast<u8*>(&date), partition))
     return std::string();
 
   return DecodeString(date);
@@ -168,17 +168,17 @@ std::string VolumeGC::GetApploaderDate(const Partition& partition) const
 
 BlobType VolumeGC::GetBlobType() const
 {
-  return m_pReader->GetBlobType();
+  return m_reader->GetBlobType();
 }
 
 u64 VolumeGC::GetSize() const
 {
-  return m_pReader->GetDataSize();
+  return m_reader->GetDataSize();
 }
 
 u64 VolumeGC::GetRawSize() const
 {
-  return m_pReader->GetRawSize();
+  return m_reader->GetRawSize();
 }
 
 std::optional<u8> VolumeGC::GetDiscNumber(const Partition& partition) const
@@ -244,8 +244,8 @@ VolumeGC::ConvertedGCBanner VolumeGC::ExtractBannerInformation(const GCBanner& b
   banner.image_width = GC_BANNER_WIDTH;
   banner.image_height = GC_BANNER_HEIGHT;
   banner.image_buffer = std::vector<u32>(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
-  ColorUtil::decode5A3image(banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH,
-                            GC_BANNER_HEIGHT);
+  Common::Decode5A3Image(banner.image_buffer.data(), banner_file.image, GC_BANNER_WIDTH,
+                         GC_BANNER_HEIGHT);
 
   for (u32 i = 0; i < number_of_languages; ++i)
   {

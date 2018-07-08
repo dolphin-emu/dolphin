@@ -25,7 +25,7 @@
  * When building with -march=native, or enabling the instruction sets in the compile flags, permit
  * usage of the instrinsics without any function attributes. If the command-line architecture does
  * not support this instruction set, enable it via function targeting.
-*/
+ */
 
 #include <x86intrin.h>
 #ifndef __SSE4_2__

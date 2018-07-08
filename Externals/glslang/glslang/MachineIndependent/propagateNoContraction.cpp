@@ -90,6 +90,7 @@ bool isDereferenceOperation(glslang::TOperator op)
     case glslang::EOpIndexDirectStruct:
     case glslang::EOpIndexIndirect:
     case glslang::EOpVectorSwizzle:
+    case glslang::EOpMatrixSwizzle:
         return true;
     default:
         return false;
@@ -272,9 +273,9 @@ TSymbolDefinitionCollectingTraverser::TSymbolDefinitionCollectingTraverser(
     ObjectAccesschainSet* precise_objects,
     std::unordered_set<glslang::TIntermBranch*>* precise_return_nodes)
     : TIntermTraverser(true, false, false), symbol_definition_mapping_(*symbol_definition_mapping),
-      precise_objects_(*precise_objects), current_object_(),
-      accesschain_mapping_(*accesschain_mapping), current_function_definition_node_(nullptr),
-      precise_return_nodes_(*precise_return_nodes) {}
+      precise_objects_(*precise_objects), precise_return_nodes_(*precise_return_nodes),
+      current_object_(), accesschain_mapping_(*accesschain_mapping),
+      current_function_definition_node_(nullptr) {}
 
 // Visits a symbol node, set the current_object_ to the
 // current node symbol ID, and record a mapping from this node to the current
@@ -616,9 +617,9 @@ class TNoContractionPropagator : public glslang::TIntermTraverser {
 public:
     TNoContractionPropagator(ObjectAccesschainSet* precise_objects,
                              const AccessChainMapping& accesschain_mapping)
-        : TIntermTraverser(true, false, false), remained_accesschain_(),
-          precise_objects_(*precise_objects), accesschain_mapping_(accesschain_mapping),
-          added_precise_object_ids_() {}
+        : TIntermTraverser(true, false, false),
+          precise_objects_(*precise_objects), added_precise_object_ids_(),
+          remained_accesschain_(), accesschain_mapping_(accesschain_mapping) {}
 
     // Propagates 'precise' in the right nodes of a given assignment node with
     // access chain record from the assignee node to a 'precise' object it
@@ -670,7 +671,7 @@ protected:
             // Gets the struct dereference index that leads to 'precise' object.
             ObjectAccessChain precise_accesschain_index_str =
                 getFrontElement(remained_accesschain_);
-            unsigned precise_accesschain_index = strtoul(precise_accesschain_index_str.c_str(), nullptr, 10);
+            unsigned precise_accesschain_index = (unsigned)strtoul(precise_accesschain_index_str.c_str(), nullptr, 10);
             // Gets the node pointed by the access chain index extracted before.
             glslang::TIntermTyped* potential_precise_node =
                 node->getSequence()[precise_accesschain_index]->getAsTyped();

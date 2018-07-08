@@ -203,8 +203,7 @@ static bool GetModuleVersion(const wchar_t* name, Version* version)
 
 void CompatPatchesInstall(LdrWatcher* watcher)
 {
-  watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"},
-                    [](const LdrDllLoadEvent& event) {
+  watcher->Install({{L"EZFRD64.dll", L"811EZFRD64.DLL"}, [](const LdrDllLoadEvent& event) {
                       // *EZFRD64 is incldued in software packages for cheapo third-party gamepads
                       // (and gamepad adapters). The module cannot handle its heap being above 4GB,
                       // which tends to happen very often on modern Windows.
@@ -214,8 +213,7 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       auto patcher = ImportPatcher(event.base_address);
                       patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
                     }});
-  watcher->Install({{L"ucrtbase.dll"},
-                    [](const LdrDllLoadEvent& event) {
+  watcher->Install({{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
                       // ucrtbase implements caching between fseek/fread, old versions have a bug
                       // such that some reads return incorrect data. This causes noticable bugs
                       // in dolphin since we use these APIs for reading game images.

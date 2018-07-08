@@ -41,12 +41,26 @@ namespace {
 
 using CompileToAstTest = GlslangTest<::testing::TestWithParam<std::string>>;
 
+#ifdef NV_EXTENSIONS
+using CompileToAstTestNV = GlslangTest<::testing::TestWithParam<std::string>>;
+#endif
+
 TEST_P(CompileToAstTest, FromFile)
 {
-    loadFileCompileAndCheck(GLSLANG_TEST_DIRECTORY, GetParam(),
-                            Source::GLSL, Semantics::OpenGL,
+    loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
+                            Source::GLSL, Semantics::OpenGL, glslang::EShTargetVulkan_1_0,
                             Target::AST);
 }
+
+#ifdef NV_EXTENSIONS
+// Compiling GLSL to SPIR-V under OpenGL semantics (NV extensions enabled).
+TEST_P(CompileToAstTestNV, FromFile)
+{
+    loadFileCompileAndCheck(GlobalTestSettings.testRoot, GetParam(),
+                            Source::GLSL, Semantics::OpenGL, glslang::EShTargetVulkan_1_0,
+                            Target::AST);
+}
+#endif
 
 // clang-format off
 INSTANTIATE_TEST_CASE_P(
@@ -62,6 +76,7 @@ INSTANTIATE_TEST_CASE_P(
         "versionsErrors.frag",
         "versionsErrors.vert",
         "100.frag",
+        "100samplerExternal.frag",
         "120.vert",
         "120.frag",
         "130.vert",
@@ -77,8 +92,14 @@ INSTANTIATE_TEST_CASE_P(
         "matrixError.vert",
         "cppSimple.vert",
         "cppIndent.vert",
+        "cppIntMinOverNegativeOne.frag",
         "cppNest.vert",
+        "cppBad.vert",
+        "cppBad2.vert",
         "cppComplexExpr.vert",
+        "cppDeepNest.frag",
+        "cppPassMacroName.frag",
+        "cppRelaxSkipTokensErrors.vert",
         "badChars.frag",
         "pointCoord.frag",
         "array.frag",
@@ -91,6 +112,7 @@ INSTANTIATE_TEST_CASE_P(
         "300layout.frag",
         "300operations.frag",
         "300block.frag",
+        "300samplerExternal.frag",
         "310.comp",
         "310.vert",
         "310.geom",
@@ -99,10 +121,18 @@ INSTANTIATE_TEST_CASE_P(
         "310.tese",
         "310implicitSizeArrayError.vert",
         "310AofA.vert",
+        "310runtimeArray.vert",
+        "320.comp",
+        "320.vert",
+        "320.geom",
+        "320.frag",
+        "320.tesc",
+        "320.tese",
         "330.frag",
         "330comp.frag",
         "constErrors.frag",
         "constFold.frag",
+        "constFoldIntMin.frag",
         "errors.frag",
         "forwardRef.frag",
         "uint.frag",
@@ -134,6 +164,7 @@ INSTANTIATE_TEST_CASE_P(
         "430.vert",
         "430.comp",
         "430AofA.frag",
+        "435.vert",
         "440.vert",
         "440.frag",
         "450.vert",
@@ -142,8 +173,11 @@ INSTANTIATE_TEST_CASE_P(
         "450.tese",
         "450.frag",
         "450.comp",
+        "460.frag",
+        "460.vert",
         "dce.frag",
         "atomic_uint.frag",
+        "implicitInnerAtomicUint.frag",
         "aggOps.frag",
         "always-discard.frag",
         "always-discard2.frag",
@@ -166,17 +200,24 @@ INSTANTIATE_TEST_CASE_P(
         "loopsArtificial.frag",
         "matrix.frag",
         "matrix2.frag",
+        "mixedArrayDecls.frag",
+        "nonuniform.frag",
         "newTexture.frag",
         "Operations.frag",
+        "overlongLiteral.frag",
         "prepost.frag",
+        "runtimeArray.vert",
         "simpleFunctionCall.frag",
+        "stringToDouble.vert",
         "structAssignment.frag",
         "structDeref.frag",
         "structure.frag",
         "swizzle.frag",
+        "invalidSwizzle.vert",
         "syntaxError.frag",
         "test.frag",
         "texture.frag",
+        "tokenPaste.vert",
         "types.frag",
         "uniformArray.frag",
         "variableArrayIndex.frag",
@@ -189,9 +230,20 @@ INSTANTIATE_TEST_CASE_P(
         "precise.tesc",
         "precise_struct_block.vert",
         "maxClipDistances.vert",
+        "findFunction.frag",
     })),
     FileNameAsCustomTestSuffix
 );
+
+#ifdef NV_EXTENSIONS
+INSTANTIATE_TEST_CASE_P(
+    Glsl, CompileToAstTestNV,
+    ::testing::ValuesIn(std::vector<std::string>({
+        "nvShaderNoperspectiveInterpolation.frag",
+    })),
+    FileNameAsCustomTestSuffix
+);
+#endif
 // clang-format on
 
 }  // anonymous namespace

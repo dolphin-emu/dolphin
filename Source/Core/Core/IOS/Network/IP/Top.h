@@ -13,9 +13,7 @@
 #include <ws2tcpip.h>
 #endif
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 enum NET_IOCTL
 {
@@ -100,5 +98,4 @@ private:
 #endif
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

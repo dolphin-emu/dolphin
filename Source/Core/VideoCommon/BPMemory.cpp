@@ -4,7 +4,7 @@
 
 #include "VideoCommon/BPMemory.h"
 
-#include <cstring>
+#include "Common/BitUtils.h"
 
 // BP state
 // STATE_TO_SAVE
@@ -56,9 +56,7 @@ float FogParams::GetA() const
   const u32 integral = (static_cast<u32>(a.sign) << 31) | (static_cast<u32>(a.exp) << 23) |
                        (static_cast<u32>(a.mant) << 12);
 
-  float real;
-  std::memcpy(&real, &integral, sizeof(u32));
-  return real;
+  return Common::BitCast<float>(integral);
 }
 
 float FogParams::GetC() const
@@ -73,7 +71,5 @@ float FogParams::GetC() const
   const u32 integral = (c_proj_fsel.c_sign.Value() << 31) | (c_proj_fsel.c_exp.Value() << 23) |
                        (c_proj_fsel.c_mant.Value() << 12);
 
-  float real;
-  std::memcpy(&real, &integral, sizeof(u32));
-  return real;
+  return Common::BitCast<float>(integral);
 }

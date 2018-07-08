@@ -112,7 +112,7 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
 
   std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
   std::unique_ptr<glslang::TProgram> program;
-  glslang::TShader::ForbidInclude includer;
+  glslang::TShader::ForbidIncluder includer;
   EProfile profile = ECoreProfile;
   EShMessages messages =
       static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules | EShMsgVulkanRules);
@@ -365,7 +365,8 @@ const TBuiltInResource* GetCompilerResourceLimits()
                                           /* .MaxCullDistances = */ 8,
                                           /* .MaxCombinedClipAndCullDistances = */ 8,
                                           /* .MaxSamples = */ 4,
-                                          /* .limits = */ {
+                                          /* .limits = */
+                                          {
                                               /* .nonInductiveForLoops = */ 1,
                                               /* .whileLoops = */ 1,
                                               /* .doWhileLoops = */ 1,

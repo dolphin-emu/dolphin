@@ -53,7 +53,8 @@ void cInterfaceEGL::DetectMode()
   EGLint num_configs;
   bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
   std::array<int, 3> renderable_types{{
-      EGL_OPENGL_BIT, (1 << 6), /* EGL_OPENGL_ES3_BIT_KHR */
+      EGL_OPENGL_BIT,
+      (1 << 6), /* EGL_OPENGL_ES3_BIT_KHR */
       EGL_OPENGL_ES2_BIT,
   }};
 
@@ -237,7 +238,13 @@ bool cInterfaceEGL::Create(void* window_handle, bool stereo, bool core)
   if (supports_core_profile && core && s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
   {
     std::array<std::pair<int, int>, 7> versions_to_try = {{
-        {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3},
+        {4, 5},
+        {4, 4},
+        {4, 3},
+        {4, 2},
+        {4, 1},
+        {4, 0},
+        {3, 3},
     }};
 
     for (const auto& version : versions_to_try)

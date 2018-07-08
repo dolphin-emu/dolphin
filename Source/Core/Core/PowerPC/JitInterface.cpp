@@ -25,6 +25,7 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
@@ -44,26 +45,28 @@ void DoState(PointerWrap& p)
   if (g_jit && p.GetMode() == PointerWrap::MODE_READ)
     g_jit->ClearCache();
 }
-CPUCoreBase* InitJitCore(int core)
+CPUCoreBase* InitJitCore(PowerPC::CPUCore core)
 {
   switch (core)
   {
 #if _M_X86
-  case PowerPC::CORE_JIT64:
+  case PowerPC::CPUCore::JIT64:
     g_jit = new Jit64();
     break;
 #endif
 #if _M_ARM_64
-  case PowerPC::CORE_JITARM64:
+  case PowerPC::CPUCore::JITARM64:
     g_jit = new JitArm64();
     break;
 #endif
-  case PowerPC::CORE_CACHEDINTERPRETER:
+  case PowerPC::CPUCore::CachedInterpreter:
     g_jit = new CachedInterpreter();
     break;
 
   default:
-    PanicAlert("Unrecognizable cpu_core: %d", core);
+    PanicAlertT("The selected CPU emulation core (%d) is not available. "
+                "Please select a different CPU emulation core in the settings.",
+                static_cast<int>(core));
     g_jit = nullptr;
     return nullptr;
   }
@@ -78,7 +81,7 @@ CPUCoreBase* GetCore()
 
 void WriteProfileResults(const std::string& filename)
 {
-  ProfileStats prof_stats;
+  Profiler::ProfileStats prof_stats;
   GetProfileResults(&prof_stats);
 
   File::IOFile f(filename, "w");
@@ -101,7 +104,7 @@ void WriteProfileResults(const std::string& filename)
   }
 }
 
-void GetProfileResults(ProfileStats* prof_stats)
+void GetProfileResults(Profiler::ProfileStats* prof_stats)
 {
   // Can't really do this with no g_jit core available
   if (!g_jit)
@@ -141,12 +144,12 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
     return 1;
   }
 
-  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR);
+  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR.Hex);
   if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR);
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR.Hex);
       if (block)
         break;
     }

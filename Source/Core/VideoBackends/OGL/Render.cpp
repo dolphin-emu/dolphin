@@ -76,8 +76,8 @@ static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
     s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
-void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                            const char* message, const void* userParam)
+static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
+                                   GLsizei length, const char* message, const void* userParam)
 {
   const char* s_source;
   const char* s_type;
@@ -520,6 +520,9 @@ Renderer::Renderer()
     // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for
     // depth clamping.
     g_Config.backend_info.bSupportsDepthClamp = false;
+
+    // GLES does not support logic op.
+    g_Config.backend_info.bSupportsLogicOp = false;
 
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
@@ -997,8 +1000,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
         // Resolve our rectangle.
         FramebufferManager::GetEFBDepthTexture(efbPixelRc);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
-
-        RestoreAPIState();
       }
 
       std::unique_ptr<float[]> depthMap(new float[targetPixelRcWidth * targetPixelRcHeight]);
@@ -1007,6 +1008,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
                    targetPixelRcHeight, GL_DEPTH_COMPONENT, GL_FLOAT, depthMap.get());
 
       UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, depthMap.get());
+
+      if (s_MSAASamples > 1)
+        RestoreAPIState();
     }
 
     u32 xRect = x % EFB_CACHE_RECT_SIZE;
@@ -1036,8 +1040,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
         // Resolve our rectangle.
         FramebufferManager::GetEFBColorTexture(efbPixelRc);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
-
-        RestoreAPIState();
       }
 
       std::unique_ptr<u32[]> colorMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
@@ -1051,6 +1053,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
                      targetPixelRcHeight, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, colorMap.get());
 
       UpdateEFBCache(type, cacheRectIdx, efbPixelRc, targetPixelRc, colorMap.get());
+
+      if (s_MSAASamples > 1)
+        RestoreAPIState();
     }
 
     u32 xRect = x % EFB_CACHE_RECT_SIZE;
@@ -1302,24 +1307,24 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
   }
   else
   {
-    const GLenum src_factors[8] = {
-        GL_ZERO,
-        GL_ONE,
-        GL_DST_COLOR,
-        GL_ONE_MINUS_DST_COLOR,
-        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-        GL_DST_ALPHA,
-        GL_ONE_MINUS_DST_ALPHA};
-    const GLenum dst_factors[8] = {
-        GL_ZERO,
-        GL_ONE,
-        GL_SRC_COLOR,
-        GL_ONE_MINUS_SRC_COLOR,
-        useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-        useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-        GL_DST_ALPHA,
-        GL_ONE_MINUS_DST_ALPHA};
+    const GLenum src_factors[8] = {GL_ZERO,
+                                   GL_ONE,
+                                   GL_DST_COLOR,
+                                   GL_ONE_MINUS_DST_COLOR,
+                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   GL_DST_ALPHA,
+                                   GL_ONE_MINUS_DST_ALPHA};
+    const GLenum dst_factors[8] = {GL_ZERO,
+                                   GL_ONE,
+                                   GL_SRC_COLOR,
+                                   GL_ONE_MINUS_SRC_COLOR,
+                                   useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+                                   useDualSource ? GL_ONE_MINUS_SRC1_ALPHA :
+                                                   (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+                                   GL_DST_ALPHA,
+                                   GL_ONE_MINUS_DST_ALPHA};
 
     if (state.blendenable)
     {
@@ -1365,8 +1370,7 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks,
-                        float Gamma)
+void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region, u64 ticks)
 {
   if (g_ogl_config.bSupportsDebug)
   {

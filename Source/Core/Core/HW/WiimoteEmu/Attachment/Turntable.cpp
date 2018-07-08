@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -23,16 +24,24 @@ namespace WiimoteEmu
 constexpr std::array<u8, 6> turntable_id{{0x03, 0x00, 0xa4, 0x20, 0x01, 0x03}};
 
 constexpr std::array<u16, 9> turntable_button_bitmasks{{
-    Turntable::BUTTON_L_GREEN, Turntable::BUTTON_L_RED, Turntable::BUTTON_L_BLUE,
-    Turntable::BUTTON_R_GREEN, Turntable::BUTTON_R_RED, Turntable::BUTTON_R_BLUE,
-    Turntable::BUTTON_MINUS, Turntable::BUTTON_PLUS, Turntable::BUTTON_EUPHORIA,
+    Turntable::BUTTON_L_GREEN,
+    Turntable::BUTTON_L_RED,
+    Turntable::BUTTON_L_BLUE,
+    Turntable::BUTTON_R_GREEN,
+    Turntable::BUTTON_R_RED,
+    Turntable::BUTTON_R_BLUE,
+    Turntable::BUTTON_MINUS,
+    Turntable::BUTTON_PLUS,
+    Turntable::BUTTON_EUPHORIA,
 }};
 
-constexpr std::array<const char*, 9> turntable_button_names{{
-    _trans("Green Left"), _trans("Red Left"), _trans("Blue Left"), _trans("Green Right"),
-    _trans("Red Right"), _trans("Blue Right"), "-", "+",
-    // i18n: This button name refers to a gameplay element in DJ Hero
-    _trans("Euphoria"),
+constexpr std::array<const char*, 6> turntable_button_names{{
+    _trans("Green Left"),
+    _trans("Red Left"),
+    _trans("Blue Left"),
+    _trans("Green Right"),
+    _trans("Red Right"),
+    _trans("Blue Right"),
 }};
 
 Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
@@ -40,7 +49,17 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& turntable_button_name : turntable_button_names)
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(turntable_button_name));
+  {
+    m_buttons->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, turntable_button_name));
+  }
+
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
+
+  m_buttons->controls.emplace_back(
+      // i18n: This button name refers to a gameplay element in DJ Hero
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Euphoria")));
 
   // turntables
   // i18n: "Table" refers to a turntable
@@ -55,7 +74,8 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
   // effect dial
   groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
-  m_effect_dial->controls.emplace_back(new ControllerEmu::Input(_trans("Dial")));
+  m_effect_dial->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Dial")));
 
   // crossfade
   groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));
@@ -66,54 +86,50 @@ Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 
 void Turntable::GetState(u8* const data)
 {
-  wm_turntable_extension* const ttdata = reinterpret_cast<wm_turntable_extension*>(data);
-  ttdata->bt = 0;
+  wm_turntable_extension tt_data = {};
 
   // stick
   {
     ControlState x, y;
     m_stick->GetState(&x, &y);
 
-    ttdata->sx = static_cast<u8>((x * 0x1F) + 0x20);
-    ttdata->sy = static_cast<u8>((y * 0x1F) + 0x20);
+    tt_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
+    tt_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
   }
 
   // left table
   {
     ControlState tt;
-    s8 tt_;
     m_left_table->GetState(&tt);
 
-    tt_ = static_cast<s8>(tt * 0x1F);
+    const s8 tt_ = static_cast<s8>(tt * 0x1F);
 
-    ttdata->ltable1 = tt_;
-    ttdata->ltable2 = tt_ >> 5;
+    tt_data.ltable1 = tt_;
+    tt_data.ltable2 = tt_ >> 5;
   }
 
   // right table
   {
     ControlState tt;
-    s8 tt_;
     m_right_table->GetState(&tt);
 
-    tt_ = static_cast<s8>(tt * 0x1F);
+    const s8 tt_ = static_cast<s8>(tt * 0x1F);
 
-    ttdata->rtable1 = tt_;
-    ttdata->rtable2 = tt_ >> 1;
-    ttdata->rtable3 = tt_ >> 3;
-    ttdata->rtable4 = tt_ >> 5;
+    tt_data.rtable1 = tt_;
+    tt_data.rtable2 = tt_ >> 1;
+    tt_data.rtable3 = tt_ >> 3;
+    tt_data.rtable4 = tt_ >> 5;
   }
 
   // effect dial
   {
     ControlState dial;
-    u8 dial_;
     m_effect_dial->GetState(&dial);
 
-    dial_ = static_cast<u8>(dial * 0x0F);
+    const u8 dial_ = static_cast<u8>(dial * 0x0F);
 
-    ttdata->dial1 = dial_;
-    ttdata->dial2 = dial_ >> 3;
+    tt_data.dial1 = dial_;
+    tt_data.dial2 = dial_ >> 3;
   }
 
   // crossfade slider
@@ -121,15 +137,17 @@ void Turntable::GetState(u8* const data)
     ControlState cfs;
     m_crossfade->GetState(&cfs);
 
-    ttdata->slider = static_cast<u8>((cfs * 0x07) + 0x08);
+    tt_data.slider = static_cast<u8>((cfs * 0x07) + 0x08);
   }
 
   // buttons
-  m_buttons->GetState(&ttdata->bt, turntable_button_bitmasks.data());
+  m_buttons->GetState(&tt_data.bt, turntable_button_bitmasks.data());
 
   // flip button bits :/
-  ttdata->bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
+  tt_data.bt ^= (BUTTON_L_GREEN | BUTTON_L_RED | BUTTON_L_BLUE | BUTTON_R_GREEN | BUTTON_R_RED |
                  BUTTON_R_BLUE | BUTTON_MINUS | BUTTON_PLUS | BUTTON_EUPHORIA);
+
+  std::memcpy(data, &tt_data, sizeof(wm_turntable_extension));
 }
 
 bool Turntable::IsButtonPressed() const

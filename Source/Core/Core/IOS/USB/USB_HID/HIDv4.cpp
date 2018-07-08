@@ -20,11 +20,7 @@
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV4.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace Device
+namespace IOS::HLE::Device
 {
 USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
@@ -262,6 +258,4 @@ std::vector<u8> USB_HIDv4::GetDeviceEntry(const USB::Device& device) const
 
   return entry;
 }
-}  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::Device

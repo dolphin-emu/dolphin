@@ -15,7 +15,7 @@ void Host_NotifyMapLoaded()
 void Host_RefreshDSPDebuggerWindow()
 {
 }
-void Host_Message(int)
+void Host_Message(HostMessageID)
 {
 }
 void* Host_GetRenderHandle()
@@ -32,9 +32,6 @@ void Host_UpdateMainFrame()
 {
 }
 void Host_RequestRenderWindowSize(int, int)
-{
-}
-void Host_SetStartupDebuggingParameters()
 {
 }
 bool Host_UINeedsControllerState()

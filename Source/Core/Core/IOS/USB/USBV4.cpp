@@ -13,11 +13,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace USB
+namespace IOS::HLE::USB
 {
 // Source: https://wiibrew.org/w/index.php?title=/dev/usb/hid&oldid=96809
 #pragma pack(push, 1)
@@ -95,6 +91,4 @@ V4IntrMessage::V4IntrMessage(Kernel& ios, const IOCtlRequest& ioctl) : IntrMessa
   endpoint = static_cast<u8>(Common::swap32(hid_request.interrupt.endpoint));
   data_address = Common::swap32(hid_request.data_addr);
 }
-}  // namespace USB
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::USB

@@ -23,7 +23,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
   // The asm routines assume address translation is on.
-  FALLBACK_IF(!UReg_MSR(MSR).DR);
+  FALLBACK_IF(!MSR.DR);
 
   // X30 is LR
   // X0 contains the scale
@@ -81,7 +81,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
     UBFM(type_reg, scale_reg, 16, 18);   // Type
     UBFM(scale_reg, scale_reg, 24, 29);  // Scale
 
-    MOVP2R(X30, inst.W ? singleLoadQuantized : pairedLoadQuantized);
+    MOVP2R(X30, inst.W ? single_load_quantized : paired_load_quantized);
     LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(X30);
 
@@ -106,7 +106,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
   // The asm routines assume address translation is on.
-  FALLBACK_IF(!UReg_MSR(MSR).DR);
+  FALLBACK_IF(!MSR.DR);
 
   // X30 is LR
   // X0 contains the scale
@@ -192,7 +192,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(fail);
     // Slow
-    MOVP2R(X30, &pairedStoreQuantized[16 + inst.W * 8]);
+    MOVP2R(X30, &paired_store_quantized[16 + inst.W * 8]);
     LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
 
     ABI_PushRegisters(gprs_in_use);
@@ -205,7 +205,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     SetJumpTarget(pass);
 
     // Fast
-    MOVP2R(X30, &pairedStoreQuantized[inst.W * 8]);
+    MOVP2R(X30, &paired_store_quantized[inst.W * 8]);
     LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
     BLR(EncodeRegTo64(type_reg));
 

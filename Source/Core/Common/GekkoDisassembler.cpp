@@ -38,6 +38,8 @@
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 
+namespace Common
+{
 // version/revision
 #define PPCDISASM_VER 1
 #define PPCDISASM_REV 6
@@ -967,7 +969,7 @@ void GekkoDisassembler::mtfsb(u32 in, int n)
   }
 }
 
-// Paired instructions
+  // Paired instructions
 
 #define RA ((inst >> 16) & 0x1f)
 #define RB ((inst >> 11) & 0x1f)
@@ -1179,6 +1181,7 @@ void GekkoDisassembler::ps(u32 inst)
       ill(inst);
     else
       dab(inst, "dcbz_l", 3, 0, 0, 0, 0);
+    return;
   }
 
   //	default:
@@ -2314,3 +2317,4 @@ const char* GekkoDisassembler::GetFPRName(u32 index)
 
   return nullptr;
 }
+}  // namespace Common

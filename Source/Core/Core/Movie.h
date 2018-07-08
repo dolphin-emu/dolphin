@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
 #include <optional>
 #include <string>
@@ -58,10 +59,10 @@ static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes")
 #pragma pack(push, 1)
 struct DTMHeader
 {
-  u8 filetype[4];  // Unique Identifier (always "DTM"0x1A)
+  std::array<u8, 4> filetype;  // Unique Identifier (always "DTM"0x1A)
 
-  char gameID[6];  // The Game ID
-  bool bWii;       // Wii game
+  std::array<char, 6> gameID;  // The Game ID
+  bool bWii;                   // Wii game
 
   u8 controllers;  // Controllers plugged in (from least to most significant,
                    // the bits are GC controllers 1-4 and Wiimotes 1-4)
@@ -73,11 +74,11 @@ struct DTMHeader
   u64 lagCount;        // Number of lag frames in the recording
   u64 uniqueID;        // (not implemented) A Unique ID comprised of: md5(time + Game ID)
   u32 numRerecords;    // Number of rerecords/'cuts' of this TAS
-  u8 author[32];       // Author's name (encoded in UTF-8)
+  std::array<char, 32> author;  // Author's name (encoded in UTF-8)
 
-  u8 videoBackend[16];   // UTF-8 representation of the video backend
-  u8 audioEmulator[16];  // UTF-8 representation of the audio emulator
-  u8 md5[16];            // MD5 of game iso
+  std::array<char, 16> videoBackend;   // UTF-8 representation of the video backend
+  std::array<char, 16> audioEmulator;  // UTF-8 representation of the audio emulator
+  std::array<u8, 16> md5;              // MD5 of game iso
 
   u64 recordingStartTime;  // seconds since 1970 that recording started (used for RTC)
 
@@ -102,13 +103,14 @@ struct DTMHeader
   bool bNetPlay;
   bool bPAL60;
   u8 language;
-  u8 reserved[11];    // Padding for any new config options
-  u8 discChange[40];  // Name of iso file to switch to, for two disc games.
-  u8 revision[20];    // Git hash
+  bool bReducePollingRate;
+  std::array<u8, 10> reserved;      // Padding for any new config options
+  std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
+  std::array<u8, 20> revision;      // Git hash
   u32 DSPiromHash;
   u32 DSPcoefHash;
-  u64 tickCount;     // Number of ticks in the recording
-  u8 reserved2[11];  // Make heading 256 bytes, just because we can
+  u64 tickCount;                 // Number of ticks in the recording
+  std::array<u8, 11> reserved2;  // Make heading 256 bytes, just because we can
 };
 static_assert(sizeof(DTMHeader) == 256, "DTMHeader should be 256 bytes");
 
@@ -155,8 +157,8 @@ void ChangeWiiPads(bool instantly = false);
 void SetReadOnly(bool bEnabled);
 
 bool BeginRecordingInput(int controllers);
-void RecordInput(GCPadStatus* PadStatus, int controllerID);
-void RecordWiimote(int wiimote, u8* data, u8 size);
+void RecordInput(const GCPadStatus* PadStatus, int controllerID);
+void RecordWiimote(int wiimote, const u8* data, u8 size);
 
 bool PlayInput(const std::string& movie_path, std::optional<std::string>* savestate_path);
 void LoadInput(const std::string& movie_path);
@@ -168,8 +170,8 @@ void EndPlayInput(bool cont);
 void SaveRecording(const std::string& filename);
 void DoState(PointerWrap& p);
 void Shutdown();
-void CheckPadStatus(GCPadStatus* PadStatus, int controllerID);
-void CheckWiimoteStatus(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf,
+void CheckPadStatus(const GCPadStatus* PadStatus, int controllerID);
+void CheckWiimoteStatus(int wiimote, const u8* data, const struct WiimoteEmu::ReportFeatures& rptf,
                         int ext, const wiimote_key key);
 
 std::string GetInputDisplay();
@@ -185,4 +187,4 @@ void SetWiiInputManip(WiiManipFunction);
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID);
 void CallWiiInputManip(u8* core, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key);
-}
+}  // namespace Movie

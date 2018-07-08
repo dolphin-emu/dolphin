@@ -179,6 +179,7 @@
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="WiiUtils.cpp" />
@@ -239,6 +240,12 @@
     <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="DSP\Interpreter\DSPIntTables.cpp">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPEmitterBase.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\Jit\x64\DSPJitRegCache.cpp">
       <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
@@ -264,6 +271,9 @@
       <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\x64\DSPEmitter.cpp">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClCompile>
+    <ClCompile Include="DSP\Jit\x64\DSPJitTables.cpp">
       <Filter>DSPCore\Jit\x64</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\x64\DSPJitUtil.cpp">
@@ -560,7 +570,7 @@
     <ClCompile Include="HW\SystemTimers.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
-    <ClCompile Include="HW\WiiSaveCrypted.cpp">
+    <ClCompile Include="HW\WiiSave.cpp">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
     <ClCompile Include="DSP\DSPAssembler.cpp">
@@ -732,7 +742,16 @@
     <ClCompile Include="IOS\DI\DI.cpp">
       <Filter>IOS\DI</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\FS\FileIO.cpp">
+    <ClCompile Include="IOS\FS\FileSystem.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\FileSystemProxy.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\FS.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\HostBackend\File.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\ES\ES.cpp">
@@ -758,9 +777,6 @@
     </ClCompile>
     <ClCompile Include="IOS\ES\Views.cpp">
       <Filter>IOS\ES</Filter>
-    </ClCompile>
-    <ClCompile Include="IOS\FS\FS.cpp">
-      <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\ICMPLin.cpp">
       <Filter>IOS\Network</Filter>
@@ -891,6 +907,9 @@
     <ClCompile Include="IOS\Network\NCD\WiiNetConfig.cpp">
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
+    <ClCompile Include="Config\UISettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -906,6 +925,7 @@
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="SysConf.h" />
     <ClInclude Include="Titles.h" />
     <ClInclude Include="TitleDatabase.h" />
     <ClInclude Include="WiiRoot.h" />
@@ -952,10 +972,19 @@
     <ClInclude Include="DSP\Interpreter\DSPIntExtOps.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\Interpreter\DSPIntTables.h">
+      <Filter>DSPCore\Interpreter</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
+    <ClInclude Include="DSP\Jit\DSPEmitterBase.h">
+      <Filter>DSPCore\Jit</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\Jit\x64\DSPJitRegCache.h">
+      <Filter>DSPCore\Jit\x64</Filter>
+    </ClInclude>
+    <ClInclude Include="DSP\Jit\x64\DSPJitTables.h">
       <Filter>DSPCore\Jit\x64</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Jit\x64\DSPEmitter.h">
@@ -1002,6 +1031,9 @@
     </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h">
       <Filter>PowerPC\Cached Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Interpreter\ExceptionUtils.h">
+      <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
       <Filter>PowerPC\Interpreter</Filter>
@@ -1234,7 +1266,7 @@
     <ClInclude Include="HW\SystemTimers.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
-    <ClInclude Include="HW\WiiSaveCrypted.h">
+    <ClInclude Include="HW\WiiSave.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
     <ClInclude Include="DSP\DSPAssembler.h">
@@ -1295,6 +1327,9 @@
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\MMU.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\PowerPC.h">
@@ -1401,14 +1436,20 @@
     <ClInclude Include="IOS\ES\ES.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\FS\FileIO.h">
+    <ClInclude Include="IOS\FS\FileSystem.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\FileSystemProxy.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\File.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\HostBackend\FS.h">
       <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\ES\Formats.h">
       <Filter>IOS\ES</Filter>
-    </ClInclude>
-    <ClInclude Include="IOS\FS\FS.h">
-      <Filter>IOS\FS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\Bluetooth\hci.h">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -1559,6 +1600,9 @@
     </ClInclude>
     <ClInclude Include="HW\WiimoteCommon\WiimoteReport.h">
       <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\UISettings.h">
+      <Filter>Config</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

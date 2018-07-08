@@ -100,7 +100,9 @@ void TextureCache::ConvertTexture(TCacheEntry* destination, TCacheEntry* source,
 
 void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                           const EFBRectangle& src_rect, bool scale_by_half)
+                           const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
+                           float gamma, bool clamp_top, bool clamp_bottom,
+                           const CopyFilterCoefficientArray& filter_coefficients)
 {
   // Flush EFB pokes first, as they're expected to be included.
   FramebufferManager::GetInstance()->FlushEFBPokes();
@@ -131,9 +133,9 @@ void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_widt
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, params, native_width,
-                                             bytes_per_row, num_blocks_y, memory_stride, src_rect,
-                                             scale_by_half);
+  m_texture_converter->EncodeTextureToMemory(
+      src_texture->GetView(), dst, params, native_width, bytes_per_row, num_blocks_y, memory_stride,
+      src_rect, scale_by_half, y_scale, gamma, clamp_top, clamp_bottom, filter_coefficients);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
@@ -209,7 +211,9 @@ void TextureCache::DeleteShaders()
 
 void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                        const EFBRectangle& src_rect, bool scale_by_half,
-                                       EFBCopyFormat dst_format, bool is_intensity)
+                                       EFBCopyFormat dst_format, bool is_intensity, float gamma,
+                                       bool clamp_top, bool clamp_bottom,
+                                       const CopyFilterCoefficientArray& filter_coefficients)
 {
   VKTexture* texture = static_cast<VKTexture*>(entry->texture.get());
 
@@ -227,6 +231,26 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   // Can't be done in a render pass, since we're doing our own render pass!
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   StateTracker::GetInstance()->EndRenderPass();
+
+  // Fill uniform buffer.
+  struct PixelUniforms
+  {
+    float filter_coefficients[3];
+    float gamma_rcp;
+    float clamp_top;
+    float clamp_bottom;
+    float pixel_height;
+    u32 padding;
+  };
+  PixelUniforms uniforms;
+  for (size_t i = 0; i < filter_coefficients.size(); i++)
+    uniforms.filter_coefficients[i] = filter_coefficients[i];
+  uniforms.gamma_rcp = 1.0f / gamma;
+  uniforms.clamp_top = clamp_top ? src_rect.top / float(EFB_HEIGHT) : 0.0f;
+  uniforms.clamp_bottom = clamp_bottom ? src_rect.bottom / float(EFB_HEIGHT) : 1.0f;
+  uniforms.pixel_height =
+      g_ActiveConfig.bCopyEFBScaled ? 1.0f / g_renderer->GetTargetHeight() : 1.0f / EFB_HEIGHT;
+  uniforms.padding = 0;
 
   // Transition EFB to shader resource before binding.
   // An out-of-bounds source region is valid here, and fine for the draw (since it is converted
@@ -250,7 +274,8 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   auto uid = TextureConversionShaderGen::GetShaderUid(dst_format, is_depth_copy, is_intensity,
-                                                      scale_by_half);
+                                                      scale_by_half,
+                                                      NeedsCopyFilterInShader(filter_coefficients));
 
   auto it = m_efb_copy_to_tex_shaders.emplace(uid, VkShaderModule(VK_NULL_HANDLE));
   VkShaderModule& shader = it.first->second;
@@ -273,6 +298,10 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_shader_cache->GetPassthroughVertexShader(),
                          g_shader_cache->GetPassthroughGeometryShader(), shader);
+
+  u8* ubo_ptr = draw.AllocatePSUniforms(sizeof(PixelUniforms));
+  std::memcpy(ubo_ptr, &uniforms, sizeof(PixelUniforms));
+  draw.CommitPSUniforms(sizeof(PixelUniforms));
 
   draw.SetPSSampler(0, src_texture->GetView(), src_sampler);
 

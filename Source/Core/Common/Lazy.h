@@ -35,6 +35,7 @@ public:
   const T* operator->() const { return ComputeValue(); }
   T& operator*() { return *ComputeValue(); }
   T* operator->() { return ComputeValue(); }
+
 private:
   T* ComputeValue() const
   {

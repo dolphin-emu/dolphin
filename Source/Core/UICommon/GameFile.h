@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 
 class PointerWrap;
 
@@ -17,25 +19,19 @@ namespace Core
 class TitleDatabase;
 }
 
-namespace DiscIO
-{
-enum class BlobType;
-enum class Country;
-enum class Language;
-enum class Region;
-enum class Platform;
-}
-
 namespace UICommon
 {
 struct GameBanner
 {
   std::vector<u32> buffer{};
-  int width{};
-  int height{};
+  u32 width{};
+  u32 height{};
   bool empty() const { return buffer.empty(); }
   void DoState(PointerWrap& p);
 };
+
+bool operator==(const GameBanner& lhs, const GameBanner& rhs);
+bool operator!=(const GameBanner& lhs, const GameBanner& rhs);
 
 // This class caches the metadata of a DiscIO::Volume (or a DOL/ELF file).
 class GameFile final
@@ -48,6 +44,7 @@ public:
   bool IsValid() const;
   const std::string& GetFilePath() const { return m_file_path; }
   const std::string& GetFileName() const { return m_file_name; }
+  const std::string& GetName(const Core::TitleDatabase& title_database) const;
   const std::string& GetName(bool long_name = true) const;
   const std::string& GetMaker(bool long_maker = true) const;
   const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
@@ -77,12 +74,12 @@ public:
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
-  const GameBanner& GetBannerImage() const { return m_volume_banner; }
+  const GameBanner& GetBannerImage() const;
   void DoState(PointerWrap& p);
-  bool BannerChanged();
-  void BannerCommit();
-  bool CustomNameChanged(const Core::TitleDatabase& title_database);
-  void CustomNameCommit();
+  bool WiiBannerChanged();
+  void WiiBannerCommit();
+  bool CustomBannerChanged();
+  void CustomBannerCommit();
 
 private:
   static const std::string& Lookup(DiscIO::Language language,
@@ -90,6 +87,7 @@ private:
   const std::string&
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
   bool IsElfOrDol() const;
+  bool ReadPNGBanner(const std::string& path);
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and
@@ -121,15 +119,14 @@ private:
   std::string m_apploader_date{};
 
   GameBanner m_volume_banner{};
-  // Overridden name from TitleDatabase
-  std::string m_custom_name{};
+  GameBanner m_custom_banner{};
 
   // The following data members allow GameFileCache to construct updated versions
   // of GameFiles in a threadsafe way. They should not be handled in DoState.
   struct
   {
     GameBanner volume_banner;
-    std::string custom_name;
+    GameBanner custom_banner;
   } m_pending{};
 };
 

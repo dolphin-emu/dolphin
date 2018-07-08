@@ -98,21 +98,6 @@ void SConfig::SaveSettings()
   Config::Save();
 }
 
-namespace
-{
-void CreateDumpPath(const std::string& path)
-{
-  if (path.empty())
-    return;
-  File::SetUserPath(D_DUMP_IDX, path + '/');
-  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
-  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-}
-}  // namespace
-
 void SConfig::SaveGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
@@ -138,11 +123,7 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   }
 
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
-  general->Set("NANDRootPath", m_NANDPath);
-  general->Set("DumpPath", m_DumpPath);
-  CreateDumpPath(m_DumpPath);
   general->Set("WirelessMac", m_WirelessMac);
-  general->Set("WiiSDCardPath", m_strWiiSDCardPath);
 
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
@@ -175,6 +156,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DisableTooltips", m_DisableTooltips);
+  interface->Set("DebugModeEnabled", bEnableDebugging);
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -236,7 +218,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 
   core->Set("SkipIPL", bHLE_BS2);
   core->Set("TimingVariance", iTimingVariance);
-  core->Set("CPUCore", iCPUCore);
+  core->Set("CPUCore", cpu_core);
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
   core->Set("DSPHLE", bDSPHLE);
@@ -247,7 +229,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SyncGpuOverclock", fSyncGpuOverclock);
   core->Set("FPRF", bFPRF);
   core->Set("AccurateNaNs", bAccurateNaNs);
-  core->Set("DefaultISO", m_strDefaultISO);
   core->Set("EnableCheats", bEnableCheats);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideGCLang", bOverrideGCLanguage);
@@ -310,6 +291,10 @@ void SConfig::SaveDSPSettings(IniFile& ini)
   dsp->Set("Backend", sBackend);
   dsp->Set("Volume", m_Volume);
   dsp->Set("CaptureLog", m_DSPCaptureLog);
+
+#ifdef _WIN32
+  dsp->Set("WASAPIDevice", sWASAPIDevice);
+#endif
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -374,7 +359,7 @@ void SConfig::SaveAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  section->Set("TrackForTesting", m_auto_update_track);
+  section->Set("UpdateTrack", m_auto_update_track);
   section->Set("HashOverride", m_auto_update_hash_override);
 }
 
@@ -429,13 +414,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
   }
 
   general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
-  general->Get("NANDRootPath", &m_NANDPath);
-  File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
-  general->Get("DumpPath", &m_DumpPath);
-  CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
-  general->Get("WiiSDCardPath", &m_strWiiSDCardPath, File::GetUserPath(F_WIISDCARD_IDX));
-  File::SetUserPath(F_WIISDCARD_IDX, m_strWiiSDCardPath);
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)
@@ -462,6 +441,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DisableTooltips", &m_DisableTooltips, false);
+  interface->Get("DebugModeEnabled", &bEnableDebugging, false);
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)
@@ -525,18 +505,17 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 
   core->Get("SkipIPL", &bHLE_BS2, true);
 #ifdef _M_X86
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JIT64);
+  core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::JIT64);
 #elif _M_ARM_64
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JITARM64);
+  core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::JITARM64);
 #else
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_INTERPRETER);
+  core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::Interpreter);
 #endif
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("DefaultISO", &m_strDefaultISO);
   core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
@@ -613,6 +592,10 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 
+#ifdef _WIN32
+  dsp->Get("WASAPIDevice", &sWASAPIDevice, "default");
+#endif
+
   m_IsMuted = false;
 }
 
@@ -683,8 +666,7 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("AutoUpdate");
 
-  // TODO: Rename and default to SCM_UPDATE_TRACK_STR when ready for general consumption.
-  section->Get("TrackForTesting", &m_auto_update_track, "");
+  section->Get("UpdateTrack", &m_auto_update_track, SCM_UPDATE_TRACK_STR);
   section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
@@ -780,7 +762,7 @@ void SConfig::LoadDefaults()
 #endif
 #endif
 
-  iCPUCore = PowerPC::DefaultCPUCore();
+  cpu_core = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;
@@ -799,7 +781,6 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
-  m_strWiiSDCardPath = File::GetUserPath(F_WIISDCARD_IDX);
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;
@@ -808,6 +789,8 @@ void SConfig::LoadDefaults()
   iLatency = 20;
   m_audio_stretch = false;
   m_audio_stretch_max_latency = 80;
+  bUsePanicHandlers = true;
+  bOnScreenDisplayMessages = true;
 
   iPosX = INT_MIN;
   iPosY = INT_MIN;

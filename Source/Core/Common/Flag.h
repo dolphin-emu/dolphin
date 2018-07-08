@@ -38,6 +38,7 @@ public:
   }
 
   bool TestAndClear() { return TestAndSet(false); }
+
 private:
   std::atomic_bool m_val;
 };

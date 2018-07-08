@@ -98,6 +98,7 @@ protected:
     }
 
     std::string GetName() const override { return m_low.GetName() + *m_high.GetName().rbegin(); }
+
   private:
     Input& m_low;
     Input& m_high;

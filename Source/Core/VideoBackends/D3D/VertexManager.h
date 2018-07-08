@@ -48,6 +48,7 @@ public:
 protected:
   void ResetBuffer(u32 stride) override;
   u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+
 private:
   void PrepareDrawBuffers(u32 stride);
   void Draw(u32 stride);

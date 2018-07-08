@@ -57,19 +57,44 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
   }
 }
 
-// block dimensions : widthStride, heightStride
-// texture dims : width, height, x offset, y offset
-static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
+static void WriteHeader(char*& p, APIType ApiType)
 {
-  // left, top, of source rectangle within source texture
-  // width of the destination rectangle, scale_factor (1 or 2)
-  if (ApiType == APIType::Vulkan)
-    WRITE(p,
-          "layout(std140, push_constant) uniform PCBlock { int4 position; float y_scale; } PC;\n");
-  else
+  if (ApiType == APIType::OpenGL)
   {
+    // left, top, of source rectangle within source texture
+    // width of the destination rectangle, scale_factor (1 or 2)
     WRITE(p, "uniform int4 position;\n");
     WRITE(p, "uniform float y_scale;\n");
+    WRITE(p, "uniform float gamma_rcp;\n");
+    WRITE(p, "uniform float2 clamp_tb;\n");
+    WRITE(p, "uniform float3 filter_coefficients;\n");
+    WRITE(p, "#define samp0 samp9\n");
+    WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
+    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+  }
+  else if (ApiType == APIType::Vulkan)
+  {
+    WRITE(p, "UBO_BINDING(std140, 1) uniform PSBlock {\n");
+    WRITE(p, "  int4 position;\n");
+    WRITE(p, "  float y_scale;\n");
+    WRITE(p, "  float gamma_rcp;\n");
+    WRITE(p, "  float2 clamp_tb;\n");
+    WRITE(p, "  float3 filter_coefficients;\n");
+    WRITE(p, "};\n");
+    WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+  }
+  else  // D3D
+  {
+    WRITE(p, "cbuffer PSBlock : register(b0) {\n");
+    WRITE(p, "  int4 position;\n");
+    WRITE(p, "  float y_scale;\n");
+    WRITE(p, "  float gamma_rcp;\n");
+    WRITE(p, "  float2 clamp_tb;\n");
+    WRITE(p, "  float3 filter_coefficients;\n");
+    WRITE(p, "};\n");
+    WRITE(p, "sampler samp0 : register(s0);\n");
+    WRITE(p, "Texture2DArray Tex0 : register(t0);\n");
   }
 
   // D3D does not have roundEven(), only round(), which is specified "to the nearest integer".
@@ -96,45 +121,119 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
   WRITE(p, "  val = int4(val.r >> 3, val.g >> 2, val.b >> 3, 1);\n");
   WRITE(p, "  return float4(val) / float4(31.0, 63.0, 31.0, 1.0);\n");
   WRITE(p, "}\n");
+}
 
-  int blkW = TexDecoder_GetEFBCopyBlockWidthInTexels(format);
-  int blkH = TexDecoder_GetEFBCopyBlockHeightInTexels(format);
-  int samples = GetEncodedSampleCount(format);
+static void WriteSampleFunction(char*& p, const EFBCopyParams& params, APIType ApiType)
+{
+  auto WriteSampleOp = [&](int yoffset) {
+    if (!params.depth)
+    {
+      switch (params.efb_format)
+      {
+      case PEControl::RGB8_Z24:
+        WRITE(p, "RGBA8ToRGB8(");
+        break;
+      case PEControl::RGBA6_Z24:
+        WRITE(p, "RGBA8ToRGBA6(");
+        break;
+      case PEControl::RGB565_Z16:
+        WRITE(p, "RGBA8ToRGB565(");
+        break;
+      default:
+        WRITE(p, "(");
+        break;
+      }
+    }
+    else
+    {
+      // Handle D3D depth inversion.
+      if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+        WRITE(p, "1.0 - (");
+      else
+        WRITE(p, "(");
+    }
 
-  if (ApiType == APIType::OpenGL)
+    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+      WRITE(p, "texture(samp0, float3(");
+    else
+      WRITE(p, "Tex0.Sample(samp0, float3(");
+
+    WRITE(p, "uv.x + float(xoffset) * pixel_size.x, ");
+
+    // Reverse the direction for OpenGL, since positive numbers are distance from the bottom row.
+    if (yoffset != 0)
+    {
+      if (ApiType == APIType::OpenGL)
+        WRITE(p, "clamp(uv.y - float(%d) * pixel_size.y, clamp_tb.x, clamp_tb.y)", yoffset);
+      else
+        WRITE(p, "clamp(uv.y + float(%d) * pixel_size.y, clamp_tb.x, clamp_tb.y)", yoffset);
+    }
+    else
+    {
+      WRITE(p, "uv.y");
+    }
+
+    WRITE(p, ", 0.0)))");
+  };
+
+  // The copy filter applies to both color and depth copies. This has been verified on hardware.
+  // The filter is only applied to the RGB channels, the alpha channel is left intact.
+  WRITE(p, "float4 SampleEFB(float2 uv, float2 pixel_size, int xoffset)\n");
+  WRITE(p, "{\n");
+  if (params.copy_filter)
   {
-    WRITE(p, "#define samp0 samp9\n");
-    WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
+    WRITE(p, "  float4 prev_row = ");
+    WriteSampleOp(-1);
+    WRITE(p, ";\n");
+    WRITE(p, "  float4 current_row = ");
+    WriteSampleOp(0);
+    WRITE(p, ";\n");
+    WRITE(p, "  float4 next_row = ");
+    WriteSampleOp(1);
+    WRITE(p, ";\n");
+    WRITE(p, "  return float4(min(prev_row.rgb * filter_coefficients[0] +\n"
+             "                      current_row.rgb * filter_coefficients[1] +\n"
+             "                      next_row.rgb * filter_coefficients[2], \n"
+             "                    float3(1, 1, 1)), current_row.a);\n");
+  }
+  else
+  {
+    WRITE(p, "  float4 current_row = ");
+    WriteSampleOp(0);
+    WRITE(p, ";\n");
+    WRITE(p, "return float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
+             "              current_row.a);\n");
+  }
+  WRITE(p, "}\n");
+}
 
-    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+// block dimensions : widthStride, heightStride
+// texture dims : width, height, x offset, y offset
+static void WriteSwizzler(char*& p, const EFBCopyParams& params, EFBCopyFormat format,
+                          APIType ApiType)
+{
+  WriteHeader(p, ApiType);
+  WriteSampleFunction(p, params, ApiType);
+
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
+  {
     WRITE(p, "void main()\n");
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n");
   }
-  else if (ApiType == APIType::Vulkan)
-  {
-    WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
-    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
-
-    WRITE(p, "void main()\n");
-    WRITE(p, "{\n"
-             "  int2 sampleUv;\n"
-             "  int2 uv1 = int2(gl_FragCoord.xy);\n"
-             "  int4 position = PC.position;\n"
-             "  float y_scale = PC.y_scale;\n");
-  }
   else  // D3D
   {
-    WRITE(p, "sampler samp0 : register(s0);\n");
-    WRITE(p, "Texture2DArray Tex0 : register(t0);\n");
-
     WRITE(p, "void main(\n");
     WRITE(p, "  out float4 ocol0 : SV_Target, in float4 rawpos : SV_Position)\n");
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(rawpos.xy);\n");
   }
+
+  int blkW = TexDecoder_GetEFBCopyBlockWidthInTexels(format);
+  int blkH = TexDecoder_GetEFBCopyBlockHeightInTexels(format);
+  int samples = GetEncodedSampleCount(format);
 
   WRITE(p, "  int x_block_position = (uv1.x >> %d) << %d;\n", IntLog2(blkH * blkW / samples),
         IntLog2(blkW));
@@ -167,51 +266,14 @@ static void WriteSwizzler(char*& p, EFBCopyFormat format, APIType ApiType)
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
   }
 
-  WRITE(p, "  float sample_offset = float(position.w) / float(%d);\n", EFB_WIDTH);
+  WRITE(p, "  float2 pixel_size = float2(position.w, position.w) / float2(%d, %d);\n", EFB_WIDTH,
+        EFB_HEIGHT);
 }
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
                              APIType ApiType, const EFBCopyParams& params)
 {
-  WRITE(p, "  %s = ", dest);
-
-  if (!params.depth)
-  {
-    switch (params.efb_format)
-    {
-    case PEControl::RGB8_Z24:
-      WRITE(p, "RGBA8ToRGB8(");
-      break;
-    case PEControl::RGBA6_Z24:
-      WRITE(p, "RGBA8ToRGBA6(");
-      break;
-    case PEControl::RGB565_Z16:
-      WRITE(p, "RGBA8ToRGB565(");
-      break;
-    default:
-      WRITE(p, "(");
-      break;
-    }
-  }
-  else
-  {
-    // Handle D3D depth inversion.
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
-      WRITE(p, "1.0 - (");
-    else
-      WRITE(p, "(");
-  }
-
-  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-  {
-    WRITE(p, "texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0))).%s;\n", xoffset,
-          colorComp);
-  }
-  else
-  {
-    WRITE(p, "Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0))).%s;\n", xoffset,
-          colorComp);
-  }
+  WRITE(p, "  %s = SampleEFB(uv0, pixel_size, %d).%s;\n", dest, xoffset, colorComp);
 }
 
 static void WriteColorToIntensity(char*& p, const char* src, const char* dest)
@@ -239,7 +301,7 @@ static void WriteEncoderEnd(char*& p)
 
 static void WriteI8Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::R8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::R8, ApiType);
   WRITE(p, "  float3 texSample;\n");
 
   WriteSampleColor(p, "rgb", "texSample", 0, ApiType, params);
@@ -261,7 +323,7 @@ static void WriteI8Encoder(char*& p, APIType ApiType, const EFBCopyParams& param
 
 static void WriteI4Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::R4, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::R4, ApiType);
   WRITE(p, "  float3 texSample;\n");
   WRITE(p, "  float4 color0;\n");
   WRITE(p, "  float4 color1;\n");
@@ -302,7 +364,7 @@ static void WriteI4Encoder(char*& p, APIType ApiType, const EFBCopyParams& param
 
 static void WriteIA8Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RA8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RA8, ApiType);
   WRITE(p, "  float4 texSample;\n");
 
   WriteSampleColor(p, "rgba", "texSample", 0, ApiType, params);
@@ -320,7 +382,7 @@ static void WriteIA8Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
 
 static void WriteIA4Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RA4, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RA4, ApiType);
   WRITE(p, "  float4 texSample;\n");
   WRITE(p, "  float4 color0;\n");
   WRITE(p, "  float4 color1;\n");
@@ -352,7 +414,7 @@ static void WriteIA4Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
 
 static void WriteRGB565Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RGB565, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RGB565, ApiType);
   WRITE(p, "  float3 texSample0;\n");
   WRITE(p, "  float3 texSample1;\n");
 
@@ -377,7 +439,7 @@ static void WriteRGB565Encoder(char*& p, APIType ApiType, const EFBCopyParams& p
 
 static void WriteRGB5A3Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RGB5A3, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RGB5A3, ApiType);
 
   WRITE(p, "  float4 texSample;\n");
   WRITE(p, "  float color0;\n");
@@ -441,7 +503,7 @@ static void WriteRGB5A3Encoder(char*& p, APIType ApiType, const EFBCopyParams& p
 
 static void WriteRGBA8Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RGBA8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RGBA8, ApiType);
 
   WRITE(p, "  float4 texSample;\n");
   WRITE(p, "  float4 color0;\n");
@@ -466,7 +528,7 @@ static void WriteRGBA8Encoder(char*& p, APIType ApiType, const EFBCopyParams& pa
 
 static void WriteC4Encoder(char*& p, const char* comp, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::R4, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::R4, ApiType);
   WRITE(p, "  float4 color0;\n");
   WRITE(p, "  float4 color1;\n");
 
@@ -488,7 +550,7 @@ static void WriteC4Encoder(char*& p, const char* comp, APIType ApiType, const EF
 
 static void WriteC8Encoder(char*& p, const char* comp, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::R8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::R8, ApiType);
 
   WriteSampleColor(p, comp, "ocol0.b", 0, ApiType, params);
   WriteSampleColor(p, comp, "ocol0.g", 1, ApiType, params);
@@ -501,7 +563,7 @@ static void WriteC8Encoder(char*& p, const char* comp, APIType ApiType, const EF
 static void WriteCC4Encoder(char*& p, const char* comp, APIType ApiType,
                             const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RA4, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RA4, ApiType);
   WRITE(p, "  float2 texSample;\n");
   WRITE(p, "  float4 color0;\n");
   WRITE(p, "  float4 color1;\n");
@@ -532,7 +594,7 @@ static void WriteCC4Encoder(char*& p, const char* comp, APIType ApiType,
 static void WriteCC8Encoder(char*& p, const char* comp, APIType ApiType,
                             const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RA8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RA8, ApiType);
 
   WriteSampleColor(p, comp, "ocol0.bg", 0, ApiType, params);
   WriteSampleColor(p, comp, "ocol0.ra", 1, ApiType, params);
@@ -543,7 +605,7 @@ static void WriteCC8Encoder(char*& p, const char* comp, APIType ApiType,
 static void WriteZ8Encoder(char*& p, const char* multiplier, APIType ApiType,
                            const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::G8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::G8, ApiType);
 
   WRITE(p, " float depth;\n");
 
@@ -564,7 +626,7 @@ static void WriteZ8Encoder(char*& p, const char* multiplier, APIType ApiType,
 
 static void WriteZ16Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RA8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RA8, ApiType);
 
   WRITE(p, "  float depth;\n");
   WRITE(p, "  float3 expanded;\n");
@@ -596,7 +658,7 @@ static void WriteZ16Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
 
 static void WriteZ16LEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::GB8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::GB8, ApiType);
 
   WRITE(p, "  float depth;\n");
   WRITE(p, "  float3 expanded;\n");
@@ -632,7 +694,7 @@ static void WriteZ16LEncoder(char*& p, APIType ApiType, const EFBCopyParams& par
 
 static void WriteZ24Encoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::RGBA8, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::RGBA8, ApiType);
 
   WRITE(p, "  float depth0;\n");
   WRITE(p, "  float depth1;\n");
@@ -672,18 +734,21 @@ static void WriteZ24Encoder(char*& p, APIType ApiType, const EFBCopyParams& para
 
 static void WriteXFBEncoder(char*& p, APIType ApiType, const EFBCopyParams& params)
 {
-  WriteSwizzler(p, EFBCopyFormat::XFB, ApiType);
+  WriteSwizzler(p, params, EFBCopyFormat::XFB, ApiType);
 
-  WRITE(p, "  float3 y_const = float3(0.257, 0.504, 0.098);\n");
-  WRITE(p, "  float3 u_const = float3(-0.148, -0.291, 0.439);\n");
-  WRITE(p, "  float3 v_const = float3(0.439, -0.368, -0.071);\n");
-  WRITE(p, "  float3 color0;\n");
-  WRITE(p, "  float3 color1;\n");
-
+  WRITE(p, "float3 color0, color1;\n");
   WriteSampleColor(p, "rgb", "color0", 0, ApiType, params);
   WriteSampleColor(p, "rgb", "color1", 1, ApiType, params);
-  WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
 
+  // Gamma is only applied to XFB copies.
+  WRITE(p, "  color0 = pow(color0, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
+  WRITE(p, "  color1 = pow(color1, float3(gamma_rcp, gamma_rcp, gamma_rcp));\n");
+
+  // Convert to YUV.
+  WRITE(p, "  const float3 y_const = float3(0.257, 0.504, 0.098);\n");
+  WRITE(p, "  const float3 u_const = float3(-0.148, -0.291, 0.439);\n");
+  WRITE(p, "  const float3 v_const = float3(0.439, -0.368, -0.071);\n");
+  WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
   WRITE(p, "  ocol0.b = dot(color0,  y_const) + 0.0625;\n");
   WRITE(p, "  ocol0.g = dot(average, u_const) + 0.5;\n");
   WRITE(p, "  ocol0.r = dot(color1,  y_const) + 0.0625;\n");
@@ -1354,4 +1419,4 @@ std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_form
   return ss.str();
 }
 
-}  // namespace
+}  // namespace TextureConversionShaderTiled

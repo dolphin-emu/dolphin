@@ -40,46 +40,14 @@
 namespace glslangtest {
 
 // Initializes glslang on creation, and destroys it on completion.
-// And provides .Acquire() as a way to reinitialize glslang if semantics change.
 // This object is expected to be a singleton, so that internal glslang state
 // can be correctly handled.
 //
-// TODO(antiagainst): It's a known bug that some of the internal states need to
-// be reset if semantics change:
-//   https://github.com/KhronosGroup/glslang/issues/166
-// Therefore, the following mechanism is needed. Remove this once the above bug
-// gets fixed.
 class GlslangInitializer {
 public:
-    GlslangInitializer() : lastMessages(EShMsgCascadingErrors)
-    {
-        glslang::InitializeProcess();
-    }
+    GlslangInitializer()  { glslang::InitializeProcess(); }
 
     ~GlslangInitializer() { glslang::FinalizeProcess(); }
-
-    // A token indicates that the glslang is reinitialized (if necessary) to the
-    // required semantics. And that won't change until the token is destroyed.
-    class InitializationToken {
-    };
-
-    // Re-initializes glsl state iff the previous messages and the current
-    // messages are incompatible.  We assume external synchronization, i.e.
-    // there is at most one acquired token at any one time.
-    InitializationToken acquire(EShMessages new_messages)
-    {
-        if ((lastMessages ^ new_messages) &
-            (EShMsgVulkanRules | EShMsgSpvRules | EShMsgReadHlsl)) {
-            glslang::FinalizeProcess();
-            glslang::InitializeProcess();
-        }
-        lastMessages = new_messages;
-        return InitializationToken();
-    }
-
-private:
-
-    EShMessages lastMessages;
 };
 
 }  // namespace glslangtest

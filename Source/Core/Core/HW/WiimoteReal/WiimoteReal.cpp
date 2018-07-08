@@ -12,8 +12,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -141,7 +141,7 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
   else
   {
     InterruptChannel(channel, data, size);
-    const hid_packet* const hidp = reinterpret_cast<const hid_packet* const>(data);
+    const hid_packet* const hidp = reinterpret_cast<const hid_packet*>(data);
     if (hidp->type == HID_TYPE_SET_REPORT)
     {
       u8 handshake_ok = HID_HANDSHAKE_SUCCESS;

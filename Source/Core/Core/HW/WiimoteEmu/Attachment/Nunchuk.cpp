@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -24,15 +25,16 @@ namespace WiimoteEmu
 constexpr std::array<u8, 6> nunchuk_id{{0x00, 0x00, 0xa4, 0x20, 0x00, 0x00}};
 
 constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
-    Nunchuk::BUTTON_C, Nunchuk::BUTTON_Z,
+    Nunchuk::BUTTON_C,
+    Nunchuk::BUTTON_Z,
 }};
 
 Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("C"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input("Z"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "C"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   // stick
   groups.emplace_back(
@@ -47,26 +49,25 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("X")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
 
   m_id = nunchuk_id;
 }
 
 void Nunchuk::GetState(u8* const data)
 {
-  wm_nc* const ncdata = reinterpret_cast<wm_nc* const>(data);
-  ncdata->bt.hex = 0;
+  wm_nc nc_data = {};
 
   // stick
   double jx, jy;
   m_stick->GetState(&jx, &jy);
 
-  ncdata->jx = u8(STICK_CENTER + jx * STICK_RADIUS);
-  ncdata->jy = u8(STICK_CENTER + jy * STICK_RADIUS);
+  nc_data.jx = u8(STICK_CENTER + jx * STICK_RADIUS);
+  nc_data.jy = u8(STICK_CENTER + jy * STICK_RADIUS);
 
   // Some terribly coded games check whether to move with a check like
   //
@@ -76,12 +77,12 @@ void Nunchuk::GetState(u8* const data)
   // With keyboard controls, these games break if you simply hit
   // of the axes. Adjust this if you're hitting one of the axes so that
   // we slightly tweak the other axis.
-  if (ncdata->jx != STICK_CENTER || ncdata->jy != STICK_CENTER)
+  if (nc_data.jx != STICK_CENTER || nc_data.jy != STICK_CENTER)
   {
-    if (ncdata->jx == STICK_CENTER)
-      ++ncdata->jx;
-    if (ncdata->jy == STICK_CENTER)
-      ++ncdata->jy;
+    if (nc_data.jx == STICK_CENTER)
+      ++nc_data.jx;
+    if (nc_data.jy == STICK_CENTER)
+      ++nc_data.jy;
   }
 
   AccelData accel;
@@ -94,10 +95,10 @@ void Nunchuk::GetState(u8* const data)
   // shake
   EmulateShake(&accel, m_shake, m_shake_step.data());
   // buttons
-  m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks.data());
+  m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
 
   // flip the button bits :/
-  ncdata->bt.hex ^= 0x03;
+  nc_data.bt.hex ^= 0x03;
 
   // We now use 2 bits more precision, so multiply by 4 before converting to int
   s16 accel_x = (s16)(4 * (accel.x * ACCEL_RANGE + ACCEL_ZERO_G));
@@ -108,12 +109,14 @@ void Nunchuk::GetState(u8* const data)
   accel_y = MathUtil::Clamp<s16>(accel_y, 0, 1024);
   accel_z = MathUtil::Clamp<s16>(accel_z, 0, 1024);
 
-  ncdata->ax = (accel_x >> 2) & 0xFF;
-  ncdata->ay = (accel_y >> 2) & 0xFF;
-  ncdata->az = (accel_z >> 2) & 0xFF;
-  ncdata->bt.acc_x_lsb = accel_x & 0x3;
-  ncdata->bt.acc_y_lsb = accel_y & 0x3;
-  ncdata->bt.acc_z_lsb = accel_z & 0x3;
+  nc_data.ax = (accel_x >> 2) & 0xFF;
+  nc_data.ay = (accel_y >> 2) & 0xFF;
+  nc_data.az = (accel_z >> 2) & 0xFF;
+  nc_data.bt.acc_x_lsb = accel_x & 0x3;
+  nc_data.bt.acc_y_lsb = accel_y & 0x3;
+  nc_data.bt.acc_z_lsb = accel_z & 0x3;
+
+  std::memcpy(data, &nc_data, sizeof(wm_nc));
 }
 
 bool Nunchuk::IsButtonPressed() const

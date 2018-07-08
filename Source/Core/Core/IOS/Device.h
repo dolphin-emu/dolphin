@@ -13,9 +13,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 enum ReturnCode : s32
 {
@@ -173,7 +171,6 @@ public:
   enum class DeviceType : u32
   {
     Static,  // Devices which appear in s_device_map.
-    FileIO,  // FileIO devices which are created dynamically.
     OH0,     // OH0 child devices which are created dynamically.
   };
 
@@ -214,5 +211,4 @@ private:
   IPCCommandResult Unsupported(const Request& request);
 };
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

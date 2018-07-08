@@ -60,9 +60,9 @@ void VideoConfig::Refresh()
   iAdapter = Config::Get(Config::GFX_ADAPTER);
 
   bWidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
-  const auto config_aspect_mode = static_cast<AspectMode>(Config::Get(Config::GFX_ASPECT_RATIO));
+  const AspectMode config_aspect_mode = Config::Get(Config::GFX_ASPECT_RATIO);
   if (config_aspect_mode == AspectMode::Auto)
-    aspect_mode = static_cast<AspectMode>(Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO));
+    aspect_mode = Config::Get(Config::GFX_SUGGESTED_ASPECT_RATIO);
   else
     aspect_mode = config_aspect_mode;
   bCrop = Config::Get(Config::GFX_CROP);
@@ -103,8 +103,7 @@ void VideoConfig::Refresh()
   iCommandBufferExecuteInterval = Config::Get(Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL);
   bShaderCache = Config::Get(Config::GFX_SHADER_CACHE);
   bWaitForShadersBeforeStarting = Config::Get(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING);
-  iShaderCompilationMode =
-      static_cast<ShaderCompilationMode>(Config::Get(Config::GFX_SHADER_COMPILATION_MODE));
+  iShaderCompilationMode = Config::Get(Config::GFX_SHADER_COMPILATION_MODE);
   iShaderCompilerThreads = Config::Get(Config::GFX_SHADER_COMPILER_THREADS);
   iShaderPrecompilerThreads = Config::Get(Config::GFX_SHADER_PRECOMPILER_THREADS);
 
@@ -120,8 +119,12 @@ void VideoConfig::Refresh()
   iMaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
   sPostProcessingShader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
   bForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  bDisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  fArbitraryMipmapDetectionThreshold =
+      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
 
-  stereo_mode = static_cast<StereoMode>(Config::Get(Config::GFX_STEREO_MODE));
+  stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
   iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
   bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);

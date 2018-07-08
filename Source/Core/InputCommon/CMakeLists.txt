@@ -74,10 +74,17 @@ else()
 endif()
 
 if(LIBEVDEV_FOUND AND LIBUDEV_FOUND)
-  target_sources(inputcommon PRIVATE
+  target_sources(inputcommon
+  PRIVATE
     ControllerInterface/evdev/evdev.cpp
   )
-  target_link_libraries(inputcommon PUBLIC
+  target_include_directories(inputcommon
+  PRIVATE
+    ${LIBEVDEV_INCLUDE_DIR}
+    ${LIBUDEV_INCLUDE_DIR}
+  )
+  target_link_libraries(inputcommon
+  PRIVATE
     ${LIBEVDEV_LIBRARY}
     ${LIBUDEV_LIBRARY}
   )
@@ -107,8 +114,8 @@ if(ENABLE_SDL)
   endif()
   if(SDL_TARGET AND TARGET ${SDL_TARGET})
     target_sources(inputcommon PRIVATE ControllerInterface/SDL/SDL.cpp)
-    target_link_libraries(inputcommon PUBLIC ${SDL_TARGET})
-    target_compile_definitions(inputcommon PRIVATE -DHAVE_SDL=1)
+    target_link_libraries(inputcommon PRIVATE ${SDL_TARGET})
+    target_compile_definitions(inputcommon PRIVATE "CIFACE_USE_SDL=1")
   else()
     message(STATUS "SDL NOT found, disabling SDL input")
   endif()

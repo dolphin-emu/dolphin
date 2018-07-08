@@ -2,8 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <clocale>
 #include <cmath>
+#include <iomanip>
+#include <locale>
 #include <memory>
+#include <sstream>
 #ifdef _WIN32
 #include <shlobj.h>  // for SHGetFolderPath
 #endif
@@ -17,6 +22,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -27,6 +33,7 @@
 
 #include "InputCommon/GCAdapter.h"
 
+#include "UICommon/DiscordPresence.h"
 #include "UICommon/UICommon.h"
 #include "UICommon/USBUtils.h"
 
@@ -42,11 +49,34 @@
 
 namespace UICommon
 {
+static void CreateDumpPath(const std::string& path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_DUMP_IDX, path + '/');
+  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPOBJECTS_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+}
+
+static void InitCustomPaths()
+{
+  File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
+  CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
+  const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
+  if (!sd_path.empty())
+    File::SetUserPath(F_WIISDCARD_IDX, sd_path);
+}
+
 void Init()
 {
   Config::Init();
+  Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
+  Discord::Init();
   LogManager::Init();
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
@@ -62,15 +92,70 @@ void Shutdown()
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
   LogManager::Shutdown();
+  Discord::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
 }
 
+void SetLocale(std::string locale_name)
+{
+  auto set_locale = [](const std::string& locale) {
+#ifdef __linux__
+    std::string adjusted_locale = locale;
+    if (!locale.empty())
+      adjusted_locale += ".UTF-8";
+#else
+    const std::string& adjusted_locale = locale;
+#endif
+
+    // setlocale sets the C locale, and global sets the C and C++ locales, so the call to setlocale
+    // would be redundant if it wasn't for not having any other good way to check whether
+    // the locale name is valid. (Constructing a std::locale object for an unsupported
+    // locale name throws std::runtime_error, and exception handling is disabled in Dolphin.)
+    if (!std::setlocale(LC_ALL, adjusted_locale.c_str()))
+      return false;
+    std::locale::global(std::locale(adjusted_locale));
+    return true;
+  };
+
+#ifdef _WIN32
+  constexpr char PREFERRED_SEPARATOR = '-';
+  constexpr char OTHER_SEPARATOR = '_';
+#else
+  constexpr char PREFERRED_SEPARATOR = '_';
+  constexpr char OTHER_SEPARATOR = '-';
+#endif
+
+  // Users who use a system language other than English are unlikely to prefer American date and
+  // time formats, so let's explicitly request "en_GB" if Dolphin's language is set to "en".
+  // (The settings window only allows setting "en", not anything like "en_US" or "en_GB".)
+  // Users who prefer the American formats are likely to have their system language set to en_US,
+  // and are thus likely to leave Dolphin's language as the default value "" (<System Language>).
+  if (locale_name == "en")
+    locale_name = "en_GB";
+
+  std::replace(locale_name.begin(), locale_name.end(), OTHER_SEPARATOR, PREFERRED_SEPARATOR);
+
+  // Use the specified locale if supported.
+  if (set_locale(locale_name))
+    return;
+
+  // Remove subcodes until we get a supported locale. If that doesn't give us a supported locale,
+  // "" is passed to set_locale in order to get the system default locale.
+  while (!locale_name.empty())
+  {
+    const size_t separator_index = locale_name.rfind(PREFERRED_SEPARATOR);
+    locale_name.erase(separator_index == std::string::npos ? 0 : separator_index);
+    if (set_locale(locale_name))
+      return;
+  }
+
+  // If none of the locales tried above are supported, we just keep using whatever locale is set
+  // (which is the classic locale by default).
+}
+
 void CreateDirectories()
 {
-  // Copy initial Wii NAND data from Sys to User.
-  File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, File::GetUserPath(D_WIIROOT_IDX));
-
   File::CreateFullPath(File::GetUserPath(D_USER_IDX));
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
@@ -91,6 +176,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));
 #endif
 }
 
@@ -276,7 +362,7 @@ bool TriggerSTMPowerEvent()
 }
 
 #if defined(HAVE_XRANDR) && HAVE_X11
-void EnableScreenSaver(Display* display, Window win, bool enable)
+void EnableScreenSaver(Window win, bool enable)
 #else
 void EnableScreenSaver(bool enable)
 #endif
@@ -287,7 +373,7 @@ void EnableScreenSaver(bool enable)
 #if defined(HAVE_X11) && HAVE_X11
   if (SConfig::GetInstance().bDisableScreenSaver)
   {
-    X11Utils::InhibitScreensaver(display, win, !enable);
+    X11Utils::InhibitScreensaver(win, !enable);
   }
 #endif
 
@@ -346,7 +432,10 @@ std::string FormatSize(u64 bytes)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  return StringFromFormat("%.2f %s", bytes / unit_size, GetStringT(unit_symbols[unit]).c_str());
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(2);
+  ss << bytes / unit_size << ' ' << GetStringT(unit_symbols[unit]);
+  return ss.str();
 }
 
 }  // namespace UICommon

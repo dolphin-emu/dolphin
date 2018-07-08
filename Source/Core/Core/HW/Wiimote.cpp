@@ -104,9 +104,9 @@ void Connect(unsigned int index, bool connect)
       ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
 
   if (bluetooth)
-    bluetooth->AccessWiiMote(index | 0x100)->Activate(connect);
+    bluetooth->AccessWiimoteByIndex(index)->Activate(connect);
 
-  const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
+  const char* message = connect ? "Wii Remote %u connected" : "Wii Remote %u disconnected";
   Core::DisplayMessage(StringFromFormat(message, index + 1), 3000);
 }
 
@@ -135,17 +135,21 @@ void Pause()
 // An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL channel.
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
+  if (g_wiimote_sources[number])
+  {
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->ControlChannel(channel_id, data, size);
+  }
 }
 
 // An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT channel.
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
+  if (g_wiimote_sources[number])
+  {
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->InterruptChannel(channel_id, data, size);
+  }
 }
 
 bool ButtonPressed(int number)

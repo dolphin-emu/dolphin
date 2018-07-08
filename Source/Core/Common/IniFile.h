@@ -12,6 +12,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 
 struct CaseInsensitiveStringCompare
 {
@@ -35,20 +36,17 @@ public:
     bool Delete(const std::string& key);
 
     void Set(const std::string& key, const std::string& newValue);
-    void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
-    void Set(const std::string& key, u32 newValue);
-    void Set(const std::string& key, u64 new_value);
-    void Set(const std::string& key, float newValue);
-    void Set(const std::string& key, double newValue);
-    void Set(const std::string& key, int newValue);
-    void Set(const std::string& key, s64 new_value);
-    void Set(const std::string& key, bool newValue);
+    template <typename T>
+    void Set(const std::string& key, const T& new_value)
+    {
+      Set(key, ValueToString(new_value));
+    }
 
     template <typename T>
-    void Set(const std::string& key, T newValue, const T defaultValue)
+    void Set(const std::string& key, const T& new_value, const std::common_type_t<T>& default_value)
     {
-      if (newValue != defaultValue)
-        Set(key, newValue);
+      if (new_value != default_value)
+        Set(key, new_value);
       else
         Delete(key);
     }
@@ -57,13 +55,17 @@ public:
 
     bool Get(const std::string& key, std::string* value,
              const std::string& defaultValue = NULL_STRING) const;
-    bool Get(const std::string& key, int* value, int defaultValue = 0) const;
-    bool Get(const std::string& key, s64* value, s64 default_value = 0) const;
-    bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
-    bool Get(const std::string& key, u64* value, u64 default_value = 0) const;
-    bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
-    bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
-    bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
+    template <typename T>
+    bool Get(const std::string& key, T* value,
+             const std::common_type_t<T>& default_value = {}) const
+    {
+      std::string temp;
+      bool retval = Get(key, &temp);
+      if (retval && TryParse(temp, value))
+        return true;
+      *value = default_value;
+      return false;
+    }
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     void SetLines(const std::vector<std::string>& lines);
@@ -76,6 +78,7 @@ public:
     const std::string& GetName() const { return name; }
     const SectionMap& GetValues() const { return values; }
     bool HasLines() const { return !m_lines.empty(); }
+
   protected:
     std::string name;
 
@@ -142,6 +145,7 @@ public:
   static void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut);
 
   const std::list<Section>& GetSections() const { return sections; }
+
 private:
   std::list<Section> sections;
 

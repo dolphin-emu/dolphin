@@ -13,17 +13,21 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/Image.h"
 #include "Common/IniFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
@@ -38,6 +42,16 @@
 namespace UICommon
 {
 static const std::string EMPTY_STRING;
+
+bool operator==(const GameBanner& lhs, const GameBanner& rhs)
+{
+  return std::tie(lhs.buffer, lhs.width, lhs.height) == std::tie(rhs.buffer, rhs.width, rhs.height);
+}
+
+bool operator!=(const GameBanner& lhs, const GameBanner& rhs)
+{
+  return !operator==(lhs, rhs);
+}
 
 const std::string& GameFile::Lookup(DiscIO::Language language,
                                     const std::map<DiscIO::Language, std::string>& strings)
@@ -65,8 +79,15 @@ const std::string& GameFile::Lookup(DiscIO::Language language,
 const std::string&
 GameFile::LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const
 {
+#ifdef ANDROID
+  // TODO: Make the Android app load the config at app start instead of emulation start
+  // so that we can access the user's preference here
+  const DiscIO::Language language = DiscIO::Language::English;
+#else
   const bool wii = DiscIO::IsWii(m_platform);
-  return Lookup(SConfig::GetInstance().GetCurrentLanguage(wii), strings);
+  const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(wii);
+#endif
+  return Lookup(language, strings);
 }
 
 GameFile::GameFile(const std::string& path)
@@ -128,20 +149,6 @@ bool GameFile::IsValid() const
   return true;
 }
 
-bool GameFile::CustomNameChanged(const Core::TitleDatabase& title_database)
-{
-  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
-                        Core::TitleDatabase::TitleType::Channel :
-                        Core::TitleDatabase::TitleType::Other;
-  m_pending.custom_name = title_database.GetTitleName(m_game_id, type);
-  return m_custom_name != m_pending.custom_name;
-}
-
-void GameFile::CustomNameCommit()
-{
-  m_custom_name = std::move(m_pending.custom_name);
-}
-
 void GameBanner::DoState(PointerWrap& p)
 {
   p.Do(buffer);
@@ -177,7 +184,7 @@ void GameFile::DoState(PointerWrap& p)
   p.Do(m_apploader_date);
 
   m_volume_banner.DoState(p);
-  p.Do(m_custom_name);
+  m_custom_banner.DoState(p);
 }
 
 bool GameFile::IsElfOrDol() const
@@ -190,7 +197,7 @@ bool GameFile::IsElfOrDol() const
   return name_end == ".elf" || name_end == ".dol";
 }
 
-bool GameFile::BannerChanged()
+bool GameFile::WiiBannerChanged()
 {
   // Wii banners can only be read if there is a save file.
   // In case the cache was created without a save file existing,
@@ -210,16 +217,73 @@ bool GameFile::BannerChanged()
   return !m_pending.volume_banner.buffer.empty();
 }
 
-void GameFile::BannerCommit()
+void GameFile::WiiBannerCommit()
 {
   m_volume_banner = std::move(m_pending.volume_banner);
 }
 
+bool GameFile::ReadPNGBanner(const std::string& path)
+{
+  File::IOFile file(path, "rb");
+  if (!file)
+    return false;
+
+  std::vector<u8> png_data(file.GetSize());
+  if (!file.ReadBytes(png_data.data(), png_data.size()))
+    return false;
+
+  GameBanner& banner = m_pending.custom_banner;
+  std::vector<u8> data_out;
+  if (!Common::LoadPNG(png_data, &data_out, &banner.width, &banner.height))
+    return false;
+
+  // Make an ARGB copy of the RGBA data
+  banner.buffer.resize(data_out.size() / sizeof(u32));
+  for (size_t i = 0; i < banner.buffer.size(); i++)
+  {
+    const size_t j = i * sizeof(u32);
+    banner.buffer[i] = (Common::swap32(data_out.data() + j) >> 8) + (data_out[j] << 24);
+  }
+
+  return true;
+}
+
+bool GameFile::CustomBannerChanged()
+{
+  std::string path, name;
+  SplitPath(m_file_path, &path, &name, nullptr);
+
+  // This icon naming format is intended as an alternative to Homebrew Channel icons
+  // for those who don't want to have a Homebrew Channel style folder structure.
+  if (!ReadPNGBanner(path + name + ".png"))
+  {
+    // Homebrew Channel icon naming. Typical for DOLs and ELFs, but we also support it for volumes.
+    if (!ReadPNGBanner(path + "icon.png"))
+    {
+      // If no custom icon is found, go back to the non-custom one.
+      m_pending.custom_banner = {};
+    }
+  }
+
+  return m_pending.custom_banner != m_custom_banner;
+}
+
+void GameFile::CustomBannerCommit()
+{
+  m_custom_banner = std::move(m_pending.custom_banner);
+}
+
+const std::string& GameFile::GetName(const Core::TitleDatabase& title_database) const
+{
+  const auto type = m_platform == DiscIO::Platform::WiiWAD ?
+                        Core::TitleDatabase::TitleType::Channel :
+                        Core::TitleDatabase::TitleType::Other;
+  const std::string& custom_name = title_database.GetTitleName(m_game_id, type);
+  return custom_name.empty() ? GetName() : custom_name;
+}
+
 const std::string& GameFile::GetName(bool long_name) const
 {
-  if (!m_custom_name.empty())
-    return m_custom_name;
-
   const std::string& name = long_name ? GetLongName() : GetShortName();
   if (!name.empty())
     return name;
@@ -244,23 +308,20 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
 {
   std::vector<DiscIO::Language> languages;
   // TODO: What if some languages don't have long names but have other strings?
-  for (std::pair<DiscIO::Language, std::string> name : m_long_names)
+  for (const auto& name : m_long_names)
     languages.push_back(name.first);
   return languages;
 }
 
 std::string GameFile::GetUniqueIdentifier() const
 {
-  const DiscIO::Language lang = DiscIO::Language::English;
   std::vector<std::string> info;
   if (!GetGameID().empty())
     info.push_back(GetGameID());
   if (GetRevision() != 0)
     info.push_back("Revision " + std::to_string(GetRevision()));
 
-  std::string name(GetLongName(lang));
-  if (name.empty())
-    name = GetName();
+  const std::string& name = GetName();
 
   int disc_number = GetDiscNumber() + 1;
 
@@ -285,6 +346,11 @@ std::string GameFile::GetWiiFSPath() const
 {
   ASSERT(DiscIO::IsWii(m_platform));
   return Common::GetTitleDataPath(m_title_id, Common::FROM_CONFIGURED_ROOT);
+}
+
+const GameBanner& GameFile::GetBannerImage() const
+{
+  return m_custom_banner.empty() ? m_volume_banner : m_custom_banner;
 }
 
 }  // namespace UICommon

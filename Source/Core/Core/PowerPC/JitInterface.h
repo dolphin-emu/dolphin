@@ -11,7 +11,16 @@
 
 class CPUCoreBase;
 class PointerWrap;
+
+namespace PowerPC
+{
+enum class CPUCore;
+}
+
+namespace Profiler
+{
 struct ProfileStats;
+}
 
 namespace JitInterface
 {
@@ -24,12 +33,12 @@ enum class ExceptionType
 
 void DoState(PointerWrap& p);
 
-CPUCoreBase* InitJitCore(int core);
+CPUCoreBase* InitJitCore(PowerPC::CPUCore core);
 CPUCoreBase* GetCore();
 
 // Debugging
 void WriteProfileResults(const std::string& filename);
-void GetProfileResults(ProfileStats* prof_stats);
+void GetProfileResults(Profiler::ProfileStats* prof_stats);
 int GetHostCode(u32* address, const u8** code, u32* code_size);
 
 // Memory Utilities

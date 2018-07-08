@@ -15,8 +15,9 @@ static bool IsDeviceUsable(const std::string& device_path)
   hid_device* handle = hid_open_path(device_path.c_str());
   if (handle == nullptr)
   {
-    ERROR_LOG(WIIMOTE, "Could not connect to Wii Remote at \"%s\". "
-                       "Do you have permission to access the device?",
+    ERROR_LOG(WIIMOTE,
+              "Could not connect to Wii Remote at \"%s\". "
+              "Do you have permission to access the device?",
               device_path.c_str());
     return false;
   }
@@ -96,8 +97,9 @@ bool WiimoteHidapi::ConnectInternal()
   m_handle = hid_open_path(m_device_path.c_str());
   if (m_handle == nullptr)
   {
-    ERROR_LOG(WIIMOTE, "Could not connect to Wii Remote at \"%s\". "
-                       "Do you have permission to access the device?",
+    ERROR_LOG(WIIMOTE,
+              "Could not connect to Wii Remote at \"%s\". "
+              "Do you have permission to access the device?",
               m_device_path.c_str());
   }
   return m_handle != nullptr;

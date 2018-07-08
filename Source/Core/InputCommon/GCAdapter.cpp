@@ -137,8 +137,9 @@ static void ScanThreadFunc()
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            s_libusb_context, (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
-                                                     LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
+            s_libusb_context,
+            (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
+                                   LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
             nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
       s_libusb_hotplug_enabled = false;
@@ -267,8 +268,9 @@ static bool CheckDeviceAccess(libusb_device* device)
       {
         if (dRet)
         {
-          ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this device: Bus %03d Device "
-                                     "%03d: ID ????:???? (couldn't get id).",
+          ERROR_LOG(SERIALINTERFACE,
+                    "Dolphin does not have access to this device: Bus %03d Device "
+                    "%03d: ID ????:???? (couldn't get id).",
                     bus, port);
         }
         else

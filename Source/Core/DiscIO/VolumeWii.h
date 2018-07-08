@@ -32,7 +32,8 @@ class VolumeWii : public Volume
 public:
   VolumeWii(std::unique_ptr<BlobReader> reader);
   ~VolumeWii();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, const Partition& partition) const override;
+  bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
+  bool IsEncryptedAndHashed() const override;
   std::vector<Partition> GetPartitions() const override;
   Partition GetGamePartition() const override;
   std::optional<u32> GetPartitionType(const Partition& partition) const override;
@@ -40,12 +41,15 @@ public:
   const IOS::ES::TicketReader& GetTicket(const Partition& partition) const override;
   const IOS::ES::TMDReader& GetTMD(const Partition& partition) const override;
   const FileSystem* GetFileSystem(const Partition& partition) const override;
+  static u64 EncryptedPartitionOffsetToRawOffset(u64 offset, const Partition& partition,
+                                                 u64 partition_data_offset);
+  u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const override;
   std::string GetGameID(const Partition& partition) const override;
   std::string GetMakerID(const Partition& partition) const override;
   std::optional<u16> GetRevision(const Partition& partition) const override;
   std::string GetInternalName(const Partition& partition) const override;
   std::map<Language, std::string> GetLongNames() const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition) const override;
   std::optional<u8> GetDiscNumber(const Partition& partition) const override;
 
@@ -59,14 +63,13 @@ public:
   u64 GetSize() const override;
   u64 GetRawSize() const override;
 
-  static u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition);
-
   static constexpr unsigned int BLOCK_HEADER_SIZE = 0x0400;
   static constexpr unsigned int BLOCK_DATA_SIZE = 0x7C00;
   static constexpr unsigned int BLOCK_TOTAL_SIZE = BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
 
 protected:
   u32 GetOffsetShift() const override { return 2; }
+
 private:
   struct PartitionDetails
   {
@@ -74,12 +77,14 @@ private:
     Common::Lazy<IOS::ES::TicketReader> ticket;
     Common::Lazy<IOS::ES::TMDReader> tmd;
     Common::Lazy<std::unique_ptr<FileSystem>> file_system;
+    Common::Lazy<u64> data_offset;
     u32 type;
   };
 
-  std::unique_ptr<BlobReader> m_pReader;
+  std::unique_ptr<BlobReader> m_reader;
   std::map<Partition, PartitionDetails> m_partitions;
   Partition m_game_partition;
+  bool m_encrypted;
 
   mutable u64 m_last_decrypted_block;
   mutable u8 m_last_decrypted_block_data[BLOCK_DATA_SIZE];

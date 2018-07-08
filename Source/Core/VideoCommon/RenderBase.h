@@ -53,9 +53,18 @@ struct EfbPokeData
   u32 data;
 };
 
-// TODO: Move these out of here.
 extern int frameCount;
-extern int OSDChoice;
+
+enum class OSDMessage : s32
+{
+  IRChanged = 1,
+  ARToggled = 2,
+  EFBCopyToggled = 3,
+  FogToggled = 4,
+  SpeedChanged = 5,
+  XFBChanged = 6,
+  VolumeChanged = 7,
+};
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
@@ -67,16 +76,6 @@ public:
   virtual ~Renderer();
 
   using ClearColor = std::array<float, 4>;
-
-  enum PixelPerfQuery
-  {
-    PP_ZCOMP_INPUT_ZCOMPLOC,
-    PP_ZCOMP_OUTPUT_ZCOMPLOC,
-    PP_ZCOMP_INPUT,
-    PP_ZCOMP_OUTPUT,
-    PP_BLEND_INPUT,
-    PP_EFB_COPY_CLOCKS
-  };
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
@@ -175,8 +174,7 @@ public:
   // Finish up the current frame, print some stats
   void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
             u64 ticks);
-  virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks,
-                        float Gamma = 1.0f) = 0;
+  virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) = 0;
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
@@ -200,6 +198,8 @@ public:
                                      u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
   {
   }
+
+  void ShowOSDMessage(OSDMessage message);
 
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
@@ -287,6 +287,9 @@ private:
   // Note: Only used for auto-ir
   u32 m_last_xfb_width = MAX_XFB_WIDTH;
   u32 m_last_xfb_height = MAX_XFB_HEIGHT;
+
+  s32 m_osd_message = 0;
+  s32 m_osd_time = 0;
 
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToAVI(const FrameDumpConfig& config);

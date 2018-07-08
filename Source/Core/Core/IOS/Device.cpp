@@ -14,9 +14,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 Request::Request(const u32 address_) : address(address_)
 {
@@ -205,5 +203,4 @@ IPCCommandResult Device::GetNoReply()
   return {IPC_SUCCESS, false, 0};
 }
 }  // namespace Device
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

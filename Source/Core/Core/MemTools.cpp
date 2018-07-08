@@ -28,7 +28,7 @@ namespace EMM
 {
 #ifdef _WIN32
 
-LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
+static LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
   switch (pPtrs->ExceptionRecord->ExceptionCode)
   {

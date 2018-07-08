@@ -22,6 +22,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -111,7 +112,7 @@ public:
       {
       case CPU::State::PowerDown:
         CPU::Break();
-        Host_Message(WM_USER_STOP);
+        Host_Message(HostMessageID::WMUserStop);
         break;
 
       case CPU::State::Stepping:
@@ -428,7 +429,7 @@ void FifoPlayer::LoadMemory()
   UReg_MSR newMSR;
   newMSR.DR = 1;
   newMSR.IR = 1;
-  MSR = newMSR.Hex;
+  MSR.Hex = newMSR.Hex;
   PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
   PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
   PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;

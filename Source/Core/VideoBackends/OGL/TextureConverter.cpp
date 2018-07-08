@@ -39,6 +39,9 @@ struct EncodingProgram
   SHADER program;
   GLint copy_position_uniform;
   GLint y_scale_uniform;
+  GLint gamma_rcp_uniform;
+  GLint clamp_tb_uniform;
+  GLint filter_coefficients_uniform;
 };
 
 std::map<EFBCopyParams, EncodingProgram> s_encoding_programs;
@@ -47,7 +50,7 @@ std::unique_ptr<AbstractStagingTexture> s_encoding_readback_texture;
 
 const int renderBufferWidth = EFB_WIDTH * 4;
 const int renderBufferHeight = 1024;
-}
+}  // namespace
 
 static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 {
@@ -81,6 +84,10 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 
   program.copy_position_uniform = glGetUniformLocation(program.program.glprogid, "position");
   program.y_scale_uniform = glGetUniformLocation(program.program.glprogid, "y_scale");
+  program.gamma_rcp_uniform = glGetUniformLocation(program.program.glprogid, "gamma_rcp");
+  program.clamp_tb_uniform = glGetUniformLocation(program.program.glprogid, "clamp_tb");
+  program.filter_coefficients_uniform =
+      glGetUniformLocation(program.program.glprogid, "filter_coefficients");
   return s_encoding_programs.emplace(params, program).first->second;
 }
 
@@ -137,7 +144,9 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
 
 void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                            const EFBRectangle& src_rect, bool scale_by_half)
+                            const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
+                            float gamma, float clamp_top, float clamp_bottom,
+                            const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients)
 {
   g_renderer->ResetAPIState();
 
@@ -146,18 +155,22 @@ void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 nativ
   texconv_shader.program.Bind();
   glUniform4i(texconv_shader.copy_position_uniform, src_rect.left, src_rect.top, native_width,
               scale_by_half ? 2 : 1);
-  glUniform1f(texconv_shader.y_scale_uniform, params.y_scale);
+  glUniform1f(texconv_shader.y_scale_uniform, y_scale);
+  glUniform1f(texconv_shader.gamma_rcp_uniform, 1.0f / gamma);
+  glUniform2f(texconv_shader.clamp_tb_uniform, clamp_top, clamp_bottom);
+  glUniform3f(texconv_shader.filter_coefficients_uniform, filter_coefficients[0],
+              filter_coefficients[1], filter_coefficients[2]);
 
   const GLuint read_texture = params.depth ?
                                   FramebufferManager::ResolveAndGetDepthTarget(src_rect) :
                                   FramebufferManager::ResolveAndGetRenderTarget(src_rect);
 
   EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
-                         scale_by_half && !params.depth, params.y_scale);
+                         scale_by_half && !params.depth, y_scale);
 
   g_renderer->RestoreAPIState();
 }
 
-}  // namespace
+}  // namespace TextureConverter
 
 }  // namespace OGL

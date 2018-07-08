@@ -6,11 +6,12 @@ import android.widget.TextView;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
+import org.dolphinemu.dolphinemu.model.settings.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsAdapter;
 
 public final class SingleChoiceViewHolder extends SettingViewHolder
 {
-	private SingleChoiceSetting mItem;
+	private SettingsItem mItem;
 
 	private TextView mTextSettingName;
 	private TextView mTextSettingDescription;
@@ -30,7 +31,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
 	@Override
 	public void bind(SettingsItem item)
 	{
-		mItem = (SingleChoiceSetting) item;
+		mItem = item;
 
 		mTextSettingName.setText(item.getNameId());
 
@@ -43,6 +44,13 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
 	@Override
 	public void onClick(View clicked)
 	{
-		getAdapter().onSingleChoiceClick(mItem);
+		if (mItem instanceof SingleChoiceSetting)
+		{
+			getAdapter().onSingleChoiceClick((SingleChoiceSetting) mItem);
+		}
+		else if (mItem instanceof StringSingleChoiceSetting)
+		{
+			getAdapter().onStringSingleChoiceClick((StringSingleChoiceSetting) mItem);
+		}
 	}
 }

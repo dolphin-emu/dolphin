@@ -21,8 +21,9 @@
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
-  JitArm64() : code_buffer(32000), m_float_emit(this) {}
-  ~JitArm64() {}
+  JitArm64();
+  ~JitArm64() override;
+
   void Init() override;
   void Shutdown() override;
 
@@ -200,7 +201,7 @@ private:
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
-  void DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  void DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
   void DoDownCount();
   void Cleanup();
@@ -244,8 +245,6 @@ private:
   Arm64FPRCache fpr;
 
   JitArm64BlockCache blocks{*this};
-
-  PPCAnalyst::CodeBuffer code_buffer;
 
   Arm64Gen::ARM64FloatEmitter m_float_emit;
 

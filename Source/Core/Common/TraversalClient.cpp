@@ -4,26 +4,15 @@
 
 #include <cstddef>
 #include <cstring>
-#include <random>
 #include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-
-static void GetRandomishBytes(u8* buf, size_t size)
-{
-  // We don't need high quality random numbers (which might not be available),
-  // just non-repeating numbers!
-  static std::mt19937 prng(enet_time_get());
-  static std::uniform_int_distribution<unsigned int> u8_distribution(0, 255);
-  for (size_t i = 0; i < size; i++)
-    buf[i] = u8_distribution(prng);
-}
+#include "Common/Random.h"
 
 TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
-    : m_NetHost(netHost), m_Client(nullptr), m_ConnectRequestId(0), m_PendingConnect(false),
-      m_Server(server), m_port(port), m_PingTime(0)
+    : m_NetHost(netHost), m_Server(server), m_port(port)
 {
   netHost->intercept = TraversalClient::InterceptCallback;
 
@@ -32,8 +21,21 @@ TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, c
   ReconnectToServer();
 }
 
-TraversalClient::~TraversalClient()
+TraversalClient::~TraversalClient() = default;
+
+TraversalHostId TraversalClient::GetHostID() const
 {
+  return m_HostId;
+}
+
+TraversalClient::State TraversalClient::GetState() const
+{
+  return m_State;
+}
+
+TraversalClient::FailureReason TraversalClient::GetFailureReason() const
+{
+  return m_FailureReason;
 }
 
 void TraversalClient::ReconnectToServer()
@@ -231,7 +233,7 @@ void TraversalClient::ResendPacket(OutgoingTraversalPacketInfo* info)
 
 void TraversalClient::HandleResends()
 {
-  enet_uint32 now = enet_time_get();
+  const u32 now = enet_time_get();
   for (auto& tpi : m_OutgoingTraversalPackets)
   {
     if (now - tpi.sendTime >= (u32)(300 * tpi.tries))
@@ -253,7 +255,7 @@ void TraversalClient::HandleResends()
 
 void TraversalClient::HandlePing()
 {
-  enet_uint32 now = enet_time_get();
+  const u32 now = enet_time_get();
   if (m_State == Connected && now - m_PingTime >= 500)
   {
     TraversalPacket ping = {};
@@ -268,7 +270,7 @@ TraversalRequestId TraversalClient::SendTraversalPacket(const TraversalPacket& p
 {
   OutgoingTraversalPacketInfo info;
   info.packet = packet;
-  GetRandomishBytes((u8*)&info.packet.requestId, sizeof(info.packet.requestId));
+  info.packet.requestId = Common::Random::GenerateValue<TraversalRequestId>();
   info.tries = 0;
   m_OutgoingTraversalPackets.push_back(info);
   ResendPacket(&m_OutgoingTraversalPackets.back());

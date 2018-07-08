@@ -12,12 +12,14 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
+#include <type_traits>
 
 #include <mbedtls/md5.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/FileUtil.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/QoSSession.h"
@@ -34,6 +36,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
@@ -90,7 +93,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
     if (m_client == nullptr)
     {
-      PanicAlertT("Couldn't Create Client");
+      m_dialog->OnConnectionError(_trans("Could not create client."));
+      return;
     }
 
     ENetAddress addr;
@@ -101,7 +105,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 
     if (m_server == nullptr)
     {
-      PanicAlertT("Couldn't create peer.");
+      m_dialog->OnConnectionError(_trans("Could not create peer."));
+      return;
     }
 
     ENetEvent netEvent;
@@ -116,14 +121,15 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     }
     else
     {
-      PanicAlertT("Failed to Connect!");
+      m_dialog->OnConnectionError(_trans("Could not communicate with host."));
     }
   }
   else
   {
     if (address.size() > NETPLAY_CODE_SIZE)
     {
-      PanicAlertT("Host code size is to large.\nPlease recheck that you have the correct code");
+      m_dialog->OnConnectionError(
+          _trans("Host code size is too large.\nPlease recheck that you have the correct code."));
       return;
     }
 
@@ -134,7 +140,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     m_traversal_client = g_TraversalClient.get();
 
     // If we were disconnected in the background, reconnect.
-    if (m_traversal_client->m_State == TraversalClient::Failure)
+    if (m_traversal_client->GetState() == TraversalClient::Failure)
       m_traversal_client->ReconnectToServer();
     m_traversal_client->m_Client = this;
     m_host_spec = address;
@@ -171,7 +177,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
       if (connect_timer.GetTimeElapsed() > 5000)
         break;
     }
-    PanicAlertT("Failed To Connect!");
+    m_dialog->OnConnectionError(_trans("Could not communicate with host."));
   }
 }
 
@@ -206,16 +212,17 @@ bool NetPlayClient::Connect()
     switch (error)
     {
     case CON_ERR_SERVER_FULL:
-      PanicAlertT("The server is full!");
+      m_dialog->OnConnectionError(_trans("The server is full."));
       break;
     case CON_ERR_VERSION_MISMATCH:
-      PanicAlertT("The server and client's NetPlay versions are incompatible!");
+      m_dialog->OnConnectionError(
+          _trans("The server and client's NetPlay versions are incompatible."));
       break;
     case CON_ERR_GAME_RUNNING:
-      PanicAlertT("The server responded: the game is currently running!");
+      m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
     default:
-      PanicAlertT("The server sent an unknown error message!");
+      m_dialog->OnConnectionError(_trans("The server sent an unknown error message."));
       break;
     }
 
@@ -411,7 +418,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
       packet >> m_current_game;
       packet >> g_NetPlaySettings.m_CPUthread;
-      packet >> g_NetPlaySettings.m_CPUcore;
+
+      {
+        std::underlying_type_t<PowerPC::CPUCore> core;
+        if (packet >> core)
+          g_NetPlaySettings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
+        else
+          g_NetPlaySettings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
+      }
+
       packet >> g_NetPlaySettings.m_EnableCheats;
       packet >> g_NetPlaySettings.m_SelectedLanguage;
       packet >> g_NetPlaySettings.m_OverrideGCLanguage;
@@ -423,6 +438,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> g_NetPlaySettings.m_CopyWiiSave;
       packet >> g_NetPlaySettings.m_OCEnable;
       packet >> g_NetPlaySettings.m_OCFactor;
+      packet >> g_NetPlaySettings.m_ReducePollingRate;
 
       int tmp;
       packet >> tmp;
@@ -909,17 +925,18 @@ void NetPlayClient::ClearBuffers()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnTraversalStateChanged()
 {
+  const TraversalClient::State state = m_traversal_client->GetState();
+
   if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
-      m_traversal_client->m_State == TraversalClient::Connected)
+      state == TraversalClient::Connected)
   {
     m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
     m_traversal_client->ConnectToClient(m_host_spec);
   }
-  else if (m_connection_state != ConnectionState::Failure &&
-           m_traversal_client->m_State == TraversalClient::Failure)
+  else if (m_connection_state != ConnectionState::Failure && state == TraversalClient::Failure)
   {
     Disconnect();
-    m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
+    m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
   }
 }
 
@@ -1143,6 +1160,15 @@ void NetPlayClient::Stop()
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
     SendStopGamePacket();
+  else
+    StopGame();
+}
+
+void NetPlayClient::RequestStopGame()
+{
+  // Tell the server to stop if we have a pad mapped in game.
+  if (LocalPlayerHasControllerMapped())
+    SendStopGamePacket();
 }
 
 // called from ---GUI--- thread
@@ -1268,6 +1294,16 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
     Send(packet);
   });
   m_MD5_thread.detach();
+}
+
+const PadMappingArray& NetPlayClient::GetPadMapping() const
+{
+  return m_pad_map;
+}
+
+const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
+{
+  return m_wiimote_map;
 }
 
 // stuff hacked into dolphin

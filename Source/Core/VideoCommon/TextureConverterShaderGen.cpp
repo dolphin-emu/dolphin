@@ -15,7 +15,7 @@
 namespace TextureConversionShaderGen
 {
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
-                         bool scale_by_half)
+                         bool scale_by_half, bool copy_filter)
 {
   TCShaderUid out;
   UidData* uid_data = out.GetUidData<UidData>();
@@ -26,6 +26,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
   uid_data->is_depth_copy = is_depth_copy;
   uid_data->is_intensity = is_intensity;
   uid_data->scale_by_half = scale_by_half;
+  uid_data->copy_filter = copy_filter;
 
   return out;
 }
@@ -38,32 +39,75 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
   if (api_type == APIType::OpenGL)
   {
     out.Write("SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-              "#define samp0 samp9\n"
-              "#define uv0 f_uv0\n"
+              "uniform float3 filter_coefficients;\n"
+              "uniform float gamma_rcp;\n"
+              "uniform float2 clamp_tb;\n"
+              "uniform float pixel_height;\n");
+    out.Write("float4 SampleEFB(float3 uv, float y_offset) {\n"
+              "  return texture(samp9, float3(uv.x, clamp(uv.y - (y_offset * pixel_height), "
+              "clamp_tb.x, clamp_tb.y), %s));\n"
+              "}\n",
+              mono_depth ? "0.0" : "uv.z");
+    out.Write("#define uv0 f_uv0\n"
               "in vec3 uv0;\n"
               "out vec4 ocol0;\n"
-              "void main(){\n"
-              "  vec4 texcol = texture(samp0, %s);\n",
-              mono_depth ? "vec3(uv0.xy, 0.0)" : "uv0");
+              "void main(){\n");
   }
   else if (api_type == APIType::Vulkan)
   {
-    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
-              "layout(location = 0) in vec3 uv0;\n"
+    out.Write("UBO_BINDING(std140, 1) uniform PSBlock {\n"
+              "  float3 filter_coefficients;\n"
+              "  float gamma_rcp;\n"
+              "  float2 clamp_tb;\n"
+              "  float pixel_height;\n"
+              "};\n");
+    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+    out.Write("float4 SampleEFB(float3 uv, float y_offset) {\n"
+              "  return texture(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
+              "clamp_tb.x, clamp_tb.y), %s));\n"
+              "}\n",
+              mono_depth ? "0.0" : "uv.z");
+    out.Write("layout(location = 0) in vec3 uv0;\n"
               "layout(location = 1) in vec4 col0;\n"
               "layout(location = 0) out vec4 ocol0;"
-              "void main(){\n"
-              "  vec4 texcol = texture(samp0, %s);\n",
-              mono_depth ? "vec3(uv0.xy, 0.0)" : "uv0");
+              "void main(){\n");
   }
   else if (api_type == APIType::D3D)
   {
     out.Write("Texture2DArray tex0 : register(t0);\n"
               "SamplerState samp0 : register(s0);\n"
-              "void main(out float4 ocol0 : SV_Target,\n"
+              "uniform float3 filter_coefficients;\n"
+              "uniform float gamma_rcp;\n"
+              "uniform float2 clamp_tb;\n"
+              "uniform float pixel_height;\n\n");
+    out.Write("float4 SampleEFB(float3 uv, float y_offset) {\n"
+              "  return tex0.Sample(samp0, float3(uv.x, clamp(uv.y + (y_offset * pixel_height), "
+              "clamp_tb.x, clamp_tb.y), %s));\n"
+              "}\n",
+              mono_depth ? "0.0" : "uv.z");
+    out.Write("void main(out float4 ocol0 : SV_Target,\n"
               "          in float4 pos : SV_Position,\n"
-              "          in float3 uv0 : TEXCOORD0) {\n"
-              "  float4 texcol = tex0.Sample(samp0, uv0);\n");
+              "          in float3 uv0 : TEXCOORD0) {\n");
+  }
+
+  // The copy filter applies to both color and depth copies. This has been verified on hardware.
+  // The filter is only applied to the RGB channels, the alpha channel is left intact.
+  if (uid_data->copy_filter)
+  {
+    out.Write("  float4 prev_row = SampleEFB(uv0, -1.0f);\n"
+              "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
+              "  float4 next_row = SampleEFB(uv0, 1.0f);\n"
+              "  float4 texcol = float4(min(prev_row.rgb * filter_coefficients[0] +\n"
+              "                               current_row.rgb * filter_coefficients[1] +\n"
+              "                               next_row.rgb * filter_coefficients[2], \n"
+              "                             float3(1, 1, 1)), current_row.a);\n");
+  }
+  else
+  {
+    out.Write(
+        "  float4 current_row = SampleEFB(uv0, 0.0f);\n"
+        "  float4 texcol = float4(min(current_row.rgb * filter_coefficients[1], float3(1, 1, 1)),\n"
+        "                         current_row.a);\n");
   }
 
   if (uid_data->is_depth_copy)
@@ -223,8 +267,9 @@ ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
       out.Write("  ocol0 = texcol;\n");
       break;
 
-    case EFBCopyFormat::XFB:  // XFB copy, we just pretend it's an RGBX copy
-      out.Write("  ocol0 = float4(texcol.rgb, 1.0);\n");
+    case EFBCopyFormat::XFB:
+      out.Write("  ocol0 = float4(pow(texcol.rgb, float3(gamma_rcp, gamma_rcp, gamma_rcp)), "
+                "texcol.a);\n");
       break;
 
     default:

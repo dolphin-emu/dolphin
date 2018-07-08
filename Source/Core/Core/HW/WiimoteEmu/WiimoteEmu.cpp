@@ -49,10 +49,11 @@ namespace
 // :)
 auto const TAU = 6.28318530717958647692;
 auto const PI = TAU / 2.0;
-}
+}  // namespace
 
 namespace WiimoteEmu
 {
+// clang-format off
 static const u8 eeprom_data_0[] = {
     // IR, maybe more
     // assuming last 2 bytes are checksum
@@ -64,6 +65,7 @@ static const u8 eeprom_data_0[] = {
     ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0xA3,
     ACCEL_ZERO_G, ACCEL_ZERO_G, ACCEL_ZERO_G, 0, ACCEL_ONE_G, ACCEL_ONE_G, ACCEL_ONE_G, 0, 0, 0xA3,
 };
+// clang-format on
 
 static const u8 motion_plus_id[] = {0x00, 0x00, 0xA6, 0x20, 0x00, 0x05};
 
@@ -259,7 +261,8 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   for (const char* named_button : named_buttons)
   {
     const std::string& ui_name = (named_button == std::string("Home")) ? "HOME" : named_button;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button, ui_name));
+    m_buttons->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::DoNotTranslate, named_button, ui_name));
   }
 
   // ir
@@ -275,11 +278,11 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   // shake
   groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("X")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("X")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Y")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  m_shake->controls.emplace_back(new ControllerEmu::Input(_trans("Z")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -292,23 +295,26 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(m_motor = new ControllerEmu::Output(_trans("Motor")));
+  m_rumble->controls.emplace_back(
+      m_motor = new ControllerEmu::Output(ControllerEmu::Translate, _trans("Motor")));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
+  {
+    m_dpad->controls.emplace_back(
+        new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
+  }
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      m_sideways_setting = new ControllerEmu::BooleanSetting("Sideways Wiimote",
-                                                             _trans("Sideways Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(
-      m_upright_setting = new ControllerEmu::BooleanSetting("Upright Wiimote",
-                                                            _trans("Upright Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
-      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
+  m_options->boolean_settings.emplace_back(m_upright_setting = new ControllerEmu::BooleanSetting(
+                                               "Upright Wiimote", _trans("Upright Wii Remote"),
+                                               true, ControllerEmu::SettingType::NORMAL, true));
+  m_options->boolean_settings.emplace_back(m_sideways_setting = new ControllerEmu::BooleanSetting(
+                                               "Sideways Wiimote", _trans("Sideways Wii Remote"),
+                                               false, ControllerEmu::SettingType::NORMAL, true));
+
   m_options->numeric_settings.emplace_back(
       std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
   m_options->numeric_settings.emplace_back(
@@ -714,84 +720,6 @@ void Wiimote::Update()
     // extension
     if (rptf.ext)
       GetExtData(data + rptf.ext);
-
-    // hybrid Wii Remote stuff (for now, it's not supported while recording)
-    if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && !Movie::IsRecordingInput())
-    {
-      using namespace WiimoteReal;
-
-      std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
-      if (g_wiimotes[m_index])
-      {
-        Report& rpt = g_wiimotes[m_index]->ProcessReadQueue();
-        if (!rpt.empty())
-        {
-          u8* real_data = rpt.data();
-          switch (real_data[1])
-          {
-          // use data reports
-          default:
-            if (real_data[1] >= RT_REPORT_CORE)
-            {
-              const ReportFeatures& real_rptf =
-                  reporting_mode_features[real_data[1] - RT_REPORT_CORE];
-
-              // force same report type from real-Wiimote
-              if (&real_rptf != &rptf)
-                rptf_size = 0;
-
-              // core
-              // mix real-buttons with emu-buttons in the status struct, and in the report
-              if (real_rptf.core && rptf.core)
-              {
-                m_status.buttons.hex |=
-                    reinterpret_cast<wm_buttons*>(real_data + real_rptf.core)->hex;
-                *reinterpret_cast<wm_buttons*>(data + rptf.core) = m_status.buttons;
-              }
-
-              // accel
-              // use real-accel data always i guess
-              if (real_rptf.accel && rptf.accel)
-                memcpy(data + rptf.accel, real_data + real_rptf.accel, sizeof(wm_accel));
-
-              // ir
-              // TODO
-
-              // ext
-              // use real-ext data if an emu-extention isn't chosen
-              if (real_rptf.ext && rptf.ext && (0 == m_extension->switch_extension))
-                memcpy(data + rptf.ext, real_data + real_rptf.ext,
-                       sizeof(wm_nc));  // TODO: Why NC specific?
-            }
-            else if (real_data[1] != RT_ACK_DATA || m_extension->active_extension > 0)
-              rptf_size = 0;
-            else
-              // use real-acks if an emu-extension isn't chosen
-              rptf_size = -1;
-            break;
-
-          // use all status reports, after modification of the extension bit
-          case RT_STATUS_REPORT:
-            if (m_extension->active_extension)
-              reinterpret_cast<wm_status_report*>(real_data + 2)->extension = 1;
-            rptf_size = -1;
-            break;
-
-          // use all read-data replies
-          case RT_READ_DATA_REPLY:
-            rptf_size = -1;
-            break;
-          }
-
-          // copy over report from real-Wiimote
-          if (-1 == rptf_size)
-          {
-            std::copy(rpt.begin(), rpt.end(), data);
-            rptf_size = (s8)(rpt.size());
-          }
-        }
-      }
-    }
 
     Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_key);
   }

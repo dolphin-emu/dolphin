@@ -309,14 +309,13 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
   case CMD_WRITE:
   {
     unsigned int type = controller_command.parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
-    unsigned int strength = controller_command.parameter2;
 
     // get the correct pad number that should rumble locally when using netplay
     const int pad_num = NetPlay_InGamePadToLocalPad(m_device_number);
 
     if (pad_num < 4)
     {
-      if (type == 1 && strength > 2)
+      if (type == 1)
         CSIDevice_GCController::Rumble(pad_num, 1.0);
       else
         CSIDevice_GCController::Rumble(pad_num, 0.0);

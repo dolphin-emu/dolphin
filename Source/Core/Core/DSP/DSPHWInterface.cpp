@@ -286,7 +286,7 @@ static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
   u16* dst = g_dsp.iram + (dsp_addr / 2);
 
   const u8* code = &g_dsp.cpu_ram[addr & 0x0fffffff];
-  g_dsp.iram_crc = HashEctor(code, size);
+  g_dsp.iram_crc = Common::HashEctor(code, size);
 
   Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   memcpy(dst, code, size);

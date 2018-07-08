@@ -30,11 +30,15 @@ enum class System
   GFX,
   Logger,
   Debugger,
-  UI,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{
-    LayerType::CurrentRun, LayerType::CommandLine, LayerType::Movie, LayerType::Netplay,
-    LayerType::LocalGame, LayerType::GlobalGame, LayerType::Base,
+    LayerType::CurrentRun,
+    LayerType::CommandLine,
+    LayerType::Movie,
+    LayerType::Netplay,
+    LayerType::LocalGame,
+    LayerType::GlobalGame,
+    LayerType::Base,
 }};
 }

@@ -9,13 +9,17 @@ add_library(common
   Crypto/AES.cpp
   Crypto/bn.cpp
   Crypto/ec.cpp
+  Debug/MemoryPatches.cpp
+  Debug/Watches.cpp
   ENetUtil.cpp
   File.cpp
   FileSearch.cpp
   FileUtil.cpp
+  FloatUtils.cpp
   GekkoDisassembler.cpp
   Hash.cpp
   HttpRequest.cpp
+  Image.cpp
   IniFile.cpp
   JitRegister.cpp
   Logging/LogManager.cpp
@@ -30,30 +34,29 @@ add_library(common
   PerformanceCounter.cpp
   Profiler.cpp
   QoSSession.cpp
+  Random.cpp
   SDCardUtil.cpp
   SettingsHandler.cpp
   StringUtil.cpp
   SymbolDB.cpp
-  SysConf.cpp
   Thread.cpp
   Timer.cpp
   TraversalClient.cpp
   UPnP.cpp
   Version.cpp
-  x64ABI.cpp
-  x64Emitter.cpp
 )
 
 target_link_libraries(common
 PUBLIC
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CURL_LIBRARIES}
   enet
   ${MBEDTLS_LIBRARIES}
-  ${VTUNE_LIBRARIES}
 
 PRIVATE
+  ${CURL_LIBRARIES}
   ${ICONV_LIBRARIES}
+  png
+  ${VTUNE_LIBRARIES}
 )
 
 if (APPLE)
@@ -88,6 +91,8 @@ if(_M_ARM_64)
 else()
   if(_M_X86) #X86
     target_sources(common PRIVATE
+      x64ABI.cpp
+      x64Emitter.cpp
       x64FPURoundMode.cpp
       x64CPUDetect.cpp
     )
@@ -137,7 +142,7 @@ elseif(USE_X11)
   target_link_libraries(common PUBLIC ${XRANDR_LIBRARIES})
 endif()
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(common PUBLIC dl rt)
 endif()
 
@@ -146,17 +151,18 @@ if(USE_UPNP)
 endif()
 
 if(OPROFILE_FOUND)
-  target_link_libraries(common PRIVATE ${OPROFILE_LIBRARIES})
+  target_link_libraries(common PRIVATE OProfile::OProfile)
 endif()
 
 if(UNIX)
   # Posix networking code needs to be fixed for Windows
   add_executable(traversal_server TraversalServer.cpp)
+  target_link_libraries(traversal_server PRIVATE common)
   if(SYSTEMD_FOUND)
-    target_link_libraries(traversal_server ${SYSTEMD_LIBRARIES})
+    target_link_libraries(traversal_server PRIVATE ${SYSTEMD_LIBRARIES})
   endif()
   if(HAIKU)
-    target_link_libraries(traversal_server network)
+    target_link_libraries(traversal_server PRIVATE network)
   endif()
 elseif(WIN32)
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")

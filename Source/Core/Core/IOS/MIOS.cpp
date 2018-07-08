@@ -23,11 +23,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-namespace IOS
-{
-namespace HLE
-{
-namespace MIOS
+namespace IOS::HLE::MIOS
 {
 static void ReinitHardware()
 {
@@ -65,7 +61,7 @@ bool Load()
 
   const PowerPC::CoreMode core_mode = PowerPC::GetMode();
   PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
-  MSR = 0;
+  MSR.Hex = 0;
   PC = 0x3400;
   NOTICE_LOG(IOS, "Loaded MIOS and bootstrapped PPC.");
 
@@ -81,6 +77,4 @@ bool Load()
   DVDInterface::UpdateRunningGameMetadata();
   return true;
 }
-}  // namespace MIOS
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE::MIOS
