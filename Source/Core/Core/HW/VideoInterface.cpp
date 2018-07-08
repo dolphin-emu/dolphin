@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -731,7 +732,13 @@ void Update(u64 ticks)
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
     SerialInterface::UpdateDevices();
-    s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
+
+    // If this setting is enabled, only poll twice per field instead of what the game wanted. It may
+    // be set during NetPlay or Movie playback.
+    if (Config::Get(Config::MAIN_REDUCE_POLLING_RATE))
+      s_half_line_of_next_si_poll += GetHalfLinesPerEvenField() / 2;
+    else
+      s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
@@ -819,4 +826,4 @@ void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height)
   }
 }
 
-}  // namespace
+}  // namespace VideoInterface
