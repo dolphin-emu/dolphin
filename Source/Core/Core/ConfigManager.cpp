@@ -219,6 +219,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SkipIPL", bHLE_BS2);
   core->Set("TimingVariance", iTimingVariance);
   core->Set("CPUCore", cpu_core);
+  core->Set("JITFollowBranch", bJITFollowBranch);
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
   core->Set("DSPHLE", bDSPHLE);
@@ -510,6 +511,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #else
   core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::Interpreter);
 #endif
+  core->Get("JITFollowBranch", &bJITFollowBranch, true);
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
