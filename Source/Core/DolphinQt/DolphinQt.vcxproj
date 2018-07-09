@@ -45,6 +45,10 @@
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;$(ProjectDir)FIFO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -317,6 +321,7 @@
     <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
+    <ClCompile Include="NarrysMod\NetcoreClient.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
@@ -373,6 +378,7 @@
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingRadio.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
+    <ClInclude Include="NarrysMod\NetcoreClient.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
@@ -445,6 +451,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\RTCV\NetCore\NetCore.csproj">
+      <Project>{7e106aec-5614-4206-9e4d-25759c90e8ae}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
