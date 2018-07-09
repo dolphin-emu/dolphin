@@ -19,6 +19,8 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
@@ -37,6 +39,8 @@ Settings::Settings()
 
   SetCurrentUserStyle(GetCurrentUserStyle());
 }
+
+Settings::~Settings() = default;
 
 Settings& Settings::Instance()
 {

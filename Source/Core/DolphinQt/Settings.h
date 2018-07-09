@@ -11,9 +11,6 @@
 #include <QSettings>
 #include <QVector>
 
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
-
 namespace Core
 {
 enum class State;
@@ -22,6 +19,12 @@ enum class State;
 namespace DiscIO
 {
 enum class Language;
+}
+
+namespace NetPlay
+{
+class NetPlayClient;
+class NetPlayServer;
 }
 
 class GameListModel;
@@ -38,6 +41,8 @@ public:
   Settings& operator=(const Settings&) = delete;
   Settings(Settings&&) = delete;
   Settings& operator=(Settings&&) = delete;
+
+  ~Settings();
 
   static Settings& Instance();
   static QSettings& GetQSettings();

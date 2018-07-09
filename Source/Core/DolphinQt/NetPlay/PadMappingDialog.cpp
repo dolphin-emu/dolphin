@@ -3,14 +3,16 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
-#include "DolphinQt/Settings.h"
-
-#include "Core/NetPlayClient.h"
 
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
+
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+
+#include "DolphinQt/Settings.h"
 
 PadMappingDialog::PadMappingDialog(QWidget* parent) : QDialog(parent)
 {
