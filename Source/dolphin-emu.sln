@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinQt\DolphinQt.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7E106AEC-5614-4206-9E4D-25759C90E8AE} = {7E106AEC-5614-4206-9E4D-25759C90E8AE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcxproj", "{E54CF649-140E-4255-81A5-30A673C1FB36}"
 EndProject
@@ -85,7 +88,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Core\Updater\Upd
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discord-rpc", "..\Externals\discord-rpc\src\discord-rpc.vcxproj", "{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCore", "..\..\RTCV\NetCore\NetCore.csproj", "{7E106AEC-5614-4206-9E4D-25759C90E8AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCore", "C:\Users\Daniel\Documents\RTCV\NetCore\NetCore.csproj", "{7E106AEC-5614-4206-9E4D-25759C90E8AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

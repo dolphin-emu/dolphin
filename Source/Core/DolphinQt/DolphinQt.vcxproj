@@ -42,17 +42,10 @@
     <Link>
       <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(IntDir)..\discord-rpc\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Shlwapi.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/CLRTHREADATTRIBUTE:STA %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;$(ProjectDir)FIFO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExceptionHandling>
-      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
-      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinQt.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
@@ -266,6 +259,31 @@
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WindowActivationEventFilter.cpp" />
+    <ClCompile Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinQt\NarrysMod\NetcoreClient.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</CompileAsManaged>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExceptionHandling>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RuntimeTypeInfo>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </PrecompiledHeaderOutputFile>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </ForcedIncludeFiles>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/Zc:twoPhase- %(AdditionalOptions)</AdditionalOptions>
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</CompileAsManaged>
+      <ExceptionHandling Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExceptionHandling>
+      <RuntimeTypeInfo Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RuntimeTypeInfo>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </PrecompiledHeaderOutputFile>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedIncludeFiles>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </BasicRuntimeChecks>
+    </ClCompile>
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
@@ -325,7 +343,6 @@
     <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
-    <ClCompile Include="NarrysMod\NetcoreClient.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
@@ -345,7 +362,14 @@
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Host.cpp" />
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Main.cpp">
+      <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </CompileAsManaged>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</ForcedIncludeFiles>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <ForcedUsingFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </ForcedUsingFiles>
+    </ClCompile>
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="NetPlay\GameListDialog.cpp" />
@@ -379,10 +403,10 @@
   </ItemGroup>
   <!--Put standard C/C++ headers here. Headers that are listed in the QtMoc ItemGroup must NOT be listed here.-->
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\Dolphin Narry%27s Mod\Source\Core\DolphinQt\NarrysMod\NetcoreClient.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingRadio.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
-    <ClInclude Include="NarrysMod\NetcoreClient.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
@@ -456,7 +480,7 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\RTCV\NetCore\NetCore.csproj">
+    <ProjectReference Include="C:\Users\Daniel\Documents\RTCV\NetCore\NetCore.csproj">
       <Project>{7e106aec-5614-4206-9e4d-25759c90e8ae}</Project>
     </ProjectReference>
   </ItemGroup>

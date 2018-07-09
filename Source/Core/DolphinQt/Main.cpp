@@ -32,9 +32,6 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
-//Narrysmod_Hijack
-#include "DolphinQT/NarrysMod/NetcoreClient.h"
-
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
 {
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
@@ -183,9 +180,6 @@ int main(int argc, char* argv[])
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
 
-    //NARRYSMOD_HIJACK
-    NetcoreClientInitializer::Initialize();
-	
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)
     {

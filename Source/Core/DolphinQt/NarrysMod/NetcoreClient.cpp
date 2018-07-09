@@ -58,22 +58,22 @@ public:
 
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
   
-  void NetcoreClient::StartClient();
-  void NetcoreClient::RestartClient();
+  void StartClient();
+  void RestartClient();
 
-  void NetcoreClient::LoadState(String^ filename);
-  void NetcoreClient::SaveState(String^ filename, bool wait);
-  Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain);
-  void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain);
-  array<Byte>^ NetcoreClient::PeekBytes(long address, int range, MemoryDomain ^ domain);
-  void NetcoreClient::PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain);
-
-
-  array<Byte>^ NetcoreClient::PeekAddresses(array<long>^ addresses);
-  void NetcoreClient::PokeAddresses(array<long>^ addresses, array<Byte>^ values);
+  void LoadState(String^ filename);
+  void SaveState(String^ filename, bool wait);
+  Byte PeekByte(long address, MemoryDomain ^ domain);
+  void PokeByte(long address, Byte ^ value, MemoryDomain ^ domain);
+  array<Byte>^ PeekBytes(long address, int range, MemoryDomain ^ domain);
+  void PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain);
 
 
-  MemoryDomain^ NetcoreClient::GetDomain(long address, int range, MemoryDomain ^ domain);
+  array<Byte>^ PeekAddresses(array<long>^ addresses);
+  void PokeAddresses(array<long>^ addresses, array<Byte>^ values);
+
+
+  MemoryDomain^ GetDomain(long address, int range, MemoryDomain ^ domain);
 };
 
 
@@ -116,7 +116,7 @@ void NetcoreClient::LoadState(String^ filename) {
   std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
   State::LoadAs(converted_filename);
 
-  Trace::Listeners->Add(gcnew TextWriterTraceListener(Console::Out));
+  Trace::Listeners->Insert(0, gcnew TextWriterTraceListener(Console::Out));
   Trace::AutoFlush = true;
   Trace::WriteLine(filename);
 }
@@ -257,7 +257,7 @@ COMMANDS CheckCommand(String^ inString) {
 void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 {
 
-  Trace::Listeners->Add(gcnew TextWriterTraceListener(Console::Out));
+  Trace::Listeners->Insert(0, gcnew TextWriterTraceListener(Console::Out));
   Trace::AutoFlush = true;
 
   NetCoreMessage ^ message = e->message;
