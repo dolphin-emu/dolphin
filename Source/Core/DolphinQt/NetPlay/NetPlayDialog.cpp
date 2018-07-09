@@ -123,8 +123,8 @@ void NetPlayDialog::CreateMainLayout()
   m_md5_button->setMenu(menu);
 
   m_reduce_polling_rate_box->setToolTip(
-      tr("This will reduce bandwidth usage, but may add up to one frame of additional latency, as "
-         "controllers will be polled only once per frame."));
+      tr("This will reduce bandwidth usage by polling GameCube controllers only twice per frame. "
+         "Does not affect Wii Remotes."));
 
   m_main_layout->addWidget(m_game_button, 0, 0);
   m_main_layout->addWidget(m_md5_button, 0, 1);
