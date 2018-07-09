@@ -159,7 +159,7 @@ private:
   void SendStopGamePacket();
 
   void UpdateDevices();
-  void SendPadState(int in_game_pad, const GCPadStatus& np);
+  void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
   unsigned int OnData(sf::Packet& packet);
   void Send(const sf::Packet& packet);
