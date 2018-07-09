@@ -93,10 +93,10 @@ public:
   void DecreaseVolume(int volume);
 
   // NetPlay
-  NetPlayClient* GetNetPlayClient();
-  void ResetNetPlayClient(NetPlayClient* client = nullptr);
-  NetPlayServer* GetNetPlayServer();
-  void ResetNetPlayServer(NetPlayServer* server = nullptr);
+  NetPlay::NetPlayClient* GetNetPlayClient();
+  void ResetNetPlayClient(NetPlay::NetPlayClient* client = nullptr);
+  NetPlay::NetPlayServer* GetNetPlayServer();
+  void ResetNetPlayServer(NetPlay::NetPlayServer* server = nullptr);
 
   // Cheats
   bool GetCheatsEnabled() const;
@@ -163,8 +163,8 @@ signals:
 private:
   bool m_batch = false;
   bool m_controller_state_needed = false;
-  std::unique_ptr<NetPlayClient> m_client;
-  std::unique_ptr<NetPlayServer> m_server;
+  std::unique_ptr<NetPlay::NetPlayClient> m_client;
+  std::unique_ptr<NetPlay::NetPlayServer> m_server;
   Settings();
 };
 

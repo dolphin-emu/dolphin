@@ -11,7 +11,6 @@
 
 class MD5Dialog;
 class GameListModel;
-class NetPlayServer;
 class PadMappingDialog;
 class QCheckBox;
 class QComboBox;
@@ -26,7 +25,7 @@ class QTableWidget;
 class QTextEdit;
 class QToolButton;
 
-class NetPlayDialog : public QDialog, public NetPlayUI
+class NetPlayDialog : public QDialog, public NetPlay::NetPlayUI
 {
   Q_OBJECT
 public:

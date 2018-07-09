@@ -16,7 +16,7 @@ namespace ConfigLoaders
 class NetPlayConfigLayerLoader final : public Config::ConfigLayerLoader
 {
 public:
-  explicit NetPlayConfigLayerLoader(const NetSettings& settings)
+  explicit NetPlayConfigLayerLoader(const NetPlay::NetSettings& settings)
       : ConfigLayerLoader(Config::LayerType::Netplay), m_settings(settings)
   {
   }
@@ -47,11 +47,12 @@ public:
   }
 
 private:
-  const NetSettings m_settings;
+  const NetPlay::NetSettings m_settings;
 };
 
 // Loader generation
-std::unique_ptr<Config::ConfigLayerLoader> GenerateNetPlayConfigLoader(const NetSettings& settings)
+std::unique_ptr<Config::ConfigLayerLoader>
+GenerateNetPlayConfigLoader(const NetPlay::NetSettings& settings)
 {
   return std::make_unique<NetPlayConfigLayerLoader>(settings);
 }

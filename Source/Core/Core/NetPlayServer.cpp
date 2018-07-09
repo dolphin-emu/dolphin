@@ -40,6 +40,8 @@
 #include <arpa/inet.h>
 #endif
 
+namespace NetPlay
+{
 u64 g_netplay_initial_rtc = 1272737767;
 
 NetPlayServer::~NetPlayServer()
@@ -951,3 +953,4 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
     result.emplace_back(std::make_pair("!local!", "127.0.0.1"));
   return result;
 }
+}  // namespace NetPlay

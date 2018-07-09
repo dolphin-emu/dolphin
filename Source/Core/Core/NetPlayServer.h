@@ -19,8 +19,8 @@
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 
-enum class PlayerGameStatus;
-
+namespace NetPlay
+{
 class NetPlayUI;
 enum class PlayerGameStatus;
 
@@ -124,3 +124,4 @@ private:
   TraversalClient* m_traversal_client = nullptr;
   NetPlayUI* m_dialog = nullptr;
 };
+}  // namespace NetPlay

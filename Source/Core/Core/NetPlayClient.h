@@ -18,6 +18,8 @@
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
 
+namespace NetPlay
+{
 class NetPlayUI
 {
 public:
@@ -186,3 +188,4 @@ private:
 
 void NetPlay_Enable(NetPlayClient* const np);
 void NetPlay_Disable();
+}  // namespace NetPlay

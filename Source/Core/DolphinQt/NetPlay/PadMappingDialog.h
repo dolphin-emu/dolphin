@@ -8,11 +8,14 @@
 
 #include "Core/NetPlayProto.h"
 
-class NetPlayClient;
-class Player;
 class QGridLayout;
 class QComboBox;
 class QDialogButtonBox;
+
+namespace NetPlay
+{
+class Player;
+}
 
 class PadMappingDialog : public QDialog
 {
@@ -22,8 +25,8 @@ public:
 
   int exec() override;
 
-  PadMappingArray GetGCPadArray();
-  PadMappingArray GetWiimoteArray();
+  NetPlay::PadMappingArray GetGCPadArray();
+  NetPlay::PadMappingArray GetWiimoteArray();
 
 private:
   void CreateWidgets();
@@ -31,12 +34,12 @@ private:
 
   void OnMappingChanged();
 
-  PadMappingArray m_pad_mapping;
-  PadMappingArray m_wii_mapping;
+  NetPlay::PadMappingArray m_pad_mapping;
+  NetPlay::PadMappingArray m_wii_mapping;
 
   QGridLayout* m_main_layout;
   std::array<QComboBox*, 4> m_gc_boxes;
   std::array<QComboBox*, 4> m_wii_boxes;
-  std::vector<const Player*> m_players;
+  std::vector<const NetPlay::Player*> m_players;
   QDialogButtonBox* m_button_box;
 };

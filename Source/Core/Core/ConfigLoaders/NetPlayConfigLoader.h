@@ -6,14 +6,18 @@
 
 #include <memory>
 
-struct NetSettings;
-
 namespace Config
 {
 class ConfigLayerLoader;
 }
 
+namespace NetPlay
+{
+struct NetSettings;
+}
+
 namespace ConfigLoaders
 {
-std::unique_ptr<Config::ConfigLayerLoader> GenerateNetPlayConfigLoader(const NetSettings& settings);
+std::unique_ptr<Config::ConfigLayerLoader>
+GenerateNetPlayConfigLoader(const NetPlay::NetSettings& settings);
 }
