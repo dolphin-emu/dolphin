@@ -18,7 +18,6 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/Debugger/NewBreakpointDialog.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -102,12 +101,12 @@ void BreakpointWidget::CreateWidgets()
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
 
-  m_new = AddAction(m_toolbar, tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
-  m_delete = AddAction(m_toolbar, tr("Delete"), this, &BreakpointWidget::OnDelete);
-  m_clear = AddAction(m_toolbar, tr("Clear"), this, &BreakpointWidget::OnClear);
+  m_new = m_toolbar->addAction(tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
+  m_delete = m_toolbar->addAction(tr("Delete"), this, &BreakpointWidget::OnDelete);
+  m_clear = m_toolbar->addAction(tr("Clear"), this, &BreakpointWidget::OnClear);
 
-  m_load = AddAction(m_toolbar, tr("Load"), this, &BreakpointWidget::OnLoad);
-  m_save = AddAction(m_toolbar, tr("Save"), this, &BreakpointWidget::OnSave);
+  m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
+  m_save = m_toolbar->addAction(tr("Save"), this, &BreakpointWidget::OnSave);
 
   m_new->setEnabled(false);
   m_load->setEnabled(false);

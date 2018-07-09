@@ -9,7 +9,6 @@
 
 #include "Core/Core.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/ToolBar.h"
@@ -91,29 +90,29 @@ void ToolBar::OnDebugModeToggled(bool enabled)
 
 void ToolBar::MakeActions()
 {
-  m_step_action = AddAction(this, tr("Step"), this, &ToolBar::StepPressed);
-  m_step_over_action = AddAction(this, tr("Step Over"), this, &ToolBar::StepOverPressed);
-  m_step_out_action = AddAction(this, tr("Step Out"), this, &ToolBar::StepOutPressed);
-  m_skip_action = AddAction(this, tr("Skip"), this, &ToolBar::SkipPressed);
-  m_show_pc_action = AddAction(this, tr("Show PC"), this, &ToolBar::ShowPCPressed);
-  m_set_pc_action = AddAction(this, tr("Set PC"), this, &ToolBar::SetPCPressed);
+  m_step_action = addAction(tr("Step"), this, &ToolBar::StepPressed);
+  m_step_over_action = addAction(tr("Step Over"), this, &ToolBar::StepOverPressed);
+  m_step_out_action = addAction(tr("Step Out"), this, &ToolBar::StepOutPressed);
+  m_skip_action = addAction(tr("Skip"), this, &ToolBar::SkipPressed);
+  m_show_pc_action = addAction(tr("Show PC"), this, &ToolBar::ShowPCPressed);
+  m_set_pc_action = addAction(tr("Set PC"), this, &ToolBar::SetPCPressed);
 
-  m_open_action = AddAction(this, tr("Open"), this, &ToolBar::OpenPressed);
-  m_refresh_action = AddAction(this, tr("Refresh"), this, &ToolBar::RefreshPressed);
-
-  addSeparator();
-
-  m_pause_play_action = AddAction(this, tr("Play"), this, &ToolBar::PlayPressed);
-
-  m_stop_action = AddAction(this, tr("Stop"), this, &ToolBar::StopPressed);
-  m_fullscreen_action = AddAction(this, tr("FullScr"), this, &ToolBar::FullScreenPressed);
-  m_screenshot_action = AddAction(this, tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
+  m_open_action = addAction(tr("Open"), this, &ToolBar::OpenPressed);
+  m_refresh_action = addAction(tr("Refresh"), this, &ToolBar::RefreshPressed);
 
   addSeparator();
 
-  m_config_action = AddAction(this, tr("Config"), this, &ToolBar::SettingsPressed);
-  m_graphics_action = AddAction(this, tr("Graphics"), this, &ToolBar::GraphicsPressed);
-  m_controllers_action = AddAction(this, tr("Controllers"), this, &ToolBar::ControllersPressed);
+  m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
+
+  m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
+  m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
+  m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
+
+  addSeparator();
+
+  m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
+  m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
+  m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
 
   // Ensure every button has about the same width
