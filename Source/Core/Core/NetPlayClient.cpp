@@ -1238,15 +1238,20 @@ void NetPlayClient::SendTimeBase()
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 
-  u64 timebase = SystemTimers::GetFakeTimeBase();
+  if (netplay_client->m_timebase_frame % 60 == 0)
+  {
+    u64 timebase = SystemTimers::GetFakeTimeBase();
 
-  sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
-  packet << static_cast<u32>(timebase);
-  packet << static_cast<u32>(timebase << 32);
-  packet << netplay_client->m_timebase_frame++;
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
+    packet << static_cast<u32>(timebase);
+    packet << static_cast<u32>(timebase << 32);
+    packet << netplay_client->m_timebase_frame;
 
-  netplay_client->SendAsync(std::move(packet));
+    netplay_client->SendAsync(std::move(packet));
+  }
+
+  netplay_client->m_timebase_frame++;
 }
 
 bool NetPlayClient::DoAllPlayersHaveGame()
