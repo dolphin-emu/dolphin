@@ -75,6 +75,7 @@ public:
 
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
   std::vector<const Player*> GetPlayers();
+  const NetSettings& GetNetSettings() const;
 
   // Called from the GUI thread.
   bool IsConnected() const { return m_is_connected; }
@@ -173,6 +174,7 @@ private:
   ConnectionState m_connection_state = ConnectionState::Failure;
 
   PlayerId m_pid = 0;
+  NetSettings m_net_settings{};
   std::map<PlayerId, Player> m_players;
   std::string m_host_spec;
   std::string m_player_name;

@@ -49,7 +49,6 @@ struct NetTraversalConfig
   u16 traversal_port = 0;
 };
 
-extern NetSettings g_NetPlaySettings;
 extern u64 g_netplay_initial_rtc;
 
 struct Rpt : public std::vector<u8>
@@ -112,4 +111,8 @@ using PadMapping = s8;
 using PadMappingArray = std::array<PadMapping, 4>;
 
 bool IsNetPlayRunning();
+
+// Precondition: A netplay client instance must be present. In other words,
+//               IsNetPlayRunning() must be true before calling this.
+const NetSettings& GetNetSettings();
 }  // namespace NetPlay
