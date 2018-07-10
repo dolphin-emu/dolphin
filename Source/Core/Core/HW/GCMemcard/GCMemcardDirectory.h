@@ -12,8 +12,6 @@
 #include "Common/Event.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
-// Uncomment this to write the system data of the memorycard from directory to disc
-//#define _WRITE_MC_HEADER 1
 void MigrateFromMemcardFile(const std::string& directory_name, int card_index);
 
 class GCMemcardDirectory : public MemoryCardBase
