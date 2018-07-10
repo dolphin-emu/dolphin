@@ -20,6 +20,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/QoSSession.h"
@@ -258,6 +259,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   MessageId mid;
   packet >> mid;
 
+  INFO_LOG(NETPLAY, "Got server message: %x", mid);
+
   switch (mid)
   {
   case NP_MSG_PLAYER_JOIN:
@@ -266,6 +269,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> player.pid;
     packet >> player.name;
     packet >> player.revision;
+
+    INFO_LOG(NETPLAY, "Player %s (%d) using %s joined", player.name.c_str(), player.pid,
+             player.revision.c_str());
 
     {
       std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
@@ -280,6 +286,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     PlayerId pid;
     packet >> pid;
+
+    INFO_LOG(NETPLAY, "Player %s (%d) left", m_players.find(pid)->second.name.c_str(), pid);
 
     {
       std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
@@ -299,6 +307,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     // don't need lock to read in this thread
     const Player& player = m_players[pid];
+
+    INFO_LOG(NETPLAY, "Player %s (%d) wrote: %s", player.name.c_str(), player.pid, msg.c_str());
 
     // add to gui
     std::ostringstream ss;
@@ -382,6 +392,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_selected_game;
     }
 
+    INFO_LOG(NETPLAY, "Game changed to %s", m_selected_game.c_str());
+
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game);
 
@@ -420,6 +432,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
       packet >> m_current_game;
       packet >> g_NetPlaySettings.m_CPUthread;
+
+      INFO_LOG(NETPLAY, "Start of game %s", m_selected_game.c_str());
 
       {
         std::underlying_type_t<PowerPC::CPUCore> core;
@@ -461,6 +475,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   case NP_MSG_STOP_GAME:
   case NP_MSG_DISABLE_GAME:
   {
+    INFO_LOG(NETPLAY, "Game stopped");
+
     StopGame();
     m_dialog->OnMsgStopGame();
   }
@@ -509,6 +525,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       if (it != m_players.end())
         player = it->second.name;
     }
+
+    INFO_LOG(NETPLAY, "Player %s (%d) desynced!", player.c_str(), pid_to_blame);
+
     m_dialog->OnDesync(frame, player);
   }
   break;

@@ -500,6 +500,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   MessageId mid;
   packet >> mid;
 
+  INFO_LOG(NETPLAY, "Got client message: %x", mid);
+
   // don't need lock because this is the only thread that modifies the players
   // only need locks for writes to m_players in this thread
 
