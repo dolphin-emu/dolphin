@@ -7,23 +7,29 @@
 #include <QList>
 #include <QPixmap>
 
+namespace DiscIO
+{
+enum class Country;
+enum class Platform;
+}
+
 // Store for various QPixmaps that will be used repeatedly.
 class Resources final
 {
 public:
+  enum class MiscID
+  {
+    BannerMissing,
+    LogoLarge,
+    LogoSmall
+  };
+
   static void Init();
 
-  static QPixmap GetPlatform(int platform);
-  static QPixmap GetCountry(int country);
+  static QPixmap GetPlatform(DiscIO::Platform platform);
+  static QPixmap GetCountry(DiscIO::Country country);
 
-  static QPixmap GetMisc(int id);
-
-  enum
-  {
-    BANNER_MISSING,
-    LOGO_LARGE,
-    LOGO_SMALL
-  };
+  static QPixmap GetMisc(MiscID id);
 
   static QIcon GetScaledIcon(const std::string& name);
   static QIcon GetScaledThemeIcon(const std::string& name);
