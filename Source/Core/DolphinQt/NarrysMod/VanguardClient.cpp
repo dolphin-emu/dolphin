@@ -15,7 +15,7 @@
 #include <string>  
 #include <iostream>
 
-#include "NetcoreClient.h"
+#include "VanguardClient.h"
 
 #include <msclr/marshal_cppstd.h>
 
@@ -23,6 +23,7 @@ using namespace cli;
 using namespace System;
 using namespace RTCV;
 using namespace RTCV::NetCore;
+using namespace RTCV::Vanguard;
 using namespace System::Runtime::InteropServices;
 
 #using <system.dll>
@@ -49,12 +50,12 @@ public:
 };
 
 
-//Define this in here as it's managed and it can't be in NetcoreClient.h as that's included in unmanaged code. Could probably move this to a header
-public ref class NetcoreClient
+//Define this in here as it's managed and it can't be in VanguardClient.h as that's included in unmanaged code. Could probably move this to a header
+public ref class VanguardClient
 {
-public:
-	static RTCV::NetCore::NetCoreSpec ^ spec;
-	static RTCV::NetCore::NetCoreConnector ^ connector;
+  public:
+   static RTCV::Vanguard::TargetSpec ^ spec;
+   static RTCV::Vanguard::VanguardConnector ^ connector;
 
   void OnMessageReceived(Object^  sender, RTCV::NetCore::NetCoreEventArgs^  e);
   
@@ -78,40 +79,38 @@ public:
 
 
 
-//Create our NetcoreClient
-void NetcoreClientInitializer::Initialize()
+//Create our VanguardClient
+void VanguardClientInitializer::Initialize()
 {
-  NetcoreClient^ client = gcnew NetcoreClient;
+  VanguardClient^ client = gcnew VanguardClient;
   client->StartClient();
 }
 
-void NetcoreClientInitializer::isWii()
+void VanguardClientInitializer::isWii()
 {
   if (SConfig::GetInstance().bWii)
-    NetcoreClient::connector->SendSyncedMessage("WII");
+    VanguardClient::connector->SendSyncedMessage("WII");
   else
-    NetcoreClient::connector->SendSyncedMessage("GAMECUBE");
+    VanguardClient::connector->SendSyncedMessage("GAMECUBE");
 }
 
 //Initialize it 
-void NetcoreClient::StartClient() 
+void VanguardClient::StartClient() 
 {
-	NetcoreClient::spec = gcnew RTCV::NetCore::NetCoreSpec();
-	NetcoreClient::spec->Side = NetworkSide::CLIENT;
-	NetcoreClient::spec->MessageReceived += gcnew EventHandler<NetCoreEventArgs^>(this, &NetcoreClient::OnMessageReceived);
-
-	NetcoreClient::connector = gcnew RTCV::NetCore::NetCoreConnector(spec);
+  VanguardClient::spec = gcnew RTCV::Vanguard::TargetSpec();
+  VanguardClient::spec->MessageReceived += gcnew EventHandler<NetCore::NetCoreEventArgs ^>(this, &VanguardClient::OnMessageReceived);
+  VanguardClient::connector = gcnew RTCV::Vanguard::VanguardConnector(spec);
 }
 
-void NetcoreClient::RestartClient()
+void VanguardClient::RestartClient()
 {
-  NetcoreClient::connector->Kill();
-  NetcoreClient::connector = nullptr;
+  VanguardClient::connector->Kill();
+  VanguardClient::connector = nullptr;
   StartClient();
 }
 
 /* IMPLEMENT YOUR COMMANDS HERE */
-void NetcoreClient::LoadState(String^ filename) {
+void VanguardClient::LoadState(String^ filename) {
 
   std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
   State::LoadAs(converted_filename);
@@ -120,7 +119,7 @@ void NetcoreClient::LoadState(String^ filename) {
   Trace::AutoFlush = true;
   Trace::WriteLine(filename);
 }
-void NetcoreClient::SaveState(String^ filename, bool wait) {
+void VanguardClient::SaveState(String^ filename, bool wait) {
 
   std::string converted_filename = msclr::interop::marshal_as< std::string >(filename);
   State::SaveAs(converted_filename, wait);
@@ -140,7 +139,7 @@ void NetcoreClient::SaveState(String^ filename, bool wait) {
 
 //THE INTERNAL FUNCTIONS TAKE VALUE, ADDRESS NOT ADDRESS,VALUE
 
-void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain) {
+void VanguardClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain) {
 
   if (domain->name == "SRAM" && (address - domain->offset) < domain->size)
     Memory::Write_U8((Convert::ToByte(value)), Convert::ToUInt32(address));
@@ -150,7 +149,7 @@ void NetcoreClient::PokeByte(long address, Byte ^ value, MemoryDomain ^ domain) 
     DSP::WriteARAM(Convert::ToByte(value), Convert::ToUInt32(address - SRAM_SIZE));
 }
 
-Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain) {
+Byte VanguardClient::PeekByte(long address, MemoryDomain ^ domain) {
 
   if (domain->name == "SRAM" && (address - domain->offset) < domain->size)
     return Memory::Read_U8(Convert::ToUInt32(address));
@@ -165,7 +164,7 @@ Byte NetcoreClient::PeekByte(long address, MemoryDomain ^ domain) {
 }
 
 
-void NetcoreClient::PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain){
+void VanguardClient::PokeBytes(long address, array<Byte>^ value, int range, MemoryDomain ^ domain){
 
  // array<Byte>^ byte = gcnew array<Byte>(range);
 
@@ -175,7 +174,7 @@ void NetcoreClient::PokeBytes(long address, array<Byte>^ value, int range, Memor
 }
 
 
-array<Byte>^ NetcoreClient::PeekBytes(long address, int range, MemoryDomain ^ domain) {
+array<Byte>^ VanguardClient::PeekBytes(long address, int range, MemoryDomain ^ domain) {
 
   array<Byte>^ byte = gcnew array<Byte>(range);
   for (int i = 0; i < range; i++)
@@ -186,7 +185,7 @@ array<Byte>^ NetcoreClient::PeekBytes(long address, int range, MemoryDomain ^ do
 
 
 
-array<Byte>^ NetcoreClient::PeekAddresses(array<long>^ addresses) {
+array<Byte>^ VanguardClient::PeekAddresses(array<long>^ addresses) {
 
   MemoryDomain ^ domain = gcnew MemoryDomain;
   array<Byte>^ bytes = gcnew array<Byte>(sizeof(addresses));
@@ -199,7 +198,7 @@ array<Byte>^ NetcoreClient::PeekAddresses(array<long>^ addresses) {
   return bytes;
 }
 
-void NetcoreClient::PokeAddresses(array<long>^ addresses, array<Byte>^ values) {
+void VanguardClient::PokeAddresses(array<long>^ addresses, array<Byte>^ values) {
 
   MemoryDomain ^ domain = gcnew MemoryDomain;
   for (int i = 0; i < sizeof(addresses); i++) {
@@ -210,7 +209,7 @@ void NetcoreClient::PokeAddresses(array<long>^ addresses, array<Byte>^ values) {
 }
 
 
-MemoryDomain^ NetcoreClient::GetDomain(long address, int range, MemoryDomain ^ domain) {
+MemoryDomain^ VanguardClient::GetDomain(long address, int range, MemoryDomain ^ domain) {
   //Hardcode this logic for now.
   if (address + range <= SRAM_SIZE) {
     domain->name = ("SRAM");
@@ -254,7 +253,7 @@ inline COMMANDS CheckCommand(String^ inString) {
 }
 
 /* THIS IS WHERE YOU HANDLE ANY RECEIVED MESSAGES */
-void NetcoreClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
+void VanguardClient::OnMessageReceived(Object^ sender, NetCoreEventArgs^ e)
 {
 
   Trace::Listeners->Insert(0, gcnew TextWriterTraceListener(Console::Out));

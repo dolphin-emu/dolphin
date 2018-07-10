@@ -32,6 +32,9 @@
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
+#include "NarrysMod/NetcoreClient.h"
+#include "NarrysMod/VanguardClient.h"
+
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no, MsgType style)
 {
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
@@ -179,6 +182,10 @@ int main(int argc, char* argv[])
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
+
+    //NARRYSMOD_HIJACK
+    VanguardClientInitializer::Initialize();
+
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)
