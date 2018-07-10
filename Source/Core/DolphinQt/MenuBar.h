@@ -150,6 +150,8 @@ private:
   void SaveSymbolMap();
   void SaveSymbolMapAs();
   void SaveCode();
+  bool TryLoadMapFile(const QString& path);
+  void TrySaveSymbolMap(const QString& path);
   void CreateSignatureFile();
   void PatchHLEFunctions();
   void ClearCache();
