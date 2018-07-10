@@ -145,10 +145,6 @@ CEXIIPL::~CEXIIPL()
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
     file.WriteArray(&g_SRAM, 1);
   }
-  else
-  {
-    g_SRAM_netplay_initialized = false;
-  }
 }
 void CEXIIPL::DoState(PointerWrap& p)
 {
