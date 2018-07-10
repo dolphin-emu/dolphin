@@ -226,7 +226,7 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length) const
   });
 }
 
-bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write,
+bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 addr, bool write,
                        size_t size, u32 pc)
 {
   if ((write && is_break_on_write) || (!write && is_break_on_read))
