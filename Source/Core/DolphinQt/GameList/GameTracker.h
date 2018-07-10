@@ -15,8 +15,12 @@
 
 #include "Common/Event.h"
 #include "Common/WorkQueueThread.h"
-#include "UICommon/GameFile.h"
 #include "UICommon/GameFileCache.h"
+
+namespace UICommon
+{
+class GameFile;
+}
 
 // Watches directories and loads GameFiles in a separate thread.
 // To use this, just add directories using AddDirectory, and listen for the

@@ -86,6 +86,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "UICommon/DiscordPresence.h"
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoConfig.h"

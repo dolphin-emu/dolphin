@@ -17,6 +17,8 @@
 
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/GameFile.h"
+
 // NOTE: Qt likes to be case-sensitive here even though it shouldn't be thus this ugly regex hack
 static const QStringList game_filters{
     QStringLiteral("*.[gG][cC][mM]"), QStringLiteral("*.[iI][sS][oO]"),

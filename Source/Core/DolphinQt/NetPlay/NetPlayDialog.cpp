@@ -36,7 +36,7 @@
 #include "Core/Core.h"
 #include "Core/NetPlayServer.h"
 
-#include "DolphinQt/GameList/GameList.h"
+#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/NetPlay/GameListDialog.h"
 #include "DolphinQt/NetPlay/MD5Dialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
