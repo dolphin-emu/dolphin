@@ -340,6 +340,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 	public void closeDialog()
 	{
+		notifyDataSetChanged();
+
 		if (mDialog != null)
 		{
 			mDialog.dismiss();

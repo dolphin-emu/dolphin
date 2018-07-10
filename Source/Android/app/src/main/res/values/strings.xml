@@ -111,7 +111,10 @@
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
     <string name="cpu_core">CPU Core</string>
-    <string name="cpu_core_description">%s</string>
+    <string name="cpu_core_interpreter">Interpreter</string>
+    <string name="cpu_core_cached_interpreter">Cached Interpreter</string>
+    <string name="cpu_core_jit_arm64">JIT ARM64 Recompiler</string>
+    <string name="cpu_core_jit">JIT Recompiler</string>
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
     <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
@@ -122,9 +125,19 @@
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
     <string name="gamecube_system_language">System Language</string>
+    <string name="gamecube_system_language_english">English</string>
+    <string name="gamecube_system_language_german">German</string>
+    <string name="gamecube_system_language_french">French</string>
+    <string name="gamecube_system_language_spanish">Spanish</string>
+    <string name="gamecube_system_language_italian">Italian</string>
+    <string name="gamecube_system_language_dutch">Dutch</string>
     <string name="override_gamecube_language">Override Language on NTSC games</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
+    <string name="slot_device_nothing">Nothing</string>
+    <string name="slot_device_dummy">Dummy</string>
+    <string name="slot_device_memory_card">Memory Card</string>
+    <string name="slot_device_gci_folder">GCI Folder</string>
     <string name="wii_submenu">Wii</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
@@ -146,7 +159,10 @@
 
     <!-- Video Preference Fragment -->
     <string name="video_backend">Video Backend</string>
-    <string name="video_backend_description">Select the API used for graphics rendering.</string>
+    <string name="video_backend_opengl">OpenGL</string>
+    <string name="video_backend_vulkan">Vulkan</string>
+    <string name="video_backend_software">Software</string>
+    <string name="video_backend_null">Null</string>
     <string name="show_fps">Show FPS</string>
     <string name="show_fps_description">Show the number of frames rendered per second as a measure of emulation speed.</string>
 
@@ -174,13 +190,16 @@
     <string name="disable_copy_filter">Disable Copy Filter</string>
     <string name="disable_copy_filter_description">Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". Disabling the filter is usually safe, and may result in a sharper image.</string>
     <string name="arbitrary_mipmap_detection">Arbitrary Mipmap Detection</string>
-    <string name="arbitrary_mipmap_detection_description">Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.\nMay have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures.\n\nIf unsure, leave this checked.</string>
+    <string name="arbitrary_mipmap_detection_description">Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.\nMay have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures.\nIf unsure, leave this checked.</string>
     <string name="stereoscopy_submenu">Stereoscopy</string>
     <string name="stereoscopy_submenu_description">Stereoscopy allows you to get a better feeling of depth if you have the necessary hardware.\nHeavily decreases emulation speed and sometimes causes issues</string>
     <string name="wide_screen_hack">Widescreen Hack</string>
     <string name="wide_screen_hack_description">Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9. Rarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches. If unsure, leave this unchecked.</string>
     <string name="stereoscopy_mode">Stereoscopy Mode</string>
-    <string name="stereoscopy_mode_description">Select the stereoscopic 3D mode.</string>
+    <string name="stereoscopy_mode_off">Off</string>
+    <string name="stereoscopy_mode_side_side">Side-by-Side</string>
+    <string name="stereoscopy_mode_top_bottom">Top-and-Bottom</string>
+    <string name="stereoscopy_mode_anaglyph">Anaglyph</string>
     <string name="stereoscopy_depth">Depth</string>
     <string name="stereoscopy_depth_description">Control the distance between the virtual cameras.\nA higher value creates a stronger feeling of depth while a lower value is more comfortable.</string>
     <string name="stereoscopy_convergence">Convergence</string>
@@ -211,9 +230,15 @@
     <string name="fast_depth_calculation">Fast Depth Calculation</string>
     <string name="fast_depth_calculation_description">Uses a less accurate algorithm to calculate depth values.</string>
     <string name="aspect_ratio">Aspect Ratio</string>
-    <string name="aspect_ratio_description">Select what aspect ratio to use when rendering</string>
+    <string name="aspect_ratio_auto">Auto</string>
+    <string name="aspect_ratio_force_16_9">Force 16:9</string>
+    <string name="aspect_ratio_force_4_3">Force 4:3</string>
+    <string name="aspect_ratio_stretch">Stretch to Window</string>
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
-    <string name="shader_compilation_mode_description">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
+    <string name="shader_compilation_sync_description">Synchronous: Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low. Recommended for low-end hardware.\nIf unsure, select this mode.</string>
+    <string name="shader_compilation_sync_uber_description">Synchronous (Ubershaders): Ubershaders will always be used. Provides a near stutter-free experience at the cost of high GPU performance requirements. Only recommended for high-end systems.</string>
+    <string name="shader_compilation_async_uber_description">Asynchronous (Ubershaders): Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering. In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.</string>
+    <string name="shader_compilation_async_skip_description">Asynchronous (Skip Drawing): Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn\'t, at the cost of introducing visual glitches and broken effects. Not recommended, only use if the other options give poor results on your system.</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
 
     <!-- Miscellaneous -->
@@ -281,4 +306,13 @@
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
+
+    <!-- Dynamic descriptionIds-->
+    <string name="dynamic_cpu_core">dynamic_cpu_core</string>
+    <string name="dynamic_system_language">dynamic_system_language</string>
+    <string name="dynamic_gamecube_slot">dynamic_gamecube_slot</string>
+    <string name="dynamic_video_backend">dynamic_video_backend</string>
+    <string name="dynamic_shader_compilation_mode">dynamic_shader_compilation_mode</string>
+    <string name="dynamic_aspect_ratio">dynamic_aspect_ratio</string>
+    <string name="dynamic_stereoscopy_mode">dynamic_stereoscopy_mode</string>
 </resources>
