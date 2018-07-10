@@ -33,7 +33,6 @@
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/GameList/GameListModel.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Settings.h"
 
 constexpr u32 MAX_RESULTS = 50;
@@ -132,7 +131,7 @@ void CheatsManager::OnWatchContextMenu()
 
   QMenu* menu = new QMenu(this);
 
-  AddAction(menu, tr("Remove from Watch"), this, [this] {
+  menu->addAction(tr("Remove from Watch"), this, [this] {
     auto* item = m_match_table->selectedItems()[0];
 
     int index = item->data(INDEX_ROLE).toInt();
@@ -144,7 +143,7 @@ void CheatsManager::OnWatchContextMenu()
 
   menu->addSeparator();
 
-  AddAction(menu, tr("Generate Action Replay Code"), this, &CheatsManager::GenerateARCode);
+  menu->addAction(tr("Generate Action Replay Code"), this, &CheatsManager::GenerateARCode);
 
   menu->exec(QCursor::pos());
 }
@@ -156,7 +155,7 @@ void CheatsManager::OnMatchContextMenu()
 
   QMenu* menu = new QMenu(this);
 
-  AddAction(menu, tr("Add to Watch"), this, [this] {
+  menu->addAction(tr("Add to Watch"), this, [this] {
     auto* item = m_match_table->selectedItems()[0];
 
     int index = item->data(INDEX_ROLE).toInt();

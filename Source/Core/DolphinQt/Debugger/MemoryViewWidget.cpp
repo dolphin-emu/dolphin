@@ -19,7 +19,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -351,16 +350,16 @@ void MemoryViewWidget::OnContextMenu()
 {
   auto* menu = new QMenu(this);
 
-  AddAction(menu, tr("Copy Address"), this, &MemoryViewWidget::OnCopyAddress);
+  menu->addAction(tr("Copy Address"), this, &MemoryViewWidget::OnCopyAddress);
 
-  auto* copy_hex = AddAction(menu, tr("Copy Hex"), this, &MemoryViewWidget::OnCopyHex);
+  auto* copy_hex = menu->addAction(tr("Copy Hex"), this, &MemoryViewWidget::OnCopyHex);
 
   copy_hex->setEnabled(Core::GetState() != Core::State::Uninitialized &&
                        PowerPC::HostIsRAMAddress(GetContextAddress()));
 
   menu->addSeparator();
 
-  AddAction(menu, tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
+  menu->addAction(tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
 
   menu->exec(QCursor::pos());
 }
