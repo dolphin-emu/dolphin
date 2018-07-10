@@ -13,6 +13,9 @@
 #include <QProgressBar>
 #include <QVBoxLayout>
 
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+
 #include "DolphinQt/Settings.h"
 
 static QString GetPlayerNameFromPID(int pid)
