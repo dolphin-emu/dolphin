@@ -366,7 +366,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnDisconnect(const Client& player)
 {
-  PlayerId pid = player.pid;
+  const PlayerId pid = player.pid;
 
   if (m_is_running)
   {
@@ -405,18 +405,18 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
     if (mapping == pid)
     {
       mapping = -1;
+      UpdatePadMapping();
     }
   }
-  UpdatePadMapping();
 
   for (PadMapping& mapping : m_wiimote_map)
   {
     if (mapping == pid)
     {
       mapping = -1;
+      UpdateWiimoteMapping();
     }
   }
-  UpdateWiimoteMapping();
 
   return 0;
 }
