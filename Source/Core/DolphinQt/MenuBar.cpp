@@ -497,7 +497,7 @@ void MenuBar::InstallUpdateManually()
 
   track = "dev";
 
-  auto* updater = new Updater(this);
+  auto* updater = new Updater(this->parentWidget());
 
   if (!updater->CheckForUpdate())
   {
