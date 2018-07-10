@@ -258,7 +258,7 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
                  "unsure, select this mode.");
-  static const char TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION[] = QT_TR_NOOP(
+  static const char TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will always be used. Provides a near stutter-free experience at the cost of "
       "high GPU performance requirements. Only recommended for high-end systems.");
   static const char TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION[] =
@@ -289,7 +289,7 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);
   AddDescription(m_render_main_window, TR_RENDER_TO_MAINWINDOW_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[0], TR_SHADER_COMPILE_SYNC_DESCRIPTION);
-  AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION);
+  AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[2], TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[3], TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION);
   AddDescription(m_wait_for_shaders, TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION);
