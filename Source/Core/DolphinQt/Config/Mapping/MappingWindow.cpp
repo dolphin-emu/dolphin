@@ -136,6 +136,8 @@ void MappingWindow::CreateMainLayout()
 
 void MappingWindow::ConnectWidgets()
 {
+  connect(&Settings::Instance(), &Settings::DevicesChanged, this,
+          &MappingWindow::OnGlobalDevicesChanged);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_devices_refresh, &QPushButton::clicked, this, &MappingWindow::RefreshDevices);
   connect(m_devices_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -243,10 +245,14 @@ bool MappingWindow::IsMappingAllDevices() const
 
 void MappingWindow::RefreshDevices()
 {
+  Core::RunAsCPUThread([&] { g_controller_interface.RefreshDevices(); });
+}
+
+void MappingWindow::OnGlobalDevicesChanged()
+{
   m_devices_combo->clear();
 
   Core::RunAsCPUThread([&] {
-    g_controller_interface.RefreshDevices();
     m_controller->UpdateReferences(g_controller_interface);
 
     const auto default_device = m_controller->GetDefaultDevice().ToString();

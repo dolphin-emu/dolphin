@@ -25,6 +25,7 @@
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
 Settings::Settings()
@@ -36,6 +37,9 @@ Settings::Settings()
 
   Config::AddConfigChangedCallback(
       [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
+
+  g_controller_interface.RegisterDevicesChangedCallback(
+      [this] { QueueOnObject(this, [this] { emit DevicesChanged(); }); });
 
   SetCurrentUserStyle(GetCurrentUserStyle());
 }
