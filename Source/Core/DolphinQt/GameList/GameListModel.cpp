@@ -54,13 +54,13 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   {
   case COL_PLATFORM:
     if (role == Qt::DecorationRole)
-      return Resources::GetPlatform(static_cast<int>(game.GetPlatform()));
+      return Resources::GetPlatform(game.GetPlatform());
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game.GetPlatform());
     break;
   case COL_COUNTRY:
     if (role == Qt::DecorationRole)
-      return Resources::GetCountry(static_cast<int>(game.GetCountry()));
+      return Resources::GetCountry(game.GetCountry());
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game.GetCountry());
     break;
@@ -70,7 +70,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       // GameCube banners are 96x32, but Wii banners are 192x64.
       QPixmap banner = ToQPixmap(game.GetBannerImage());
       if (banner.isNull())
-        banner = Resources::GetMisc(Resources::BANNER_MISSING);
+        banner = Resources::GetMisc(Resources::MiscID::BannerMissing);
 
       banner.setDevicePixelRatio(
           std::max(static_cast<qreal>(banner.width()) / GAMECUBE_BANNER_SIZE.width(),
