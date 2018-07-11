@@ -6,6 +6,8 @@
 
 package org.dolphinemu.dolphinemu.overlay;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -19,6 +21,8 @@ import android.view.MotionEvent;
  */
 public final class InputOverlayDrawableJoystick
 {
+	private SharedPreferences mPreferences;
+
 	private final int[] axisIDs = {0, 0, 0, 0};
 	private final float[] axises = {0f, 0f};
 	private int trackId = -1;
@@ -48,7 +52,7 @@ public final class InputOverlayDrawableJoystick
 	 */
 	public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter,
 					    Bitmap bitmapInnerDefault, Bitmap bitmapInnerPressed,
-					    Rect rectOuter, Rect rectInner, int joystick)
+					    Rect rectOuter, Rect rectInner, int joystick, SharedPreferences prefsHandle)
 	{
 		axisIDs[0] = joystick + 1;
 		axisIDs[1] = joystick + 2;
@@ -56,6 +60,7 @@ public final class InputOverlayDrawableJoystick
 		axisIDs[3] = joystick + 4;
 		mJoystickType = joystick;
 
+		mPreferences = prefsHandle;
 		mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
 		mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
 		mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
@@ -92,6 +97,7 @@ public final class InputOverlayDrawableJoystick
 
 	public void TrackEvent(MotionEvent event)
 	{
+		boolean reCenter = mPreferences.getBoolean("joystickRelCenter", true);
 		int pointerIndex = event.getActionIndex();
 
 		switch(event.getAction() & MotionEvent.ACTION_MASK)
@@ -103,7 +109,10 @@ public final class InputOverlayDrawableJoystick
 				mPressedState = true;
 				mOuterBitmap.setAlpha(0);
 				mBoundsBoxBitmap.setAlpha(255);
-				getVirtBounds().offset((int)event.getX(pointerIndex) - getVirtBounds().centerX(), (int)event.getY(pointerIndex) - getVirtBounds().centerY());
+				if (reCenter)
+				{
+					getVirtBounds().offset((int)event.getX(pointerIndex) - getVirtBounds().centerX(), (int)event.getY(pointerIndex) - getVirtBounds().centerY());
+				}
 				mBoundsBoxBitmap.setBounds(getVirtBounds());
 				trackId = event.getPointerId(pointerIndex);
 			}

@@ -120,6 +120,7 @@ public final class EmulationActivity extends AppCompatActivity
 	public static final int MENU_ACTION_LOAD_SLOT6 = 21;
 	public static final int MENU_ACTION_EXIT = 22;
 	public static final int MENU_ACTION_CHANGE_DISC = 23;
+	public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
 
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -147,6 +148,7 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
 		buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
 		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
+		buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center, EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
 	}
 
 	public static void launch(FragmentActivity activity, GameFile gameFile, int position, View sharedView)
@@ -431,6 +433,10 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
 		}
+
+		// Populate the checkbox value for joystick center on touch
+		menu.findItem(R.id.menu_emulation_joystick_rel_center).setChecked(mPreferences.getBoolean("joystickRelCenter", true));
+
 		return true;
 	}
 
@@ -441,9 +447,28 @@ public final class EmulationActivity extends AppCompatActivity
 		int action = buttonsActionsMap.get(item.getItemId(), -1);
 		if (action >= 0)
 		{
-			handleMenuAction(action);
+			if (item.isCheckable())
+			{
+				// Need to pass a reference to the item to set the checkbox state, since it is not done automatically
+				handleCheckableMenuAction(action, item);
+			}
+			else
+			{
+				handleMenuAction(action);
+			}
 		}
 		return true;
+	}
+
+	public void handleCheckableMenuAction(@MenuAction int menuAction, MenuItem item)
+	{
+		switch (menuAction)
+		{
+			case MENU_ACTION_JOYSTICK_REL_CENTER:
+				item.setChecked(!item.isChecked());
+				toggleJoystickRelCenter(item.isChecked());
+				return;
+		}
 	}
 
 	public void handleMenuAction(@MenuAction int menuAction)
@@ -563,6 +588,13 @@ public final class EmulationActivity extends AppCompatActivity
 				exitWithAnimation();
 				return;
 		}
+	}
+
+	private void toggleJoystickRelCenter(boolean state)
+	{
+		final SharedPreferences.Editor editor = mPreferences.edit();
+		editor.putBoolean("joystickRelCenter", state);
+		editor.commit();
 	}
 
 
