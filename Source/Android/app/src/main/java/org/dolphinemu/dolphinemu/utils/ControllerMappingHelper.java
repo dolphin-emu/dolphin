@@ -8,7 +8,7 @@ import android.view.MotionEvent;
 public class ControllerMappingHelper
 {
 	/** Some controllers report extra button presses that can be ignored. */
-	public boolean shouldKeyBeIgnored(InputDevice inputDevice, int keyCode)
+	public static boolean shouldKeyBeIgnored(InputDevice inputDevice, int keyCode)
 	{
 		if (isDualShock4(inputDevice)) {
 			// The two analog triggers generate analog motion events as well as a keycode.
@@ -20,7 +20,7 @@ public class ControllerMappingHelper
 	}
 
 	/** Scale an axis to be zero-centered with a proper range. */
-	public float scaleAxis(InputDevice inputDevice, int axis, float value)
+	public static float scaleAxis(InputDevice inputDevice, int axis, float value)
 	{
 		if (isDualShock4(inputDevice))
 		{
@@ -43,13 +43,13 @@ public class ControllerMappingHelper
 		return value;
 	}
 
-	private boolean isDualShock4(InputDevice inputDevice)
+	private static boolean isDualShock4(InputDevice inputDevice)
 	{
 		// Sony DualShock 4 controller
 		return inputDevice.getVendorId() == 0x54c && inputDevice.getProductId() == 0x9cc;
 	}
 
-	private boolean isXboxOneWireless(InputDevice inputDevice)
+	private static boolean isXboxOneWireless(InputDevice inputDevice)
 	{
 		// Microsoft Xbox One controller
 		return inputDevice.getVendorId() == 0x45e && inputDevice.getProductId() == 0x2e0;

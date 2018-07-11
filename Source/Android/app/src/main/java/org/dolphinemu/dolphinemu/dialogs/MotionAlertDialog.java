@@ -23,7 +23,6 @@ public final class MotionAlertDialog extends AlertDialog
 {
 	// The selected input preference
 	private final InputBindingSetting setting;
-	private final ControllerMappingHelper mControllerMappingHelper;
 	private final ArrayList<Float> mPreviousValues = new ArrayList<>();
 	private int mPrevDeviceId = 0;
 	private boolean mWaitingForEvent = true;
@@ -39,7 +38,6 @@ public final class MotionAlertDialog extends AlertDialog
 		super(context);
 
 		this.setting = setting;
-		this.mControllerMappingHelper = new ControllerMappingHelper();
 	}
 
 	public boolean onKeyEvent(int keyCode, KeyEvent event)
@@ -48,7 +46,7 @@ public final class MotionAlertDialog extends AlertDialog
 		switch (event.getAction())
 		{
 			case KeyEvent.ACTION_DOWN:
-				if (!mControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
+				if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
 				{
 					saveKeyInput(event);
 				}
@@ -103,7 +101,7 @@ public final class MotionAlertDialog extends AlertDialog
 				InputDevice.MotionRange range = motionRanges.get(i);
 				int axis = range.getAxis();
 				float origValue = event.getAxisValue(axis);
-				float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+				float value = ControllerMappingHelper.scaleAxis(input, axis, origValue);
 				if (firstEvent)
 				{
 					mPreviousValues.add(value);
