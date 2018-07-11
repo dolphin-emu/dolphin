@@ -15,11 +15,14 @@
 #include <QFrame>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QListView>
 #include <QMap>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QScrollBar>
+#include <QSortFilterProxyModel>
+#include <QTableView>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
@@ -34,12 +37,15 @@
 #include "DiscIO/Enums.h"
 
 #include "DolphinQt/Config/PropertiesDialog.h"
+#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
+
+#include "UICommon/GameFile.h"
 
 static bool CompressCB(const std::string&, float, void*);
 
@@ -675,6 +681,11 @@ bool GameList::HasMultipleSelected() const
 {
   return currentWidget() == m_list ? m_list->selectionModel()->selectedRows().size() > 1 :
                                      m_grid->selectionModel()->selectedIndexes().size() > 1;
+}
+
+void GameList::SetViewColumn(int col, bool view)
+{
+  m_list->setColumnHidden(col, !view);
 }
 
 void GameList::SetPreferredView(bool list)

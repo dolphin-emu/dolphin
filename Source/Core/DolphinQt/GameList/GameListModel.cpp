@@ -14,6 +14,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
@@ -224,6 +225,16 @@ bool GameListModel::ShouldDisplayGameListItem(int index) const
 std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) const
 {
   return m_games[index];
+}
+
+QString GameListModel::GetPath(int index) const
+{
+  return QString::fromStdString(m_games[index]->GetFilePath());
+}
+
+QString GameListModel::GetUniqueIdentifier(int index) const
+{
+  return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
 }
 
 void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)
