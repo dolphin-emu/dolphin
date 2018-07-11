@@ -12,6 +12,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,6 +24,8 @@ public final class MotionAlertDialog extends AlertDialog
 	// The selected input preference
 	private final InputBindingSetting setting;
 	private final ControllerMappingHelper mControllerMappingHelper;
+	private final ArrayList<Float> mPreviousValues = new ArrayList<>();
+	private int mPrevDeviceId = 0;
 	private boolean mWaitingForEvent = true;
 
 	/**
@@ -82,34 +85,63 @@ public final class MotionAlertDialog extends AlertDialog
 
 		List<InputDevice.MotionRange> motionRanges = input.getMotionRanges();
 
+		if (input.getId() != mPrevDeviceId)
+		{
+			mPreviousValues.clear();
+		}
+		mPrevDeviceId = input.getId();
+		boolean firstEvent = mPreviousValues.isEmpty();
+
 		int numMovedAxis = 0;
 		float axisMoveValue = 0.0f;
 		InputDevice.MotionRange lastMovedRange = null;
 		char lastMovedDir = '?';
 		if (mWaitingForEvent)
 		{
-			// Get only the axis that seem to have moved (more than .5)
-			for (InputDevice.MotionRange range : motionRanges)
+			for (int i = 0; i < motionRanges.size(); i++)
 			{
+				InputDevice.MotionRange range = motionRanges.get(i);
 				int axis = range.getAxis();
 				float origValue = event.getAxisValue(axis);
 				float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
-				if (Math.abs(value) > 0.5f)
+				if (firstEvent)
 				{
-					// It is common to have multiple axis with the same physical input. For example,
-					// shoulder butters are provided as both AXIS_LTRIGGER and AXIS_BRAKE.
-					// To handle this, we ignore an axis motion that's the exact same as a motion
-					// we already saw. This way, we ignore axis with two names, but catch the case
-					// where a joystick is moved in two directions.
-					// ref: bottom of https://developer.android.com/training/game-controllers/controller-input.html
-					if (value != axisMoveValue)
+					mPreviousValues.add(value);
+				}
+				else
+				{
+					float previousValue = mPreviousValues.get(i);
+
+					// Only handle the axes that are not neutral (more than 0.5)
+					// but ignore any axis that has a constant value (e.g. always 1)
+					if (Math.abs(value) > 0.5f && value != previousValue)
 					{
-						axisMoveValue = value;
+						// It is common to have multiple axes with the same physical input. For example,
+						// shoulder butters are provided as both AXIS_LTRIGGER and AXIS_BRAKE.
+						// To handle this, we ignore an axis motion that's the exact same as a motion
+						// we already saw. This way, we ignore axes with two names, but catch the case
+						// where a joystick is moved in two directions.
+						// ref: bottom of https://developer.android.com/training/game-controllers/controller-input.html
+						if (value != axisMoveValue)
+						{
+							axisMoveValue = value;
+							numMovedAxis++;
+							lastMovedRange = range;
+							lastMovedDir = value < 0.0f ? '-' : '+';
+						}
+					}
+					// Special case for d-pads (axis value jumps between 0 and 1 without any values
+					// in between). Without this, the user would need to press the d-pad twice
+					// due to the first press being caught by the "if (firstEvent)" case further up.
+					else if (Math.abs(value) < 0.25f && Math.abs(previousValue) > 0.75f)
+					{
 						numMovedAxis++;
 						lastMovedRange = range;
-						lastMovedDir = value < 0.0f ? '-' : '+';
+						lastMovedDir = previousValue < 0.0f ? '-' : '+';
 					}
 				}
+
+				mPreviousValues.set(i, value);
 			}
 
 			// If only one axis moved, that's the winner.
