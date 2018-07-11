@@ -344,15 +344,20 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_PAD_DATA:
   {
-    PadMapping map = 0;
-    GCPadStatus pad;
-    packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
-        pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+    while (!packet.endOfPacket())
+    {
+      PadMapping map;
+      packet >> map;
 
-    // Trusting server for good map value (>=0 && <4)
-    // add to pad buffer
-    m_pad_buffer.at(map).Push(pad);
-    m_gc_pad_event.Set();
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      // Trusting server for good map value (>=0 && <4)
+      // add to pad buffer
+      m_pad_buffer.at(map).Push(pad);
+      m_gc_pad_event.Set();
+    }
   }
   break;
 
@@ -797,15 +802,12 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 }
 
 // called from ---CPU--- thread
-void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
+void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus& pad,
+                                        sf::Packet& packet)
 {
-  sf::Packet packet;
-  packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
   packet << static_cast<PadMapping>(in_game_pad);
   packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
          << pad.substickY << pad.triggerLeft << pad.triggerRight << pad.isConnected;
-
-  SendAsync(std::move(packet));
 }
 
 // called from ---CPU--- thread
@@ -1019,6 +1021,10 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
   // clients.
   if (IsFirstInGamePad(pad_nb))
   {
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
+
+    bool send_packet = false;
     const int num_local_pads = NumLocalPads();
     for (int local_pad = 0; local_pad < num_local_pads; local_pad++)
     {
@@ -1042,10 +1048,14 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
         // add to buffer
         m_pad_buffer[ingame_pad].Push(*pad_status);
 
-        // send
-        SendPadState(ingame_pad, *pad_status);
+        // add to packet
+        AddPadStateToPacket(ingame_pad, *pad_status, packet);
+        send_packet = true;
       }
     }
+
+    if (send_packet)
+      SendAsync(std::move(packet));
   }
 
   // Now, we either use the data pushed earlier, or wait for the

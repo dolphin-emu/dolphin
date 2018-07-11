@@ -528,24 +528,30 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (player.current_game != m_current_game)
       break;
 
-    PadMapping map = 0;
-    GCPadStatus pad;
-    packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
-        pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
-
-    // If the data is not from the correct player,
-    // then disconnect them.
-    if (m_pad_map.at(map) != player.pid)
-    {
-      return 1;
-    }
-
-    // Relay to clients
     sf::Packet spac;
-    spac << (MessageId)NP_MSG_PAD_DATA;
-    spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
-         << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-         << pad.isConnected;
+    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+
+    while (!packet.endOfPacket())
+    {
+      PadMapping map;
+      packet >> map;
+
+      // If the data is not from the correct player,
+      // then disconnect them.
+      if (m_pad_map.at(map) != player.pid)
+      {
+        return 1;
+      }
+
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      // Add to packet for relay to clients
+      spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+           << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
+           << pad.isConnected;
+    }
 
     SendToClients(spac, player.pid);
   }
