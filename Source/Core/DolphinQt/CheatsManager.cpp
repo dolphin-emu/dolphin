@@ -40,6 +40,35 @@ constexpr u32 MAX_RESULTS = 50;
 constexpr int INDEX_ROLE = Qt::UserRole;
 constexpr int COLUMN_ROLE = Qt::UserRole + 1;
 
+enum class CompareType : int
+{
+  Equal = 0,
+  NotEqual = 1,
+  Less = 2,
+  LessEqual = 3,
+  More = 4,
+  MoreEqual = 5
+};
+
+enum class DataType : int
+{
+  Byte = 0,
+  Short = 1,
+  Int = 2,
+  Float = 3,
+  Double = 4,
+  String = 5
+};
+
+struct Result
+{
+  u32 address;
+  DataType type;
+  QString name;
+  bool locked = false;
+  u32 locked_value;
+};
+
 CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
 {
   setWindowTitle(tr("Cheats Manager"));
@@ -55,6 +84,8 @@ CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
   Reset();
   Update();
 }
+
+CheatsManager::~CheatsManager() = default;
 
 void CheatsManager::OnStateChanged(Core::State state)
 {

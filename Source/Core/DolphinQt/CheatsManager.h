@@ -15,6 +15,7 @@
 class ARCodeWidget;
 class QComboBox;
 class QDialogButtonBox;
+class QLabel;
 class QLineEdit;
 class QPushButton;
 class QRadioButton;
@@ -22,52 +23,24 @@ class QSplitter;
 class QTabWidget;
 class QTableWidget;
 class QTableWidgetItem;
-class QLabel;
-
-namespace UICommon
-{
-class GameFile;
-}
+struct Result;
 
 namespace Core
 {
 enum class State;
 }
 
-enum class CompareType : int
+namespace UICommon
 {
-  Equal = 0,
-  NotEqual = 1,
-  Less = 2,
-  LessEqual = 3,
-  More = 4,
-  MoreEqual = 5
-};
-
-enum class DataType : int
-{
-  Byte = 0,
-  Short = 1,
-  Int = 2,
-  Float = 3,
-  Double = 4,
-  String = 5
-};
-
-struct Result
-{
-  u32 address;
-  DataType type;
-  QString name;
-  bool locked = false;
-  u32 locked_value;
-};
+class GameFile;
+}
 
 class CheatsManager : public QDialog
 {
   Q_OBJECT
 public:
   explicit CheatsManager(QWidget* parent = nullptr);
+  ~CheatsManager();
 
 private:
   QWidget* CreateCheatSearch();
