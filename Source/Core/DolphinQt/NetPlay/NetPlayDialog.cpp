@@ -368,7 +368,12 @@ void NetPlayDialog::UpdateGUI()
 
   // Update Player List
   const auto players = client->GetPlayers();
-  const auto player_count = static_cast<int>(players.size());
+
+  if (static_cast<int>(players.size()) != m_player_count && m_player_count != 0)
+    QApplication::alert(this);
+
+  m_player_count = static_cast<int>(players.size());
+
 
   int selection_pid = m_players_list->currentItem() ?
                           m_players_list->currentItem()->data(Qt::UserRole).toInt() :
@@ -377,7 +382,7 @@ void NetPlayDialog::UpdateGUI()
   m_players_list->clear();
   m_players_list->setHorizontalHeaderLabels(
       {tr("Player"), tr("Game Status"), tr("Ping"), tr("Mapping"), tr("Revision")});
-  m_players_list->setRowCount(player_count);
+  m_players_list->setRowCount(m_player_count);
 
   const auto get_mapping_string = [](const NetPlay::Player* player,
                                      const NetPlay::PadMappingArray& array) {
@@ -398,7 +403,7 @@ void NetPlayDialog::UpdateGUI()
       {NetPlay::PlayerGameStatus::NotFound, tr("Not Found")},
   };
 
-  for (int i = 0; i < player_count; i++)
+  for (int i = 0; i < m_player_count; i++)
   {
     const auto* p = players[i];
 
@@ -516,6 +521,7 @@ void NetPlayDialog::DisplayMessage(const QString& msg, const std::string& color,
 void NetPlayDialog::AppendChat(const std::string& msg)
 {
   DisplayMessage(QString::fromStdString(msg).toHtmlEscaped(), "");
+  QApplication::alert(this);
 }
 
 void NetPlayDialog::OnMsgChangeGame(const std::string& title)

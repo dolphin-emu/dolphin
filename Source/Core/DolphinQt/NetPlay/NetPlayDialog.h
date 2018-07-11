@@ -112,4 +112,5 @@ private:
   bool m_is_copy_button_retry = false;
   bool m_got_stop_request = true;
   int m_buffer_size = 0;
+  int m_player_count = 0;
 };
