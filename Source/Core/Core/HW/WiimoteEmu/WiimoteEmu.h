@@ -181,7 +181,7 @@ struct ExtensionReg
 };
 #pragma pack(pop)
 
-void EmulateShake(AccelData* accel_data, ControllerEmu::Buttons* buttons_group, double intensity,
+void EmulateShake(AccelData* accel, ControllerEmu::Buttons* buttons_group, double intensity,
                   u8* shake_step);
 
 void EmulateDynamicShake(AccelData* accel, DynamicData& dynamic_data,
@@ -191,7 +191,7 @@ void EmulateDynamicShake(AccelData* accel, DynamicData& dynamic_data,
 void EmulateTilt(AccelData* accel, ControllerEmu::Tilt* tilt_group, bool sideways = false,
                  bool upright = false);
 
-void EmulateSwing(AccelData* accel, ControllerEmu::Force* tilt_group, double intensity,
+void EmulateSwing(AccelData* accel, ControllerEmu::Force* swing_group, double intensity,
                   bool sideways = false, bool upright = false);
 
 void EmulateDynamicSwing(AccelData* accel, DynamicData& dynamic_data,
