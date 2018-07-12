@@ -181,23 +181,22 @@ struct ExtensionReg
 };
 #pragma pack(pop)
 
-void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
-                  const double intensity, u8* const shake_step);
+void EmulateShake(AccelData* accel_data, ControllerEmu::Buttons* buttons_group, double intensity,
+                  u8* shake_step);
 
-void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
-                         ControllerEmu::Buttons* const buttons_group,
-                         const DynamicConfiguration& config, u8* const shake_step);
+void EmulateDynamicShake(AccelData* accel, DynamicData& dynamic_data,
+                         ControllerEmu::Buttons* buttons_group, const DynamicConfiguration& config,
+                         u8* shake_step);
 
-void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
-                 const bool sideways = false, const bool upright = false);
+void EmulateTilt(AccelData* accel, ControllerEmu::Tilt* tilt_group, bool sideways = false,
+                 bool upright = false);
 
-void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group,
-                  const double intensity, const bool sideways = false, const bool upright = false);
+void EmulateSwing(AccelData* accel, ControllerEmu::Force* tilt_group, double intensity,
+                  bool sideways = false, bool upright = false);
 
-void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
-                         ControllerEmu::Force* const swing_group,
-                         const DynamicConfiguration& config, const bool sideways = false,
-                         const bool upright = false);
+void EmulateDynamicSwing(AccelData* accel, DynamicData& dynamic_data,
+                         ControllerEmu::Force* swing_group, const DynamicConfiguration& config,
+                         bool sideways = false, bool upright = false);
 
 enum
 {
@@ -227,7 +226,7 @@ public:
     BUTTON_HOME = 0x8000,
   };
 
-  Wiimote(const unsigned int index);
+  Wiimote(unsigned int index);
   std::string GetName() const override;
   ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
   ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
@@ -237,8 +236,8 @@ public:
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
 
   void Update();
-  void InterruptChannel(const u16 channel_id, const void* data, u32 size);
-  void ControlChannel(const u16 channel_id, const void* data, u32 size);
+  void InterruptChannel(u16 channel_id, const void* data, u32 size);
+  void ControlChannel(u16 channel_id, const void* data, u32 size);
   bool CheckForButtonPress();
   void Reset();
 
@@ -251,14 +250,14 @@ public:
 
 protected:
   bool Step();
-  void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
+  void HidOutputReport(const wm_report* sr, bool send_ack = true);
   void HandleExtensionSwap();
   void UpdateButtonsStatus();
 
-  void GetButtonData(u8* const data);
-  void GetAccelData(u8* const data, const ReportFeatures& rptf);
-  void GetIRData(u8* const data, bool use_accel);
-  void GetExtData(u8* const data);
+  void GetButtonData(u8* data);
+  void GetAccelData(u8* data, const ReportFeatures& rptf);
+  void GetIRData(u8* data, bool use_accel);
+  void GetExtData(u8* data);
 
   bool HaveExtension() const;
   bool WantExtension() const;
@@ -271,11 +270,11 @@ private:
     u8* data;
   };
 
-  void ReportMode(const wm_report_mode* const dr);
-  void SendAck(const u8 report_id);
-  void RequestStatus(const wm_request_status* const rs = nullptr);
-  void ReadData(const wm_read_data* const rd);
-  void WriteData(const wm_write_data* const wd);
+  void ReportMode(const wm_report_mode* dr);
+  void SendAck(u8 report_id);
+  void RequestStatus(const wm_request_status* rs = nullptr);
+  void ReadData(const wm_read_data* rd);
+  void WriteData(const wm_write_data* wd);
   void SendReadDataReply(ReadRequest& request);
   void SpeakerData(const wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
