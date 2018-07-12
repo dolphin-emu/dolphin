@@ -71,6 +71,7 @@
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="InputConfig.cpp" />
+    <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
@@ -105,6 +106,7 @@
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
+    <ClInclude Include="InputProfile.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

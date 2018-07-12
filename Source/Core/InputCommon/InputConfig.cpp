@@ -7,12 +7,15 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
+#include "InputCommon/InputProfile.h"
 
 InputConfig::InputConfig(const std::string& ini_name, const std::string& gui_name,
                          const std::string& profile_name)
@@ -51,17 +54,24 @@ bool InputConfig::LoadConfig(bool isGC)
     {
       if (control_section->Exists(type + "Profile" + num[i]))
       {
-        if (control_section->Get(type + "Profile" + num[i], &profile[i]))
+        std::string profile_setting;
+        if (control_section->Get(type + "Profile" + num[i], &profile_setting))
         {
-          if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + path + profile[i] + ".ini"))
+          auto profiles = InputProfile::GetProfilesFromSetting(
+              profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
+
+          if (profiles.empty())
           {
-            useProfile[i] = true;
-          }
-          else
-          {
+            const std::string error =
+                "No profiles found for game setting '" + profile_setting + "'";
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("Selected controller profile does not exist");
+            PanicAlertT("%s", error.c_str());
+            continue;
           }
+
+          // Use the first profile by default
+          profile[i] = profiles[0];
+          useProfile[i] = true;
         }
       }
     }
@@ -75,8 +85,14 @@ bool InputConfig::LoadConfig(bool isGC)
       // Load settings from ini
       if (useProfile[n])
       {
+        std::string base;
+        SplitPath(profile[n], nullptr, &base, nullptr);
+        Core::DisplayMessage("Loading game specific input profile '" + base + "' for device '" +
+                                 controller->GetName() + "'",
+                             6000);
+
         IniFile profile_ini;
-        profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
+        profile_ini.Load(profile[n]);
         controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
       }
       else
@@ -126,6 +142,11 @@ void InputConfig::ClearControllers()
 bool InputConfig::ControllersNeedToBeCreated() const
 {
   return m_controllers.empty();
+}
+
+std::size_t InputConfig::GetControllerCount() const
+{
+  return m_controllers.size();
 }
 
 bool InputConfig::IsControllerControlledByGamepadDevice(int index) const

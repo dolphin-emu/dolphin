@@ -11,6 +11,7 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/Config/WiimoteInputSettings.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "InputCommon/ControllerEmu/Control/Input.h"
@@ -42,6 +43,8 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 
   // swing
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
+  groups.emplace_back(m_swing_slow = new ControllerEmu::Force("SwingSlow"));
+  groups.emplace_back(m_swing_fast = new ControllerEmu::Force("SwingFast"));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
@@ -54,6 +57,16 @@ Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
   m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
   m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
+
+  groups.emplace_back(m_shake_soft = new ControllerEmu::Buttons("ShakeSoft"));
+  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+
+  groups.emplace_back(m_shake_hard = new ControllerEmu::Buttons("ShakeHard"));
+  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   m_id = nunchuk_id;
 }
@@ -91,9 +104,18 @@ void Nunchuk::GetState(u8* const data)
   EmulateTilt(&accel, m_tilt);
 
   // swing
-  EmulateSwing(&accel, m_swing);
+  EmulateSwing(&accel, m_swing, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_MEDIUM));
+  EmulateSwing(&accel, m_swing_slow, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_SLOW));
+  EmulateSwing(&accel, m_swing_fast, Config::Get(Config::NUNCHUK_INPUT_SWING_INTENSITY_FAST));
+
   // shake
-  EmulateShake(&accel, m_shake, m_shake_step.data());
+  EmulateShake(&accel, m_shake, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_MEDIUM),
+               m_shake_step.data());
+  EmulateShake(&accel, m_shake_soft, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_SOFT),
+               m_shake_soft_step.data());
+  EmulateShake(&accel, m_shake_hard, Config::Get(Config::NUNCHUK_INPUT_SHAKE_INTENSITY_HARD),
+               m_shake_hard_step.data());
+
   // buttons
   m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
 

@@ -56,6 +56,7 @@
     <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="Config\WiimoteInputSettings.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
@@ -321,6 +322,7 @@
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Config\UISettings.h" />
+    <ClInclude Include="Config\WiimoteInputSettings.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />

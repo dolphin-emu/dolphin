@@ -910,6 +910,9 @@
     <ClCompile Include="Config\UISettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
+    <ClCompile Include="Config\WiimoteInputSettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1602,6 +1605,9 @@
       <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
     </ClInclude>
     <ClInclude Include="Config\UISettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\WiimoteInputSettings.h">
       <Filter>Config</Filter>
     </ClInclude>
   </ItemGroup>
