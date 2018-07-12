@@ -7,7 +7,7 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # This is inserted into the Info.plist as well.
 # Note that the SDK determines the maximum version of which optional
 # features can be used, not the minimum required version to run.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "")
 
 project(dolphin-emu)
 
@@ -129,19 +129,19 @@ if(GIT_FOUND)
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_symbolic_filename}")
 
   # defines DOLPHIN_WC_REVISION
-  EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
       OUTPUT_VARIABLE DOLPHIN_WC_REVISION
       OUTPUT_STRIP_TRAILING_WHITESPACE)
   # defines DOLPHIN_WC_DESCRIBE
-  EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} describe --always --long --dirty
       OUTPUT_VARIABLE DOLPHIN_WC_DESCRIBE
       OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   # remove hash (and trailing "-0" if needed) from description
-  STRING(REGEX REPLACE "(-0)?-[^-]+((-dirty)?)$" "\\2" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
+  string(REGEX REPLACE "(-0)?-[^-]+((-dirty)?)$" "\\2" DOLPHIN_WC_DESCRIBE "${DOLPHIN_WC_DESCRIBE}")
 
   # defines DOLPHIN_WC_BRANCH
-  EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+  execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
       OUTPUT_VARIABLE DOLPHIN_WC_BRANCH
       OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
@@ -553,7 +553,7 @@ if(USE_SHARED_ENET)
     # dropped; ugh, cmake
     set(CMAKE_REQUIRED_FLAGS ${ENET_LDFLAGS})
     set(CMAKE_REQUIRED_LIBRARIES ${ENET_LIBRARIES})
-    CHECK_SYMBOL_EXISTS(enet_socket_get_address enet/enet.h ENET_HAVE_SGA)
+    check_symbol_exists(enet_socket_get_address enet/enet.h ENET_HAVE_SGA)
     set(CMAKE_REQUIRED_INCLUDES)
     set(CMAKE_REQUIRED_FLAGS)
     set(CMAKE_REQUIRED_LIBRARIES)
@@ -680,8 +680,8 @@ else()
 endif()
 
 if (NOT ANDROID)
-	find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
-	find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+  find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
+  find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
 endif()
 
 if (NOT ANDROID AND ICONV_LIBRARIES AND ICONV_INCLUDE_DIR)
@@ -701,11 +701,10 @@ if(NOT ANDROID)
   endif()
 endif()
 
-
 if(USE_DISCORD_PRESENCE)
   message(STATUS "Using static DiscordRPC from Externals")
   add_subdirectory(Externals/discord-rpc)
-endif() 
+endif()
 
 find_package(Libsystemd)
 if(SYSTEMD_FOUND)
