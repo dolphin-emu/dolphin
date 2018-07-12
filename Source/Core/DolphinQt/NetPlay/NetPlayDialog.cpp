@@ -271,7 +271,7 @@ void NetPlayDialog::OnChat()
 
     DisplayMessage(QStringLiteral("%1: %2").arg(QString::fromStdString(m_nickname).toHtmlEscaped(),
                                                 QString::fromStdString(msg).toHtmlEscaped()),
-                   "blue");
+                   "#1d6ed8");
   });
 }
 
