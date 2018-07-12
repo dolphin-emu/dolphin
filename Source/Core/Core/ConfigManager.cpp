@@ -219,7 +219,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SkipIPL", bHLE_BS2);
   core->Set("TimingVariance", iTimingVariance);
   core->Set("CPUCore", cpu_core);
-  core->Set("JITFollowBranch", bJITFollowBranch);
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
   core->Set("DSPHLE", bDSPHLE);
