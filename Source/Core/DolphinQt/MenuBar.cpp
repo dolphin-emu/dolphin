@@ -1187,10 +1187,13 @@ void MenuBar::LoadSymbolMap()
   }
   else
   {
-    g_symbolDB.LoadMap(existing_map_file);
-    QMessageBox::information(
-        this, tr("Information"),
-        tr("Loaded symbols from '%1'").arg(QString::fromStdString(existing_map_file)));
+    const QString existing_map_file_path = QString::fromStdString(existing_map_file);
+
+    if (!TryLoadMapFile(existing_map_file_path))
+      return;
+
+    QMessageBox::information(this, tr("Information"),
+                             tr("Loaded symbols from '%1'").arg(existing_map_file_path));
   }
 
   HLE::PatchFunctions();
@@ -1202,19 +1205,21 @@ void MenuBar::SaveSymbolMap()
   std::string existing_map_file, writable_map_file;
   CBoot::FindMapFile(&existing_map_file, &writable_map_file);
 
-  g_symbolDB.SaveSymbolMap(writable_map_file);
+  TrySaveSymbolMap(QString::fromStdString(writable_map_file));
 }
 
 void MenuBar::LoadOtherSymbolMap()
 {
-  QString file = QFileDialog::getOpenFileName(this, tr("Load map file"),
-                                              QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
-                                              tr("Dolphin Map File (*.map)"));
+  const QString file = QFileDialog::getOpenFileName(
+      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      tr("Dolphin Map File (*.map)"));
 
   if (file.isEmpty())
     return;
 
-  g_symbolDB.LoadMap(file.toStdString());
+  if (!TryLoadMapFile(file))
+    return;
+
   HLE::PatchFunctions();
   emit NotifySymbolsUpdated();
 }
@@ -1222,7 +1227,7 @@ void MenuBar::LoadOtherSymbolMap()
 void MenuBar::SaveSymbolMapAs()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
-  QString file = QFileDialog::getSaveFileName(
+  const QString file = QFileDialog::getSaveFileName(
       this, tr("Save map file"),
       QString::fromStdString(File::GetUserPath(D_MAPS_IDX) + "/" + title_id_str + ".map"),
       tr("Dolphin Map File (*.map)"));
@@ -1230,7 +1235,7 @@ void MenuBar::SaveSymbolMapAs()
   if (file.isEmpty())
     return;
 
-  g_symbolDB.SaveSymbolMap(file.toStdString());
+  TrySaveSymbolMap(file);
 }
 
 void MenuBar::SaveCode()
@@ -1241,28 +1246,55 @@ void MenuBar::SaveCode()
   const std::string path =
       writable_map_file.substr(0, writable_map_file.find_last_of('.')) + "_code.map";
 
-  g_symbolDB.SaveCodeMap(path);
+  if (!g_symbolDB.SaveCodeMap(path))
+  {
+    QMessageBox::warning(
+        this, tr("Error"),
+        tr("Failed to save code map to path '%1'").arg(QString::fromStdString(path)));
+  }
+}
+
+bool MenuBar::TryLoadMapFile(const QString& path)
+{
+  if (!g_symbolDB.LoadMap(path.toStdString()))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
+    return false;
+  }
+
+  return true;
+}
+
+void MenuBar::TrySaveSymbolMap(const QString& path)
+{
+  if (g_symbolDB.SaveSymbolMap(path.toStdString()))
+    return;
+
+  QMessageBox::warning(this, tr("Error"), tr("Failed to save symbol map to path '%1'").arg(path));
 }
 
 void MenuBar::CreateSignatureFile()
 {
-  QString text = QInputDialog::getText(
+  const QString text = QInputDialog::getText(
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
-
   if (text.isEmpty())
     return;
 
-  std::string prefix = text.toStdString();
-
-  QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"));
-
+  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"));
   if (file.isEmpty())
     return;
 
-  std::string save_path = file.toStdString();
+  const std::string prefix = text.toStdString();
+  const std::string save_path = file.toStdString();
   SignatureDB db(save_path);
   db.Populate(&g_symbolDB, prefix);
-  db.Save(save_path);
+
+  if (!db.Save(save_path))
+  {
+    QMessageBox::warning(this, tr("Error"), tr("Failed to save signature file '%1'").arg(file));
+    return;
+  }
+
   db.List();
 }
 
