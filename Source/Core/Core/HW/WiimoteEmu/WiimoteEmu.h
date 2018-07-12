@@ -226,7 +226,7 @@ public:
     BUTTON_HOME = 0x8000,
   };
 
-  Wiimote(unsigned int index);
+  explicit Wiimote(unsigned int index);
   std::string GetName() const override;
   ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
   ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
