@@ -106,11 +106,10 @@ void Guitar::GetState(u8* const data)
 
   // stick
   {
-    ControlState x, y;
-    m_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    guitar_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
-    guitar_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
+    guitar_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
+    guitar_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
   }
 
   // slider bar
@@ -133,8 +132,10 @@ void Guitar::GetState(u8* const data)
 
   // buttons
   m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data());
+
   // frets
   m_frets->GetState(&guitar_data.bt, guitar_fret_bitmasks.data());
+
   // strum
   m_strum->GetState(&guitar_data.bt, guitar_strum_bitmasks.data());
 

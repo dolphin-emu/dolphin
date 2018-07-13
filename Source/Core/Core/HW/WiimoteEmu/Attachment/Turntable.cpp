@@ -90,11 +90,10 @@ void Turntable::GetState(u8* const data)
 
   // stick
   {
-    ControlState x, y;
-    m_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    tt_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
-    tt_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
+    tt_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
+    tt_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
   }
 
   // left table

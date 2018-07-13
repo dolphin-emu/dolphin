@@ -137,29 +137,27 @@ void Classic::GetState(u8* const data)
 
   // left stick
   {
-    ControlState x, y;
-    m_left_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData left_stick_state = m_left_stick->GetState();
 
-    classic_data.regular_data.lx =
-        static_cast<u8>(Classic::LEFT_STICK_CENTER_X + (x * Classic::LEFT_STICK_RADIUS));
-    classic_data.regular_data.ly =
-        static_cast<u8>(Classic::LEFT_STICK_CENTER_Y + (y * Classic::LEFT_STICK_RADIUS));
+    classic_data.regular_data.lx = static_cast<u8>(
+        Classic::LEFT_STICK_CENTER_X + (left_stick_state.x * Classic::LEFT_STICK_RADIUS));
+    classic_data.regular_data.ly = static_cast<u8>(
+        Classic::LEFT_STICK_CENTER_Y + (left_stick_state.y * Classic::LEFT_STICK_RADIUS));
   }
 
   // right stick
   {
-    ControlState x, y;
-    m_right_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData right_stick_data = m_right_stick->GetState();
 
-    const u8 x_ =
-        static_cast<u8>(Classic::RIGHT_STICK_CENTER_X + (x * Classic::RIGHT_STICK_RADIUS));
-    const u8 y_ =
-        static_cast<u8>(Classic::RIGHT_STICK_CENTER_Y + (y * Classic::RIGHT_STICK_RADIUS));
+    const u8 x = static_cast<u8>(Classic::RIGHT_STICK_CENTER_X +
+                                 (right_stick_data.x * Classic::RIGHT_STICK_RADIUS));
+    const u8 y = static_cast<u8>(Classic::RIGHT_STICK_CENTER_Y +
+                                 (right_stick_data.y * Classic::RIGHT_STICK_RADIUS));
 
-    classic_data.rx1 = x_;
-    classic_data.rx2 = x_ >> 1;
-    classic_data.rx3 = x_ >> 3;
-    classic_data.ry = y_;
+    classic_data.rx1 = x;
+    classic_data.rx2 = x >> 1;
+    classic_data.rx3 = x >> 3;
+    classic_data.ry = y;
   }
 
   // triggers

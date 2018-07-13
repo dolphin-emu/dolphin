@@ -4,6 +4,8 @@
 
 #include "Core/HW/GCPadEmu.h"
 
+#include <array>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
@@ -133,8 +135,6 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
 GCPadStatus GCPad::GetInput() const
 {
   const auto lock = GetStateLock();
-
-  ControlState x, y, triggers[2];
   GCPadStatus pad = {};
 
   if (!(m_always_connected->GetValue() || IsDefaultDeviceConnected()))
@@ -156,20 +156,21 @@ GCPadStatus GCPad::GetInput() const
   m_dpad->GetState(&pad.button, dpad_bitmasks);
 
   // sticks
-  m_main_stick->GetState(&x, &y);
-  pad.stickX =
-      static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
-  pad.stickY =
-      static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
+  const ControllerEmu::AnalogStick::StateData main_stick_state = m_main_stick->GetState();
+  pad.stickX = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X +
+                               (main_stick_state.x * GCPadStatus::MAIN_STICK_RADIUS));
+  pad.stickY = static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y +
+                               (main_stick_state.y * GCPadStatus::MAIN_STICK_RADIUS));
 
-  m_c_stick->GetState(&x, &y);
-  pad.substickX =
-      static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
-  pad.substickY =
-      static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
+  const ControllerEmu::AnalogStick::StateData c_stick_state = m_c_stick->GetState();
+  pad.substickX = static_cast<u8>(GCPadStatus::C_STICK_CENTER_X +
+                                  (c_stick_state.x * GCPadStatus::C_STICK_RADIUS));
+  pad.substickY = static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y +
+                                  (c_stick_state.y * GCPadStatus::C_STICK_RADIUS));
 
   // triggers
-  m_triggers->GetState(&pad.button, trigger_bitmasks, triggers);
+  std::array<ControlState, 2> triggers;
+  m_triggers->GetState(&pad.button, trigger_bitmasks, triggers.data());
   pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
   pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
 
