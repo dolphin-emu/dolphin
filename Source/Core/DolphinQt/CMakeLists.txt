@@ -1,4 +1,4 @@
-find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
+find_package(Qt5 5.6 REQUIRED COMPONENTS Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
