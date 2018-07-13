@@ -30,14 +30,14 @@ Slider::Slider(const std::string& name_) : Slider(name_, name_)
 {
 }
 
-void Slider::GetState(ControlState* const slider)
+Slider::StateData Slider::GetState()
 {
   const ControlState deadzone = numeric_settings[0]->GetValue();
   const ControlState state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
 
   if (fabs(state) > deadzone)
-    *slider = (state - (deadzone * sign(state))) / (1 - deadzone);
-  else
-    *slider = 0;
+    return {(state - (deadzone * sign(state))) / (1 - deadzone)};
+
+  return {0.0};
 }
 }  // namespace ControllerEmu

@@ -115,9 +115,9 @@ void Guitar::GetState(u8* const data)
   // slider bar
   if (m_slider_bar->controls[0]->control_ref->BoundCount())
   {
-    ControlState slider_bar;
-    m_slider_bar->GetState(&slider_bar);
-    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
+    const ControllerEmu::Slider::StateData slider_data = m_slider_bar->GetState();
+
+    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_data.value)->second;
   }
   else
   {

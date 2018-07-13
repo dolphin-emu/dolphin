@@ -98,26 +98,22 @@ void Turntable::GetState(u8* const data)
 
   // left table
   {
-    ControlState tt;
-    m_left_table->GetState(&tt);
+    const ControllerEmu::Slider::StateData lt = m_left_table->GetState();
+    const s8 tt = static_cast<s8>(lt.value * 0x1F);
 
-    const s8 tt_ = static_cast<s8>(tt * 0x1F);
-
-    tt_data.ltable1 = tt_;
-    tt_data.ltable2 = tt_ >> 5;
+    tt_data.ltable1 = tt;
+    tt_data.ltable2 = tt >> 5;
   }
 
   // right table
   {
-    ControlState tt;
-    m_right_table->GetState(&tt);
+    const ControllerEmu::Slider::StateData rt = m_right_table->GetState();
+    const s8 tt = static_cast<s8>(rt.value * 0x1F);
 
-    const s8 tt_ = static_cast<s8>(tt * 0x1F);
-
-    tt_data.rtable1 = tt_;
-    tt_data.rtable2 = tt_ >> 1;
-    tt_data.rtable3 = tt_ >> 3;
-    tt_data.rtable4 = tt_ >> 5;
+    tt_data.rtable1 = tt;
+    tt_data.rtable2 = tt >> 1;
+    tt_data.rtable3 = tt >> 3;
+    tt_data.rtable4 = tt >> 5;
   }
 
   // effect dial
@@ -133,10 +129,9 @@ void Turntable::GetState(u8* const data)
 
   // crossfade slider
   {
-    ControlState cfs;
-    m_crossfade->GetState(&cfs);
+    const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState();
 
-    tt_data.slider = static_cast<u8>((cfs * 0x07) + 0x08);
+    tt_data.slider = static_cast<u8>((cfs.value * 0x07) + 0x08);
   }
 
   // buttons
