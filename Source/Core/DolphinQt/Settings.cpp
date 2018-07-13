@@ -276,9 +276,9 @@ GameListModel* Settings::GetGameListModel() const
   return model;
 }
 
-NetPlay::NetPlayClient* Settings::GetNetPlayClient()
+std::shared_ptr<NetPlay::NetPlayClient> Settings::GetNetPlayClient()
 {
-  return m_client.get();
+  return m_client;
 }
 
 void Settings::ResetNetPlayClient(NetPlay::NetPlayClient* client)
@@ -286,9 +286,9 @@ void Settings::ResetNetPlayClient(NetPlay::NetPlayClient* client)
   m_client.reset(client);
 }
 
-NetPlay::NetPlayServer* Settings::GetNetPlayServer()
+std::shared_ptr<NetPlay::NetPlayServer> Settings::GetNetPlayServer()
 {
-  return m_server.get();
+  return m_server;
 }
 
 void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)

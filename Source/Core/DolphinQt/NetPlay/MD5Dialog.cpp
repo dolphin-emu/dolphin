@@ -21,7 +21,11 @@
 static QString GetPlayerNameFromPID(int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  for (const auto* player : Settings::Instance().GetNetPlayClient()->GetPlayers())
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (!client)
+    return player_name;
+
+  for (const auto* player : client->GetPlayers())
   {
     if (player->pid == pid)
     {
@@ -82,7 +86,11 @@ void MD5Dialog::show(const QString& title)
   m_results.clear();
   m_check_label->setText(QString::fromStdString(""));
 
-  for (const auto* player : Settings::Instance().GetNetPlayClient()->GetPlayers())
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (!client)
+    return;
+
+  for (const auto* player : client->GetPlayers())
   {
     m_progress_bars[player->pid] = new QProgressBar;
     m_status_labels[player->pid] = new QLabel;
@@ -118,7 +126,8 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
 
   m_results.push_back(result);
 
-  if (m_results.size() >= Settings::Instance().GetNetPlayClient()->GetPlayers().size())
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (client && m_results.size() >= client->GetPlayers().size())
   {
     if (std::adjacent_find(m_results.begin(), m_results.end(), std::not_equal_to<>()) ==
         m_results.end())
@@ -134,7 +143,7 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
 
 void MD5Dialog::reject()
 {
-  auto* server = Settings::Instance().GetNetPlayServer();
+  auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortMD5();

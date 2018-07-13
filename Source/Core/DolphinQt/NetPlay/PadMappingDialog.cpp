@@ -59,8 +59,8 @@ void PadMappingDialog::ConnectWidgets()
 
 int PadMappingDialog::exec()
 {
-  auto* client = Settings::Instance().GetNetPlayClient();
-  auto* server = Settings::Instance().GetNetPlayServer();
+  auto client = Settings::Instance().GetNetPlayClient();
+  auto server = Settings::Instance().GetNetPlayServer();
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();

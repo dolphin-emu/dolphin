@@ -240,8 +240,9 @@ void NetPlayDialog::ConnectWidgets()
             if (value == m_buffer_size)
               return;
 
-            if (Settings::Instance().GetNetPlayServer() != nullptr)
-              Settings::Instance().GetNetPlayServer()->AdjustPadBufferSize(value);
+            auto server = Settings::Instance().GetNetPlayServer();
+            if (server)
+              server->AdjustPadBufferSize(value);
           });
 
   connect(m_start_button, &QPushButton::clicked, this, &NetPlayDialog::OnStart);
@@ -371,7 +372,10 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 
 void NetPlayDialog::UpdateGUI()
 {
-  auto* client = Settings::Instance().GetNetPlayClient();
+  auto client = Settings::Instance().GetNetPlayClient();
+  auto server = Settings::Instance().GetNetPlayServer();
+  if (!client)
+    return;
 
   // Update Player List
   const auto players = client->GetPlayers();
@@ -466,11 +470,10 @@ void NetPlayDialog::UpdateGUI()
       break;
     }
   }
-  else if (Settings::Instance().GetNetPlayServer())
+  else if (server)
   {
-    m_hostcode_label->setText(
-        QString::fromStdString(Settings::Instance().GetNetPlayServer()->GetInterfaceHost(
-            m_room_box->currentData().toString().toStdString())));
+    m_hostcode_label->setText(QString::fromStdString(
+        server->GetInterfaceHost(m_room_box->currentData().toString().toStdString())));
     m_hostcode_action_button->setText(tr("Copy"));
     m_hostcode_action_button->setEnabled(true);
   }
@@ -555,7 +558,7 @@ void NetPlayDialog::GameStatusChanged(bool running)
 
 void NetPlayDialog::SetOptionsEnabled(bool enabled)
 {
-  if (Settings::Instance().GetNetPlayServer() != nullptr)
+  if (Settings::Instance().GetNetPlayServer())
   {
     m_start_button->setEnabled(enabled);
     m_game_button->setEnabled(enabled);
@@ -574,7 +577,9 @@ void NetPlayDialog::OnMsgStartGame()
   DisplayMessage(tr("Started game"), "green");
 
   QueueOnObject(this, [this] {
-    Settings::Instance().GetNetPlayClient()->StartGame(FindGame(m_current_game));
+    auto client = Settings::Instance().GetNetPlayClient();
+    if (client)
+      client->StartGame(FindGame(m_current_game));
   });
 }
 
