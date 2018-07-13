@@ -428,9 +428,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(new ControllerEmu::BooleanSetting(
-                                               "Forward Wiimote", _trans("Forward Wii Remote"),
-                                               true, ControllerEmu::SettingType::NORMAL, true));
+  m_options->boolean_settings.emplace_back(
+      new ControllerEmu::BooleanSetting("Forward Wiimote", _trans("Forward Wii Remote"), true,
+                                        ControllerEmu::SettingType::NORMAL, true));
   m_options->boolean_settings.emplace_back(m_upright_setting = new ControllerEmu::BooleanSetting(
                                                "Upright Wiimote", _trans("Upright Wii Remote"),
                                                false, ControllerEmu::SettingType::NORMAL, true));
