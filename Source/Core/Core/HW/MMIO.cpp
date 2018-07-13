@@ -198,6 +198,105 @@ WriteHandlingMethod<T>* InvalidWrite()
   });
 }
 
+// Debug: specialization of the complex handling type which acts as wrapper for all other handler.
+// It will additionally show each memory access.
+template <typename T>
+class DebugHandlingMethod : public ReadHandlingMethod<T>,
+                            public WriteHandlingMethod<T>,
+                            ReadHandlingMethodVisitor<T>,
+                            WriteHandlingMethodVisitor<T>
+{
+public:
+  explicit DebugHandlingMethod(ReadHandlingMethod<T>* read_handler) : read_handler_(read_handler)
+  {
+    read_handler_->AcceptReadVisitor(*this);
+  }
+
+  explicit DebugHandlingMethod(WriteHandlingMethod<T>* write_handler)
+      : write_handler_(write_handler)
+  {
+    write_handler_->AcceptWriteVisitor(*this);
+  }
+
+  virtual ~DebugHandlingMethod() {}
+  void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
+  {
+    v.VisitComplex(&read_lambda_);
+  }
+
+  void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override
+  {
+    v.VisitComplex(&write_lambda_);
+  }
+
+  void VisitConstant(T value) override
+  {
+    read_lambda_ = [value](u32 addr) {
+      ERROR_LOG(MEMMAP, "MMIO: Read %d bytes from constant register 0x%08x -> 0x%x", sizeof(T),
+                addr, value);
+      return value;
+    };
+  }
+  void VisitDirect(const T* addr, u32 mask) override
+  {
+    read_lambda_ = [addr, mask](u32 addr2) {
+      T value = *addr & mask;
+      ERROR_LOG(MEMMAP, "MMIO: Read %d bytes from direct register 0x%08x -> 0x%x", sizeof(T), addr2,
+                value);
+      return value;
+    };
+  }
+  void VisitComplex(const std::function<T(u32)>* lambda) override
+  {
+    read_lambda_ = [lambda](u32 addr) {
+      T value = (*lambda)(addr);
+      ERROR_LOG(MEMMAP, "MMIO: Read %d bytes from complex register 0x%08x -> 0x%x", sizeof(T), addr,
+                value);
+      return value;
+    };
+  }
+
+  void VisitNop() override
+  {
+    write_lambda_ = [](u32 addr, T value) {
+      ERROR_LOG(MEMMAP, "MMIO: Write %d bytes to nop register 0x%08x -> 0x%x", sizeof(T), addr,
+                value);
+    };
+  }
+  void VisitDirect(T* addr, u32 mask) override
+  {
+    write_lambda_ = [addr, mask](u32 addr2, T value) {
+      ERROR_LOG(MEMMAP, "MMIO: Write %d bytes to direct register 0x%08x -> 0x%x", sizeof(T), addr2,
+                value);
+      *addr = value & mask;
+    };
+  }
+  void VisitComplex(const std::function<void(u32, T)>* lambda) override
+  {
+    write_lambda_ = [lambda](u32 addr, T value) {
+      ERROR_LOG(MEMMAP, "MMIO: Write %d bytes to complex register 0x%08x -> 0x%x", sizeof(T), addr,
+                value);
+      (*lambda)(addr, value);
+    };
+  }
+
+private:
+  std::unique_ptr<ReadHandlingMethod<T>> read_handler_;
+  std::unique_ptr<WriteHandlingMethod<T>> write_handler_;
+  std::function<T(u32)> read_lambda_;
+  std::function<void(u32, T)> write_lambda_;
+};
+template <typename T>
+ReadHandlingMethod<T>* DebugRead(ReadHandlingMethod<T>* handler)
+{
+  return new DebugHandlingMethod<T>(handler);
+}
+template <typename T>
+WriteHandlingMethod<T>* DebugWrite(WriteHandlingMethod<T>* handler)
+{
+  return new DebugHandlingMethod<T>(handler);
+}
+
 // Converters to larger and smaller size. Probably the most complex of these
 // handlers to implement. They do not define new handling method types but
 // instead will internally use the types defined above.

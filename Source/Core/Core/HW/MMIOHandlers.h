@@ -67,6 +67,12 @@ ReadHandlingMethod<T>* InvalidRead();
 template <typename T>
 WriteHandlingMethod<T>* InvalidWrite();
 
+// Debug: Dump all register access, and call the wrapped handler afterwards.
+template <typename T>
+ReadHandlingMethod<T>* DebugRead(ReadHandlingMethod<T>*);
+template <typename T>
+WriteHandlingMethod<T>* DebugWrite(WriteHandlingMethod<T>*);
+
 // {Read,Write}To{Smaller,Larger}: these functions are not themselves handling
 // methods but will try to combine accesses to two handlers into one new
 // handler object.
@@ -211,6 +217,8 @@ private:
   MaybeExtern template WriteHandlingMethod<T>* ComplexWrite<T>(std::function<void(u32, T)>);       \
   MaybeExtern template ReadHandlingMethod<T>* InvalidRead<T>();                                    \
   MaybeExtern template WriteHandlingMethod<T>* InvalidWrite<T>();                                  \
+  MaybeExtern template ReadHandlingMethod<T>* DebugRead<T>(ReadHandlingMethod<T>*);                \
+  MaybeExtern template WriteHandlingMethod<T>* DebugWrite<T>(WriteHandlingMethod<T>*);             \
   MaybeExtern template class ReadHandler<T>;                                                       \
   MaybeExtern template class WriteHandler<T>
 
