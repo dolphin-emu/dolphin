@@ -5,8 +5,10 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <mutex>
 
@@ -210,25 +212,24 @@ void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, 
 void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const swing_group,
                   const double intensity, const bool sideways, const bool upright)
 {
-  ControlState swing[3];
-  swing_group->GetState(swing);
+  const ControllerEmu::Force::StateData swing = swing_group->GetState();
 
-  s8 g_dir[3] = {-1, -1, -1};
-  u8 axis_map[3];
+  // Determine which axis is which direction
+  const std::array<int, 3> axis_map{{
+      upright ? (sideways ? 0 : 1) : 2,  // up/down
+      sideways,                          // left/right
+      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
+  }};
 
-  // determine which axis is which direction
-  axis_map[0] = upright ? (sideways ? 0 : 1) : 2;  // up/down
-  axis_map[1] = sideways;                          // left|right
-  axis_map[2] = upright ? 2 : (sideways ? 0 : 1);  // forward/backward
-
-  // some orientations have up as positive, some as negative
+  // Some orientations have up as positive, some as negative
   // same with forward
+  std::array<s8, 3> g_dir{{-1, -1, -1}};
   if (sideways && !upright)
     g_dir[axis_map[2]] *= -1;
   if (!sideways && upright)
     g_dir[axis_map[0]] *= -1;
 
-  for (unsigned int i = 0; i < 3; ++i)
+  for (std::size_t i = 0; i < swing.size(); ++i)
     (&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * intensity;
 }
 
@@ -237,25 +238,24 @@ void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
                          const DynamicConfiguration& config, const bool sideways,
                          const bool upright)
 {
-  ControlState swing[3];
-  swing_group->GetState(swing);
+  const ControllerEmu::Force::StateData swing = swing_group->GetState();
 
-  s8 g_dir[3] = {-1, -1, -1};
-  u8 axis_map[3];
+  // Determine which axis is which direction
+  const std::array<int, 3> axis_map{{
+      upright ? (sideways ? 0 : 1) : 2,  // up/down
+      sideways,                          // left/right
+      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
+  }};
 
-  // determine which axis is which direction
-  axis_map[0] = upright ? (sideways ? 0 : 1) : 2;  // up/down
-  axis_map[1] = sideways;                          // left|right
-  axis_map[2] = upright ? 2 : (sideways ? 0 : 1);  // forward/backward
-
-  // some orientations have up as positive, some as negative
+  // Some orientations have up as positive, some as negative
   // same with forward
+  std::array<s8, 3> g_dir{{-1, -1, -1}};
   if (sideways && !upright)
     g_dir[axis_map[2]] *= -1;
   if (!sideways && upright)
     g_dir[axis_map[0]] *= -1;
 
-  for (unsigned int i = 0; i < 3; ++i)
+  for (std::size_t i = 0; i < swing.size(); ++i)
   {
     if (swing[i] > 0 && dynamic_data.executing_frames_left[i] == 0)
     {
