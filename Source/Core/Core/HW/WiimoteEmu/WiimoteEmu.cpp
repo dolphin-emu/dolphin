@@ -177,28 +177,24 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, const bool sideways,
                  const bool upright)
 {
-  ControlState roll, pitch;
   // 180 degrees
-  tilt_group->GetState(&roll, &pitch);
+  const ControllerEmu::Tilt::StateData state = tilt_group->GetState();
+  const ControlState roll = state.x * PI;
+  const ControlState pitch = state.y * PI;
 
-  roll *= PI;
-  pitch *= PI;
-
-  unsigned int ud = 0, lr = 0, fb = 0;
-
-  // some notes that no one will understand but me :p
+  // Some notes that no one will understand but me :p
   // left, forward, up
   // lr/ left == negative for all orientations
   // ud/ up == negative for upright longways
   // fb/ forward == positive for (sideways flat)
 
-  // determine which axis is which direction
-  ud = upright ? (sideways ? 0 : 1) : 2;
-  lr = sideways;
-  fb = upright ? 2 : (sideways ? 0 : 1);
+  // Determine which axis is which direction
+  const u32 ud = upright ? (sideways ? 0 : 1) : 2;
+  const u32 lr = sideways;
+  const u32 fb = upright ? 2 : (sideways ? 0 : 1);
 
-  int sgn[3] = {-1, 1, 1};  // sign fix
-
+  // Sign fix
+  std::array<int, 3> sgn{{-1, 1, 1}};
   if (sideways && !upright)
     sgn[fb] *= -1;
   if (!sideways && upright)
