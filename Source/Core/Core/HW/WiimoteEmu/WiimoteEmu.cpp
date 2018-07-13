@@ -682,15 +682,14 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   u16 x[4], y[4];
   memset(x, 0xFF, sizeof(x));
 
-  ControlState xx = 10000, yy = 0, zz = 0;
   double nsin, ncos;
 
   if (use_accel)
   {
-    double ax, az, len;
-    ax = m_accel.x;
-    az = m_accel.z;
-    len = sqrt(ax * ax + az * az);
+    double ax = m_accel.x;
+    double az = m_accel.z;
+    const double len = sqrt(ax * ax + az * az);
+
     if (len)
     {
       ax /= len;
@@ -714,33 +713,34 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   LowPassFilter(ir_sin, nsin, 1.0 / 60);
   LowPassFilter(ir_cos, ncos, 1.0 / 60);
 
-  m_ir->GetState(&xx, &yy, &zz, true);
+  static constexpr int camWidth = 1024;
+  static constexpr int camHeight = 768;
+  static constexpr double bndup = -0.315447;
+  static constexpr double bnddown = 0.85;
+  static constexpr double bndleft = 0.78820266;
+  static constexpr double bndright = -0.78820266;
+  static constexpr double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
+  static constexpr double dist2 = 1.2 * dist1;
 
-  Vertex v[4];
+  const ControllerEmu::Cursor::StateData cursor_state = m_ir->GetState(true);
 
-  static const int camWidth = 1024;
-  static const int camHeight = 768;
-  static const double bndup = -0.315447;
-  static const double bnddown = 0.85;
-  static const double bndleft = 0.78820266;
-  static const double bndright = -0.78820266;
-  static const double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
-  static const double dist2 = 1.2 * dist1;
-
+  std::array<Vertex, 4> v;
   for (auto& vtx : v)
   {
-    vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+    vtx.x = cursor_state.x * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+
     if (m_sensor_bar_on_top)
-      vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+      vtx.y = cursor_state.y * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
     else
-      vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+      vtx.y = cursor_state.y * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+
     vtx.z = 0;
   }
 
-  v[0].x -= (zz * 0.5 + 1) * dist1;
-  v[1].x += (zz * 0.5 + 1) * dist1;
-  v[2].x -= (zz * 0.5 + 1) * dist2;
-  v[3].x += (zz * 0.5 + 1) * dist2;
+  v[0].x -= (cursor_state.z * 0.5 + 1) * dist1;
+  v[1].x += (cursor_state.z * 0.5 + 1) * dist1;
+  v[2].x -= (cursor_state.z * 0.5 + 1) * dist2;
+  v[3].x += (cursor_state.z * 0.5 + 1) * dist2;
 
 #define printmatrix(m)                                                                             \
   PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n", m[0][0], m[0][1], m[0][2],    \
@@ -752,14 +752,17 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   MatrixRotationByZ(rot, ir_sin, ir_cos);
   MatrixMultiply(tot, scale, rot);
 
-  for (int i = 0; i < 4; i++)
+  for (std::size_t i = 0; i < v.size(); i++)
   {
     MatrixTransformVertex(tot, v[i]);
+
     if ((v[i].x < -1) || (v[i].x > 1) || (v[i].y < -1) || (v[i].y > 1))
       continue;
-    x[i] = (u16)lround((v[i].x + 1) / 2 * (camWidth - 1));
-    y[i] = (u16)lround((v[i].y + 1) / 2 * (camHeight - 1));
+
+    x[i] = static_cast<u16>(lround((v[i].x + 1) / 2 * (camWidth - 1)));
+    y[i] = static_cast<u16>(lround((v[i].y + 1) / 2 * (camHeight - 1)));
   }
+
   // Fill report with valid data when full handshake was done
   if (m_reg_ir.data[0x30])
     // ir mode
