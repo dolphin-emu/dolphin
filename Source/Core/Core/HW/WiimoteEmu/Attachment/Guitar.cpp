@@ -126,9 +126,8 @@ void Guitar::GetState(u8* const data)
   }
 
   // whammy bar
-  ControlState whammy;
-  m_whammy->GetState(&whammy);
-  guitar_data.whammy = static_cast<u8>(whammy * 0x1F);
+  const ControllerEmu::Triggers::StateData whammy_state = m_whammy->GetState();
+  guitar_data.whammy = static_cast<u8>(whammy_state.data[0] * 0x1F);
 
   // buttons
   m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data());

@@ -118,13 +118,11 @@ void Turntable::GetState(u8* const data)
 
   // effect dial
   {
-    ControlState dial;
-    m_effect_dial->GetState(&dial);
+    const ControllerEmu::Triggers::StateData state = m_effect_dial->GetState();
+    const u8 dial = static_cast<u8>(state.data[0] * 0x0F);
 
-    const u8 dial_ = static_cast<u8>(dial * 0x0F);
-
-    tt_data.dial1 = dial_;
-    tt_data.dial2 = dial_ >> 3;
+    tt_data.dial1 = dial;
+    tt_data.dial2 = dial >> 3;
   }
 
   // crossfade slider
