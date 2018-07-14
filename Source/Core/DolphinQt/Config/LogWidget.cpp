@@ -210,10 +210,11 @@ void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
     break;
   }
 
-  m_log_queue.push(QStringLiteral("%1 <font color='%2'>%3</font>")
-                       .arg(QString::fromStdString(std::string(text).substr(0, TIMESTAMP_LENGTH)),
-                            QString::fromStdString(color),
-                            QString::fromStdString(std::string(text).substr(TIMESTAMP_LENGTH))));
+  m_log_queue.push(
+      QStringLiteral("%1 <font color='%2'>%3</font>")
+          .arg(QString::fromStdString(std::string(text).substr(0, TIMESTAMP_LENGTH)),
+               QString::fromStdString(color),
+               QString::fromStdString(std::string(text).substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
 }
 
 void LogWidget::closeEvent(QCloseEvent*)
