@@ -58,7 +58,9 @@ static void InitAVCodec()
   static bool first_run = true;
   if (first_run)
   {
+#if LIBAVCODEC_VERSION_MICRO >= 100 && LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
     av_register_all();
+#endif
     avformat_network_init();
     first_run = false;
   }
