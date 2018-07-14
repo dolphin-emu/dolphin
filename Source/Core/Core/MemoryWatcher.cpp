@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <fstream>
-#include <iostream>
+#include <iomanip>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <unistd.h>
@@ -72,14 +74,50 @@ bool MemoryWatcher::LoadAddresses(const std::string& path)
 
 void MemoryWatcher::ParseLine(const std::string& line)
 {
-  m_values[line] = 0;
-  m_addresses[line] = std::vector<u32>();
+  // Ignore lines that start with a #
+  if (line.front() == '#')
+  {
+    return;
+  }
 
-  std::stringstream offsets(line);
-  offsets >> std::hex;
-  u32 offset;
-  while (offsets >> offset)
-    m_addresses[line].push_back(offset);
+  if (std::count(line.begin(), line.end(), ' ') == 3)
+  {
+    // This is a linked list line
+    //  First, split the string into its parts
+    std::istringstream iss(line);
+    std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},
+                                    std::istream_iterator<std::string>{}};
+
+    m_linked_lists[tokens[0]] = LinkedList();
+
+    std::stringstream ss;
+    u32 converted;
+    ss << std::hex << tokens[1];
+    ss >> converted;
+    m_linked_lists[tokens[0]].m_pointer_offset = converted;
+
+    std::stringstream ss1;
+    ss1 << std::hex << tokens[2];
+    ss1 >> converted;
+    m_linked_lists[tokens[0]].m_data_pointer_offset = converted;
+
+    std::stringstream ss2;
+    ss2 << std::hex << tokens[3];
+    ss2 >> converted;
+    m_linked_lists[tokens[0]].m_data_struct_len = converted;
+  }
+  else
+  {
+    // This is a uint32 line
+    m_values[line] = 0;
+    m_addresses[line] = std::vector<u32>();
+
+    std::stringstream offsets(line);
+    offsets >> std::hex;
+    u32 offset;
+    while (offsets >> offset)
+      m_addresses[line].push_back(offset);
+  }
 }
 
 bool MemoryWatcher::OpenSocket(const std::string& path)
@@ -96,8 +134,90 @@ u32 MemoryWatcher::ChasePointer(const std::string& line)
 {
   u32 value = 0;
   for (u32 offset : m_addresses[line])
-    value = Memory::Read_U32(value + offset);
+  {
+    value = Common::swap32(value);
+    if (!Memory::CopyFromEmu(&value, value + offset, sizeof(value), false))
+      return 0;
+  }
   return value;
+}
+
+bool MemoryWatcher::ChaseLinkedList(const std::string& address, LinkedList& llist)
+{
+  u32 pointer;
+  std::stringstream ss;
+  ss << std::hex << address;
+  ss >> pointer;
+
+  // Follow the first pointer over
+  pointer = Memory::Read_U32(pointer);
+  LinkedList::ListData data;
+
+  bool changed = false;
+  size_t i = 0;
+  while (true)
+  {
+    // Quit on NULL pointer
+    if (pointer == 0)
+    {
+      if (i != llist.m_data.size())
+      {
+        changed = true;
+      }
+      break;
+    }
+
+    // Grab the data pointer from the current element
+    u32 data_pointer = 0;
+    if (!Memory::CopyFromEmu(&data_pointer, pointer + llist.m_data_pointer_offset,
+                             sizeof(data_pointer), false))
+    {
+      break;
+    }
+
+    data_pointer = Common::swap32(data_pointer);
+
+    // Read a blob at the data pointer address. This is the actual data we care about
+    // Read the next element in the list
+    LinkedList::Blob chunk(llist.m_data_struct_len);
+    if (!Memory::CopyFromEmu(chunk.data(), data_pointer, llist.m_data_struct_len, false))
+    {
+      // If we get an error here, interpret it as a NULL pointer and just quit
+      // When we first boot up, this memory will be uninitialized and contain
+      // garbage. We have to gracefully handle that case.
+      break;
+    }
+
+    if (i < llist.m_data.size())
+    {
+      if (chunk != llist.m_data[i])
+      {
+        changed = true;
+      }
+    }
+    else
+    {
+      // This list has a different number of entries, so it's definitely changed
+      changed = true;
+    }
+
+    data.push_back(std::move(chunk));
+
+    // Follow the pointer to the location of the next object
+    if (!Memory::CopyFromEmu(&pointer, pointer + llist.m_pointer_offset, sizeof(data_pointer)),
+        false)
+    {
+      break;
+    }
+    pointer = Common::swap32(pointer);
+    i++;
+  }
+
+  if (changed)
+  {
+    llist.m_data = std::move(data);
+  }
+  return changed;
 }
 
 std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
@@ -105,6 +225,18 @@ std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
   std::stringstream message_stream;
   message_stream << line << '\n' << std::hex << value;
   return message_stream.str();
+}
+
+std::string MemoryWatcher::ComposeMessage(const std::string& line, const LinkedList::Blob& data)
+{
+  std::string message = line + '\n';
+
+  std::stringstream ss;
+  for (auto entry : data)
+  {
+    ss << std::setw(2) << std::setfill('0') << std::hex << static_cast<unsigned int>(entry);
+  }
+  return message + ss.str();
 }
 
 void MemoryWatcher::Step()
@@ -125,6 +257,31 @@ void MemoryWatcher::Step()
       std::string message = ComposeMessage(address, new_value);
       sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
              sizeof(m_addr));
+    }
+  }
+
+  // Process linked lists
+  for (auto& entry : m_linked_lists)
+  {
+    std::string address = entry.first;
+    LinkedList& llist = entry.second;
+    // Update the linked list entry for this pointer
+    if (ChaseLinkedList(address, llist))
+    {
+      // If the contents changed, then let the listener know
+      if (m_linked_lists[address].m_data.empty())
+      {
+        std::string message = address + "\n\n";
+        sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
+               sizeof(m_addr));
+      }
+
+      for (const auto& datum : m_linked_lists[address].m_data)
+      {
+        std::string message = ComposeMessage(address, datum);
+        sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
+               sizeof(m_addr));
+      }
     }
   }
 }
