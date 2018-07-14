@@ -56,8 +56,6 @@
 
 namespace NetPlay
 {
-u64 g_netplay_initial_rtc = 1272737767;
-
 NetPlayServer::~NetPlayServer()
 {
   if (is_connected)
@@ -908,10 +906,7 @@ bool NetPlayServer::StartGame()
   // no change, just update with clients
   AdjustPadBufferSize(m_target_buffer_size);
 
-  if (SConfig::GetInstance().bEnableCustomRTC)
-    g_netplay_initial_rtc = SConfig::GetInstance().m_customRTCValue;
-  else
-    g_netplay_initial_rtc = Common::Timer::GetLocalTimeSinceJan1970();
+  const u64 initial_rtc = GetInitialNetPlayRTC();
 
   const std::string region = SConfig::GetDirectoryForRegion(
       SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
@@ -974,7 +969,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
   spac << m_settings.m_EnableGPUTextureDecoding;
   spac << m_settings.m_StrictSettingsSync;
-  Common::PacketWriteU64(spac, g_netplay_initial_rtc);
+  Common::PacketWriteU64(spac, initial_rtc);
   spac << m_settings.m_SyncSaveData;
   spac << region;
 
@@ -1287,6 +1282,16 @@ bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, s
   packet << static_cast<u32>(0);
 
   return true;
+}
+
+u64 NetPlayServer::GetInitialNetPlayRTC() const
+{
+  const auto& config = SConfig::GetInstance();
+
+  if (config.bEnableCustomRTC)
+    return config.m_customRTCValue;
+
+  return Common::Timer::GetLocalTimeSinceJan1970();
 }
 
 // called from multiple threads
