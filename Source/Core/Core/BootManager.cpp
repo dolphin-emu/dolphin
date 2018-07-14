@@ -336,7 +336,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
 
   if (NetPlay::IsNetPlayRunning())
   {
-    const NetPlay::NetSettings& netplay_settings = NetPlay::g_NetPlaySettings;
+    const NetPlay::NetSettings& netplay_settings = NetPlay::GetNetSettings();
     Config::AddLayer(ConfigLoaders::GenerateNetPlayConfigLoader(netplay_settings));
     StartUp.bCPUThread = netplay_settings.m_CPUthread;
     StartUp.bEnableCheats = netplay_settings.m_EnableCheats;

@@ -16,6 +16,7 @@
 
 #include <mbedtls/md5.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
@@ -46,7 +47,6 @@ namespace NetPlay
 {
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
-NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -436,36 +436,36 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     {
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
       packet >> m_current_game;
-      packet >> g_NetPlaySettings.m_CPUthread;
+      packet >> m_net_settings.m_CPUthread;
 
       INFO_LOG(NETPLAY, "Start of game %s", m_selected_game.c_str());
 
       {
         std::underlying_type_t<PowerPC::CPUCore> core;
         if (packet >> core)
-          g_NetPlaySettings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
+          m_net_settings.m_CPUcore = static_cast<PowerPC::CPUCore>(core);
         else
-          g_NetPlaySettings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
+          m_net_settings.m_CPUcore = PowerPC::CPUCore::CachedInterpreter;
       }
 
-      packet >> g_NetPlaySettings.m_EnableCheats;
-      packet >> g_NetPlaySettings.m_SelectedLanguage;
-      packet >> g_NetPlaySettings.m_OverrideGCLanguage;
-      packet >> g_NetPlaySettings.m_ProgressiveScan;
-      packet >> g_NetPlaySettings.m_PAL60;
-      packet >> g_NetPlaySettings.m_DSPEnableJIT;
-      packet >> g_NetPlaySettings.m_DSPHLE;
-      packet >> g_NetPlaySettings.m_WriteToMemcard;
-      packet >> g_NetPlaySettings.m_CopyWiiSave;
-      packet >> g_NetPlaySettings.m_OCEnable;
-      packet >> g_NetPlaySettings.m_OCFactor;
-      packet >> g_NetPlaySettings.m_ReducePollingRate;
+      packet >> m_net_settings.m_EnableCheats;
+      packet >> m_net_settings.m_SelectedLanguage;
+      packet >> m_net_settings.m_OverrideGCLanguage;
+      packet >> m_net_settings.m_ProgressiveScan;
+      packet >> m_net_settings.m_PAL60;
+      packet >> m_net_settings.m_DSPEnableJIT;
+      packet >> m_net_settings.m_DSPHLE;
+      packet >> m_net_settings.m_WriteToMemcard;
+      packet >> m_net_settings.m_CopyWiiSave;
+      packet >> m_net_settings.m_OCEnable;
+      packet >> m_net_settings.m_OCFactor;
+      packet >> m_net_settings.m_ReducePollingRate;
 
       int tmp;
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      m_net_settings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+      m_net_settings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
 
       u32 time_low, time_high;
       packet >> time_low;
@@ -789,6 +789,11 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
     players.push_back(&pair.second);
 
   return players;
+}
+
+const NetSettings& NetPlayClient::GetNetSettings() const
+{
+  return m_net_settings;
 }
 
 // called from ---GUI--- thread
@@ -1345,6 +1350,12 @@ const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
 bool IsNetPlayRunning()
 {
   return netplay_client != nullptr;
+}
+
+const NetSettings& GetNetSettings()
+{
+  ASSERT(IsNetPlayRunning());
+  return netplay_client->GetNetSettings();
 }
 
 void NetPlay_Enable(NetPlayClient* const np)
