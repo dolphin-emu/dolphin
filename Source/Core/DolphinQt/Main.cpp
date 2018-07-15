@@ -20,7 +20,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
-#include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/MainWindow.h"
