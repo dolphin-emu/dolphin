@@ -18,9 +18,17 @@ class DeviceQualifier;
 
 namespace MappingCommon
 {
+enum class Quote
+{
+  On,
+  Off
+};
+
 QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& control_device,
-                                const ciface::Core::DeviceQualifier& default_device);
+                                const ciface::Core::DeviceQualifier& default_device,
+                                Quote quote = Quote::On);
 QString DetectExpression(ControlReference* reference, ciface::Core::Device* device,
-                         const ciface::Core::DeviceQualifier& default_device);
-}
+                         const ciface::Core::DeviceQualifier& default_device,
+                         Quote quote = Quote::On);
+}  // namespace MappingCommon

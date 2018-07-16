@@ -187,7 +187,8 @@ void IOWindow::OnDetectButtonPressed()
     btn->setText(QStringLiteral("..."));
 
     const auto expr = MappingCommon::DetectExpression(
-        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq);
+        m_reference, g_controller_interface.FindDevice(m_devq).get(), m_devq,
+        MappingCommon::Quote::Off);
 
     btn->setText(old_label);
 
