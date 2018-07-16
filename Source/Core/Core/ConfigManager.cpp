@@ -141,21 +141,12 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("UsePanicHandlers", bUsePanicHandlers);
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
-  interface->Set("MainWindowPosX", iPosX);
-  interface->Set("MainWindowPosY", iPosY);
-  interface->Set("MainWindowWidth", iWidth);
-  interface->Set("MainWindowHeight", iHeight);
   interface->Set("LanguageCode", m_InterfaceLanguage);
-  interface->Set("ShowToolbar", m_InterfaceToolbar);
-  interface->Set("ShowStatusbar", m_InterfaceStatusbar);
-  interface->Set("ShowLogWindow", m_InterfaceLogWindow);
-  interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
   interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
-  interface->Set("DisableTooltips", m_DisableTooltips);
   interface->Set("DebugModeEnabled", bEnableDebugging);
 }
 
@@ -425,21 +416,12 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, false);
-  interface->Get("MainWindowPosX", &iPosX, INT_MIN);
-  interface->Get("MainWindowPosY", &iPosY, INT_MIN);
-  interface->Get("MainWindowWidth", &iWidth, -1);
-  interface->Get("MainWindowHeight", &iHeight, -1);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
-  interface->Get("ShowToolbar", &m_InterfaceToolbar, true);
-  interface->Get("ShowStatusbar", &m_InterfaceStatusbar, true);
-  interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
-  interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
   interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
-  interface->Get("DisableTooltips", &m_DisableTooltips, false);
   interface->Get("DebugModeEnabled", &bEnableDebugging, false);
 }
 
@@ -791,11 +773,6 @@ void SConfig::LoadDefaults()
   m_audio_stretch_max_latency = 80;
   bUsePanicHandlers = true;
   bOnScreenDisplayMessages = true;
-
-  iPosX = INT_MIN;
-  iPosY = INT_MIN;
-  iWidth = -1;
-  iHeight = -1;
 
   m_analytics_id = "";
   m_analytics_enabled = false;
