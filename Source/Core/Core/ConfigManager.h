@@ -155,8 +155,6 @@ struct SConfig
   bool bFullscreen = false, bRenderToMain = false;
   bool bDisableScreenSaver = false;
 
-  int iPosX, iPosY, iWidth, iHeight;
-
   // Analytics settings.
   std::string m_analytics_id;
   bool m_analytics_enabled = false;
@@ -239,10 +237,6 @@ struct SConfig
   bool m_OCEnable;
   float m_OCFactor;
   // other interface settings
-  bool m_InterfaceToolbar;
-  bool m_InterfaceStatusbar;
-  bool m_InterfaceLogWindow;
-  bool m_InterfaceLogConfigWindow;
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
   bool m_use_builtin_title_database = true;
@@ -292,8 +286,6 @@ struct SConfig
   bool m_ShowInputDisplay;
 
   bool m_PauseOnFocusLost;
-
-  bool m_DisableTooltips;
 
   // DSP settings
   bool m_DSPEnableJIT;
