@@ -28,9 +28,25 @@ void GCPadWiiUConfigDialog::CreateLayout()
 {
   setWindowTitle(tr("GameCube Adapter for Wii U at Port %1").arg(m_port + 1));
 
-  const bool detected = GCAdapter::IsDetected();
+  const char* error_message = nullptr;
+  const bool detected = GCAdapter::IsDetected(&error_message);
+  QString status_text;
+
+  if (detected)
+  {
+    status_text = tr("Adapter Detected");
+  }
+  else if (error_message)
+  {
+    status_text = tr("Error Opening Adapter: %1").arg(QString::fromUtf8(error_message));
+  }
+  else
+  {
+    status_text = tr("No Adapter Detected");
+  }
+
   m_layout = new QVBoxLayout();
-  m_status_label = new QLabel(detected ? tr("Adapter Detected") : tr("No Adapter Detected"));
+  m_status_label = new QLabel(status_text);
   m_rumble = new QCheckBox(tr("Enable Rumble"));
   m_simulate_bongos = new QCheckBox(tr("Simulate DK Bongos"));
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Ok);
