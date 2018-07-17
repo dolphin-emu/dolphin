@@ -83,6 +83,8 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
+  m_checkbox_discord_presence->setEnabled(!running);
+
   for (QRadioButton* radio_button : m_cpu_cores)
     radio_button->setEnabled(!running);
 }
