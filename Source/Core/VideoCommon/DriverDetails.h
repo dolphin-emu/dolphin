@@ -246,7 +246,8 @@ enum Bug
   // BUG: The GPU shader code appears to be context-specific on Mesa/i965.
   // This means that if we compiled the ubershaders asynchronously, they will be recompiled
   // on the main thread the first time they are used, causing stutter. For now, disable
-  // asynchronous compilation on Mesa i965.
+  // asynchronous compilation on Mesa i965. On nouveau, our use of glFinish() can cause
+  // crashes and/or lockups.
   // Started version: -1
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,
