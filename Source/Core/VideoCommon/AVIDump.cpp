@@ -58,7 +58,9 @@ static void InitAVCodec()
   static bool first_run = true;
   if (first_run)
   {
+#if LIBAVCODEC_VERSION_MICRO >= 100 && LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
     av_register_all();
+#endif
     avformat_network_init();
     first_run = false;
   }
@@ -222,16 +224,16 @@ bool AVIDump::CreateVideoFile()
     return false;
   }
 
-  NOTICE_LOG(VIDEO, "Opening file %s for dumping", s_format_context->filename);
-  if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0 ||
+  NOTICE_LOG(VIDEO, "Opening file %s for dumping", dump_path.c_str());
+  if (avio_open(&s_format_context->pb, dump_path.c_str(), AVIO_FLAG_WRITE) < 0 ||
       avformat_write_header(s_format_context, nullptr))
   {
-    ERROR_LOG(VIDEO, "Could not open %s", s_format_context->filename);
+    ERROR_LOG(VIDEO, "Could not open %s", dump_path.c_str());
     return false;
   }
 
-  OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d)", s_format_context->filename,
-                                   s_width, s_height));
+  OSD::AddMessage(
+      StringFromFormat("Dumping Frames to \"%s\" (%dx%d)", dump_path.c_str(), s_width, s_height));
 
   return true;
 }
