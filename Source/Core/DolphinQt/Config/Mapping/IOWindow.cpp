@@ -78,11 +78,14 @@ void IOWindow::CreateMainLayout()
   m_main_layout->addLayout(range_hbox);
 
   // Options (Buttons, Outputs) and action buttons
+  // macOS style doesn't support expanding buttons
+#ifndef __APPLE__
   for (QPushButton* button : {m_select_button, m_detect_button, m_or_button, m_and_button,
                               m_add_button, m_not_button, m_test_button})
   {
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   }
+#endif
 
   auto* hbox = new QHBoxLayout();
   auto* button_vbox = new QVBoxLayout();
