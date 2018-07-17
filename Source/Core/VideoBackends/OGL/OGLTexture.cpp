@@ -41,6 +41,8 @@ GLenum GetGLInternalFormatForTextureFormat(AbstractTextureFormat format, bool st
     return GL_R32F;
   case AbstractTextureFormat::D16:
     return GL_DEPTH_COMPONENT16;
+  case AbstractTextureFormat::D24_S8:
+    return GL_DEPTH24_STENCIL8;
   case AbstractTextureFormat::D32F:
     return GL_DEPTH_COMPONENT32F;
   case AbstractTextureFormat::D32F_S8:
@@ -65,6 +67,7 @@ GLenum GetGLFormatForTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::D16:
   case AbstractTextureFormat::D32F:
     return GL_DEPTH_COMPONENT;
+  case AbstractTextureFormat::D24_S8:
   case AbstractTextureFormat::D32F_S8:
     return GL_DEPTH_STENCIL;
   // Compressed texture formats don't use this parameter.
@@ -86,6 +89,8 @@ GLenum GetGLTypeForTextureFormat(AbstractTextureFormat format)
     return GL_FLOAT;
   case AbstractTextureFormat::D16:
     return GL_UNSIGNED_SHORT;
+  case AbstractTextureFormat::D24_S8:
+    return GL_UNSIGNED_INT_24_8;
   case AbstractTextureFormat::D32F:
     return GL_FLOAT;
   case AbstractTextureFormat::D32F_S8:

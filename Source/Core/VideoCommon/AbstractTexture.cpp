@@ -69,6 +69,7 @@ bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
   switch (format)
   {
   case AbstractTextureFormat::D16:
+  case AbstractTextureFormat::D24_S8:
   case AbstractTextureFormat::D32F:
   case AbstractTextureFormat::D32F_S8:
     return true;
@@ -80,7 +81,7 @@ bool AbstractTexture::IsDepthFormat(AbstractTextureFormat format)
 
 bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
 {
-  return format == AbstractTextureFormat::D32F_S8;
+  return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
 size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
@@ -100,6 +101,7 @@ size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u
   case AbstractTextureFormat::BGRA8:
   case AbstractTextureFormat::R32F:
   case AbstractTextureFormat::D32F:
+  case AbstractTextureFormat::D24_S8:
     return static_cast<size_t>(row_length) * 4;
   case AbstractTextureFormat::D32F_S8:
     return static_cast<size_t>(row_length) * 8;
@@ -124,6 +126,7 @@ size_t AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
     return 2;
   case AbstractTextureFormat::RGBA8:
   case AbstractTextureFormat::BGRA8:
+  case AbstractTextureFormat::D24_S8:
   case AbstractTextureFormat::R32F:
   case AbstractTextureFormat::D32F:
     return 4;

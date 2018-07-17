@@ -20,6 +20,7 @@ enum class AbstractTextureFormat : u32
   BPTC,
   R16,
   D16,
+  D24_S8,
   R32F,
   D32F,
   D32F_S8,
