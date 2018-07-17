@@ -30,6 +30,7 @@
 #include "VideoCommon/VertexShaderGen.h"
 
 class NativeVertexFormat;
+enum class AbstractTextureFormat : u32;
 
 namespace VideoCommon
 {
@@ -129,6 +130,7 @@ private:
   // Configuration bits.
   APIType m_api_type = APIType::Nothing;
   ShaderHostConfig m_host_config = {};
+  AbstractTextureFormat m_efb_depth_format;
   u32 m_efb_multisamples = 1;
   std::unique_ptr<AsyncShaderCompiler> m_async_shader_compiler;
 

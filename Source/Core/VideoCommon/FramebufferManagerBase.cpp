@@ -6,6 +6,7 @@
 
 #include <memory>
 
+#include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/RenderBase.h"
 
 std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;
@@ -13,3 +14,8 @@ std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;
 unsigned int FramebufferManagerBase::m_EFBLayers = 1;
 
 FramebufferManagerBase::~FramebufferManagerBase() = default;
+
+AbstractTextureFormat FramebufferManagerBase::GetEFBDepthFormat()
+{
+  return AbstractTextureFormat::D32F;
+}

@@ -10,6 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 
+#include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -26,6 +27,7 @@ bool ShaderCache::Initialize()
 {
   m_api_type = g_ActiveConfig.backend_info.api_type;
   m_host_config = ShaderHostConfig::GetCurrent();
+  m_efb_depth_format = FramebufferManagerBase::GetEFBDepthFormat();
   m_efb_multisamples = g_ActiveConfig.iMultisamples;
 
   // Create the async compiler, and start the worker threads.
@@ -441,7 +443,7 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.depth_state = depth_state;
   config.blending_state = blending_state;
   config.framebuffer_state.color_texture_format = AbstractTextureFormat::RGBA8;
-  config.framebuffer_state.depth_texture_format = AbstractTextureFormat::D32F;
+  config.framebuffer_state.depth_texture_format = m_efb_depth_format;
   config.framebuffer_state.per_sample_shading = m_host_config.ssaa;
   config.framebuffer_state.samples = m_efb_multisamples;
   return config;
