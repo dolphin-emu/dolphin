@@ -276,12 +276,18 @@ static bool CheckDeviceAccess(libusb_device* device)
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
   if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+  {
+    libusb_close(s_handle);
+    s_handle = nullptr;
     return false;
+  }
 
   ret = libusb_claim_interface(s_handle, 0);
   if (ret)
   {
     ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
+    libusb_close(s_handle);
+    s_handle = nullptr;
     return false;
   }
 
