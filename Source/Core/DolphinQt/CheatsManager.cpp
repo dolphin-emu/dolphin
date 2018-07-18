@@ -227,7 +227,7 @@ void CheatsManager::GenerateARCode()
   if (!m_ar_code)
     return;
 
-  auto* item = m_match_table->selectedItems()[0];
+  auto* item = m_watch_table->selectedItems()[0];
 
   int index = item->data(INDEX_ROLE).toInt();
   ActionReplay::ARCode ar_code;
