@@ -37,6 +37,44 @@ struct NetSettings
   bool m_OCEnable;
   float m_OCFactor;
   ExpansionInterface::TEXIDevices m_EXIDevice[2];
+  bool m_EFBAccessEnable;
+  bool m_BBoxEnable;
+  bool m_ForceProgressive;
+  bool m_EFBToTextureEnable;
+  bool m_XFBToTextureEnable;
+  bool m_DisableCopyToVRAM;
+  bool m_ImmediateXFBEnable;
+  bool m_EFBEmulateFormatChanges;
+  int m_SafeTextureCacheColorSamples;
+  bool m_PerfQueriesEnable;
+  bool m_FPRF;
+  bool m_AccurateNaNs;
+  bool m_SyncOnSkipIdle;
+  bool m_SyncGPU;
+  int m_SyncGpuMaxDistance;
+  int m_SyncGpuMinDistance;
+  float m_SyncGpuOverclock;
+  bool m_JITFollowBranch;
+  bool m_FastDiscSpeed;
+  bool m_MMU;
+  bool m_Fastmem;
+  bool m_SkipIPL;
+  bool m_LoadIPLDump;
+  bool m_VertexRounding;
+  int m_InternalResolution;
+  bool m_EFBScaledCopy;
+  bool m_FastDepthCalc;
+  bool m_EnablePixelLighting;
+  bool m_WidescreenHack;
+  bool m_ForceFiltering;
+  int m_MaxAnisotropy;
+  bool m_ForceTrueColor;
+  bool m_DisableCopyFilter;
+  bool m_DisableFog;
+  bool m_ArbitraryMipmapDetection;
+  float m_ArbitraryMipmapDetectionThreshold;
+  bool m_EnableGPUTextureDecoding;
+  bool m_StrictSettingsSync;
   bool m_SyncSaveData;
   std::string m_SaveDataRegion;
   bool m_IsHosting;
@@ -83,6 +121,7 @@ enum
   NP_MSG_STOP_GAME = 0xA2,
   NP_MSG_DISABLE_GAME = 0xA3,
   NP_MSG_GAME_STATUS = 0xA4,
+  NP_MSG_IPL_STATUS = 0xA5,
 
   NP_MSG_TIMEBASE = 0xB0,
   NP_MSG_DESYNC_DETECTED = 0xB1,

@@ -662,6 +662,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_IPL_STATUS:
+  {
+    bool status;
+    packet >> status;
+
+    m_players[player.pid].has_ipl_dump = status;
+  }
+  break;
+
   case NP_MSG_TIMEBASE:
   {
     u64 timebase = Common::PacketReadU64(packet);
@@ -861,6 +870,12 @@ void NetPlayServer::SetNetSettings(const NetSettings& settings)
   m_settings = settings;
 }
 
+bool NetPlayServer::DoAllPlayersHaveIPLDump() const
+{
+  return std::all_of(m_players.begin(), m_players.end(),
+                     [](const auto& p) { return p.second.has_ipl_dump; });
+}
+
 // called from ---GUI--- thread
 bool NetPlayServer::RequestStartGame()
 {
@@ -921,6 +936,44 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ReducePollingRate;
   spac << m_settings.m_EXIDevice[0];
   spac << m_settings.m_EXIDevice[1];
+  spac << m_settings.m_EFBAccessEnable;
+  spac << m_settings.m_BBoxEnable;
+  spac << m_settings.m_ForceProgressive;
+  spac << m_settings.m_EFBToTextureEnable;
+  spac << m_settings.m_XFBToTextureEnable;
+  spac << m_settings.m_DisableCopyToVRAM;
+  spac << m_settings.m_ImmediateXFBEnable;
+  spac << m_settings.m_EFBEmulateFormatChanges;
+  spac << m_settings.m_SafeTextureCacheColorSamples;
+  spac << m_settings.m_PerfQueriesEnable;
+  spac << m_settings.m_FPRF;
+  spac << m_settings.m_AccurateNaNs;
+  spac << m_settings.m_SyncOnSkipIdle;
+  spac << m_settings.m_SyncGPU;
+  spac << m_settings.m_SyncGpuMaxDistance;
+  spac << m_settings.m_SyncGpuMinDistance;
+  spac << m_settings.m_SyncGpuOverclock;
+  spac << m_settings.m_JITFollowBranch;
+  spac << m_settings.m_FastDiscSpeed;
+  spac << m_settings.m_MMU;
+  spac << m_settings.m_Fastmem;
+  spac << m_settings.m_SkipIPL;
+  spac << m_settings.m_LoadIPLDump;
+  spac << m_settings.m_VertexRounding;
+  spac << m_settings.m_InternalResolution;
+  spac << m_settings.m_EFBScaledCopy;
+  spac << m_settings.m_FastDepthCalc;
+  spac << m_settings.m_EnablePixelLighting;
+  spac << m_settings.m_WidescreenHack;
+  spac << m_settings.m_ForceFiltering;
+  spac << m_settings.m_MaxAnisotropy;
+  spac << m_settings.m_ForceTrueColor;
+  spac << m_settings.m_DisableCopyFilter;
+  spac << m_settings.m_DisableFog;
+  spac << m_settings.m_ArbitraryMipmapDetection;
+  spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
+  spac << m_settings.m_EnableGPUTextureDecoding;
+  spac << m_settings.m_StrictSettingsSync;
   Common::PacketWriteU64(spac, g_netplay_initial_rtc);
   spac << m_settings.m_SyncSaveData;
   spac << region;

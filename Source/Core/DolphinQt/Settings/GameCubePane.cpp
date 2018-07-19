@@ -341,8 +341,12 @@ void GameCubePane::SaveSettings()
 
   // IPL Settings
   params.bHLE_BS2 = m_skip_main_menu->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
   params.SelectedLanguage = m_language_combo->currentIndex();
+  Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentIndex());
   params.bOverrideGCLanguage = m_override_language_ntsc->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_OVERRIDE_GC_LANGUAGE,
+                           m_override_language_ntsc->isChecked());
 
   for (int i = 0; i < SLOT_COUNT; i++)
   {
@@ -390,6 +394,18 @@ void GameCubePane::SaveSettings()
     }
 
     SConfig::GetInstance().m_EXIDevice[i] = dev;
+    switch (i)
+    {
+    case SLOT_A_INDEX:
+      Config::SetBaseOrCurrent(Config::MAIN_SLOT_A, dev);
+      break;
+    case SLOT_B_INDEX:
+      Config::SetBaseOrCurrent(Config::MAIN_SLOT_B, dev);
+      break;
+    case SLOT_SP1_INDEX:
+      Config::SetBaseOrCurrent(Config::MAIN_SERIAL_PORT_1, dev);
+      break;
+    }
   }
   LoadSettings();
 }
