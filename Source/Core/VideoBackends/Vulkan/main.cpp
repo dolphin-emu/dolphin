@@ -91,88 +91,92 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
 
 bool VideoBackend::Initialize(void* window_handle)
 {
-  if (!LoadVulkanLibrary())
+  if (!g_vulkan_context)
   {
-    PanicAlert("Failed to load Vulkan library.");
-    return false;
-  }
-
-  // Check for presence of the validation layers before trying to enable it
-  bool enable_validation_layer = g_Config.bEnableValidationLayer;
-  if (enable_validation_layer && !VulkanContext::CheckValidationLayerAvailablility())
-  {
-    WARN_LOG(VIDEO, "Validation layer requested but not available, disabling.");
-    enable_validation_layer = false;
-  }
-
-  // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
-  // We use this instance to fill in backend info, then re-use it for the actual device.
-  bool enable_surface = window_handle != nullptr;
-  bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
-  VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
-                                                            enable_validation_layer);
-  if (instance == VK_NULL_HANDLE)
-  {
-    PanicAlert("Failed to create Vulkan instance.");
-    UnloadVulkanLibrary();
-    return false;
-  }
-
-  // Load instance function pointers.
-  if (!LoadVulkanInstanceFunctions(instance))
-  {
-    PanicAlert("Failed to load Vulkan instance functions.");
-    vkDestroyInstance(instance, nullptr);
-    UnloadVulkanLibrary();
-    return false;
-  }
-
-  // Obtain a list of physical devices (GPUs) from the instance.
-  // We'll re-use this list later when creating the device.
-  VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
-  if (gpu_list.empty())
-  {
-    PanicAlert("No Vulkan physical devices available.");
-    vkDestroyInstance(instance, nullptr);
-    UnloadVulkanLibrary();
-    return false;
-  }
-
-  // Populate BackendInfo with as much information as we can at this point.
-  VulkanContext::PopulateBackendInfo(&g_Config);
-  VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
-
-  // We need the surface before we can create a device, as some parameters depend on it.
-  VkSurfaceKHR surface = VK_NULL_HANDLE;
-  if (enable_surface)
-  {
-    surface = SwapChain::CreateVulkanSurface(instance, window_handle);
-    if (surface == VK_NULL_HANDLE)
+    if (!LoadVulkanLibrary())
     {
-      PanicAlert("Failed to create Vulkan surface.");
+      PanicAlert("Failed to load Vulkan library.");
+      return false;
+    }
+
+    // Check for presence of the validation layers before trying to enable it
+    bool enable_validation_layer = g_Config.bEnableValidationLayer;
+    if (enable_validation_layer && !VulkanContext::CheckValidationLayerAvailablility())
+    {
+      WARN_LOG(VIDEO, "Validation layer requested but not available, disabling.");
+      enable_validation_layer = false;
+    }
+
+    // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
+    // We use this instance to fill in backend info, then re-use it for the actual device.
+    bool enable_surface = window_handle != nullptr;
+    bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
+    VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
+                                                              enable_validation_layer);
+    if (instance == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create Vulkan instance.");
+      UnloadVulkanLibrary();
+      return false;
+    }
+
+    // Load instance function pointers.
+    if (!LoadVulkanInstanceFunctions(instance))
+    {
+      PanicAlert("Failed to load Vulkan instance functions.");
       vkDestroyInstance(instance, nullptr);
       UnloadVulkanLibrary();
       return false;
     }
-  }
 
-  // Since we haven't called InitializeShared yet, iAdapter may be out of range,
-  // so we have to check it ourselves.
-  size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
-  if (selected_adapter_index >= gpu_list.size())
-  {
-    WARN_LOG(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
-    selected_adapter_index = 0;
-  }
+    // Obtain a list of physical devices (GPUs) from the instance.
+    // We'll re-use this list later when creating the device.
+    VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
+    if (gpu_list.empty())
+    {
+      PanicAlert("No Vulkan physical devices available.");
+      vkDestroyInstance(instance, nullptr);
+      UnloadVulkanLibrary();
+      return false;
+    }
 
-  // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and surface.
-  g_vulkan_context = VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
-                                           enable_debug_reports, enable_validation_layer);
-  if (!g_vulkan_context)
-  {
-    PanicAlert("Failed to create Vulkan device");
-    UnloadVulkanLibrary();
-    return false;
+    // Populate BackendInfo with as much information as we can at this point.
+    VulkanContext::PopulateBackendInfo(&g_Config);
+    VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+
+    // We need the surface before we can create a device, as some parameters depend on it.
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    if (enable_surface)
+    {
+      surface = SwapChain::CreateVulkanSurface(instance, window_handle);
+      if (surface == VK_NULL_HANDLE)
+      {
+        PanicAlert("Failed to create Vulkan surface.");
+        vkDestroyInstance(instance, nullptr);
+        UnloadVulkanLibrary();
+        return false;
+      }
+    }
+
+    // Since we haven't called InitializeShared yet, iAdapter may be out of range,
+    // so we have to check it ourselves.
+    size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
+    if (selected_adapter_index >= gpu_list.size())
+    {
+      WARN_LOG(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
+      selected_adapter_index = 0;
+    }
+
+    // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and
+    // surface.
+    g_vulkan_context = VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
+                                             enable_debug_reports, enable_validation_layer);
+    if (!g_vulkan_context)
+    {
+      PanicAlert("Failed to create Vulkan device");
+      UnloadVulkanLibrary();
+      return false;
+    }
   }
 
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
@@ -207,9 +211,10 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Create swap chain. This has to be done early so that the target size is correct for auto-scale.
   std::unique_ptr<SwapChain> swap_chain;
-  if (surface != VK_NULL_HANDLE)
+  if (g_vulkan_context->GetSurface() != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(window_handle, surface, g_Config.IsVSync());
+    swap_chain =
+        SwapChain::Create(window_handle, g_vulkan_context->GetSurface(), g_Config.IsVSync());
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
@@ -271,4 +276,4 @@ void VideoBackend::Shutdown()
   ShutdownShared();
   UnloadVulkanLibrary();
 }
-}
+}  // namespace Vulkan

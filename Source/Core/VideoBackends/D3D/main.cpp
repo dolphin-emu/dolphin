@@ -28,6 +28,8 @@
 
 namespace DX11
 {
+static bool s_create_device;
+
 std::string VideoBackend::GetName() const
 {
   return "D3D";
@@ -129,13 +131,14 @@ void VideoBackend::InitBackendInfo()
 
 bool VideoBackend::Initialize(void* window_handle)
 {
-  if (window_handle == nullptr)
+  s_create_device = (D3D::device == nullptr);
+  if (s_create_device && (window_handle == nullptr))
     return false;
 
   InitBackendInfo();
   InitializeShared();
 
-  if (FAILED(D3D::Create(reinterpret_cast<HWND>(window_handle))))
+  if (s_create_device && FAILED(D3D::Create(reinterpret_cast<HWND>(window_handle))))
   {
     PanicAlert("Failed to create D3D device.");
     return false;
@@ -187,6 +190,7 @@ void VideoBackend::Shutdown()
 
   ShutdownShared();
 
-  D3D::Close();
+  if (s_create_device)
+    D3D::Close();
 }
 }
