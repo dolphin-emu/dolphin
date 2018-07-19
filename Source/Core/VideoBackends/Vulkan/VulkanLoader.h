@@ -6,7 +6,7 @@
 
 #define VK_NO_PROTOTYPES
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(HAVE_X11)
 // Currently we're getting xlib handles passed to the backend.

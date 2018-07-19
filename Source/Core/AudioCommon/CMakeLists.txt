@@ -48,14 +48,15 @@ endif()
 
 if(WIN32)
   target_sources(audiocommon PRIVATE WASAPIStream.cpp)
-  target_sources(audiocommon PRIVATE XAudio2Stream.cpp)
-
-  add_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp")
-  target_include_directories(audiocommon_xaudio27 PRIVATE
-    ${PROJECT_SOURCE_DIR}/Externals
-    ${PROJECT_SOURCE_DIR}/Externals/XAudio2_7
-  )
-  target_link_libraries(audiocommon PRIVATE audiocommon_xaudio27)
+  if(MSC_VER)
+    target_sources(audiocommon PRIVATE XAudio2Stream.cpp)
+    add_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp")
+    target_include_directories(audiocommon_xaudio27 PRIVATE
+      ${PROJECT_SOURCE_DIR}/Externals
+      ${PROJECT_SOURCE_DIR}/Externals/XAudio2_7
+    )
+    target_link_libraries(audiocommon PRIVATE audiocommon_xaudio27)
+  endif()
 
   set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/Externals/OpenAL)
   # Dolphin loads openal32.dll at runtime

@@ -202,11 +202,11 @@ bool ReadFileToString(const std::string& filename, std::string& str);
 template <typename T>
 void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
 {
-#ifdef _WIN32
+#ifdef _MSV_VER
   fstream.open(UTF8ToTStr(filename).c_str(), openmode);
 #else
   fstream.open(filename.c_str(), openmode);
 #endif
 }
 
-}  // namespace
+}  // namespace File

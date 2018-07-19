@@ -68,19 +68,6 @@ ID3D11Buffer*& VertexShaderCache::GetConstantBuffer()
   return vscbuf;
 }
 
-// this class will load the precompiled shaders into our cache
-template <typename UidType>
-class VertexShaderCacheInserter : public LinearDiskCacheReader<UidType, u8>
-{
-public:
-  void Read(const UidType& key, const u8* value, u32 value_size)
-  {
-    D3DBlob* blob = new D3DBlob(value_size, value);
-    VertexShaderCache::InsertByteCode(key, blob);
-    blob->Release();
-  }
-};
-
 const char simple_shader_code[] = {
     "struct VSOUTPUT\n"
     "{\n"

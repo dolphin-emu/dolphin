@@ -46,4 +46,5 @@ target_link_libraries(videod3d
 PUBLIC
   common
   videocommon
+  d3d11 dxguid
 )

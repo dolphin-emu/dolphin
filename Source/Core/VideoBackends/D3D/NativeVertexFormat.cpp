@@ -67,7 +67,7 @@ static const DXGI_FORMAT d3d_format_lookup[5 * 4 * 2] = {
     DXGI_FORMAT_UNKNOWN,
 };
 
-DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
+static DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 {
   DXGI_FORMAT retval = d3d_format_lookup[(int)t + 5 * (size - 1) + 5 * 4 * (int)integer];
   if (retval == DXGI_FORMAT_UNKNOWN)

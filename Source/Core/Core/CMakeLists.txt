@@ -326,8 +326,12 @@ endif()
 if(WIN32)
   target_sources(core PRIVATE
     HW/EXI/BBA-TAP/TAP_Win32.cpp
-    HW/WiimoteReal/IOWin.cpp
   )
+  if(MSVC)
+    target_sources(core PRIVATE
+      HW/WiimoteReal/IOWin.cpp
+    )
+  endif()
   target_link_libraries(core PUBLIC
     videod3d
     setupapi.lib
