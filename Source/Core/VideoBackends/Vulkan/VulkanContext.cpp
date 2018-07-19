@@ -18,8 +18,8 @@ namespace Vulkan
 {
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
-VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device)
-    : m_instance(instance), m_physical_device(physical_device)
+VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device, VkSurfaceKHR surface)
+    : m_instance(instance), m_physical_device(physical_device), m_surface(surface)
 {
   // Read device physical memory properties, we need it for allocating buffers
   vkGetPhysicalDeviceProperties(physical_device, &m_device_properties);
@@ -40,6 +40,9 @@ VulkanContext::~VulkanContext()
 {
   if (m_device != VK_NULL_HANDLE)
     vkDestroyDevice(m_device, nullptr);
+
+  if (m_surface != VK_NULL_HANDLE)
+    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 
   if (m_debug_report_callback != VK_NULL_HANDLE)
     DisableDebugReports();
@@ -351,7 +354,7 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
                                                      bool enable_debug_reports,
                                                      bool enable_validation_layer)
 {
-  std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
+  std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu, surface);
 
   // Initialize DriverDetails so that we can check for bugs to disable features if needed.
   context->InitDriverDetails();
@@ -361,14 +364,8 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     context->EnableDebugReports();
 
   // Attempt to create the device.
-  if (!context->CreateDevice(surface, enable_validation_layer))
-  {
-    // Since we are destroying the instance, we're also responsible for destroying the surface.
-    if (surface != VK_NULL_HANDLE)
-      vkDestroySurfaceKHR(instance, surface, nullptr);
-
+  if (!context->CreateDevice(enable_validation_layer))
     return nullptr;
-  }
 
   return context;
 }
@@ -466,7 +463,7 @@ bool VulkanContext::SelectDeviceFeatures()
   return true;
 }
 
-bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer)
+bool VulkanContext::CreateDevice(bool enable_validation_layer)
 {
   u32 queue_family_count;
   vkGetPhysicalDeviceQueueFamilyProperties(m_physical_device, &queue_family_count, nullptr);
@@ -491,17 +488,17 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
     {
       m_graphics_queue_family_index = i;
       // Quit now, no need for a present queue.
-      if (!surface)
+      if (!m_surface)
       {
         break;
       }
     }
 
-    if (surface)
+    if (m_surface)
     {
       VkBool32 present_supported;
       VkResult res =
-          vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, surface, &present_supported);
+          vkGetPhysicalDeviceSurfaceSupportKHR(m_physical_device, i, m_surface, &present_supported);
       if (res != VK_SUCCESS)
       {
         LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceSupportKHR failed: ");
@@ -525,7 +522,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
     ERROR_LOG(VIDEO, "Vulkan: Failed to find an acceptable graphics queue.");
     return false;
   }
-  if (surface && m_present_queue_family_index == queue_family_count)
+  if (m_surface && m_present_queue_family_index == queue_family_count)
   {
     ERROR_LOG(VIDEO, "Vulkan: Failed to find an acceptable present queue.");
     return false;
@@ -566,7 +563,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   device_info.pQueueCreateInfos = queue_infos.data();
 
   ExtensionList enabled_extensions;
-  if (!SelectDeviceExtensions(&enabled_extensions, surface != VK_NULL_HANDLE))
+  if (!SelectDeviceExtensions(&enabled_extensions, m_surface != VK_NULL_HANDLE))
     return false;
 
   device_info.enabledLayerCount = 0;
@@ -601,7 +598,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
 
   // Grab the graphics and present queues.
   vkGetDeviceQueue(m_device, m_graphics_queue_family_index, 0, &m_graphics_queue);
-  if (surface)
+  if (m_surface)
   {
     vkGetDeviceQueue(m_device, m_present_queue_family_index, 0, &m_present_queue);
   }
