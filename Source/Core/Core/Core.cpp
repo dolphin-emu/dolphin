@@ -31,7 +31,9 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#ifdef USE_ANALYTICS
 #include "Core/Analytics.h"
+#endif
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -319,9 +321,10 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
   else
     Common::SetCurrentThreadName("CPU-GPU thread");
 
+#ifdef USE_ANALYTICS
   // This needs to be delayed until after the video backend is ready.
   DolphinAnalytics::Instance()->ReportGameStart();
-
+#endif
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch
 
