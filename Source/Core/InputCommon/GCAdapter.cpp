@@ -122,6 +122,10 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
       std::lock_guard<std::mutex> lk(s_init_mutex);
       AddGCAdapter(dev);
     }
+    else if (s_status < 0 && s_detect_callback != nullptr)
+    {
+      s_detect_callback();
+    }
   }
   else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
   {
@@ -130,7 +134,11 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 
     // Reset a potential error status now that the adapter is unplugged
     if (s_status < 0)
-      s_status = 0;
+    {
+      s_status = NO_ADAPTER_DETECTED;
+      if (s_detect_callback != nullptr)
+        s_detect_callback();
+    }
   }
   return 0;
 }
