@@ -134,8 +134,7 @@ unsigned int Mixer::Mix(short* samples, unsigned int num_samples)
 
   if (SConfig::GetInstance().m_audio_stretch)
   {
-    unsigned int available_samples =
-        std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
+    unsigned int available_samples = AvailableSamples();
 
     m_scratch_buffer.fill(0);
 
@@ -181,6 +180,11 @@ unsigned int Mixer::MixSurround(float* samples, unsigned int num_samples)
   DPL2Decode(m_float_conversion_buffer.data(), available_samples, samples);
 
   return available_samples;
+}
+
+unsigned int Mixer::AvailableSamples() const
+{
+  return std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
 }
 
 void Mixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
