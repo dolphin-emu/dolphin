@@ -59,6 +59,8 @@ void VertexManager::DestroyDeviceObjects()
 {
   s_vertexBuffer.reset();
   s_indexBuffer.reset();
+  s_baseVertex = 0;
+  s_index_offset = 0;
 }
 
 StreamBuffer* VertexManager::GetVertexBuffer() const
