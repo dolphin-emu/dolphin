@@ -153,8 +153,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
     </Link>
-    <!--Link Base:Application-->
-    <Link Condition="'$(ConfigurationType)'=='Application'">
+    <!--Link Base:Application,DynamicLibrary-->
+    <Link Condition="'$(ConfigurationType)'=='Application' or '$(ConfigurationType)'=='DynamicLibrary'">
       <!--See Common/CompatPatches.cpp-->
       <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
       <!--TODO fix up ffmpeg garbage-->
