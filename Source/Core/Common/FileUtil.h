@@ -184,9 +184,7 @@ std::string GetThemeDir(const std::string& theme_name);
 // Returns the path to where the sys file are
 std::string GetSysDirectory();
 
-#ifdef ANDROID
 void SetSysDirectory(const std::string& path);
-#endif
 
 #ifdef __APPLE__
 std::string GetBundleDirectory();
