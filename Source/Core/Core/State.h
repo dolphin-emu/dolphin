@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/ChunkFile.h"
 
 namespace State
 {
@@ -47,6 +48,7 @@ void Load(int slot);
 void SaveAs(const std::string& filename, bool wait = false);
 void LoadAs(const std::string& filename);
 
+void DoState(PointerWrap& p);
 void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
 
