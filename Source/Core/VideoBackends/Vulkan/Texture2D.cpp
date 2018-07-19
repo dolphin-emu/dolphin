@@ -169,9 +169,8 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
       m_image,                                 // VkImage                    image
-      {static_cast<VkImageAspectFlags>(Util::IsDepthFormat(m_format) ? VK_IMAGE_ASPECT_DEPTH_BIT :
-                                                                       VK_IMAGE_ASPECT_COLOR_BIT),
-       0, m_levels, 0, m_layers}  // VkImageSubresourceRange    subresourceRange
+      {Util::GetImageAspectForFormat(m_format), 0, m_levels, 0,
+       m_layers}  // VkImageSubresourceRange    subresourceRange
   };
 
   // srcStageMask -> Stages that must complete before the barrier
@@ -316,9 +315,8 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, ComputeImageL
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
       m_image,                                 // VkImage                    image
-      {static_cast<VkImageAspectFlags>(Util::IsDepthFormat(m_format) ? VK_IMAGE_ASPECT_DEPTH_BIT :
-                                                                       VK_IMAGE_ASPECT_COLOR_BIT),
-       0, m_levels, 0, m_layers}  // VkImageSubresourceRange    subresourceRange
+      {Util::GetImageAspectForFormat(m_format), 0, m_levels, 0,
+       m_layers}  // VkImageSubresourceRange    subresourceRange
   };
 
   VkPipelineStageFlags srcStageMask, dstStageMask;

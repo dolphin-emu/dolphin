@@ -269,6 +269,13 @@ enum Bug
   // Started Version: 1.7
   // Ended Version: 1.10
   BUG_BROKEN_CLEAR_LOADOP_RENDERPASS,
+
+  // BUG: 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
+  // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
+  // We still resolve this to a R32F texture, as there is no 24-bit format.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_D32F_CLEAR,
 };
 
 // Initializes our internal vendor, device family, and driver version

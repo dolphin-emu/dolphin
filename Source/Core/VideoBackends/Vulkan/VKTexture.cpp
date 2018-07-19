@@ -94,8 +94,8 @@ std::unique_ptr<VKTexture> VKTexture::Create(const TextureConfig& tex_config)
     {
       // Clear render targets before use to prevent reading uninitialized memory.
       VkClearDepthStencilValue clear_value = {0.0f, 0};
-      VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, tex_config.levels, 0,
-                                             tex_config.layers};
+      VkImageSubresourceRange clear_range = {Util::GetImageAspectForFormat(vk_format), 0,
+                                             tex_config.levels, 0, tex_config.layers};
       texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
       vkCmdClearDepthStencilImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),

@@ -29,6 +29,7 @@ bool IsDepthFormat(VkFormat format);
 bool IsCompressedFormat(VkFormat format);
 VkFormat GetLinearFormat(VkFormat format);
 VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format);
+VkImageAspectFlags GetImageAspectForFormat(VkFormat format);
 u32 GetTexelSize(VkFormat format);
 u32 GetBlockSize(VkFormat format);
 
