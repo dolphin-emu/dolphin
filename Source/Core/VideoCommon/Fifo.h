@@ -40,6 +40,7 @@ void FlushGpu();
 void RunGpu();
 void GpuMaySleep();
 void RunGpuLoop();
+void StopGpuLoop();
 void ExitGpuLoop();
 void EmulatorState(bool running);
 bool AtBreakpoint();

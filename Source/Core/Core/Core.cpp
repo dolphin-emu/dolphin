@@ -89,6 +89,10 @@ static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
+
+static std::thread::id s_gpu_thread_id;
+static std::vector<Common::ScopeGuard> s_emu_thread_scope_guards;
+std::unique_ptr<BootParameters> boot_params;
 static std::thread s_emu_thread;
 static StateChangedCallbackFunc s_on_state_changed_callback;
 
@@ -106,8 +110,6 @@ static std::mutex s_host_jobs_lock;
 static std::queue<HostJob> s_host_jobs_queue;
 
 static thread_local bool tls_is_cpu_thread = false;
-
-static void EmuThread(std::unique_ptr<BootParameters> boot);
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -175,7 +177,10 @@ bool IsGPUThread()
   const SConfig& _CoreParameter = SConfig::GetInstance();
   if (_CoreParameter.bCPUThread)
   {
-    return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
+    if (_CoreParameter.bEMUThread)
+      return (s_emu_thread.joinable() && (s_emu_thread.get_id() == std::this_thread::get_id()));
+
+    return s_gpu_thread_id == std::this_thread::get_id();
   }
   else
   {
@@ -216,8 +221,16 @@ bool Init(std::unique_ptr<BootParameters> boot)
 
   s_window_handle = Host_GetRenderHandle();
 
-  // Start the emu thread
-  s_emu_thread = std::thread(EmuThread, std::move(boot));
+  boot_params = std::move(boot);
+
+  if (!SConfig::GetInstance().bCPUThread)
+    SConfig::GetInstance().bEMUThread = true;
+
+  if (SConfig::GetInstance().bEMUThread)
+  {
+    // Start the emu thread
+    s_emu_thread = std::thread(EmuThread);
+  }
   return true;
 }
 
@@ -388,7 +401,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-static void EmuThread(std::unique_ptr<BootParameters> boot)
+void EmuThread()
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
@@ -412,7 +425,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   DeclareAsCPUThread();
   s_frame_step = false;
 
-  Movie::Init(*boot);
+  Movie::Init(*boot_params);
   Common::ScopeGuard movie_guard{Movie::Shutdown};
 
   HW::Init();
@@ -434,12 +447,16 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     HLE::Clear();
   }};
 
-  if (!g_video_backend->Initialize(s_window_handle))
+  bool init_video = !g_renderer;
+  if (init_video && !g_video_backend->Initialize(s_window_handle))
   {
     PanicAlert("Failed to initialize video backend!");
     return;
   }
-  Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
+  Common::ScopeGuard video_guard{[init_video] {
+    if (init_video)
+      g_video_backend->Shutdown();
+  }};
 
   if (cpu_info.HTT)
     SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
@@ -467,8 +484,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     Keyboard::LoadConfig();
   }
 
-  const std::optional<std::string> savestate_path = boot->savestate_path;
-  const bool delete_savestate = boot->delete_savestate;
+  const std::optional<std::string> savestate_path = boot_params->savestate_path;
+  const bool delete_savestate = boot_params->delete_savestate;
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
   if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
@@ -509,12 +526,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 
   // Determine the CPU thread function
   void (*cpuThreadFunc)(const std::optional<std::string>& savestate_path, bool delete_savestate);
-  if (std::holds_alternative<BootParameters::DFF>(boot->parameters))
+  if (std::holds_alternative<BootParameters::DFF>(boot_params->parameters))
     cpuThreadFunc = FifoPlayerThread;
   else
     cpuThreadFunc = CpuThread;
 
-  if (!CBoot::BootUp(std::move(boot)))
+  if (!CBoot::BootUp(std::move(boot_params)))
     return;
 
   // Initialise Wii filesystem contents.
@@ -541,6 +558,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   }
 
   // ENTER THE VIDEO THREAD LOOP
+  s_gpu_thread_id = std::this_thread::get_id();
   if (core_parameter.bCPUThread)
   {
     // This thread, after creating the EmuWindow, spawns a CPU
@@ -550,6 +568,18 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
 
     // Spawn the CPU thread. The CPU thread will signal the event that boot is complete.
     s_cpu_thread = std::thread(cpuThreadFunc, savestate_path, delete_savestate);
+
+    if (!SConfig::GetInstance().bEMUThread)
+    {
+      s_emu_thread_scope_guards.push_back(std::move(flag_guard));
+      s_emu_thread_scope_guards.push_back(std::move(movie_guard));
+      s_emu_thread_scope_guards.push_back(std::move(hw_guard));
+      s_emu_thread_scope_guards.push_back(std::move(video_guard));
+      s_emu_thread_scope_guards.push_back(std::move(controller_guard));
+      s_emu_thread_scope_guards.push_back(std::move(audio_guard));
+      s_emu_thread_scope_guards.push_back(std::move(wiifs_guard));
+      return;
+    }
 
     // become the GPU thread
     Fifo::RunGpuLoop();
@@ -787,6 +817,9 @@ void Callback_VideoCopiedToXFB(bool video_update)
     if (s_on_state_changed_callback)
       s_on_state_changed_callback(Core::GetState());
   }
+
+  if (!SConfig::GetInstance().bEMUThread)
+    Fifo::StopGpuLoop();
 }
 
 void UpdateTitle()
@@ -872,8 +905,23 @@ void Shutdown()
   // shut down.
   // For more info read "DirectX Graphics Infrastructure (DXGI): Best Practices"
   // on MSDN.
-  if (s_emu_thread.joinable())
-    s_emu_thread.join();
+  if (SConfig::GetInstance().bEMUThread)
+  {
+    if (s_emu_thread.joinable())
+      s_emu_thread.join();
+  }
+  else
+  {
+    if (SConfig::GetInstance().bCPUThread)
+      s_cpu_thread.join();
+    INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+#ifdef USE_GDBSTUB
+    INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
+    gdb_deinit();
+    INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
+#endif
+    s_emu_thread_scope_guards.clear();
+  }
 
   // Make sure there's nothing left over in case we're about to exit.
   HostDispatchJobs();
@@ -965,4 +1013,4 @@ void DoFrameStep()
   }
 }
 
-}  // Core
+}  // namespace Core
