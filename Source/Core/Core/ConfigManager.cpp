@@ -533,7 +533,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
-  core->Get("DCBZ", &bDCBZOFF, false);
   core->Get("LowDCBZHack", &bLowDCBZHack, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
@@ -758,7 +757,6 @@ void SConfig::LoadDefaults()
 #else
   bMMU = false;
 #endif
-  bDCBZOFF = false;
   bLowDCBZHack = false;
   iBBDumpPort = -1;
   bSyncGPU = false;

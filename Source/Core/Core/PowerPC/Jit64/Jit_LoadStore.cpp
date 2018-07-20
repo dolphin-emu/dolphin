@@ -330,8 +330,6 @@ void Jit64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  if (SConfig::GetInstance().bDCBZOFF)
-    return;
   FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA;
