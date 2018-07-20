@@ -9,7 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 
 #ifdef __FreeBSD__
 #include <unistd.h>
@@ -39,7 +39,7 @@ static inline void __cpuid(int info[4], int function_id)
 
 #endif  // ifndef _WIN32
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 static u64 xgetbv(u32 index)
 {

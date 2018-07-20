@@ -1,7 +1,7 @@
 #ifndef _BOCHS_CONFIG_H
 #define _BOCHS_CONFIG_H
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 typedef signed __int8 Bit8s;
 typedef signed __int16 Bit16s;
 typedef signed __int32 Bit32s;

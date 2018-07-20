@@ -320,7 +320,7 @@ private:
   int fd = -1;
 #endif
 
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
   std::thread readThread;
   Common::Flag readEnabled;

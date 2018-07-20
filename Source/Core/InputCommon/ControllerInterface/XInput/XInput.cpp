@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
 
 #ifndef XINPUT_GAMEPAD_GUIDE

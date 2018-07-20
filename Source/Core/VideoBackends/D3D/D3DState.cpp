@@ -167,6 +167,30 @@ void StateManager::Apply()
   m_dirtyFlags = 0;
 }
 
+void StateManager::Restore()
+{
+  D3D::context->PSSetConstantBuffers(0, m_pending.pixelConstants[1] ? 2 : 1,
+                                     m_pending.pixelConstants.data());
+  D3D::context->VSSetConstantBuffers(0, 1, &m_pending.vertexConstants);
+  D3D::context->GSSetConstantBuffers(0, 1, &m_pending.geometryConstants);
+  D3D::context->IASetVertexBuffers(0, 1, &m_pending.vertexBuffer, &m_pending.vertexBufferStride,
+                                   &m_pending.vertexBufferOffset);
+  D3D::context->IASetIndexBuffer(m_pending.indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+  D3D::context->IASetPrimitiveTopology(m_pending.topology);
+  D3D::context->IASetInputLayout(m_pending.inputLayout);
+  D3D::context->PSSetShaderResources(0, 8, m_pending.textures.data());
+  D3D::context->PSSetSamplers(0, 8, m_pending.samplers.data());
+  D3D::context->PSSetShader(m_pending.pixelShader, nullptr, 0);
+  D3D::context->VSSetShader(m_pending.vertexShader, nullptr, 0);
+  D3D::context->GSSetShader(m_pending.geometryShader, nullptr, 0);
+  D3D::context->OMSetBlendState(m_pending.blendState, nullptr, 0xFFFFFFFF);
+  D3D::context->OMSetDepthStencilState(m_pending.depthState, 0);
+  D3D::context->RSSetState(m_pending.rasterizerState);
+
+  m_current = m_pending;
+  m_dirtyFlags = 0;
+}
+
 u32 StateManager::UnsetTexture(ID3D11ShaderResourceView* srv)
 {
   u32 mask = 0;

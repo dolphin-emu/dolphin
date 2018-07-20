@@ -4,7 +4,7 @@
 
 #pragma once
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <windows.h>
 
 #include "Common/StringUtil.h"

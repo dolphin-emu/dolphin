@@ -203,6 +203,10 @@ public:
   // state changes
   void Apply();
 
+  // call this when the D3D state has been clobbered to apply all stored state regardless of dirty
+  // flags.
+  void Restore();
+
 private:
   enum DirtyFlags
   {

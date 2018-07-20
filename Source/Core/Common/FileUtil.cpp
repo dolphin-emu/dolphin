@@ -54,9 +54,7 @@
 // REMEMBER: strdup considered harmful!
 namespace File
 {
-#ifdef ANDROID
-static std::string s_android_sys_directory;
-#endif
+static std::string s_sys_directory;
 
 #ifdef _WIN32
 FileInfo::FileInfo(const std::string& path)
@@ -709,43 +707,31 @@ std::string GetExeDirectory()
 
 std::string GetSysDirectory()
 {
-  std::string sysDir;
-
-#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-#define SYSDATA_DIR "Sys"
-#elif defined __APPLE__
-#define SYSDATA_DIR "Contents/Resources/Sys"
-#else
-#ifdef DATA_DIR
-#define SYSDATA_DIR DATA_DIR "sys"
-#else
-#define SYSDATA_DIR "sys"
-#endif
-#endif
-
+  if (s_sys_directory.empty())
+  {
 #if defined(__APPLE__)
-  sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
+    s_sys_directory = GetBundleDirectory() + DIR_SEP "Contents/Resources/Sys";
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-  sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
-#elif defined ANDROID
-  sysDir = s_android_sys_directory;
-  ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
+    s_sys_directory = GetExeDirectory() + DIR_SEP "Sys";
+#elif defined(ANDROID)
+    ASSERT_MSG(COMMON, false, "Sys directory has not been set");
+#elif defined(DATA_DIR)
+    s_sys_directory = DATA_DIR "sys";
 #else
-  sysDir = SYSDATA_DIR;
+    s_sys_directory = "sys";
 #endif
-  sysDir += DIR_SEP;
+    s_sys_directory += DIR_SEP;
+    INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", s_sys_directory.c_str());
+  }
 
-  INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
-  return sysDir;
+  return s_sys_directory;
 }
 
-#ifdef ANDROID
 void SetSysDirectory(const std::string& path)
 {
   INFO_LOG(COMMON, "Setting Sys directory to %s", path.c_str());
-  s_android_sys_directory = path;
+  s_sys_directory = path + DIR_SEP;
 }
-#endif
 
 static std::string s_user_paths[NUM_PATH_INDICES];
 static void RebuildUserDirectories(unsigned int dir_index)

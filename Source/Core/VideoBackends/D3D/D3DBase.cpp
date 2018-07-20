@@ -38,10 +38,10 @@ ID3D11Device* device = nullptr;
 ID3D11Device1* device1 = nullptr;
 ID3D11DeviceContext* context = nullptr;
 IDXGISwapChain1* swapchain = nullptr;
+D3D_FEATURE_LEVEL featlevel = D3D_FEATURE_LEVEL_10_0;
 
 static IDXGIFactory2* s_dxgi_factory;
 static ID3D11Debug* s_debug;
-static D3D_FEATURE_LEVEL s_featlevel;
 static D3DTexture2D* s_backbuf;
 
 static std::vector<DXGI_SAMPLE_DESC> s_aa_modes;  // supported AA modes of the current adapter
@@ -369,7 +369,7 @@ HRESULT Create(HWND wnd)
   {
     hr = s_d3d11_create_device(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_DEBUG,
                                supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-                               D3D11_SDK_VERSION, &device, &s_featlevel, &context);
+                               D3D11_SDK_VERSION, &device, &featlevel, &context);
 
     // Debugbreak on D3D error
     if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&s_debug)))
@@ -395,7 +395,7 @@ HRESULT Create(HWND wnd)
   {
     hr = s_d3d11_create_device(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0,
                                supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-                               D3D11_SDK_VERSION, &device, &s_featlevel, &context);
+                               D3D11_SDK_VERSION, &device, &featlevel, &context);
   }
 
   SAFE_RELEASE(adapter);
@@ -464,7 +464,7 @@ void Close()
     {
       // print out alive objects, but only if we actually have pending references
       // note this will also print out internal live objects to the debug console
-      s_debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
+      s_debug->ReportLiveDeviceObjects((D3D11_RLDO_FLAGS)(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL));
     }
     SAFE_RELEASE(s_debug)
   }
@@ -486,9 +486,9 @@ void Close()
 
 const char* VertexShaderVersionString()
 {
-  if (s_featlevel == D3D_FEATURE_LEVEL_11_0)
+  if (featlevel == D3D_FEATURE_LEVEL_11_0)
     return "vs_5_0";
-  else if (s_featlevel == D3D_FEATURE_LEVEL_10_1)
+  else if (featlevel == D3D_FEATURE_LEVEL_10_1)
     return "vs_4_1";
   else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/
     return "vs_4_0";
@@ -496,9 +496,9 @@ const char* VertexShaderVersionString()
 
 const char* GeometryShaderVersionString()
 {
-  if (s_featlevel == D3D_FEATURE_LEVEL_11_0)
+  if (featlevel == D3D_FEATURE_LEVEL_11_0)
     return "gs_5_0";
-  else if (s_featlevel == D3D_FEATURE_LEVEL_10_1)
+  else if (featlevel == D3D_FEATURE_LEVEL_10_1)
     return "gs_4_1";
   else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/
     return "gs_4_0";
@@ -506,9 +506,9 @@ const char* GeometryShaderVersionString()
 
 const char* PixelShaderVersionString()
 {
-  if (s_featlevel == D3D_FEATURE_LEVEL_11_0)
+  if (featlevel == D3D_FEATURE_LEVEL_11_0)
     return "ps_5_0";
-  else if (s_featlevel == D3D_FEATURE_LEVEL_10_1)
+  else if (featlevel == D3D_FEATURE_LEVEL_10_1)
     return "ps_4_1";
   else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/
     return "ps_4_0";
@@ -516,9 +516,9 @@ const char* PixelShaderVersionString()
 
 const char* ComputeShaderVersionString()
 {
-  if (s_featlevel == D3D_FEATURE_LEVEL_11_0)
+  if (featlevel == D3D_FEATURE_LEVEL_11_0)
     return "cs_5_0";
-  else if (s_featlevel == D3D_FEATURE_LEVEL_10_1)
+  else if (featlevel == D3D_FEATURE_LEVEL_10_1)
     return "cs_4_1";
   else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/
     return "cs_4_0";
@@ -618,7 +618,8 @@ HRESULT SetFullscreenState(bool enable_fullscreen)
 bool GetFullscreenState()
 {
   BOOL state = FALSE;
-  swapchain->GetFullscreenState(&state, nullptr);
+  if (swapchain)
+    swapchain->GetFullscreenState(&state, nullptr);
   return !!state;
 }
 

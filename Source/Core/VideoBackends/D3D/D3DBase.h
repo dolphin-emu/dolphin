@@ -32,12 +32,20 @@ namespace DX11
     delete[](x);                                                                                   \
     (x) = nullptr;                                                                                 \
   }
+#ifdef _MSC_VER
 #define CHECK(cond, Message, ...)                                                                  \
   if (!(cond))                                                                                     \
   {                                                                                                \
     PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__, __VA_ARGS__); \
   }
-
+#else
+#define CHECK(cond, Message, ...)                                                                  \
+  if (!(cond))                                                                                     \
+  {                                                                                                \
+    PanicAlert("%s failed in %s at line %d: " Message, __func__, __FILE__, __LINE__,               \
+               ##__VA_ARGS__);                                                                     \
+  }
+#endif
 class D3DTexture2D;
 
 namespace D3D
@@ -59,6 +67,7 @@ extern ID3D11Device* device;
 extern ID3D11Device1* device1;
 extern ID3D11DeviceContext* context;
 extern IDXGISwapChain1* swapchain;
+extern D3D_FEATURE_LEVEL featlevel;
 
 void Reset(HWND new_wnd);
 void ResizeSwapChain();

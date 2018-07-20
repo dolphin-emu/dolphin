@@ -13,6 +13,8 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 
+#undef interface
+
 namespace IOS::HLE::USB
 {
 enum StandardDeviceRequestCodes

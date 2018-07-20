@@ -52,6 +52,8 @@ bool IsGPUThread();
 
 bool WantsDeterminism();
 
+void EmuThread();
+
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state);
 State GetState();

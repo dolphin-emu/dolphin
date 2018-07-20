@@ -55,6 +55,8 @@
 #define UNSUPPORTED_WSAPOLL 0
 #endif
 
+#undef interface
+
 namespace IOS::HLE::Device
 {
 enum SOResultCode : s32

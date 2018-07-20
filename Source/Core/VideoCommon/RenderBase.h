@@ -134,6 +134,7 @@ public:
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
+  bool IsWideScreen() const { return m_aspect_wide; }
   bool IsHeadless() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;

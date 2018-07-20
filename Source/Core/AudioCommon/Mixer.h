@@ -24,6 +24,7 @@ public:
   // Called from audio threads
   unsigned int Mix(short* samples, unsigned int numSamples);
   unsigned int MixSurround(float* samples, unsigned int num_samples);
+  unsigned int AvailableSamples() const;
 
   // Called from main thread
   void PushSamples(const short* samples, unsigned int num_samples);

@@ -123,9 +123,14 @@ endif()
 
 if(WIN32)
   target_sources(common PRIVATE
-    CompatPatches.cpp
     GL/GLInterface/WGL.cpp
   )
+  if(MSVC)
+    target_sources(common PRIVATE
+      LdrWatcher.cpp
+      CompatPatches.cpp
+    )
+  endif()
 elseif(APPLE)
   target_sources(common PRIVATE GL/GLInterface/AGL.mm)
 elseif(HAIKU)
@@ -165,5 +170,9 @@ if(UNIX)
     target_link_libraries(traversal_server PRIVATE network)
   endif()
 elseif(WIN32)
-  target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
+  if(MSVC)
+    target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
+    target_link_libraries(common PRIVATE "-NODEFAULTLIB:libcmt")
+  endif()
+  target_link_libraries(common PRIVATE comctl32 comdlg32 winmm shlwapi)
 endif()

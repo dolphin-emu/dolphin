@@ -8,7 +8,7 @@ add_library(usb STATIC EXCLUDE_FROM_ALL
     libusb/sync.c
 )
 set_target_properties(usb PROPERTIES VERSION 1.0.19)
-if(WIN32)
+if(MSVC)
     target_include_directories(usb BEFORE PUBLIC libusb PRIVATE msvc)
 else()
 target_include_directories(usb

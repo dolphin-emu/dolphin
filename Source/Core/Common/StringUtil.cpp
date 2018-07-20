@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#define _GNU_SOURCE
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdarg>
@@ -162,7 +164,7 @@ std::string StringFromFormat(const char* format, ...)
 std::string StringFromFormatV(const char* format, va_list args)
 {
   char* buf = nullptr;
-#ifdef _WIN32
+#ifdef _MSC_VER
   int required = _vscprintf(format, args);
   buf = new char[required + 1];
   CharArrayFromFormatV(buf, required + 1, format, args);
@@ -170,7 +172,7 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
@@ -179,7 +181,7 @@ std::string StringFromFormatV(const char* format, va_list args)
     buf = nullptr;
   }
 
-#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -451,7 +453,7 @@ void StringPopBackIf(std::string* s, char c)
 
 #ifdef _WIN32
 
-std::wstring CPToUTF16(u32 code_page, const std::string& input)
+static std::wstring CPToUTF16(u32 code_page, const std::string& input)
 {
   auto const size =
       MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
@@ -469,20 +471,20 @@ std::wstring CPToUTF16(u32 code_page, const std::string& input)
   return output;
 }
 
-std::string UTF16ToCP(u32 code_page, const std::wstring& input)
+static std::string UTF16ToCP(u32 code_page, const std::wstring& input)
 {
   auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, false);
+                                        nullptr, 0, nullptr, nullptr);
 
   std::string output;
   output.resize(size);
 
   if (size == 0 ||
       size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size()), nullptr, false))
+                                  &output[0], static_cast<int>(output.size()), nullptr, nullptr))
   {
     const DWORD error_code = GetLastError();
-    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
+    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%ls': %lu", input.c_str(), error_code);
     output.clear();
   }
   return output;

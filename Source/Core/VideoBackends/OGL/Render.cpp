@@ -1402,7 +1402,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   if (!IsHeadless())
   {
     // Clear the framebuffer before drawing anything.
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, g_ogl_config.defaultFramebuffer);
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_current_framebuffer = nullptr;
@@ -1426,7 +1426,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   else
   {
     // Since we're not swapping in headless mode, ensure all commands are sent to the GPU.
-    // Otherwise the driver could batch several frames togehter.
+    // Otherwise the driver could batch several frames together.
     glFlush();
   }
 

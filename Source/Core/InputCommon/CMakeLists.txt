@@ -37,6 +37,10 @@ if(WIN32)
     ControllerInterface/XInput/XInput.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
   )
+  target_link_libraries(inputcommon
+    PRIVATE
+    dinput8
+  )
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
     ControllerInterface/OSX/OSX.mm

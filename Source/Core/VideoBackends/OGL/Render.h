@@ -75,6 +75,7 @@ struct VideoConfig
   const char* gl_version;
 
   s32 max_samples;
+  GLuint defaultFramebuffer;
 };
 extern VideoConfig g_ogl_config;
 

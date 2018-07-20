@@ -9,7 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #define ASSERT_MSG(_t_, _a_, _fmt_, ...)                                                           \
   do                                                                                               \
   {                                                                                                \

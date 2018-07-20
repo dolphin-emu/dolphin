@@ -61,10 +61,10 @@ public:
 
   void CheckInvalidState();
 
-protected:
   void InitializeShared();
   void ShutdownShared();
 
+protected:
   bool m_initialized = false;
   bool m_invalid = false;
 };

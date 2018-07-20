@@ -5,14 +5,14 @@
 #include "Common/QoSSession.h"
 #include "Core/ConfigManager.h"
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 #include <Qos2.h>
 #pragma comment(lib, "qwave")
 #endif
 
 namespace Common
 {
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 QoSSession::QoSSession(ENetPeer* peer, int tos_val) : m_peer(peer)
 {
   QOS_VERSION ver = {1, 0};
@@ -69,7 +69,7 @@ QoSSession& QoSSession::operator=(QoSSession&& session)
 {
   if (this != &session)
   {
-#if defined(_WIN32)
+#if defined(_MSC_VER)
     m_qos_handle = session.m_qos_handle;
     m_qos_flow_id = session.m_qos_flow_id;
     m_peer = session.m_peer;

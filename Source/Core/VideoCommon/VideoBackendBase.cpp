@@ -27,6 +27,7 @@
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #endif
 
+#include "Core/Core.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CPMemory.h"
@@ -270,6 +271,12 @@ void VideoBackendBase::CheckInvalidState()
 
 void VideoBackendBase::InitializeShared()
 {
+  if (m_initialized)
+  {
+    VertexLoaderManager::Init();
+    return;
+  }
+
   memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
   memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
   memset(texMem, 0, TMEM_SIZE);
@@ -300,6 +307,13 @@ void VideoBackendBase::InitializeShared()
 
 void VideoBackendBase::ShutdownShared()
 {
+  if(Core::IsRunning())
+  {
+    VertexLoaderManager::Clear();
+    m_invalid = true;
+    return;
+  }
+
   // Do our OSD callbacks
   OSD::DoCallbacks(OSD::CallbackType::Shutdown);
 

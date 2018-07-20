@@ -8,7 +8,9 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#else
+#endif
+
+#ifndef _MSC_VER
 #include <unistd.h>
 #endif
 
@@ -16,6 +18,8 @@
 #include <mach/mach.h>
 #elif defined BSD4_4 || defined __FreeBSD__ || defined __OpenBSD__
 #include <pthread_np.h>
+#elif defined __MINGW32__
+#include <pthread.h>
 #elif defined __HAIKU__
 #include <OS.h>
 #endif
@@ -38,7 +42,7 @@ int CurrentThreadId()
 #endif
 }
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
@@ -92,7 +96,7 @@ void SetCurrentThreadName(const char* szThreadName)
   }
 }
 
-#else  // !WIN32, so must be POSIX threads
+#else  // !_MSC_VER, so must be POSIX threads
 
 void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {

@@ -36,7 +36,7 @@ inline u32 swap24(const u8* data)
 #undef swap64
 #endif
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 inline u16 swap16(u16 data)
 {
   return _byteswap_ushort(data);
@@ -87,6 +87,19 @@ inline u32 swap32(u32 data)
 inline u64 swap64(u64 data)
 {
   return bswap64(data);
+}
+#elif __GNUC__
+inline u16 swap16(u16 data)
+{
+  return __builtin_bswap16(data);
+}
+inline u32 swap32(u32 data)
+{
+  return __builtin_bswap32(data);
+}
+inline u64 swap64(u64 data)
+{
+  return __builtin_bswap64(data);
 }
 #else
 // Slow generic implementation.
