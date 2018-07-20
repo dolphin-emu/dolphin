@@ -51,6 +51,7 @@ public:
   void OnConnectionLost() override;
   void OnConnectionError(const std::string& message) override;
   void OnTraversalError(TraversalClient::FailureReason error) override;
+  void OnTraversalStateChanged(TraversalClient::State state) override;
   void OnSaveDataSyncFailure() override;
 
   bool IsRecording() override;
@@ -73,6 +74,7 @@ private:
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
+  void UpdateDiscordPresence();
   void UpdateGUI();
   void GameStatusChanged(bool running);
   void SetOptionsEnabled(bool enabled);
@@ -113,6 +115,7 @@ private:
   MD5Dialog* m_md5_dialog;
   PadMappingDialog* m_pad_mapping;
   std::string m_current_game;
+  std::string m_exernal_ip_address;
   std::string m_nickname;
   GameListModel* m_game_list_model = nullptr;
   bool m_use_traversal = false;
@@ -120,4 +123,5 @@ private:
   bool m_got_stop_request = true;
   int m_buffer_size = 0;
   int m_player_count = 0;
+  int m_old_player_count = 0;
 };

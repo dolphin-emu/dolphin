@@ -1330,6 +1330,7 @@ void NetPlayClient::OnTraversalStateChanged()
     Disconnect();
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
   }
+  m_dialog->OnTraversalStateChanged(state);
 }
 
 // called from ---NETPLAY--- thread

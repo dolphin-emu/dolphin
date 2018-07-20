@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Hash.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
@@ -20,7 +21,7 @@
 namespace Discord
 {
 #ifdef USE_DISCORD_PRESENCE
-static JoinFunction join_function = nullptr;
+static Handler* event_handler = nullptr;
 static const char* username = "";
 
 static void HandleDiscordReady(const DiscordUser* user)
@@ -28,9 +29,18 @@ static void HandleDiscordReady(const DiscordUser* user)
   username = user->username;
 }
 
+static void HandleDiscordJoinRequest(const DiscordUser* user)
+{
+  if (event_handler == nullptr)
+    return;
+
+  const std::string discord_tag = StringFromFormat("%s#%s", user->username, user->discriminator);
+  event_handler->DiscordJoinRequest(user->userId, discord_tag, user->avatar);
+}
+
 static void HandleDiscordJoin(const char* join_secret)
 {
-  if (join_function == nullptr)
+  if (event_handler == nullptr)
     return;
 
   if (Config::Get(Config::NETPLAY_NICKNAME) == Config::NETPLAY_NICKNAME.default_value)
@@ -38,9 +48,8 @@ static void HandleDiscordJoin(const char* join_secret)
 
   std::string secret(join_secret);
 
-  size_t offset = 0;
-  std::string type = secret.substr(offset, secret.find('\n'));
-  offset += type.length() + 1;
+  std::string type = secret.substr(0, secret.find('\n'));
+  size_t offset = type.length() + 1;
 
   switch (static_cast<SecretType>(std::stol(type)))
   {
@@ -70,9 +79,11 @@ static void HandleDiscordJoin(const char* join_secret)
   break;
   }
 
-  join_function();
+  event_handler->DiscordJoin();
 }
 #endif
+
+Discord::Handler::~Handler() = default;
 
 void Init()
 {
@@ -83,6 +94,7 @@ void Init()
   DiscordEventHandlers handlers = {};
 
   handlers.ready = HandleDiscordReady;
+  handlers.joinRequest = HandleDiscordJoinRequest;
   handlers.joinGame = HandleDiscordJoin;
   // The number is the client ID for Dolphin, it's used for images and the appication name
   Discord_Initialize("455712169795780630", &handlers, 1, nullptr);
@@ -101,20 +113,22 @@ void CallPendingCallbacks()
 #endif
 }
 
-void InitNetPlayFunctionality(const JoinFunction& join)
+void InitNetPlayFunctionality(Handler& handler)
 {
 #ifdef USE_DISCORD_PRESENCE
-  join_function = std::move(join);
+  event_handler = &handler;
 #endif
 }
 
-void UpdateDiscordPresence(const int party_size, SecretType type, const std::string& secret)
+void UpdateDiscordPresence(const int party_size, SecretType type, const std::string& secret,
+                           const std::string& current_game)
 {
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
 
-  const std::string& title = SConfig::GetInstance().GetTitleDescription();
+  const std::string& title =
+      current_game.empty() ? SConfig::GetInstance().GetTitleDescription() : current_game;
 
   DiscordRichPresence discord_presence = {};
   discord_presence.largeImageKey = "dolphin_logo";
@@ -139,15 +153,15 @@ void UpdateDiscordPresence(const int party_size, SecretType type, const std::str
     }
   }
 
-  std::string party_ID;
+  std::string party_id;
   std::string secret_final;
   if (type != SecretType::Empty)
   {
-    // Declearing party_ID or secret_final here will deallocate the variable before passing the
+    // Declearing party_id or secret_final here will deallocate the variable before passing the
     // values over to Discord_UpdatePresence.
 
     const size_t secret_length = secret.length();
-    party_ID = std::to_string(
+    party_id = std::to_string(
         Common::HashAdler32(reinterpret_cast<const u8*>(secret.c_str()), secret_length));
 
     const std::string secret_type = std::to_string(static_cast<int>(type));
@@ -156,11 +170,22 @@ void UpdateDiscordPresence(const int party_size, SecretType type, const std::str
     secret_final += '\n';
     secret_final += secret;
   }
-  discord_presence.partyId = party_ID.c_str();
+  discord_presence.partyId = party_id.c_str();
   discord_presence.joinSecret = secret_final.c_str();
 
   Discord_UpdatePresence(&discord_presence);
 #endif
+}
+
+std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
+{
+  const std::string port_string = std::to_string(port);
+  std::string secret;
+  secret.reserve(ip_address.length() + 1 + port_string.length());
+  secret += ip_address;
+  secret += ':';
+  secret += port_string;
+  return secret;
 }
 
 void Shutdown()

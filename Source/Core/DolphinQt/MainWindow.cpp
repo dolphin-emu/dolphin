@@ -1044,12 +1044,11 @@ void MainWindow::BootWiiSystemMenu()
 void MainWindow::NetPlayInit()
 {
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
-<<<<<<< HEAD:Source/Core/DolphinQt/MainWindow.cpp
   m_netplay_dialog = new NetPlayDialog;
-=======
   m_netplay_dialog = new NetPlayDialog(this);
-  m_netplay_discord = new DiscordHandler();
->>>>>>> Add Discord Join Net Play functionally:Source/Core/DolphinQt2/MainWindow.cpp
+#ifdef USE_DISCORD_PRESENCE
+  m_netplay_discord = new DiscordHandler(this);
+#endif
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
           [this](const QString& path) { StartGame(path); });
@@ -1057,10 +1056,12 @@ void MainWindow::NetPlayInit()
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
+#ifdef USE_DISCORD_PRESENCE
   connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
 
-  Discord::InitNetPlayFunctionality([this] { m_netplay_discord->DiscordJoin(); });
+  Discord::InitNetPlayFunctionality(*m_netplay_discord);
   m_netplay_discord->Start();
+#endif
 }
 
 bool MainWindow::NetPlayJoin()

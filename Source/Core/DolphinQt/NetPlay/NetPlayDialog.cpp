@@ -34,6 +34,7 @@
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -461,6 +462,55 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   UpdateGUI();
 }
 
+void NetPlayDialog::UpdateDiscordPresence()
+{
+#ifdef USE_DISCORD_PRESENCE
+  // both m_current_game and m_player_count need to be set for the status to be displayed correctly
+  if (m_player_count == 0 || m_current_game.empty())
+    return;
+
+  const auto use_default = [this]() {
+    Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::Empty, "", m_current_game);
+  };
+
+  if (g_TraversalClient)
+  {
+    const auto host_id = g_TraversalClient->GetHostID();
+    if (host_id == decltype(host_id)())
+      return use_default();
+
+    Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::RoomID,
+                                   std::string(host_id.begin(), host_id.end()), m_current_game);
+  }
+  else if (IsHosting())
+  {
+    if (m_exernal_ip_address.empty())
+    {
+      Common::HttpRequest request;
+      Common::HttpRequest::Response response =
+          request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+      if (!response.has_value())
+        return use_default();
+      m_exernal_ip_address = std::string(response->begin(), response->end());
+    }
+    const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+
+    Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::IPAddress,
+                                   Discord::CreateSecretFromIPAddress(m_exernal_ip_address, port),
+                                   m_current_game);
+  }
+  else
+  {
+    Discord::UpdateDiscordPresence(
+        m_player_count, Discord::SecretType::IPAddress,
+        Discord::CreateSecretFromIPAddress(Config::Get(Config::NETPLAY_HOST_CODE),
+                                           Config::Get(Config::NETPLAY_HOST_PORT)),
+        m_current_game);
+  }
+#endif
+}
+
 void NetPlayDialog::UpdateGUI()
 {
   auto client = Settings::Instance().GetNetPlayClient();
@@ -569,39 +619,10 @@ void NetPlayDialog::UpdateGUI()
     m_hostcode_action_button->setEnabled(true);
   }
 
-  if (m_old_player_count != player_count)
+  if (m_old_player_count != m_player_count)
   {
-    if (m_use_traversal)
-    {
-      const auto host_id = g_TraversalClient->GetHostID();
-      Discord::UpdateDiscordPresence(player_count, Discord::SecretType::RoomID,
-                                     std::string(host_id.begin(), host_id.end()));
-    }
-    else
-    {
-      // Temporary soluation
-      // To Do: Don't rely on a service that Dolphin devs aren't in control of. Ask one of the
-      // project managers about this.
-
-      Common::HttpRequest request;
-      Common::HttpRequest::Response response = request.Get("https://www.myexternalip.com/raw");
-
-      if (!response.has_value())
-        return;
-
-      // The response ends with a /n and the - 1 removes that
-      std::string exernalIPAddress = std::string(response->begin(), response->end() - 1);
-      std::string port = std::to_string(Settings::Instance().GetNetPlayServer()->GetPort());
-      std::string secret;
-      secret.reserve(exernalIPAddress.length() + 1 + port.length());
-      secret += exernalIPAddress;
-      secret += ':';
-      secret += port;
-
-      Discord::UpdateDiscordPresence(player_count, Discord::SecretType::IPAddress, secret);
-    }
-
-    m_old_player_count = player_count;
+    UpdateDiscordPresence();
+    m_old_player_count = m_player_count;
   }
 }
 
@@ -670,6 +691,7 @@ void NetPlayDialog::OnMsgChangeGame(const std::string& title)
   QueueOnObject(this, [this, qtitle, title] {
     m_game_button->setText(qtitle);
     m_current_game = title;
+    UpdateDiscordPresence();
   });
   DisplayMessage(tr("Game changed to \"%1\"").arg(qtitle), "magenta");
 }
@@ -763,6 +785,18 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
       break;
     }
   });
+}
+
+void NetPlayDialog::OnTraversalStateChanged(TraversalClient::State state)
+{
+  switch (state)
+  {
+  case TraversalClient::State::Connected:
+  case TraversalClient::State::Failure:
+    UpdateDiscordPresence();
+  default:
+    break;
+  }
 }
 
 void NetPlayDialog::OnSaveDataSyncFailure()

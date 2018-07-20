@@ -108,6 +108,7 @@
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="DiscordHandler.h" />
+    <QtMoc Include="DiscordJoinRequestDialog.h" />
     <QtMoc Include="FIFO\FIFOAnalyzer.h" />
     <QtMoc Include="FIFO\FIFOPlayerWindow.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
@@ -177,6 +178,7 @@
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DiscordHandler.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ElidedButton.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FlowLayout.cpp" />
@@ -323,6 +325,7 @@
     <ClCompile Include="Debugger\MemoryWidget.cpp" />
     <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
     <ClCompile Include="DiscordHandler.cpp" />
+    <ClCompile Include="DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
