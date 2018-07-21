@@ -422,6 +422,12 @@ void Shutdown()
 void Update()
 {
   poll_cb();
+#ifdef __ANDROID__
+  /* Android doesn't support input polling on all threads by default
+   * this will force the poll for this frame to happen in the main thread
+   * in case the frontend is doing late-polling */
+  input_cb(0, 0, 0, 0);
+#endif
 }
 
 }  // namespace Input
