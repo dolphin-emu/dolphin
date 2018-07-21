@@ -36,6 +36,12 @@ const ConfigInfo<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "Memcar
 const ConfigInfo<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
 const ConfigInfo<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const ConfigInfo<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const ConfigInfo<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
+    {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
+const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
+    {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
+const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
+    {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
 const ConfigInfo<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                                   ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const ConfigInfo<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},

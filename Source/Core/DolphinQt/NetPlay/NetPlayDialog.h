@@ -38,6 +38,7 @@ public:
   // NetPlayUI methods
   void BootGame(const std::string& filename) override;
   void StopGame() override;
+  bool IsHosting() const override;
 
   void Update() override;
   void AppendChat(const std::string& msg) override;
@@ -50,8 +51,11 @@ public:
   void OnConnectionLost() override;
   void OnConnectionError(const std::string& message) override;
   void OnTraversalError(TraversalClient::FailureReason error) override;
+  void OnSaveDataSyncFailure() override;
+
   bool IsRecording() override;
   std::string FindGame(const std::string& game) override;
+  std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) override;
   void ShowMD5Dialog(const std::string& file_identifier) override;
   void SetMD5Progress(int pid, int progress) override;
   void SetMD5Result(int pid, const std::string& result) override;
@@ -71,6 +75,7 @@ private:
                       int duration = OSD::Duration::NORMAL);
   void UpdateGUI();
   void GameStatusChanged(bool running);
+  void SetOptionsEnabled(bool enabled);
 
   void SetGame(const QString& game_path);
 
@@ -97,6 +102,7 @@ private:
   QSpinBox* m_buffer_size_box;
   QCheckBox* m_save_sd_box;
   QCheckBox* m_load_wii_box;
+  QCheckBox* m_sync_save_data_box;
   QCheckBox* m_record_input_box;
   QCheckBox* m_reduce_polling_rate_box;
   QPushButton* m_quit_button;

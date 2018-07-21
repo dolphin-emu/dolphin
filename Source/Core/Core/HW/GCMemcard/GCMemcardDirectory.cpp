@@ -16,6 +16,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -23,8 +24,10 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/NetPlayProto.h"
 
 const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
@@ -121,6 +124,58 @@ int GCMemcardDirectory::LoadGCI(const std::string& file_name, bool current_game_
   return NO_INDEX;
 }
 
+// This is only used by NetPlay but it made sense to put it here to keep the relevant code together
+std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::string& directory,
+                                                                   const std::string& game_id)
+{
+  std::vector<std::string> filenames;
+
+  u32 game_code = 0;
+  if (game_id.length() >= 4 && game_id != "00000000")
+    game_code = BE32(reinterpret_cast<const u8*>(game_id.c_str()));
+
+  std::vector<std::string> loaded_saves;
+  for (const std::string& file_name : Common::DoFileSearch({directory}, {".gci"}))
+  {
+    File::IOFile gci_file(file_name, "rb");
+    if (!gci_file)
+      continue;
+
+    GCIFile gci;
+    gci.m_filename = file_name;
+    gci.m_dirty = false;
+    if (!gci_file.ReadBytes(&gci.m_gci_header, DENTRY_SIZE))
+      continue;
+
+    const std::string gci_filename = gci.m_gci_header.GCI_FileName();
+    if (std::find(loaded_saves.begin(), loaded_saves.end(), gci_filename) != loaded_saves.end())
+      continue;
+
+    const u16 num_blocks = BE16(gci.m_gci_header.BlockCount);
+    // largest number of free blocks on a memory card
+    // in reality, there are not likely any valid gci files > 251 blocks
+    if (num_blocks > 2043)
+      continue;
+
+    const u32 size = num_blocks * BLOCK_SIZE;
+    const u64 file_size = gci_file.GetSize();
+    if (file_size != size + DENTRY_SIZE)
+      continue;
+
+    // There's technically other available block checks to prevent overfilling the virtual memory
+    // card (see above method), but since we're only loading the saves for one GameID here, we're
+    // definitely not going to run out of space.
+
+    if (game_code == BE32(gci.m_gci_header.Gamecode))
+    {
+      loaded_saves.push_back(gci_filename);
+      filenames.push_back(file_name);
+    }
+  }
+
+  return filenames;
+}
+
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
                                        bool shift_jis, int game_id)
     : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
@@ -151,7 +206,8 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
           m_save_directory.c_str());
       break;
     }
-    int index = LoadGCI(gci_file, m_saves.size() > 112);
+    int index = LoadGCI(gci_file, m_saves.size() > 112 ||
+                                      Config::Get(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY));
     if (index != NO_INDEX)
     {
       m_loaded_saves.push_back(m_saves.at(index).m_gci_header.GCI_FileName());
@@ -687,8 +743,8 @@ void GCIFile::DoState(PointerWrap& p)
 void MigrateFromMemcardFile(const std::string& directory_name, int card_index)
 {
   File::CreateFullPath(directory_name);
-  std::string ini_memcard = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA :
-                                                SConfig::GetInstance().m_strMemoryCardB;
+  std::string ini_memcard = (card_index == 0) ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                                Config::Get(Config::MAIN_MEMCARD_B_PATH);
   if (File::Exists(ini_memcard))
   {
     GCMemcard memcard(ini_memcard.c_str());

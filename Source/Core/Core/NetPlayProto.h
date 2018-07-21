@@ -9,6 +9,10 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace IOS::HLE::FS
+{
+class FileSystem;
+}
 namespace PowerPC
 {
 enum class CPUCore;
@@ -33,6 +37,9 @@ struct NetSettings
   bool m_OCEnable;
   float m_OCFactor;
   ExpansionInterface::TEXIDevices m_EXIDevice[2];
+  bool m_SyncSaveData;
+  std::string m_SaveDataRegion;
+  bool m_IsHosting;
 };
 
 struct NetTraversalConfig
@@ -94,6 +101,7 @@ enum
   NP_MSG_PLAYER_PING_DATA = 0xE2,
 
   NP_MSG_SYNC_GC_SRAM = 0xF0,
+  NP_MSG_SYNC_SAVE_DATA = 0xF1,
 };
 
 enum
@@ -103,6 +111,19 @@ enum
   CON_ERR_VERSION_MISMATCH = 3
 };
 
+enum
+{
+  SYNC_SAVE_DATA_NOTIFY = 0,
+  SYNC_SAVE_DATA_SUCCESS = 1,
+  SYNC_SAVE_DATA_FAILURE = 2,
+  SYNC_SAVE_DATA_RAW = 3,
+  SYNC_SAVE_DATA_GCI = 4,
+  SYNC_SAVE_DATA_WII = 5
+};
+
+constexpr u32 NETPLAY_LZO_IN_LEN = 1024 * 64;
+constexpr u32 NETPLAY_LZO_OUT_LEN = NETPLAY_LZO_IN_LEN + (NETPLAY_LZO_IN_LEN / 16) + 64 + 3;
+
 using NetWiimote = std::vector<u8>;
 using MessageId = u8;
 using PlayerId = u8;
@@ -111,8 +132,10 @@ using PadMapping = s8;
 using PadMappingArray = std::array<PadMapping, 4>;
 
 bool IsNetPlayRunning();
-
 // Precondition: A netplay client instance must be present. In other words,
 //               IsNetPlayRunning() must be true before calling this.
 const NetSettings& GetNetSettings();
+IOS::HLE::FS::FileSystem* GetWiiSyncFS();
+void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
+void ClearWiiSyncFS();
 }  // namespace NetPlay

@@ -16,8 +16,10 @@
 #include <QVBoxLayout>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
@@ -200,8 +202,8 @@ void GameCubePane::OnConfigPressed(int slot)
     if (other_slot_memcard)
     {
       QString path_b =
-          QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardB :
-                                                       SConfig::GetInstance().m_strMemoryCardA))
+          QFileInfo(QString::fromStdString(slot == 0 ? Config::Get(Config::MAIN_MEMCARD_B_PATH) :
+                                                       Config::Get(Config::MAIN_MEMCARD_A_PATH)))
               .absoluteFilePath();
 
       if (path_abs == path_b)
@@ -216,8 +218,8 @@ void GameCubePane::OnConfigPressed(int slot)
   if (memcard)
   {
     path_old =
-        QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardA :
-                                                     SConfig::GetInstance().m_strMemoryCardB))
+        QFileInfo(QString::fromStdString(slot == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                                     Config::Get(Config::MAIN_MEMCARD_B_PATH)))
             .absoluteFilePath();
   }
   else
@@ -231,11 +233,11 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (slot == SLOT_A_INDEX)
     {
-      SConfig::GetInstance().m_strMemoryCardA = path_abs.toStdString();
+      Config::SetBase(Config::MAIN_MEMCARD_A_PATH, path_abs.toStdString());
     }
     else
     {
-      SConfig::GetInstance().m_strMemoryCardB = path_abs.toStdString();
+      Config::SetBase(Config::MAIN_MEMCARD_B_PATH, path_abs.toStdString());
     }
   }
   else

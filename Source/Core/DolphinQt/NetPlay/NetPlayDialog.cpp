@@ -86,6 +86,7 @@ void NetPlayDialog::CreateMainLayout()
   m_buffer_size_box = new QSpinBox;
   m_save_sd_box = new QCheckBox(tr("Write save/SD data"));
   m_load_wii_box = new QCheckBox(tr("Load Wii Save"));
+  m_sync_save_data_box = new QCheckBox(tr("Sync Saves"));
   m_record_input_box = new QCheckBox(tr("Record inputs"));
   m_reduce_polling_rate_box = new QCheckBox(tr("Reduce Polling Rate"));
   m_buffer_label = new QLabel(tr("Buffer:"));
@@ -94,6 +95,8 @@ void NetPlayDialog::CreateMainLayout()
 
   m_game_button->setDefault(false);
   m_game_button->setAutoDefault(false);
+
+  m_sync_save_data_box->setChecked(true);
 
   auto* default_button = new QAction(tr("Calculate MD5 hash"), m_md5_button);
 
@@ -140,6 +143,7 @@ void NetPlayDialog::CreateMainLayout()
   options_widget->addWidget(m_buffer_size_box);
   options_widget->addWidget(m_save_sd_box);
   options_widget->addWidget(m_load_wii_box);
+  options_widget->addWidget(m_sync_save_data_box);
   options_widget->addWidget(m_record_input_box);
   options_widget->addWidget(m_reduce_polling_rate_box);
   options_widget->addWidget(m_quit_button);
@@ -305,9 +309,11 @@ void NetPlayDialog::OnStart()
   settings.m_ReducePollingRate = m_reduce_polling_rate_box->isChecked();
   settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
   settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
+  settings.m_SyncSaveData = m_sync_save_data_box->isChecked();
 
   Settings::Instance().GetNetPlayServer()->SetNetSettings(settings);
-  Settings::Instance().GetNetPlayServer()->StartGame();
+  if (Settings::Instance().GetNetPlayServer()->RequestStartGame())
+    SetOptionsEnabled(false);
 }
 
 void NetPlayDialog::reject()
@@ -346,6 +352,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_start_button->setHidden(!is_hosting);
   m_save_sd_box->setHidden(!is_hosting);
   m_load_wii_box->setHidden(!is_hosting);
+  m_sync_save_data_box->setHidden(!is_hosting);
   m_reduce_polling_rate_box->setHidden(!is_hosting);
   m_buffer_size_box->setHidden(!is_hosting);
   m_buffer_label->setHidden(!is_hosting);
@@ -373,7 +380,6 @@ void NetPlayDialog::UpdateGUI()
     QApplication::alert(this);
 
   m_player_count = static_cast<int>(players.size());
-
 
   int selection_pid = m_players_list->currentItem() ?
                           m_players_list->currentItem()->data(Qt::UserRole).toInt() :
@@ -487,6 +493,11 @@ void NetPlayDialog::StopGame()
   emit Stop();
 }
 
+bool NetPlayDialog::IsHosting() const
+{
+  return Settings::Instance().GetNetPlayServer() != nullptr;
+}
+
 void NetPlayDialog::Update()
 {
   QueueOnObject(this, &NetPlayDialog::UpdateGUI);
@@ -539,19 +550,23 @@ void NetPlayDialog::GameStatusChanged(bool running)
   if (!running && !m_got_stop_request)
     Settings::Instance().GetNetPlayClient()->RequestStopGame();
 
-  QueueOnObject(this, [this, running] {
-    if (Settings::Instance().GetNetPlayServer() != nullptr)
-    {
-      m_start_button->setEnabled(!running);
-      m_game_button->setEnabled(!running);
-      m_load_wii_box->setEnabled(!running);
-      m_save_sd_box->setEnabled(!running);
-      m_assign_ports_button->setEnabled(!running);
-      m_reduce_polling_rate_box->setEnabled(!running);
-    }
+  QueueOnObject(this, [this, running] { SetOptionsEnabled(!running); });
+}
 
-    m_record_input_box->setEnabled(!running);
-  });
+void NetPlayDialog::SetOptionsEnabled(bool enabled)
+{
+  if (Settings::Instance().GetNetPlayServer() != nullptr)
+  {
+    m_start_button->setEnabled(enabled);
+    m_game_button->setEnabled(enabled);
+    m_load_wii_box->setEnabled(enabled);
+    m_save_sd_box->setEnabled(enabled);
+    m_sync_save_data_box->setEnabled(enabled);
+    m_assign_ports_button->setEnabled(enabled);
+    m_reduce_polling_rate_box->setEnabled(enabled);
+  }
+
+  m_record_input_box->setEnabled(enabled);
 }
 
 void NetPlayDialog::OnMsgStartGame()
@@ -618,6 +633,11 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
   });
 }
 
+void NetPlayDialog::OnSaveDataSyncFailure()
+{
+  QueueOnObject(this, [this] { SetOptionsEnabled(true); });
+}
+
 bool NetPlayDialog::IsRecording()
 {
   std::optional<bool> is_recording = RunOnObject(m_record_input_box, &QCheckBox::isChecked);
@@ -628,7 +648,7 @@ bool NetPlayDialog::IsRecording()
 
 std::string NetPlayDialog::FindGame(const std::string& game)
 {
-  std::optional<std::string> path = RunOnObject(this, [this, game] {
+  std::optional<std::string> path = RunOnObject(this, [this, &game] {
     for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
     {
       if (m_game_list_model->GetUniqueIdentifier(i).toStdString() == game)
@@ -639,6 +659,22 @@ std::string NetPlayDialog::FindGame(const std::string& game)
   if (path)
     return *path;
   return std::string("");
+}
+
+std::shared_ptr<const UICommon::GameFile> NetPlayDialog::FindGameFile(const std::string& game)
+{
+  std::optional<std::shared_ptr<const UICommon::GameFile>> game_file =
+      RunOnObject(this, [this, &game] {
+        for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
+        {
+          if (m_game_list_model->GetUniqueIdentifier(i).toStdString() == game)
+            return m_game_list_model->GetGameFile(i);
+        }
+        return static_cast<std::shared_ptr<const UICommon::GameFile>>(nullptr);
+      });
+  if (game_file)
+    return *game_file;
+  return nullptr;
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)

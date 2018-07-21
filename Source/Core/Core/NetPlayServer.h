@@ -41,6 +41,7 @@ public:
   void SetNetSettings(const NetSettings& settings);
 
   bool StartGame();
+  bool RequestStartGame();
 
   PadMappingArray GetPadMapping() const;
   void SetPadMapping(const PadMappingArray& mappings);
@@ -78,6 +79,10 @@ private:
     bool operator==(const Client& other) const { return this == &other; }
   };
 
+  bool SyncSaveData();
+  bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
+  bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
+
   void SendToClients(const sf::Packet& packet, const PlayerId skip_pid = 0);
   void Send(ENetPeer* socket, const sf::Packet& packet);
   unsigned int OnConnect(ENetPeer* socket);
@@ -102,6 +107,8 @@ private:
   unsigned int m_target_buffer_size = 0;
   PadMappingArray m_pad_map;
   PadMappingArray m_wiimote_map;
+  unsigned int m_save_data_synced_players = 0;
+  bool m_start_pending = false;
 
   std::map<PlayerId, Client> m_players;
 

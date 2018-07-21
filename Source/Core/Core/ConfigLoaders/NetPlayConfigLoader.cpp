@@ -6,7 +6,9 @@
 
 #include <memory>
 
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/FileUtil.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/NetPlayProto.h"
@@ -39,6 +41,23 @@ public:
 
     layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, m_settings.m_ProgressiveScan);
     layer->Set(Config::SYSCONF_PAL60, m_settings.m_PAL60);
+
+    if (m_settings.m_SyncSaveData)
+    {
+      if (!m_settings.m_IsHosting)
+      {
+        const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY DIR_SEP;
+        layer->Set(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE, path + "Card A");
+        layer->Set(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE, path + "Card B");
+
+        const std::string file = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY + "%c." +
+                                 m_settings.m_SaveDataRegion + ".raw";
+        layer->Set(Config::MAIN_MEMCARD_A_PATH, StringFromFormat(file.c_str(), 'A'));
+        layer->Set(Config::MAIN_MEMCARD_B_PATH, StringFromFormat(file.c_str(), 'B'));
+      }
+
+      layer->Set(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY, true);
+    }
   }
 
   void Save(Config::Layer* layer) override

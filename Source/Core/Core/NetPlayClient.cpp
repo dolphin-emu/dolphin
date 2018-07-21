@@ -13,18 +13,23 @@
 #include <sstream>
 #include <thread>
 #include <type_traits>
+#include <vector>
 
+#include <lzo/lzo1x.h>
 #include <mbedtls/md5.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 #include "Common/QoSSession.h"
+#include "Common/SFMLHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -34,12 +39,19 @@
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/WiiSave.h"
+#include "Core/HW/WiiSaveStructs.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/Uids.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/WiiRoot.h"
 #include "InputCommon/GCAdapter.h"
+#include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -47,6 +59,7 @@ namespace NetPlay
 {
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
+static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -467,10 +480,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> tmp;
       m_net_settings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
 
-      u32 time_low, time_high;
-      packet >> time_low;
-      packet >> time_high;
-      g_netplay_initial_rtc = time_low | ((u64)time_high << 32);
+      g_netplay_initial_rtc = Common::PacketReadU64(packet);
+
+      packet >> m_net_settings.m_SyncSaveData;
+      packet >> m_net_settings.m_SaveDataRegion;
+      m_net_settings.m_IsHosting = m_dialog->IsHosting();
     }
 
     m_dialog->OnMsgStartGame();
@@ -549,6 +563,194 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
       memcpy(g_SRAM.p_SRAM, sram, sizeof(g_SRAM.p_SRAM));
       g_SRAM_netplay_initialized = true;
+    }
+  }
+  break;
+
+  case NP_MSG_SYNC_SAVE_DATA:
+  {
+    MessageId sub_id;
+    packet >> sub_id;
+
+    switch (sub_id)
+    {
+    case SYNC_SAVE_DATA_NOTIFY:
+    {
+      packet >> m_sync_save_data_count;
+      m_sync_save_data_success_count = 0;
+
+      if (m_sync_save_data_count == 0)
+        SyncSaveDataResponse(true);
+      else
+        m_dialog->AppendChat(GetStringT("Synchronizing save data..."));
+    }
+    break;
+
+    case SYNC_SAVE_DATA_RAW:
+    {
+      if (m_dialog->IsHosting())
+        return 0;
+
+      bool is_slot_a;
+      std::string region;
+      bool mc251;
+      packet >> is_slot_a >> region >> mc251;
+
+      const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY +
+                               (is_slot_a ? "A." : "B.") + region + (mc251 ? ".251" : "") + ".raw";
+      if (File::Exists(path) && !File::Delete(path))
+      {
+        PanicAlertT("Failed to delete NetPlay memory card. Verify your write permissions.");
+        SyncSaveDataResponse(false);
+        return 0;
+      }
+
+      const bool success = DecompressPacketIntoFile(packet, path);
+      SyncSaveDataResponse(success);
+    }
+    break;
+
+    case SYNC_SAVE_DATA_GCI:
+    {
+      if (m_dialog->IsHosting())
+        return 0;
+
+      bool is_slot_a;
+      u8 file_count;
+      packet >> is_slot_a >> file_count;
+
+      const std::string path = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY DIR_SEP +
+                               StringFromFormat("Card %c", is_slot_a ? 'A' : 'B');
+
+      if ((File::Exists(path) && !File::DeleteDirRecursively(path + DIR_SEP)) ||
+          !File::CreateFullPath(path + DIR_SEP))
+      {
+        PanicAlertT("Failed to reset NetPlay GCI folder. Verify your write permissions.");
+        SyncSaveDataResponse(false);
+        return 0;
+      }
+
+      for (u8 i = 0; i < file_count; i++)
+      {
+        std::string file_name;
+        packet >> file_name;
+
+        if (!DecompressPacketIntoFile(packet, path + DIR_SEP + file_name))
+        {
+          SyncSaveDataResponse(false);
+          return 0;
+        }
+      }
+
+      SyncSaveDataResponse(true);
+    }
+    break;
+
+    case SYNC_SAVE_DATA_WII:
+    {
+      if (m_dialog->IsHosting())
+        return 0;
+
+      const auto game = m_dialog->FindGameFile(m_selected_game);
+      if (game == nullptr)
+      {
+        SyncSaveDataResponse(true);  // whatever, we won't be booting anyways
+        return 0;
+      }
+
+      const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+
+      if (File::Exists(path) && !File::DeleteDirRecursively(path))
+      {
+        PanicAlertT("Failed to reset NetPlay NAND folder. Verify your write permissions.");
+        SyncSaveDataResponse(false);
+        return 0;
+      }
+
+      auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
+      temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                               Common::GetTitleDataPath(game->GetTitleID()), 0,
+                               {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
+                                IOS::HLE::FS::Mode::ReadWrite});
+      auto save = WiiSave::MakeNandStorage(temp_fs.get(), game->GetTitleID());
+
+      bool exists;
+      packet >> exists;
+      if (exists)
+      {
+        // Header
+        WiiSave::Header header;
+        header.tid = Common::PacketReadU64(packet);
+        header.banner_size = Common::PacketReadU32(packet);
+        packet >> header.permissions;
+        packet >> header.unk1;
+        for (size_t i = 0; i < header.md5.size(); i++)
+          packet >> header.md5[i];
+        header.unk2 = Common::PacketReadU16(packet);
+        for (size_t i = 0; i < header.banner_size; i++)
+          packet >> header.banner[i];
+
+        // BkHeader
+        WiiSave::BkHeader bk_header;
+        bk_header.size = Common::PacketReadU32(packet);
+        bk_header.magic = Common::PacketReadU32(packet);
+        bk_header.ngid = Common::PacketReadU32(packet);
+        bk_header.number_of_files = Common::PacketReadU32(packet);
+        bk_header.size_of_files = Common::PacketReadU32(packet);
+        bk_header.unk1 = Common::PacketReadU32(packet);
+        bk_header.unk2 = Common::PacketReadU32(packet);
+        bk_header.total_size = Common::PacketReadU32(packet);
+        for (size_t i = 0; i < bk_header.unk3.size(); i++)
+          packet >> bk_header.unk3[i];
+        bk_header.tid = Common::PacketReadU64(packet);
+        for (size_t i = 0; i < bk_header.mac_address.size(); i++)
+          packet >> bk_header.mac_address[i];
+
+        // Files
+        std::vector<WiiSave::Storage::SaveFile> files;
+        for (u32 i = 0; i < bk_header.number_of_files; i++)
+        {
+          WiiSave::Storage::SaveFile file;
+          packet >> file.mode >> file.attributes;
+          {
+            u8 tmp;
+            packet >> tmp;
+            file.type = static_cast<WiiSave::Storage::SaveFile::Type>(tmp);
+          }
+          packet >> file.path;
+
+          if (file.type == WiiSave::Storage::SaveFile::Type::File)
+          {
+            auto buffer = DecompressPacketIntoBuffer(packet);
+            if (!buffer)
+            {
+              SyncSaveDataResponse(false);
+              return 0;
+            }
+
+            file.data = std::move(*buffer);
+          }
+
+          files.push_back(std::move(file));
+        }
+
+        if (!save->WriteHeader(header) || !save->WriteBkHeader(bk_header) ||
+            !save->WriteFiles(files))
+        {
+          PanicAlertT("Failed to write Wii save.");
+          SyncSaveDataResponse(false);
+          return 0;
+        }
+      }
+
+      SetWiiSyncFS(std::move(temp_fs));
+      SyncSaveDataResponse(true);
+    }
+    break;
+
+    default:
+      PanicAlertT("Unknown SYNC_SAVE_DATA message received with id: %d", sub_id);
+      break;
     }
   }
   break;
@@ -895,6 +1097,120 @@ bool NetPlayClient::StartGame(const std::string& path)
   return true;
 }
 
+void NetPlayClient::SyncSaveDataResponse(const bool success)
+{
+  m_dialog->AppendChat(success ? GetStringT("Data received!") :
+                                 GetStringT("Error processing data."));
+
+  if (success)
+  {
+    if (++m_sync_save_data_success_count >= m_sync_save_data_count)
+    {
+      sf::Packet response_packet;
+      response_packet << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+      response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_SUCCESS);
+
+      Send(response_packet);
+    }
+  }
+  else
+  {
+    sf::Packet response_packet;
+    response_packet << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+    response_packet << static_cast<MessageId>(SYNC_SAVE_DATA_FAILURE);
+
+    Send(response_packet);
+  }
+}
+
+bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
+{
+  u64 file_size = Common::PacketReadU64(packet);
+  ;
+
+  if (file_size == 0)
+    return true;
+
+  File::IOFile file(file_path, "wb");
+  if (!file)
+  {
+    PanicAlertT("Failed to open file \"%s\". Verify your write permissions.", file_path.c_str());
+    return false;
+  }
+
+  std::vector<u8> in_buffer(NETPLAY_LZO_OUT_LEN);
+  std::vector<u8> out_buffer(NETPLAY_LZO_IN_LEN);
+
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;  // number of bytes to read
+    lzo_uint new_len = 0;    // number of bytes to write
+
+    packet >> cur_len;
+    if (!cur_len)
+      break;  // We reached the end of the data stream
+
+    for (size_t j = 0; j < cur_len; j++)
+    {
+      packet >> in_buffer[j];
+    }
+
+    if (lzo1x_decompress(in_buffer.data(), cur_len, out_buffer.data(), &new_len, nullptr) !=
+        LZO_E_OK)
+    {
+      PanicAlertT("Internal LZO Error - decompression failed");
+      return false;
+    }
+
+    if (!file.WriteBytes(out_buffer.data(), new_len))
+    {
+      PanicAlertT("Error writing file: %s", file_path.c_str());
+      return false;
+    }
+  }
+
+  return true;
+}
+
+std::optional<std::vector<u8>> NetPlayClient::DecompressPacketIntoBuffer(sf::Packet& packet)
+{
+  u64 size = Common::PacketReadU64(packet);
+  ;
+
+  std::vector<u8> out_buffer(size);
+
+  if (size == 0)
+    return out_buffer;
+
+  std::vector<u8> in_buffer(NETPLAY_LZO_OUT_LEN);
+
+  lzo_uint i = 0;
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;  // number of bytes to read
+    lzo_uint new_len = 0;    // number of bytes to write
+
+    packet >> cur_len;
+    if (!cur_len)
+      break;  // We reached the end of the data stream
+
+    for (size_t j = 0; j < cur_len; j++)
+    {
+      packet >> in_buffer[j];
+    }
+
+    if (lzo1x_decompress(in_buffer.data(), cur_len, &out_buffer[i], &new_len, nullptr) != LZO_E_OK)
+    {
+      PanicAlertT("Internal LZO Error - decompression failed");
+      return {};
+    }
+
+    i += new_len;
+  }
+
+  return out_buffer;
+}
+
 // called from ---GUI--- thread
 bool NetPlayClient::ChangeGame(const std::string&)
 {
@@ -1178,6 +1494,8 @@ bool NetPlayClient::StopGame()
   // stop game
   m_dialog->StopGame();
 
+  ClearWiiSyncFS();
+
   return true;
 }
 
@@ -1278,8 +1596,7 @@ void NetPlayClient::SendTimeBase()
 
     sf::Packet packet;
     packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
-    packet << static_cast<u32>(timebase);
-    packet << static_cast<u32>(timebase << 32);
+    Common::PacketWriteU64(packet, timebase);
     packet << netplay_client->m_timebase_frame;
 
     netplay_client->SendAsync(std::move(packet));
@@ -1356,6 +1673,26 @@ const NetSettings& GetNetSettings()
 {
   ASSERT(IsNetPlayRunning());
   return netplay_client->GetNetSettings();
+}
+
+IOS::HLE::FS::FileSystem* GetWiiSyncFS()
+{
+  return s_wii_sync_fs.get();
+}
+
+void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs)
+{
+  s_wii_sync_fs = std::move(fs);
+}
+
+void ClearWiiSyncFS()
+{
+  // We're just assuming it will always be here because it is
+  const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
+  if (File::Exists(path))
+    File::DeleteDirRecursively(path);
+
+  s_wii_sync_fs.reset();
 }
 
 void NetPlay_Enable(NetPlayClient* const np)
