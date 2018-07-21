@@ -22,6 +22,10 @@ set(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}")
 
 set_target_properties(dolphin_libretro PROPERTIES PREFIX "")
 if(ANDROID)
+   target_sources(dolphin_libretro PRIVATE
+      ${CMAKE_SOURCE_DIR}/Source/Android/jni/AndroidCommon/IDCache.cpp
+      ${CMAKE_SOURCE_DIR}/Source/Android/jni/ButtonManager.cpp
+   )
    set_target_properties(dolphin_libretro PROPERTIES SUFFIX "_android.so")
 endif()
 
