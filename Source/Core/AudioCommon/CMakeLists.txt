@@ -48,7 +48,7 @@ endif()
 
 if(WIN32)
   target_sources(audiocommon PRIVATE WASAPIStream.cpp)
-  if(MSC_VER)
+  if(MSVC)
     target_sources(audiocommon PRIVATE XAudio2Stream.cpp)
     add_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp")
     target_include_directories(audiocommon_xaudio27 PRIVATE
@@ -58,16 +58,11 @@ if(WIN32)
     target_link_libraries(audiocommon PRIVATE audiocommon_xaudio27)
   endif()
 
-  set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/Externals/OpenAL)
   # Dolphin loads openal32.dll at runtime
-  find_package(OpenAL)
-  if(OPENAL_FOUND)
-    message(STATUS "OpenAL found, enabling OpenAL sound backend")
-    target_sources(audiocommon PRIVATE OpenALStream.cpp)
-    target_link_libraries(audiocommon PRIVATE OpenAL::OpenAL)
-  else()
-    message(STATUS "OpenAL NOT found in Externals")
-  endif()
+  target_sources(audiocommon PRIVATE OpenALStream.cpp)
+  target_include_directories(audiocommon_xaudio27 PRIVATE
+    ${PROJECT_SOURCE_DIR}/Externals/OpenAL
+  )
 endif()
 
 target_link_libraries(audiocommon PRIVATE cubeb SoundTouch)
