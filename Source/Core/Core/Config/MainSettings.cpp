@@ -85,7 +85,6 @@ const ConfigInfo<int> MAIN_SYNC_GPU_MIN_DISTANCE{{System::Main, "Core", "SyncGpu
                                                  -200000};
 const ConfigInfo<float> MAIN_SYNC_GPU_OVERCLOCK{{System::Main, "Core", "SyncGpuOverclock"}, 1.0f};
 const ConfigInfo<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, false};
-const ConfigInfo<bool> MAIN_DCBZ{{System::Main, "Core", "DCBZ"}, false};
 const ConfigInfo<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
 const ConfigInfo<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const ConfigInfo<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};

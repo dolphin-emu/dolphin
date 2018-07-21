@@ -502,11 +502,6 @@ void Interpreter::dcbtst(UGeckoInstruction inst)
 
 void Interpreter::dcbz(UGeckoInstruction inst)
 {
-  // DCBZOFF is a hack to fix certain games which would otherwise require
-  // accurate L2 emulation.
-  if (SConfig::GetInstance().bDCBZOFF)
-    return;
-
   const u32 dcbz_addr = Helper_Get_EA_X(inst);
 
   if (!HID0.DCE)
