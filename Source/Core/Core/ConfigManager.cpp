@@ -806,6 +806,9 @@ DiscIO::Region SConfig::ToGameCubeRegion(DiscIO::Region region)
 
 const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 {
+  if (region == DiscIO::Region::Unknown)
+    region = ToGameCubeRegion(GetFallbackRegion());
+
   switch (region)
   {
   case DiscIO::Region::NTSC_J:
@@ -819,10 +822,11 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 
   case DiscIO::Region::NTSC_K:
     ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
-    return nullptr;
+    return JAP_DIR;  // See ToGameCubeRegion
 
   default:
-    return nullptr;
+    ASSERT_MSG(BOOT, false, "Default case should not be reached");
+    return EUR_DIR;
   }
 }
 
@@ -926,18 +930,8 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
     return false;
 
-  // Fall back to the system menu region, if possible.
   if (m_region == DiscIO::Region::Unknown)
-  {
-    IOS::HLE::Kernel ios;
-    const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
-    if (system_menu_tmd.IsValid())
-      m_region = system_menu_tmd.GetRegion();
-  }
-
-  // Fall back to PAL.
-  if (m_region == DiscIO::Region::Unknown)
-    m_region = DiscIO::Region::PAL;
+    m_region = GetFallbackRegion();
 
   // Set up paths
   const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
@@ -945,6 +939,18 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   m_strBootROM = GetBootROMPath(region_dir);
 
   return true;
+}
+
+DiscIO::Region SConfig::GetFallbackRegion()
+{
+  // Fall back to the system menu region, if possible.
+  IOS::HLE::Kernel ios;
+  const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  if (system_menu_tmd.IsValid())
+    return system_menu_tmd.GetRegion();
+
+  // Fall back to PAL.
+  return DiscIO::Region::PAL;
 }
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
