@@ -203,7 +203,7 @@ Option<bool> pal60("dolphin_pal60", "PAL60", true);
 Option<u32> sensorBarPosition("dolphin_sensor_bar_position", "Sensor Bar Position",
                               {"Bottom", "Top"});
 Option<unsigned int> audioMixerRate("dolphin_mixer_rate", "Audio Mixer Rate",
-                                    {{"32000", 32000}, {"48000", 48000}});
+                                    {{"32000", 32000u}, {"48000", 48000u}});
 Option<ShaderCompilationMode> shaderCompilationMode(
     "dolphin_shader_compilation_mode", "Shader Compilation Mode",
     {{"sync UberShaders", ShaderCompilationMode::SynchronousUberShaders},

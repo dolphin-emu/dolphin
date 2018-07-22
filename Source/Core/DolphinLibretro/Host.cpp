@@ -1,7 +1,14 @@
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <memory>
+#ifdef __ANDROID__
+#include "Core/HW/WiimoteReal/IOAndroid.h"
+#include "InputCommon/GCAdapter.h"
+#include "InputCommon/GCPadStatus.h"
+#include "jni/ButtonManager.h"
+#endif
 
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
@@ -70,3 +77,118 @@ bool Host_UINeedsControllerState()
 void Host_UpdateProgressDialog(const char* caption, int position, int total)
 {
 }
+
+#ifdef __ANDROID__
+
+namespace GCAdapter
+{
+void SetAdapterCallback(std::function<void(void)> func)
+{
+}
+
+void Init()
+{
+}
+
+void StartScanThread()
+{
+}
+
+void StopScanThread()
+{
+}
+
+void Shutdown()
+{
+}
+
+GCPadStatus Input(int chan)
+{
+  return {};
+}
+
+bool DeviceConnected(int chan)
+{
+  return false;
+}
+
+bool UseAdapter()
+{
+  return false;
+}
+
+void ResetRumble()
+{
+}
+
+void Output(int chan, u8 rumble_command)
+{
+}
+
+bool IsDetected()
+{
+  return false;
+}
+
+bool IsDriverDetected()
+{
+  return false;
+}
+}  // namespace GCAdapter
+
+namespace WiimoteReal
+{
+void WiimoteScannerAndroid::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
+                                         Wiimote*& found_board)
+{
+}
+
+WiimoteAndroid::WiimoteAndroid(int index) : Wiimote(), m_mayflash_index(index)
+{
+}
+
+WiimoteAndroid::~WiimoteAndroid()
+{
+}
+
+bool WiimoteAndroid::ConnectInternal()
+{
+  return false;
+}
+
+void WiimoteAndroid::DisconnectInternal()
+{
+}
+
+bool WiimoteAndroid::IsConnected() const
+{
+  return false;
+}
+
+int WiimoteAndroid::IORead(u8* buf)
+{
+  return 0;
+}
+
+int WiimoteAndroid::IOWrite(u8 const* buf, size_t len)
+{
+  return len;
+}
+
+void InitAdapterClass()
+{
+}
+}  // namespace WiimoteReal
+
+namespace ButtonManager
+{
+bool GetButtonPressed(int padID, ButtonType button)
+{
+  return false;
+}
+float GetAxisValue(int padID, ButtonType axis)
+{
+  return 0;
+}
+}
+#endif
