@@ -50,6 +50,19 @@ public final class GameFileCacheService extends IntentService
 		return platformGames;
 	}
 
+	public static GameFile getGameFileByGameId(String gameId)
+	{
+		GameFile[] allGames = gameFiles.get();
+		for (GameFile game : allGames)
+		{
+			if (game.getGameId().equals(gameId))
+			{
+				return game;
+			}
+		}
+		return null;
+	}
+
 	private static void startService(Context context, String action)
 	{
 		Intent intent = new Intent(context, GameFileCacheService.class);

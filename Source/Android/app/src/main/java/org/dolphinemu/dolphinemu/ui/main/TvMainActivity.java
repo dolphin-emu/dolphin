@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.app.BrowseSupportFragment;
@@ -28,6 +29,7 @@ import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 import java.util.Collection;
@@ -53,6 +55,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
 			StartupHandler.HandleInit(this);
+		// Setup and/or sync channels
+        TvUtil.scheduleSyncingChannel(getApplicationContext());
 	}
 
 	@Override
@@ -134,6 +138,9 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 	@Override
 	public void showGames()
 	{
+		// Kicks off the program services to update all channels
+		TvUtil.updateAllChannels(getApplicationContext());
+
 		recreate();
 	}
 

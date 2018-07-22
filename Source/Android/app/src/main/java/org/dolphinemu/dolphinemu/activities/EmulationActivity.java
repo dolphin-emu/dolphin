@@ -160,15 +160,21 @@ public final class EmulationActivity extends AppCompatActivity
 		launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
 		launcher.putExtra(EXTRA_SCREEN_PATH, gameFile.getScreenshotPath());
 		launcher.putExtra(EXTRA_GRID_POSITION, position);
+		Bundle options = new Bundle();
 
-		ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+		// Will be null if launched from homescreen
+		if (sharedView != null)
+		{
+			ActivityOptionsCompat transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
 				activity,
 				sharedView,
 				"image_game_screenshot");
+			options = transition.toBundle();
+		}
 
 		// I believe this warning is a bug. Activities are FragmentActivity from the support lib
 		//noinspection RestrictedApi
-		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options.toBundle());
+		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options);
 	}
 
 	@Override
