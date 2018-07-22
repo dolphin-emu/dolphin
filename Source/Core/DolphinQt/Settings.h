@@ -75,6 +75,8 @@ public:
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
   void RefreshGameList();
+  void RefreshMetadata();
+  void NotifyMetadataRefreshComplete();
   void ReloadTitleDB();
   bool IsAutoRefreshEnabled() const;
   void SetAutoRefreshEnabled(bool enabled);
@@ -144,6 +146,8 @@ signals:
   void DefaultGameChanged(const QString&);
   void GameListRefreshRequested();
   void TitleDBReloadRequested();
+  void MetadataRefreshRequested();
+  void MetadataRefreshCompleted();
   void AutoRefreshToggled(bool enabled);
   void HideCursorChanged();
   void KeepWindowOnTopChanged(bool top);

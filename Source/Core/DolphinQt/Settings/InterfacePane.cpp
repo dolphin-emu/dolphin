@@ -19,9 +19,13 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Settings.h"
+
+#include "UICommon/GameFile.h"
 
 static QComboBox* MakeLanguageComboBox()
 {
@@ -144,11 +148,14 @@ void InterfacePane::CreateUI()
   m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
+  m_checkbox_use_covers =
+      new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
 
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_userstyle);
+  groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
 }
 
@@ -179,6 +186,7 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme,
           static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
@@ -229,6 +237,7 @@ void InterfacePane::LoadConfig()
   m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
+  m_checkbox_use_covers->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
   m_checkbox_hide_mouse->setChecked(Settings::Instance().GetHideCursor());
 }
 
@@ -262,6 +271,14 @@ void InterfacePane::OnSaveConfig()
     QMessageBox::information(
         this, tr("Restart Required"),
         tr("You must restart Dolphin in order for the change to take effect."));
+  }
+
+  const bool use_covers = m_checkbox_use_covers->isChecked();
+
+  if (use_covers != Config::Get(Config::MAIN_USE_GAME_COVERS))
+  {
+    Config::SetBase(Config::MAIN_USE_GAME_COVERS, use_covers);
+    Settings::Instance().RefreshMetadata();
   }
 
   settings.SaveSettings();

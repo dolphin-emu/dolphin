@@ -59,6 +59,9 @@ public:
   void UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game);
   void RemoveGame(const std::string& path);
 
+  void SetScale(float scale);
+  float GetScale() const;
+
 private:
   // Index in m_games, or -1 if it isn't found
   int FindGame(const std::string& path) const;
@@ -67,4 +70,5 @@ private:
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
   Core::TitleDatabase m_title_database;
   QString m_term;
+  float m_scale = 1.0;
 };

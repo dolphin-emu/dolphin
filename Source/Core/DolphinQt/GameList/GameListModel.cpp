@@ -283,3 +283,13 @@ void GameListModel::SetSearchTerm(const QString& term)
 {
   m_term = term;
 }
+
+void GameListModel::SetScale(float scale)
+{
+  m_scale = scale;
+}
+
+float GameListModel::GetScale() const
+{
+  return m_scale;
+}
