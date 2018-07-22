@@ -67,6 +67,7 @@ bool retro_load_game(const struct retro_game_info* game)
 
   /* disable throttling emulation to match GetTargetRefreshRate() */
   Core::SetIsThrottlerTempDisabled(true);
+  SConfig::GetInstance().m_EmulationSpeed = 0.0f;
 
   // Fastmem installs custom exception handlers
   // it needs to be disabled when running in a debugger.

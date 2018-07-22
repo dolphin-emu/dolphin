@@ -56,10 +56,22 @@ namespace Audio
 {
 static retro_audio_sample_batch_t batch_cb;
 
+static unsigned int GetSampleRate()
+{
+  if (g_sound_stream)
+    return g_sound_stream->GetMixer()->GetSampleRate();
+  else if (SConfig::GetInstance().bWii)
+    return Options::audioMixerRate;
+  else if (Options::audioMixerRate == 32000u)
+    return 32029;
+
+  return 48043;
+}
+
 class Stream final : public SoundStream
 {
 public:
-  Stream() : SoundStream(Options::audioMixerRate) {}
+  Stream() : SoundStream(GetSampleRate()) {}
   bool SetRunning(bool running) override { return running; }
   void Update() override
   {
@@ -139,9 +151,8 @@ void retro_get_system_av_info(retro_system_av_info* info)
     Libretro::widescreen = Config::Get(Config::SYSCONF_WIDESCREEN);
 
   info->geometry.aspect_ratio = Libretro::widescreen ? 16.0 / 9.0 : 4.0 / 3.0;
-  info->timing.fps = (retro_get_region() == RETRO_REGION_NTSC) ? 60 : 50;
-  info->timing.sample_rate = g_sound_stream ? g_sound_stream->GetMixer()->GetSampleRate() :
-                                              Libretro::Options::audioMixerRate;
+  info->timing.fps = (retro_get_region() == RETRO_REGION_NTSC) ? (60.0f / 1.001f) : 50.0f;
+  info->timing.sample_rate = Libretro::Audio::GetSampleRate();
 }
 
 void retro_reset(void)
@@ -163,6 +174,7 @@ void retro_run(void)
   {
     Core::EmuThread();
     AudioCommon::SetSoundStreamRunning(false);
+    g_sound_stream.reset();
     g_sound_stream = std::make_unique<Libretro::Audio::Stream>();
     AudioCommon::SetSoundStreamRunning(true);
 
