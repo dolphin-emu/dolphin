@@ -210,5 +210,9 @@ Option<ShaderCompilationMode> shaderCompilationMode(
      {"a-sync Skip Rendering", ShaderCompilationMode::AsynchronousSkipRendering},
      {"sync UberShaders", ShaderCompilationMode::SynchronousUberShaders},
      {"a-sync UberShaders", ShaderCompilationMode::AsynchronousUberShaders}});
+Option<int> maxAnisotropy("dolphin_max_anisotropy", "Max Anisotropy", 0, 17);
+Option<bool> efbScaledCopy("dolphin_efb_scaled_copy", "Scaled EFB Copy", true);
+Option<bool> gpuTextureDecoding("dolphin_gpu_texture_decoding", "GPU Texture Decoding", false);
+Option<bool> waitForShaders("dolphin_wait_for_shaders", "Wait for Shaders before Starting", false);
 }  // namespace Options
 }  // namespace Libretro
