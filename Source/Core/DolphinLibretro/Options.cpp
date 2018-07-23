@@ -206,9 +206,9 @@ Option<unsigned int> audioMixerRate("dolphin_mixer_rate", "Audio Mixer Rate",
                                     {{"32000", 32000u}, {"48000", 48000u}});
 Option<ShaderCompilationMode> shaderCompilationMode(
     "dolphin_shader_compilation_mode", "Shader Compilation Mode",
-    {{"sync UberShaders", ShaderCompilationMode::SynchronousUberShaders},
-     {"sync", ShaderCompilationMode::Synchronous},
-     {"a-sync UberShaders", ShaderCompilationMode::AsynchronousUberShaders},
-     {"a-sync Skip Rendering", ShaderCompilationMode::AsynchronousSkipRendering}});
+    {{"sync", ShaderCompilationMode::Synchronous},
+     {"a-sync Skip Rendering", ShaderCompilationMode::AsynchronousSkipRendering},
+     {"sync UberShaders", ShaderCompilationMode::SynchronousUberShaders},
+     {"a-sync UberShaders", ShaderCompilationMode::AsynchronousUberShaders}});
 }  // namespace Options
 }  // namespace Libretro
