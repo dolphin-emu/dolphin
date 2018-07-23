@@ -74,5 +74,9 @@ extern Option<bool> pal60;
 extern Option<u32> sensorBarPosition;
 extern Option<unsigned int> audioMixerRate;
 extern Option<ShaderCompilationMode> shaderCompilationMode;
+extern Option<int> maxAnisotropy;
+extern Option<bool> efbScaledCopy;
+extern Option<bool> gpuTextureDecoding;
+extern Option<bool> waitForShaders;
 }  // namespace Options
 }  // namespace Libretro

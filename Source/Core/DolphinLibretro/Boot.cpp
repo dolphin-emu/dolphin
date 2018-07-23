@@ -98,11 +98,15 @@ bool retro_load_game(const struct retro_game_info* game)
   Config::SetBase(Config::GFX_EFB_SCALE, Libretro::Options::efbScale);
   Config::SetBase(Config::GFX_ASPECT_RATIO, AspectMode::Stretch);
   Config::SetBase(Config::GFX_BACKEND_MULTITHREADING, false);
+  Config::SetBase(Config::GFX_SHADER_COMPILATION_MODE, Libretro::Options::shaderCompilationMode);
+  Config::SetBase(Config::GFX_ENHANCE_MAX_ANISOTROPY, Libretro::Options::maxAnisotropy);
+  Config::SetBase(Config::GFX_HACK_COPY_EFB_SCALED, Libretro::Options::efbScaledCopy);
+  Config::SetBase(Config::GFX_ENABLE_GPU_TEXTURE_DECODING, Libretro::Options::gpuTextureDecoding);
+  Config::SetBase(Config::GFX_WAIT_FOR_SHADERS_BEFORE_STARTING, Libretro::Options::waitForShaders);
 #if 0
   Config::SetBase(Config::GFX_SHADER_COMPILER_THREADS, 1);
   Config::SetBase(Config::GFX_SHADER_PRECOMPILER_THREADS, 1);
 #endif
-  Config::SetBase(Config::GFX_SHADER_COMPILATION_MODE, Libretro::Options::shaderCompilationMode);
 
   Libretro::Video::Init();
   NOTICE_LOG(VIDEO, "Using GFX backend: %s", SConfig::GetInstance().m_strVideoBackend.c_str());
