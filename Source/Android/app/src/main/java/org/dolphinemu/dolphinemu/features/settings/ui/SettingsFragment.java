@@ -13,13 +13,10 @@ import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
-import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public final class SettingsFragment extends Fragment implements SettingsFragmentView
 {
@@ -105,13 +102,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), null));
 
 		SettingsActivityView activity = (SettingsActivityView) getActivity();
-
-		ArrayList<HashMap<String, SettingSection>> settings = new ArrayList<>();
-		settings.add(SettingsFile.SETTINGS_DOLPHIN, activity.getSettings(SettingsFile.SETTINGS_DOLPHIN));
-		settings.add(SettingsFile.SETTINGS_GFX, activity.getSettings(SettingsFile.SETTINGS_GFX));
-		settings.add(SettingsFile.SETTINGS_WIIMOTE, activity.getSettings(SettingsFile.SETTINGS_WIIMOTE));
-
-		mPresenter.onViewCreated(settings);
+		mPresenter.onViewCreated(activity.getSettings());
 	}
 
 	@Override
@@ -127,13 +118,13 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
-	public void onSettingsFileLoaded(ArrayList<HashMap<String, SettingSection>> settings)
+	public void onSettingsFileLoaded(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
 	{
 		mPresenter.setSettings(settings);
 	}
 
 	@Override
-	public void passSettingsToActivity(ArrayList<HashMap<String, SettingSection>> settings)
+	public void passSettingsToActivity(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
 	{
 		if (mActivity != null)
 		{

@@ -12,18 +12,18 @@ public final class SingleChoiceSetting extends SettingsItem
 	private int mValuesId;
 	private MenuTag menuTag;
 
-	public SingleChoiceSetting(String key, String section, int file, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting, MenuTag menuTag)
+	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting, MenuTag menuTag)
 	{
-		super(key, section, file, setting, titleId, descriptionId);
+		super(key, section, setting, titleId, descriptionId);
 		mValuesId = valuesId;
 		mChoicesId = choicesId;
 		mDefaultValue = defaultValue;
 		this.menuTag = menuTag;
 	}
 
-	public SingleChoiceSetting(String key, String section, int file, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting)
+	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting)
 	{
-		this(key, section, file, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
+		this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
 	}
 
 	public int getChoicesId()
@@ -65,7 +65,7 @@ public final class SingleChoiceSetting extends SettingsItem
 	{
 		if (getSetting() == null)
 		{
-			IntSetting setting = new IntSetting(getKey(), getSection(), getFile(), selection);
+			IntSetting setting = new IntSetting(getKey(), getSection(), selection);
 			setSetting(setting);
 			return setting;
 		}

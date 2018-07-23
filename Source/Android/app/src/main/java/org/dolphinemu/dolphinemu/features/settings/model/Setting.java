@@ -10,20 +10,17 @@ public abstract class Setting
 {
 	private String mKey;
 	private String mSection;
-	private int mFile;
 
 	/**
 	 * Base constructor.
 	 *
 	 * @param key     Everything to the left of the = in a line from the ini file.
 	 * @param section The corresponding recent section header; e.g. [Core] or [Enhancements] without the brackets.
-	 * @param file    The ini file the Setting is stored in.
 	 */
-	public Setting(String key, String section, int file)
+	public Setting(String key, String section)
 	{
 		mKey = key;
 		mSection = section;
-		mFile = file;
 	}
 
 	/**
@@ -44,14 +41,6 @@ public abstract class Setting
 		return mSection;
 	}
 
-	/**
-	 *
-	 * @return The ini file the Setting is stored in.
-	 */
-	public int getFile()
-	{
-		return mFile;
-	}
 
 	/**
 	 * @return A representation of this Setting's backing value converted to a String (e.g. for serialization).

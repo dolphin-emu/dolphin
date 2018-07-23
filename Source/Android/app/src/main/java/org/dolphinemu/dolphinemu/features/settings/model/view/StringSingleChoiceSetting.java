@@ -10,9 +10,9 @@ public class StringSingleChoiceSetting extends SettingsItem
     private String[] mChoicesId;
     private String[] mValuesId;
 
-    public StringSingleChoiceSetting(String key, String section, int file, int titleId, int descriptionId, String[] choicesId, String[] valuesId, String defaultValue, Setting setting)
+    public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId, String[] choicesId, String[] valuesId, String defaultValue, Setting setting)
     {
-        super(key, section, file, setting, titleId, descriptionId);
+        super(key, section, setting, titleId, descriptionId);
         mValuesId = valuesId;
         mChoicesId = choicesId;
         mDefaultValue = defaultValue;
@@ -75,7 +75,7 @@ public class StringSingleChoiceSetting extends SettingsItem
     {
         if (getSetting() == null)
         {
-            StringSetting setting = new StringSetting(getKey(), getSection(), getFile(), selection);
+            StringSetting setting = new StringSetting(getKey(), getSection(), selection);
             setSetting(setting);
             return setting;
         }

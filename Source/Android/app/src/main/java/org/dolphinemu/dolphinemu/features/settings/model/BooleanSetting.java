@@ -4,9 +4,9 @@ public final class BooleanSetting extends Setting
 {
 	private boolean mValue;
 
-	public BooleanSetting(String key, String section, int file, boolean value)
+	public BooleanSetting(String key, String section, boolean value)
 	{
-		super(key, section, file);
+		super(key, section);
 		mValue = value;
 	}
 

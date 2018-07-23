@@ -4,9 +4,9 @@ public final class StringSetting extends Setting
 {
 	private String mValue;
 
-	public StringSetting(String key, String section, int file, String value)
+	public StringSetting(String key, String section, String value)
 	{
-		super(key, section, file);
+		super(key, section);
 		mValue = value;
 	}
 

@@ -17,6 +17,7 @@ import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
@@ -33,7 +34,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceVie
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
 import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.util.ArrayList;
 
@@ -143,7 +144,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		if (item.getKey().equals(SettingsFile.KEY_SKIP_EFB) || item.getKey().equals(SettingsFile.KEY_IGNORE_FORMAT))
 		{
-			mView.putSetting(new BooleanSetting(item.getKey(), item.getSection(), item.getFile(), !checked));
+			mView.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
 		}
 
 		mView.onSettingChanged();
@@ -227,7 +228,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		});
 		dialog.setOnDismissListener(dialog1 ->
 		{
-			StringSetting setting = new StringSetting(item.getKey(), item.getSection(), item.getFile(), item.getValue());
+			StringSetting setting = new StringSetting(item.getKey(), item.getSection(), item.getValue());
 			notifyItemChanged(position);
 
 			if (setting != null)
@@ -404,35 +405,34 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		return -1;
 	}
 
-	public void putVideoBackendSetting(int which)
+    private void putVideoBackendSetting(int which)
+    {
+        StringSetting gfxBackend = null;
+        switch (which)
+        {
+            case 0:
+                gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE, "OGL");
+                break;
+
+            case 1:
+                gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE, "Vulkan");
+                break;
+
+            case 2:
+                gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE, "Software Renderer");
+                break;
+
+            case 3:
+                gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE, "Null");
+                break;
+        }
+
+        mView.putSetting(gfxBackend);
+    }
+
+	private void putExtensionSetting(int which, int wiimoteNumber)
 	{
-		StringSetting gfxBackend = null;
-		switch (which)
-		{
-			case 0:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "OGL");
-				break;
-
-			case 1:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Vulkan");
-				break;
-
-			case 2:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Software Renderer");
-				break;
-
-			case 3:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, "Null");
-				break;
-		}
-
-		mView.putSetting(gfxBackend);
-	}
-
-	public void putExtensionSetting(int which, int wiimoteNumber)
-	{
-		StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + wiimoteNumber,
-				SettingsFile.SETTINGS_WIIMOTE, mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
+		StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, Settings.SECTION_WIIMOTE + wiimoteNumber, mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
 		mView.putSetting(extension);
 	}
 }

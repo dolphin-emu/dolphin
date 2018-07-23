@@ -3,11 +3,10 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.support.v4.app.FragmentActivity;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Abstraction for a screen showing a list of settings. Instances of
@@ -21,7 +20,7 @@ public interface SettingsFragmentView
 	 *
 	 * @param settings The (possibly null) result of the ini load operation.
 	 */
-	void onSettingsFileLoaded(ArrayList<HashMap<String, SettingSection>> settings);
+	void onSettingsFileLoaded(Settings settings);
 
 	/**
 	 * Pass a settings HashMap to the containing activity, so that it can
@@ -30,7 +29,7 @@ public interface SettingsFragmentView
 	 *
 	 * @param settings An ArrayList containing all the settings HashMaps.
 	 */
-	void passSettingsToActivity(ArrayList<HashMap<String, SettingSection>> settings);
+	void passSettingsToActivity(Settings settings);
 
 	/**
 	 * Pass an ArrayList to the View so that it can be displayed on screen.

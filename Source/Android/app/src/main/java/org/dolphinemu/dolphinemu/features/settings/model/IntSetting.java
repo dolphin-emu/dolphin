@@ -7,15 +7,15 @@ public final class IntSetting extends Setting
 	private int mValue;
 	private MenuTag menuTag;
 
-	public IntSetting(String key, String section, int file, int value)
+	public IntSetting(String key, String section, int value)
 	{
-		super(key, section, file);
+		super(key, section);
 		mValue = value;
 	}
 
-	public IntSetting(String key, String section, int file, int value, MenuTag menuTag)
+	public IntSetting(String key, String section, int value, MenuTag menuTag)
 	{
-		super(key, section, file);
+		super(key, section);
 		mValue = value;
 		this.menuTag = menuTag;
 	}

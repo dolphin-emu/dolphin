@@ -5,9 +5,9 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 
 public final class InputBindingSetting extends SettingsItem
 {
-	public InputBindingSetting(String key, String section, int file, int titleId, Setting setting)
+	public InputBindingSetting(String key, String section, int titleId, Setting setting)
 	{
-		super(key, section, file, setting, titleId, 0);
+		super(key, section, setting, titleId, 0);
 	}
 
 	public String getValue()
@@ -32,7 +32,7 @@ public final class InputBindingSetting extends SettingsItem
 	{
 		if (getSetting() == null)
 		{
-			StringSetting setting = new StringSetting(getKey(), getSection(), getFile(), bind);
+			StringSetting setting = new StringSetting(getKey(), getSection(), bind);
 			setSetting(setting);
 			return setting;
 		}

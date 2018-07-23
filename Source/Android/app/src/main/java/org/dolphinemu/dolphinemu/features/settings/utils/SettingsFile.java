@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.utils;
+package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import android.support.annotation.NonNull;
 
@@ -7,9 +7,11 @@ import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,63 +22,19 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
-
-/**
- * A HashMap<String, SettingSection> that constructs a new SettingSection instead of returning null
- * when getting a key not already in the map
- */
-final class SettingsSectionMap extends HashMap<String, SettingSection>
-{
-	@Override
-	public SettingSection get(Object key)
-	{
-		if (!(key instanceof String))
-		{
-			return null;
-		}
-
-		String stringKey = (String)key;
-
-		if (!super.containsKey(stringKey))
-		{
-			SettingSection section = new SettingSection(stringKey);
-			super.put(stringKey, section);
-			return section;
-		}
-		return super.get(key);
-	}
-}
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
  */
 public final class SettingsFile
 {
-	public static final int SETTINGS_DOLPHIN = 0;
-	public static final int SETTINGS_GFX = 1;
-	public static final int SETTINGS_WIIMOTE = 2;
-
 	public static final String FILE_NAME_DOLPHIN = "Dolphin";
 	public static final String FILE_NAME_GFX = "GFX";
 	public static final String FILE_NAME_GCPAD = "GCPadNew";
 	public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
 
-	public static final String SECTION_INI_CORE = "Core";
-	public static final String SECTION_INI_INTERFACE = "Interface";
-
-	public static final String SECTION_CONFIG_GENERAL = "General";
-	public static final String SECTION_CONFIG_INTERFACE = "Interface";
-
-	public static final String SECTION_GFX_SETTINGS = "Settings";
-	public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
-	public static final String SECTION_GFX_HACKS = "Hacks";
-
-	public static final String SECTION_STEREOSCOPY = "Stereoscopy";
-
-	public static final String SECTION_WIIMOTE = "Wiimote";
-
-	public static final String SECTION_BINDINGS = "Android";
 
 	public static final String KEY_CPU_CORE = "CPUCore";
 	public static final String KEY_DUAL_CORE = "CPUThread";
@@ -286,7 +244,7 @@ public final class SettingsFile
 	}
 
 	/**
-	 * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
+	 * Reads a given .ini file from disk and returns it as a HashMap of Settings, themselves
 	 * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
 	 * failed.
 	 *
@@ -296,7 +254,7 @@ public final class SettingsFile
 	 */
 	public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
 	{
-		HashMap<String, SettingSection> sections = new SettingsSectionMap();
+		HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
 
 		File ini = getSettingsFile(fileName);
 
@@ -316,7 +274,7 @@ public final class SettingsFile
 				}
 				else if ((current != null))
 				{
-					Setting setting = settingFromLine(current, line, fileName);
+					Setting setting = settingFromLine(current, line);
 					if (setting != null)
 					{
 						current.putSetting(setting);
@@ -366,7 +324,7 @@ public final class SettingsFile
 	 * @param view     The current view.
 	 * @return An Observable representing the operation.
 	 */
-	public static void saveFile(final String fileName, final HashMap<String, SettingSection> sections, SettingsActivityView view)
+	public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections, SettingsActivityView view)
 	{
 		File ini = getSettingsFile(fileName);
 
@@ -417,19 +375,19 @@ public final class SettingsFile
 
 	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
 	{
-		SettingSection coreSection = sections.get(SettingsFile.SECTION_INI_CORE);
+		SettingSection coreSection = sections.get(Settings.SECTION_INI_CORE);
 
 		for (int i = 0; i < 4; i++)
 		{
 			String key = SettingsFile.KEY_GCPAD_TYPE + i;
 			if (coreSection.getSetting(key) == null)
 			{
-				Setting gcPadSetting = new IntSetting(key, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, 0);
+				Setting gcPadSetting = new IntSetting(key, Settings.SECTION_INI_CORE,0);
 				coreSection.putSetting(gcPadSetting);
 			}
 		}
 
-		sections.put(SettingsFile.SECTION_INI_CORE, coreSection);
+		sections.put(Settings.SECTION_INI_CORE, coreSection);
 	}
 
 	/**
@@ -438,10 +396,9 @@ public final class SettingsFile
 	 *
 	 * @param current  The section currently being parsed by the consuming method.
 	 * @param line     The line of text being parsed.
-	 * @param fileName The name of the ini file the setting is in.
 	 * @return A typed Setting containing the key/value contained in the line.
 	 */
-	private static Setting settingFromLine(SettingSection current, String line, String fileName)
+	private static Setting settingFromLine(SettingSection current, String line)
 	{
 		String[] splitLine = line.split("=");
 
@@ -454,25 +411,11 @@ public final class SettingsFile
 		String key = splitLine[0].trim();
 		String value = splitLine[1].trim();
 
-		int file;
-		switch (fileName)
-		{
-			case FILE_NAME_GFX:
-				file = SETTINGS_GFX;
-				break;
-			case FILE_NAME_WIIMOTE:
-				file = SETTINGS_WIIMOTE;
-				break;
-			default:
-				file = SETTINGS_DOLPHIN;
-				break;
-		}
-
 		try
 		{
 			int valueAsInt = Integer.valueOf(value);
 
-			return new IntSetting(key, current.getName(), file, valueAsInt);
+			return new IntSetting(key, current.getName(), valueAsInt);
 		}
 		catch (NumberFormatException ex)
 		{
@@ -482,7 +425,7 @@ public final class SettingsFile
 		{
 			float valueAsFloat = Float.valueOf(value);
 
-			return new FloatSetting(key, current.getName(), file, valueAsFloat);
+			return new FloatSetting(key, current.getName(), valueAsFloat);
 		}
 		catch (NumberFormatException ex)
 		{
@@ -491,11 +434,11 @@ public final class SettingsFile
 		switch (value)
 		{
 			case "True":
-				return new BooleanSetting(key, current.getName(), file, true);
+				return new BooleanSetting(key, current.getName(), true);
 			case "False":
-				return new BooleanSetting(key, current.getName(), file, false);
+				return new BooleanSetting(key, current.getName(), false);
 			default:
-				return new StringSetting(key, current.getName(), file, value);
+				return new StringSetting(key, current.getName(), value);
 		}
 	}
 
