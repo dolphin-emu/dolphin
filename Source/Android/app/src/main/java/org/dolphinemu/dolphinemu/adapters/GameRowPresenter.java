@@ -17,8 +17,8 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
-import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 

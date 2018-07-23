@@ -8,7 +8,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
-import org.dolphinemu.dolphinemu.model.settings.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 

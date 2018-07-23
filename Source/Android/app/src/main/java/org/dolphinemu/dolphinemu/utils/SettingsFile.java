@@ -2,14 +2,14 @@ package org.dolphinemu.dolphinemu.utils;
 
 import android.support.annotation.NonNull;
 
-import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
-import org.dolphinemu.dolphinemu.model.settings.FloatSetting;
-import org.dolphinemu.dolphinemu.model.settings.IntSetting;
-import org.dolphinemu.dolphinemu.model.settings.Setting;
-import org.dolphinemu.dolphinemu.model.settings.SettingSection;
-import org.dolphinemu.dolphinemu.model.settings.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
-import org.dolphinemu.dolphinemu.ui.settings.SettingsActivityView;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 
 import java.io.BufferedReader;
 import java.io.File;
