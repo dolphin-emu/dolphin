@@ -180,7 +180,7 @@ if(USE_AUDIOTRACK)
 endif()
 
 check_include_files(sndio.h USE_SNDIO)
-if(USE_SNDIO)
+if(USE_SNDIO AND NOT LIBRETRO)
   target_sources(cubeb PRIVATE
     src/cubeb_sndio.c)
   target_compile_definitions(cubeb PRIVATE USE_SNDIO)
