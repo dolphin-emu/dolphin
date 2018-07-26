@@ -69,7 +69,7 @@ extern Option<PowerPC::CPUCore> cpu_core;
 extern Option<DiscIO::Language> Language;
 extern Option<bool> Widescreen;
 extern Option<bool> WidescreenHack;
-extern Option<bool> prograssiveScan;
+extern Option<bool> progressiveScan;
 extern Option<bool> pal60;
 extern Option<u32> sensorBarPosition;
 extern Option<unsigned int> audioMixerRate;

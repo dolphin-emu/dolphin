@@ -198,7 +198,7 @@ Option<DiscIO::Language> Language("dolphin_language", "Language",
                                    {"Korean", DiscIO::Language::Korean}});
 Option<bool> Widescreen("dolphin_widescreen", "Widescreen", true);
 Option<bool> WidescreenHack("dolphin_widescreen_hack", "WideScreen Hack", false);
-Option<bool> prograssiveScan("dolphin_prograssive_scan", "Progressive Scan", true);
+Option<bool> progressiveScan("dolphin_progressive_scan", "Progressive Scan", true);
 Option<bool> pal60("dolphin_pal60", "PAL60", true);
 Option<u32> sensorBarPosition("dolphin_sensor_bar_position", "Sensor Bar Position",
                               {"Bottom", "Top"});

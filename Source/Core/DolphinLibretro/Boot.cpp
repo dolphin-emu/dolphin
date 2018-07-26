@@ -90,7 +90,7 @@ bool retro_load_game(const struct retro_game_info* game)
 
   Config::SetBase(Config::SYSCONF_LANGUAGE, (u32)(DiscIO::Language)Libretro::Options::Language);
   Config::SetBase(Config::SYSCONF_WIDESCREEN, Libretro::Options::Widescreen);
-  Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, Libretro::Options::prograssiveScan);
+  Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, Libretro::Options::progressiveScan);
   Config::SetBase(Config::SYSCONF_PAL60, Libretro::Options::pal60);
   Config::SetBase(Config::SYSCONF_SENSOR_BAR_POSITION, Libretro::Options::sensorBarPosition);
 
