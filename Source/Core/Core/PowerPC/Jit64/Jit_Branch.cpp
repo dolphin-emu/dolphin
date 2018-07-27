@@ -87,25 +87,22 @@ void Jit64::bx(UGeckoInstruction inst)
   gpr.Flush();
   fpr.Flush();
 
-  u32 destination;
-  if (inst.AA)
-    destination = SignExt26(inst.LI << 2);
-  else
-    destination = js.compilerPC + SignExt26(inst.LI << 2);
 #ifdef ACID_TEST
   if (inst.LK)
     AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
-  if (destination == js.compilerPC)
+  if (js.op->branchIsIdleLoop)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunction(CoreTiming::Idle);
     ABI_PopRegistersAndAdjustStack({}, 0);
-    MOV(32, PPCSTATE(pc), Imm32(destination));
+    MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
     WriteExceptionExit();
-    return;
   }
-  WriteExit(destination, inst.LK, js.compilerPC + 4);
+  else
+  {
+    WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+  }
 }
 
 // TODO - optimize to hell and beyond
@@ -154,18 +151,24 @@ void Jit64::bcx(UGeckoInstruction inst)
     return;
   }
 
-  u32 destination;
-  if (inst.AA)
-    destination = SignExt16(inst.BD << 2);
-  else
-    destination = js.compilerPC + SignExt16(inst.BD << 2);
-
   {
     RCForkGuard gpr_guard = gpr.Fork();
     RCForkGuard fpr_guard = fpr.Fork();
     gpr.Flush();
     fpr.Flush();
-    WriteExit(destination, inst.LK, js.compilerPC + 4);
+
+    if (js.op->branchIsIdleLoop)
+    {
+      ABI_PushRegistersAndAdjustStack({}, 0);
+      ABI_CallFunction(CoreTiming::Idle);
+      ABI_PopRegistersAndAdjustStack({}, 0);
+      MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
+      WriteExceptionExit();
+    }
+    else
+    {
+      WriteExit(js.op->branchTo, inst.LK, js.compilerPC + 4);
+    }
   }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

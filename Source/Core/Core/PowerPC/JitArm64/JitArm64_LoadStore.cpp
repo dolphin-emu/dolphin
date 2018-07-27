@@ -346,37 +346,6 @@ void JitArm64::lXX(UGeckoInstruction inst)
   }
 
   SafeLoadToReg(d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
-
-  // LWZ idle skipping
-  if (inst.OPCD == 32 && CanMergeNextInstructions(2) &&
-      (inst.hex & 0xFFFF0000) == 0x800D0000 &&  // lwz r0, XXXX(r13)
-      (js.op[1].inst.hex == 0x28000000 ||
-       (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&  // cmpXwi r0,0
-      js.op[2].inst.hex == 0x4182fff8)                                       // beq -8
-  {
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-
-    // if it's still 0, we can wait until the next event
-    FixupBranch noIdle = CBNZ(gpr.R(d));
-
-    FixupBranch far = B();
-    SwitchToFarCode();
-    SetJumpTarget(far);
-
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
-
-    MOVP2R(XA, &CoreTiming::Idle);
-    BLR(XA);
-    gpr.Unlock(WA);
-
-    WriteExceptionExit(js.compilerPC);
-
-    SwitchToNearCode();
-
-    SetJumpTarget(noIdle);
-  }
 }
 
 void JitArm64::stX(UGeckoInstruction inst)
