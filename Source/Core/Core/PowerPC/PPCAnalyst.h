@@ -27,13 +27,14 @@ struct CodeOp  // 16B
   UGeckoInstruction inst;
   GekkoOPInfo* opinfo;
   u32 address;
-  u32 branchTo;       // if 0, not a branch
-  int branchToIndex;  // index of target block
+  u32 branchTo;  // if UINT32_MAX, not a branch
   BitSet32 regsOut;
   BitSet32 regsIn;
   BitSet32 fregsIn;
   s8 fregOut;
   bool isBranchTarget;
+  bool branchUsesCtr;
+  bool branchIsIdleLoop;
   bool wantsCR0;
   bool wantsCR1;
   bool wantsFPRF;
@@ -213,6 +214,7 @@ private:
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
   void ReorderInstructions(u32 instructions, CodeOp* code);
   void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
+  bool IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions);
 
   // Options
   u32 m_options = 0;

@@ -640,6 +640,90 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
     code->outputCR0 = true;
     code->outputCR1 = true;
   }
+
+  code->branchUsesCtr = false;
+  code->branchTo = UINT32_MAX;
+
+  // For branch with immediate addresses (bx/bcx), compute the destination.
+  if (code->inst.OPCD == 18)  // bx
+  {
+    if (code->inst.AA)  // absolute
+      code->branchTo = SignExt26(code->inst.LI << 2);
+    else
+      code->branchTo = code->address + SignExt26(code->inst.LI << 2);
+  }
+  else if (code->inst.OPCD == 16)  // bcx
+  {
+    if (code->inst.AA)  // absolute
+      code->branchTo = SignExt16(code->inst.BD << 2);
+    else
+      code->branchTo = code->address + SignExt16(code->inst.BD << 2);
+    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
+      code->branchUsesCtr = true;
+  }
+  else if (code->inst.OPCD == 19 && code->inst.SUBOP10 == 16)  // bclrx
+  {
+    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
+      code->branchUsesCtr = true;
+  }
+  else if (code->inst.OPCD == 19 && code->inst.SUBOP10 == 528)  // bcctrx
+  {
+    if (!(code->inst.BO & BO_DONT_DECREMENT_FLAG))
+      code->branchUsesCtr = true;
+  }
+}
+
+bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instructions)
+{
+  // Very basic algorithm to detect busy wait loops:
+  //   * It loops to itself and does not contain any other branches.
+  //   * It does not write to memory.
+  //   * It only reads from registers it wrote to earlier in the loop, or it
+  //     does not write to these registers.
+  //
+  // Would benefit a lot from basic inlining support - a lot of the most
+  // used busy loops are DSP register interactions, which are bl/cmp/bne
+  // (with the bl target a pure function that follows the above rules). We
+  // don't detect these at the moment.
+  std::bitset<32> write_disallowed_regs;
+  std::bitset<32> written_regs;
+  for (size_t i = 0; i <= instructions; ++i)
+  {
+    if (code[i].opinfo->type == OpType::Branch)
+    {
+      if (code[i].branchUsesCtr)
+        return false;
+      if (code[i].branchTo == block->m_address && i == instructions)
+        return true;
+    }
+    else if (code[i].opinfo->type != OpType::Integer && code[i].opinfo->type != OpType::Load)
+    {
+      // In the future, some subsets of other instruction types might get
+      // supported. Right now, only try loops that have this very
+      // restricted instruction set.
+      return false;
+    }
+    else
+    {
+      for (int reg : code[i].regsIn)
+      {
+        if (reg == -1)
+          continue;
+        if (written_regs[reg])
+          continue;
+        write_disallowed_regs[reg] = true;
+      }
+      for (int reg : code[i].regsOut)
+      {
+        if (reg == -1)
+          continue;
+        if (write_disallowed_regs[reg])
+          return false;
+        written_regs[reg] = true;
+      }
+    }
+  }
+  return false;
 }
 
 u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std::size_t block_size)
@@ -692,16 +776,16 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     code[i].opinfo = opinfo;
     code[i].address = address;
     code[i].inst = inst;
-    code[i].branchTo = UINT32_MAX;
-    code[i].branchToIndex = UINT32_MAX;
     code[i].skip = false;
     block->m_stats->numCycles += opinfo->numCycles;
     block->m_physical_addresses.insert(result.physical_address);
 
     SetInstructionStats(block, &code[i], opinfo, static_cast<u32>(i));
 
+    code[i].branchIsIdleLoop =
+        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
+
     bool follow = false;
-    u32 destination = 0;
 
     bool conditional_continue = false;
 
@@ -715,7 +799,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       {
         // Always follow BX instructions.
         follow = true;
-        destination = SignExt26(inst.LI << 2) + (inst.AA ? 0 : address);
         if (inst.LK)
         {
           found_call = true;
@@ -727,7 +810,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       {
         // Always follow unconditional BCX instructions, but they are very rare.
         follow = true;
-        destination = SignExt16(inst.BD << 2) + (inst.AA ? 0 : address);
         if (inst.LK)
         {
           found_call = true;
@@ -744,7 +826,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
         // the LR value on the stack as there are no spare registers. So we'd need
         // to check all store instruction to not alias with the stack.
         follow = true;
-        destination = code[caller].address + 4;
+        code[i].branchTo = code[caller].address + 4;
         found_call = false;
         code[i].skip = true;
 
@@ -796,7 +878,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     {
       // Follow the unconditional branch.
       numFollows++;
-      address = destination;
+      address = code[i].branchTo;
     }
     else
     {
