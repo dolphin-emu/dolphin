@@ -23,11 +23,12 @@
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
     <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop. -->
-    <string name="wiimote_0">Wii Remote 1</string>
-    <string name="wiimote_1">Wii Remote 2</string>
-    <string name="wiimote_2">Wii Remote 3</string>
-    <string name="wiimote_3">Wii Remote 4</string>
+            is made that they are placed together so that we can access them sequentially in a loop.
+            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
+    <string name="wiimote_4">Wii Remote 1</string>
+    <string name="wiimote_5">Wii Remote 2</string>
+    <string name="wiimote_6">Wii Remote 3</string>
+    <string name="wiimote_7">Wii Remote 4</string>
     <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
