@@ -4,15 +4,10 @@
 
 #include "DolphinQt/GameList/GridProxyModel.h"
 
-#include <QImage>
 #include <QPixmap>
 #include <QSize>
 
 #include "DolphinQt/GameList/GameListModel.h"
-
-#include "Core/Config/UISettings.h"
-
-#include "UICommon/GameFile.h"
 
 const QSize LARGE_BANNER_SIZE(144, 48);
 
@@ -32,30 +27,12 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
   }
   else if (role == Qt::DecorationRole)
   {
-    auto* model = static_cast<GameListModel*>(sourceModel());
-
-    const auto& buffer = model->GetGameFile(source_index.row())->GetCoverImage().buffer;
-
-    QPixmap pixmap;
-
-    if (buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
-    {
-      pixmap = model
-                   ->data(model->index(source_index.row(), GameListModel::COL_BANNER),
-                          Qt::DecorationRole)
-                   .value<QPixmap>();
-
-      return pixmap.scaled(LARGE_BANNER_SIZE * model->GetScale() * pixmap.devicePixelRatio(),
-                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
-    else
-    {
-      pixmap = QPixmap::fromImage(QImage::fromData(
-          reinterpret_cast<const unsigned char*>(&buffer[0]), static_cast<int>(buffer.size())));
-
-      return pixmap.scaled(QSize(160, 224) * model->GetScale() * pixmap.devicePixelRatio(),
-                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    }
+    auto pixmap = sourceModel()
+                      ->data(sourceModel()->index(source_index.row(), GameListModel::COL_BANNER),
+                             Qt::DecorationRole)
+                      .value<QPixmap>();
+    return pixmap.scaled(LARGE_BANNER_SIZE * pixmap.devicePixelRatio(), Qt::KeepAspectRatio,
+                         Qt::SmoothTransformation);
   }
   return QVariant();
 }

@@ -21,7 +21,6 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QTableView>
 #include <QUrl>
@@ -74,15 +73,6 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   addWidget(m_empty);
   m_prefer_list = Settings::Instance().GetPreferredView();
   ConsiderViewChange();
-
-  auto* zoom_in = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
-  auto* zoom_out = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
-
-  connect(zoom_in, &QShortcut::activated, this, &GameList::ZoomIn);
-  connect(zoom_out, &QShortcut::activated, this, &GameList::ZoomOut);
-
-  connect(&Settings::Instance(), &Settings::MetadataRefreshCompleted, this,
-          [this] { m_grid_proxy->invalidate(); });
 }
 
 void GameList::MakeListView()
@@ -863,36 +853,4 @@ void GameList::SetSearchTerm(const QString& term)
   m_grid_proxy->invalidate();
 
   UpdateColumnVisibility();
-}
-
-void GameList::ZoomIn()
-{
-  m_model->SetScale(m_model->GetScale() + 0.1);
-
-  m_list_proxy->invalidate();
-  m_grid_proxy->invalidate();
-
-  UpdateFont();
-}
-
-void GameList::ZoomOut()
-{
-  if (m_model->GetScale() <= 0.1)
-    return;
-
-  m_model->SetScale(m_model->GetScale() - 0.1);
-
-  m_list_proxy->invalidate();
-  m_grid_proxy->invalidate();
-
-  UpdateFont();
-}
-
-void GameList::UpdateFont()
-{
-  QFont f;
-
-  f.setPointSizeF(m_model->GetScale() * f.pointSize());
-
-  m_grid->setFont(f);
 }
