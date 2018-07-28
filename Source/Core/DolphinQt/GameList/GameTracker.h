@@ -70,7 +70,6 @@ private:
     RemoveDirectory,
     UpdateDirectory,
     UpdateFile,
-    UpdateMetadata
   };
 
   struct Command

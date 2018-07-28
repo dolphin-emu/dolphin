@@ -10,6 +10,5 @@ namespace Config
 
 const ConfigInfo<bool> MAIN_USE_DISCORD_PRESENCE{{System::Main, "General", "UseDiscordPresence"},
                                                  true};
-const ConfigInfo<bool> MAIN_USE_GAME_COVERS{{System::Main, "General", "UseGameCovers"}, false};
 
 }  // namespace Config
