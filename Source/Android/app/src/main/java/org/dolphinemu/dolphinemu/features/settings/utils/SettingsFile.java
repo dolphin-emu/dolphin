@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import android.support.annotation.NonNull;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
@@ -11,6 +12,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
+import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.BufferedReader;
@@ -239,6 +241,16 @@ public final class SettingsFile
 	// Internal only, not actually found in settings file.
 	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
 
+	private static BiMap<String, String> sectionsMap = new BiMap<>();
+	static {
+		sectionsMap.add("Hardware", "Video_Hardware");
+		sectionsMap.add("Settings", "Video_Settings");
+		sectionsMap.add("Enhancements", "Video_Enhancements");
+		sectionsMap.add("Stereoscopy", "Video_Stereoscopy");
+		sectionsMap.add("Hacks", "Video_Hacks");
+		sectionsMap.add("GameSpecific", "Video");
+	}
+
 	private SettingsFile()
 	{
 	}
@@ -252,7 +264,7 @@ public final class SettingsFile
 	 * @param view     The current view.
 	 * @return An Observable that emits a HashMap of the file's contents, then completes.
 	 */
-	public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
+	static HashMap<String, SettingSection> readFile(final String fileName, boolean isCustomGame, SettingsActivityView view)
 	{
 		HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
 
@@ -269,7 +281,7 @@ public final class SettingsFile
 			{
 				if (line.startsWith("[") && line.endsWith("]"))
 				{
-					current = sectionFromLine(line);
+					current = sectionFromLine(line, isCustomGame);
 					sections.put(current.getName(), current);
 				}
 				else if ((current != null))
@@ -315,6 +327,25 @@ public final class SettingsFile
 		return sections;
 	}
 
+    public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
+    {
+        return readFile(fileName, false, view);
+    }
+
+	/**
+	 * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
+	 * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
+	 * failed.
+	 *
+	 * @param gameId the id of the game to load it's settings.
+	 * @param view The current view.
+	 */
+	public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId, SettingsActivityView view)
+	{
+		String fileName = "../GameSettings/" + gameId;
+		return readFile(fileName, true, view);
+	}
+
 	/**
 	 * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
 	 * telling why it failed.
@@ -322,7 +353,6 @@ public final class SettingsFile
 	 * @param fileName The target filename without a path or extension.
 	 * @param sections The HashMap containing the Settings we want to serialize.
 	 * @param view     The current view.
-	 * @return An Observable representing the operation.
 	 */
 	public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections, SettingsActivityView view)
 	{
@@ -361,17 +391,60 @@ public final class SettingsFile
 		}
 	}
 
+	public static void saveCustomGameSettings(final String gameId, final HashMap<String, SettingSection> sections)
+	{
+		Set<String> sortedSections = new TreeSet<>(sections.keySet());
+
+		for (String sectionKey : sortedSections)
+		{
+			SettingSection section = sections.get(sectionKey);
+
+			HashMap<String, Setting> settings = section.getSettings();
+			Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
+
+			for (String settingKey : sortedKeySet)
+			{
+				Setting setting = settings.get(settingKey);
+				NativeLibrary.SetUserSetting(gameId, mapSectionNameFromIni(section.getName()), setting.getKey(), setting.getValueAsString());
+			}
+		}
+	}
+
+	private static String mapSectionNameFromIni(String generalSectionName)
+	{
+		if (sectionsMap.getForward(generalSectionName) != null)
+		{
+			return sectionsMap.getForward(generalSectionName);
+		}
+
+		return generalSectionName;
+	}
+
+	private static String mapSectionNameToIni(String generalSectionName)
+	{
+		if (sectionsMap.getBackward(generalSectionName) != null)
+		{
+			return sectionsMap.getBackward(generalSectionName);
+		}
+
+		return generalSectionName;
+	}
+
 	@NonNull
 	private static File getSettingsFile(String fileName)
 	{
 		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
 	}
 
-	private static SettingSection sectionFromLine(String line)
-	{
-		String sectionName = line.substring(1, line.length() - 1);
-		return new SettingSection(sectionName);
-	}
+    private static SettingSection sectionFromLine(String line, boolean isCustomGame)
+    {
+        String sectionName = line.substring(1, line.length() - 1);
+        if (isCustomGame)
+        {
+            sectionName = mapSectionNameToIni(sectionName);
+        }
+        return new SettingSection(sectionName);
+    }
 
 	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
 	{
