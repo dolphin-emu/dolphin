@@ -668,7 +668,7 @@ bool MainWindow::RequestStop()
     const Core::State state = Core::GetState();
 
     // Only pause the game, if NetPlay is not running
-    bool pause = Settings::Instance().GetNetPlayClient() == nullptr;
+    bool pause = !Settings::Instance().GetNetPlayClient();
 
     if (pause)
       Core::SetState(Core::State::Paused);
@@ -1071,7 +1071,7 @@ bool MainWindow::NetPlayJoin()
 
   std::string host_ip;
   u16 host_port;
-  if (Settings::Instance().GetNetPlayServer() != nullptr)
+  if (Settings::Instance().GetNetPlayServer())
   {
     host_ip = "127.0.0.1";
     host_port = Settings::Instance().GetNetPlayServer()->GetPort();

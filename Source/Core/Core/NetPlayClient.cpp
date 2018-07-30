@@ -70,6 +70,10 @@ NetPlayClient::~NetPlayClient()
 
   if (m_is_connected)
   {
+    m_should_compute_MD5 = false;
+    m_dialog->AbortMD5();
+    if (m_MD5_thread.joinable())
+      m_MD5_thread.join();
     m_do_loop.Clear();
     m_thread.join();
   }
@@ -1680,12 +1684,14 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
     return;
   }
 
+  if (m_MD5_thread.joinable())
+    m_MD5_thread.join();
   m_MD5_thread = std::thread([this, file]() {
     std::string sum = MD5::MD5Sum(file, [&](int progress) {
       sf::Packet packet;
       packet << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
       packet << progress;
-      Send(packet);
+      SendAsync(std::move(packet));
 
       return m_should_compute_MD5;
     });
@@ -1693,9 +1699,8 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
     sf::Packet packet;
     packet << static_cast<MessageId>(NP_MSG_MD5_RESULT);
     packet << sum;
-    Send(packet);
+    SendAsync(std::move(packet));
   });
-  m_MD5_thread.detach();
 }
 
 const PadMappingArray& NetPlayClient::GetPadMapping() const

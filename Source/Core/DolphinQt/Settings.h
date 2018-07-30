@@ -25,7 +25,7 @@ namespace NetPlay
 {
 class NetPlayClient;
 class NetPlayServer;
-}
+}  // namespace NetPlay
 
 class GameListModel;
 class InputConfig;
@@ -100,9 +100,9 @@ public:
   void DecreaseVolume(int volume);
 
   // NetPlay
-  NetPlay::NetPlayClient* GetNetPlayClient();
+  std::shared_ptr<NetPlay::NetPlayClient> GetNetPlayClient();
   void ResetNetPlayClient(NetPlay::NetPlayClient* client = nullptr);
-  NetPlay::NetPlayServer* GetNetPlayServer();
+  std::shared_ptr<NetPlay::NetPlayServer> GetNetPlayServer();
   void ResetNetPlayServer(NetPlay::NetPlayServer* server = nullptr);
 
   // Cheats
@@ -173,8 +173,8 @@ signals:
 private:
   bool m_batch = false;
   bool m_controller_state_needed = false;
-  std::unique_ptr<NetPlay::NetPlayClient> m_client;
-  std::unique_ptr<NetPlay::NetPlayServer> m_server;
+  std::shared_ptr<NetPlay::NetPlayClient> m_client;
+  std::shared_ptr<NetPlay::NetPlayServer> m_server;
   Settings();
 };
 
