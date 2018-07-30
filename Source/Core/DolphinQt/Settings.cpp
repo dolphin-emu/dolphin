@@ -137,6 +137,16 @@ void Settings::RefreshGameList()
   emit GameListRefreshRequested();
 }
 
+void Settings::RefreshMetadata()
+{
+  emit MetadataRefreshRequested();
+}
+
+void Settings::NotifyMetadataRefreshComplete()
+{
+  emit MetadataRefreshCompleted();
+}
+
 void Settings::ReloadTitleDB()
 {
   emit TitleDBReloadRequested();
