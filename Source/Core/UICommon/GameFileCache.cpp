@@ -27,7 +27,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 11;  // Last changed in PR 7058
+static constexpr u32 CACHE_REVISION = 12;  // Last changed in PR 7285
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -165,7 +165,14 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
 {
   const bool wii_banner_changed = (*game_file)->WiiBannerChanged();
   const bool custom_banner_changed = (*game_file)->CustomBannerChanged();
-  if (!wii_banner_changed && !custom_banner_changed)
+
+  (*game_file)->DownloadDefaultCover();
+
+  const bool default_cover_changed = (*game_file)->DefaultCoverChanged();
+  const bool custom_cover_changed = (*game_file)->CustomCoverChanged();
+
+  if (!wii_banner_changed && !custom_banner_changed && !default_cover_changed &&
+      !custom_cover_changed)
     return false;
 
   // If a cached file needs an update, apply the updates to a copy and delete the original.
@@ -176,6 +183,11 @@ bool GameFileCache::UpdateAdditionalMetadata(std::shared_ptr<GameFile>* game_fil
     copy->WiiBannerCommit();
   if (custom_banner_changed)
     copy->CustomBannerCommit();
+  if (default_cover_changed)
+    copy->DefaultCoverCommit();
+  if (custom_cover_changed)
+    copy->CustomCoverCommit();
+
   *game_file = std::move(copy);
 
   return true;
