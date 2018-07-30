@@ -19,6 +19,7 @@
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/WASAPIStream.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -222,7 +223,9 @@ void AudioPane::SaveSettings()
 
   // DSP
   SConfig::GetInstance().bDSPHLE = m_dsp_hle->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_DSP_HLE, m_dsp_hle->isChecked());
   SConfig::GetInstance().m_DSPEnableJIT = m_dsp_lle->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_DSP_JIT, m_dsp_lle->isChecked());
 
   // Backend
   const auto selection =

@@ -424,6 +424,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     game_status_packet << static_cast<u32>(status);
     Send(game_status_packet);
+
+    sf::Packet ipl_status_packet;
+    ipl_status_packet << static_cast<MessageId>(NP_MSG_IPL_STATUS);
+    ipl_status_packet << ExpansionInterface::CEXIIPL::HasIPLDump();
+    Send(ipl_status_packet);
   }
   break;
 
@@ -479,6 +484,45 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       m_net_settings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
       packet >> tmp;
       m_net_settings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
+
+      packet >> m_net_settings.m_EFBAccessEnable;
+      packet >> m_net_settings.m_BBoxEnable;
+      packet >> m_net_settings.m_ForceProgressive;
+      packet >> m_net_settings.m_EFBToTextureEnable;
+      packet >> m_net_settings.m_XFBToTextureEnable;
+      packet >> m_net_settings.m_DisableCopyToVRAM;
+      packet >> m_net_settings.m_ImmediateXFBEnable;
+      packet >> m_net_settings.m_EFBEmulateFormatChanges;
+      packet >> m_net_settings.m_SafeTextureCacheColorSamples;
+      packet >> m_net_settings.m_PerfQueriesEnable;
+      packet >> m_net_settings.m_FPRF;
+      packet >> m_net_settings.m_AccurateNaNs;
+      packet >> m_net_settings.m_SyncOnSkipIdle;
+      packet >> m_net_settings.m_SyncGPU;
+      packet >> m_net_settings.m_SyncGpuMaxDistance;
+      packet >> m_net_settings.m_SyncGpuMinDistance;
+      packet >> m_net_settings.m_SyncGpuOverclock;
+      packet >> m_net_settings.m_JITFollowBranch;
+      packet >> m_net_settings.m_FastDiscSpeed;
+      packet >> m_net_settings.m_MMU;
+      packet >> m_net_settings.m_Fastmem;
+      packet >> m_net_settings.m_SkipIPL;
+      packet >> m_net_settings.m_LoadIPLDump;
+      packet >> m_net_settings.m_VertexRounding;
+      packet >> m_net_settings.m_InternalResolution;
+      packet >> m_net_settings.m_EFBScaledCopy;
+      packet >> m_net_settings.m_FastDepthCalc;
+      packet >> m_net_settings.m_EnablePixelLighting;
+      packet >> m_net_settings.m_WidescreenHack;
+      packet >> m_net_settings.m_ForceFiltering;
+      packet >> m_net_settings.m_MaxAnisotropy;
+      packet >> m_net_settings.m_ForceTrueColor;
+      packet >> m_net_settings.m_DisableCopyFilter;
+      packet >> m_net_settings.m_DisableFog;
+      packet >> m_net_settings.m_ArbitraryMipmapDetection;
+      packet >> m_net_settings.m_ArbitraryMipmapDetectionThreshold;
+      packet >> m_net_settings.m_EnableGPUTextureDecoding;
+      packet >> m_net_settings.m_StrictSettingsSync;
 
       g_netplay_initial_rtc = Common::PacketReadU64(packet);
 

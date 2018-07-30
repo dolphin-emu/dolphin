@@ -105,6 +105,7 @@ private:
   QCheckBox* m_sync_save_data_box;
   QCheckBox* m_record_input_box;
   QCheckBox* m_reduce_polling_rate_box;
+  QCheckBox* m_strict_settings_sync_box;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 

@@ -11,6 +11,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -19,6 +20,7 @@
 #include "Common/Swap.h"
 #include "Common/Timer.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -102,7 +104,8 @@ CEXIIPL::CEXIIPL()
 
   // Load whole ROM dump
   // Note: The Wii doesn't have a copy of the IPL, only fonts.
-  if (!SConfig::GetInstance().bWii && LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
+  if (!SConfig::GetInstance().bWii && Config::Get(Config::MAIN_LOAD_IPL_DUMP) &&
+      LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
   {
     // Descramble the encrypted section (contains BS1 and BS2)
     Descrambler(m_ipl + 0x100, 0x1afe00);
@@ -185,12 +188,30 @@ std::string CEXIIPL::FindIPLDump(const std::string& path_prefix)
   return ipl_dump_path;
 }
 
+bool CEXIIPL::HasIPLDump()
+{
+  std::string ipl_rom_path = FindIPLDump(File::GetUserPath(D_GCUSER_IDX));
+
+  // If not found, check again in Sys folder
+  if (ipl_rom_path.empty())
+    ipl_rom_path = FindIPLDump(File::GetSysDirectory() + GC_SYS_DIR);
+
+  return !ipl_rom_path.empty();
+}
+
 void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
 {
   // Official IPL fonts are copyrighted. Dolphin ships with a set of free font alternatives but
   // unfortunately the bundled fonts have different padding, causing issues with misplaced text
   // in some titles. This function check if the user has IPL dumps available and load the fonts
   // from those dumps instead of loading the bundled fonts
+
+  if (!Config::Get(Config::MAIN_LOAD_IPL_DUMP))
+  {
+    // IPL loading disabled, load bundled font instead
+    LoadFileToIPL(filename, offset);
+    return;
+  }
 
   // Check for IPL dumps in User folder
   std::string ipl_rom_path = FindIPLDump(File::GetUserPath(D_GCUSER_IDX));

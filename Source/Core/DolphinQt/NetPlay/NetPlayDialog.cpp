@@ -31,7 +31,10 @@
 #include "Common/Config/Config.h"
 #include "Common/TraversalClient.h"
 
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/NetPlayServer.h"
@@ -40,10 +43,13 @@
 #include "DolphinQt/NetPlay/GameListDialog.h"
 #include "DolphinQt/NetPlay/MD5Dialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
+#include "DolphinQt/QtUtils/FlowLayout.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+#include "UICommon/GameFile.h"
 
 #include "VideoCommon/VideoConfig.h"
 
@@ -89,6 +95,7 @@ void NetPlayDialog::CreateMainLayout()
   m_sync_save_data_box = new QCheckBox(tr("Sync Saves"));
   m_record_input_box = new QCheckBox(tr("Record inputs"));
   m_reduce_polling_rate_box = new QCheckBox(tr("Reduce Polling Rate"));
+  m_strict_settings_sync_box = new QCheckBox(tr("Strict Settings Sync"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -128,6 +135,10 @@ void NetPlayDialog::CreateMainLayout()
   m_reduce_polling_rate_box->setToolTip(
       tr("This will reduce bandwidth usage by polling GameCube controllers only twice per frame. "
          "Does not affect Wii Remotes."));
+  m_strict_settings_sync_box->setToolTip(
+      tr("This will sync additional graphics settings, and force everyone to the same internal "
+         "resolution.\nMay prevent desync in some games that use EFB reads. Please ensure everyone "
+         "uses the same video backend."));
 
   m_main_layout->addWidget(m_game_button, 0, 0);
   m_main_layout->addWidget(m_md5_button, 0, 1);
@@ -136,18 +147,25 @@ void NetPlayDialog::CreateMainLayout()
   m_splitter->addWidget(m_chat_box);
   m_splitter->addWidget(m_players_box);
 
-  auto* options_widget = new QHBoxLayout;
+  auto* options_widget = new QGridLayout;
+  auto* options_boxes = new FlowLayout;
 
-  options_widget->addWidget(m_start_button);
-  options_widget->addWidget(m_buffer_label);
-  options_widget->addWidget(m_buffer_size_box);
-  options_widget->addWidget(m_save_sd_box);
-  options_widget->addWidget(m_load_wii_box);
-  options_widget->addWidget(m_sync_save_data_box);
-  options_widget->addWidget(m_record_input_box);
-  options_widget->addWidget(m_reduce_polling_rate_box);
-  options_widget->addWidget(m_quit_button);
+  options_widget->addWidget(m_start_button, 0, 0, Qt::AlignVCenter);
+  options_widget->addWidget(m_buffer_label, 0, 1, Qt::AlignVCenter);
+  options_widget->addWidget(m_buffer_size_box, 0, 2, Qt::AlignVCenter);
+  options_widget->addWidget(m_quit_button, 0, 4, Qt::AlignVCenter);
+  options_boxes->addWidget(m_save_sd_box);
+  options_boxes->addWidget(m_load_wii_box);
+  options_boxes->addWidget(m_sync_save_data_box);
+  options_boxes->addWidget(m_record_input_box);
+  options_boxes->addWidget(m_reduce_polling_rate_box);
+  options_boxes->addWidget(m_strict_settings_sync_box);
+
+  options_widget->addLayout(options_boxes, 0, 3, Qt::AlignTop);
+  options_widget->setColumnStretch(3, 1000);
+
   m_main_layout->addLayout(options_widget, 2, 0, 1, -1, Qt::AlignRight);
+  m_main_layout->setRowStretch(1, 1000);
 
   setLayout(m_main_layout);
 }
@@ -289,27 +307,96 @@ void NetPlayDialog::OnStart()
       return;
   }
 
+  if (m_strict_settings_sync_box->isChecked() && Config::Get(Config::GFX_EFB_SCALE) == 0)
+  {
+    QMessageBox::critical(
+        this, tr("Error"),
+        tr("Auto internal resolution is not allowed in strict sync mode, as it depends on window "
+           "size.\n\nPlease select a specific internal resolution."));
+    return;
+  }
+
+  const auto game = FindGameFile(m_current_game);
+  if (!game)
+  {
+    PanicAlertT("Selected game doesn't exist in game list!");
+    return;
+  }
+
   NetPlay::NetSettings settings;
 
+  // Load GameINI so we can sync the settings from it
+  Config::AddLayer(
+      ConfigLoaders::GenerateGlobalGameConfigLoader(game->GetGameID(), game->GetRevision()));
+  Config::AddLayer(
+      ConfigLoaders::GenerateLocalGameConfigLoader(game->GetGameID(), game->GetRevision()));
+
   // Copy all relevant settings
-  SConfig& instance = SConfig::GetInstance();
-  settings.m_CPUthread = instance.bCPUThread;
-  settings.m_CPUcore = instance.cpu_core;
-  settings.m_EnableCheats = instance.bEnableCheats;
-  settings.m_SelectedLanguage = instance.SelectedLanguage;
-  settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
+  settings.m_CPUthread = Config::Get(Config::MAIN_CPU_THREAD);
+  settings.m_CPUcore = Config::Get(Config::MAIN_CPU_CORE);
+  settings.m_EnableCheats = Config::Get(Config::MAIN_ENABLE_CHEATS);
+  settings.m_SelectedLanguage = Config::Get(Config::MAIN_GC_LANGUAGE);
+  settings.m_OverrideGCLanguage = Config::Get(Config::MAIN_OVERRIDE_GC_LANGUAGE);
   settings.m_ProgressiveScan = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
   settings.m_PAL60 = Config::Get(Config::SYSCONF_PAL60);
-  settings.m_DSPHLE = instance.bDSPHLE;
-  settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
+  settings.m_DSPHLE = Config::Get(Config::MAIN_DSP_HLE);
+  settings.m_DSPEnableJIT = Config::Get(Config::MAIN_DSP_JIT);
   settings.m_WriteToMemcard = m_save_sd_box->isChecked();
   settings.m_CopyWiiSave = m_load_wii_box->isChecked();
-  settings.m_OCEnable = instance.m_OCEnable;
-  settings.m_OCFactor = instance.m_OCFactor;
+  settings.m_OCEnable = Config::Get(Config::MAIN_OVERCLOCK_ENABLE);
+  settings.m_OCFactor = Config::Get(Config::MAIN_OVERCLOCK);
   settings.m_ReducePollingRate = m_reduce_polling_rate_box->isChecked();
-  settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
-  settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
+  settings.m_EXIDevice[0] =
+      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_A));
+  settings.m_EXIDevice[1] =
+      static_cast<ExpansionInterface::TEXIDevices>(Config::Get(Config::MAIN_SLOT_B));
+  settings.m_EFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
+  settings.m_BBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
+  settings.m_ForceProgressive = Config::Get(Config::GFX_HACK_FORCE_PROGRESSIVE);
+  settings.m_EFBToTextureEnable = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  settings.m_XFBToTextureEnable = Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
+  settings.m_DisableCopyToVRAM = Config::Get(Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
+  settings.m_ImmediateXFBEnable = Config::Get(Config::GFX_HACK_IMMEDIATE_XFB);
+  settings.m_EFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  settings.m_SafeTextureCacheColorSamples =
+      Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
+  settings.m_PerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+  settings.m_FPRF = Config::Get(Config::MAIN_FPRF);
+  settings.m_AccurateNaNs = Config::Get(Config::MAIN_ACCURATE_NANS);
+  settings.m_SyncOnSkipIdle = Config::Get(Config::MAIN_SYNC_ON_SKIP_IDLE);
+  settings.m_SyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
+  settings.m_SyncGpuMaxDistance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
+  settings.m_SyncGpuMinDistance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
+  settings.m_SyncGpuOverclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
+  settings.m_JITFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+  settings.m_FastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
+  settings.m_MMU = Config::Get(Config::MAIN_MMU);
+  settings.m_Fastmem = Config::Get(Config::MAIN_FASTMEM);
+  settings.m_SkipIPL = Config::Get(Config::MAIN_SKIP_IPL) ||
+                       !Settings::Instance().GetNetPlayServer()->DoAllPlayersHaveIPLDump();
+  settings.m_LoadIPLDump = Config::Get(Config::MAIN_LOAD_IPL_DUMP) &&
+                           Settings::Instance().GetNetPlayServer()->DoAllPlayersHaveIPLDump();
+  settings.m_VertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
+  settings.m_InternalResolution = Config::Get(Config::GFX_EFB_SCALE);
+  settings.m_EFBScaledCopy = Config::Get(Config::GFX_HACK_COPY_EFB_SCALED);
+  settings.m_FastDepthCalc = Config::Get(Config::GFX_FAST_DEPTH_CALC);
+  settings.m_EnablePixelLighting = Config::Get(Config::GFX_ENABLE_PIXEL_LIGHTING);
+  settings.m_WidescreenHack = Config::Get(Config::GFX_WIDESCREEN_HACK);
+  settings.m_ForceFiltering = Config::Get(Config::GFX_ENHANCE_FORCE_FILTERING);
+  settings.m_MaxAnisotropy = Config::Get(Config::GFX_ENHANCE_MAX_ANISOTROPY);
+  settings.m_ForceTrueColor = Config::Get(Config::GFX_ENHANCE_FORCE_TRUE_COLOR);
+  settings.m_DisableCopyFilter = Config::Get(Config::GFX_ENHANCE_DISABLE_COPY_FILTER);
+  settings.m_DisableFog = Config::Get(Config::GFX_DISABLE_FOG);
+  settings.m_ArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
+  settings.m_ArbitraryMipmapDetectionThreshold =
+      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
+  settings.m_EnableGPUTextureDecoding = Config::Get(Config::GFX_ENABLE_GPU_TEXTURE_DECODING);
+  settings.m_StrictSettingsSync = m_strict_settings_sync_box->isChecked();
   settings.m_SyncSaveData = m_sync_save_data_box->isChecked();
+
+  // Unload GameINI to restore things to normal
+  Config::RemoveLayer(Config::LayerType::GlobalGame);
+  Config::RemoveLayer(Config::LayerType::LocalGame);
 
   Settings::Instance().GetNetPlayServer()->SetNetSettings(settings);
   if (Settings::Instance().GetNetPlayServer()->RequestStartGame())
@@ -354,6 +441,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_load_wii_box->setHidden(!is_hosting);
   m_sync_save_data_box->setHidden(!is_hosting);
   m_reduce_polling_rate_box->setHidden(!is_hosting);
+  m_strict_settings_sync_box->setHidden(!is_hosting);
   m_buffer_size_box->setHidden(!is_hosting);
   m_buffer_label->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
@@ -564,6 +652,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_sync_save_data_box->setEnabled(enabled);
     m_assign_ports_button->setEnabled(enabled);
     m_reduce_polling_rate_box->setEnabled(enabled);
+    m_strict_settings_sync_box->setEnabled(enabled);
   }
 
   m_record_input_box->setEnabled(enabled);

@@ -148,6 +148,7 @@
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
+    <QtMoc Include="QtUtils\FlowLayout.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -176,6 +177,7 @@
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ElidedButton.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FlowLayout.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOAnalyzer.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOPlayerWindow.cpp" />
@@ -351,6 +353,7 @@
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />

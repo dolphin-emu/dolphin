@@ -98,6 +98,7 @@ add_executable(dolphin-emu
   NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/FlowLayout.cpp
   QtUtils/ImageConverter.cpp
   QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp

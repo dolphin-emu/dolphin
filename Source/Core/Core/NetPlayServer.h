@@ -40,6 +40,7 @@ public:
 
   void SetNetSettings(const NetSettings& settings);
 
+  bool DoAllPlayersHaveIPLDump() const;
   bool StartGame();
   bool RequestStartGame();
 
@@ -69,6 +70,7 @@ private:
     std::string name;
     std::string revision;
     PlayerGameStatus game_status;
+    bool has_ipl_dump;
 
     ENetPeer* socket;
     u32 ping;
