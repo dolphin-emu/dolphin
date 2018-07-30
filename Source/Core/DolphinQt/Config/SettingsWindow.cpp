@@ -8,7 +8,6 @@
 #include <QVBoxLayout>
 
 #include "DolphinQt/Config/SettingsWindow.h"
-#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"

@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 #include <future>
@@ -68,19 +69,23 @@
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
+#include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
+#include "DolphinQt/ToolBar.h"
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"

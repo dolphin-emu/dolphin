@@ -5,20 +5,14 @@
 #pragma once
 
 #include <QMainWindow>
-#include <QStackedWidget>
-#include <QString>
-#include <QToolBar>
 
 #include <memory>
 #include <optional>
 #include <string>
 
-#include "DolphinQt/GameList/GameList.h"
-#include "DolphinQt/MenuBar.h"
-#include "DolphinQt/RenderWidget.h"
-#include "DolphinQt/ToolBar.h"
-
 class QProgressDialog;
+class QStackedWidget;
+class QString;
 
 class BreakpointWidget;
 struct BootParameters;
@@ -27,6 +21,7 @@ class CodeWidget;
 class ControllersWindow;
 class DragEnterEvent;
 class FIFOPlayerWindow;
+class GameList;
 class GCTASInputWindow;
 class GraphicsWindow;
 class HotkeyScheduler;
@@ -34,13 +29,21 @@ class JITWidget;
 class LogConfigWidget;
 class LogWidget;
 class MemoryWidget;
+class MenuBar;
 class NetPlayDialog;
 class NetPlaySetupDialog;
 class RegisterWidget;
+class RenderWidget;
 class SearchBar;
 class SettingsWindow;
+class ToolBar;
 class WatchWidget;
 class WiiTASInputWindow;
+
+namespace DiscIO
+{
+enum class Region;
+}
 
 namespace X11Utils
 {

@@ -11,6 +11,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/Config/Config.h"
 #include "Common/Thread.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -21,7 +22,6 @@
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/State.h"
 
-#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
