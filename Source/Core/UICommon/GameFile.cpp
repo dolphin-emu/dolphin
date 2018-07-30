@@ -47,6 +47,17 @@ namespace UICommon
 {
 static const std::string EMPTY_STRING;
 
+static bool UseGameCovers()
+{
+// We ifdef this out on Android because accessing the config before emulation start makes us crash.
+// The Android GUI doesn't support covers anyway, so this doesn't make us lose out on functionality.
+#ifdef ANDROID
+  return false;
+#else
+  return Config::Get(Config::MAIN_USE_GAME_COVERS);
+#endif
+}
+
 bool operator==(const GameBanner& lhs, const GameBanner& rhs)
 {
   return std::tie(lhs.buffer, lhs.width, lhs.height) == std::tie(rhs.buffer, rhs.width, rhs.height);
@@ -155,7 +166,7 @@ bool GameFile::IsValid() const
 
 bool GameFile::CustomCoverChanged()
 {
-  if (!m_custom_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_custom_cover.buffer.empty() || !UseGameCovers())
     return false;
 
   std::string path, name;
@@ -182,8 +193,7 @@ bool GameFile::CustomCoverChanged()
 
 void GameFile::DownloadDefaultCover()
 {
-#ifndef ANDROID
-  if (!m_default_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
@@ -256,12 +266,11 @@ void GameFile::DownloadDefaultCover()
     File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
                             cover_path + m_game_id.substr(0, 4) + ".png");
   }
-#endif
 }
 
 bool GameFile::DefaultCoverChanged()
 {
-  if (!m_default_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return false;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
