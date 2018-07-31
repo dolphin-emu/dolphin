@@ -49,11 +49,13 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		findViews();
 
 		setSupportActionBar(mToolbar);
+		getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 		mTabLayout.setupWithViewPager(mViewPager);
 
 		// Set up the FAB.
 		mFab.setOnClickListener(view -> mPresenter.onFabClick());
+
 
 		mPresenter.onCreate();
 

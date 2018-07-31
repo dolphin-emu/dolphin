@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.1'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -22,8 +22,8 @@ android {
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
-        minSdkVersion 21
-        targetSdkVersion 27
+        minSdkVersion 26
+        targetSdkVersion 28
 
         versionCode(getBuildVersionCode())
 
@@ -38,6 +38,10 @@ android {
                 keyAlias project.property('keyalias')
                 keyPassword project.property('keypass')
             }
+            keyAlias 'bboo-release-key'
+            keyPassword 'zhangwei'
+            storeFile file('D:/Android/android-sign-key/bboo-release-key.jks')
+            storePassword 'zhangwei'
         }
     }
 
@@ -68,7 +72,7 @@ android {
         externalNativeBuild {
             cmake {
                 arguments "-DANDROID_STL=c++_static", "-DCMAKE_BUILD_TYPE=RelWithDebInfo" // , "-DENABLE_GENERIC=ON"
-                abiFilters "arm64-v8a", "x86_64" //, "armeabi-v7a", "x86"
+                abiFilters "arm64-v8a"//, "x86_64", "armeabi-v7a", "x86"
             }
         }
     }
@@ -79,21 +83,13 @@ ext {
 }
 
 dependencies {
-    implementation "com.android.support:support-v13:$androidSupportVersion"
     implementation "com.android.support:cardview-v7:$androidSupportVersion"
     implementation "com.android.support:recyclerview-v7:$androidSupportVersion"
     implementation "com.android.support:design:$androidSupportVersion"
-
-    // Android TV UI libraries.
-    implementation "com.android.support:leanback-v17:$androidSupportVersion"
-    implementation "com.android.support:support-tv-provider:$androidSupportVersion"
-
     // For showing the banner as a circle a-la Material Design Guidelines
     implementation 'de.hdodenhof:circleimageview:2.1.0'
-
     // For loading huge screenshots from the disk.
     implementation 'com.squareup.picasso:picasso:2.5.2'
-
     // Allows FRP-style asynchronous operations in Android.
     implementation 'io.reactivex:rxandroid:1.2.1'
     implementation 'com.nononsenseapps:filepicker:4.1.0'

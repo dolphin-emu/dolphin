@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
-              android:layout_height="56dp"
+              android:layout_height="40dp"
               android:background="?android:attr/selectableItemBackground"
               android:focusable="true"
               android:clickable="true"
@@ -27,7 +27,7 @@
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_weight="1"
-        android:textSize="16sp"
+        android:textSize="12sp"
         tools:text="File Name"/>
 
 </LinearLayout>

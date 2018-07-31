@@ -27,8 +27,6 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
 
-import rx.functions.Action1;
-
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
 	private static final String KEY_GAMEPATH = "gamepath";

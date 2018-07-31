@@ -15,8 +15,6 @@ import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import rx.functions.Action1;
-
 public final class SettingsActivityPresenter
 {
 	private static final String KEY_SHOULD_SAVE = "should_save";
