@@ -332,7 +332,7 @@ public final class SettingsFragmentPresenter
 			for (int i = 0; i < 4; i++)
 			{
 				// TODO This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
-				Setting wiimoteSetting = mSettings.get(SettingsFile.SETTINGS_WIIMOTE).get(SettingsFile.SECTION_WIIMOTE + i).getSetting(SettingsFile.KEY_WIIMOTE_TYPE);
+				Setting wiimoteSetting = mSettings.get(SettingsFile.SETTINGS_WIIMOTE).get(SettingsFile.SECTION_WIIMOTE + (i + 1)).getSetting(SettingsFile.KEY_WIIMOTE_TYPE);
 				sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_TYPE, SettingsFile.SECTION_WIIMOTE + i, SettingsFile.SETTINGS_WIIMOTE, R.string.wiimote_4 + i, 0, R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, 0, wiimoteSetting, MenuTag.getWiimoteMenuTag(i+4)));
 			}
 		}
