@@ -25,6 +25,9 @@
             android:layout_height="?attr/actionBarSize"
             android:layout_alignParentStart="true"
             android:layout_alignBottom="@id/toolbar_main"
+            app:tabMode="scrollable"
+            app:tabTextColor="@android:color/primary_text_dark"
+            app:tabSelectedTextColor="@android:color/primary_text_dark"
             app:tabTextAppearance="@style/MyCustomTextAppearance"/>
 
     </RelativeLayout>
@@ -35,16 +38,5 @@
         android:layout_height="match_parent"
         android:layout_below="@id/appbar"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
-
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/button_add_directory"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
-        app:borderWidth="0dp"
-        app:rippleColor="?android:colorPrimaryDark"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"/>
 
 </RelativeLayout>

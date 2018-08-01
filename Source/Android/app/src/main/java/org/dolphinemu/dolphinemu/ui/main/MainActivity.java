@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -36,7 +35,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	private ViewPager mViewPager;
 	private Toolbar mToolbar;
 	private TabLayout mTabLayout;
-	private FloatingActionButton mFab;
 
 	private MainPresenter mPresenter = new MainPresenter(this, this);
 
@@ -44,6 +42,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.activity_main);
 
 		findViews();
@@ -52,10 +51,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		getSupportActionBar().setDisplayShowTitleEnabled(false);
 
 		mTabLayout.setupWithViewPager(mViewPager);
-
-		// Set up the FAB.
-		mFab.setOnClickListener(view -> mPresenter.onFabClick());
-
 
 		mPresenter.onCreate();
 
@@ -75,6 +70,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		{
 			mViewPager.setVisibility(View.INVISIBLE);
 		}
+		mViewPager.setOffscreenPageLimit(3);
 	}
 
 	@Override
@@ -97,7 +93,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
 		mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
 		mTabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
-		mFab = (FloatingActionButton) findViewById(R.id.button_add_directory);
 	}
 
 	@Override
@@ -115,7 +110,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void setVersionString(String version)
 	{
-		mToolbar.setSubtitle(version);
+		//mToolbar.setSubtitle(version);
 	}
 
 	@Override

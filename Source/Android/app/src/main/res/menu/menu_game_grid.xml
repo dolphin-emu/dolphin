@@ -3,6 +3,12 @@
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menu_add_directory"
+        android:title="@string/add_directory_title"
+        android:icon="@drawable/ic_add"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/menu_settings_core"
         android:title="@string/grid_menu_config"
         android:icon="@drawable/ic_settings_core"
