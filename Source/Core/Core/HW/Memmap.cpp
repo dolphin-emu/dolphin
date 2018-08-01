@@ -45,6 +45,7 @@ namespace Memory
 u8* physical_base = nullptr;
 u8* logical_base = nullptr;
 static bool is_fastmem_arena_initialized = false;
+u8* single_physical_base = nullptr;
 
 // The MemArena class
 static Common::MemArena g_arena;
@@ -58,6 +59,8 @@ u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
+u8* m_pContiguousRAM;
+u32 m_TotalMemorySize;
 
 // s_ram_size is the amount allocated by the emulator, whereas s_ram_size_real
 // is what will be reported in lowmem, and thus used by emulated software.
@@ -304,6 +307,16 @@ void Init()
     }
   }
 
+  m_TotalMemorySize = mem_size;
+  single_physical_base = Common::MemArena::GetMemoryBase(m_TotalMemorySize);
+  m_pContiguousRAM = (u8*)g_arena.CreateView(0, m_TotalMemorySize, single_physical_base);
+
+  if (!m_pContiguousRAM)
+  {
+    PanicAlert("MemoryMap_Setup: Failed finding a single memory base.");
+    exit(0);
+  }
+
   if (wii)
     mmio_mapping = InitMMIOWii();
   else
@@ -436,6 +449,8 @@ void ShutdownFastmemArena()
     g_arena.ReleaseView(base, region.size);
   }
 
+  g_arena.ReleaseView(m_pContiguousRAM, m_TotalMemorySize);
+  m_pContiguousRAM = nullptr;
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
@@ -444,6 +459,7 @@ void ShutdownFastmemArena()
 
   physical_base = nullptr;
   logical_base = nullptr;
+  single_physical_base = nullptr;
 
   is_fastmem_arena_initialized = false;
 }

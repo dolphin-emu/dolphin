@@ -28,6 +28,8 @@ public:
 
   // This finds 1 GB in 32-bit, 16 GB in 64-bit.
   static u8* FindMemoryBase();
+  // Finds virtual memory location in the specified size
+  static u8* GetMemoryBase(size_t size);
 
 private:
 #ifdef _WIN32

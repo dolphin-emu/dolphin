@@ -17,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/State.h"
@@ -294,11 +295,19 @@ unsigned retro_api_version()
 
 size_t retro_get_memory_size(unsigned id)
 {
+  if (id == RETRO_MEMORY_SYSTEM_RAM)
+  {
+    return Memory::m_TotalMemorySize;
+  }
   return 0;
 }
 
 void* retro_get_memory_data(unsigned id)
 {
+  if (id == RETRO_MEMORY_SYSTEM_RAM)
+  {
+    return Memory::m_pContiguousRAM;
+  }
   return NULL;
 }
 

@@ -141,6 +141,11 @@ u8* MemArena::FindMemoryBase()
   const size_t memory_size = 0x400000000;
 #endif
 
+  return GetMemoryBase(memory_size);
+}
+
+u8* MemArena::GetMemoryBase(size_t memory_size)
+{
 #ifdef _WIN32
   u8* base = static_cast<u8*>(VirtualAlloc(nullptr, memory_size, MEM_RESERVE, PAGE_READWRITE));
   if (!base)
