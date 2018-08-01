@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -635,7 +636,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		case ButtonType.BUTTON_A:
 		case ButtonType.WIIMOTE_BUTTON_B:
 		case ButtonType.NUNCHUK_BUTTON_Z:
-			scale = 0.2f;
+			scale = 0.20f;
 			break;
 		case ButtonType.BUTTON_X:
 		case ButtonType.BUTTON_Y:
@@ -682,11 +683,104 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(buttonId + "-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(buttonId + "-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(buttonId + "-X", 0);
+		int drawableY = (int) sPrefs.getFloat(buttonId + "-Y", 0);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
+
+		if(drawableX == drawableY && drawableY == 0)
+		{
+			int x = 0;
+			int y = 0;
+			switch (buttonId)
+			{
+				case ButtonType.BUTTON_A:
+					x += 100;
+					y += 100;
+					break;
+				case ButtonType.BUTTON_B:
+					x += 200;
+					y += 200;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_B:
+					x += 100;
+					y += 100;
+					break;
+				case ButtonType.NUNCHUK_BUTTON_Z:
+					y += 100;
+					break;
+				case ButtonType.BUTTON_X:
+					x += 100;
+					y -= 100;
+					break;
+				case ButtonType.BUTTON_Y:
+					x -= 100;
+					y -= 100;
+					break;
+				case ButtonType.BUTTON_Z:
+					x += 300;
+					y -= 200;
+					break;
+				case ButtonType.TRIGGER_L:
+					x -= 300;
+					y -= 300;
+					break;
+				case ButtonType.TRIGGER_R:
+					x += 300;
+					y -= 300;
+					break;
+				case ButtonType.BUTTON_START:
+					y += 300;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_1:
+					x += 300;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_2:
+					x -= 300;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_PLUS:
+					x += 200;
+					y -= 100;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_MINUS:
+					x -= 200;
+					y -= 100;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_HOME:
+					y += 250;
+					break;
+				case ButtonType.CLASSIC_BUTTON_PLUS:
+				case ButtonType.CLASSIC_BUTTON_MINUS:
+					x -= 200;
+					break;
+				case ButtonType.CLASSIC_BUTTON_HOME:
+					y += 250;
+					break;
+				case ButtonType.CLASSIC_TRIGGER_L:
+				case ButtonType.CLASSIC_TRIGGER_R:
+					x -= 300;
+					break;
+				case ButtonType.CLASSIC_BUTTON_ZL:
+				case ButtonType.CLASSIC_BUTTON_ZR:
+					x += 300;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_A:
+					x += 100;
+					y -= 100;
+					break;
+				case ButtonType.NUNCHUK_BUTTON_C:
+					x += 200;
+					y -= 200;
+					break;
+				default:
+					Log.i("zhangwei", String.format("buttonId: %d", buttonId));
+					break;
+			}
+			final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+			drawableX = (dm.widthPixels - width) / 2 + x;
+			drawableY = (dm.heightPixels - height) / 2 + y;
+		}
 
 		// Now set the bounds for the InputOverlayDrawableButton.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
@@ -756,11 +850,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(buttonUp + "-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(buttonUp + "-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(buttonUp + "-X", 0);
+		int drawableY = (int) sPrefs.getFloat(buttonUp + "-Y", 0);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
+
+		if(drawableX == drawableY && drawableY == 0)
+		{
+			final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+			drawableX = (dm.widthPixels - width) / 2 + 300;
+			drawableY = (dm.heightPixels - height) / 2 + 200;
+		}
 
 		// Now set the bounds for the InputOverlayDrawableDpad.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableDpad will be.
@@ -803,8 +904,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(joystick + "-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(joystick + "-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(joystick + "-X", 0);
+		int drawableY = (int) sPrefs.getFloat(joystick + "-Y", 0);
 
 		// Decide inner scale based on joystick ID
 		float innerScale;
@@ -822,6 +923,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
 		int outerSize = bitmapOuter.getWidth();
+
+		if(drawableX == drawableY && drawableY == 0)
+		{
+			final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+			drawableX = (dm.widthPixels - outerSize) / 2 - 300;
+			drawableY = (dm.heightPixels - outerSize) / 2 + 200;
+		}
+
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
 		Rect innerRect = new Rect(0, 0, (int) (outerSize / innerScale), (int) (outerSize / innerScale));
 
