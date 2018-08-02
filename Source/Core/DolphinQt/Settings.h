@@ -87,6 +87,9 @@ public:
   bool IsBatchModeEnabled() const;
   void SetBatchModeEnabled(bool batch);
 
+  bool IsUSBKeyboardConnected() const;
+  void SetUSBKeyboardConnected(bool connected);
+
   // Graphics
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
@@ -169,6 +172,7 @@ signals:
   void AutoUpdateTrackChanged(const QString& mode);
   void AnalyticsToggled(bool enabled);
   void DevicesChanged();
+  void USBKeyboardConnectionChanged(bool connected);
 
 private:
   bool m_batch = false;
