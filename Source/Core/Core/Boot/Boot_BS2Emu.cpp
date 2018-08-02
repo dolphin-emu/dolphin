@@ -125,14 +125,19 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::Volume& volume)
   // To give you an idea about where the stuff is located on the disc take a look at yagcd
   // ch 13.
   DEBUG_LOG(MASTER_LOG, "Call iAppLoaderMain");
-  do
+
+  PowerPC::ppcState.gpr[3] = 0x81300004;
+  PowerPC::ppcState.gpr[4] = 0x81300008;
+  PowerPC::ppcState.gpr[5] = 0x8130000c;
+
+  RunFunction(iAppLoaderMain);
+
+  // iAppLoaderMain returns 1 if the pointers in R3/R4/R5 were filled with values for DVD copy
+  // Typical behaviour is doing it once for each section defined in the DOL header. Some unlicensed
+  // titles don't have a properly constructed DOL and maintain a table of these values in apploader.
+  // iAppLoaderMain returns 0 when there are no more sections to copy.
+  while (PowerPC::ppcState.gpr[3] != 0x00)
   {
-    PowerPC::ppcState.gpr[3] = 0x81300004;
-    PowerPC::ppcState.gpr[4] = 0x81300008;
-    PowerPC::ppcState.gpr[5] = 0x8130000c;
-
-    RunFunction(iAppLoaderMain);
-
     u32 iRamAddress = PowerPC::Read_U32(0x81300004);
     u32 iLength = PowerPC::Read_U32(0x81300008);
     u32 iDVDOffset = PowerPC::Read_U32(0x8130000c) << (is_wii ? 2 : 0);
@@ -141,7 +146,12 @@ bool CBoot::RunApploader(bool is_wii, const DiscIO::Volume& volume)
              iRamAddress, iLength);
     DVDRead(volume, iDVDOffset, iRamAddress, iLength, partition);
 
-  } while (PowerPC::ppcState.gpr[3] != 0x00);
+    PowerPC::ppcState.gpr[3] = 0x81300004;
+    PowerPC::ppcState.gpr[4] = 0x81300008;
+    PowerPC::ppcState.gpr[5] = 0x8130000c;
+
+    RunFunction(iAppLoaderMain);
+  }
 
   // iAppLoaderClose
   DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
