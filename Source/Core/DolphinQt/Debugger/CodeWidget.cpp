@@ -85,6 +85,9 @@ void CodeWidget::CreateWidgets()
 {
   auto* layout = new QGridLayout;
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   m_search_address = new QLineEdit;
   m_search_symbols = new QLineEdit;
   m_code_view = new CodeViewWidget;

@@ -102,6 +102,7 @@ void JITWidget::CreateWidgets()
 
   QWidget* widget = new QWidget;
   auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(2, 2, 2, 2);
   widget->setLayout(layout);
 
   layout->addWidget(m_table_splitter);
