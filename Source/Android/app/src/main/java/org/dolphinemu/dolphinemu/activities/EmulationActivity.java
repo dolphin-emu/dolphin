@@ -34,8 +34,6 @@ import com.squareup.picasso.Picasso;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
-import org.dolphinemu.dolphinemu.fragments.MenuFragment;
-import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
@@ -67,7 +65,6 @@ public final class EmulationActivity extends AppCompatActivity
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
 
-	private boolean mDeviceHasTouchScreen;
 	private boolean mMenuVisible;
 
 	private static boolean sIsGameCubeGame;
@@ -129,7 +126,6 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_toggle_controls, EmulationActivity.MENU_ACTION_TOGGLE_CONTROLS);
 		buttonsActionsMap.append(R.id.menu_emulation_adjust_scale, EmulationActivity.MENU_ACTION_ADJUST_SCALE);
 		buttonsActionsMap.append(R.id.menu_emulation_choose_controller, EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
-		buttonsActionsMap.append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
 		buttonsActionsMap.append(R.id.menu_emulation_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
 
 		buttonsActionsMap.append(R.id.menu_quicksave, EmulationActivity.MENU_ACTION_QUICK_SAVE);
@@ -147,7 +143,6 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
 		buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
-		buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
 		buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center, EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
 	}
 
@@ -202,34 +197,23 @@ public final class EmulationActivity extends AppCompatActivity
 		// TODO: The accurate way to find out which console we're emulating is to
 		// first launch emulation and then ask the core which console we're emulating
 		sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
-		mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
 		mControllerMappingHelper = new ControllerMappingHelper();
 
-		int themeId;
-		if (mDeviceHasTouchScreen)
+		// Get a handle to the Window containing the UI.
+		mDecorView = getWindow().getDecorView();
+		mDecorView.setOnSystemUiVisibilityChangeListener(visibility ->
 		{
-			themeId = R.style.DolphinEmulationGamecube;
-
-			// Get a handle to the Window containing the UI.
-			mDecorView = getWindow().getDecorView();
-			mDecorView.setOnSystemUiVisibilityChangeListener(visibility ->
+			if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
 			{
-				if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-				{
-					// Go back to immersive fullscreen mode in 3s
-					Handler handler = new Handler(getMainLooper());
-					handler.postDelayed(this::enableFullscreenImmersive, 3000 /* 3s */);
-				}
-			});
-			// Set these options now so that the SurfaceView the game renders into is the right size.
-			enableFullscreenImmersive();
-		}
-		else
-		{
-			themeId = R.style.DolphinEmulationTvGamecube;
-		}
+				// Go back to immersive fullscreen mode in 3s
+				Handler handler = new Handler(getMainLooper());
+				handler.postDelayed(this::enableFullscreenImmersive, 3000 /* 3s */);
+			}
+		});
+		// Set these options now so that the SurfaceView the game renders into is the right size.
+		enableFullscreenImmersive();
 
-		setTheme(themeId);
+		setTheme(R.style.DolphinEmulationGamecube);
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
@@ -284,10 +268,7 @@ public final class EmulationActivity extends AppCompatActivity
 			mImageView.setVisibility(View.GONE);
 		}
 
-		if (mDeviceHasTouchScreen)
-		{
-			setTitle(mSelectedTitle);
-		}
+		setTitle(mSelectedTitle);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -317,21 +298,15 @@ public final class EmulationActivity extends AppCompatActivity
 	@Override
 	public void onBackPressed()
 	{
-		if (!mDeviceHasTouchScreen)
-		{
-			boolean popResult = getSupportFragmentManager().popBackStackImmediate(
-				BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-			if (!popResult)
-			{
-				toggleMenu();
-			}
-		}
-		else
+		if(mMenuVisible)
 		{
 			mEmulationFragment.stopEmulation();
 			exitWithAnimation();
 		}
-
+		else
+		{
+			disableFullscreenImmersive();
+		}
 	}
 
 	@Override
@@ -355,6 +330,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void enableFullscreenImmersive()
 	{
+		mMenuVisible = false;
 		// It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
 		mDecorView.setSystemUiVisibility(
 				View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
@@ -365,26 +341,12 @@ public final class EmulationActivity extends AppCompatActivity
 				View.SYSTEM_UI_FLAG_IMMERSIVE);
 	}
 
-	private void toggleMenu()
+	private void disableFullscreenImmersive()
 	{
-		boolean result = getSupportFragmentManager().popBackStackImmediate(
-				BACKSTACK_NAME_MENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-		mMenuVisible = false;
-
-		if (!result) {
-			// Removing the menu failed, so that means it wasn't visible. Add it.
-			Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
-			getSupportFragmentManager().beginTransaction()
-					.setCustomAnimations(
-							R.animator.menu_slide_in_from_left,
-							R.animator.menu_slide_out_to_left,
-							R.animator.menu_slide_in_from_left,
-							R.animator.menu_slide_out_to_left)
-					.add(R.id.frame_menu, fragment)
-					.addToBackStack(BACKSTACK_NAME_MENU)
-					.commit();
-			mMenuVisible = true;
-		}
+		mMenuVisible = true;
+		mDecorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+			|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+			|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 	}
 
 	public void exitWithAnimation() {
@@ -519,21 +481,6 @@ public final class EmulationActivity extends AppCompatActivity
 				NativeLibrary.LoadState(9);
 				return;
 
-			// TV Menu only
-			case MENU_ACTION_SAVE_ROOT:
-				if (!mDeviceHasTouchScreen)
-				{
-					showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
-				}
-				return;
-
-			case MENU_ACTION_LOAD_ROOT:
-				if (!mDeviceHasTouchScreen)
-				{
-					showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
-				}
-				return;
-
 			// Save state slots
 			case MENU_ACTION_SAVE_SLOT1:
 				NativeLibrary.SaveState(0, false);
@@ -587,12 +534,6 @@ public final class EmulationActivity extends AppCompatActivity
 			case MENU_ACTION_CHANGE_DISC:
 				FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
 				return;
-
-			case MENU_ACTION_EXIT:
-				toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
-				mEmulationFragment.stopEmulation();
-				exitWithAnimation();
-				return;
 		}
 	}
 
@@ -617,14 +558,9 @@ public final class EmulationActivity extends AppCompatActivity
 	}
 
 	// Gets button presses
-	@Override
+	/*@Override
 	public boolean dispatchKeyEvent(KeyEvent event)
 	{
-		if (mMenuVisible)
-		{
-			return super.dispatchKeyEvent(event);
-		}
-
 		int action;
 
 		switch (event.getAction())
@@ -648,7 +584,7 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 		InputDevice input = event.getDevice();
 		return NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
-	}
+	}*/
 
 	private void toggleControls() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
@@ -760,14 +696,9 @@ public final class EmulationActivity extends AppCompatActivity
 
 	}
 
-	@Override
+	/*@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event)
 	{
-		if (mMenuVisible)
-		{
-			return false;
-		}
-
 		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0))
 		{
 			return super.dispatchGenericMotionEvent(event);
@@ -798,25 +729,7 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 
 		return true;
-	}
-
-	private void showSubMenu(SaveLoadStateFragment.SaveOrLoad saveOrLoad)
-	{
-		// Get rid of any visible submenu
-		getSupportFragmentManager().popBackStack(
-				BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-		Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
-		getSupportFragmentManager().beginTransaction()
-				.setCustomAnimations(
-						R.animator.menu_slide_in_from_right,
-						R.animator.menu_slide_out_to_right,
-						R.animator.menu_slide_in_from_right,
-						R.animator.menu_slide_out_to_right)
-				.replace(R.id.frame_submenu, fragment)
-				.addToBackStack(BACKSTACK_NAME_SUBMENU)
-				.commit();
-	}
+	}*/
 
 	public String getSelectedTitle()
 	{
