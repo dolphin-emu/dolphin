@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <array>
 #include <string>
-#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
