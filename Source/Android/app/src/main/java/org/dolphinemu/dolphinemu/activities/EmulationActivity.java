@@ -9,27 +9,17 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
-import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
-import android.view.InputDevice;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -38,14 +28,12 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 
 import java.lang.annotation.Retention;
-import java.util.List;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -56,7 +44,6 @@ public final class EmulationActivity extends AppCompatActivity
 	public static final int REQUEST_CHANGE_DISC = 1;
 
 	private View mDecorView;
-	private ImageView mImageView;
 	private EmulationFragment mEmulationFragment;
 
 	private SharedPreferences mPreferences;
@@ -65,12 +52,12 @@ public final class EmulationActivity extends AppCompatActivity
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
 
+	private boolean mStopEmulation;
 	private boolean mMenuVisible;
 
 	private static boolean sIsGameCubeGame;
 
 	private boolean activityRecreated;
-	private String mScreenPath;
 	private String mSelectedTitle;
 	private int mPlatform;
 	private String mPath;
@@ -157,16 +144,6 @@ public final class EmulationActivity extends AppCompatActivity
 		launcher.putExtra(EXTRA_GRID_POSITION, position);
 		Bundle options = new Bundle();
 
-		// Will be null if launched from homescreen
-		if (sharedView != null)
-		{
-			ActivityOptionsCompat transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
-				activity,
-				sharedView,
-				"image_game_screenshot");
-			options = transition.toBundle();
-		}
-
 		// I believe this warning is a bug. Activities are FragmentActivity from the support lib
 		//noinspection RestrictedApi
 		activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options);
@@ -184,7 +161,6 @@ public final class EmulationActivity extends AppCompatActivity
 			mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
 			mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
 			mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
-			mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
 			mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
 			activityRecreated = false;
 		}
@@ -211,6 +187,7 @@ public final class EmulationActivity extends AppCompatActivity
 			}
 		});
 		// Set these options now so that the SurfaceView the game renders into is the right size.
+		mStopEmulation = false;
 		enableFullscreenImmersive();
 
 		setTheme(R.style.DolphinEmulationGamecube);
@@ -219,8 +196,6 @@ public final class EmulationActivity extends AppCompatActivity
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
 		setContentView(R.layout.activity_emulation);
-
-		mImageView = (ImageView) findViewById(R.id.image_screenshot);
 
 		// Find or create the EmulationFragment
 		mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
@@ -231,41 +206,6 @@ public final class EmulationActivity extends AppCompatActivity
 			getSupportFragmentManager().beginTransaction()
 					.add(R.id.frame_emulation_fragment, mEmulationFragment)
 					.commit();
-		}
-
-		if (savedInstanceState == null)
-		{
-			// Picasso will take a while to load these big-ass screenshots. So don't run
-			// the animation until we say so.
-			postponeEnterTransition();
-
-			Picasso.with(this)
-					.load(mScreenPath)
-					.noFade()
-					.noPlaceholder()
-					.into(mImageView, new Callback()
-					{
-						@Override
-						public void onSuccess()
-						{
-							supportStartPostponedEnterTransition();
-						}
-
-						@Override
-						public void onError()
-						{
-							// Still have to do this, or else the app will crash.
-							supportStartPostponedEnterTransition();
-						}
-					});
-
-			Animations.fadeViewOut(mImageView)
-					.setStartDelay(2000)
-					.withEndAction(() -> mImageView.setVisibility(View.GONE));
-		}
-		else
-		{
-			mImageView.setVisibility(View.GONE);
 		}
 
 		setTitle(mSelectedTitle);
@@ -281,7 +221,6 @@ public final class EmulationActivity extends AppCompatActivity
 		outState.putString(EXTRA_SELECTED_GAME, mPath);
 		outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
 		outState.putInt(EXTRA_PLATFORM, mPlatform);
-		outState.putString(EXTRA_SCREEN_PATH, mScreenPath);
 		outState.putInt(EXTRA_GRID_POSITION, mPosition);
 		super.onSaveInstanceState(outState);
 	}
@@ -291,7 +230,6 @@ public final class EmulationActivity extends AppCompatActivity
 		mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
 		mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
 		mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
-		mScreenPath = savedInstanceState.getString(EXTRA_SCREEN_PATH);
 		mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
 	}
 
@@ -300,8 +238,9 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		if(mMenuVisible)
 		{
+			mStopEmulation = true;
 			mEmulationFragment.stopEmulation();
-			exitWithAnimation();
+			finish();
 		}
 		else
 		{
@@ -330,6 +269,10 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void enableFullscreenImmersive()
 	{
+		if(mStopEmulation)
+		{
+			return;
+		}
 		mMenuVisible = false;
 		// It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
 		mDecorView.setSystemUiVisibility(
@@ -348,46 +291,6 @@ public final class EmulationActivity extends AppCompatActivity
 			|View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
 			|View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
 	}
-
-	public void exitWithAnimation() {
-		runOnUiThread(() ->
-		{
-			Picasso.with(EmulationActivity.this)
-					.invalidate(mScreenPath);
-
-			Picasso.with(EmulationActivity.this)
-					.load(mScreenPath)
-					.noFade()
-					.noPlaceholder()
-					.into(mImageView, new Callback() {
-						@Override
-						public void onSuccess() {
-							showScreenshot();
-						}
-
-						@Override
-						public void onError() {
-							finish();
-						}
-					});
-		});
-	}
-
-	private void showScreenshot()
-	{
-		Animations.fadeViewIn(mImageView)
-				.withEndAction(afterShowingScreenshot);
-	}
-
-	private Runnable afterShowingScreenshot = new Runnable()
-	{
-		@Override
-		public void run()
-		{
-			setResult(mPosition);
-			supportFinishAfterTransition();
-		}
-	};
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -557,35 +460,6 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 	}
 
-	// Gets button presses
-	/*@Override
-	public boolean dispatchKeyEvent(KeyEvent event)
-	{
-		int action;
-
-		switch (event.getAction())
-		{
-			case KeyEvent.ACTION_DOWN:
-				// Handling the case where the back button is pressed.
-				if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-				{
-					onBackPressed();
-					return true;
-				}
-
-				// Normal key events.
-				action = NativeLibrary.ButtonState.PRESSED;
-				break;
-			case KeyEvent.ACTION_UP:
-				action = NativeLibrary.ButtonState.RELEASED;
-				break;
-			default:
-				return false;
-		}
-		InputDevice input = event.getDevice();
-		return NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
-	}*/
-
 	private void toggleControls() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		boolean[] enabledButtons = new boolean[14];
@@ -693,47 +567,6 @@ public final class EmulationActivity extends AppCompatActivity
 
 		AlertDialog alertDialog = builder.create();
 		alertDialog.show();
-
-	}
-
-	/*@Override
-	public boolean dispatchGenericMotionEvent(MotionEvent event)
-	{
-		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0))
-		{
-			return super.dispatchGenericMotionEvent(event);
-		}
-
-		// Don't attempt to do anything if we are disconnecting a device.
-		if (event.getActionMasked() == MotionEvent.ACTION_CANCEL)
-			return true;
-
-		InputDevice input = event.getDevice();
-		List<InputDevice.MotionRange> motions = input.getMotionRanges();
-
-		for (InputDevice.MotionRange range : motions)
-		{
-			int axis = range.getAxis();
-			float origValue = event.getAxisValue(axis);
-			float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
-			// If the input is still in the "flat" area, that means it's really zero.
-			// This is used to compensate for imprecision in joysticks.
-			if (Math.abs(value) > range.getFlat())
-			{
-				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
-			}
-			else
-			{
-				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, 0.0f);
-			}
-		}
-
-		return true;
-	}*/
-
-	public String getSelectedTitle()
-	{
-		return mSelectedTitle;
 	}
 
 	public static boolean isGameCubeGame()

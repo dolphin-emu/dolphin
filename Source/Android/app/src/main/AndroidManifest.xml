@@ -47,6 +47,7 @@
             android:label="@string/preferences_settings"/>
 
         <activity
+            android:screenOrientation="userLandscape"
             android:name=".activities.EmulationActivity"
             android:theme="@style/DolphinEmulationGamecube"/>
 
