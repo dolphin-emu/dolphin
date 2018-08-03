@@ -320,6 +320,14 @@ public final class NativeLibrary
 	public static native int DefaultCPUCore();
 
 	/**
+	 * Returns the current available audio backend list
+	 */
+	public static native String[] GetAudioBackendList();
+	/**
+	 * Returns the current working audio backend
+	 */
+	public static native String DefaultAudioBackend();
+	/**
 	 * Begins emulation.
 	 */
 	public static native void Run(String path);

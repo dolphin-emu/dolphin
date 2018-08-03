@@ -63,6 +63,7 @@ public final class SettingsFile
 	public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
 
 	public static final String SECTION_INI_CORE = "Core";
+	public static final String SECTION_INI_DSP = "DSP";
 	public static final String SECTION_INI_INTERFACE = "Interface";
 
 	public static final String SECTION_CONFIG_GENERAL = "General";
@@ -85,6 +86,7 @@ public final class SettingsFile
 	public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
+	public static final String KEY_AUDIO_BACKEND = "Backend";
 	public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
     public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";

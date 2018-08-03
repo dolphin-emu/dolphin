@@ -135,6 +135,8 @@
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
+    <string name="audio_backend">Audio Backend</string>
+    <string name="audio_backend_description">Set backend used for audio output.</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
