@@ -49,7 +49,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 		Intent launcher = getIntent();
 		String gameID = launcher.getStringExtra(ARG_GAME_ID);
-        MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
+		MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
 		mPresenter.onCreate(savedInstanceState, menuTag, gameID);
 	}
 

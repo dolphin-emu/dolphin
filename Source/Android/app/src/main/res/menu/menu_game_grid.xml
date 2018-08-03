@@ -15,12 +15,6 @@
         app:showAsAction="never"/>
 
     <item
-        android:id="@+id/menu_settings_graphics"
-        android:title="@string/grid_menu_graphics_settings"
-        android:icon="@drawable/ic_settings_graphics"
-        app:showAsAction="never"/>
-
-    <item
         android:id="@+id/menu_settings_gcpad"
         android:title="@string/grid_menu_gcpad_settings"
         android:icon="@drawable/ic_settings_gcpad"
