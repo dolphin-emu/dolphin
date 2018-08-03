@@ -92,15 +92,17 @@ void AdvancedWidget::CreateWidgets()
 
   m_enable_cropping = new GraphicsBool(tr("Crop"), Config::GFX_CROP);
   m_enable_prog_scan = new QCheckBox(tr("Enable Progressive Scan"));
+  m_backend_multithreading =
+      new GraphicsBool(tr("Backend Multi-threading"), Config::GFX_BACKEND_MULTITHREADING);
 
   misc_layout->addWidget(m_enable_cropping, 0, 0);
   misc_layout->addWidget(m_enable_prog_scan, 0, 1);
-
+  misc_layout->addWidget(m_backend_multithreading, 1, 0);
 #ifdef _WIN32
   m_borderless_fullscreen =
       new GraphicsBool(tr("Borderless Fullscreen"), Config::GFX_BORDERLESS_FULLSCREEN);
 
-  misc_layout->addWidget(m_borderless_fullscreen, 1, 0);
+  misc_layout->addWidget(m_borderless_fullscreen, 1, 1);
 #endif
 
   main_layout->addWidget(debugging_box);
@@ -191,6 +193,11 @@ void AdvancedWidget::AddDescriptions()
   static const char TR_PROGRESSIVE_SCAN_DESCRIPTION[] = QT_TR_NOOP(
       "Enables progressive scan if supported by the emulated software.\nMost games don't "
       "care about this.\n\nIf unsure, leave this unchecked.");
+  static const char TR_BACKEND_MULTITHREADING_DESCRIPTION[] =
+      QT_TR_NOOP("Enables multi-threaded command submission in backends where supported. Enabling "
+                 "this option may result in a performance improvement on systems with more than "
+                 "two CPU cores. Currently, this is limited to the Vulkan backend.\n\nIf unsure, "
+                 "leave this checked.");
 #ifdef _WIN32
   static const char TR_BORDERLESS_FULLSCREEN_DESCRIPTION[] = QT_TR_NOOP(
       "Implement fullscreen mode with a borderless window spanning the whole screen instead of "
@@ -217,6 +224,7 @@ void AdvancedWidget::AddDescriptions()
   AddDescription(m_enable_cropping, TR_CROPPING_DESCRIPTION);
   AddDescription(m_enable_prog_scan, TR_PROGRESSIVE_SCAN_DESCRIPTION);
   AddDescription(m_enable_freelook, TR_FREE_LOOK_DESCRIPTION);
+  AddDescription(m_backend_multithreading, TR_BACKEND_MULTITHREADING_DESCRIPTION);
 #ifdef _WIN32
   AddDescription(m_borderless_fullscreen, TR_BORDERLESS_FULLSCREEN_DESCRIPTION);
 #endif
