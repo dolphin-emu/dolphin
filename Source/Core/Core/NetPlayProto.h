@@ -94,8 +94,6 @@ struct NetTraversalConfig
   u16 traversal_port = 0;
 };
 
-extern u64 g_netplay_initial_rtc;
-
 struct Rpt : public std::vector<u8>
 {
   u16 channel;

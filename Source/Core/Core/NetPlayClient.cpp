@@ -528,7 +528,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_EnableGPUTextureDecoding;
       packet >> m_net_settings.m_StrictSettingsSync;
 
-      g_netplay_initial_rtc = Common::PacketReadU64(packet);
+      m_initial_rtc = Common::PacketReadU64(packet);
 
       packet >> m_net_settings.m_SyncSaveData;
       packet >> m_net_settings.m_SaveDataRegion;
@@ -1454,6 +1454,11 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
   return true;
 }
 
+u64 NetPlayClient::GetInitialRTCValue() const
+{
+  return m_initial_rtc;
+}
+
 // called from ---CPU--- thread
 bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode)
 {
@@ -1811,7 +1816,7 @@ u64 ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime()
   std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
   if (NetPlay::netplay_client)
-    return NetPlay::g_netplay_initial_rtc;
+    return NetPlay::netplay_client->GetInitialRTCValue();
 
   return 0;
 }

@@ -102,6 +102,8 @@ public:
   bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
   bool GetNetPads(int pad_nb, GCPadStatus* pad_status);
 
+  u64 GetInitialRTCValue() const;
+
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress addr) override;
   void OnConnectFailed(u8 reason) override;
@@ -203,6 +205,7 @@ private:
   u8 m_sync_save_data_count = 0;
   u8 m_sync_save_data_success_count = 0;
 
+  u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;
 };
 

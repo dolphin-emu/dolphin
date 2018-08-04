@@ -85,6 +85,8 @@ private:
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
 
+  u64 GetInitialNetPlayRTC() const;
+
   void SendToClients(const sf::Packet& packet, const PlayerId skip_pid = 0);
   void Send(ENetPeer* socket, const sf::Packet& packet);
   unsigned int OnConnect(ENetPeer* socket);
