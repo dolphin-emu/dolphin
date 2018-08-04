@@ -549,7 +549,7 @@ QString MainWindow::PromptFileName()
   QString path = QFileDialog::getOpenFileName(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QStringLiteral("")).toString(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff);;"
          "All Files (*)"));
 
   if (!path.isEmpty())
