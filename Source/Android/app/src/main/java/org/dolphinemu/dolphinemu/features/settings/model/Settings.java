@@ -7,6 +7,7 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -83,18 +84,62 @@ public class Settings
     public void loadSettings(SettingsActivityView view)
     {
         sections = new Settings.SettingsSectionMap();
-        if (TextUtils.isEmpty(gameId))
+
+        HashSet<String> filesToExclude = new HashSet<>();
+        if (!TextUtils.isEmpty(gameId))
         {
-            for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
+            // for per-game settings, don't load the WiiMoteNew.ini settings
+            filesToExclude.add(SettingsFile.FILE_NAME_WIIMOTE);
+        }
+
+        loadDolphinSettings(view, filesToExclude);
+
+        if (!TextUtils.isEmpty(gameId))
+        {
+            loadGenericGameSettings(gameId, view);
+            loadCustomGameSettings(gameId, view);
+        }
+    }
+
+    private void loadDolphinSettings(SettingsActivityView view, HashSet<String> filesToExclude)
+    {
+        for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
+        {
+            String fileName = entry.getKey();
+            if(filesToExclude == null || !filesToExclude.contains(fileName))
             {
-                String fileName = entry.getKey();
                 sections.putAll(SettingsFile.readFile(fileName, view));
             }
         }
-        else
+    }
+
+    private void loadGenericGameSettings(String gameId, SettingsActivityView view)
+    {
+        // generic game settings
+        mergeSections(SettingsFile.readGenericGameSettings(gameId, view));
+        mergeSections(SettingsFile.readGenericGameSettingsForAllRegions(gameId, view));
+    }
+
+    private void loadCustomGameSettings(String gameId, SettingsActivityView view)
+    {
+        // custom game settings
+        mergeSections(SettingsFile.readCustomGameSettings(gameId, view));
+    }
+
+    private void mergeSections(HashMap<String, SettingSection> updatedSections)
+    {
+        for (Map.Entry<String, SettingSection> entry : updatedSections.entrySet())
         {
-            // custom game settings
-            sections.putAll(SettingsFile.readCustomGameSettings(gameId, view));
+            if (sections.containsKey(entry.getKey()))
+            {
+                SettingSection originalSection = sections.get(entry.getKey());
+                SettingSection updatedSection = entry.getValue();
+                originalSection.mergeSection(updatedSection);
+            }
+            else
+            {
+                sections.put(entry.getKey(), entry.getValue());
+            }
         }
     }
 

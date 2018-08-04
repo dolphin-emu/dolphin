@@ -52,4 +52,12 @@ public final class SettingSection
 	{
 		return mSettings;
 	}
+
+	public void mergeSection(SettingSection settingSection)
+	{
+		for (Setting setting : settingSection.mSettings.values())
+		{
+			putSetting(setting);
+		}
+	}
 }

@@ -260,15 +260,12 @@ public final class SettingsFile
 	 * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
 	 * failed.
 	 *
-	 * @param fileName The name of the settings file without a path or extension.
-	 * @param view     The current view.
-	 * @return An Observable that emits a HashMap of the file's contents, then completes.
+	 * @param ini The ini file to load the settings from
+	 * @param view The current view.
 	 */
-	static HashMap<String, SettingSection> readFile(final String fileName, boolean isCustomGame, SettingsActivityView view)
+	static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame, SettingsActivityView view)
 	{
 		HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
-
-		File ini = getSettingsFile(fileName);
 
 		BufferedReader reader = null;
 
@@ -296,12 +293,12 @@ public final class SettingsFile
 		}
 		catch (FileNotFoundException e)
 		{
-			Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
+			Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
 			view.onSettingsFileNotFound();
 		}
 		catch (IOException e)
 		{
-			Log.error("[SettingsFile] Error reading from: " + fileName + ".ini: " + e.getMessage());
+			Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath()+ e.getMessage());
 			view.onSettingsFileNotFound();
 		}
 		finally
@@ -314,14 +311,9 @@ public final class SettingsFile
 				}
 				catch (IOException e)
 				{
-					Log.error("[SettingsFile] Error closing: " + fileName + ".ini: " + e.getMessage());
+					Log.error("[SettingsFile] Error closing: " + ini.getAbsolutePath()+ e.getMessage());
 				}
 			}
-		}
-
-		if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
-		{
-			addGcPadSettingsIfTheyDontExist(sections);
 		}
 
 		return sections;
@@ -329,7 +321,14 @@ public final class SettingsFile
 
     public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
     {
-        return readFile(fileName, false, view);
+		HashMap<String, SettingSection> sections = readFile(getSettingsFile(fileName), false, view);
+
+		if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
+		{
+			addGcPadSettingsIfTheyDontExist(sections);
+		}
+
+        return sections;
     }
 
 	/**
@@ -342,9 +341,19 @@ public final class SettingsFile
 	 */
 	public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId, SettingsActivityView view)
 	{
-		String fileName = "../GameSettings/" + gameId;
-		return readFile(fileName, true, view);
+		return readFile(getCustomGameSettingsFile(gameId), true, view);
 	}
+
+	public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId, SettingsActivityView view)
+	{
+		return readFile(getGenericGameSettingsFile(gameId), true, view);
+	}
+
+	public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(final String gameId, SettingsActivityView view)
+	{
+		return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
+	}
+
 
 	/**
 	 * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
@@ -434,6 +443,23 @@ public final class SettingsFile
 	private static File getSettingsFile(String fileName)
 	{
 		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
+	}
+
+	private static File getGenericGameSettingsForAllRegions(String gameId)
+	{
+		// Use the first 3 chars from the gameId to load the generic game settings for all regions
+		gameId = gameId.substring(0, 3);
+		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
+	}
+
+	private static File getGenericGameSettingsFile(String gameId)
+	{
+		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
+	}
+
+	private static File getCustomGameSettingsFile(String gameId)
+	{
+		return new File(DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
     private static SettingSection sectionFromLine(String line, boolean isCustomGame)
