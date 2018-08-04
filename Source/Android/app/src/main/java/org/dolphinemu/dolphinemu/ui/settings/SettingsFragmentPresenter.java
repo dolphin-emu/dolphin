@@ -119,17 +119,17 @@ public final class SettingsFragmentPresenter
 
 		switch (mMenuTag)
 		{
-            case CONFIG:
-                addConfigSettings(sl);
-                break;
+			case CONFIG:
+					addConfigSettings(sl);
+					break;
 
-            case CONFIG_GENERAL:
+			case CONFIG_GENERAL:
 				addGeneralSettings(sl);
 				break;
 
-            case CONFIG_INTERFACE:
-                addInterfaceSettings(sl);
-                break;
+			case CONFIG_INTERFACE:
+					addInterfaceSettings(sl);
+					break;
 
 			case CONFIG_GAME_CUBE:
 				addGameCubeSettings(sl);
@@ -196,6 +196,9 @@ public final class SettingsFragmentPresenter
 	private void addConfigSettings(ArrayList<SettingsItem> sl)
 	{
 		sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, MenuTag.CONFIG_GENERAL));
+		sl.add(new SubmenuSetting(null, null, R.string.grid_menu_graphics_settings, 0, MenuTag.GRAPHICS));
+		sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, MenuTag.ENHANCEMENTS));
+		sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, MenuTag.HACKS));
 		sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, MenuTag.CONFIG_INTERFACE));
 
 		sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
@@ -210,6 +213,7 @@ public final class SettingsFragmentPresenter
 		Setting overclock = null;
 		Setting speedLimit = null;
 		Setting audioStretch = null;
+		Setting audioBackend = null;
 
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
@@ -217,8 +221,9 @@ public final class SettingsFragmentPresenter
 			dualCore = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_DUAL_CORE);
 			overclockEnable = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
 			overclock = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
-            speedLimit = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SPEED_LIMIT);
+			speedLimit = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SPEED_LIMIT);
 			audioStretch = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+			audioBackend = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_DSP).getSetting(SettingsFile.KEY_AUDIO_BACKEND);
 		}
 		else
 		{
@@ -250,8 +255,14 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.dual_core, R.string.dual_core_description, true, dualCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.overclock_title, R.string.overclock_title_description, 400, "%", 100, overclock));
-        sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.speed_limit, 0, 200, "%", 100, speedLimit));
+		sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.speed_limit, 0, 200, "%", 100, speedLimit));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+
+		String defaultAudioBackend = NativeLibrary.DefaultAudioBackend();
+		String[] audioListEntries = NativeLibrary.GetAudioBackendList();
+		String[] audioListValues = new String[audioListEntries.length];
+		System.arraycopy(audioListEntries, 0, audioListValues, 0, audioListEntries.length);
+		sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_AUDIO_BACKEND, SettingsFile.SECTION_INI_DSP, SettingsFile.SETTINGS_DOLPHIN, R.string.audio_backend, R.string.audio_backend_description, audioListEntries, audioListValues, defaultAudioBackend, audioBackend));
 	}
 
 	private void addInterfaceSettings(ArrayList<SettingsItem> sl)
@@ -271,7 +282,7 @@ public final class SettingsFragmentPresenter
 	private void addGameCubeSettings(ArrayList<SettingsItem> sl)
 	{
 		Setting systemLanguage = null;
-        Setting overrideGCLanguage = null;
+		Setting overrideGCLanguage = null;
 		Setting slotADevice = null;
 		Setting slotBDevice = null;
 
@@ -279,7 +290,7 @@ public final class SettingsFragmentPresenter
 		{
 
 			systemLanguage = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE);
-            overrideGCLanguage = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE);
+			overrideGCLanguage = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE);
 			slotADevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_A_DEVICE);
 			slotBDevice = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_CORE).getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
 		}
@@ -289,7 +300,7 @@ public final class SettingsFragmentPresenter
 		}
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.gamecube_system_language, 0, R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues, 0, systemLanguage));
-        sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.override_gamecube_language, 0, false, overrideGCLanguage));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.override_gamecube_language, 0, false, overrideGCLanguage));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_B_DEVICE, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.slot_b_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 255, slotBDevice));
 	}
@@ -363,16 +374,11 @@ public final class SettingsFragmentPresenter
 			mView.passSettingsToActivity(mSettings);
 		}
 
-		sl.add(new HeaderSetting(null, null, R.string.graphics_general, 0));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_INI_CORE, SettingsFile.SETTINGS_DOLPHIN, R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.show_fps, R.string.show_fps_description, false, showFps));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.shader_compilation_mode, R.string.shader_compilation_mode_description, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.wait_for_shaders, 0, false, waitForShaders));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.aspect_ratio, R.string.aspect_ratio_description, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
-
-		sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
-		sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, MenuTag.ENHANCEMENTS));
-		sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, MenuTag.HACKS));
 	}
 
 	private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -406,7 +412,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, SettingsFile.SECTION_GFX_HACKS, SettingsFile.SETTINGS_GFX, R.string.scaled_efb_copy, R.string.scaled_efb_copy_description, true, efbScaledCopy));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.per_pixel_lighting, R.string.per_pixel_lighting_description, false, perPixel));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, SettingsFile.SECTION_GFX_ENHANCEMENTS, SettingsFile.SETTINGS_GFX, R.string.force_texture_filtering, R.string.force_texture_filtering_description, false, forceFilter));
-        sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.force_24bit_color, R.string.force_24bit_color_description, true, force24BitColor));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.force_24bit_color, R.string.force_24bit_color_description, true, force24BitColor));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_fog, R.string.disable_fog_description, false, disableFog));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.disable_copy_filter, R.string.disable_copy_filter_description, false, disableCopyFilter));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, R.string.arbitrary_mipmap_detection, R.string.arbitrary_mipmap_detection_description, true, arbitraryMipmapDetection));

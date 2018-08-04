@@ -42,23 +42,12 @@
         </activity>
 
         <activity
-            android:name=".ui.main.TvMainActivity"
-            android:theme="@style/DolphinTvGamecube">
-
-            <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-
-                <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
-            </intent-filter>
-        </activity>
-
-        <activity
             android:name=".ui.settings.SettingsActivity"
             android:theme="@style/DolphinSettingsGamecube"
             android:label="@string/preferences_settings"/>
 
         <activity
+            android:screenOrientation="userLandscape"
             android:name=".activities.EmulationActivity"
             android:theme="@style/DolphinEmulationGamecube"/>
 
@@ -71,27 +60,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.AppLinkActivity" >
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data
-                    android:host="@string/host"
-                    android:scheme="@string/scheme" />
-            </intent-filter>
-        </activity>
 
 
         <service android:name=".services.DirectoryInitializationService"/>
         <service android:name=".services.GameFileCacheService"/>
-        <service
-            android:name=".services.SyncChannelJobService"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-        <service
-            android:name=".services.SyncProgramsJobService"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"

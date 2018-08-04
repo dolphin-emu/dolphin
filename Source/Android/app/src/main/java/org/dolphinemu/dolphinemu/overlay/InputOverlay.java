@@ -261,7 +261,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mButtonBeingConfigured == button)
 					{
 						// Persist button position by saving new place.
-						saveControlPosition(mButtonBeingConfigured.getId(), mButtonBeingConfigured.getBounds().left, mButtonBeingConfigured.getBounds().top);
+						saveControlPosition(mButtonBeingConfigured.getId(), mButtonBeingConfigured.getBounds());
 						mButtonBeingConfigured = null;
 					}
 					break;
@@ -296,7 +296,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mDpadBeingConfigured == dpad)
 					{
 						// Persist button position by saving new place.
-						saveControlPosition(mDpadBeingConfigured.getId(0), mDpadBeingConfigured.getBounds().left, mDpadBeingConfigured.getBounds().top);
+						saveControlPosition(mDpadBeingConfigured.getId(0), mDpadBeingConfigured.getBounds());
 						mDpadBeingConfigured = null;
 					}
 					break;
@@ -326,7 +326,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				case MotionEvent.ACTION_POINTER_UP:
 					if (mJoystickBeingConfigured != null)
 					{
-						saveControlPosition(mJoystickBeingConfigured.getId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().top);
+						saveControlPosition(mJoystickBeingConfigured.getId(), mJoystickBeingConfigured.getBounds());
 						mJoystickBeingConfigured = null;
 					}
 					break;
@@ -578,10 +578,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		invalidate();
 	}
 
-	private void saveControlPosition(int sharedPrefsId, int x, int y)
+	private void saveControlPosition(int sharedPrefsId, Rect bounds)
 	{
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+		final Context context = getContext();
+		final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 		SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
+		float x = (bounds.left + (bounds.right - bounds.left) / 2.0f) / dm.widthPixels * 2.0f - 1.0f;
+		float y = (bounds.top + (bounds.bottom - bounds.top) / 2.0f) / dm.heightPixels * 2.0f - 1.0f;
 		sPrefsEditor.putFloat(sharedPrefsId+"-X", x);
 		sPrefsEditor.putFloat(sharedPrefsId+"-Y", y);
 		sPrefsEditor.apply();
@@ -682,11 +686,134 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(buttonId + "-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(buttonId + "-Y", 0f);
+		float x = sPrefs.getFloat(buttonId + "-X", 0f);
+		float y = sPrefs.getFloat(buttonId + "-Y", 0f);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
+
+		if (x == y && y == 0 || x > 1.0f || y > 1.0f) {
+			switch(buttonId) {
+				// NGC
+				case ButtonType.BUTTON_A:
+					x = 0.65f;
+					y = 0.55f;
+					break;
+				case ButtonType.BUTTON_B:
+					x = 0.45f;
+					y = 0.70f;
+					break;
+				case ButtonType.BUTTON_START:
+					x = 0.00f;
+					y = 0.55f;
+					break;
+				case ButtonType.BUTTON_X:
+					x = 0.85f;
+					y = 0.50f;
+					break;
+				case ButtonType.BUTTON_Y:
+					x = 0.60f;
+					y = 0.25f;
+					break;
+				case ButtonType.BUTTON_Z:
+					x = 0.75f;
+					y = -0.50f;
+					break;
+				case ButtonType.TRIGGER_L:
+					x = -0.75f;
+					y = -0.75f;
+					break;
+				case ButtonType.TRIGGER_R:
+					x = 0.75f;
+					y = -0.75f;
+					break;
+				// Wii
+				case ButtonType.WIIMOTE_BUTTON_A:
+					x = 0.55f;
+					y = 0.65f;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_B:
+					x = 0.50f;
+					y = 0.20f;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_MINUS:
+					x = -0.85f;
+					y = -0.75f;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_PLUS:
+					x = -0.65f;
+					y = -0.85f;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_HOME:
+					x = 0.0f;
+					y = 0.5f;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_1:
+					x = 0.65f;
+					y = -0.85f;
+					break;
+				case ButtonType.WIIMOTE_BUTTON_2:
+					x = 0.85f;
+					y = -0.75f;
+					break;
+				case ButtonType.NUNCHUK_BUTTON_C:
+					x = 0.75f;
+					y = 0.45f;
+					break;
+				case ButtonType.NUNCHUK_BUTTON_Z:
+					x = 0.75f;
+					y = 0.05f;
+					break;
+				// classic
+				case ButtonType.CLASSIC_BUTTON_A:
+					x = 0.80f;
+					y = 0.55f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_B:
+					x = 0.60f;
+					y = 0.75f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_X:
+					x = 0.60f;
+					y = 0.30f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_Y:
+					x = 0.40f;
+					y = 0.55f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_MINUS:
+					x = -0.15f;
+					y = 0.55f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_PLUS:
+					x = 0.15f;
+					y = 0.55f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_HOME:
+					x = 0f;
+					y = 0.55f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_ZL:
+					x = -0.75f;
+					y = -0.75f;
+					break;
+				case ButtonType.CLASSIC_BUTTON_ZR:
+					x = 0.75f;
+					y = -0.75f;
+					break;
+				case ButtonType.CLASSIC_TRIGGER_L:
+					x = -0.55f;
+					y = -0.45f;
+					break;
+				case ButtonType.CLASSIC_TRIGGER_R:
+					x = 0.55f;
+					y = -0.45f;
+					break;
+			}
+		}
+		final DisplayMetrics dm = res.getDisplayMetrics();
+		int drawableX = (int)((dm.widthPixels / 2.0f) * (1.0f + x) - width / 2.0f);
+		int drawableY = (int)((dm.heightPixels / 2.0f) * (1.0f + y) - height / 2.0f);
 
 		// Now set the bounds for the InputOverlayDrawableButton.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
@@ -756,11 +883,35 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(buttonUp + "-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(buttonUp + "-Y", 0f);
+		float x = sPrefs.getFloat(buttonUp + "-X", 0f);
+		float y = sPrefs.getFloat(buttonUp + "-Y", 0f);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
+
+		if (x == y && y == 0 || x > 1.0f || y > 1.0f) {
+			switch (buttonUp) {
+				// NGC
+				case ButtonType.BUTTON_UP:
+					x = -0.85f;
+					y = 0f;
+					break;
+				// Wii
+				case ButtonType.WIIMOTE_UP:
+				case ButtonType.WIIMOTE_RIGHT:
+					x = -0.85f;
+					y = 0f;
+					break;
+				// Classic
+				case ButtonType.CLASSIC_DPAD_UP:
+					x = -0.85f;
+					y = 0f;
+					break;
+			}
+		}
+		final DisplayMetrics dm = res.getDisplayMetrics();
+		int drawableX = (int)((dm.widthPixels / 2.0f) * (1.0f + x) - width / 2.0f);
+		int drawableY = (int)((dm.heightPixels / 2.0f) * (1.0f + y) - height / 2.0f);
 
 		// Now set the bounds for the InputOverlayDrawableDpad.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableDpad will be.
@@ -803,8 +954,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(joystick + "-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(joystick + "-Y", 0f);
+		float x = sPrefs.getFloat(joystick + "-X", 0f);
+		float y = sPrefs.getFloat(joystick + "-Y", 0f);
 
 		// Decide inner scale based on joystick ID
 		float innerScale;
@@ -822,6 +973,38 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
 		int outerSize = bitmapOuter.getWidth();
+
+		if (x == y && y == 0 || x > 1.0f || y > 1.0f) {
+			switch (joystick) {
+				// NGC
+				case ButtonType.STICK_C:
+					x = 0.80f;
+					y = -0.10f;
+					break;
+				case ButtonType.STICK_MAIN:
+					x = -0.60f;
+					y = 0.45f;
+					break;
+				// Wii
+				case ButtonType.NUNCHUK_STICK:
+					x = -0.60f;
+					y = 0.45f;
+					break;
+				// classic
+				case ButtonType.CLASSIC_STICK_LEFT:
+					x = -0.60f;
+					y = 0.45f;
+					break;
+				case ButtonType.CLASSIC_STICK_RIGHT:
+					x = 0.75f;
+					y = -0.15f;
+					break;
+			}
+		}
+		final DisplayMetrics dm = res.getDisplayMetrics();
+		int drawableX = (int)((dm.widthPixels / 2.0f) * (1.0f + x) - outerSize / 2.0f);
+		int drawableY = (int)((dm.heightPixels / 2.0f) * (1.0f + y) - outerSize / 2.0f);
+
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
 		Rect innerRect = new Rect(0, 0, (int) (outerSize / innerScale), (int) (outerSize / innerScale));
 

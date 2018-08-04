@@ -49,6 +49,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "AudioCommon/AudioCommon.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 #include "jni/ButtonManager.h"
@@ -161,78 +162,12 @@ extern "C" {
 #endif
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv* env,
-                                                                                     jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv* env,
-                                                                                   jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv* env,
-                                                                                  jobject obj);
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunning(JNIEnv* env,
-                                                                                  jobject obj);
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(
-    JNIEnv* env, jobject obj, jstring jDevice, jint Button, jint Action);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(
-    JNIEnv* env, jobject obj, jstring jDevice, jint Axis, jfloat Value);
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env, jobject obj);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
-                                                                                      jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
-                                                                                   jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(JNIEnv* env,
-                                                                               jobject obj,
-                                                                               jint api);
-JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jDefault);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSection, jstring jKey, jstring jValue);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring jFile);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv* env,
-                                                                              jobject obj,
-                                                                              jint slot,
-                                                                              jboolean wait);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring path,
-                                                                                jboolean wait);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv* env,
-                                                                              jobject obj,
-                                                                              jint slot);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadStateAs(JNIEnv* env,
-                                                                                jobject obj,
-                                                                                jstring path);
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_services_DirectoryInitializationService_CreateUserDirectories(
-    JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(
-    JNIEnv* env, jobject obj, jstring jDirectory);
-JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env, jobject obj);
-JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
-                                                                                   jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
-                                                                                 jobject obj,
-                                                                                 jboolean enable);
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2(
-    JNIEnv* env, jobject obj, jstring jFile);
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv* env,
-                                                                                   jobject obj,
-                                                                                   jobject surf);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
-                                                                                     jobject obj);
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv* env,
                                                                                      jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
   Core::SetState(Core::State::Running);
 }
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv* env,
                                                                                    jobject obj)
 {
@@ -244,7 +179,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
                                                                                   jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  Core::SaveScreenShot("thumb", true);
+  //Core::SaveScreenShot("thumb", true);
   Core::Stop();
   s_update_main_frame_event.Set();  // Kick the waiting event
 }
@@ -254,10 +189,6 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunnin
 {
   return Core::IsRunning();
 }
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env,
-                                                                               jobject obj,
-                                                                               jstring jFile);
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(
     JNIEnv* env, jobject obj, jstring jDevice, jint Button, jint Action)
@@ -274,13 +205,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return ToJString(env, Common::scm_rev_str.c_str());
+  return ToJString(env, Common::scm_rev_str);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
                                                                                       jobject obj)
 {
-  return ToJString(env, Common::scm_rev_git_str.c_str());
+  return ToJString(env, Common::scm_rev_git_str);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
@@ -322,7 +253,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserSe
 
   ini.GetOrCreateSection(section)->Get(key, &value, "-1");
 
-  return ToJString(env, value.c_str());
+  return ToJString(env, value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserSetting(
@@ -362,7 +293,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 
   ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
 
-  return ToJString(env, value.c_str());
+  return ToJString(env, value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
@@ -439,13 +370,36 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return ToJString(env, File::GetUserPath(D_USER_IDX).c_str());
+  return ToJString(env, File::GetUserPath(D_USER_IDX));
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
                                                                                    jobject obj)
 {
   return static_cast<jint>(PowerPC::DefaultCPUCore());
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetAudioBackendList(JNIEnv* env,
+                                                                                           jobject obj)
+{
+  const std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+  jsize size = (jsize)backends.size();
+  jobjectArray list = (jobjectArray) env->NewObjectArray(
+    size,
+    env->FindClass("java/lang/String"),
+    ToJString(env, ""));
+
+  for(int i = 0; i < size; ++i)
+  {
+    env->SetObjectArrayElement(list, i, ToJString(env, backends[i]));
+  }
+  return list;
+}
+
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultAudioBackend(JNIEnv* env,
+                                                                                   jobject obj)
+{
+  return ToJString(env, AudioCommon::GetDefaultSoundBackend());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
@@ -493,6 +447,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     s_surf = nullptr;
   }
 }
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimotes(JNIEnv* env,
                                                                                     jobject obj)
 {

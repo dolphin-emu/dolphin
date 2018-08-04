@@ -63,12 +63,12 @@ public final class MainPresenter
 	{
 		switch (itemId)
 		{
-			case R.id.menu_settings_core:
-				mView.launchSettingsActivity(MenuTag.CONFIG);
+			case R.id.menu_add_directory:
+				mView.launchFileListActivity();
 				return true;
 
-			case R.id.menu_settings_graphics:
-				mView.launchSettingsActivity(MenuTag.GRAPHICS);
+			case R.id.menu_settings_core:
+				mView.launchSettingsActivity(MenuTag.CONFIG);
 				return true;
 
 			case R.id.menu_settings_gcpad:
@@ -81,10 +81,6 @@ public final class MainPresenter
 
 			case R.id.menu_refresh:
 				GameFileCacheService.startRescan(context);
-				return true;
-
-			case R.id.button_add_directory:
-				mView.launchFileListActivity();
 				return true;
 		}
 

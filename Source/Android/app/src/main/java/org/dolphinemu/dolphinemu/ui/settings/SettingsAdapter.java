@@ -350,7 +350,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
 	{
-		mSeekbarProgress = progress;
+		mSeekbarProgress = (progress / 5) * 5;
 		mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
 	}
 
