@@ -107,7 +107,7 @@ public class Java_WiimoteAdapter
 				1000);
 
 		if (write < 0)
-			return -1;
+			return 0;
 
 		return write + 1;
 	}
