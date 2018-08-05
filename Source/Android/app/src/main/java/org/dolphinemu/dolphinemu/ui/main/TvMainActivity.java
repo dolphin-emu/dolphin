@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v17.leanback.app.BrowseFragment;
 import android.support.v17.leanback.app.BrowseSupportFragment;
@@ -197,8 +196,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 			GameFileCacheService.startLoad(this);
 		}
 
-		mRowsAdapter.add(buildSettingsRow());
-
 		for (Platform platform : Platform.values())
 		{
 			ListRow row = buildGamesRow(platform, GameFileCacheService.getGameFilesForPlatform(platform));
@@ -209,6 +206,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 				mRowsAdapter.add(row);
 			}
 		}
+
+		mRowsAdapter.add(buildSettingsRow());
 
 		mBrowseFragment.setAdapter(mRowsAdapter);
 	}

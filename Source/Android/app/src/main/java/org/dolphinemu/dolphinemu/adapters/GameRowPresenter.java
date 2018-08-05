@@ -37,7 +37,7 @@ public final class GameRowPresenter extends Presenter
 		ImageCardView gameCard = new ImageCardView(parent.getContext());
 
 		gameCard.setMainImageAdjustViewBounds(true);
-		gameCard.setMainImageDimensions(480, 320);
+		gameCard.setMainImageDimensions(240, 336);
 		gameCard.setMainImageScaleType(ImageView.ScaleType.CENTER_CROP);
 
 		gameCard.setFocusable(true);

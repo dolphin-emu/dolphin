@@ -154,6 +154,7 @@ public class SyncProgramsJobService extends JobService
 				.setTitle(game.getTitle())
 				.setDescription(game.getDescription())
 				.setPosterArtUri(banner)
+				.setPosterArtAspectRatio(TvContractCompat.PreviewPrograms.ASPECT_RATIO_2_3)
 				.setIntentUri(appLinkUri);
 			return builder.build();
 		}
