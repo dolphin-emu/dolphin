@@ -16,15 +16,15 @@
 
         <ImageView
             android:id="@+id/image_game_screen"
-            android:layout_width="120dp"
+            android:layout_width="108dp"
             android:layout_height="68dp"
             android:padding="4dp"
-            tools:src="@drawable/placeholder_screenshot"
             tools:scaleType="centerCrop"/>
 
         <LinearLayout
+            android:layout_gravity="start|center"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
@@ -33,12 +33,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
-                android:layout_marginRight="4dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginRight="2dp"
                 android:ellipsize="end"
                 android:lines="1"
                 android:maxLines="1"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
+
+            <TextView
+                android:id="@+id/text_platform"
+                android:text="@string/game_platform_wii"
+                style="@android:style/TextAppearance.Material.Caption"
+                android:layout_marginLeft="2dp"
+                android:layout_marginRight="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/text_company"
@@ -46,9 +54,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="2dp"
-                android:layout_marginRight="4dp"
+                android:layout_marginRight="2dp"
                 android:ellipsize="end"
-                android:maxLines="2"
+                android:lines="1"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
 
         </LinearLayout>

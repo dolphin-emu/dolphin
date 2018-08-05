@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.adapters;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.support.v4.app.FragmentActivity;
@@ -75,6 +76,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 
 		holder.textGameTitle.setText(gameFile.getTitle());
 		holder.textCompany.setText(gameFile.getCompany());
+
+		final int[] platforms = {R.string.game_platform_ngc, R.string.game_platform_wii, R.string.game_platform_ware};
+		Context context = holder.textPlatform.getContext();
+		String[] countryNames = context.getResources().getStringArray(R.array.countryNames);
+		String platform = context.getString(platforms[gameFile.getPlatform()], countryNames[gameFile.getCountry()]);
+		holder.textPlatform.setText(platform);
 
 		holder.gameFile = gameFile;
 	}
@@ -151,7 +158,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		}
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-		builder.setTitle("Game Settings")
+		builder.setTitle(gameId)
 			.setItems(R.array.gameSettingsMenus, new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int which) {
 					switch (which) {
@@ -159,9 +166,6 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 							SettingsActivity.launch(activity, MenuTag.CONFIG, gameId);
 							break;
 						case 1:
-							SettingsActivity.launch(activity, MenuTag.GRAPHICS, gameId);
-							break;
-						case 2:
 							String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
 							File gameSettingsFile = new File(path);
 							if (gameSettingsFile.exists())

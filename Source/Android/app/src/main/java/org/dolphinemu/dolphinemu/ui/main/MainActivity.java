@@ -3,23 +3,19 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
+import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -32,9 +28,9 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
  */
 public final class MainActivity extends AppCompatActivity implements MainView
 {
-	private ViewPager mViewPager;
+	private GameAdapter mAdapter;
+	private RecyclerView mRecyclerView;
 	private Toolbar mToolbar;
-	private TabLayout mTabLayout;
 
 	private MainPresenter mPresenter = new MainPresenter(this, this);
 
@@ -48,9 +44,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		findViews();
 
 		setSupportActionBar(mToolbar);
-		getSupportActionBar().setDisplayShowTitleEnabled(false);
-
-		mTabLayout.setupWithViewPager(mViewPager);
 
 		mPresenter.onCreate();
 
@@ -60,17 +53,9 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
 		if (PermissionsHandler.hasWriteAccess(this))
 		{
-			PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-					getSupportFragmentManager(), this);
-			mViewPager.setAdapter(platformPagerAdapter);
 			showGames();
 			GameFileCacheService.startLoad(this);
 		}
-		else
-		{
-			mViewPager.setVisibility(View.INVISIBLE);
-		}
-		mViewPager.setOffscreenPageLimit(3);
 	}
 
 	@Override
@@ -91,8 +76,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	private void findViews()
 	{
 		mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
-		mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
-		mTabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
+		mRecyclerView = (RecyclerView) findViewById(R.id.grid_games);
+
+		int columns = getResources().getInteger(R.integer.game_grid_columns);
+		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, columns);
+		mAdapter = new GameAdapter();
+		mRecyclerView.setLayoutManager(layoutManager);
+		mRecyclerView.setAdapter(mAdapter);
+		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(8));
 	}
 
 	@Override
@@ -110,20 +101,13 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void setVersionString(String version)
 	{
-		//mToolbar.setSubtitle(version);
+		mToolbar.setSubtitle(version);
 	}
 
 	@Override
 	public void refreshFragmentScreenshot(int fragmentPosition)
 	{
-		// Invalidate Picasso image so that the new screenshot is animated in.
-		Platform platform = Platform.fromPosition(mViewPager.getCurrentItem());
-		PlatformGamesView fragment = getPlatformGamesView(platform);
-
-		if (fragment != null)
-		{
-			fragment.refreshScreenshotAtPosition(fragmentPosition);
-		}
+		mAdapter.notifyItemChanged(fragmentPosition);
 	}
 
 	@Override
@@ -168,11 +152,6 @@ public final class MainActivity extends AppCompatActivity implements MainView
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 					DirectoryInitializationService.startService(this);
-					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
-							getSupportFragmentManager(), this);
-					mViewPager.setAdapter(platformPagerAdapter);
-					mTabLayout.setupWithViewPager(mViewPager);
-					mViewPager.setVisibility(View.VISIBLE);
 					GameFileCacheService.startLoad(this);
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
@@ -197,23 +176,9 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		return mPresenter.handleOptionSelection(item.getItemId(), this);
 	}
 
+	@Override
 	public void showGames()
 	{
-		for (Platform platform : Platform.values())
-		{
-			PlatformGamesView fragment = getPlatformGamesView(platform);
-			if (fragment != null)
-			{
-				fragment.showGames();
-			}
-		}
-	}
-
-	@Nullable
-	private PlatformGamesView getPlatformGamesView(Platform platform)
-	{
-		String fragmentTag = "android:switcher:" + mViewPager.getId() + ":" + platform.toInt();
-
-		return (PlatformGamesView) getSupportFragmentManager().findFragmentByTag(fragmentTag);
+		mAdapter.swapDataSet(GameFileCacheService.getAllGameFiles());
 	}
 }

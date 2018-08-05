@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/menu_emulation_screenshot"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:icon="@drawable/ic_screenshot"
         android:title="@string/emulation_screenshot"/>
 
