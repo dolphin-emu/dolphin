@@ -263,7 +263,13 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
   if (!IsDisc(volume_type))
     return {};
 
-  return volume.ReadSwappedAndShifted(0x420, partition);
+  std::optional<u64> dol_offset = volume.ReadSwappedAndShifted(0x420, partition);
+
+  // Datel AR disc has 0x00000000 as the offset (invalid) and doesn't use it in the AppLoader.
+  if (dol_offset && *dol_offset == 0)
+    dol_offset.reset();
+
+  return dol_offset;
 }
 
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset)
