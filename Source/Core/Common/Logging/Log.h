@@ -34,6 +34,7 @@ enum class LogType : int
   GDB_STUB,
   GPFIFO,
   HOST_GPU,
+  HSP,
   IOS,
   IOS_DI,
   IOS_ES,

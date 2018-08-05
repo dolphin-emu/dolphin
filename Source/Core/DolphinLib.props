@@ -279,6 +279,10 @@
     <ClInclude Include="Core\HW\GCPad.h" />
     <ClInclude Include="Core\HW\GCPadEmu.h" />
     <ClInclude Include="Core\HW\GPFifo.h" />
+    <ClInclude Include="Core\HW\HSP\HSP.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_Device.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_DeviceARAMExpansion.h" />
+    <ClInclude Include="Core\HW\HSP\HSP_DeviceNull.h" />
     <ClInclude Include="Core\HW\HW.h" />
     <ClInclude Include="Core\HW\Memmap.h" />
     <ClInclude Include="Core\HW\MemoryInterface.h" />
@@ -873,6 +877,10 @@
     <ClCompile Include="Core\HW\GCPad.cpp" />
     <ClCompile Include="Core\HW\GCPadEmu.cpp" />
     <ClCompile Include="Core\HW\GPFifo.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_Device.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_DeviceARAMExpansion.cpp" />
+    <ClCompile Include="Core\HW\HSP\HSP_DeviceNull.cpp" />
     <ClCompile Include="Core\HW\HW.cpp" />
     <ClCompile Include="Core\HW\Memmap.cpp" />
     <ClCompile Include="Core\HW\MemoryInterface.cpp" />

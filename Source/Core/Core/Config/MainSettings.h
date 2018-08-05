@@ -42,6 +42,11 @@ namespace SerialInterface
 enum SIDevices : int;
 }
 
+namespace HSP
+{
+enum class HSPDeviceType : int;
+}
+
 namespace Config
 {
 // Main.Core
@@ -110,6 +115,8 @@ extern const Info<u32> MAIN_MEM1_SIZE;
 extern const Info<u32> MAIN_MEM2_SIZE;
 // Should really be part of System::GFX, but again, we're stuck with past mistakes.
 extern const Info<std::string> MAIN_GFX_BACKEND;
+extern const Info<HSP::HSPDeviceType> MAIN_HSP_DEVICE;
+extern const Info<u32> MAIN_ARAM_EXPANSION_SIZE;
 
 enum class GPUDeterminismMode
 {
