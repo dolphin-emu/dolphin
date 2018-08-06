@@ -24,7 +24,6 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_po
 template <typename T>
 std::string BitfieldExtract(const std::string& source, T type)
 {
-  return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(),
-                          static_cast<u32>(type.StartBit()), static_cast<u32>(type.NumBits()));
+  return StringFromFormat("bitfieldExtract(%s, %u)", source.c_str(), type);
 }
 }  // namespace UberShader

@@ -106,7 +106,7 @@ GetVulkanMultisampleState(const MultisamplingState& state)
       nullptr,  // const void*                              pNext
       0,        // VkPipelineMultisampleStateCreateFlags    flags
       static_cast<VkSampleCountFlagBits>(
-          state.samples.Value()),  // VkSampleCountFlagBits                    rasterizationSamples
+          state.samples),  // VkSampleCountFlagBits                    rasterizationSamples
       state.per_sample_shading,    // VkBool32                                 sampleShadingEnable
       1.0f,                        // float                                    minSampleShading
       nullptr,                     // const VkSampleMask*                      pSampleMask;
@@ -259,7 +259,7 @@ VkPipeline ShaderCache::CreatePipeline(const PipelineInfo& info)
        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP}};
   VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, nullptr, 0,
-      vk_primitive_topologies[static_cast<u32>(info.rasterization_state.primitive.Value())],
+      vk_primitive_topologies[static_cast<u32>(info.rasterization_state.primitive)],
       VK_FALSE};
 
   // See Vulkan spec, section 19:

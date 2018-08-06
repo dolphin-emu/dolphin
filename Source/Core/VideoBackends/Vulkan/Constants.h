@@ -127,9 +127,11 @@ constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 // Multisampling state info that we don't expose in VideoCommon.
 union MultisamplingState
 {
-  BitField<0, 5, u32> samples;             // 1-16
-  BitField<5, 1, u32> per_sample_shading;  // SSAA
-  u32 hex;
+	struct {
+		u32 samples:5;             // 1-16
+		u32 per_sample_shading:1;  // SSAA
+	};
+	u32 hex;
 };
 
 }  // namespace Vulkan
