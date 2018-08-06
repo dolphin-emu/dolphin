@@ -6,6 +6,7 @@ import android.app.job.JobScheduler;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -292,5 +293,9 @@ public class TvUtil
 				AppLinkHelper.buildBrowseUri(platform.getHeaderName()).toString()));
 		}
 		return subs;
+	}
+	public static Boolean isLeanback(Context context)
+	{
+		return(context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_LEANBACK));
 	}
 }
