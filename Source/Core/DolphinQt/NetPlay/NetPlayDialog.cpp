@@ -473,40 +473,44 @@ void NetPlayDialog::UpdateDiscordPresence()
     Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::Empty, "", m_current_game);
   };
 
-  if (g_TraversalClient)
-  {
-    const auto host_id = g_TraversalClient->GetHostID();
-    if (host_id == decltype(host_id)())
-      return use_default();
+  if (Core::IsRunning())
+    return use_default();
 
-    Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::RoomID,
-                                   std::string(host_id.begin(), host_id.end()), m_current_game);
-  }
-  else if (IsHosting())
+  if (IsHosting())
   {
-    if (m_exernal_ip_address.empty())
+    if (g_TraversalClient)
     {
-      Common::HttpRequest request;
-      Common::HttpRequest::Response response =
-          request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
-
-      if (!response.has_value())
+      const auto host_id = g_TraversalClient->GetHostID();
+      if (host_id[0] == '\0')
         return use_default();
-      m_exernal_ip_address = std::string(response->begin(), response->end());
-    }
-    const int port = Settings::Instance().GetNetPlayServer()->GetPort();
 
-    Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::IPAddress,
-                                   Discord::CreateSecretFromIPAddress(m_exernal_ip_address, port),
-                                   m_current_game);
+      Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::RoomID,
+                                     std::string(host_id.begin(), host_id.end()), m_current_game);
+    }
+    else
+    {
+      if (m_external_ip_address.empty())
+      {
+        Common::HttpRequest request;
+        // ENet does not support IPv6, so IPv4 has to be used
+        request.UseIPv4();
+        Common::HttpRequest::Response response =
+            request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+        if (!response.has_value())
+          return use_default();
+        m_external_ip_address = std::string(response->begin(), response->end());
+      }
+      const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+
+      Discord::UpdateDiscordPresence(
+          m_player_count, Discord::SecretType::IPAddress,
+          Discord::CreateSecretFromIPAddress(m_external_ip_address, port), m_current_game);
+    }
   }
   else
   {
-    Discord::UpdateDiscordPresence(
-        m_player_count, Discord::SecretType::IPAddress,
-        Discord::CreateSecretFromIPAddress(Config::Get(Config::NETPLAY_HOST_CODE),
-                                           Config::Get(Config::NETPLAY_HOST_PORT)),
-        m_current_game);
+    use_default();
   }
 #endif
 }
@@ -729,11 +733,13 @@ void NetPlayDialog::OnMsgStartGame()
     auto client = Settings::Instance().GetNetPlayClient();
     if (client)
       client->StartGame(FindGame(m_current_game));
+    UpdateDiscordPresence();
   });
 }
 
 void NetPlayDialog::OnMsgStopGame()
 {
+  QueueOnObject(this, [this] { UpdateDiscordPresence(); });
 }
 
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)

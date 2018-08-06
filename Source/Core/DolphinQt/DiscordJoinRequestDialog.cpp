@@ -4,6 +4,8 @@
 
 #ifdef USE_DISCORD_PRESENCE
 
+#include "DolphinQt/DiscordJoinRequestDialog.h"
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QPixmap>
@@ -14,11 +16,9 @@
 #include "Common/HttpRequest.h"
 #include "Common/StringUtil.h"
 
-#include "DolphinQt/DiscordJoinRequestDialog.h"
-
-DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const char* id,
+DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const std::string& id,
                                                    const std::string& discord_tag,
-                                                   const char* avatar)
+                                                   const std::string& avatar)
     : QDialog(parent), m_user_id(id), m_close_timestamp(std::time(nullptr) + s_max_lifetime_seconds)
 {
   setWindowTitle(tr("Request to Join Your Party"));
@@ -26,10 +26,10 @@ DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const char* 
 
   QPixmap avatar_pixmap;
 
-  if (avatar[0] != '\0')
+  if (!avatar.empty())
   {
-    const std::string avatar_endpoint =
-        StringFromFormat("https://cdn.discordapp.com/avatars/%s/%s.png", id, avatar);
+    const std::string avatar_endpoint = StringFromFormat(
+        "https://cdn.discordapp.com/avatars/%s/%s.png", id.c_str(), avatar.c_str());
 
     Common::HttpRequest request;
     Common::HttpRequest::Response response = request.Get(avatar_endpoint);
@@ -38,7 +38,7 @@ DiscordJoinRequestDialog::DiscordJoinRequestDialog(QWidget* parent, const char* 
       avatar_pixmap.loadFromData(response->data(), static_cast<uint>(response->size()), "png");
   }
 
-  CreateMainLayout(discord_tag, avatar_pixmap);
+  CreateLayout(discord_tag, avatar_pixmap);
   ConnectWidgets();
 }
 
@@ -47,14 +47,17 @@ std::time_t DiscordJoinRequestDialog::GetCloseTimestamp() const
   return m_close_timestamp;
 }
 
-void DiscordJoinRequestDialog::CreateMainLayout(const std::string& discord_tag,
-                                                const QPixmap& avatar)
+void DiscordJoinRequestDialog::CreateLayout(const std::string& discord_tag, const QPixmap& avatar)
 {
   m_main_layout = new QGridLayout;
 
-  m_invite_button = new QPushButton(QString::fromWCharArray(L"\u2714 Invite"));
-  m_decline_button = new QPushButton(QString::fromWCharArray(L"\u2716 Decline"));
+  m_invite_button = new QPushButton(tr("\u2714 Invite"));
+  m_decline_button = new QPushButton(tr("\u2716 Decline"));
   m_ignore_button = new QPushButton(tr("Ignore"));
+
+  QLabel* text =
+      new QLabel(tr("%1\nwants to join your party.").arg(QString::fromStdString(discord_tag)));
+  text->setAlignment(Qt::AlignCenter);
 
   if (!avatar.isNull())
   {
@@ -63,9 +66,7 @@ void DiscordJoinRequestDialog::CreateMainLayout(const std::string& discord_tag,
     m_main_layout->addWidget(picture, 1, 0, 1, 3, Qt::AlignHCenter);
   }
 
-  m_main_layout->addWidget(new QLabel(tr(discord_tag.c_str())), 2, 0, 3, 3, Qt::AlignHCenter);
-  m_main_layout->addWidget(new QLabel(tr("wants to join your party.")), 4, 0, 4, 3,
-                           Qt::AlignHCenter);
+  m_main_layout->addWidget(text, 2, 0, 3, 3, Qt::AlignHCenter);
   m_main_layout->addWidget(m_invite_button, 8, 0);
   m_main_layout->addWidget(m_decline_button, 8, 1);
   m_main_layout->addWidget(m_ignore_button, 8, 2);
@@ -75,15 +76,15 @@ void DiscordJoinRequestDialog::CreateMainLayout(const std::string& discord_tag,
 
 void DiscordJoinRequestDialog::ConnectWidgets()
 {
-  connect(m_invite_button, &QPushButton::clicked, [this] { Reply(DISCORD_REPLY_YES); });
-  connect(m_decline_button, &QPushButton::clicked, [this] { Reply(DISCORD_REPLY_NO); });
-  connect(m_ignore_button, &QPushButton::clicked, [this] { Reply(DISCORD_REPLY_IGNORE); });
+  connect(m_invite_button, &QPushButton::pressed, [this] { Reply(DISCORD_REPLY_YES); });
+  connect(m_decline_button, &QPushButton::pressed, [this] { Reply(DISCORD_REPLY_NO); });
+  connect(m_ignore_button, &QPushButton::pressed, [this] { Reply(DISCORD_REPLY_IGNORE); });
   connect(this, &QDialog::rejected, this, [this] { Reply(DISCORD_REPLY_IGNORE); });
 }
 
 void DiscordJoinRequestDialog::Reply(int reply)
 {
-  Discord_Respond(m_user_id, reply);
+  Discord_Respond(m_user_id.c_str(), reply);
   close();
 }
 

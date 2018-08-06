@@ -5,13 +5,10 @@
 #pragma once
 
 #include <functional>
+#include <string>
 
 namespace Discord
 {
-using JoinFunction = std::function<void()>;
-using JoinRequestFunction =
-    std::function<void(const char* id, const std::string& discord_tag, const char* avatar)>;
-
 class Handler
 {
 public:

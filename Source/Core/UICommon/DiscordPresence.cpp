@@ -2,14 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "UICommon/DiscordPresence.h"
+
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
-
-#include "UICommon/DiscordPresence.h"
 
 #ifdef USE_DISCORD_PRESENCE
 
@@ -44,7 +44,7 @@ static void HandleDiscordJoin(const char* join_secret)
     return;
 
   if (Config::Get(Config::NETPLAY_NICKNAME) == Config::NETPLAY_NICKNAME.default_value)
-    Config::SetBaseOrCurrent(Config::NETPLAY_NICKNAME, username);
+    Config::SetCurrent(Config::NETPLAY_NICKNAME, username);
 
   std::string secret(join_secret);
 
@@ -59,22 +59,23 @@ static void HandleDiscordJoin(const char* join_secret)
 
   case SecretType::IPAddress:
   {
-    Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "direct");
+    // SetBaseOrCurrent will save the ip address, which isn't what's wanted in this situation
+    Config::SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "direct");
 
     std::string host = secret.substr(offset, secret.find_last_of(':') - offset);
-    Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, host);
+    Config::SetCurrent(Config::NETPLAY_ADDRESS, host);
 
     offset += host.length();
     if (secret[offset] == ':')
-      Config::SetBaseOrCurrent(Config::NETPLAY_CONNECT_PORT, std::stoul(secret.substr(offset + 1)));
+      Config::SetCurrent(Config::NETPLAY_CONNECT_PORT, std::stoul(secret.substr(offset + 1)));
   }
   break;
 
   case SecretType::RoomID:
   {
-    Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "traversal");
+    Config::SetCurrent(Config::NETPLAY_TRAVERSAL_CHOICE, "traversal");
 
-    Config::SetBaseOrCurrent(Config::NETPLAY_HOST_CODE, secret.substr(offset));
+    Config::SetCurrent(Config::NETPLAY_HOST_CODE, secret.substr(offset));
   }
   break;
   }
@@ -120,7 +121,7 @@ void InitNetPlayFunctionality(Handler& handler)
 #endif
 }
 
-void UpdateDiscordPresence(const int party_size, SecretType type, const std::string& secret,
+void UpdateDiscordPresence(int party_size, SecretType type, const std::string& secret,
                            const std::string& current_game)
 {
 #ifdef USE_DISCORD_PRESENCE
@@ -136,7 +137,7 @@ void UpdateDiscordPresence(const int party_size, SecretType type, const std::str
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
 
-  if (0 < party_size)
+  if (party_size > 0)
   {
     if (party_size < 4)
     {

@@ -640,7 +640,8 @@ void MainWindow::OnStopComplete()
   HideRenderWidget();
   EnableScreenSaver(true);
 #ifdef USE_DISCORD_PRESENCE
-  Discord::UpdateDiscordPresence();
+  if (!m_netplay_dialog->isVisible())
+    Discord::UpdateDiscordPresence();
 #endif
 
   SetFullScreenResolution(false);
@@ -794,7 +795,8 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
   ShowRenderWidget();
 #ifdef USE_DISCORD_PRESENCE
-  Discord::UpdateDiscordPresence();
+  if (!NetPlay::IsNetPlayRunning())
+    Discord::UpdateDiscordPresence();
 #endif
 
   if (SConfig::GetInstance().bFullscreen)
@@ -1045,7 +1047,6 @@ void MainWindow::NetPlayInit()
 {
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
   m_netplay_dialog = new NetPlayDialog;
-  m_netplay_dialog = new NetPlayDialog(this);
 #ifdef USE_DISCORD_PRESENCE
   m_netplay_discord = new DiscordHandler(this);
 #endif
@@ -1180,7 +1181,9 @@ void MainWindow::NetPlayQuit()
 {
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
+#ifdef USE_DISCORD_PRESENCE
   Discord::UpdateDiscordPresence();
+#endif
 }
 
 void MainWindow::EnableScreenSaver(bool enable)

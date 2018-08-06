@@ -115,7 +115,7 @@ private:
   MD5Dialog* m_md5_dialog;
   PadMappingDialog* m_pad_mapping;
   std::string m_current_game;
-  std::string m_exernal_ip_address;
+  std::string m_external_ip_address;
   std::string m_nickname;
   GameListModel* m_game_list_model = nullptr;
   bool m_use_traversal = false;

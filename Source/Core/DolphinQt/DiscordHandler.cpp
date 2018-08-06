@@ -4,15 +4,18 @@
 
 #ifdef USE_DISCORD_PRESENCE
 
+#include "DolphinQt/DiscordHandler.h"
+
 #include <iterator>
 
 #include <QApplication>
 
-#include "DolphinQt/DiscordHandler.h"
-
 #include "Common/Thread.h"
 
 #include "UICommon/DiscordPresence.h"
+
+#include "DolphinQt/DiscordJoinRequestDialog.h"
+#include "DolphinQt/QtUtils/RunOnObject.h"
 
 DiscordHandler::DiscordHandler(QWidget* parent) : QObject{parent}, m_parent{parent}
 {
@@ -41,8 +44,7 @@ void DiscordHandler::Stop()
 void DiscordHandler::DiscordJoinRequest(const char* id, const std::string& discord_tag,
                                         const char* avatar)
 {
-  m_request_dialogs.emplace_front(m_parent, id, discord_tag, avatar);
-  emit DiscordHandler::JoinRequest();
+  emit DiscordHandler::JoinRequest(id, discord_tag, avatar);
 }
 
 void DiscordHandler::DiscordJoin()
@@ -50,9 +52,15 @@ void DiscordHandler::DiscordJoin()
   emit DiscordHandler::Join();
 }
 
-void DiscordHandler::ShowNewJoinRequest()
+void DiscordHandler::ShowNewJoinRequest(const std::string& id, const std::string& discord_tag,
+                                        const std::string& avatar)
 {
-  m_request_dialogs.front().show();
+  std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
+  m_request_dialogs.emplace_front(m_parent, id, discord_tag, avatar);
+  DiscordJoinRequestDialog& request_dialog = m_request_dialogs.front();
+  request_dialog.show();
+  request_dialog.raise();
+  request_dialog.activateWindow();
   QApplication::alert(nullptr, DiscordJoinRequestDialog::s_max_lifetime_seconds * 1000);
 }
 
@@ -64,14 +72,23 @@ void DiscordHandler::Run()
       Discord::CallPendingCallbacks();
 
     // close and remove dead requests
-    for (auto request_dialog = m_request_dialogs.rbegin();
-         request_dialog != m_request_dialogs.rend(); ++request_dialog)
     {
-      if (std::time(nullptr) < request_dialog->GetCloseTimestamp())
-        continue;
-      request_dialog->close();
-      std::advance(request_dialog, 1);
-      m_request_dialogs.erase(request_dialog.base());
+      std::lock_guard<std::mutex> lock(m_request_dialogs_mutex);
+      for (auto request_dialog = m_request_dialogs.begin();
+           request_dialog != m_request_dialogs.end();)
+      {
+        if (std::time(nullptr) < request_dialog->GetCloseTimestamp())
+        {
+          ++request_dialog;
+          continue;
+        }
+
+        RunOnObject(m_parent, [this, &request_dialog] {
+          request_dialog->close();
+          request_dialog = m_request_dialogs.erase(request_dialog);
+          return nullptr;
+        });
+      }
     }
 
     Common::SleepCurrentThread(1000 * 2);

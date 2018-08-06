@@ -14,14 +14,14 @@ class DiscordJoinRequestDialog : public QDialog
 {
   Q_OBJECT
 public:
-  explicit DiscordJoinRequestDialog(QWidget* parent, const char* id, const std::string& discord_tag,
-                                    const char* avatar);
+  explicit DiscordJoinRequestDialog(QWidget* parent, const std::string& id,
+                                    const std::string& discord_tag, const std::string& avatar);
   std::time_t GetCloseTimestamp() const;
 
   static constexpr std::time_t s_max_lifetime_seconds = 30;
 
 private:
-  void CreateMainLayout(const std::string& discord_tag, const QPixmap& avatar);
+  void CreateLayout(const std::string& discord_tag, const QPixmap& avatar);
   void ConnectWidgets();
   void Reply(int reply);
 
@@ -30,6 +30,6 @@ private:
   QPushButton* m_decline_button;
   QPushButton* m_ignore_button;
 
-  const char* const m_user_id;
+  const std::string m_user_id;
   const std::time_t m_close_timestamp;
 };
