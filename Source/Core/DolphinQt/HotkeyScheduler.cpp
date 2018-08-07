@@ -238,6 +238,12 @@ void HotkeyScheduler::Run()
 
         if (wiimote_id > -1)
           emit ConnectWiiRemote(wiimote_id);
+
+        if (IsHotkey(HK_TOGGLE_USB_KEYBOARD))
+        {
+          Settings::Instance().SetUSBKeyboardConnected(
+              !Settings::Instance().IsUSBKeyboardConnected());
+        }
       }
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))
