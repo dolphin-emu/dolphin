@@ -45,5 +45,4 @@ struct CrtDebugBreak
 #endif
 
 // Dummy macro for marking translatable strings that can not be immediately translated.
-// wxWidgets does not have a true dummy macro for this.
 #define _trans(a) a

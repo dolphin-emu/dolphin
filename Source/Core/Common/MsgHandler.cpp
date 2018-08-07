@@ -24,13 +24,13 @@ std::string DefaultStringTranslator(const char* text);
 static StringTranslator str_translator = DefaultStringTranslator;
 
 // Select which of these functions that are used for message boxes. If
-// wxWidgets is enabled we will use wxMsgAlert() that is defined in Main.cpp
+// Qt is enabled we will use QtMsgAlertHandler() that is defined in Main.cpp
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
   msg_handler = handler;
 }
 
-// Select translation function.  For wxWidgets use wxStringTranslator in Main.cpp
+// Select translation function.
 void RegisterStringTranslator(StringTranslator translator)
 {
   str_translator = translator;
