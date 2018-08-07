@@ -111,6 +111,10 @@ const ConfigInfo<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetection"}, true};
 const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD{
     {System::GFX, "Enhancements", "ArbitraryMipmapDetectionThreshold"}, 14.0f};
+const ConfigInfo<int> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_CUTOFF_HEIGHT{
+    {System::GFX, "Enhancements", "ArbitraryMipmapDetectionCutoffHeight"}, 4};
+const ConfigInfo<int> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_CUTOFF_WIDTH{
+    {System::GFX, "Enhancements", "ArbitraryMipmapDetectionCutoffWidth"}, 4};
 
 // Graphics.Stereoscopy
 

@@ -76,6 +76,8 @@ struct VideoConfig final
   bool bDisableCopyFilter;
   bool bArbitraryMipmapDetection;
   float fArbitraryMipmapDetectionThreshold;
+  int iArbitraryMipmapDetectionCutoffHeight;
+  int iArbitraryMipmapDetectionCutoffWidth;
 
   // Information
   bool bShowFPS;

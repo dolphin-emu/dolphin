@@ -517,10 +517,20 @@ public:
 
     float total_diff = 0.f;
 
+    // Very small mipmaps can amplify differences due to compression formats, and some games seem to
+    // have complete junk in the smallest levels that can trigger this unexpectedly - so have a
+    // cutoff based on the side
+
+    const auto cutoff_width = g_ActiveConfig.iArbitraryMipmapDetectionCutoffWidth;
+    const auto cutoff_height = g_ActiveConfig.iArbitraryMipmapDetectionCutoffHeight;
+
     for (std::size_t i = 0; i < levels.size() - 1; ++i)
     {
       const auto& level = levels[i];
       const auto& mip = levels[i + 1];
+
+      if (level.shape.width <= cutoff_width || level.shape.height <= cutoff_width)
+        continue;
 
       u64 level_pixel_count = level.shape.width;
       level_pixel_count *= level.shape.height;

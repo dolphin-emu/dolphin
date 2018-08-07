@@ -123,6 +123,10 @@ void VideoConfig::Refresh()
   bArbitraryMipmapDetection = Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
   fArbitraryMipmapDetectionThreshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
+  iArbitraryMipmapDetectionCutoffWidth =
+      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_CUTOFF_WIDTH);
+  iArbitraryMipmapDetectionCutoffHeight =
+      Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_CUTOFF_HEIGHT);
 
   stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
   iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);

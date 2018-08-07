@@ -87,6 +87,8 @@ extern const ConfigInfo<bool> GFX_ENHANCE_FORCE_TRUE_COLOR;
 extern const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
 extern const ConfigInfo<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION;
 extern const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD;
+extern const ConfigInfo<int> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_CUTOFF_HEIGHT;
+extern const ConfigInfo<int> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_CUTOFF_WIDTH;
 
 // Graphics.Stereoscopy
 
