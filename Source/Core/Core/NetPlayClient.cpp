@@ -1460,30 +1460,32 @@ u64 NetPlayClient::GetInitialRTCValue() const
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode)
+bool NetPlayClient::WiimoteUpdate(int wiimote_nb, u8* data, const u8 size, u8 reporting_mode)
 {
+  const int local_wiimote = InWiimoteToLocalWiimote(wiimote_nb);
+
   NetWiimote nw;
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
     // Only send data, if this Wiimote is mapped to this player
-    if (m_wiimote_map[_number] == m_local_player->pid)
+    if (m_wiimote_map[local_wiimote] == m_local_player->pid)
     {
       nw.assign(data, data + size);
       do
       {
         // add to buffer
-        m_wiimote_buffer[_number].Push(nw);
+        m_wiimote_buffer[local_wiimote].Push(nw);
 
-        SendWiimoteState(_number, nw);
-      } while (m_wiimote_buffer[_number].Size() <=
+        SendWiimoteState(local_wiimote, nw);
+      } while (m_wiimote_buffer[local_wiimote].Size() <=
                m_target_buffer_size * 200 /
                    120);  // TODO: add a seperate setting for wiimote buffer?
     }
 
   }  // unlock players
 
-  while (m_wiimote_buffer[_number].Size() == 0)
+  while (m_wiimote_buffer[local_wiimote].Size() == 0)
   {
     if (!m_is_running.IsSet())
     {
@@ -1494,7 +1496,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
     m_wii_pad_event.Wait();
   }
 
-  m_wiimote_buffer[_number].Pop(nw);
+  m_wiimote_buffer[local_wiimote].Pop(nw);
 
   // If the reporting mode has changed, we just need to pop through the buffer,
   // until we reach a good input
@@ -1503,7 +1505,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
     u32 tries = 0;
     while (nw[1] != reporting_mode)
     {
-      while (m_wiimote_buffer[_number].Size() == 0)
+      while (m_wiimote_buffer[local_wiimote].Size() == 0)
       {
         if (!m_is_running.IsSet())
         {
@@ -1514,7 +1516,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
         m_wii_pad_event.Wait();
       }
 
-      m_wiimote_buffer[_number].Pop(nw);
+      m_wiimote_buffer[local_wiimote].Pop(nw);
 
       ++tries;
       if (tries > m_target_buffer_size * 200 / 120)
@@ -1637,6 +1639,31 @@ int NetPlayClient::LocalPadToInGamePad(int local_pad) const
   }
 
   return ingame_pad;
+}
+
+int NetPlayClient::NumLocalWiimotes() const
+{
+  return static_cast<int>(
+      std::count_if(m_wiimote_map.begin(), m_wiimote_map.end(),
+                    [this](auto mapping) { return mapping == m_local_player->pid; }));
+}
+
+int NetPlayClient::InWiimoteToLocalWiimote(int ingame_wiimote) const
+{
+  // not our pad
+  if (m_wiimote_map[ingame_wiimote] != m_local_player->pid)
+    return 4;
+
+  int local_wiimote = 0;
+  int wiimote = 0;
+
+  for (; wiimote < ingame_wiimote; wiimote++)
+  {
+    if (m_wiimote_map[wiimote] == m_local_player->pid)
+      local_wiimote++;
+  }
+
+  return local_wiimote;
 }
 
 void NetPlayClient::SendTimeBase()

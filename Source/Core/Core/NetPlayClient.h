@@ -99,7 +99,7 @@ public:
   void RequestStopGame();
 
   // Send and receive pads values
-  bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
+  bool WiimoteUpdate(int wiimote_nb, u8* data, const u8 size, u8 reporting_mode);
   bool GetNetPads(int pad_nb, GCPadStatus* pad_status);
 
   u64 GetInitialRTCValue() const;
@@ -113,6 +113,10 @@ public:
 
   int InGamePadToLocalPad(int ingame_pad) const;
   int LocalPadToInGamePad(int localPad) const;
+
+  int NumLocalWiimotes() const;
+
+  int InWiimoteToLocalWiimote(int ingame_pad) const;
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
