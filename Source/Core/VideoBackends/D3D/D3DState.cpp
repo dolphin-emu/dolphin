@@ -243,8 +243,8 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
   static constexpr std::array<D3D11_TEXTURE_ADDRESS_MODE, 3> address_modes = {
       {D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_WRAP, D3D11_TEXTURE_ADDRESS_MIRROR}};
-  sampdc.AddressU = address_modes[static_cast<u32>(state.wrap_u)];
-  sampdc.AddressV = address_modes[static_cast<u32>(state.wrap_v)];
+  sampdc.AddressU = address_modes[static_cast<u32>(state.wrap_u.Value())];
+  sampdc.AddressV = address_modes[static_cast<u32>(state.wrap_v.Value())];
   sampdc.MaxLOD = state.max_lod / 16.f;
   sampdc.MinLOD = state.min_lod / 16.f;
   sampdc.MipLODBias = (s32)state.lod_bias / 256.f;
