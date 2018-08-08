@@ -73,6 +73,7 @@
     <ClCompile Include="SPIRV\InReadableOrder.cpp" />
     <ClCompile Include="SPIRV\Logger.cpp" />
     <ClCompile Include="SPIRV\SpvBuilder.cpp" />
+    <ClCompile Include="SPIRV\SpvPostProcess.cpp" />
     <ClCompile Include="SPIRV\SPVRemapper.cpp" />
   </ItemGroup>
   <ItemGroup>

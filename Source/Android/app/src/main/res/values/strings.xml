@@ -3,6 +3,7 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin</string>
+    <string name="app_name_version">Dolphin %1$s</string>
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 

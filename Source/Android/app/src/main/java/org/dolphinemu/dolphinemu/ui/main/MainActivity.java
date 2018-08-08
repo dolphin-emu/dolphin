@@ -101,7 +101,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void setVersionString(String version)
 	{
-		mToolbar.setSubtitle(version);
+		getSupportActionBar().setTitle(getString(R.string.app_name_version, version));
+		//mToolbar.setSubtitle(version);
 	}
 
 	@Override

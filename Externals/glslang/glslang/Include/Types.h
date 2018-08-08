@@ -616,6 +616,22 @@ public:
         }
     }
 
+    // non-built-in symbols that might link between compilation units
+    bool isLinkable() const
+    {
+        switch (storage) {
+        case EvqGlobal:
+        case EvqVaryingIn:
+        case EvqVaryingOut:
+        case EvqUniform:
+        case EvqBuffer:
+        case EvqShared:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     // True if this type of IO is supposed to be arrayed with extra level for per-vertex data
     bool isArrayedIo(EShLanguage language) const
     {
@@ -1470,6 +1486,16 @@ public:
     virtual bool containsSpecializationSize() const
     {
         return contains([](const TType* t) { return t->isArray() && t->arraySizes->isOuterSpecialization(); } );
+    }
+
+    virtual bool contains16BitInt() const
+    {
+        return containsBasicType(EbtInt16) || containsBasicType(EbtUint16);
+    }
+
+    virtual bool contains8BitInt() const
+    {
+        return containsBasicType(EbtInt8) || containsBasicType(EbtUint8);
     }
 
     // Array editing methods.  Array descriptors can be shared across

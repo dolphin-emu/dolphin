@@ -18,7 +18,6 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 
-import de.hdodenhof.circleimageview.CircleImageView;
 
 public final class GameDetailsDialog extends DialogFragment
 {
@@ -44,7 +43,7 @@ public final class GameDetailsDialog extends DialogFragment
 		ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater().inflate(R.layout.dialog_game_details, null);
 
 		final ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
-		CircleImageView circleBanner = contents.findViewById(R.id.circle_banner);
+		ImageView circleBanner = contents.findViewById(R.id.circle_banner);
 
 		TextView textTitle = contents.findViewById(R.id.text_game_title);
 		TextView textDescription = contents.findViewById(R.id.text_description);

@@ -716,8 +716,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					y = 0.25f;
 					break;
 				case ButtonType.BUTTON_Z:
-					x = 0.75f;
-					y = -0.50f;
+					x = 0.60f;
+					y = -0.40f;
 					break;
 				case ButtonType.TRIGGER_L:
 					x = -0.75f;
@@ -982,8 +982,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					y = -0.10f;
 					break;
 				case ButtonType.STICK_MAIN:
-					x = -0.60f;
-					y = 0.45f;
+					x = -0.65f;
+					y = 0.50f;
 					break;
 				// Wii
 				case ButtonType.NUNCHUK_STICK:

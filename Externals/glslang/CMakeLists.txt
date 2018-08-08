@@ -35,6 +35,7 @@ set(SRCS
 	SPIRV/InReadableOrder.cpp
 	SPIRV/Logger.cpp
 	SPIRV/SpvBuilder.cpp
+	SPIRV/SpvPostProcess.cpp
 	SPIRV/SPVRemapper.cpp
 )
 

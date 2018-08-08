@@ -861,7 +861,8 @@ void UpdateTitle()
     pMixer->UpdateSpeed((float)Speed / 100);
   }
 
-  Host_UpdateTitle(message);
+  g_renderer->UpdateDebugTitle(message);
+  //Host_UpdateTitle(message);
 }
 
 void Shutdown()

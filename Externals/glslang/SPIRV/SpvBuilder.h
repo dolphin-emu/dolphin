@@ -563,9 +563,15 @@ public:
     // based on the type of the base and the chain of dereferences.
     Id accessChainGetInferredType();
 
-    // Remove OpDecorate instructions whose operands are defined in unreachable
-    // blocks.
-    void eliminateDeadDecorations();
+    // Add capabilities, extensions, remove unneeded decorations, etc., 
+    // based on the resulting SPIR-V.
+    void postProcess();
+
+    // Hook to visit each instruction in a block in a function
+    void postProcess(Instruction& inst);
+    // Hook to visit each instruction in a reachable block in a function.
+    void postProcessReachable(Instruction& inst);
+
     void dump(std::vector<unsigned int>&) const;
 
     void createBranch(Block* block);

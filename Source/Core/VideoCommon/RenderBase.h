@@ -156,6 +156,7 @@ public:
   // Random utilities
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
+  void UpdateDebugTitle(const std::string& title) { m_debug_title_text = std::move(title); };
 
   virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
 
@@ -290,6 +291,8 @@ private:
 
   s32 m_osd_message = 0;
   s32 m_osd_time = 0;
+
+  std::string m_debug_title_text;
 
   // NOTE: The methods below are called on the framedumping thread.
   bool StartFrameDumpToAVI(const FrameDumpConfig& config);
