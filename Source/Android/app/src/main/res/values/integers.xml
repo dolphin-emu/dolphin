@@ -1,4 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="game_grid_columns">1</integer>
+
+    <!-- Default GameCube landscape layout -->
+    <integer name="BUTTON_A_X">865</integer>
+    <integer name="BUTTON_A_Y">652</integer>
+    <integer name="BUTTON_B_X">785</integer>
+    <integer name="BUTTON_B_Y">524</integer>
+    <integer name="BUTTON_X_X">896</integer>
+    <integer name="BUTTON_X_Y">388</integer>
+    <integer name="BUTTON_Y_X">784</integer>
+    <integer name="BUTTON_Y_Y">297</integer>
+    <integer name="BUTTON_Z_X">131</integer>
+    <integer name="BUTTON_Z_Y">431</integer>
+    <integer name="BUTTON_UP_X">222</integer>
+    <integer name="BUTTON_UP_Y">629</integer>
+    <integer name="TRIGGER_L_X">13</integer>
+    <integer name="TRIGGER_L_Y">330</integer>
+    <integer name="TRIGGER_R_X">845</integer>
+    <integer name="TRIGGER_R_Y">133</integer>
+    <integer name="BUTTON_START_X">506</integer>
+    <integer name="BUTTON_START_Y">818</integer>
+    <integer name="STICK_C_X">686</integer>
+    <integer name="STICK_C_Y">676</integer>
+    <integer name="STICK_MAIN_X">17</integer>
+    <integer name="STICK_MAIN_Y">620</integer>
+
+    <!-- Default Wii landscape layout -->
+    <integer name="WIIMOTE_BUTTON_A_X">858</integer>
+    <integer name="WIIMOTE_BUTTON_A_Y">772</integer>
+    <integer name="WIIMOTE_BUTTON_B_X">850</integer>
+    <integer name="WIIMOTE_BUTTON_B_Y">460</integer>
+    <integer name="WIIMOTE_BUTTON_1_X">778</integer>
+    <integer name="WIIMOTE_BUTTON_1_Y">715</integer>
+    <integer name="WIIMOTE_BUTTON_2_X">778</integer>
+    <integer name="WIIMOTE_BUTTON_2_Y">864</integer>
+    <integer name="NUNCHUK_BUTTON_Z_X">850</integer>
+    <integer name="NUNCHUK_BUTTON_Z_Y">208</integer>
+    <integer name="NUNCHUK_BUTTON_C_X">681</integer>
+    <integer name="NUNCHUK_BUTTON_C_Y">765</integer>
+    <integer name="WIIMOTE_BUTTON_MINUS_X">787</integer>
+    <integer name="WIIMOTE_BUTTON_MINUS_Y">578</integer>
+    <integer name="WIIMOTE_BUTTON_PLUS_X">701</integer>
+    <integer name="WIIMOTE_BUTTON_PLUS_Y">630</integer>
+    <integer name="WIIMOTE_UP_X">224</integer>
+    <integer name="WIIMOTE_UP_Y">652</integer>
+    <integer name="WIIMOTE_BUTTON_HOME_X">514</integer>
+    <integer name="WIIMOTE_BUTTON_HOME_Y">854</integer>
+    <integer name="NUNCHUK_STICK_X">51</integer>
+    <integer name="NUNCHUK_STICK_Y">681</integer>
+
+    <integer name="WIIMOTE_RIGHT_X">100</integer>
+    <integer name="WIIMOTE_RIGHT_Y">683</integer>
+
+    <integer name="CLASSIC_BUTTON_A_X">860</integer>
+    <integer name="CLASSIC_BUTTON_A_Y">688</integer>
+    <integer name="CLASSIC_BUTTON_B_X">787</integer>
+    <integer name="CLASSIC_BUTTON_B_Y">806</integer>
+    <integer name="CLASSIC_BUTTON_X_X">932</integer>
+    <integer name="CLASSIC_BUTTON_X_Y">523</integer>
+    <integer name="CLASSIC_BUTTON_Y_X">823</integer>
+    <integer name="CLASSIC_BUTTON_Y_Y">522</integer>
+    <integer name="CLASSIC_BUTTON_MINUS_X">420</integer>
+    <integer name="CLASSIC_BUTTON_MINUS_Y">870</integer>
+    <integer name="CLASSIC_BUTTON_PLUS_X">580</integer>
+    <integer name="CLASSIC_BUTTON_PLUS_Y">870</integer>
+    <integer name="CLASSIC_BUTTON_HOME_X">500</integer>
+    <integer name="CLASSIC_BUTTON_HOME_Y">834</integer>
+    <integer name="CLASSIC_BUTTON_ZL_X">19</integer>
+    <integer name="CLASSIC_BUTTON_ZL_Y">223</integer>
+    <integer name="CLASSIC_BUTTON_ZR_X">897</integer>
+    <integer name="CLASSIC_BUTTON_ZR_Y">263</integer>
+    <integer name="CLASSIC_DPAD_UP_X">203</integer>
+    <integer name="CLASSIC_DPAD_UP_Y">680</integer>
+    <integer name="CLASSIC_STICK_LEFT_X">23</integer>
+    <integer name="CLASSIC_STICK_LEFT_Y">622</integer>
+    <integer name="CLASSIC_STICK_RIGHT_X">636</integer>
+    <integer name="CLASSIC_STICK_RIGHT_Y">655</integer>
+    <integer name="CLASSIC_TRIGGER_L_X">124</integer>
+    <integer name="CLASSIC_TRIGGER_L_Y">429</integer>
+    <integer name="CLASSIC_TRIGGER_R_X">737</integer>
+    <integer name="CLASSIC_TRIGGER_R_Y">311</integer>
 </resources>
