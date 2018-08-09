@@ -3,6 +3,7 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin</string>
+    <string name="app_name_version">Dolphin %1$s</string>
     <string name="host">app</string>
     <string name="scheme">dolphinemu</string>
 
@@ -294,5 +295,7 @@
     <string name="game_platform_wii">[Wii] %1$s</string>
     <string name="game_platform_ngc">[NGC] %1$s</string>
     <string name="game_platform_ware">[Ware] %1$s</string>
+    <string name="interface_show_extended_fps">Show Extended FPS</string>
+    <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>
 
 </resources>

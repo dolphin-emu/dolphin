@@ -17,7 +17,7 @@ public:
   ~RasterFont();
   static int debug;
 
-  void printMultilineText(const std::string& text, double x, double y, double z, int bbWidth,
+  void printMultilineText(const std::string& text, float x, float y, int bbWidth,
                           int bbHeight, u32 color);
 
 private:

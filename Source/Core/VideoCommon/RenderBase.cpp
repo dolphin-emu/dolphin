@@ -251,16 +251,21 @@ bool Renderer::CheckForHostConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
+  const SConfig& _CoreParameter = SConfig::GetInstance();
   std::string final_yellow, final_cyan;
 
-  if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
+  if (g_ActiveConfig.bShowFPS || _CoreParameter.m_ShowFrameCount)
   {
     if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
+    {
+      //final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
+      final_cyan += m_debug_title_text;
+    }
 
-    if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
+    if (g_ActiveConfig.bShowFPS && _CoreParameter.m_ShowFrameCount)
       final_cyan += " - ";
-    if (SConfig::GetInstance().m_ShowFrameCount)
+
+    if (_CoreParameter.m_ShowFrameCount)
     {
       final_cyan += StringFromFormat("Frame: %" PRIu64, Movie::GetCurrentFrame());
       if (Movie::IsPlayingInput())
@@ -268,23 +273,30 @@ void Renderer::DrawDebugText()
                                        Movie::GetCurrentInputCount(), Movie::GetTotalInputCount());
     }
 
-    final_cyan += "\n";
+    if (_CoreParameter.m_InterfaceExtendedFPSInfo && !final_cyan.empty())
+    {
+      final_cyan += StringFromFormat("| DRAW: %d\n", stats.thisFrame.numDrawCalls);
+    }
+    else
+    {
+      final_cyan += "\n";
+    }
     final_yellow += "\n";
   }
 
-  if (SConfig::GetInstance().m_ShowLag)
+  if (_CoreParameter.m_ShowLag)
   {
     final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
     final_yellow += "\n";
   }
 
-  if (SConfig::GetInstance().m_ShowInputDisplay)
+  if (_CoreParameter.m_ShowInputDisplay)
   {
     final_cyan += Movie::GetInputDisplay();
     final_yellow += "\n";
   }
 
-  if (SConfig::GetInstance().m_ShowRTC)
+  if (_CoreParameter.m_ShowRTC)
   {
     final_cyan += Movie::GetRTCDisplay();
     final_yellow += "\n";
@@ -329,9 +341,9 @@ void Renderer::DrawDebugText()
       ar_text = "Auto";
       break;
     }
-    const std::string audio_text = SConfig::GetInstance().m_IsMuted ?
+    const std::string audio_text = _CoreParameter.m_IsMuted ?
                                        "Muted" :
-                                       std::to_string(SConfig::GetInstance().m_Volume) + "%";
+                                       std::to_string(_CoreParameter.m_Volume) + "%";
 
     const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
     const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
@@ -342,10 +354,10 @@ void Renderer::DrawDebugText()
         std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
         std::string("Copy EFB: ") + efbcopy_text,
         std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-        SConfig::GetInstance().m_EmulationSpeed <= 0 ?
+        _CoreParameter.m_EmulationSpeed <= 0 ?
             "Speed Limit: Unlimited" :
             StringFromFormat("Speed Limit: %li%%",
-                             std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
+                             std::lround(_CoreParameter.m_EmulationSpeed * 100.f)),
         std::string("Copy XFB: ") + xfbcopy_text +
             (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
         "Volume: " + audio_text,

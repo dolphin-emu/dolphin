@@ -778,7 +778,7 @@ int TScanContext::tokenize(TPpContext* pp, TParserToken& token)
         case '?':                       return QUESTION;
         case '[':                       return LEFT_BRACKET;
         case ']':                       return RIGHT_BRACKET;
-        case '{':                       return LEFT_BRACE;
+        case '{':  afterStruct = false; return LEFT_BRACE;
         case '}':                       return RIGHT_BRACE;
         case '\\':
             parseContext.error(loc, "illegal use of escape character", "\\", "");
@@ -861,7 +861,6 @@ int TScanContext::tokenizeIdentifier()
     case IN:
     case OUT:
     case INOUT:
-    case STRUCT:
     case BREAK:
     case CONTINUE:
     case DO:
@@ -872,6 +871,10 @@ int TScanContext::tokenizeIdentifier()
     case DISCARD:
     case RETURN:
     case CASE:
+        return keyword;
+
+    case STRUCT:
+        afterStruct = true;
         return keyword;
 
     case NONUNIFORM:
@@ -1107,6 +1110,7 @@ int TScanContext::tokenizeIdentifier()
         afterType = true;
         if (parseContext.symbolTable.atBuiltInLevel() ||
             ((parseContext.extensionTurnedOn(E_GL_KHX_shader_explicit_arithmetic_types) ||
+              parseContext.extensionTurnedOn(E_GL_EXT_shader_8bit_storage) ||
               parseContext.extensionTurnedOn(E_GL_KHX_shader_explicit_arithmetic_types_int8)) &&
               parseContext.profile != EEsProfile && parseContext.version >= 450))
             return keyword;
@@ -1127,6 +1131,7 @@ int TScanContext::tokenizeIdentifier()
 #ifdef AMD_EXTENSIONS
               parseContext.extensionTurnedOn(E_GL_AMD_gpu_shader_int16) ||
 #endif
+              parseContext.extensionTurnedOn(E_GL_EXT_shader_16bit_storage) ||
               parseContext.extensionTurnedOn(E_GL_KHX_shader_explicit_arithmetic_types) ||
               parseContext.extensionTurnedOn(E_GL_KHX_shader_explicit_arithmetic_types_int16))))
             return keyword;
@@ -1198,6 +1203,20 @@ int TScanContext::tokenizeIdentifier()
     case F16VEC2:
     case F16VEC3:
     case F16VEC4:
+        afterType = true;
+        if (parseContext.symbolTable.atBuiltInLevel() ||
+            (parseContext.profile != EEsProfile && parseContext.version >= 450 &&
+             (
+#ifdef AMD_EXTENSIONS
+              parseContext.extensionTurnedOn(E_GL_AMD_gpu_shader_half_float) ||
+#endif
+              parseContext.extensionTurnedOn(E_GL_EXT_shader_16bit_storage) ||
+              parseContext.extensionTurnedOn(E_GL_KHX_shader_explicit_arithmetic_types) ||
+              parseContext.extensionTurnedOn(E_GL_KHX_shader_explicit_arithmetic_types_float16))))
+            return keyword;
+
+        return identifierOrType();
+
     case F16MAT2:
     case F16MAT3:
     case F16MAT4:
@@ -1537,7 +1556,7 @@ int TScanContext::identifierOrType()
         return IDENTIFIER;
 
     parserToken->sType.lex.symbol = parseContext.symbolTable.find(*parserToken->sType.lex.string);
-    if (afterType == false && parserToken->sType.lex.symbol) {
+    if ((afterType == false && afterStruct == false) && parserToken->sType.lex.symbol != nullptr) {
         if (const TVariable* variable = parserToken->sType.lex.symbol->getAsVariable()) {
             if (variable->isUserType()) {
                 afterType = true;

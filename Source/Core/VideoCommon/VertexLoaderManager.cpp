@@ -248,7 +248,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
   return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, const DataReader& src, bool is_preprocess)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess)
 {
   if (!count)
     return 0;

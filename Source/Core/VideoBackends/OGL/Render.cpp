@@ -858,7 +858,7 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
   }
 
   s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(screen_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(screen_height), 0,
+                                    1.0f - top * 2.0f / static_cast<float>(screen_height),
                                     screen_width, screen_height, color);
 }
 

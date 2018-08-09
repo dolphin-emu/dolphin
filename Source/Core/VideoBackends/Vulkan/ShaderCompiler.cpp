@@ -181,7 +181,11 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
   }
 
   spv::SpvBuildLogger logger;
-  glslang::GlslangToSpv(*intermediate, *out_code, &logger);
+  glslang::SpvOptions options;
+  options.disableOptimizer = false;
+  options.optimizeSize = false;
+  options.generateDebugInfo = false;
+  glslang::GlslangToSpv(*intermediate, *out_code, &logger, &options);
 
   // Write out messages
   // Temporary: skip if it contains "Warning, version 450 is not yet complete; most version-specific

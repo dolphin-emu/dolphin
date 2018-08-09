@@ -1,6 +1,6 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
-import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 /**
  * Abstraction for the screen that shows on application launch.
