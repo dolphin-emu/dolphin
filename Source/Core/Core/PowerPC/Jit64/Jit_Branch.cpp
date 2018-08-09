@@ -285,7 +285,19 @@ void Jit64::bclrx(UGeckoInstruction inst)
     RCForkGuard fpr_guard = fpr.Fork();
     gpr.Flush();
     fpr.Flush();
-    WriteBLRExit();
+
+    if (js.op->branchIsIdleLoop)
+    {
+      ABI_PushRegistersAndAdjustStack({}, 0);
+      ABI_CallFunction(CoreTiming::Idle);
+      ABI_PopRegistersAndAdjustStack({}, 0);
+      MOV(32, PPCSTATE(pc), Imm32(js.op->branchTo));
+      WriteExceptionExit();
+    }
+    else
+    {
+      WriteBLRExit();
+    }
   }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

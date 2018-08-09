@@ -782,9 +782,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
     SetInstructionStats(block, &code[i], opinfo, static_cast<u32>(i));
 
-    code[i].branchIsIdleLoop =
-        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
-
     bool follow = false;
 
     bool conditional_continue = false;
@@ -793,7 +790,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     //       If it is small, the performance will be down.
     //       If it is big, the size of generated code will be big and
     //       cache clearning will happen many times.
-    if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW) && numFollows < BRANCH_FOLLOWING_THRESHOLD)
+    if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW))
     {
       if (inst.OPCD == 18 && block_size > 1)
       {
@@ -816,22 +813,25 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
           caller = i;
         }
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call &&
-               (inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
       {
-        // bclrx with unconditional branch = return
-        // Follow it if we can propagate the LR value of the last CALL instruction.
-        // Through it would be easy to track the upper level of call/return,
-        // we can't guarantee the LR value. The PPC ABI forces all functions to push
-        // the LR value on the stack as there are no spare registers. So we'd need
-        // to check all store instruction to not alias with the stack.
-        follow = true;
         code[i].branchTo = code[caller].address + 4;
-        found_call = false;
-        code[i].skip = true;
+        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION) &&
+            numFollows < BRANCH_FOLLOWING_THRESHOLD)
+        {
+          // bclrx with unconditional branch = return
+          // Follow it if we can propagate the LR value of the last CALL instruction.
+          // Through it would be easy to track the upper level of call/return,
+          // we can't guarantee the LR value. The PPC ABI forces all functions to push
+          // the LR value on the stack as there are no spare registers. So we'd need
+          // to check all store instruction to not alias with the stack.
+          follow = true;
+          found_call = false;
+          code[i].skip = true;
 
-        // Skip the RET, so also don't generate the stack entry for the BLR optimization.
-        code[caller].skipLRStack = true;
+          // Skip the RET, so also don't generate the stack entry for the BLR optimization.
+          code[caller].skipLRStack = true;
+        }
       }
       else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
       {
@@ -874,7 +874,10 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       }
     }
 
-    if (follow)
+    code[i].branchIsIdleLoop =
+        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
+
+    if (follow && numFollows < BRANCH_FOLLOWING_THRESHOLD)
     {
       // Follow the unconditional branch.
       numFollows++;
