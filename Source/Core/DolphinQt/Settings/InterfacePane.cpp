@@ -6,6 +6,7 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
@@ -218,11 +219,10 @@ void InterfacePane::LoadConfig()
       m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
+  const int index = m_combobox_userstyle->findText(QFileInfo(userstyle).baseName());
 
-  if (userstyle.isEmpty())
-    m_combobox_userstyle->setCurrentIndex(0);
-  else
-    m_combobox_userstyle->setCurrentText(userstyle);
+  if (index > 0)
+    m_combobox_userstyle->setCurrentIndex(index);
 
   m_checkbox_use_userstyle->setChecked(Settings::Instance().AreUserStylesEnabled());
 
@@ -247,8 +247,8 @@ void InterfacePane::OnSaveConfig()
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
+  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
 
   const bool visible = m_checkbox_use_userstyle->isChecked();
 
