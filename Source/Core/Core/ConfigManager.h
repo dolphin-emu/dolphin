@@ -277,7 +277,6 @@ struct SConfig
   bool m_ShowFrameCount;
   bool m_ShowRTC;
   std::string m_strMovieAuthor;
-  unsigned int m_FrameSkip;
   bool m_DumpFrames;
   bool m_DumpFramesSilent;
   bool m_ShowInputDisplay;
