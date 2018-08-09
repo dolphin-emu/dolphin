@@ -520,3 +520,17 @@ void Settings::SetBatchModeEnabled(bool batch)
 {
   m_batch = batch;
 }
+
+bool Settings::IsUSBKeyboardConnected() const
+{
+  return SConfig::GetInstance().m_WiiKeyboard;
+}
+
+void Settings::SetUSBKeyboardConnected(bool connected)
+{
+  if (IsUSBKeyboardConnected() != connected)
+  {
+    SConfig::GetInstance().m_WiiKeyboard = connected;
+    emit USBKeyboardConnectionChanged(connected);
+  }
+}

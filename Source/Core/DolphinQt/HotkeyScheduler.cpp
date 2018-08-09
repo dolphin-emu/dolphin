@@ -63,9 +63,9 @@ static bool IsHotkey(int id, bool held = false)
   return HotkeyManagerEmu::IsPressed(id, held);
 }
 
-static void HandleFrameskipHotkeys()
+static void HandleFrameStepHotkeys()
 {
-  constexpr int MAX_FRAME_SKIP_DELAY = 60;
+  constexpr int MAX_FRAME_STEP_DELAY = 60;
   constexpr int FRAME_STEP_DELAY = 30;
 
   static int frame_step_count = 0;
@@ -75,7 +75,7 @@ static void HandleFrameskipHotkeys()
 
   if (IsHotkey(HK_FRAME_ADVANCE_INCREASE_SPEED))
   {
-    frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_SKIP_DELAY);
+    frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_STEP_DELAY);
     return;
   }
 
@@ -181,8 +181,8 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_RESET))
         emit ResetHotkey();
 
-      // Frameskipping
-      HandleFrameskipHotkeys();
+      // Frame advance
+      HandleFrameStepHotkeys();
 
       // Screenshot
       if (IsHotkey(HK_SCREENSHOT))
@@ -238,6 +238,12 @@ void HotkeyScheduler::Run()
 
         if (wiimote_id > -1)
           emit ConnectWiiRemote(wiimote_id);
+
+        if (IsHotkey(HK_TOGGLE_USB_KEYBOARD))
+        {
+          Settings::Instance().SetUSBKeyboardConnected(
+              !Settings::Instance().IsUSBKeyboardConnected());
+        }
       }
 
       if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))

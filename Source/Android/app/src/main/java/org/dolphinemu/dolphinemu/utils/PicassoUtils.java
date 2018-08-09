@@ -34,13 +34,10 @@ public class PicassoUtils {
 			picassoInstance
 					.load(Uri.parse("iso:/" + gameFile.getPath()))
 					.fit()
-					.noFade()
 					.noPlaceholder()
 					.config(Bitmap.Config.RGB_565)
 					.error(R.drawable.no_banner)
 					.into(imageView);
 		}
-
-
 	}
 }
