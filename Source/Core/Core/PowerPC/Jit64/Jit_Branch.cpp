@@ -238,6 +238,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
+  if (js.op->branchIsIdleLoop)
+    ERROR_LOG(POWERPC, "FIXME: IDLE LOOP DETECTED at PC %x", js.compilerPC);
+
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {

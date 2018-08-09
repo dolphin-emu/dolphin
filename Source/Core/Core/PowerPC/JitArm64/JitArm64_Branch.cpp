@@ -278,7 +278,20 @@ void JitArm64::bclrx(UGeckoInstruction inst)
   gpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
   fpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
 
-  WriteBLRExit(WA);
+  if (js.op->branchIsIdleLoop)
+  {
+    // make idle loops go faster
+    ARM64Reg XA = EncodeRegTo64(WA);
+
+    MOVP2R(XA, &CoreTiming::Idle);
+    BLR(XA);
+
+    WriteExceptionExit(js.op->branchTo);
+  }
+  else
+  {
+    WriteBLRExit(WA);
+  }
 
   gpr.Unlock(WA);
 

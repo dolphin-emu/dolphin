@@ -38,7 +38,7 @@
 namespace PPCAnalyst
 {
 // 0 does not perform block merging
-constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
+constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 3;
 
 constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
@@ -782,9 +782,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
 
     SetInstructionStats(block, &code[i], opinfo, static_cast<u32>(i));
 
-    code[i].branchIsIdleLoop =
-        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
-
     bool follow = false;
 
     bool conditional_continue = false;
@@ -816,22 +813,24 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
           caller = i;
         }
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call &&
-               (inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
       {
-        // bclrx with unconditional branch = return
-        // Follow it if we can propagate the LR value of the last CALL instruction.
-        // Through it would be easy to track the upper level of call/return,
-        // we can't guarantee the LR value. The PPC ABI forces all functions to push
-        // the LR value on the stack as there are no spare registers. So we'd need
-        // to check all store instruction to not alias with the stack.
-        follow = true;
         code[i].branchTo = code[caller].address + 4;
-        found_call = false;
-        code[i].skip = true;
+        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
+        {
+          // bclrx with unconditional branch = return
+          // Follow it if we can propagate the LR value of the last CALL instruction.
+          // Through it would be easy to track the upper level of call/return,
+          // we can't guarantee the LR value. The PPC ABI forces all functions to push
+          // the LR value on the stack as there are no spare registers. So we'd need
+          // to check all store instruction to not alias with the stack.
+          follow = true;
+          found_call = false;
+          code[i].skip = true;
 
-        // Skip the RET, so also don't generate the stack entry for the BLR optimization.
-        code[caller].skipLRStack = true;
+          // Skip the RET, so also don't generate the stack entry for the BLR optimization.
+          code[caller].skipLRStack = true;
+        }
       }
       else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
       {
@@ -873,6 +872,9 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
         conditional_continue = true;
       }
     }
+
+    code[i].branchIsIdleLoop =
+        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
 
     if (follow)
     {
