@@ -106,4 +106,8 @@
         app:showAsAction="never"
         android:title="@string/emulation_change_disc"/>
 
+    <item
+        android:id="@+id/menu_exit"
+        app:showAsAction="never"
+        android:title="@string/emulation_exit"/>
 </menu>

@@ -45,6 +45,7 @@ import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.lang.annotation.Retention;
 import java.util.List;
@@ -589,7 +590,9 @@ public final class EmulationActivity extends AppCompatActivity
 				return;
 
 			case MENU_ACTION_EXIT:
-				toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
+				// ATV menu is built using a fragment, this will pop that fragment before emulation ends.
+				if(TvUtil.isLeanback(getApplicationContext()))
+					toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
 				mEmulationFragment.stopEmulation();
 				exitWithAnimation();
 				return;
