@@ -52,9 +52,6 @@ public:
   void SetCurrentUserStyle(const QString& stylesheet_path);
   QString GetCurrentUserStyle() const;
 
-  void SetUserStylesEnabled(bool enabled);
-  bool AreUserStylesEnabled() const;
-
   bool IsLogVisible() const;
   void SetLogVisible(bool visible);
   bool IsLogConfigVisible() const;

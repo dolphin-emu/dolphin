@@ -75,7 +75,7 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_path)
 {
   QString stylesheet_contents;
 
-  if (!stylesheet_path.isEmpty() && AreUserStylesEnabled())
+  if (!stylesheet_path.isEmpty())
   {
     // Load custom user stylesheet
     QFile stylesheet(stylesheet_path);
@@ -87,16 +87,6 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_path)
   qApp->setStyleSheet(stylesheet_contents);
 
   GetQSettings().setValue(QStringLiteral("userstyle/path"), stylesheet_path);
-}
-
-bool Settings::AreUserStylesEnabled() const
-{
-  return GetQSettings().value(QStringLiteral("userstyle/enabled"), false).toBool();
-}
-
-void Settings::SetUserStylesEnabled(bool enabled)
-{
-  GetQSettings().setValue(QStringLiteral("userstyle/enabled"), enabled);
 }
 
 QStringList Settings::GetPaths() const

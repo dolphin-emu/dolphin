@@ -6,9 +6,9 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QGroupBox>
-#include <QLabel>
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -129,12 +129,11 @@ void InterfacePane::CreateUI()
 
   // User Style Combobox
   m_combobox_userstyle = new QComboBox;
-  m_label_userstyle = new QLabel(tr("User Style:"));
-  combobox_layout->addRow(m_label_userstyle, m_combobox_userstyle);
+  combobox_layout->addRow(tr("&User Style:"), m_combobox_userstyle);
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("(None)"), QStringLiteral(""));
+  m_combobox_userstyle->addItem(tr("Default"), QStringLiteral(""));
 
   for (const std::string& filename : userstyle_search_results)
   {
@@ -147,14 +146,12 @@ void InterfacePane::CreateUI()
   // Checkboxes
   m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
-  m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
 
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
-  groupbox_layout->addWidget(m_checkbox_use_userstyle);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
 }
@@ -199,11 +196,11 @@ void InterfacePane::ConnectLayout()
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_show_active_title, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_enable_osd, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_pause_on_focus_lost, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_hide_mouse, &QCheckBox::toggled, &Settings::Instance(),
           &Settings::SetHideCursor);
-  connect(m_checkbox_use_userstyle, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
 }
 
 void InterfacePane::LoadConfig()
@@ -217,19 +214,12 @@ void InterfacePane::LoadConfig()
   m_combobox_theme->setCurrentIndex(
       m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
 
-  const QString userstyle = Settings::Instance().GetCurrentUserStyle();
+  const QFileInfo userstyle = Settings::Instance().GetCurrentUserStyle();
 
-  if (userstyle.isEmpty())
+  if (userstyle.fileName().isEmpty())
     m_combobox_userstyle->setCurrentIndex(0);
   else
-    m_combobox_userstyle->setCurrentText(userstyle);
-
-  m_checkbox_use_userstyle->setChecked(Settings::Instance().AreUserStylesEnabled());
-
-  const bool visible = m_checkbox_use_userstyle->isChecked();
-
-  m_combobox_userstyle->setVisible(visible);
-  m_label_userstyle->setVisible(visible);
+    m_combobox_userstyle->setCurrentIndex(m_combobox_userstyle->findText(userstyle.baseName()));
 
   // In Game Options
   m_checkbox_confirm_on_stop->setChecked(startup_params.bConfirmStop);
@@ -248,12 +238,6 @@ void InterfacePane::OnSaveConfig()
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
-  Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
-
-  const bool visible = m_checkbox_use_userstyle->isChecked();
-
-  m_combobox_userstyle->setVisible(visible);
-  m_label_userstyle->setVisible(visible);
 
   // In Game Options
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
