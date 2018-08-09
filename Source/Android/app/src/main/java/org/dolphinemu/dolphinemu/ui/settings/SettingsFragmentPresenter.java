@@ -269,14 +269,17 @@ public final class SettingsFragmentPresenter
 	{
 		Setting usePanicHandlers = null;
 		Setting onScreenDisplayMessages = null;
+		Setting showDebugInfo = null;
 
 		if (!mSettings.get(SettingsFile.SETTINGS_DOLPHIN).isEmpty())
 		{
 			usePanicHandlers = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_INTERFACE).getSetting(SettingsFile.KEY_USE_PANIC_HANDLERS);
 			onScreenDisplayMessages = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_INTERFACE).getSetting(SettingsFile.KEY_OSD_MESSAGES);
+			showDebugInfo = mSettings.get(SettingsFile.SETTINGS_DOLPHIN).get(SettingsFile.SECTION_INI_INTERFACE).getSetting(SettingsFile.KEY_SHOW_DEBUG_INFO);
 		}
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_USE_PANIC_HANDLERS, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.panic_handlers, R.string.panic_handlers_description, true, usePanicHandlers));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OSD_MESSAGES, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.osd_messages, R.string.osd_messages_description, true, onScreenDisplayMessages));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_DEBUG_INFO, SettingsFile.SECTION_INI_INTERFACE, SettingsFile.SETTINGS_DOLPHIN, R.string.interface_show_extended_fps, R.string.interface_show_extended_fps_description, false, showDebugInfo));
 	}
 
 	private void addGameCubeSettings(ArrayList<SettingsItem> sl)

@@ -94,6 +94,7 @@ public final class SettingsFile
 
 	public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
 	public static final String KEY_OSD_MESSAGES = "OnScreenDisplayMessages";
+	public static final String KEY_SHOW_DEBUG_INFO = "ExtendedFPSInfo";
 
 	public static final String KEY_SHOW_FPS = "ShowFPS";
 	public static final String KEY_INTERNAL_RES = "InternalResolution";

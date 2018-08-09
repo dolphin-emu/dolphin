@@ -317,14 +317,21 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   size_t num_vertices = 0;
   if (!vertices)
     return;
+#ifdef __ANDROID__
+  float delta_x = float(3 * CHARACTER_WIDTH) / float(bbWidth);
+  float delta_y = float(3 * CHARACTER_HEIGHT) / float(bbHeight);
 
+  float x = float(start_x);
+  float y = float(start_y * 0.96);
+#else
   float delta_x = float(2 * CHARACTER_WIDTH) / float(bbWidth);
   float delta_y = float(2 * CHARACTER_HEIGHT) / float(bbHeight);
-  float border_x = 2.0f / float(bbWidth);
-  float border_y = 4.0f / float(bbHeight);
 
   float x = float(start_x);
   float y = float(start_y);
+#endif
+  float border_x = 2.0f / float(bbWidth);
+  float border_y = 4.0f / float(bbHeight);
 
   for (const char& c : text)
   {

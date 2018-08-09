@@ -196,19 +196,27 @@ RasterFont::~RasterFont()
   s_shader.Destroy();
 }
 
-void RasterFont::printMultilineText(const std::string& text, double start_x, double start_y,
-                                    double z, int bbWidth, int bbHeight, u32 color)
+void RasterFont::printMultilineText(const std::string& text, float start_x, float start_y,
+                                    int bbWidth, int bbHeight, u32 color)
 {
   std::vector<GLfloat> vertices(text.length() * 6 * 4);
 
   int usage = 0;
+#ifdef __ANDROID__
+  GLfloat delta_x = GLfloat(3 * CHARACTER_WIDTH) / GLfloat(bbWidth);
+  GLfloat delta_y = GLfloat(3 * CHARACTER_HEIGHT) / GLfloat(bbHeight);
+
+  GLfloat x = GLfloat(start_x);
+  GLfloat y = GLfloat(start_y * 0.96f);
+#else
   GLfloat delta_x = GLfloat(2 * CHARACTER_WIDTH) / GLfloat(bbWidth);
   GLfloat delta_y = GLfloat(2 * CHARACTER_HEIGHT) / GLfloat(bbHeight);
-  GLfloat border_x = 2.0f / GLfloat(bbWidth);
-  GLfloat border_y = 4.0f / GLfloat(bbHeight);
 
   GLfloat x = GLfloat(start_x);
   GLfloat y = GLfloat(start_y);
+#endif
+  GLfloat border_x = 2.0f / GLfloat(bbWidth);
+  GLfloat border_y = 4.0f / GLfloat(bbHeight);
 
   for (const char& c : text)
   {
