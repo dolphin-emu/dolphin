@@ -12,6 +12,10 @@
 #define SIGTRAP 5
 #define SIGTERM 15
 #define MSG_WAITALL 8
+#elif !defined(SIGTRAP)
+// fixes missing defines on some systems
+// (let's hope the file exists)
+#include <signal.h>
 #endif
 
 typedef enum {
