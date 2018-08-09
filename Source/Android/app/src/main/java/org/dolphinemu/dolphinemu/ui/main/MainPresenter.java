@@ -10,7 +10,7 @@ import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
-import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class MainPresenter
 {
