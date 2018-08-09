@@ -288,7 +288,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   FlushWGP();
 
   // Sleep while the GPU is active
-  while (!IsIdleSet())
+  while (!IsIdleSet() && CPU::GetState() != CPU::State::PowerDown)
   {
     CoreTiming::Idle();
     CoreTiming::Advance();
