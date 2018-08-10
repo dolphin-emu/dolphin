@@ -131,7 +131,7 @@ void Jit64::SetCRFieldBit(int field, int bit)
   switch (bit)
   {
   case PowerPC::CR_SO_BIT:
-    BTS(64, PPCSTATE(cr_val[field]), Imm8(61));
+    BTS(64, R(RSCRATCH), Imm8(61));
     break;
 
   case PowerPC::CR_EQ_BIT:
@@ -140,11 +140,11 @@ void Jit64::SetCRFieldBit(int field, int bit)
     break;
 
   case PowerPC::CR_GT_BIT:
-    BTR(64, PPCSTATE(cr_val[field]), Imm8(63));
+    BTR(64, R(RSCRATCH), Imm8(63));
     break;
 
   case PowerPC::CR_LT_BIT:
-    BTS(64, PPCSTATE(cr_val[field]), Imm8(62));
+    BTS(64, R(RSCRATCH), Imm8(62));
     break;
   }
 
