@@ -371,8 +371,7 @@ void EnumerateGeometryShaderUids(const std::function<void(const GeometryShaderUi
   std::memset(&uid, 0, sizeof(uid));
 
   const std::array<PrimitiveType, 3> primitive_lut = {
-      {g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? PrimitiveType::TriangleStrip :
-                                                               PrimitiveType::Triangles,
+      {PrimitiveType::Triangles,
        PrimitiveType::Lines, PrimitiveType::Points}};
   for (PrimitiveType primitive : primitive_lut)
   {

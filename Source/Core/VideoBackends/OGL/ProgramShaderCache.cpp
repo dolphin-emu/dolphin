@@ -823,8 +823,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
     return false;
 
   s_is_shared_context = true;
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+
 
   return true;
 }
