@@ -8,13 +8,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-05-18 18:25:07 +0300 (Mon, 18 May 2015) $
-// File revision : $Revision: 3 $
-//
-// $Id: STTypes.h 215 2015-05-18 15:25:07Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -57,7 +50,13 @@ typedef unsigned long   ulong;
 #if (defined(__GNUC__) && !defined(ANDROID))
     // In GCC, include soundtouch_config.h made by config scritps.
     // Skip this in Android compilation that uses GCC but without configure scripts.
-    //#include "soundtouch_config.h"
+    #include "soundtouch_config.h"
+#endif
+#define ST_NO_EXCEPTION_HANDLING 1
+#define SOUNDTOUCH_INTEGER_SAMPLES 1
+#ifdef _WIN32
+#define SOUNDTOUCH_ALLOW_SSE
+//#define SOUNDTOUCH_ALLOW_MMX
 #endif
 
 
@@ -65,8 +64,8 @@ namespace soundtouch
 {
     /// Activate these undef's to overrule the possible sampletype 
     /// setting inherited from some other header file:
-    #undef SOUNDTOUCH_INTEGER_SAMPLES
-    #undef SOUNDTOUCH_FLOAT_SAMPLES
+    //#undef SOUNDTOUCH_INTEGER_SAMPLES
+    //#undef SOUNDTOUCH_FLOAT_SAMPLES
 
     /// If following flag is defined, always uses multichannel processing 
     /// routines also for mono and stero sound. This is for routine testing 
@@ -75,7 +74,7 @@ namespace soundtouch
     /// runtime performance so recommendation is to keep this off.
     // #define USE_MULTICH_ALWAYS
 
-    #if (defined(__SOFTFP__))
+    #if (defined(__SOFTFP__) && defined(ANDROID))
         // For Android compilation: Force use of Integer samples in case that
         // compilation uses soft-floating point emulation - soft-fp is way too slow
         #undef  SOUNDTOUCH_FLOAT_SAMPLES
@@ -98,8 +97,8 @@ namespace soundtouch
         ///   However, if you still prefer to select the sample format here 
         ///   also in GNU environment, then please #undef the INTEGER_SAMPLE
         ///   and FLOAT_SAMPLE defines first as in comments above.
-        #define SOUNDTOUCH_INTEGER_SAMPLES     1    //< 16bit integer samples
-        //#define SOUNDTOUCH_FLOAT_SAMPLES       1    //< 32bit float samples
+        //#define SOUNDTOUCH_INTEGER_SAMPLES     1    //< 16bit integer samples
+        #define SOUNDTOUCH_FLOAT_SAMPLES       1    //< 32bit float samples
      
     #endif
 
@@ -110,7 +109,7 @@ namespace soundtouch
         /// routines compiled for whatever reason, you may disable these optimizations 
         /// to make the library compile.
 
-        //#define SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS     1
+        #define SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS     1
 
         /// In GNU environment, allow the user to override this setting by
         /// giving the following switch to the configure script:
@@ -143,8 +142,10 @@ namespace soundtouch
         #endif // SOUNDTOUCH_FLOAT_SAMPLES
 
         #ifdef SOUNDTOUCH_ALLOW_X86_OPTIMIZATIONS
-            // Allow MMX optimizations
-            #define SOUNDTOUCH_ALLOW_MMX   1
+            // Allow MMX optimizations (not available in X64 mode)
+            #if (!_M_X64)
+                #define SOUNDTOUCH_ALLOW_MMX   1
+            #endif
         #endif
 
     #else
@@ -164,7 +165,7 @@ namespace soundtouch
 };
 
 // define ST_NO_EXCEPTION_HANDLING switch to disable throwing std exceptions:
-   #define ST_NO_EXCEPTION_HANDLING    1
+// #define ST_NO_EXCEPTION_HANDLING    1
 #ifdef ST_NO_EXCEPTION_HANDLING
     // Exceptions disabled. Throw asserts instead if enabled.
     #include <assert.h>

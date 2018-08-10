@@ -252,17 +252,18 @@ bool Renderer::CheckForHostConfigChanges()
 void Renderer::DrawDebugText()
 {
   const SConfig& _CoreParameter = SConfig::GetInstance();
+  bool bShowFPS = g_ActiveConfig.bShowFPS || _CoreParameter.m_InterfaceExtendedFPSInfo;
   std::string final_yellow, final_cyan;
 
-  if (g_ActiveConfig.bShowFPS || _CoreParameter.m_ShowFrameCount)
+  if (bShowFPS || _CoreParameter.m_ShowFrameCount)
   {
-    if (g_ActiveConfig.bShowFPS)
+    if (bShowFPS)
     {
       //final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
       final_cyan += m_debug_title_text;
     }
 
-    if (g_ActiveConfig.bShowFPS && _CoreParameter.m_ShowFrameCount)
+    if (bShowFPS && _CoreParameter.m_ShowFrameCount)
       final_cyan += " - ";
 
     if (_CoreParameter.m_ShowFrameCount)
