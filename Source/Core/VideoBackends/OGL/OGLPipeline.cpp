@@ -24,8 +24,6 @@ static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
     return GL_TRIANGLES;
   case PrimitiveType::TriangleStrip:
     return GL_TRIANGLE_STRIP;
-  case PrimitiveType::TriangleFan:
-	  return GL_TRIANGLE_FAN;
   default:
     return 0;
   }

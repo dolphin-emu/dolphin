@@ -15,7 +15,6 @@ enum class PrimitiveType : u32
   Lines,
   Triangles,
   TriangleStrip,
-  TriangleFan,
 };
 
 union RasterizationState
