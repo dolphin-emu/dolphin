@@ -78,6 +78,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private String mSelectedTitle;
 	private int mPlatform;
 	private String mPath;
+	private boolean backPressedOnce = false;
 
 	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
 	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
@@ -329,10 +330,18 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 		else
 		{
-			mEmulationFragment.stopEmulation();
-			exitWithAnimation();
+			if (backPressedOnce)
+			{
+				mEmulationFragment.stopEmulation();
+				exitWithAnimation();
+			}
+			else
+			{
+				backPressedOnce = true;
+				Toast.makeText(this, "Press back again to exit", Toast.LENGTH_LONG).show();
+				new Handler().postDelayed(() -> backPressedOnce = false, 3000);
+			}
 		}
-
 	}
 
 	@Override
