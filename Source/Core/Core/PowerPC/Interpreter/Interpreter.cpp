@@ -117,7 +117,7 @@ int Interpreter::SingleStepInner()
     {
       Host_UpdateDisasmDialog();
 
-      gdb_signal(SIGTRAP);
+      gdb_signal(GDB_SIGTRAP);
       gdb_handle_exception();
     }
 #endif
