@@ -1131,7 +1131,7 @@ static void OutputDouble(TInfoSink& out, double value, TOutputTraverser::EExtraO
         {
             out.debug << " : ";
             long long b = *reinterpret_cast<long long*>(&value);
-            for (int i = 0; i < 8 * sizeof(value); ++i, ++b) {
+            for (size_t i = 0; i < 8 * sizeof(value); ++i, ++b) {
                 out.debug << ((b & 0x8000000000000000) != 0 ? "1" : "0");
                 b <<= 1;
             }

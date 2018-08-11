@@ -42,7 +42,7 @@
         </activity>
 
         <activity
-            android:name=".ui.settings.SettingsActivity"
+            android:name=".features.settings.ui.SettingsActivity"
             android:theme="@style/DolphinSettingsGamecube"
             android:label="@string/preferences_settings"/>
 

@@ -20,13 +20,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-08-09 00:00:15 +0300 (Sun, 09 Aug 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: mmx_optimized.cpp 226 2015-08-08 21:00:15Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -125,7 +118,12 @@ double TDStretchMMX::calcCrossCorr(const short *pV1, const short *pV2, double &d
 
     if (norm > (long)maxnorm)
     {
-        maxnorm = norm;
+        // modify 'maxnorm' inside critical section to avoid multi-access conflict if in OpenMP mode
+        #pragma omp critical
+        if (norm > (long)maxnorm)
+        {
+            maxnorm = norm;
+        }
     }
 
     // Normalize result by dividing by sqrt(norm) - this step is easiest 
@@ -309,7 +307,7 @@ FIRFilterMMX::~FIRFilterMMX()
 
 
 // (overloaded) Calculates filter coefficients for MMX routine
-void FIRFilterMMX::setCoefficients(const short *coeffs, uint newLength, uint uResultDivFactor)
+void FIRFilterMMX::setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor)
 {
     uint i;
     FIRFilter::setCoefficients(coeffs, newLength, uResultDivFactor);
@@ -391,5 +389,10 @@ uint FIRFilterMMX::evaluateFilterStereo(short *dest, const short *src, uint numS
 
     return (numSamples & 0xfffffffe) - length;
 }
+
+#else
+
+// workaround to not complain about empty module
+bool _dontcomplain_mmx_empty;
 
 #endif  // SOUNDTOUCH_ALLOW_MMX

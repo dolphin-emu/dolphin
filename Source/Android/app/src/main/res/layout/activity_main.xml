@@ -1,42 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                                                  xmlns:app="http://schemas.android.com/apk/res-auto"
-                                                 android:id="@+id/coordinator_main"
                                                  android:layout_width="match_parent"
                                                  android:layout_height="match_parent">
 
-    <RelativeLayout
-        android:id="@+id/appbar"
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_main"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:background="?attr/colorPrimary"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary" >
+        android:layout_height="?attr/actionBarSize"
+        android:layout_alignParentTop="true" />
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar_main"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            android:layout_width="wrap_content"
-            android:layout_height="?attr/actionBarSize"
-            android:layout_alignParentEnd="true" />
-
-        <android.support.design.widget.TabLayout
-            android:id="@+id/tabs_platforms"
-            android:layout_width="wrap_content"
-            android:layout_height="?attr/actionBarSize"
-            android:layout_alignParentStart="true"
-            android:layout_alignBottom="@id/toolbar_main"
-            app:tabMode="scrollable"
-            app:tabTextColor="@android:color/primary_text_dark"
-            app:tabSelectedTextColor="@android:color/primary_text_dark"
-            app:tabTextAppearance="@style/MyCustomTextAppearance"/>
-
-    </RelativeLayout>
-
-    <android.support.v4.view.ViewPager
-        android:id="@+id/pager_platforms"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/grid_games"
+        android:layout_below="@id/toolbar_main"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/appbar"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+        android:layout_height="match_parent"/>
 
 </RelativeLayout>

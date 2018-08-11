@@ -11,13 +11,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-02-21 23:24:29 +0200 (Sat, 21 Feb 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: FIRFilter.h 202 2015-02-21 21:24:29Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -117,7 +110,7 @@ public:
         FIRFilterMMX();
         ~FIRFilterMMX();
 
-        virtual void setCoefficients(const short *coeffs, uint newLength, uint uResultDivFactor);
+        virtual void setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor);
     };
 
 #endif // SOUNDTOUCH_ALLOW_MMX
@@ -136,7 +129,7 @@ public:
         FIRFilterSSE();
         ~FIRFilterSSE();
 
-        virtual void setCoefficients(const float *coeffs, uint newLength, uint uResultDivFactor);
+        virtual void setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor);
     };
 
 #endif // SOUNDTOUCH_ALLOW_SSE

@@ -115,6 +115,9 @@
     <ClCompile Include="glslang\MachineIndependent\ParseContextBase.cpp">
       <Filter>glslang\MachineIndependant</Filter>
     </ClCompile>
+    <ClCompile Include="SPIRV\SpvPostProcess.cpp">
+      <Filter>SPIRV</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glslang\Include\ResourceLimits.h">

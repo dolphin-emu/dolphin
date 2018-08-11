@@ -10,7 +10,7 @@
         android:layout_width="480dp"
         android:layout_height="match_parent">
 
-        <de.hdodenhof.circleimageview.CircleImageView
+        <ImageView
             android:id="@+id/circle_banner"
             xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="48dp"
@@ -18,9 +18,7 @@
             android:layout_below="@+id/image_game_screen"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="24dp"
-            tools:src="@drawable/placeholder_banner"
-            app:civ_border_color="?android:colorAccent"
-            app:civ_border_width="2dp"/>
+            tools:src="@drawable/placeholder_banner"/>
 
         <ImageView
             android:id="@+id/image_game_screen"

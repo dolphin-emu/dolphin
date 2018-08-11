@@ -316,16 +316,32 @@ int TPpContext::lFloatConst(int len, int ch, TPpToken* ppToken)
             ppToken->dval = (double)wholeNumber * exponentValue;
     } else {
         // slow path
+        ppToken->dval = 0.0;
+
+        // remove suffix
+        TString numstr(ppToken->name);
+        if (numstr.back() == 'f' || numstr.back() == 'F')
+            numstr.pop_back();
+        if (numstr.back() == 'h' || numstr.back() == 'H')
+            numstr.pop_back();
+        if (numstr.back() == 'l' || numstr.back() == 'L')
+            numstr.pop_back();
+
+        // use platform library
         strtodStream.clear();
-        strtodStream.str(ppToken->name);
+        strtodStream.str(numstr.c_str());
         strtodStream >> ppToken->dval;
-        // Assume failure combined with a large exponent was overflow, in
-        // an attempt to set INF.  Otherwise, assume underflow, and set 0.0.
         if (strtodStream.fail()) {
+            // Assume failure combined with a large exponent was overflow, in
+            // an attempt to set INF.
             if (!negativeExponent && exponent + numWholeNumberDigits > 300)
                 ppToken->i64val = 0x7ff0000000000000; // +Infinity
-            else
+            // Assume failure combined with a small exponent was overflow.
+            if (negativeExponent && exponent + numWholeNumberDigits > 300)
                 ppToken->dval = 0.0;
+            // Unknown reason for failure. Theory is that either
+            //  - the 0.0 is still there, or
+            //  - something reasonable was written that is better than 0.0
         }
     }
 
@@ -1061,8 +1077,17 @@ int TPpContext::tokenize(TPpToken& ppToken)
             continue;
 
         // expand macros
-        if (token == PpAtomIdentifier && MacroExpand(&ppToken, false, true) != 0)
-            continue;
+        if (token == PpAtomIdentifier) {
+            switch (MacroExpand(&ppToken, false, true)) {
+            case MacroExpandNotStarted:
+                break;
+            case MacroExpandError:
+                return EndOfInput;
+            case MacroExpandStarted:
+            case MacroExpandUndef:
+                continue;
+            }
+        }
 
         switch (token) {
         case PpAtomIdentifier:

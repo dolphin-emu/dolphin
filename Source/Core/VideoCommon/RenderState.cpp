@@ -14,7 +14,13 @@ void RasterizationState::Generate(const BPMemory& bp, PrimitiveType primitive_ty
 
   // Back-face culling should be disabled for points/lines.
   if (primitive_type != PrimitiveType::Triangles && primitive_type != PrimitiveType::TriangleStrip)
+  {
     cullmode = GenMode::CULL_NONE;
+  }
+  else if (cullmode == GenMode::CULL_FRONT)
+  {
+	cullmode = GenMode::CULL_BACK;
+  }
 }
 
 RasterizationState& RasterizationState::operator=(const RasterizationState& rhs)

@@ -225,7 +225,6 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupports3DVision = false;             // D3D-exclusive.
   config->backend_info.bSupportsOversizedViewports = true;    // Assumed support.
   config->backend_info.bSupportsEarlyZ = true;                // Assumed support.
-  config->backend_info.bSupportsPrimitiveRestart = true;      // Assumed support.
   config->backend_info.bSupportsBindingLayout = false;        // Assumed support.
   config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
   config->backend_info.bSupportsClipControl = true;           // Assumed support.
@@ -291,11 +290,6 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   const bool supports_bc = features.textureCompressionBC == VK_TRUE;
   config->backend_info.bSupportsST3CTextures = supports_bc;
   config->backend_info.bSupportsBPTCTextures = supports_bc;
-
-  // Our usage of primitive restart appears to be broken on AMD's binary drivers.
-  // Seems to be fine on GCN Gen 1-2, unconfirmed on GCN Gen 3, causes driver resets on GCN Gen 4.
-  if (DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART))
-    config->backend_info.bSupportsPrimitiveRestart = false;
 }
 
 void VulkanContext::PopulateBackendInfoMultisampleModes(

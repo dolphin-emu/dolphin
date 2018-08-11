@@ -10,34 +10,22 @@
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/BPMemory.h"
 
 // Init
 u16* IndexGenerator::index_buffer_current;
 u16* IndexGenerator::BASEIptr;
 u32 IndexGenerator::base_index;
 
-static const u16 s_primitive_restart = UINT16_MAX;
-
 static u16* (*primitive_table[8])(u16*, u32, u32);
 
 void IndexGenerator::Init()
 {
-  if (g_Config.backend_info.bSupportsPrimitiveRestart)
-  {
-    primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<true>;
-    primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
-    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<true>;
-    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<true>;
-    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<true>;
-  }
-  else
-  {
-    primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<false>;
-    primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<false>;
-    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<false>;
-    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
-    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
-  }
+  primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads;
+  primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard;
+  primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList;
+  primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip;
+  primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan;
   primitive_table[OpcodeDecoder::GX_DRAW_LINES] = &AddLineList;
   primitive_table[OpcodeDecoder::GX_DRAW_LINE_STRIP] = &AddLineStrip;
   primitive_table[OpcodeDecoder::GX_DRAW_POINTS] = &AddPoints;
@@ -56,49 +44,38 @@ void IndexGenerator::AddIndices(int primitive, u32 numVerts)
   base_index += numVerts;
 }
 
-// Triangles
-template <bool pr>
-DOLPHIN_FORCE_INLINE u16* IndexGenerator::WriteTriangle(u16* Iptr, u32 index1, u32 index2,
-                                                        u32 index3)
+u32 IndexGenerator::GetRemainingIndices()
 {
-  *Iptr++ = index1;
-  *Iptr++ = index2;
-  *Iptr++ = index3;
-  if (pr)
-    *Iptr++ = s_primitive_restart;
-  return Iptr;
+  u32 max_index = 65534;  // -1 is reserved for primitive restart (ogl + dx11)
+  return max_index - base_index;
 }
 
-template <bool pr>
+//////////////////////////////////////////////////////////////////////////////////
+// Triangles
 u16* IndexGenerator::AddList(u16* Iptr, u32 const numVerts, u32 index)
 {
-  for (u32 i = 2; i < numVerts; i += 3)
+  bool ccw = bpmem.genMode.cullmode == GenMode::CULL_FRONT;
+  int v1 = ccw ? 2 : 1;
+  int v2 = ccw ? 1 : 2;
+  for (u32 i = 0; i < numVerts; i += 3)
   {
-    Iptr = WriteTriangle<pr>(Iptr, index + i - 2, index + i - 1, index + i);
+    *Iptr++ = index + i;
+    *Iptr++ = index + i + v1;
+    *Iptr++ = index + i + v2;
   }
   return Iptr;
 }
 
-template <bool pr>
 u16* IndexGenerator::AddStrip(u16* Iptr, u32 const numVerts, u32 index)
 {
-  if (pr)
+  bool ccw = bpmem.genMode.cullmode == GenMode::CULL_FRONT;
+  int wind = ccw ? 2 : 1;
+  for (u32 i = 0; i < numVerts - 2; ++i)
   {
-    for (u32 i = 0; i < numVerts; ++i)
-    {
-      *Iptr++ = index + i;
-    }
-    *Iptr++ = s_primitive_restart;
-  }
-  else
-  {
-    bool wind = false;
-    for (u32 i = 2; i < numVerts; ++i)
-    {
-      Iptr = WriteTriangle<pr>(Iptr, index + i - 2, index + i - !wind, index + i - wind);
-
-      wind ^= true;
-    }
+    *Iptr++ = index + i;
+    *Iptr++ = index + i + wind;
+    wind ^= 3;  // toggle between 1 and 2
+    *Iptr++ = index + i + wind;
   }
   return Iptr;
 }
@@ -121,37 +98,16 @@ u16* IndexGenerator::AddStrip(u16* Iptr, u32 const numVerts, u32 index)
  *
  * so we use 6 indices for 3 triangles
  */
-
-template <bool pr>
 u16* IndexGenerator::AddFan(u16* Iptr, u32 numVerts, u32 index)
 {
-  u32 i = 2;
-
-  if (pr)
+  bool ccw = bpmem.genMode.cullmode == GenMode::CULL_FRONT;
+  int v1 = ccw ? 2 : 1;
+  int v2 = ccw ? 1 : 2;
+  for (u32 i = 0; i < numVerts - 2; ++i)
   {
-    for (; i + 3 <= numVerts; i += 3)
-    {
-      *Iptr++ = index + i - 1;
-      *Iptr++ = index + i + 0;
-      *Iptr++ = index;
-      *Iptr++ = index + i + 1;
-      *Iptr++ = index + i + 2;
-      *Iptr++ = s_primitive_restart;
-    }
-
-    for (; i + 2 <= numVerts; i += 2)
-    {
-      *Iptr++ = index + i - 1;
-      *Iptr++ = index + i + 0;
-      *Iptr++ = index;
-      *Iptr++ = index + i + 1;
-      *Iptr++ = s_primitive_restart;
-    }
-  }
-
-  for (; i < numVerts; ++i)
-  {
-    Iptr = WriteTriangle<pr>(Iptr, index, index + i - 1, index + i);
+    *Iptr++ = index;
+    *Iptr++ = index + i + v1;
+    *Iptr++ = index + i + v2;
   }
   return Iptr;
 }
@@ -173,41 +129,30 @@ u16* IndexGenerator::AddFan(u16* Iptr, u32 numVerts, u32 index)
  * A simple triangle has to be rendered for three vertices.
  * ZWW do this for sun rays
  */
-template <bool pr>
 u16* IndexGenerator::AddQuads(u16* Iptr, u32 numVerts, u32 index)
 {
-  u32 i = 3;
-  for (; i < numVerts; i += 4)
+  bool ccw = bpmem.genMode.cullmode == GenMode::CULL_FRONT;
+  int v1 = ccw ? 2 : 1;
+  int v2 = ccw ? 1 : 2;
+  int v3 = ccw ? 3 : 2;
+  int v4 = ccw ? 2 : 3;
+  for (u32 i = 0; i < numVerts; i += 4)
   {
-    if (pr)
-    {
-      *Iptr++ = index + i - 2;
-      *Iptr++ = index + i - 1;
-      *Iptr++ = index + i - 3;
-      *Iptr++ = index + i - 0;
-      *Iptr++ = s_primitive_restart;
-    }
-    else
-    {
-      Iptr = WriteTriangle<pr>(Iptr, index + i - 3, index + i - 2, index + i - 1);
-      Iptr = WriteTriangle<pr>(Iptr, index + i - 3, index + i - 1, index + i - 0);
-    }
-  }
+    *Iptr++ = index + i;
+    *Iptr++ = index + i + v1;
+    *Iptr++ = index + i + v2;
 
-  // three vertices remaining, so render a triangle
-  if (i == numVerts)
-  {
-    Iptr =
-        WriteTriangle<pr>(Iptr, index + numVerts - 3, index + numVerts - 2, index + numVerts - 1);
+    *Iptr++ = index + i;
+    *Iptr++ = index + i + v3;
+    *Iptr++ = index + i + v4;
   }
   return Iptr;
 }
 
-template <bool pr>
 u16* IndexGenerator::AddQuads_nonstandard(u16* Iptr, u32 numVerts, u32 index)
 {
   WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
-  return AddQuads<pr>(Iptr, numVerts, index);
+  return AddQuads(Iptr, numVerts, index);
 }
 
 // Lines
@@ -243,8 +188,3 @@ u16* IndexGenerator::AddPoints(u16* Iptr, u32 numVerts, u32 index)
   return Iptr;
 }
 
-u32 IndexGenerator::GetRemainingIndices()
-{
-  u32 max_index = 65534;  // -1 is reserved for primitive restart (ogl + dx11)
-  return max_index - base_index;
-}

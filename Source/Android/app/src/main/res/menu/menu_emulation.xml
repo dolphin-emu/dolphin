@@ -5,7 +5,7 @@
 
     <item
         android:id="@+id/menu_emulation_screenshot"
-        android:showAsAction="ifRoom"
+        android:showAsAction="always"
         android:icon="@drawable/ic_screenshot"
         android:title="@string/emulation_screenshot"/>
 
@@ -105,5 +105,4 @@
         android:id="@+id/menu_change_disc"
         app:showAsAction="never"
         android:title="@string/emulation_change_disc"/>
-
 </menu>

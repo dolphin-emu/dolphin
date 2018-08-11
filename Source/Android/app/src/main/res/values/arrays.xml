@@ -307,8 +307,7 @@
     </string-array>
 
     <string-array name="gameSettingsMenus">
-        <item>Core Settings</item>
-        <item>GFX Settings</item>
-        <item>Clear Game Settings</item>
+        <item>Game Settings</item>
+        <item>Clear Settings</item>
     </string-array>
 </resources>

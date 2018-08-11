@@ -36,6 +36,11 @@ public final class GameFileCacheService extends IntentService
 		super("GameFileCacheService");
 	}
 
+	public static List<GameFile> getAllGameFiles()
+	{
+		return Arrays.asList(gameFiles.get());
+	}
+
 	public static List<GameFile> getGameFilesForPlatform(Platform platform)
 	{
 		GameFile[] allGames = gameFiles.get();

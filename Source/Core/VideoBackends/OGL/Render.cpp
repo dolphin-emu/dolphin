@@ -435,9 +435,6 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsDualSourceBlend =
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
        GLExtensions::Supports("GL_EXT_blend_func_extended"));
-  g_Config.backend_info.bSupportsPrimitiveRestart =
-      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
-      ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsBBox = true;
   g_Config.backend_info.bSupportsFragmentStoresAndAtomics =
       GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
@@ -738,9 +735,8 @@ Renderer::Renderer()
     OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
   }
 
-  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
-           g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
            g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
            g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
            g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
@@ -795,8 +791,7 @@ Renderer::Renderer()
   glBlendColor(0, 0, 0, 0.5f);
   glClearDepthf(1.0f);
 
-  if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+
   IndexGenerator::Init();
 
   UpdateActiveConfig();
@@ -858,7 +853,7 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
   }
 
   s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(screen_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(screen_height), 0,
+                                    1.0f - top * 2.0f / static_cast<float>(screen_height),
                                     screen_width, screen_height, color);
 }
 

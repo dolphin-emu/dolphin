@@ -354,95 +354,105 @@ TIntermTyped* TParseContext::handleVariable(const TSourceLoc& loc, TSymbol* symb
 //
 TIntermTyped* TParseContext::handleBracketDereference(const TSourceLoc& loc, TIntermTyped* base, TIntermTyped* index)
 {
-    TIntermTyped* result = nullptr;
-
     int indexValue = 0;
     if (index->getQualifier().isFrontEndConstant())
         indexValue = index->getAsConstantUnion()->getConstArray()[0].getIConst();
 
+    // basic type checks...
     variableCheck(base);
+
     if (! base->isArray() && ! base->isMatrix() && ! base->isVector()) {
         if (base->getAsSymbolNode())
             error(loc, " left of '[' is not of type array, matrix, or vector ", base->getAsSymbolNode()->getName().c_str(), "");
         else
             error(loc, " left of '[' is not of type array, matrix, or vector ", "expression", "");
-    } else if (base->getType().getQualifier().isFrontEndConstant() && index->getQualifier().isFrontEndConstant()) {
+
+        // Insert dummy error-recovery result
+        return intermediate.addConstantUnion(0.0, EbtFloat, loc);
+    }
+
+    if (!base->isArray() && base->isVector()) {
+        if (base->getType().containsBasicType(EbtFloat16))
+            requireFloat16Arithmetic(loc, "[", "does not operate on types containing float16");
+        if (base->getType().contains16BitInt())
+            requireInt16Arithmetic(loc, "[", "does not operate on types containing (u)int16");
+        if (base->getType().contains8BitInt())
+            requireInt8Arithmetic(loc, "[", "does not operate on types containing (u)int8");
+    }
+
+    // check for constant folding
+    if (base->getType().getQualifier().isFrontEndConstant() && index->getQualifier().isFrontEndConstant()) {
         // both base and index are front-end constants
         checkIndex(loc, base->getType(), indexValue);
         return intermediate.foldDereference(base, indexValue, loc);
-    } else {
-        // at least one of base and index is not a front-end constant variable...
+    }
 
-        if (index->getQualifier().isFrontEndConstant())
+    // at least one of base and index is not a front-end constant variable...
+    TIntermTyped* result = nullptr;
+    if (index->getQualifier().isFrontEndConstant())
+        checkIndex(loc, base->getType(), indexValue);
+
+    if (base->getAsSymbolNode() && isIoResizeArray(base->getType()))
+        handleIoResizeArrayAccess(loc, base);
+
+    if (index->getQualifier().isFrontEndConstant()) {
+        if (base->getType().isUnsizedArray())
+            base->getWritableType().updateImplicitArraySize(indexValue + 1);
+        else
             checkIndex(loc, base->getType(), indexValue);
-
-        if (base->getAsSymbolNode() && isIoResizeArray(base->getType()))
-            handleIoResizeArrayAccess(loc, base);
-
-        if (index->getQualifier().isFrontEndConstant()) {
-            if (base->getType().isUnsizedArray())
-                base->getWritableType().updateImplicitArraySize(indexValue + 1);
-            else
-                checkIndex(loc, base->getType(), indexValue);
-            result = intermediate.addIndex(EOpIndexDirect, base, index, loc);
-        } else {
-            if (base->getType().isUnsizedArray()) {
-                // we have a variable index into an unsized array, which is okay,
-                // depending on the situation
-                if (base->getAsSymbolNode() && isIoResizeArray(base->getType()))
-                    error(loc, "", "[", "array must be sized by a redeclaration or layout qualifier before being indexed with a variable");
-                else {
-                    // it is okay for a run-time sized array
-                    checkRuntimeSizable(loc, *base);
-                }
-                base->getWritableType().setArrayVariablyIndexed();
-            }
-            if (base->getBasicType() == EbtBlock) {
-                if (base->getQualifier().storage == EvqBuffer)
-                    requireProfile(base->getLoc(), ~EEsProfile, "variable indexing buffer block array");
-                else if (base->getQualifier().storage == EvqUniform)
-                    profileRequires(base->getLoc(), EEsProfile, 320, Num_AEP_gpu_shader5, AEP_gpu_shader5,
-                                    "variable indexing uniform block array");
-                else {
-                    // input/output blocks either don't exist or can be variable indexed
-                }
-            } else if (language == EShLangFragment && base->getQualifier().isPipeOutput())
-                requireProfile(base->getLoc(), ~EEsProfile, "variable indexing fragment shader output array");
-            else if (base->getBasicType() == EbtSampler && version >= 130) {
-                const char* explanation = "variable indexing sampler array";
-                requireProfile(base->getLoc(), EEsProfile | ECoreProfile | ECompatibilityProfile, explanation);
-                profileRequires(base->getLoc(), EEsProfile, 320, Num_AEP_gpu_shader5, AEP_gpu_shader5, explanation);
-                profileRequires(base->getLoc(), ECoreProfile | ECompatibilityProfile, 400, nullptr, explanation);
-            }
-
-            result = intermediate.addIndex(EOpIndexIndirect, base, index, loc);
-        }
-    }
-
-    if (result == nullptr) {
-        // Insert dummy error-recovery result
-        result = intermediate.addConstantUnion(0.0, EbtFloat, loc);
+        result = intermediate.addIndex(EOpIndexDirect, base, index, loc);
     } else {
-        // Insert valid dereferenced result
-        TType newType(base->getType(), 0);  // dereferenced type
-        if (base->getType().getQualifier().isConstant() && index->getQualifier().isConstant()) {
-            newType.getQualifier().storage = EvqConst;
-            // If base or index is a specialization constant, the result should also be a specialization constant.
-            if (base->getType().getQualifier().isSpecConstant() || index->getQualifier().isSpecConstant()) {
-                newType.getQualifier().makeSpecConstant();
+        if (base->getType().isUnsizedArray()) {
+            // we have a variable index into an unsized array, which is okay,
+            // depending on the situation
+            if (base->getAsSymbolNode() && isIoResizeArray(base->getType()))
+                error(loc, "", "[", "array must be sized by a redeclaration or layout qualifier before being indexed with a variable");
+            else {
+                // it is okay for a run-time sized array
+                checkRuntimeSizable(loc, *base);
             }
-        } else {
-            newType.getQualifier().makePartialTemporary();
+            base->getWritableType().setArrayVariablyIndexed();
         }
-        result->setType(newType);
+        if (base->getBasicType() == EbtBlock) {
+            if (base->getQualifier().storage == EvqBuffer)
+                requireProfile(base->getLoc(), ~EEsProfile, "variable indexing buffer block array");
+            else if (base->getQualifier().storage == EvqUniform)
+                profileRequires(base->getLoc(), EEsProfile, 320, Num_AEP_gpu_shader5, AEP_gpu_shader5,
+                                "variable indexing uniform block array");
+            else {
+                // input/output blocks either don't exist or can be variable indexed
+            }
+        } else if (language == EShLangFragment && base->getQualifier().isPipeOutput())
+            requireProfile(base->getLoc(), ~EEsProfile, "variable indexing fragment shader output array");
+        else if (base->getBasicType() == EbtSampler && version >= 130) {
+            const char* explanation = "variable indexing sampler array";
+            requireProfile(base->getLoc(), EEsProfile | ECoreProfile | ECompatibilityProfile, explanation);
+            profileRequires(base->getLoc(), EEsProfile, 320, Num_AEP_gpu_shader5, AEP_gpu_shader5, explanation);
+            profileRequires(base->getLoc(), ECoreProfile | ECompatibilityProfile, 400, nullptr, explanation);
+        }
 
-        // Propagate nonuniform
-        if (base->getQualifier().isNonUniform() || index->getQualifier().isNonUniform())
-            result->getWritableType().getQualifier().nonUniform = true;
-
-        if (anyIndexLimits)
-            handleIndexLimits(loc, base, index);
+        result = intermediate.addIndex(EOpIndexIndirect, base, index, loc);
     }
+
+    // Insert valid dereferenced result
+    TType newType(base->getType(), 0);  // dereferenced type
+    if (base->getType().getQualifier().isConstant() && index->getQualifier().isConstant()) {
+        newType.getQualifier().storage = EvqConst;
+        // If base or index is a specialization constant, the result should also be a specialization constant.
+        if (base->getType().getQualifier().isSpecConstant() || index->getQualifier().isSpecConstant()) {
+            newType.getQualifier().makeSpecConstant();
+        }
+    } else {
+        newType.getQualifier().makePartialTemporary();
+    }
+    result->setType(newType);
+
+    // Propagate nonuniform
+    if (base->getQualifier().isNonUniform() || index->getQualifier().isNonUniform())
+        result->getWritableType().getQualifier().nonUniform = true;
+
+    if (anyIndexLimits)
+        handleIndexLimits(loc, base, index);
 
     return result;
 }
@@ -615,6 +625,12 @@ TIntermTyped* TParseContext::handleBinaryMath(const TSourceLoc& loc, const char*
         break;
     }
 
+    if (((left->getType().containsBasicType(EbtFloat16) || right->getType().containsBasicType(EbtFloat16)) && !float16Arithmetic()) ||
+        ((left->getType().contains16BitInt() || right->getType().contains16BitInt()) && !int16Arithmetic()) ||
+        ((left->getType().contains8BitInt() || right->getType().contains8BitInt()) && !int8Arithmetic())) {
+        allowed = false;
+    }
+
     TIntermTyped* result = nullptr;
     if (allowed)
         result = intermediate.addBinaryMath(op, left, right, loc);
@@ -630,7 +646,17 @@ TIntermTyped* TParseContext::handleUnaryMath(const TSourceLoc& loc, const char* 
 {
     rValueErrorCheck(loc, str, childNode);
 
-    TIntermTyped* result = intermediate.addUnaryMath(op, childNode, loc);
+    bool allowed = true;
+    if ((childNode->getType().containsBasicType(EbtFloat16) && !float16Arithmetic()) ||
+        (childNode->getType().contains16BitInt() && !int16Arithmetic()) ||
+        (childNode->getType().contains8BitInt() && !int8Arithmetic())) {
+        allowed = false;
+    }
+
+    TIntermTyped* result = nullptr;
+    
+    if (allowed)
+        result = intermediate.addUnaryMath(op, childNode, loc);
 
     if (result)
         return result;
@@ -691,6 +717,13 @@ TIntermTyped* TParseContext::handleDotDereference(const TSourceLoc& loc, TInterm
 
         TSwizzleSelectors<TVectorSelector> selectors;
         parseSwizzleSelector(loc, field, base->getVectorSize(), selectors);
+
+        if (base->isVector() && selectors.size() != 1 && base->getType().containsBasicType(EbtFloat16))
+            requireFloat16Arithmetic(loc, ".", "can't swizzle types containing float16");
+        if (base->isVector() && selectors.size() != 1 && base->getType().contains16BitInt())
+            requireInt16Arithmetic(loc, ".", "can't swizzle types containing (u)int16");
+        if (base->isVector() && selectors.size() != 1 && base->getType().contains8BitInt())
+            requireInt8Arithmetic(loc, ".", "can't swizzle types containing (u)int8");
 
         if (base->isScalar()) {
             if (selectors.size() == 1)
@@ -970,6 +1003,13 @@ TIntermTyped* TParseContext::handleFunctionCall(const TSourceLoc& loc, TFunction
             if (builtIn && fnCandidate->getNumExtensions())
                 requireExtensions(loc, fnCandidate->getNumExtensions(), fnCandidate->getExtensions(), fnCandidate->getName().c_str());
 
+            if (builtIn && fnCandidate->getType().containsBasicType(EbtFloat16))
+                requireFloat16Arithmetic(loc, "built-in function", "float16 types can only be in uniform block or buffer storage");
+            if (builtIn && fnCandidate->getType().contains16BitInt())
+                requireInt16Arithmetic(loc, "built-in function", "(u)int16 types can only be in uniform block or buffer storage");
+            if (builtIn && fnCandidate->getType().contains8BitInt())
+                requireInt8Arithmetic(loc, "built-in function", "(u)int8 types can only be in uniform block or buffer storage");
+
             if (arguments != nullptr) {
                 // Make sure qualifications work for these arguments.
                 TIntermAggregate* aggregate = arguments->getAsAggregate();
@@ -995,6 +1035,14 @@ TIntermTyped* TParseContext::handleFunctionCall(const TSourceLoc& loc, TFunction
                         if (argQualifier.writeonly && ! formalQualifier.writeonly)
                             error(arguments->getLoc(), message, "writeonly", "");
                     }
+
+                    if (builtIn && arg->getAsTyped()->getType().containsBasicType(EbtFloat16))
+                        requireFloat16Arithmetic(arguments->getLoc(), "built-in function", "float16 types can only be in uniform block or buffer storage");
+                    if (builtIn && arg->getAsTyped()->getType().contains16BitInt())
+                        requireInt16Arithmetic(arguments->getLoc(), "built-in function", "(u)int16 types can only be in uniform block or buffer storage");
+                    if (builtIn && arg->getAsTyped()->getType().contains8BitInt())
+                        requireInt8Arithmetic(arguments->getLoc(), "built-in function", "(u)int8 types can only be in uniform block or buffer storage");
+
                     // TODO 4.5 functionality:  A shader will fail to compile
                     // if the value passed to the memargument of an atomic memory function does not correspond to a buffer or
                     // shared variable. It is acceptable to pass an element of an array or a single component of a vector to the
@@ -1179,6 +1227,8 @@ void TParseContext::computeBuiltinPrecisions(TIntermTyped& node, const TFunction
 
 TIntermNode* TParseContext::handleReturnValue(const TSourceLoc& loc, TIntermTyped* value)
 {
+    storage16BitAssignmentCheck(loc, value->getType(), "return");
+
     functionReturnsValue = true;
     if (currentFunctionType->getBasicType() == EbtVoid) {
         error(loc, "void function cannot return a value", "return", "");
@@ -1700,6 +1750,31 @@ void TParseContext::builtInOpCheck(const TSourceLoc& loc, const TFunction& fnCan
                 error(loc, "argument must be a power of 2", "cluster size", "");
         }
         break;
+
+    default:
+        break;
+    }
+
+    // Texture operations on texture objects (aside from texelFetch on a
+    // textureBuffer) require EXT_samplerless_texture_functions.
+    switch (callNode.getOp()) {
+    case EOpTextureQuerySize:
+    case EOpTextureQueryLevels:
+    case EOpTextureQuerySamples:
+    case EOpTextureFetch:
+    case EOpTextureFetchOffset:
+    {
+        const TSampler& sampler = fnCandidate[0].type->getSampler();
+
+        const bool isTexture = sampler.isTexture() && !sampler.isCombined();
+        const bool isBuffer = sampler.dim == EsdBuffer;
+        const bool isFetch = callNode.getOp() == EOpTextureFetch || callNode.getOp() == EOpTextureFetchOffset;
+
+        if (isTexture && (!isBuffer || !isFetch))
+            requireExtensions(loc, 1, &E_GL_EXT_samplerless_texture_functions, fnCandidate.getName().c_str());
+
+        break;
+    }
 
     default:
         break;
@@ -2328,6 +2403,59 @@ bool TParseContext::constructorError(const TSourceLoc& loc, TIntermNode* node, T
             specConstType = true;
         if (function[arg].type->isFloatingDomain())
             floatArgument = true;
+        if (type.isStruct()) {
+            if (function[arg].type->containsBasicType(EbtFloat16)) {
+                requireFloat16Arithmetic(loc, "constructor", "can't construct structure containing 16-bit type");
+            }
+            if (function[arg].type->containsBasicType(EbtUint16) ||
+                function[arg].type->containsBasicType(EbtInt16)) {
+                requireInt16Arithmetic(loc, "constructor", "can't construct structure containing 16-bit type");
+            }
+            if (function[arg].type->containsBasicType(EbtUint8) ||
+                function[arg].type->containsBasicType(EbtInt8)) {
+                requireInt8Arithmetic(loc, "constructor", "can't construct structure containing 8-bit type");
+            }
+        }
+    }
+
+    switch (op) {
+    case EOpConstructFloat16:
+    case EOpConstructF16Vec2:
+    case EOpConstructF16Vec3:
+    case EOpConstructF16Vec4:
+        if (type.isArray())
+            requireFloat16Arithmetic(loc, "constructor", "16-bit arrays not supported");
+        if (type.isVector() && function.getParamCount() != 1)
+            requireFloat16Arithmetic(loc, "constructor", "16-bit vectors only take vector types");
+        break;
+    case EOpConstructUint16:
+    case EOpConstructU16Vec2:
+    case EOpConstructU16Vec3:
+    case EOpConstructU16Vec4:
+    case EOpConstructInt16:
+    case EOpConstructI16Vec2:
+    case EOpConstructI16Vec3:
+    case EOpConstructI16Vec4:
+        if (type.isArray())
+            requireInt16Arithmetic(loc, "constructor", "16-bit arrays not supported");
+        if (type.isVector() && function.getParamCount() != 1)
+            requireInt16Arithmetic(loc, "constructor", "16-bit vectors only take vector types");
+        break;
+    case EOpConstructUint8:
+    case EOpConstructU8Vec2:
+    case EOpConstructU8Vec3:
+    case EOpConstructU8Vec4:
+    case EOpConstructInt8:
+    case EOpConstructI8Vec2:
+    case EOpConstructI8Vec3:
+    case EOpConstructI8Vec4:
+        if (type.isArray())
+            requireInt8Arithmetic(loc, "constructor", "8-bit arrays not supported");
+        if (type.isVector() && function.getParamCount() != 1)
+            requireInt8Arithmetic(loc, "constructor", "8-bit vectors only take vector types");
+        break;
+    default:
+        break;
     }
 
     // inherit constness from children
@@ -2527,16 +2655,10 @@ bool TParseContext::constructorTextureSamplerError(const TSourceLoc& loc, const 
     // second argument
     //   * the constructor's second argument must be a scalar of type
     //     *sampler* or *samplerShadow*
-    //   * the presence or absence of depth comparison (Shadow) must match
-    //     between the constructed sampler type and the type of the second argument
     if (  function[1].type->getBasicType() != EbtSampler ||
         ! function[1].type->getSampler().isPureSampler() ||
           function[1].type->isArray()) {
         error(loc, "sampler-constructor second argument must be a scalar type 'sampler'", token, "");
-        return true;
-    }
-    if (function.getType().getSampler().shadow != function[1].type->getSampler().shadow) {
-        error(loc, "sampler-constructor second argument presence of shadow must match constructor presence of shadow", token, "");
         return true;
     }
 
@@ -3012,6 +3134,13 @@ void TParseContext::parameterTypeCheck(const TSourceLoc& loc, TStorageQualifier 
 {
     if ((qualifier == EvqOut || qualifier == EvqInOut) && type.isOpaque())
         error(loc, "samplers and atomic_uints cannot be output parameters", type.getBasicTypeString().c_str(), "");
+
+    if (!parsingBuiltins && type.containsBasicType(EbtFloat16))
+        requireFloat16Arithmetic(loc, type.getBasicTypeString().c_str(), "float16 types can only be in uniform block or buffer storage");
+    if (!parsingBuiltins && type.contains16BitInt())
+        requireInt16Arithmetic(loc, type.getBasicTypeString().c_str(), "(u)int16 types can only be in uniform block or buffer storage");
+    if (!parsingBuiltins && type.contains8BitInt())
+        requireInt8Arithmetic(loc, type.getBasicTypeString().c_str(), "(u)int8 types can only be in uniform block or buffer storage");
 }
 
 bool TParseContext::containsFieldWithBasicType(const TType& type, TBasicType basicType)
@@ -3784,6 +3913,39 @@ void TParseContext::opaqueCheck(const TSourceLoc& loc, const TType& type, const 
 {
     if (containsFieldWithBasicType(type, EbtSampler))
         error(loc, "can't use with samplers or structs containing samplers", op, "");
+}
+
+void TParseContext::storage16BitAssignmentCheck(const TSourceLoc& loc, const TType& type, const char* op)
+{
+    if (type.getBasicType() == EbtStruct && containsFieldWithBasicType(type, EbtFloat16))
+        requireFloat16Arithmetic(loc, op, "can't use with structs containing float16");
+
+    if (type.isArray() && type.getBasicType() == EbtFloat16)
+        requireFloat16Arithmetic(loc, op, "can't use with arrays containing float16");
+
+    if (type.getBasicType() == EbtStruct && containsFieldWithBasicType(type, EbtInt16))
+        requireInt16Arithmetic(loc, op, "can't use with structs containing int16");
+
+    if (type.isArray() && type.getBasicType() == EbtInt16)
+        requireInt16Arithmetic(loc, op, "can't use with arrays containing int16");
+
+    if (type.getBasicType() == EbtStruct && containsFieldWithBasicType(type, EbtUint16))
+        requireInt16Arithmetic(loc, op, "can't use with structs containing uint16");
+
+    if (type.isArray() && type.getBasicType() == EbtUint16)
+        requireInt16Arithmetic(loc, op, "can't use with arrays containing uint16");
+
+    if (type.getBasicType() == EbtStruct && containsFieldWithBasicType(type, EbtInt8))
+        requireInt8Arithmetic(loc, op, "can't use with structs containing int8");
+
+    if (type.isArray() && type.getBasicType() == EbtInt8)
+        requireInt8Arithmetic(loc, op, "can't use with arrays containing int8");
+
+    if (type.getBasicType() == EbtStruct && containsFieldWithBasicType(type, EbtUint8))
+        requireInt8Arithmetic(loc, op, "can't use with structs containing uint8");
+
+    if (type.isArray() && type.getBasicType() == EbtUint8)
+        requireInt8Arithmetic(loc, op, "can't use with arrays containing uint8");
 }
 
 void TParseContext::specializationCheck(const TSourceLoc& loc, const TType& type, const char* op)
@@ -5389,6 +5551,15 @@ TIntermNode* TParseContext::declareVariable(const TSourceLoc& loc, TString& iden
     atomicUintCheck(loc, type, identifier);
     transparentOpaqueCheck(loc, type, identifier);
 
+    if (type.getQualifier().storage != EvqUniform && type.getQualifier().storage != EvqBuffer) {
+        if (type.containsBasicType(EbtFloat16))
+            requireFloat16Arithmetic(loc, "qualifier", "float16 types can only be in uniform block or buffer storage");
+        if (type.contains16BitInt())
+            requireInt16Arithmetic(loc, "qualifier", "(u)int16 types can only be in uniform block or buffer storage");
+        if (type.contains8BitInt())
+            requireInt8Arithmetic(loc, "qualifier", "(u)int8 types can only be in uniform block or buffer storage");
+    }
+
     if (identifier != "gl_FragCoord" && (publicType.shaderQualifiers.originUpperLeft || publicType.shaderQualifiers.pixelCenterInteger))
         error(loc, "can only apply origin_upper_left and pixel_center_origin to gl_FragCoord", "layout qualifier", "");
     if (identifier != "gl_FragDepth" && publicType.shaderQualifiers.layoutDepth != EldNone)
@@ -5740,8 +5911,14 @@ TIntermTyped* TParseContext::addConstructor(const TSourceLoc& loc, TIntermNode* 
 
     // Combined texture-sampler constructors are completely semantic checked
     // in constructorTextureSamplerError()
-    if (op == EOpConstructTextureSampler)
+    if (op == EOpConstructTextureSampler) {
+        if (aggrNode->getSequence()[1]->getAsTyped()->getType().getSampler().shadow) {
+            // Transfer depth into the texture (SPIR-V image) type, as a hint
+            // for tools to know this texture/image is a depth image.
+            aggrNode->getSequence()[0]->getAsTyped()->getWritableType().getSampler().shadow = true;
+        }
         return intermediate.setAggregateOperator(aggrNode, op, type, loc);
+    }
 
     TTypeList::const_iterator memberTypes;
     if (op == EOpConstructStruct)

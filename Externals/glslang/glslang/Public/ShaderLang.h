@@ -70,7 +70,7 @@
 // This should always increase, as some paths to do not consume
 // a more major number.
 // It should increment by one when new functionality is added.
-#define GLSLANG_MINOR_VERSION 7
+#define GLSLANG_MINOR_VERSION 8
 
 //
 // Call before doing any other compiler/linker operations.
@@ -671,6 +671,7 @@ public:
     int getUniformBlockSize(int blockIndex) const;         // can be used for glGetActiveUniformBlockiv(UNIFORM_BLOCK_DATA_SIZE)
     int getUniformIndex(const char* name) const;           // can be used for glGetUniformIndices()
     int getUniformBinding(int index) const;                // returns the binding number
+    EShLanguageMask getUniformStages(int index) const;     // returns Shaders Stages where a Uniform is present
     int getUniformBlockBinding(int index) const;           // returns the block binding number
     int getUniformBlockIndex(int index) const;             // can be used for glGetActiveUniformsiv(GL_UNIFORM_BLOCK_INDEX)
     int getUniformBlockCounterIndex(int index) const;      // returns block index of associated counter.

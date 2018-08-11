@@ -23,13 +23,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-08-09 00:00:15 +0300 (Sun, 09 Aug 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: sse_optimized.cpp 226 2015-08-08 21:00:15Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -216,7 +209,7 @@ FIRFilterSSE::~FIRFilterSSE()
 
 
 // (overloaded) Calculates filter coefficients for SSE routine
-void FIRFilterSSE::setCoefficients(const float *coeffs, uint newLength, uint uResultDivFactor)
+void FIRFilterSSE::setCoefficients(const SAMPLETYPE *coeffs, uint newLength, uint uResultDivFactor)
 {
     uint i;
     float fDivider;

@@ -64,6 +64,7 @@
     <ClInclude Include="PeakFinder.h" />
     <ClInclude Include="RateTransposer.h" />
     <ClInclude Include="SoundTouch.h" />
+    <ClInclude Include="soundtouch_config.h" />
     <ClInclude Include="STTypes.h" />
     <ClInclude Include="TDStretch.h" />
   </ItemGroup>

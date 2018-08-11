@@ -75,6 +75,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "Core/Config/GraphicsSettings.h"
+
 namespace Core
 {
 static bool s_wants_determinism;
@@ -96,6 +98,8 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
+
+static bool s_show_fps = false;
 
 struct HostJob
 {
@@ -213,6 +217,8 @@ bool Init(std::unique_ptr<BootParameters> boot)
   INFO_LOG(BOOT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
+
+  s_show_fps = Config::Get(Config::GFX_SHOW_FPS);
 
   s_window_handle = Host_GetRenderHandle();
 
@@ -791,9 +797,9 @@ void Callback_VideoCopiedToXFB(bool video_update)
 
 void UpdateTitle()
 {
+  const SConfig& _CoreParameter = SConfig::GetInstance();
   u32 ElapseTime = (u32)s_timer.GetTimeDifference();
   s_request_refresh_info = false;
-  SConfig& _CoreParameter = SConfig::GetInstance();
 
   if (ElapseTime == 0)
     ElapseTime = 1;
@@ -803,55 +809,51 @@ void UpdateTitle()
   float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) /
                         (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
-  // Settings are shown the same for both extended and summary info
-  std::string SSettings = StringFromFormat(
-      "%s %s | %s | %s", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
-      g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
-
   std::string SFPS;
 
   if (Movie::IsPlayingInput())
+  {
     SFPS = StringFromFormat("Input: %u/%u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetTotalInputCount(),
-                            (u32)Movie::GetCurrentFrame(), FPS, VPS, Speed);
+      (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetTotalInputCount(),
+      (u32)Movie::GetCurrentFrame(), FPS, VPS, Speed);
+  }
   else if (Movie::IsRecordingInput())
+  {
     SFPS = StringFromFormat("Input: %u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetCurrentFrame(), FPS,
-                            VPS, Speed);
-  else
+      (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetCurrentFrame(), FPS,
+      VPS, Speed);
+  }
+  else if (_CoreParameter.m_InterfaceExtendedFPSInfo)
+  {
+    // Use extended or summary information. The summary information does not print the ticks data,
+    // that's more of a debugging interest, it can always be optional of course if someone is
+    // interested.
+    static u64 ticks = 0;
+    static u64 idleTicks = 0;
+    u64 newTicks = CoreTiming::GetTicks();
+    u64 newIdleTicks = CoreTiming::GetIdleTicks();
+
+    u64 diff = (newTicks - ticks) / 1000000;
+    u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
+
+    ticks = newTicks;
+    idleTicks = newIdleTicks;
+
+    float TicksPercentage =
+        (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
+
+    SFPS = StringFromFormat(
+      "%s %s | %s | %s | FPS: %.0f - VPS: %.0f - %.0f%% | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
+      PowerPC::GetCPUName(),
+      _CoreParameter.bCPUThread ? "DC" : "SC",
+      g_video_backend->GetDisplayName().c_str(),
+      _CoreParameter.bDSPHLE ? "HLE" : "LLE",
+      FPS, VPS, Speed,
+      (int)(diff), (int)(diff - idleDiff), (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
+  }
+  else if(s_show_fps)
   {
     SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
-    if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
-    {
-      // Use extended or summary information. The summary information does not print the ticks data,
-      // that's more of a debugging interest, it can always be optional of course if someone is
-      // interested.
-      static u64 ticks = 0;
-      static u64 idleTicks = 0;
-      u64 newTicks = CoreTiming::GetTicks();
-      u64 newIdleTicks = CoreTiming::GetIdleTicks();
-
-      u64 diff = (newTicks - ticks) / 1000000;
-      u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-
-      ticks = newTicks;
-      idleTicks = newIdleTicks;
-
-      float TicksPercentage =
-          (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
-
-      SFPS += StringFromFormat(" | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
-                               (int)(diff), (int)(diff - idleDiff), (int)(idleDiff),
-                               SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
-    }
-  }
-
-  std::string message = StringFromFormat("%s | %s", SSettings.c_str(), SFPS.c_str());
-  if (SConfig::GetInstance().m_show_active_title)
-  {
-    const std::string& title = SConfig::GetInstance().GetTitleDescription();
-    if (!title.empty())
-      message += " | " + title;
   }
 
   // Update the audio timestretcher with the current speed
@@ -861,7 +863,18 @@ void UpdateTitle()
     pMixer->UpdateSpeed((float)Speed / 100);
   }
 
-  Host_UpdateTitle(message);
+#ifdef __ANDROID__
+  g_renderer->UpdateDebugTitle(SFPS);
+#else
+  if (_CoreParameter.m_show_active_title)
+  {
+    const std::string& title = SConfig::GetInstance().GetTitleDescription();
+    if (!title.empty())
+      SFPS += " | " + title;
+  }
+
+  Host_UpdateTitle(SFPS);
+#endif
 }
 
 void Shutdown()
