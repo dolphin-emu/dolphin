@@ -68,11 +68,6 @@ public final class SettingsFile
 	public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
 	public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
 
-	public static final String KEY_STEREO_MODE = "StereoMode";
-	public static final String KEY_STEREO_DEPTH = "StereoDepth";
-	public static final String KEY_STEREO_CONV = "StereoConvergencePercentage";
-	public static final String KEY_STEREO_SWAP = "StereoSwapEyes";
-
 	public static final String KEY_SKIP_EFB = "EFBAccessEnable";
 	public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
 	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";

@@ -13,7 +13,6 @@ public enum MenuTag
     GRAPHICS("graphics"),
     HACKS("hacks"),
     ENHANCEMENTS("enhancements"),
-    STEREOSCOPY("stereoscopy"),
     GCPAD_1("gcpad", 0),
     GCPAD_2("gcpad", 1),
     GCPAD_3("gcpad", 2),

@@ -22,8 +22,6 @@ public class Settings
     public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
     public static final String SECTION_GFX_HACKS = "Hacks";
 
-    public static final String SECTION_STEREOSCOPY = "Stereoscopy";
-
     public static final String SECTION_WIIMOTE = "Wiimote";
 
     public static final String SECTION_BINDINGS = "Android";
@@ -35,7 +33,7 @@ public class Settings
     static
     {
         configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN, Arrays.asList(SECTION_INI_CORE, SECTION_INI_DSP, SECTION_INI_INTERFACE, SECTION_BINDINGS));
-        configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX, Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS, SECTION_STEREOSCOPY));
+        configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX, Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS));
         configFileSectionsMap.put(SettingsFile.FILE_NAME_WIIMOTE, Arrays.asList(SECTION_WIIMOTE + 1, SECTION_WIIMOTE + 2, SECTION_WIIMOTE + 3, SECTION_WIIMOTE + 4));
     }
 
