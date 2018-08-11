@@ -29,8 +29,8 @@ static std::array<GekkoOPTemplate, 54> primarytable =
 	{59, Interpreter::RunTable59,   {"RunTable59", OpType::Subtable, 0, 0, 0, 0, 0}},
 	{63, Interpreter::RunTable63,   {"RunTable63", OpType::Subtable, 0, 0, 0, 0, 0}},
 
-	{16, Interpreter::bcx,          {"bcx", OpType::System, FL_ENDBLOCK, 1, 0, 0, 0}},
-	{18, Interpreter::bx,           {"bx",  OpType::System, FL_ENDBLOCK, 1, 0, 0, 0}},
+	{16, Interpreter::bcx,          {"bcx", OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
+	{18, Interpreter::bx,           {"bx",  OpType::Branch, FL_ENDBLOCK, 1, 0, 0, 0}},
 
 	{3,  Interpreter::twi,          {"twi", OpType::System, FL_ENDBLOCK, 1, 0, 0, 0}},
 	{17, Interpreter::sc,           {"sc",  OpType::System, FL_ENDBLOCK, 2, 0, 0, 0}},
