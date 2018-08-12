@@ -252,7 +252,7 @@ static void gdb_read_command()
   else if (c == 0x03)
   {
     CPU::Break();
-    gdb_signal(SIGTRAP);
+    gdb_signal(GDB_SIGTRAP);
     return;
   }
   else if (c != GDB_STUB_START)

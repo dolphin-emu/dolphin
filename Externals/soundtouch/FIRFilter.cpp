@@ -2,20 +2,19 @@
 ///
 /// General FIR digital filter routines with MMX optimization. 
 ///
-/// Note : MMX optimized functions reside in a separate, platform-specific file, 
+/// Notes : MMX optimized functions reside in a separate, platform-specific file, 
 /// e.g. 'mmx_win.cpp' or 'mmx_gcc.cpp'
+///
+/// This source file contains OpenMP optimizations that allow speeding up the
+/// corss-correlation algorithm by executing it in several threads / CPU cores 
+/// in parallel. See the following article link for more detailed discussion 
+/// about SoundTouch OpenMP optimizations:
+/// http://www.softwarecoven.com/parallel-computing-in-embedded-mobile-devices
 ///
 /// Author        : Copyright (c) Olli Parviainen
 /// Author e-mail : oparviai 'at' iki.fi
 /// SoundTouch WWW: http://www.surina.net/soundtouch
 ///
-////////////////////////////////////////////////////////////////////////////////
-//
-// Last changed  : $Date: 2015-02-21 23:24:29 +0200 (Sat, 21 Feb 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: FIRFilter.cpp 202 2015-02-21 21:24:29Z oparviai $
-//
 ////////////////////////////////////////////////////////////////////////////////
 //
 // License :

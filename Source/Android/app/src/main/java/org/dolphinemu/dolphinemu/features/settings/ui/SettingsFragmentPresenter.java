@@ -179,10 +179,6 @@ public final class SettingsFragmentPresenter
 				addExtensionTypeSettings(sl, mControllerNumber, mControllerType);
 				break;
 
-			case STEREOSCOPY:
-				addStereoSettings(sl);
-				break;
-
 			default:
 				mView.showToastMessage("Unimplemented menu");
 				return;
@@ -369,10 +365,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_FSAA, Settings.SECTION_GFX_SETTINGS,  R.string.FSAA, R.string.FSAA_description, R.array.FSAAEntries, R.array.FSAAValues, 0, fsaa));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ANISOTROPY, Settings.SECTION_GFX_ENHANCEMENTS,  R.string.anisotropic_filtering, R.string.anisotropic_filtering_description, R.array.anisotropicFilteringEntries, R.array.anisotropicFilteringValues, 0, anisotropic));
 
-		IntSetting stereoModeValue = (IntSetting) gfxSection.getSetting(SettingsFile.KEY_STEREO_MODE);
-		int anaglyphMode = 3;
-		String subDir = stereoModeValue != null && stereoModeValue.getValue() == anaglyphMode ? "Anaglyph" : null;
-		String[] shaderListEntries = getShaderList(subDir);
+		String[] shaderListEntries = getShaderList(null);
 		String[] shaderListValues = new String[shaderListEntries.length];
 		System.arraycopy(shaderListEntries, 0, shaderListValues, 0, shaderListEntries.length);
 		shaderListValues[0] = "";
@@ -386,19 +379,6 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, Settings.SECTION_GFX_SETTINGS,  R.string.disable_copy_filter, R.string.disable_copy_filter_description, false, disableCopyFilter));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION, Settings.SECTION_GFX_SETTINGS,  R.string.arbitrary_mipmap_detection, R.string.arbitrary_mipmap_detection_description, true, arbitraryMipmapDetection));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_ENHANCEMENTS,  R.string.wide_screen_hack, R.string.wide_screen_hack_description, false, wideScreenHack));
-
-		 /*
-		 Check if we support stereo
-		 If we support desktop GL then we must support at least OpenGL 3.2
-		 If we only support OpenGLES then we need both OpenGLES 3.1 and AEP
-		 */
-		EGLHelper helper = new EGLHelper(EGLHelper.EGL_OPENGL_ES2_BIT);
-
-		if ((helper.supportsOpenGL() && helper.GetVersion() >= 320) ||
-				(helper.supportsGLES3() && helper.GetVersion() >= 310 && helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
-		{
-			sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu, R.string.stereoscopy_submenu_description, MenuTag.STEREOSCOPY));
-		}
 	}
 
 	private String[] getShaderList(String subDir)
@@ -471,21 +451,6 @@ public final class SettingsFragmentPresenter
 
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, Settings.SECTION_GFX_HACKS,  R.string.fast_depth_calculation, R.string.fast_depth_calculation_description, true, fastDepth));
-	}
-
-	private void addStereoSettings(ArrayList<SettingsItem> sl)
-	{
-        SettingSection stereoScopySection = mSettings.getSection(Settings.SECTION_STEREOSCOPY);
-
-		Setting stereoModeValue = stereoScopySection.getSetting(SettingsFile.KEY_STEREO_MODE);
-		Setting stereoDepth = stereoScopySection.getSetting(SettingsFile.KEY_STEREO_DEPTH);
-		Setting convergence = stereoScopySection.getSetting(SettingsFile.KEY_STEREO_CONV);
-		Setting swapEyes = stereoScopySection.getSetting(SettingsFile.KEY_STEREO_SWAP);
-
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_STEREO_MODE, Settings.SECTION_STEREOSCOPY,  R.string.stereoscopy_mode, R.string.stereoscopy_mode_description, R.array.stereoscopyEntries, R.array.stereoscopyValues, 0, stereoModeValue));
-		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_DEPTH, Settings.SECTION_STEREOSCOPY,  R.string.stereoscopy_depth, R.string.stereoscopy_depth_description, 100, "%", 20, stereoDepth));
-		sl.add(new SliderSetting(SettingsFile.KEY_STEREO_CONV, Settings.SECTION_STEREOSCOPY,  R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 200, "%", 0, convergence));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_STEREO_SWAP, Settings.SECTION_STEREOSCOPY,  R.string.stereoscopy_swap_eyes, R.string.stereoscopy_swap_eyes_description, false, swapEyes));
 	}
 
 	private void addGcPadSubSettings(ArrayList<SettingsItem> sl, int gcPadNumber, int gcPadType)

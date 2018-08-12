@@ -700,12 +700,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					y = 0.55f;
 					break;
 				case ButtonType.BUTTON_B:
-					x = 0.45f;
-					y = 0.70f;
+					x = 0.47f;
+					y = 0.80f;
 					break;
 				case ButtonType.BUTTON_START:
 					x = 0.00f;
-					y = 0.55f;
+					y = 0.65f;
 					break;
 				case ButtonType.BUTTON_X:
 					x = 0.85f;
@@ -720,20 +720,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					y = -0.40f;
 					break;
 				case ButtonType.TRIGGER_L:
-					x = -0.75f;
-					y = -0.75f;
+					x = -0.80f;
+					y = -0.60f;
 					break;
 				case ButtonType.TRIGGER_R:
-					x = 0.75f;
-					y = -0.75f;
+					x = 0.80f;
+					y = -0.60f;
 					break;
 				// Wii
 				case ButtonType.WIIMOTE_BUTTON_A:
-					x = 0.55f;
+					x = 0.60f;
 					y = 0.65f;
 					break;
 				case ButtonType.WIIMOTE_BUTTON_B:
-					x = 0.50f;
+					x = 0.55f;
 					y = 0.20f;
 					break;
 				case ButtonType.WIIMOTE_BUTTON_MINUS:
@@ -746,7 +746,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					break;
 				case ButtonType.WIIMOTE_BUTTON_HOME:
 					x = 0.0f;
-					y = 0.5f;
+					y = 0.7f;
 					break;
 				case ButtonType.WIIMOTE_BUTTON_1:
 					x = 0.65f;
@@ -757,11 +757,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					y = -0.75f;
 					break;
 				case ButtonType.NUNCHUK_BUTTON_C:
-					x = 0.75f;
+					x = 0.80f;
 					y = 0.45f;
 					break;
 				case ButtonType.NUNCHUK_BUTTON_Z:
-					x = 0.75f;
+					x = 0.80f;
 					y = 0.05f;
 					break;
 				// classic
@@ -770,15 +770,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					y = 0.55f;
 					break;
 				case ButtonType.CLASSIC_BUTTON_B:
-					x = 0.60f;
+					x = 0.65f;
 					y = 0.75f;
 					break;
 				case ButtonType.CLASSIC_BUTTON_X:
-					x = 0.60f;
+					x = 0.65f;
 					y = 0.30f;
 					break;
 				case ButtonType.CLASSIC_BUTTON_Y:
-					x = 0.40f;
+					x = 0.50f;
 					y = 0.55f;
 					break;
 				case ButtonType.CLASSIC_BUTTON_MINUS:
@@ -803,11 +803,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					break;
 				case ButtonType.CLASSIC_TRIGGER_L:
 					x = -0.55f;
-					y = -0.45f;
+					y = -0.40f;
 					break;
 				case ButtonType.CLASSIC_TRIGGER_R:
 					x = 0.55f;
-					y = -0.45f;
+					y = -0.40f;
 					break;
 			}
 		}
@@ -978,26 +978,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			switch (joystick) {
 				// NGC
 				case ButtonType.STICK_C:
-					x = 0.80f;
+					x = 0.82f;
 					y = -0.10f;
 					break;
 				case ButtonType.STICK_MAIN:
-					x = -0.65f;
-					y = 0.50f;
+					x = -0.70f;
+					y = 0.55f;
 					break;
 				// Wii
 				case ButtonType.NUNCHUK_STICK:
-					x = -0.60f;
-					y = 0.45f;
+					x = -0.70f;
+					y = 0.55f;
 					break;
 				// classic
 				case ButtonType.CLASSIC_STICK_LEFT:
-					x = -0.60f;
-					y = 0.45f;
+					x = -0.70f;
+					y = 0.55f;
 					break;
 				case ButtonType.CLASSIC_STICK_RIGHT:
-					x = 0.75f;
-					y = -0.15f;
+					x = 0.80f;
+					y = -0.10f;
 					break;
 			}
 		}

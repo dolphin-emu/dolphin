@@ -19,7 +19,7 @@ bool ListProxyModel::filterAcceptsRow(int source_row, const QModelIndex& source_
 bool ListProxyModel::lessThan(const QModelIndex& left, const QModelIndex& right) const
 {
   if (left.data(Qt::InitialSortOrderRole) != right.data(Qt::InitialSortOrderRole))
-    return !QSortFilterProxyModel::lessThan(left, right);
+    return QSortFilterProxyModel::lessThan(right, left);
 
   // If two items are otherwise equal, compare them by their title
   const auto right_title =

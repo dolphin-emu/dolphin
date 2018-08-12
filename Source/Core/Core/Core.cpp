@@ -751,9 +751,7 @@ void VideoThrottle()
   u32 ElapseTime = (u32)s_timer.GetTimeDifference();
   if ((ElapseTime >= 1000 && s_drawn_video.load() > 0) || s_request_refresh_info)
   {
-    if (s_show_fps) {
-      UpdateTitle();
-    }
+    UpdateTitle();
 
     // Reset counter
     s_timer.Update();
@@ -853,7 +851,7 @@ void UpdateTitle()
       FPS, VPS, Speed,
       (int)(diff), (int)(diff - idleDiff), (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
   }
-  else
+  else if(s_show_fps)
   {
     SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
   }

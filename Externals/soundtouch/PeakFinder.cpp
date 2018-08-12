@@ -11,13 +11,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-05-18 18:22:02 +0300 (Mon, 18 May 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: PeakFinder.cpp 213 2015-05-18 15:22:02Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -249,12 +242,12 @@ double PeakFinder::detectPeak(const float *data, int aminPos, int amaxPos)
     // - sometimes the highest peak can be Nth harmonic of the true base peak yet 
     // just a slightly higher than the true base
 
-    for (i = 3; i < 10; i ++)
+    for (i = 1; i < 3; i ++)
     {
         double peaktmp, harmonic;
         int i1,i2;
 
-        harmonic = (double)i * 0.5;
+        harmonic = (double)pow(2.0, i);
         peakpos = (int)(highPeak / harmonic + 0.5f);
         if (peakpos < minPos) break;
         peakpos = findTop(data, peakpos);   // seek true local maximum index

@@ -13,13 +13,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2015-08-09 00:00:15 +0300 (Sun, 09 Aug 2015) $
-// File revision : $Revision: 4 $
-//
-// $Id: TDStretch.h 226 2015-08-08 21:00:15Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -134,6 +127,7 @@ protected:
     bool bQuickSeek;
     bool bAutoSeqSetting;
     bool bAutoSeekSetting;
+    bool isBeginning;
 
     SAMPLETYPE *pMidBuffer;
     SAMPLETYPE *pMidBufferUnaligned;
@@ -247,6 +241,13 @@ public:
     {
         return seekWindowLength - overlapLength;
     }
+
+
+	/// return approximate initial input-output latency
+	int getLatency() const
+	{
+		return sampleReq;
+	}
 };
 
 

@@ -12,13 +12,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2014-01-05 23:40:22 +0200 (Sun, 05 Jan 2014) $
-// File revision : $Revision: 4 $
-//
-// $Id: AAFilter.cpp 177 2014-01-05 21:40:22Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -49,7 +42,7 @@
 
 using namespace soundtouch;
 
-#define PI        3.141592655357989
+#define PI       3.14159265358979323846
 #define TWOPI    (2 * PI)
 
 // define this to save AA filter coefficients to a file

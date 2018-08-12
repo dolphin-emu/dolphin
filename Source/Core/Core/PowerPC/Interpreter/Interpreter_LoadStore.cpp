@@ -690,9 +690,9 @@ void Interpreter::lswx(UGeckoInstruction inst)
       rGPR[reg] = 0;
 
     const u32 temp_value = PowerPC::Read_U8(EA) << (24 - offset);
+    // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
-      PanicAlert("DSI exception in lswx.");
       NOTICE_LOG(POWERPC, "DSI exception in lswx");
       return;
     }
