@@ -24,8 +24,17 @@ void JitTrampoline(JitBase& jit, u32 em_address)
 
 u32 Helper_Mask(u8 mb, u8 me)
 {
-  u32 mask = ((u32)-1 >> mb) ^ (me >= 31 ? 0 : (u32)-1 >> (me + 1));
-  return mb > me ? ~mask : mask;
+  // first make 001111111111111 part
+  u32 begin = 0xFFFFFFFF >> mb;
+  // then make 000000000001111 part, which is used to flip the bits of the first one
+  u32 end = 0x7FFFFFFF >> me;
+  // do the bitflip
+  u32 mask = begin ^ end;
+  // and invert if backwards
+  if (me < mb)
+    return ~mask;
+  else
+    return mask;
 }
 
 JitBase::JitBase() : m_code_buffer(code_buffer_size)
