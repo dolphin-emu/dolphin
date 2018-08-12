@@ -263,10 +263,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
     return size;
 
   // If the native vertex format changed, force a flush.
-  if (loader->m_native_vertex_format != s_current_vtx_fmt ||
-      loader->m_native_components != g_current_components)
+  if (loader->m_native_vertex_format != s_current_vtx_fmt)
   {
-    g_vertex_manager->Flush();
+	  INCSTAT(stats.thisFrame.numVertexFormat);
+	  g_vertex_manager->Flush();
+  }
+  else if (loader->m_native_components != g_current_components) {
+	  INCSTAT(stats.thisFrame.numNativeComponents);
+	  g_vertex_manager->Flush();
   }
   s_current_vtx_fmt = loader->m_native_vertex_format;
   g_current_components = loader->m_native_components;

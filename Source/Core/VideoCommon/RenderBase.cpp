@@ -276,7 +276,16 @@ void Renderer::DrawDebugText()
 
     if (_CoreParameter.m_InterfaceExtendedFPSInfo && !final_cyan.empty())
     {
-      final_cyan += StringFromFormat("| DRAW: %d\n", stats.thisFrame.numDrawCalls);
+      final_cyan += StringFromFormat("\nDRAW: %d\nPixelIn: %d\nPixelOut: %d\nVertexF: %d\nNativeC: %d\nPipeline: %d\nPullE: %d\nGpuLoop: %d\nPrepareData: %d\n", 
+		  stats.thisFrame.numDrawCalls, 
+		  stats.thisFrame.tevPixelsIn, 
+		  stats.thisFrame.tevPixelsOut, 
+		  stats.thisFrame.numVertexFormat, 
+		  stats.thisFrame.numNativeComponents,
+		  stats.thisFrame.numFlushPipeline,
+		  stats.thisFrame.numPullEvents,
+		  stats.thisFrame.numRunGpuLoop,
+		  stats.thisFrame.numPrepareData);
     }
     else
     {

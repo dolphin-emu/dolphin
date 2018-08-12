@@ -203,11 +203,11 @@ void RasterFont::printMultilineText(const std::string& text, float start_x, floa
 
   int usage = 0;
 #ifdef __ANDROID__
-  GLfloat delta_x = GLfloat(3 * CHARACTER_WIDTH) / GLfloat(bbWidth);
-  GLfloat delta_y = GLfloat(3 * CHARACTER_HEIGHT) / GLfloat(bbHeight);
+  GLfloat delta_x = GLfloat(2.5f * CHARACTER_WIDTH) / GLfloat(bbWidth);
+  GLfloat delta_y = GLfloat(2.5f * CHARACTER_HEIGHT) / GLfloat(bbHeight);
 
   GLfloat x = GLfloat(start_x);
-  GLfloat y = GLfloat(start_y * 0.96f);
+  GLfloat y = GLfloat(start_y * 0.97f);
 #else
   GLfloat delta_x = GLfloat(2 * CHARACTER_WIDTH) / GLfloat(bbWidth);
   GLfloat delta_y = GLfloat(2 * CHARACTER_HEIGHT) / GLfloat(bbHeight);
