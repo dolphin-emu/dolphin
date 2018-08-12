@@ -39,8 +39,6 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public final class EmulationActivity extends AppCompatActivity
 {
-	private static final String BACKSTACK_NAME_MENU = "menu";
-	private static final String BACKSTACK_NAME_SUBMENU = "submenu";
 	public static final int REQUEST_CHANGE_DISC = 1;
 
 	private View mDecorView;
