@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public final class MotionAlertDialog extends AlertDialog
 		Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
 		switch (event.getAction())
 		{
-			case KeyEvent.ACTION_DOWN:
+			case KeyEvent.ACTION_UP:
 				if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
 				{
 					saveKeyInput(event);
@@ -56,6 +57,21 @@ public final class MotionAlertDialog extends AlertDialog
 			default:
 				return false;
 		}
+	}
+
+	@Override
+	public boolean onKeyLongPress(int keyCode, KeyEvent event)
+	{
+		// Option to clear by long back is only needed on the TV interface
+		if (TvUtil.isLeanback(getContext()))
+		{
+			if (keyCode == KeyEvent.KEYCODE_BACK)
+			{
+				clearBinding();
+				return true;
+			}
+		}
+		return super.onKeyLongPress(keyCode, event);
 	}
 
 	@Override
@@ -195,6 +211,16 @@ public final class MotionAlertDialog extends AlertDialog
 		editor.putString(setting.getKey(), ui);
 		editor.apply();
 
+		dismiss();
+	}
+
+	private void clearBinding()
+	{
+		setting.setValue("");
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.remove(setting.getKey());
+		editor.apply();
 		dismiss();
 	}
 }
