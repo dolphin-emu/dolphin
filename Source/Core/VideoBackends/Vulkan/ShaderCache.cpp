@@ -73,7 +73,7 @@ GetVulkanRasterizationState(const RasterizationState& state)
       {VK_CULL_MODE_NONE, VK_CULL_MODE_BACK_BIT, VK_CULL_MODE_FRONT_BIT,
        VK_CULL_MODE_FRONT_AND_BACK}};
 
-  bool depth_clamp = g_ActiveConfig.backend_info.bSupportsDepthClamp;
+  bool depth_clamp = false;//g_ActiveConfig.backend_info.bSupportsDepthClamp;
 
   return {
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,  // VkStructureType sType
