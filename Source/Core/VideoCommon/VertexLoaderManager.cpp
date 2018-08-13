@@ -195,6 +195,27 @@ NativeVertexFormat* GetUberVertexFormat(const PortableVertexDeclaration& decl)
   return GetOrCreateMatchingFormat(new_decl);
 }
 
+static void Dump(const PortableVertexDeclaration& format)
+{
+  INFO_LOG(VIDEO, "zhangwei stride: %d", format.stride);
+  INFO_LOG(VIDEO, "position size: %d, offset: %d", format.position.components, format.position.offset);
+
+  for (int i = 0; i < 3; i++) {
+    INFO_LOG(VIDEO, "normals[%d] size: %d, offset: %d", i, format.normals[i].components, format.normals[i].offset);
+  }
+
+  for (int i = 0; i < 3; i++) {
+    INFO_LOG(VIDEO, "colors[%d] size: %d, offset: %d", i, format.colors[i].components, format.colors[i].offset);
+
+  }
+
+  for (int i = 0; i < 3; i++) {
+    INFO_LOG(VIDEO, "texcoords[%d] size: %d, offset: %d", i, format.texcoords[i].components, format.texcoords[i].offset);
+  }
+
+  INFO_LOG(VIDEO, "posmtx size: %d, offset: %d", format.posmtx.components, format.posmtx.offset);
+}
+
 static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
   CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
@@ -231,6 +252,8 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       {
         native = g_vertex_manager->CreateNativeVertexFormat(format);
       }
+      INFO_LOG(VIDEO, "zhangwei m_native_vertex_format");
+      Dump(format);
       loader->m_native_vertex_format = native.get();
     }
     state->vertex_loaders[vtx_attr_group] = loader;

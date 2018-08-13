@@ -23,8 +23,10 @@ namespace BPFunctions
 
 void FlushPipeline()
 {
-	INCSTAT(stats.thisFrame.numFlushPipeline);
-  g_vertex_manager->Flush();
+	if(!g_vertex_manager->IsFlushed()) {
+		INCSTAT(stats.thisFrame.numFlushPipeline);
+		g_vertex_manager->Flush();
+	}
 }
 
 void SetGenerationMode()

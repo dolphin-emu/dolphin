@@ -45,7 +45,7 @@ public final class MotionAlertDialog extends AlertDialog
 		Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
 		switch (event.getAction())
 		{
-			case KeyEvent.ACTION_DOWN:
+			case KeyEvent.ACTION_UP:
 				if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
 				{
 					saveKeyInput(event);

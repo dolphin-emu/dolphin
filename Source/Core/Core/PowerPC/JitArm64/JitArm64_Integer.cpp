@@ -532,7 +532,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   u32 a = inst.RA, s = inst.RS;
 
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   if (gpr.IsImm(inst.RS))
   {
     gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
@@ -579,8 +579,8 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  u32 a = inst.RA, b = inst.RB, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 a = inst.RA, b = inst.RB, s = inst.RS;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
@@ -1431,8 +1431,8 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
-  int a = inst.RA, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const int a = inst.RA, s = inst.RS;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {

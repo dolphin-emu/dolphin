@@ -1,4 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="game_grid_columns">1</integer>
+
+    <!-- Default GameCube landscape layout -->
+    <integer name="BUTTON_A_X">65</integer>
+    <integer name="BUTTON_A_Y">55</integer>
+    <integer name="BUTTON_B_X">47</integer>
+    <integer name="BUTTON_B_Y">80</integer>
+    <integer name="BUTTON_X_X">85</integer>
+    <integer name="BUTTON_X_Y">50</integer>
+    <integer name="BUTTON_Y_X">60</integer>
+    <integer name="BUTTON_Y_Y">25</integer>
+    <integer name="BUTTON_Z_X">60</integer>
+    <integer name="BUTTON_Z_Y">-40</integer>
+    <integer name="BUTTON_UP_X">-85</integer>
+    <integer name="BUTTON_UP_Y">0</integer>
+    <integer name="TRIGGER_L_X">-80</integer>
+    <integer name="TRIGGER_L_Y">-60</integer>
+    <integer name="TRIGGER_R_X">80</integer>
+    <integer name="TRIGGER_R_Y">-60</integer>
+    <integer name="BUTTON_START_X">0</integer>
+    <integer name="BUTTON_START_Y">65</integer>
+    <integer name="STICK_C_X">82</integer>
+    <integer name="STICK_C_Y">-10</integer>
+    <integer name="STICK_MAIN_X">-70</integer>
+    <integer name="STICK_MAIN_Y">55</integer>
+
+    <!-- Default Wii landscape layout -->
+    <integer name="WIIMOTE_BUTTON_A_X">60</integer>
+    <integer name="WIIMOTE_BUTTON_A_Y">65</integer>
+    <integer name="WIIMOTE_BUTTON_B_X">55</integer>
+    <integer name="WIIMOTE_BUTTON_B_Y">20</integer>
+    <integer name="WIIMOTE_BUTTON_1_X">65</integer>
+    <integer name="WIIMOTE_BUTTON_1_Y">-85</integer>
+    <integer name="WIIMOTE_BUTTON_2_X">85</integer>
+    <integer name="WIIMOTE_BUTTON_2_Y">-75</integer>
+    <integer name="NUNCHUK_BUTTON_Z_X">80</integer>
+    <integer name="NUNCHUK_BUTTON_Z_Y">5</integer>
+    <integer name="NUNCHUK_BUTTON_C_X">80</integer>
+    <integer name="NUNCHUK_BUTTON_C_Y">45</integer>
+    <integer name="WIIMOTE_BUTTON_MINUS_X">-85</integer>
+    <integer name="WIIMOTE_BUTTON_MINUS_Y">-75</integer>
+    <integer name="WIIMOTE_BUTTON_PLUS_X">-65</integer>
+    <integer name="WIIMOTE_BUTTON_PLUS_Y">-85</integer>
+    <integer name="WIIMOTE_UP_X">-85</integer>
+    <integer name="WIIMOTE_UP_Y">0</integer>
+    <integer name="WIIMOTE_BUTTON_HOME_X">0</integer>
+    <integer name="WIIMOTE_BUTTON_HOME_Y">55</integer>
+    <integer name="NUNCHUK_STICK_X">-75</integer>
+    <integer name="NUNCHUK_STICK_Y">55</integer>
+
+    <integer name="WIIMOTE_RIGHT_X">-85</integer>
+    <integer name="WIIMOTE_RIGHT_Y">0</integer>
+
+    <integer name="CLASSIC_BUTTON_A_X">80</integer>
+    <integer name="CLASSIC_BUTTON_A_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_B_X">65</integer>
+    <integer name="CLASSIC_BUTTON_B_Y">75</integer>
+    <integer name="CLASSIC_BUTTON_X_X">65</integer>
+    <integer name="CLASSIC_BUTTON_X_Y">30</integer>
+    <integer name="CLASSIC_BUTTON_Y_X">50</integer>
+    <integer name="CLASSIC_BUTTON_Y_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_MINUS_X">-15</integer>
+    <integer name="CLASSIC_BUTTON_MINUS_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_PLUS_X">15</integer>
+    <integer name="CLASSIC_BUTTON_PLUS_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_HOME_X">0</integer>
+    <integer name="CLASSIC_BUTTON_HOME_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_ZL_X">-75</integer>
+    <integer name="CLASSIC_BUTTON_ZL_Y">-75</integer>
+    <integer name="CLASSIC_BUTTON_ZR_X">75</integer>
+    <integer name="CLASSIC_BUTTON_ZR_Y">-75</integer>
+    <integer name="CLASSIC_DPAD_UP_X">-85</integer>
+    <integer name="CLASSIC_DPAD_UP_Y">0</integer>
+    <integer name="CLASSIC_STICK_LEFT_X">-70</integer>
+    <integer name="CLASSIC_STICK_LEFT_Y">55</integer>
+    <integer name="CLASSIC_STICK_RIGHT_X">80</integer>
+    <integer name="CLASSIC_STICK_RIGHT_Y">-10</integer>
+    <integer name="CLASSIC_TRIGGER_L_X">-55</integer>
+    <integer name="CLASSIC_TRIGGER_L_Y">-40</integer>
+    <integer name="CLASSIC_TRIGGER_R_X">55</integer>
+    <integer name="CLASSIC_TRIGGER_R_Y">-40</integer>
 </resources>

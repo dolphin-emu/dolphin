@@ -6,6 +6,7 @@
 
 package org.dolphinemu.dolphinemu.overlay;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -17,6 +18,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -81,7 +83,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		super(context, attrs);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-
+		if(!mPreferences.getBoolean("OverlayInit", false))
+			defaultOverlay();
 		// Load the controls.
 		refreshControls();
 
@@ -691,126 +694,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
-
-		if (x == y && y == 0 || x > 1.0f || y > 1.0f) {
-			switch(buttonId) {
-				// NGC
-				case ButtonType.BUTTON_A:
-					x = 0.65f;
-					y = 0.55f;
-					break;
-				case ButtonType.BUTTON_B:
-					x = 0.47f;
-					y = 0.80f;
-					break;
-				case ButtonType.BUTTON_START:
-					x = 0.00f;
-					y = 0.65f;
-					break;
-				case ButtonType.BUTTON_X:
-					x = 0.85f;
-					y = 0.50f;
-					break;
-				case ButtonType.BUTTON_Y:
-					x = 0.60f;
-					y = 0.25f;
-					break;
-				case ButtonType.BUTTON_Z:
-					x = 0.60f;
-					y = -0.40f;
-					break;
-				case ButtonType.TRIGGER_L:
-					x = -0.80f;
-					y = -0.60f;
-					break;
-				case ButtonType.TRIGGER_R:
-					x = 0.80f;
-					y = -0.60f;
-					break;
-				// Wii
-				case ButtonType.WIIMOTE_BUTTON_A:
-					x = 0.60f;
-					y = 0.65f;
-					break;
-				case ButtonType.WIIMOTE_BUTTON_B:
-					x = 0.55f;
-					y = 0.20f;
-					break;
-				case ButtonType.WIIMOTE_BUTTON_MINUS:
-					x = -0.85f;
-					y = -0.75f;
-					break;
-				case ButtonType.WIIMOTE_BUTTON_PLUS:
-					x = -0.65f;
-					y = -0.85f;
-					break;
-				case ButtonType.WIIMOTE_BUTTON_HOME:
-					x = 0.0f;
-					y = 0.7f;
-					break;
-				case ButtonType.WIIMOTE_BUTTON_1:
-					x = 0.65f;
-					y = -0.85f;
-					break;
-				case ButtonType.WIIMOTE_BUTTON_2:
-					x = 0.85f;
-					y = -0.75f;
-					break;
-				case ButtonType.NUNCHUK_BUTTON_C:
-					x = 0.80f;
-					y = 0.45f;
-					break;
-				case ButtonType.NUNCHUK_BUTTON_Z:
-					x = 0.80f;
-					y = 0.05f;
-					break;
-				// classic
-				case ButtonType.CLASSIC_BUTTON_A:
-					x = 0.80f;
-					y = 0.55f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_B:
-					x = 0.65f;
-					y = 0.75f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_X:
-					x = 0.65f;
-					y = 0.30f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_Y:
-					x = 0.50f;
-					y = 0.55f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_MINUS:
-					x = -0.15f;
-					y = 0.55f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_PLUS:
-					x = 0.15f;
-					y = 0.55f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_HOME:
-					x = 0f;
-					y = 0.55f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_ZL:
-					x = -0.75f;
-					y = -0.75f;
-					break;
-				case ButtonType.CLASSIC_BUTTON_ZR:
-					x = 0.75f;
-					y = -0.75f;
-					break;
-				case ButtonType.CLASSIC_TRIGGER_L:
-					x = -0.55f;
-					y = -0.40f;
-					break;
-				case ButtonType.CLASSIC_TRIGGER_R:
-					x = 0.55f;
-					y = -0.40f;
-					break;
-			}
-		}
 		final DisplayMetrics dm = res.getDisplayMetrics();
 		int drawableX = (int)((dm.widthPixels / 2.0f) * (1.0f + x) - width / 2.0f);
 		int drawableY = (int)((dm.heightPixels / 2.0f) * (1.0f + y) - height / 2.0f);
@@ -888,27 +771,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
-
-		if (x == y && y == 0 || x > 1.0f || y > 1.0f) {
-			switch (buttonUp) {
-				// NGC
-				case ButtonType.BUTTON_UP:
-					x = -0.85f;
-					y = 0f;
-					break;
-				// Wii
-				case ButtonType.WIIMOTE_UP:
-				case ButtonType.WIIMOTE_RIGHT:
-					x = -0.85f;
-					y = 0f;
-					break;
-				// Classic
-				case ButtonType.CLASSIC_DPAD_UP:
-					x = -0.85f;
-					y = 0f;
-					break;
-			}
-		}
 		final DisplayMetrics dm = res.getDisplayMetrics();
 		int drawableX = (int)((dm.widthPixels / 2.0f) * (1.0f + x) - width / 2.0f);
 		int drawableY = (int)((dm.heightPixels / 2.0f) * (1.0f + y) - height / 2.0f);
@@ -973,34 +835,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
 		int outerSize = bitmapOuter.getWidth();
-
-		if (x == y && y == 0 || x > 1.0f || y > 1.0f) {
-			switch (joystick) {
-				// NGC
-				case ButtonType.STICK_C:
-					x = 0.82f;
-					y = -0.10f;
-					break;
-				case ButtonType.STICK_MAIN:
-					x = -0.70f;
-					y = 0.55f;
-					break;
-				// Wii
-				case ButtonType.NUNCHUK_STICK:
-					x = -0.70f;
-					y = 0.55f;
-					break;
-				// classic
-				case ButtonType.CLASSIC_STICK_LEFT:
-					x = -0.70f;
-					y = 0.55f;
-					break;
-				case ButtonType.CLASSIC_STICK_RIGHT:
-					x = 0.80f;
-					y = -0.10f;
-					break;
-			}
-		}
 		final DisplayMetrics dm = res.getDisplayMetrics();
 		int drawableX = (int)((dm.widthPixels / 2.0f) * (1.0f + x) - outerSize / 2.0f);
 		int drawableY = (int)((dm.heightPixels / 2.0f) * (1.0f + y) - outerSize / 2.0f);
@@ -1028,5 +862,141 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public boolean isInEditMode()
 	{
 		return mIsInEditMode;
+	}
+
+	private void defaultOverlay()
+	{
+		// It's possible that a user has created their overlay before this was added
+		// Only change the overlay if the 'A' button is not in the upper corner.
+		// GameCube
+		if (mPreferences.getFloat(ButtonType.BUTTON_A + "-X", 0f) == 0f)
+		{
+			gcDefaultOverlay();
+		}
+		// Wii
+		if (mPreferences.getFloat(ButtonType.WIIMOTE_BUTTON_A + "-X", 0f) == 0f)
+		{
+			wiiDefaultOverlay();
+		}
+
+		// Wii Classic
+		if (mPreferences.getFloat(ButtonType.CLASSIC_BUTTON_A + "-X", 0f) == 0f)
+		{
+			wiiClassicDefaultOverlay();
+		}
+
+		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+		sPrefsEditor.putBoolean("OverlayInit", true);
+		sPrefsEditor.apply();
+	}
+
+	private void gcDefaultOverlay()
+	{
+		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+		Resources res = getResources();
+
+		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
+		// to a decimal before multiplying by MAX X/Y.
+		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "-X",  res.getInteger(R.integer.BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "-Y",  res.getInteger(R.integer.BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "-X", res.getInteger(R.integer.BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "-Y", res.getInteger(R.integer.BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "-X", res.getInteger(R.integer.BUTTON_X_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "-Y", res.getInteger(R.integer.BUTTON_X_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "-X", res.getInteger(R.integer.BUTTON_Y_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "-Y", res.getInteger(R.integer.BUTTON_Y_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "-X", res.getInteger(R.integer.BUTTON_Z_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "-Y", res.getInteger(R.integer.BUTTON_Z_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "-X", res.getInteger(R.integer.BUTTON_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "-Y", res.getInteger(R.integer.BUTTON_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-X", res.getInteger(R.integer.TRIGGER_L_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-Y", res.getInteger(R.integer.TRIGGER_L_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-X", res.getInteger(R.integer.TRIGGER_R_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-Y", res.getInteger(R.integer.TRIGGER_R_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-X", res.getInteger(R.integer.BUTTON_START_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-Y", res.getInteger(R.integer.BUTTON_START_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_C + "-X", res.getInteger(R.integer.STICK_C_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_C + "-Y", res.getInteger(R.integer.STICK_C_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "-X", res.getInteger(R.integer.STICK_MAIN_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "-Y", res.getInteger(R.integer.STICK_MAIN_Y) / 100.0f);
+
+		// We want to commit right away, otherwise the overlay could load before this is saved.
+		sPrefsEditor.commit();
+	}
+
+	private void wiiDefaultOverlay()
+	{
+		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+		Resources res = getResources();
+
+		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
+		// to a decimal before multiplying by MAX X/Y.
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "-X",  res.getInteger(R.integer.NUNCHUK_BUTTON_Z_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "-Y",  res.getInteger(R.integer.NUNCHUK_BUTTON_Z_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "-X",  res.getInteger(R.integer.NUNCHUK_BUTTON_C_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "-Y",  res.getInteger(R.integer.NUNCHUK_BUTTON_C_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "-X",  res.getInteger(R.integer.WIIMOTE_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "-Y",  res.getInteger(R.integer.WIIMOTE_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "-X",  res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "-Y",  res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "-X",  res.getInteger(R.integer.NUNCHUK_STICK_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "-Y",  res.getInteger(R.integer.NUNCHUK_STICK_Y) / 100.0f);
+		// Horizontal dpad
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "-X",  res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "-Y",  res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 100.0f);
+
+		// We want to commit right away, otherwise the overlay could load before this is saved.
+		sPrefsEditor.commit();
+	}
+	private void wiiClassicDefaultOverlay()
+	{
+		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+		Resources res = getResources();
+
+		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
+		// to a decimal before multiplying by MAX X/Y.
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_X_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_X_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_Y_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_Y_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "-X", res.getInteger(R.integer.CLASSIC_DPAD_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "-Y", res.getInteger(R.integer.CLASSIC_DPAD_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "-X", res.getInteger(R.integer.CLASSIC_STICK_LEFT_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "-Y", res.getInteger(R.integer.CLASSIC_STICK_LEFT_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "-X", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "-Y", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "-X", res.getInteger(R.integer.CLASSIC_TRIGGER_L_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "-Y", res.getInteger(R.integer.CLASSIC_TRIGGER_L_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "-X", res.getInteger(R.integer.CLASSIC_TRIGGER_R_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "-Y", res.getInteger(R.integer.CLASSIC_TRIGGER_R_Y) / 100.0f);
+
+		// We want to commit right away, otherwise the overlay could load before this is saved.
+		sPrefsEditor.commit();
 	}
 }

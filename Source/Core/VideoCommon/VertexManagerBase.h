@@ -51,6 +51,9 @@ public:
   void FlushData(u32 count, u32 stride);
 
   void Flush();
+  bool IsFlushed() {
+	  return m_is_flushed;
+  }
 
   virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;

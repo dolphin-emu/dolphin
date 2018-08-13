@@ -76,6 +76,12 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getCountry(
   return static_cast<jint>(GetRef(env, obj)->GetCountry());
 }
 
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRegion(JNIEnv* env,
+                                                                               jobject obj)
+{
+  return static_cast<jint>(GetRef(env, obj)->GetRegion());
+}
+
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getPath(JNIEnv* env,
                                                                                 jobject obj)
 {
