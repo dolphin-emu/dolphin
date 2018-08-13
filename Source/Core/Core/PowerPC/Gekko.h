@@ -294,6 +294,23 @@ union UGeckoInstruction
   };
 };
 
+// Used in implementations of rlwimi, rlwinm, and rlwnm
+inline u32 MakeRotationMask(u32 mb, u32 me)
+{
+  // first make 001111111111111 part
+  const u32 begin = 0xFFFFFFFF >> mb;
+  // then make 000000000001111 part, which is used to flip the bits of the first one
+  const u32 end = 0x7FFFFFFF >> me;
+  // do the bitflip
+  const u32 mask = begin ^ end;
+
+  // and invert if backwards
+  if (me < mb)
+    return ~mask;
+
+  return mask;
+}
+
 //
 // --- Gekko Special Registers ---
 //
