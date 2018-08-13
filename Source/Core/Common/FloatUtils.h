@@ -20,7 +20,7 @@
 
 #include <ymath.h>
 
-#endif // _MSC_VER
+#endif  // _MSC_VER
 
 namespace Common
 {
@@ -45,7 +45,7 @@ constexpr float SNANConstant()
   return (_CSTD _Snan._Float);
 }
 
-#endif // _MSC_VER
+#endif  // _MSC_VER
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 enum : u64
