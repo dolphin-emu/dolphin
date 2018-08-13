@@ -180,7 +180,7 @@ std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_i
   }
   else if (res == 2)
   {
-    host_instructions_count = 0;
+    *host_instructions_count = 0;
     return "(No translation)";
   }
   return disasm->DisassembleHostBlock(code, *code_size, host_instructions_count, (u64)code);

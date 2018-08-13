@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <future>
-#include <thread>
 #include <utility>
 
 #include <QApplication>
@@ -23,6 +22,7 @@
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -110,8 +110,11 @@ void MappingButton::Detect()
   grabKeyboard();
 
   // Make sure that we don't block event handling
-  std::thread thread([this] {
+  QueueOnObject(this, [this] {
     setText(QStringLiteral("..."));
+
+    // The button text won't be updated if we don't process events here
+    QApplication::processEvents();
 
     // Avoid that the button press itself is registered as an event
     Common::SleepCurrentThread(100);
@@ -188,8 +191,6 @@ void MappingButton::Detect()
       OnButtonTimeout();
     }
   });
-
-  thread.detach();
 }
 
 void MappingButton::OnButtonTimeout()
