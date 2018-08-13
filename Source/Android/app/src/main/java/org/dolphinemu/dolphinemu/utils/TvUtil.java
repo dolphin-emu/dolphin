@@ -154,8 +154,8 @@ public class TvUtil
 	}
 
 	/**
-	 * Leanback lanucher requires a uri for poster art, so we take the banner vector,
-	 * make a bitmap, save that bitmap, then return the file provider uri.
+	 * Leanback lanucher requires a uri for poster art so we create a contentUri and
+	 * pass that to LEANBACK_PACKAGE
 	 */
 	public static Uri buildBanner(GameFile game, Context context)
 	{
@@ -163,33 +163,14 @@ public class TvUtil
 
 		try
 		{
-			//Substring needed to strip "file:" from the path beginning
-			File screenshotFile = new File(game.getScreenshotPath().substring(5));
-			if (screenshotFile.exists())
+			File cover = new File(game.getCustomCoverPath());
+			if(cover.exists())
 			{
-				contentUri = getUriForFile(context, getFilePrivider(context), screenshotFile);
+				contentUri = getUriForFile(context, getFileProvider(context), cover);
 			}
-			else
+			else if ((cover = new File(game.getCoverPath())).exists())
 			{
-				File file = new File(buildBannerFilename(game.getGameId()));
-				if (!file.exists())
-				{
-					int[] vector = game.getBanner();
-					int width = game.getBannerWidth();
-					int height = game.getBannerHeight();
-
-					if (vector.length > 0 || width > 0 || height > 0)
-					{
-						Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-						bitmap.setPixels(vector, 0, width, 0, 0, width, height);
-						FileOutputStream out = new FileOutputStream(file);
-						bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-						out.close();
-					}
-					else
-						return null;
-				}
-				contentUri = getUriForFile(context, getFilePrivider(context), file);
+				contentUri = getUriForFile(context, getFileProvider(context), cover);
 			}
 			context.grantUriPermission(LEANBACK_PACKAGE, contentUri,
 					FLAG_GRANT_READ_URI_PERMISSION);
@@ -203,16 +184,10 @@ public class TvUtil
 		return contentUri;
 	}
 
-	private static String buildBannerFilename(String gameId)
-	{
-		return Environment.getExternalStorageDirectory().getPath() +
-			"/dolphin-emu/Cache/" + gameId + "_banner.png";
-	}
-
 	/**
 	 * Needed since debug builds append '.debug' to the end of the package
 	 */
-	private static String getFilePrivider(Context context)
+	private static String getFileProvider(Context context)
 	{
 		return context.getPackageName() + ".filesprovider";
 	}
