@@ -225,6 +225,7 @@ public final class EmulationActivity extends AppCompatActivity
 			});
 			// Set these options now so that the SurfaceView the game renders into is the right size.
 			enableFullscreenImmersive();
+			Toast.makeText(this, getString(R.string.emulation_touch_button_help), Toast.LENGTH_LONG).show();
 		}
 		else
 		{
