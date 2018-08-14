@@ -164,6 +164,13 @@ MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
   m_netplay_dialog->deleteLater();
+
+  for (int i = 0; i < 4; i++)
+  {
+    m_gc_tas_input_windows[i]->deleteLater();
+    m_wii_tas_input_windows[i]->deleteLater();
+  }
+
   ShutdownControllers();
 
   QSettings& settings = Settings::GetQSettings();
@@ -253,8 +260,8 @@ void MainWindow::CreateComponents()
 
   for (int i = 0; i < 4; i++)
   {
-    m_gc_tas_input_windows[i] = new GCTASInputWindow(this, i);
-    m_wii_tas_input_windows[i] = new WiiTASInputWindow(this, i);
+    m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
 
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
