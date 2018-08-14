@@ -916,6 +916,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           fprToFlush[js.revertFprLoad] = false;
         gpr.Flush(RegCache::FlushMode::MaintainState, gprToFlush);
         fpr.Flush(RegCache::FlushMode::MaintainState, fprToFlush);
+        MOV(32, PPCSTATE(pc), Imm32(op.address));
         WriteExceptionExit();
         SwitchToNearCode();
       }
