@@ -13,7 +13,7 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/Statistics.h"
+
 namespace BPFunctions
 {
 // ----------------------------------------------
@@ -23,10 +23,7 @@ namespace BPFunctions
 
 void FlushPipeline()
 {
-	if(!g_vertex_manager->IsFlushed()) {
-		INCSTAT(stats.thisFrame.numFlushPipeline);
-		g_vertex_manager->Flush();
-	}
+  g_vertex_manager->Flush();
 }
 
 void SetGenerationMode()

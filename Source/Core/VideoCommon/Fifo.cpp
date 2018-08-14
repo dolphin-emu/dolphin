@@ -385,7 +385,6 @@ void RunGpuLoop()
           // The fifo is empty and it's unlikely we will get any more work in the near future.
           // Make sure VertexManager finishes drawing any primitives it has stored in it's buffer.
           g_vertex_manager->Flush();
-		  INCSTAT(stats.thisFrame.numRunGpuLoop);
         }
       },
       100);

@@ -61,13 +61,6 @@ struct Statistics
     int numVerticesLoaded;
     int tevPixelsIn;
     int tevPixelsOut;
-
-	int numVertexFormat;
-	int numNativeComponents;
-	int numFlushPipeline;
-	int numPullEvents;
-	int numRunGpuLoop;
-	int numPrepareData;
   };
   ThisFrame thisFrame;
   void ResetFrame();

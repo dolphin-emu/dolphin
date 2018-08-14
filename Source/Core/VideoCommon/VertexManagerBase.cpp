@@ -33,7 +33,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
-#include "VideoCommon/Statistics.h"
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
@@ -89,7 +88,6 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   PrimitiveType new_primitive_type = primitive_from_gx[primitive];
   if (m_current_primitive_type != new_primitive_type)
   {
-	  INCSTAT(stats.thisFrame.numPrepareData);
     Flush();
 
     // Have to update the rasterization state for point/line cull modes.

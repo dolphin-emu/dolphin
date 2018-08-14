@@ -843,11 +843,7 @@ void UpdateTitle()
         (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
     SFPS = StringFromFormat(
-      "%s %s | %s | %s | FPS: %.0f - VPS: %.0f - %.0f%% | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
-      PowerPC::GetCPUName(),
-      _CoreParameter.bCPUThread ? "DC" : "SC",
-      g_video_backend->GetDisplayName().c_str(),
-      _CoreParameter.bDSPHLE ? "HLE" : "LLE",
+      "FPS: %.0f - VPS: %.0f - %.0f%% | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
       FPS, VPS, Speed,
       (int)(diff), (int)(diff - idleDiff), (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
   }

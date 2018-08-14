@@ -10,7 +10,7 @@
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/Statistics.h"
+
 AsyncRequests AsyncRequests::s_singleton;
 
 AsyncRequests::AsyncRequests() = default;
@@ -19,7 +19,6 @@ void AsyncRequests::PullEventsInternal()
 {
   // This is only called if the queue isn't empty.
   // So just flush the pipeline to get accurate results.
-	INCSTAT(stats.thisFrame.numPullEvents);
   g_vertex_manager->Flush();
 
   std::unique_lock<std::mutex> lock(m_mutex);
