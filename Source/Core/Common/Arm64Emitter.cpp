@@ -969,7 +969,8 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
     inst = (0x25 << 26) | MaskImm26(distance);
     break;
   }
-  *(u32*)branch.ptr = inst;
+
+  std::memcpy(branch.ptr, &inst, sizeof(inst));
 }
 
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
