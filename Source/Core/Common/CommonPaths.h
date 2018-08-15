@@ -22,6 +22,7 @@
 #elif defined ANDROID
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
+#define NOMEDIA_FILE ".nomedia"
 #else
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "dolphin-emu"
