@@ -102,7 +102,7 @@ public:
   bool HasChildren() const { return region_size != total_region_size; }
   u8* AllocChildCodeSpace(size_t child_size)
   {
-    ASSERT_MSG(DYNA_REG, child_size < GetSpaceLeft(), "Insufficient space for child allocation.");
+    ASSERT_MSG(DYNA_REC, child_size < GetSpaceLeft(), "Insufficient space for child allocation.");
     u8* child_region = region + region_size - child_size;
     region_size -= child_size;
     return child_region;
