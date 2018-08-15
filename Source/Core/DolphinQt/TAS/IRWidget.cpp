@@ -37,6 +37,9 @@ void IRWidget::paintEvent(QPaintEvent* event)
 {
   QPainter painter(this);
 
+  painter.setRenderHint(QPainter::Antialiasing, true);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+
   painter.setBrush(Qt::white);
   painter.drawRect(0, 0, width() - 1, height() - 1);
 
