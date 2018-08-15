@@ -146,7 +146,7 @@ private:
   std::unique_ptr<StreamBuffer> m_poke_vertex_stream_buffer;
   std::vector<EFBPokeVertex> m_color_poke_vertices;
   std::vector<EFBPokeVertex> m_depth_poke_vertices;
-  PrimitiveType m_poke_primitive = PrimitiveType::TriangleStrip;
+  PrimitiveType m_poke_primitive = PrimitiveType::Triangles;
 
   VkRenderPass m_copy_color_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_copy_depth_render_pass = VK_NULL_HANDLE;

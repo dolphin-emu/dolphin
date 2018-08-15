@@ -125,4 +125,20 @@ void EnablePrimitiveRestart()
     }
   }
 }
+
+GLenum MapToGLPrimitive(PrimitiveType primitive_type)
+{
+	switch (primitive_type)
+	{
+	case PrimitiveType::Points:
+		return GL_POINTS;
+	case PrimitiveType::Lines:
+		return GL_LINES;
+	case PrimitiveType::Triangles:
+		return GL_TRIANGLES;
+	default:
+		return 0;
+	}
+}
+
 }

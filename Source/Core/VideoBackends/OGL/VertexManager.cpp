@@ -24,6 +24,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "Common/GL/GLUtil.h"
 
 namespace OGL
 {
@@ -129,23 +130,7 @@ void VertexManager::Draw(u32 stride)
 {
   u32 index_size = IndexGenerator::GetIndexLen();
   u32 max_index = IndexGenerator::GetNumVerts();
-  GLenum primitive_mode = 0;
-
-  switch (m_current_primitive_type)
-  {
-  case PrimitiveType::Points:
-    primitive_mode = GL_POINTS;
-    break;
-  case PrimitiveType::Lines:
-    primitive_mode = GL_LINES;
-    break;
-  case PrimitiveType::Triangles:
-    primitive_mode = GL_TRIANGLES;
-    break;
-  case PrimitiveType::TriangleStrip:
-    primitive_mode = GL_TRIANGLE_STRIP;
-    break;
-  }
+  GLenum primitive_mode = GLUtil::MapToGLPrimitive(m_current_primitive_type);
 
   if (g_ogl_config.bSupportsGLBaseVertex)
   {

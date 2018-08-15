@@ -59,7 +59,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   const PrimitiveType primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type);
   const unsigned primitive_type_index = static_cast<unsigned>(uid_data->primitive_type);
   const unsigned vertex_in = std::min(static_cast<unsigned>(primitive_type_index) + 1, 3u);
-  unsigned vertex_out = primitive_type == PrimitiveType::TriangleStrip ? 3 : 4;
+  unsigned vertex_out = primitive_type == PrimitiveType::Triangles ? 3 : 4;
 
   if (wireframe)
     vertex_out++;

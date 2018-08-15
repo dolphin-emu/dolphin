@@ -381,8 +381,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
                          xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
-  if (m_current_primitive_type != PrimitiveType::Triangles &&
-      m_current_primitive_type != PrimitiveType::TriangleStrip)
+  if (m_current_primitive_type != PrimitiveType::Triangles)
   {
     return;
   }

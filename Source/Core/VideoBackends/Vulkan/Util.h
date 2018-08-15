@@ -125,7 +125,7 @@ public:
   UtilityShaderDraw(VkCommandBuffer command_buffer, VkPipelineLayout pipeline_layout,
                     VkRenderPass render_pass, VkShaderModule vertex_shader,
                     VkShaderModule geometry_shader, VkShaderModule pixel_shader,
-                    PrimitiveType primitive = PrimitiveType::TriangleStrip);
+                    PrimitiveType primitive = PrimitiveType::Triangles);
 
   UtilityShaderVertex* ReserveVertices(size_t count);
   void CommitVertices(size_t count);

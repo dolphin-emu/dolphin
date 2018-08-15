@@ -9,25 +9,10 @@
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/VertexManager.h"
+#include "Common/GL/GLUtil.h"
 
 namespace OGL
 {
-static GLenum MapToGLPrimitive(PrimitiveType primitive_type)
-{
-  switch (primitive_type)
-  {
-  case PrimitiveType::Points:
-    return GL_POINTS;
-  case PrimitiveType::Lines:
-    return GL_LINES;
-  case PrimitiveType::Triangles:
-    return GL_TRIANGLES;
-  case PrimitiveType::TriangleStrip:
-    return GL_TRIANGLE_STRIP;
-  default:
-    return 0;
-  }
-}
 OGLPipeline::OGLPipeline(const GLVertexFormat* vertex_format,
                          const RasterizationState& rasterization_state,
                          const DepthState& depth_state, const BlendingState& blending_state,
@@ -55,7 +40,7 @@ std::unique_ptr<OGLPipeline> OGLPipeline::Create(const AbstractPipelineConfig& c
     return nullptr;
 
   const GLVertexFormat* vertex_format = static_cast<const GLVertexFormat*>(config.vertex_format);
-  GLenum gl_primitive = MapToGLPrimitive(config.rasterization_state.primitive);
+  GLenum gl_primitive = GLUtil::MapToGLPrimitive(config.rasterization_state.primitive);
   return std::make_unique<OGLPipeline>(vertex_format, config.rasterization_state,
                                        config.depth_state, config.blending_state, program,
                                        gl_primitive);

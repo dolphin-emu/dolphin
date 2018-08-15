@@ -5,7 +5,7 @@
 #pragma once
 
 #include <string>
-
+#include "VideoCommon/RenderState.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
 namespace GLUtil
@@ -13,4 +13,5 @@ namespace GLUtil
 void InitInterface();
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
 void EnablePrimitiveRestart();
+GLenum MapToGLPrimitive(PrimitiveType primitive_type);
 }

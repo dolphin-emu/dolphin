@@ -768,7 +768,7 @@ bool FramebufferManager::CreateReadbackRenderPasses()
       g_vulkan_context->GetDeviceLimits().pointSizeRange[0] > 1 ||
       g_vulkan_context->GetDeviceLimits().pointSizeRange[1] < 16)
   {
-    m_poke_primitive = PrimitiveType::TriangleStrip;
+    m_poke_primitive = PrimitiveType::Triangles;
   }
   else
   {
@@ -970,10 +970,10 @@ void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destinat
   float y2 = float(y + 1) * 2.0f / EFB_HEIGHT - 1.0f;
   destination_list->push_back({{x1, y1, z, 1.0f}, color});
   destination_list->push_back({{x2, y1, z, 1.0f}, color});
-  destination_list->push_back({{x1, y2, z, 1.0f}, color});
-  destination_list->push_back({{x1, y2, z, 1.0f}, color});
-  destination_list->push_back({{x2, y1, z, 1.0f}, color});
   destination_list->push_back({{x2, y2, z, 1.0f}, color});
+  destination_list->push_back({{x1, y1, z, 1.0f}, color});
+  destination_list->push_back({{x2, y2, z, 1.0f}, color});
+  destination_list->push_back({{x1, y2, z, 1.0f}, color});
 }
 
 void FramebufferManager::FlushEFBPokes()
