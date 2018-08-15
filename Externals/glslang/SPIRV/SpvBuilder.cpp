@@ -81,6 +81,7 @@ Id Builder::import(const char* name)
 {
     Instruction* import = new Instruction(getUniqueId(), NoType, OpExtInstImport);
     import->addStringOperand(name);
+    module.mapInstruction(import);
 
     imports.push_back(std::unique_ptr<Instruction>(import));
     return import->getResultId();
@@ -509,7 +510,7 @@ Id Builder::getDerefTypeId(Id resultId) const
     Id typeId = getTypeId(resultId);
     assert(isPointerType(typeId));
 
-    return module.getInstruction(typeId)->getImmediateOperand(1);
+    return module.getInstruction(typeId)->getIdOperand(1);
 }
 
 Op Builder::getMostBasicTypeClass(Id typeId) const
@@ -553,7 +554,7 @@ int Builder::getNumTypeConstituents(Id typeId) const
         return instr->getImmediateOperand(1);
     case OpTypeArray:
     {
-        Id lengthId = instr->getImmediateOperand(1);
+        Id lengthId = instr->getIdOperand(1);
         return module.getInstruction(lengthId)->getImmediateOperand(0);
     }
     case OpTypeStruct:
@@ -1331,7 +1332,7 @@ void Builder::createNoResultOp(Op opCode)
     buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
 }
 
-// An opcode that has one operand, no result id, and no type
+// An opcode that has one id operand, no result id, and no type
 void Builder::createNoResultOp(Op opCode, Id operand)
 {
     Instruction* op = new Instruction(opCode);
@@ -1339,29 +1340,33 @@ void Builder::createNoResultOp(Op opCode, Id operand)
     buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
 }
 
-// An opcode that has one operand, no result id, and no type
-void Builder::createNoResultOp(Op opCode, const std::vector<Id>& operands)
+// An opcode that has multiple operands, no result id, and no type
+void Builder::createNoResultOp(Op opCode, const std::vector<IdImmediate>& operands)
 {
     Instruction* op = new Instruction(opCode);
-    for (auto it = operands.cbegin(); it != operands.cend(); ++it)
-        op->addIdOperand(*it);
+    for (auto it = operands.cbegin(); it != operands.cend(); ++it) {
+        if (it->isId)
+            op->addIdOperand(it->word);
+        else
+            op->addImmediateOperand(it->word);
+    }
     buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
 }
 
 void Builder::createControlBarrier(Scope execution, Scope memory, MemorySemanticsMask semantics)
 {
     Instruction* op = new Instruction(OpControlBarrier);
-    op->addImmediateOperand(makeUintConstant(execution));
-    op->addImmediateOperand(makeUintConstant(memory));
-    op->addImmediateOperand(makeUintConstant(semantics));
+    op->addIdOperand(makeUintConstant(execution));
+    op->addIdOperand(makeUintConstant(memory));
+    op->addIdOperand(makeUintConstant(semantics));
     buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
 }
 
 void Builder::createMemoryBarrier(unsigned executionScope, unsigned memorySemantics)
 {
     Instruction* op = new Instruction(OpMemoryBarrier);
-    op->addImmediateOperand(makeUintConstant(executionScope));
-    op->addImmediateOperand(makeUintConstant(memorySemantics));
+    op->addIdOperand(makeUintConstant(executionScope));
+    op->addIdOperand(makeUintConstant(memorySemantics));
     buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
 }
 
@@ -1423,6 +1428,20 @@ Id Builder::createOp(Op opCode, Id typeId, const std::vector<Id>& operands)
     Instruction* op = new Instruction(getUniqueId(), typeId, opCode);
     for (auto it = operands.cbegin(); it != operands.cend(); ++it)
         op->addIdOperand(*it);
+    buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
+
+    return op->getResultId();
+}
+
+Id Builder::createOp(Op opCode, Id typeId, const std::vector<IdImmediate>& operands)
+{
+    Instruction* op = new Instruction(getUniqueId(), typeId, opCode);
+    for (auto it = operands.cbegin(); it != operands.cend(); ++it) {
+        if (it->isId)
+            op->addIdOperand(it->word);
+        else
+            op->addImmediateOperand(it->word);
+    }
     buildPoint->addInstruction(std::unique_ptr<Instruction>(op));
 
     return op->getResultId();
@@ -2026,7 +2045,7 @@ Id Builder::createMatrixConstructor(Decoration precision, const std::vector<Id>&
     int numRows = getTypeNumRows(resultTypeId);
 
     Instruction* instr = module.getInstruction(componentTypeId);
-    Id bitCount = instr->getIdOperand(0);
+    unsigned bitCount = instr->getImmediateOperand(0);
 
     // Optimize matrix constructed from a bigger matrix
     if (isMatrix(sources[0]) && getNumColumns(sources[0]) >= numCols && getNumRows(sources[0]) >= numRows) {

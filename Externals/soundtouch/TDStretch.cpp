@@ -588,9 +588,8 @@ void TDStretch::setTempo(double newTempo)
 // Sets the number of channels, 1 = mono, 2 = stereo
 void TDStretch::setChannels(int numChannels)
 {
-    assert(numChannels > 0);
-    if (channels == numChannels) return;
-//    assert(numChannels == 1 || numChannels == 2);
+    if (!verifyNumberOfChannels(numChannels) ||
+        (channels == numChannels)) return;
 
     channels = numChannels;
     inputBuffer.setChannels(channels);

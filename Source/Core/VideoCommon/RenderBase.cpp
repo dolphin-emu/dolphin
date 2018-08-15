@@ -276,7 +276,7 @@ void Renderer::DrawDebugText()
 
     if (_CoreParameter.m_InterfaceExtendedFPSInfo && !final_cyan.empty())
     {
-      final_cyan += StringFromFormat("| DRAW: %d\n", stats.thisFrame.numDrawCalls);
+      final_cyan += StringFromFormat(" | DRAW: %d\n", stats.thisFrame.numDrawCalls);
     }
     else
     {

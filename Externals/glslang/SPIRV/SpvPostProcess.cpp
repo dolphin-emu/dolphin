@@ -61,13 +61,13 @@ namespace spv {
 
 namespace spv {
 
-// Called for each instruction in a block.
+// Called for each instruction that resides in a block.
 void Builder::postProcess(Instruction& inst)
 {
     // Add capabilities based simply on the opcode.
     switch (inst.getOpCode()) {
     case OpExtInst:
-        switch (inst.getIdOperand(1)) {
+        switch (inst.getImmediateOperand(1)) {
         case GLSLstd450InterpolateAtCentroid:
         case GLSLstd450InterpolateAtSample:
         case GLSLstd450InterpolateAtOffset:

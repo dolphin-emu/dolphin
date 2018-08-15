@@ -125,20 +125,8 @@ public:
     RateTransposer();
     virtual ~RateTransposer();
 
-    /// Operator 'new' is overloaded so that it automatically creates a suitable instance 
-    /// depending on if we're to use integer or floating point arithmetic.
-//    static void *operator new(size_t s);
-
-    /// Use this function instead of "new" operator to create a new instance of this class. 
-    /// This function automatically chooses a correct implementation, depending on if 
-    /// integer or floating point arithmetic are to be used.
-//    static RateTransposer *newInstance();
-
     /// Returns the output buffer object
     FIFOSamplePipe *getOutput() { return &outputBuffer; };
-
-    /// Returns the store buffer object
-//    FIFOSamplePipe *getStore() { return &storeBuffer; };
 
     /// Return anti-alias filter object
     AAFilter *getAAFilter();

@@ -59,7 +59,7 @@ public:
         name(pName), offset(pOffset),
         glDefineType(pGLDefineType), size(pSize), index(pIndex), counterIndex(-1), stages(EShLanguageMask(0)), type(pType.clone()) { }
 
-    const TType* const getType() const { return type; }
+    const TType* getType() const { return type; }
     int getBinding() const
     {
         if (type == nullptr || !type->getQualifier().hasBinding())
