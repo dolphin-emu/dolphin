@@ -5,6 +5,7 @@
 #include "DolphinQt/TAS/IRWidget.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include <QMouseEvent>
 #include <QPainter>
@@ -14,6 +15,8 @@
 IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
 {
   setMouseTracking(false);
+  setToolTip(tr("Left click to set the IR value.\n"
+                "Right click to re-center it."));
 }
 
 void IRWidget::SetX(u16 x)
@@ -64,12 +67,20 @@ void IRWidget::mouseMoveEvent(QMouseEvent* event)
 
 void IRWidget::handleMouseEvent(QMouseEvent* event)
 {
-  // convert from widget space to value space
-  int new_x = ir_max_x - (event->x() * ir_max_x) / width();
-  int new_y = (event->y() * ir_max_y) / height();
+  if (event->button() == Qt::RightButton)
+  {
+    m_x = std::round(ir_max_x / 2.);
+    m_y = std::round(ir_max_y / 2.);
+  }
+  else
+  {
+    // convert from widget space to value space
+    int new_x = ir_max_x - (event->x() * ir_max_x) / width();
+    int new_y = (event->y() * ir_max_y) / height();
 
-  m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
-  m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));
+    m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
+    m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));
+  }
 
   emit ChangedX(m_x);
   emit ChangedY(m_y);
