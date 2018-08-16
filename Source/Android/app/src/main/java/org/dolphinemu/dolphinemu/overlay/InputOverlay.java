@@ -163,35 +163,31 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			{
 				case MotionEvent.ACTION_DOWN:
 				case MotionEvent.ACTION_POINTER_DOWN:
+				case MotionEvent.ACTION_MOVE:
+					// Up, Down, Left, Right
+					boolean[] pressed = {false, false, false, false};
 					// If a pointer enters the bounds of a button, press that button.
 					if (dpad.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
 					{
-						boolean up = false;
-						boolean down = false;
-						boolean left = false;
-						boolean right = false;
 						if (dpad.getBounds().top + (dpad.getHeight() / 3) > (int)event.getY(pointerIndex))
-						{
-							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(0), ButtonState.PRESSED);
-							up = true;
-						}
+							pressed[0] = true;
 						if (dpad.getBounds().bottom - (dpad.getHeight() / 3) < (int)event.getY(pointerIndex))
-						{
-							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(1), ButtonState.PRESSED);
-							down = true;
-						}
+							pressed[1] = true;
 						if (dpad.getBounds().left + (dpad.getWidth() / 3) > (int)event.getX(pointerIndex))
-						{
-							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(2), ButtonState.PRESSED);
-							left = true;
-						}
+							pressed[2] = true;
 						if (dpad.getBounds().right - (dpad.getWidth() / 3) < (int)event.getX(pointerIndex))
-						{
-							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(3), ButtonState.PRESSED);
-							right = true;
-						}
+							pressed[3] = true;
 
-						setDpadState(dpad, up, down, left, right);
+						// Release the buttons first, then press
+						for(int i = 0; i < pressed.length; i++)
+							if (!pressed[i])
+								NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
+						// Press buttons
+						for(int i = 0; i < pressed.length; i++)
+							if (pressed[i])
+								NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.PRESSED);
+
+						setDpadState(dpad, pressed[0], pressed[1], pressed[2], pressed[3]);
 						dpad.setTrackId(event.getPointerId(pointerIndex));
 					}
 					break;
