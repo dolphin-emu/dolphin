@@ -66,6 +66,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 			PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
 					getSupportFragmentManager(), this);
 			mViewPager.setAdapter(platformPagerAdapter);
+			mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
 			showGames();
 			GameFileCacheService.startLoad(this);
 		}
@@ -174,6 +175,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 					PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
 							getSupportFragmentManager(), this);
 					mViewPager.setAdapter(platformPagerAdapter);
+					mViewPager.setOffscreenPageLimit(platformPagerAdapter.getCount());
 					mTabLayout.setupWithViewPager(mViewPager);
 					mViewPager.setVisibility(View.VISIBLE);
 					GameFileCacheService.startLoad(this);
