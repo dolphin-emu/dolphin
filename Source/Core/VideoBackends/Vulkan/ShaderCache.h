@@ -112,10 +112,7 @@ public:
   void ReloadPipelineCache();
 
   // Shared shader accessors
-  VkShaderModule GetScreenQuadVertexShader() const { return m_screen_quad_vertex_shader; }
   VkShaderModule GetPassthroughVertexShader() const { return m_passthrough_vertex_shader; }
-  VkShaderModule GetScreenQuadGeometryShader() const { return m_screen_quad_geometry_shader; }
-  VkShaderModule GetPassthroughGeometryShader() const { return m_passthrough_geometry_shader; }
 
 private:
   bool CreatePipelineCache();
@@ -132,10 +129,7 @@ private:
   std::string m_pipeline_cache_filename;
 
   // Utility/shared shaders
-  VkShaderModule m_screen_quad_vertex_shader = VK_NULL_HANDLE;
   VkShaderModule m_passthrough_vertex_shader = VK_NULL_HANDLE;
-  VkShaderModule m_screen_quad_geometry_shader = VK_NULL_HANDLE;
-  VkShaderModule m_passthrough_geometry_shader = VK_NULL_HANDLE;
 };
 
 extern std::unique_ptr<ShaderCache> g_shader_cache;

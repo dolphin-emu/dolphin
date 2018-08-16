@@ -250,7 +250,7 @@ VkPipeline ShaderCache::CreatePipeline(const PipelineInfo& info)
   // Input assembly
   static constexpr std::array<VkPrimitiveTopology, 4> vk_primitive_topologies = {
       {VK_PRIMITIVE_TOPOLOGY_POINT_LIST, VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
-       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP}};
+       VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST}};
   VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
       VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, nullptr, 0,
       vk_primitive_topologies[static_cast<u32>(info.rasterization_state.primitive.Value())],
@@ -709,98 +709,13 @@ bool ShaderCache::CompileSharedShaders()
     }
   )";
 
-  static const char PASSTHROUGH_GEOMETRY_SHADER_SOURCE[] = R"(
-    layout(triangles) in;
-    layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
-
-    layout(location = 0) in vec3 in_uv0[];
-    layout(location = 1) in vec4 in_col0[];
-
-    layout(location = 0) out vec3 out_uv0;
-    layout(location = 1) out vec4 out_col0;
-
-    void main()
-    {
-      for (int j = 0; j < EFB_LAYERS; j++)
-      {
-        for (int i = 0; i < 3; i++)
-        {
-          gl_Layer = j;
-          gl_Position = gl_in[i].gl_Position;
-          out_uv0 = vec3(in_uv0[i].xy, float(j));
-          out_col0 = in_col0[i];
-          EmitVertex();
-        }
-        EndPrimitive();
-      }
-    }
-  )";
-
-  static const char SCREEN_QUAD_VERTEX_SHADER_SOURCE[] = R"(
-    layout(location = 0) out vec3 uv0;
-
-    void main()
-    {
-        /*
-         * id   &1    &2   clamp(*2-1)
-         * 0    0,0   0,0  -1,-1      TL
-         * 1    1,0   1,0  1,-1       TR
-         * 2    0,2   0,1  -1,1       BL
-         * 3    1,2   1,1  1,1        BR
-         */
-        vec2 rawpos = vec2(float(gl_VertexID & 1), clamp(float(gl_VertexID & 2), 0.0f, 1.0f));
-        gl_Position = vec4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
-        uv0 = vec3(rawpos, 0.0f);
-    }
-  )";
-
-  static const char SCREEN_QUAD_GEOMETRY_SHADER_SOURCE[] = R"(
-    layout(triangles) in;
-    layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
-
-    layout(location = 0) in vec3 in_uv0[];
-
-    layout(location = 0) out vec3 out_uv0;
-
-    void main()
-    {
-      for (int j = 0; j < EFB_LAYERS; j++)
-      {
-        for (int i = 0; i < 3; i++)
-        {
-          gl_Layer = j;
-          gl_Position = gl_in[i].gl_Position;
-          out_uv0 = vec3(in_uv0[i].xy, float(j));
-          EmitVertex();
-        }
-        EndPrimitive();
-      }
-    }
-  )";
-
   std::string header = GetUtilityShaderHeader();
 
-  m_screen_quad_vertex_shader =
-      Util::CompileAndCreateVertexShader(header + SCREEN_QUAD_VERTEX_SHADER_SOURCE);
   m_passthrough_vertex_shader =
       Util::CompileAndCreateVertexShader(header + PASSTHROUGH_VERTEX_SHADER_SOURCE);
-  if (m_screen_quad_vertex_shader == VK_NULL_HANDLE ||
-      m_passthrough_vertex_shader == VK_NULL_HANDLE)
+  if (m_passthrough_vertex_shader == VK_NULL_HANDLE)
   {
     return false;
-  }
-
-  if (g_ActiveConfig.stereo_mode != StereoMode::Off && g_vulkan_context->SupportsGeometryShaders())
-  {
-    m_screen_quad_geometry_shader =
-        Util::CompileAndCreateGeometryShader(header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE);
-    m_passthrough_geometry_shader =
-        Util::CompileAndCreateGeometryShader(header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE);
-    if (m_screen_quad_geometry_shader == VK_NULL_HANDLE ||
-        m_passthrough_geometry_shader == VK_NULL_HANDLE)
-    {
-      return false;
-    }
   }
 
   return true;
@@ -816,9 +731,6 @@ void ShaderCache::DestroySharedShaders()
     }
   };
 
-  DestroyShader(m_screen_quad_vertex_shader);
   DestroyShader(m_passthrough_vertex_shader);
-  DestroyShader(m_screen_quad_geometry_shader);
-  DestroyShader(m_passthrough_geometry_shader);
 }
 }

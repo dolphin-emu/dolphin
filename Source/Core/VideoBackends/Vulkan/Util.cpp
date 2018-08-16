@@ -492,19 +492,32 @@ void UtilityShaderDraw::Draw()
 
 void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height, float z)
 {
-  UtilityShaderVertex vertices[4];
+  UtilityShaderVertex vertices[6];
+  // 0
   vertices[0].SetPosition(-1.0f, 1.0f, z);
   vertices[0].SetTextureCoordinates(0.0f, 1.0f);
   vertices[0].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  // 1
   vertices[1].SetPosition(1.0f, 1.0f, z);
   vertices[1].SetTextureCoordinates(1.0f, 1.0f);
   vertices[1].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-  vertices[2].SetPosition(-1.0f, -1.0f, z);
-  vertices[2].SetTextureCoordinates(0.0f, 0.0f);
+  // 2
+  vertices[2].SetPosition(1.0f, -1.0f, z);
+  vertices[2].SetTextureCoordinates(1.0f, 0.0f);
   vertices[2].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-  vertices[3].SetPosition(1.0f, -1.0f, z);
-  vertices[3].SetTextureCoordinates(1.0f, 0.0f);
+  // 0
+  vertices[3].SetPosition(-1.0f, 1.0f, z);
+  vertices[3].SetTextureCoordinates(0.0f, 1.0f);
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  // 2
+  vertices[4].SetPosition(1.0f, -1.0f, z);
+  vertices[4].SetTextureCoordinates(1.0f, 0.0f);
+  vertices[4].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  // 3
+  vertices[5].SetPosition(-1.0f, -1.0f, z);
+  vertices[5].SetTextureCoordinates(0.0f, 0.0f);
+  vertices[5].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
   UploadVertices(vertices, ArraySize(vertices));
@@ -521,19 +534,31 @@ void UtilityShaderDraw::DrawQuad(int dst_x, int dst_y, int dst_width, int dst_he
   float v1 = float(src_y + src_height) / float(src_full_height);
   float w = static_cast<float>(src_layer);
 
-  UtilityShaderVertex vertices[4];
+  UtilityShaderVertex vertices[6];
+  // 0
   vertices[0].SetPosition(-1.0f, 1.0f, z);
   vertices[0].SetTextureCoordinates(u0, v1, w);
   vertices[0].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  // 1
   vertices[1].SetPosition(1.0f, 1.0f, z);
   vertices[1].SetTextureCoordinates(u1, v1, w);
   vertices[1].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-  vertices[2].SetPosition(-1.0f, -1.0f, z);
-  vertices[2].SetTextureCoordinates(u0, v0, w);
+  // 2
+  vertices[2].SetPosition(1.0f, -1.0f, z);
+  vertices[2].SetTextureCoordinates(u1, v0, w);
   vertices[2].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
-  vertices[3].SetPosition(1.0f, -1.0f, z);
-  vertices[3].SetTextureCoordinates(u1, v0, w);
+  // 0
+  vertices[3].SetPosition(-1.0f, 1.0f, z);
+  vertices[3].SetTextureCoordinates(u0, v1, w);
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  // 2
+  vertices[4].SetPosition(1.0f, -1.0f, z);
+  vertices[4].SetTextureCoordinates(u1, v0, w);
+  vertices[4].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+  // 3
+  vertices[5].SetPosition(-1.0f, -1.0f, z);
+  vertices[5].SetTextureCoordinates(u0, v0, w);
+  vertices[5].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   Util::SetViewportAndScissor(m_command_buffer, dst_x, dst_y, dst_width, dst_height);
   UploadVertices(vertices, ArraySize(vertices));
@@ -548,39 +573,35 @@ void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, flo
 
 void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, u32 color, float z)
 {
-  UtilityShaderVertex vertices[4];
+  UtilityShaderVertex vertices[6];
+  // 0
   vertices[0].SetPosition(-1.0f, 1.0f, z);
   vertices[0].SetTextureCoordinates(0.0f, 1.0f);
   vertices[0].SetColor(color);
+  // 1
   vertices[1].SetPosition(1.0f, 1.0f, z);
   vertices[1].SetTextureCoordinates(1.0f, 1.0f);
   vertices[1].SetColor(color);
-  vertices[2].SetPosition(-1.0f, -1.0f, z);
-  vertices[2].SetTextureCoordinates(0.0f, 0.0f);
+  // 2
+  vertices[2].SetPosition(1.0f, -1.0f, z);
+  vertices[2].SetTextureCoordinates(1.0f, 0.0f);
   vertices[2].SetColor(color);
-  vertices[3].SetPosition(1.0f, -1.0f, z);
-  vertices[3].SetTextureCoordinates(1.0f, 0.0f);
+  // 0
+  vertices[3].SetPosition(-1.0f, 1.0f, z);
+  vertices[3].SetTextureCoordinates(0.0f, 1.0f);
   vertices[3].SetColor(color);
+  // 2
+  vertices[4].SetPosition(1.0f, -1.0f, z);
+  vertices[4].SetTextureCoordinates(1.0f, 0.0f);
+  vertices[4].SetColor(color);
+  // 3
+  vertices[5].SetPosition(-1.0f, -1.0f, z);
+  vertices[5].SetTextureCoordinates(0.0f, 0.0f);
+  vertices[5].SetColor(color);
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
   UploadVertices(vertices, ArraySize(vertices));
   Draw();
-}
-
-void UtilityShaderDraw::SetViewportAndScissor(int x, int y, int width, int height)
-{
-  Util::SetViewportAndScissor(m_command_buffer, x, y, width, height, 0.0f, 1.0f);
-}
-
-void UtilityShaderDraw::DrawWithoutVertexBuffer(u32 vertex_count)
-{
-  m_pipeline_info.vertex_format = nullptr;
-
-  BindDescriptors();
-  if (!BindPipeline())
-    return;
-
-  vkCmdDraw(m_command_buffer, vertex_count, 1, 0, 0);
 }
 
 void UtilityShaderDraw::BindVertexBuffer()

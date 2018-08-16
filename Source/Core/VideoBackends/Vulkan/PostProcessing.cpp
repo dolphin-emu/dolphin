@@ -42,14 +42,11 @@ void VulkanPostProcessing::BlitFromTexture(const TargetRectangle& dst, const Tar
                                            const Texture2D* src_tex, int src_layer,
                                            VkRenderPass render_pass)
 {
-  // If the source layer is negative we simply copy all available layers.
-  VkShaderModule geometry_shader =
-      src_layer < 0 ? g_shader_cache->GetPassthroughGeometryShader() : VK_NULL_HANDLE;
   VkShaderModule fragment_shader =
       m_fragment_shader != VK_NULL_HANDLE ? m_fragment_shader : m_default_fragment_shader;
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
-                         g_shader_cache->GetPassthroughVertexShader(), geometry_shader,
+                         g_shader_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
                          fragment_shader);
 
   // Source is always bound.

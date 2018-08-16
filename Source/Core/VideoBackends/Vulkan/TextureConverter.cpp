@@ -188,7 +188,7 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
       destination_texture->GetRawTexIdentifier()->GetSamples(), VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(command_buffer,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
-                         render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                         render_pass, g_shader_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
                          m_palette_conversion_shaders[static_cast<int>(palette_format)]);
 
   VkRect2D region = {{0, 0}, {dst_entry->GetWidth(), dst_entry->GetHeight()}};
@@ -201,8 +201,7 @@ void TextureConverter::ConvertTexture(TextureCacheBase::TCacheEntry* dst_entry,
   draw.SetPSSampler(0, source_texture->GetRawTexIdentifier()->GetView(),
                     g_object_cache->GetPointSampler());
   draw.SetPSTexelBuffer(m_texel_buffer_view_r16_uint);
-  draw.SetViewportAndScissor(0, 0, dst_entry->GetWidth(), dst_entry->GetHeight());
-  draw.DrawWithoutVertexBuffer(4);
+  draw.DrawQuad(0, 0, dst_entry->GetWidth(), dst_entry->GetHeight());
   draw.EndRenderPass();
 }
 
@@ -233,7 +232,7 @@ void TextureConverter::EncodeTextureToMemory(
       VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_DONT_CARE);
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
-                         render_pass, g_shader_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                         render_pass, g_shader_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
                          shader);
 
   // Uniform - int4 of left,top,native_width,scale
@@ -269,7 +268,8 @@ void TextureConverter::EncodeTextureToMemory(
   VkRect2D render_region = {{0, 0}, {render_width, render_height}};
   draw.BeginRenderPass(static_cast<VKTexture*>(m_encoding_render_texture.get())->GetFramebuffer(),
                        render_region);
-  draw.DrawWithoutVertexBuffer(4);
+  //draw.DrawWithoutVertexBuffer(4);
+  draw.DrawQuad(0, 0, render_width, render_height);
   draw.EndRenderPass();
 
   MathUtil::Rectangle<int> copy_rect(0, 0, render_width, render_height);

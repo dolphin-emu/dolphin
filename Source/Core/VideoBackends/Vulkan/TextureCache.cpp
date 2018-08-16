@@ -297,7 +297,7 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
   UtilityShaderDraw draw(command_buffer,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_shader_cache->GetPassthroughVertexShader(),
-                         g_shader_cache->GetPassthroughGeometryShader(), shader);
+                         VK_NULL_HANDLE, shader);
 
   u8* ubo_ptr = draw.AllocatePSUniforms(sizeof(PixelUniforms));
   std::memcpy(ubo_ptr, &uniforms, sizeof(PixelUniforms));

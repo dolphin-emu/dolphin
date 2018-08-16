@@ -368,15 +368,14 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         m_efb_load_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
-                         g_shader_cache->GetScreenQuadGeometryShader(), pixel_shader);
+                         m_efb_load_render_pass, g_shader_cache->GetPassthroughVertexShader(),
+                         VK_NULL_HANDLE, pixel_shader);
 
   VkRect2D region = {{0, 0}, {GetEFBWidth(), GetEFBHeight()}};
   draw.SetMultisamplingState(GetEFBMultisamplingState());
   draw.BeginRenderPass(m_efb_convert_framebuffer, region);
   draw.SetPSSampler(0, m_efb_color_texture->GetView(), g_object_cache->GetPointSampler());
-  draw.SetViewportAndScissor(0, 0, GetEFBWidth(), GetEFBHeight());
-  draw.DrawWithoutVertexBuffer(4);
+  draw.DrawQuad(0, 0, GetEFBWidth(), GetEFBHeight());
   draw.EndRenderPass();
 
   // Swap EFB texture pointers
@@ -441,13 +440,11 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(const VkRect2D& region)
   // Draw using resolve shader to write the minimum depth of all samples to the resolve texture.
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                         m_depth_resolve_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
-                         g_shader_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
+                         m_depth_resolve_render_pass, g_shader_cache->GetPassthroughVertexShader(),
+                         VK_NULL_HANDLE, m_ps_depth_resolve);
   draw.BeginRenderPass(m_depth_resolve_framebuffer, region);
   draw.SetPSSampler(0, m_efb_depth_texture->GetView(), g_object_cache->GetPointSampler());
-  draw.SetViewportAndScissor(region.offset.x, region.offset.y, region.extent.width,
-                             region.extent.height);
-  draw.DrawWithoutVertexBuffer(4);
+  draw.DrawQuad(region.offset.x, region.offset.y, region.extent.width, region.extent.height);
   draw.EndRenderPass();
 
   // Restore MSAA texture ready for rendering again
@@ -629,14 +626,13 @@ bool FramebufferManager::PopulateColorReadbackTexture()
 
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                           m_copy_color_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
+                           m_copy_color_render_pass, g_shader_cache->GetPassthroughVertexShader(),
                            VK_NULL_HANDLE, m_copy_color_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_color_copy_framebuffer, rect);
     draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
-    draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
-    draw.DrawWithoutVertexBuffer(4);
+	  draw.DrawQuad(0, 0, EFB_WIDTH, EFB_HEIGHT);
     draw.EndRenderPass();
 
     // Restore EFB to color attachment, since we're done with it.
@@ -704,14 +700,13 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
 
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-                           m_copy_depth_render_pass, g_shader_cache->GetScreenQuadVertexShader(),
+                           m_copy_depth_render_pass, g_shader_cache->GetPassthroughVertexShader(),
                            VK_NULL_HANDLE, m_copy_depth_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_depth_copy_framebuffer, rect);
     draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
-    draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
-    draw.DrawWithoutVertexBuffer(4);
+	  draw.DrawQuad(0, 0, EFB_WIDTH, EFB_HEIGHT);
     draw.EndRenderPass();
 
     // Restore EFB to depth attachment, since we're done with it.
