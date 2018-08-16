@@ -207,6 +207,7 @@ public final class SettingsFragmentPresenter
 		Setting overclockEnable = null;
 		Setting overclock = null;
 		Setting speedLimit = null;
+		Setting syncOnSkipIdle = null;
 		Setting audioStretch = null;
 		Setting audioBackend = null;
 
@@ -216,6 +217,7 @@ public final class SettingsFragmentPresenter
 		overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
 		overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
 		speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
+		syncOnSkipIdle = coreSection.getSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP).getSetting(SettingsFile.KEY_AUDIO_BACKEND);
 
@@ -244,7 +246,8 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, Settings.SECTION_INI_CORE, R.string.dual_core, R.string.dual_core_description, true, dualCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, Settings.SECTION_INI_CORE, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, Settings.SECTION_INI_CORE, R.string.overclock_title, R.string.overclock_title_description, 400, "%", 100, overclock));
-        sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, Settings.SECTION_INI_CORE, R.string.speed_limit, 0, 200, "%", 100, speedLimit));
+		sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, Settings.SECTION_INI_CORE, R.string.speed_limit, 0, 200, "%", 100, speedLimit));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE, Settings.SECTION_INI_CORE, R.string.sync_on_skip_idle, R.string.sync_on_skip_idle_description, true, syncOnSkipIdle));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 
 		String defaultAudioBackend = NativeLibrary.DefaultAudioBackend();

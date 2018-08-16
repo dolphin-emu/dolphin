@@ -137,6 +137,8 @@
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
 
+    <string name="sync_on_skip_idle">Sync On Skip Idle</string>
+    <string name="sync_on_skip_idle_description">When the FIFO is processing data we must not advance because in this way the VI will be desynchronized. So, We are waiting until the FIFO finish and while we process only the events required by the FIFO.</string>
     <string name="audio_backend">Audio Backend</string>
     <string name="audio_backend_description">Set backend used for audio output.</string>
 
