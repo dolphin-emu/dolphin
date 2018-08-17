@@ -102,7 +102,7 @@ public final class InputOverlayDrawableJoystick
 
 	public void TrackEvent(MotionEvent event)
 	{
-		boolean reCenter = mPreferences.getBoolean("joystickRelCenter", false);
+		boolean reCenter = mPreferences.getBoolean("joystickRelCenter", true);
 		int pointerIndex = event.getActionIndex();
 
 		switch(event.getAction() & MotionEvent.ACTION_MASK)
