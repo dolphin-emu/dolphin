@@ -38,7 +38,8 @@ CodeViewWidget::CodeViewWidget()
   setContextMenuPolicy(Qt::CustomContextMenu);
   setSelectionMode(QAbstractItemView::SingleSelection);
   setSelectionBehavior(QAbstractItemView::SelectRows);
-  verticalScrollBar()->setHidden(true);
+
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   for (int i = 0; i < columnCount(); i++)
   {

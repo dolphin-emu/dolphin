@@ -25,6 +25,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("Breakpoints"));
   setObjectName(QStringLiteral("breakpoints"));
+  setTitleBarWidget(new QWidget);
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
@@ -78,9 +79,11 @@ BreakpointWidget::~BreakpointWidget()
 void BreakpointWidget::CreateWidgets()
 {
   m_toolbar = new QToolBar;
+  m_toolbar->setContentsMargins(0, 0, 0, 0);
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
+  m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -100,6 +103,8 @@ void BreakpointWidget::CreateWidgets()
 
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
 
   m_new = m_toolbar->addAction(tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
   m_delete = m_toolbar->addAction(tr("Delete"), this, &BreakpointWidget::OnDelete);

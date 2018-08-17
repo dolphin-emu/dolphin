@@ -87,6 +87,7 @@ void RegisterWidget::CreateWidgets()
   QWidget* widget = new QWidget;
   auto* layout = new QVBoxLayout;
   layout->addWidget(m_table);
+  layout->setContentsMargins(2, 2, 2, 2);
   widget->setLayout(layout);
 
   setWidget(widget);

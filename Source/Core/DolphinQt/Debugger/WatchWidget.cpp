@@ -74,10 +74,12 @@ WatchWidget::~WatchWidget()
 void WatchWidget::CreateWidgets()
 {
   m_toolbar = new QToolBar;
+  m_toolbar->setContentsMargins(0, 0, 0, 0);
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
 
+  m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(5);
   m_table->verticalHeader()->setHidden(true);
   m_table->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -90,6 +92,8 @@ void WatchWidget::CreateWidgets()
   m_save->setEnabled(false);
 
   auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
 

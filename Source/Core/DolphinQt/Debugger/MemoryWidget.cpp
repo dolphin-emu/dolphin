@@ -76,6 +76,9 @@ void MemoryWidget::CreateWidgets()
 {
   auto* layout = new QHBoxLayout;
 
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
+
   //// Sidebar
 
   // Search
@@ -105,6 +108,7 @@ void MemoryWidget::CreateWidgets()
   search_layout->addWidget(m_find_next);
   search_layout->addWidget(m_find_previous);
   search_layout->addWidget(m_result_label);
+  search_layout->setSpacing(1);
 
   // Data Type
   auto* datatype_group = new QGroupBox(tr("Data Type"));
@@ -122,6 +126,7 @@ void MemoryWidget::CreateWidgets()
   datatype_layout->addWidget(m_type_u32);
   datatype_layout->addWidget(m_type_ascii);
   datatype_layout->addWidget(m_type_float);
+  datatype_layout->setSpacing(1);
 
   // MBP options
   auto* bp_group = new QGroupBox(tr("Memory breakpoint options"));
@@ -146,10 +151,13 @@ void MemoryWidget::CreateWidgets()
   bp_layout->addWidget(m_bp_read_only);
   bp_layout->addWidget(m_bp_write_only);
   bp_layout->addWidget(m_bp_log_check);
+  bp_layout->setSpacing(1);
 
   // Sidebar
   auto* sidebar = new QWidget;
   auto* sidebar_layout = new QVBoxLayout;
+  sidebar_layout->setSpacing(1);
+
   sidebar->setLayout(sidebar_layout);
 
   sidebar_layout->addWidget(m_search_address);
@@ -172,7 +180,7 @@ void MemoryWidget::CreateWidgets()
   auto* sidebar_scroll = new QScrollArea;
   sidebar_scroll->setWidget(sidebar);
   sidebar_scroll->setWidgetResizable(true);
-  sidebar_scroll->setFixedWidth(250);
+  sidebar_scroll->setFixedWidth(190);
 
   m_memory_view = new MemoryViewWidget(this);
 
