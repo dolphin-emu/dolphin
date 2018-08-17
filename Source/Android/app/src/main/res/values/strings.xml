@@ -138,7 +138,9 @@
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
 
     <string name="sync_on_skip_idle">Sync On Skip Idle</string>
-    <string name="sync_on_skip_idle_description">When the FIFO is processing data we must not advance because in this way the VI will be desynchronized. So, We are waiting until the FIFO finish and while we process only the events required by the FIFO.</string>
+    <string name="sync_on_skip_idle_description">We are waiting until the FIFO finish and while we process only the events required by the FIFO.</string>
+    <string name="sync_gpu_overclock">Sync Gpu Overclock</string>
+    <string name="sync_gpu_overclock_description">Set times to run gpu commands on cpu thread.</string>
     <string name="fast_disc_speed">Fast Disc Speed</string>
     <string name="fast_disc_speed_description">Accelerates the emulated disc speed, removing any loading emulation.</string>
     <string name="audio_backend">Audio Backend</string>
