@@ -108,6 +108,7 @@ extern Option<ShaderCompilationMode> shaderCompilationMode;
 extern Option<int> maxAnisotropy;
 extern Option<bool> efbScaledCopy;
 extern Option<bool> efbToTexture;
+extern Option<bool> efbToVram;
 extern Option<bool> gpuTextureDecoding;
 extern Option<bool> waitForShaders;
 }  // namespace Options
