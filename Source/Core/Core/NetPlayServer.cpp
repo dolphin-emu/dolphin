@@ -807,8 +807,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  if (m_dialog && m_traversal_client->GetState() == TraversalClient::Failure)
+  if (!m_dialog)
+    return;
+
+  const TraversalClient::State state = m_traversal_client->GetState();
+
+  if (state == TraversalClient::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
+
+  m_dialog->OnTraversalStateChanged(state);
 }
 
 // called from ---GUI--- thread

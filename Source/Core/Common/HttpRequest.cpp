@@ -29,6 +29,7 @@ public:
 
   bool IsValid() const;
   void SetCookies(const std::string& cookies);
+  void UseIPv4();
   Response Fetch(const std::string& url, Method method, const Headers& headers, const u8* payload,
                  size_t size);
 
@@ -60,6 +61,11 @@ bool HttpRequest::IsValid() const
 void HttpRequest::SetCookies(const std::string& cookies)
 {
   m_impl->SetCookies(cookies);
+}
+
+void HttpRequest::UseIPv4()
+{
+  m_impl->UseIPv4();
 }
 
 HttpRequest::Response HttpRequest::Get(const std::string& url, const Headers& headers)
@@ -134,6 +140,11 @@ bool HttpRequest::Impl::IsValid() const
 void HttpRequest::Impl::SetCookies(const std::string& cookies)
 {
   curl_easy_setopt(m_curl.get(), CURLOPT_COOKIE, cookies.c_str());
+}
+
+void HttpRequest::Impl::UseIPv4()
+{
+  curl_easy_setopt(m_curl.get(), CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 }
 
 static size_t CurlWriteCallback(char* data, size_t size, size_t nmemb, void* userdata)

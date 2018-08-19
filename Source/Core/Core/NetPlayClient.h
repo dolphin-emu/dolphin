@@ -47,6 +47,7 @@ public:
   virtual void OnConnectionLost() = 0;
   virtual void OnConnectionError(const std::string& message) = 0;
   virtual void OnTraversalError(TraversalClient::FailureReason error) = 0;
+  virtual void OnTraversalStateChanged(TraversalClient::State state) = 0;
   virtual void OnSaveDataSyncFailure() = 0;
 
   virtual bool IsRecording() = 0;

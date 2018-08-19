@@ -19,6 +19,7 @@ struct BootParameters;
 class CheatsManager;
 class CodeWidget;
 class ControllersWindow;
+class DiscordHandler;
 class DragEnterEvent;
 class FIFOPlayerWindow;
 class GameList;
@@ -183,6 +184,7 @@ private:
   ControllersWindow* m_controllers_window;
   SettingsWindow* m_settings_window;
   NetPlayDialog* m_netplay_dialog;
+  DiscordHandler* m_netplay_discord;
   NetPlaySetupDialog* m_netplay_setup_dialog;
   GraphicsWindow* m_graphics_window;
   static constexpr int num_gc_controllers = 4;

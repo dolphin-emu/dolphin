@@ -67,6 +67,7 @@
 #include "DolphinQt/Debugger/MemoryWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
+#include "DolphinQt/DiscordHandler.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/GameList/GameList.h"
@@ -646,7 +647,8 @@ void MainWindow::OnStopComplete()
   HideRenderWidget();
   EnableScreenSaver(true);
 #ifdef USE_DISCORD_PRESENCE
-  Discord::UpdateDiscordPresence();
+  if (!m_netplay_dialog->isVisible())
+    Discord::UpdateDiscordPresence();
 #endif
 
   SetFullScreenResolution(false);
@@ -800,7 +802,8 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
   ShowRenderWidget();
 #ifdef USE_DISCORD_PRESENCE
-  Discord::UpdateDiscordPresence();
+  if (!NetPlay::IsNetPlayRunning())
+    Discord::UpdateDiscordPresence();
 #endif
 
   if (SConfig::GetInstance().bFullscreen)
@@ -1051,6 +1054,9 @@ void MainWindow::NetPlayInit()
 {
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
   m_netplay_dialog = new NetPlayDialog;
+#ifdef USE_DISCORD_PRESENCE
+  m_netplay_discord = new DiscordHandler(this);
+#endif
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
           [this](const QString& path) { StartGame(path); });
@@ -1058,6 +1064,12 @@ void MainWindow::NetPlayInit()
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
+#ifdef USE_DISCORD_PRESENCE
+  connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
+
+  Discord::InitNetPlayFunctionality(*m_netplay_discord);
+  m_netplay_discord->Start();
+#endif
 }
 
 bool MainWindow::NetPlayJoin()
@@ -1176,6 +1188,9 @@ void MainWindow::NetPlayQuit()
 {
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
+#ifdef USE_DISCORD_PRESENCE
+  Discord::UpdateDiscordPresence();
+#endif
 }
 
 void MainWindow::EnableScreenSaver(bool enable)

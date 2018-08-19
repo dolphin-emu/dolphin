@@ -8,6 +8,8 @@ set(CMAKE_AUTOMOC ON)
 add_executable(dolphin-emu
   AboutDialog.cpp
   CheatsManager.cpp
+  DiscordHandler.cpp
+  DiscordJoinRequestDialog.cpp
   FIFO/FIFOPlayerWindow.cpp
   FIFO/FIFOAnalyzer.cpp
   HotkeyScheduler.cpp

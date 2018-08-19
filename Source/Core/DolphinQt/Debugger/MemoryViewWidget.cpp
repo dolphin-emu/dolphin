@@ -26,7 +26,7 @@ MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
 {
   horizontalHeader()->hide();
   verticalHeader()->hide();
-  verticalScrollBar()->setHidden(true);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setShowGrid(false);
 
   setFont(Settings::Instance().GetDebugFont());
