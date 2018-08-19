@@ -462,6 +462,8 @@ endif()
 if(ENCODE_FRAMEDUMPS)
   if(WIN32)
     set(FFMPEG_DIR Externals/ffmpeg)
+  #elseif(ANDROID)
+  #  set(FFMPEG_DIR Externals/ffmpeg_android)
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
   if(FFmpeg_FOUND)
@@ -535,7 +537,9 @@ endif()
 #     Externals/zlib/CMakeLists.txt (that is: NOT in some Src/ subdirectory)
 #
 add_subdirectory(Externals/Bochs_disasm)
-add_subdirectory(Externals/cpp-optparse)
+if(NOT ANDROID)
+  add_subdirectory(Externals/cpp-optparse)
+endif()
 add_subdirectory(Externals/glslang)
 
 find_package(pugixml)
@@ -738,8 +742,10 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 ########################################
 # Unit testing.
 #
-message(STATUS "Using static gtest from Externals")
-add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+if(NOT ANDROID)
+  message(STATUS "Using static gtest from Externals")
+  add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
+endif()
 
 ########################################
 # Process Dolphin source now that all setup is complete

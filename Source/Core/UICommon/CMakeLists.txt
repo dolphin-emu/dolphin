@@ -1,8 +1,4 @@
 add_library(uicommon
-  AutoUpdate.cpp
-  CommandLineParse.cpp
-  Disassembler.cpp
-  DiscordPresence.cpp
   GameFile.cpp
   GameFileCache.cpp
   UICommon.cpp
@@ -13,12 +9,19 @@ add_library(uicommon
 target_link_libraries(uicommon
 PUBLIC
   common
-  cpp-optparse
 
 PRIVATE
   bdisasm
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
+
+if(NOT ANDROID)
+  target_sources(uicommon PRIVATE CommandLineParse.cpp)
+  target_sources(uicommon PRIVATE AutoUpdate.cpp)
+  target_sources(uicommon PRIVATE DiscordPresence.cpp)
+  target_sources(uicommon PRIVATE Disassembler.cpp)
+  target_link_libraries(uicommon PUBLIC cpp-optparse)
+endif()
 
 if(USE_X11)
   target_sources(uicommon PRIVATE X11Utils.cpp)

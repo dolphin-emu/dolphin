@@ -76,7 +76,9 @@ void Init()
   Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
+#ifdef USE_DISCORD_PRESENCE
   Discord::Init();
+#endif
   LogManager::Init();
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
@@ -92,7 +94,9 @@ void Shutdown()
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
   LogManager::Shutdown();
+#ifdef USE_DISCORD_PRESENCE
   Discord::Shutdown();
+#endif
   SConfig::Shutdown();
   Config::Shutdown();
 }
