@@ -24,11 +24,11 @@ bool LoadPNG(const std::vector<u8>& input, std::vector<u8>* data_out, u32* width
     return false;
 
   // Prepare output vector
+  png.format = PNG_FORMAT_RGBA;
   size_t png_size = PNG_IMAGE_SIZE(png);
   data_out->resize(png_size);
 
   // Convert to RGBA and write into output vector
-  png.format = PNG_FORMAT_RGBA;
   if (!png_image_finish_read(&png, nullptr, data_out->data(), 0, nullptr))
     return false;
 
