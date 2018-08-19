@@ -159,6 +159,10 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
 
   m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
+
+  // Restoring of window states can sometimes go wrong, resulting in widgets being visible when they
+  // shouldn't be so we have to reapply all our rules afterwards.
+  Settings::Instance().RefreshWidgetVisibility();
 }
 
 MainWindow::~MainWindow()
