@@ -29,10 +29,12 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/HttpRequest.h"
 #include "Common/TraversalClient.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
@@ -49,6 +51,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/DiscordPresence.h"
 #include "UICommon/GameFile.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -418,6 +421,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_nickname = nickname;
   m_use_traversal = use_traversal;
   m_buffer_size = 0;
+  m_old_player_count = 0;
 
   m_room_box->clear();
   m_chat_edit->clear();
@@ -456,6 +460,59 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
 
   QDialog::show();
   UpdateGUI();
+}
+
+void NetPlayDialog::UpdateDiscordPresence()
+{
+#ifdef USE_DISCORD_PRESENCE
+  // both m_current_game and m_player_count need to be set for the status to be displayed correctly
+  if (m_player_count == 0 || m_current_game.empty())
+    return;
+
+  const auto use_default = [this]() {
+    Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::Empty, "", m_current_game);
+  };
+
+  if (Core::IsRunning())
+    return use_default();
+
+  if (IsHosting())
+  {
+    if (g_TraversalClient)
+    {
+      const auto host_id = g_TraversalClient->GetHostID();
+      if (host_id[0] == '\0')
+        return use_default();
+
+      Discord::UpdateDiscordPresence(m_player_count, Discord::SecretType::RoomID,
+                                     std::string(host_id.begin(), host_id.end()), m_current_game);
+    }
+    else
+    {
+      if (m_external_ip_address.empty())
+      {
+        Common::HttpRequest request;
+        // ENet does not support IPv6, so IPv4 has to be used
+        request.UseIPv4();
+        Common::HttpRequest::Response response =
+            request.Get("https://ip.dolphin-emu.org/", {{"X-Is-Dolphin", "1"}});
+
+        if (!response.has_value())
+          return use_default();
+        m_external_ip_address = std::string(response->begin(), response->end());
+      }
+      const int port = Settings::Instance().GetNetPlayServer()->GetPort();
+
+      Discord::UpdateDiscordPresence(
+          m_player_count, Discord::SecretType::IPAddress,
+          Discord::CreateSecretFromIPAddress(m_external_ip_address, port), m_current_game);
+    }
+  }
+  else
+  {
+    use_default();
+  }
+#endif
 }
 
 void NetPlayDialog::UpdateGUI()
@@ -565,6 +622,12 @@ void NetPlayDialog::UpdateGUI()
     m_hostcode_action_button->setText(tr("Copy"));
     m_hostcode_action_button->setEnabled(true);
   }
+
+  if (m_old_player_count != m_player_count)
+  {
+    UpdateDiscordPresence();
+    m_old_player_count = m_player_count;
+  }
 }
 
 // NetPlayUI methods
@@ -632,6 +695,7 @@ void NetPlayDialog::OnMsgChangeGame(const std::string& title)
   QueueOnObject(this, [this, qtitle, title] {
     m_game_button->setText(qtitle);
     m_current_game = title;
+    UpdateDiscordPresence();
   });
   DisplayMessage(tr("Game changed to \"%1\"").arg(qtitle), "magenta");
 }
@@ -669,11 +733,13 @@ void NetPlayDialog::OnMsgStartGame()
     auto client = Settings::Instance().GetNetPlayClient();
     if (client)
       client->StartGame(FindGame(m_current_game));
+    UpdateDiscordPresence();
   });
 }
 
 void NetPlayDialog::OnMsgStopGame()
 {
+  QueueOnObject(this, [this] { UpdateDiscordPresence(); });
 }
 
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
@@ -725,6 +791,18 @@ void NetPlayDialog::OnTraversalError(TraversalClient::FailureReason error)
       break;
     }
   });
+}
+
+void NetPlayDialog::OnTraversalStateChanged(TraversalClient::State state)
+{
+  switch (state)
+  {
+  case TraversalClient::State::Connected:
+  case TraversalClient::State::Failure:
+    UpdateDiscordPresence();
+  default:
+    break;
+  }
 }
 
 void NetPlayDialog::OnSaveDataSyncFailure()
