@@ -5,6 +5,7 @@
 #include "DolphinQt/GameList/GridProxyModel.h"
 
 #include <QImage>
+#include <QPainter>
 #include <QPixmap>
 #include <QSize>
 
@@ -36,17 +37,26 @@ QVariant GridProxyModel::data(const QModelIndex& i, int role) const
 
     const auto& buffer = model->GetGameFile(source_index.row())->GetCoverImage().buffer;
 
-    QPixmap pixmap;
+    QSize size = Config::Get(Config::MAIN_USE_GAME_COVERS) ? QSize(160, 224) : LARGE_BANNER_SIZE;
+    QPixmap pixmap(size * model->GetScale() * QPixmap().devicePixelRatio());
 
     if (buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
     {
-      pixmap = model
-                   ->data(model->index(source_index.row(), GameListModel::COL_BANNER),
-                          Qt::DecorationRole)
-                   .value<QPixmap>();
+      QPixmap banner = model
+                           ->data(model->index(source_index.row(), GameListModel::COL_BANNER),
+                                  Qt::DecorationRole)
+                           .value<QPixmap>();
 
-      return pixmap.scaled(LARGE_BANNER_SIZE * model->GetScale() * pixmap.devicePixelRatio(),
-                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
+      banner = banner.scaled(pixmap.size(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+      pixmap.fill();
+
+      QPainter painter(&pixmap);
+
+      painter.drawPixmap(0, pixmap.height() / 2 - banner.height() / 2, banner.width(),
+                         banner.height(), banner);
+
+      return pixmap;
     }
     else
     {
