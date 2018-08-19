@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -84,7 +85,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
 		String gamePath = getArguments().getString(KEY_GAMEPATH);
-		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath());
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		boolean firstOpen = preferences.getBoolean(DolphinApplication.FIRST_OPEN, true);
+		SharedPreferences.Editor sPrefsEditor = preferences.edit();
+		sPrefsEditor.putBoolean(DolphinApplication.FIRST_OPEN, false);
+		sPrefsEditor.apply();
+		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath(), firstOpen);
 	}
 
 	/**
@@ -264,10 +270,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		private Surface mSurface;
 		private boolean mRunWhenSurfaceIsValid;
 		private boolean loadPreviousTemporaryState;
+		private boolean firstOpen;
 		private final String temporaryStatePath;
 
-		EmulationState(String gamePath, String temporaryStatePath)
+		EmulationState(String gamePath, String temporaryStatePath, boolean firstOpen)
 		{
+			this.firstOpen = firstOpen;
 			mGamePath = gamePath;
 			this.temporaryStatePath = temporaryStatePath;
 			// Starting state is stopped.
@@ -411,7 +419,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 					else
 					{
 						Log.debug("[EmulationFragment] Starting emulation thread.");
-						NativeLibrary.Run(mGamePath);
+						NativeLibrary.Run(mGamePath, firstOpen);
 					}
 				}, "NativeEmulation");
 				mEmulationThread.start();

@@ -210,14 +210,17 @@ public final class SettingsFragmentPresenter
 		Setting overclock = null;
 		Setting speedLimit = null;
 		Setting audioStretch = null;
+		Setting analytics = null;
 
 		SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+		SettingSection analyticsSection = mSettings.getSection(Settings.SECTION_ANALYTICS);
 		cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
 		dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
 		overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
 		overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
 		speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+		analytics = analyticsSection.getSetting(SettingsFile.KEY_ANALYTICS_ENABLED);
 
 		// TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
 		// The proper solution would be to have one emuCoresEntries and one emuCoresValues
@@ -246,6 +249,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, Settings.SECTION_INI_CORE, R.string.overclock_title, R.string.overclock_title_description, 400, "%", 100, overclock));
         sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, Settings.SECTION_INI_CORE, R.string.speed_limit, 0, 200, "%", 100, speedLimit));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS, R.string.analytics, 0, false, analytics));
 	}
 
 	private void addInterfaceSettings(ArrayList<SettingsItem> sl)

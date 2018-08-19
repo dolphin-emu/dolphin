@@ -20,6 +20,10 @@ static jmethodID s_game_file_constructor;
 static jclass s_game_file_cache_class;
 static jfieldID s_game_file_cache_pointer;
 
+static jclass s_analytics_class;
+static jmethodID s_send_analytics_report;
+static jmethodID s_get_analytics_value;
+
 namespace IDCache
 {
 JavaVM* GetJavaVM()
@@ -37,6 +41,20 @@ jmethodID GetDisplayAlertMsg()
   return s_display_alert_msg;
 }
 
+jclass GetAnalyticsClass()
+{
+  return s_analytics_class;
+}
+
+jmethodID GetSendAnalyticsReport()
+{
+  return s_send_analytics_report;
+}
+
+jmethodID GetAnalyticsValue()
+{
+  return s_get_analytics_value;
+}
 jclass GetGameFileClass()
 {
   return s_game_file_class;
@@ -91,6 +109,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_game_file_cache_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_cache_class));
   s_game_file_cache_pointer = env->GetFieldID(game_file_cache_class, "mPointer", "J");
 
+  const jclass analytics_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Analytics");
+  s_analytics_class = reinterpret_cast<jclass>(env->NewGlobalRef(analytics_class));
+  s_send_analytics_report =
+      env->GetStaticMethodID(s_analytics_class, "sendReport", "(Ljava/lang/String;[B)V");
+  s_get_analytics_value = env->GetStaticMethodID(s_analytics_class, "getValue",
+                                                 "(Ljava/lang/String;)Ljava/lang/String;");
+
   return JNI_VERSION;
 }
 
@@ -103,6 +128,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_native_library_class);
   env->DeleteGlobalRef(s_game_file_class);
   env->DeleteGlobalRef(s_game_file_cache_class);
+  env->DeleteGlobalRef(s_analytics_class);
 }
 
 #ifdef __cplusplus

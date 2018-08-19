@@ -14,6 +14,9 @@ public final class StartupHandler
 		// Ask the user to grant write permission if it's not already granted
 		PermissionsHandler.checkWritePermission(parent);
 
+		// Ask the user if he wants to enable analytics if we haven't yet.
+		Analytics.checkAnalyticsInit(parent);
+
 		String start_file = "";
 		Bundle extras = parent.getIntent().getExtras();
 		if (extras != null)

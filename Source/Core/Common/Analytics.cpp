@@ -190,5 +190,4 @@ void HttpAnalyticsBackend::Send(std::string report)
   if (m_http.IsValid())
     m_http.Post(m_endpoint, report);
 }
-
 }  // namespace Common

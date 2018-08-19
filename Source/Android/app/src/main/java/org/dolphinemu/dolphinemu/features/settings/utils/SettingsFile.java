@@ -50,6 +50,9 @@ public final class SettingsFile
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";
 	public static final String KEY_SLOT_B_DEVICE = "SlotB";
 
+	public static final String KEY_ANALYTICS_ENABLED = "Enabled";
+	public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";
+
 	public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
 	public static final String KEY_OSD_MESSAGES = "OnScreenDisplayMessages";
 
@@ -294,12 +297,14 @@ public final class SettingsFile
 		catch (FileNotFoundException e)
 		{
 			Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
-			view.onSettingsFileNotFound();
+			if (view != null)
+				view.onSettingsFileNotFound();
 		}
 		catch (IOException e)
 		{
 			Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath()+ e.getMessage());
-			view.onSettingsFileNotFound();
+			if (view != null)
+				view.onSettingsFileNotFound();
 		}
 		finally
 		{
@@ -384,12 +389,14 @@ public final class SettingsFile
 		catch (FileNotFoundException e)
 		{
 			Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
-			view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+			if (view != null)
+				view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
 		}
 		catch (UnsupportedEncodingException e)
 		{
 			Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " + e.getMessage());
-			view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+			if (view != null)
+				view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
 		}
 		finally
 		{
@@ -487,6 +494,23 @@ public final class SettingsFile
 		}
 
 		sections.put(Settings.SECTION_INI_CORE, coreSection);
+	}
+
+	public static void firstAnalyticsAdd(boolean enabled)
+	{
+		HashMap<String, SettingSection> dolphinSections = readFile(SettingsFile.FILE_NAME_DOLPHIN, null);
+		SettingSection analyticsSection = dolphinSections.get(Settings.SECTION_ANALYTICS);
+
+		Setting analyticsEnabled = new StringSetting(KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS, enabled ? "True" : "False");
+		Setting analyticsFirstAsk = new StringSetting(KEY_ANALYTICS_PERMISSION_ASKED, Settings.SECTION_ANALYTICS, "True");
+
+		analyticsSection.putSetting(analyticsFirstAsk);
+		analyticsSection.putSetting(analyticsEnabled);
+
+		dolphinSections.put(Settings.SECTION_ANALYTICS, analyticsSection);
+
+		TreeMap<String, SettingSection> saveSection = new TreeMap<>(dolphinSections);
+		saveFile(SettingsFile.FILE_NAME_DOLPHIN, saveSection, null);
 	}
 
 	/**

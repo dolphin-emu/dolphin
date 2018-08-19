@@ -71,6 +71,7 @@ endif()
 
 if(ANDROID)
   target_sources(common PRIVATE
+    AndroidAnalytics.cpp
     Logging/ConsoleListenerDroid.cpp
   )
 elseif(WIN32)

@@ -27,13 +27,15 @@ public class Settings
 
     public static final String SECTION_BINDINGS = "Android";
 
+    public static final String SECTION_ANALYTICS = "Analytics";
+
     private String gameId;
 
     private static final Map<String, List<String>> configFileSectionsMap = new HashMap<>();
 
     static
     {
-        configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN, Arrays.asList(SECTION_INI_CORE, SECTION_INI_INTERFACE, SECTION_BINDINGS));
+        configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN, Arrays.asList(SECTION_INI_CORE, SECTION_INI_INTERFACE, SECTION_BINDINGS, SECTION_ANALYTICS));
         configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX, Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS, SECTION_STEREOSCOPY));
         configFileSectionsMap.put(SettingsFile.FILE_NAME_WIIMOTE, Arrays.asList(SECTION_WIIMOTE + 1, SECTION_WIIMOTE + 2, SECTION_WIIMOTE + 3, SECTION_WIIMOTE + 4));
     }
