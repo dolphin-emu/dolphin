@@ -538,7 +538,7 @@ public final class SettingsFragmentPresenter
         SettingSection bindingsSection = mSettings.getSection(Settings.SECTION_BINDINGS);
 
 		// Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
-		IntSetting extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, Settings.SECTION_WIIMOTE + wiimoteNumber, getExtensionValue(wiimoteNumber), MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
+		IntSetting extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, Settings.SECTION_WIIMOTE + wiimoteNumber, getExtensionValue(wiimoteNumber - 3), MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
 		Setting bindA = bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_A + wiimoteNumber);
 		Setting bindB = bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_B + wiimoteNumber);
 		Setting bind1 = bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_1 + wiimoteNumber);

@@ -481,7 +481,8 @@ public final class SettingsFile
 			String key = SettingsFile.KEY_GCPAD_TYPE + i;
 			if (coreSection.getSetting(key) == null)
 			{
-				Setting gcPadSetting = new IntSetting(key, Settings.SECTION_INI_CORE,0);
+				// Set GameCube controller 1 to enabled, all others disabled
+				Setting gcPadSetting = new IntSetting(key, Settings.SECTION_INI_CORE, i == 0 ? 6 : 0);
 				coreSection.putSetting(gcPadSetting);
 			}
 		}
