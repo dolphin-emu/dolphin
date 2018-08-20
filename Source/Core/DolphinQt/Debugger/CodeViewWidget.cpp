@@ -29,6 +29,10 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+// "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
+// 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
+constexpr double SCROLL_FRACTION_DEGREES = 15.;
+
 constexpr size_t VALID_BRANCH_LENGTH = 10;
 
 CodeViewWidget::CodeViewWidget()
@@ -484,11 +488,11 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address -= 3 * sizeof(u32);
+    m_address -= sizeof(u32);
     Update();
     return;
   case Qt::Key_Down:
-    m_address += 3 * sizeof(u32);
+    m_address += sizeof(u32);
     Update();
     return;
   case Qt::Key_PageUp:
@@ -507,9 +511,13 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
 
 void CodeViewWidget::wheelEvent(QWheelEvent* event)
 {
-  int delta = event->delta() > 0 ? -1 : 1;
+  auto delta =
+      -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
-  m_address += delta * 3 * sizeof(u32);
+  if (delta == 0)
+    return;
+
+  m_address += delta * sizeof(u32);
   Update();
 }
 
