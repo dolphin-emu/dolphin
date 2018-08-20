@@ -46,11 +46,12 @@ public final class SettingsFile
 	public static final String KEY_SYNC_GPU_OVERCLOCK = "SyncGpuOverclock";
 	public static final String KEY_MMU_EMULATION = "MMU";
 	public static final String KEY_FAST_DISC_SPEED = "FastDiscSpeed";
+	public static final String KEY_JIT_FOLLOW_BRANCH = "JITFollowBranch";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
 	public static final String KEY_AUDIO_BACKEND = "Backend";
 	public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
-    public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
+	public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
 	public static final String KEY_SLOT_A_DEVICE = "SlotA";
 	public static final String KEY_SLOT_B_DEVICE = "SlotB";
 

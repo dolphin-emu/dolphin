@@ -211,6 +211,7 @@ public final class SettingsFragmentPresenter
 		Setting syncGpuOverclock = null;
 		Setting mmuEmulation = null;
 		Setting fastDiscSpeed = null;
+		Setting followBranch = null;
 		Setting audioStretch = null;
 		Setting audioBackend = null;
 
@@ -224,6 +225,7 @@ public final class SettingsFragmentPresenter
 		syncGpuOverclock = coreSection.getSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK);
 		mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
 		fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
+		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP).getSetting(SettingsFile.KEY_AUDIO_BACKEND);
 
@@ -257,6 +259,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new SliderSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK, Settings.SECTION_INI_CORE, R.string.sync_gpu_overclock, R.string.sync_gpu_overclock_description, 200, "%", 100, syncGpuOverclock));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_MMU_EMULATION, Settings.SECTION_INI_CORE, R.string.mmu_emulation, R.string.mmu_emulation_description, true, mmuEmulation));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DISC_SPEED, Settings.SECTION_INI_CORE, R.string.fast_disc_speed, R.string.fast_disc_speed_description, false, fastDiscSpeed));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH, Settings.SECTION_INI_CORE, R.string.jit_follow_branch, R.string.jit_follow_branch_description, true, followBranch));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 
 		String defaultAudioBackend = NativeLibrary.DefaultAudioBackend();
@@ -284,7 +287,7 @@ public final class SettingsFragmentPresenter
 	private void addGameCubeSettings(ArrayList<SettingsItem> sl)
 	{
 		Setting systemLanguage = null;
-        Setting overrideGCLanguage = null;
+		Setting overrideGCLanguage = null;
 		Setting slotADevice = null;
 		Setting slotBDevice = null;
 
@@ -295,7 +298,7 @@ public final class SettingsFragmentPresenter
 		slotBDevice = coreSection.getSetting(SettingsFile.KEY_SLOT_B_DEVICE);
 
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_GAME_CUBE_LANGUAGE, Settings.SECTION_INI_CORE, R.string.gamecube_system_language, 0, R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues, 0, systemLanguage));
-        sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE, Settings.SECTION_INI_CORE, R.string.override_gamecube_language, 0, false, overrideGCLanguage));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_GAME_CUBE_LANGUAGE, Settings.SECTION_INI_CORE, R.string.override_gamecube_language, 0, false, overrideGCLanguage));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_A_DEVICE, Settings.SECTION_INI_CORE, R.string.slot_a_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 8, slotADevice));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SLOT_B_DEVICE, Settings.SECTION_INI_CORE, R.string.slot_b_device, 0, R.array.slotDeviceEntries, R.array.slotDeviceValues, 255, slotBDevice));
 	}
@@ -386,7 +389,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SCALED_EFB, Settings.SECTION_GFX_HACKS,  R.string.scaled_efb_copy, R.string.scaled_efb_copy_description, true, efbScaledCopy));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_PER_PIXEL, Settings.SECTION_GFX_SETTINGS,  R.string.per_pixel_lighting, R.string.per_pixel_lighting_description, false, perPixel));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_FILTERING, Settings.SECTION_GFX_ENHANCEMENTS,  R.string.force_texture_filtering, R.string.force_texture_filtering_description, false, forceFilter));
-        sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, Settings.SECTION_GFX_SETTINGS,  R.string.force_24bit_color, R.string.force_24bit_color_description, true, force24BitColor));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR, Settings.SECTION_GFX_SETTINGS,  R.string.force_24bit_color, R.string.force_24bit_color_description, true, force24BitColor));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_FOG, Settings.SECTION_GFX_SETTINGS,  R.string.disable_fog, R.string.disable_fog_description, false, disableFog));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DISABLE_COPY_FILTER, Settings.SECTION_GFX_SETTINGS,  R.string.disable_copy_filter, R.string.disable_copy_filter_description, false, disableCopyFilter));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION, Settings.SECTION_GFX_SETTINGS,  R.string.arbitrary_mipmap_detection, R.string.arbitrary_mipmap_detection_description, true, arbitraryMipmapDetection));
