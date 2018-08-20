@@ -766,7 +766,7 @@ else()
 endif()
 
 find_package(CURL)
-if(CURL_FOUND)
+if(CURL_FOUND AND NOT(LIBRETRO))
   message(STATUS "Using shared libcurl")
   include_directories(${CURL_INCLUDE_DIRS})
 else()
