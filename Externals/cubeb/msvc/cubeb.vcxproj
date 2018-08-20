@@ -76,6 +76,7 @@
     <ClCompile Include="..\src\cubeb_panner.cpp" />
     <ClCompile Include="..\src\cubeb_resampler.cpp" />
     <ClCompile Include="..\src\cubeb_strings.c" />
+    <ClCompile Include="..\src\cubeb_utils.cpp" />
     <ClCompile Include="..\src\cubeb_wasapi.cpp" />
     <ClCompile Include="..\src\cubeb_winmm.c" />
     <ClCompile Include="..\src\speex\resample.c" />

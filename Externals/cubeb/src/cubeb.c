@@ -19,7 +19,12 @@ struct cubeb {
 };
 
 struct cubeb_stream {
+  /*
+   * Note: All implementations of cubeb_stream must keep the following
+   * layout.
+   */
   struct cubeb * context;
+  void * user_ptr;
 };
 
 #if defined(USE_PULSE)
@@ -63,7 +68,7 @@ validate_stream_params(cubeb_stream_params * input_stream_params,
   XASSERT(input_stream_params || output_stream_params);
   if (output_stream_params) {
     if (output_stream_params->rate < 1000 || output_stream_params->rate > 192000 ||
-        output_stream_params->channels < 1 || output_stream_params->channels > 8) {
+        output_stream_params->channels < 1) {
       return CUBEB_ERROR_INVALID_FORMAT;
     }
   }
@@ -272,20 +277,6 @@ cubeb_get_preferred_sample_rate(cubeb * context, uint32_t * rate)
   return context->ops->get_preferred_sample_rate(context, rate);
 }
 
-int
-cubeb_get_preferred_channel_layout(cubeb * context, cubeb_channel_layout * layout)
-{
-  if (!context || !layout) {
-    return CUBEB_ERROR_INVALID_PARAMETER;
-  }
-
-  if (!context->ops->get_preferred_channel_layout) {
-    return CUBEB_ERROR_NOT_SUPPORTED;
-  }
-
-  return context->ops->get_preferred_channel_layout(context, layout);
-}
-
 void
 cubeb_destroy(cubeb * context)
 {
@@ -473,6 +464,15 @@ int cubeb_stream_register_device_changed_callback(cubeb_stream * stream,
   }
 
   return stream->context->ops->stream_register_device_changed_callback(stream, device_changed_callback);
+}
+
+void * cubeb_stream_user_ptr(cubeb_stream * stream)
+{
+  if (!stream) {
+    return NULL;
+  }
+
+  return stream->user_ptr;
 }
 
 static

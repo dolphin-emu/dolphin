@@ -76,12 +76,14 @@ enum stream_state {
 };
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
   pthread_mutex_t mutex;
   snd_pcm_t * pcm;
   cubeb_data_callback data_callback;
   cubeb_state_callback state_callback;
-  void * user_ptr;
   snd_pcm_uframes_t stream_position;
   snd_pcm_uframes_t last_position;
   snd_pcm_uframes_t buffer_size;
@@ -890,6 +892,10 @@ alsa_stream_init_single(cubeb * ctx, cubeb_stream ** stream, char const * stream
 
   *stream = NULL;
 
+  if (stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK) {
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
+
   switch (stream_params->format) {
   case CUBEB_SAMPLE_S16LE:
     format = SND_PCM_FORMAT_S16_LE;
@@ -1352,7 +1358,6 @@ static struct cubeb_ops const alsa_ops = {
   .get_max_channel_count = alsa_get_max_channel_count,
   .get_min_latency = alsa_get_min_latency,
   .get_preferred_sample_rate = alsa_get_preferred_sample_rate,
-  .get_preferred_channel_layout = NULL,
   .enumerate_devices = alsa_enumerate_devices,
   .device_collection_destroy = alsa_device_collection_destroy,
   .destroy = alsa_destroy,

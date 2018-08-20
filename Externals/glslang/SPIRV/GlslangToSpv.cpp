@@ -2612,7 +2612,6 @@ spv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const glslang::TType& ty
         spvType = builder.makeFloatType(64);
         break;
     case glslang::EbtFloat16:
-        builder.addCapability(spv::CapabilityFloat16);
 #if AMD_EXTENSIONS
         if (builder.getSpvVersion() < glslang::EShTargetSpv_1_3)
             builder.addExtension(spv::E_SPV_AMD_gpu_shader_half_float);
@@ -2627,16 +2626,13 @@ spv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const glslang::TType& ty
         else
             spvType = builder.makeBoolType();
         break;
-   case glslang::EbtInt8:
-        builder.addCapability(spv::CapabilityInt8);
+    case glslang::EbtInt8:
         spvType = builder.makeIntType(8);
         break;
     case glslang::EbtUint8:
-        builder.addCapability(spv::CapabilityInt8);
         spvType = builder.makeUintType(8);
         break;
-   case glslang::EbtInt16:
-        builder.addCapability(spv::CapabilityInt16);
+    case glslang::EbtInt16:
 #ifdef AMD_EXTENSIONS
         if (builder.getSpvVersion() < glslang::EShTargetSpv_1_3)
             builder.addExtension(spv::E_SPV_AMD_gpu_shader_int16);
@@ -2644,7 +2640,6 @@ spv::Id TGlslangToSpvTraverser::convertGlslangToSpvType(const glslang::TType& ty
         spvType = builder.makeIntType(16);
         break;
     case glslang::EbtUint16:
-        builder.addCapability(spv::CapabilityInt16);
 #ifdef AMD_EXTENSIONS
         if (builder.getSpvVersion() < glslang::EShTargetSpv_1_3)
             builder.addExtension(spv::E_SPV_AMD_gpu_shader_int16);

@@ -4,7 +4,6 @@
  * This program is made available under an ISC-style license.  See the
  * accompanying file LICENSE for details.
  */
-#define __MSVCRT_VERSION__ 0x0700
 #undef WINVER
 #define WINVER 0x0501
 #undef WIN32_LEAN_AND_MEAN
@@ -93,11 +92,13 @@ struct cubeb {
 };
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
   cubeb_stream_params params;
   cubeb_data_callback data_callback;
   cubeb_state_callback state_callback;
-  void * user_ptr;
   WAVEHDR buffers[NBUFS];
   size_t buffer_size;
   int next_buffer;
@@ -402,6 +403,7 @@ winmm_stream_init(cubeb * context, cubeb_stream ** stream, char const * stream_n
 
   XASSERT(context);
   XASSERT(stream);
+  XASSERT(output_stream_params);
 
   if (input_stream_params) {
     /* Capture support not yet implemented. */
@@ -411,6 +413,11 @@ winmm_stream_init(cubeb * context, cubeb_stream ** stream, char const * stream_n
   if (input_device || output_device) {
     /* Device selection not yet implemented. */
     return CUBEB_ERROR_DEVICE_UNAVAILABLE;
+  }
+
+  if (output_stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK) {
+    /* Loopback is not supported */
+    return CUBEB_ERROR_NOT_SUPPORTED;
   }
 
   *stream = NULL;
@@ -1042,7 +1049,6 @@ static struct cubeb_ops const winmm_ops = {
   /*.get_max_channel_count=*/ winmm_get_max_channel_count,
   /*.get_min_latency=*/ winmm_get_min_latency,
   /*.get_preferred_sample_rate =*/ winmm_get_preferred_sample_rate,
-  /*.get_preferred_channel_layout =*/ NULL,
   /*.enumerate_devices =*/ winmm_enumerate_devices,
   /*.device_collection_destroy =*/ winmm_device_collection_destroy,
   /*.destroy =*/ winmm_destroy,

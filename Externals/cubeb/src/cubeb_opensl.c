@@ -26,6 +26,7 @@
 #include "cubeb_resampler.h"
 #include "cubeb-sles.h"
 #include "cubeb_array_queue.h"
+#include "android/cubeb-output-latency.h"
 
 #if defined(__ANDROID__)
 #ifdef LOG
@@ -61,14 +62,13 @@
 #endif
 
 #define DEFAULT_SAMPLE_RATE 48000
+#define DEFAULT_NUM_OF_FRAMES 480
 
 static struct cubeb_ops const opensl_ops;
 
 struct cubeb {
   struct cubeb_ops const * ops;
   void * lib;
-  void * libmedia;
-  int32_t (* get_output_latency)(uint32_t * latency, int stream_type);
   SLInterfaceID SL_IID_BUFFERQUEUE;
   SLInterfaceID SL_IID_PLAY;
 #if defined(__ANDROID__)
@@ -80,14 +80,17 @@ struct cubeb {
   SLObjectItf engObj;
   SLEngineItf eng;
   SLObjectItf outmixObj;
+  output_latency_function * p_output_latency_function;
 };
 
 #define NELEMS(A) (sizeof(A) / sizeof A[0])
 #define NBUFS 4
-#define AUDIO_STREAM_TYPE_MUSIC 3
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
   pthread_mutex_t mutex;
   SLObjectItf playerObj;
   SLPlayItf play;
@@ -148,11 +151,9 @@ struct cubeb_stream {
   cubeb_data_callback data_callback;
   /* Store state callback. */
   cubeb_state_callback state_callback;
-  /* User pointer for data & state callbacks*/
-  void * user_ptr;
 
   cubeb_resampler * resampler;
-  unsigned int inputrate;
+  unsigned int user_output_rate;
   unsigned int output_configured_rate;
   unsigned int latency_frames;
   int64_t lastPosition;
@@ -235,7 +236,6 @@ static void
 play_callback(SLPlayItf caller, void * user_ptr, SLuint32 event)
 {
   cubeb_stream * stm = user_ptr;
-  int draining;
   assert(stm);
   switch (event) {
     case SL_PLAYEVENT_HEADATMARKER:
@@ -667,28 +667,9 @@ opensl_init(cubeb ** context, char const * context_name)
   ctx->ops = &opensl_ops;
 
   ctx->lib = dlopen("libOpenSLES.so", RTLD_LAZY);
-  ctx->libmedia = dlopen("libmedia.so", RTLD_LAZY);
-  if (!ctx->lib || !ctx->libmedia) {
+  if (!ctx->lib) {
     free(ctx);
     return CUBEB_ERROR;
-  }
-
-  /* Get the latency, in ms, from AudioFlinger */
-  /* status_t AudioSystem::getOutputLatency(uint32_t* latency,
-   *                                        audio_stream_type_t streamType) */
-  /* First, try the most recent signature. */
-  ctx->get_output_latency =
-    dlsym(ctx->libmedia, "_ZN7android11AudioSystem16getOutputLatencyEPj19audio_stream_type_t");
-  if (!ctx->get_output_latency) {
-    /* in case of failure, try the legacy version. */
-    /* status_t AudioSystem::getOutputLatency(uint32_t* latency,
-     *                                        int streamType) */
-    ctx->get_output_latency =
-      dlsym(ctx->libmedia, "_ZN7android11AudioSystem16getOutputLatencyEPji");
-    if (!ctx->get_output_latency) {
-      opensl_destroy(ctx);
-      return CUBEB_ERROR;
-    }
   }
 
   typedef SLresult (*slCreateEngine_t)(SLObjectItf *,
@@ -760,6 +741,11 @@ opensl_init(cubeb ** context, char const * context_name)
     return CUBEB_ERROR;
   }
 
+  ctx->p_output_latency_function = cubeb_output_latency_load_method(android_version);
+  if (!ctx->p_output_latency_function) {
+    LOG("Warning: output latency is not available, cubeb_stream_get_position() is not supported");
+  }
+
   *context = ctx;
 
   LOG("Cubeb init (%p) success", ctx);
@@ -783,124 +769,6 @@ opensl_get_max_channel_count(cubeb * ctx, uint32_t * max_channels)
   return CUBEB_OK;
 }
 
-static int
-opensl_get_preferred_sample_rate(cubeb * ctx, uint32_t * rate)
-{
-  /* https://android.googlesource.com/platform/ndk.git/+/master/docs/opensles/index.html
-   * We don't want to deal with JNI here (and we don't have Java on b2g anyways),
-   * so we just dlopen the library and get the two symbols we need. */
-  int r;
-  void * libmedia;
-  uint32_t (*get_primary_output_samplingrate)();
-  uint32_t (*get_output_samplingrate)(int * samplingRate, int streamType);
-
-  libmedia = dlopen("libmedia.so", RTLD_LAZY);
-  if (!libmedia) {
-    return CUBEB_ERROR;
-  }
-
-  /* uint32_t AudioSystem::getPrimaryOutputSamplingRate(void) */
-  get_primary_output_samplingrate =
-    dlsym(libmedia, "_ZN7android11AudioSystem28getPrimaryOutputSamplingRateEv");
-  if (!get_primary_output_samplingrate) {
-    /* fallback to
-     * status_t AudioSystem::getOutputSamplingRate(int* samplingRate, int streamType)
-     * if we cannot find getPrimaryOutputSamplingRate. */
-    get_output_samplingrate =
-      dlsym(libmedia, "_ZN7android11AudioSystem21getOutputSamplingRateEPj19audio_stream_type_t");
-    if (!get_output_samplingrate) {
-      /* Another signature exists, with a int instead of an audio_stream_type_t */
-      get_output_samplingrate =
-        dlsym(libmedia, "_ZN7android11AudioSystem21getOutputSamplingRateEPii");
-      if (!get_output_samplingrate) {
-        dlclose(libmedia);
-        return CUBEB_ERROR;
-      }
-    }
-  }
-
-  if (get_primary_output_samplingrate) {
-    *rate = get_primary_output_samplingrate();
-  } else {
-    /* We don't really know about the type, here, so we just pass music. */
-    r = get_output_samplingrate((int *) rate, AUDIO_STREAM_TYPE_MUSIC);
-    if (r) {
-      dlclose(libmedia);
-      return CUBEB_ERROR;
-    }
-  }
-
-  dlclose(libmedia);
-
-  /* Depending on which method we called above, we can get a zero back, yet have
-   * a non-error return value, especially if the audio system is not
-   * ready/shutting down (i.e. when we can't get our hand on the AudioFlinger
-   * thread). */
-  if (*rate == 0) {
-    return CUBEB_ERROR;
-  }
-
-  return CUBEB_OK;
-}
-
-static int
-opensl_get_min_latency(cubeb * ctx, cubeb_stream_params params, uint32_t * latency_frames)
-{
-  /* https://android.googlesource.com/platform/ndk.git/+/master/docs/opensles/index.html
-   * We don't want to deal with JNI here (and we don't have Java on b2g anyways),
-   * so we just dlopen the library and get the two symbols we need. */
-
-  int r;
-  void * libmedia;
-  size_t (*get_primary_output_frame_count)(void);
-  int (*get_output_frame_count)(size_t * frameCount, int streamType);
-  uint32_t primary_sampling_rate;
-  size_t primary_buffer_size;
-
-  r = opensl_get_preferred_sample_rate(ctx, &primary_sampling_rate);
-
-  if (r) {
-    return CUBEB_ERROR;
-  }
-
-  libmedia = dlopen("libmedia.so", RTLD_LAZY);
-  if (!libmedia) {
-    return CUBEB_ERROR;
-  }
-
-  /* JB variant */
-  /* size_t AudioSystem::getPrimaryOutputFrameCount(void) */
-  get_primary_output_frame_count =
-    dlsym(libmedia, "_ZN7android11AudioSystem26getPrimaryOutputFrameCountEv");
-  if (!get_primary_output_frame_count) {
-    /* ICS variant */
-    /* status_t AudioSystem::getOutputFrameCount(int* frameCount, int streamType) */
-    get_output_frame_count =
-      dlsym(libmedia, "_ZN7android11AudioSystem19getOutputFrameCountEPii");
-    if (!get_output_frame_count) {
-      dlclose(libmedia);
-      return CUBEB_ERROR;
-    }
-  }
-
-  if (get_primary_output_frame_count) {
-    primary_buffer_size = get_primary_output_frame_count();
-  } else {
-    if (get_output_frame_count(&primary_buffer_size, AUDIO_STREAM_TYPE_MUSIC) != 0) {
-      return CUBEB_ERROR;
-    }
-  }
-
-  /* To get a fast track in Android's mixer, we need to be at the native
-   * samplerate, which is device dependant. Some devices might be able to
-   * resample when playing a fast track, but it's pretty rare. */
-  *latency_frames = primary_buffer_size;
-
-  dlclose(libmedia);
-
-  return CUBEB_OK;
-}
-
 static void
 opensl_destroy(cubeb * ctx)
 {
@@ -909,7 +777,8 @@ opensl_destroy(cubeb * ctx)
   if (ctx->engObj)
     cubeb_destroy_sles_engine(&ctx->engObj);
   dlclose(ctx->lib);
-  dlclose(ctx->libmedia);
+  if (ctx->p_output_latency_function)
+    cubeb_output_latency_unload_method(ctx->p_output_latency_function);
   free(ctx);
 }
 
@@ -996,13 +865,9 @@ opensl_configure_capture(cubeb_stream * stm, cubeb_stream_params * params)
       // api for input device this is a safe choice.
       stm->input_device_rate = stm->output_configured_rate;
     } else  {
-      // The output preferred rate is used for input only scenario. This is
-      // the correct rate to use to get a fast track for input only.
-      r = opensl_get_preferred_sample_rate(stm->context, &stm->input_device_rate);
-      if (r != CUBEB_OK) {
-        // If everything else fail use a safe choice for Android.
-        stm->input_device_rate = DEFAULT_SAMPLE_RATE;
-      }
+      // The output preferred rate is used for an input only scenario.
+      // The default rate expected to be supported from all android devices.
+      stm->input_device_rate = DEFAULT_SAMPLE_RATE;
     }
     lDataFormat.samplesPerSec = stm->input_device_rate * 1000;
     res = (*stm->context->eng)->CreateAudioRecorder(stm->context->eng,
@@ -1113,7 +978,7 @@ opensl_configure_playback(cubeb_stream * stm, cubeb_stream_params * params) {
   assert(stm);
   assert(params);
 
-  stm->inputrate = params->rate;
+  stm->user_output_rate = params->rate;
   stm->framesize = params->channels * sizeof(int16_t);
   stm->lastPosition = -1;
   stm->lastPositionTimeStamp = 0;
@@ -1150,20 +1015,7 @@ opensl_configure_playback(cubeb_stream * stm, cubeb_stream_params * params) {
 #endif
   assert(NELEMS(ids) == NELEMS(req));
 
-  unsigned int latency_frames = stm->latency_frames;
-  uint32_t preferred_sampling_rate = stm->inputrate;
-#if defined(__ANDROID__)
-  if (get_android_version() >= ANDROID_VERSION_MARSHMALLOW) {
-    // Reset preferred samping rate to trigger fallback to native sampling rate.
-    preferred_sampling_rate = 0;
-    if (opensl_get_min_latency(stm->context, *params, &latency_frames) != CUBEB_OK) {
-      // Default to AudioFlinger's advertised fast track latency of 10ms.
-      latency_frames = 440;
-    }
-    stm->latency_frames = latency_frames;
-  }
-#endif
-
+  uint32_t preferred_sampling_rate = stm->user_output_rate;
   SLresult res = SL_RESULT_CONTENT_UNSUPPORTED;
   if (preferred_sampling_rate) {
     res = (*stm->context->eng)->CreateAudioPlayer(stm->context->eng,
@@ -1176,12 +1028,9 @@ opensl_configure_playback(cubeb_stream * stm, cubeb_stream_params * params) {
   }
 
   // Sample rate not supported? Try again with primary sample rate!
-  if (res == SL_RESULT_CONTENT_UNSUPPORTED) {
-    if (opensl_get_preferred_sample_rate(stm->context, &preferred_sampling_rate)) {
-      // If fail default is used
-      preferred_sampling_rate = DEFAULT_SAMPLE_RATE;
-    }
-
+  if (res == SL_RESULT_CONTENT_UNSUPPORTED &&
+      preferred_sampling_rate != DEFAULT_SAMPLE_RATE) {
+    preferred_sampling_rate = DEFAULT_SAMPLE_RATE;
     format.samplesPerSec = preferred_sampling_rate * 1000;
     res = (*stm->context->eng)->CreateAudioPlayer(stm->context->eng,
                                                   &stm->playerObj,
@@ -1199,7 +1048,7 @@ opensl_configure_playback(cubeb_stream * stm, cubeb_stream_params * params) {
 
   stm->output_configured_rate = preferred_sampling_rate;
   stm->bytespersec = stm->output_configured_rate * stm->framesize;
-  stm->queuebuf_len = stm->framesize * latency_frames;
+  stm->queuebuf_len = stm->framesize * stm->latency_frames;
 
   // Calculate the capacity of input array
   stm->queuebuf_capacity = NBUFS;
@@ -1291,6 +1140,11 @@ opensl_validate_stream_param(cubeb_stream_params * stream_params)
        (stream_params->channels < 1 || stream_params->channels > 32))) {
     return CUBEB_ERROR_INVALID_FORMAT;
   }
+  if ((stream_params &&
+       (stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK))) {
+    LOG("Loopback is not supported");
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
   return CUBEB_OK;
 }
 
@@ -1331,7 +1185,7 @@ opensl_stream_init(cubeb * ctx, cubeb_stream ** stream, char const * stream_name
   stm->data_callback = data_callback;
   stm->state_callback = state_callback;
   stm->user_ptr = user_ptr;
-  stm->latency_frames = latency_frames;
+  stm->latency_frames = latency_frames ? latency_frames : DEFAULT_NUM_OF_FRAMES;
   stm->input_enabled = (input_stream_params) ? 1 : 0;
   stm->output_enabled = (output_stream_params) ? 1 : 0;
   stm->shutdown = 1;
@@ -1595,11 +1449,12 @@ static int
 opensl_stream_get_position(cubeb_stream * stm, uint64_t * position)
 {
   SLmillisecond msec;
-  uint64_t samplerate;
-  SLresult res;
-  int r;
-  uint32_t mixer_latency;
   uint32_t compensation_msec = 0;
+  SLresult res;
+
+  if (!cubeb_output_latency_method_is_loaded(stm->context->p_output_latency_function)) {
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
 
   res = (*stm->play)->GetPosition(stm->play, &msec);
   if (res != SL_RESULT_SUCCESS)
@@ -1615,15 +1470,11 @@ opensl_stream_get_position(cubeb_stream * stm, uint64_t * position)
     stm->lastPosition = msec;
   }
 
-  samplerate = stm->inputrate;
-
-  r = stm->context->get_output_latency(&mixer_latency, AUDIO_STREAM_TYPE_MUSIC);
-  if (r) {
-    return CUBEB_ERROR;
-  }
+  uint64_t samplerate = stm->user_output_rate;
+  uint32_t mixer_latency = cubeb_get_output_latency(stm->context->p_output_latency_function);
 
   pthread_mutex_lock(&stm->mutex);
-  int64_t maximum_position = stm->written * (int64_t)stm->inputrate / stm->output_configured_rate;
+  int64_t maximum_position = stm->written * (int64_t)stm->user_output_rate / stm->output_configured_rate;
   pthread_mutex_unlock(&stm->mutex);
   assert(maximum_position >= 0);
 
@@ -1643,24 +1494,6 @@ opensl_stream_get_position(cubeb_stream * stm, uint64_t * position)
   } else {
     *position = 0;
   }
-  return CUBEB_OK;
-}
-
-int
-opensl_stream_get_latency(cubeb_stream * stm, uint32_t * latency)
-{
-  int r;
-  uint32_t mixer_latency; // The latency returned by AudioFlinger is in ms.
-
-  /* audio_stream_type_t is an int, so this is okay. */
-  r = stm->context->get_output_latency(&mixer_latency, AUDIO_STREAM_TYPE_MUSIC);
-  if (r) {
-    return CUBEB_ERROR;
-  }
-
-  *latency = stm->latency_frames + // OpenSL latency
-    mixer_latency * stm->inputrate / 1000; // AudioFlinger latency
-
   return CUBEB_OK;
 }
 
@@ -1699,9 +1532,8 @@ static struct cubeb_ops const opensl_ops = {
   .init = opensl_init,
   .get_backend_id = opensl_get_backend_id,
   .get_max_channel_count = opensl_get_max_channel_count,
-  .get_min_latency = opensl_get_min_latency,
-  .get_preferred_sample_rate = opensl_get_preferred_sample_rate,
-  .get_preferred_channel_layout = NULL,
+  .get_min_latency = NULL,
+  .get_preferred_sample_rate = NULL,
   .enumerate_devices = NULL,
   .device_collection_destroy = NULL,
   .destroy = opensl_destroy,
@@ -1711,7 +1543,7 @@ static struct cubeb_ops const opensl_ops = {
   .stream_stop = opensl_stream_stop,
   .stream_reset_default_device = NULL,
   .stream_get_position = opensl_stream_get_position,
-  .stream_get_latency = opensl_stream_get_latency,
+  .stream_get_latency = NULL,
   .stream_set_volume = opensl_stream_set_volume,
   .stream_set_panning = NULL,
   .stream_get_current_device = NULL,

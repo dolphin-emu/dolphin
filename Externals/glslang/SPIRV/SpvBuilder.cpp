@@ -194,10 +194,8 @@ Id Builder::makeIntegerType(int width, bool hasSign)
     // deal with capabilities
     switch (width) {
     case 8:
-        addCapability(CapabilityInt8);
-        break;
     case 16:
-        addCapability(CapabilityInt16);
+        // these are currently handled by storage-type declarations and post processing
         break;
     case 64:
         addCapability(CapabilityInt64);
@@ -229,7 +227,7 @@ Id Builder::makeFloatType(int width)
     // deal with capabilities
     switch (width) {
     case 16:
-        addCapability(CapabilityFloat16);
+        // currently handled by storage-type declarations and post processing
         break;
     case 64:
         addCapability(CapabilityFloat64);
@@ -520,12 +518,6 @@ Op Builder::getMostBasicTypeClass(Id typeId) const
     Op typeClass = instr->getOpCode();
     switch (typeClass)
     {
-    case OpTypeVoid:
-    case OpTypeBool:
-    case OpTypeInt:
-    case OpTypeFloat:
-    case OpTypeStruct:
-        return typeClass;
     case OpTypeVector:
     case OpTypeMatrix:
     case OpTypeArray:
@@ -534,8 +526,7 @@ Op Builder::getMostBasicTypeClass(Id typeId) const
     case OpTypePointer:
         return getMostBasicTypeClass(instr->getIdOperand(1));
     default:
-        assert(0);
-        return OpTypeFloat;
+        return typeClass;
     }
 }
 
@@ -620,6 +611,36 @@ Id Builder::getContainedTypeId(Id typeId, int member) const
 Id Builder::getContainedTypeId(Id typeId) const
 {
     return getContainedTypeId(typeId, 0);
+}
+
+// Returns true if 'typeId' is or contains a scalar type declared with 'typeOp'
+// of width 'width'. The 'width' is only consumed for int and float types.
+// Returns false otherwise.
+bool Builder::containsType(Id typeId, spv::Op typeOp, int width) const
+{
+    const Instruction& instr = *module.getInstruction(typeId);
+
+    Op typeClass = instr.getOpCode();
+    switch (typeClass)
+    {
+    case OpTypeInt:
+    case OpTypeFloat:
+        return typeClass == typeOp && instr.getImmediateOperand(0) == width;
+    case OpTypeStruct:
+        for (int m = 0; m < instr.getNumOperands(); ++m) {
+            if (containsType(instr.getIdOperand(m), typeOp, width))
+                return true;
+        }
+        return false;
+    case OpTypeVector:
+    case OpTypeMatrix:
+    case OpTypeArray:
+    case OpTypeRuntimeArray:
+    case OpTypePointer:
+        return containsType(getContainedTypeId(typeId), typeOp, width);
+    default:
+        return typeClass == typeOp;
+    }
 }
 
 // See if a scalar constant of this type has already been created, so it

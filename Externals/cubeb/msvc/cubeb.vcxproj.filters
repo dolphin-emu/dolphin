@@ -52,6 +52,7 @@
     <ClCompile Include="..\src\speex\resample.c">
       <Filter>speex</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cubeb_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="speex">

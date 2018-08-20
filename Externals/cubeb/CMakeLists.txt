@@ -194,3 +194,8 @@ if(USE_KAI)
   target_compile_definitions(cubeb PRIVATE USE_KAI)
   target_link_libraries(cubeb PRIVATE kai)
 endif()
+
+if(ANDROID)
+  target_sources(cubeb PRIVATE
+    src/cubeb-jni.cpp)
+endif()

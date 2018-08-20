@@ -75,12 +75,14 @@ struct cubeb {
 };
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
   cubeb_stream_params params;
   cubeb_data_callback data_callback;
   cubeb_state_callback state_callback;
   void * instance;
-  void * user_ptr;
   /* Number of frames that have been passed to the AudioTrack callback */
   long unsigned written;
   int draining;
@@ -421,7 +423,6 @@ static struct cubeb_ops const audiotrack_ops = {
   .get_max_channel_count = audiotrack_get_max_channel_count,
   .get_min_latency = audiotrack_get_min_latency,
   .get_preferred_sample_rate = audiotrack_get_preferred_sample_rate,
-  .get_preferred_channel_layout = NULL,
   .enumerate_devices = NULL,
   .device_collection_destroy = NULL,
   .destroy = audiotrack_destroy,

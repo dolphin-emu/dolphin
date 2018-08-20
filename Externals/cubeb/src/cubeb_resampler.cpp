@@ -146,26 +146,32 @@ cubeb_resampler_speex<T, InputProcessor, OutputProcessor>
   assert(!input_buffer && (!input_frames_count || *input_frames_count == 0) &&
          output_buffer && output_frames_needed);
 
-  long got = 0;
-  T * out_unprocessed = nullptr;
-  long output_frames_before_processing = 0;
+  if (!draining) {
+    long got = 0;
+    T * out_unprocessed = nullptr;
+    long output_frames_before_processing = 0;
 
-  /* fill directly the input buffer of the output processor to save a copy */
-  output_frames_before_processing =
-    output_processor->input_needed_for_output(output_frames_needed);
+    /* fill directly the input buffer of the output processor to save a copy */
+    output_frames_before_processing =
+      output_processor->input_needed_for_output(output_frames_needed);
 
-  out_unprocessed =
-    output_processor->input_buffer(output_frames_before_processing);
+    out_unprocessed =
+      output_processor->input_buffer(output_frames_before_processing);
 
-  got = data_callback(stream, user_ptr,
-                      nullptr, out_unprocessed,
-                      output_frames_before_processing);
+    got = data_callback(stream, user_ptr,
+                        nullptr, out_unprocessed,
+                        output_frames_before_processing);
 
-  if (got < 0) {
-    return got;
+    if (got < output_frames_before_processing) {
+      draining = true;
+
+      if (got < 0) {
+        return got;
+      }
+    }
+
+    output_processor->written(got);
   }
-
-  output_processor->written(got);
 
   /* Process the output. If not enough frames have been returned from the
   * callback, drain the processors. */
@@ -188,7 +194,10 @@ cubeb_resampler_speex<T, InputProcessor, OutputProcessor>
   /* process the input, and present exactly `output_frames_needed` in the
   * callback. */
   input_processor->input(input_buffer, *input_frames_count);
-  resampled_input = input_processor->output(resampled_frame_count, (size_t*)input_frames_count);
+
+  size_t frames_resampled = 0;
+  resampled_input = input_processor->output(resampled_frame_count, &frames_resampled);
+  *input_frames_count = frames_resampled;
 
   long got = data_callback(stream, user_ptr,
                            resampled_input, nullptr, resampled_frame_count);
@@ -205,11 +214,16 @@ cubeb_resampler_speex<T, InputProcessor, OutputProcessor>
 ::fill_internal_duplex(T * in_buffer, long * input_frames_count,
                        T * out_buffer, long output_frames_needed)
 {
+  if (draining) {
+    // discard input and drain any signal remaining in the resampler.
+    return output_processor->output(out_buffer, output_frames_needed);
+  }
+
   /* The input data, after eventual resampling. This is passed to the callback. */
   T * resampled_input = nullptr;
   /* The output buffer passed down in the callback, that might be resampled. */
   T * out_unprocessed = nullptr;
-  size_t output_frames_before_processing = 0;
+  long output_frames_before_processing = 0;
   /* The number of frames returned from the callback. */
   long got = 0;
 
@@ -234,8 +248,11 @@ cubeb_resampler_speex<T, InputProcessor, OutputProcessor>
     /* process the input, and present exactly `output_frames_needed` in the
     * callback. */
     input_processor->input(in_buffer, *input_frames_count);
+
+    size_t frames_resampled = 0;
     resampled_input =
-      input_processor->output(output_frames_before_processing, (size_t*)input_frames_count);
+      input_processor->output(output_frames_before_processing, &frames_resampled);
+    *input_frames_count = frames_resampled;
   } else {
     resampled_input = nullptr;
   }
@@ -244,8 +261,12 @@ cubeb_resampler_speex<T, InputProcessor, OutputProcessor>
                       resampled_input, out_unprocessed,
                       output_frames_before_processing);
 
-  if (got < 0) {
-    return got;
+  if (got < output_frames_before_processing) {
+    draining = true;
+
+    if (got < 0) {
+      return got;
+    }
   }
 
   output_processor->written(got);

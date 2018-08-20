@@ -167,6 +167,7 @@ public:
     bool isImageType(Id typeId)        const { return getTypeClass(typeId) == OpTypeImage; }
     bool isSamplerType(Id typeId)      const { return getTypeClass(typeId) == OpTypeSampler; }
     bool isSampledImageType(Id typeId) const { return getTypeClass(typeId) == OpTypeSampledImage; }
+    bool containsType(Id typeId, Op typeOp, int width) const;
 
     bool isConstantOpCode(Op opcode) const;
     bool isSpecConstantOpCode(Op opcode) const;
@@ -569,9 +570,11 @@ public:
     void postProcess();
 
     // Hook to visit each instruction in a block in a function
-    void postProcess(Instruction& inst);
+    void postProcess(const Instruction&);
     // Hook to visit each instruction in a reachable block in a function.
-    void postProcessReachable(Instruction& inst);
+    void postProcessReachable(const Instruction&);
+    // Hook to visit each non-32-bit sized float/int operation in a block.
+    void postProcessType(const Instruction&, spv::Id typeId);
 
     void dump(std::vector<unsigned int>&) const;
 
