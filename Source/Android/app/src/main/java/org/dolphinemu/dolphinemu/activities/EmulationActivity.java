@@ -13,9 +13,12 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -34,6 +37,7 @@ import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 
 import java.lang.annotation.Retention;
+import java.util.List;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
 
@@ -458,6 +462,40 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 	}
 
+	// Gets button presses
+	@Override
+	public boolean dispatchKeyEvent(KeyEvent event)
+	{
+		if (mMenuVisible)
+		{
+			return super.dispatchKeyEvent(event);
+		}
+
+		int action;
+
+		switch (event.getAction())
+		{
+			case KeyEvent.ACTION_DOWN:
+				// Handling the case where the back button is pressed.
+				if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+				{
+					onBackPressed();
+					return true;
+				}
+
+				// Normal key events.
+				action = NativeLibrary.ButtonState.PRESSED;
+				break;
+			case KeyEvent.ACTION_UP:
+				action = NativeLibrary.ButtonState.RELEASED;
+				break;
+			default:
+				return false;
+		}
+		InputDevice input = event.getDevice();
+		return NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
+	}
+
 	private void toggleControls() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		boolean[] enabledButtons = new boolean[14];
@@ -565,6 +603,46 @@ public final class EmulationActivity extends AppCompatActivity
 
 		AlertDialog alertDialog = builder.create();
 		alertDialog.show();
+	}
+
+	@Override
+	public boolean dispatchGenericMotionEvent(MotionEvent event)
+	{
+		if (mMenuVisible)
+		{
+			return false;
+		}
+
+		if (((event.getSource() & InputDevice.SOURCE_CLASS_JOYSTICK) == 0))
+		{
+			return super.dispatchGenericMotionEvent(event);
+		}
+
+		// Don't attempt to do anything if we are disconnecting a device.
+		if (event.getActionMasked() == MotionEvent.ACTION_CANCEL)
+			return true;
+
+		InputDevice input = event.getDevice();
+		List<InputDevice.MotionRange> motions = input.getMotionRanges();
+
+		for (InputDevice.MotionRange range : motions)
+		{
+			int axis = range.getAxis();
+			float origValue = event.getAxisValue(axis);
+			float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+			// If the input is still in the "flat" area, that means it's really zero.
+			// This is used to compensate for imprecision in joysticks.
+			if (Math.abs(value) > range.getFlat())
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, value);
+			}
+			else
+			{
+				NativeLibrary.onGamePadMoveEvent(input.getDescriptor(), axis, 0.0f);
+			}
+		}
+
+		return true;
 	}
 
 	public static boolean isGameCubeGame()
