@@ -188,46 +188,46 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
   // Low bits are packed differently per mode
   if (m_mode == 0 || m_mode == 5 || m_mode == 6 || m_mode == 7)
   {
-    low = (u8)(pad_status.analogB >> 4);                    // Top 4 bits
-    low |= (u32)((u8)(pad_status.analogA >> 4) << 4);       // Top 4 bits
-    low |= (u32)((u8)(pad_status.triggerRight >> 4) << 8);  // Top 4 bits
-    low |= (u32)((u8)(pad_status.triggerLeft >> 4) << 12);  // Top 4 bits
-    low |= (u32)((u8)(pad_status.substickY) << 16);         // All 8 bits
-    low |= (u32)((u8)(pad_status.substickX) << 24);         // All 8 bits
+    low = (pad_status.analogB >> 4);               // Top 4 bits
+    low |= ((pad_status.analogA >> 4) << 4);       // Top 4 bits
+    low |= ((pad_status.triggerRight >> 4) << 8);  // Top 4 bits
+    low |= ((pad_status.triggerLeft >> 4) << 12);  // Top 4 bits
+    low |= ((pad_status.substickY) << 16);         // All 8 bits
+    low |= ((pad_status.substickX) << 24);         // All 8 bits
   }
   else if (m_mode == 1)
   {
-    low = (u8)(pad_status.analogB >> 4);               // Top 4 bits
-    low |= (u32)((u8)(pad_status.analogA >> 4) << 4);  // Top 4 bits
-    low |= (u32)((u8)pad_status.triggerRight << 8);    // All 8 bits
-    low |= (u32)((u8)pad_status.triggerLeft << 16);    // All 8 bits
-    low |= (u32)((u8)pad_status.substickY << 24);      // Top 4 bits
-    low |= (u32)((u8)pad_status.substickX << 28);      // Top 4 bits
+    low = (pad_status.analogB >> 4);             // Top 4 bits
+    low |= ((pad_status.analogA >> 4) << 4);     // Top 4 bits
+    low |= (pad_status.triggerRight << 8);       // All 8 bits
+    low |= (pad_status.triggerLeft << 16);       // All 8 bits
+    low |= ((pad_status.substickY >> 4) << 24);  // Top 4 bits
+    low |= ((pad_status.substickX >> 4) << 28);  // Top 4 bits
   }
   else if (m_mode == 2)
   {
-    low = (u8)(pad_status.analogB);                          // All 8 bits
-    low |= (u32)((u8)(pad_status.analogA) << 8);             // All 8 bits
-    low |= (u32)((u8)(pad_status.triggerRight >> 4) << 16);  // Top 4 bits
-    low |= (u32)((u8)(pad_status.triggerLeft >> 4) << 20);   // Top 4 bits
-    low |= (u32)((u8)pad_status.substickY << 24);            // Top 4 bits
-    low |= (u32)((u8)pad_status.substickX << 28);            // Top 4 bits
+    low = pad_status.analogB;                       // All 8 bits
+    low |= pad_status.analogA << 8;                 // All 8 bits
+    low |= ((pad_status.triggerRight >> 4) << 16);  // Top 4 bits
+    low |= ((pad_status.triggerLeft >> 4) << 20);   // Top 4 bits
+    low |= ((pad_status.substickY >> 4) << 24);     // Top 4 bits
+    low |= ((pad_status.substickX >> 4) << 28);     // Top 4 bits
   }
   else if (m_mode == 3)
   {
     // Analog A/B are always 0
-    low = (u8)pad_status.triggerRight;              // All 8 bits
-    low |= (u32)((u8)pad_status.triggerLeft << 8);  // All 8 bits
-    low |= (u32)((u8)pad_status.substickY << 16);   // All 8 bits
-    low |= (u32)((u8)pad_status.substickX << 24);   // All 8 bits
+    low = pad_status.triggerRight;         // All 8 bits
+    low |= (pad_status.triggerLeft << 8);  // All 8 bits
+    low |= (pad_status.substickY << 16);   // All 8 bits
+    low |= (pad_status.substickX << 24);   // All 8 bits
   }
   else if (m_mode == 4)
   {
-    low = (u8)(pad_status.analogB);               // All 8 bits
-    low |= (u32)((u8)(pad_status.analogA) << 8);  // All 8 bits
+    low = pad_status.analogB;        // All 8 bits
+    low |= pad_status.analogA << 8;  // All 8 bits
     // triggerLeft/Right are always 0
-    low |= (u32)((u8)pad_status.substickY << 16);  // All 8 bits
-    low |= (u32)((u8)pad_status.substickX << 24);  // All 8 bits
+    low |= pad_status.substickY << 16;  // All 8 bits
+    low |= pad_status.substickX << 24;  // All 8 bits
   }
 
   // Unset all bits except those that represent
@@ -243,9 +243,9 @@ u32 CSIDevice_GCController::MapPadStatus(const GCPadStatus& pad_status)
 {
   // Thankfully changing mode does not change the high bits ;)
   u32 hi = 0;
-  hi = (u32)((u8)pad_status.stickY);
-  hi |= (u32)((u8)pad_status.stickX << 8);
-  hi |= (u32)((u16)(pad_status.button | PAD_USE_ORIGIN) << 16);
+  hi = pad_status.stickY;
+  hi |= pad_status.stickX << 8;
+  hi |= (pad_status.button | PAD_USE_ORIGIN) << 16;
   return hi;
 }
 

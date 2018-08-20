@@ -183,6 +183,7 @@ void CreateDirectories()
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));
 #else
+  // Disable media scanning in directories with a .nomedia file
   File::CreateEmptyFile(File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP NOMEDIA_FILE);
 #endif
 }

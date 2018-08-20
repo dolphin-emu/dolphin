@@ -110,8 +110,6 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
     if (needed_vertex_bytes > GetRemainingSize())
       ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all vertices! "
                        "Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
-
-    assert(false);
   }
 
   m_cull_all = cullall;
