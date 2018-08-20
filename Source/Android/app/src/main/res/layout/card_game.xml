@@ -61,6 +61,7 @@
                 android:layout_marginRight="2dp"
                 android:ellipsize="end"
                 android:lines="1"
+                android:maxLines="1"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
 
         </LinearLayout>

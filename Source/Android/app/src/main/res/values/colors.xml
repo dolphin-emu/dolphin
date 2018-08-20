@@ -10,6 +10,8 @@
 
     <color name="circle_grey">#bdbdbd</color>
 
+    <color name="light_grey">#e6e6e6</color>
+
     <color name="tv_card_unselected">#444444</color>
 
 </resources>

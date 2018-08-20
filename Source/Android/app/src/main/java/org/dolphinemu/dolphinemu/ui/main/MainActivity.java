@@ -83,7 +83,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		mAdapter = new GameAdapter();
 		mRecyclerView.setLayoutManager(layoutManager);
 		mRecyclerView.setAdapter(mAdapter);
-		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(2));
+		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(getDrawable(R.drawable.line_divider)));
 	}
 
 	@Override

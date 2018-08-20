@@ -3,7 +3,9 @@ package org.dolphinemu.dolphinemu.adapters;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Canvas;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -194,20 +196,32 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 
 	public static class SpacesItemDecoration extends RecyclerView.ItemDecoration
 	{
-		private int space;
+		private Drawable mDivider;
 
-		public SpacesItemDecoration(int space)
+		public SpacesItemDecoration(Drawable divider)
 		{
-			this.space = space;
+			this.mDivider = divider;
 		}
 
 		@Override
-		public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state)
-		{
-			outRect.left = space;
-			outRect.right = space;
-			outRect.bottom = space;
-			outRect.top = space;
+		public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
+			int left, right, top, bottom;
+			RecyclerView.LayoutParams params;
+			View child;
+
+			for (int i = 0; i < parent.getChildCount(); i++) {
+				child = parent.getChildAt(i);
+				params = (RecyclerView.LayoutParams) child.getLayoutParams();
+
+				// Vertical
+				left = child.getLeft() - params.leftMargin;
+				right = child.getRight() + params.rightMargin;
+				top = child.getBottom() + params.bottomMargin;
+				bottom = top + mDivider.getIntrinsicHeight() - 1;
+				mDivider.setBounds(left, top, right, bottom);
+				mDivider.draw(c);
+			}
 		}
+
 	}
 }
