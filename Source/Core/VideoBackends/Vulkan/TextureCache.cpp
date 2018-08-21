@@ -186,7 +186,6 @@ bool TextureCache::CompileShaders()
   std::string source = header + COPY_SHADER_SOURCE;
 
   m_copy_shader = Util::CompileAndCreateFragmentShader(source);
-
   return m_copy_shader != VK_NULL_HANDLE;
 }
 
