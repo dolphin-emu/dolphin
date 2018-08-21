@@ -1,6 +1,5 @@
 add_library(core
   ActionReplay.cpp
-  Analytics.cpp
   ARDecrypt.cpp
   BootManager.cpp
   ConfigManager.cpp
@@ -321,6 +320,12 @@ endif()
 
 if(NOT APPLE)
   target_link_libraries(core PUBLIC videovulkan)
+endif()
+
+if(NOT ANDROID)
+  target_sources(core PRIVATE
+    Analytics.cpp
+  )
 endif()
 
 if(WIN32)

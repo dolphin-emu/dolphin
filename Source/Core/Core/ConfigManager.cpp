@@ -720,7 +720,9 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
     HLE::Reload();
     PatchEngine::Reload();
     HiresTexture::Update();
+#ifndef ANDROID
     DolphinAnalytics::Instance()->ReportGameStart();
+#endif
   }
 }
 

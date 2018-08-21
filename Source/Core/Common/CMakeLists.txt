@@ -1,5 +1,4 @@
 add_library(common
-  Analytics.cpp
   CDUtils.cpp
   ColorUtil.cpp
   CommonFuncs.cpp
@@ -66,6 +65,12 @@ if (APPLE)
     ${APPKIT_LIBRARY}
     ${COREFOUNDATION_LIBRARY}
     ${IOK_LIBRARY}
+  )
+endif()
+
+if(NOT ANDROID)
+  target_sources(common PRIVATE
+    Analytics.cpp
   )
 endif()
 
