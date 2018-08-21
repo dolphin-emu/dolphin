@@ -33,7 +33,7 @@ private:
   // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
   static constexpr u32 LARGEST_POSSIBLE_VERTEX = sizeof(float) * 45 + sizeof(u32) * 2;
 
-  static constexpr u32 MAX_PRIMITIVES_PER_COMMAND = 65536 / 4;
+  static constexpr u32 MAX_PRIMITIVES_PER_COMMAND = 65536 / 2;
 
 public:
   static constexpr u32 MAXVBUFFERSIZE =
@@ -51,9 +51,6 @@ public:
   void FlushData(u32 count, u32 stride);
 
   void Flush();
-  bool IsFlushed() {
-	  return m_is_flushed;
-  }
 
   virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
