@@ -51,9 +51,4 @@ public:
 
   static PixelShaderConstants constants;
   static bool dirty;
-
-  static bool s_bFogRangeAdjustChanged;
-  static bool s_bViewPortChanged;
-  static bool s_bIndirectDirty;
-  static bool s_bDestAlphaDirty;
 };

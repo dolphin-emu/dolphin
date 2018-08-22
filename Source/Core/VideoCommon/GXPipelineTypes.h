@@ -8,8 +8,6 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderState.h"
-#include "VideoCommon/UberShaderPixel.h"
-#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 class NativeVertexFormat;
@@ -51,33 +49,6 @@ struct GXPipelineUid
     return std::memcmp(this, &rhs, sizeof(*this)) == 0;
   }
   bool operator!=(const GXPipelineUid& rhs) const { return !operator==(rhs); }
-};
-struct GXUberPipelineUid
-{
-  const NativeVertexFormat* vertex_format;
-  UberShader::VertexShaderUid vs_uid;
-  GeometryShaderUid gs_uid;
-  UberShader::PixelShaderUid ps_uid;
-  RasterizationState rasterization_state;
-  DepthState depth_state;
-  BlendingState blending_state;
-
-  GXUberPipelineUid() { std::memset(this, 0, sizeof(*this)); }
-  GXUberPipelineUid(const GXUberPipelineUid& rhs) { std::memcpy(this, &rhs, sizeof(*this)); }
-  GXUberPipelineUid& operator=(const GXUberPipelineUid& rhs)
-  {
-    std::memcpy(this, &rhs, sizeof(*this));
-    return *this;
-  }
-  bool operator<(const GXUberPipelineUid& rhs) const
-  {
-    return std::memcmp(this, &rhs, sizeof(*this)) < 0;
-  }
-  bool operator==(const GXUberPipelineUid& rhs) const
-  {
-    return std::memcmp(this, &rhs, sizeof(*this)) == 0;
-  }
-  bool operator!=(const GXUberPipelineUid& rhs) const { return !operator==(rhs); }
 };
 
 // Disk cache of pipeline UIDs. We can't use the whole UID as a type as it contains pointers.

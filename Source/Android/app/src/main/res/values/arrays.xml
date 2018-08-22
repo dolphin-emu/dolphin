@@ -112,8 +112,6 @@
     <!-- Ubershader Mode Preference -->
     <string-array name="shaderCompilationModeEntries" translatable="false">
         <item>Synchronous</item>
-        <item>Synchronous (Ubershaders)</item>
-        <item>Asynchronous (Ubershaders)</item>
         <item>Asynchronous (Skip Drawing)</item>
     </string-array>
     <integer-array name="shaderCompilationModeValues" translatable="false">

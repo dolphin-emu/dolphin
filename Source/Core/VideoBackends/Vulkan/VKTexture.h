@@ -94,6 +94,7 @@ public:
   VkRenderPass GetLoadRenderPass() const { return m_load_render_pass; }
   VkRenderPass GetDiscardRenderPass() const { return m_discard_render_pass; }
   VkRenderPass GetClearRenderPass() const { return m_clear_render_pass; }
+  const VKTexture* GetColorAttachment() const { return m_color_attachment; }
   void TransitionForRender() const;
   void TransitionForSample() const;
 

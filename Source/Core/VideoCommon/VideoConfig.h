@@ -45,8 +45,6 @@ enum class StereoMode : int
 enum class ShaderCompilationMode : int
 {
   Synchronous,
-  SynchronousUberShaders,
-  AsynchronousUberShaders,
   AsynchronousSkipRendering
 };
 
@@ -231,7 +229,6 @@ struct VideoConfig final
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
   bool UseVertexRounding() const { return bVertexRounding && iEFBScale != 1; }
-  bool UsingUberShaders() const;
   u32 GetShaderCompilerThreads() const;
   u32 GetShaderPrecompilerThreads() const;
 };

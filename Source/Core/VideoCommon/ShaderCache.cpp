@@ -41,10 +41,6 @@ bool ShaderCache::Initialize()
     LoadPipelineUIDCache();
   }
 
-  // Queue ubershader precompiling if required.
-  if (g_ActiveConfig.UsingUberShaders())
-    QueueUberShaderPipelines();
-
   // Compile all known UIDs.
   CompileMissingPipelines();
   if (g_ActiveConfig.bWaitForShadersBeforeStarting)
@@ -135,19 +131,6 @@ std::optional<const AbstractPipeline*> ShaderCache::GetPipelineForUidAsync(const
   return {};
 }
 
-const AbstractPipeline* ShaderCache::GetUberPipelineForUid(const GXUberPipelineUid& uid)
-{
-  auto it = m_gx_uber_pipeline_cache.find(uid);
-  if (it != m_gx_uber_pipeline_cache.end() && !it->second.second)
-    return it->second.first.get();
-
-  std::unique_ptr<AbstractPipeline> pipeline;
-  std::optional<AbstractPipelineConfig> pipeline_config = GetGXUberPipelineConfig(uid);
-  if (pipeline_config)
-    pipeline = g_renderer->CreatePipeline(*pipeline_config);
-  return InsertGXUberPipeline(uid, std::move(pipeline));
-}
-
 void ShaderCache::WaitForAsyncCompiler()
 {
   while (m_async_shader_compiler->HasPendingWork() || m_async_shader_compiler->HasCompletedWork())
@@ -213,12 +196,6 @@ static void ClearShaderCache(T& cache)
 
 void ShaderCache::LoadShaderCaches()
 {
-  // Ubershader caches, if present.
-  LoadShaderCache<ShaderStage::Vertex, UberShader::VertexShaderUid>(m_uber_vs_cache, m_api_type,
-                                                                    "uber-vs", false);
-  LoadShaderCache<ShaderStage::Pixel, UberShader::PixelShaderUid>(m_uber_ps_cache, m_api_type,
-                                                                  "uber-ps", false);
-
   // We also share geometry shaders, as there aren't many variants.
   if (m_host_config.backend_geometry_shaders)
     LoadShaderCache<ShaderStage::Geometry, GeometryShaderUid>(m_gs_cache, m_api_type, "gs", false);
@@ -236,9 +213,6 @@ void ShaderCache::ClearShaderCaches()
   ClearShaderCache(m_gs_cache);
   ClearShaderCache(m_ps_cache);
 
-  ClearShaderCache(m_uber_vs_cache);
-  ClearShaderCache(m_uber_ps_cache);
-
   SETSTAT(stats.numPixelShadersCreated, 0);
   SETSTAT(stats.numPixelShadersAlive, 0);
   SETSTAT(stats.numVertexShadersCreated, 0);
@@ -253,11 +227,6 @@ void ShaderCache::CompileMissingPipelines()
     if (!it.second.second)
       QueuePipelineCompile(it.first, COMPILE_PRIORITY_SHADERCACHE_PIPELINE);
   }
-  for (auto& it : m_gx_uber_pipeline_cache)
-  {
-    if (!it.second.second)
-      QueueUberPipelineCompile(it.first, COMPILE_PRIORITY_UBERSHADER_PIPELINE);
-  }
 }
 
 void ShaderCache::InvalidateCachedPipelines()
@@ -268,17 +237,11 @@ void ShaderCache::InvalidateCachedPipelines()
     it.second.first.reset();
     it.second.second = false;
   }
-  for (auto& it : m_gx_uber_pipeline_cache)
-  {
-    it.second.first.reset();
-    it.second.second = false;
-  }
 }
 
 void ShaderCache::ClearPipelineCaches()
 {
   m_gx_pipeline_cache.clear();
-  m_gx_uber_pipeline_cache.clear();
 }
 
 std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexShaderUid& uid) const
@@ -288,25 +251,9 @@ std::unique_ptr<AbstractShader> ShaderCache::CompileVertexShader(const VertexSha
                                             source_code.GetBuffer().size());
 }
 
-std::unique_ptr<AbstractShader>
-ShaderCache::CompileVertexUberShader(const UberShader::VertexShaderUid& uid) const
-{
-  ShaderCode source_code = UberShader::GenVertexShader(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Vertex, source_code.GetBuffer().c_str(),
-                                            source_code.GetBuffer().size());
-}
-
 std::unique_ptr<AbstractShader> ShaderCache::CompilePixelShader(const PixelShaderUid& uid) const
 {
   ShaderCode source_code = GeneratePixelShaderCode(m_api_type, m_host_config, uid.GetUidData());
-  return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer().c_str(),
-                                            source_code.GetBuffer().size());
-}
-
-std::unique_ptr<AbstractShader>
-ShaderCache::CompilePixelUberShader(const UberShader::PixelShaderUid& uid) const
-{
-  ShaderCode source_code = UberShader::GenPixelShader(m_api_type, m_host_config, uid.GetUidData());
   return g_renderer->CreateShaderFromSource(ShaderStage::Pixel, source_code.GetBuffer().c_str(),
                                             source_code.GetBuffer().size());
 }
@@ -333,28 +280,6 @@ const AbstractShader* ShaderCache::InsertVertexShader(const VertexShaderUid& uid
   return entry.shader.get();
 }
 
-const AbstractShader* ShaderCache::InsertVertexUberShader(const UberShader::VertexShaderUid& uid,
-                                                          std::unique_ptr<AbstractShader> shader)
-{
-  auto& entry = m_uber_vs_cache.shader_map[uid];
-  entry.pending = false;
-
-  if (shader && !entry.shader)
-  {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
-    {
-      auto binary = shader->GetBinary();
-      if (!binary.empty())
-        m_uber_vs_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
-    }
-    INCSTAT(stats.numVertexShadersCreated);
-    INCSTAT(stats.numVertexShadersAlive);
-    entry.shader = std::move(shader);
-  }
-
-  return entry.shader.get();
-}
-
 const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
                                                      std::unique_ptr<AbstractShader> shader)
 {
@@ -368,28 +293,6 @@ const AbstractShader* ShaderCache::InsertPixelShader(const PixelShaderUid& uid,
       auto binary = shader->GetBinary();
       if (!binary.empty())
         m_ps_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
-    }
-    INCSTAT(stats.numPixelShadersCreated);
-    INCSTAT(stats.numPixelShadersAlive);
-    entry.shader = std::move(shader);
-  }
-
-  return entry.shader.get();
-}
-
-const AbstractShader* ShaderCache::InsertPixelUberShader(const UberShader::PixelShaderUid& uid,
-                                                         std::unique_ptr<AbstractShader> shader)
-{
-  auto& entry = m_uber_ps_cache.shader_map[uid];
-  entry.pending = false;
-
-  if (shader && !entry.shader)
-  {
-    if (g_ActiveConfig.bShaderCache && shader->HasBinary())
-    {
-      auto binary = shader->GetBinary();
-      if (!binary.empty())
-        m_uber_ps_cache.disk_cache.Append(uid, binary.data(), static_cast<u32>(binary.size()));
     }
     INCSTAT(stats.numPixelShadersCreated);
     INCSTAT(stats.numPixelShadersAlive);
@@ -487,61 +390,10 @@ std::optional<AbstractPipelineConfig> ShaderCache::GetGXPipelineConfig(const GXP
                              config.depth_state, config.blending_state);
 }
 
-std::optional<AbstractPipelineConfig>
-ShaderCache::GetGXUberPipelineConfig(const GXUberPipelineUid& config)
-{
-  const AbstractShader* vs;
-  auto vs_iter = m_uber_vs_cache.shader_map.find(config.vs_uid);
-  if (vs_iter != m_uber_vs_cache.shader_map.end() && !vs_iter->second.pending)
-    vs = vs_iter->second.shader.get();
-  else
-    vs = InsertVertexUberShader(config.vs_uid, CompileVertexUberShader(config.vs_uid));
-
-  UberShader::PixelShaderUid ps_uid = config.ps_uid;
-  UberShader::ClearUnusedPixelShaderUidBits(m_api_type, m_host_config, &ps_uid);
-
-  const AbstractShader* ps;
-  auto ps_iter = m_uber_ps_cache.shader_map.find(ps_uid);
-  if (ps_iter != m_uber_ps_cache.shader_map.end() && !ps_iter->second.pending)
-    ps = ps_iter->second.shader.get();
-  else
-    ps = InsertPixelUberShader(ps_uid, CompilePixelUberShader(ps_uid));
-
-  if (!vs || !ps)
-    return {};
-
-  const AbstractShader* gs = nullptr;
-  if (NeedsGeometryShader(config.gs_uid))
-  {
-    auto gs_iter = m_gs_cache.shader_map.find(config.gs_uid);
-    if (gs_iter != m_gs_cache.shader_map.end() && !gs_iter->second.pending)
-      gs = gs_iter->second.shader.get();
-    else
-      gs = CreateGeometryShader(config.gs_uid);
-    if (!gs)
-      return {};
-  }
-
-  return GetGXPipelineConfig(config.vertex_format, vs, gs, ps, config.rasterization_state,
-                             config.depth_state, config.blending_state);
-}
-
 const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& config,
                                                       std::unique_ptr<AbstractPipeline> pipeline)
 {
   auto& entry = m_gx_pipeline_cache[config];
-  entry.second = false;
-  if (!entry.first && pipeline)
-    entry.first = std::move(pipeline);
-
-  return entry.first.get();
-}
-
-const AbstractPipeline*
-ShaderCache::InsertGXUberPipeline(const GXUberPipelineUid& config,
-                                  std::unique_ptr<AbstractPipeline> pipeline)
-{
-  auto& entry = m_gx_uber_pipeline_cache[config];
   entry.second = false;
   if (!entry.first && pipeline)
     entry.first = std::move(pipeline);
@@ -700,35 +552,6 @@ void ShaderCache::QueueVertexShaderCompile(const VertexShaderUid& uid, u32 prior
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
-void ShaderCache::QueueVertexUberShaderCompile(const UberShader::VertexShaderUid& uid, u32 priority)
-{
-  class VertexUberShaderWorkItem final : public AsyncShaderCompiler::WorkItem
-  {
-  public:
-    VertexUberShaderWorkItem(ShaderCache* shader_cache_, const UberShader::VertexShaderUid& uid_)
-        : shader_cache(shader_cache_), uid(uid_)
-    {
-    }
-
-    bool Compile() override
-    {
-      shader = shader_cache->CompileVertexUberShader(uid);
-      return true;
-    }
-
-    void Retrieve() override { shader_cache->InsertVertexUberShader(uid, std::move(shader)); }
-
-  private:
-    ShaderCache* shader_cache;
-    std::unique_ptr<AbstractShader> shader;
-    UberShader::VertexShaderUid uid;
-  };
-
-  m_uber_vs_cache.shader_map[uid].pending = true;
-  auto wi = m_async_shader_compiler->CreateWorkItem<VertexUberShaderWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
-}
-
 void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priority)
 {
   class PixelShaderWorkItem final : public AsyncShaderCompiler::WorkItem
@@ -755,35 +578,6 @@ void ShaderCache::QueuePixelShaderCompile(const PixelShaderUid& uid, u32 priorit
 
   m_ps_cache.shader_map[uid].pending = true;
   auto wi = m_async_shader_compiler->CreateWorkItem<PixelShaderWorkItem>(this, uid);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
-}
-
-void ShaderCache::QueuePixelUberShaderCompile(const UberShader::PixelShaderUid& uid, u32 priority)
-{
-  class PixelUberShaderWorkItem final : public AsyncShaderCompiler::WorkItem
-  {
-  public:
-    PixelUberShaderWorkItem(ShaderCache* shader_cache_, const UberShader::PixelShaderUid& uid_)
-        : shader_cache(shader_cache_), uid(uid_)
-    {
-    }
-
-    bool Compile() override
-    {
-      shader = shader_cache->CompilePixelUberShader(uid);
-      return true;
-    }
-
-    void Retrieve() override { shader_cache->InsertPixelUberShader(uid, std::move(shader)); }
-
-  private:
-    ShaderCache* shader_cache;
-    std::unique_ptr<AbstractShader> shader;
-    UberShader::PixelShaderUid uid;
-  };
-
-  m_uber_ps_cache.shader_map[uid].pending = true;
-  auto wi = m_async_shader_compiler->CreateWorkItem<PixelUberShaderWorkItem>(this, uid);
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
 }
 
@@ -855,129 +649,6 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
   auto wi = m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(this, uid, priority);
   m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
   m_gx_pipeline_cache[uid].second = true;
-}
-
-void ShaderCache::QueueUberPipelineCompile(const GXUberPipelineUid& uid, u32 priority)
-{
-  class UberPipelineWorkItem final : public AsyncShaderCompiler::WorkItem
-  {
-  public:
-    UberPipelineWorkItem(ShaderCache* shader_cache_, const GXUberPipelineUid& uid_, u32 priority_)
-        : shader_cache(shader_cache_), uid(uid_), priority(priority_)
-    {
-      // Check if all the stages required for this UberPipeline have been compiled.
-      // If not, this work item becomes a no-op, and re-queues the UberPipeline for the next frame.
-      if (SetStagesReady())
-        config = shader_cache->GetGXUberPipelineConfig(uid);
-    }
-
-    bool SetStagesReady()
-    {
-      stages_ready = true;
-
-      auto vs_it = shader_cache->m_uber_vs_cache.shader_map.find(uid.vs_uid);
-      stages_ready &=
-          vs_it != shader_cache->m_uber_vs_cache.shader_map.end() && !vs_it->second.pending;
-      if (vs_it == shader_cache->m_uber_vs_cache.shader_map.end())
-        shader_cache->QueueVertexUberShaderCompile(uid.vs_uid, priority);
-
-      UberShader::PixelShaderUid ps_uid = uid.ps_uid;
-      UberShader::ClearUnusedPixelShaderUidBits(shader_cache->m_api_type,
-                                                shader_cache->m_host_config, &ps_uid);
-
-      auto ps_it = shader_cache->m_uber_ps_cache.shader_map.find(ps_uid);
-      stages_ready &=
-          ps_it != shader_cache->m_uber_ps_cache.shader_map.end() && !ps_it->second.pending;
-      if (ps_it == shader_cache->m_uber_ps_cache.shader_map.end())
-        shader_cache->QueuePixelUberShaderCompile(ps_uid, priority);
-
-      return stages_ready;
-    }
-
-    bool Compile() override
-    {
-      if (config)
-        UberPipeline = g_renderer->CreatePipeline(*config);
-      return true;
-    }
-
-    void Retrieve() override
-    {
-      if (stages_ready)
-      {
-        shader_cache->InsertGXUberPipeline(uid, std::move(UberPipeline));
-      }
-      else
-      {
-        // Re-queue for next frame.
-        auto wi = shader_cache->m_async_shader_compiler->CreateWorkItem<UberPipelineWorkItem>(
-            shader_cache, uid, priority);
-        shader_cache->m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
-      }
-    }
-
-  private:
-    ShaderCache* shader_cache;
-    std::unique_ptr<AbstractPipeline> UberPipeline;
-    GXUberPipelineUid uid;
-    u32 priority;
-    std::optional<AbstractPipelineConfig> config;
-    bool stages_ready;
-  };
-
-  auto wi = m_async_shader_compiler->CreateWorkItem<UberPipelineWorkItem>(this, uid, priority);
-  m_async_shader_compiler->QueueWorkItem(std::move(wi), priority);
-  m_gx_uber_pipeline_cache[uid].second = true;
-}
-
-void ShaderCache::QueueUberShaderPipelines()
-{
-  // Create a dummy vertex format with no attributes.
-  // All attributes will be enabled in GetUberVertexFormat.
-  PortableVertexDeclaration dummy_vertex_decl = {};
-  dummy_vertex_decl.position.components = 4;
-  dummy_vertex_decl.position.type = VAR_FLOAT;
-  dummy_vertex_decl.position.enable = true;
-  dummy_vertex_decl.stride = sizeof(float) * 4;
-  NativeVertexFormat* dummy_vertex_format =
-      VertexLoaderManager::GetUberVertexFormat(dummy_vertex_decl);
-  auto QueueDummyPipeline = [&](const UberShader::VertexShaderUid& vs_uid,
-                                const GeometryShaderUid& gs_uid,
-                                const UberShader::PixelShaderUid& ps_uid) {
-    GXUberPipelineUid config;
-    config.vertex_format = dummy_vertex_format;
-    config.vs_uid = vs_uid;
-    config.gs_uid = gs_uid;
-    config.ps_uid = ps_uid;
-    config.rasterization_state = RenderState::GetNoCullRasterizationState();
-    config.depth_state = RenderState::GetNoDepthTestingDepthStencilState();
-    config.blending_state = RenderState::GetNoBlendingBlendState();
-
-    auto iter = m_gx_uber_pipeline_cache.find(config);
-    if (iter != m_gx_uber_pipeline_cache.end())
-      return;
-
-    auto& entry = m_gx_uber_pipeline_cache[config];
-    entry.second = false;
-  };
-
-  // Populate the pipeline configs with empty entries, these will be compiled afterwards.
-  UberShader::EnumerateVertexShaderUids([&](const UberShader::VertexShaderUid& vuid) {
-    UberShader::EnumeratePixelShaderUids([&](const UberShader::PixelShaderUid& puid) {
-      // UIDs must have compatible texgens, a mismatching combination will never be queried.
-      if (vuid.GetUidData()->num_texgens != puid.GetUidData()->num_texgens)
-        return;
-
-      EnumerateGeometryShaderUids([&](const GeometryShaderUid& guid) {
-        if (guid.GetUidData()->numTexGens != vuid.GetUidData()->num_texgens ||
-            (!guid.GetUidData()->IsPassthrough() && !m_host_config.backend_geometry_shaders))
-        {
-          return;
-        }
-        QueueDummyPipeline(vuid, guid, puid);
-      });
-    });
-  });
 }
 
 std::string ShaderCache::GetUtilityShaderHeader() const

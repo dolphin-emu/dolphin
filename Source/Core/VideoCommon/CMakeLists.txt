@@ -34,9 +34,6 @@ add_library(videocommon
   ShaderCache.cpp
   ShaderGenCommon.cpp
   Statistics.cpp
-  UberShaderCommon.cpp
-  UberShaderPixel.cpp
-  UberShaderVertex.cpp
   TextureCacheBase.cpp
   TextureConfig.cpp
   TextureConversionShader.cpp
@@ -66,6 +63,14 @@ PRIVATE
   png
   xxhash
 )
+
+if(NOT ANDROID)
+  target_sources(videocommon PRIVATE
+    UberShaderCommon.cpp
+    UberShaderPixel.cpp
+    UberShaderVertex.cpp
+  )
+endif()
 
 if(_M_X86)
   target_sources(videocommon PRIVATE

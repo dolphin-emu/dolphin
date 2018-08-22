@@ -323,17 +323,13 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha && g_ActiveConfig.backend_info.bSupportsFramebufferFetch &&
-      !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
-  {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-    uid_data->blend_dst_factor = state.dstfactor;
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-    uid_data->blend_subtract = state.subtract;
-    uid_data->blend_subtract_alpha = state.subtractAlpha;
-  }
+  uid_data->blend_enable = state.blendenable;
+  uid_data->blend_src_factor = state.srcfactor;
+  uid_data->blend_src_factor_alpha = state.srcfactoralpha;
+  uid_data->blend_dst_factor = state.dstfactor;
+  uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
+  uid_data->blend_subtract = state.subtract;
+  uid_data->blend_subtract_alpha = state.subtractAlpha;
 
   return out;
 }
@@ -403,32 +399,7 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
             "\tfloat4 " I_FOGRANGE "[3];\n"
             "\tfloat4 " I_ZSLOPE ";\n"
             "\tfloat2 " I_EFBSCALE ";\n"
-            "\tuint  bpmem_genmode;\n"
-            "\tuint  bpmem_alphaTest;\n"
-            "\tuint  bpmem_fogParam3;\n"
-            "\tuint  bpmem_fogRangeBase;\n"
-            "\tuint  bpmem_dstalpha;\n"
-            "\tuint  bpmem_ztex_op;\n"
-            "\tbool  bpmem_late_ztest;\n"
-            "\tbool  bpmem_rgba6_format;\n"
-            "\tbool  bpmem_dither;\n"
-            "\tbool  bpmem_bounding_box;\n"
-            "\tuint4 bpmem_pack1[16];\n"  // .xy - combiners, .z - tevind
-            "\tuint4 bpmem_pack2[8];\n"   // .x - tevorder, .y - tevksel
-            "\tint4  konstLookup[32];\n"
-            "\tbool  blend_enable;\n"
-            "\tuint  blend_src_factor;\n"
-            "\tuint  blend_src_factor_alpha;\n"
-            "\tuint  blend_dst_factor;\n"
-            "\tuint  blend_dst_factor_alpha;\n"
-            "\tbool  blend_subtract;\n"
-            "\tbool  blend_subtract_alpha;\n"
             "};\n\n");
-  out.Write("#define bpmem_combiners(i) (bpmem_pack1[(i)].xy)\n"
-            "#define bpmem_tevind(i) (bpmem_pack1[(i)].z)\n"
-            "#define bpmem_iref(i) (bpmem_pack1[(i)].w)\n"
-            "#define bpmem_tevorder(i) (bpmem_pack2[(i)].x)\n"
-            "#define bpmem_tevksel(i) (bpmem_pack2[(i)].y)\n\n");
 
   if (per_pixel_lighting)
   {
@@ -546,8 +517,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       host_config.backend_dual_source_blend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
-  const bool use_shader_blend =
-      !use_dual_source && (uid_data->useDstAlpha && host_config.backend_shader_framebuffer_fetch);
+  const bool use_shader_blend = !use_dual_source && (uid_data->useDstAlpha);
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -566,17 +536,24 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
     else if (use_shader_blend)
     {
-      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-      // intermediate value with multiple reads & modifications, so pull out the "real" output value
-      // and use a temporary for calculations, then set the output value once at the end of the
-      // shader
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      if (host_config.backend_shader_framebuffer_fetch)
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+        // intermediate value with multiple reads & modifications, so pull out the "real" output value
+        // and use a temporary for calculations, then set the output value once at the end of the
+        // shader
+        if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+        {
+          out.Write("FRAGMENT_OUTPUT_LOCATION(0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        }
+        else
+        {
+          out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        }
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 real_ocol0;\n");
       }
     }
     else
@@ -621,8 +598,16 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
     if (use_shader_blend)
     {
-      // Store off a copy of the initial fb value for blending
-      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
+      if (host_config.backend_shader_framebuffer_fetch)
+      {
+        // Store off a copy of the initial fb value for blending
+        out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
+      }
+      else
+      {
+        //out.Write("\tfloat4 initial_ocol0 = texelFetch(samp[0], ivec3(rawpos.xy, 1), 0);\n");
+        out.Write("\tfloat4 initial_ocol0 = float4(128.0, 128.0, 128.0, 128.0);\n");
+      }
       out.Write("\tfloat4 ocol0;\n");
       out.Write("\tfloat4 ocol1;\n");
     }
