@@ -28,6 +28,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -67,7 +68,6 @@ public final class EmulationActivity extends AppCompatActivity
 	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
 	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
 	public static final String EXTRA_PLATFORM = "Platform";
-	public static final String EXTRA_SCREEN_PATH = "ScreenPath";
 	public static final String EXTRA_GRID_POSITION = "GridPosition";
 
 	@Retention(SOURCE)
@@ -135,14 +135,13 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center, EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
 	}
 
-	public static void launch(FragmentActivity activity, GameFile gameFile, int position, View sharedView)
+	public static void launch(FragmentActivity activity, GameFile gameFile, int position)
 	{
 		Intent launcher = new Intent(activity, EmulationActivity.class);
 
 		launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
 		launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
 		launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-		launcher.putExtra(EXTRA_SCREEN_PATH, gameFile.getScreenshotPath());
 		launcher.putExtra(EXTRA_GRID_POSITION, position);
 		Bundle options = new Bundle();
 
@@ -499,15 +498,17 @@ public final class EmulationActivity extends AppCompatActivity
 	private void toggleControls() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		boolean[] enabledButtons = new boolean[14];
+		int controller = mPreferences.getInt(InputOverlay.CONTROLLER_PREF_KEY,
+			InputOverlay.CONTROLLER_WIINUNCHUK_VALUE);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_toggle_controls);
-		if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0) {
+		if (sIsGameCubeGame || controller == InputOverlay.CONTROLLER_GAMECUBE_VALUE) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
 			}
 			builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
 					(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleGc" + indexSelected, isChecked));
-		} else if (mPreferences.getInt("wiiController", 3) == 4) {
+		} else if (controller == InputOverlay.CONTROLLER_CLASSIC_VALUE) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
 			}
@@ -517,19 +518,14 @@ public final class EmulationActivity extends AppCompatActivity
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
 			}
-			if (mPreferences.getInt("wiiController", 3) == 3) {
-				builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
-						(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
-			} else {
-				builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
-						(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
-			}
+			builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
+					(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
 		}
+
 		builder.setNeutralButton(getString(R.string.emulation_toggle_all), (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility());
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
 			editor.apply();
-
 			mEmulationFragment.refreshInputOverlay();
 		});
 
@@ -582,12 +578,14 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void chooseController() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
+		int controller = mPreferences.getInt(InputOverlay.CONTROLLER_PREF_KEY,
+			InputOverlay.CONTROLLER_WIINUNCHUK_VALUE);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_choose_controller);
-		builder.setSingleChoiceItems(R.array.controllersEntries, mPreferences.getInt("wiiController", 3),
+		builder.setSingleChoiceItems(R.array.controllersEntries, controller,
 				(dialog, indexSelected) ->
 				{
-					editor.putInt("wiiController", indexSelected);
+					editor.putInt(InputOverlay.CONTROLLER_PREF_KEY, indexSelected);
 
 					NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
 							getResources().getStringArray(R.array.controllersValues)[indexSelected]);

@@ -287,7 +287,6 @@ PUBLIC
   enet
   inputcommon
   ${MBEDTLS_LIBRARIES}
-  pugixml
   sfml-network
   sfml-system
   videonull
@@ -323,6 +322,10 @@ if(NOT APPLE)
 endif()
 
 if(NOT ANDROID)
+  target_link_libraries(core
+  PRIVATE
+    pugixml
+  )
   target_sources(core PRIVATE
     Analytics.cpp
   )

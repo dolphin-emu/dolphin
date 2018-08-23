@@ -15,3 +15,24 @@
 #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #   public *;
 #}
+
+-ignorewarnings
+-dontskipnonpubliclibraryclasses
+-dontskipnonpubliclibraryclassmembers
+-verbose
+
+-dontwarn com.squareup.**
+-keep class com.squareup.** { *; }
+
+-dontwarn sun.misc.Unsafe
+-keep class sun.misc.Unsafe { *; }
+
+-dontwarn rx.**
+-keep class rx.** { *; }
+
+-keep class org.dolphinemu.dolphinemu.NativeLibrary { *; }
+-keep class org.dolphinemu.dolphinemu.utils.Java_GCAdapter { *; }
+-keep class org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter { *; }
+-keep class org.dolphinemu.dolphinemu.model.GameFile { *; }
+-keepclassmembers class org.dolphinemu.dolphinemu.model.GameFile { private <fields>; }
+-keepclassmembers class org.dolphinemu.dolphinemu.model.GameFileCache { private <fields>; }

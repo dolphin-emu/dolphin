@@ -542,12 +542,6 @@ if(NOT ANDROID)
 endif()
 add_subdirectory(Externals/glslang)
 
-find_package(pugixml)
-if(NOT pugixml_FOUND)
-  message(STATUS "Using static pugixml from Externals")
-  add_subdirectory(Externals/pugixml)
-endif()
-
 if(USE_SHARED_ENET)
   check_lib(ENET libenet enet enet/enet.h QUIET)
   include(CheckSymbolExists)
@@ -678,6 +672,8 @@ else()
   include_directories(Externals/mbedtls/include)
 endif()
 
+if (NOT ANDROID)
+#curl
 find_package(CURL)
 if(CURL_FOUND)
   message(STATUS "Using shared libcurl")
@@ -689,9 +685,16 @@ else()
   include_directories(BEFORE Externals/curl/include)
 endif()
 
-if (NOT ANDROID)
-  find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
-  find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
+# pugixml
+find_package(pugixml)
+if(NOT pugixml_FOUND)
+  message(STATUS "Using static pugixml from Externals")
+  add_subdirectory(Externals/pugixml)
+endif()
+
+# iconv
+find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
+find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
 endif()
 
 if (NOT ANDROID AND ICONV_LIBRARIES AND ICONV_INCLUDE_DIR)

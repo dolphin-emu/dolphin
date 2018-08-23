@@ -32,15 +32,9 @@ android {
 
     signingConfigs {
         release {
-            if (project.hasProperty('keystore')) {
-                storeFile file(project.property('keystore'))
-                storePassword project.property('storepass')
-                keyAlias project.property('keyalias')
-                keyPassword project.property('keypass')
-            }
-            keyAlias 'bboo-release-key'
+            keyAlias 'dolphin-release-key'
             keyPassword 'zhangwei'
-            storeFile file('E:/Android/android-sign-key/bboo-release-key.jks')
+            storeFile file('D:/Android/android-sign-key/dolphin-release-key.jks')
             storePassword 'zhangwei'
         }
     }
@@ -50,6 +44,9 @@ android {
         // Signed by release key, allowing for upload to Play Store.
         release {
             signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
         // Signed by debug key disallowing distribution on Play Store.
