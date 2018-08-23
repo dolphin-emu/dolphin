@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 
+#include <QSignalBlocker>
+
 #include "Common/Config/Config.h"
 
 #include "DolphinQt/Settings.h"
@@ -22,9 +24,8 @@ GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>&
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
-    bool old = blockSignals(true);
+    const QSignalBlocker blocker(this);
     setChecked(Config::Get(m_setting) ^ m_reverse);
-    blockSignals(old);
   });
 }
 

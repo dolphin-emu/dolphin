@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsRadio.h"
 
+#include <QSignalBlocker>
+
 #include "Common/Config/Config.h"
 
 #include "DolphinQt/Settings.h"
@@ -20,9 +22,8 @@ GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::ConfigInf
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
-    bool old = blockSignals(true);
+    const QSignalBlocker blocker(this);
     setChecked(Config::Get(m_setting) == m_value);
-    blockSignals(old);
   });
 }
 
