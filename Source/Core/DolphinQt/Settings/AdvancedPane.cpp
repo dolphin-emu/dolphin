@@ -9,6 +9,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QSlider>
 #include <QVBoxLayout>
 #include <cmath>
@@ -138,8 +139,11 @@ void AdvancedPane::Update()
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
 
-  m_cpu_clock_override_slider->setValue(
-      static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+  {
+    const QSignalBlocker blocker(m_cpu_clock_override_slider);
+    m_cpu_clock_override_slider->setValue(
+        static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+  }
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);
