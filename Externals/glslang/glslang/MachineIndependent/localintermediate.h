@@ -349,7 +349,7 @@ public:
         if (hlslOffsets)
             processes.addProcess("hlsl-offsets");
     }
-    bool usingHlslOFfsets() const { return hlslOffsets; }
+    bool usingHlslOffsets() const { return hlslOffsets; }
     void setUseStorageBuffer()
     {
         useStorageBuffer = true;

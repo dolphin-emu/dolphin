@@ -5,23 +5,15 @@
 
     <!-- New UI CPU Core selection - Default -->
     <string-array name="emuCoresEntriesX86_64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT Recompiler</item>
     </string-array>
     <integer-array name="emuCoresValuesX86_64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>1</item>
     </integer-array>
     <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT ARM64 Recompiler</item>
     </string-array>
     <integer-array name="emuCoresValuesARM64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>4</item>
     </integer-array>
     <string-array name="emuCoresEntriesGeneric" translatable="false">
@@ -69,14 +61,10 @@
     <string-array name="videoBackendEntries" translatable="false">
         <item>OpenGL</item>
         <item>Vulkan</item>
-        <item>Software</item>
-        <item>Null</item>
     </string-array>
     <integer-array name="videoBackendValues" translatable="false">
         <item>0</item>
         <item>1</item>
-        <item>2</item>
-        <item>3</item>
     </integer-array>
 
     <!-- Wii Remote extensions -->
@@ -127,15 +115,12 @@
         <item>2x (1280x1056) for 720p</item>
         <item>3x (1920x1584) for 1080p</item>
         <item>4x (2560x2112)</item>
-        <item>5x (3200x2640)</item>
     </string-array>
     <integer-array name="internalResolutionValues" translatable="false">
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
-        <item>5</item>
-        <item>6</item>
     </integer-array>
 
     <!-- FSAA Preference -->
@@ -232,17 +217,13 @@
 
     <string-array name="controllersEntries">
         <item>GameCube Controller</item>
-        <item>Wii Remote</item>
-        <item>Horizontal Wii Remote</item>
-        <item>Wii Remote + Nunchuk</item>
         <item>Classic Controller</item>
+        <item>Wii Remote + Nunchuk</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
-        <item>None</item>
-        <item>None</item>
-        <item>Nunchuk</item>
         <item>Classic</item>
+        <item>Nunchuk</item>
     </string-array>
 
     <string-array name="gcpadButtons">
@@ -257,17 +238,6 @@
         <item>D-Pad</item>
         <item>Main Stick</item>
         <item>C Stick</item>
-    </string-array>
-
-    <string-array name="wiimoteButtons">
-        <item>A</item>
-        <item>B</item>
-        <item>1</item>
-        <item>2</item>
-        <item>+</item>
-        <item>-</item>
-        <item>Home</item>
-        <item>D-Pad</item>
     </string-array>
 
     <string-array name="nunchukButtons">
@@ -301,8 +271,4 @@
         <item>Right Stick</item>
     </string-array>
 
-    <string-array name="gameSettingsMenus">
-        <item>Game Settings</item>
-        <item>Clear Settings</item>
-    </string-array>
 </resources>

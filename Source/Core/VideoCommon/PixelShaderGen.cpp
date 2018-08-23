@@ -605,8 +605,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       }
       else
       {
-        //out.Write("\tfloat4 initial_ocol0 = texelFetch(samp[0], ivec3(rawpos.xy, 1), 0);\n");
-        out.Write("\tfloat4 initial_ocol0 = float4(128.0, 128.0, 128.0, 128.0);\n");
+        out.Write("\tfloat4 initial_ocol0 = texelFetch(samp[0], ivec3(rawpos.xy, 1), 0);\n");
+        //out.Write("\tfloat4 initial_ocol0 = float4(128.0, 128.0, 128.0, 128.0);\n");
       }
       out.Write("\tfloat4 ocol0;\n");
       out.Write("\tfloat4 ocol1;\n");

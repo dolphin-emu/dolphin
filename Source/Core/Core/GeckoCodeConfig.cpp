@@ -16,6 +16,7 @@
 
 namespace Gecko
 {
+#ifndef ANDROID
 std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
 {
   switch (gameid[0])
@@ -128,7 +129,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
 
   return gcodes;
 }
-
+#endif
 std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
 {
   std::vector<GeckoCode> gcodes;

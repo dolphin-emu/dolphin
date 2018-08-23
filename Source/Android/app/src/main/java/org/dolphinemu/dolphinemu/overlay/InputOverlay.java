@@ -39,6 +39,11 @@ import java.util.Set;
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
+	public static final String CONTROLLER_PREF_KEY = "wiiController";
+	public static final int CONTROLLER_GAMECUBE_VALUE = 0;
+	public static final int CONTROLLER_CLASSIC_VALUE = 1;
+	public static final int CONTROLLER_WIINUNCHUK_VALUE = 2;
+
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
 	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
@@ -450,20 +455,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		if (mPreferences.getBoolean("buttonToggleWii7", true))
 		{
-			if (mPreferences.getInt("wiiController", 3) == 2)
-			{
-				overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
-						R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
-						ButtonType.WIIMOTE_RIGHT, ButtonType.WIIMOTE_LEFT,
-						ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN));
-			}
-			else
-			{
-				overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
-						R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
-						ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
-						ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
-			}
+			overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+					R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
+					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
+					ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
 		}
 	}
 
@@ -551,27 +546,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	public void refreshControls()
 	{
+		int controller = mPreferences.getInt(CONTROLLER_PREF_KEY, CONTROLLER_WIINUNCHUK_VALUE);
+
 		// Remove all the overlay buttons from the HashSet.
 		overlayButtons.removeAll(overlayButtons);
 		overlayDpads.removeAll(overlayDpads);
 		overlayJoysticks.removeAll(overlayJoysticks);
 
 		// Add all the enabled overlay items back to the HashSet.
-		if (EmulationActivity.isGameCubeGame() || mPreferences.getInt("wiiController", 3) == 0)
+		if (EmulationActivity.isGameCubeGame() || controller == CONTROLLER_GAMECUBE_VALUE)
 		{
 			addGameCubeOverlayControls();
 		}
-		else if (mPreferences.getInt("wiiController", 3) == 4)
+		else if (controller == CONTROLLER_CLASSIC_VALUE)
 		{
 			addClassicOverlayControls();
 		}
 		else
 		{
 			addWiimoteOverlayControls();
-			if (mPreferences.getInt("wiiController", 3) == 3)
-			{
-				addNunchukOverlayControls();
-			}
+			addNunchukOverlayControls();
 		}
 
 		invalidate();

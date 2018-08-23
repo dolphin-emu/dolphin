@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
@@ -132,8 +133,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 
 		EmulationActivity.launch((FragmentActivity) view.getContext(),
 				holder.gameFile,
-				holder.getAdapterPosition(),
-				holder.imageScreenshot);
+				holder.getAdapterPosition());
 	}
 
 	/**
@@ -147,50 +147,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	{
 		FragmentActivity activity = (FragmentActivity) view.getContext();
 		GameViewHolder holder = (GameViewHolder) view.getTag();
-		String gameId = holder.gameFile.getGameId();
-
-		if (gameId.isEmpty())
-		{
-			AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-			builder.setTitle("Game Settings");
-			builder.setMessage("Files without game IDs don't support game-specific settings.");
-
-			builder.show();
-			return true;
-		}
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-		builder.setTitle(gameId)
-			.setItems(R.array.gameSettingsMenus, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					switch (which) {
-						case 0:
-							SettingsActivity.launch(activity, MenuTag.CONFIG, gameId);
-							break;
-						case 1:
-							String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
-							File gameSettingsFile = new File(path);
-							if (gameSettingsFile.exists())
-							{
-								if (gameSettingsFile.delete())
-								{
-									Toast.makeText(view.getContext(), "Cleared settings for " + gameId, Toast.LENGTH_SHORT).show();
-								}
-								else
-								{
-									Toast.makeText(view.getContext(), "Unable to clear settings for " + gameId, Toast.LENGTH_SHORT).show();
-								}
-							}
-							else
-							{
-								Toast.makeText(view.getContext(), "No game settings to delete", Toast.LENGTH_SHORT).show();
-							}
-							break;
-					}
-				}
-			});
-
-		builder.show();
+		new GameDetailsDialog(holder.gameFile).show(activity.getSupportFragmentManager(), "GameDetailsDialog");
 		return true;
 	}
 

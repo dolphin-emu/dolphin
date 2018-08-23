@@ -2,82 +2,133 @@ package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.DialogFragment;
-import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+
+import java.io.File;
 
 
 public final class GameDetailsDialog extends DialogFragment
 {
-	private static final String ARG_GAME_PATH = "game_path";
+	private GameFile mGameFile;
 
-	public static GameDetailsDialog newInstance(String gamePath)
+	public GameDetailsDialog(GameFile gameFile)
 	{
-		GameDetailsDialog fragment = new GameDetailsDialog();
-
-		Bundle arguments = new Bundle();
-		arguments.putString(ARG_GAME_PATH, gamePath);
-		fragment.setArguments(arguments);
-
-		return fragment;
+		mGameFile = gameFile;
 	}
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState)
 	{
-		GameFile gameFile = GameFileCacheService.addOrGet(getArguments().getString(ARG_GAME_PATH));
+		final GameFile gameFile = mGameFile;
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater().inflate(R.layout.dialog_game_details, null);
 
-		final ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
-		ImageView circleBanner = contents.findViewById(R.id.circle_banner);
+		String gamePath = gameFile.getPath();
+		TextView textGameTitle = contents.findViewById(R.id.text_game_title);
+		textGameTitle.setText(gamePath.substring(gamePath.lastIndexOf("/") + 1));
 
-		TextView textTitle = contents.findViewById(R.id.text_game_title);
-		TextView textDescription = contents.findViewById(R.id.text_description);
-
-		TextView textCountry = contents.findViewById(R.id.text_country);
-		TextView textCompany = contents.findViewById(R.id.text_company);
-
-		FloatingActionButton buttonLaunch = contents.findViewById(R.id.button_launch);
-
-		String country = getResources().getStringArray(R.array.countryNames)[gameFile.getCountry()];
-
-		textTitle.setText(gameFile.getTitle());
-		textDescription.setText(gameFile.getDescription());
-		textCountry.setText(country);
-		textCompany.setText(gameFile.getCompany());
-
-		buttonLaunch.setOnClickListener(view ->
+		Button buttonDeleteGame = contents.findViewById(R.id.button_delete_game);
+		buttonDeleteGame.setOnClickListener(view ->
 		{
-			// Start the emulation activity and send the path of the clicked ROM to it.
-			EmulationActivity.launch(getActivity(), gameFile, -1, imageGameScreen);
+			this.dismiss();
+			this.deleteGameFile(getContext(), gameFile.getPath());
 		});
 
-		// Fill in the view contents.
-		Picasso.with(imageGameScreen.getContext())
-				.load(getArguments().getString(gameFile.getScreenshotPath()))
-				.fit()
-				.centerCrop()
-				.noFade()
-				.noPlaceholder()
-				.into(imageGameScreen);
+		Button buttonDeleteSetting = contents.findViewById(R.id.button_delete_setting);
+		buttonDeleteSetting.setOnClickListener(view ->
+		{
+			this.dismiss();
+			this.deleteGameSetting(getContext(), gameFile.getGameId());
+		});
+		buttonDeleteSetting.setEnabled(isGameSetingExist(gameFile.getGameId()));
 
-		circleBanner.setImageResource(R.drawable.no_banner);
+		Button buttonGameSetting = contents.findViewById(R.id.button_game_setting);
+		buttonGameSetting.setOnClickListener(view ->
+		{
+			this.dismiss();
+			SettingsActivity.launch(getActivity(), MenuTag.CONFIG, gameFile.getGameId());
+		});
+
+		Button buttonLaunch = contents.findViewById(R.id.button_launch);
+		buttonLaunch.setOnClickListener(view ->
+		{
+			this.dismiss();
+			EmulationActivity.launch(getActivity(), gameFile, -1);
+		});
+
+		ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
+		Picasso.with(imageGameScreen.getContext())
+				.load("file://" + gameFile.getCoverPath())
+				.into(imageGameScreen);
 
 		builder.setView(contents);
 		return builder.create();
+	}
+
+	private void deleteGameFile(Context context, String path)
+	{
+		File gameFile = new File(path);
+		if(gameFile.exists())
+		{
+			if(gameFile.delete())
+			{
+				Toast.makeText(context, "Delete: " + path, Toast.LENGTH_SHORT).show();
+				GameFileCacheService.startRescan(context);
+			}
+			else
+			{
+				Toast.makeText(context, "Error: " + path, Toast.LENGTH_SHORT).show();
+			}
+		}
+		else
+		{
+			Toast.makeText(context, "No game file to delete", Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private boolean isGameSetingExist(String gameId)
+	{
+		String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
+		File gameSettingsFile = new File(path);
+		return gameSettingsFile.exists();
+	}
+
+	private void deleteGameSetting(Context context, String gameId)
+	{
+		String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
+		File gameSettingsFile = new File(path);
+		if (gameSettingsFile.exists())
+		{
+			if (gameSettingsFile.delete())
+			{
+				Toast.makeText(context, "Cleared settings for " + gameId, Toast.LENGTH_SHORT).show();
+			}
+			else
+			{
+				Toast.makeText(context, "Unable to clear settings for " + gameId, Toast.LENGTH_SHORT).show();
+			}
+		}
+		else
+		{
+			Toast.makeText(context, "No game settings to delete", Toast.LENGTH_SHORT).show();
+		}
 	}
 }

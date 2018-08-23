@@ -56,7 +56,6 @@ namespace spv {
 
 #if ENABLE_OPT
     #include "spirv-tools/optimizer.hpp"
-    #include "message.h"
 #endif
 
 #if ENABLE_OPT
@@ -3220,7 +3219,7 @@ void TGlslangToSpvTraverser::updateMemberOffset(const glslang::TType& structType
     //       adjusting this late means inconsistencies with earlier code, which for reflection is an issue
     // Until reflection is brought in sync with these adjustments, don't apply to $Global,
     // which is the most likely to rely on reflection, and least likely to rely implicit layouts
-    if (glslangIntermediate->usingHlslOFfsets() &&
+    if (glslangIntermediate->usingHlslOffsets() &&
         ! memberType.isArray() && memberType.isVector() && structType.getTypeName().compare("$Global") != 0) {
         int dummySize;
         int componentAlignment = glslangIntermediate->getBaseAlignmentScalar(memberType, dummySize);
@@ -7004,6 +7003,80 @@ void GlslangToSpv(const glslang::TIntermediate& intermediate, std::vector<unsign
     GlslangToSpv(intermediate, spirv, &logger, options);
 }
 
+#if ENABLE_OPT
+
+// Apply the SPIRV-Tools validator to generated SPIR-V.
+void SpirvToolsLegalize(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger* logger, const SpvOptions* options)
+{
+    spv_target_env target_env = SPV_ENV_UNIVERSAL_1_2;
+
+    spvtools::Optimizer optimizer(target_env);
+    optimizer.SetMessageConsumer(
+        [](spv_message_level_t level, const char *source, const spv_position_t &position, const char *message) {
+            auto &out = std::cerr;
+            switch (level)
+            {
+            case SPV_MSG_FATAL:
+            case SPV_MSG_INTERNAL_ERROR:
+            case SPV_MSG_ERROR:
+                out << "error: ";
+                break;
+            case SPV_MSG_WARNING:
+                out << "warning: ";
+                break;
+            case SPV_MSG_INFO:
+            case SPV_MSG_DEBUG:
+                out << "info: ";
+                break;
+            default:
+                break;
+            }
+            if (source)
+            {
+                out << source << ":";
+            }
+            out << position.line << ":" << position.column << ":" << position.index << ":";
+            if (message)
+            {
+                out << " " << message;
+            }
+            out << std::endl;
+        });
+
+    optimizer.RegisterPass(CreateMergeReturnPass());
+    optimizer.RegisterPass(CreateInlineExhaustivePass());
+    optimizer.RegisterPass(CreateEliminateDeadFunctionsPass());
+    optimizer.RegisterPass(CreateScalarReplacementPass());
+    optimizer.RegisterPass(CreateLocalAccessChainConvertPass());
+    optimizer.RegisterPass(CreateLocalSingleBlockLoadStoreElimPass());
+    optimizer.RegisterPass(CreateLocalSingleStoreElimPass());
+    optimizer.RegisterPass(CreateSimplificationPass());
+    optimizer.RegisterPass(CreateAggressiveDCEPass());
+    optimizer.RegisterPass(CreateVectorDCEPass());
+    optimizer.RegisterPass(CreateDeadInsertElimPass());
+    optimizer.RegisterPass(CreateAggressiveDCEPass());
+    optimizer.RegisterPass(CreateDeadBranchElimPass());
+    optimizer.RegisterPass(CreateBlockMergePass());
+    optimizer.RegisterPass(CreateLocalMultiStoreElimPass());
+    optimizer.RegisterPass(CreateIfConversionPass());
+    optimizer.RegisterPass(CreateSimplificationPass());
+    optimizer.RegisterPass(CreateAggressiveDCEPass());
+    optimizer.RegisterPass(CreateVectorDCEPass());
+    optimizer.RegisterPass(CreateDeadInsertElimPass());
+    if (options->optimizeSize) {
+        optimizer.RegisterPass(CreateRedundancyEliminationPass());
+        // TODO(greg-lunarg): Add this when AMD driver issues are resolved
+        // optimizer.RegisterPass(CreateCommonUniformElimPass());
+    }
+    optimizer.RegisterPass(CreateAggressiveDCEPass());
+    optimizer.RegisterPass(CreateCFGCleanupPass());
+
+    optimizer.Run(spirv.data(), spirv.size(), &spirv);
+}
+
+#endif
+
 void GlslangToSpv(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
                   spv::SpvBuildLogger* logger, SpvOptions* options)
 {
@@ -7026,50 +7099,9 @@ void GlslangToSpv(const glslang::TIntermediate& intermediate, std::vector<unsign
 #if ENABLE_OPT
     // If from HLSL, run spirv-opt to "legalize" the SPIR-V for Vulkan
     // eg. forward and remove memory writes of opaque types.
-    if ((intermediate.getSource() == EShSourceHlsl ||
-                options->optimizeSize) &&
+    if ((intermediate.getSource() == EShSourceHlsl || options->optimizeSize) &&
             !options->disableOptimizer) {
-        spv_target_env target_env = SPV_ENV_UNIVERSAL_1_2;
-
-        spvtools::Optimizer optimizer(target_env);
-        optimizer.SetMessageConsumer([](spv_message_level_t level,
-                                         const char* source,
-                                         const spv_position_t& position,
-                                         const char* message) {
-            std::cerr << StringifyMessage(level, source, position, message)
-                      << std::endl;
-        });
-
-        optimizer.RegisterPass(CreateMergeReturnPass());
-        optimizer.RegisterPass(CreateInlineExhaustivePass());
-        optimizer.RegisterPass(CreateEliminateDeadFunctionsPass());
-        optimizer.RegisterPass(CreateScalarReplacementPass());
-        optimizer.RegisterPass(CreateLocalAccessChainConvertPass());
-        optimizer.RegisterPass(CreateLocalSingleBlockLoadStoreElimPass());
-        optimizer.RegisterPass(CreateLocalSingleStoreElimPass());
-        optimizer.RegisterPass(CreateSimplificationPass());
-        optimizer.RegisterPass(CreateAggressiveDCEPass());
-        optimizer.RegisterPass(CreateVectorDCEPass());
-        optimizer.RegisterPass(CreateDeadInsertElimPass());
-        optimizer.RegisterPass(CreateAggressiveDCEPass());
-        optimizer.RegisterPass(CreateDeadBranchElimPass());
-        optimizer.RegisterPass(CreateBlockMergePass());
-        optimizer.RegisterPass(CreateLocalMultiStoreElimPass());
-        optimizer.RegisterPass(CreateIfConversionPass());
-        optimizer.RegisterPass(CreateSimplificationPass());
-        optimizer.RegisterPass(CreateAggressiveDCEPass());
-        optimizer.RegisterPass(CreateVectorDCEPass());
-        optimizer.RegisterPass(CreateDeadInsertElimPass());
-        if (options->optimizeSize) {
-            optimizer.RegisterPass(CreateRedundancyEliminationPass());
-            // TODO(greg-lunarg): Add this when AMD driver issues are resolved
-            // optimizer.RegisterPass(CreateCommonUniformElimPass());
-        }
-        optimizer.RegisterPass(CreateAggressiveDCEPass());
-        optimizer.RegisterPass(CreateCFGCleanupPass());
-
-        if (!optimizer.Run(spirv.data(), spirv.size(), &spirv))
-            return;
+        SpirvToolsLegalize(intermediate, spirv, logger, options);
     }
 #endif
 

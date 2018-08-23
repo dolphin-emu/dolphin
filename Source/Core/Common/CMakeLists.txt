@@ -17,7 +17,6 @@ add_library(common
   FloatUtils.cpp
   GekkoDisassembler.cpp
   Hash.cpp
-  HttpRequest.cpp
   Image.cpp
   IniFile.cpp
   JitRegister.cpp
@@ -71,6 +70,7 @@ endif()
 if(NOT ANDROID)
   target_sources(common PRIVATE
     Analytics.cpp
+	HttpRequest.cpp
   )
 endif()
 

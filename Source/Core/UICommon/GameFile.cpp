@@ -23,7 +23,9 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#ifndef ANDROID
 #include "Common/HttpRequest.h"
+#endif
 #include "Common/Image.h"
 #include "Common/IniFile.h"
 #include "Common/NandPaths.h"
@@ -40,9 +42,9 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
-
+#ifndef ANDROID
 constexpr const char* COVER_URL = "https://art.gametdb.com/wii/cover/%s/%s.png";
-
+#endif
 namespace UICommon
 {
 static const std::string EMPTY_STRING;
@@ -193,6 +195,7 @@ bool GameFile::CustomCoverChanged()
 
 void GameFile::DownloadDefaultCover()
 {
+#ifndef ANDROID
   if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return;
 
@@ -266,6 +269,7 @@ void GameFile::DownloadDefaultCover()
     File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
                             cover_path + m_game_id.substr(0, 4) + ".png");
   }
+#endif
 }
 
 bool GameFile::DefaultCoverChanged()

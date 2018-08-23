@@ -4,6 +4,16 @@
 
 #include "Core/WiiUtils.h"
 
+
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Swap.h"
+#include "Core/ConfigManager.h"
+#include "Core/IOS/ES/ES.h"
+#include "Core/SysConf.h"
+#include "DiscIO/WiiWad.h"
+
+#ifndef ANDROID
 #include <algorithm>
 #include <bitset>
 #include <cinttypes>
@@ -19,31 +29,29 @@
 
 #include <pugixml.hpp>
 
-#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
-#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/HttpRequest.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Swap.h"
+
 #include "Core/CommonTitles.h"
-#include "Core/ConfigManager.h"
+
 #include "Core/IOS/Device.h"
-#include "Core/IOS/ES/ES.h"
+
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
-#include "Core/SysConf.h"
+
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeFileBlobReader.h"
 #include "DiscIO/VolumeWii.h"
-#include "DiscIO/WiiWad.h"
+#endif
 
 namespace WiiUtils
 {
@@ -154,7 +162,7 @@ bool InstallWAD(IOS::HLE::Kernel& ios, const DiscIO::WiiWAD& wad, InstallType in
 
   return true;
 }
-
+#ifndef ANDROID
 bool InstallWAD(const std::string& wad_path)
 {
   IOS::HLE::Kernel ios;
@@ -841,4 +849,5 @@ bool RepairNAND(IOS::HLE::Kernel& ios)
 {
   return !CheckNAND(ios, true).bad;
 }
+#endif
 }
