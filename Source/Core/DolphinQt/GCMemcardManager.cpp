@@ -382,17 +382,24 @@ void GCMemcardManager::DeleteFiles()
       return;
   }
 
+  bool success = true;
   for (int i = 0; i < count; i++)
   {
     auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
     int file_index = memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel));
     if (memcard->RemoveFile(file_index) != SUCCESS)
       QMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
+
+    // TODO: Fix GCMemcard to properly handle deleting more than one file without writing to disk
+    if (!memcard->Save())
+    {
+      QMessageBox::critical(this, tr("Error"), tr("File write failed"));
+      success = false;
+      break;
+    }
   }
 
-  if (!memcard->Save())
-    PanicAlertT("File write failed");
-  else
+  if (success)
     QMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
 
   UpdateSlotTable(m_active_slot);
