@@ -37,6 +37,7 @@ import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 
+import java.io.File;
 import java.lang.annotation.Retention;
 import java.util.List;
 
@@ -52,9 +53,6 @@ public final class EmulationActivity extends AppCompatActivity
 	private SharedPreferences mPreferences;
 	private ControllerMappingHelper mControllerMappingHelper;
 
-	// So that MainActivity knows which view to invalidate before the return animation.
-	private int mPosition;
-
 	private boolean mStopEmulation;
 	private boolean mMenuVisible;
 
@@ -64,11 +62,12 @@ public final class EmulationActivity extends AppCompatActivity
 	private String mSelectedTitle;
 	private int mPlatform;
 	private String mPath;
+	private String mSavedState;
 
 	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
 	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
 	public static final String EXTRA_PLATFORM = "Platform";
-	public static final String EXTRA_GRID_POSITION = "GridPosition";
+	public static final String EXTRA_SAVED_STATE = "SavedState";
 
 	@Retention(SOURCE)
 	@IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -135,14 +134,14 @@ public final class EmulationActivity extends AppCompatActivity
 		buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center, EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
 	}
 
-	public static void launch(FragmentActivity activity, GameFile gameFile, int position)
+	public static void launch(FragmentActivity activity, GameFile gameFile, String savedState)
 	{
 		Intent launcher = new Intent(activity, EmulationActivity.class);
 
 		launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
 		launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
 		launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-		launcher.putExtra(EXTRA_GRID_POSITION, position);
+		launcher.putExtra(EXTRA_SAVED_STATE, savedState);
 		Bundle options = new Bundle();
 
 		// I believe this warning is a bug. Activities are FragmentActivity from the support lib
@@ -162,7 +161,7 @@ public final class EmulationActivity extends AppCompatActivity
 			mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
 			mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
 			mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
-			mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
+			mSavedState = gameToEmulate.getStringExtra(EXTRA_SAVED_STATE);
 			activityRecreated = false;
 		}
 		else
@@ -218,11 +217,11 @@ public final class EmulationActivity extends AppCompatActivity
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
-		mEmulationFragment.saveTemporaryState();
+		saveTemporaryState();
 		outState.putString(EXTRA_SELECTED_GAME, mPath);
 		outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
 		outState.putInt(EXTRA_PLATFORM, mPlatform);
-		outState.putInt(EXTRA_GRID_POSITION, mPosition);
+		outState.putString(EXTRA_SAVED_STATE, mSavedState);
 		super.onSaveInstanceState(outState);
 	}
 
@@ -231,7 +230,7 @@ public final class EmulationActivity extends AppCompatActivity
 		mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
 		mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
 		mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
-		mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
+		mSavedState = savedInstanceState.getString(EXTRA_SAVED_STATE);
 	}
 
 	@Override
@@ -651,5 +650,16 @@ public final class EmulationActivity extends AppCompatActivity
 	public boolean isActivityRecreated()
 	{
 		return activityRecreated;
+	}
+
+	public String getSavedState()
+	{
+		return mSavedState;
+	}
+
+	public void saveTemporaryState()
+	{
+		mSavedState = getFilesDir() + File.separator + "temp.sav";
+		NativeLibrary.SaveStateAs(mSavedState, true);
 	}
 }

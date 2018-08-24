@@ -66,6 +66,8 @@ public:
   void SetWidgetsLocked(bool visible);
   bool AreWidgetsLocked() const;
 
+  void RefreshWidgetVisibility();
+
   // GameList
   QStringList GetPaths() const;
   void AddPath(const QString& path);

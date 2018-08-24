@@ -131,9 +131,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	{
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 
-		EmulationActivity.launch((FragmentActivity) view.getContext(),
-				holder.gameFile,
-				holder.getAdapterPosition());
+		EmulationActivity.launch((FragmentActivity) view.getContext(), holder.gameFile, null);
 	}
 
 	/**
@@ -147,7 +145,8 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	{
 		FragmentActivity activity = (FragmentActivity) view.getContext();
 		GameViewHolder holder = (GameViewHolder) view.getTag();
-		new GameDetailsDialog(holder.gameFile).show(activity.getSupportFragmentManager(), "GameDetailsDialog");
+		GameDetailsDialog.newInstance(holder.gameFile.getPath()).show(
+			activity.getSupportFragmentManager(), "GameDetailsDialog");
 		return true;
 	}
 

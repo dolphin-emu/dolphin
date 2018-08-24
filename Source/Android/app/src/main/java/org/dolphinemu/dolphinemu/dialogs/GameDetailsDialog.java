@@ -26,31 +26,35 @@ import java.io.File;
 
 public final class GameDetailsDialog extends DialogFragment
 {
-	private GameFile mGameFile;
+	private static final String ARG_GAME_PATH = "game_path";
 
-	public GameDetailsDialog(GameFile gameFile)
+	public static GameDetailsDialog newInstance(String gamePath)
 	{
-		mGameFile = gameFile;
+		GameDetailsDialog fragment = new GameDetailsDialog();
+
+		Bundle arguments = new Bundle();
+		arguments.putString(ARG_GAME_PATH, gamePath);
+		fragment.setArguments(arguments);
+
+		return fragment;
 	}
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState)
 	{
-		final GameFile gameFile = mGameFile;
+		final GameFile gameFile = GameFileCacheService.addOrGet(getArguments().getString(ARG_GAME_PATH));
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater().inflate(R.layout.dialog_game_details, null);
 
-		String gamePath = gameFile.getPath();
+		// game title
 		TextView textGameTitle = contents.findViewById(R.id.text_game_title);
-		textGameTitle.setText(gamePath.substring(gamePath.lastIndexOf("/") + 1));
+		textGameTitle.setText(gameFile.getTitle());
 
-		Button buttonDeleteGame = contents.findViewById(R.id.button_delete_game);
-		buttonDeleteGame.setOnClickListener(view ->
-		{
-			this.dismiss();
-			this.deleteGameFile(getContext(), gameFile.getPath());
-		});
+		// game filename
+		String gamePath = gameFile.getPath();
+		TextView textGameFilename = contents.findViewById(R.id.text_game_filename);
+		textGameFilename.setText(gamePath.substring(gamePath.lastIndexOf("/") + 1));
 
 		Button buttonDeleteSetting = contents.findViewById(R.id.button_delete_setting);
 		buttonDeleteSetting.setOnClickListener(view ->
@@ -67,11 +71,11 @@ public final class GameDetailsDialog extends DialogFragment
 			SettingsActivity.launch(getActivity(), MenuTag.CONFIG, gameFile.getGameId());
 		});
 
-		Button buttonLaunch = contents.findViewById(R.id.button_launch);
+		Button buttonLaunch = contents.findViewById(R.id.button_launch_state);
 		buttonLaunch.setOnClickListener(view ->
 		{
 			this.dismiss();
-			EmulationActivity.launch(getActivity(), gameFile, -1);
+			EmulationActivity.launch(getActivity(), gameFile, gameFile.getLastSavedState());
 		});
 
 		ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
@@ -81,27 +85,6 @@ public final class GameDetailsDialog extends DialogFragment
 
 		builder.setView(contents);
 		return builder.create();
-	}
-
-	private void deleteGameFile(Context context, String path)
-	{
-		File gameFile = new File(path);
-		if(gameFile.exists())
-		{
-			if(gameFile.delete())
-			{
-				Toast.makeText(context, "Delete: " + path, Toast.LENGTH_SHORT).show();
-				GameFileCacheService.startRescan(context);
-			}
-			else
-			{
-				Toast.makeText(context, "Error: " + path, Toast.LENGTH_SHORT).show();
-			}
-		}
-		else
-		{
-			Toast.makeText(context, "No game file to delete", Toast.LENGTH_SHORT).show();
-		}
 	}
 
 	private boolean isGameSetingExist(String gameId)

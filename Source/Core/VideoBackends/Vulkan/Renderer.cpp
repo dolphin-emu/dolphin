@@ -1124,18 +1124,6 @@ void Renderer::SetAndClearFramebuffer(const AbstractFramebuffer* framebuffer,
                                                     num_clear_values);
 }
 
-void Renderer::BindFramebufferAsTexture(u32 index)
-{
-  Texture2D* tex = FramebufferManager::GetInstance()->GetEFBColorTexture();
-  if (tex) {
-    VkImageView view = tex->GetView();
-    if (view) {
-        StateTracker::GetInstance()->SetTexture(index, view);
-        StateTracker::GetInstance()->SetSampler(index, g_object_cache->GetLinearSampler());
-    }
-  }
-}
-
 void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
 {
   // Texture should always be in SHADER_READ_ONLY layout prior to use.

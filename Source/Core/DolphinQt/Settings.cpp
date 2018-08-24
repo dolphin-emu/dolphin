@@ -434,6 +434,13 @@ bool Settings::IsJITVisible() const
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
+void Settings::RefreshWidgetVisibility()
+{
+  emit DebugModeToggled(IsDebugModeEnabled());
+  emit LogVisibilityChanged(IsLogVisible());
+  emit LogConfigVisibilityChanged(IsLogConfigVisible());
+}
+
 void Settings::SetDebugFont(QFont font)
 {
   if (GetDebugFont() != font)

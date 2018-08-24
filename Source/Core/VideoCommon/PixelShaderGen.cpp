@@ -603,11 +603,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
         // Store off a copy of the initial fb value for blending
         out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
       }
-      else
-      {
-        out.Write("\tfloat4 initial_ocol0 = texelFetch(samp[0], ivec3(rawpos.xy, 1), 0);\n");
-        //out.Write("\tfloat4 initial_ocol0 = float4(128.0, 128.0, 128.0, 128.0);\n");
-      }
+	    else
+	    {
+		    out.Write("\tfloat4 initial_ocol0 = float4(0.5, 0.5, 0.5, 0.5);\n");
+	    }
       out.Write("\tfloat4 ocol0;\n");
       out.Write("\tfloat4 ocol1;\n");
     }
@@ -1455,8 +1454,8 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.Write("\tfloat4 blend_result;\n");
     if (uid_data->blend_subtract)
     {
-      out.Write("\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * "
-                "blend_src.rgb;\n");
+      out.Write(
+          "\tblend_result.rgb = initial_ocol0.rgb * blend_dst.rgb - ocol0.rgb * blend_src.rgb;\n");
     }
     else
     {

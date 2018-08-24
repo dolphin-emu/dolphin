@@ -7,6 +7,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -132,7 +133,7 @@ void HacksWidget::ConnectWidgets()
 
 void HacksWidget::LoadSettings()
 {
-  const bool old = m_accuracy->blockSignals(true);
+  const QSignalBlocker blocker(m_accuracy);
   auto samples = Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES);
 
   int slider_pos = 0;
@@ -161,8 +162,6 @@ void HacksWidget::LoadSettings()
              Config::LayerType::Base);
 
   m_accuracy_label->setFont(bf);
-
-  m_accuracy->blockSignals(old);
 }
 
 void HacksWidget::SaveSettings()

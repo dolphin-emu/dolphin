@@ -17,49 +17,56 @@
         android:src="@drawable/no_banner"/>
 
     <TextView
-        android:id="@+id/text_game_title"
+        android:id="@+id/text_game_filename"
         android:background="#AA333333"
-        android:textColor="#F0F0F0"
-        android:paddingTop="2dp"
+        android:textColor="#E0E0E0"
+        android:textSize="12sp"
         android:paddingBottom="2dp"
         android:layout_alignBottom="@id/image_game_screen"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <Button
-        android:text="@string/delete_game_file"
-        android:id="@+id/button_delete_game"
+    <TextView
+        android:id="@+id/text_game_title"
+        android:background="#AA333333"
+        android:textColor="#F0F0F0"
+        android:paddingTop="2dp"
+        android:textSize="14sp"
+        android:layout_above="@id/text_game_filename"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/image_game_screen"
-        android:stateListAnimator="@animator/button_elevation"/>
+        android:layout_height="wrap_content" />
 
     <Button
         android:text="@string/delete_game_setting"
         android:id="@+id/button_delete_setting"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_alignParentStart="true"
-        android:layout_below="@id/button_delete_game"
-        android:stateListAnimator="@animator/button_elevation"/>
+        android:layout_below="@id/image_game_screen"
+        android:stateListAnimator="@null"/>
 
     <Button
         android:text="@string/preferences_game_settings"
         android:id="@+id/button_game_setting"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/button_delete_setting"
-        android:stateListAnimator="@animator/button_elevation"/>
+        android:stateListAnimator="@null"/>
 
     <Button
-        android:text="@string/launch_game"
-        android:id="@+id/button_launch"
+        android:text="@string/launch_last_state"
+        android:id="@+id/button_launch_state"
         android:layout_width="match_parent"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
         android:layout_height="50dp"
         android:layout_alignParentStart="true"
         android:layout_below="@id/button_game_setting"
-        android:stateListAnimator="@animator/button_elevation"/>
+        android:stateListAnimator="@null"/>
 
 </RelativeLayout>

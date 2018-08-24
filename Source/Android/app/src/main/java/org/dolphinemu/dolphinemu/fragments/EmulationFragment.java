@@ -82,7 +82,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
 		String gamePath = getArguments().getString(KEY_GAMEPATH);
-		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath());
+		mEmulationState = new EmulationState(gamePath);
 	}
 
 	/**
@@ -123,7 +123,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		super.onResume();
 		if (DirectoryInitializationService.areDolphinDirectoriesReady())
 		{
-			mEmulationState.run(activity.isActivityRecreated());
+			mEmulationState.run(activity.getSavedState(), activity.isActivityRecreated());
 		}
 		else
 		{
@@ -160,7 +160,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 				{
 					if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
 					{
-						mEmulationState.run(activity.isActivityRecreated());
+						mEmulationState.run(activity.getSavedState(), activity.isActivityRecreated());
 					}
 					else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
 					{
@@ -261,13 +261,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		private State state;
 		private Surface mSurface;
 		private boolean mRunWhenSurfaceIsValid;
-		private boolean loadPreviousTemporaryState;
-		private final String temporaryStatePath;
 
-		EmulationState(String gamePath, String temporaryStatePath)
+		private boolean mIsTempState;
+		private String mStatePath;
+
+		EmulationState(String gamePath)
 		{
 			mGamePath = gamePath;
-			this.temporaryStatePath = temporaryStatePath;
 			// Starting state is stopped.
 			state = State.STOPPED;
 		}
@@ -295,7 +295,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		{
 			if (state != State.STOPPED)
 			{
-				Log.debug("[EmulationFragment] Stopping emulation.");
 				state = State.STOPPED;
 				NativeLibrary.StopEmulation();
 			}
@@ -310,8 +309,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			if (state != State.PAUSED)
 			{
 				state = State.PAUSED;
-				Log.debug("[EmulationFragment] Pausing emulation.");
-
 				// Release the surface before pausing, since emulation has to be running for that.
 				NativeLibrary.SurfaceDestroyed();
 				NativeLibrary.PauseEmulation();
@@ -322,27 +319,27 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			}
 		}
 
-		public synchronized void run(boolean isActivityRecreated)
+		private void deleteFile(String path)
 		{
-			if (isActivityRecreated)
+			try
 			{
-				if (NativeLibrary.IsRunning())
-				{
-					loadPreviousTemporaryState = false;
-					state = State.PAUSED;
-					deleteFile(temporaryStatePath);
-				}
-				else
-				{
-					loadPreviousTemporaryState = true;
-				}
+				File file = new File(path);
+				file.delete();
 			}
-			else
+			catch (Exception ex)
 			{
-				Log.debug("[EmulationFragment] activity resumed or fresh start");
-				loadPreviousTemporaryState = false;
-				// activity resumed without being killed or this is the first run
-				deleteFile(temporaryStatePath);
+				// fail safely
+			}
+		}
+
+		public synchronized void run(String statePath, boolean isTempState)
+		{
+			mIsTempState = isTempState;
+			mStatePath = statePath;
+
+			if (NativeLibrary.IsRunning())
+			{
+				state = State.PAUSED;
 			}
 
 			// If the surface is set, run now. Otherwise, wait for it to get set.
@@ -375,8 +372,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			else
 			{
 				mSurface = null;
-				Log.debug("[EmulationFragment] Surface destroyed.");
-
 				if (state == State.RUNNING)
 				{
 					NativeLibrary.SurfaceDestroyed();
@@ -401,54 +396,27 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 				mEmulationThread = new Thread(() ->
 				{
 					NativeLibrary.SurfaceChanged(mSurface);
-					if (loadPreviousTemporaryState)
+					if (mStatePath == null || mStatePath.isEmpty())
 					{
-						Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-						NativeLibrary.Run(mGamePath, temporaryStatePath, true);
+						NativeLibrary.Run(mGamePath);
 					}
 					else
 					{
-						Log.debug("[EmulationFragment] Starting emulation thread.");
-						NativeLibrary.Run(mGamePath);
+						NativeLibrary.Run(mGamePath, mStatePath, mIsTempState);
 					}
 				}, "NativeEmulation");
 				mEmulationThread.start();
-
 			}
 			else if (state == State.PAUSED)
 			{
-				Log.debug("[EmulationFragment] Resuming emulation.");
 				NativeLibrary.SurfaceChanged(mSurface);
 				NativeLibrary.UnPauseEmulation();
 			}
 			else
 			{
-				Log.debug("[EmulationFragment] Bug, run called while already running.");
+				Log.warning("[EmulationFragment] Bug, run called while already running.");
 			}
 			state = State.RUNNING;
-		}
-	}
-
-	public void saveTemporaryState()
-	{
-		NativeLibrary.SaveStateAs(getTemporaryStateFilePath(), true);
-	}
-
-	private String getTemporaryStateFilePath()
-	{
-		return getContext().getFilesDir() + File.separator + "temp.sav";
-	}
-
-	private static void deleteFile(String path)
-	{
-		try
-		{
-			File file = new File(path);
-			file.delete();
-		}
-		catch (Exception ex)
-		{
-			// fail safely
 		}
 	}
 }

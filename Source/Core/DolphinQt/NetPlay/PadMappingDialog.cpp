@@ -8,6 +8,7 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QSignalBlocker>
 
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
@@ -82,7 +83,7 @@ int PadMappingDialog::exec()
     for (size_t i = 0; i < combo_group.size(); i++)
     {
       auto& combo = combo_group[i];
-      const bool old = combo->blockSignals(true);
+      const QSignalBlocker blocker(combo);
 
       combo->clear();
       combo->addItems(players);
@@ -90,7 +91,6 @@ int PadMappingDialog::exec()
       const auto index = gc ? m_pad_mapping[i] : m_wii_mapping[i];
 
       combo->setCurrentIndex(index == -1 ? 0 : index);
-      combo->blockSignals(old);
     }
   }
 
