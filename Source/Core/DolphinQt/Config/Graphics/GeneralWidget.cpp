@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QRadioButton>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -300,7 +301,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 {
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(QVariant(backend_name)));
 
-  const bool old = m_adapter_combo->blockSignals(true);
+  const QSignalBlocker blocker(m_adapter_combo);
 
   m_adapter_combo->clear();
 
@@ -318,6 +319,4 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
                                   QStringLiteral("") :
                                   tr("%1 doesn't support this feature.")
                                       .arg(tr(g_video_backend->GetDisplayName().c_str())));
-
-  m_adapter_combo->blockSignals(old);
 }

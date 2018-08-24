@@ -254,8 +254,8 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   std::string fullname = basename + tlutname + formatname;
 
   // try to match a wildcard template
-  if (!dump && s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
-    return basename + "_*" + formatname;
+  if (!dump && s_textureMap.find(basename + "_$" + formatname) != s_textureMap.end())
+    return basename + "_$" + formatname;
 
   // else generate the complete texture
   if (dump || s_textureMap.find(fullname) != s_textureMap.end())
