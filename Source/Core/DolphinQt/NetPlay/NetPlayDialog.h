@@ -47,6 +47,7 @@ public:
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
   void OnPadBufferChanged(u32 buffer) override;
+  void OnHostInputAuthorityChanged(bool enabled) override;
   void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
   void OnConnectionError(const std::string& message) override;
@@ -108,6 +109,7 @@ private:
   QCheckBox* m_record_input_box;
   QCheckBox* m_reduce_polling_rate_box;
   QCheckBox* m_strict_settings_sync_box;
+  QCheckBox* m_host_input_authority_box;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 
@@ -124,4 +126,5 @@ private:
   int m_buffer_size = 0;
   int m_player_count = 0;
   int m_old_player_count = 0;
+  bool m_host_input_authority = false;
 };

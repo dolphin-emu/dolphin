@@ -6,6 +6,7 @@
 
 #include <SFML/Network/Packet.hpp>
 #include <array>
+#include <chrono>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -43,6 +44,7 @@ public:
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
   virtual void OnPadBufferChanged(u32 buffer) = 0;
+  virtual void OnHostInputAuthorityChanged(bool enabled) = 0;
   virtual void OnDesync(u32 frame, const std::string& player) = 0;
   virtual void OnConnectionLost() = 0;
   virtual void OnConnectionError(const std::string& message) = 0;
@@ -74,6 +76,8 @@ public:
   std::string revision;
   u32 ping;
   PlayerGameStatus game_status;
+
+  bool IsHost() const { return pid == 1; }
 };
 
 class NetPlayClient : public TraversalClientClient
@@ -101,7 +105,7 @@ public:
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
-  bool GetNetPads(int pad_nb, GCPadStatus* pad_status);
+  bool GetNetPads(int pad_nb, bool from_vi, GCPadStatus* pad_status);
 
   u64 GetInitialRTCValue() const;
 
@@ -121,6 +125,8 @@ public:
   const PadMappingArray& GetPadMapping() const;
   const PadMappingArray& GetWiimoteMapping() const;
 
+  void AdjustPadBufferSize(unsigned int size);
+
 protected:
   void ClearBuffers();
 
@@ -137,6 +143,10 @@ protected:
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::SPSCQueue<NetWiimote>, 4> m_wiimote_buffer;
 
+  std::array<bool, 4> m_first_pad_status_received{};
+
+  std::chrono::time_point<std::chrono::steady_clock> m_buffer_under_target_last;
+
   NetPlayUI* m_dialog = nullptr;
 
   ENetHost* m_client = nullptr;
@@ -148,6 +158,7 @@ protected:
   Common::Flag m_do_loop{true};
 
   unsigned int m_target_buffer_size = 20;
+  bool m_host_input_authority = false;
 
   Player* m_local_player = nullptr;
 
@@ -178,6 +189,9 @@ private:
   bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path);
   std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet);
 
+  bool PollLocalPad(int local_pad, sf::Packet& packet);
+  void SendPadHostPoll(PadMapping pad_num);
+
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
@@ -203,6 +217,7 @@ private:
   bool m_should_compute_MD5 = false;
   Common::Event m_gc_pad_event;
   Common::Event m_wii_pad_event;
+  Common::Event m_first_pad_status_received_event;
   u8 m_sync_save_data_count = 0;
   u8 m_sync_save_data_success_count = 0;
 

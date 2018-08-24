@@ -78,6 +78,7 @@ struct NetSettings
   bool m_SyncSaveData;
   std::string m_SaveDataRegion;
   bool m_IsHosting;
+  bool m_HostInputAuthority;
 };
 
 struct NetTraversalConfig
@@ -110,6 +111,8 @@ enum
   NP_MSG_PAD_DATA = 0x60,
   NP_MSG_PAD_MAPPING = 0x61,
   NP_MSG_PAD_BUFFER = 0x62,
+  NP_MSG_PAD_HOST_POLL = 0x63,
+  NP_MSG_PAD_FIRST_RECEIVED = 0x64,
 
   NP_MSG_WIIMOTE_DATA = 0x70,
   NP_MSG_WIIMOTE_MAPPING = 0x71,
@@ -120,6 +123,7 @@ enum
   NP_MSG_DISABLE_GAME = 0xA3,
   NP_MSG_GAME_STATUS = 0xA4,
   NP_MSG_IPL_STATUS = 0xA5,
+  NP_MSG_HOST_INPUT_AUTHORITY = 0xA6,
 
   NP_MSG_TIMEBASE = 0xB0,
   NP_MSG_DESYNC_DETECTED = 0xB1,
@@ -175,4 +179,5 @@ const NetSettings& GetNetSettings();
 IOS::HLE::FS::FileSystem* GetWiiSyncFS();
 void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
 void ClearWiiSyncFS();
+void SetSIPollBatching(bool state);
 }  // namespace NetPlay
