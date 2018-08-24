@@ -138,14 +138,6 @@ void VertexManager::vFlush()
   // Figure out the number of indices to draw
   u32 index_count = IndexGenerator::GetIndexLen();
 
-  // bind shader blend texture
-  bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-  bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-  if (useDstAlpha)
-  {
-    Renderer::GetInstance()->BindFramebufferAsTexture(1);
-  }
-
   // Update tracked state
   StateTracker::GetInstance()->UpdateVertexShaderConstants();
   StateTracker::GetInstance()->UpdateGeometryShaderConstants();
