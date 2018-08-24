@@ -382,10 +382,15 @@ void GCMemcardManager::DeleteFiles()
       return;
   }
 
+  std::vector<int> file_indices;
   for (int i = 0; i < count; i++)
   {
     auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
-    int file_index = memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel));
+    file_indices.push_back(memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel)));
+  }
+
+  for (int file_index : file_indices)
+  {
     if (memcard->RemoveFile(file_index) != SUCCESS)
       QMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
   }
