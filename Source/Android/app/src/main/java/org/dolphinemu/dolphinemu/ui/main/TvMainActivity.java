@@ -53,9 +53,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
+		{
 			StartupHandler.HandleInit(this);
+		}
 		// Setup and/or sync channels
-        TvUtil.scheduleSyncingChannel(getApplicationContext());
+		TvUtil.scheduleSyncingChannel(getApplicationContext());
 	}
 
 	@Override
