@@ -95,6 +95,8 @@ void GCMemcardManager::CreateWidgets()
     slot_layout->addWidget(m_slot_stat_label[i], 2, 0);
 
     layout->addWidget(m_slot_group[i], 0, i * 2, 9, 1);
+
+    UpdateSlotTable(i);
   }
 
   layout->addWidget(m_select_button, 1, 1);
@@ -134,10 +136,10 @@ void GCMemcardManager::ConnectWidgets()
 void GCMemcardManager::SetActiveSlot(int slot)
 {
   for (int i = 0; i < SLOT_COUNT; i++)
-    m_slot_group[i]->setEnabled(i == slot);
+    m_slot_table[i]->setEnabled(i == slot);
 
-  m_select_button->setText(slot == 0 ? QStringLiteral("<") : QStringLiteral(">"));
-  m_copy_button->setText(slot == 0 ? QStringLiteral("Copy to B") : QStringLiteral("Copy to A"));
+  m_select_button->setText(slot == 0 ? tr("Switch to B") : tr("Switch to A"));
+  m_copy_button->setText(slot == 0 ? tr("Copy to B") : tr("Copy to A"));
 
   m_active_slot = slot;
 
@@ -147,7 +149,7 @@ void GCMemcardManager::SetActiveSlot(int slot)
 
 void GCMemcardManager::UpdateSlotTable(int slot)
 {
-  m_slot_active_icons[m_active_slot].clear();
+  m_slot_active_icons[slot].clear();
   m_slot_table[slot]->clear();
   m_slot_table[slot]->setColumnCount(6);
   m_slot_table[slot]->verticalHeader()->setDefaultSectionSize(ROW_HEIGHT);
@@ -190,10 +192,10 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     QString block_count = QStringLiteral("%1").arg(memcard->DEntry_FirstBlock(file_index));
 
     auto* banner = new QTableWidgetItem;
-    banner->setData(Qt::DecorationRole, GetBannerFromSaveFile(file_index));
+    banner->setData(Qt::DecorationRole, GetBannerFromSaveFile(file_index, slot));
     banner->setFlags(banner->flags() ^ Qt::ItemIsEditable);
 
-    auto frames = GetIconFromSaveFile(file_index);
+    auto frames = GetIconFromSaveFile(file_index, slot);
     auto* icon = new QTableWidgetItem;
     icon->setData(Qt::DecorationRole, frames[0]);
 
@@ -202,7 +204,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 
     const auto speed = ((d.AnimSpeed[0] & 1) << 2) + (d.AnimSpeed[1] & 1);
 
-    m_slot_active_icons[m_active_slot].push_back({speed, frames});
+    m_slot_active_icons[slot].push_back({speed, frames});
 
     table->setItem(i, 0, banner);
     table->setItem(i, 1, create_item(title));
@@ -413,24 +415,27 @@ void GCMemcardManager::DrawIcons()
   m_current_frame++;
   m_current_frame %= 15;
 
-  int row = 0;
   const auto column = 3;
-  for (auto& icon : m_slot_active_icons[m_active_slot])
+  for (int slot = 0; slot < SLOT_COUNT; slot++)
   {
-    int frame = (m_current_frame / 3 - icon.first) % icon.second.size();
+    int row = 0;
+    for (auto& icon : m_slot_active_icons[slot])
+    {
+      int frame = (m_current_frame / 3 - icon.first) % icon.second.size();
 
-    auto* item = new QTableWidgetItem;
-    item->setData(Qt::DecorationRole, icon.second[frame]);
-    item->setFlags(item->flags() ^ Qt::ItemIsEditable);
+      auto* item = new QTableWidgetItem;
+      item->setData(Qt::DecorationRole, icon.second[frame]);
+      item->setFlags(item->flags() ^ Qt::ItemIsEditable);
 
-    m_slot_table[m_active_slot]->setItem(row, column, item);
-    row++;
+      m_slot_table[slot]->setItem(row, column, item);
+      row++;
+    }
   }
 }
 
-QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index)
+QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
 {
-  auto& memcard = m_slot_memcard[m_active_slot];
+  auto& memcard = m_slot_memcard[slot];
 
   std::vector<u32> pxdata(BANNER_WIDTH * IMAGE_HEIGHT);
 
@@ -444,9 +449,9 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index)
   return QPixmap::fromImage(image);
 }
 
-std::vector<QPixmap> GCMemcardManager::GetIconFromSaveFile(int file_index)
+std::vector<QPixmap> GCMemcardManager::GetIconFromSaveFile(int file_index, int slot)
 {
-  auto& memcard = m_slot_memcard[m_active_slot];
+  auto& memcard = m_slot_memcard[slot];
 
   std::vector<u32> pxdata(BANNER_WIDTH * IMAGE_HEIGHT);
   std::vector<u8> anim_delay(ANIM_MAX_FRAMES);
