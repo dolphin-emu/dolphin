@@ -1406,13 +1406,13 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
 
     // Use dual-source color blending to perform dst alpha in a single pass
     if (use_dual_source)
-      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
+      out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
   }
   else
   {
     out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
     if (use_dual_source)
-      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
+      out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / 255.0);\n");
   }
 }
 
