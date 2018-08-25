@@ -186,6 +186,10 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
     vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
     vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
   }
+  else if(state.usedualsrc && state.dstalpha)
+  {
+    vk_state.blendEnable = VK_FALSE;
+  }
   else
   {
     static constexpr std::array<VkBlendFactor, 8> src_factors = {

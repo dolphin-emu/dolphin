@@ -605,7 +605,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       }
 	    else
 	    {
-		    out.Write("\tfloat4 initial_ocol0 = float4(0.5, 0.5, 0.5, 0.5);\n");
+		    out.Write("\tfloat4 initial_ocol0 = float4(0.1, 0.1, 0.1, 0.2);\n");
 	    }
       out.Write("\tfloat4 ocol0;\n");
       out.Write("\tfloat4 ocol1;\n");
