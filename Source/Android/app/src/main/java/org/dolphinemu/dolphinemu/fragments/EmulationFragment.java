@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -25,10 +24,9 @@ import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
 import java.io.File;
-
-import rx.functions.Action1;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
@@ -86,9 +84,9 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
 		String gamePath = getArguments().getString(KEY_GAMEPATH);
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-		boolean firstOpen = preferences.getBoolean(DolphinApplication.FIRST_OPEN, true);
+		boolean firstOpen = preferences.getBoolean(StartupHandler.NEW_SESSION, true);
 		SharedPreferences.Editor sPrefsEditor = preferences.edit();
-		sPrefsEditor.putBoolean(DolphinApplication.FIRST_OPEN, false);
+		sPrefsEditor.putBoolean(StartupHandler.NEW_SESSION, false);
 		sPrefsEditor.apply();
 		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath(), firstOpen);
 	}
