@@ -59,8 +59,8 @@
         android:stateListAnimator="@null"/>
 
     <Button
-        android:text="@string/launch_last_state"
-        android:id="@+id/button_launch_state"
+        android:text="@string/emulation_quickload"
+        android:id="@+id/button_quick_load"
         android:layout_width="match_parent"
         style="@style/Widget.AppCompat.Button.Colored"
         android:textAllCaps="false"

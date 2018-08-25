@@ -71,7 +71,7 @@ public final class GameDetailsDialog extends DialogFragment
 			SettingsActivity.launch(getActivity(), MenuTag.CONFIG, gameFile.getGameId());
 		});
 
-		Button buttonLaunch = contents.findViewById(R.id.button_launch_state);
+		Button buttonLaunch = contents.findViewById(R.id.button_quick_load);
 		buttonLaunch.setOnClickListener(view ->
 		{
 			this.dismiss();

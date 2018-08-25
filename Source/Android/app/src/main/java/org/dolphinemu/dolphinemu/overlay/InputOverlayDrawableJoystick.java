@@ -196,24 +196,13 @@ public final class InputOverlayDrawableJoystick
 		return true;
 	}
 
-
 	public float[] getAxisValues()
 	{
 		float[] joyaxises = {0f, 0f, 0f, 0f};
-		if(mJoystickType == NativeLibrary.ButtonType.STICK_C)
-		{
-			joyaxises[1] = -Math.min(axises[0], 1.0f);
-			joyaxises[0] = -Math.min(axises[0], 0.0f);
-			joyaxises[3] = -Math.min(axises[1], 1.0f);
-			joyaxises[2] = -Math.min(axises[1], 0.0f);
-		}
-		else
-		{
-			joyaxises[1] = Math.min(axises[0], 1.0f);
-			joyaxises[0] = Math.min(axises[0], 0.0f);
-			joyaxises[3] = Math.min(axises[1], 1.0f);
-			joyaxises[2] = Math.min(axises[1], 0.0f);
-		}
+		joyaxises[1] = Math.min(axises[0], 1.0f);
+		joyaxises[0] = Math.min(axises[0], 0.0f);
+		joyaxises[3] = Math.min(axises[1], 1.0f);
+		joyaxises[2] = Math.min(axises[1], 0.0f);
 		return joyaxises;
 	}
 

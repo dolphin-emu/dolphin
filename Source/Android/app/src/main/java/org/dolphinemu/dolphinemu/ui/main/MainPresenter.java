@@ -4,13 +4,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+
+import java.io.File;
 
 public final class MainPresenter
 {
@@ -79,6 +85,10 @@ public final class MainPresenter
 				mView.launchSettingsActivity(MenuTag.WIIMOTE);
 				return true;
 
+			case R.id.menu_clear_data:
+				clearGameData(context);
+				break;
+
 			case R.id.menu_refresh:
 				GameFileCacheService.startRescan(context);
 				return true;
@@ -105,5 +115,49 @@ public final class MainPresenter
 	public void refreshFragmentScreenshot(int resultCode)
 	{
 		mView.refreshFragmentScreenshot(resultCode);
+	}
+
+	private void clearGameData(Context context)
+	{
+		int count = 0;
+		String cachePath = DirectoryInitializationService.getUserDirectory() + "/Cache/";
+		File dir = new File(cachePath);
+		if(dir.exists())
+		{
+			for(File f : dir.listFiles())
+			{
+				if(f.getName().endsWith(".uidcache"))
+				{
+					if(f.delete())
+					{
+						count += 1;
+					}
+				}
+			}
+		}
+
+		String shadersPath = cachePath + "/Shaders/";
+		dir = new File(shadersPath);
+		if(dir.exists())
+		{
+			for(File f : dir.listFiles())
+			{
+				if(f.getName().endsWith(".cache"))
+				{
+					if(f.delete())
+					{
+						count += 1;
+					}
+				}
+			}
+		}
+
+		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+		SharedPreferences.Editor editor = pref.edit();
+		editor.putBoolean("OverlayInit", false);
+		editor.putInt("wiiController", 2);
+		editor.apply();
+
+		Toast.makeText(context, String.format("Delete %d files", count), Toast.LENGTH_SHORT).show();
 	}
 }

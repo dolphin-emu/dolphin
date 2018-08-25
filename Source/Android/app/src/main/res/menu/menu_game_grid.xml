@@ -27,6 +27,12 @@
         app:showAsAction="never"/>
 
     <item
+        android:id="@+id/menu_clear_data"
+        android:title="@string/clear_game_data"
+        android:icon="@drawable/ic_refresh"
+        app:showAsAction="never"/>
+
+    <item
         android:id="@+id/menu_refresh"
         android:title="@string/grid_menu_refresh"
         android:icon="@drawable/ic_refresh"
