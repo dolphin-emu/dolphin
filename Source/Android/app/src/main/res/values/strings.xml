@@ -138,9 +138,9 @@
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
 
     <string name="sync_on_skip_idle">Sync On Skip Idle</string>
-    <string name="sync_on_skip_idle_description">We are waiting until the FIFO finish and while we process only the events required by the FIFO.</string>
+    <string name="sync_on_skip_idle_description">Wait to process events until the GPU thread finished.</string>
     <string name="sync_gpu_overclock">Sync GPU Overclock</string>
-    <string name="sync_gpu_overclock_description">Set times to run GPU commands on CPU thread.</string>
+    <string name="sync_gpu_overclock_description">Set time threshold to sync with GPU thread.</string>
     <string name="mmu_emulation">MMU Emulation</string>
     <string name="mmu_emulation_description">Stop MMU emulation is great for performance, but game may get garbage data or even crash!</string>
     <string name="fast_disc_speed">Fast Disc Speed</string>
