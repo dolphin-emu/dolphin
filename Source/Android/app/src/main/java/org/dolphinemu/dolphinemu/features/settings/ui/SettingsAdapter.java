@@ -292,7 +292,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         else if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
         {
           putExtensionSetting(which, Character.getNumericValue(
-                  scSetting.getSection().charAt(scSetting.getSection().length() - 1)));
+                  scSetting.getSection().charAt(scSetting.getSection().length() - 1)), false);
+        }
+        else if (scSetting.getKey().contains(SettingsFile.KEY_WIIMOTE_EXTENSION) &&
+                scSetting.getSection().equals(Settings.SECTION_CONTROLS))
+        {
+          putExtensionSetting(which, Character
+                          .getNumericValue(scSetting.getKey().charAt(scSetting.getKey().length() - 1)),
+                  true);
         }
       }
 
@@ -443,11 +450,22 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mView.putSetting(gfxBackend);
   }
 
-  private void putExtensionSetting(int which, int wiimoteNumber)
+  private void putExtensionSetting(int which, int wiimoteNumber, boolean isGame)
   {
-    StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
-            Settings.SECTION_WIIMOTE + wiimoteNumber,
-            mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-    mView.putSetting(extension);
+    if (!isGame)
+    {
+      StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
+              Settings.SECTION_WIIMOTE + wiimoteNumber,
+              mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
+      mView.putSetting(extension);
+    }
+    else
+    {
+      StringSetting extension =
+              new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + wiimoteNumber,
+                      Settings.SECTION_CONTROLS, mContext.getResources()
+                      .getStringArray(R.array.wiimoteExtensionsEntries)[which]);
+      mView.putSetting(extension);
+    }
   }
 }

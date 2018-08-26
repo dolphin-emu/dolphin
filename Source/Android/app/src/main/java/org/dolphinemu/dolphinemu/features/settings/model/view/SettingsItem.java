@@ -1,7 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
+import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
@@ -39,6 +39,7 @@ public abstract class SettingsItem
    * @param nameId        Resource ID for a text string to be displayed as this setting's name.
    * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
    */
+
   public SettingsItem(String key, String section, Setting setting, int nameId, int descriptionId)
   {
     mKey = key;

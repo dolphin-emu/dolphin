@@ -16,6 +16,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -139,8 +140,14 @@ public final class DirectoryInitialization
     //
     // TODO: Redo the Android controller system so that we don't have to extract these INIs.
     String configDirectory = NativeLibrary.GetUserDirectory() + File.separator + "Config";
+    String profileDirectory =
+            NativeLibrary.GetUserDirectory() + File.separator + "Config/Profiles/Wiimote/";
+    createWiimoteProfileDirectory(profileDirectory);
+
     copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true, context);
     copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false, context);
+    copyAsset("WiimoteProfile.ini", new File(profileDirectory, "WiimoteProfile.ini"), true,
+            context);
   }
 
   private static void deleteDirectoryRecursively(File file)
@@ -247,6 +254,20 @@ public final class DirectoryInitialization
     }
   }
 
+  public static void copyFile(String from, String to)
+  {
+    try
+    {
+      InputStream in = new FileInputStream(from);
+      OutputStream out = new FileOutputStream(to);
+      copyFile(in, out);
+    }
+    catch (IOException e)
+    {
+
+    }
+  }
+
   private static void copyFile(InputStream in, OutputStream out) throws IOException
   {
     byte[] buffer = new byte[1024];
@@ -255,6 +276,15 @@ public final class DirectoryInitialization
     while ((read = in.read(buffer)) != -1)
     {
       out.write(buffer, 0, read);
+    }
+  }
+
+  private static void createWiimoteProfileDirectory(String directory)
+  {
+    File wiiPath = new File(directory);
+    if (!wiiPath.isDirectory())
+    {
+      wiiPath.mkdirs();
     }
   }
 

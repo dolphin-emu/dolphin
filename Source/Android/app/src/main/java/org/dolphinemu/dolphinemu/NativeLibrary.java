@@ -248,6 +248,9 @@ public final class NativeLibrary
 
   public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
 
+  public static native void SetProfileSetting(String profile, String Section, String Key,
+          String Value);
+
   public static native void InitGameIni(String gameID);
 
   /**
