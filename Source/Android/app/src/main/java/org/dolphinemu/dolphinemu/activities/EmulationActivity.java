@@ -78,6 +78,7 @@ public final class EmulationActivity extends AppCompatActivity
   private String mSelectedTitle;
   private int mPlatform;
   private String mPath;
+  private String gameId;
   private boolean backPressedOnce = false;
 
   public static final String EXTRA_SELECTED_GAME = "SelectedGame";
@@ -85,6 +86,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final String EXTRA_PLATFORM = "Platform";
   public static final String EXTRA_SCREEN_PATH = "ScreenPath";
   public static final String EXTRA_GRID_POSITION = "GridPosition";
+  public static final String EXTRA_GAME_ID = "GameId";
 
   @Retention(SOURCE)
   @IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -181,6 +183,7 @@ public final class EmulationActivity extends AppCompatActivity
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
     launcher.putExtra(EXTRA_SCREEN_PATH, gameFile.getScreenshotPath());
     launcher.putExtra(EXTRA_GRID_POSITION, position);
+    launcher.putExtra(EXTRA_GAME_ID, gameFile.getGameId());
     Bundle options = new Bundle();
 
     // Will be null if launched from homescreen
@@ -209,6 +212,8 @@ public final class EmulationActivity extends AppCompatActivity
       Intent gameToEmulate = getIntent();
       mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
+      gameId = gameToEmulate.getStringExtra(EXTRA_GAME_ID);
+      gameId = gameToEmulate.getStringExtra(EXTRA_GAME_ID);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
       mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
@@ -266,7 +271,7 @@ public final class EmulationActivity extends AppCompatActivity
             .findFragmentById(R.id.frame_emulation_fragment);
     if (mEmulationFragment == null)
     {
-      mEmulationFragment = EmulationFragment.newInstance(mPath);
+      mEmulationFragment = EmulationFragment.newInstance(mPath, gameId);
       getSupportFragmentManager().beginTransaction()
               .add(R.id.frame_emulation_fragment, mEmulationFragment)
               .commit();

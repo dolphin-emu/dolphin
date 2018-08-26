@@ -42,7 +42,8 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
     mItem = (InputBindingSetting) item;
 
     mTextSettingName.setText(item.getNameId());
-    mTextSettingDescription.setText(sharedPreferences.getString(mItem.getKey(), ""));
+    mTextSettingDescription
+            .setText(sharedPreferences.getString(mItem.getKey() + item.getGameId(), ""));
   }
 
   @Override

@@ -26,6 +26,8 @@ public class Settings
   public static final String SECTION_WIIMOTE = "Wiimote";
 
   public static final String SECTION_BINDINGS = "Android";
+  public static final String SECTION_CONTROLS = "Controls";
+  public static final String SECTION_PROFILE = "Profile";
 
   public static final String SECTION_ANALYTICS = "Analytics";
 
@@ -134,6 +136,11 @@ public class Settings
     mergeSections(SettingsFile.readCustomGameSettings(gameId, view));
   }
 
+  public void loadWiimoteProfile(String gameId, String padId)
+  {
+    mergeSections(SettingsFile.readWiimoteProfile(gameId, padId));
+  }
+
   private void mergeSections(HashMap<String, SettingSection> updatedSections)
   {
     for (Map.Entry<String, SettingSection> entry : updatedSections.entrySet())
@@ -182,6 +189,11 @@ public class Settings
       view.showToastMessage("Saved settings for " + gameId);
       SettingsFile.saveCustomGameSettings(gameId, sections);
     }
+
+  }
+
+  public void saveCustomWiimoteSettings(SettingsActivityView view)
+  {
 
   }
 }

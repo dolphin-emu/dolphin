@@ -267,6 +267,9 @@ public final class NativeLibrary
 
   public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
 
+  public static native void SetProfileSetting(String profile, String Section, String Key,
+          String Value);
+
   public static native void InitGameIni(String gameID);
 
   /**
@@ -353,12 +356,13 @@ public final class NativeLibrary
   /**
    * Begins emulation.
    */
-  public static native void Run(String path, boolean firstOpen);
+  public static native void Run(String path, String gameId, boolean firstOpen);
 
   /**
    * Begins emulation from the specified savestate.
    */
-  public static native void Run(String path, String savestatePath, boolean deleteSavestate);
+  public static native void Run(String path, String gameId, String savestatePath,
+          boolean deleteSavestate);
 
   public static native void ChangeDisc(String path);
 

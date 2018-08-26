@@ -10,6 +10,12 @@ public final class InputBindingSetting extends SettingsItem
     super(key, section, setting, titleId, 0);
   }
 
+  public InputBindingSetting(String key, String section, int titleId, Setting setting,
+          String gameId)
+  {
+    super(key, section, setting, titleId, 0, gameId);
+  }
+
   public String getValue()
   {
     if (getSetting() == null)
