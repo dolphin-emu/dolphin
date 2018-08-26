@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QProgressDialog>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QSpinBox>
 #include <QSplitter>
 #include <QTableWidget>
@@ -99,6 +100,7 @@ void NetPlayDialog::CreateMainLayout()
   m_record_input_box = new QCheckBox(tr("Record inputs"));
   m_reduce_polling_rate_box = new QCheckBox(tr("Reduce Polling Rate"));
   m_strict_settings_sync_box = new QCheckBox(tr("Strict Settings Sync"));
+  m_host_input_authority_box = new QCheckBox(tr("Host Input Authority"));
   m_buffer_label = new QLabel(tr("Buffer:"));
   m_quit_button = new QPushButton(tr("Quit"));
   m_splitter = new QSplitter(Qt::Horizontal);
@@ -142,6 +144,14 @@ void NetPlayDialog::CreateMainLayout()
       tr("This will sync additional graphics settings, and force everyone to the same internal "
          "resolution.\nMay prevent desync in some games that use EFB reads. Please ensure everyone "
          "uses the same video backend."));
+  m_host_input_authority_box->setToolTip(
+      tr("This gives the host control over when inputs are sent to the game, effectively "
+         "decoupling players from each other in terms of buffering.\nThis allows players to have "
+         "latency based solely on their connection to the host, rather than everyone's connection. "
+         "Buffer works differently\nin this mode. The host always has no latency, and the buffer "
+         "setting serves to prevent stutter, speeding up when the amount of buffered\ninputs "
+         "exceeds the set limit. Input delay is instead based on ping to the host. This results in "
+         "smoother gameplay on unstable connections."));
 
   m_main_layout->addWidget(m_game_button, 0, 0);
   m_main_layout->addWidget(m_md5_button, 0, 1);
@@ -163,6 +173,7 @@ void NetPlayDialog::CreateMainLayout()
   options_boxes->addWidget(m_record_input_box);
   options_boxes->addWidget(m_reduce_polling_rate_box);
   options_boxes->addWidget(m_strict_settings_sync_box);
+  options_boxes->addWidget(m_host_input_authority_box);
 
   options_widget->addLayout(options_boxes, 0, 3, Qt::AlignTop);
   options_widget->setColumnStretch(3, 1000);
@@ -261,10 +272,19 @@ void NetPlayDialog::ConnectWidgets()
             if (value == m_buffer_size)
               return;
 
+            auto client = Settings::Instance().GetNetPlayClient();
             auto server = Settings::Instance().GetNetPlayServer();
             if (server)
               server->AdjustPadBufferSize(value);
+            else
+              client->AdjustPadBufferSize(value);
           });
+
+  connect(m_host_input_authority_box, &QCheckBox::toggled, [this](bool checked) {
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server)
+      server->SetHostInputAuthority(checked);
+  });
 
   connect(m_start_button, &QPushButton::clicked, this, &NetPlayDialog::OnStart);
   connect(m_quit_button, &QPushButton::clicked, this, &NetPlayDialog::reject);
@@ -447,8 +467,7 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_sync_save_data_box->setHidden(!is_hosting);
   m_reduce_polling_rate_box->setHidden(!is_hosting);
   m_strict_settings_sync_box->setHidden(!is_hosting);
-  m_buffer_size_box->setHidden(!is_hosting);
-  m_buffer_label->setHidden(!is_hosting);
+  m_host_input_authority_box->setHidden(!is_hosting);
   m_kick_button->setHidden(!is_hosting);
   m_assign_ports_button->setHidden(!is_hosting);
   m_md5_button->setHidden(!is_hosting);
@@ -457,6 +476,8 @@ void NetPlayDialog::show(std::string nickname, bool use_traversal)
   m_hostcode_action_button->setHidden(!is_hosting);
   m_game_button->setEnabled(is_hosting);
   m_kick_button->setEnabled(false);
+
+  m_buffer_label->setText(is_hosting ? tr("Buffer:") : tr("Max Buffer:"));
 
   QDialog::show();
   UpdateGUI();
@@ -720,6 +741,7 @@ void NetPlayDialog::SetOptionsEnabled(bool enabled)
     m_assign_ports_button->setEnabled(enabled);
     m_reduce_polling_rate_box->setEnabled(enabled);
     m_strict_settings_sync_box->setEnabled(enabled);
+    m_host_input_authority_box->setEnabled(enabled);
   }
 
   m_record_input_box->setEnabled(enabled);
@@ -744,10 +766,49 @@ void NetPlayDialog::OnMsgStopGame()
 
 void NetPlayDialog::OnPadBufferChanged(u32 buffer)
 {
-  QueueOnObject(this, [this, buffer] { m_buffer_size_box->setValue(buffer); });
-  DisplayMessage(tr("Buffer size changed to %1").arg(buffer), "");
+  QueueOnObject(this, [this, buffer] {
+    const QSignalBlocker blocker(m_buffer_size_box);
+    m_buffer_size_box->setValue(buffer);
+  });
+  DisplayMessage(m_host_input_authority && !IsHosting() ?
+                     tr("Max buffer size changed to %1").arg(buffer) :
+                     tr("Buffer size changed to %1").arg(buffer),
+                 "");
 
   m_buffer_size = static_cast<int>(buffer);
+}
+
+void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
+{
+  QueueOnObject(this, [this, enabled] {
+    const bool is_hosting = IsHosting();
+    const bool enable_buffer = is_hosting != enabled;
+
+    if (is_hosting)
+    {
+      m_buffer_size_box->setEnabled(enable_buffer);
+      m_buffer_label->setEnabled(enable_buffer);
+      m_buffer_size_box->setHidden(false);
+      m_buffer_label->setHidden(false);
+
+      QSignalBlocker blocker(m_host_input_authority_box);
+      m_host_input_authority_box->setChecked(enabled);
+    }
+    else
+    {
+      m_buffer_size_box->setEnabled(true);
+      m_buffer_label->setEnabled(true);
+      m_buffer_size_box->setHidden(!enable_buffer);
+      m_buffer_label->setHidden(!enable_buffer);
+
+      if (enabled)
+        m_buffer_size_box->setValue(1);
+    }
+  });
+  DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
+                 "");
+
+  m_host_input_authority = enabled;
 }
 
 void NetPlayDialog::OnDesync(u32 frame, const std::string& player)

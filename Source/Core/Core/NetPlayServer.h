@@ -18,6 +18,7 @@
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
+#include "InputCommon/GCPadStatus.h"
 
 namespace NetPlay
 {
@@ -51,6 +52,7 @@ public:
   void SetWiimoteMapping(const PadMappingArray& mappings);
 
   void AdjustPadBufferSize(unsigned int size);
+  void SetHostInputAuthority(bool enable);
 
   void KickPlayer(PlayerId player);
 
@@ -79,11 +81,13 @@ private:
     Common::QoSSession qos_session;
 
     bool operator==(const Client& other) const { return this == &other; }
+    bool IsHost() const { return pid == 1; }
   };
 
   bool SyncSaveData();
   bool CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet);
   bool CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet);
+  void SendFirstReceivedToHost(PadMapping map, bool state);
 
   u64 GetInitialNetPlayRTC() const;
 
@@ -113,11 +117,15 @@ private:
   PadMappingArray m_wiimote_map;
   unsigned int m_save_data_synced_players = 0;
   bool m_start_pending = false;
+  bool m_host_input_authority = false;
 
   std::map<PlayerId, Client> m_players;
 
   std::unordered_map<u32, std::vector<std::pair<PlayerId, u64>>> m_timebase_by_frame;
   bool m_desync_detected;
+
+  std::array<GCPadStatus, 4> m_last_pad_status{};
+  std::array<bool, 4> m_first_pad_status_received{};
 
   struct
   {

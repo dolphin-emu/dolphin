@@ -60,6 +60,7 @@ namespace NetPlay
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
+static bool s_si_poll_batching;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -407,6 +408,22 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_PAD_FIRST_RECEIVED:
+  {
+    PadMapping map;
+    packet >> map;
+    packet >> m_first_pad_status_received[map];
+    m_first_pad_status_received_event.Set();
+  }
+  break;
+
+  case NP_MSG_HOST_INPUT_AUTHORITY:
+  {
+    packet >> m_host_input_authority;
+    m_dialog->OnHostInputAuthorityChanged(m_host_input_authority);
+  }
+  break;
+
   case NP_MSG_CHANGE_GAME:
   {
     {
@@ -532,7 +549,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       packet >> m_net_settings.m_SyncSaveData;
       packet >> m_net_settings.m_SaveDataRegion;
-      m_net_settings.m_IsHosting = m_dialog->IsHosting();
+
+      m_net_settings.m_IsHosting = m_local_player->IsHost();
+      m_net_settings.m_HostInputAuthority = m_host_input_authority;
     }
 
     m_dialog->OnMsgStartGame();
@@ -636,7 +655,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     case SYNC_SAVE_DATA_RAW:
     {
-      if (m_dialog->IsHosting())
+      if (m_local_player->IsHost())
         return 0;
 
       bool is_slot_a;
@@ -660,7 +679,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     case SYNC_SAVE_DATA_GCI:
     {
-      if (m_dialog->IsHosting())
+      if (m_local_player->IsHost())
         return 0;
 
       bool is_slot_a;
@@ -696,7 +715,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     case SYNC_SAVE_DATA_WII:
     {
-      if (m_dialog->IsHosting())
+      if (m_local_player->IsHost())
         return 0;
 
       const auto game = m_dialog->FindGameFile(m_selected_game);
@@ -1118,6 +1137,8 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   ClearBuffers();
 
+  m_first_pad_status_received.fill(false);
+
   if (m_dialog->IsRecording())
   {
     if (Movie::IsReadOnly())
@@ -1366,7 +1387,7 @@ void NetPlayClient::OnConnectFailed(u8 reason)
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
+bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatus* pad_status)
 {
   // The interface for this is extremely silly.
   //
@@ -1385,11 +1406,17 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
   // The slot number is the "local" pad number, and what player
   // it actually means is the "in-game" pad number.
 
-  // When the 1st in-game pad is polled, we assume the others will
-  // will be polled as well. To reduce latency, we poll all local
-  // controllers at once and then send the status to the other
+  // When the 1st in-game pad is polled and batching is set, the
+  // others will be polled as well. To reduce latency, we poll all
+  // local controllers at once and then send the status to the other
   // clients.
-  if (IsFirstInGamePad(pad_nb))
+  //
+  // Batching is enabled when polled from VI. If batching is not
+  // enabled, the poll is probably from MMIO, which can poll any
+  // specific pad arbitrarily. In this case, we poll just that pad
+  // and send it.
+
+  if (IsFirstInGamePad(pad_nb) && batching)
   {
     sf::Packet packet;
     packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
@@ -1398,34 +1425,44 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
     const int num_local_pads = NumLocalPads();
     for (int local_pad = 0; local_pad < num_local_pads; local_pad++)
     {
-      switch (SConfig::GetInstance().m_SIDevice[local_pad])
-      {
-      case SerialInterface::SIDEVICE_WIIU_ADAPTER:
-        *pad_status = GCAdapter::Input(local_pad);
-        break;
-      case SerialInterface::SIDEVICE_GC_CONTROLLER:
-      default:
-        *pad_status = Pad::GetStatus(local_pad);
-        break;
-      }
-
-      int ingame_pad = LocalPadToInGamePad(local_pad);
-
-      // adjust the buffer either up or down
-      // inserting multiple padstates or dropping states
-      while (m_pad_buffer[ingame_pad].Size() <= m_target_buffer_size)
-      {
-        // add to buffer
-        m_pad_buffer[ingame_pad].Push(*pad_status);
-
-        // add to packet
-        AddPadStateToPacket(ingame_pad, *pad_status, packet);
-        send_packet = true;
-      }
+      send_packet = PollLocalPad(local_pad, packet) || send_packet;
     }
 
     if (send_packet)
       SendAsync(std::move(packet));
+
+    if (m_host_input_authority)
+      SendPadHostPoll(-1);
+  }
+
+  if (!batching)
+  {
+    int local_pad = InGamePadToLocalPad(pad_nb);
+    if (local_pad < 4)
+    {
+      sf::Packet packet;
+      packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
+      if (PollLocalPad(local_pad, packet))
+        SendAsync(std::move(packet));
+    }
+
+    if (m_host_input_authority)
+      SendPadHostPoll(pad_nb);
+  }
+
+  if (m_host_input_authority && !m_local_player->IsHost())
+  {
+    const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
+    if (!buffer_over_target)
+      m_buffer_under_target_last = std::chrono::steady_clock::now();
+
+    std::chrono::duration<double> time_diff =
+        std::chrono::steady_clock::now() - m_buffer_under_target_last;
+    if (time_diff.count() >= 1.0 || !buffer_over_target)
+    {
+      // run fast if the buffer is overfilled, otherwise run normal speed
+      SConfig::GetInstance().m_EmulationSpeed = buffer_over_target ? 0.0f : 1.0f;
+    }
   }
 
   // Now, we either use the data pushed earlier, or wait for the
@@ -1534,6 +1571,86 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
   return true;
 }
 
+bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
+{
+  GCPadStatus pad_status;
+
+  switch (SConfig::GetInstance().m_SIDevice[local_pad])
+  {
+  case SerialInterface::SIDEVICE_WIIU_ADAPTER:
+    pad_status = GCAdapter::Input(local_pad);
+    break;
+  case SerialInterface::SIDEVICE_GC_CONTROLLER:
+  default:
+    pad_status = Pad::GetStatus(local_pad);
+    break;
+  }
+
+  const int ingame_pad = LocalPadToInGamePad(local_pad);
+  bool data_added = false;
+
+  if (m_host_input_authority)
+  {
+    // add to packet
+    AddPadStateToPacket(ingame_pad, pad_status, packet);
+    data_added = true;
+  }
+  else
+  {
+    // adjust the buffer either up or down
+    // inserting multiple padstates or dropping states
+    while (m_pad_buffer[ingame_pad].Size() <= m_target_buffer_size)
+    {
+      // add to buffer
+      m_pad_buffer[ingame_pad].Push(pad_status);
+
+      // add to packet
+      AddPadStateToPacket(ingame_pad, pad_status, packet);
+      data_added = true;
+    }
+  }
+
+  return data_added;
+}
+
+void NetPlayClient::SendPadHostPoll(const PadMapping pad_num)
+{
+  if (!m_local_player->IsHost())
+    return;
+
+  if (pad_num < 0)
+  {
+    for (size_t i = 0; i < m_pad_map.size(); i++)
+    {
+      if (m_pad_map[i] <= 0)
+        continue;
+
+      while (!m_first_pad_status_received[i])
+      {
+        if (!m_is_running.IsSet())
+          return;
+
+        m_first_pad_status_received_event.Wait();
+      }
+    }
+  }
+  else if (m_pad_map[pad_num] > 0)
+  {
+    while (!m_first_pad_status_received[pad_num])
+    {
+      if (!m_is_running.IsSet())
+        return;
+
+      m_first_pad_status_received_event.Wait();
+    }
+  }
+
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PAD_HOST_POLL);
+  packet << pad_num;
+  SendAsync(std::move(packet));
+}
+
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
 bool NetPlayClient::StopGame()
 {
@@ -1542,6 +1659,7 @@ bool NetPlayClient::StopGame()
   // stop waiting for input
   m_gc_pad_event.Set();
   m_wii_pad_event.Set();
+  m_first_pad_status_received_event.Set();
 
   NetPlay_Disable();
 
@@ -1564,6 +1682,7 @@ void NetPlayClient::Stop()
   // stop waiting for input
   m_gc_pad_event.Set();
   m_wii_pad_event.Set();
+  m_first_pad_status_received_event.Set();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
@@ -1719,6 +1838,12 @@ const PadMappingArray& NetPlayClient::GetWiimoteMapping() const
   return m_wiimote_map;
 }
 
+void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
+{
+  m_target_buffer_size = size;
+  m_dialog->OnPadBufferChanged(size);
+}
+
 bool IsNetPlayRunning()
 {
   return netplay_client != nullptr;
@@ -1750,6 +1875,11 @@ void ClearWiiSyncFS()
   s_wii_sync_fs.reset();
 }
 
+void SetSIPollBatching(bool state)
+{
+  s_si_poll_batching = state;
+}
+
 void NetPlay_Enable(NetPlayClient* const np)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
@@ -1767,12 +1897,12 @@ void NetPlay_Disable()
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
+bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int pad_num, GCPadStatus* status)
 {
   std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
   if (NetPlay::netplay_client)
-    return NetPlay::netplay_client->GetNetPads(numPAD, PadStatus);
+    return NetPlay::netplay_client->GetNetPads(pad_num, NetPlay::s_si_poll_batching, status);
 
   return false;
 }
