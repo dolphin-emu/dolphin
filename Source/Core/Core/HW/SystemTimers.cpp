@@ -200,9 +200,9 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
   // Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
   Fifo::GpuMaySleep();
 
-  u32 time = Common::Timer::GetTimeMs();
+  u64 time = Common::Timer::GetTimeUs();
 
-  int diff = (u32)last_time - time;
+  s64 diff = last_time - time;
   const SConfig& config = SConfig::GetInstance();
   bool frame_limiter = config.m_EmulationSpeed > 0.0f && !Core::GetIsThrottlerTempDisabled();
   u32 next_event = GetTicksPerSecond() / 1000;
@@ -210,17 +210,17 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
   {
     if (config.m_EmulationSpeed != 1.0f)
       next_event = u32(next_event * config.m_EmulationSpeed);
-    const int max_fallback = config.iTimingVariance;
+    const s64 max_fallback = config.iTimingVariance * 1000;
     if (abs(diff) > max_fallback)
     {
       DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff < 0 ? "slow" : "fast",
                 abs(diff) - max_fallback);
       last_time = time - max_fallback;
     }
-    else if (diff > 0)
-      Common::SleepCurrentThread(diff);
+    else if ((diff / 1000) > 0)
+      Common::SleepCurrentThread(diff / 1000);
   }
-  CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1);
+  CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1000);
 }
 
 // split from Init to break a circular dependency between VideoInterface::Init and
@@ -282,7 +282,7 @@ void Init()
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
   CoreTiming::ScheduleEvent(0, et_DSP);
   CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
-  CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
+  CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeUs());
 
   CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
