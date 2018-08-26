@@ -100,7 +100,9 @@ public final class GameRowPresenter extends Presenter
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setTitle("Game Settings")
-                .setItems(R.array.gameSettingsMenus, new DialogInterface.OnClickListener()
+                .setItems(holder.gameFile.getPlatform() == Platform.GAMECUBE.toInt() ?
+                        R.array.gameSettingsMenusGC :
+                        R.array.gameSettingsMenusWii, new DialogInterface.OnClickListener()
                 {
                   public void onClick(DialogInterface dialog, int which)
                   {
@@ -113,43 +115,55 @@ public final class GameRowPresenter extends Presenter
                         SettingsActivity.launch(activity, MenuTag.GRAPHICS, gameId);
                         break;
                       case 2:
-                        String path = DirectoryInitializationService.getUserDirectory() +
-                                "/GameSettings/" + gameId + ".ini";
-                        File gameSettingsFile = new File(path);
-                        if (gameSettingsFile.exists())
-                        {
-                          if (gameSettingsFile.delete())
-                          {
-                            Toast.makeText(view.getContext(), "Cleared settings for " + gameId,
-                                    Toast.LENGTH_SHORT).show();
-                          }
-                          else
-                          {
-                            Toast.makeText(view.getContext(),
-                                    "Unable to clear settings for " + gameId, Toast.LENGTH_SHORT)
-                                    .show();
-                          }
-                        }
+                        SettingsActivity.launch(activity, MenuTag.GCPAD_TYPE, gameId);
+                        break;
+                      case 3:
+                        // Clear option for GC, Wii controls for else
+                        if (holder.gameFile.getPlatform() == Platform.GAMECUBE.toInt())
+                          clearGameSettings(gameId, view);
                         else
-                        {
-                          Toast.makeText(view.getContext(), "No game settings to delete",
-                                  Toast.LENGTH_SHORT).show();
-                        }
+                          SettingsActivity.launch(activity, MenuTag.WIIMOTE, gameId);
+                        break;
+                      case 4:
+                        clearGameSettings(gameId, view);
                         break;
                     }
                   }
                 });
-
         builder.show();
         return true;
       }
     });
   }
 
-
   @Override
   public void onUnbindViewHolder(ViewHolder viewHolder)
   {
     // no op
+  }
+
+  private static void clearGameSettings(String gameId, View view)
+  {
+    String path =
+            DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
+    File gameSettingsFile = new File(path);
+    if (gameSettingsFile.exists())
+    {
+      if (gameSettingsFile.delete())
+      {
+        Toast.makeText(view.getContext(), "Cleared settings for " + gameId, Toast.LENGTH_SHORT)
+                .show();
+      }
+      else
+      {
+        Toast.makeText(view.getContext(), "Unable to clear settings for " + gameId,
+                Toast.LENGTH_SHORT).show();
+      }
+    }
+    else
+    {
+      Toast.makeText(view.getContext(), "No game settings to delete", Toast.LENGTH_SHORT).show();
+    }
+
   }
 }

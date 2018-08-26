@@ -15,6 +15,7 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <UICommon/GameFile.h>
 
 #include "Common/AndroidAnalytics.h"
 #include "Common/CPUDetect.h"
@@ -259,11 +260,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
                                                                                  jboolean enable);
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv* env, jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jboolean jfirstOpen);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jstring jFile, jstring jGameId, jboolean jfirstOpen);
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate);
+Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jstring jFile, jstring jGameId, jstring jSavestate, jboolean jDeleteSavestate);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv* env,
                                                                                    jobject obj,
                                                                                    jobject surf);
@@ -389,6 +390,29 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserSetti
   }
 
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + gameid + ".ini");
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfileSetting(
+    JNIEnv* env, jobject obj, jstring jProfile, jstring jSection, jstring jKey, jstring jValue)
+{
+  IniFile ini;
+  std::string profile = GetJString(env, jProfile);
+  std::string section = GetJString(env, jSection);
+  std::string key = GetJString(env, jKey);
+  std::string val = GetJString(env, jValue);
+
+  ini.Load(File::GetUserPath(D_CONFIG_IDX) + "Profiles/Wiimote/" + profile + ".ini");
+
+  if (val != "-1")
+  {
+    ini.GetOrCreateSection(section)->Set(key, val);
+  }
+  else
+  {
+    ini.GetOrCreateSection(section)->Delete(key);
+  }
+
+  ini.Save(File::GetUserPath(D_CONFIG_IDX)  + "Profiles/Wiimote/" + profile + ".ini");
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig(
@@ -544,13 +568,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
   WiimoteReal::Refresh();
 }
 
-static void Run(const std::string& path, bool first_open,
-                std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
+static void Run(const std::string& path, std::string gameId, bool first_open, std::optional<std::string> savestate_path = {},
+                bool delete_savestate = false)
 {
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", path.c_str());
 
+  ButtonManager::Init(gameId);
   // Install our callbacks
-  OSD::AddCallback(OSD::CallbackType::Initialization, ButtonManager::Init);
   OSD::AddCallback(OSD::CallbackType::Shutdown, ButtonManager::Shutdown);
 
   RegisterMsgAlertHandler(&MsgAlert);
@@ -602,17 +626,17 @@ static void Run(const std::string& path, bool first_open,
   }
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jboolean jfirstOpen)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jstring jFile, jstring jGameId, jboolean jfirstOpen)
 {
-  Run(GetJString(env, jFile), jfirstOpen);
+  Run(GetJString(env, jFile), GetJString(env, jGameId), jfirstOpen);
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Z(
-    JNIEnv* env, jobject obj, jstring jFile, jstring jSavestate, jboolean jDeleteSavestate)
+Java_org_dolphinemu_dolphinemu_NativeLibrary_Run__Ljava_lang_String_2Ljava_lang_String_2Ljava_lang_String_2Z(
+    JNIEnv* env, jobject obj, jstring jFile, jstring jGameId, jstring jSavestate, jboolean jDeleteSavestate)
 {
-  Run(GetJString(env, jFile), false, GetJString(env, jSavestate), jDeleteSavestate);
+  Run(GetJString(env, jFile), GetJString(env, jGameId), false, GetJString(env, jSavestate), jDeleteSavestate);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env,
