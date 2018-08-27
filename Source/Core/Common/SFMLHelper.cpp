@@ -26,13 +26,8 @@ u32 PacketReadU32(sf::Packet& packet)
 
 u64 PacketReadU64(sf::Packet& packet)
 {
-  u32 low, high;
-  packet >> low >> high;
-  return low | (static_cast<u64>(high) << 32);
-}
-
-void PacketWriteU64(sf::Packet& packet, const u64 value)
-{
-  packet << static_cast<u32>(value) << static_cast<u32>(value >> 32);
+  sf::Uint64 value;
+  packet >> value;
+  return value;
 }
 }  // namespace Common
