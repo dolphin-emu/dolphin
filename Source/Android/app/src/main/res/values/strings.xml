@@ -219,6 +219,7 @@
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
     <string name="shader_compilation_mode_description">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
+    <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>

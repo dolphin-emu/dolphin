@@ -17,7 +17,9 @@ public final class StartupHandler
 		String start_file = "";
 		Bundle extras = parent.getIntent().getExtras();
 		if (extras != null)
+		{
 			start_file = extras.getString("AutoStartFile");
+		}
 
 		if (!TextUtils.isEmpty(start_file))
 		{

@@ -330,7 +330,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE, R.string.video_backend, R.string.video_backend_description, R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, Settings.SECTION_GFX_SETTINGS,  R.string.show_fps, R.string.show_fps_description, false, showFps));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SHADER_COMPILATION_MODE, Settings.SECTION_GFX_SETTINGS,  R.string.shader_compilation_mode, R.string.shader_compilation_mode_description, R.array.shaderCompilationModeEntries, R.array.shaderCompilationModeValues, 0, shaderCompilationMode));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, Settings.SECTION_GFX_SETTINGS,  R.string.wait_for_shaders, 0, false, waitForShaders));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WAIT_FOR_SHADERS, Settings.SECTION_GFX_SETTINGS,  R.string.wait_for_shaders, R.string.wait_for_shaders_description, false, waitForShaders));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, Settings.SECTION_GFX_SETTINGS,  R.string.aspect_ratio, R.string.aspect_ratio_description, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
 
 		sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
