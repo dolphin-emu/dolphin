@@ -9,16 +9,20 @@ import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.Directo
 
 import rx.functions.Action1;
 
-public class DirectoryStateReceiver extends BroadcastReceiver {
-    Action1<DirectoryInitializationState> callback;
-    public DirectoryStateReceiver(Action1<DirectoryInitializationState> callback) {
-        this.callback = callback;
-    }
+public class DirectoryStateReceiver extends BroadcastReceiver
+{
+  Action1<DirectoryInitializationState> callback;
 
-    @Override
-    public void onReceive(Context context, Intent intent)
-    {
-        DirectoryInitializationState state = (DirectoryInitializationState) intent.getSerializableExtra(DirectoryInitializationService.EXTRA_STATE);
-        callback.call(state);
-    }
+  public DirectoryStateReceiver(Action1<DirectoryInitializationState> callback)
+  {
+    this.callback = callback;
+  }
+
+  @Override
+  public void onReceive(Context context, Intent intent)
+  {
+    DirectoryInitializationState state = (DirectoryInitializationState) intent
+            .getSerializableExtra(DirectoryInitializationService.EXTRA_STATE);
+    callback.call(state);
+  }
 }

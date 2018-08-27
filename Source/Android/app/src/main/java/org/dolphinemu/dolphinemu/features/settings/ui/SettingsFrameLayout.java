@@ -9,48 +9,48 @@ import android.widget.FrameLayout;
  */
 public final class SettingsFrameLayout extends FrameLayout
 {
-	private float mVisibleness = 1.0f;
+  private float mVisibleness = 1.0f;
 
-	public SettingsFrameLayout(Context context)
-	{
-		super(context);
-	}
+  public SettingsFrameLayout(Context context)
+  {
+    super(context);
+  }
 
-	public SettingsFrameLayout(Context context, AttributeSet attrs)
-	{
-		super(context, attrs);
-	}
+  public SettingsFrameLayout(Context context, AttributeSet attrs)
+  {
+    super(context, attrs);
+  }
 
-	public SettingsFrameLayout(Context context, AttributeSet attrs, int defStyleAttr)
-	{
-		super(context, attrs, defStyleAttr);
-	}
+  public SettingsFrameLayout(Context context, AttributeSet attrs, int defStyleAttr)
+  {
+    super(context, attrs, defStyleAttr);
+  }
 
-	public SettingsFrameLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
-	{
-		super(context, attrs, defStyleAttr, defStyleRes);
-	}
+  public SettingsFrameLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes)
+  {
+    super(context, attrs, defStyleAttr, defStyleRes);
+  }
 
-	public float getYFraction()
-	{
-		return getY() / getHeight();
-	}
+  public float getYFraction()
+  {
+    return getY() / getHeight();
+  }
 
-	public void setYFraction(float yFraction)
-	{
-		final int height = getHeight();
-		setY((height > 0) ? (yFraction * height) : -9999);
-	}
+  public void setYFraction(float yFraction)
+  {
+    final int height = getHeight();
+    setY((height > 0) ? (yFraction * height) : -9999);
+  }
 
-	public float getVisibleness()
-	{
-		return mVisibleness;
-	}
+  public float getVisibleness()
+  {
+    return mVisibleness;
+  }
 
-	public void setVisibleness(float visibleness)
-	{
-		setScaleX(visibleness);
-		setScaleY(visibleness);
-		setAlpha(visibleness);
-	}
+  public void setVisibleness(float visibleness)
+  {
+    setScaleX(visibleness);
+    setScaleY(visibleness);
+    setAlpha(visibleness);
+  }
 }

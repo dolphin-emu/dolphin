@@ -7,16 +7,16 @@ import com.android.volley.toolbox.Volley;
 
 public class VolleyUtil
 {
-	private static RequestQueue queue;
+  private static RequestQueue queue;
 
-	public static void init(Context context)
-	{
-		if (queue == null)
-			queue = Volley.newRequestQueue(context);
-	}
+  public static void init(Context context)
+  {
+    if (queue == null)
+      queue = Volley.newRequestQueue(context);
+  }
 
-	public static RequestQueue getQueue()
-	{
-		return queue;
-	}
+  public static RequestQueue getQueue()
+  {
+    return queue;
+  }
 }

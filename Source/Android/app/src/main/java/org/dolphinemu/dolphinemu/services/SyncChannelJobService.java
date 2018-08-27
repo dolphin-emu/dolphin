@@ -25,142 +25,143 @@ import java.util.List;
 
 public class SyncChannelJobService extends JobService
 {
-	private static final String TAG = "ChannelJobSvc";
+  private static final String TAG = "ChannelJobSvc";
 
-	private SyncChannelTask mSyncChannelTask;
+  private SyncChannelTask mSyncChannelTask;
 
-	@Override
-	public boolean onStartJob(final JobParameters jobParameters)
-	{
-		Log.d(TAG, "Starting channel creation job");
-		mSyncChannelTask =
-			new SyncChannelTask(getApplicationContext())
-			{
-				@Override
-				protected void onPostExecute(Boolean success)
-				{
-					super.onPostExecute(success);
-					jobFinished(jobParameters, !success);
-				}
-			};
-		mSyncChannelTask.execute();
-		return true;
-	}
+  @Override
+  public boolean onStartJob(final JobParameters jobParameters)
+  {
+    Log.d(TAG, "Starting channel creation job");
+    mSyncChannelTask =
+            new SyncChannelTask(getApplicationContext())
+            {
+              @Override
+              protected void onPostExecute(Boolean success)
+              {
+                super.onPostExecute(success);
+                jobFinished(jobParameters, !success);
+              }
+            };
+    mSyncChannelTask.execute();
+    return true;
+  }
 
-	@Override
-	public boolean onStopJob(JobParameters jobParameters)
-	{
-		if (mSyncChannelTask != null)
-		{
-			mSyncChannelTask.cancel(true);
-		}
-		return true;
-	}
+  @Override
+  public boolean onStopJob(JobParameters jobParameters)
+  {
+    if (mSyncChannelTask != null)
+    {
+      mSyncChannelTask.cancel(true);
+    }
+    return true;
+  }
 
-	private static class SyncChannelTask extends AsyncTask<Void, Void, Boolean>
-	{
-		private Context context;
+  private static class SyncChannelTask extends AsyncTask<Void, Void, Boolean>
+  {
+    private Context context;
 
-		SyncChannelTask(Context context)
-		{
-			this.context = context;
-		}
+    SyncChannelTask(Context context)
+    {
+      this.context = context;
+    }
 
-		/**
-		 * Setup channels
-		 */
-		@TargetApi(Build.VERSION_CODES.O)
-		@Override
-		protected Boolean doInBackground(Void... voids)
-		{
-			List<HomeScreenChannel> subscriptions;
-			List<Channel> channels = TvUtil.getAllChannels(context);
-			List<Long> channelIds = new ArrayList<>();
-			// Checks if the default channels are added.
-			// If not, create the channels
-			if (!channels.isEmpty())
-			{
-				channels.forEach(channel -> channelIds.add(channel.getId()));
-			}
-			else
-			{
-				subscriptions = TvUtil.createUniversalSubscriptions();
-				for (HomeScreenChannel subscription : subscriptions)
-				{
-					long channelId = createChannel(subscription);
-					channelIds.add(channelId);
-					subscription.setChannelId(channelId);
-					// Only the first channel added can be browsable without user intervention.
-					TvContractCompat.requestChannelBrowsable(context, channelId);
-				}
-			}
-			// Schedule triggers to update programs
-			channelIds.forEach(channel -> TvUtil.scheduleSyncingProgramsForChannel(context, channel));
-			// Update all channels
-			TvUtil.updateAllChannels(context);
-			return true;
-		}
+    /**
+     * Setup channels
+     */
+    @TargetApi(Build.VERSION_CODES.O)
+    @Override
+    protected Boolean doInBackground(Void... voids)
+    {
+      List<HomeScreenChannel> subscriptions;
+      List<Channel> channels = TvUtil.getAllChannels(context);
+      List<Long> channelIds = new ArrayList<>();
+      // Checks if the default channels are added.
+      // If not, create the channels
+      if (!channels.isEmpty())
+      {
+        channels.forEach(channel -> channelIds.add(channel.getId()));
+      }
+      else
+      {
+        subscriptions = TvUtil.createUniversalSubscriptions();
+        for (HomeScreenChannel subscription : subscriptions)
+        {
+          long channelId = createChannel(subscription);
+          channelIds.add(channelId);
+          subscription.setChannelId(channelId);
+          // Only the first channel added can be browsable without user intervention.
+          TvContractCompat.requestChannelBrowsable(context, channelId);
+        }
+      }
+      // Schedule triggers to update programs
+      channelIds.forEach(channel -> TvUtil.scheduleSyncingProgramsForChannel(context, channel));
+      // Update all channels
+      TvUtil.updateAllChannels(context);
+      return true;
+    }
 
-		private long createChannel(HomeScreenChannel subscription)
-		{
-			long channelId = getChannelIdFromTvProvider(context, subscription);
-			if (channelId != -1L)
-			{
-				return channelId;
-			}
+    private long createChannel(HomeScreenChannel subscription)
+    {
+      long channelId = getChannelIdFromTvProvider(context, subscription);
+      if (channelId != -1L)
+      {
+        return channelId;
+      }
 
-			// Create the channel since it has not been added to the TV Provider.
-			Uri appLinkIntentUri = Uri.parse(subscription.getAppLinkIntentUri());
+      // Create the channel since it has not been added to the TV Provider.
+      Uri appLinkIntentUri = Uri.parse(subscription.getAppLinkIntentUri());
 
-			Channel.Builder builder = new Channel.Builder();
-			builder.setType(TvContractCompat.Channels.TYPE_PREVIEW)
-				.setDisplayName(subscription.getName())
-				.setDescription(subscription.getDescription())
-				.setAppLinkIntentUri(appLinkIntentUri);
+      Channel.Builder builder = new Channel.Builder();
+      builder.setType(TvContractCompat.Channels.TYPE_PREVIEW)
+              .setDisplayName(subscription.getName())
+              .setDescription(subscription.getDescription())
+              .setAppLinkIntentUri(appLinkIntentUri);
 
-			Log.d(TAG, "Creating channel: " + subscription.getName());
-			Uri channelUrl =
-				context.getContentResolver()
-					.insert(
-						TvContractCompat.Channels.CONTENT_URI,
-						builder.build().toContentValues());
+      Log.d(TAG, "Creating channel: " + subscription.getName());
+      Uri channelUrl =
+              context.getContentResolver()
+                      .insert(
+                              TvContractCompat.Channels.CONTENT_URI,
+                              builder.build().toContentValues());
 
-			channelId = ContentUris.parseId(channelUrl);
-			Bitmap bitmap = TvUtil.convertToBitmap(context, R.drawable.ic_launcher);
-			ChannelLogoUtils.storeChannelLogo(context, channelId, bitmap);
+      channelId = ContentUris.parseId(channelUrl);
+      Bitmap bitmap = TvUtil.convertToBitmap(context, R.drawable.ic_launcher);
+      ChannelLogoUtils.storeChannelLogo(context, channelId, bitmap);
 
-			return channelId;
-		}
+      return channelId;
+    }
 
-		private long getChannelIdFromTvProvider(Context context, HomeScreenChannel subscription)
-		{
-			Cursor cursor =
-				context.getContentResolver().query(
-					TvContractCompat.Channels.CONTENT_URI,
-					new String[]{
-						TvContractCompat.Channels._ID,
-						TvContract.Channels.COLUMN_DISPLAY_NAME
-					},
-					null,
-					null,
-					null);
-			if (cursor != null && cursor.moveToFirst())
-			{
-				do
-				{
-					Channel channel = Channel.fromCursor(cursor);
-					if (subscription.getName().equals(channel.getDisplayName()))
-					{
-						Log.d(
-							TAG,
-							"Channel already exists. Returning channel "
-								+ channel.getId()
-								+ " from TV Provider.");
-						return channel.getId();
-					}
-				} while (cursor.moveToNext());
-			}
-			return -1L;
-		}
-	}
+    private long getChannelIdFromTvProvider(Context context, HomeScreenChannel subscription)
+    {
+      Cursor cursor =
+              context.getContentResolver().query(
+                      TvContractCompat.Channels.CONTENT_URI,
+                      new String[]{
+                              TvContractCompat.Channels._ID,
+                              TvContract.Channels.COLUMN_DISPLAY_NAME
+                      },
+                      null,
+                      null,
+                      null);
+      if (cursor != null && cursor.moveToFirst())
+      {
+        do
+        {
+          Channel channel = Channel.fromCursor(cursor);
+          if (subscription.getName().equals(channel.getDisplayName()))
+          {
+            Log.d(
+                    TAG,
+                    "Channel already exists. Returning channel "
+                            + channel.getId()
+                            + " from TV Provider.");
+            return channel.getId();
+          }
+        }
+        while (cursor.moveToNext());
+      }
+      return -1L;
+    }
+  }
 }

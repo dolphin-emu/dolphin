@@ -8,15 +8,15 @@ import org.dolphinemu.dolphinemu.utils.VolleyUtil;
 
 public class DolphinApplication extends Application
 {
-	@Override
-	public void onCreate()
-	{
-		super.onCreate();
+  @Override
+  public void onCreate()
+  {
+    super.onCreate();
 
-		VolleyUtil.init(getApplicationContext());
-		System.loadLibrary("main");
+    VolleyUtil.init(getApplicationContext());
+    System.loadLibrary("main");
 
-		if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
-			DirectoryInitializationService.startService(getApplicationContext());
-	}
+    if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
+      DirectoryInitializationService.startService(getApplicationContext());
+  }
 }

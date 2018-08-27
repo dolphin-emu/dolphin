@@ -4,41 +4,41 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class IntSetting extends Setting
 {
-	private int mValue;
-	private MenuTag menuTag;
+  private int mValue;
+  private MenuTag menuTag;
 
-	public IntSetting(String key, String section, int value)
-	{
-		super(key, section);
-		mValue = value;
-	}
+  public IntSetting(String key, String section, int value)
+  {
+    super(key, section);
+    mValue = value;
+  }
 
-	public IntSetting(String key, String section, int value, MenuTag menuTag)
-	{
-		super(key, section);
-		mValue = value;
-		this.menuTag = menuTag;
-	}
+  public IntSetting(String key, String section, int value, MenuTag menuTag)
+  {
+    super(key, section);
+    mValue = value;
+    this.menuTag = menuTag;
+  }
 
-	public int getValue()
-	{
-		return mValue;
-	}
+  public int getValue()
+  {
+    return mValue;
+  }
 
-	public void setValue(int value)
-	{
-		mValue = value;
-	}
+  public void setValue(int value)
+  {
+    mValue = value;
+  }
 
-	@Override
-	public String getValueAsString()
-	{
-		return Integer.toString(mValue);
-	}
+  @Override
+  public String getValueAsString()
+  {
+    return Integer.toString(mValue);
+  }
 
-	public MenuTag getMenuTag()
-	{
-		return menuTag;
-	}
+  public MenuTag getMenuTag()
+  {
+    return menuTag;
+  }
 
 }

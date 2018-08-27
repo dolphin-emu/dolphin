@@ -13,194 +13,197 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 public final class SettingsActivityPresenter
 {
-    private static final String KEY_SHOULD_SAVE = "should_save";
+  private static final String KEY_SHOULD_SAVE = "should_save";
 
-    private SettingsActivityView mView;
+  private SettingsActivityView mView;
 
-    private Settings mSettings = new Settings();
+  private Settings mSettings = new Settings();
 
-    private int mStackCount;
+  private int mStackCount;
 
-    private boolean mShouldSave;
+  private boolean mShouldSave;
 
-    private DirectoryStateReceiver directoryStateReceiver;
+  private DirectoryStateReceiver directoryStateReceiver;
 
-    private MenuTag menuTag;
-    private String gameId;
+  private MenuTag menuTag;
+  private String gameId;
 
-    SettingsActivityPresenter(SettingsActivityView view)
+  SettingsActivityPresenter(SettingsActivityView view)
+  {
+    mView = view;
+  }
+
+  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId)
+  {
+    if (savedInstanceState == null)
     {
-        mView = view;
+      this.menuTag = menuTag;
+      this.gameId = gameId;
+    }
+    else
+    {
+      mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+    }
+  }
+
+  public void onStart()
+  {
+    prepareDolphinDirectoriesIfNeeded();
+  }
+
+  private void loadSettingsUI()
+  {
+    if (mSettings.isEmpty())
+    {
+      if (!TextUtils.isEmpty(gameId))
+      {
+        mSettings.loadSettings(gameId, mView);
+      }
+      else
+      {
+        mSettings.loadSettings(mView);
+      }
     }
 
-    public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId)
+    mView.showSettingsFragment(menuTag, null, false, gameId);
+    mView.onSettingsFileLoaded(mSettings);
+  }
+
+  private void prepareDolphinDirectoriesIfNeeded()
+  {
+    if (DirectoryInitializationService.areDolphinDirectoriesReady())
     {
-        if (savedInstanceState == null)
-        {
-            this.menuTag = menuTag;
-            this.gameId = gameId;
-        }
-        else
-        {
-            mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
-        }
+      loadSettingsUI();
+    }
+    else
+    {
+      mView.showLoading();
+      IntentFilter statusIntentFilter = new IntentFilter(
+              DirectoryInitializationService.BROADCAST_ACTION);
+
+      directoryStateReceiver =
+              new DirectoryStateReceiver(directoryInitializationState ->
+              {
+                if (directoryInitializationState ==
+                        DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+                {
+                  mView.hideLoading();
+                  loadSettingsUI();
+                }
+                else if (directoryInitializationState ==
+                        DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
+                {
+                  mView.showPermissionNeededHint();
+                  mView.hideLoading();
+                }
+                else if (directoryInitializationState ==
+                        DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
+                {
+                  mView.showExternalStorageNotMountedHint();
+                  mView.hideLoading();
+                }
+              });
+
+      mView.startDirectoryInitializationService(directoryStateReceiver, statusIntentFilter);
+    }
+  }
+
+  public void setSettings(Settings settings)
+  {
+    mSettings = settings;
+  }
+
+  public Settings getSettings()
+  {
+    return mSettings;
+  }
+
+  public void onStop(boolean finishing)
+  {
+    if (directoryStateReceiver != null)
+    {
+      mView.stopListeningToDirectoryInitializationService(directoryStateReceiver);
+      directoryStateReceiver = null;
     }
 
-    public void onStart()
+    if (mSettings != null && finishing && mShouldSave)
     {
-        prepareDolphinDirectoriesIfNeeded();
+      Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
+      mSettings.saveSettings(mView);
+    }
+  }
+
+  public void addToStack()
+  {
+    mStackCount++;
+  }
+
+  public void onBackPressed()
+  {
+    if (mStackCount > 0)
+    {
+      mView.popBackStack();
+      mStackCount--;
+    }
+    else
+    {
+      mView.finish();
+    }
+  }
+
+  public boolean handleOptionsItem(int itemId)
+  {
+    switch (itemId)
+    {
+      case R.id.menu_save_exit:
+        mView.finish();
+        return true;
     }
 
-    private void loadSettingsUI()
+    return false;
+  }
+
+  public void onSettingChanged()
+  {
+    mShouldSave = true;
+  }
+
+  public void saveState(Bundle outState)
+  {
+    outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
+  }
+
+  public void onGcPadSettingChanged(MenuTag key, int value)
+  {
+    if (value != 0) // Not disabled
     {
-        if (mSettings.isEmpty())
-        {
-            if (!TextUtils.isEmpty(gameId))
-            {
-                mSettings.loadSettings(gameId, mView);
-            }
-            else
-            {
-                mSettings.loadSettings(mView);
-            }
-        }
-
-        mView.showSettingsFragment(menuTag, null, false, gameId);
-        mView.onSettingsFileLoaded(mSettings);
+      Bundle bundle = new Bundle();
+      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value / 6);
+      mView.showSettingsFragment(key, bundle, true, gameId);
     }
+  }
 
-    private void prepareDolphinDirectoriesIfNeeded()
+  public void onWiimoteSettingChanged(MenuTag menuTag, int value)
+  {
+    switch (value)
     {
-        if (DirectoryInitializationService.areDolphinDirectoriesReady())
-        {
-            loadSettingsUI();
-        }
-        else
-        {
-            mView.showLoading();
-            IntentFilter statusIntentFilter = new IntentFilter(
-                    DirectoryInitializationService.BROADCAST_ACTION);
+      case 1:
+        mView.showSettingsFragment(menuTag, null, true, gameId);
+        break;
 
-            directoryStateReceiver =
-                    new DirectoryStateReceiver(directoryInitializationState ->
-                    {
-                        if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-                        {
-                            mView.hideLoading();
-                            loadSettingsUI();
-                        }
-                        else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
-                        {
-                            mView.showPermissionNeededHint();
-                            mView.hideLoading();
-                        }
-                        else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
-                        {
-                            mView.showExternalStorageNotMountedHint();
-                            mView.hideLoading();
-                        }
-                    });
-
-            mView.startDirectoryInitializationService(directoryStateReceiver, statusIntentFilter);
-        }
+      case 2:
+        mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
+        break;
     }
+  }
 
-    public void setSettings(Settings settings)
+  public void onExtensionSettingChanged(MenuTag menuTag, int value)
+  {
+    if (value != 0) // None
     {
-        mSettings = settings;
+      Bundle bundle = new Bundle();
+      bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
+      mView.showSettingsFragment(menuTag, bundle, true, gameId);
     }
-
-    public Settings getSettings()
-    {
-        return mSettings;
-    }
-
-    public void onStop(boolean finishing)
-    {
-        if (directoryStateReceiver != null)
-        {
-            mView.stopListeningToDirectoryInitializationService(directoryStateReceiver);
-            directoryStateReceiver = null;
-        }
-
-        if (mSettings != null && finishing && mShouldSave)
-        {
-            Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-            mSettings.saveSettings(mView);
-        }
-    }
-
-    public void addToStack()
-    {
-        mStackCount++;
-    }
-
-    public void onBackPressed()
-    {
-        if (mStackCount > 0)
-        {
-            mView.popBackStack();
-            mStackCount--;
-        }
-        else
-        {
-            mView.finish();
-        }
-    }
-
-    public boolean handleOptionsItem(int itemId)
-    {
-        switch (itemId)
-        {
-            case R.id.menu_save_exit:
-                mView.finish();
-                return true;
-        }
-
-        return false;
-    }
-
-    public void onSettingChanged()
-    {
-        mShouldSave = true;
-    }
-
-    public void saveState(Bundle outState)
-    {
-        outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
-    }
-
-    public void onGcPadSettingChanged(MenuTag key, int value)
-    {
-        if (value != 0) // Not disabled
-        {
-            Bundle bundle = new Bundle();
-            bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value / 6);
-            mView.showSettingsFragment(key, bundle, true, gameId);
-        }
-    }
-
-    public void onWiimoteSettingChanged(MenuTag menuTag, int value)
-    {
-        switch (value)
-        {
-            case 1:
-                mView.showSettingsFragment(menuTag, null, true, gameId);
-                break;
-
-            case 2:
-                mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
-                break;
-        }
-    }
-
-    public void onExtensionSettingChanged(MenuTag menuTag, int value)
-    {
-        if (value != 0) // None
-        {
-            Bundle bundle = new Bundle();
-            bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
-            mView.showSettingsFragment(menuTag, bundle, true, gameId);
-        }
-    }
+  }
 }
