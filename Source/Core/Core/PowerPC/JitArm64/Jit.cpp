@@ -607,7 +607,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.curBlock = b;
   js.carryFlagSet = false;
 
-  const u8* start = GetCodePtr();
+  u8* const start = GetWritableCodePtr();
   b->checkedEntry = start;
 
   // Downcount flag check, Only valid for linked blocks
@@ -619,7 +619,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Normal entry doesn't need to check for downcount.
-  b->normalEntry = GetCodePtr();
+  b->normalEntry = GetWritableCodePtr();
 
   // Conditionally add profiling code.
   if (Profiler::g_ProfileBlocks)
