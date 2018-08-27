@@ -323,13 +323,16 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  uid_data->blend_enable = state.blendenable;
-  uid_data->blend_src_factor = state.srcfactor;
-  uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-  uid_data->blend_dst_factor = state.dstfactor;
-  uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-  uid_data->blend_subtract = state.subtract;
-  uid_data->blend_subtract_alpha = state.subtractAlpha;
+  if (state.usedualsrc && state.dstalpha && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  {
+    uid_data->blend_enable = state.blendenable;
+    uid_data->blend_src_factor = state.srcfactor;
+    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
+    uid_data->blend_dst_factor = state.dstfactor;
+    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
+    uid_data->blend_subtract = state.subtract;
+    uid_data->blend_subtract_alpha = state.subtractAlpha;
+  }
 
   return out;
 }
