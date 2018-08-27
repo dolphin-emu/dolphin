@@ -295,7 +295,6 @@
     <ClCompile Include="PowerPC\PPCCache.cpp" />
     <ClCompile Include="PowerPC\PPCSymbolDB.cpp" />
     <ClCompile Include="PowerPC\PPCTables.cpp" />
-    <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />

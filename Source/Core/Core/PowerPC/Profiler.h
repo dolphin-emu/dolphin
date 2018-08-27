@@ -34,5 +34,4 @@ struct ProfileStats
   u64 countsPerSec;
 };
 
-void WriteProfileResults(const std::string& filename);
 }  // namespace Profiler
