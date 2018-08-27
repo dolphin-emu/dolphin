@@ -89,6 +89,20 @@ public final class MainActivity extends AppCompatActivity implements MainView
 		mPresenter.onDestroy();
 	}
 
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		StartupHandler.checkSessionReset(this);
+	}
+
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+		StartupHandler.setSessionTime(this);
+	}
+
 	// TODO: Replace with a ButterKnife injection.
 	private void findViews()
 	{

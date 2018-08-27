@@ -4,6 +4,7 @@ import android.app.Application;
 
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
+import org.dolphinemu.dolphinemu.utils.VolleyUtil;
 
 public class DolphinApplication extends Application
 {
@@ -12,6 +13,7 @@ public class DolphinApplication extends Application
 	{
 		super.onCreate();
 
+		VolleyUtil.init(getApplicationContext());
 		System.loadLibrary("main");
 
 		if (PermissionsHandler.hasWriteAccess(getApplicationContext()))

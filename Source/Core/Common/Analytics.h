@@ -183,5 +183,4 @@ protected:
   std::string m_endpoint;
   HttpRequest m_http{std::chrono::seconds{5}};
 };
-
 }  // namespace Common

@@ -24,10 +24,9 @@ import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
 import java.io.File;
-
-import rx.functions.Action1;
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
@@ -84,7 +83,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
 		String gamePath = getArguments().getString(KEY_GAMEPATH);
-		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath());
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		boolean firstOpen = preferences.getBoolean(StartupHandler.NEW_SESSION, true);
+		SharedPreferences.Editor sPrefsEditor = preferences.edit();
+		sPrefsEditor.putBoolean(StartupHandler.NEW_SESSION, false);
+		sPrefsEditor.apply();
+		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath(), firstOpen);
 	}
 
 	/**
@@ -264,10 +268,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		private Surface mSurface;
 		private boolean mRunWhenSurfaceIsValid;
 		private boolean loadPreviousTemporaryState;
+		private boolean firstOpen;
 		private final String temporaryStatePath;
 
-		EmulationState(String gamePath, String temporaryStatePath)
+		EmulationState(String gamePath, String temporaryStatePath, boolean firstOpen)
 		{
+			this.firstOpen = firstOpen;
 			mGamePath = gamePath;
 			this.temporaryStatePath = temporaryStatePath;
 			// Starting state is stopped.
@@ -411,7 +417,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 					else
 					{
 						Log.debug("[EmulationFragment] Starting emulation thread.");
-						NativeLibrary.Run(mGamePath);
+						NativeLibrary.Run(mGamePath, firstOpen);
 					}
 				}, "NativeEmulation");
 				mEmulationThread.start();

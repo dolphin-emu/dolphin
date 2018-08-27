@@ -322,7 +322,7 @@ public final class NativeLibrary
 	/**
 	 * Begins emulation.
 	 */
-	public static native void Run(String path);
+	public static native void Run(String path, boolean firstOpen);
 
 	/**
 	 * Begins emulation from the specified savestate.

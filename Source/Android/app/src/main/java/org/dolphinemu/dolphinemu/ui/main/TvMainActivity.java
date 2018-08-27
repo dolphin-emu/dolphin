@@ -74,6 +74,20 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 		mPresenter.onDestroy();
 	}
 
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		StartupHandler.checkSessionReset(this);
+	}
+
+	@Override
+	protected void onStop()
+	{
+		super.onStop();
+		StartupHandler.setSessionTime(this);
+	}
+
 	void setupUI() {
 		final FragmentManager fragmentManager = getSupportFragmentManager();
 		mBrowseFragment = new BrowseSupportFragment();
