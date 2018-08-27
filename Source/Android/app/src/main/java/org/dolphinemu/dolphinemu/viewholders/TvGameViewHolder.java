@@ -13,19 +13,19 @@ import org.dolphinemu.dolphinemu.model.GameFile;
  */
 public final class TvGameViewHolder extends Presenter.ViewHolder
 {
-	public ImageCardView cardParent;
+  public ImageCardView cardParent;
 
-	public ImageView imageScreenshot;
+  public ImageView imageScreenshot;
 
-	public GameFile gameFile;
+  public GameFile gameFile;
 
-	public TvGameViewHolder(View itemView)
-	{
-		super(itemView);
+  public TvGameViewHolder(View itemView)
+  {
+    super(itemView);
 
-		itemView.setTag(this);
+    itemView.setTag(this);
 
-		cardParent = (ImageCardView) itemView;
-		imageScreenshot = cardParent.getMainImageView();
-	}
+    cardParent = (ImageCardView) itemView;
+    imageScreenshot = cardParent.getMainImageView();
+  }
 }

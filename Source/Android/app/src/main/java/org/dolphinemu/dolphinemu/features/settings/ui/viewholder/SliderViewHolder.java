@@ -10,40 +10,40 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 public final class SliderViewHolder extends SettingViewHolder
 {
-	private SliderSetting mItem;
+  private SliderSetting mItem;
 
-	private TextView mTextSettingName;
-	private TextView mTextSettingDescription;
+  private TextView mTextSettingName;
+  private TextView mTextSettingDescription;
 
-	public SliderViewHolder(View itemView, SettingsAdapter adapter)
-	{
-		super(itemView, adapter);
-	}
+  public SliderViewHolder(View itemView, SettingsAdapter adapter)
+  {
+    super(itemView, adapter);
+  }
 
-	@Override
-	protected void findViews(View root)
-	{
-		mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
-		mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
-	}
+  @Override
+  protected void findViews(View root)
+  {
+    mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
+    mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
+  }
 
-	@Override
-	public void bind(SettingsItem item)
-	{
-		mItem = (SliderSetting) item;
+  @Override
+  public void bind(SettingsItem item)
+  {
+    mItem = (SliderSetting) item;
 
-		mTextSettingName.setText(item.getNameId());
+    mTextSettingName.setText(item.getNameId());
 
-		if (item.getDescriptionId() > 0)
-		{
-			mTextSettingDescription.setText(item.getDescriptionId());
-		}
-	}
+    if (item.getDescriptionId() > 0)
+    {
+      mTextSettingDescription.setText(item.getDescriptionId());
+    }
+  }
 
-	@Override
-	public void onClick(View clicked)
-	{
-		getAdapter().onSliderClick(mItem);
-	}
+  @Override
+  public void onClick(View clicked)
+  {
+    getAdapter().onSliderClick(mItem);
+  }
 }
 
