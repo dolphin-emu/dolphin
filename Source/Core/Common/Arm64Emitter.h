@@ -543,8 +543,8 @@ public:
   void SetCodePtr(u8* ptr);
   void SetCodePtrUnsafe(u8* ptr);
   void ReserveCodeSpace(u32 bytes);
-  const u8* AlignCode16();
-  const u8* AlignCodePage();
+  u8* AlignCode16();
+  u8* AlignCodePage();
   const u8* GetCodePtr() const;
   void FlushIcache();
   void FlushIcacheSection(u8* start, u8* end);
