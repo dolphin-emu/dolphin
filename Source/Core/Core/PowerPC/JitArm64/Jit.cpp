@@ -489,9 +489,9 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
 {
-  std::string output = "";
-  for (u8* code = (u8*)start; code < end; code += 4)
-    output += StringFromFormat("%08x", Common::swap32(*(u32*)code));
+  std::string output;
+  for (const u8* code = start; code < end; code += sizeof(u32))
+    output += StringFromFormat("%08x", Common::swap32(code));
   WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
 }
 
