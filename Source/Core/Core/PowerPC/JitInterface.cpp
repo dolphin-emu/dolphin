@@ -79,6 +79,14 @@ CPUCoreBase* GetCore()
   return g_jit;
 }
 
+void SetProfilingState(ProfilingState state)
+{
+  if (!g_jit)
+    return;
+
+  g_jit->jo.profile_blocks = state == ProfilingState::Enabled;
+}
+
 void WriteProfileResults(const std::string& filename)
 {
   Profiler::ProfileStats prof_stats;

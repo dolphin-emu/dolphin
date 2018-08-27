@@ -10,11 +10,9 @@
 
 namespace Profiler
 {
-bool g_ProfileBlocks = false;
-
 void WriteProfileResults(const std::string& filename)
 {
   JitInterface::WriteProfileResults(filename);
 }
 
-}  // namespace
+}  // namespace Profiler

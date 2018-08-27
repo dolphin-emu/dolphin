@@ -382,7 +382,7 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
-  if (Profiler::g_ProfileBlocks)
+  if (jo.profile_blocks)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     // get end tic
@@ -608,7 +608,7 @@ void Jit64::Jit(u32 em_address)
     EnableOptimization();
 
     // Comment out the following to disable breakpoints (speed-up)
-    if (!Profiler::g_ProfileBlocks)
+    if (!jo.profile_blocks)
     {
       if (CPU::IsStepping())
       {
@@ -680,7 +680,7 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Conditionally add profiling code.
-  if (Profiler::g_ProfileBlocks)
+  if (jo.profile_blocks)
   {
     // get start tic
     MOV(64, R(ABI_PARAM1), ImmPtr(&b->profile_data.ticStart));

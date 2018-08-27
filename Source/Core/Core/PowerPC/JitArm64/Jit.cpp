@@ -510,7 +510,7 @@ void JitArm64::BeginTimeProfile(JitBlock* b)
 
 void JitArm64::EndTimeProfile(JitBlock* b)
 {
-  if (!Profiler::g_ProfileBlocks)
+  if (!jo.profile_blocks)
     return;
 
   // Fetch the current counter register
@@ -622,7 +622,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   b->normalEntry = GetWritableCodePtr();
 
   // Conditionally add profiling code.
-  if (Profiler::g_ProfileBlocks)
+  if (jo.profile_blocks)
   {
     // get start tic
     BeginTimeProfile(b);
