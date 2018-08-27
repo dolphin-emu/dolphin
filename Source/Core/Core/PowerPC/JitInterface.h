@@ -55,6 +55,9 @@ bool HandleStackFault();
 // Clearing CodeCache
 void ClearCache();
 
+// This clear is "safe" in the sense that it's okay to run from
+// inside a JIT'ed block: it clears the instruction cache, but not
+// the JIT'ed code.
 void ClearSafe();
 
 // If "forced" is true, a recompile is being requested on code that hasn't been modified.
