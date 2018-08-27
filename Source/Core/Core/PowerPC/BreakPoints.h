@@ -10,7 +10,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Common
+{
 class DebugInterface;
+}
 
 struct TBreakPoint
 {
@@ -35,7 +38,8 @@ struct TMemCheck
   u32 num_hits = 0;
 
   // returns whether to break
-  bool Action(DebugInterface* dbg_interface, u32 value, u32 addr, bool write, size_t size, u32 pc);
+  bool Action(Common::DebugInterface* dbg_interface, u32 value, u32 addr, bool write, size_t size,
+              u32 pc);
 };
 
 // Code breakpoints.

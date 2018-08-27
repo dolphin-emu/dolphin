@@ -39,7 +39,7 @@ public:
   void LogFunctionCall(u32 addr);
 
 private:
-  DebugInterface* debugger;
+  Common::DebugInterface* debugger;
 };
 
 extern PPCSymbolDB g_symbolDB;

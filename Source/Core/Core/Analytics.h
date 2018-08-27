@@ -10,6 +10,9 @@
 
 #include "Common/Analytics.h"
 
+#if defined(ANDROID)
+#include <functional>
+#endif
 // Non generic part of the Dolphin Analytics framework. See Common/Analytics.h
 // for the main documentation.
 
@@ -19,10 +22,13 @@ public:
   // Performs lazy-initialization of a singleton and returns the instance.
   static std::shared_ptr<DolphinAnalytics> Instance();
 
+#if defined(ANDROID)
+  // Get value from java.
+  static void AndroidSetGetValFunc(std::function<std::string(std::string)> function);
+#endif
   // Resets and recreates the analytics system in order to reload
   // configuration.
   void ReloadConfig();
-
   // Rotates the unique identifier used for this instance of Dolphin and saves
   // it into the configuration.
   void GenerateNewIdentity();

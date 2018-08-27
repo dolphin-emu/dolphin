@@ -10,6 +10,9 @@
 #include <windows.h>
 #elif defined(__APPLE__)
 #include <CoreServices/CoreServices.h>
+#elif defined(ANDROID)
+#include <functional>
+#include "Common/AndroidAnalytics.h"
 #endif
 
 #include "Common/Analytics.h"
@@ -35,6 +38,14 @@ constexpr const char* ANALYTICS_ENDPOINT = "https://analytics.dolphin-emu.org/re
 std::mutex DolphinAnalytics::s_instance_mutex;
 std::shared_ptr<DolphinAnalytics> DolphinAnalytics::s_instance;
 
+#if defined(ANDROID)
+static std::function<std::string(std::string)> s_get_val_func;
+void DolphinAnalytics::AndroidSetGetValFunc(std::function<std::string(std::string)> func)
+{
+  s_get_val_func = std::move(func);
+}
+#endif
+
 DolphinAnalytics::DolphinAnalytics()
 {
   ReloadConfig();
@@ -59,7 +70,11 @@ void DolphinAnalytics::ReloadConfig()
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
   if (SConfig::GetInstance().m_analytics_enabled)
   {
+#if defined(ANDROID)
+    new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
+#else
     new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
+#endif
   }
   m_reporter.SetBackend(std::move(new_backend));
 
@@ -152,6 +167,9 @@ void DolphinAnalytics::MakeBaseBuilder()
   }
 #elif defined(ANDROID)
   builder.AddData("os-type", "android");
+  builder.AddData("android-manufacturer", s_get_val_func("DEVICE_MANUFACTURER"));
+  builder.AddData("android-model", s_get_val_func("DEVICE_MODEL"));
+  builder.AddData("android-version", s_get_val_func("DEVICE_OS"));
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 

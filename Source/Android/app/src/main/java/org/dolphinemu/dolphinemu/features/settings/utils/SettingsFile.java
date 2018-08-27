@@ -295,12 +295,14 @@ public final class SettingsFile
 		catch (FileNotFoundException e)
 		{
 			Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
-			view.onSettingsFileNotFound();
+			if (view != null)
+				view.onSettingsFileNotFound();
 		}
 		catch (IOException e)
 		{
 			Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath()+ e.getMessage());
-			view.onSettingsFileNotFound();
+			if (view != null)
+				view.onSettingsFileNotFound();
 		}
 		finally
 		{
@@ -385,12 +387,14 @@ public final class SettingsFile
 		catch (FileNotFoundException e)
 		{
 			Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
-			view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+			if (view != null)
+				view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
 		}
 		catch (UnsupportedEncodingException e)
 		{
 			Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " + e.getMessage());
-			view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+			if (view != null)
+				view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
 		}
 		finally
 		{

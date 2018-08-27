@@ -1452,6 +1452,10 @@ bool NetPlayClient::GetNetPads(const int pad_nb, const bool batching, GCPadStatu
 
   if (m_host_input_authority && !m_local_player->IsHost())
   {
+    // CoreTiming acts funny and causes what looks like frame skip if
+    // we toggle the emulation speed too quickly, so to prevent this
+    // we wait until the buffer has been over for at least 1 second.
+
     const bool buffer_over_target = m_pad_buffer[pad_nb].Size() > m_target_buffer_size + 1;
     if (!buffer_over_target)
       m_buffer_under_target_last = std::chrono::steady_clock::now();

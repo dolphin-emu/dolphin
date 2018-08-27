@@ -216,6 +216,7 @@ public final class SettingsFragmentPresenter
 		Setting audioBackend = null;
 
 		SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+		SettingSection analyticsSection = mSettings.getSection(Settings.SECTION_ANALYTICS);
 		cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
 		dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
 		overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
