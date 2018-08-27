@@ -372,6 +372,8 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
     StartUp.bHLE_BS2 = netplay_settings.m_SkipIPL;
+    if (netplay_settings.m_HostInputAuthority && !netplay_settings.m_IsHosting)
+      config_cache.bSetEmulationSpeed = true;
   }
   else
   {

@@ -13,23 +13,28 @@
 
 #ifdef USE_DISCORD_PRESENCE
 
+#include <algorithm>
+#include <cctype>
 #include <ctime>
 #include <discord-rpc/include/discord_rpc.h>
+#include <string>
 
 #endif
 
 namespace Discord
 {
 #ifdef USE_DISCORD_PRESENCE
-static Handler* event_handler = nullptr;
-static const char* username = "";
+namespace
+{
+Handler* event_handler = nullptr;
+const char* username = "";
 
-static void HandleDiscordReady(const DiscordUser* user)
+void HandleDiscordReady(const DiscordUser* user)
 {
   username = user->username;
 }
 
-static void HandleDiscordJoinRequest(const DiscordUser* user)
+void HandleDiscordJoinRequest(const DiscordUser* user)
 {
   if (event_handler == nullptr)
     return;
@@ -38,7 +43,7 @@ static void HandleDiscordJoinRequest(const DiscordUser* user)
   event_handler->DiscordJoinRequest(user->userId, discord_tag, user->avatar);
 }
 
-static void HandleDiscordJoin(const char* join_secret)
+void HandleDiscordJoin(const char* join_secret)
 {
   if (event_handler == nullptr)
     return;
@@ -82,6 +87,25 @@ static void HandleDiscordJoin(const char* join_secret)
 
   event_handler->DiscordJoin();
 }
+
+std::string ArtworkForGameId(const std::string& gameid)
+{
+  static const std::set<std::string> REGISTERED_GAMES{
+      "GAL",  // Super Smash Bros. Melee
+  };
+
+  std::string region_neutral_gameid = gameid.substr(0, 3);
+  if (REGISTERED_GAMES.count(region_neutral_gameid) != 0)
+  {
+    // Discord asset keys can only be lowercase.
+    std::transform(region_neutral_gameid.begin(), region_neutral_gameid.end(),
+                   region_neutral_gameid.begin(), tolower);
+    return "game_" + region_neutral_gameid;
+  }
+  return "";
+}
+
+}  // namespace
 #endif
 
 Discord::Handler::~Handler() = default;
@@ -130,10 +154,21 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
 
   const std::string& title =
       current_game.empty() ? SConfig::GetInstance().GetTitleDescription() : current_game;
+  std::string game_artwork = ArtworkForGameId(SConfig::GetInstance().GetGameID());
 
   DiscordRichPresence discord_presence = {};
-  discord_presence.largeImageKey = "dolphin_logo";
-  discord_presence.largeImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+  if (game_artwork.empty())
+  {
+    discord_presence.largeImageKey = "dolphin_logo";
+    discord_presence.largeImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+  }
+  else
+  {
+    discord_presence.largeImageKey = game_artwork.c_str();
+    discord_presence.largeImageText = title.c_str();
+    discord_presence.smallImageKey = "dolphin_logo";
+    discord_presence.smallImageText = "Dolphin is an emulator for the GameCube and the Wii.";
+  }
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
 

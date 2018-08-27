@@ -595,6 +595,10 @@ void ChangeDeviceDeterministic(SIDevices device, int channel)
 
 void UpdateDevices()
 {
+  // Hinting NetPlay that all controllers will be polled in
+  // succession, in order to optimize networking
+  NetPlay::SetSIPollBatching(true);
+
   // Update inputs at the rate of SI
   // Typically 120hz but is variable
   g_controller_interface.UpdateInput();
@@ -610,6 +614,9 @@ void UpdateDevices()
       !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
 
   UpdateInterrupts();
+
+  // Polling finished
+  NetPlay::SetSIPollBatching(false);
 }
 
 SIDevices GetDeviceType(int channel)
