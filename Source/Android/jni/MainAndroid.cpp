@@ -16,7 +16,6 @@
 #include <thread>
 #include <utility>
 
-#include "Common/AndroidAnalytics.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -27,7 +26,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Version.h"
 
-#include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"

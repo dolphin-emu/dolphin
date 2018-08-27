@@ -26,8 +26,6 @@ public class Settings
 
     public static final String SECTION_BINDINGS = "Android";
 
-    public static final String SECTION_ANALYTICS = "Analytics";
-
     private String gameId;
 
     private static final Map<String, List<String>> configFileSectionsMap = new HashMap<>();
