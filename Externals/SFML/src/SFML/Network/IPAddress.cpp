@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -29,89 +29,56 @@
 #include <SFML/Network/Http.hpp>
 #include <SFML/Network/SocketImpl.hpp>
 #include <cstring>
-
-
-namespace
-{
-    sf::Uint32 resolve(const std::string& address)
-    {
-        if (address == "255.255.255.255")
-        {
-            // The broadcast address needs to be handled explicitely,
-            // because it is also the value returned by inet_addr on error
-            return INADDR_BROADCAST;
-        }
-        else
-        {
-            // Try to convert the address as a byte representation ("xxx.xxx.xxx.xxx")
-            sf::Uint32 ip = inet_addr(address.c_str());
-            if (ip != INADDR_NONE)
-                return ip;
-
-            // Not a valid address, try to convert it as a host name
-            addrinfo hints;
-            std::memset(&hints, 0, sizeof(hints));
-            hints.ai_family = AF_INET;
-            addrinfo* result = NULL;
-            if (getaddrinfo(address.c_str(), NULL, &hints, &result) == 0)
-            {
-                if (result)
-                {
-                    ip = reinterpret_cast<sockaddr_in*>(result->ai_addr)->sin_addr.s_addr;
-                    freeaddrinfo(result);
-                    return ip;
-                }
-            }
-
-            // Not a valid address nor a host name
-            return 0;
-        }
-    }
-}
+#include <utility>
 
 
 namespace sf
 {
 ////////////////////////////////////////////////////////////
 const IpAddress IpAddress::None;
+const IpAddress IpAddress::Any(0, 0, 0, 0);
 const IpAddress IpAddress::LocalHost(127, 0, 0, 1);
 const IpAddress IpAddress::Broadcast(255, 255, 255, 255);
 
 
 ////////////////////////////////////////////////////////////
 IpAddress::IpAddress() :
-m_address(0)
+m_address(0),
+m_valid  (false)
 {
-    // We're using 0 (INADDR_ANY) instead of INADDR_NONE to represent the invalid address,
-    // because the latter is also the broadcast address (255.255.255.255); it's ok because
-    // SFML doesn't publicly use INADDR_ANY (it is always used implicitely)
 }
 
 
 ////////////////////////////////////////////////////////////
 IpAddress::IpAddress(const std::string& address) :
-m_address(resolve(address))
+m_address(0),
+m_valid  (false)
 {
+    resolve(address);
 }
 
 
 ////////////////////////////////////////////////////////////
 IpAddress::IpAddress(const char* address) :
-m_address(resolve(address))
+m_address(0),
+m_valid  (false)
 {
+    resolve(address);
 }
 
 
 ////////////////////////////////////////////////////////////
 IpAddress::IpAddress(Uint8 byte0, Uint8 byte1, Uint8 byte2, Uint8 byte3) :
-m_address(htonl((byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3))
+m_address(htonl((byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3)),
+m_valid  (true)
 {
 }
 
 
 ////////////////////////////////////////////////////////////
 IpAddress::IpAddress(Uint32 address) :
-m_address(htonl(address))
+m_address(htonl(address)),
+m_valid  (true)
 {
 }
 
@@ -148,7 +115,7 @@ IpAddress IpAddress::getLocalAddress()
         return localAddress;
 
     // Connect the socket to localhost on any port
-    sockaddr_in address = priv::SocketImpl::createAddress(ntohl(INADDR_LOOPBACK), 0);
+    sockaddr_in address = priv::SocketImpl::createAddress(ntohl(INADDR_LOOPBACK), 9);
     if (connect(sock, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == -1)
     {
         priv::SocketImpl::close(sock);
@@ -194,9 +161,58 @@ IpAddress IpAddress::getPublicAddress(Time timeout)
 
 
 ////////////////////////////////////////////////////////////
+void IpAddress::resolve(const std::string& address)
+{
+    m_address = 0;
+    m_valid = false;
+
+    if (address == "255.255.255.255")
+    {
+        // The broadcast address needs to be handled explicitly,
+        // because it is also the value returned by inet_addr on error
+        m_address = INADDR_BROADCAST;
+        m_valid = true;
+    }
+    else if (address == "0.0.0.0")
+    {
+        m_address = INADDR_ANY;
+        m_valid = true;
+    }
+    else
+    {
+        // Try to convert the address as a byte representation ("xxx.xxx.xxx.xxx")
+        Uint32 ip = inet_addr(address.c_str());
+        if (ip != INADDR_NONE)
+        {
+            m_address = ip;
+            m_valid = true;
+        }
+        else
+        {
+            // Not a valid address, try to convert it as a host name
+            addrinfo hints;
+            std::memset(&hints, 0, sizeof(hints));
+            hints.ai_family = AF_INET;
+            addrinfo* result = NULL;
+            if (getaddrinfo(address.c_str(), NULL, &hints, &result) == 0)
+            {
+                if (result)
+                {
+                    ip = reinterpret_cast<sockaddr_in*>(result->ai_addr)->sin_addr.s_addr;
+                    freeaddrinfo(result);
+                    m_address = ip;
+                    m_valid = true;
+                }
+            }
+        }
+    }
+}
+
+
+////////////////////////////////////////////////////////////
 bool operator ==(const IpAddress& left, const IpAddress& right)
 {
-    return left.toInteger() == right.toInteger();
+    return !(left < right) && !(right < left);
 }
 
 
@@ -210,7 +226,7 @@ bool operator !=(const IpAddress& left, const IpAddress& right)
 ////////////////////////////////////////////////////////////
 bool operator <(const IpAddress& left, const IpAddress& right)
 {
-    return left.toInteger() < right.toInteger();
+    return std::make_pair(left.m_valid, left.m_address) < std::make_pair(right.m_valid, right.m_address);
 }
 
 
