@@ -328,7 +328,7 @@ void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
     BRK(0);
 }
 
-const u8* ARM64XEmitter::AlignCode16()
+u8* ARM64XEmitter::AlignCode16()
 {
   int c = int((u64)m_code & 15);
   if (c)
@@ -336,7 +336,7 @@ const u8* ARM64XEmitter::AlignCode16()
   return m_code;
 }
 
-const u8* ARM64XEmitter::AlignCodePage()
+u8* ARM64XEmitter::AlignCodePage()
 {
   int c = int((u64)m_code & 4095);
   if (c)
