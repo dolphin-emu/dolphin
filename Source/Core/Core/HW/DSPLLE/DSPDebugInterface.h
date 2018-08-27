@@ -20,7 +20,7 @@ private:
   void Patch(std::size_t index) override;
 };
 
-class DSPDebugInterface final : public DebugInterface
+class DSPDebugInterface final : public Common::DebugInterface
 {
 public:
   DSPDebugInterface() {}
