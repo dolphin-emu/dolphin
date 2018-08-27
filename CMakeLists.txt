@@ -669,7 +669,7 @@ else()
   set(LZO lzo2)
 endif()
 
-if(NOT APPLE AND NOT MSVC)
+if(NOT APPLE AND NOT MSVC AND NOT LIBRETRO)
   check_lib(PNG libpng png png.h QUIET)
 endif()
 if (PNG_FOUND)
