@@ -157,6 +157,10 @@ protected:
   Common::Flag m_is_running{false};
   Common::Flag m_do_loop{true};
 
+  // In non-host input authority mode, this is how many packets each client should
+  // try to keep in-flight to the other clients. In host input authority mode, this is how
+  // many incoming input packets need to be queued up before the client starts
+  // speeding up the game to drain the buffer.
   unsigned int m_target_buffer_size = 20;
   bool m_host_input_authority = false;
 
