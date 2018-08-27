@@ -1,44 +1,34 @@
 package org.dolphinemu.dolphinemu.adapters;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Canvas;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
-import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> implements
-		View.OnClickListener,
-		View.OnLongClickListener
-{
+	View.OnClickListener,
+	View.OnLongClickListener {
 	private List<GameFile> mGameFiles;
 
 	/**
 	 * Initializes the adapter's observer, which watches for changes to the dataset. The adapter will
 	 * display no data until swapDataSet is called.
 	 */
-	public GameAdapter()
-	{
+	public GameAdapter() {
 		mGameFiles = new ArrayList<>();
 	}
 
@@ -50,11 +40,10 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * @return The created ViewHolder with references to all the child view's members.
 	 */
 	@Override
-	public GameViewHolder onCreateViewHolder(ViewGroup parent, int viewType)
-	{
+	public GameViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 		// Create a new view.
 		View gameCard = LayoutInflater.from(parent.getContext())
-				.inflate(R.layout.card_game, parent, false);
+			.inflate(R.layout.card_game, parent, false);
 
 		gameCard.setOnClickListener(this);
 		gameCard.setOnLongClickListener(this);
@@ -72,8 +61,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * @param position The position of the 'new' view in the dataset.
 	 */
 	@Override
-	public void onBindViewHolder(GameViewHolder holder, int position)
-	{
+	public void onBindViewHolder(GameViewHolder holder, int position) {
 		GameFile gameFile = mGameFiles.get(position);
 		PicassoUtils.loadGameBanner(holder.imageScreenshot, gameFile);
 
@@ -95,8 +83,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * @return Size of the dataset.
 	 */
 	@Override
-	public int getItemCount()
-	{
+	public int getItemCount() {
 		return mGameFiles.size();
 	}
 
@@ -106,8 +93,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * @param hasStableIds ignored.
 	 */
 	@Override
-	public void setHasStableIds(boolean hasStableIds)
-	{
+	public void setHasStableIds(boolean hasStableIds) {
 		super.setHasStableIds(false);
 	}
 
@@ -115,8 +101,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * When a load is finished, call this to replace the existing data
 	 * with the newly-loaded data.
 	 */
-	public void swapDataSet(List<GameFile> gameFiles)
-	{
+	public void swapDataSet(List<GameFile> gameFiles) {
 		mGameFiles = gameFiles;
 		notifyDataSetChanged();
 	}
@@ -127,8 +112,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * @param view The card representing the game the user wants to play.
 	 */
 	@Override
-	public void onClick(View view)
-	{
+	public void onClick(View view) {
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 
 		EmulationActivity.launch((FragmentActivity) view.getContext(), holder.gameFile, null);
@@ -141,8 +125,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	 * @param view The Card button that was long-clicked.
 	 */
 	@Override
-	public boolean onLongClick(View view)
-	{
+	public boolean onLongClick(View view) {
 		FragmentActivity activity = (FragmentActivity) view.getContext();
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 		GameDetailsDialog.newInstance(holder.gameFile.getPath()).show(
@@ -150,12 +133,10 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		return true;
 	}
 
-	public static class SpacesItemDecoration extends RecyclerView.ItemDecoration
-	{
+	public static class SpacesItemDecoration extends RecyclerView.ItemDecoration {
 		private Drawable mDivider;
 
-		public SpacesItemDecoration(Drawable divider)
-		{
+		public SpacesItemDecoration(Drawable divider) {
 			this.mDivider = divider;
 		}
 

@@ -3,20 +3,17 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 
-public final class CheckBoxSetting extends SettingsItem
-{
+public final class CheckBoxSetting extends SettingsItem {
 	private boolean mDefaultValue;
 
-	public CheckBoxSetting(String key, String section, int titleId, int descriptionId, boolean defaultValue, Setting setting)
-	{
+	public CheckBoxSetting(String key, String section, int titleId, int descriptionId,
+												 boolean defaultValue, Setting setting) {
 		super(key, section, setting, titleId, descriptionId);
 		mDefaultValue = defaultValue;
 	}
 
-	public boolean isChecked()
-	{
-		if (getSetting() == null)
-		{
+	public boolean isChecked() {
+		if (getSetting() == null) {
 			return mDefaultValue;
 		}
 
@@ -31,16 +28,12 @@ public final class CheckBoxSetting extends SettingsItem
 	 * @param checked Pretty self explanatory.
 	 * @return null if overwritten successfully; otherwise, a newly created BooleanSetting.
 	 */
-	public BooleanSetting setChecked(boolean checked)
-	{
-		if (getSetting() == null)
-		{
+	public BooleanSetting setChecked(boolean checked) {
+		if (getSetting() == null) {
 			BooleanSetting setting = new BooleanSetting(getKey(), getSection(), checked);
 			setSetting(setting);
 			return setting;
-		}
-		else
-		{
+		} else {
 			BooleanSetting setting = (BooleanSetting) getSetting();
 			setting.setValue(checked);
 			return null;
@@ -48,8 +41,7 @@ public final class CheckBoxSetting extends SettingsItem
 	}
 
 	@Override
-	public int getType()
-	{
+	public int getType() {
 		return TYPE_CHECKBOX;
 	}
 }

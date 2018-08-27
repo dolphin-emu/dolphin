@@ -3,17 +3,13 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 
-public final class InputBindingSetting extends SettingsItem
-{
-	public InputBindingSetting(String key, String section, int titleId, Setting setting)
-	{
+public final class InputBindingSetting extends SettingsItem {
+	public InputBindingSetting(String key, String section, int titleId, Setting setting) {
 		super(key, section, setting, titleId, 0);
 	}
 
-	public String getValue()
-	{
-		if (getSetting() == null)
-		{
+	public String getValue() {
+		if (getSetting() == null) {
 			return "";
 		}
 
@@ -28,16 +24,12 @@ public final class InputBindingSetting extends SettingsItem
 	 * @param bind The input that will be bound
 	 * @return null if overwritten successfully; otherwise, a newly created StringSetting.
 	 */
-	public StringSetting setValue(String bind)
-	{
-		if (getSetting() == null)
-		{
+	public StringSetting setValue(String bind) {
+		if (getSetting() == null) {
 			StringSetting setting = new StringSetting(getKey(), getSection(), bind);
 			setSetting(setting);
 			return setting;
-		}
-		else
-		{
+		} else {
 			StringSetting setting = (StringSetting) getSetting();
 			setting.setValue(bind);
 			return null;
@@ -45,8 +37,7 @@ public final class InputBindingSetting extends SettingsItem
 	}
 
 	@Override
-	public int getType()
-	{
+	public int getType() {
 		return TYPE_INPUT_BINDING;
 	}
 }

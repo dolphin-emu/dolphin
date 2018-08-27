@@ -8,8 +8,7 @@ import java.util.List;
 /**
  * Helps link home screen selection to a game.
  */
-public class AppLinkHelper
-{
+public class AppLinkHelper {
 	public static final String PLAY = "play";
 	public static final String BROWSE = "browse";
 	private static final String SCHEMA_URI_PREFIX = "dolphinemu://app/";
@@ -19,8 +18,7 @@ public class AppLinkHelper
 	private static final int URI_INDEX_CHANNEL = 1;
 	private static final int URI_INDEX_GAME = 2;
 
-	public static Uri buildGameUri(long channelId, String gameId)
-	{
+	public static Uri buildGameUri(long channelId, String gameId) {
 		return Uri.parse(URI_PLAY)
 			.buildUpon()
 			.appendPath(String.valueOf(channelId))
@@ -28,13 +26,11 @@ public class AppLinkHelper
 			.build();
 	}
 
-	public static Uri buildBrowseUri(String subscriptionName)
-	{
+	public static Uri buildBrowseUri(String subscriptionName) {
 		return Uri.parse(URI_VIEW).buildUpon().appendPath(subscriptionName).build();
 	}
 
-	public static AppLinkAction extractAction(Uri uri)
-	{
+	public static AppLinkAction extractAction(Uri uri) {
 		if (isGameUri(uri))
 			return new PlayAction(extractChannelId(uri), extractGameId(uri));
 		else if (isBrowseUri(uri))
@@ -43,18 +39,15 @@ public class AppLinkHelper
 		throw new IllegalArgumentException("No action found for uri " + uri);
 	}
 
-	private static boolean isGameUri(Uri uri)
-	{
-		if (uri.getPathSegments().isEmpty())
-		{
+	private static boolean isGameUri(Uri uri) {
+		if (uri.getPathSegments().isEmpty()) {
 			return false;
 		}
 		String option = uri.getPathSegments().get(URI_INDEX_OPTION);
 		return PLAY.equals(option);
 	}
 
-	private static boolean isBrowseUri(Uri uri)
-	{
+	private static boolean isBrowseUri(Uri uri) {
 		if (uri.getPathSegments().isEmpty())
 			return false;
 
@@ -62,28 +55,23 @@ public class AppLinkHelper
 		return BROWSE.equals(option);
 	}
 
-	private static String extractSubscriptionName(Uri uri)
-	{
+	private static String extractSubscriptionName(Uri uri) {
 		return extract(uri, URI_INDEX_CHANNEL);
 	}
 
-	private static long extractChannelId(Uri uri)
-	{
+	private static long extractChannelId(Uri uri) {
 		return extractLong(uri, URI_INDEX_CHANNEL);
 	}
 
-	private static String extractGameId(Uri uri)
-	{
+	private static String extractGameId(Uri uri) {
 		return extract(uri, URI_INDEX_GAME);
 	}
 
-	private static long extractLong(Uri uri, int index)
-	{
+	private static long extractLong(Uri uri, int index) {
 		return Long.valueOf(extract(uri, index));
 	}
 
-	private static String extract(Uri uri, int index)
-	{
+	private static String extract(Uri uri, int index) {
 		List<String> pathSegments = uri.getPathSegments();
 		if (pathSegments.isEmpty() || pathSegments.size() < index)
 			return null;
@@ -91,15 +79,13 @@ public class AppLinkHelper
 	}
 
 	@StringDef({BROWSE, PLAY})
-	public @interface ActionFlags
-	{
+	public @interface ActionFlags {
 	}
 
 	/**
 	 * Action for deep linking.
 	 */
-	public interface AppLinkAction
-	{
+	public interface AppLinkAction {
 		/**
 		 * Returns an string representation of the action.
 		 */
@@ -110,18 +96,15 @@ public class AppLinkHelper
 	/**
 	 * Action when clicking the channel icon
 	 */
-	public static class BrowseAction implements AppLinkAction
-	{
+	public static class BrowseAction implements AppLinkAction {
 		private final String mSubscriptionName;
 
-		private BrowseAction(String subscriptionName)
-		{
+		private BrowseAction(String subscriptionName) {
 			this.mSubscriptionName = subscriptionName;
 		}
 
 		@Override
-		public String getAction()
-		{
+		public String getAction() {
 			return BROWSE;
 		}
 	}
@@ -129,30 +112,25 @@ public class AppLinkHelper
 	/**
 	 * Action when clicking a program(game)
 	 */
-	public static class PlayAction implements AppLinkAction
-	{
+	public static class PlayAction implements AppLinkAction {
 		private final long channelId;
 		private final String gameId;
 
-		private PlayAction(long channelId, String gameId)
-		{
+		private PlayAction(long channelId, String gameId) {
 			this.channelId = channelId;
 			this.gameId = gameId;
 		}
 
-		public long getChannelId()
-		{
+		public long getChannelId() {
 			return channelId;
 		}
 
-		public String getGameId()
-		{
+		public String getGameId() {
 			return gameId;
 		}
 
 		@Override
-		public String getAction()
-		{
+		public String getAction() {
 			return PLAY;
 		}
 	}

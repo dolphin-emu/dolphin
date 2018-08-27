@@ -28,19 +28,14 @@ public class Java_GCAdapter {
 	static UsbEndpoint usb_in;
 	static UsbEndpoint usb_out;
 
-	private static void RequestPermission()
-	{
+	private static void RequestPermission() {
 		Context context = NativeLibrary.sEmulationActivity.get();
-		if (context != null)
-		{
+		if (context != null) {
 			HashMap<String, UsbDevice> devices = manager.getDeviceList();
-			for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
-			{
+			for (Map.Entry<String, UsbDevice> pair : devices.entrySet()) {
 				UsbDevice dev = pair.getValue();
-				if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
-				{
-					if (!manager.hasPermission(dev))
-					{
+				if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e) {
+					if (!manager.hasPermission(dev)) {
 						Intent intent = new Intent();
 						PendingIntent pend_intent;
 						intent.setClass(context, USBPermService.class);
@@ -49,28 +44,25 @@ public class Java_GCAdapter {
 					}
 				}
 			}
-		}
-		else
-		{
+		} else {
 			Log.warning("Cannot request GameCube Adapter permission as EmulationActivity is null.");
 		}
 
 	}
 
-	public static void Shutdown()
-	{
+	public static void Shutdown() {
 		usb_con.close();
 	}
-	public static int GetFD() { return usb_con.getFileDescriptor(); }
 
-	public static boolean QueryAdapter()
-	{
+	public static int GetFD() {
+		return usb_con.getFileDescriptor();
+	}
+
+	public static boolean QueryAdapter() {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
-		{
+		for (Map.Entry<String, UsbDevice> pair : devices.entrySet()) {
 			UsbDevice dev = pair.getValue();
-			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
-			{
+			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e) {
 				if (manager.hasPermission(dev))
 					return true;
 				else
@@ -80,9 +72,8 @@ public class Java_GCAdapter {
 		return false;
 	}
 
-	public static void InitAdapter()
-	{
-		byte[] init = { 0x13 };
+	public static void InitAdapter() {
+		byte[] init = {0x13};
 		usb_con.bulkTransfer(usb_in, init, init.length, 0);
 	}
 
@@ -94,31 +85,25 @@ public class Java_GCAdapter {
 		return usb_con.bulkTransfer(usb_out, rumble, 5, 16);
 	}
 
-	public static boolean OpenAdapter()
-	{
+	public static boolean OpenAdapter() {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
-		{
+		for (Map.Entry<String, UsbDevice> pair : devices.entrySet()) {
 			UsbDevice dev = pair.getValue();
-			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
-			{
-				if (manager.hasPermission(dev))
-				{
+			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e) {
+				if (manager.hasPermission(dev)) {
 					usb_con = manager.openDevice(dev);
 
 					Log.info("GCAdapter: Number of configurations: " + dev.getConfigurationCount());
 					Log.info("GCAdapter: Number of interfaces: " + dev.getInterfaceCount());
 
-					if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0)
-					{
+					if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0) {
 						UsbConfiguration conf = dev.getConfiguration(0);
 						usb_intf = conf.getInterface(0);
 						usb_con.claimInterface(usb_intf, true);
 
 						Log.info("GCAdapter: Number of endpoints: " + usb_intf.getEndpointCount());
 
-						if (usb_intf.getEndpointCount() == 2)
-						{
+						if (usb_intf.getEndpointCount() == 2) {
 							for (int i = 0; i < usb_intf.getEndpointCount(); ++i)
 								if (usb_intf.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
 									usb_in = usb_intf.getEndpoint(i);
@@ -127,20 +112,17 @@ public class Java_GCAdapter {
 
 							InitAdapter();
 							return true;
-						}
-						else
-						{
+						} else {
 							usb_con.releaseInterface(usb_intf);
 						}
 					}
 
 					final Activity emulationActivity = NativeLibrary.sEmulationActivity.get();
-					if (emulationActivity != null)
-					{
-						emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity, "GameCube Adapter couldn't be opened. Please re-plug the device.", Toast.LENGTH_LONG).show());
-					}
-					else
-					{
+					if (emulationActivity != null) {
+						emulationActivity.runOnUiThread(() -> Toast.makeText(emulationActivity,
+							"GameCube Adapter couldn't be opened. Please re-plug the device.",
+							Toast.LENGTH_LONG).show());
+					} else {
 						Log.warning("Cannot show toast for GameCube Adapter failure.");
 					}
 					usb_con.close();

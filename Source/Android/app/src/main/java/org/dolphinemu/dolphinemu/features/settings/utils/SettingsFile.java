@@ -10,8 +10,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -30,8 +30,7 @@ import java.util.TreeSet;
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
  */
-public final class SettingsFile
-{
+public final class SettingsFile {
 	public static final String FILE_NAME_DOLPHIN = "Dolphin";
 	public static final String FILE_NAME_GFX = "GFX";
 	public static final String FILE_NAME_GCPAD = "GCPadNew";
@@ -243,6 +242,7 @@ public final class SettingsFile
 	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
 
 	private static BiMap<String, String> sectionsMap = new BiMap<>();
+
 	static {
 		sectionsMap.add("Hardware", "Video_Hardware");
 		sectionsMap.add("Settings", "Video_Settings");
@@ -252,8 +252,7 @@ public final class SettingsFile
 		sectionsMap.add("GameSpecific", "Video");
 	}
 
-	private SettingsFile()
-	{
+	private SettingsFile() {
 	}
 
 	/**
@@ -261,60 +260,43 @@ public final class SettingsFile
 	 * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
 	 * failed.
 	 *
-	 * @param ini The ini file to load the settings from
+	 * @param ini  The ini file to load the settings from
 	 * @param view The current view.
 	 */
-	static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame, SettingsActivityView view)
-	{
+	static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame, SettingsActivityView view) {
 		HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
 
 		BufferedReader reader = null;
 
-		try
-		{
+		try {
 			reader = new BufferedReader(new FileReader(ini));
 
 			SettingSection current = null;
-			for (String line; (line = reader.readLine()) != null; )
-			{
-				if (line.startsWith("[") && line.endsWith("]"))
-				{
+			for (String line; (line = reader.readLine()) != null; ) {
+				if (line.startsWith("[") && line.endsWith("]")) {
 					current = sectionFromLine(line, isCustomGame);
 					sections.put(current.getName(), current);
-				}
-				else if ((current != null))
-				{
+				} else if ((current != null)) {
 					Setting setting = settingFromLine(current, line);
-					if (setting != null)
-					{
+					if (setting != null) {
 						current.putSetting(setting);
 					}
 				}
 			}
-		}
-		catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
 			if (view != null)
 				view.onSettingsFileNotFound();
-		}
-		catch (IOException e)
-		{
-			Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath()+ e.getMessage());
+		} catch (IOException e) {
+			Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath() + e.getMessage());
 			if (view != null)
 				view.onSettingsFileNotFound();
-		}
-		finally
-		{
-			if (reader != null)
-			{
-				try
-				{
+		} finally {
+			if (reader != null) {
+				try {
 					reader.close();
-				}
-				catch (IOException e)
-				{
-					Log.error("[SettingsFile] Error closing: " + ini.getAbsolutePath()+ e.getMessage());
+				} catch (IOException e) {
+					Log.error("[SettingsFile] Error closing: " + ini.getAbsolutePath() + e.getMessage());
 				}
 			}
 		}
@@ -322,17 +304,15 @@ public final class SettingsFile
 		return sections;
 	}
 
-    public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
-    {
+	public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view) {
 		HashMap<String, SettingSection> sections = readFile(getSettingsFile(fileName), false, view);
 
-		if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
-		{
+		if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN)) {
 			addGcPadSettingsIfTheyDontExist(sections);
 		}
 
-        return sections;
-    }
+		return sections;
+	}
 
 	/**
 	 * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
@@ -340,20 +320,17 @@ public final class SettingsFile
 	 * failed.
 	 *
 	 * @param gameId the id of the game to load it's settings.
-	 * @param view The current view.
+	 * @param view   The current view.
 	 */
-	public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId, SettingsActivityView view)
-	{
+	public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId, SettingsActivityView view) {
 		return readFile(getCustomGameSettingsFile(gameId), true, view);
 	}
 
-	public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId, SettingsActivityView view)
-	{
+	public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId, SettingsActivityView view) {
 		return readFile(getGenericGameSettingsFile(gameId), true, view);
 	}
 
-	public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(final String gameId, SettingsActivityView view)
-	{
+	public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(final String gameId, SettingsActivityView view) {
 		return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
 	}
 
@@ -366,78 +343,61 @@ public final class SettingsFile
 	 * @param sections The HashMap containing the Settings we want to serialize.
 	 * @param view     The current view.
 	 */
-	public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections, SettingsActivityView view)
-	{
+	public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections, SettingsActivityView view) {
 		File ini = getSettingsFile(fileName);
 
 		PrintWriter writer = null;
-		try
-		{
+		try {
 			writer = new PrintWriter(ini, "UTF-8");
 
 			Set<String> keySet = sections.keySet();
 			Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-			for (String key : sortedKeySet)
-			{
+			for (String key : sortedKeySet) {
 				SettingSection section = sections.get(key);
 				writeSection(writer, section);
 			}
-		}
-		catch (FileNotFoundException e)
-		{
+		} catch (FileNotFoundException e) {
 			Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
 			if (view != null)
 				view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
-		}
-		catch (UnsupportedEncodingException e)
-		{
+		} catch (UnsupportedEncodingException e) {
 			Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " + e.getMessage());
 			if (view != null)
 				view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
-		}
-		finally
-		{
-			if (writer != null)
-			{
+		} finally {
+			if (writer != null) {
 				writer.close();
 			}
 		}
 	}
 
-	public static void saveCustomGameSettings(final String gameId, final HashMap<String, SettingSection> sections)
-	{
+	public static void saveCustomGameSettings(final String gameId, final HashMap<String, SettingSection> sections) {
 		Set<String> sortedSections = new TreeSet<>(sections.keySet());
 
-		for (String sectionKey : sortedSections)
-		{
+		for (String sectionKey : sortedSections) {
 			SettingSection section = sections.get(sectionKey);
 
 			HashMap<String, Setting> settings = section.getSettings();
 			Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
 
-			for (String settingKey : sortedKeySet)
-			{
+			for (String settingKey : sortedKeySet) {
 				Setting setting = settings.get(settingKey);
 				NativeLibrary.SetUserSetting(gameId, mapSectionNameFromIni(section.getName()), setting.getKey(), setting.getValueAsString());
 			}
 		}
 	}
 
-	private static String mapSectionNameFromIni(String generalSectionName)
-	{
-		if (sectionsMap.getForward(generalSectionName) != null)
-		{
+	private static String mapSectionNameFromIni(String generalSectionName) {
+		if (sectionsMap.getForward(generalSectionName) != null) {
 			return sectionsMap.getForward(generalSectionName);
 		}
 
 		return generalSectionName;
 	}
 
-	private static String mapSectionNameToIni(String generalSectionName)
-	{
-		if (sectionsMap.getBackward(generalSectionName) != null)
-		{
+	private static String mapSectionNameToIni(String generalSectionName) {
+		if (sectionsMap.getBackward(generalSectionName) != null) {
 			return sectionsMap.getBackward(generalSectionName);
 		}
 
@@ -445,47 +405,38 @@ public final class SettingsFile
 	}
 
 	@NonNull
-	private static File getSettingsFile(String fileName)
-	{
+	private static File getSettingsFile(String fileName) {
 		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
 	}
 
-	private static File getGenericGameSettingsForAllRegions(String gameId)
-	{
+	private static File getGenericGameSettingsForAllRegions(String gameId) {
 		// Use the first 3 chars from the gameId to load the generic game settings for all regions
 		gameId = gameId.substring(0, 3);
 		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
-	private static File getGenericGameSettingsFile(String gameId)
-	{
+	private static File getGenericGameSettingsFile(String gameId) {
 		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
-	private static File getCustomGameSettingsFile(String gameId)
-	{
+	private static File getCustomGameSettingsFile(String gameId) {
 		return new File(DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
-    private static SettingSection sectionFromLine(String line, boolean isCustomGame)
-    {
-        String sectionName = line.substring(1, line.length() - 1);
-        if (isCustomGame)
-        {
-            sectionName = mapSectionNameToIni(sectionName);
-        }
-        return new SettingSection(sectionName);
-    }
+	private static SettingSection sectionFromLine(String line, boolean isCustomGame) {
+		String sectionName = line.substring(1, line.length() - 1);
+		if (isCustomGame) {
+			sectionName = mapSectionNameToIni(sectionName);
+		}
+		return new SettingSection(sectionName);
+	}
 
-	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
-	{
+	private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections) {
 		SettingSection coreSection = sections.get(Settings.SECTION_INI_CORE);
 
-		for (int i = 0; i < 4; i++)
-		{
+		for (int i = 0; i < 4; i++) {
 			String key = SettingsFile.KEY_GCPAD_TYPE + i;
-			if (coreSection.getSetting(key) == null)
-			{
+			if (coreSection.getSetting(key) == null) {
 				// Set GameCube controller 1 to enabled, all others disabled
 				Setting gcPadSetting = new IntSetting(key, Settings.SECTION_INI_CORE, i == 0 ? 6 : 0);
 				coreSection.putSetting(gcPadSetting);
@@ -499,16 +450,14 @@ public final class SettingsFile
 	 * For a line of text, determines what type of data is being represented, and returns
 	 * a Setting object containing this data.
 	 *
-	 * @param current  The section currently being parsed by the consuming method.
-	 * @param line     The line of text being parsed.
+	 * @param current The section currently being parsed by the consuming method.
+	 * @param line    The line of text being parsed.
 	 * @return A typed Setting containing the key/value contained in the line.
 	 */
-	private static Setting settingFromLine(SettingSection current, String line)
-	{
+	private static Setting settingFromLine(SettingSection current, String line) {
 		String[] splitLine = line.split("=");
 
-		if (splitLine.length != 2)
-		{
+		if (splitLine.length != 2) {
 			Log.warning("Skipping invalid config line \"" + line + "\"");
 			return null;
 		}
@@ -516,28 +465,21 @@ public final class SettingsFile
 		String key = splitLine[0].trim();
 		String value = splitLine[1].trim();
 
-		try
-		{
+		try {
 			int valueAsInt = Integer.valueOf(value);
 
 			return new IntSetting(key, current.getName(), valueAsInt);
-		}
-		catch (NumberFormatException ex)
-		{
+		} catch (NumberFormatException ex) {
 		}
 
-		try
-		{
+		try {
 			float valueAsFloat = Float.valueOf(value);
 
 			return new FloatSetting(key, current.getName(), valueAsFloat);
-		}
-		catch (NumberFormatException ex)
-		{
+		} catch (NumberFormatException ex) {
 		}
 
-		switch (value)
-		{
+		switch (value) {
 			case "True":
 				return new BooleanSetting(key, current.getName(), true);
 			case "False":
@@ -550,11 +492,10 @@ public final class SettingsFile
 	/**
 	 * Writes the contents of a Section HashMap to disk.
 	 *
-	 * @param writer A PrintWriter pointed at a file on disk.
+	 * @param writer  A PrintWriter pointed at a file on disk.
 	 * @param section A section containing settings to be written to the file.
 	 */
-	private static void writeSection(PrintWriter writer, SettingSection section)
-	{
+	private static void writeSection(PrintWriter writer, SettingSection section) {
 		// Write the section header.
 		String header = sectionAsString(section);
 		writer.println(header);
@@ -564,8 +505,7 @@ public final class SettingsFile
 		Set<String> keySet = settings.keySet();
 		Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-		for (String key : sortedKeySet)
-		{
+		for (String key : sortedKeySet) {
 			Setting setting = settings.get(key);
 			String settingString = settingAsString(setting);
 
@@ -573,13 +513,11 @@ public final class SettingsFile
 		}
 	}
 
-	private static String sectionAsString(SettingSection section)
-	{
+	private static String sectionAsString(SettingSection section) {
 		return "[" + section.getName() + "]";
 	}
 
-	private static String settingAsString(Setting setting)
-	{
+	private static String settingAsString(Setting setting) {
 		return setting.getKey() + " = " + setting.getValueAsString();
 	}
 }

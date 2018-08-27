@@ -7,31 +7,26 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public final class HeaderViewHolder extends SettingViewHolder
-{
+public final class HeaderViewHolder extends SettingViewHolder {
 	private TextView mHeaderName;
 
-	public HeaderViewHolder(View itemView, SettingsAdapter adapter)
-	{
+	public HeaderViewHolder(View itemView, SettingsAdapter adapter) {
 		super(itemView, adapter);
 		itemView.setOnClickListener(null);
 	}
 
 	@Override
-	protected void findViews(View root)
-	{
+	protected void findViews(View root) {
 		mHeaderName = (TextView) root.findViewById(R.id.text_header_name);
 	}
 
 	@Override
-	public void bind(SettingsItem item)
-	{
+	public void bind(SettingsItem item) {
 		mHeaderName.setText(item.getNameId());
 	}
 
 	@Override
-	public void onClick(View clicked)
-	{
+	public void onClick(View clicked) {
 		// no-op
 	}
 }

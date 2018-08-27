@@ -12,8 +12,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
  * A simple class that stores references to views so that the GameAdapter doesn't need to
  * keep calling findViewById(), which is expensive.
  */
-public class GameViewHolder extends RecyclerView.ViewHolder
-{
+public class GameViewHolder extends RecyclerView.ViewHolder {
 	public ImageView imageScreenshot;
 	public TextView textGameTitle;
 	public TextView textCompany;
@@ -21,8 +20,7 @@ public class GameViewHolder extends RecyclerView.ViewHolder
 
 	public GameFile gameFile;
 
-	public GameViewHolder(View itemView)
-	{
+	public GameViewHolder(View itemView) {
 		super(itemView);
 
 		itemView.setTag(this);

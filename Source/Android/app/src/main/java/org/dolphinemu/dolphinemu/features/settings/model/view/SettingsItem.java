@@ -1,7 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
@@ -10,8 +10,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.Setting;
  * and a few with none (Headers, for example, do not correspond to anything in the ini
  * file.)
  */
-public abstract class SettingsItem
-{
+public abstract class SettingsItem {
 	public static final int TYPE_HEADER = 0;
 	public static final int TYPE_CHECKBOX = 1;
 	public static final int TYPE_SINGLE_CHOICE = 2;
@@ -38,8 +37,7 @@ public abstract class SettingsItem
 	 * @param nameId        Resource ID for a text string to be displayed as this setting's name.
 	 * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
 	 */
-	public SettingsItem(String key, String section, Setting setting, int nameId, int descriptionId)
-	{
+	public SettingsItem(String key, String section, Setting setting, int nameId, int descriptionId) {
 		mKey = key;
 		mSection = section;
 		mSetting = setting;
@@ -48,30 +46,24 @@ public abstract class SettingsItem
 	}
 
 	/**
-	 *
 	 * @return The identifier for the backing Setting.
 	 */
-	public String getKey()
-	{
+	public String getKey() {
 		return mKey;
 	}
 
 	/**
-	 *
 	 * @return The header under which the backing Setting belongs.
 	 */
-	public String getSection()
-	{
+	public String getSection() {
 		return mSection;
 	}
 
 
 	/**
-	 *
 	 * @return The backing Setting, possibly null.
 	 */
-	public Setting getSetting()
-	{
+	public Setting getSetting() {
 		return mSetting;
 	}
 
@@ -81,22 +73,18 @@ public abstract class SettingsItem
 	 *
 	 * @param setting A non-null Setting.
 	 */
-	public void setSetting(Setting setting)
-	{
+	public void setSetting(Setting setting) {
 		mSetting = setting;
 	}
 
 	/**
-	 *
 	 * @return A resource ID for a text string representing this Setting's name.
 	 */
-	public int getNameId()
-	{
+	public int getNameId() {
 		return mNameId;
 	}
 
-	public int getDescriptionId()
-	{
+	public int getDescriptionId() {
 		return mDescriptionId;
 	}
 

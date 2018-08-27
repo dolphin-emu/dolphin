@@ -11,15 +11,14 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
-import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 import java.io.File;
 
-public final class MainPresenter
-{
+public final class MainPresenter {
 	public static final int REQUEST_ADD_DIRECTORY = 1;
 	public static final int REQUEST_EMULATE_GAME = 2;
 
@@ -28,47 +27,38 @@ public final class MainPresenter
 	private BroadcastReceiver mBroadcastReceiver = null;
 	private String mDirToAdd;
 
-	public MainPresenter(MainView view, Context context)
-	{
+	public MainPresenter(MainView view, Context context) {
 		mView = view;
 		mContext = context;
 	}
 
-	public void onCreate()
-	{
+	public void onCreate() {
 		String versionName = BuildConfig.VERSION_NAME;
 		mView.setVersionString(versionName);
 
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(GameFileCacheService.BROADCAST_ACTION);
-		mBroadcastReceiver = new BroadcastReceiver()
-		{
+		mBroadcastReceiver = new BroadcastReceiver() {
 			@Override
-			public void onReceive(Context context, Intent intent)
-			{
+			public void onReceive(Context context, Intent intent) {
 				mView.showGames();
 			}
 		};
 		LocalBroadcastManager.getInstance(mContext).registerReceiver(mBroadcastReceiver, filter);
 	}
 
-	public void onDestroy()
-	{
-		if (mBroadcastReceiver != null)
-		{
+	public void onDestroy() {
+		if (mBroadcastReceiver != null) {
 			LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mBroadcastReceiver);
 		}
 	}
 
-	public void onFabClick()
-	{
+	public void onFabClick() {
 		mView.launchFileListActivity();
 	}
 
-	public boolean handleOptionSelection(int itemId, Context context)
-	{
-		switch (itemId)
-		{
+	public boolean handleOptionSelection(int itemId, Context context) {
+		switch (itemId) {
 			case R.id.menu_add_directory:
 				mView.launchFileListActivity();
 				return true;
@@ -97,39 +87,30 @@ public final class MainPresenter
 		return false;
 	}
 
-	public void addDirIfNeeded(Context context)
-	{
-		if (mDirToAdd != null)
-		{
+	public void addDirIfNeeded(Context context) {
+		if (mDirToAdd != null) {
 			GameFileCache.addGameFolder(mDirToAdd, context);
 			mDirToAdd = null;
 			GameFileCacheService.startRescan(context);
 		}
 	}
 
-	public void onDirectorySelected(String dir)
-	{
+	public void onDirectorySelected(String dir) {
 		mDirToAdd = dir;
 	}
 
-	public void refreshFragmentScreenshot(int resultCode)
-	{
+	public void refreshFragmentScreenshot(int resultCode) {
 		mView.refreshFragmentScreenshot(resultCode);
 	}
 
-	private void clearGameData(Context context)
-	{
+	private void clearGameData(Context context) {
 		int count = 0;
 		String cachePath = DirectoryInitializationService.getUserDirectory() + "/Cache/";
 		File dir = new File(cachePath);
-		if(dir.exists())
-		{
-			for(File f : dir.listFiles())
-			{
-				if(f.getName().endsWith(".uidcache"))
-				{
-					if(f.delete())
-					{
+		if (dir.exists()) {
+			for (File f : dir.listFiles()) {
+				if (f.getName().endsWith(".uidcache")) {
+					if (f.delete()) {
 						count += 1;
 					}
 				}
@@ -138,14 +119,10 @@ public final class MainPresenter
 
 		String shadersPath = cachePath + "/Shaders/";
 		dir = new File(shadersPath);
-		if(dir.exists())
-		{
-			for(File f : dir.listFiles())
-			{
-				if(f.getName().endsWith(".cache"))
-				{
-					if(f.delete())
-					{
+		if (dir.exists()) {
+			for (File f : dir.listFiles()) {
+				if (f.getName().endsWith(".cache")) {
+					if (f.delete()) {
 						count += 1;
 					}
 				}

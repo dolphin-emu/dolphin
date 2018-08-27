@@ -15,14 +15,10 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
-import java.util.HashMap;
-
-public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
-{
+public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView {
 	private static final String ARG_MENU_TAG = "menu_tag";
 	private static final String ARG_GAME_ID = "game_id";
 	private static final String FRAGMENT_TAG = "settings";
@@ -30,8 +26,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 	private ProgressDialog dialog;
 
-	public static void launch(Context context, MenuTag menuTag, String gameId)
-	{
+	public static void launch(Context context, MenuTag menuTag, String gameId) {
 		Intent settings = new Intent(context, SettingsActivity.class);
 		settings.putExtra(ARG_MENU_TAG, menuTag);
 		settings.putExtra(ARG_GAME_ID, gameId);
@@ -39,8 +34,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
+	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.activity_settings);
@@ -52,8 +46,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
+	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu_settings, menu);
 
@@ -61,22 +54,19 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
+	public boolean onOptionsItemSelected(MenuItem item) {
 		return mPresenter.handleOptionsItem(item.getItemId());
 	}
 
 	@Override
-	protected void onSaveInstanceState(Bundle outState)
-	{
+	protected void onSaveInstanceState(Bundle outState) {
 		// Critical: If super method is not called, rotations will be busted.
 		super.onSaveInstanceState(outState);
 		mPresenter.saveState(outState);
 	}
 
 	@Override
-	protected void onStart()
-	{
+	protected void onStart() {
 		super.onStart();
 		mPresenter.onStart();
 	}
@@ -87,34 +77,29 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	 * IntentService which will do so on a background thread.
 	 */
 	@Override
-	protected void onStop()
-	{
+	protected void onStop() {
 		super.onStop();
 
 		mPresenter.onStop(isFinishing());
 	}
 
 	@Override
-	public void onBackPressed()
-	{
+	public void onBackPressed() {
 		mPresenter.onBackPressed();
 	}
 
 
 	@Override
-	public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameID)
-	{
+	public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameID) {
 		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-		if (addToStack)
-		{
-			if (areSystemAnimationsEnabled())
-			{
+		if (addToStack) {
+			if (areSystemAnimationsEnabled()) {
 				transaction.setCustomAnimations(
-						R.animator.settings_enter,
-						R.animator.settings_exit,
-						R.animator.settings_pop_enter,
-						R.animator.setttings_pop_exit);
+					R.animator.settings_enter,
+					R.animator.settings_exit,
+					R.animator.settings_pop_enter,
+					R.animator.setttings_pop_exit);
 			}
 
 			transaction.addToBackStack(null);
@@ -125,37 +110,32 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		transaction.commit();
 	}
 
-	private boolean areSystemAnimationsEnabled()
-	{
+	private boolean areSystemAnimationsEnabled() {
 		float duration = Settings.Global.getFloat(
-				getContentResolver(),
-				Settings.Global.ANIMATOR_DURATION_SCALE, 1);
+			getContentResolver(),
+			Settings.Global.ANIMATOR_DURATION_SCALE, 1);
 		float transition = Settings.Global.getFloat(
-				getContentResolver(),
-				Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
+			getContentResolver(),
+			Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
 		return duration != 0 && transition != 0;
 	}
 
 	@Override
-	public void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter)
-	{
+	public void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter) {
 		LocalBroadcastManager.getInstance(this).registerReceiver(
-				receiver,
-				filter);
+			receiver,
+			filter);
 		DirectoryInitializationService.startService(this);
 	}
 
 	@Override
-	public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver)
-	{
+	public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver) {
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 	}
 
 	@Override
-	public void showLoading()
-	{
-		if (dialog == null)
-		{
+	public void showLoading() {
+		if (dialog == null) {
 			dialog = new ProgressDialog(this);
 			dialog.setMessage(getString(R.string.load_settings));
 			dialog.setIndeterminate(true);
@@ -165,97 +145,81 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	public void hideLoading()
-	{
+	public void hideLoading() {
 		dialog.dismiss();
 	}
 
 	@Override
-	public void showPermissionNeededHint()
-	{
+	public void showPermissionNeededHint() {
 		Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-				.show();
+			.show();
 	}
 
 	@Override
-	public void showExternalStorageNotMountedHint()
-	{
+	public void showExternalStorageNotMountedHint() {
 		Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
-				.show();
+			.show();
 	}
 
 	@Override
-	public org.dolphinemu.dolphinemu.features.settings.model.Settings getSettings()
-	{
+	public org.dolphinemu.dolphinemu.features.settings.model.Settings getSettings() {
 		return mPresenter.getSettings();
 	}
 
 	@Override
-	public void setSettings(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-	{
+	public void setSettings(org.dolphinemu.dolphinemu.features.settings.model.Settings settings) {
 		mPresenter.setSettings(settings);
 	}
 
 	@Override
-	public void onSettingsFileLoaded(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-	{
+	public void onSettingsFileLoaded(org.dolphinemu.dolphinemu.features.settings.model.Settings settings) {
 		SettingsFragmentView fragment = getFragment();
 
-		if (fragment != null)
-		{
+		if (fragment != null) {
 			fragment.onSettingsFileLoaded(settings);
 		}
 	}
 
 	@Override
-	public void onSettingsFileNotFound()
-	{
+	public void onSettingsFileNotFound() {
 		SettingsFragmentView fragment = getFragment();
 
-		if (fragment != null)
-		{
+		if (fragment != null) {
 			fragment.loadDefaultSettings();
 		}
 	}
 
 	@Override
-	public void showToastMessage(String message)
-	{
+	public void showToastMessage(String message) {
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
-	public void popBackStack()
-	{
+	public void popBackStack() {
 		getSupportFragmentManager().popBackStackImmediate();
 	}
 
 	@Override
-	public void onSettingChanged()
-	{
+	public void onSettingChanged() {
 		mPresenter.onSettingChanged();
 	}
 
 	@Override
-	public void onGcPadSettingChanged(MenuTag key, int value)
-	{
+	public void onGcPadSettingChanged(MenuTag key, int value) {
 		mPresenter.onGcPadSettingChanged(key, value);
 	}
 
 	@Override
-	public void onWiimoteSettingChanged(MenuTag section, int value)
-	{
+	public void onWiimoteSettingChanged(MenuTag section, int value) {
 		mPresenter.onWiimoteSettingChanged(section, value);
 	}
 
 	@Override
-	public void onExtensionSettingChanged(MenuTag menuTag, int value)
-	{
+	public void onExtensionSettingChanged(MenuTag menuTag, int value) {
 		mPresenter.onExtensionSettingChanged(menuTag, value);
 	}
 
-	private SettingsFragment getFragment()
-	{
+	private SettingsFragment getFragment() {
 		return (SettingsFragment) getSupportFragmentManager().findFragmentByTag(FRAGMENT_TAG);
 	}
 }

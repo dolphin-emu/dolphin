@@ -9,8 +9,7 @@ import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 /**
  * Abstraction for the Activity that manages SettingsFragments.
  */
-public interface SettingsActivityView
-{
+public interface SettingsActivityView {
 	/**
 	 * Show a new SettingsFragment.
 	 *
@@ -76,8 +75,8 @@ public interface SettingsActivityView
 	 * Called by a containing Fragment to tell the containing Activity that a GCPad's setting
 	 * was modified.
 	 *
-	 * @param menuTag   Identifier for the GCPad that was modified.
-	 * @param value New setting for the GCPad.
+	 * @param menuTag Identifier for the GCPad that was modified.
+	 * @param value   New setting for the GCPad.
 	 */
 	void onGcPadSettingChanged(MenuTag menuTag, int value);
 
@@ -94,8 +93,8 @@ public interface SettingsActivityView
 	 * Called by a containing Fragment to tell the containing Activity that an extension setting
 	 * was modified.
 	 *
-	 * @param menuTag   Identifier for the extension that was modified.
-	 * @param value New setting for the extension.
+	 * @param menuTag Identifier for the extension that was modified.
+	 * @param value   New setting for the extension.
 	 */
 	void onExtensionSettingChanged(MenuTag menuTag, int value);
 
@@ -123,7 +122,7 @@ public interface SettingsActivityView
 	 * Start the DirectoryInitializationService and listen for the result.
 	 *
 	 * @param receiver the broadcast receiver for the DirectoryInitializationService
-	 * @param filter the Intent broadcasts to be received.
+	 * @param filter   the Intent broadcasts to be received.
 	 */
 	void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter);
 

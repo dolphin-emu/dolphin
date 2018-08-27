@@ -17,8 +17,7 @@ import android.view.MotionEvent;
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
  */
-public final class InputOverlayDrawableDpad
-{
+public final class InputOverlayDrawableDpad {
 	// The ID identifying what type of button this Drawable represents.
 	private int[] mButtonType = new int[4];
 	private int mTrackId;
@@ -54,12 +53,11 @@ public final class InputOverlayDrawableDpad
 	 * @param buttonRight                     Identifier for the right button.
 	 */
 	public InputOverlayDrawableDpad(Resources res,
-	                                Bitmap defaultStateBitmap,
-	                                Bitmap pressedOneDirectionStateBitmap,
-	                                Bitmap pressedTwoDirectionsStateBitmap,
-	                                int buttonUp, int buttonDown,
-	                                int buttonLeft, int buttonRight)
-	{
+																	Bitmap defaultStateBitmap,
+																	Bitmap pressedOneDirectionStateBitmap,
+																	Bitmap pressedTwoDirectionsStateBitmap,
+																	int buttonUp, int buttonDown,
+																	int buttonLeft, int buttonRight) {
 		mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
 		mPressedOneDirectionStateBitmap = new BitmapDrawable(res, pressedOneDirectionStateBitmap);
 		mPressedTwoDirectionsStateBitmap = new BitmapDrawable(res, pressedTwoDirectionsStateBitmap);
@@ -73,10 +71,9 @@ public final class InputOverlayDrawableDpad
 		mButtonType[3] = buttonRight;
 	}
 
-	public void draw(Canvas canvas)
-	{
-		int px = mControlPositionX + (getWidth()/2);
-		int py = mControlPositionY + (getHeight()/2);
+	public void draw(Canvas canvas) {
+		int px = mControlPositionX + (getWidth() / 2);
+		int py = mControlPositionY + (getHeight() / 2);
 		switch (mPressState) {
 			case STATE_DEFAULT:
 				mDefaultStateBitmap.draw(canvas);
@@ -131,28 +128,23 @@ public final class InputOverlayDrawableDpad
 	 *
 	 * @return the requested InputOverlayDrawableDpad's button ID.
 	 */
-	public int getId(int direction)
-	{
+	public int getId(int direction) {
 		return mButtonType[direction];
 	}
 
-	public void setTrackId(int trackId)
-	{
+	public void setTrackId(int trackId) {
 		mTrackId = trackId;
 	}
 
-	public int getTrackId()
-	{
+	public int getTrackId() {
 		return mTrackId;
 	}
 
-	public boolean onConfigureTouch(MotionEvent event)
-	{
+	public boolean onConfigureTouch(MotionEvent event) {
 		int pointerIndex = event.getActionIndex();
-		int fingerPositionX = (int)event.getX(pointerIndex);
-		int fingerPositionY = (int)event.getY(pointerIndex);
-		switch (event.getAction())
-		{
+		int fingerPositionX = (int) event.getX(pointerIndex);
+		int fingerPositionY = (int) event.getY(pointerIndex);
+		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				mPreviousTouchX = fingerPositionX;
 				mPreviousTouchY = fingerPositionY;
@@ -160,7 +152,8 @@ public final class InputOverlayDrawableDpad
 			case MotionEvent.ACTION_MOVE:
 				mControlPositionX += fingerPositionX - mPreviousTouchX;
 				mControlPositionY += fingerPositionY - mPreviousTouchY;
-				setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX, getHeight() + mControlPositionY);
+				setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX,
+					getHeight() + mControlPositionY);
 				mPreviousTouchX = fingerPositionX;
 				mPreviousTouchY = fingerPositionY;
 				break;
@@ -169,21 +162,18 @@ public final class InputOverlayDrawableDpad
 		return true;
 	}
 
-	public void setPosition(int x, int y)
-	{
+	public void setPosition(int x, int y) {
 		mControlPositionX = x;
 		mControlPositionY = y;
 	}
 
-	public void setBounds(int left, int top, int right, int bottom)
-	{
+	public void setBounds(int left, int top, int right, int bottom) {
 		mDefaultStateBitmap.setBounds(left, top, right, bottom);
 		mPressedOneDirectionStateBitmap.setBounds(left, top, right, bottom);
 		mPressedTwoDirectionsStateBitmap.setBounds(left, top, right, bottom);
 	}
 
-	public Rect getBounds()
-	{
+	public Rect getBounds() {
 		return mDefaultStateBitmap.getBounds();
 	}
 

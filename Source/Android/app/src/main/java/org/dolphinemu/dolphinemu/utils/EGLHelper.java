@@ -22,8 +22,7 @@ import javax.microedition.khronos.opengles.GL10;
  * EGL initialization out of the way if all that is
  * wanted is to query the underlying GL API for information.
  */
-public final class EGLHelper
-{
+public final class EGLHelper {
 	private final EGL10 mEGL;
 	private final EGLDisplay mDisplay;
 	private EGLConfig[] mEGLConfigs;
@@ -37,14 +36,14 @@ public final class EGLHelper
 	private boolean supportGLES3;
 
 	// Renderable type bitmasks
-	public static final int EGL_OPENGL_ES_BIT      = 0x0001;
-	public static final int EGL_OPENGL_ES2_BIT     = 0x0004;
-	public static final int EGL_OPENGL_BIT         = 0x0008;
+	public static final int EGL_OPENGL_ES_BIT = 0x0001;
+	public static final int EGL_OPENGL_ES2_BIT = 0x0004;
+	public static final int EGL_OPENGL_BIT = 0x0008;
 	public static final int EGL_OPENGL_ES3_BIT_KHR = 0x0040;
 
 	// API types
 	public static final int EGL_OPENGL_ES_API = 0x30A0;
-	public static final int EGL_OPENGL_API    = 0x30A2;
+	public static final int EGL_OPENGL_API = 0x30A2;
 
 	/**
 	 * Constructor
@@ -56,8 +55,7 @@ public final class EGLHelper
 	 * @param renderableType Bitmask indicating which types of client API contexts
 	 *                       the framebuffer config must support.
 	 */
-	public EGLHelper(int renderableType)
-	{
+	public EGLHelper(int renderableType) {
 		this(1, 1, renderableType);
 	}
 
@@ -69,31 +67,24 @@ public final class EGLHelper
 	 * @param renderableType Bitmask indicating which types of client API contexts
 	 *                       the framebuffer config must support.
 	 */
-	public EGLHelper(int width, int height, int renderableType)
-	{
+	public EGLHelper(int width, int height, int renderableType) {
 		// Initialize handle to an EGL display.
 		mEGL = (EGL10) EGLContext.getEGL();
 		mDisplay = mEGL.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
 
 		// If a display is present, initialize EGL.
-		if (mDisplay != EGL10.EGL_NO_DISPLAY)
-		{
+		if (mDisplay != EGL10.EGL_NO_DISPLAY) {
 			int[] version = new int[2];
-			if (mEGL.eglInitialize(mDisplay, version))
-			{
+			if (mEGL.eglInitialize(mDisplay, version)) {
 				// Detect supported GL APIs, initialize configs, etc.
 				detect();
 
 				// Create context and surface
 				create(width, height, renderableType);
-			}
-			else
-			{
+			} else {
 				Log.error("[EGLHelper] Error initializing EGL.");
 			}
-		}
-		else
-		{
+		} else {
 			Log.error("[EGLHelper] Error initializing EGL display.");
 		}
 	}
@@ -103,8 +94,7 @@ public final class EGLHelper
 	 * <p>
 	 * This should be called whenever this helper is no longer needed.
 	 */
-	public void closeHelper()
-	{
+	public void closeHelper() {
 		mEGL.eglTerminate(mDisplay);
 	}
 
@@ -118,9 +108,8 @@ public final class EGLHelper
 	 *
 	 * @return information retrieved through EGL.
 	 */
-	public String[] getEGLInfo()
-	{
-		return new String[] {
+	public String[] getEGLInfo() {
+		return new String[]{
 			mGL.glGetString(GL10.GL_VENDOR),
 			mGL.glGetString(GL10.GL_VERSION),
 			mGL.glGetString(GL10.GL_RENDERER),
@@ -133,8 +122,7 @@ public final class EGLHelper
 	 *
 	 * @return true if this device supports OpenGL; false otherwise.
 	 */
-	public boolean supportsOpenGL()
-	{
+	public boolean supportsOpenGL() {
 		return supportGL;
 	}
 
@@ -145,8 +133,7 @@ public final class EGLHelper
 	 *
 	 * @return true if this device supports OpenGL ES 2; false otherwise.
 	 */
-	public boolean supportsGLES2()
-	{
+	public boolean supportsGLES2() {
 		return supportGLES2;
 	}
 
@@ -157,8 +144,7 @@ public final class EGLHelper
 	 *
 	 * @return true if this device supports OpenGL ES 3; false otherwise.
 	 */
-	public boolean supportsGLES3()
-	{
+	public boolean supportsGLES3() {
 		return supportGLES3;
 	}
 
@@ -167,8 +153,7 @@ public final class EGLHelper
 	 *
 	 * @return the underlying {@link EGL10} instance.
 	 */
-	public EGL10 getEGL()
-	{
+	public EGL10 getEGL() {
 		return mEGL;
 	}
 
@@ -177,8 +162,7 @@ public final class EGLHelper
 	 *
 	 * @return the underlying {@link GL10} instance.
 	 */
-	public GL10 getGL()
-	{
+	public GL10 getGL() {
 		return mGL;
 	}
 
@@ -187,8 +171,7 @@ public final class EGLHelper
 	 *
 	 * @return the underlying {@link EGLDisplay}
 	 */
-	public EGLDisplay getDisplay()
-	{
+	public EGLDisplay getDisplay() {
 		return mDisplay;
 	}
 
@@ -197,8 +180,7 @@ public final class EGLHelper
 	 *
 	 * @return all supported framebuffer configurations for this device.
 	 */
-	public EGLConfig[] getConfigs()
-	{
+	public EGLConfig[] getConfigs() {
 		return mEGLConfigs;
 	}
 
@@ -207,8 +189,7 @@ public final class EGLHelper
 	 *
 	 * @return the underlying {@link EGLContext}.
 	 */
-	public EGLContext getContext()
-	{
+	public EGLContext getContext() {
 		return mEGLContext;
 	}
 
@@ -217,36 +198,31 @@ public final class EGLHelper
 	 *
 	 * @return the underlying {@link EGLSurface}.
 	 */
-	public EGLSurface getSurface()
-	{
+	public EGLSurface getSurface() {
 		return mEGLSurface;
 	}
 
 	// Detects the specific kind of GL modes that are supported
-	private boolean detect()
-	{
+	private boolean detect() {
 		// Get total number of configs available.
 		int[] numConfigs = new int[1];
-		if (!mEGL.eglGetConfigs(mDisplay, null, 0, numConfigs))
-		{
+		if (!mEGL.eglGetConfigs(mDisplay, null, 0, numConfigs)) {
 			Log.error("[EGLHelper] Error retrieving number of EGL configs available.");
 			return false;
 		}
 
 		// Now get all the configurations
 		mEGLConfigs = new EGLConfig[numConfigs[0]];
-		if (!mEGL.eglGetConfigs(mDisplay, mEGLConfigs, mEGLConfigs.length, numConfigs))
-		{
+		if (!mEGL.eglGetConfigs(mDisplay, mEGLConfigs, mEGLConfigs.length, numConfigs)) {
 			Log.error("[EGLHelper] Error retrieving all EGL configs.");
 			return false;
 		}
 
-		for (EGLConfig mEGLConfig : mEGLConfigs)
-		{
+		for (EGLConfig mEGLConfig : mEGLConfigs) {
 			int[] attribVal = new int[1];
-			boolean ret = mEGL.eglGetConfigAttrib(mDisplay, mEGLConfig, EGL10.EGL_RENDERABLE_TYPE, attribVal);
-			if (ret)
-			{
+			boolean ret =
+				mEGL.eglGetConfigAttrib(mDisplay, mEGLConfig, EGL10.EGL_RENDERABLE_TYPE, attribVal);
+			if (ret) {
 				if ((attribVal[0] & EGL_OPENGL_BIT) != 0)
 					supportGL = true;
 
@@ -262,8 +238,7 @@ public final class EGLHelper
 	}
 
 	// Creates the context and surface.
-	private void create(int width, int height, int renderableType)
-	{
+	private void create(int width, int height, int renderableType) {
 		int[] attribs = {
 			EGL10.EGL_WIDTH, width,
 			EGL10.EGL_HEIGHT, height,
@@ -279,8 +254,7 @@ public final class EGLHelper
 
 		// Determine the type of context that will be created
 		// and change the attribute arrays accordingly.
-		switch (renderableType)
-		{
+		switch (renderableType) {
 			case EGL_OPENGL_ES_BIT:
 				ctx_attribs[1] = 1;
 				break;
@@ -303,7 +277,8 @@ public final class EGLHelper
 		else
 			NativeLibrary.eglBindAPI(EGL_OPENGL_ES_API);
 
-		mEGLContext = mEGL.eglCreateContext(mDisplay, mEGLConfigs[0], EGL10.EGL_NO_CONTEXT, ctx_attribs);
+		mEGLContext =
+			mEGL.eglCreateContext(mDisplay, mEGLConfigs[0], EGL10.EGL_NO_CONTEXT, ctx_attribs);
 		mEGLSurface = mEGL.eglCreatePbufferSurface(mDisplay, mEGLConfigs[0], attribs);
 		mEGL.eglMakeCurrent(mDisplay, mEGLSurface, mEGLSurface, mEGLContext);
 		mGL = (GL10) mEGLContext.getGL();
@@ -314,18 +289,16 @@ public final class EGLHelper
 	 * <p>
 	 * Accepts the following constants:
 	 * <ul>
-	 *    <li>GL_VENDOR - Company responsible for the GL implementation.</li>
-	 *    <li>GL_VERSION - Version or release number.</li>
-	 *    <li>GL_RENDERER - Name of the renderer</li>
-	 *    <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
+	 * <li>GL_VENDOR - Company responsible for the GL implementation.</li>
+	 * <li>GL_VERSION - Version or release number.</li>
+	 * <li>GL_RENDERER - Name of the renderer</li>
+	 * <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
 	 * </ul>
 	 *
 	 * @param glEnum A symbolic constant within {@link GL10}.
-	 *
 	 * @return the string information represented by {@code glEnum}.
 	 */
-	public String glGetString(int glEnum)
-	{
+	public String glGetString(int glEnum) {
 		return mGL.glGetString(glEnum);
 	}
 
@@ -334,30 +307,26 @@ public final class EGLHelper
 	 * <p>
 	 * Accepts the following constants:
 	 * <ul>
-	 *    <li>GL_VENDOR - Company responsible for the GL implementation.</li>
-	 *    <li>GL_VERSION - Version or release number.</li>
-	 *    <li>GL_RENDERER - Name of the renderer</li>
-	 *    <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
-	 *    <li>GL_EXTENSIONS - Extension string supported by the implementation at {@code index}.</li>
+	 * <li>GL_VENDOR - Company responsible for the GL implementation.</li>
+	 * <li>GL_VERSION - Version or release number.</li>
+	 * <li>GL_RENDERER - Name of the renderer</li>
+	 * <li>GL_SHADING_LANGUAGE_VERSION - Version or release number of the shading language </li>
+	 * <li>GL_EXTENSIONS - Extension string supported by the implementation at {@code index}.</li>
 	 * </ul>
 	 *
 	 * @param glEnum A symbolic GL constant
 	 * @param index  The index of the string to return.
-	 *
 	 * @return the string information represented by {@code glEnum} and {@code index}.
 	 */
-	public String glGetStringi(int glEnum, int index)
-	{
+	public String glGetStringi(int glEnum, int index) {
 		return GLES30.glGetStringi(glEnum, index);
 	}
 
-	public boolean SupportsExtension(String extension)
-	{
+	public boolean SupportsExtension(String extension) {
 		int[] num_ext = new int[1];
 		GLES30.glGetIntegerv(GLES30.GL_NUM_EXTENSIONS, num_ext, 0);
 
-		for (int i = 0; i < num_ext[0]; ++i)
-		{
+		for (int i = 0; i < num_ext[0]; ++i) {
 			String ext = GLES30.glGetStringi(GLES30.GL_EXTENSIONS, i);
 			if (ext.equals(extension))
 				return true;
@@ -365,8 +334,7 @@ public final class EGLHelper
 		return false;
 	}
 
-	public int GetVersion()
-	{
+	public int GetVersion() {
 		int[] major = new int[1];
 		int[] minor = new int[1];
 		GLES30.glGetIntegerv(GLES30.GL_MAJOR_VERSION, major, 0);
@@ -378,11 +346,9 @@ public final class EGLHelper
 	 * Simplified call to {@link GL10#glGetIntegerv(int, int[], int)
 	 *
 	 * @param glEnum A symbolic GL constant.
-	 *
 	 * @return the integer information represented by {@code glEnum}.
 	 */
-	public int glGetInteger(int glEnum)
-	{
+	public int glGetInteger(int glEnum) {
 		int[] val = new int[1];
 		mGL.glGetIntegerv(glEnum, val, 0);
 		return val[0];

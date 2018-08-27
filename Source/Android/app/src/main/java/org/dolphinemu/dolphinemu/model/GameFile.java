@@ -1,21 +1,15 @@
 package org.dolphinemu.dolphinemu.model;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Environment;
-
-import org.dolphinemu.dolphinemu.utils.CoverHelper;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameFile
-{
+public class GameFile {
 	private long mPointer;  // Do not rename or move without editing the native code
 
-	private GameFile(long pointer)
-	{
+	private GameFile(long pointer) {
 		mPointer = pointer;
 	}
 
@@ -23,44 +17,47 @@ public class GameFile
 	public native void finalize();
 
 	public native int getPlatform();
+
 	public native String getTitle();
+
 	public native String getDescription();
+
 	public native String getCompany();
+
 	public native int getCountry();
+
 	public native int getRegion();
+
 	public native String getPath();
+
 	public native String getGameId();
+
 	public native int[] getBanner();
+
 	public native int getBannerWidth();
+
 	public native int getBannerHeight();
 
-	public String getCoverPath()
-	{
+	public String getCoverPath() {
 		return Environment.getExternalStorageDirectory().getPath() +
-				"/dolphin-emu/Cache/GameCovers/" + getGameId() + ".png";
+			"/dolphin-emu/Cache/GameCovers/" + getGameId() + ".png";
 	}
 
-	public List<String> getSavedStates()
-	{
+	public List<String> getSavedStates() {
 		final int NUM_STATES = 10;
 		final String statePath = Environment.getExternalStorageDirectory().getPath() +
 			"/dolphin-emu/StateSaves/";
 		final String gameId = getGameId();
 		long lastModified = Long.MAX_VALUE;
 		ArrayList<String> savedStates = new ArrayList<>();
-		for(int i = 1; i < NUM_STATES; ++i)
-		{
+		for (int i = 1; i < NUM_STATES; ++i) {
 			String filename = String.format("%s%s.s%02d", statePath, gameId, i);
 			File stateFile = new File(filename);
-			if(stateFile.exists())
-			{
-				if(stateFile.lastModified() < lastModified)
-				{
+			if (stateFile.exists()) {
+				if (stateFile.lastModified() < lastModified) {
 					savedStates.add(0, filename);
 					lastModified = stateFile.lastModified();
-				}
-				else
-				{
+				} else {
 					savedStates.add(filename);
 				}
 			}
@@ -68,22 +65,18 @@ public class GameFile
 		return savedStates;
 	}
 
-	public String getLastSavedState()
-	{
+	public String getLastSavedState() {
 		final int NUM_STATES = 10;
 		final String statePath = Environment.getExternalStorageDirectory().getPath() +
 			"/dolphin-emu/StateSaves/";
 		final String gameId = getGameId();
 		long lastModified = Long.MAX_VALUE;
 		String savedState = null;
-		for(int i = 1; i < NUM_STATES; ++i)
-		{
+		for (int i = 1; i < NUM_STATES; ++i) {
 			String filename = String.format("%s%s.s%02d", statePath, gameId, i);
 			File stateFile = new File(filename);
-			if(stateFile.exists())
-			{
-				if(stateFile.lastModified() < lastModified)
-				{
+			if (stateFile.exists()) {
+				if (stateFile.lastModified() < lastModified) {
 					savedState = filename;
 					lastModified = stateFile.lastModified();
 				}
@@ -92,8 +85,7 @@ public class GameFile
 		return savedState;
 	}
 
-	public String getCustomCoverPath()
-	{
+	public String getCustomCoverPath() {
 		return getPath().substring(0, getPath().lastIndexOf(".")) + ".cover.png";
 	}
 }

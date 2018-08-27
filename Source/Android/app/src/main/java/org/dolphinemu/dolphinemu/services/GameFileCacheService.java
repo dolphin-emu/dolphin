@@ -18,8 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A service that loads game list data on a separate thread.
  */
-public final class GameFileCacheService extends IntentService
-{
+public final class GameFileCacheService extends IntentService {
 	public static final String BROADCAST_ACTION = "org.dolphinemu.dolphinemu.GAME_FILE_CACHE_UPDATED";
 
 	private static final String ACTION_LOAD = "org.dolphinemu.dolphinemu.LOAD_GAME_FILE_CACHE";
@@ -28,46 +27,37 @@ public final class GameFileCacheService extends IntentService
 	private static GameFileCache gameFileCache = null;
 	private static AtomicReference<GameFile[]> gameFiles = new AtomicReference<>(new GameFile[]{});
 
-	public GameFileCacheService()
-	{
+	public GameFileCacheService() {
 		// Superclass constructor is called to name the thread on which this service executes.
 		super("GameFileCacheService");
 	}
 
-	public static List<GameFile> getAllGameFiles()
-	{
+	public static List<GameFile> getAllGameFiles() {
 		return Arrays.asList(gameFiles.get());
 	}
 
-	public static List<GameFile> getGameFilesForPlatform(Platform platform)
-	{
+	public static List<GameFile> getGameFilesForPlatform(Platform platform) {
 		GameFile[] allGames = gameFiles.get();
 		ArrayList<GameFile> platformGames = new ArrayList<>();
-		for (GameFile game : allGames)
-		{
-			if (Platform.fromNativeInt(game.getPlatform()) == platform)
-			{
+		for (GameFile game : allGames) {
+			if (Platform.fromNativeInt(game.getPlatform()) == platform) {
 				platformGames.add(game);
 			}
 		}
 		return platformGames;
 	}
 
-	public static GameFile getGameFileByGameId(String gameId)
-	{
+	public static GameFile getGameFileByGameId(String gameId) {
 		GameFile[] allGames = gameFiles.get();
-		for (GameFile game : allGames)
-		{
-			if (game.getGameId().equals(gameId))
-			{
+		for (GameFile game : allGames) {
+			if (game.getGameId().equals(gameId)) {
 				return game;
 			}
 		}
 		return null;
 	}
 
-	private static void startService(Context context, String action)
-	{
+	private static void startService(Context context, String action) {
 		Intent intent = new Intent(context, GameFileCacheService.class);
 		intent.setAction(action);
 		context.startService(intent);
@@ -77,8 +67,7 @@ public final class GameFileCacheService extends IntentService
 	 * Asynchronously loads the game file cache from disk without checking
 	 * which games are present on the file system.
 	 */
-	public static void startLoad(Context context)
-	{
+	public static void startLoad(Context context) {
 		startService(context, ACTION_LOAD);
 	}
 
@@ -87,31 +76,25 @@ public final class GameFileCacheService extends IntentService
 	 * updating the game file cache with the results.
 	 * If startLoad hasn't been called before this, this has no effect.
 	 */
-	public static void startRescan(Context context)
-	{
+	public static void startRescan(Context context) {
 		startService(context, ACTION_RESCAN);
 	}
 
-	public static GameFile addOrGet(String gamePath)
-	{
+	public static GameFile addOrGet(String gamePath) {
 		// The existence of this one function, which is called from one
 		// single place, forces us to use synchronization in onHandleIntent...
 		// A bit annoying, but should be good enough for now
-		synchronized (gameFileCache)
-		{
+		synchronized (gameFileCache) {
 			return gameFileCache.addOrGet(gamePath);
 		}
 	}
 
 	@Override
-	protected void onHandleIntent(Intent intent)
-	{
+	protected void onHandleIntent(Intent intent) {
 		// Load the game list cache if it isn't already loaded, otherwise do nothing
-		if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null)
-		{
+		if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null) {
 			GameFileCache temp = new GameFileCache(getCacheDir() + File.separator + "gamelist.cache");
-			synchronized (temp)
-			{
+			synchronized (temp) {
 				gameFileCache = temp;
 				gameFileCache.load();
 				updateGameFileArray();
@@ -119,20 +102,16 @@ public final class GameFileCacheService extends IntentService
 		}
 
 		// Rescan the file system and update the game list cache with the results
-		if (ACTION_RESCAN.equals(intent.getAction()) && gameFileCache != null)
-		{
-			synchronized (gameFileCache)
-			{
-				if (gameFileCache.scanLibrary(this))
-				{
+		if (ACTION_RESCAN.equals(intent.getAction()) && gameFileCache != null) {
+			synchronized (gameFileCache) {
+				if (gameFileCache.scanLibrary(this)) {
 					updateGameFileArray();
 				}
 			}
 		}
 	}
 
-	private void updateGameFileArray()
-	{
+	private void updateGameFileArray() {
 		GameFile[] gameFilesTemp = gameFileCache.getAllGames();
 		Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getTitle().compareToIgnoreCase(rhs.getTitle()));
 		gameFiles.set(gameFilesTemp);

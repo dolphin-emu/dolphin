@@ -3,58 +3,46 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.utils.Log;
 
-public final class SliderSetting extends SettingsItem
-{
+public final class SliderSetting extends SettingsItem {
 	private int mMax;
 	private int mDefaultValue;
 
 	private String mUnits;
 
-	public SliderSetting(String key, String section, int titleId, int descriptionId, int max, String units, int defaultValue, Setting setting)
-	{
+	public SliderSetting(String key, String section, int titleId, int descriptionId, int max,
+											 String units, int defaultValue, Setting setting) {
 		super(key, section, setting, titleId, descriptionId);
 		mMax = max;
 		mUnits = units;
 		mDefaultValue = defaultValue;
 	}
 
-	public int getMax()
-	{
+	public int getMax() {
 		return mMax;
 	}
 
-	public int getSelectedValue()
-	{
+	public int getSelectedValue() {
 		Setting setting = getSetting();
 
-		if (setting == null)
-		{
+		if (setting == null) {
 			return mDefaultValue;
 		}
 
-		if (setting instanceof IntSetting)
-		{
+		if (setting instanceof IntSetting) {
 			IntSetting intSetting = (IntSetting) setting;
 			return intSetting.getValue();
-		}
-		else if (setting instanceof FloatSetting)
-		{
+		} else if (setting instanceof FloatSetting) {
 			FloatSetting floatSetting = (FloatSetting) setting;
 			if (floatSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
-					|| floatSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT))
-			{
+				|| floatSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT)) {
 				return Math.round(floatSetting.getValue() * 100);
-			}
-			else
-			{
+			} else {
 				return Math.round(floatSetting.getValue());
 			}
-		}
-		else
-		{
+		} else {
 			Log.error("[SliderSetting] Error casting setting type.");
 			return -1;
 		}
@@ -67,16 +55,12 @@ public final class SliderSetting extends SettingsItem
 	 * @param selection New value of the int.
 	 * @return null if overwritten successfully otherwise; a newly created IntSetting.
 	 */
-	public IntSetting setSelectedValue(int selection)
-	{
-		if (getSetting() == null)
-		{
+	public IntSetting setSelectedValue(int selection) {
+		if (getSetting() == null) {
 			IntSetting setting = new IntSetting(getKey(), getSection(), selection);
 			setSetting(setting);
 			return setting;
-		}
-		else
-		{
+		} else {
 			IntSetting setting = (IntSetting) getSetting();
 			setting.setValue(selection);
 			return null;
@@ -90,30 +74,24 @@ public final class SliderSetting extends SettingsItem
 	 * @param selection New value of the float.
 	 * @return null if overwritten successfully otherwise; a newly created FloatSetting.
 	 */
-	public FloatSetting setSelectedValue(float selection)
-	{
-		if (getSetting() == null)
-		{
+	public FloatSetting setSelectedValue(float selection) {
+		if (getSetting() == null) {
 			FloatSetting setting = new FloatSetting(getKey(), getSection(), selection);
 			setSetting(setting);
 			return setting;
-		}
-		else
-		{
+		} else {
 			FloatSetting setting = (FloatSetting) getSetting();
 			setting.setValue(selection);
 			return null;
 		}
 	}
 
-	public String getUnits()
-	{
+	public String getUnits() {
 		return mUnits;
 	}
 
 	@Override
-	public int getType()
-	{
+	public int getType() {
 		return TYPE_SLIDER;
 	}
 }

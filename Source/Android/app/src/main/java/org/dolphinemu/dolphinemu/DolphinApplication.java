@@ -5,11 +5,9 @@ import android.app.Application;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
-public class DolphinApplication extends Application
-{
+public class DolphinApplication extends Application {
 	@Override
-	public void onCreate()
-	{
+	public void onCreate() {
 		super.onCreate();
 
 		System.loadLibrary("main");

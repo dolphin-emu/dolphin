@@ -12,8 +12,7 @@ import java.util.ArrayList;
  * Abstraction for a screen showing a list of settings. Instances of
  * this type of view will each display a layer of the setting hierarchy.
  */
-public interface SettingsFragmentView
-{
+public interface SettingsFragmentView {
 	/**
 	 * Called by the containing Activity to notify the Fragment that an
 	 * asynchronous load operation completed.
@@ -79,8 +78,8 @@ public interface SettingsFragmentView
 	/**
 	 * Have the fragment tell the containing Activity that a GCPad's setting was modified.
 	 *
-	 * @param menuTag   Identifier for the GCPad that was modified.
-	 * @param value New setting for the GCPad.
+	 * @param menuTag Identifier for the GCPad that was modified.
+	 * @param value   New setting for the GCPad.
 	 */
 	void onGcPadSettingChanged(MenuTag menuTag, int value);
 
@@ -95,8 +94,8 @@ public interface SettingsFragmentView
 	/**
 	 * Have the fragment tell the containing Activity that an extension setting was modified.
 	 *
-	 * @param menuTag   Identifier for the extension that was modified.
-	 * @param value New setting for the extension.
+	 * @param menuTag Identifier for the extension that was modified.
+	 * @param value   New setting for the extension.
 	 */
 	void onExtensionSettingChanged(MenuTag menuTag, int value);
 }

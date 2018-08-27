@@ -3,27 +3,22 @@ package org.dolphinemu.dolphinemu.utils;
 import android.graphics.Bitmap;
 
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
 import java.io.FileOutputStream;
 
-public final class CoverHelper
-{
+public final class CoverHelper {
 	private static String baseUrl = "https://art.gametdb.com/wii/cover/%s/%s.png";
 
-	public static String buildGameTDBUrl(GameFile game, String region)
-	{
+	public static String buildGameTDBUrl(GameFile game, String region) {
 		String gameId = game.getGameId();
-		if(game.getPlatform() == 2) // WiiWare
-			gameId = gameId.substring(0,4);
+		if (game.getPlatform() == 2) // WiiWare
+			gameId = gameId.substring(0, 4);
 		return String.format(baseUrl, region, gameId);
 	}
 
-	public static String getRegion(GameFile game)
-	{
+	public static String getRegion(GameFile game) {
 		String region;
-		switch(game.getRegion())
-		{
+		switch (game.getRegion()) {
 			case 0: // NTSC_J
 				region = "JA";
 				break;
@@ -34,8 +29,7 @@ public final class CoverHelper
 				region = "KO";
 				break;
 			case 2: // PAL
-				switch (game.getCountry())
-				{
+				switch (game.getCountry()) {
 					case 2: // German
 						region = "DE";
 						break;
@@ -65,16 +59,12 @@ public final class CoverHelper
 		return region;
 	}
 
-	public static void saveCover(Bitmap cover, String path)
-	{
-		try
-		{
+	public static void saveCover(Bitmap cover, String path) {
+		try {
 			FileOutputStream out = new FileOutputStream(path);
 			cover.compress(Bitmap.CompressFormat.PNG, 100, out);
 			out.close();
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			// Do nothing
 		}
 	}

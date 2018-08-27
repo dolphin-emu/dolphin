@@ -6,12 +6,11 @@ import android.view.View;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public abstract class SettingViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
-{
+public abstract class SettingViewHolder extends RecyclerView.ViewHolder
+	implements View.OnClickListener {
 	private SettingsAdapter mAdapter;
 
-	public SettingViewHolder(View itemView, SettingsAdapter adapter)
-	{
+	public SettingViewHolder(View itemView, SettingsAdapter adapter) {
 		super(itemView);
 
 		mAdapter = adapter;
@@ -21,8 +20,7 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder implemen
 		findViews(itemView);
 	}
 
-	protected SettingsAdapter getAdapter()
-	{
+	protected SettingsAdapter getAdapter() {
 		return mAdapter;
 	}
 

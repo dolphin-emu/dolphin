@@ -11,8 +11,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public final class InputBindingSettingViewHolder extends SettingViewHolder
-{
+public final class InputBindingSettingViewHolder extends SettingViewHolder {
 	private InputBindingSetting mItem;
 
 	private TextView mTextSettingName;
@@ -20,23 +19,20 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
 
 	private Context mContext;
 
-	public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter, Context context)
-	{
+	public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter, Context context) {
 		super(itemView, adapter);
 
 		mContext = context;
 	}
 
 	@Override
-	protected void findViews(View root)
-	{
+	protected void findViews(View root) {
 		mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
 		mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
 	}
 
 	@Override
-	public void bind(SettingsItem item)
-	{
+	public void bind(SettingsItem item) {
 		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 
 		mItem = (InputBindingSetting) item;
@@ -46,8 +42,7 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
 	}
 
 	@Override
-	public void onClick(View clicked)
-	{
+	public void onClick(View clicked) {
 		getAdapter().onInputBindingClick(mItem, getAdapterPosition());
 	}
 }

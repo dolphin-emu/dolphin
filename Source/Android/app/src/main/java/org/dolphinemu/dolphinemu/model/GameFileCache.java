@@ -8,15 +8,13 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-public class GameFileCache
-{
+public class GameFileCache {
 	private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
 	private static final Set<String> EMPTY_SET = new HashSet<>();
 
 	private long mPointer;  // Do not rename or move without editing the native code
 
-	public GameFileCache(String path)
-	{
+	public GameFileCache(String path) {
 		mPointer = newGameFileCache(path);
 	}
 
@@ -25,8 +23,7 @@ public class GameFileCache
 	@Override
 	public native void finalize();
 
-	public static void addGameFolder(String path, Context context)
-	{
+	public static void addGameFolder(String path, Context context) {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
 		Set<String> newFolderPaths = new HashSet<>(folderPaths);
@@ -36,22 +33,18 @@ public class GameFileCache
 		editor.apply();
 	}
 
-	private void removeNonExistentGameFolders(Context context)
-	{
+	private void removeNonExistentGameFolders(Context context) {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
 		Set<String> newFolderPaths = new HashSet<>();
-		for (String folderPath : folderPaths)
-		{
+		for (String folderPath : folderPaths) {
 			File folder = new File(folderPath);
-			if (folder.exists())
-			{
+			if (folder.exists()) {
 				newFolderPaths.add(folderPath);
 			}
 		}
 
-		if (folderPaths.size() != newFolderPaths.size())
-		{
+		if (folderPaths.size() != newFolderPaths.size()) {
 			// One or more folders are being deleted
 			SharedPreferences.Editor editor = preferences.edit();
 			editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
@@ -61,10 +54,10 @@ public class GameFileCache
 
 	/**
 	 * Scans through the file system and updates the cache to match.
+	 *
 	 * @return true if the cache was modified
 	 */
-	public boolean scanLibrary(Context context)
-	{
+	public boolean scanLibrary(Context context) {
 		removeNonExistentGameFolders(context);
 
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -73,17 +66,21 @@ public class GameFileCache
 
 		boolean cacheChanged = update(folderPaths);
 		cacheChanged |= updateAdditionalMetadata();
-		if (cacheChanged)
-		{
+		if (cacheChanged) {
 			save();
 		}
 		return cacheChanged;
 	}
 
 	public native GameFile[] getAllGames();
+
 	public native GameFile addOrGet(String gamePath);
+
 	private native boolean update(String[] folderPaths);
+
 	private native boolean updateAdditionalMetadata();
+
 	public native boolean load();
+
 	private native boolean save();
 }

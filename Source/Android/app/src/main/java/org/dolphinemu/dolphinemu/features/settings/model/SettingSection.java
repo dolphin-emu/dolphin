@@ -6,8 +6,7 @@ import java.util.HashMap;
  * A semantically-related group of Settings objects. These Settings are
  * internally stored as a HashMap.
  */
-public final class SettingSection
-{
+public final class SettingSection {
 	private String mName;
 
 	private HashMap<String, Setting> mSettings = new HashMap<>();
@@ -17,13 +16,11 @@ public final class SettingSection
 	 *
 	 * @param name The header of this section; e.g. [Core] or [Enhancements] without the brackets.
 	 */
-	public SettingSection(String name)
-	{
+	public SettingSection(String name) {
 		mName = name;
 	}
 
-	public String getName()
-	{
+	public String getName() {
 		return mName;
 	}
 
@@ -32,8 +29,7 @@ public final class SettingSection
 	 *
 	 * @param setting The Setting to be inserted.
 	 */
-	public void putSetting(Setting setting)
-	{
+	public void putSetting(Setting setting) {
 		mSettings.put(setting.getKey(), setting);
 	}
 
@@ -43,20 +39,16 @@ public final class SettingSection
 	 * @param key Used to retrieve the Setting.
 	 * @return A Setting object (you should probably cast this before using)
 	 */
-	public Setting getSetting(String key)
-	{
+	public Setting getSetting(String key) {
 		return mSettings.get(key);
 	}
 
-	public HashMap<String, Setting> getSettings()
-	{
+	public HashMap<String, Setting> getSettings() {
 		return mSettings;
 	}
 
-	public void mergeSection(SettingSection settingSection)
-	{
-		for (Setting setting : settingSection.mSettings.values())
-		{
+	public void mergeSection(SettingSection settingSection) {
+		for (Setting setting : settingSection.mSettings.values()) {
 			putSetting(setting);
 		}
 	}

@@ -13,10 +13,8 @@ import android.view.View;
 /**
  * Work around a bug with the nVidia Shield.
  */
-public final class NVidiaShieldWorkaroundView extends View
-{
-	public NVidiaShieldWorkaroundView(Context context, AttributeSet attrs)
-	{
+public final class NVidiaShieldWorkaroundView extends View {
+	public NVidiaShieldWorkaroundView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 
 		// Setting this seems to workaround the bug

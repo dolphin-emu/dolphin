@@ -17,8 +17,7 @@ import android.view.MotionEvent;
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
  */
-public final class InputOverlayDrawableButton
-{
+public final class InputOverlayDrawableButton {
 	// The ID identifying what type of button this Drawable represents.
 	private int mButtonType;
 	private int mTrackId;
@@ -38,8 +37,8 @@ public final class InputOverlayDrawableButton
 	 * @param pressedStateBitmap {@link Bitmap} to use with the pressed state Drawable.
 	 * @param buttonType         Identifier for this type of button.
 	 */
-	public InputOverlayDrawableButton(Resources res, Bitmap defaultStateBitmap, Bitmap pressedStateBitmap, int buttonType)
-	{
+	public InputOverlayDrawableButton(Resources res, Bitmap defaultStateBitmap,
+																		Bitmap pressedStateBitmap, int buttonType) {
 		mDefaultStateBitmap = new BitmapDrawable(res, defaultStateBitmap);
 		mPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
 		mButtonType = buttonType;
@@ -53,28 +52,23 @@ public final class InputOverlayDrawableButton
 	 *
 	 * @return this InputOverlayDrawableButton's button ID.
 	 */
-	public int getId()
-	{
+	public int getId() {
 		return mButtonType;
 	}
 
-	public void setTrackId(int trackId)
-	{
+	public void setTrackId(int trackId) {
 		mTrackId = trackId;
 	}
 
-	public int getTrackId()
-	{
+	public int getTrackId() {
 		return mTrackId;
 	}
 
-	public boolean onConfigureTouch(MotionEvent event)
-	{
+	public boolean onConfigureTouch(MotionEvent event) {
 		int pointerIndex = event.getActionIndex();
-		int fingerPositionX = (int)event.getX(pointerIndex);
-		int fingerPositionY = (int)event.getY(pointerIndex);
-		switch (event.getAction())
-		{
+		int fingerPositionX = (int) event.getX(pointerIndex);
+		int fingerPositionY = (int) event.getY(pointerIndex);
+		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				mPreviousTouchX = fingerPositionX;
 				mPreviousTouchY = fingerPositionY;
@@ -82,7 +76,8 @@ public final class InputOverlayDrawableButton
 			case MotionEvent.ACTION_MOVE:
 				mControlPositionX += fingerPositionX - mPreviousTouchX;
 				mControlPositionY += fingerPositionY - mPreviousTouchY;
-				setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX, getHeight() + mControlPositionY);
+				setBounds(mControlPositionX, mControlPositionY, getWidth() + mControlPositionX,
+					getHeight() + mControlPositionY);
 				mPreviousTouchX = fingerPositionX;
 				mPreviousTouchY = fingerPositionY;
 				break;
@@ -91,45 +86,37 @@ public final class InputOverlayDrawableButton
 		return true;
 	}
 
-	public void setPosition(int x, int y)
-	{
+	public void setPosition(int x, int y) {
 		mControlPositionX = x;
 		mControlPositionY = y;
 	}
 
-	public void draw(Canvas canvas)
-	{
+	public void draw(Canvas canvas) {
 		getCurrentStateBitmapDrawable().draw(canvas);
 	}
 
-	private BitmapDrawable getCurrentStateBitmapDrawable()
-	{
+	private BitmapDrawable getCurrentStateBitmapDrawable() {
 		return mPressedState ? mPressedStateBitmap : mDefaultStateBitmap;
 	}
 
-	public void setBounds(int left, int top, int right, int bottom)
-	{
+	public void setBounds(int left, int top, int right, int bottom) {
 		mDefaultStateBitmap.setBounds(left, top, right, bottom);
 		mPressedStateBitmap.setBounds(left, top, right, bottom);
 	}
 
-	public Rect getBounds()
-	{
+	public Rect getBounds() {
 		return mDefaultStateBitmap.getBounds();
 	}
 
-	public int getWidth()
-	{
+	public int getWidth() {
 		return mWidth;
 	}
 
-	public int getHeight()
-	{
+	public int getHeight() {
 		return mHeight;
 	}
 
-	public void setPressedState(boolean isPressed)
-	{
+	public void setPressedState(boolean isPressed) {
 		mPressedState = isPressed;
 	}
 }

@@ -4,16 +4,15 @@ import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
-public final class SingleChoiceSetting extends SettingsItem
-{
+public final class SingleChoiceSetting extends SettingsItem {
 	private int mDefaultValue;
 
 	private int mChoicesId;
 	private int mValuesId;
 	private MenuTag menuTag;
 
-	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting, MenuTag menuTag)
-	{
+	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId,
+														 int choicesId, int valuesId, int defaultValue, Setting setting, MenuTag menuTag) {
 		super(key, section, setting, titleId, descriptionId);
 		mValuesId = valuesId;
 		mChoicesId = choicesId;
@@ -21,36 +20,29 @@ public final class SingleChoiceSetting extends SettingsItem
 		this.menuTag = menuTag;
 	}
 
-	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting)
-	{
+	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId,
+														 int choicesId, int valuesId, int defaultValue, Setting setting) {
 		this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
 	}
 
-	public int getChoicesId()
-	{
+	public int getChoicesId() {
 		return mChoicesId;
 	}
 
-	public int getValuesId()
-	{
+	public int getValuesId() {
 		return mValuesId;
 	}
 
-	public int getSelectedValue()
-	{
-		if (getSetting() != null)
-		{
+	public int getSelectedValue() {
+		if (getSetting() != null) {
 			IntSetting setting = (IntSetting) getSetting();
 			return setting.getValue();
-		}
-		else
-		{
+		} else {
 			return mDefaultValue;
 		}
 	}
 
-	public MenuTag getMenuTag()
-	{
+	public MenuTag getMenuTag() {
 		return menuTag;
 	}
 
@@ -61,16 +53,12 @@ public final class SingleChoiceSetting extends SettingsItem
 	 * @param selection New value of the int.
 	 * @return null if overwritten successfully otherwise; a newly created IntSetting.
 	 */
-	public IntSetting setSelectedValue(int selection)
-	{
-		if (getSetting() == null)
-		{
+	public IntSetting setSelectedValue(int selection) {
+		if (getSetting() == null) {
 			IntSetting setting = new IntSetting(getKey(), getSection(), selection);
 			setSetting(setting);
 			return setting;
-		}
-		else
-		{
+		} else {
 			IntSetting setting = (IntSetting) getSetting();
 			setting.setValue(selection);
 			return null;
@@ -78,8 +66,7 @@ public final class SingleChoiceSetting extends SettingsItem
 	}
 
 	@Override
-	public int getType()
-	{
+	public int getType() {
 		return TYPE_SINGLE_CHOICE;
 	}
 }

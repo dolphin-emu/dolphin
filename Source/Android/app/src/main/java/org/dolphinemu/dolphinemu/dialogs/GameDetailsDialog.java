@@ -24,12 +24,10 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import java.io.File;
 
 
-public final class GameDetailsDialog extends DialogFragment
-{
+public final class GameDetailsDialog extends DialogFragment {
 	private static final String ARG_GAME_PATH = "game_path";
 
-	public static GameDetailsDialog newInstance(String gamePath)
-	{
+	public static GameDetailsDialog newInstance(String gamePath) {
 		GameDetailsDialog fragment = new GameDetailsDialog();
 
 		Bundle arguments = new Bundle();
@@ -40,8 +38,7 @@ public final class GameDetailsDialog extends DialogFragment
 	}
 
 	@Override
-	public Dialog onCreateDialog(Bundle savedInstanceState)
-	{
+	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		final GameFile gameFile = GameFileCacheService.addOrGet(getArguments().getString(ARG_GAME_PATH));
 
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
@@ -80,37 +77,29 @@ public final class GameDetailsDialog extends DialogFragment
 
 		ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
 		Picasso.with(imageGameScreen.getContext())
-				.load("file://" + gameFile.getCoverPath())
-				.into(imageGameScreen);
+			.load("file://" + gameFile.getCoverPath())
+			.into(imageGameScreen);
 
 		builder.setView(contents);
 		return builder.create();
 	}
 
-	private boolean isGameSetingExist(String gameId)
-	{
+	private boolean isGameSetingExist(String gameId) {
 		String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
 		File gameSettingsFile = new File(path);
 		return gameSettingsFile.exists();
 	}
 
-	private void deleteGameSetting(Context context, String gameId)
-	{
+	private void deleteGameSetting(Context context, String gameId) {
 		String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
 		File gameSettingsFile = new File(path);
-		if (gameSettingsFile.exists())
-		{
-			if (gameSettingsFile.delete())
-			{
+		if (gameSettingsFile.exists()) {
+			if (gameSettingsFile.delete()) {
 				Toast.makeText(context, "Cleared settings for " + gameId, Toast.LENGTH_SHORT).show();
-			}
-			else
-			{
+			} else {
 				Toast.makeText(context, "Unable to clear settings for " + gameId, Toast.LENGTH_SHORT).show();
 			}
-		}
-		else
-		{
+		} else {
 			Toast.makeText(context, "No game settings to delete", Toast.LENGTH_SHORT).show();
 		}
 	}

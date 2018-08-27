@@ -7,8 +7,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
  * Implementations will differ primarily to target touch-screen
  * or non-touch screen devices.
  */
-public interface MainView
-{
+public interface MainView {
 	/**
 	 * Pass the view the native library's version string. Displaying
 	 * it is optional.

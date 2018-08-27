@@ -17,8 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Java_WiimoteAdapter
-{
+public class Java_WiimoteAdapter {
 	final static int MAX_PAYLOAD = 23;
 	final static int MAX_WIIMOTES = 4;
 	final static int TIMEOUT = 200;
@@ -32,19 +31,15 @@ public class Java_WiimoteAdapter
 
 	public static byte[][] wiimote_payload = new byte[MAX_WIIMOTES][MAX_PAYLOAD];
 
-	private static void RequestPermission()
-	{
+	private static void RequestPermission() {
 		Context context = NativeLibrary.sEmulationActivity.get();
-		if (context != null)
-		{
+		if (context != null) {
 			HashMap<String, UsbDevice> devices = manager.getDeviceList();
-			for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
-			{
+			for (Map.Entry<String, UsbDevice> pair : devices.entrySet()) {
 				UsbDevice dev = pair.getValue();
-				if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
-				{
-					if (!manager.hasPermission(dev))
-					{
+				if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID &&
+					dev.getVendorId() == NINTENDO_VENDOR_ID) {
+					if (!manager.hasPermission(dev)) {
 						Log.warning("Requesting permission for Wii Remote adapter");
 						Intent intent = new Intent();
 						PendingIntent pend_intent;
@@ -54,21 +49,17 @@ public class Java_WiimoteAdapter
 					}
 				}
 			}
-		}
-		else
-		{
+		} else {
 			Log.warning("Cannot request Wiimote adapter permission as EmulationActivity is null.");
 		}
 	}
 
-	public static boolean QueryAdapter()
-	{
+	public static boolean QueryAdapter() {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
-		{
+		for (Map.Entry<String, UsbDevice> pair : devices.entrySet()) {
 			UsbDevice dev = pair.getValue();
-			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
-			{
+			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID &&
+				dev.getVendorId() == NINTENDO_VENDOR_ID) {
 				if (manager.hasPermission(dev))
 					return true;
 				else
@@ -78,33 +69,31 @@ public class Java_WiimoteAdapter
 		return false;
 	}
 
-	public static int Input(int index)
-	{
+	public static int Input(int index) {
 		return usb_con.bulkTransfer(usb_in[index], wiimote_payload[index], MAX_PAYLOAD, TIMEOUT);
 	}
 
-	public static int Output(int index, byte[] buf, int size)
-	{
+	public static int Output(int index, byte[] buf, int size) {
 		byte report_number = buf[0];
 
 		// Remove the report number from the buffer
 		buf = Arrays.copyOfRange(buf, 1, buf.length);
 		size--;
 
-		final int LIBUSB_REQUEST_TYPE_CLASS  = (1 << 5);
+		final int LIBUSB_REQUEST_TYPE_CLASS = (1 << 5);
 		final int LIBUSB_RECIPIENT_INTERFACE = 0x1;
-		final int LIBUSB_ENDPOINT_OUT        = 0;
+		final int LIBUSB_ENDPOINT_OUT = 0;
 
 		final int HID_SET_REPORT = 0x9;
-		final int HID_OUTPUT     = (2 << 8);
+		final int HID_OUTPUT = (2 << 8);
 
 		int write = usb_con.controlTransfer(
-				LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE | LIBUSB_ENDPOINT_OUT,
-				HID_SET_REPORT,
-				HID_OUTPUT | report_number,
-				index,
-				buf, size,
-				1000);
+			LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE | LIBUSB_ENDPOINT_OUT,
+			HID_SET_REPORT,
+			HID_OUTPUT | report_number,
+			index,
+			buf, size,
+			1000);
 
 		if (write < 0)
 			return 0;
@@ -112,20 +101,17 @@ public class Java_WiimoteAdapter
 		return write + 1;
 	}
 
-	public static boolean OpenAdapter()
-	{
+	public static boolean OpenAdapter() {
 		// If the adapter is already open. Don't attempt to do it again
 		if (usb_con != null && usb_con.getFileDescriptor() != -1)
 			return true;
 
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
-		{
+		for (Map.Entry<String, UsbDevice> pair : devices.entrySet()) {
 			UsbDevice dev = pair.getValue();
-			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
-			{
-				if (manager.hasPermission(dev))
-				{
+			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID &&
+				dev.getVendorId() == NINTENDO_VENDOR_ID) {
+				if (manager.hasPermission(dev)) {
 					usb_con = manager.openDevice(dev);
 					UsbConfiguration conf = dev.getConfiguration(0);
 
@@ -135,10 +121,8 @@ public class Java_WiimoteAdapter
 
 					// Sometimes the interface count is returned as zero.
 					// Means the device needs to be unplugged and plugged back in again
-					if (dev.getInterfaceCount() > 0)
-					{
-						for (int i = 0; i < MAX_WIIMOTES; ++i)
-						{
+					if (dev.getInterfaceCount() > 0) {
+						for (int i = 0; i < MAX_WIIMOTES; ++i) {
 							// One interface per Wii Remote
 							usb_intf[i] = dev.getInterface(i);
 							usb_con.claimInterface(usb_intf[i], true);
@@ -149,9 +133,7 @@ public class Java_WiimoteAdapter
 							Log.info("Interface " + i + " endpoint count:" + usb_intf[i].getEndpointCount());
 						}
 						return true;
-					}
-					else
-					{
+					} else {
 						// XXX: Message that the device was found, but it needs to be unplugged and plugged back in?
 						usb_con.close();
 					}
