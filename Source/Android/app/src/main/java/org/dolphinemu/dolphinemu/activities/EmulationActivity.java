@@ -190,7 +190,7 @@ public final class EmulationActivity extends AppCompatActivity
 		mStopEmulation = false;
 		enableFullscreenImmersive();
 
-		setTheme(R.style.DolphinEmulationGamecube);
+		setTheme(R.style.DolphinEmulationBase);
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);

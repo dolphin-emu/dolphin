@@ -41,6 +41,23 @@ if [ $FORCE -eq 0 ]; then
   fi
 fi
 
+did_java_setup=0
+JAVA_CODESTYLE_FILE="./$(git rev-parse --show-cdup)/Source/Android/code-style-java.xml"
+java_temp_dir=""
+
+function java_setup() {
+  if [ "$did_java_setup" = 1 ]; then
+    return
+  fi
+  if [ ! -x "${ANDROID_STUDIO_ROOT}/bin/format.sh" ]; then
+    echo >&2 "error: must set ANDROID_STUDIO_ROOT environment variable to the IDE installation directory (current: ${ANDROID_STUDIO_ROOT})"
+    exit 1
+  fi
+  java_temp_dir="$(mktemp -d)"
+  trap "{ rm -r ${java_temp_dir}; }" EXIT
+  did_java_setup=1
+}
+
 fail=0
 
 # Default to staged files, unless a commit was passed.
@@ -49,9 +66,29 @@ COMMIT=${1:---cached}
 # Get modified files (must be on own line for exit-code handling)
 modified_files=$(git diff --name-only --diff-filter=ACMRTUXB $COMMIT)
 
+function java_check() {
+  echo >&0 "Java changes detected, running Android Studio formatter." || true
+  "${ANDROID_STUDIO_ROOT}/bin/format.sh" -s "${JAVA_CODESTYLE_FILE}" -R "${java_temp_dir}" >/dev/null
+
+  # ignore 'added'/'deleted' files, we copied only files of interest to the tmpdir
+  d=$(git diff --diff-filter=ad . "${java_temp_dir}" || true)
+  if ! [ -z "${d}" ]; then
+    echo "!!! Java code is not compliant to coding style, here is the fix:"
+    echo "${d}"
+    fail=1
+  fi
+}
+
 # Loop through each modified file.
 for f in ${modified_files}; do
   # Filter them.
+  if echo "${f}" | egrep -q "[.]java$"; then
+    # Copy Java files to a temporary directory
+    java_setup
+    mkdir -p $(dirname "${java_temp_dir}/${f}")
+    cp "${f}" "${java_temp_dir}/${f}"
+    continue
+  fi
   if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
     continue
   fi
@@ -75,5 +112,9 @@ for f in ${modified_files}; do
     fail=1
   fi
 done
+
+if [ "${did_java_setup}" = 1 ]; then
+  java_check
+fi
 
 exit ${fail}
