@@ -153,7 +153,14 @@ public final class DirectoryInitializationService extends IntentService {
 				"DirectoryInitializationService has to finish running first!");
 		}
 		return userPath;
+	}
 
+	public static String getCacheDirectory() {
+		return Environment.getExternalStorageDirectory().getPath() + "/dolphin-emu/CCache";
+	}
+
+	public static String getCoverDirectory() {
+		return getCacheDirectory() + File.separator + "GameCovers";
 	}
 
 	public static String getDolphinInternalDirectory() {

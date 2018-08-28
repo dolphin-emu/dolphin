@@ -13,6 +13,7 @@ import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 
@@ -105,7 +106,7 @@ public final class MainPresenter {
 
 	private void clearGameData(Context context) {
 		int count = 0;
-		String cachePath = DirectoryInitializationService.getUserDirectory() + "/Cache/";
+		String cachePath = DirectoryInitializationService.getCacheDirectory();
 		File dir = new File(cachePath);
 		if (dir.exists()) {
 			for (File f : dir.listFiles()) {
@@ -117,7 +118,7 @@ public final class MainPresenter {
 			}
 		}
 
-		String shadersPath = cachePath + "/Shaders/";
+		String shadersPath = cachePath + File.separator + "Shaders";
 		dir = new File(shadersPath);
 		if (dir.exists()) {
 			for (File f : dir.listFiles()) {
@@ -131,8 +132,8 @@ public final class MainPresenter {
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		SharedPreferences.Editor editor = pref.edit();
-		editor.putBoolean("OverlayInit", false);
-		editor.putInt("wiiController", 2);
+		editor.putBoolean(InputOverlay.OVERLAYINIT_PREF_KEY, false);
+		editor.putInt(InputOverlay.CONTROLLER_PREF_KEY, 2);
 		editor.apply();
 
 		Toast.makeText(context, String.format("Delete %d files", count), Toast.LENGTH_SHORT).show();

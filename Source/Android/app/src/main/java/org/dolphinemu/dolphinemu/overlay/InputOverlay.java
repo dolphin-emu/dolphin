@@ -36,7 +36,8 @@ import java.util.Set;
  * {@link SurfaceView} that is rendering emulation.
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener {
-	public static final String CONTROLLER_PREF_KEY = "wiiController";
+	public static final String OVERLAYINIT_PREF_KEY = "InitOverlay";
+	public static final String CONTROLLER_PREF_KEY = "WiiController";
 	public static final int CONTROLLER_GAMECUBE_VALUE = 0;
 	public static final int CONTROLLER_CLASSIC_VALUE = 1;
 	public static final int CONTROLLER_WIINUNCHUK_VALUE = 2;
@@ -82,7 +83,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		super(context, attrs);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-		if (!mPreferences.getBoolean("OverlayInit", false))
+		if (!mPreferences.getBoolean(OVERLAYINIT_PREF_KEY, false))
 			defaultOverlay();
 		// Load the controls.
 		refreshControls();
@@ -485,8 +486,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
 		float x = (bounds.left + (bounds.right - bounds.left) / 2.0f) / dm.widthPixels * 2.0f - 1.0f;
 		float y = (bounds.top + (bounds.bottom - bounds.top) / 2.0f) / dm.heightPixels * 2.0f - 1.0f;
-		sPrefsEditor.putFloat(sharedPrefsId + "-X", x);
-		sPrefsEditor.putFloat(sharedPrefsId + "-Y", y);
+		sPrefsEditor.putFloat(sharedPrefsId + "_X", x);
+		sPrefsEditor.putFloat(sharedPrefsId + "_Y", y);
 		sPrefsEditor.apply();
 	}
 
@@ -581,8 +582,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		float x = sPrefs.getFloat(buttonId + "-X", 0f);
-		float y = sPrefs.getFloat(buttonId + "-Y", 0f);
+		float x = sPrefs.getFloat(buttonId + "_X", 0f);
+		float y = sPrefs.getFloat(buttonId + "_Y", 0f);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
@@ -655,8 +656,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		float x = sPrefs.getFloat(buttonUp + "-X", 0f);
-		float y = sPrefs.getFloat(buttonUp + "-Y", 0f);
+		float x = sPrefs.getFloat(buttonUp + "_X", 0f);
+		float y = sPrefs.getFloat(buttonUp + "_Y", 0f);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
@@ -703,8 +704,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		float x = sPrefs.getFloat(joystick + "-X", 0f);
-		float y = sPrefs.getFloat(joystick + "-Y", 0f);
+		float x = sPrefs.getFloat(joystick + "_X", 0f);
+		float y = sPrefs.getFloat(joystick + "_Y", 0f);
 
 		// Decide inner scale based on joystick ID
 		float innerScale;
@@ -752,21 +753,21 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		// It's possible that a user has created their overlay before this was added
 		// Only change the overlay if the 'A' button is not in the upper corner.
 		// GameCube
-		if (mPreferences.getFloat(ButtonType.BUTTON_A + "-X", 0f) == 0f) {
+		if (mPreferences.getFloat(ButtonType.BUTTON_A + "_X", 0f) == 0f) {
 			gcDefaultOverlay();
 		}
 		// Wii
-		if (mPreferences.getFloat(ButtonType.WIIMOTE_BUTTON_A + "-X", 0f) == 0f) {
+		if (mPreferences.getFloat(ButtonType.WIIMOTE_BUTTON_A + "_X", 0f) == 0f) {
 			wiiDefaultOverlay();
 		}
 
 		// Wii Classic
-		if (mPreferences.getFloat(ButtonType.CLASSIC_BUTTON_A + "-X", 0f) == 0f) {
+		if (mPreferences.getFloat(ButtonType.CLASSIC_BUTTON_A + "_X", 0f) == 0f) {
 			wiiClassicDefaultOverlay();
 		}
 
 		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-		sPrefsEditor.putBoolean("OverlayInit", true);
+		sPrefsEditor.putBoolean(OVERLAYINIT_PREF_KEY, true);
 		sPrefsEditor.apply();
 	}
 
@@ -776,28 +777,28 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
 		// to a decimal before multiplying by MAX X/Y.
-		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "-X", res.getInteger(R.integer.BUTTON_A_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "-Y", res.getInteger(R.integer.BUTTON_A_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "-X", res.getInteger(R.integer.BUTTON_B_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "-Y", res.getInteger(R.integer.BUTTON_B_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "-X", res.getInteger(R.integer.BUTTON_X_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "-Y", res.getInteger(R.integer.BUTTON_X_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "-X", res.getInteger(R.integer.BUTTON_Y_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "-Y", res.getInteger(R.integer.BUTTON_Y_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "-X", res.getInteger(R.integer.BUTTON_Z_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "-Y", res.getInteger(R.integer.BUTTON_Z_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "-X", res.getInteger(R.integer.BUTTON_UP_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "-Y", res.getInteger(R.integer.BUTTON_UP_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-X", res.getInteger(R.integer.TRIGGER_L_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-Y", res.getInteger(R.integer.TRIGGER_L_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-X", res.getInteger(R.integer.TRIGGER_R_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-Y", res.getInteger(R.integer.TRIGGER_R_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-X", res.getInteger(R.integer.BUTTON_START_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-Y", res.getInteger(R.integer.BUTTON_START_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_C + "-X", res.getInteger(R.integer.STICK_C_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_C + "-Y", res.getInteger(R.integer.STICK_C_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "-X", res.getInteger(R.integer.STICK_MAIN_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "-Y", res.getInteger(R.integer.STICK_MAIN_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "_X", res.getInteger(R.integer.BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "_Y", res.getInteger(R.integer.BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "_X", res.getInteger(R.integer.BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "_Y", res.getInteger(R.integer.BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "_X", res.getInteger(R.integer.BUTTON_X_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "_Y", res.getInteger(R.integer.BUTTON_X_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "_X", res.getInteger(R.integer.BUTTON_Y_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "_Y", res.getInteger(R.integer.BUTTON_Y_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "_X", res.getInteger(R.integer.BUTTON_Z_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "_Y", res.getInteger(R.integer.BUTTON_Z_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "_X", res.getInteger(R.integer.BUTTON_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "_Y", res.getInteger(R.integer.BUTTON_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "_X", res.getInteger(R.integer.TRIGGER_L_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "_Y", res.getInteger(R.integer.TRIGGER_L_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "_X", res.getInteger(R.integer.TRIGGER_R_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "_Y", res.getInteger(R.integer.TRIGGER_R_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "_X", res.getInteger(R.integer.BUTTON_START_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "_Y", res.getInteger(R.integer.BUTTON_START_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_C + "_X", res.getInteger(R.integer.STICK_C_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_C + "_Y", res.getInteger(R.integer.STICK_C_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "_X", res.getInteger(R.integer.STICK_MAIN_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "_Y", res.getInteger(R.integer.STICK_MAIN_Y) / 100.0f);
 
 		// We want to commit right away, otherwise the overlay could load before this is saved.
 		sPrefsEditor.commit();
@@ -809,31 +810,31 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
 		// to a decimal before multiplying by MAX X/Y.
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "-X", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "-Y", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "-X", res.getInteger(R.integer.NUNCHUK_BUTTON_C_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "-Y", res.getInteger(R.integer.NUNCHUK_BUTTON_C_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "-X", res.getInteger(R.integer.WIIMOTE_UP_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "-Y", res.getInteger(R.integer.WIIMOTE_UP_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "-X", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "-Y", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "-X", res.getInteger(R.integer.NUNCHUK_STICK_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "-Y", res.getInteger(R.integer.NUNCHUK_STICK_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "_X", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "_Y", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "_X", res.getInteger(R.integer.NUNCHUK_BUTTON_C_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "_Y", res.getInteger(R.integer.NUNCHUK_BUTTON_C_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_X", res.getInteger(R.integer.WIIMOTE_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_Y", res.getInteger(R.integer.WIIMOTE_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "_X", res.getInteger(R.integer.NUNCHUK_STICK_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "_Y", res.getInteger(R.integer.NUNCHUK_STICK_Y) / 100.0f);
 		// Horizontal dpad
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "-X", res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "-Y", res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "_X", res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "_Y", res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 100.0f);
 
 		// We want to commit right away, otherwise the overlay could load before this is saved.
 		sPrefsEditor.commit();
@@ -845,34 +846,34 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
 		// to a decimal before multiplying by MAX X/Y.
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_A_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_A_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_B_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_B_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_X_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_X_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_Y_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_Y_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "-X", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "-Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "-X", res.getInteger(R.integer.CLASSIC_DPAD_UP_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "-Y", res.getInteger(R.integer.CLASSIC_DPAD_UP_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "-X", res.getInteger(R.integer.CLASSIC_STICK_LEFT_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "-Y", res.getInteger(R.integer.CLASSIC_STICK_LEFT_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "-X", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "-Y", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "-X", res.getInteger(R.integer.CLASSIC_TRIGGER_L_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "-Y", res.getInteger(R.integer.CLASSIC_TRIGGER_L_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "-X", res.getInteger(R.integer.CLASSIC_TRIGGER_R_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "-Y", res.getInteger(R.integer.CLASSIC_TRIGGER_R_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_X_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_X_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_Y_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_Y_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "_X", res.getInteger(R.integer.CLASSIC_DPAD_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "_Y", res.getInteger(R.integer.CLASSIC_DPAD_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "_X", res.getInteger(R.integer.CLASSIC_STICK_LEFT_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "_Y", res.getInteger(R.integer.CLASSIC_STICK_LEFT_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "_X", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "_Y", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "_X", res.getInteger(R.integer.CLASSIC_TRIGGER_L_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "_Y", res.getInteger(R.integer.CLASSIC_TRIGGER_L_Y) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "_X", res.getInteger(R.integer.CLASSIC_TRIGGER_R_X) / 100.0f);
+		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "_Y", res.getInteger(R.integer.CLASSIC_TRIGGER_R_Y) / 100.0f);
 
 		// We want to commit right away, otherwise the overlay could load before this is saved.
 		sPrefsEditor.commit();

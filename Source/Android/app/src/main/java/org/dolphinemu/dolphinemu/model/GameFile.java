@@ -2,6 +2,8 @@ package org.dolphinemu.dolphinemu.model;
 
 import android.os.Environment;
 
+import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +41,7 @@ public class GameFile {
 	public native int getBannerHeight();
 
 	public String getCoverPath() {
-		return Environment.getExternalStorageDirectory().getPath() +
-			"/dolphin-emu/Cache/GameCovers/" + getGameId() + ".png";
+		return DirectoryInitializationService.getCoverDirectory() + File.separator + getGameId() + ".png";
 	}
 
 	public List<String> getSavedStates() {
