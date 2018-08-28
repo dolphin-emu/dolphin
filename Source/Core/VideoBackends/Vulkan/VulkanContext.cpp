@@ -233,6 +233,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsComputeShaders = true;        // Assumed support.
   config->backend_info.bSupportsGPUTextureDecoding = true;    // Assumed support.
   config->backend_info.bSupportsBitfield = true;              // Assumed support.
+  config->backend_info.bSupportsReversedDepthRange = true;    // Assumed support.
   config->backend_info.bSupportsDynamicSamplerIndexing = true;     // Assumed support.
   config->backend_info.bSupportsPostProcessing = true;             // Assumed support.
   config->backend_info.bSupportsBackgroundCompiling = true;        // Assumed support.
@@ -245,9 +246,8 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsDepthClamp = false;                // Dependent on features.
   config->backend_info.bSupportsST3CTextures = false;              // Dependent on features.
   config->backend_info.bSupportsBPTCTextures = false;              // Dependent on features.
-  config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
-  config->backend_info.bSupportsLogicOp = false;             // Dependent on features.
-  config->backend_info.bSupportsCopyToVram = true;           // Assumed support.
+  config->backend_info.bSupportsLogicOp = false;                   // Dependent on features.
+  config->backend_info.bSupportsCopyToVram = true;                 // Assumed support.
   config->backend_info.bSupportsFramebufferFetch = false;
 }
 
@@ -838,4 +838,4 @@ void VulkanContext::InitDriverDetails()
                       static_cast<double>(m_device_properties.driverVersion),
                       DriverDetails::Family::UNKNOWN);
 }
-}
+}  // namespace Vulkan
