@@ -4,14 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class GameFileCache {
 	private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
-	private static final Set<String> EMPTY_SET = new HashSet<>();
-
 	private long mPointer;  // Do not rename or move without editing the native code
 
 	public GameFileCache(String path) {
@@ -25,29 +26,11 @@ public class GameFileCache {
 
 	public static void addGameFolder(String path, Context context) {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
-		Set<String> newFolderPaths = new HashSet<>(folderPaths);
-		newFolderPaths.add(path);
-		SharedPreferences.Editor editor = preferences.edit();
-		editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
-		editor.apply();
-	}
-
-	private void removeNonExistentGameFolders(Context context) {
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
-		Set<String> newFolderPaths = new HashSet<>();
-		for (String folderPath : folderPaths) {
-			File folder = new File(folderPath);
-			if (folder.exists()) {
-				newFolderPaths.add(folderPath);
-			}
-		}
-
-		if (folderPaths.size() != newFolderPaths.size()) {
-			// One or more folders are being deleted
+		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
+		if(!folderPaths.contains(path)) {
+			folderPaths.add(path);
 			SharedPreferences.Editor editor = preferences.edit();
-			editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
+			editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPaths);
 			editor.apply();
 		}
 	}
@@ -58,12 +41,36 @@ public class GameFileCache {
 	 * @return true if the cache was modified
 	 */
 	public boolean scanLibrary(Context context) {
-		removeNonExistentGameFolders(context);
-
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-		Set<String> folderPathsSet = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
-		String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
+		Set<String> folderPathsSet = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
 
+		// get paths from gamefiles
+		List<GameFile> gameFiles = GameFileCacheService.getAllGameFiles();
+		for(GameFile f : gameFiles) {
+			String filename = f.getPath();
+			int lastSep = filename.lastIndexOf(File.separator);
+			if(lastSep > 0) {
+				String path = filename.substring(0, lastSep);
+				if(!folderPathsSet.contains(path)) {
+					folderPathsSet.add(path);
+				}
+			}
+		}
+
+		// remove non exists paths
+		for(String p : folderPathsSet) {
+			File folder = new File(p);
+			if(!folder.exists()) {
+				folderPathsSet.remove(p);
+			}
+		}
+
+		// apply changes
+		SharedPreferences.Editor editor = preferences.edit();
+		editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPathsSet);
+		editor.apply();
+
+		String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
 		boolean cacheChanged = update(folderPaths);
 		cacheChanged |= updateAdditionalMetadata();
 		if (cacheChanged) {

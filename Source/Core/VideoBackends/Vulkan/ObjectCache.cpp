@@ -342,11 +342,11 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,               // VkStructureType         sType
       nullptr,                                             // const void*             pNext
       0,                                                   // VkSamplerCreateFlags    flags
-      filters[static_cast<u32>(info.mag_filter.Value())],  // VkFilter                magFilter
-      filters[static_cast<u32>(info.min_filter.Value())],  // VkFilter                minFilter
-      mipmap_modes[static_cast<u32>(info.mipmap_filter.Value())],  // VkSamplerMipmapMode mipmapMode
-      address_modes[static_cast<u32>(info.wrap_u.Value())],  // VkSamplerAddressMode    addressModeU
-      address_modes[static_cast<u32>(info.wrap_v.Value())],  // VkSamplerAddressMode    addressModeV
+      filters[static_cast<u32>(info.mag_filter)],  // VkFilter                magFilter
+      filters[static_cast<u32>(info.min_filter)],  // VkFilter                minFilter
+      mipmap_modes[static_cast<u32>(info.mipmap_filter)],  // VkSamplerMipmapMode mipmapMode
+      address_modes[static_cast<u32>(info.wrap_u)],  // VkSamplerAddressMode    addressModeU
+      address_modes[static_cast<u32>(info.wrap_v)],  // VkSamplerAddressMode    addressModeV
       VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,                 // VkSamplerAddressMode    addressModeW
       info.lod_bias / 256.0f,                                // float                   mipLodBias
       VK_FALSE,                                 // VkBool32                anisotropyEnable

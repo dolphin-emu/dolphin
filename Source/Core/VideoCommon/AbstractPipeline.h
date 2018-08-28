@@ -48,10 +48,13 @@ struct AbstractPipelineConfig
 
   union FramebufferState
   {
-    BitField<0, 8, AbstractTextureFormat> color_texture_format;
-    BitField<8, 8, AbstractTextureFormat> depth_texture_format;
-    BitField<16, 8, u32> samples;
-    BitField<24, 1, u32> per_sample_shading;
+	struct {
+		AbstractTextureFormat color_texture_format : 8;
+		AbstractTextureFormat depth_texture_format : 8;
+		u32 samples : 8;
+		u32 per_sample_shading : 1;
+	};
+	u32 hex;
 
     bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
     bool operator!=(const FramebufferState& rhs) const { return hex != rhs.hex; }
@@ -60,8 +63,6 @@ struct AbstractPipelineConfig
       hex = rhs.hex;
       return *this;
     }
-
-    u32 hex;
   } framebuffer_state;
 
   AbstractPipelineUsage usage;
