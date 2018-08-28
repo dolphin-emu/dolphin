@@ -16,5 +16,4 @@ namespace Common
 u16 PacketReadU16(sf::Packet& packet);
 u32 PacketReadU32(sf::Packet& packet);
 u64 PacketReadU64(sf::Packet& packet);
-void PacketWriteU64(sf::Packet& packet, u64 value);
 }  // namespace Common

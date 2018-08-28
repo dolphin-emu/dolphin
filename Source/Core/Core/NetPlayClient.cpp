@@ -1769,11 +1769,11 @@ void NetPlayClient::SendTimeBase()
 
   if (netplay_client->m_timebase_frame % 60 == 0)
   {
-    u64 timebase = SystemTimers::GetFakeTimeBase();
+    const sf::Uint64 timebase = SystemTimers::GetFakeTimeBase();
 
     sf::Packet packet;
     packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
-    Common::PacketWriteU64(packet, timebase);
+    packet << timebase;
     packet << netplay_client->m_timebase_frame;
 
     netplay_client->SendAsync(std::move(packet));

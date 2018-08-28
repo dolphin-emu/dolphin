@@ -5,6 +5,7 @@
 #include "Core/NetPlayServer.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <memory>
@@ -989,7 +990,7 @@ bool NetPlayServer::StartGame()
 
   m_first_pad_status_received.fill(false);
 
-  const u64 initial_rtc = GetInitialNetPlayRTC();
+  const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
   const std::string region = SConfig::GetDirectoryForRegion(
       SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
@@ -1052,7 +1053,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
   spac << m_settings.m_EnableGPUTextureDecoding;
   spac << m_settings.m_StrictSettingsSync;
-  Common::PacketWriteU64(spac, initial_rtc);
+  spac << initial_rtc;
   spac << m_settings.m_SyncSaveData;
   spac << region;
 
@@ -1142,7 +1143,7 @@ bool NetPlayServer::SyncSaveData()
       else
       {
         // No file, so we'll say the size is 0
-        Common::PacketWriteU64(pac, 0);
+        pac << sf::Uint64{0};
       }
 
       SendAsyncToClients(std::move(pac));
@@ -1201,7 +1202,7 @@ bool NetPlayServer::SyncSaveData()
       pac << true;  // save exists
 
       // Header
-      Common::PacketWriteU64(pac, header->tid);
+      pac << sf::Uint64{header->tid};
       pac << header->banner_size << header->permissions << header->unk1;
       for (size_t i = 0; i < header->md5.size(); i++)
         pac << header->md5[i];
@@ -1215,7 +1216,7 @@ bool NetPlayServer::SyncSaveData()
           << bk_header->total_size;
       for (size_t i = 0; i < bk_header->unk3.size(); i++)
         pac << bk_header->unk3[i];
-      Common::PacketWriteU64(pac, bk_header->tid);
+      pac << sf::Uint64{bk_header->tid};
       for (size_t i = 0; i < bk_header->mac_address.size(); i++)
         pac << bk_header->mac_address[i];
 
@@ -1252,8 +1253,8 @@ bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Pac
     return false;
   }
 
-  const u64 size = file.GetSize();
-  Common::PacketWriteU64(packet, size);
+  const sf::Uint64 size = file.GetSize();
+  packet << size;
 
   if (size == 0)
     return true;
@@ -1314,8 +1315,8 @@ bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Pac
 
 bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
 {
-  const u64 size = in_buffer.size();
-  Common::PacketWriteU64(packet, size);
+  const sf::Uint64 size = in_buffer.size();
+  packet << size;
 
   if (size == 0)
     return true;

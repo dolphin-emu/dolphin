@@ -34,6 +34,7 @@
     <ClInclude Include="..\..\include\SFML\System\Export.hpp" />
     <ClInclude Include="..\..\include\SFML\System\NonCopyable.hpp" />
     <ClInclude Include="..\..\include\SFML\System\String.hpp" />
+    <ClInclude Include="..\..\include\SFML\System\String.inl" />
     <ClInclude Include="..\..\include\SFML\System\Time.hpp" />
     <ClInclude Include="..\..\include\SFML\System\Utf.hpp" />
     <ClInclude Include="..\..\include\SFML\System\Utf.inl" />
