@@ -756,20 +756,6 @@ void VideoThrottle()
   s_drawn_video++;
 }
 
-// Executed from GPU thread
-// reports if a frame should be skipped or not
-// depending on the emulation speed set
-bool ShouldSkipFrame(int skipped)
-{
-  u32 TargetFPS = VideoInterface::GetTargetRefreshRate();
-  if (SConfig::GetInstance().m_EmulationSpeed > 0.0f)
-    TargetFPS = u32(TargetFPS * SConfig::GetInstance().m_EmulationSpeed);
-  const u32 frames = s_drawn_frame.load();
-  const bool fps_slow = !(s_timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);
-
-  return fps_slow;
-}
-
 // --- Callbacks for backends / engine ---
 
 // Should be called from GPU thread when a frame is drawn
