@@ -11,6 +11,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
@@ -29,8 +30,6 @@ public class Analytics
   private static final String DEVICE_OS = "DEVICE_OS";
   private static final String DEVICE_MODEL = "DEVICE_MODEL";
   private static final String DEVICE_TYPE = "DEVICE_TYPE";
-
-  private static String deviceType;
 
   public static void checkAnalyticsInit(Context context)
   {
@@ -63,8 +62,6 @@ public class Analytics
         showMessage(context, preferences);
       }
     }
-    // Get device type now since we have a context
-    deviceType = TvUtil.isLeanback(context) ? "android-tv" : "android-mobile";
   }
 
   private static void showMessage(Context context, SharedPreferences preferences)
@@ -120,7 +117,8 @@ public class Analytics
       case DEVICE_OS:
         return String.valueOf(Build.VERSION.SDK_INT);
       case DEVICE_TYPE:
-        return deviceType;
+        return TvUtil.isLeanback(DolphinApplication.getAppContext()) ? "android-tv" :
+                "android-mobile";
       default:
         return "";
     }
