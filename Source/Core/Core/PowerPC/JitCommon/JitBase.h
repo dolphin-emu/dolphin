@@ -53,6 +53,7 @@ protected:
     bool accurateSinglePrecision;
     bool fastmem;
     bool memcheck;
+    bool profile_blocks;
   };
   struct JitState
   {

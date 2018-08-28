@@ -79,6 +79,14 @@ CPUCoreBase* GetCore()
   return g_jit;
 }
 
+void SetProfilingState(ProfilingState state)
+{
+  if (!g_jit)
+    return;
+
+  g_jit->jo.profile_blocks = state == ProfilingState::Enabled;
+}
+
 void WriteProfileResults(const std::string& filename)
 {
   Profiler::ProfileStats prof_stats;
@@ -203,10 +211,6 @@ void ClearCache()
 }
 void ClearSafe()
 {
-  // This clear is "safe" in the sense that it's okay to run from
-  // inside a JIT'ed block: it clears the instruction cache, but not
-  // the JIT'ed code.
-  // TODO: There's probably a better way to handle this situation.
   if (g_jit)
     g_jit->GetBlockCache()->Clear();
 }

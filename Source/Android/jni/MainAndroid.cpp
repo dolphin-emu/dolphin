@@ -409,7 +409,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
   Core::SetState(Core::State::Paused);
   JitInterface::ClearCache();
-  Profiler::g_ProfileBlocks = enable;
+  JitInterface::SetProfilingState(enable ? JitInterface::ProfilingState::Enabled :
+                                           JitInterface::ProfilingState::Disabled);
   Core::SetState(Core::State::Running);
 }
 

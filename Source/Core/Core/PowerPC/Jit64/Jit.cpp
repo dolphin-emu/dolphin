@@ -382,7 +382,7 @@ bool Jit64::Cleanup()
     did_something = true;
   }
 
-  if (Profiler::g_ProfileBlocks)
+  if (jo.profile_blocks)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     // get end tic
@@ -608,7 +608,7 @@ void Jit64::Jit(u32 em_address)
     EnableOptimization();
 
     // Comment out the following to disable breakpoints (speed-up)
-    if (!Profiler::g_ProfileBlocks)
+    if (!jo.profile_blocks)
     {
       if (CPU::IsStepping())
       {
@@ -646,7 +646,7 @@ void Jit64::Jit(u32 em_address)
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
-const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
+u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 {
   js.firstFPInstructionFound = false;
   js.isLastInstruction = false;
@@ -657,8 +657,8 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
 
-  const u8* start =
-      AlignCode4();  // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
+  // TODO: Test if this or AlignCode16 make a difference from GetCodePtr
+  u8* const start = AlignCode4();
   b->checkedEntry = start;
 
   // Downcount flag check. The last block decremented downcounter, and the flag should still be
@@ -668,8 +668,8 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   JMP(asm_routines.do_timing, true);  // downcount hit zero - go do_timing.
   SetJumpTarget(skip);
 
-  const u8* normalEntry = GetCodePtr();
-  b->normalEntry = normalEntry;
+  u8* const normal_entry = GetWritableCodePtr();
+  b->normalEntry = normal_entry;
 
   // Used to get a trace of the last few blocks before a crash, sometimes VERY useful
   if (ImHereDebug)
@@ -680,7 +680,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Conditionally add profiling code.
-  if (Profiler::g_ProfileBlocks)
+  if (jo.profile_blocks)
   {
     // get start tic
     MOV(64, R(ABI_PARAM1), ImmPtr(&b->profile_data.ticStart));
@@ -959,7 +959,7 @@ const u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   LogGeneratedX86(code_block.m_num_instructions, m_code_buffer, start, b);
 #endif
 
-  return normalEntry;
+  return normal_entry;
 }
 
 BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const

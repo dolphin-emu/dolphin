@@ -489,9 +489,9 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
 {
-  std::string output = "";
-  for (u8* code = (u8*)start; code < end; code += 4)
-    output += StringFromFormat("%08x", Common::swap32(*(u32*)code));
+  std::string output;
+  for (const u8* code = start; code < end; code += sizeof(u32))
+    output += StringFromFormat("%08x", Common::swap32(code));
   WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
 }
 
@@ -510,7 +510,7 @@ void JitArm64::BeginTimeProfile(JitBlock* b)
 
 void JitArm64::EndTimeProfile(JitBlock* b)
 {
-  if (!Profiler::g_ProfileBlocks)
+  if (!jo.profile_blocks)
     return;
 
   // Fetch the current counter register
@@ -607,7 +607,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   js.curBlock = b;
   js.carryFlagSet = false;
 
-  const u8* start = GetCodePtr();
+  u8* const start = GetWritableCodePtr();
   b->checkedEntry = start;
 
   // Downcount flag check, Only valid for linked blocks
@@ -619,10 +619,10 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
   }
 
   // Normal entry doesn't need to check for downcount.
-  b->normalEntry = GetCodePtr();
+  b->normalEntry = GetWritableCodePtr();
 
   // Conditionally add profiling code.
-  if (Profiler::g_ProfileBlocks)
+  if (jo.profile_blocks)
   {
     // get start tic
     BeginTimeProfile(b);

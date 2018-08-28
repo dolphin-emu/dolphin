@@ -71,9 +71,9 @@ void CachedInterpreter::Shutdown()
   m_block_cache.Shutdown();
 }
 
-const u8* CachedInterpreter::GetCodePtr() const
+u8* CachedInterpreter::GetCodePtr()
 {
-  return reinterpret_cast<const u8*>(m_code.data() + m_code.size());
+  return reinterpret_cast<u8*>(m_code.data() + m_code.size());
 }
 
 void CachedInterpreter::ExecuteOneBlock()
