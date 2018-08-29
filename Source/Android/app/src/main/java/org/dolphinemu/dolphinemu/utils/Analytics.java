@@ -93,8 +93,7 @@ public class Analytics
   public static void sendReport(String endpoint, byte[] data)
   {
     StringRequest request = new StringRequest(Request.Method.POST, endpoint,
-            null, error -> Log.debug("Send Report Failure code: "
-            + error.networkResponse.statusCode))
+            null, error -> Log.debug("Failed to send report"))
     {
       @Override
       public byte[] getBody()
