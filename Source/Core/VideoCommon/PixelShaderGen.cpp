@@ -449,6 +449,10 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
                        bool use_dual_source);
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
+static void WriteZCoord(ShaderCode& out, APIType api_type,
+                        const ShaderHostConfig& host_config,
+                        const pixel_shader_uid_data* uid_data);
+
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                    const pixel_shader_uid_data* uid_data)
 {
@@ -736,40 +740,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth,
                    use_dual_source || use_shader_blend);
 
-  if (uid_data->zfreeze)
-  {
-    out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
-    out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
-
-    out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
-
-    // Opengl has reversed vertical screenspace coordinates
-    if (ApiType == APIType::OpenGL)
-      out.Write("\tscreenpos.y = %i.0 - screenpos.y;\n", EFB_HEIGHT);
-
-    out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
-              ".y * screenpos.y);\n");
-  }
-  else if (!host_config.fast_depth_calc)
-  {
-    // FastDepth means to trust the depth generated in perspective division.
-    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
-    // For disabled FastDepth we just calculate the depth value again.
-    // The performance impact of this additional calculation doesn't matter, but it prevents
-    // the host GPU driver from performing any early depth test optimizations.
-    out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
-    // the screen space depth value = far z + (clip z / clip w) * z range
-    out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
-              "[1].y));\n");
-  }
-  else
-  {
-    if (!host_config.backend_reversed_depth_range)
-      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
-    else
-      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
-  }
-  out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
+  // write zcoord
+  bool need_write_zcoord = true;
 
   // depth texture can safely be ignored if the result won't be written to the depth buffer
   // (early_ztest) and isn't used for fog either
@@ -778,6 +750,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   // Note: z-textures are not written to depth buffer if early depth test is used
   if (uid_data->per_pixel_depth && uid_data->early_ztest)
   {
+    if(need_write_zcoord)
+    {
+      WriteZCoord(out, ApiType, host_config, uid_data);
+      need_write_zcoord = false;
+    }
+
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
@@ -789,6 +767,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   // ztextures anyway
   if (uid_data->ztex_op != ZTEXTURE_DISABLE && !skip_ztexture)
   {
+    if(need_write_zcoord)
+    {
+      WriteZCoord(out, ApiType, host_config, uid_data);
+      need_write_zcoord = false;
+    }
+
     // use the texture input of the last texture stage (textemp), hopefully this has been read and
     // is in correct format...
     out.SetConstantsUsed(C_ZBIAS, C_ZBIAS + 1);
@@ -799,6 +783,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   if (uid_data->per_pixel_depth && uid_data->late_ztest)
   {
+    if(need_write_zcoord)
+    {
+      WriteZCoord(out, ApiType, host_config, uid_data);
+      need_write_zcoord = false;
+    }
+
     if (!host_config.backend_reversed_depth_range)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
@@ -814,7 +804,16 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
 
-  WriteFog(out, uid_data);
+  if (uid_data->fog_fsel != 0)
+  {
+    if(need_write_zcoord)
+    {
+      WriteZCoord(out, ApiType, host_config, uid_data);
+      need_write_zcoord = false;
+    }
+
+    WriteFog(out, uid_data);
+  }
 
   // Write the color and alpha values to the framebuffer
   // If using shader blend, we still use the separate alpha
@@ -1295,9 +1294,6 @@ static const char* tevFogFuncsTable[] = {
 
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
-  if (uid_data->fog_fsel == 0)
-    return;  // no Fog
-
   out.SetConstantsUsed(C_FOGCOLOR, C_FOGCOLOR);
   out.SetConstantsUsed(C_FOGI, C_FOGI);
   out.SetConstantsUsed(C_FOGF, C_FOGF + 1);
@@ -1364,28 +1360,20 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
     return;
   }
 
-  if (uid_data->rgba6_format)
-    out.Write("\tocol0.rgb = float3(prev.rgb >> 2) / 63.0;\n");
-  else
-    out.Write("\tocol0.rgb = float3(prev.rgb) / 255.0;\n");
+  const float base_value = uid_data->rgba6_format ? 252.0f : 255.0f;
+
+  // Use dual-source color blending to perform dst alpha in a single pass
+  if (use_dual_source)
+    out.Write("\tocol1 = float4(0.0, 0.0, 0.0, float(prev.a) / %.01f);\n", base_value);
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
   if (uid_data->useDstAlpha)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-    out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
-
-    // Use dual-source color blending to perform dst alpha in a single pass
-    if (use_dual_source)
-      out.Write("\tocol1 = float4(0.0, 0.0, 0.0, prev.a) / 255.0;\n");
+	out.Write("\tprev.a = " I_ALPHA ".a;\n");
   }
-  else
-  {
-    out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
-    if (use_dual_source)
-      out.Write("\tocol1 = float4(0.0, 0.0, 0.0, prev.a) / 255.0;\n");
-  }
+  out.Write("\tocol0 = float4(prev) / %.01f;\n", base_value);
 }
 
 static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
@@ -1462,4 +1450,44 @@ static void WriteBlend(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   }
 
   out.Write("\treal_ocol0 = blend_result;\n");
+}
+
+static void WriteZCoord(ShaderCode& out, APIType api_type,
+                        const ShaderHostConfig& host_config,
+                        const pixel_shader_uid_data* uid_data)
+{
+  if (uid_data->zfreeze)
+  {
+    out.SetConstantsUsed(C_ZSLOPE, C_ZSLOPE);
+    out.SetConstantsUsed(C_EFBSCALE, C_EFBSCALE);
+
+    out.Write("\tfloat2 screenpos = rawpos.xy * " I_EFBSCALE ".xy;\n");
+
+    // Opengl has reversed vertical screenspace coordinates
+    if (api_type == APIType::OpenGL)
+      out.Write("\tscreenpos.y = %i.0 - screenpos.y;\n", EFB_HEIGHT);
+
+    out.Write("\tint zCoord = int(" I_ZSLOPE ".z + " I_ZSLOPE ".x * screenpos.x + " I_ZSLOPE
+                ".y * screenpos.y);\n");
+  }
+  else if (!host_config.fast_depth_calc)
+  {
+    // FastDepth means to trust the depth generated in perspective division.
+    // It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
+    // For disabled FastDepth we just calculate the depth value again.
+    // The performance impact of this additional calculation doesn't matter, but it prevents
+    // the host GPU driver from performing any early depth test optimizations.
+    out.SetConstantsUsed(C_ZBIAS + 1, C_ZBIAS + 1);
+    // the screen space depth value = far z + (clip z / clip w) * z range
+    out.Write("\tint zCoord = " I_ZBIAS "[1].x + int((clipPos.z / clipPos.w) * float(" I_ZBIAS
+                "[1].y));\n");
+  }
+  else
+  {
+    if (!host_config.backend_reversed_depth_range)
+      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
+    else
+      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+  }
+  out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 }
