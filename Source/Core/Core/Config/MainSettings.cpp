@@ -101,7 +101,7 @@ const ConfigInfo<bool> MAIN_CUSTOM_RTC_ENABLE{{System::Main, "Core", "EnableCust
 // Default to seconds between 1.1.1970 and 1.1.2000
 const ConfigInfo<u32> MAIN_CUSTOM_RTC_VALUE{{System::Main, "Core", "CustomRTCValue"}, 946684800};
 const ConfigInfo<bool> MAIN_ENABLE_SIGNATURE_CHECKS{{System::Main, "Core", "EnableSignatureChecks"},
-                                                    true};
+                                                    false};
 const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE{{System::Main, "Core", "ReducePollingRate"}, false};
 
 // Main.DSP

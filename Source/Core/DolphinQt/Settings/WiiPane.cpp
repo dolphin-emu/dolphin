@@ -19,6 +19,7 @@
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -74,6 +75,7 @@ void WiiPane::ConnectLayout()
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
+  connect(m_enable_signature_checks, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(&Settings::Instance(), &Settings::USBKeyboardConnectionChanged,
           m_connect_keyboard_checkbox, &QCheckBox::setChecked);
 
@@ -103,6 +105,7 @@ void WiiPane::CreateMisc()
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
+  m_enable_signature_checks = new QCheckBox(tr("Check WAD Signatures"));
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
   m_aspect_ratio_choice = new QComboBox();
   m_aspect_ratio_choice->addItem(tr("4:3"));
@@ -126,15 +129,17 @@ void WiiPane::CreateMisc()
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
   m_sd_card_checkbox->setToolTip(tr("Saved to /Wii/sd.raw (default size is 128mb)."));
   m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
+  m_enable_signature_checks->setToolTip(tr("Checks for valid signatures in Wii WADs."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_sd_card_checkbox, 0, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 1, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice, 3, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_enable_signature_checks, 2, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 3, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 3, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice_label, 4, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice, 4, 1, 1, 1);
 }
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
@@ -207,6 +212,7 @@ void WiiPane::LoadConfig()
   m_pal60_mode_checkbox->setChecked(Config::Get(Config::SYSCONF_PAL60));
   m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
   m_sd_card_checkbox->setChecked(SConfig::GetInstance().m_WiiSDCard);
+  m_enable_signature_checks->setChecked(Config::Get(Config::MAIN_ENABLE_SIGNATURE_CHECKS));
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
 
@@ -225,6 +231,8 @@ void WiiPane::OnSaveConfig()
   Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
   SConfig::GetInstance().m_WiiSDCard = m_sd_card_checkbox->isChecked();
+  Config::SetBase(Config::MAIN_ENABLE_SIGNATURE_CHECKS, m_enable_signature_checks->isChecked());
+  SConfig::GetInstance().m_enable_signature_checks = m_enable_signature_checks->isChecked();
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
                        TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_SENSITIVITY, m_wiimote_ir_sensitivity->value());

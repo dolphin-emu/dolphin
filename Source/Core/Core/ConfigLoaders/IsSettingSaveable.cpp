@@ -26,7 +26,10 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
     return true;
 
   const static std::vector<Config::ConfigLocation> s_setting_saveable{
+      // Main.Core
+
       Config::MAIN_DEFAULT_ISO.location,
+      Config::MAIN_ENABLE_SIGNATURE_CHECKS.location,
 
       // Graphics.Hardware
 
