@@ -21,9 +21,10 @@ public class PicassoUtils
     {
       Picasso.with(imageView.getContext())
               .load(cover)
-              .fit()
               .noFade()
               .noPlaceholder()
+              .fit()
+              .centerInside()
               .config(Bitmap.Config.ARGB_8888)
               .error(R.drawable.no_banner)
               .into(imageView);
@@ -32,9 +33,10 @@ public class PicassoUtils
     {
       Picasso.with(imageView.getContext())
               .load(cover)
-              .fit()
               .noFade()
               .noPlaceholder()
+              .fit()
+              .centerInside()
               .config(Bitmap.Config.ARGB_8888)
               .error(R.drawable.no_banner)
               .into(imageView);
@@ -47,9 +49,10 @@ public class PicassoUtils
     {
       Picasso.with(imageView.getContext())
               .load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
-              .fit()
               .noFade()
               .noPlaceholder()
+              .fit()
+              .centerInside()
               .config(Bitmap.Config.ARGB_8888)
               .error(R.drawable.no_banner)
               .into(imageView, new Callback()
@@ -68,6 +71,8 @@ public class PicassoUtils
                           .load(CoverHelper.buildGameTDBUrl(gameFile, "US"))
                           .fit()
                           .noFade()
+                          .fit()
+                          .centerInside()
                           .noPlaceholder()
                           .config(Bitmap.Config.ARGB_8888)
                           .error(R.drawable.no_banner)
@@ -88,6 +93,8 @@ public class PicassoUtils
                                       .load(CoverHelper.buildGameTDBUrl(gameFile, "EN"))
                                       .fit()
                                       .noFade()
+                                      .fit()
+                                      .centerInside()
                                       .noPlaceholder()
                                       .config(Bitmap.Config.ARGB_8888)
                                       .error(R.drawable.no_banner)
