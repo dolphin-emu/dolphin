@@ -90,6 +90,8 @@ public:
   void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
                              u32 groups_x, u32 groups_y, u32 groups_z) override;
 
+  void BindFramebufferAsTexture(u32 index);
+
 private:
   bool CreateSemaphores();
   void DestroySemaphores();

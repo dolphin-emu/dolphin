@@ -227,11 +227,13 @@
         <item>GameCube Controller</item>
         <item>Classic Controller</item>
         <item>Wii Remote + Nunchuk</item>
+        <item>Horizontal Wii Remote</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
         <item>Classic</item>
         <item>Nunchuk</item>
+        <item>None</item>
     </string-array>
 
     <string-array name="gcpadButtons">
@@ -246,6 +248,17 @@
         <item>D-Pad</item>
         <item>Main Stick</item>
         <item>C Stick</item>
+    </string-array>
+
+    <string-array name="wiimoteButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>Home</item>
+        <item>D-Pad</item>
     </string-array>
 
     <string-array name="nunchukButtons">

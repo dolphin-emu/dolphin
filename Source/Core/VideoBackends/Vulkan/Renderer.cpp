@@ -1133,6 +1133,27 @@ void Renderer::SetTexture(u32 index, const AbstractTexture* texture)
   StateTracker::GetInstance()->SetTexture(index, tex ? tex->GetView() : VK_NULL_HANDLE);
 }
 
+void Renderer::BindFramebufferAsTexture(u32 index)
+{
+  Texture2D* retex = FramebufferManager::GetInstance()->GetResolvedEFBColorTexture();
+  if (!retex)
+  {
+    Texture2D* tex = FramebufferManager::GetInstance()->GetEFBColorTexture();
+    VkRect2D region = { { 0, 0 },{ tex->GetWidth(), tex->GetHeight() } };
+    retex = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
+  }
+
+	if (retex)
+  {
+		VkImageView view = retex->GetView();
+		if (view)
+    {
+			StateTracker::GetInstance()->SetTexture(index, view);
+			StateTracker::GetInstance()->SetSampler(index, g_object_cache->GetPointSampler());
+		}
+	}
+}
+
 void Renderer::SetSamplerState(u32 index, const SamplerState& state)
 {
   // Skip lookup if the state hasn't changed.

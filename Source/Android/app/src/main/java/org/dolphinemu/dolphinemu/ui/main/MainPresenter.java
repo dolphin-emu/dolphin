@@ -132,8 +132,8 @@ public final class MainPresenter {
 
 		SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 		SharedPreferences.Editor editor = pref.edit();
-		editor.putBoolean(InputOverlay.OVERLAYINIT_PREF_KEY, false);
-		editor.putInt(InputOverlay.CONTROLLER_PREF_KEY, 2);
+		editor.putBoolean(InputOverlay.CONTROL_INIT_PREF_KEY, false);
+		editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, 2);
 		editor.apply();
 
 		Toast.makeText(context, String.format("Delete %d files", count), Toast.LENGTH_SHORT).show();

@@ -1371,7 +1371,7 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
   if (uid_data->useDstAlpha)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-	out.Write("\tprev.a = " I_ALPHA ".a;\n");
+    out.Write("\tprev.a = " I_ALPHA ".a;\n");
   }
   out.Write("\tocol0 = float4(prev) / %.01f;\n", base_value);
 }

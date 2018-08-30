@@ -204,7 +204,6 @@ public final class EmulationActivity extends AppCompatActivity {
 		setTitle(mSelectedTitle);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
 	}
 
 	@Override
@@ -455,17 +454,17 @@ public final class EmulationActivity extends AppCompatActivity {
 	private void toggleControls() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		boolean[] enabledButtons = new boolean[14];
-		int controller = mPreferences.getInt(InputOverlay.CONTROLLER_PREF_KEY,
-			InputOverlay.CONTROLLER_WIINUNCHUK_VALUE);
+		int controller = mPreferences.getInt(InputOverlay.CONTROL_TYPE_PREF_KEY, InputOverlay.CONTROLLER_WIINUNCHUK);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_toggle_controls);
-		if (sIsGameCubeGame || controller == InputOverlay.CONTROLLER_GAMECUBE_VALUE) {
+
+		if (sIsGameCubeGame || controller == InputOverlay.CONTROLLER_GAMECUBE) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
 			}
 			builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
 				(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleGc" + indexSelected, isChecked));
-		} else if (controller == InputOverlay.CONTROLLER_CLASSIC_VALUE) {
+		} else if (controller == InputOverlay.COCONTROLLER_CLASSIC) {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
 			}
@@ -475,8 +474,13 @@ public final class EmulationActivity extends AppCompatActivity {
 			for (int i = 0; i < enabledButtons.length; i++) {
 				enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
 			}
-			builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
-				(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
+			if (controller == InputOverlay.CONTROLLER_WIINUNCHUK) {
+				builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
+					(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
+			} else {
+				builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
+					(dialog, indexSelected, isChecked) -> editor.putBoolean("buttonToggleWii" + indexSelected, isChecked));
+			}
 		}
 
 		builder.setNeutralButton(getString(R.string.emulation_toggle_all), (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility());
@@ -535,14 +539,14 @@ public final class EmulationActivity extends AppCompatActivity {
 
 	private void chooseController() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
-		int controller = mPreferences.getInt(InputOverlay.CONTROLLER_PREF_KEY,
-			InputOverlay.CONTROLLER_WIINUNCHUK_VALUE);
+		int controller = mPreferences.getInt(InputOverlay.CONTROL_TYPE_PREF_KEY,
+			InputOverlay.CONTROLLER_WIINUNCHUK);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_choose_controller);
 		builder.setSingleChoiceItems(R.array.controllersEntries, controller,
 			(dialog, indexSelected) ->
 			{
-				editor.putInt(InputOverlay.CONTROLLER_PREF_KEY, indexSelected);
+				editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, indexSelected);
 
 				NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
 					getResources().getStringArray(R.array.controllersValues)[indexSelected]);

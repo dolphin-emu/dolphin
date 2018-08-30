@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -36,11 +37,14 @@ import java.util.Set;
  * {@link SurfaceView} that is rendering emulation.
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener {
-	public static final String OVERLAYINIT_PREF_KEY = "InitOverlay";
-	public static final String CONTROLLER_PREF_KEY = "WiiController";
-	public static final int CONTROLLER_GAMECUBE_VALUE = 0;
-	public static final int CONTROLLER_CLASSIC_VALUE = 1;
-	public static final int CONTROLLER_WIINUNCHUK_VALUE = 2;
+	public static final String CONTROL_INIT_PREF_KEY = "InitOverlay";
+	public static final String CONTROL_TYPE_PREF_KEY = "WiiController";
+	public static final String CONTROL_SCALE_PREF_KEY = "ControlScale";
+
+	public static final int CONTROLLER_GAMECUBE = 0;
+	public static final int COCONTROLLER_CLASSIC = 1;
+	public static final int CONTROLLER_WIINUNCHUK = 2;
+	public static final int CONTROLLER_WIIREMOTE = 3;
 
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
@@ -83,8 +87,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		super(context, attrs);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-		if (!mPreferences.getBoolean(OVERLAYINIT_PREF_KEY, false))
+		if (!mPreferences.getBoolean(CONTROL_INIT_PREF_KEY, false))
 			defaultOverlay();
+
 		// Load the controls.
 		refreshControls();
 
@@ -326,140 +331,151 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 	private void addGameCubeOverlayControls() {
 		if (mPreferences.getBoolean("buttonToggleGc0", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_a, R.drawable.gcpad_a_pressed, ButtonType.BUTTON_A));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_a, R.drawable.gcpad_a_pressed, ButtonType.BUTTON_A));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc1", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_b, R.drawable.gcpad_b_pressed, ButtonType.BUTTON_B));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_b, R.drawable.gcpad_b_pressed, ButtonType.BUTTON_B));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc2", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_x, R.drawable.gcpad_x_pressed, ButtonType.BUTTON_X));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_x, R.drawable.gcpad_x_pressed, ButtonType.BUTTON_X));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc3", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_y, R.drawable.gcpad_y_pressed, ButtonType.BUTTON_Y));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_y, R.drawable.gcpad_y_pressed, ButtonType.BUTTON_Y));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc4", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_z, R.drawable.gcpad_z_pressed, ButtonType.BUTTON_Z));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_z, R.drawable.gcpad_z_pressed, ButtonType.BUTTON_Z));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc5", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_start, R.drawable.gcpad_start_pressed, ButtonType.BUTTON_START));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_start, R.drawable.gcpad_start_pressed, ButtonType.BUTTON_START));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc6", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l, R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_l, R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc7", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r, R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R));
+			overlayButtons.add(initializeOverlayButton(R.drawable.gcpad_r, R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc8", true)) {
-			overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+			overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
 				R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
 				ButtonType.BUTTON_UP, ButtonType.BUTTON_DOWN,
 				ButtonType.BUTTON_LEFT, ButtonType.BUTTON_RIGHT));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc9", true)) {
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+			overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
 				R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.STICK_MAIN));
 		}
 		if (mPreferences.getBoolean("buttonToggleGc10", true)) {
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+			overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
 				R.drawable.gcpad_c, R.drawable.gcpad_c_pressed, ButtonType.STICK_C));
 		}
 	}
 
 	private void addWiimoteOverlayControls() {
 		if (mPreferences.getBoolean("buttonToggleWii0", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_a, R.drawable.wiimote_a_pressed, ButtonType.WIIMOTE_BUTTON_A));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_a, R.drawable.wiimote_a_pressed, ButtonType.WIIMOTE_BUTTON_A));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii1", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_b, R.drawable.wiimote_b_pressed, ButtonType.WIIMOTE_BUTTON_B));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_b, R.drawable.wiimote_b_pressed, ButtonType.WIIMOTE_BUTTON_B));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii2", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_one, R.drawable.wiimote_one_pressed, ButtonType.WIIMOTE_BUTTON_1));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_one, R.drawable.wiimote_one_pressed, ButtonType.WIIMOTE_BUTTON_1));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii3", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_two, R.drawable.wiimote_two_pressed, ButtonType.WIIMOTE_BUTTON_2));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_two, R.drawable.wiimote_two_pressed, ButtonType.WIIMOTE_BUTTON_2));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii4", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_plus, R.drawable.wiimote_plus_pressed, ButtonType.WIIMOTE_BUTTON_PLUS));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_plus, R.drawable.wiimote_plus_pressed, ButtonType.WIIMOTE_BUTTON_PLUS));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii5", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_minus, R.drawable.wiimote_minus_pressed, ButtonType.WIIMOTE_BUTTON_MINUS));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_minus, R.drawable.wiimote_minus_pressed, ButtonType.WIIMOTE_BUTTON_MINUS));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii6", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_home, R.drawable.wiimote_home_pressed, ButtonType.WIIMOTE_BUTTON_HOME));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_home, R.drawable.wiimote_home_pressed, ButtonType.WIIMOTE_BUTTON_HOME));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii7", true)) {
-			overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
-				R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
-				ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
-				ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
+			if (mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK) == CONTROLLER_WIINUNCHUK)
+			{
+				overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
+					R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
+					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
+					ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
+			}
+			else
+			{
+				// Horizontal Wii Remote
+				overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
+					R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
+					ButtonType.WIIMOTE_RIGHT, ButtonType.WIIMOTE_LEFT,
+					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN));
+			}
 		}
 	}
 
 	private void addNunchukOverlayControls() {
 		if (mPreferences.getBoolean("buttonToggleWii8", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_c, R.drawable.nunchuk_c_pressed, ButtonType.NUNCHUK_BUTTON_C));
+			overlayButtons.add(initializeOverlayButton(R.drawable.nunchuk_c, R.drawable.nunchuk_c_pressed, ButtonType.NUNCHUK_BUTTON_C));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii9", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_z, R.drawable.nunchuk_z_pressed, ButtonType.NUNCHUK_BUTTON_Z));
+			overlayButtons.add(initializeOverlayButton(R.drawable.nunchuk_z, R.drawable.nunchuk_z_pressed, ButtonType.NUNCHUK_BUTTON_Z));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii10", true)) {
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+			overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
 				R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.NUNCHUK_STICK));
 		}
 	}
 
 	private void addClassicOverlayControls() {
 		if (mPreferences.getBoolean("buttonToggleClassic0", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_a, R.drawable.classic_a_pressed, ButtonType.CLASSIC_BUTTON_A));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_a, R.drawable.classic_a_pressed, ButtonType.CLASSIC_BUTTON_A));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic1", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_b, R.drawable.classic_b_pressed, ButtonType.CLASSIC_BUTTON_B));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_b, R.drawable.classic_b_pressed, ButtonType.CLASSIC_BUTTON_B));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic2", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_x, R.drawable.classic_x_pressed, ButtonType.CLASSIC_BUTTON_X));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_x, R.drawable.classic_x_pressed, ButtonType.CLASSIC_BUTTON_X));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic3", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_y, R.drawable.classic_y_pressed, ButtonType.CLASSIC_BUTTON_Y));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_y, R.drawable.classic_y_pressed, ButtonType.CLASSIC_BUTTON_Y));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic4", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_plus, R.drawable.wiimote_plus_pressed, ButtonType.CLASSIC_BUTTON_PLUS));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_plus, R.drawable.wiimote_plus_pressed, ButtonType.CLASSIC_BUTTON_PLUS));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic5", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_minus, R.drawable.wiimote_minus_pressed, ButtonType.CLASSIC_BUTTON_MINUS));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_minus, R.drawable.wiimote_minus_pressed, ButtonType.CLASSIC_BUTTON_MINUS));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic6", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_home, R.drawable.wiimote_home_pressed, ButtonType.CLASSIC_BUTTON_HOME));
+			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_home, R.drawable.wiimote_home_pressed, ButtonType.CLASSIC_BUTTON_HOME));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic7", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_l, R.drawable.classic_l_pressed, ButtonType.CLASSIC_TRIGGER_L));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_l, R.drawable.classic_l_pressed, ButtonType.CLASSIC_TRIGGER_L));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic8", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_r, R.drawable.classic_r_pressed, ButtonType.CLASSIC_TRIGGER_R));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_r, R.drawable.classic_r_pressed, ButtonType.CLASSIC_TRIGGER_R));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic9", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_zl, R.drawable.classic_zl_pressed, ButtonType.CLASSIC_BUTTON_ZL));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_zl, R.drawable.classic_zl_pressed, ButtonType.CLASSIC_BUTTON_ZL));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic10", true)) {
-			overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_zr, R.drawable.classic_zr_pressed, ButtonType.CLASSIC_BUTTON_ZR));
+			overlayButtons.add(initializeOverlayButton(R.drawable.classic_zr, R.drawable.classic_zr_pressed, ButtonType.CLASSIC_BUTTON_ZR));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic11", true)) {
-			overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+			overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
 				R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
 				ButtonType.CLASSIC_DPAD_UP, ButtonType.CLASSIC_DPAD_DOWN,
 				ButtonType.CLASSIC_DPAD_LEFT, ButtonType.CLASSIC_DPAD_RIGHT));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic12", true)) {
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+			overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
 				R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.CLASSIC_STICK_LEFT));
 		}
 		if (mPreferences.getBoolean("buttonToggleClassic13", true)) {
-			overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
+			overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
 				R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.CLASSIC_STICK_RIGHT));
 		}
 	}
 
 	public void refreshControls() {
-		int controller = mPreferences.getInt(CONTROLLER_PREF_KEY, CONTROLLER_WIINUNCHUK_VALUE);
+		final int controller = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
 
 		// Remove all the overlay buttons from the HashSet.
 		overlayButtons.removeAll(overlayButtons);
@@ -467,27 +483,29 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		overlayJoysticks.removeAll(overlayJoysticks);
 
 		// Add all the enabled overlay items back to the HashSet.
-		if (EmulationActivity.isGameCubeGame() || controller == CONTROLLER_GAMECUBE_VALUE) {
+		if (EmulationActivity.isGameCubeGame() || controller == CONTROLLER_GAMECUBE) {
 			addGameCubeOverlayControls();
-		} else if (controller == CONTROLLER_CLASSIC_VALUE) {
+		} else if (controller == COCONTROLLER_CLASSIC) {
 			addClassicOverlayControls();
 		} else {
 			addWiimoteOverlayControls();
-			addNunchukOverlayControls();
+			if(controller == CONTROLLER_WIINUNCHUK) {
+				addNunchukOverlayControls();
+			}
 		}
 
 		invalidate();
 	}
 
-	private void saveControlPosition(int sharedPrefsId, Rect bounds) {
+	private void saveControlPosition(int buttonId, Rect bounds) {
 		final Context context = getContext();
 		final DisplayMetrics dm = context.getResources().getDisplayMetrics();
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-		SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
+		final int controller = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 		float x = (bounds.left + (bounds.right - bounds.left) / 2.0f) / dm.widthPixels * 2.0f - 1.0f;
 		float y = (bounds.top + (bounds.bottom - bounds.top) / 2.0f) / dm.heightPixels * 2.0f - 1.0f;
-		sPrefsEditor.putFloat(sharedPrefsId + "_X", x);
-		sPrefsEditor.putFloat(sharedPrefsId + "_Y", y);
+		sPrefsEditor.putFloat(controller + "_" + buttonId + "_X", x);
+		sPrefsEditor.putFloat(controller + "_" + buttonId + "_Y", y);
 		sPrefsEditor.apply();
 	}
 
@@ -515,18 +533,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	 * InputOverlayDrawableButton. Simply add it to the HashSet of overlay items and wait
 	 * for Android to call the onDraw method.
 	 *
-	 * @param context      The current {@link Context}.
 	 * @param defaultResId The resource ID of the {@link Drawable} to get the {@link Bitmap} of (Default State).
 	 * @param pressedResId The resource ID of the {@link Drawable} to get the {@link Bitmap} of (Pressed State).
 	 * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
 	 * @return An {@link InputOverlayDrawableButton} with the correct drawing bounds set.
 	 */
-	private static InputOverlayDrawableButton initializeOverlayButton(Context context, int defaultResId, int pressedResId, int buttonId) {
+	private InputOverlayDrawableButton initializeOverlayButton(int defaultResId, int pressedResId, int buttonId) {
+		final Context context = getContext();
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
-
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+		final int controller = EmulationActivity.isGameCubeGame() ?
+			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
 
 		// Decide scale based on button ID and user preference
 		float scale;
@@ -572,7 +590,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 				break;
 		}
 
-		scale *= (sPrefs.getInt("controlScale", 50) + 50);
+		scale *= (mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50) + 50);
 		scale /= 100;
 
 		// Initialize the InputOverlayDrawableButton.
@@ -582,8 +600,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		float x = sPrefs.getFloat(buttonId + "_X", 0f);
-		float y = sPrefs.getFloat(buttonId + "_Y", 0f);
+		float x = mPreferences.getFloat(controller + "_" + buttonId + "_X", 0f);
+		float y = mPreferences.getFloat(controller + "_" + buttonId + "_Y", 0f);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
@@ -604,7 +622,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	/**
 	 * Initializes an {@link InputOverlayDrawableDpad}
 	 *
-	 * @param context                   The current {@link Context}.
 	 * @param defaultResId              The {@link Bitmap} resource ID of the default sate.
 	 * @param pressedOneDirectionResId  The {@link Bitmap} resource ID of the pressed sate in one direction.
 	 * @param pressedTwoDirectionsResId The {@link Bitmap} resource ID of the pressed sate in two directions.
@@ -614,19 +631,19 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	 * @param buttonRight               Identifier for the right button.
 	 * @return the initialized {@link InputOverlayDrawableDpad}
 	 */
-	private static InputOverlayDrawableDpad initializeOverlayDpad(Context context,
-																																int defaultResId,
+	private InputOverlayDrawableDpad initializeOverlayDpad(int defaultResId,
 																																int pressedOneDirectionResId,
 																																int pressedTwoDirectionsResId,
 																																int buttonUp,
 																																int buttonDown,
 																																int buttonLeft,
 																																int buttonRight) {
+		final Context context = getContext();
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
-
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+		final int controller = EmulationActivity.isGameCubeGame() ?
+			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
 
 		// Decide scale based on button ID and user preference
 		float scale;
@@ -643,7 +660,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 				break;
 		}
 
-		scale *= (sPrefs.getInt("controlScale", 50) + 50);
+		scale *= (mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50) + 50);
 		scale /= 100;
 
 		// Initialize the InputOverlayDrawableDpad.
@@ -656,8 +673,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		float x = sPrefs.getFloat(buttonUp + "_X", 0f);
-		float y = sPrefs.getFloat(buttonUp + "_Y", 0f);
+		float x = mPreferences.getFloat(controller + "_" + buttonUp + "_X", 0f);
+		float y = mPreferences.getFloat(controller + "_" + buttonUp + "_Y", 0f);
 
 		int width = overlayDrawable.getWidth();
 		int height = overlayDrawable.getHeight();
@@ -678,23 +695,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	/**
 	 * Initializes an {@link InputOverlayDrawableJoystick}
 	 *
-	 * @param context         The current {@link Context}
 	 * @param resOuter        Resource ID for the outer image of the joystick (the static image that shows the circular bounds).
 	 * @param defaultResInner Resource ID for the default inner image of the joystick (the one you actually move around).
 	 * @param pressedResInner Resource ID for the pressed inner image of the joystick.
 	 * @param joystick        Identifier for which joystick this is.
 	 * @return the initialized {@link InputOverlayDrawableJoystick}.
 	 */
-	private static InputOverlayDrawableJoystick initializeOverlayJoystick(Context context, int resOuter, int defaultResInner, int pressedResInner, int joystick) {
+	private InputOverlayDrawableJoystick initializeOverlayJoystick(int resOuter, int defaultResInner, int pressedResInner, int joystick) {
+		final Context context = getContext();
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
 
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
-		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+		final int controller = EmulationActivity.isGameCubeGame() ?
+			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
 
 		// Decide scale based on user preference
 		float scale = 0.275f;
-		scale *= (sPrefs.getInt("controlScale", 50) + 50);
+		scale *= (mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50) + 50);
 		scale /= 100;
 
 		// Initialize the InputOverlayDrawableJoystick.
@@ -704,8 +722,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		float x = sPrefs.getFloat(joystick + "_X", 0f);
-		float y = sPrefs.getFloat(joystick + "_Y", 0f);
+		float x = mPreferences.getFloat(controller + "_" + joystick + "_X", 0f);
+		float y = mPreferences.getFloat(controller + "_" + joystick + "_Y", 0f);
 
 		// Decide inner scale based on joystick ID
 		float innerScale;
@@ -733,7 +751,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		final InputOverlayDrawableJoystick overlayDrawable
 			= new InputOverlayDrawableJoystick(res, bitmapOuter,
 			bitmapInnerDefault, bitmapInnerPressed,
-			outerRect, innerRect, joystick, sPrefs);
+			outerRect, innerRect, joystick, mPreferences);
 
 		// Need to set the image's position
 		overlayDrawable.setPosition(drawableX, drawableY);
@@ -752,128 +770,166 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	private void defaultOverlay() {
 		// It's possible that a user has created their overlay before this was added
 		// Only change the overlay if the 'A' button is not in the upper corner.
+
 		// GameCube
-		if (mPreferences.getFloat(ButtonType.BUTTON_A + "_X", 0f) == 0f) {
+		if (mPreferences.getFloat(CONTROLLER_GAMECUBE + "_" + ButtonType.BUTTON_A + "_X", 0f) == 0f) {
 			gcDefaultOverlay();
 		}
-		// Wii
-		if (mPreferences.getFloat(ButtonType.WIIMOTE_BUTTON_A + "_X", 0f) == 0f) {
-			wiiDefaultOverlay();
+
+		// Wii Nunchuk
+		if (mPreferences.getFloat(CONTROLLER_WIINUNCHUK + "_" + ButtonType.WIIMOTE_BUTTON_A + "_X", 0f) == 0f) {
+			wiiNunchukDefaultOverlay();
+		}
+
+		// Wii Remote
+		if (mPreferences.getFloat(CONTROLLER_WIIREMOTE + "_" + ButtonType.WIIMOTE_BUTTON_A + "_X", 0f) == 0f) {
+			wiiRemoteDefaultOverlay();
 		}
 
 		// Wii Classic
-		if (mPreferences.getFloat(ButtonType.CLASSIC_BUTTON_A + "_X", 0f) == 0f) {
+		if (mPreferences.getFloat(COCONTROLLER_CLASSIC + "_" + ButtonType.CLASSIC_BUTTON_A + "_X", 0f) == 0f) {
 			wiiClassicDefaultOverlay();
 		}
 
 		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-		sPrefsEditor.putBoolean(OVERLAYINIT_PREF_KEY, true);
+		sPrefsEditor.putBoolean(CONTROL_INIT_PREF_KEY, true);
 		sPrefsEditor.apply();
 	}
 
 	private void gcDefaultOverlay() {
+		final int controller = CONTROLLER_GAMECUBE;
 		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 		Resources res = getResources();
 
 		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
 		// to a decimal before multiplying by MAX X/Y.
-		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "_X", res.getInteger(R.integer.BUTTON_A_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_A + "_Y", res.getInteger(R.integer.BUTTON_A_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "_X", res.getInteger(R.integer.BUTTON_B_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_B + "_Y", res.getInteger(R.integer.BUTTON_B_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "_X", res.getInteger(R.integer.BUTTON_X_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_X + "_Y", res.getInteger(R.integer.BUTTON_X_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "_X", res.getInteger(R.integer.BUTTON_Y_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "_Y", res.getInteger(R.integer.BUTTON_Y_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "_X", res.getInteger(R.integer.BUTTON_Z_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "_Y", res.getInteger(R.integer.BUTTON_Z_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "_X", res.getInteger(R.integer.BUTTON_UP_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "_Y", res.getInteger(R.integer.BUTTON_UP_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "_X", res.getInteger(R.integer.TRIGGER_L_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "_Y", res.getInteger(R.integer.TRIGGER_L_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "_X", res.getInteger(R.integer.TRIGGER_R_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "_Y", res.getInteger(R.integer.TRIGGER_R_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "_X", res.getInteger(R.integer.BUTTON_START_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.BUTTON_START + "_Y", res.getInteger(R.integer.BUTTON_START_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_C + "_X", res.getInteger(R.integer.STICK_C_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_C + "_Y", res.getInteger(R.integer.STICK_C_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "_X", res.getInteger(R.integer.STICK_MAIN_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "_Y", res.getInteger(R.integer.STICK_MAIN_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_A + "_X", res.getInteger(R.integer.BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_A + "_Y", res.getInteger(R.integer.BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_B + "_X", res.getInteger(R.integer.BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_B + "_Y", res.getInteger(R.integer.BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_X + "_X", res.getInteger(R.integer.BUTTON_X_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_X + "_Y", res.getInteger(R.integer.BUTTON_X_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_Y + "_X", res.getInteger(R.integer.BUTTON_Y_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_Y + "_Y", res.getInteger(R.integer.BUTTON_Y_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_Z + "_X", res.getInteger(R.integer.BUTTON_Z_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_Z + "_Y", res.getInteger(R.integer.BUTTON_Z_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_UP + "_X", res.getInteger(R.integer.BUTTON_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_UP + "_Y", res.getInteger(R.integer.BUTTON_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.TRIGGER_L + "_X", res.getInteger(R.integer.TRIGGER_L_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.TRIGGER_L + "_Y", res.getInteger(R.integer.TRIGGER_L_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.TRIGGER_R + "_X", res.getInteger(R.integer.TRIGGER_R_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.TRIGGER_R + "_Y", res.getInteger(R.integer.TRIGGER_R_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_START + "_X", res.getInteger(R.integer.BUTTON_START_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.BUTTON_START + "_Y", res.getInteger(R.integer.BUTTON_START_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.STICK_C + "_X", res.getInteger(R.integer.STICK_C_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.STICK_C + "_Y", res.getInteger(R.integer.STICK_C_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.STICK_MAIN + "_X", res.getInteger(R.integer.STICK_MAIN_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.STICK_MAIN + "_Y", res.getInteger(R.integer.STICK_MAIN_Y) / 100.0f);
 
 		// We want to commit right away, otherwise the overlay could load before this is saved.
 		sPrefsEditor.commit();
 	}
 
-	private void wiiDefaultOverlay() {
+	private void wiiNunchukDefaultOverlay() {
+		final int controller = CONTROLLER_WIINUNCHUK;
 		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 		Resources res = getResources();
 
 		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
 		// to a decimal before multiplying by MAX X/Y.
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "_X", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "_Y", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "_X", res.getInteger(R.integer.NUNCHUK_BUTTON_C_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "_Y", res.getInteger(R.integer.NUNCHUK_BUTTON_C_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_X", res.getInteger(R.integer.WIIMOTE_UP_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_Y", res.getInteger(R.integer.WIIMOTE_UP_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "_X", res.getInteger(R.integer.NUNCHUK_STICK_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "_Y", res.getInteger(R.integer.NUNCHUK_STICK_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_A + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_A + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_B + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_B + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_1 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_1 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_2 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_2 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.NUNCHUK_BUTTON_Z + "_X", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.NUNCHUK_BUTTON_Z + "_Y", res.getInteger(R.integer.NUNCHUK_BUTTON_Z_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.NUNCHUK_BUTTON_C + "_X", res.getInteger(R.integer.NUNCHUK_BUTTON_C_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.NUNCHUK_BUTTON_C + "_Y", res.getInteger(R.integer.NUNCHUK_BUTTON_C_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_MINUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_MINUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_PLUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_PLUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_UP + "_X", res.getInteger(R.integer.WIIMOTE_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_UP + "_Y", res.getInteger(R.integer.WIIMOTE_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_HOME + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_HOME + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.NUNCHUK_STICK + "_X", res.getInteger(R.integer.NUNCHUK_STICK_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.NUNCHUK_STICK + "_Y", res.getInteger(R.integer.NUNCHUK_STICK_Y) / 100.0f);
 		// Horizontal dpad
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "_X", res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "_Y", res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_RIGHT + "_X", res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_RIGHT + "_Y", res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 100.0f);
+
+		// We want to commit right away, otherwise the overlay could load before this is saved.
+		sPrefsEditor.commit();
+	}
+
+	private void wiiRemoteDefaultOverlay() {
+		final int controller = CONTROLLER_WIIREMOTE;
+		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
+		Resources res = getResources();
+
+		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
+		// to a decimal before multiplying by MAX X/Y.
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_A + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_A + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_B + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_B + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_1 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_1 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_2 + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_2 + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_MINUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_MINUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_PLUS + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_PLUS + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_HOME + "_X", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_BUTTON_HOME + "_Y", res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_RIGHT + "_X", res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.WIIMOTE_RIGHT + "_Y", res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 100.0f);
 
 		// We want to commit right away, otherwise the overlay could load before this is saved.
 		sPrefsEditor.commit();
 	}
 
 	private void wiiClassicDefaultOverlay() {
+		final int controller = COCONTROLLER_CLASSIC;
 		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 		Resources res = getResources();
 
 		// Each value is a percent from max X/Y stored as an int. Have to bring that value down
 		// to a decimal before multiplying by MAX X/Y.
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_A_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_A_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_B_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_B_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_X_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_X_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_Y_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_Y_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "_X", res.getInteger(R.integer.CLASSIC_DPAD_UP_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "_Y", res.getInteger(R.integer.CLASSIC_DPAD_UP_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "_X", res.getInteger(R.integer.CLASSIC_STICK_LEFT_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "_Y", res.getInteger(R.integer.CLASSIC_STICK_LEFT_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "_X", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "_Y", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "_X", res.getInteger(R.integer.CLASSIC_TRIGGER_L_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "_Y", res.getInteger(R.integer.CLASSIC_TRIGGER_L_Y) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "_X", res.getInteger(R.integer.CLASSIC_TRIGGER_R_X) / 100.0f);
-		sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "_Y", res.getInteger(R.integer.CLASSIC_TRIGGER_R_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_A + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_A_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_A + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_A_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_B + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_B_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_B + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_B_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_X + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_X_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_X + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_X_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_Y + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_Y_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_Y + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_Y_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_MINUS + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_MINUS + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_PLUS + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_PLUS + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_HOME + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_HOME + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_HOME_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_ZL + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_ZL + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZL_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_ZR + "_X", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_BUTTON_ZR + "_Y", res.getInteger(R.integer.CLASSIC_BUTTON_ZR_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_DPAD_UP + "_X", res.getInteger(R.integer.CLASSIC_DPAD_UP_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_DPAD_UP + "_Y", res.getInteger(R.integer.CLASSIC_DPAD_UP_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_STICK_LEFT + "_X", res.getInteger(R.integer.CLASSIC_STICK_LEFT_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_STICK_LEFT + "_Y", res.getInteger(R.integer.CLASSIC_STICK_LEFT_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_STICK_RIGHT + "_X", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_STICK_RIGHT + "_Y", res.getInteger(R.integer.CLASSIC_STICK_RIGHT_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_TRIGGER_L + "_X", res.getInteger(R.integer.CLASSIC_TRIGGER_L_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_TRIGGER_L + "_Y", res.getInteger(R.integer.CLASSIC_TRIGGER_L_Y) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_TRIGGER_R + "_X", res.getInteger(R.integer.CLASSIC_TRIGGER_R_X) / 100.0f);
+		sPrefsEditor.putFloat(controller + "_" + ButtonType.CLASSIC_TRIGGER_R + "_Y", res.getInteger(R.integer.CLASSIC_TRIGGER_R_Y) / 100.0f);
 
 		// We want to commit right away, otherwise the overlay could load before this is saved.
 		sPrefsEditor.commit();

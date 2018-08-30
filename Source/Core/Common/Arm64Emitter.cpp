@@ -2137,13 +2137,23 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 
   // The first push must adjust the SP, else a context switch may invalidate everything below SP.
   if (num_regs & 1)
+  {
     STR(INDEX_PRE, (ARM64Reg)(X0 + *it++), SP, -stack_size);
+  }
   else
-    STP(INDEX_PRE, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, -stack_size);
+  {
+    ARM64Reg first_reg = (ARM64Reg)(X0 + *it++);
+    ARM64Reg second_reg = (ARM64Reg)(X0 + *it++);
+    STP(INDEX_PRE, first_reg, second_reg, SP, -stack_size);
+  }
 
   // Fast store for all other registers, this is always an even number.
   for (int i = 0; i < (num_regs - 1) / 2; i++)
-    STP(INDEX_SIGNED, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, 16 * (i + 1));
+  {
+    ARM64Reg odd_reg = (ARM64Reg)(X0 + *it++);
+    ARM64Reg even_reg = (ARM64Reg)(X0 + *it++);
+    STP(INDEX_SIGNED, odd_reg, even_reg, SP, 16 * (i + 1));
+  }
 
   ASSERT_MSG(DYNA_REC, it == registers.end(), "%s registers don't match.", __func__);
 }
@@ -2168,7 +2178,11 @@ void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
 
   // Fast load for all but the first (two) registers, this is always an even number.
   for (int i = 0; i < (num_regs - 1) / 2; i++)
-    LDP(INDEX_SIGNED, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, 16 * (i + 1));
+  {
+    ARM64Reg odd_reg = (ARM64Reg)(X0 + *it++);
+    ARM64Reg even_reg = (ARM64Reg)(X0 + *it++);
+    LDP(INDEX_SIGNED, odd_reg, even_reg, SP, 16 * (i + 1));
+  }
 
   // Post loading the first (two) registers.
   if (num_regs & 1)

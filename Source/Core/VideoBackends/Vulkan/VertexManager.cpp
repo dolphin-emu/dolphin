@@ -168,6 +168,13 @@ void VertexManager::vFlush()
   // Bind all pending state to the command buffer
   if (m_current_pipeline_object)
   {
+    // bind shader blend texture
+    /*bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+    if (useDstAlpha && !g_vulkan_context->SupportsDualSourceBlend())
+    {
+      Renderer::GetInstance()->BindFramebufferAsTexture(1);
+    }*/
+
     g_renderer->SetPipeline(m_current_pipeline_object);
     if (!StateTracker::GetInstance()->Bind())
     {
