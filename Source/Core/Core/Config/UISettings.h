@@ -18,5 +18,6 @@ namespace Config
 
 extern const ConfigInfo<bool> MAIN_USE_DISCORD_PRESENCE;
 extern const ConfigInfo<bool> MAIN_USE_GAME_COVERS;
+extern const ConfigInfo<bool> MAIN_USE_FULL_GAME_COVERS;
 
 }  // namespace Config

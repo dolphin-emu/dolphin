@@ -33,6 +33,7 @@ struct GameBanner
 struct GameCover
 {
   std::vector<u8> buffer{};
+  bool tried_load = false;
   bool empty() const { return buffer.empty(); }
   void DoState(PointerWrap& p);
 };
@@ -83,6 +84,9 @@ public:
   u64 GetVolumeSize() const { return m_volume_size; }
   const GameBanner& GetBannerImage() const;
   const GameCover& GetCoverImage() const;
+  bool IsCoverImageFull() const;
+  bool HasCoverImage() const;
+  bool TriedAllCoverImages() const;
   void DoState(PointerWrap& p);
   bool WiiBannerChanged();
   void WiiBannerCommit();
@@ -93,6 +97,9 @@ public:
   void DefaultCoverCommit();
   bool CustomCoverChanged();
   void CustomCoverCommit();
+  void DownloadFullCover();
+  bool FullCoverChanged();
+  void FullCoverCommit();
 
 private:
   static const std::string& Lookup(DiscIO::Language language,
@@ -101,6 +108,7 @@ private:
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
   bool IsElfOrDol() const;
   bool ReadPNGBanner(const std::string& path);
+  std::string GetGameTDBRegionCode();
 
   // IMPORTANT: Nearly all data members must be save/restored in DoState.
   // If anything is changed, make sure DoState handles it properly and
@@ -135,6 +143,8 @@ private:
   GameBanner m_custom_banner{};
   GameCover m_default_cover{};
   GameCover m_custom_cover{};
+  GameCover m_full_cover{};
+  bool m_cover_loaded;
 
   // The following data members allow GameFileCache to construct updated versions
   // of GameFiles in a threadsafe way. They should not be handled in DoState.
@@ -143,6 +153,7 @@ private:
     GameBanner volume_banner;
     GameBanner custom_banner;
     GameCover default_cover;
+    GameCover full_cover;
     GameCover custom_cover;
   } m_pending{};
 };

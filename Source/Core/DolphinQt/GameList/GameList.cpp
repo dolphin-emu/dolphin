@@ -59,6 +59,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   m_list_proxy->setSourceModel(m_model);
   m_grid_proxy = new GridProxyModel(this);
   m_grid_proxy->setSourceModel(m_model);
+  static_cast<GridProxyModel*>(m_grid_proxy)->ConnectSignals();
 
   MakeListView();
   MakeGridView();

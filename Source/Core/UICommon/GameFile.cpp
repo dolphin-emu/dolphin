@@ -42,6 +42,7 @@
 #include "DiscIO/WiiSaveBanner.h"
 
 constexpr const char* COVER_URL = "https://art.gametdb.com/wii/cover/%s/%s.png";
+constexpr const char* FULL_COVER_URL = "https://art.gametdb.com/wii/coverfullHQ/%s/%s.png";
 
 namespace UICommon
 {
@@ -56,6 +57,11 @@ static bool UseGameCovers()
 #else
   return Config::Get(Config::MAIN_USE_GAME_COVERS);
 #endif
+}
+
+static bool UseFullGameCovers()
+{
+  return UseGameCovers() && Config::Get(Config::MAIN_USE_FULL_GAME_COVERS);
 }
 
 bool operator==(const GameBanner& lhs, const GameBanner& rhs)
@@ -169,6 +175,9 @@ bool GameFile::CustomCoverChanged()
   if (!m_custom_cover.buffer.empty() || !UseGameCovers())
     return false;
 
+  const bool prev_tried_load = m_custom_cover.tried_load;
+  m_pending.custom_cover.tried_load = true;
+
   std::string path, name;
   SplitPath(m_file_path, &path, &name, nullptr);
 
@@ -188,7 +197,7 @@ bool GameFile::CustomCoverChanged()
   if (success)
     m_pending.custom_cover.buffer = {contents.begin(), contents.end()};
 
-  return success;
+  return success || !prev_tried_load;
 }
 
 void GameFile::DownloadDefaultCover()
@@ -205,6 +214,150 @@ void GameFile::DownloadDefaultCover()
 
   Common::HttpRequest request;
 
+  const std::string region_code = GetGameTDBRegionCode();
+
+  auto response = request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.c_str()));
+
+  if (response)
+  {
+    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
+                            cover_path + m_game_id + ".png");
+    return;
+  }
+
+  response =
+      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.substr(0, 4).c_str()));
+
+  if (response)
+  {
+    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
+                            cover_path + m_game_id.substr(0, 4) + ".png");
+    return;
+  }
+
+  // create empty file so we don't try to find it again on every refresh, because waiting for 404
+  // errors is slow
+  File::CreateEmptyFile(cover_path + m_game_id + ".png");
+}
+
+void GameFile::DownloadFullCover()
+{
+  if (!m_full_cover.buffer.empty() || !UseFullGameCovers())
+    return;
+
+  const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
+
+  // If covers have already been downloaded, abort
+  if (File::Exists(cover_path + m_game_id + "_full.png") ||
+      File::Exists(cover_path + m_game_id.substr(0, 4) + "_full.png"))
+    return;
+
+  Common::HttpRequest request;
+
+  const std::string region_code = GetGameTDBRegionCode();
+
+  auto response =
+      request.Get(StringFromFormat(FULL_COVER_URL, region_code.c_str(), m_game_id.c_str()));
+
+  if (response)
+  {
+    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
+                            cover_path + m_game_id + "_full.png");
+    return;
+  }
+
+  response = request.Get(
+      StringFromFormat(FULL_COVER_URL, region_code.c_str(), m_game_id.substr(0, 4).c_str()));
+
+  if (response)
+  {
+    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
+                            cover_path + m_game_id.substr(0, 4) + "_full.png");
+    return;
+  }
+
+  // create empty file so we don't try to find it again on every refresh, because waiting for 404
+  // errors is slow
+  File::CreateEmptyFile(cover_path + m_game_id + "_full.png");
+}
+
+bool GameFile::DefaultCoverChanged()
+{
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
+    return false;
+
+  const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
+
+  std::string contents;
+
+  File::ReadFileToString(cover_path + m_game_id + ".png", contents);
+
+  if (contents.empty())
+    File::ReadFileToString(cover_path + m_game_id.substr(0, 4).c_str() + ".png", contents);
+
+  if (contents.empty())
+  {
+    if (!m_default_cover.tried_load)
+    {
+      m_pending.default_cover.tried_load = true;
+      return true;
+    }
+    return false;
+  }
+
+  m_pending.default_cover.buffer = {contents.begin(), contents.end()};
+  m_pending.default_cover.tried_load = true;
+
+  return true;
+}
+
+bool GameFile::FullCoverChanged()
+{
+  if (!m_full_cover.buffer.empty() || !UseFullGameCovers())
+    return false;
+
+  const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
+
+  std::string contents;
+
+  File::ReadFileToString(cover_path + m_game_id + "_full.png", contents);
+
+  if (contents.empty())
+    File::ReadFileToString(cover_path + m_game_id.substr(0, 4).c_str() + "_full.png", contents);
+
+  if (contents.empty())
+  {
+    if (!m_full_cover.tried_load)
+    {
+      m_pending.full_cover.tried_load = true;
+      return true;
+    }
+    return false;
+  }
+
+  m_pending.full_cover.buffer = {contents.begin(), contents.end()};
+  m_pending.full_cover.tried_load = true;
+
+  return true;
+}
+
+void GameFile::CustomCoverCommit()
+{
+  m_custom_cover = std::move(m_pending.custom_cover);
+}
+
+void GameFile::DefaultCoverCommit()
+{
+  m_default_cover = std::move(m_pending.default_cover);
+}
+
+void GameFile::FullCoverCommit()
+{
+  m_full_cover = std::move(m_pending.full_cover);
+}
+
+std::string GameFile::GetGameTDBRegionCode()
+{
   std::string region_code;
 
   auto user_lang = SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(GetPlatform()));
@@ -249,55 +402,7 @@ void GameFile::DownloadDefaultCover()
     break;
   }
 
-  auto response = request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.c_str()));
-
-  if (response)
-  {
-    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
-                            cover_path + m_game_id + ".png");
-    return;
-  }
-
-  response =
-      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.substr(0, 4).c_str()));
-
-  if (response)
-  {
-    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
-                            cover_path + m_game_id.substr(0, 4) + ".png");
-  }
-}
-
-bool GameFile::DefaultCoverChanged()
-{
-  if (!m_default_cover.buffer.empty() || !UseGameCovers())
-    return false;
-
-  const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
-
-  std::string contents;
-
-  File::ReadFileToString(cover_path + m_game_id + ".png", contents);
-
-  if (contents.empty())
-    File::ReadFileToString(cover_path + m_game_id.substr(0, 4).c_str() + ".png", contents);
-
-  if (contents.empty())
-    return false;
-
-  m_pending.default_cover.buffer = {contents.begin(), contents.end()};
-
-  return true;
-}
-
-void GameFile::CustomCoverCommit()
-{
-  m_custom_cover = std::move(m_pending.custom_cover);
-}
-
-void GameFile::DefaultCoverCommit()
-{
-  m_default_cover = std::move(m_pending.default_cover);
+  return region_code;
 }
 
 void GameBanner::DoState(PointerWrap& p)
@@ -310,6 +415,7 @@ void GameBanner::DoState(PointerWrap& p)
 void GameCover::DoState(PointerWrap& p)
 {
   p.Do(buffer);
+  p.Do(tried_load);
 }
 
 void GameFile::DoState(PointerWrap& p)
@@ -343,6 +449,7 @@ void GameFile::DoState(PointerWrap& p)
   m_custom_banner.DoState(p);
   m_default_cover.DoState(p);
   m_custom_cover.DoState(p);
+  m_full_cover.DoState(p);
 }
 
 bool GameFile::IsElfOrDol() const
@@ -513,7 +620,26 @@ const GameBanner& GameFile::GetBannerImage() const
 
 const GameCover& GameFile::GetCoverImage() const
 {
-  return m_custom_cover.empty() ? m_default_cover : m_custom_cover;
+  return m_custom_cover.empty() ?
+             (UseFullGameCovers() && !m_full_cover.empty() ? m_full_cover : m_default_cover) :
+             m_custom_cover;
+}
+
+bool GameFile::IsCoverImageFull() const
+{
+  return m_custom_cover.empty() && UseFullGameCovers() && !m_full_cover.empty();
+}
+
+bool GameFile::HasCoverImage() const
+{
+  return !m_default_cover.empty() || !m_custom_cover.empty() ||
+         (UseFullGameCovers() && !m_full_cover.empty());
+}
+
+bool GameFile::TriedAllCoverImages() const
+{
+  return m_default_cover.tried_load && m_custom_cover.tried_load &&
+         (!UseFullGameCovers() || m_full_cover.tried_load);
 }
 
 }  // namespace UICommon

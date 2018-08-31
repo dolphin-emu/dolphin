@@ -71,6 +71,7 @@ QIcon Resources::GetScaledThemeIcon(const std::string& name)
 
 QPixmap Resources::GetScaledPixmap(const std::string& name)
 {
+  printf("%s\n", GetResourcesDir().toStdString().c_str());
   return GetPixmap(QString::fromStdString(name), GetResourcesDir());
 }
 

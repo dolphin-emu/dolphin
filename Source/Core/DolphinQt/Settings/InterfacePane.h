@@ -36,6 +36,7 @@ private:
   QCheckBox* m_checkbox_use_userstyle;
   QCheckBox* m_checkbox_show_debugging_ui;
   QCheckBox* m_checkbox_use_covers;
+  QCheckBox* m_checkbox_use_full_covers;
 
   QCheckBox* m_checkbox_confirm_on_stop;
   QCheckBox* m_checkbox_use_panic_handlers;
