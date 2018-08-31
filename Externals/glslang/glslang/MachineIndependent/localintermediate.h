@@ -41,6 +41,8 @@
 #include "../Public/ShaderLang.h"
 #include "Versions.h"
 
+#include <string>
+#include <vector>
 #include <algorithm>
 #include <set>
 #include <array>

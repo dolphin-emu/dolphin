@@ -1,5 +1,6 @@
 //
-// Copyright (C) 2014-2015 LunarG, Inc.
+// Copyright (C) 2014-2016 LunarG, Inc.
+// Copyright (C) 2018 Google, Inc.
 //
 // All rights reserved.
 //
@@ -33,21 +34,47 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 //
-// Disassembler for SPIR-V.
+// Call into SPIRV-Tools to disassemble, validate, and optimize.
 //
 
 #pragma once
-#ifndef disassembler_H
-#define disassembler_H
+#ifndef GLSLANG_SPV_TOOLS_H
+#define GLSLANG_SPV_TOOLS_H
 
-#include <iostream>
 #include <vector>
+#include <ostream>
 
-namespace spv {
+#include "../glslang/MachineIndependent/localintermediate.h"
+#include "Logger.h"
 
-    // disassemble with glslang custom disassembler
-    void Disassemble(std::ostream& out, const std::vector<unsigned int>&);
+namespace glslang {
 
-};  // end namespace spv
+struct SpvOptions {
+    SpvOptions() : generateDebugInfo(false), disableOptimizer(true),
+        optimizeSize(false), disassemble(false), validate(false) { }
+    bool generateDebugInfo;
+    bool disableOptimizer;
+    bool optimizeSize;
+    bool disassemble;
+    bool validate;
+};
 
-#endif // disassembler_H
+#if ENABLE_OPT
+
+// Use the SPIRV-Tools disassembler to print SPIR-V.
+void SpirvToolsDisassemble(std::ostream& out, const std::vector<unsigned int>& spirv);
+
+// Apply the SPIRV-Tools validator to generated SPIR-V.
+void SpirvToolsValidate(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger*);
+
+// Apply the SPIRV-Tools optimizer to generated SPIR-V, for the purpose of
+// legalizing HLSL SPIR-V.
+void SpirvToolsLegalize(const glslang::TIntermediate& intermediate, std::vector<unsigned int>& spirv,
+                        spv::SpvBuildLogger*, const SpvOptions*);
+
+#endif
+
+}; // end namespace glslang
+
+#endif // GLSLANG_SPV_TOOLS_H

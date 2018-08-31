@@ -201,6 +201,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
+			if(axisIDs[0] == ButtonType.NUNCHUK_STICK_UP) {
+				int[] IRIDs = {
+					ButtonType.WIIMOTE_IR+1,
+					ButtonType.WIIMOTE_IR+2,
+					ButtonType.WIIMOTE_IR+3,
+					ButtonType.WIIMOTE_IR+4
+				};
+				for (int i = 0; i < 4; i++) {
+					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, IRIDs[i], -axises[i]);
+				}
+			}
+
 			for (int i = 0; i < 4; i++) {
 				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
 			}
