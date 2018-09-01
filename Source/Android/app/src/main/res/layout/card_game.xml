@@ -3,7 +3,7 @@
                                     xmlns:tools="http://schemas.android.com/tools"
                                     android:layout_width="match_parent"
                                     tools:layout_width="160dp"
-                                    android:layout_height="330dp"
+                                    android:layout_height="270dp"
                                     android:transitionName="card_game"
                                     android:focusable="true"
                                     android:clickable="true"
