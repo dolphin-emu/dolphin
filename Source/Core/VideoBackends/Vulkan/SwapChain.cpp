@@ -25,8 +25,9 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(void* native_handle, VkSurfaceKHR surface, bool vsync)
-    : m_native_handle(native_handle), m_surface(surface), m_vsync_enabled(vsync)
+SwapChain::SwapChain(void* display_handle, void* window_handle, VkSurfaceKHR surface, bool vsync)
+    : m_display_handle(display_handle), m_window_handle(window_handle), m_surface(surface),
+      m_vsync_enabled(vsync)
 {
 }
 
@@ -37,7 +38,8 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
+VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_handle,
+                                            void* window_handle)
 {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
   VkWin32SurfaceCreateInfoKHR surface_create_info = {
@@ -45,7 +47,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
       nullptr,                                          // const void*                   pNext
       0,                                                // VkWin32SurfaceCreateFlagsKHR  flags
       nullptr,                                          // HINSTANCE                     hinstance
-      reinterpret_cast<HWND>(hwnd)                      // HWND                          hwnd
+      reinterpret_cast<HWND>(window_handle)             // HWND                          hwnd
   };
 
   VkSurfaceKHR surface;
@@ -59,16 +61,12 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
   return surface;
 
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
-  // Assuming the display handles are compatible, or shared. This matches what we do in the
-  // GL backend, but it's not ideal.
-  Display* display = XOpenDisplay(nullptr);
-
   VkXlibSurfaceCreateInfoKHR surface_create_info = {
       VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
       nullptr,                                         // const void*                   pNext
       0,                                               // VkXlibSurfaceCreateFlagsKHR   flags
-      display,                                         // Display*                      dpy
-      reinterpret_cast<Window>(hwnd)                   // Window                        window
+      reinterpret_cast<Display*>(display_handle),      // Display*                      dpy
+      reinterpret_cast<Window>(window_handle)          // Window                        window
   };
 
   VkSurfaceKHR surface;
@@ -82,16 +80,15 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
   return surface;
 
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-  // If we ever switch to using xcb, we should pass the display handle as well.
-  Display* display = XOpenDisplay(nullptr);
-  xcb_connection_t* connection = XGetXCBConnection(display);
+  xcb_connection_t* connection = XGetXCBConnection(reinterpret_cast<Display*>(display_handle));
+  xcb_window_t window = static_cast<xcb_window_t>(reinterpret_cast<uintptr_t>(window_handle));
 
   VkXcbSurfaceCreateInfoKHR surface_create_info = {
       VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
       nullptr,                                        // const void*                   pNext
       0,                                              // VkXcbSurfaceCreateFlagsKHR    flags
       connection,                                     // xcb_connection_t*             connection
-      static_cast<xcb_window_t>(reinterpret_cast<uintptr_t>(hwnd))  // xcb_window_t window
+      window                                          // xcb_window_t window
   };
 
   VkSurfaceKHR surface;
@@ -109,7 +106,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
       VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
       nullptr,                                            // const void*                    pNext
       0,                                                  // VkAndroidSurfaceCreateFlagsKHR flags
-      reinterpret_cast<ANativeWindow*>(hwnd)              // ANativeWindow*                 window
+      reinterpret_cast<ANativeWindow*>(window_handle)     // ANativeWindow*                 window
   };
 
   VkSurfaceKHR surface;
@@ -127,10 +124,11 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
 #endif
 }
 
-std::unique_ptr<SwapChain> SwapChain::Create(void* native_handle, VkSurfaceKHR surface, bool vsync)
+std::unique_ptr<SwapChain> SwapChain::Create(void* display_handle, void* window_handle,
+                                             VkSurfaceKHR surface, bool vsync)
 {
   std::unique_ptr<SwapChain> swap_chain =
-      std::make_unique<SwapChain>(native_handle, surface, vsync);
+      std::make_unique<SwapChain>(display_handle, window_handle, surface, vsync);
 
   if (!swap_chain->CreateSwapChain() || !swap_chain->CreateRenderPass() ||
       !swap_chain->SetupSwapChainImages())
@@ -458,7 +456,7 @@ bool SwapChain::SetVSync(bool enabled)
   return RecreateSwapChain();
 }
 
-bool SwapChain::RecreateSurface(void* native_handle)
+bool SwapChain::RecreateSurface(void* window_handle)
 {
   // Destroy the old swap chain, images, and surface.
   DestroySwapChainImages();
@@ -466,8 +464,9 @@ bool SwapChain::RecreateSurface(void* native_handle)
   DestroySurface();
 
   // Re-create the surface with the new native handle
-  m_native_handle = native_handle;
-  m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), native_handle);
+  m_window_handle = window_handle;
+  m_surface =
+      CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_display_handle, m_window_handle);
   if (m_surface == VK_NULL_HANDLE)
     return false;
 

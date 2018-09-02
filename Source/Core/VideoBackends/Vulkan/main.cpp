@@ -102,8 +102,8 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
 bool VideoBackend::OpenDisplayConnection()
 {
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
-  m_native_display = XOpenDisplay(nullptr);
-  if (!m_native_display)
+  m_display_handle = XOpenDisplay(nullptr);
+  if (!m_display_handle)
   {
     PanicAlert("Failed to open X display.");
     return false;
@@ -116,10 +116,10 @@ bool VideoBackend::OpenDisplayConnection()
 void VideoBackend::CloseDisplayConnection()
 {
 #if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
-  if (m_native_display)
+  if (m_display_handle)
   {
-    XCloseDisplay(reinterpret_cast<Display*>(m_native_display));
-    m_native_display = nullptr;
+    XCloseDisplay(reinterpret_cast<Display*>(m_display_handle));
+    m_display_handle = nullptr;
   }
 #endif
 }
@@ -198,7 +198,7 @@ bool VideoBackend::Initialize(void* window_handle)
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   if (enable_surface)
   {
-    surface = SwapChain::CreateVulkanSurface(instance, window_handle);
+    surface = SwapChain::CreateVulkanSurface(instance, m_display_handle, window_handle);
     if (surface == VK_NULL_HANDLE)
     {
       PanicAlert("Failed to create Vulkan surface.");
@@ -263,7 +263,7 @@ bool VideoBackend::Initialize(void* window_handle)
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(window_handle, surface, g_Config.IsVSync());
+    swap_chain = SwapChain::Create(m_display_handle, window_handle, surface, g_Config.IsVSync());
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
