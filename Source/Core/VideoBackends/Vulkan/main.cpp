@@ -61,14 +61,19 @@ void VideoBackend::InitBackendInfo()
     }
     else
     {
-      PanicAlert("Failed to create Vulkan instance.");
+      PanicAlert("Failed to create Vulkan instance.\n\n"
+                 "This may be due to your GPU or driver not supporting Vulkan, "
+                 "or a required extension is unsupported.");
     }
 
     UnloadVulkanLibrary();
   }
   else
   {
-    PanicAlert("Failed to load Vulkan library.");
+    PanicAlert("Failed to load Vulkan library.\n\n"
+               "This may be due to the loader not being installed on your system.\n\n"
+               "The loader is usually provided with your display driver on Windows, "
+               "or in a package named 'libvulkan1' or 'vulkan-icd-loader' on Linux.");
   }
 }
 
@@ -93,7 +98,10 @@ bool VideoBackend::Initialize(void* window_handle)
 {
   if (!LoadVulkanLibrary())
   {
-    PanicAlert("Failed to load Vulkan library.");
+    PanicAlert("Failed to load Vulkan library.\n\n"
+               "This may be due to the loader not being installed on your system.\n\n"
+               "The loader is usually provided with your display driver on Windows, "
+               "or in a package named 'libvulkan1' or 'vulkan-icd-loader' on Linux.");
     return false;
   }
 
@@ -113,7 +121,9 @@ bool VideoBackend::Initialize(void* window_handle)
                                                             enable_validation_layer);
   if (instance == VK_NULL_HANDLE)
   {
-    PanicAlert("Failed to create Vulkan instance.");
+    PanicAlert("Failed to create Vulkan instance.\n\n"
+               "This may be due to your GPU or driver not supporting Vulkan, "
+               "or a required extension is unsupported.");
     UnloadVulkanLibrary();
     return false;
   }
@@ -132,7 +142,8 @@ bool VideoBackend::Initialize(void* window_handle)
   VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
   if (gpu_list.empty())
   {
-    PanicAlert("No Vulkan physical devices available.");
+    PanicAlert("No Vulkan physical devices (GPUs) available.\n\n"
+               "This may be due to your GPU or driver not supporting Vulkan.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
     return false;
