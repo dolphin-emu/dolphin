@@ -503,7 +503,7 @@ public final class EmulationActivity extends AppCompatActivity {
 		final TextView units = (TextView) view.findViewById(R.id.text_units);
 
 		seekbar.setMax(150);
-		seekbar.setProgress(mPreferences.getInt("controlScale", 50));
+		seekbar.setProgress(mPreferences.getInt(InputOverlay.CONTROL_SCALE_PREF_KEY, 50));
 		seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			public void onStartTrackingTouch(SeekBar seekBar) {
 				// Do nothing
@@ -527,7 +527,7 @@ public final class EmulationActivity extends AppCompatActivity {
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
 			SharedPreferences.Editor editor = mPreferences.edit();
-			editor.putInt("controlScale", seekbar.getProgress());
+			editor.putInt(InputOverlay.CONTROL_SCALE_PREF_KEY, seekbar.getProgress());
 			editor.apply();
 
 			mEmulationFragment.refreshInputOverlay();

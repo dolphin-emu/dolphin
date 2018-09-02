@@ -545,7 +545,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       }
       else
       {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 real_ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 real_ocol0;\n");
       }
     }
     else
@@ -648,7 +648,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
             "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
             "\tint4 "
             "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,"
-            "0);\n\n");  // tev combiner inputs
+            "0),tevin_temp=int4(0,0,0,0);\n\n");  // tev combiner inputs
 
   // On GLSL, input variables must not be assigned to.
   // This is why we declare these variables locally instead.
@@ -1083,6 +1083,11 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\ttevin_c = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.c],
             tevAInputTable[ac.c]);
   out.Write("\ttevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
+  
+  if (cc.bias != TEVBIAS_COMPARE || ac.bias != TEVBIAS_COMPARE)
+  {
+    out.Write("\ttevin_temp = (tevin_a<<8) + (tevin_b-tevin_a)*(tevin_c+(tevin_c>>7));\n");
+  }
 
   out.Write("\t// color combine\n");
   out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
@@ -1192,9 +1197,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
   // - a rounding bias is added before dividing by 256
   out.Write("(((tevin_d.%s%s)%s)", components, tevBiasTable[bias], tevScaleTableLeft[shift]);
   out.Write(" %s ", tevOpTable[op]);
-  out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
-            components, components, components, components, components, tevScaleTableLeft[shift],
-            tevLerpBias[2 * op + ((shift == 3) == alpha)]);
+  out.Write("((((tevin_temp.%s)%s)%s)>>8)", components, tevScaleTableLeft[shift], tevLerpBias[2 * op + ((shift == 3) == alpha)]);
   out.Write(")%s", tevScaleTableRight[shift]);
 }
 
