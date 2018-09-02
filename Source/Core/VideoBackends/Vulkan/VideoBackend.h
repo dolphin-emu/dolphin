@@ -18,5 +18,13 @@ public:
   std::string GetName() const override { return "Vulkan"; }
   std::string GetDisplayName() const override { return _trans("Vulkan"); }
   void InitBackendInfo() override;
+
+private:
+  // Helpers to manage the connection to the X server.
+  bool OpenDisplayConnection();
+  void CloseDisplayConnection();
+
+  // For X11 systems, contains a pointer to the Display connection.
+  void* m_native_display = nullptr;
 };
 }
