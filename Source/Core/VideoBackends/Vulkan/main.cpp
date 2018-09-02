@@ -24,7 +24,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+#if defined(VK_USE_PLATFORM_XCB_KHR)
 #include <X11/Xlib.h>
 #endif
 
@@ -101,7 +101,9 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
 // Helpers to manage the connection to the X server.
 bool VideoBackend::OpenDisplayConnection()
 {
-#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+  // We could probably use a xcb_connection_t here, however since we get passed an XLib window
+  // handle, not a xcb_window_t handle, to keep things consistent we will use an XLib connection.
   m_display_handle = XOpenDisplay(nullptr);
   if (!m_display_handle)
   {
@@ -115,7 +117,7 @@ bool VideoBackend::OpenDisplayConnection()
 
 void VideoBackend::CloseDisplayConnection()
 {
-#if defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+#if defined(VK_USE_PLATFORM_XCB_KHR)
   if (m_display_handle)
   {
     XCloseDisplay(reinterpret_cast<Display*>(m_display_handle));

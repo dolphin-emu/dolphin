@@ -318,7 +318,7 @@ if(LIBUSB_FOUND)
   )
 endif()
 
-if(NOT APPLE)
+if(ENABLE_VULKAN)
   target_link_libraries(core PUBLIC videovulkan)
 endif()
 

@@ -23,7 +23,7 @@
 #include "VideoBackends/Null/VideoBackend.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
-#ifndef __APPLE__
+#if defined(ENABLE_VULKAN) || defined(WIN32)
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #endif
 
@@ -193,9 +193,11 @@ void VideoBackendBase::PopulateList()
 #ifdef _WIN32
   g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
 #endif
-#ifndef __APPLE__
+
+#if defined(ENABLE_VULKAN) || defined(WIN32)
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
+
   g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
   g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
 

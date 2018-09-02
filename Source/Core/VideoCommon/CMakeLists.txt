@@ -92,3 +92,8 @@ if(FFmpeg_FOUND)
     FFmpeg::swscale
   )
 endif()
+
+# VideoBackendBase.cpp needs to know if the Vulkan backend is being compiled or not.
+if(ENABLE_VULKAN)
+  target_compile_definitions(videocommon PRIVATE "ENABLE_VULKAN=1")
+endif()

@@ -6,6 +6,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   add_subdirectory(D3D)
 endif()
 
-if(NOT APPLE)
+if(ENABLE_VULKAN)
   add_subdirectory(Vulkan)
 endif()

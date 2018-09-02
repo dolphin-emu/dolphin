@@ -16,9 +16,7 @@
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/RenderBase.h"
 
-#if defined(VK_USE_PLATFORM_XLIB_KHR)
-#include <X11/Xlib.h>
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
+#if defined(VK_USE_PLATFORM_XCB_KHR)
 #include <X11/Xlib-xcb.h>
 #include <X11/Xlib.h>
 #endif
@@ -55,25 +53,6 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_h
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateWin32SurfaceKHR failed: ");
-    return VK_NULL_HANDLE;
-  }
-
-  return surface;
-
-#elif defined(VK_USE_PLATFORM_XLIB_KHR)
-  VkXlibSurfaceCreateInfoKHR surface_create_info = {
-      VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
-      nullptr,                                         // const void*                   pNext
-      0,                                               // VkXlibSurfaceCreateFlagsKHR   flags
-      reinterpret_cast<Display*>(display_handle),      // Display*                      dpy
-      reinterpret_cast<Window>(window_handle)          // Window                        window
-  };
-
-  VkSurfaceKHR surface;
-  VkResult res = vkCreateXlibSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateXlibSurfaceKHR failed: ");
     return VK_NULL_HANDLE;
   }
 
