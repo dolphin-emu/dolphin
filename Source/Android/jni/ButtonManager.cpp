@@ -52,6 +52,8 @@ std::vector<std::string> configStrings = {
     "TurntableEuphoria", "TurntableLeftTLeft", "TurntableLeftTRight", "TurntableRightTLeft",
     "TurntableRightTRight", "TurntableUp", "TurntableDown", "TurntableLeft", "TurntableRight",
     "TurntableEffDial", "TurntableCrossLeft", "TurntableCrossRight",
+    // Rumble
+    "Rumble",
 };
 std::vector<ButtonType> configTypes = {
     // GC
@@ -95,6 +97,8 @@ std::vector<ButtonType> configTypes = {
     TURNTABLE_TABLE_RIGHT_RIGHT, TURNTABLE_STICK_UP, TURNTABLE_STICK_DOWN, TURNTABLE_STICK_LEFT,
     TURNTABLE_STICK_RIGHT, TURNTABLE_EFFECT_DIAL, TURNTABLE_CROSSFADE_LEFT,
     TURNTABLE_CROSSFADE_RIGHT,
+    // Rumble
+    RUMBLE,
 };
 
 static void AddBind(const std::string& dev, sBind* bind)
@@ -462,4 +466,5 @@ float InputDevice::AxisValue(int padID, ButtonType axis)
   else
     return _buttons[binding->second->_buttontype] == BUTTON_PRESSED ? 1.0f : 0.0f;
 }
+
 }

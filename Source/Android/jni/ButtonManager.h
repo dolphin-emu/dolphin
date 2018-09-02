@@ -176,6 +176,8 @@ enum ButtonType
   TURNTABLE_CROSSFADE = 622,  // To Be Used on Java Side
   TURNTABLE_CROSSFADE_LEFT = 623,
   TURNTABLE_CROSSFADE_RIGHT = 624,
+  // Rumble
+  RUMBLE = 700,
 };
 enum ButtonState
 {

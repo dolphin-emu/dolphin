@@ -124,6 +124,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_EXIT = 22;
   public static final int MENU_ACTION_CHANGE_DISC = 23;
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
+  public static final int MENU_ACTION_RUMBLE = 25;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -163,6 +164,7 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center,
             EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
+    buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
   }
 
   public static void launch(FragmentActivity activity, GameFile gameFile, int position,
@@ -473,6 +475,8 @@ public final class EmulationActivity extends AppCompatActivity
     // Populate the checkbox value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
             .setChecked(mPreferences.getBoolean("joystickRelCenter", true));
+    menu.findItem(R.id.menu_emulation_rumble)
+            .setChecked(mPreferences.getBoolean("phoneRumble", true));
 
     return true;
   }
@@ -504,7 +508,11 @@ public final class EmulationActivity extends AppCompatActivity
       case MENU_ACTION_JOYSTICK_REL_CENTER:
         item.setChecked(!item.isChecked());
         toggleJoystickRelCenter(item.isChecked());
-        return;
+        break;
+      case MENU_ACTION_RUMBLE:
+        item.setChecked(!item.isChecked());
+        toggleRumble(item.isChecked());
+        break;
     }
   }
 
@@ -634,6 +642,13 @@ public final class EmulationActivity extends AppCompatActivity
     final SharedPreferences.Editor editor = mPreferences.edit();
     editor.putBoolean("joystickRelCenter", state);
     editor.commit();
+  }
+
+  private void toggleRumble(boolean state)
+  {
+    final SharedPreferences.Editor editor = mPreferences.edit();
+    editor.putBoolean("phoneRumble", state);
+    editor.apply();
   }
 
 
