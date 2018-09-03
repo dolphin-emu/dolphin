@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
-        applicationId "org.dolphinemu.dolphinemu"
+        applicationId "m.m.j"
         minSdkVersion 24
         targetSdkVersion 28
 
