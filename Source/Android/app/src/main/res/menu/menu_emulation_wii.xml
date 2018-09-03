@@ -1,29 +1,30 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:tools="http://schemas.android.com/tools"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
       tools:context="org.dolphinemu.dolphinemu.activities.EmulationActivity">
 
     <item
         android:id="@+id/menu_emulation_screenshot"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_screenshot"
         android:title="@string/emulation_screenshot"/>
 
     <item
         android:id="@+id/menu_quicksave"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quicksave"
         android:title="@string/emulation_quicksave"/>
 
     <item
         android:id="@+id/menu_quickload"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quickload"
         android:title="@string/emulation_quickload"/>
 
     <!-- Save State Slots -->
     <item
         android:id="@+id/menu_emulation_save_root"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/emulation_savestate">
         <menu>
             <item
@@ -51,7 +52,7 @@
     <!-- Load State Slots -->
     <item
         android:id="@+id/menu_emulation_load_root"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/emulation_loadstate">
         <menu>
             <item
@@ -78,7 +79,7 @@
 
     <item
         android:id="@+id/menu_emulation_configure_controls"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/emulation_configure_controls">
         <menu>
             <item
