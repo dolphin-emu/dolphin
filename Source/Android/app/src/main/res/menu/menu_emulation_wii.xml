@@ -10,8 +10,14 @@
         android:title="@string/emulation_screenshot"/>
 
     <item
+        android:id="@+id/menu_emulation_choose_controller"
+        android:icon="@drawable/ic_settings_gcpad"
+        app:showAsAction="ifRoom"
+        android:title="@string/emulation_choose_controller"/>
+
+    <item
         android:id="@+id/menu_quicksave"
-        app:showAsAction="never"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quicksave"
         android:title="@string/emulation_quicksave"/>
 
@@ -97,10 +103,6 @@
             <item
                 android:id="@+id/menu_emulation_joystick_settings"
                 android:title="@string/emulation_joystick_settings"/>
-
-            <item
-                android:id="@+id/menu_emulation_choose_controller"
-                android:title="@string/emulation_choose_controller"/>
         </menu>
     </item>
 

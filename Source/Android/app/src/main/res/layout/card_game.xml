@@ -18,12 +18,13 @@
 
         <ImageView
             android:id="@+id/image_game_screen"
+            android:src="@drawable/no_banner"
             android:layout_width="96dp"
             android:layout_height="48dp"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_gravity="start|center"
-            tools:scaleType="centerCrop"/>
+            android:scaleType="centerCrop"/>
 
         <LinearLayout
             android:layout_gravity="start|center"

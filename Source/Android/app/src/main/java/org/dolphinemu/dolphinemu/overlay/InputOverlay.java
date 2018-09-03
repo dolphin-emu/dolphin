@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -210,18 +209,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
-			if(axisIDs[0] == ButtonType.NUNCHUK_STICK_UP && JoyStickSetting == JOYSTICK_EMULATE_IR) {
+			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP && JoyStickSetting == JOYSTICK_EMULATE_IR) {
 				int[] IRIDs = {
-					ButtonType.WIIMOTE_IR+1,
-					ButtonType.WIIMOTE_IR+2,
-					ButtonType.WIIMOTE_IR+3,
-					ButtonType.WIIMOTE_IR+4
+					ButtonType.WIIMOTE_IR + 1,
+					ButtonType.WIIMOTE_IR + 2,
+					ButtonType.WIIMOTE_IR + 3,
+					ButtonType.WIIMOTE_IR + 4
 				};
 				for (int i = 0; i < 4; i++) {
 					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, IRIDs[i], -axises[i]);
 				}
-			}
-			else {
+			} else {
 				for (int i = 0; i < 4; i++) {
 					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
 				}
@@ -415,15 +413,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			overlayButtons.add(initializeOverlayButton(R.drawable.wiimote_home, R.drawable.wiimote_home_pressed, ButtonType.WIIMOTE_BUTTON_HOME));
 		}
 		if (mPreferences.getBoolean("buttonToggleWii7", true)) {
-			if (mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK) == CONTROLLER_WIINUNCHUK)
-			{
+			if (mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK) == CONTROLLER_WIINUNCHUK) {
 				overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
 					R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
 					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
 					ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
-			}
-			else
-			{
+			} else {
 				// Horizontal Wii Remote
 				overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
 					R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
@@ -511,7 +506,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			addClassicOverlayControls();
 		} else {
 			addWiimoteOverlayControls();
-			if(controller == CONTROLLER_WIINUNCHUK) {
+			if (controller == CONTROLLER_WIINUNCHUK) {
 				addNunchukOverlayControls();
 			}
 		}
@@ -654,12 +649,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	 * @return the initialized {@link InputOverlayDrawableDpad}
 	 */
 	private InputOverlayDrawableDpad initializeOverlayDpad(int defaultResId,
-																																int pressedOneDirectionResId,
-																																int pressedTwoDirectionsResId,
-																																int buttonUp,
-																																int buttonDown,
-																																int buttonLeft,
-																																int buttonRight) {
+																												 int pressedOneDirectionResId,
+																												 int pressedTwoDirectionsResId,
+																												 int buttonUp,
+																												 int buttonDown,
+																												 int buttonLeft,
+																												 int buttonRight) {
 		final Context context = getContext();
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();

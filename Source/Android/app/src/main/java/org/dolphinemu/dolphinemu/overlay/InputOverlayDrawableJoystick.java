@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu.overlay;
 
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

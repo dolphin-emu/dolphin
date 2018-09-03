@@ -12,7 +12,6 @@ import android.support.annotation.IntDef;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -432,7 +431,6 @@ public final class EmulationActivity extends AppCompatActivity {
 		}
 
 		int action;
-
 		switch (event.getAction()) {
 			case KeyEvent.ACTION_DOWN:
 				// Handling the case where the back button is pressed.
@@ -440,7 +438,6 @@ public final class EmulationActivity extends AppCompatActivity {
 					onBackPressed();
 					return true;
 				}
-
 				// Normal key events.
 				action = NativeLibrary.ButtonState.PRESSED;
 				break;
@@ -532,7 +529,6 @@ public final class EmulationActivity extends AppCompatActivity {
 			SharedPreferences.Editor editor = mPreferences.edit();
 			editor.putInt(InputOverlay.CONTROL_SCALE_PREF_KEY, seekbar.getProgress());
 			editor.apply();
-
 			mEmulationFragment.refreshInputOverlay();
 		});
 
@@ -550,16 +546,13 @@ public final class EmulationActivity extends AppCompatActivity {
 			(dialog, indexSelected) ->
 			{
 				editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, indexSelected);
-
 				NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
 					getResources().getStringArray(R.array.controllersValues)[indexSelected]);
 			});
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
 			editor.apply();
-
 			mEmulationFragment.refreshInputOverlay();
-
 			Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
 		});
 

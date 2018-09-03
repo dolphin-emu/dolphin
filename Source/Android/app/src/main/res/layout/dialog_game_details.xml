@@ -8,6 +8,7 @@
 
     <ImageView
         android:contentDescription="@string/game_platform_wii"
+        android:scaleType="centerCrop"
         android:id="@+id/image_game_screen"
         android:layout_width="match_parent"
         android:layout_height="155dp"

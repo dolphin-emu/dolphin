@@ -18,8 +18,6 @@ public class PicassoUtils {
 		if (cover.exists()) {
 			Picasso.with(imageView.getContext())
 				.load(cover)
-				.fit()
-				.centerCrop()
 				.noPlaceholder()
 				.config(Bitmap.Config.ARGB_8888)
 				.error(R.drawable.no_banner)
@@ -27,8 +25,6 @@ public class PicassoUtils {
 		} else if ((cover = new File(gameFile.getCoverPath())).exists()) {
 			Picasso.with(imageView.getContext())
 				.load(cover)
-				.fit()
-				.centerCrop()
 				.noPlaceholder()
 				.config(Bitmap.Config.ARGB_8888)
 				.error(R.drawable.no_banner)
@@ -41,8 +37,6 @@ public class PicassoUtils {
 		else {
 			Picasso.with(imageView.getContext())
 				.load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
-				.fit()
-				.centerCrop()
 				.noPlaceholder()
 				.config(Bitmap.Config.ARGB_8888)
 				.error(R.drawable.no_banner)

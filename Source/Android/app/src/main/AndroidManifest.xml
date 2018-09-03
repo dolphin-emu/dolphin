@@ -25,8 +25,7 @@
         android:icon="@drawable/ic_launcher"
         android:allowBackup="false"
         android:supportsRtl="true"
-        android:isGame="true"
-        android:banner="@drawable/banner_tv">
+        android:isGame="true">
         <meta-data android:name="android.max_aspect" android:value="2.1" />
 
         <activity

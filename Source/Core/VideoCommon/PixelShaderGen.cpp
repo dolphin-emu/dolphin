@@ -643,15 +643,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 
   out.Write("\tint4 c0 = " I_COLORS "[1], c1 = " I_COLORS "[2], c2 = " I_COLORS
             "[3], prev = " I_COLORS "[0];\n"
-            "\tint4 rastemp = int4(0, 0, 0, 0), textemp = int4(0, 0, 0, 0), konsttemp = int4(0, 0, "
-            "0, 0);\n"
+            "\tint4 rastemp, textemp, konsttemp;\n"
             "\tint3 comp16 = int3(1, 256, 0), comp24 = int3(1, 256, 256*256);\n"
             "\tint alphabump=0;\n"
             "\tint3 tevcoord=int3(0, 0, 0);\n"
-            "\tint2 wrappedcoord=int2(0,0), tempcoord=int2(0,0);\n"
-            "\tint4 "
-            "tevin_a=int4(0,0,0,0),tevin_b=int4(0,0,0,0),tevin_c=int4(0,0,0,0),tevin_d=int4(0,0,0,"
-            "0),tevin_temp=int4(0,0,0,0);\n\n");  // tev combiner inputs
+            "\tint2 wrappedcoord, tempcoord;\n"
+            "\tint4 tevin_a,tevin_b,tevin_c,tevin_d,tevin_temp;\n\n");  // tev combiner inputs
 
   // On GLSL, input variables must not be assigned to.
   // This is why we declare these variables locally instead.
@@ -686,9 +683,9 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
-      out.Write("\tint2 fixpoint_uv%d = int2(", i);
-      out.Write("(tex%d.z == 0.0 ? tex%d.xy : tex%d.xy / tex%d.z)", i, i, i, i);
-      out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
+      out.Write("\tint2 fixpoint_uv%d = int2(tex%d.xy * " I_TEXDIMS "[%d].zw);\n", i, i, i);
+      //out.Write("tex%d.xy", i, i, i, i);
+      //out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
     }
   }

@@ -27,7 +27,7 @@ public class GameFileCache {
 	public static void addGameFolder(String path, Context context) {
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
-		if(!folderPaths.contains(path)) {
+		if (!folderPaths.contains(path)) {
 			folderPaths.add(path);
 			SharedPreferences.Editor editor = preferences.edit();
 			editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPaths);
@@ -46,21 +46,21 @@ public class GameFileCache {
 
 		// get paths from gamefiles
 		List<GameFile> gameFiles = GameFileCacheService.getAllGameFiles();
-		for(GameFile f : gameFiles) {
+		for (GameFile f : gameFiles) {
 			String filename = f.getPath();
 			int lastSep = filename.lastIndexOf(File.separator);
-			if(lastSep > 0) {
+			if (lastSep > 0) {
 				String path = filename.substring(0, lastSep);
-				if(!folderPathsSet.contains(path)) {
+				if (!folderPathsSet.contains(path)) {
 					folderPathsSet.add(path);
 				}
 			}
 		}
 
 		// remove non exists paths
-		for(String p : folderPathsSet) {
+		for (String p : folderPathsSet) {
 			File folder = new File(p);
-			if(!folder.exists()) {
+			if (!folder.exists()) {
 				folderPathsSet.remove(p);
 			}
 		}

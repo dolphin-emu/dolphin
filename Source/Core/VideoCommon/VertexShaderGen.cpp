@@ -243,12 +243,13 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
                              "o.colors_");
 
   // transform texcoords
-  out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
+  out.Write("int tmp;\n");
+  out.Write("float4 coord, P0, P1, P2;\n");
   for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
   {
     auto& texinfo = uid_data->texMtxInfo[i];
 
-    out.Write("{\n");
+    out.Write("//{\n");
     out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
     switch (texinfo.sourcerow)
     {
@@ -322,7 +323,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     default:
       if (uid_data->components & (VB_HAS_TEXMTXIDX0 << i))
       {
-        out.Write("int tmp = int(rawtex%d.z);\n", i);
+        out.Write("tmp = int(rawtex%d.z);\n", i);
         if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
           out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES
                     "[tmp]), dot(coord, " I_TRANSFORMMATRICES
@@ -353,9 +354,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     {
       auto& postInfo = uid_data->postMtxInfo[i];
 
-      out.Write("float4 P0 = " I_POSTTRANSFORMMATRICES "[%d];\n"
-                "float4 P1 = " I_POSTTRANSFORMMATRICES "[%d];\n"
-                "float4 P2 = " I_POSTTRANSFORMMATRICES "[%d];\n",
+      out.Write("P0 = " I_POSTTRANSFORMMATRICES "[%d];\n"
+                "P1 = " I_POSTTRANSFORMMATRICES "[%d];\n"
+                "P2 = " I_POSTTRANSFORMMATRICES "[%d];\n",
                 postInfo.index & 0x3f, (postInfo.index + 1) & 0x3f, (postInfo.index + 2) & 0x3f);
 
       if (postInfo.normalize)
@@ -374,12 +375,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     if (texinfo.texgentype == XF_TEXGEN_REGULAR)
     {
       out.Write("if(o.tex%d.z == 0.0f)\n", i);
-      out.Write(
-          "\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n", i,
-          i);
+      out.Write("\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n", i, i);
+      out.Write("else\n");
+      out.Write("\to.tex%d.xy = o.tex%d.xy / o.tex%d.z;\n", i, i, i);
     }
 
-    out.Write("}\n");
+    out.Write("//}\n");
   }
 
   if (uid_data->numColorChans == 0)
