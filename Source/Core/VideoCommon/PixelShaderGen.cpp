@@ -152,6 +152,7 @@ static const char* tevRasTable[] = {
     "int4(0, 0, 0, 0)",                                     // zero
 };
 
+static const char* tevOutputTable[] = {"prev", "c0", "c1", "c2"};
 static const char* tevCOutputTable[] = {"prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb"};
 static const char* tevAOutputTable[] = {"prev.a", "c0.a", "c1.a", "c2.a"};
 
@@ -323,7 +324,9 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (state.usedualsrc && state.dstalpha &&
+	  !g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+	  g_ActiveConfig.bDualSourceShaderBlend)
   {
     uid_data->blend_enable = state.blendenable;
     uid_data->blend_src_factor = state.srcfactor;
@@ -524,7 +527,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       host_config.backend_dual_source_blend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
        uid_data->useDstAlpha);
-  const bool use_shader_blend = !use_dual_source && (uid_data->useDstAlpha);
+  bool use_shader_blend = !use_dual_source && (uid_data->useDstAlpha);
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -730,7 +733,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       out.Write("\tprev.a = %s;\n", tevAOutputTable[last_ac.dest]);
     }
   }
-  out.Write("\tprev = prev & 255;\n");
+  //out.Write("\tprev = prev & 255;\n");
 
   // NOTE: Fragment may not be discarded if alpha test always fails and early depth test is enabled
   // (in this case we need to write a depth value if depth test passes regardless of the alpha
@@ -1083,14 +1086,14 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\ttevin_c = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.c],
             tevAInputTable[ac.c]);
   out.Write("\ttevin_d = int4(%s, %s);\n", tevCInputTable[cc.d], tevAInputTable[ac.d]);
-  
+
   if (cc.bias != TEVBIAS_COMPARE || ac.bias != TEVBIAS_COMPARE)
   {
     out.Write("\ttevin_temp = (tevin_a<<8) + (tevin_b-tevin_a)*(tevin_c+(tevin_c>>7));\n");
   }
 
   out.Write("\t// color combine\n");
-  out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
+  out.Write("\t%s = ", tevCOutputTable[cc.dest]);
   if (cc.bias != TEVBIAS_COMPARE)
   {
     WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift, false);
@@ -1116,14 +1119,10 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("   tevin_d.rgb + ");
     out.Write("%s", function_table[mode]);
   }
-  if (cc.clamp)
-    out.Write(", int3(0,0,0), int3(255,255,255))");
-  else
-    out.Write(", int3(-1024,-1024,-1024), int3(1023,1023,1023))");
   out.Write(";\n");
 
   out.Write("\t// alpha combine\n");
-  out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
+  out.Write("\t%s = ", tevAOutputTable[ac.dest]);
   if (ac.bias != TEVBIAS_COMPARE)
   {
     WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift, true);
@@ -1145,12 +1144,44 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
     out.Write("   tevin_d.a + ");
     out.Write("%s", function_table[mode]);
   }
-  if (ac.clamp)
-    out.Write(", 0, 255)");
-  else
-    out.Write(", -1024, 1023)");
-
   out.Write(";\n");
+
+  // clamp
+  if(cc.dest == ac.dest && cc.clamp == ac.clamp)
+  {
+    if (cc.clamp)
+    {
+      out.Write("\t%s = clamp(%s, int4(0,0,0,0), int4(255,255,255,255));\n",
+                tevOutputTable[cc.dest], tevOutputTable[cc.dest]);
+    }
+    else
+    {
+      out.Write("\t%s = clamp(%s, int4(-1024,-1024,-1024,-1024), int4(1023,1023,1023,1023));\n",
+                tevOutputTable[cc.dest], tevOutputTable[cc.dest]);
+    }
+  }
+  else
+  {
+    if (cc.clamp)
+    {
+      out.Write("\t%s = clamp(%s, int3(0,0,0), int3(255,255,255));\n",
+                tevCOutputTable[cc.dest], tevCOutputTable[cc.dest]);
+    }
+    else
+    {
+      out.Write("\t%s = clamp(%s, int3(-1024,-1024,-1024), int3(1023,1023,1023));\n",
+                tevCOutputTable[cc.dest], tevCOutputTable[cc.dest]);
+    }
+
+    if (ac.clamp)
+    {
+      out.Write("\t%s = clamp(%s, 0, 255);\n", tevAOutputTable[ac.dest], tevAOutputTable[ac.dest]);
+    }
+    else
+    {
+      out.Write("\t%s = clamp(%s, -1024, 1023);\n", tevAOutputTable[ac.dest], tevAOutputTable[ac.dest]);
+    }
+  }
 }
 
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,

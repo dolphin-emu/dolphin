@@ -186,7 +186,7 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
     vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
     vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
   }
-  else if(state.usedualsrc && state.dstalpha)
+  else if(state.usedualsrc && state.dstalpha && g_ActiveConfig.bDualSourceShaderBlend)
   {
     vk_state.blendEnable = VK_FALSE;
   }

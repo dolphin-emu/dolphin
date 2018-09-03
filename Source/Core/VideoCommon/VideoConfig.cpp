@@ -14,6 +14,8 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
+#include "Core/ConfigManager.h"
+
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 static bool s_has_registered_callback = false;
@@ -146,6 +148,19 @@ void VideoConfig::Refresh()
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
+
+  // GZLJ01 - The Wind Waker
+  const std::string& gameId = SConfig::GetInstance().GetGameID();
+  if (gameId.compare("GZLJ01") == 0)
+  {
+    // device blend
+	  bDualSourceShaderBlend = false;
+  }
+  else
+  {
+    // shader blend
+	  bDualSourceShaderBlend = true;
+  }
 
   VerifyValidity();
 }

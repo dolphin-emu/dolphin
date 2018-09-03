@@ -236,6 +236,12 @@
         <item>None</item>
     </string-array>
 
+    <string-array name="joystickSettings">
+        <item>Joystick(Relative Center)</item>
+        <item>Joystick(Fixed Center)</item>
+        <item>Joystick Emulate IR</item>
+    </string-array>
+
     <string-array name="gcpadButtons">
         <item>A</item>
         <item>B</item>

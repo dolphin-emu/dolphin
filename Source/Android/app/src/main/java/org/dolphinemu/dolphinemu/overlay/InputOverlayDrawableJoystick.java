@@ -19,8 +19,6 @@ import android.view.MotionEvent;
  * of storing it's own ID.
  */
 public final class InputOverlayDrawableJoystick {
-	private SharedPreferences mPreferences;
-
 	private final int[] axisIDs = {0, 0, 0, 0};
 	private final float[] axises = {0f, 0f};
 	private int trackId = -1;
@@ -50,14 +48,13 @@ public final class InputOverlayDrawableJoystick {
 	 */
 	public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter,
 																			Bitmap bitmapInnerDefault, Bitmap bitmapInnerPressed,
-																			Rect rectOuter, Rect rectInner, int joystick, SharedPreferences prefsHandle) {
+																			Rect rectOuter, Rect rectInner, int joystick) {
 		axisIDs[0] = joystick + 1;
 		axisIDs[1] = joystick + 2;
 		axisIDs[2] = joystick + 3;
 		axisIDs[3] = joystick + 4;
 		mJoystickType = joystick;
 
-		mPreferences = prefsHandle;
 		mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
 		mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
 		mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
@@ -91,7 +88,7 @@ public final class InputOverlayDrawableJoystick {
 	}
 
 	public void TrackEvent(MotionEvent event) {
-		boolean reCenter = mPreferences.getBoolean("joystickRelCenter", true);
+		boolean reCenter = InputOverlay.JoyStickSetting == InputOverlay.JOYSTICK_RELATIVE_CENTER;
 		int pointerIndex = event.getActionIndex();
 
 		switch (event.getAction() & MotionEvent.ACTION_MASK) {

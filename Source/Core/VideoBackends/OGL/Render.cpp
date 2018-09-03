@@ -1296,7 +1296,7 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
   bool useShaderBlend = !useDualSource && state.usedualsrc && state.dstalpha &&
                         g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
-  if (useShaderBlend)
+  if (useShaderBlend && g_ActiveConfig.bDualSourceShaderBlend)
   {
     glDisable(GL_BLEND);
   }

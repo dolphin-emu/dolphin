@@ -38,13 +38,19 @@ import java.util.Set;
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	public static final String CONTROL_INIT_PREF_KEY = "InitOverlay";
-	public static final String CONTROL_TYPE_PREF_KEY = "WiiController";
 	public static final String CONTROL_SCALE_PREF_KEY = "ControlScale";
 
+	public static final String CONTROL_TYPE_PREF_KEY = "WiiController";
 	public static final int CONTROLLER_GAMECUBE = 0;
 	public static final int COCONTROLLER_CLASSIC = 1;
 	public static final int CONTROLLER_WIINUNCHUK = 2;
 	public static final int CONTROLLER_WIIREMOTE = 3;
+
+	public static final String JOYSTICK_PREF_KEY = "JoystickSetting";
+	public static final int JOYSTICK_RELATIVE_CENTER = 0;
+	public static final int JOYSTICK_FIXED_CENTER = 1;
+	public static final int JOYSTICK_EMULATE_IR = 2;
+	public static int JoyStickSetting;
 
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
@@ -89,6 +95,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 		if (!mPreferences.getBoolean(CONTROL_INIT_PREF_KEY, false))
 			defaultOverlay();
+
+		JoyStickSetting = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY,
+			InputOverlay.JOYSTICK_RELATIVE_CENTER);
 
 		// Load the controls.
 		refreshControls();
@@ -201,7 +210,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
-			if(axisIDs[0] == ButtonType.NUNCHUK_STICK_UP) {
+			if(axisIDs[0] == ButtonType.NUNCHUK_STICK_UP && JoyStickSetting == JOYSTICK_EMULATE_IR) {
 				int[] IRIDs = {
 					ButtonType.WIIMOTE_IR+1,
 					ButtonType.WIIMOTE_IR+2,
@@ -212,9 +221,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, IRIDs[i], -axises[i]);
 				}
 			}
-
-			for (int i = 0; i < 4; i++) {
-				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
+			else {
+				for (int i = 0; i < 4; i++) {
+					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
+				}
 			}
 		}
 
@@ -760,10 +770,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		Rect innerRect = new Rect(0, 0, (int) (outerSize / innerScale), (int) (outerSize / innerScale));
 
 		// Send the drawableId to the joystick so it can be referenced when saving control position.
-		final InputOverlayDrawableJoystick overlayDrawable
-			= new InputOverlayDrawableJoystick(res, bitmapOuter,
-			bitmapInnerDefault, bitmapInnerPressed,
-			outerRect, innerRect, joystick, mPreferences);
+		final InputOverlayDrawableJoystick overlayDrawable = new InputOverlayDrawableJoystick(
+			res, bitmapOuter, bitmapInnerDefault, bitmapInnerPressed, outerRect, innerRect, joystick);
 
 		// Need to set the image's position
 		overlayDrawable.setPosition(drawableX, drawableY);

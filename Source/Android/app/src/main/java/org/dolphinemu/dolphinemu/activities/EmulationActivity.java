@@ -12,6 +12,7 @@ import android.support.annotation.IntDef;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -104,7 +105,7 @@ public final class EmulationActivity extends AppCompatActivity {
 	public static final int MENU_ACTION_LOAD_SLOT6 = 21;
 	public static final int MENU_ACTION_EXIT = 22;
 	public static final int MENU_ACTION_CHANGE_DISC = 23;
-	public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
+	public static final int MENU_ACTION_JOYSTICK_SETTINGS = 24;
 
 
 	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -131,7 +132,7 @@ public final class EmulationActivity extends AppCompatActivity {
 		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
 		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
 		buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
-		buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center, EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
+		buttonsActionsMap.append(R.id.menu_emulation_joystick_settings, EmulationActivity.MENU_ACTION_JOYSTICK_SETTINGS);
 	}
 
 	public static void launch(FragmentActivity activity, GameFile gameFile, String savedState) {
@@ -279,10 +280,6 @@ public final class EmulationActivity extends AppCompatActivity {
 		} else {
 			getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
 		}
-
-		// Populate the checkbox value for joystick center on touch
-		menu.findItem(R.id.menu_emulation_joystick_rel_center).setChecked(mPreferences.getBoolean("joystickRelCenter", true));
-
 		return true;
 	}
 
@@ -291,23 +288,9 @@ public final class EmulationActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int action = buttonsActionsMap.get(item.getItemId(), -1);
 		if (action >= 0) {
-			if (item.isCheckable()) {
-				// Need to pass a reference to the item to set the checkbox state, since it is not done automatically
-				handleCheckableMenuAction(action, item);
-			} else {
-				handleMenuAction(action);
-			}
+			handleMenuAction(action);
 		}
 		return true;
-	}
-
-	public void handleCheckableMenuAction(@MenuAction int menuAction, MenuItem item) {
-		switch (menuAction) {
-			case MENU_ACTION_JOYSTICK_REL_CENTER:
-				item.setChecked(!item.isChecked());
-				toggleJoystickRelCenter(item.isChecked());
-				return;
-		}
 	}
 
 	public void handleMenuAction(@MenuAction int menuAction) {
@@ -316,6 +299,10 @@ public final class EmulationActivity extends AppCompatActivity {
 			case MENU_ACTION_EDIT_CONTROLS_PLACEMENT:
 				editControlsPlacement();
 				break;
+
+			case MENU_ACTION_JOYSTICK_SETTINGS:
+				showJoystickSettings();
+				return;
 
 			// Enable/Disable specific buttons or the entire input overlay.
 			case MENU_ACTION_TOGGLE_CONTROLS:
@@ -406,12 +393,28 @@ public final class EmulationActivity extends AppCompatActivity {
 		}
 	}
 
-	private void toggleJoystickRelCenter(boolean state) {
+	private void showJoystickSettings() {
 		final SharedPreferences.Editor editor = mPreferences.edit();
-		editor.putBoolean("joystickRelCenter", state);
-		editor.commit();
-	}
+		int joystick = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY, InputOverlay.JOYSTICK_RELATIVE_CENTER);
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.emulation_joystick_settings);
 
+		builder.setSingleChoiceItems(R.array.joystickSettings, joystick,
+			(dialog, indexSelected) ->
+			{
+				editor.putInt(InputOverlay.JOYSTICK_PREF_KEY, indexSelected);
+			});
+
+		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+		{
+			editor.apply();
+			InputOverlay.JoyStickSetting = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY,
+				InputOverlay.JOYSTICK_RELATIVE_CENTER);
+		});
+
+		AlertDialog alertDialog = builder.create();
+		alertDialog.show();
+	}
 
 	private void editControlsPlacement() {
 		if (mEmulationFragment.isConfiguringControls()) {
