@@ -88,16 +88,6 @@ extern const ConfigInfo<bool> GFX_ENHANCE_DISABLE_COPY_FILTER;
 extern const ConfigInfo<bool> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION;
 extern const ConfigInfo<float> GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD;
 
-// Graphics.Stereoscopy
-
-extern const ConfigInfo<StereoMode> GFX_STEREO_MODE;
-extern const ConfigInfo<int> GFX_STEREO_DEPTH;
-extern const ConfigInfo<int> GFX_STEREO_CONVERGENCE_PERCENTAGE;
-extern const ConfigInfo<bool> GFX_STEREO_SWAP_EYES;
-extern const ConfigInfo<int> GFX_STEREO_CONVERGENCE;
-extern const ConfigInfo<bool> GFX_STEREO_EFB_MONO_DEPTH;
-extern const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE;
-
 // Graphics.Hacks
 
 extern const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE;

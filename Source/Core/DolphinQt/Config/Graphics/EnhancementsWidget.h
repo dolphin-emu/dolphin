@@ -43,12 +43,6 @@ private:
   QCheckBox* m_disable_copy_filter;
   QCheckBox* m_arbitrary_mipmap_detection;
 
-  // Stereoscopy
-  QComboBox* m_3d_mode;
-  QSlider* m_3d_depth;
-  QSlider* m_3d_convergence;
-  QCheckBox* m_3d_swap_eyes;
-
   int m_msaa_modes;
   bool m_block_save;
 };

@@ -158,7 +158,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
 {
   u32 efb_width = static_cast<u32>(std::max(g_renderer->GetTargetWidth(), 1));
   u32 efb_height = static_cast<u32>(std::max(g_renderer->GetTargetHeight(), 1));
-  u32 efb_layers = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
+  u32 efb_layers = 1;
   VkSampleCountFlagBits efb_samples =
       static_cast<VkSampleCountFlagBits>(g_ActiveConfig.iMultisamples);
   INFO_LOG(VIDEO, "EFB size: %ux%ux%u", efb_width, efb_height, efb_layers);

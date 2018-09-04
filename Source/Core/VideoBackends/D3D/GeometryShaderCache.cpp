@@ -29,11 +29,11 @@ ID3D11GeometryShader* CopyGeometryShader = nullptr;
 
 ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader()
 {
-  return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? ClearGeometryShader : nullptr;
+  return nullptr;
 }
 ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader()
 {
-  return (g_ActiveConfig.stereo_mode != StereoMode::Off) ? CopyGeometryShader : nullptr;
+  return nullptr;
 }
 
 ID3D11Buffer* gscbuf = nullptr;

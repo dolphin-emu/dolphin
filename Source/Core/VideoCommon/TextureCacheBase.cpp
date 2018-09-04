@@ -135,14 +135,6 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
                                        g_ActiveConfig.bTexFmtOverlayCenter);
   }
 
-  if ((config.stereo_mode != StereoMode::Off) != backup_config.stereo_3d ||
-      config.bStereoEFBMonoDepth != backup_config.efb_mono_depth)
-  {
-    g_texture_cache->DeleteShaders();
-    if (!g_texture_cache->CompileShaders())
-      PanicAlert("Failed to recompile one or more texture conversion shaders.");
-  }
-
   SetBackupConfig(config);
 }
 
@@ -227,8 +219,6 @@ void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
   backup_config.texfmt_overlay_center = config.bTexFmtOverlayCenter;
   backup_config.hires_textures = config.bHiresTextures;
   backup_config.cache_hires_textures = config.bCacheHiresTextures;
-  backup_config.stereo_3d = config.stereo_mode != StereoMode::Off;
-  backup_config.efb_mono_depth = config.bStereoEFBMonoDepth;
   backup_config.gpu_texture_decoding = config.bEnableGPUTextureDecoding;
   backup_config.disable_vram_copies = config.bDisableCopyToVRAM;
   backup_config.arbitrary_mipmap_detection = config.bArbitraryMipmapDetection;

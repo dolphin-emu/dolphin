@@ -95,16 +95,6 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       Config::GFX_ENHANCE_DISABLE_COPY_FILTER.location,
       Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION.location,
 
-      // Graphics.Stereoscopy
-
-      Config::GFX_STEREO_MODE.location,
-      Config::GFX_STEREO_DEPTH.location,
-      Config::GFX_STEREO_CONVERGENCE_PERCENTAGE.location,
-      Config::GFX_STEREO_SWAP_EYES.location,
-      Config::GFX_STEREO_CONVERGENCE.location,
-      Config::GFX_STEREO_EFB_MONO_DEPTH.location,
-      Config::GFX_STEREO_DEPTH_PERCENTAGE.location,
-
       // Graphics.Hacks
 
       Config::GFX_HACK_EFB_ACCESS_ENABLE.location,

@@ -284,7 +284,7 @@ bool SwapChain::CreateSwapChain()
   }
 
   // Select the number of image layers for Quad-Buffered stereoscopy
-  uint32_t image_layers = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer ? 2 : 1;
+  uint32_t image_layers = 1;
 
   // Store the old/current swap chain when recreating for resize
   VkSwapchainKHR old_swap_chain = m_swap_chain;

@@ -66,7 +66,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
     : ::Renderer(backbuffer_width, backbuffer_height)
 {
   m_last_multisamples = g_ActiveConfig.iMultisamples;
-  m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
   m_last_fullscreen_state = D3D::GetFullscreenState();
   g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
   SetupDeviceObjects();
@@ -671,11 +670,9 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     D3D::Present();
 
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize() || m_last_multisamples != g_ActiveConfig.iMultisamples ||
-      m_last_stereo_mode != (g_ActiveConfig.stereo_mode != StereoMode::Off))
+  if (CalculateTargetSize() || m_last_multisamples != g_ActiveConfig.iMultisamples)
   {
     m_last_multisamples = g_ActiveConfig.iMultisamples;
-    m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
     PixelShaderCache::InvalidateMSAAShaders();
     UpdateDrawRectangle();
 
@@ -855,79 +852,14 @@ void Renderer::BBoxWrite(int index, u16 _value)
 void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                           u32 src_width, u32 src_height)
 {
-  if (g_ActiveConfig.stereo_mode == StereoMode::SBS ||
-      g_ActiveConfig.stereo_mode == StereoMode::TAB)
-  {
-    TargetRectangle leftRc, rightRc;
-    std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
-
-    D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)leftRc.left, (float)leftRc.top,
-                                            (float)leftRc.GetWidth(), (float)leftRc.GetHeight());
-    D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)rightRc.left, (float)rightRc.top,
-                                             (float)rightRc.GetWidth(), (float)rightRc.GetHeight());
-
-    D3D::context->RSSetViewports(1, &leftVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
-
-    D3D::context->RSSetViewports(1, &rightVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
-  }
-  else if (g_ActiveConfig.stereo_mode == StereoMode::Nvidia3DVision)
-  {
-    if (!m_3d_vision_texture)
-      Create3DVisionTexture(m_backbuffer_width, m_backbuffer_height);
-
-    D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(),
-                                            (float)dst.GetHeight());
-    D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(dst.left + m_backbuffer_width), (float)dst.top,
-                                             (float)dst.GetWidth(), (float)dst.GetHeight());
-
-    // Render to staging texture which is double the width of the backbuffer
-    D3D::context->OMSetRenderTargets(1, &m_3d_vision_texture->GetRTV(), nullptr);
-
-    D3D::context->RSSetViewports(1, &leftVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 0);
-
-    D3D::context->RSSetViewports(1, &rightVp);
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height,
-                           PixelShaderCache::GetColorCopyProgram(false),
-                           VertexShaderCache::GetSimpleVertexShader(),
-                           VertexShaderCache::GetSimpleInputLayout(), nullptr, 1);
-
-    // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
-    // recognize the signature and automatically include the right eye frame.
-    D3D11_BOX box = CD3D11_BOX(0, 0, 0, m_backbuffer_width, m_backbuffer_height, 1);
-    D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0,
-                                        m_3d_vision_texture->GetTex(), 0, &box);
-
-    // Restore render target to backbuffer
-    D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
-  }
-  else
-  {
-    D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(),
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(),
                                         (float)dst.GetHeight());
-    D3D::context->RSSetViewports(1, &vp);
-
-    ID3D11PixelShader* pixelShader = (g_Config.stereo_mode == StereoMode::Anaglyph) ?
-                                         PixelShaderCache::GetAnaglyphProgram() :
-                                         PixelShaderCache::GetColorCopyProgram(false);
-    ID3D11GeometryShader* geomShader = (g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer) ?
-                                           GeometryShaderCache::GetCopyGeometryShader() :
-                                           nullptr;
-    D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,
+  D3D::context->RSSetViewports(1, &vp);
+  ID3D11PixelShader* pixelShader = PixelShaderCache::GetColorCopyProgram(false);
+  ID3D11GeometryShader* geomShader = nullptr;
+  D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, pixelShader,
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout(), geomShader);
-  }
 }
 
 void Renderer::SetFullscreen(bool enable_fullscreen)

@@ -269,7 +269,7 @@ static bool CreateSwapChain(HWND hWnd)
   swap_chain_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
   swap_chain_desc.Scaling = DXGI_SCALING_STRETCH;
   swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-  swap_chain_desc.Stereo = g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer;
+  swap_chain_desc.Stereo = FALSE;
 
   // This flag is necessary if we want to use a flip-model swapchain without locking the framerate
   swap_chain_desc.Flags = s_allow_tearing_supported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
@@ -600,11 +600,6 @@ void Present()
   // result of calling SetFullscreenState.
   if (AllowTearingSupported() && !g_ActiveConfig.IsVSync() && !GetFullscreenState())
     present_flags |= DXGI_PRESENT_ALLOW_TEARING;
-
-  if (swapchain->IsTemporaryMonoSupported() && g_ActiveConfig.stereo_mode != StereoMode::QuadBuffer)
-  {
-    present_flags |= DXGI_PRESENT_STEREO_TEMPORARY_MONO;
-  }
 
   // TODO: Is 1 the correct value for vsyncing?
   swapchain->Present(static_cast<UINT>(g_ActiveConfig.IsVSync()), present_flags);

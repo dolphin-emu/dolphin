@@ -161,7 +161,6 @@ union ShaderHostConfig
   {
     u32 msaa : 1;
     u32 ssaa : 1;
-    u32 stereo : 1;
     u32 wireframe : 1;
     u32 per_pixel_lighting : 1;
     u32 vertex_rounding : 1;
@@ -318,7 +317,6 @@ inline const char* GetInterpolationQualifier(bool msaa, bool ssaa,
 #define I_PIXELCENTERCORRECTION "cpixelcenter"
 #define I_VIEWPORT_SIZE "cviewport"
 
-#define I_STEREOPARAMS "cstereo"
 #define I_LINEPTPARAMS "clinept"
 #define I_TEXOFFSET "ctexoffset"
 

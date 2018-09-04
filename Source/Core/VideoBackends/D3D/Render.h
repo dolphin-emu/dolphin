@@ -104,7 +104,6 @@ private:
   ID3D11Buffer* m_utility_uniform_buffer = nullptr;
 
   u32 m_last_multisamples = 1;
-  bool m_last_stereo_mode = false;
   bool m_last_fullscreen_state = false;
 };
 }

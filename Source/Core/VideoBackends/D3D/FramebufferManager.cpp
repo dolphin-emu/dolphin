@@ -135,7 +135,7 @@ FramebufferManager::FramebufferManager(int target_width, int target_height)
   D3D11_TEXTURE2D_DESC texdesc;
   HRESULT hr;
 
-  m_EFBLayers = m_efb.slices = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
+  m_EFBLayers = m_efb.slices = 1;
 
   // EFB color texture - primary render target
   texdesc =

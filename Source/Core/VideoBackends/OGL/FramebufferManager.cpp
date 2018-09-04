@@ -280,7 +280,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
   glActiveTexture(GL_TEXTURE9);
 
-  m_EFBLayers = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
+  m_EFBLayers = 1;
   m_efbFramebuffer.resize(m_EFBLayers);
   m_resolvedFramebuffer.resize(m_EFBLayers);
 

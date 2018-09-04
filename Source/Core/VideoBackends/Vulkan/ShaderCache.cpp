@@ -667,7 +667,7 @@ std::string ShaderCache::GetUtilityShaderHeader() const
       ss << "#define SSAA_ENABLED 1" << std::endl;
   }
 
-  u32 efb_layers = (g_ActiveConfig.stereo_mode != StereoMode::Off) ? 2 : 1;
+  u32 efb_layers = 1;
   ss << "#define EFB_LAYERS " << efb_layers << std::endl;
 
   return ss.str();

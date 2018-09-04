@@ -177,37 +177,17 @@ Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
 {
   // Resize target to half its original size
   TargetRectangle draw_rc = rc;
-  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
-  {
-    // The height may be negative due to flipped rectangles
-    int height = rc.bottom - rc.top;
-    draw_rc.top += height / 4;
-    draw_rc.bottom -= height / 4;
-  }
-  else
-  {
-    int width = rc.right - rc.left;
-    draw_rc.left += width / 4;
-    draw_rc.right -= width / 4;
-  }
+  int width = rc.right - rc.left;
+  draw_rc.left += width / 4;
+  draw_rc.right -= width / 4;
 
   // Create two target rectangle offset to the sides of the backbuffer
   TargetRectangle left_rc = draw_rc;
   TargetRectangle right_rc = draw_rc;
-  if (g_ActiveConfig.stereo_mode == StereoMode::TAB)
-  {
-    left_rc.top -= m_backbuffer_height / 4;
-    left_rc.bottom -= m_backbuffer_height / 4;
-    right_rc.top += m_backbuffer_height / 4;
-    right_rc.bottom += m_backbuffer_height / 4;
-  }
-  else
-  {
-    left_rc.left -= m_backbuffer_width / 4;
-    left_rc.right -= m_backbuffer_width / 4;
-    right_rc.left += m_backbuffer_width / 4;
-    right_rc.right += m_backbuffer_width / 4;
-  }
+  left_rc.left -= m_backbuffer_width / 4;
+  left_rc.right -= m_backbuffer_width / 4;
+  right_rc.left += m_backbuffer_width / 4;
+  right_rc.right += m_backbuffer_width / 4;
 
   return std::make_tuple(left_rc, right_rc);
 }

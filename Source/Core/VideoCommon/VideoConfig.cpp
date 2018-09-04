@@ -126,14 +126,6 @@ void VideoConfig::Refresh()
   fArbitraryMipmapDetectionThreshold =
       Config::Get(Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION_THRESHOLD);
 
-  stereo_mode = Config::Get(Config::GFX_STEREO_MODE);
-  iStereoDepth = Config::Get(Config::GFX_STEREO_DEPTH);
-  iStereoConvergencePercentage = Config::Get(Config::GFX_STEREO_CONVERGENCE_PERCENTAGE);
-  bStereoSwapEyes = Config::Get(Config::GFX_STEREO_SWAP_EYES);
-  iStereoConvergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
-  bStereoEFBMonoDepth = Config::Get(Config::GFX_STEREO_EFB_MONO_DEPTH);
-  iStereoDepthPercentage = Config::Get(Config::GFX_STEREO_DEPTH_PERCENTAGE);
-
   bEFBAccessEnable = Config::Get(Config::GFX_HACK_EFB_ACCESS_ENABLE);
   bBBoxEnable = Config::Get(Config::GFX_HACK_BBOX_ENABLE);
   bBBoxPreferStencilImplementation =
@@ -174,17 +166,6 @@ void VideoConfig::VerifyValidity()
   if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
       backend_info.AAModes.end())
     iMultisamples = 1;
-
-  if (stereo_mode != StereoMode::Off)
-  {
-    if (!backend_info.bSupportsGeometryShaders)
-    {
-      OSD::AddMessage(
-          "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
-          10000);
-      stereo_mode = StereoMode::Off;
-    }
-  }
 }
 
 bool VideoConfig::IsVSync() const

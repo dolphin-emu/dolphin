@@ -353,8 +353,6 @@ private:
     bool hires_textures;
     bool cache_hires_textures;
     bool copy_cache_enable;
-    bool stereo_3d;
-    bool efb_mono_depth;
     bool gpu_texture_decoding;
     bool disable_vram_copies;
     bool arbitrary_mipmap_detection;

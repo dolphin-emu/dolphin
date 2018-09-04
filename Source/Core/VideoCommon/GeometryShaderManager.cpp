@@ -41,27 +41,7 @@ void GeometryShaderManager::Dirty()
 
 void GeometryShaderManager::SetConstants()
 {
-  if (s_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
-  {
-    s_projection_changed = false;
-
-    if (xfmem.projection.type == GX_PERSPECTIVE)
-    {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
-                     (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
-      constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
-      constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
-    }
-    else
-    {
-      constants.stereoparams[0] = constants.stereoparams[1] = 0;
-    }
-
-    constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
-                                        (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
-
-    dirty = true;
-  }
+  s_projection_changed = false;
 
   if (s_viewport_changed)
   {
@@ -108,6 +88,10 @@ void GeometryShaderManager::DoState(PointerWrap& p)
 {
   p.Do(s_projection_changed);
   p.Do(s_viewport_changed);
+
+  // for save state compatibility
+  float4 __noused_stereoparams{};
+  p.Do(__noused_stereoparams);
 
   p.Do(constants);
 

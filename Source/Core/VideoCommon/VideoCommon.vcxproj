@@ -69,8 +69,6 @@
     <ClCompile Include="LightingShaderGen.cpp" />
     <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="ShaderGenCommon.cpp" />
-    <ClCompile Include="UberShaderCommon.cpp" />
-    <ClCompile Include="UberShaderPixel.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="GeometryShaderGen.cpp" />
     <ClCompile Include="GeometryShaderManager.cpp" />
@@ -78,7 +76,6 @@
     <ClCompile Include="TextureConfig.cpp" />
     <ClCompile Include="TextureConversionShader.cpp" />
     <ClCompile Include="TextureConverterShaderGen.cpp" />
-    <ClCompile Include="UberShaderVertex.cpp" />
     <ClCompile Include="VertexLoader.cpp" />
     <ClCompile Include="VertexLoaderBase.cpp" />
     <ClCompile Include="VertexLoaderX64.cpp" />
@@ -121,8 +118,6 @@
     <ClInclude Include="FramebufferManagerBase.h" />
     <ClInclude Include="GXPipelineTypes.h" />
     <ClInclude Include="ShaderCache.h" />
-    <ClInclude Include="UberShaderCommon.h" />
-    <ClInclude Include="UberShaderPixel.h" />
     <ClInclude Include="HiresTextures.h" />
     <ClInclude Include="ImageWrite.h" />
     <ClInclude Include="IndexGenerator.h" />
@@ -148,7 +143,6 @@
     <ClInclude Include="TextureConversionShader.h" />
     <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="TextureDecoder.h" />
-    <ClInclude Include="UberShaderVertex.h" />
     <ClInclude Include="VertexLoader.h" />
     <ClInclude Include="VertexLoaderBase.h" />
     <ClInclude Include="VertexLoaderManager.h" />

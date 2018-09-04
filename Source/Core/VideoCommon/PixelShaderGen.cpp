@@ -440,11 +440,11 @@ void WritePixelShaderCommonHeader(ShaderCode& out, APIType ApiType, u32 num_texg
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType ApiType, bool stereo);
+                       APIType ApiType);
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
                             int shift, bool alpha);
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
-                          bool stereo, APIType ApiType);
+                          APIType ApiType);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
                            bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
@@ -464,7 +464,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   const bool per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
-  const bool stereo = host_config.stereo;
   const u32 numStages = uid_data->genMode_numtevstages + 1;
 
   out.Write("//Pixel Shader for TEV stages\n");
@@ -566,9 +565,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, per_pixel_lighting,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
-      if (stereo)
-        out.Write("\tflat int layer;\n");
-
       out.Write("};\n");
     }
     else
@@ -636,8 +632,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
     out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
     out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
-    if (stereo)
-      out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {\n");
   }
 
@@ -705,12 +699,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
         out.Write("\ttempcoord = int2(0, 0);\n");
 
       out.Write("\tint3 iindtex%d = ", i);
-      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, ApiType);
+      SampleTexture(out, "float2(tempcoord)", "abg", texmap, ApiType);
     }
   }
 
   for (unsigned int i = 0; i < numStages; i++)
-    WriteStage(out, uid_data, i, ApiType, stereo);  // build the equation for this stage
+    WriteStage(out, uid_data, i, ApiType);  // build the equation for this stage
 
   {
     // The results of the last texenv stage are put onto the screen,
@@ -837,7 +831,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
 }
 
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
-                       APIType ApiType, bool stereo)
+                       APIType ApiType)
 {
   auto& stage = uid_data->stagehash[n];
   out.Write("\n\t// TEV stage %d\n", n);
@@ -1037,7 +1031,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
         out.Write("\ttevcoord.xy = int2(0, 0);\n");
     }
     out.Write("\ttextemp = ");
-    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, stereo, ApiType);
+    SampleTexture(out, "float2(tevcoord.xy)", texswap, stage.tevorders_texmap, ApiType);
   }
   else
   {
@@ -1228,7 +1222,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
 }
 
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
-                          bool stereo, APIType ApiType)
+                          APIType ApiType)
 {
   out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
 
@@ -1236,12 +1230,12 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
   {
     out.Write("iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS
               "[%d].xy, %s))).%s;\n",
-              texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+              texmap, texmap, texcoords, texmap, "0.0", texswap);
   }
   else
   {
     out.Write("iround(255.0 * texture(samp[%d], float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
-              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+              texmap, texcoords, texmap, "0.0", texswap);
   }
 }
 

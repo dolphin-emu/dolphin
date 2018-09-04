@@ -9,7 +9,6 @@
 
 #include "VideoCommon/AsyncShaderCompiler.h"
 #include "VideoCommon/PixelShaderGen.h"
-#include "VideoCommon/UberShaderPixel.h"
 
 namespace DX11
 {

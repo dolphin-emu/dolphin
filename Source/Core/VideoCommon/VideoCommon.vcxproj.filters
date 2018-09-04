@@ -179,15 +179,6 @@
     <ClCompile Include="AsyncShaderCompiler.cpp">
       <Filter>Util</Filter>
     </ClCompile>
-    <ClCompile Include="UberShaderPixel.cpp">
-      <Filter>Shader Generators</Filter>
-    </ClCompile>
-    <ClCompile Include="UberShaderCommon.cpp">
-      <Filter>Shader Generators</Filter>
-    </ClCompile>
-    <ClCompile Include="UberShaderVertex.cpp">
-      <Filter>Shader Generators</Filter>
-    </ClCompile>
     <ClCompile Include="AbstractStagingTexture.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -355,15 +346,6 @@
     </ClInclude>
     <ClInclude Include="AsyncShaderCompiler.h">
       <Filter>Util</Filter>
-    </ClInclude>
-    <ClInclude Include="UberShaderPixel.h">
-      <Filter>Shader Generators</Filter>
-    </ClInclude>
-    <ClInclude Include="UberShaderCommon.h">
-      <Filter>Shader Generators</Filter>
-    </ClInclude>
-    <ClInclude Include="UberShaderVertex.h">
-      <Filter>Shader Generators</Filter>
     </ClInclude>
     <ClInclude Include="AbstractStagingTexture.h">
       <Filter>Base</Filter>

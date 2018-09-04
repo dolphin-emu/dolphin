@@ -10,7 +10,6 @@
 #include "VideoBackends/D3D/D3DBlob.h"
 
 #include "VideoCommon/AsyncShaderCompiler.h"
-#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace DX11

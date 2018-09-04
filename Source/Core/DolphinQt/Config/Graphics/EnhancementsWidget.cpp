@@ -104,28 +104,7 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_disable_copy_filter, 8, 0);
   enhancements_layout->addWidget(m_arbitrary_mipmap_detection, 8, 1);
 
-  // Stereoscopy
-  auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
-  auto* stereoscopy_layout = new QGridLayout();
-  stereoscopy_box->setLayout(stereoscopy_layout);
-
-  m_3d_mode = new GraphicsChoice(
-      {tr("Off"), tr("Side-by-Side"), tr("Top-and-Bottom"), tr("Anaglyph"), tr("HDMI 3D")},
-      Config::GFX_STEREO_MODE);
-  m_3d_depth = new GraphicsSlider(0, 100, Config::GFX_STEREO_DEPTH);
-  m_3d_convergence = new GraphicsSlider(0, 200, Config::GFX_STEREO_CONVERGENCE, 100);
-  m_3d_swap_eyes = new GraphicsBool(tr("Swap Eyes"), Config::GFX_STEREO_SWAP_EYES);
-
-  stereoscopy_layout->addWidget(new QLabel(tr("Stereoscopic 3D Mode:")), 0, 0);
-  stereoscopy_layout->addWidget(m_3d_mode, 0, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth:")), 1, 0);
-  stereoscopy_layout->addWidget(m_3d_depth, 1, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 2, 0);
-  stereoscopy_layout->addWidget(m_3d_convergence, 2, 1);
-  stereoscopy_layout->addWidget(m_3d_swap_eyes, 3, 0);
-
   main_layout->addWidget(enhancements_box);
-  main_layout->addWidget(stereoscopy_box);
   main_layout->addStretch();
 
   setLayout(main_layout);
@@ -137,35 +116,19 @@ void EnhancementsWidget::ConnectWidgets()
           [this](int) { SaveSettings(); });
   connect(m_pp_effect, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_3d_mode, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this] {
-            m_block_save = true;
-            LoadPPShaders();
-            m_block_save = false;
-
-            SaveSettings();
-          });
   connect(m_configure_pp_effect, &QPushButton::pressed, this,
           &EnhancementsWidget::ConfigurePostProcessingShader);
 }
 
 void EnhancementsWidget::LoadPPShaders()
 {
-  const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
-  std::vector<std::string> shaders =
-      g_Config.stereo_mode == StereoMode::Anaglyph ?
-          PostProcessingShaderImplementation::GetAnaglyphShaderList(
-              g_Config.backend_info.api_type) :
-          PostProcessingShaderImplementation::GetShaderList(g_Config.backend_info.api_type);
+  std::vector<std::string> shaders = 
+	  PostProcessingShaderImplementation::GetShaderList(g_Config.backend_info.api_type);
 
   m_pp_effect->clear();
-
-  if (!anaglyph)
-    m_pp_effect->addItem(tr("(off)"));
+  m_pp_effect->addItem(tr("(off)"));
 
   auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
-
-  bool found = false;
 
   for (const auto& shader : shaders)
   {
@@ -173,12 +136,8 @@ void EnhancementsWidget::LoadPPShaders()
     if (selected_shader == shader)
     {
       m_pp_effect->setCurrentIndex(m_pp_effect->count() - 1);
-      found = true;
     }
   }
-
-  if (anaglyph && !found)
-    m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
@@ -219,22 +178,6 @@ void EnhancementsWidget::LoadSettings()
   // Post Processing Shader
   LoadPPShaders();
 
-  // Stereoscopy
-  bool supports_stereoscopy = g_Config.backend_info.bSupportsGeometryShaders;
-  bool supports_3dvision = g_Config.backend_info.bSupports3DVision;
-
-  bool has_3dvision = m_3d_mode->count() == 6;
-
-  if (has_3dvision && !supports_3dvision)
-    m_3d_mode->removeItem(5);
-
-  if (!has_3dvision && supports_3dvision)
-    m_3d_mode->addItem(tr("NVIDIA 3D Vision"));
-
-  m_3d_mode->setEnabled(supports_stereoscopy);
-  m_3d_convergence->setEnabled(supports_stereoscopy);
-  m_3d_depth->setEnabled(supports_stereoscopy);
-  m_3d_swap_eyes->setEnabled(supports_stereoscopy);
   m_block_save = false;
 }
 
@@ -320,22 +263,6 @@ void EnhancementsWidget::AddDescriptions()
       QT_TR_NOOP("Makes distant objects more visible by removing fog, thus increasing the overall "
                  "detail.\nDisabling fog will break some games which rely on proper fog "
                  "emulation.\n\nIf unsure, leave this unchecked.");
-  static const char TR_3D_MODE_DESCRIPTION[] = QT_TR_NOOP(
-      "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
-      "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
-      "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHDMI 3D is "
-      "used when your monitor supports 3D display resolutions.\nHeavily decreases "
-      "emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
-  static const char TR_3D_DEPTH_DESCRIPTION[] =
-      QT_TR_NOOP("Controls the separation distance between the virtual cameras.\nA higher value "
-                 "creates a stronger feeling of depth while a lower value is more comfortable.");
-  static const char TR_3D_CONVERGENCE_DESCRIPTION[] = QT_TR_NOOP(
-      "Controls the distance of the convergence plane. This is the distance at which "
-      "virtual objects will appear to be in front of the screen.\nA higher value creates "
-      "stronger out-of-screen effects while a lower value is more comfortable.");
-  static const char TR_3D_SWAP_EYES_DESCRIPTION[] =
-      QT_TR_NOOP("Swaps the left and right eye. Mostly useful if you want to view side-by-side "
-                 "cross-eyed.\n\nIf unsure, leave this unchecked.");
   static const char TR_FORCE_24BIT_DESCRIPTION[] =
       QT_TR_NOOP("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
                  "quality by reducing color banding.\nIt has no impact on performance and causes "
@@ -368,10 +295,6 @@ void EnhancementsWidget::AddDescriptions()
   AddDescription(m_force_texture_filtering, TR_FORCE_TEXTURE_FILTERING_DESCRIPTION);
   AddDescription(m_disable_copy_filter, TR_DISABLE_COPY_FILTER_DESCRIPTION);
   AddDescription(m_arbitrary_mipmap_detection, TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION);
-  AddDescription(m_3d_mode, TR_3D_MODE_DESCRIPTION);
-  AddDescription(m_3d_depth, TR_3D_DEPTH_DESCRIPTION);
-  AddDescription(m_3d_convergence, TR_3D_CONVERGENCE_DESCRIPTION);
-  AddDescription(m_3d_swap_eyes, TR_3D_SWAP_EYES_DESCRIPTION);
 }
 
 void EnhancementsWidget::ConfigurePostProcessingShader()

@@ -20,7 +20,6 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"

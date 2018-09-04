@@ -20,9 +20,8 @@ constexpr std::array<const char*, 4> primitives_d3d = {{"point", "line", "triang
 
 bool geometry_shader_uid_data::IsPassthrough() const
 {
-  const bool stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   const bool wireframe = g_ActiveConfig.bWireFrame;
-  return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !stereo && !wireframe;
+  return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !wireframe;
 }
 
 GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
@@ -55,7 +54,6 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   const bool pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
-  const bool stereo = host_config.stereo;
   const PrimitiveType primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type);
   const unsigned primitive_type_index = static_cast<unsigned>(uid_data->primitive_type);
   const unsigned vertex_in = std::min(static_cast<unsigned>(primitive_type_index) + 1, 3u);
@@ -69,16 +67,14 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     // Insert layout parameters
     if (host_config.backend_gs_instancing)
     {
-      out.Write("layout(%s, invocations = %d) in;\n", primitives_ogl[primitive_type_index],
-                stereo ? 2 : 1);
+      out.Write("layout(%s, invocations = %d) in;\n", primitives_ogl[primitive_type_index], 1);
       out.Write("layout(%s_strip, max_vertices = %d) out;\n", wireframe ? "line" : "triangle",
                 vertex_out);
     }
     else
     {
       out.Write("layout(%s) in;\n", primitives_ogl[primitive_type_index]);
-      out.Write("layout(%s_strip, max_vertices = %d) out;\n", wireframe ? "line" : "triangle",
-                stereo ? vertex_out * 2 : vertex_out);
+      out.Write("layout(%s_strip, max_vertices = %d) out;\n", wireframe ? "line" : "triangle", vertex_out);
     }
   }
 
@@ -90,8 +86,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   else
     out.Write("cbuffer GSBlock {\n");
 
-  out.Write("\tfloat4 " I_STEREOPARAMS ";\n"
-            "\tfloat4 " I_LINEPTPARAMS ";\n"
+  out.Write("\tfloat4 " I_LINEPTPARAMS ";\n"
             "\tint4 " I_TEXOFFSET ";\n"
             "};\n");
 
@@ -113,9 +108,6 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     GenerateVSOutputMembers<ShaderCode>(out, ApiType, uid_data->numTexGens, pixel_lighting,
                                         GetInterpolationQualifier(msaa, ssaa, true, false));
 
-    if (stereo)
-      out.Write("\tflat int layer;\n");
-
     out.Write("} ps;\n");
 
     out.Write("void main()\n{\n");
@@ -125,21 +117,18 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     out.Write("struct VertexData {\n");
     out.Write("\tVS_OUTPUT o;\n");
 
-    if (stereo)
-      out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
-
     out.Write("};\n");
 
     if (host_config.backend_gs_instancing)
     {
-      out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, stereo ? 2 : 1);
+      out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, 1);
       out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output, in uint "
                 "InstanceID : SV_GSInstanceID)\n{\n",
                 primitives_d3d[primitive_type_index], vertex_in, wireframe ? "Line" : "Triangle");
     }
     else
     {
-      out.Write("[maxvertexcount(%d)]\n", stereo ? vertex_out * 2 : vertex_out);
+      out.Write("[maxvertexcount(%d)]\n", vertex_out);
       out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output)\n{\n",
                 primitives_d3d[primitive_type_index], vertex_in, wireframe ? "Line" : "Triangle");
     }
@@ -196,16 +185,6 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
               ".x, -" I_LINEPTPARAMS ".w / " I_LINEPTPARAMS ".y) * center.pos.w;\n");
   }
 
-  if (stereo)
-  {
-    // If the GPU supports invocation we don't need a for loop and can simply use the
-    // invocation identifier to determine which layer we're rendering.
-    if (host_config.backend_gs_instancing)
-      out.Write("\tint eye = InstanceID;\n");
-    else
-      out.Write("\tfor (int eye = 0; eye < 2; ++eye) {\n");
-  }
-
   if (wireframe)
     out.Write("\tVS_OUTPUT first;\n");
 
@@ -228,24 +207,6 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   else
   {
     out.Write("\tVS_OUTPUT f = o[i];\n");
-  }
-
-  if (stereo)
-  {
-    // Select the output layer
-    out.Write("\tps.layer = eye;\n");
-    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-      out.Write("\tgl_Layer = eye;\n");
-
-    // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
-    // to the depth of the vertex. We retrieve the depth value from the w-component of the projected
-    // vertex which contains the negated z-component of the original vertex.
-    // For negative parallax (out-of-screen effects) we subtract a convergence value from
-    // the depth value. This results in objects at a distance smaller than the convergence
-    // distance to seemingly appear in front of the screen.
-    // This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
-    out.Write("\tfloat hoffset = (eye == 0) ? " I_STEREOPARAMS ".x : " I_STEREOPARAMS ".y;\n");
-    out.Write("\tf.pos.x += hoffset * (f.pos.w - " I_STEREOPARAMS ".z);\n");
   }
 
   if (primitive_type == PrimitiveType::Lines)
@@ -308,9 +269,6 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   out.Write("\t}\n");
 
   EndPrimitive(out, host_config, uid_data, ApiType, wireframe, pixel_lighting);
-
-  if (stereo && !host_config.backend_gs_instancing)
-    out.Write("\t}\n");
 
   out.Write("}\n");
 

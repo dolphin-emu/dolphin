@@ -167,11 +167,6 @@ bool TextureCache::CompileShaders()
 
   std::string geo_program = "";
   char prefix = 'f';
-  if (g_ActiveConfig.stereo_mode != StereoMode::Off)
-  {
-    geo_program = geometry_program;
-    prefix = 'v';
-  }
 
   if (!ProgramShaderCache::CompileShader(m_colorCopyProgram,
                                          StringFromFormat(vertex_program, prefix, prefix),
@@ -528,11 +523,6 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
 
     std::string geo_program = "";
     char prefix = 'f';
-    if (g_ActiveConfig.stereo_mode != StereoMode::Off)
-    {
-      geo_program = geometry_program;
-      prefix = 'v';
-    }
 
     ProgramShaderCache::CompileShader(shader.shader,
                                       StringFromFormat(vertex_program, prefix, prefix),

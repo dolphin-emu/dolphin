@@ -32,16 +32,6 @@ enum class AspectMode : int
   Stretch,
 };
 
-enum class StereoMode : int
-{
-  Off,
-  SBS,
-  TAB,
-  Anaglyph,
-  QuadBuffer,
-  Nvidia3DVision
-};
-
 enum class ShaderCompilationMode : int
 {
   Synchronous,
@@ -129,15 +119,6 @@ struct VideoConfig final
   bool bVertexRounding;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
-
-  // Stereoscopy
-  StereoMode stereo_mode;
-  int iStereoDepth;
-  int iStereoConvergence;
-  int iStereoConvergencePercentage;
-  bool bStereoSwapEyes;
-  bool bStereoEFBMonoDepth;
-  int iStereoDepthPercentage;
 
   // D3D only config, mostly to be merged into the above
   int iAdapter;
