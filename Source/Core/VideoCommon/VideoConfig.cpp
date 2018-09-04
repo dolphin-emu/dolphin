@@ -149,9 +149,9 @@ void VideoConfig::Refresh()
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  // GZLJ01 - The Wind Waker
+  // The Wind Waker
   const std::string& gameId = SConfig::GetInstance().GetGameID();
-  if (gameId.compare("GZLJ01") == 0)
+  if (gameId == "GZLJ01" || gameId == "GZLE01")
   {
     // device blend
 	  bDualSourceShaderBlend = false;

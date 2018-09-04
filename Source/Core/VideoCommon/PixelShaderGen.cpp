@@ -684,8 +684,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       out.Write("\tint2 fixpoint_uv%d = int2(tex%d.xy * " I_TEXDIMS "[%d].zw);\n", i, i, i);
-      //out.Write("tex%d.xy", i, i, i, i);
-      //out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
     }
   }
