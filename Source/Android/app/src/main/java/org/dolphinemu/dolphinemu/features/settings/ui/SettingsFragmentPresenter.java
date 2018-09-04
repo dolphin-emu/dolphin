@@ -191,6 +191,7 @@ public final class SettingsFragmentPresenter {
 		Setting followBranch = null;
 		Setting audioStretch = null;
 		Setting audioBackend = null;
+		Setting enableCheats = null;
 
 		SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
 		cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
@@ -205,6 +206,7 @@ public final class SettingsFragmentPresenter {
 		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP).getSetting(SettingsFile.KEY_AUDIO_BACKEND);
+		enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
 
 		// TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
 		// The proper solution would be to have one emuCoresEntries and one emuCoresValues
@@ -234,6 +236,7 @@ public final class SettingsFragmentPresenter {
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_MMU_EMULATION, Settings.SECTION_INI_CORE, R.string.mmu_emulation, R.string.mmu_emulation_description, true, mmuEmulation));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DISC_SPEED, Settings.SECTION_INI_CORE, R.string.fast_disc_speed, R.string.fast_disc_speed_description, false, fastDiscSpeed));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH, Settings.SECTION_INI_CORE, R.string.jit_follow_branch, R.string.jit_follow_branch_description, true, followBranch));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_CHEATS, Settings.SECTION_INI_CORE, R.string.enable_cheats, R.string.enable_cheats_description, false, enableCheats));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 
 		String defaultAudioBackend = NativeLibrary.DefaultAudioBackend();

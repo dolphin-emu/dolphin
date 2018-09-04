@@ -159,20 +159,6 @@
         <item>4</item>
     </integer-array>
 
-    <!-- Stereoscopy Preference -->
-    <string-array name="stereoscopyEntries" translatable="false">
-        <item>Off</item>
-        <item>Side-by-Side</item>
-        <item>Top-and-Bottom</item>
-        <item>Anaglyph</item>
-    </string-array>
-    <integer-array name="stereoscopyValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </integer-array>
-
     <!-- Aspect Ratio Preference -->
     <string-array name="aspectRatioEntries" translatable="false">
         <item>Auto</item>

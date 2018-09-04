@@ -141,17 +141,17 @@ void VideoConfig::Refresh()
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  // The Wind Waker
+  // Biohazard 4
   const std::string& gameId = SConfig::GetInstance().GetGameID();
-  if (gameId == "GZLJ01" || gameId == "GZLE01")
+  if (gameId == "RB4E08" || gameId == "RB4J08" || gameId == "G4BE08" || gameId == "G4BJ08")
   {
-    // device blend
-	  bDualSourceShaderBlend = false;
+    // use shader blend
+    bDualSourceShaderBlend = true;
   }
   else
   {
-    // shader blend
-	  bDualSourceShaderBlend = true;
+    // use device blend
+    bDualSourceShaderBlend = false;
   }
 
   VerifyValidity();
