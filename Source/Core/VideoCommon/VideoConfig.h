@@ -187,7 +187,6 @@ struct VideoConfig final
 
     bool bSupportsExclusiveFullscreen;
     bool bSupportsDualSourceBlend;
-    bool bSupportsPrimitiveRestart;
     bool bSupportsOversizedViewports;
     bool bSupportsGeometryShaders;
     bool bSupportsComputeShaders;
