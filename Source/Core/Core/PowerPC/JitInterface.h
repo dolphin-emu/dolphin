@@ -66,4 +66,6 @@ void InvalidateICache(u32 address, u32 size, bool forced);
 void CompileExceptionCheck(ExceptionType type);
 
 void Shutdown();
+
+void LogCompiledInstructions();
 }

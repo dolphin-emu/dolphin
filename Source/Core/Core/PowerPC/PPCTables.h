@@ -8,10 +8,9 @@
 #include <cstddef>
 
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 
 // Flags that indicate what an instruction can do.
-enum
+enum : u32
 {
   FL_SET_CR0 = (1 << 0),  // Sets CR0.
   FL_SET_CR1 = (1 << 1),  // Sets CR1.
@@ -61,7 +60,7 @@ enum
   FL_INOUT_FLOAT_D = FL_IN_FLOAT_D | FL_OUT_FLOAT_D,
 };
 
-enum class OpType
+enum class OpType : u8
 {
   Invalid,
   Subtable,
@@ -85,36 +84,25 @@ enum class OpType
   Unknown,
 };
 
-struct GekkoOPInfo
+// The current (half-open) ranges of OpID.
+// An OpID identifies a distinctive instruction encoding and constitutes
+// a shared concept of a 'PPC operation' among the JITs and other
+// CPU emulation components.
+// Use PPCTables::GetOpID to get the right one for a given instruction.
+enum class OpID : int
 {
-  const char* opname;
-  OpType type;
-  int flags;
-  int numCycles;
-  u64 runCount;
-  int compileCount;
-  u32 lastUse;
+  Invalid = 0,
+#include "Core/PowerPC/Tables/OpID_Ranges.gen.h"
 };
-extern std::array<GekkoOPInfo*, 64> m_infoTable;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable4;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable19;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable31;
-extern std::array<GekkoOPInfo*, 32> m_infoTable59;
-extern std::array<GekkoOPInfo*, 1024> m_infoTable63;
-
-extern std::array<GekkoOPInfo*, 512> m_allInstructions;
-extern size_t m_numInstructions;
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction inst);
-Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst);
-
+OpID GetOpID(UGeckoInstruction inst);
 bool IsValidInstruction(UGeckoInstruction inst);
-bool UsesFPU(UGeckoInstruction inst);
+int Cycles(OpID opid);
+u32 Flags(OpID opid);
+OpType Type(OpID opid);
+const char* OpName(OpID opid);
 
-void CountInstruction(UGeckoInstruction inst);
-void PrintInstructionRunCounts();
-void LogCompiledInstructions();
 const char* GetInstructionName(UGeckoInstruction inst);
 }  // namespace PPCTables

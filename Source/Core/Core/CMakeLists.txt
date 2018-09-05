@@ -217,7 +217,6 @@ add_library(core
   PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp
   PowerPC/Interpreter/Interpreter_Paired.cpp
   PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
-  PowerPC/Interpreter/Interpreter_Tables.cpp
   PowerPC/JitCommon/JitAsmCommon.cpp
   PowerPC/JitCommon/JitBase.cpp
   PowerPC/JitCommon/JitCache.cpp

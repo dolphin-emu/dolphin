@@ -28,54 +28,13 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
-namespace
-{
-u32 last_pc;
-}
-
-bool Interpreter::m_end_block;
-
-// function tables
-std::array<Interpreter::Instruction, 64> Interpreter::m_op_table;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table4;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table19;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table31;
-std::array<Interpreter::Instruction, 32> Interpreter::m_op_table59;
-std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table63;
-
-void Interpreter::RunTable4(UGeckoInstruction inst)
-{
-  m_op_table4[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable19(UGeckoInstruction inst)
-{
-  m_op_table19[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable31(UGeckoInstruction inst)
-{
-  m_op_table31[inst.SUBOP10](inst);
-}
-void Interpreter::RunTable59(UGeckoInstruction inst)
-{
-  m_op_table59[inst.SUBOP5](inst);
-}
-void Interpreter::RunTable63(UGeckoInstruction inst)
-{
-  m_op_table63[inst.SUBOP10](inst);
-}
-
-void Interpreter::Init()
-{
-  InitializeInstructionTables();
-  m_reserve = false;
-  m_end_block = false;
-}
-
-void Interpreter::Shutdown()
-{
-}
-
 static int startTrace = 0;
+
+constexpr std::array<Interpreter::Instruction, static_cast<size_t>(OpID::End)>
+    Interpreter::m_op_table = {{
+        Interpreter::unknown_instruction,
+#include "Core/PowerPC/Tables/Interpreter_Table.gen.cpp"
+    }};
 
 static void Trace(UGeckoInstruction& inst)
 {
@@ -110,6 +69,8 @@ bool Interpreter::HandleFunctionHooking(u32 address)
 
 int Interpreter::SingleStepInner()
 {
+  m_prev_inst.hex = PowerPC::Read_Opcode(PC);
+  const auto opid = PPCTables::GetOpID(m_prev_inst);
   if (!HandleFunctionHooking(PC))
   {
 #ifdef USE_GDBSTUB
@@ -123,7 +84,6 @@ int Interpreter::SingleStepInner()
 #endif
 
     NPC = PC + sizeof(UGeckoInstruction);
-    m_prev_inst.hex = PowerPC::Read_Opcode(PC);
 
     // Uncomment to trace the interpreter
     // if ((PC & 0xffffff)>=0x0ab54c && (PC & 0xffffff)<=0x0ab624)
@@ -140,7 +100,7 @@ int Interpreter::SingleStepInner()
     {
       if (MSR.FP)  // If FPU is enabled, just execute
       {
-        m_op_table[m_prev_inst.OPCD](m_prev_inst);
+        GetOpFunction(opid)(m_prev_inst);
         if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
         {
           PowerPC::CheckExceptions();
@@ -150,9 +110,9 @@ int Interpreter::SingleStepInner()
       else
       {
         // check if we have to generate a FPU unavailable exception
-        if (!PPCTables::UsesFPU(m_prev_inst))
+        if (!(PPCTables::Flags(opid) & FL_USE_FPU))
         {
-          m_op_table[m_prev_inst.OPCD](m_prev_inst);
+          GetOpFunction(opid)(m_prev_inst);
           if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
           {
             PowerPC::CheckExceptions();
@@ -177,8 +137,7 @@ int Interpreter::SingleStepInner()
   last_pc = PC;
   PC = NPC;
 
-  const GekkoOPInfo* opinfo = PPCTables::GetOpInfo(m_prev_inst);
-  return opinfo->numCycles;
+  return PPCTables::Cycles(opid);
 }
 
 void Interpreter::SingleStep()
@@ -293,15 +252,23 @@ void Interpreter::Run()
   }
 }
 
+// hack to allow accessing last_pc from unknown_instruction.
+// will disappear together with the elimination of global CPU state
+namespace PowerPC
+{
+extern Interpreter s_interpreter;
+}
+
 void Interpreter::unknown_instruction(UGeckoInstruction inst)
 {
-  const u32 opcode = PowerPC::HostRead_U32(last_pc);
-  const std::string disasm = Common::GekkoDisassembler::Disassemble(opcode, last_pc);
-  NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
+  const u32 opcode = PowerPC::HostRead_U32(PowerPC::s_interpreter.last_pc);
+  const std::string disasm =
+      Common::GekkoDisassembler::Disassemble(opcode, PowerPC::s_interpreter.last_pc);
+  NOTICE_LOG(POWERPC, "Last PC = %08x : %s", PowerPC::s_interpreter.last_pc, disasm.c_str());
   Dolphin_Debugger::PrintCallstack();
   NOTICE_LOG(POWERPC,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-             inst.hex, PC, last_pc, LR);
+             inst.hex, PC, PowerPC::s_interpreter.last_pc, LR);
   for (int i = 0; i < 32; i += 4)
   {
     NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
@@ -309,7 +276,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   }
   ASSERT_MSG(POWERPC, 0,
              "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-             inst.hex, PC, last_pc, LR);
+             inst.hex, PC, PowerPC::s_interpreter.last_pc, LR);
 }
 
 void Interpreter::ClearCache()
@@ -324,10 +291,4 @@ const char* Interpreter::GetName() const
 #else
   return "Interpreter32";
 #endif
-}
-
-Interpreter* Interpreter::getInstance()
-{
-  static Interpreter instance;
-  return &instance;
 }

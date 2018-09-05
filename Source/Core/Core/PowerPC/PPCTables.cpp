@@ -6,30 +6,11 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
-#include <cstddef>
-#include <cstdio>
-#include <vector>
+#include <bitset>
 
-#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
-
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/PowerPC.h"
-
-std::array<GekkoOPInfo*, 64> m_infoTable;
-std::array<GekkoOPInfo*, 1024> m_infoTable4;
-std::array<GekkoOPInfo*, 1024> m_infoTable19;
-std::array<GekkoOPInfo*, 1024> m_infoTable31;
-std::array<GekkoOPInfo*, 32> m_infoTable59;
-std::array<GekkoOPInfo*, 1024> m_infoTable63;
-
-std::array<GekkoOPInfo*, 512> m_allInstructions;
-size_t m_numInstructions;
 
 namespace PowerPC
 {
@@ -55,169 +36,84 @@ const std::array<u64, 16> m_crTable = {{
 
 namespace PPCTables
 {
-GekkoOPInfo* GetOpInfo(UGeckoInstruction inst)
+struct OpDispatch
 {
-  const GekkoOPInfo* info = m_infoTable[inst.OPCD];
-  if (info->type == OpType::Subtable)
+  std::bitset<64> leaf_flags;
+  std::bitset<64> subtables;
+  u32 op_index_start;
+  u16 dispatch_start;
+  u8 subop_shift;
+  u8 subop_len;
+};
+constexpr std::array<OpDispatch, 30> dispatch_table = {{
+#include "Core/PowerPC/Tables/OpID_DecodingTable.gen.cpp"
+}};
+
+OpID GetOpID(UGeckoInstruction instruction)
+{
+  size_t subtable = 0;
+  while (true)
   {
-    switch (inst.OPCD)
+    const auto& disp = dispatch_table[subtable];
+    const u32 opcode = (instruction.hex >> disp.subop_shift) & ((1 << disp.subop_len) - 1);
+    const auto shifted = disp.leaf_flags >> (63 - opcode);
+    if (shifted[0])
     {
-    case 4:
-      return m_infoTable4[inst.SUBOP10];
-    case 19:
-      return m_infoTable19[inst.SUBOP10];
-    case 31:
-      return m_infoTable31[inst.SUBOP10];
-    case 59:
-      return m_infoTable59[inst.SUBOP5];
-    case 63:
-      return m_infoTable63[inst.SUBOP10];
-    default:
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid subtable op %08x @ %08x", inst.hex, PC);
-      return nullptr;
+      return static_cast<OpID>(disp.op_index_start + shifted.count() - 1);
+    }
+    else if ((disp.subtables >> (63 - opcode))[0])
+    {
+      subtable = disp.dispatch_start + (disp.subtables >> (63 - opcode)).count() - 1;
+    }
+    else
+    {
+      ERROR_LOG(POWERPC, "subtable %zd, value %d not found", subtable, opcode);
+      return OpID::Invalid;
     }
   }
-  else
-  {
-    if (info->type == OpType::Invalid)
-    {
-      ASSERT_MSG(POWERPC, 0, "GetOpInfo - invalid op %08x @ %08x", inst.hex, PC);
-      return nullptr;
-    }
-    return m_infoTable[inst.OPCD];
-  }
-}
-
-Interpreter::Instruction GetInterpreterOp(UGeckoInstruction inst)
-{
-  const GekkoOPInfo* info = m_infoTable[inst.OPCD];
-  if (info->type == OpType::Subtable)
-  {
-    switch (inst.OPCD)
-    {
-    case 4:
-      return Interpreter::m_op_table4[inst.SUBOP10];
-    case 19:
-      return Interpreter::m_op_table19[inst.SUBOP10];
-    case 31:
-      return Interpreter::m_op_table31[inst.SUBOP10];
-    case 59:
-      return Interpreter::m_op_table59[inst.SUBOP5];
-    case 63:
-      return Interpreter::m_op_table63[inst.SUBOP10];
-    default:
-      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid subtable op %08x @ %08x", inst.hex, PC);
-      return nullptr;
-    }
-  }
-  else
-  {
-    if (info->type == OpType::Invalid)
-    {
-      ASSERT_MSG(POWERPC, 0, "GetInterpreterOp - invalid op %08x @ %08x", inst.hex, PC);
-      return nullptr;
-    }
-    return Interpreter::m_op_table[inst.OPCD];
-  }
-}
-
-bool UsesFPU(UGeckoInstruction inst)
-{
-  GekkoOPInfo* const info = GetOpInfo(inst);
-
-  return (info->flags & FL_USE_FPU) != 0;
-}
-
-#define OPLOG
-#define OP_TO_LOG "mtfsb0x"
-
-#ifdef OPLOG
-namespace
-{
-std::vector<u32> rsplocations;
-}
-#endif
-
-const char* GetInstructionName(UGeckoInstruction inst)
-{
-  const GekkoOPInfo* info = GetOpInfo(inst);
-  return info ? info->opname : nullptr;
 }
 
 bool IsValidInstruction(UGeckoInstruction inst)
 {
-  const GekkoOPInfo* info = GetOpInfo(inst);
-  return info != nullptr && info->type != OpType::Unknown;
+  return GetOpID(inst) != OpID::Invalid;
 }
 
-void CountInstruction(UGeckoInstruction inst)
+struct GekkoOPInfo
 {
-  GekkoOPInfo* info = GetOpInfo(inst);
-  if (info)
-  {
-    info->runCount++;
-  }
+  const char* opname;
+  u32 flags;
+  OpType type;
+  u8 cycles;
+};
+
+constexpr std::array<GekkoOPInfo, static_cast<size_t>(OpID::End)> opinfo = {{
+    {"Invalid instruction", 0, OpType::Invalid, 0},
+#include "Core/PowerPC/Tables/OpInfo.gen.cpp"
+}};
+
+int Cycles(OpID opid)
+{
+  return opinfo[static_cast<int>(opid)].cycles;
 }
 
-void PrintInstructionRunCounts()
+const char* OpName(OpID opid)
 {
-  typedef std::pair<const char*, u64> OpInfo;
-  std::vector<OpInfo> temp;
-  temp.reserve(m_numInstructions);
-  for (size_t i = 0; i < m_numInstructions; ++i)
-  {
-    GekkoOPInfo* pInst = m_allInstructions[i];
-    temp.emplace_back(pInst->opname, pInst->runCount);
-  }
-  std::sort(temp.begin(), temp.end(),
-            [](const OpInfo& a, const OpInfo& b) { return a.second > b.second; });
-
-  for (auto& inst : temp)
-  {
-    if (inst.second == 0)
-      break;
-
-    DEBUG_LOG(POWERPC, "%s : %" PRIu64, inst.first, inst.second);
-  }
+  return opinfo[static_cast<int>(opid)].opname;
 }
 
-void LogCompiledInstructions()
+const char* GetInstructionName(UGeckoInstruction inst)
 {
-  static unsigned int time = 0;
+  return opinfo[static_cast<int>(GetOpID(inst))].opname;
+}
 
-  File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-                 "w");
-  for (size_t i = 0; i < m_numInstructions; i++)
-  {
-    GekkoOPInfo* pInst = m_allInstructions[i];
-    if (pInst->compileCount > 0)
-    {
-      fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\t%08x\n", pInst->opname, pInst->compileCount,
-              pInst->runCount, pInst->lastUse);
-    }
-  }
+OpType Type(OpID opid)
+{
+  return opinfo[static_cast<int>(opid)].type;
+}
 
-  f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
-  for (size_t i = 0; i < m_numInstructions; i++)
-  {
-    GekkoOPInfo* pInst = m_allInstructions[i];
-    if (pInst->compileCount == 0)
-    {
-      fprintf(f.GetHandle(), "%s\t%i\t%" PRId64 "\n", pInst->opname, pInst->compileCount,
-              pInst->runCount);
-    }
-  }
-
-#ifdef OPLOG
-  f.Open(StringFromFormat("%s" OP_TO_LOG "_at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-         "w");
-  for (auto& rsplocation : rsplocations)
-  {
-    fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);
-  }
-#endif
-
-  ++time;
+u32 Flags(OpID opid)
+{
+  return opinfo[static_cast<int>(opid)].flags;
 }
 
 }  // namespace

@@ -26,6 +26,7 @@
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
@@ -288,16 +289,17 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
   gpr.Flush();
   fpr.Flush();
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  const auto flags = PPCTables::Flags(js.op->opid);
+  if (flags & FL_ENDBLOCK)
   {
     MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     MOV(32, PPCSTATE(npc), Imm32(js.compilerPC + 4));
   }
-  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
+  Interpreter::Instruction instr = Interpreter::GetOpFunction(js.op->opid);
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionC(instr, inst.hex);
   ABI_PopRegistersAndAdjustStack({}, 0);
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (flags & FL_ENDBLOCK)
   {
     if (js.isLastInstruction)
     {
@@ -752,8 +754,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.op = &op;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
-    const GekkoOPInfo* opinfo = op.opinfo;
-    js.downcountAmount += opinfo->numCycles;
+    const auto flags = PPCTables::Flags(op.opid);
+    js.downcountAmount += PPCTables::Cycles(op.opid);
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
     js.revertGprLoad = -1;
@@ -816,7 +818,7 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     if (!op.skip)
     {
-      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+      if ((flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
         // This instruction uses FPU - needs to add FP exception bailout
         TEST(32, PPCSTATE(msr), Imm32(1 << 13));  // Test FP enabled bit
@@ -883,7 +885,7 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
       CompileInstruction(op);
 
-      if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
+      if (jo.memcheck && (flags & FL_LOADSTORE))
       {
         // If we have a fastmem loadstore, we can omit the exception check and let fastmem handle
         // it.
@@ -927,10 +929,10 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       for (int j : ~op.fprInUse)
         fpr.StoreFromRegister(j);
 
-      if (opinfo->flags & FL_LOADSTORE)
+      if (flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;
 
-      if (opinfo->flags & FL_USE_FPU)
+      if (flags & FL_USE_FPU)
         ++js.numFloatingPointInst;
     }
 

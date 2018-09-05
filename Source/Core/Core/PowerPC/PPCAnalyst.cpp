@@ -193,10 +193,8 @@ static void AnalyzeFunction2(Common::Symbol* func)
 
 static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 {
-  const GekkoOPInfo* a_info = a.opinfo;
-  const GekkoOPInfo* b_info = b.opinfo;
-  int a_flags = a_info->flags;
-  int b_flags = b_info->flags;
+  const auto a_flags = PPCTables::Flags(a.opid);
+  const auto b_flags = PPCTables::Flags(b.opid);
 
   // can't reorder around breakpoints
   if (SConfig::GetInstance().bEnableDebugging &&
@@ -226,11 +224,11 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   // a crash caused by this error.
   //
   // [1] https://bugs.dolphin-emu.org/issues/5864#note-7
-  if (b_info->type != OpType::Integer)
+  if (PPCTables::Type(b.opid) != OpType::Integer)
     return false;
 
   // And it's possible a might raise an interrupt too (fcmpo/fcmpu)
-  if (a_info->type != OpType::Integer)
+  if (PPCTables::Type(a.opid) != OpType::Integer)
     return false;
 
   // Check that we have no register collisions.
@@ -439,8 +437,8 @@ static bool isCmp(const CodeOp& a)
 
 static bool isCarryOp(const CodeOp& a)
 {
-  return (a.opinfo->flags & FL_SET_CA) && !(a.opinfo->flags & FL_SET_OE) &&
-         a.opinfo->type == OpType::Integer;
+  const auto flags = PPCTables::Flags(a.opid);
+  return (flags & FL_SET_CA) && !(flags & FL_SET_OE) && PPCTables::Type(a.opid) == OpType::Integer;
 }
 
 static bool isCror(const CodeOp& a)
@@ -477,13 +475,13 @@ void PPCAnalyzer::ReorderInstructionsCore(u32 instructions, CodeOp* code, bool r
         // once we're next to a carry instruction, don't move away!
         if (type == ReorderType::Carry && i != start)
         {
+          const auto aflags = PPCTables::Flags(a.opid);
+          const auto prevflags = PPCTables::Flags(code[i - increment].opid);
           // if we read the CA flag, and the previous instruction sets it, don't move away.
-          if (!reverse && (a.opinfo->flags & FL_READ_CA) &&
-              (code[i - increment].opinfo->flags & FL_SET_CA))
+          if (!reverse && (aflags & FL_READ_CA) && (prevflags & FL_SET_CA))
             continue;
           // if we set the CA flag, and the next instruction reads it, don't move away.
-          if (reverse && (a.opinfo->flags & FL_SET_CA) &&
-              (code[i - increment].opinfo->flags & FL_READ_CA))
+          if (reverse && (aflags & FL_SET_CA) && (prevflags & FL_READ_CA))
             continue;
         }
 
@@ -518,49 +516,54 @@ void PPCAnalyzer::ReorderInstructions(u32 instructions, CodeOp* code)
     ReorderInstructionsCore(instructions, code, false, ReorderType::CMP);
 }
 
-void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo,
-                                      u32 index)
+void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, OpID opid, u32 index)
 {
+  const auto flags = PPCTables::Flags(opid);
   code->wantsCR0 = false;
   code->wantsCR1 = false;
 
-  if (opinfo->flags & FL_USE_FPU)
+  if (flags & FL_USE_FPU)
     block->m_fpa->any = true;
 
-  if (opinfo->flags & FL_TIMER)
+  if (flags & FL_TIMER)
     block->m_gpa->anyTimer = true;
 
   // Does the instruction output CR0?
-  if (opinfo->flags & FL_RC_BIT)
+  if (flags & FL_RC_BIT)
     code->outputCR0 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
+  else if ((flags & FL_SET_CRn) && code->inst.CRFD == 0)
     code->outputCR0 = true;
   else
-    code->outputCR0 = (opinfo->flags & FL_SET_CR0) != 0;
+    code->outputCR0 = (flags & FL_SET_CR0) != 0;
 
   // Does the instruction output CR1?
-  if (opinfo->flags & FL_RC_BIT_F)
+  if (flags & FL_RC_BIT_F)
     code->outputCR1 = code->inst.hex & 1;  // todo fix
-  else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
+  else if ((flags & FL_SET_CRn) && code->inst.CRFD == 1)
     code->outputCR1 = true;
   else
-    code->outputCR1 = (opinfo->flags & FL_SET_CR1) != 0;
+    code->outputCR1 = (flags & FL_SET_CR1) != 0;
 
-  code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) != 0;
-  code->outputFPRF = (opinfo->flags & FL_SET_FPRF) != 0;
-  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) != 0;
+  code->wantsFPRF = (flags & FL_READ_FPRF) != 0;
+  code->outputFPRF = (flags & FL_SET_FPRF) != 0;
+  code->canEndBlock = (flags & FL_ENDBLOCK) != 0;
 
-  code->wantsCA = (opinfo->flags & FL_READ_CA) != 0;
-  code->outputCA = (opinfo->flags & FL_SET_CA) != 0;
+  code->wantsCA = (flags & FL_READ_CA) != 0;
+  code->outputCA = (flags & FL_SET_CA) != 0;
 
   // We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry
   // flag!
   // If the instruction reads CA but doesn't write it, we still need to store CA in XER; we can't
   // leave it in flags.
   if (HasOption(OPTION_CARRY_MERGE))
-    code->wantsCAInFlags = code->wantsCA && code->outputCA && opinfo->type == OpType::Integer;
+  {
+    code->wantsCAInFlags =
+        code->wantsCA && code->outputCA && PPCTables::Type(opid) == OpType::Integer;
+  }
   else
+  {
     code->wantsCAInFlags = false;
+  }
 
   // mfspr/mtspr can affect/use XER, so be super careful here
   // we need to note specifically that mfspr needs CA in XER, not in the x86 carry flag
@@ -571,32 +574,32 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
 
   code->regsIn = BitSet32(0);
   code->regsOut = BitSet32(0);
-  if (opinfo->flags & FL_OUT_A)
+  if (flags & FL_OUT_A)
   {
     code->regsOut[code->inst.RA] = true;
     block->m_gpa->SetOutputRegister(code->inst.RA, index);
   }
-  if (opinfo->flags & FL_OUT_D)
+  if (flags & FL_OUT_D)
   {
     code->regsOut[code->inst.RD] = true;
     block->m_gpa->SetOutputRegister(code->inst.RD, index);
   }
-  if ((opinfo->flags & FL_IN_A) || ((opinfo->flags & FL_IN_A0) && code->inst.RA != 0))
+  if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && code->inst.RA != 0))
   {
     code->regsIn[code->inst.RA] = true;
     block->m_gpa->SetInputRegister(code->inst.RA, index);
   }
-  if (opinfo->flags & FL_IN_B)
+  if (flags & FL_IN_B)
   {
     code->regsIn[code->inst.RB] = true;
     block->m_gpa->SetInputRegister(code->inst.RB, index);
   }
-  if (opinfo->flags & FL_IN_C)
+  if (flags & FL_IN_C)
   {
     code->regsIn[code->inst.RC] = true;
     block->m_gpa->SetInputRegister(code->inst.RC, index);
   }
-  if (opinfo->flags & FL_IN_S)
+  if (flags & FL_IN_S)
   {
     code->regsIn[code->inst.RS] = true;
     block->m_gpa->SetInputRegister(code->inst.RS, index);
@@ -619,23 +622,23 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, const Gekk
   }
 
   code->fregOut = -1;
-  if (opinfo->flags & FL_OUT_FLOAT_D)
+  if (flags & FL_OUT_FLOAT_D)
     code->fregOut = code->inst.FD;
 
   code->fregsIn = BitSet32(0);
-  if (opinfo->flags & FL_IN_FLOAT_A)
+  if (flags & FL_IN_FLOAT_A)
     code->fregsIn[code->inst.FA] = true;
-  if (opinfo->flags & FL_IN_FLOAT_B)
+  if (flags & FL_IN_FLOAT_B)
     code->fregsIn[code->inst.FB] = true;
-  if (opinfo->flags & FL_IN_FLOAT_C)
+  if (flags & FL_IN_FLOAT_C)
     code->fregsIn[code->inst.FC] = true;
-  if (opinfo->flags & FL_IN_FLOAT_D)
+  if (flags & FL_IN_FLOAT_D)
     code->fregsIn[code->inst.FD] = true;
-  if (opinfo->flags & FL_IN_FLOAT_S)
+  if (flags & FL_IN_FLOAT_S)
     code->fregsIn[code->inst.FS] = true;
 
-  // For analysis purposes, we can assume that blr eats opinfo->flags.
-  if (opinfo->type == OpType::Branch && code->inst.hex == 0x4e800020)
+  // For analysis purposes, we can assume that blr eats CR0 and CR1.
+  if (PPCTables::Type(opid) == OpType::Branch && code->inst.hex == 0x4e800020)
   {
     code->outputCR0 = true;
     code->outputCR1 = true;
@@ -687,18 +690,18 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     num_inst++;
 
     const UGeckoInstruction inst = result.hex;
-    GekkoOPInfo* opinfo = PPCTables::GetOpInfo(inst);
+    const OpID opid = PPCTables::GetOpID(inst);
     code[i] = {};
-    code[i].opinfo = opinfo;
+    code[i].opid = opid;
     code[i].address = address;
     code[i].inst = inst;
     code[i].branchTo = UINT32_MAX;
     code[i].branchToIndex = UINT32_MAX;
     code[i].skip = false;
-    block->m_stats->numCycles += opinfo->numCycles;
+    block->m_stats->numCycles += PPCTables::Cycles(opid);
     block->m_physical_addresses.insert(result.physical_address);
 
-    SetInstructionStats(block, &code[i], opinfo, static_cast<u32>(i));
+    SetInstructionStats(block, &code[i], opid, static_cast<u32>(i));
 
     bool follow = false;
     u32 destination = 0;
@@ -802,7 +805,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     {
       // Just pick the next instruction
       address += 4;
-      if (!conditional_continue && opinfo->flags & FL_ENDBLOCK)  // right now we stop early
+      if (!conditional_continue && PPCTables::Flags(opid) & FL_ENDBLOCK)  // right now we stop early
       {
         found_exit = true;
         break;
@@ -860,7 +863,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     gprInUse |= op.regsIn;
     gprInReg |= op.regsIn;
     fprInUse |= op.fregsIn;
-    if (strncmp(op.opinfo->opname, "stfd", 4))
+    if (strncmp(PPCTables::OpName(op.opid), "stfd", 4))
       fprInXmm |= op.fregsIn;
     // For now, we need to count output registers as "used" though; otherwise the flush
     // will result in a redundant store (e.g. store to regcache, then store again to
@@ -876,6 +879,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   for (u32 i = 0; i < block->m_num_instructions; i++)
   {
     CodeOp& op = code[i];
+    const OpType type = PPCTables::Type(op.opid);
+    const char* const opname = PPCTables::OpName(op.opid);
 
     gprBlockInputs |= op.regsIn & ~gprDefined;
     gprDefined |= op.regsOut;
@@ -889,7 +894,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       fprIsDuplicated[op.fregOut] = false;
       fprIsStoreSafe[op.fregOut] = false;
       // Single, duplicated, and doesn't need PPC_FP.
-      if (op.opinfo->type == OpType::SingleFP)
+      if (type == OpType::SingleFP)
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
@@ -899,13 +904,13 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       // TODO: if we go directly from a load to store, skip conversion entirely?
       // TODO: if we go directly from a load to a float instruction, and the value isn't used
       // for anything else, we can skip PPC_FP on a load too.
-      if (!strncmp(op.opinfo->opname, "lfs", 3))
+      if (!strncmp(opname, "lfs", 3))
       {
         fprIsSingle[op.fregOut] = true;
         fprIsDuplicated[op.fregOut] = true;
       }
       // Paired are still floats, but the top/bottom halves may differ.
-      if (op.opinfo->type == OpType::PS || op.opinfo->type == OpType::LoadPS)
+      if (type == OpType::PS || type == OpType::LoadPS)
       {
         fprIsSingle[op.fregOut] = true;
         fprIsStoreSafe[op.fregOut] = true;
@@ -913,11 +918,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       // Careful: changing the float mode in a block breaks this optimization, since
       // a previous float op might have had had FTZ off while the later store has FTZ
       // on. So, discard all information we have.
-      if (!strncmp(op.opinfo->opname, "mtfs", 4))
+      if (!strncmp(opname, "mtfs", 4))
         fprIsStoreSafe = BitSet32(0);
     }
 
-    if (op.opinfo->type == OpType::StorePS || op.opinfo->type == OpType::LoadPS)
+    if (type == OpType::StorePS || type == OpType::LoadPS)
     {
       const int gqr = op.inst.OPCD == 4 ? op.inst.Ix : op.inst.I;
       gqrUsed[gqr] = true;

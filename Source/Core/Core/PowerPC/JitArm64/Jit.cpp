@@ -21,6 +21,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
@@ -144,7 +145,9 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   gpr.Flush(FlushMode::FLUSH_ALL, js.op);
   fpr.Flush(FlushMode::FLUSH_ALL, js.op);
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  const auto flags = PPCTables::Flags(js.op->opid);
+
+  if (flags & FL_ENDBLOCK)
   {
     // also flush the program counter
     ARM64Reg WA = gpr.GetReg();
@@ -155,12 +158,12 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
     gpr.Unlock(WA);
   }
 
-  Interpreter::Instruction instr = PPCTables::GetInterpreterOp(inst);
+  Interpreter::Instruction instr = Interpreter::GetOpFunction(js.op->opid);
   MOVI2R(W0, inst.hex);
   MOVP2R(X30, instr);
   BLR(X30);
 
-  if (js.op->opinfo->flags & FL_ENDBLOCK)
+  if (flags & FL_ENDBLOCK)
   {
     if (js.isLastInstruction)
     {
@@ -185,7 +188,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
     }
   }
 
-  if (jo.memcheck && (js.op->opinfo->flags & FL_LOADSTORE))
+  if (jo.memcheck && (flags & FL_LOADSTORE))
   {
     ARM64Reg WA = gpr.GetReg();
     LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
@@ -663,8 +666,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.op = &op;
     js.instructionNumber = i;
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
-    const GekkoOPInfo* opinfo = op.opinfo;
-    js.downcountAmount += opinfo->numCycles;
+    js.downcountAmount += PPCTables::Cycles(op.opid);
     js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
     if (!SConfig::GetInstance().bEnableDebugging)
@@ -747,7 +749,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
     if (!op.skip)
     {
-      if ((opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+      if ((PPCTables::Flags(op.opid) & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
         // This instruction uses FPU - needs to add FP exception bailout
         ARM64Reg WA = gpr.GetReg();
@@ -777,7 +779,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       }
 
       CompileInstruction(op);
-      if (!CanMergeNextInstructions(1) || js.op[1].opinfo->type != ::OpType::Integer)
+      if (!CanMergeNextInstructions(1) || PPCTables::Type(js.op[1].opid) != ::OpType::Integer)
         FlushCarry();
 
       // If we have a register that will never be used again, flush it.

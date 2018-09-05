@@ -45,7 +45,6 @@ struct GekkoOPTemplate
 {
   int opcode;
   _Instruction Inst;
-  // GekkoOPInfo opinfo; // Doesn't need opinfo, Interpreter fills it out
 };
 }
 
@@ -371,19 +370,8 @@ constexpr GekkoOPTemplate table63_2[] = {
 void JitArm64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
   (this->*dynaOpTable[op.inst.OPCD])(op.inst);
-
-  GekkoOPInfo* info = op.opinfo;
-  if (info)
-  {
-#ifdef OPLOG
-    if (!strcmp(info->opname, OP_TO_LOG))
-    {  ///"mcrfs"
-      rsplocations.push_back(js.compilerPC);
-    }
-#endif
-    info->compileCount++;
-    info->lastUse = js.compilerPC;
-  }
+  instructionCompileCount[static_cast<int>(op.opid)]++;
+  instructionLastUse[static_cast<int>(op.opid)] = js.compilerPC;
 }
 
 void JitArm64::InitializeInstructionTables()
