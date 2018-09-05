@@ -9,6 +9,7 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -57,7 +58,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == ::OpType::Integer)
+  if (CanMergeNextInstructions(1) && PPCTables::Type(js.op[1].opid) == ::OpType::Integer)
   {
     return;
   }

@@ -19,6 +19,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
@@ -246,7 +247,8 @@ void CompileExceptionCheck(ExceptionType type)
     if (type == ExceptionType::FIFOWrite)
     {
       // Check in case the code has been replaced since: do we need to do this?
-      const OpType optype = PPCTables::GetOpInfo(PowerPC::HostRead_U32(PC))->type;
+      const OpID opid = PPCTables::GetOpID(PowerPC::HostRead_U32(PC));
+      const OpType optype = PPCTables::Type(opid);
       if (optype != OpType::Store && optype != OpType::StoreFP && optype != OpType::StorePS)
         return;
     }
@@ -266,5 +268,33 @@ void Shutdown()
     delete g_jit;
     g_jit = nullptr;
   }
+}
+
+void LogCompiledInstructions()
+{
+  // if we run no JIT, there are no compiled instructions to log
+  if (!g_jit)
+    return;
+  static unsigned int time = 0;
+
+  File::IOFile compiled_log(
+      StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
+  File::IOFile not_compiled_log(
+      StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
+  for (int opid = 0; opid < static_cast<int>(OpID::End); opid += 1)
+  {
+    const char* opname = PPCTables::OpName(static_cast<OpID>(opid));
+    if (g_jit->instructionCompileCount[opid] > 0)
+    {
+      fprintf(compiled_log.GetHandle(), "%s\t%i\t%08x\n", opname,
+              g_jit->instructionCompileCount[opid], g_jit->instructionLastUse[opid]);
+    }
+    else
+    {
+      fprintf(not_compiled_log.GetHandle(), "%s\n", opname);
+    }
+  }
+
+  ++time;
 }
 }

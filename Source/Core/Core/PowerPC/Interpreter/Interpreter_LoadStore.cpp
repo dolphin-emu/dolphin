@@ -16,8 +16,12 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
-bool Interpreter::m_reserve;
-u32 Interpreter::m_reserve_address;
+// hack to allow accessing m_reserve(_address) from the relevant functions.
+// will disappear together with the elimination of global CPU state
+namespace PowerPC
+{
+extern Interpreter s_interpreter;
+}
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction inst)
 {
@@ -997,8 +1001,8 @@ void Interpreter::lwarx(UGeckoInstruction inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[inst.RD] = temp;
-    m_reserve = true;
-    m_reserve_address = address;
+    PowerPC::s_interpreter.m_reserve = true;
+    PowerPC::s_interpreter.m_reserve_address = address;
   }
 }
 
@@ -1013,14 +1017,14 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
     return;
   }
 
-  if (m_reserve)
+  if (PowerPC::s_interpreter.m_reserve)
   {
-    if (address == m_reserve_address)
+    if (address == PowerPC::s_interpreter.m_reserve_address)
     {
       PowerPC::Write_U32(rGPR[inst.RS], address);
       if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
       {
-        m_reserve = false;
+        PowerPC::s_interpreter.m_reserve = false;
         PowerPC::SetCRField(0, 2 | PowerPC::GetXER_SO());
         return;
       }

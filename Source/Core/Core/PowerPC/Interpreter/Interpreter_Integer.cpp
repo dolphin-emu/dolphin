@@ -9,6 +9,13 @@
 #include "Common/Logging/Log.h"
 #include "Core/PowerPC/PowerPC.h"
 
+// hack to allow accessing m_end_block.
+// will disappear together with the elimination of global CPU state
+namespace PowerPC
+{
+extern Interpreter s_interpreter;
+}
+
 void Interpreter::Helper_UpdateCR0(u32 value)
 {
   s64 sign_extended = (s64)(s32)value;
@@ -139,7 +146,7 @@ void Interpreter::twi(UGeckoInstruction inst)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
     PowerPC::CheckExceptions();
-    m_end_block = true;  // Dunno about this
+    PowerPC::s_interpreter.m_end_block = true;  // Dunno about this
   }
 }
 
@@ -382,7 +389,7 @@ void Interpreter::tw(UGeckoInstruction inst)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
     PowerPC::CheckExceptions();
-    m_end_block = true;  // Dunno about this
+    PowerPC::s_interpreter.m_end_block = true;  // Dunno about this
   }
 }
 

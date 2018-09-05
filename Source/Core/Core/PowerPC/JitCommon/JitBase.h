@@ -16,6 +16,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
 
 //#define JIT_LOG_GENERATED_CODE  // Enables logging of generated code
 //#define JIT_LOG_GPR             // Enables logging of the PPC general purpose regs
@@ -23,7 +24,6 @@
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
-// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
 #define FALLBACK_IF(cond)                                                                          \
@@ -124,6 +124,9 @@ public:
   // This should probably be removed from public:
   JitOptions jo{};
   JitState js{};
+
+  std::array<u32, static_cast<size_t>(OpID::End)> instructionLastUse{};
+  std::array<int, static_cast<size_t>(OpID::End)> instructionCompileCount{};
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);
