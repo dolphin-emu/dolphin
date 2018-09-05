@@ -15,13 +15,14 @@
 
     <EditText
         android:id="@+id/code_content"
+        android:hint="@string/cheat_code"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
-        android:scrollbars="vertical"
-        android:singleLine="false"
+        android:layout_height="320dp"
+        android:scrollbars="horizontal|vertical"
+        android:textSize="14sp"
         android:gravity="top|start"
         android:typeface="monospace"
-        android:inputType="textMultiLine|textLongMessage"
+        android:inputType="textMultiLine"
         android:layout_below="@id/game_id" />
 
     <Button

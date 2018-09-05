@@ -37,28 +37,41 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <View
+        android:id="@+id/dummy_view"
+        android:visibility="invisible"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/image_game_screen"
+        android:layout_width="1px"
+        android:layout_height="1px"/>
+
+    <!--  -->
     <Button
         android:text="@string/delete_game_setting"
         android:id="@+id/button_delete_setting"
         style="@style/Widget.AppCompat.Button.Colored"
         android:textAllCaps="false"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentStart="true"
+        android:layout_height="wrap_content"
         android:layout_below="@id/image_game_screen"
+        android:layout_toStartOf="@id/dummy_view"
         android:stateListAnimator="@null"/>
 
-    <View
-        android:id="@+id/dummy_view"
-        android:visibility="invisible"
-        android:layout_width="1px"
-        android:layout_height="1px"
-        android:layout_below="@id/button_delete_setting"
-        android:layout_centerHorizontal="true"/>
-
     <Button
-        android:text="@string/action_replay_code"
-        android:id="@+id/button_action_replay"
+        android:text="@string/cheat_code"
+        android:id="@+id/button_cheat_code"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/image_game_screen"
+        android:layout_toEndOf="@id/dummy_view"
+        android:stateListAnimator="@null"/>
+
+    <!--  -->
+    <Button
+        android:text="@string/preferences_game_settings"
+        android:id="@+id/button_game_setting"
         style="@style/Widget.AppCompat.Button.Colored"
         android:textAllCaps="false"
         android:layout_width="match_parent"
@@ -68,36 +81,14 @@
         android:stateListAnimator="@null"/>
 
     <Button
-        android:text="@string/gecko_code"
-        android:id="@+id/button_gecko_code"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:textAllCaps="false"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/dummy_view"
-        android:layout_below="@id/button_delete_setting"
-        android:stateListAnimator="@null"/>
-
-    <Button
-        android:text="@string/preferences_game_settings"
-        android:id="@+id/button_game_setting"
-        style="@style/Widget.AppCompat.Button.Colored"
-        android:textAllCaps="false"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/button_action_replay"
-        android:stateListAnimator="@null"/>
-
-    <Button
         android:text="@string/emulation_quickload"
         android:id="@+id/button_quick_load"
         android:layout_width="match_parent"
         style="@style/Widget.AppCompat.Button.Colored"
         android:textAllCaps="false"
-        android:layout_height="50dp"
-        android:layout_alignParentStart="true"
-        android:layout_below="@id/button_game_setting"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/button_cheat_code"
+        android:layout_toEndOf="@id/dummy_view"
         android:stateListAnimator="@null"/>
 
 </RelativeLayout>

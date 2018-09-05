@@ -314,8 +314,7 @@
     <string name="delete_game_setting">Delete Settings</string>
     <string name="delete_game_file">Delete Game</string>
     <string name="clear_game_data">Clear Data</string>
-    <string name="action_replay_code">AR Code</string>
-    <string name="gecko_code">Gecko Code</string>
+    <string name="cheat_code">Cheat Code</string>
     <string name="save_code">Save</string>
     <string name="toast_save_code_ok">Code Saved!</string>
     <string name="toast_save_code_no">Save Failed!</string>

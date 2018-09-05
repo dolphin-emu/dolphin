@@ -61,18 +61,11 @@ public final class GameDetailsDialog extends DialogFragment {
 		});
 		buttonDeleteSetting.setEnabled(isGameSetingExist(gameFile.getGameId()));
 
-		Button buttonARCode = contents.findViewById(R.id.button_action_replay);
-		buttonARCode.setOnClickListener(view ->
+		Button buttonCheatCode = contents.findViewById(R.id.button_cheat_code);
+		buttonCheatCode.setOnClickListener(view ->
 		{
 			this.dismiss();
-			CheatCodeDialog.newInstance(gamePath, CheatCodeDialog.CODE_TYPE_AR).show(getFragmentManager(), "CheatCodeDialog");
-		});
-
-		Button buttonGecko = contents.findViewById(R.id.button_gecko_code);
-		buttonGecko.setOnClickListener(view ->
-		{
-			this.dismiss();
-			CheatCodeDialog.newInstance(gamePath, CheatCodeDialog.CODE_TYPE_GECKO).show(getFragmentManager(), "CheatCodeDialog");
+			CheatCodeDialog.newInstance(gamePath).show(getFragmentManager(), "CheatCodeDialog");
 		});
 
 		Button buttonGameSetting = contents.findViewById(R.id.button_game_setting);
