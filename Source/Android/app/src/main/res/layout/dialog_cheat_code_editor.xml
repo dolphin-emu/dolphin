@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/game_id"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:background="@color/dolphin_blue"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/code_content"
+        android:layout_width="match_parent"
+        android:layout_height="240dp"
+        android:scrollbars="vertical"
+        android:singleLine="false"
+        android:gravity="top|start"
+        android:typeface="monospace"
+        android:inputType="textMultiLine|textLongMessage"
+        android:layout_below="@id/game_id" />
+
+    <Button
+        android:text="@string/save_code"
+        android:id="@+id/button_add_code"
+        style="@style/Widget.AppCompat.Button.Colored"
+        android:textAllCaps="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/code_content"
+        android:stateListAnimator="@null"/>
+
+</RelativeLayout>

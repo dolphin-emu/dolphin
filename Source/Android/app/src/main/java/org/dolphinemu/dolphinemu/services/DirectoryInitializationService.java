@@ -155,12 +155,20 @@ public final class DirectoryInitializationService extends IntentService {
 		return userPath;
 	}
 
+	public static String getDolphinDirectory() {
+		return Environment.getExternalStorageDirectory().getPath() + File.separator + "dolphin-emu";
+	}
+
 	public static String getCacheDirectory() {
-		return Environment.getExternalStorageDirectory().getPath() + "/dolphin-emu/CCache";
+		return getDolphinDirectory() + File.separator + "CCache";
 	}
 
 	public static String getCoverDirectory() {
 		return getCacheDirectory() + File.separator + "GameCovers";
+	}
+
+	public static String getLocalSettingFile(String gameId) {
+		return getDolphinDirectory() + File.separator + "GameSettings" + File.separator + gameId + ".ini";
 	}
 
 	public static String getDolphinInternalDirectory() {

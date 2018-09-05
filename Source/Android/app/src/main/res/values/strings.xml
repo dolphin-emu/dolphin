@@ -314,6 +314,11 @@
     <string name="delete_game_setting">Delete Settings</string>
     <string name="delete_game_file">Delete Game</string>
     <string name="clear_game_data">Clear Data</string>
+    <string name="action_replay_code">AR Code</string>
+    <string name="gecko_code">Gecko Code</string>
+    <string name="save_code">Save</string>
+    <string name="toast_save_code_ok">Code Saved!</string>
+    <string name="toast_save_code_no">Save Failed!</string>
     <string name="interface_show_extended_fps">Show Extended FPS</string>
     <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>
 

@@ -21,14 +21,14 @@
 -dontskipnonpubliclibraryclassmembers
 -verbose
 
--dontwarn com.squareup.**
--keep class com.squareup.** { *; }
+-dontwarn com.squareup.picasso.**
+-keep class com.squareup.picasso.** { *; }
 
 -dontwarn sun.misc.Unsafe
 -keep class sun.misc.Unsafe { *; }
 
--dontwarn rx.**
--keep class rx.** { *; }
+-dontwarn rx.functions.**
+-keep class rx.functions.** { *; }
 
 -keep class org.dolphinemu.dolphinemu.NativeLibrary { *; }
 -keep class org.dolphinemu.dolphinemu.utils.Java_GCAdapter { *; }
