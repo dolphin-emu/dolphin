@@ -271,6 +271,15 @@ void DoState(PointerWrap& p)
   p.DoMarker("Memory RAM");
   if (m_pFakeVMEM)
     p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
+  else
+  {
+    // keep compatibility with fake vmem
+    u64 v = 0;
+    for(int i = 0; i < (FAKEVMEM_SIZE >> 8); ++i)
+    {
+      p.Do(v);
+    }
+  }
   p.DoMarker("Memory FakeVMEM");
   if (wii)
     p.DoArray(m_pEXRAM, EXRAM_SIZE);
