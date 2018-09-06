@@ -40,8 +40,7 @@
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="2dp"
                 android:ellipsize="end"
-                android:lines="1"
-                android:maxLines="1"
+                android:singleLine="true"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
 
             <TextView
@@ -50,6 +49,7 @@
                 style="@android:style/TextAppearance.Material.Caption"
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="2dp"
+                android:singleLine="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
@@ -61,8 +61,7 @@
                 android:layout_marginLeft="2dp"
                 android:layout_marginRight="2dp"
                 android:ellipsize="end"
-                android:lines="1"
-                android:maxLines="1"
+                android:singleLine="true"
                 tools:text="The Legend of Zelda: The Wind Waker"/>
 
         </LinearLayout>

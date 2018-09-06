@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import android.support.annotation.Nullable;
+
 public enum MenuTag {
 	CONFIG("config"),
 	CONFIG_GENERAL("config_general"),
@@ -40,7 +42,7 @@ public enum MenuTag {
 	@Override
 	public String toString() {
 		if (subType != -1) {
-			return tag + subType;
+			return tag + "|" + subType;
 		}
 
 		return tag;
@@ -77,6 +79,21 @@ public enum MenuTag {
 
 	public static MenuTag getWiimoteExtensionMenuTag(int subtype) {
 		return getMenuTag("wiimote_extension", subtype);
+	}
+
+	@Nullable
+	public static MenuTag getMenuTag(String menuTagStr) {
+		if(menuTagStr == null || menuTagStr.isEmpty()) {
+			return null;
+		}
+		String tag = menuTagStr;
+		int subtype = -1;
+		int sep = menuTagStr.indexOf('|');
+		if(sep != -1) {
+			tag = menuTagStr.substring(0, sep);
+			subtype = Integer.parseInt(menuTagStr.substring(sep+1));
+		}
+		return getMenuTag(tag, subtype);
 	}
 
 	private static MenuTag getMenuTag(String tag, int subtype) {

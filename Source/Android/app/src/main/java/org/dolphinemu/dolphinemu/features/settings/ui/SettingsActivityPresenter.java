@@ -9,10 +9,11 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
-import org.dolphinemu.dolphinemu.utils.Log;
 
 public final class SettingsActivityPresenter {
 	private static final String KEY_SHOULD_SAVE = "should_save";
+	private static final String KEY_MENU_TAG = "menu_tag";
+	private static final String KEY_GAME_ID = "game_id";
 
 	private SettingsActivityView mView;
 
@@ -36,7 +37,10 @@ public final class SettingsActivityPresenter {
 			this.menuTag = menuTag;
 			this.gameId = gameId;
 		} else {
-			mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+			String menuTagStr = savedInstanceState.getString(KEY_MENU_TAG);
+			this.mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+			this.gameId = savedInstanceState.getString(KEY_GAME_ID);
+			this.menuTag = MenuTag.getMenuTag(menuTagStr);
 		}
 	}
 
@@ -102,7 +106,6 @@ public final class SettingsActivityPresenter {
 		}
 
 		if (mSettings != null && finishing && mShouldSave) {
-			Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
 			mSettings.saveSettings(mView);
 		}
 	}
@@ -136,6 +139,8 @@ public final class SettingsActivityPresenter {
 
 	public void saveState(Bundle outState) {
 		outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
+		outState.putString(KEY_MENU_TAG, menuTag.toString());
+		outState.putString(KEY_GAME_ID, gameId);
 	}
 
 	public void onGcPadSettingChanged(MenuTag key, int value) {

@@ -270,7 +270,17 @@ void DoState(PointerWrap& p)
   p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
   p.DoMarker("Memory RAM");
   if (m_pFakeVMEM)
+  {
     p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
+  }
+  else
+  {
+    u64 v = 0;
+    for(int i = 0; i < (FAKEVMEM_SIZE >> 8); ++i)
+    {
+      p.Do(v);
+    }
+  }
   p.DoMarker("Memory FakeVMEM");
   if (wii)
     p.DoArray(m_pEXRAM, EXRAM_SIZE);
