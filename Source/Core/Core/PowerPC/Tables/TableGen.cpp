@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <OptionParser.h>
 #include <bitset>
 #include <cstdlib>
 #include <fstream>
@@ -236,145 +237,124 @@ static void ReadTable(std::istream& in, std::vector<std::vector<std::string>>& r
   }
 }
 
+// F is an (anonymous) lambda type
+template <class F>
+class FunctionCallback : public optparse::Callback
+{
+private:
+  F func;
+
+public:
+  FunctionCallback(F function) : func(function) {}
+  void operator()(const optparse::Option& option, const std::string& opt, const std::string& val,
+                  const optparse::OptionParser& parser)
+  {
+    func(option, opt, val, parser);
+  }
+};
+
 static void ParseCommandLine(int argc, char** argv, OutputOptions& stdout_options,
                              std::vector<std::pair<std::ofstream, OutputOptions>>& file_outputs,
                              std::string& inputfile)
 {
-  if (argc == 1)
-  {
-    const char* const help_string =
-        " [options]\n"
-        "Options:\n"
-        "  -i <file>    read from this file, not stdin\n"
-        "  -o <file>    sets an output file for the preceding options. Trailing options\n"
-        "               are applied for stdout.\n"
-        "  -r           generate OpID range definition\n"
-        "  -D           generate decoding table\n"
-        "  -0…9         Generate a custom table. Add the column specified by the digit.\n"
-        "  -p <prefix>  Set the prefix for the previously-defined column.\n"
-        "  -s <prefix>  Set the suffix for the previously-defined column.\n"
-        "  -d <default> Set the default value for the previously-defined column.\n"
-        "               (use * for the opname)\n";
-    std::cout << "Usage: " << argv[0] << help_string;
-    std::exit(0);
-  }
-  for (int i = 1; i < argc; i += 1)
-  {
-    if (argv[i][0] != '-' || argv[i][1] == 0)
-    {
-      std::cerr << "Error: unrecognized command line argument \"" << argv[i]
-                << "\".\n"
-                   "Invoke without arguments for usage description\n";
-      std::exit(1);
-    }
-    for (int n = 1; argv[i][n]; n += 1)
-    {
-      bool skip = false;
-      switch (argv[i][n])
-      {
-      case 'o':
-        if (argv[i][n + 1] != 0 || i + 1 == argc)
-        {
-          std::cerr << "Error: the -o command line option expects an argument.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        file_outputs.emplace_back(std::ofstream(argv[i + 1]), stdout_options);
+  optparse::OptionParser parser =
+      optparse::OptionParser()
+          .usage("usage: %prog [options]")
+          .version("%prog\n"
+                   "Copyright 2018 Dolphin Emulator Project\n"
+                   "Licensed under GPLv2+")
+          .description(
+              "Generates decoding, dispatch and information tables from a csv-based format");
+  parser.add_option("-i", "--input")
+      .type("string")
+      .action("store")
+      .dest("input")
+      .set_default("")
+      .help("read from this file, not stdin");
+  auto output = FunctionCallback(
+      [&stdout_options, &file_outputs](const optparse::Option&, const std::string&,
+                                       const std::string& val, const optparse::OptionParser&) {
+        file_outputs.emplace_back(std::ofstream(val), stdout_options);
         stdout_options = OutputOptions();
-        i += 1;
-        skip = true;
-        break;
-      case 'i':
-        if (argv[i][n + 1] != 0 || i + 1 == argc)
+      });
+  parser.add_option("-o", "--output")
+      .action("callback")
+      .type("string")
+      .callback(output)
+      .help(
+          "sets an output file for the preceding options. Trailing options are applied for stdout");
+  auto ranges = FunctionCallback(
+      [&stdout_options](const optparse::Option&, const std::string&, const std::string&,
+                        const optparse::OptionParser&) { stdout_options.flags |= OPID_RANGES; });
+  parser.add_option("-r", "--opid-ranges")
+      .action("callback")
+      .callback(ranges)
+      .help("generate OpID range definition");
+  auto decoding = FunctionCallback(
+      [&stdout_options](const optparse::Option&, const std::string&, const std::string&,
+                        const optparse::OptionParser&) { stdout_options.flags |= DECODING_TABLE; });
+  parser.add_option("-D", "--decoding-table")
+      .action("callback")
+      .callback(decoding)
+      .help("generate a decoding table");
+  auto column =
+      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
+                                         const std::string& val, const optparse::OptionParser&) {
+        std::cout << val << "\n";
+        int value = std::stoi(val);
+        if (value < 0)
         {
-          std::cerr << "Error: the -i command line option expects an argument.\n"
-                       "Invoke without options for usage description\n";
+          std::cerr << "Column indices must not be negative.\n";
           std::exit(1);
         }
-        inputfile = argv[i + 1];
-        i += 1;
-        skip = true;
-        break;
-      case 'r':
-        stdout_options.flags |= OPID_RANGES;
-        break;
-      case 'D':
-        stdout_options.flags |= DECODING_TABLE;
-        break;
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
         stdout_options.columns.emplace_back(
-            ColumnOptions{static_cast<unsigned int>(argv[i][n] - '0'), "", ""});
-        break;
-      case 'p':
-        if (argv[i][n + 1] != 0 || i + 1 == argc)
-        {
-          std::cerr << "Error: the -p command line option expects an argument.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        if (stdout_options.columns.empty())
-        {
-          std::cerr << "Error: no column was specified for -p to apply to.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        stdout_options.columns.back().prefix = argv[i + 1];
-        i += 1;
-        skip = true;
-        break;
-      case 's':
-        if (argv[i][n + 1] != 0 || i + 1 == argc)
-        {
-          std::cerr << "Error: the -s command line option expects an argument.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        if (stdout_options.columns.empty())
-        {
-          std::cerr << "Error: no column was specified for -s to apply to.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        stdout_options.columns.back().suffix = argv[i + 1];
-        i += 1;
-        skip = true;
-        break;
-      case 'd':
-        if (argv[i][n + 1] != 0 || i + 1 == argc)
-        {
-          std::cerr << "Error: the -d command line option expects an argument.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        if (stdout_options.columns.empty())
-        {
-          std::cerr << "Error: no column was specified for -d to apply to.\n"
-                       "Invoke without options for usage description\n";
-          std::exit(1);
-        }
-        stdout_options.columns.back().default_value = argv[i + 1];
-        i += 1;
-        skip = true;
-        break;
-      default:
-        std::cerr << "Error: unrecognized command line option -" << argv[i][n] << '\n';
-        std::exit(1);
-      }
-      if (skip)
-      {
-        break;
-      }
-    }
-  }
+            ColumnOptions{static_cast<unsigned int>(value), "", "", ""});
+      });
+  parser.add_option("-c", "--column")
+      .action("callback")
+      .type("int")
+      .nargs(1)
+      .callback(column)
+      .help("generate a custom (dispatch) table. Add the specified column.");
+  auto prefix =
+      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
+                                         const std::string& val, const optparse::OptionParser&) {
+        stdout_options.columns.back().prefix = val;
+      });
+  parser.add_option("-p", "--prefix")
+      .action("callback")
+      .type("string")
+      .nargs(1)
+      .callback(prefix)
+      .help("set the prefix for the previously-defined column.");
+  auto suffix =
+      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
+                                         const std::string& val, const optparse::OptionParser&) {
+        stdout_options.columns.back().suffix = val;
+      });
+  parser.add_option("-s", "--suffix")
+      .action("callback")
+      .type("string")
+      .nargs(1)
+      .callback(suffix)
+      .help("set the suffix for the previously-defined column.");
+  auto default_value =
+      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
+                                         const std::string& val, const optparse::OptionParser&) {
+        stdout_options.columns.back().default_value = val;
+      });
+  parser.add_option("-d", "--default")
+      .action("callback")
+      .type("string")
+      .nargs(1)
+      .callback(default_value)
+      .help("set the default value for the previously-defined column. If the default value is "
+            "used, prefix and suffix are not used. If the value given here is '*' (beware shell "
+            "escaping) an empty value will be processed as if it had been the same as the opname "
+            "in the first place (prefix and suffix are applied).");
+
+  auto options = parser.parse_args(argc, argv);
+  inputfile = options["input"];
 }
 
 static std::vector<InputLine> ParseTableToLines(const std::vector<std::vector<std::string>> rows)
