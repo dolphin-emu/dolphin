@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D2C3690D-14FB-4D21-B1B9-AF367B519825}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\VSProps\Base.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <PostBuildEvent>
+      <Command>md "$(CoreDir)Core\PowerPC\Tables\" 2&gt;nul
+"$(TargetPath)" -i "$(CoreDir)Core\PowerPC\Tables\instructions.csv" -ro "$(CoreDir)Core\PowerPC\Tables\OpID_Ranges.gen.h" -Do "$(CoreDir)Core\PowerPC\Tables\OpID_DecodingTable.gen.cpp" -0p "\"" -s "\"" -2 -1p OpType:: -4d 1 -o "$(CoreDir)Core\PowerPC\Tables\OpInfo.gen.cpp" -3d * -p Interpreter:: -o "$(CoreDir)Core\PowerPC\Tables\Interpreter_Table.gen.cpp" -r0p "\"" -s "\"" -2 -1p OpType:: -4d 1</Command>
+    </PostBuildEvent>
+    <Link>
+      <!-- Required to force enableCompatPatches from Base.props off; not necessary in a code generation tool -->
+      <ForceSymbolReferences />
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="PowerPC\Tables\TableGen.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="PowerPC\Tables\instructions.csv" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
