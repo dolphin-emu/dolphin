@@ -494,7 +494,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
-  core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
+  core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, false);
   core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
@@ -527,7 +527,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
-  core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
+  core->Get("FastDiscSpeed", &bFastDiscSpeed, true);
   core->Get("LowDCBZHack", &bLowDCBZHack, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
@@ -742,7 +742,7 @@ void SConfig::LoadDefaults()
   cpu_core = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;
   bCPUThread = false;
-  bSyncGPUOnSkipIdleHack = true;
+  bSyncGPUOnSkipIdleHack = false;
   bRunCompareServer = false;
   bDSPHLE = true;
   bFastmem = true;
@@ -756,7 +756,7 @@ void SConfig::LoadDefaults()
   bLowDCBZHack = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
-  bFastDiscSpeed = false;
+  bFastDiscSpeed = true;
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;

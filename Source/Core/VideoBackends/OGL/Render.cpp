@@ -1258,12 +1258,11 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
   if (!force && m_current_blend_state == state)
     return;
 
-  bool useDualSource =
-      state.usedualsrc && g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
+  bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+    !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
   // Only use shader blend if we need to and we don't support dual-source blending directly
-  bool useShaderBlend = !useDualSource && state.usedualsrc && state.dstalpha &&
-                        g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
+  bool useShaderBlend = state.IsDualSourceBlend() &&
+    !useDualSource && g_ActiveConfig.backend_info.bSupportsFramebufferFetch;
 
   if (useShaderBlend)
   {

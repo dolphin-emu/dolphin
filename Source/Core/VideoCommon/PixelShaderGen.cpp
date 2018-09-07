@@ -324,9 +324,8 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.usedualsrc && state.dstalpha &&
-	  !g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
-	  g_ActiveConfig.bDualSourceShaderBlend)
+  if (state.IsDualSourceBlend() && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+    (g_ActiveConfig.backend_info.bSupportsFramebufferFetch || g_ActiveConfig.bDualSourceShaderBlend))
   {
     uid_data->blend_enable = state.blendenable;
     uid_data->blend_src_factor = state.srcfactor;

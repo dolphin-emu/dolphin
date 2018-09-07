@@ -24,7 +24,7 @@ const ConfigInfo<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
 const ConfigInfo<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const ConfigInfo<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};
 const ConfigInfo<bool> MAIN_CPU_THREAD{{System::Main, "Core", "CPUThread"}, true};
-const ConfigInfo<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkipIdle"}, true};
+const ConfigInfo<bool> MAIN_SYNC_ON_SKIP_IDLE{{System::Main, "Core", "SyncOnSkipIdle"}, false};
 const ConfigInfo<std::string> MAIN_DEFAULT_ISO{{System::Main, "Core", "DefaultISO"}, ""};
 const ConfigInfo<bool> MAIN_ENABLE_CHEATS{{System::Main, "Core", "EnableCheats"}, false};
 const ConfigInfo<int> MAIN_GC_LANGUAGE{{System::Main, "Core", "SelectedLanguage"}, 0};
@@ -86,7 +86,7 @@ const ConfigInfo<int> MAIN_SYNC_GPU_MAX_DISTANCE{{System::Main, "Core", "SyncGpu
 const ConfigInfo<int> MAIN_SYNC_GPU_MIN_DISTANCE{{System::Main, "Core", "SyncGpuMinDistance"},
                                                  -200000};
 const ConfigInfo<float> MAIN_SYNC_GPU_OVERCLOCK{{System::Main, "Core", "SyncGpuOverclock"}, 1.0f};
-const ConfigInfo<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, false};
+const ConfigInfo<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, true};
 const ConfigInfo<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
 const ConfigInfo<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const ConfigInfo<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};

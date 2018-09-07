@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO If this is ever modified, change application_id in strings.xml
-        applicationId "m.m.j"
+        applicationId "org.mm.j"
         minSdkVersion 24
         targetSdkVersion 28
 

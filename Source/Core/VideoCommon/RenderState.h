@@ -27,7 +27,7 @@ union RasterizationState
   bool operator<(const RasterizationState& rhs) const { return hex < rhs.hex; }
 
 
-	struct { 
+	struct {
 		GenMode::CullMode cullmode:2;
 		PrimitiveType primitive:2;
 	};
@@ -56,6 +56,10 @@ union BlendingState
 {
   void Generate(const BPMemory& bp);
 
+  bool IsDualSourceBlend() const {
+    return dstalpha && (srcfactor == BlendMode::SRCALPHA || dstfactor == BlendMode::INVSRCALPHA);
+  }
+
   BlendingState& operator=(const BlendingState& rhs);
 
   bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }
@@ -71,7 +75,6 @@ union BlendingState
 		unsigned int alphaupdate:1;
 		unsigned int subtract:1;
 		unsigned int subtractAlpha:1;
-		unsigned int usedualsrc:1;
 		BlendMode::BlendFactor dstfactor:3;
 		BlendMode::BlendFactor srcfactor:3;
 		BlendMode::BlendFactor dstfactoralpha:3;

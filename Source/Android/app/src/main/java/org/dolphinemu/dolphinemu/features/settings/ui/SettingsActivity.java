@@ -191,7 +191,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
 	@Override
 	public void showToastMessage(String message) {
-		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, message, Toast.LENGTH_LONG).show();
 	}
 
 	@Override
