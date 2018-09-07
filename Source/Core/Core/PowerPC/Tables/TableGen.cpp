@@ -73,10 +73,14 @@ struct DecodingEntry
 };
 
 static void CreateTable(std::vector<Instruction>& table, std::vector<DecodingEntry>& decoding_table,
-                        DecodingEntry& entry, const std::vector<InputLine>& lines)
+                        size_t current_entry_offset, const std::vector<InputLine>& lines)
 {
+  DecodingEntry& entry = decoding_table.at(current_entry_offset);
   entry.instruction_offset = table.size();
-  entry.subtable_offset = decoding_table.size();
+  // offset is relative and displaced by one, to simplify (and serve as termination proof of)
+  // GetOpID. This cannot underflow, because current_entry_offset must be a valid index into
+  // decoding_table.
+  entry.subtable_offset = decoding_table.size() - current_entry_offset - 1;
   std::vector<size_t> subtables;
   size_t start = 0;
   while (true)
@@ -141,7 +145,7 @@ static void CreateTable(std::vector<Instruction>& table, std::vector<DecodingEnt
   }
   for (size_t i = 0; i < subtables.size(); i += 1)
   {
-    CreateTable(table, decoding_table, decoding_table[offset + i], lines);
+    CreateTable(table, decoding_table, current_entry_offset + offset + 1 + i, lines);
   }
 }
 
@@ -453,7 +457,7 @@ int main(int argc, char** argv)
   std::vector<Instruction> table;
   std::vector<DecodingEntry> decoding_table;
   decoding_table.push_back(DecodingEntry("Primary"));
-  CreateTable(table, decoding_table, decoding_table[0], lines);
+  CreateTable(table, decoding_table, 0, lines);
   DoOutput(table, decoding_table, stdout_options, std::cout);
   for (auto& pair : file_outputs)
   {

@@ -41,7 +41,7 @@ struct OpDispatch
   std::bitset<64> leaf_flags;
   std::bitset<64> subtables;
   u32 op_index_start;
-  u16 dispatch_start;
+  u16 dispatch_offset;
   u8 subop_shift;
   u8 subop_len;
 };
@@ -54,7 +54,7 @@ OpID GetOpID(UGeckoInstruction instruction)
   size_t subtable = 0;
   while (true)
   {
-    const auto& disp = dispatch_table[subtable];
+    const auto& disp = dispatch_table.at(subtable);
     const u32 opcode = (instruction.hex >> disp.subop_shift) & ((1 << disp.subop_len) - 1);
     const auto shifted = disp.leaf_flags >> (63 - opcode);
     if (shifted[0])
@@ -63,7 +63,9 @@ OpID GetOpID(UGeckoInstruction instruction)
     }
     else if ((disp.subtables >> (63 - opcode))[0])
     {
-      subtable = disp.dispatch_start + (disp.subtables >> (63 - opcode)).count() - 1;
+      // count is always ≥ 1 (because the lowest bit is checked to be 1),
+      // so `subtable` increases strictly monotonically, guaranteeing termination.
+      subtable += disp.dispatch_offset + (disp.subtables >> (63 - opcode)).count();
     }
     else
     {
