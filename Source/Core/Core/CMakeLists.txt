@@ -222,9 +222,8 @@ add_library(core
   PowerPC/JitCommon/JitCache.cpp
 )
 
-add_executable(tablegen
-  PowerPC/Tables/TableGen.cpp
-)
+add_executable(tablegen PowerPC/Tables/TableGen.cpp)
+target_link_libraries(tablegen PRIVATE cpp-optparse)
 add_custom_command(
   OUTPUT
     Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h
@@ -235,9 +234,9 @@ add_custom_command(
   COMMAND $<TARGET_FILE:tablegen> -i ${CMAKE_CURRENT_SOURCE_DIR}/PowerPC/Tables/instructions.csv
     -ro Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h
     -Do Generated/Core/PowerPC/Tables/OpID_DecodingTable.gen.cpp
-    -0p "\"" -s "\""  -2 -1p OpType:: -4d 1 -o Generated/Core/PowerPC/Tables/OpInfo.gen.cpp
-    -3d * -p Interpreter:: -o Generated/Core/PowerPC/Tables/Interpreter_Table.gen.cpp
-    -r0p "\"" -s "\""  -2 -1p OpType:: -4d 1
+    -c0 -p "\"" -s "\""  -c2 -c1 -p OpType:: -c4 -d1 -o Generated/Core/PowerPC/Tables/OpInfo.gen.cpp
+    -c3 -d* -p Interpreter:: -o Generated/Core/PowerPC/Tables/Interpreter_Table.gen.cpp
+    -rc0 -p "\"" -s "\""  -c2 -c1 -p OpType:: -c4 -d1
   DEPENDS tablegen
   MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/PowerPC/Tables/instructions.csv
   VERBATIM

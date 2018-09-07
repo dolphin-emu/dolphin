@@ -37,7 +37,7 @@
   <ItemDefinitionGroup>
     <PostBuildEvent>
       <Command>md "$(CoreDir)Core\PowerPC\Tables\" 2&gt;nul
-"$(TargetPath)" -i "$(CoreDir)Core\PowerPC\Tables\instructions.csv" -ro "$(CoreDir)Core\PowerPC\Tables\OpID_Ranges.gen.h" -Do "$(CoreDir)Core\PowerPC\Tables\OpID_DecodingTable.gen.cpp" -0p "\"" -s "\"" -2 -1p OpType:: -4d 1 -o "$(CoreDir)Core\PowerPC\Tables\OpInfo.gen.cpp" -3d * -p Interpreter:: -o "$(CoreDir)Core\PowerPC\Tables\Interpreter_Table.gen.cpp" -r0p "\"" -s "\"" -2 -1p OpType:: -4d 1</Command>
+"$(TargetPath)" -i "$(CoreDir)Core\PowerPC\Tables\instructions.csv" -ro "$(CoreDir)Core\PowerPC\Tables\OpID_Ranges.gen.h" -Do "$(CoreDir)Core\PowerPC\Tables\OpID_DecodingTable.gen.cpp" -c0 -p "\"" -s "\"" -c2 -c1 -p OpType:: -c4 -d1 -o "$(CoreDir)Core\PowerPC\Tables\OpInfo.gen.cpp" -c3 -d* -p Interpreter:: -o "$(CoreDir)Core\PowerPC\Tables\Interpreter_Table.gen.cpp" -rc0 -p "\"" -s "\"" -c2 -c1 -p OpType:: -c4 -d1</Command>
     </PostBuildEvent>
     <Link>
       <!-- Required to force enableCompatPatches from Base.props off; not necessary in a code generation tool -->
@@ -49,6 +49,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="PowerPC\Tables\instructions.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
+      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
