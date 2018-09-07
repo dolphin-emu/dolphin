@@ -144,9 +144,6 @@ PRIVATE
   uicommon
 )
 
-add_dependencies(dolphin-emu opidranges)
-target_include_directories(dolphin-emu PRIVATE $<TARGET_PROPERTY:opidranges,BINARY_DIR>/Generated)
-
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest)
 endif()
