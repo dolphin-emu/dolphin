@@ -241,16 +241,16 @@ add_custom_command(
   MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/PowerPC/Tables/instructions.csv
   VERBATIM
 )
-target_include_directories(core PRIVATE
+target_include_directories(core PUBLIC
   ${CMAKE_CURRENT_BINARY_DIR}/Generated
 )
 add_custom_target(ppctables DEPENDS
   Generated/Core/PowerPC/Tables/OpID_DecodingTable.gen.cpp
   Generated/Core/PowerPC/Tables/OpInfo.gen.cpp
   Generated/Core/PowerPC/Tables/Interpreter_Table.gen.cpp
+  Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h
 )
-add_custom_target(opidranges DEPENDS Generated/Core/PowerPC/Tables/OpID_Ranges.gen.h)
-add_dependencies(core ppctables opidranges)
+add_dependencies(core ppctables)
 
 if(_M_X86)
   target_sources(core PRIVATE
