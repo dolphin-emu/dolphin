@@ -10,6 +10,9 @@ add_library(uicommon
   VideoUtils.cpp
 )
 
+add_dependencies(uicommon opidranges)
+target_include_directories(uicommon PRIVATE $<TARGET_PROPERTY:opidranges,BINARY_DIR>/Generated)
+
 target_link_libraries(uicommon
 PUBLIC
   common
