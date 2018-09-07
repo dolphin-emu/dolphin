@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <variant>
@@ -220,26 +221,12 @@ static void ReadTable(std::istream& in, std::vector<std::vector<std::string>>& r
   std::string line;
   while (std::getline(in, line))
   {
-    std::vector<std::string>::size_type nextpos, pos = 0;
     std::vector<std::string> row;
-    if (line.empty())
+    std::istringstream line_stream(line);
+    std::string cell;
+    while (std::getline(line_stream, cell, SEPARATOR))
     {
-      rows.push_back(std::move(row));
-      continue;
-    }
-    while (true)
-    {
-      nextpos = line.find(SEPARATOR, pos);
-      if (nextpos != std::string::npos)
-      {
-        row.push_back(line.substr(pos, nextpos - pos));
-        pos = nextpos + 1;
-      }
-      else
-      {
-        row.push_back(line.substr(pos, std::string::npos));
-        break;
-      }
+      row.push_back(cell);
     }
     rows.push_back(std::move(row));
   }
