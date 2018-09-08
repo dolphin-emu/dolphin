@@ -64,6 +64,7 @@
 #include <unordered_set>
 #include <utility>
 #include <vector>
+#endif
 
 #ifdef _WIN32
 
