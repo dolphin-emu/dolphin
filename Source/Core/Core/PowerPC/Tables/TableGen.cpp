@@ -241,9 +241,6 @@ static void ReadTable(std::istream& in, std::vector<std::vector<std::string>>& r
 template <class F>
 class FunctionCallback : public optparse::Callback
 {
-private:
-  F func;
-
 public:
   FunctionCallback(F function) : func(function) {}
   void operator()(const optparse::Option& option, const std::string& opt, const std::string& val,
@@ -251,6 +248,9 @@ public:
   {
     func(option, opt, val, parser);
   }
+
+private:
+  F func;
 };
 
 static void ParseCommandLine(int argc, char** argv, OutputOptions& stdout_options,
