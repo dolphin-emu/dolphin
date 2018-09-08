@@ -118,6 +118,8 @@ void RegisterWidget::ShowContextMenu()
     auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
     auto display = item->GetDisplay();
 
+    // i18n: This kind of "watch" is used for watching emulated memory.
+    // It's not related to timekeeping devices.
     menu->addAction(tr("Add to &watch"), this,
                     [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
     menu->addAction(tr("View &memory"));
