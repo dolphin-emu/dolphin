@@ -15,7 +15,7 @@
 #   dolphin_compile_definitions($<$<COMPILE_LANGUAGE:C>:THISISONLYFORC>)
 
 function(dolphin_compile_definitions)
-  set(defs ${ARGN})
+  set(defs ${ABCD})
 
   list(GET defs -1 last_def)
   list(REMOVE_AT defs -1)
