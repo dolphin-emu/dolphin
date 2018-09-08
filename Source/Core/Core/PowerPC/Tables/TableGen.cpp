@@ -271,83 +271,87 @@ static void ParseCommandLine(int argc, char** argv, OutputOptions& stdout_option
       .dest("input")
       .set_default("")
       .help("read from this file, not stdin");
-  auto output = FunctionCallback(
-      [&stdout_options, &file_outputs](const optparse::Option&, const std::string&,
-                                       const std::string& val, const optparse::OptionParser&) {
-        file_outputs.emplace_back(std::ofstream(val), stdout_options);
-        stdout_options = OutputOptions();
-      });
+  auto output = [&stdout_options, &file_outputs](const optparse::Option&, const std::string&,
+                                                 const std::string& val,
+                                                 const optparse::OptionParser&) {
+    file_outputs.emplace_back(std::ofstream(val), stdout_options);
+    stdout_options = OutputOptions();
+  };
+  auto output_cb = FunctionCallback<decltype(output)>(output);
   parser.add_option("-o", "--output")
       .action("callback")
       .type("string")
-      .callback(output)
+      .callback(output_cb)
       .help(
           "sets an output file for the preceding options. Trailing options are applied for stdout");
-  auto ranges = FunctionCallback(
-      [&stdout_options](const optparse::Option&, const std::string&, const std::string&,
-                        const optparse::OptionParser&) { stdout_options.flags |= OPID_RANGES; });
+  auto ranges = [&stdout_options](const optparse::Option&, const std::string&, const std::string&,
+                                  const optparse::OptionParser&) {
+    stdout_options.flags |= OPID_RANGES;
+  };
+  auto ranges_cb = FunctionCallback<decltype(ranges)>(ranges);
   parser.add_option("-r", "--opid-ranges")
       .action("callback")
-      .callback(ranges)
+      .callback(ranges_cb)
       .help("generate OpID range definition");
-  auto decoding = FunctionCallback(
-      [&stdout_options](const optparse::Option&, const std::string&, const std::string&,
-                        const optparse::OptionParser&) { stdout_options.flags |= DECODING_TABLE; });
+  auto decoding = [&stdout_options](const optparse::Option&, const std::string&, const std::string&,
+                                    const optparse::OptionParser&) {
+    stdout_options.flags |= DECODING_TABLE;
+  };
+  auto decoding_cb = FunctionCallback<decltype(decoding)>(decoding);
   parser.add_option("-D", "--decoding-table")
       .action("callback")
-      .callback(decoding)
+      .callback(decoding_cb)
       .help("generate a decoding table");
-  auto column =
-      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
-                                         const std::string& val, const optparse::OptionParser&) {
-        std::cout << val << "\n";
-        int value = std::stoi(val);
-        if (value < 0)
-        {
-          std::cerr << "Column indices must not be negative.\n";
-          std::exit(1);
-        }
-        stdout_options.columns.emplace_back(
-            ColumnOptions{static_cast<unsigned int>(value), "", "", ""});
-      });
+  auto column = [&stdout_options](const optparse::Option&, const std::string&,
+                                  const std::string& val, const optparse::OptionParser&) {
+    int value = std::stoi(val);
+    if (value < 0)
+    {
+      std::cerr << "Column indices must not be negative.\n";
+      std::exit(1);
+    }
+    stdout_options.columns.emplace_back(
+        ColumnOptions{static_cast<unsigned int>(value), "", "", ""});
+  };
+  auto column_cb = FunctionCallback<decltype(column)>(column);
   parser.add_option("-c", "--column")
       .action("callback")
       .type("int")
       .nargs(1)
-      .callback(column)
+      .callback(column_cb)
       .help("generate a custom (dispatch) table. Add the specified column.");
-  auto prefix =
-      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
-                                         const std::string& val, const optparse::OptionParser&) {
-        stdout_options.columns.back().prefix = val;
-      });
+  auto prefix = [&stdout_options](const optparse::Option&, const std::string&,
+                                  const std::string& val, const optparse::OptionParser&) {
+    stdout_options.columns.back().prefix = val;
+  };
+  auto prefix_cb = FunctionCallback<decltype(prefix)>(prefix);
   parser.add_option("-p", "--prefix")
       .action("callback")
       .type("string")
       .nargs(1)
-      .callback(prefix)
+      .callback(prefix_cb)
       .help("set the prefix for the previously-defined column.");
-  auto suffix =
-      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
-                                         const std::string& val, const optparse::OptionParser&) {
-        stdout_options.columns.back().suffix = val;
-      });
+  auto suffix = [&stdout_options](const optparse::Option&, const std::string&,
+                                  const std::string& val, const optparse::OptionParser&) {
+    stdout_options.columns.back().suffix = val;
+  };
+  auto suffix_cb = FunctionCallback<decltype(suffix)>(suffix);
   parser.add_option("-s", "--suffix")
       .action("callback")
       .type("string")
       .nargs(1)
-      .callback(suffix)
+      .callback(suffix_cb)
       .help("set the suffix for the previously-defined column.");
-  auto default_value =
-      FunctionCallback([&stdout_options](const optparse::Option&, const std::string&,
+  auto default_value = [&stdout_options](const optparse::Option&, const std::string&,
                                          const std::string& val, const optparse::OptionParser&) {
-        stdout_options.columns.back().default_value = val;
-      });
+    stdout_options.columns.back().default_value = val;
+  };
+  auto default_cb = FunctionCallback<decltype(default_value)>(default_value);
   parser.add_option("-d", "--default")
       .action("callback")
       .type("string")
       .nargs(1)
-      .callback(default_value)
+      .callback(default_cb)
       .help("set the default value for the previously-defined column. If the default value is "
             "used, prefix and suffix are not used. If the value given here is '*' (beware shell "
             "escaping) an empty value will be processed as if it had been the same as the opname "
