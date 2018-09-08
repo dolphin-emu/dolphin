@@ -559,12 +559,6 @@ Renderer::Renderer()
       g_ogl_config.bSupports2DTextureStorageMultisample = true;
       g_Config.backend_info.bSupportsBitfield = true;
       g_Config.backend_info.bSupportsDynamicSamplerIndexing = g_ogl_config.bSupportsAEP;
-      if (g_ActiveConfig.iMultisamples > 1 && !g_ogl_config.bSupports3DTextureStorageMultisample)
-      {
-        // GLES 3.1 can't support stereo rendering and MSAA
-        OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
-        Config::SetCurrent(Config::GFX_MSAA, UINT32_C(1));
-      }
     }
     else
     {

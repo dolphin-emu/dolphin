@@ -676,7 +676,9 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
-      out.Write("\tint2 fixpoint_uv%d = int2(tex%d.xy * " I_TEXDIMS "[%d].zw);\n", i, i, i);
+      out.Write("\tint2 fixpoint_uv%d = int2(", i);
+      out.Write("(tex%d.z == 0.0 ? tex%d.xy : tex%d.xy / tex%d.z)", i, i, i, i);
+      out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
     }
   }

@@ -375,9 +375,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     if (texinfo.texgentype == XF_TEXGEN_REGULAR)
     {
       out.Write("if(o.tex%d.z == 0.0f)\n", i);
-      out.Write("\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n", i, i);
-      out.Write("else\n");
-      out.Write("\to.tex%d.xy = o.tex%d.xy / o.tex%d.z;\n", i, i, i);
+      out.Write(
+        "\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n", i,
+        i);
     }
 
     out.Write("//}\n");

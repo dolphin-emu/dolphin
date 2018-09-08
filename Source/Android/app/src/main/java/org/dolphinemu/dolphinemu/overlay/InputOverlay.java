@@ -517,13 +517,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	private void saveControlPosition(int buttonId, Rect bounds) {
 		final Context context = getContext();
 		final DisplayMetrics dm = context.getResources().getDisplayMetrics();
-		final int controller = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		final int controller = getControllerType();
 		SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
 		float x = (bounds.left + (bounds.right - bounds.left) / 2.0f) / dm.widthPixels * 2.0f - 1.0f;
 		float y = (bounds.top + (bounds.bottom - bounds.top) / 2.0f) / dm.heightPixels * 2.0f - 1.0f;
 		sPrefsEditor.putFloat(controller + "_" + buttonId + "_X", x);
 		sPrefsEditor.putFloat(controller + "_" + buttonId + "_Y", y);
 		sPrefsEditor.apply();
+	}
+
+	private int getControllerType() {
+		return EmulationActivity.isGameCubeGame() ?
+			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
 	}
 
 	/**
@@ -560,8 +565,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
-		final int controller = EmulationActivity.isGameCubeGame() ?
-			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		final int controller = getControllerType();
 
 		// Decide scale based on button ID and user preference
 		float scale;
@@ -659,8 +663,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		// Resources handle for fetching the initial Drawable resource.
 		final Resources res = context.getResources();
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
-		final int controller = EmulationActivity.isGameCubeGame() ?
-			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		final int controller = getControllerType();
 
 		// Decide scale based on button ID and user preference
 		float scale;
@@ -724,8 +727,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 		final Resources res = context.getResources();
 
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
-		final int controller = EmulationActivity.isGameCubeGame() ?
-			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		final int controller = getControllerType();
 
 		// Decide scale based on user preference
 		float scale = 0.275f;

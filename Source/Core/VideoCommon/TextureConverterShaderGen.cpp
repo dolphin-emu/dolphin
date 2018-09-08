@@ -33,7 +33,7 @@ TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_i
 
 ShaderCode GenerateShader(APIType api_type, const UidData* uid_data)
 {
-  const bool mono_depth = uid_data->is_depth_copy && true;
+  const bool mono_depth = uid_data->is_depth_copy;
 
   ShaderCode out;
   if (api_type == APIType::OpenGL)
