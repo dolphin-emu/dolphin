@@ -638,6 +638,36 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     invalidate();
   }
 
+  public void resetButtonPlacement()
+  {
+    boolean isLandscape =
+            getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+
+    // Values for these come from R.array.controllersEntries
+    if (EmulationActivity.isGameCubeGame() || mPreferences.getInt("wiiController", 3) == 0)
+    {
+      if (isLandscape)
+        gcDefaultOverlay();
+      else
+        gcPortraitDefaultOverlay();
+    }
+    else if (mPreferences.getInt("wiiController", 3) == 4)
+    {
+      if (isLandscape)
+        wiiClassicDefaultOverlay();
+      else
+        wiiClassicPortraitDefaultOverlay();
+    }
+    else
+    {
+      if (isLandscape)
+        wiiDefaultOverlay();
+      else
+        wiiPortraitDefaultOverlay();
+    }
+    refreshControls();
+  }
+
   private void saveControlPosition(int sharedPrefsId, int x, int y, String orientation)
   {
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
