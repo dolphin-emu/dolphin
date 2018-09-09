@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "jni/AndroidCommon/IDCache.h"
+#include "UICommon/UICommon.h"
 
 #include <jni.h>
 
@@ -91,6 +92,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_game_file_cache_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_cache_class));
   s_game_file_cache_pointer = env->GetFieldID(game_file_cache_class, "mPointer", "J");
 
+  UICommon::CreateDirectories();
+  UICommon::Init();
+
   return JNI_VERSION;
 }
 
@@ -99,6 +103,8 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   JNIEnv* env;
   if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION) != JNI_OK)
     return;
+
+  UICommon::Shutdown();
 
   env->DeleteGlobalRef(s_native_library_class);
   env->DeleteGlobalRef(s_game_file_class);

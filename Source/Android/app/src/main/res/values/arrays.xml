@@ -33,6 +33,41 @@
         <item>5</item>
     </integer-array>
 
+    <!-- Wii System Languages -->
+    <string-array name="wiiSystemLanguageEntries" translatable="false">
+        <item>Japanese</item>
+        <item>English</item>
+        <item>German</item>
+        <item>French</item>
+        <item>Spanish</item>
+        <item>Italian</item>
+        <item>Dutch</item>
+        <item>SimplifiedChinese</item>
+        <item>TraditionalChinese</item>
+        <item>Korean</item>
+    </string-array>
+    <integer-array name="wiiSystemLanguageValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </integer-array>
+
+    <string-array name="sensorBarPositionEntries" translatable="false">
+        <item>Bottom</item>
+        <item>Top</item>
+    </string-array>
+    <integer-array name="sensorBarPositionValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
     <!-- GameCube System Languages -->
     <string-array name="gameCubeSystemLanguageEntries" translatable="false">
         <item>English</item>

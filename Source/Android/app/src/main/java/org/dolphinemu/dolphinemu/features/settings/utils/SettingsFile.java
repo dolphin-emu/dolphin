@@ -239,6 +239,19 @@ public final class SettingsFile {
 	public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
 	public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
+	// SYSCONF.IPL
+	public static final String KEY_SYSCONF_SCREENSAVER = "Screensaver";
+	public static final String KEY_SYSCONF_LANGUAGE = "Language";
+	public static final String KEY_SYSCONF_WIDESCREEN = "Widescreen";
+	public static final String KEY_SYSCONF_PROGRESSIVE_SCAN = "ProgressiveScan";
+	public static final String KEY_SYSCONF_PAL60 = "PAL60";
+
+	// SYSCONF.BT
+	public static final String KEY_SYSCONF_SENSOR_BAR_POSITION = "SensorBarPosition";
+	public static final String KEY_SYSCONF_SENSOR_BAR_SENSITIVITY = "SensorBarSensitivity";
+	public static final String KEY_SYSCONF_SPEAKER_VOLUME = "SpeakerVolume";
+	public static final String KEY_SYSCONF_WIIMOTE_MOTOR = "WiimoteMotor";
+
 	// Internal only, not actually found in settings file.
 	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
 
