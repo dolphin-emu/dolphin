@@ -290,26 +290,25 @@ public final class SettingsFragmentPresenter {
 		Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
 		Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
 		Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
-		Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
+		//Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
 		Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
-		Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
-		Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
-		Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
-		Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
+		//Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
+		//Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
+		//Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
+		//Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
 
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, Settings.SECTION_INI_CORE, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 
-		sl.add(new HeaderSetting(null, null, R.string.wii_submenu, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_SYSCONF, R.string.sysconf_screensaver, 0, true, screensaver));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_SYSCONF, R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues, 7, language));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_SYSCONF, R.string.sysconf_widescreen, 0, true, widescreen));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
+		//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_SYSCONF, R.string.sysconf_pal60, 0, true, pal60));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
-		sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
-		sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
+		//sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
+		//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
+		//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
+		//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl) {

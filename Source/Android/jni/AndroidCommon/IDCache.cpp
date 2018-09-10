@@ -4,6 +4,7 @@
 
 #include "jni/AndroidCommon/IDCache.h"
 #include "UICommon/UICommon.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include <jni.h>
 
@@ -92,8 +93,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_game_file_cache_class = reinterpret_cast<jclass>(env->NewGlobalRef(game_file_cache_class));
   s_game_file_cache_pointer = env->GetFieldID(game_file_cache_class, "mPointer", "J");
 
-  UICommon::CreateDirectories();
-  UICommon::Init();
+  WiimoteReal::InitAdapterClass();
 
   return JNI_VERSION;
 }

@@ -42,8 +42,8 @@
         <item>Spanish</item>
         <item>Italian</item>
         <item>Dutch</item>
-        <item>SimplifiedChinese</item>
-        <item>TraditionalChinese</item>
+        <item>Simplified Chinese</item>
+        <item>Traditional Chinese</item>
         <item>Korean</item>
     </string-array>
     <integer-array name="wiiSystemLanguageValues" translatable="false">
@@ -261,6 +261,9 @@
         <item>Joystick(Relative Center)</item>
         <item>Joystick(Fixed Center)</item>
         <item>Joystick Emulate IR</item>
+        <item>Joystick Emulate Swing</item>
+        <item>Joystick Emulate Tilt</item>
+        <item>Joystick Emulate Shake</item>
     </string-array>
 
     <string-array name="gcpadButtons">

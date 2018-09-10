@@ -29,13 +29,13 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Common/Config/Config.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -367,6 +367,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
   UICommon::SetUserDirectory(GetJString(env, jDirectory));
+
+  UICommon::CreateDirectories();
+  UICommon::Init();
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
@@ -442,6 +445,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSysconfSe
   Config::SetBase<u32>(Config::SYSCONF_SPEAKER_VOLUME, settings[7]);
   Config::SetBase<bool>(Config::SYSCONF_WIIMOTE_MOTOR, settings[8]);
 
+  ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+
   env->ReleaseIntArrayElements(array, settings, 0);
 }
 
@@ -502,8 +507,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
 static void Run(const std::string& path,
                 std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
 {
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", path.c_str());
-
   // Install our callbacks
   OSD::AddCallback(OSD::CallbackType::Initialization, ButtonManager::Init);
   OSD::AddCallback(OSD::CallbackType::Shutdown, ButtonManager::Shutdown);
@@ -515,8 +518,6 @@ static void Run(const std::string& path,
   // test
   SConfig::GetInstance().LoadSettings();
   VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
-
-  WiimoteReal::InitAdapterClass();
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;

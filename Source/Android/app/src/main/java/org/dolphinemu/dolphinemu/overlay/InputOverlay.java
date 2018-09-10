@@ -49,6 +49,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 	public static final int JOYSTICK_RELATIVE_CENTER = 0;
 	public static final int JOYSTICK_FIXED_CENTER = 1;
 	public static final int JOYSTICK_EMULATE_IR = 2;
+	public static final int JOYSTICK_EMULATE_SWING = 3;
+	public static final int JOYSTICK_EMULATE_TILT = 4;
+	public static final int JOYSTICK_EMULATE_SHAKE = 4;
 	public static int JoyStickSetting;
 
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
@@ -206,23 +209,40 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks) {
 			joystick.TrackEvent(event);
+			int factor = 1;
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
-			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP && JoyStickSetting == JOYSTICK_EMULATE_IR) {
-				int[] IRIDs = {
-					ButtonType.WIIMOTE_IR + 1,
-					ButtonType.WIIMOTE_IR + 2,
-					ButtonType.WIIMOTE_IR + 3,
-					ButtonType.WIIMOTE_IR + 4
-				};
-				for (int i = 0; i < 4; i++) {
-					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, IRIDs[i], -axises[i]);
+			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP) {
+				if (JoyStickSetting == JOYSTICK_EMULATE_IR) {
+					factor = -1;
+					axisIDs[0] = ButtonType.WIIMOTE_IR + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_IR + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_IR + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_IR + 4;
+				} else if (JoyStickSetting == JOYSTICK_EMULATE_SWING) {
+					factor = -1;
+					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
+				} else if (JoyStickSetting == JOYSTICK_EMULATE_TILT) {
+					factor = -1;
+					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
+				} else if(JoyStickSetting == JOYSTICK_EMULATE_SHAKE) {
+					factor = -1;
+					axisIDs[0] = ButtonType.WIIMOTE_TILT_MODIFIER;
+					axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;
+					axisIDs[2] = ButtonType.WIIMOTE_SHAKE_Y;
+					axisIDs[3] = ButtonType.WIIMOTE_SHAKE_Z;
 				}
-			} else {
-				for (int i = 0; i < 4; i++) {
-					NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
-				}
+			}
+
+			for (int i = 0; i < 4; i++) {
+				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], factor * axises[i]);
 			}
 		}
 
