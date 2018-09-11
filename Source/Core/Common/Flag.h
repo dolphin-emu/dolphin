@@ -27,18 +27,18 @@ public:
   // Declared as explicit since we do not want "= true" to work on a flag
   // object - it should be made explicit that a flag is *not* a normal
   // variable.
-  explicit Flag(bool initial_value = false) : m_val(initial_value) {}
-  void Set(bool val = true) { m_val.store(val); }
-  void Clear() { Set(false); }
-  bool IsSet() const { return m_val.load(); }
-  bool TestAndSet(bool val = true)
+  explicit Flag(bool initial_value = false) noexcept : m_val(initial_value) {}
+  void Set(bool val = true) noexcept { m_val.store(val); }
+  void Clear() noexcept { Set(false); }
+  bool IsSet() const noexcept { return m_val.load(); }
+  bool TestAndSet(bool val = true) noexcept
   {
     bool old = m_val.exchange(val);
 
     return old != val;
   }
 
-  bool TestAndClear() { return TestAndSet(false); }
+  bool TestAndClear() noexcept { return TestAndSet(false); }
 
 private:
   std::atomic_bool m_val;
