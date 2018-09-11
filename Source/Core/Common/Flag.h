@@ -33,8 +33,9 @@ public:
   bool IsSet() const { return m_val.load(); }
   bool TestAndSet(bool val = true)
   {
-    bool expected = !val;
-    return m_val.compare_exchange_strong(expected, val);
+    bool old = m_val.exchange(val);
+
+    return old != val;
   }
 
   bool TestAndClear() { return TestAndSet(false); }
