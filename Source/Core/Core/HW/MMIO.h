@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <tuple>
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
@@ -101,22 +96,10 @@ public:
   // Example usages can be found in just about any HW/ module in Dolphin's
   // codebase.
   template <typename Unit>
-  void RegisterRead(u32 addr, ReadHandlingMethod<Unit>* read)
-  {
-    GetHandlerForRead<Unit>(addr).ResetMethod(read);
-  }
-
-  template <typename Unit>
-  void RegisterWrite(u32 addr, WriteHandlingMethod<Unit>* write)
-  {
-    GetHandlerForWrite<Unit>(addr).ResetMethod(write);
-  }
-
-  template <typename Unit>
   void Register(u32 addr, ReadHandlingMethod<Unit>* read, WriteHandlingMethod<Unit>* write)
   {
-    RegisterRead(addr, read);
-    RegisterWrite(addr, write);
+    GetHandlerForRead<Unit>(addr).ResetMethod(read);
+    GetHandlerForWrite<Unit>(addr).ResetMethod(write);
   }
 
   // Direct read/write interface.
@@ -143,16 +126,10 @@ public:
   // address than the current value of that register. For example, this is
   // what could be used to implement fast MMIO accesses in Dolphin's JIT.
   template <typename Unit>
-  ReadHandler<Unit>& GetHandlerForRead(u32 addr)
-  {
-    return GetReadHandler<Unit>(UniqueID(addr) / sizeof(Unit));
-  }
+  ReadHandler<Unit>& GetHandlerForRead(u32 addr);
 
   template <typename Unit>
-  WriteHandler<Unit>& GetHandlerForWrite(u32 addr)
-  {
-    return GetWriteHandler<Unit>(UniqueID(addr) / sizeof(Unit));
-  }
+  WriteHandler<Unit>& GetHandlerForWrite(u32 addr);
 
 private:
   // These arrays contain the handlers for each MMIO access type: read/write
@@ -163,48 +140,50 @@ private:
   // Each array contains NUM_MMIOS / sizeof (AccessType) because larger
   // access types mean less possible adresses (assuming aligned only
   // accesses).
-  template <typename Unit>
-  struct HandlerArray
-  {
-    using Read = std::array<ReadHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
-    using Write = std::array<WriteHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
-  };
+  ReadHandler<u8> m_read_handlers8[NUM_MMIOS];
+  ReadHandler<u16> m_read_handlers16[NUM_MMIOS >> 1];
+  ReadHandler<u32> m_read_handlers32[NUM_MMIOS >> 2];
 
-  HandlerArray<u8>::Read m_read_handlers8;
-  HandlerArray<u16>::Read m_read_handlers16;
-  HandlerArray<u32>::Read m_read_handlers32;
-
-  HandlerArray<u8>::Write m_write_handlers8;
-  HandlerArray<u16>::Write m_write_handlers16;
-  HandlerArray<u32>::Write m_write_handlers32;
-
-  // Getter functions for the handler arrays.
-  template <typename Unit>
-  ReadHandler<Unit>& GetReadHandler(size_t index)
-  {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
-
-    auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
-
-    using ArrayType = typename HandlerArray<Unit>::Read;
-    return std::get<ArrayType&>(handlers)[index];
-  }
-
-  template <typename Unit>
-  WriteHandler<Unit>& GetWriteHandler(size_t index)
-  {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
-
-    auto handlers = std::tie(m_write_handlers8, m_write_handlers16, m_write_handlers32);
-
-    using ArrayType = typename HandlerArray<Unit>::Write;
-    return std::get<ArrayType&>(handlers)[index];
-  }
+  WriteHandler<u8> m_write_handlers8[NUM_MMIOS];
+  WriteHandler<u16> m_write_handlers16[NUM_MMIOS >> 1];
+  WriteHandler<u32> m_write_handlers32[NUM_MMIOS >> 2];
 };
+
+template <>
+inline ReadHandler<u8>& Mapping::GetHandlerForRead(u32 addr)
+{
+  return m_read_handlers8[UniqueID(addr)];
+}
+
+template <>
+inline ReadHandler<u16>& Mapping::GetHandlerForRead(u32 addr)
+{
+  return m_read_handlers16[UniqueID(addr) >> 1];
+}
+
+template <>
+inline ReadHandler<u32>& Mapping::GetHandlerForRead(u32 addr)
+{
+  return m_read_handlers32[UniqueID(addr) >> 2];
+}
+
+template <>
+inline WriteHandler<u8>& Mapping::GetHandlerForWrite(u32 addr)
+{
+  return m_write_handlers8[UniqueID(addr)];
+}
+
+template <>
+inline WriteHandler<u16>& Mapping::GetHandlerForWrite(u32 addr)
+{
+  return m_write_handlers16[UniqueID(addr) >> 1];
+}
+
+template <>
+inline WriteHandler<u32>& Mapping::GetHandlerForWrite(u32 addr)
+{
+  return m_write_handlers32[UniqueID(addr) >> 2];
+}
 
 // Dummy 64 bits variants of these functions. While 64 bits MMIO access is
 // not supported, we need these in order to make the code compile.
