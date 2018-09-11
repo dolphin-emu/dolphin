@@ -594,37 +594,33 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			case ButtonType.BUTTON_A:
 			case ButtonType.WIIMOTE_BUTTON_B:
 			case ButtonType.NUNCHUK_BUTTON_Z:
-				scale = 0.2f;
-				break;
 			case ButtonType.BUTTON_X:
 			case ButtonType.BUTTON_Y:
-				scale = 0.175f;
-				break;
 			case ButtonType.BUTTON_Z:
 			case ButtonType.TRIGGER_L:
 			case ButtonType.TRIGGER_R:
-				scale = 0.225f;
+				scale = 0.175f;
 				break;
 			case ButtonType.BUTTON_START:
 				scale = 0.075f;
 				break;
 			case ButtonType.WIIMOTE_BUTTON_1:
 			case ButtonType.WIIMOTE_BUTTON_2:
-				scale = 0.0875f;
-				break;
 			case ButtonType.WIIMOTE_BUTTON_PLUS:
 			case ButtonType.WIIMOTE_BUTTON_MINUS:
 			case ButtonType.WIIMOTE_BUTTON_HOME:
 			case ButtonType.CLASSIC_BUTTON_PLUS:
 			case ButtonType.CLASSIC_BUTTON_MINUS:
 			case ButtonType.CLASSIC_BUTTON_HOME:
-				scale = 0.0625f;
+				scale = 0.0725f;
 				break;
 			case ButtonType.CLASSIC_TRIGGER_L:
 			case ButtonType.CLASSIC_TRIGGER_R:
+				scale = 0.25f;
+				break;
 			case ButtonType.CLASSIC_BUTTON_ZL:
 			case ButtonType.CLASSIC_BUTTON_ZR:
-				scale = 0.25f;
+				scale = 0.20f;
 				break;
 			default:
 				scale = 0.125f;
