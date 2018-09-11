@@ -393,7 +393,11 @@ u8* GetPointer(u32 address)
 {
   // TODO: Should we be masking off more bits here?  Can all devices access
   // EXRAM?
-  address &= 0x3FFFFFFF;
+  if (SConfig::GetInstance().bWii)
+    address &= 0x3FFFFFFF;
+  else
+    address &= 0x03FFFFFF;
+
   if (address < REALRAM_SIZE)
     return m_pRAM + address;
 
