@@ -125,7 +125,7 @@ private:
   void SendToClients(const sf::Packet& packet, PlayerId skip_pid = 0,
                      u8 channel_id = DEFAULT_CHANNEL);
   void Send(ENetPeer* socket, const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
-  unsigned int OnConnect(ENetPeer* socket);
+  unsigned int OnConnect(ENetPeer* socket, sf::Packet& rpac);
   unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
 
