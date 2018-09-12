@@ -96,10 +96,10 @@ public:
   // Example usages can be found in just about any HW/ module in Dolphin's
   // codebase.
   template <typename Unit>
-  void Register(u32 addr, ReadHandlingMethod<Unit>* read, WriteHandlingMethod<Unit>* write)
+  void Register(u32 addr, ReadHandler<Unit>* read, WriteHandler<Unit>* write)
   {
-    GetHandlerForRead<Unit>(addr).ResetMethod(read);
-    GetHandlerForWrite<Unit>(addr).ResetMethod(write);
+    SetHandlerForRead<Unit>(addr, read);
+    SetHandlerForWrite<Unit>(addr, write);
   }
 
   // Direct read/write interface.
@@ -111,13 +111,13 @@ public:
   template <typename Unit>
   Unit Read(u32 addr)
   {
-    return GetHandlerForRead<Unit>(addr).Read(addr);
+    return GetHandlerForRead<Unit>(addr)->Read(addr);
   }
 
   template <typename Unit>
   void Write(u32 addr, Unit val)
   {
-    GetHandlerForWrite<Unit>(addr).Write(addr, val);
+    GetHandlerForWrite<Unit>(addr)->Write(addr, val);
   }
 
   // Handlers access interface.
@@ -126,10 +126,16 @@ public:
   // address than the current value of that register. For example, this is
   // what could be used to implement fast MMIO accesses in Dolphin's JIT.
   template <typename Unit>
-  ReadHandler<Unit>& GetHandlerForRead(u32 addr);
+  ReadHandler<Unit>* GetHandlerForRead(u32 addr);
 
   template <typename Unit>
-  WriteHandler<Unit>& GetHandlerForWrite(u32 addr);
+  WriteHandler<Unit>* GetHandlerForWrite(u32 addr);
+
+  template <typename Unit>
+  void SetHandlerForRead(u32 addr, ReadHandler<Unit>* read);
+
+  template <typename Unit>
+  void SetHandlerForWrite(u32 addr, WriteHandler<Unit>* read);
 
 private:
   // These arrays contain the handlers for each MMIO access type: read/write
@@ -140,49 +146,89 @@ private:
   // Each array contains NUM_MMIOS / sizeof (AccessType) because larger
   // access types mean less possible adresses (assuming aligned only
   // accesses).
-  ReadHandler<u8> m_read_handlers8[NUM_MMIOS];
-  ReadHandler<u16> m_read_handlers16[NUM_MMIOS >> 1];
-  ReadHandler<u32> m_read_handlers32[NUM_MMIOS >> 2];
+  ReadHandler<u8>* m_read_handlers8[NUM_MMIOS];
+  ReadHandler<u16>* m_read_handlers16[NUM_MMIOS >> 1];
+  ReadHandler<u32>* m_read_handlers32[NUM_MMIOS >> 2];
 
-  WriteHandler<u8> m_write_handlers8[NUM_MMIOS];
-  WriteHandler<u16> m_write_handlers16[NUM_MMIOS >> 1];
-  WriteHandler<u32> m_write_handlers32[NUM_MMIOS >> 2];
+  WriteHandler<u8>* m_write_handlers8[NUM_MMIOS];
+  WriteHandler<u16>* m_write_handlers16[NUM_MMIOS >> 1];
+  WriteHandler<u32>* m_write_handlers32[NUM_MMIOS >> 2];
 };
 
+///////////////////////////////////////////////////////////////////////
+// getter
 template <>
-inline ReadHandler<u8>& Mapping::GetHandlerForRead(u32 addr)
+inline ReadHandler<u8>* Mapping::GetHandlerForRead(u32 addr)
 {
   return m_read_handlers8[UniqueID(addr)];
 }
 
 template <>
-inline ReadHandler<u16>& Mapping::GetHandlerForRead(u32 addr)
+inline ReadHandler<u16>* Mapping::GetHandlerForRead(u32 addr)
 {
   return m_read_handlers16[UniqueID(addr) >> 1];
 }
 
 template <>
-inline ReadHandler<u32>& Mapping::GetHandlerForRead(u32 addr)
+inline ReadHandler<u32>* Mapping::GetHandlerForRead(u32 addr)
 {
   return m_read_handlers32[UniqueID(addr) >> 2];
 }
 
 template <>
-inline WriteHandler<u8>& Mapping::GetHandlerForWrite(u32 addr)
+inline WriteHandler<u8>* Mapping::GetHandlerForWrite(u32 addr)
 {
   return m_write_handlers8[UniqueID(addr)];
 }
 
 template <>
-inline WriteHandler<u16>& Mapping::GetHandlerForWrite(u32 addr)
+inline WriteHandler<u16>* Mapping::GetHandlerForWrite(u32 addr)
 {
   return m_write_handlers16[UniqueID(addr) >> 1];
 }
 
 template <>
-inline WriteHandler<u32>& Mapping::GetHandlerForWrite(u32 addr)
+inline WriteHandler<u32>* Mapping::GetHandlerForWrite(u32 addr)
 {
   return m_write_handlers32[UniqueID(addr) >> 2];
+}
+
+///////////////////////////////////////////////////////////////////////
+// setter
+template <>
+inline void Mapping::SetHandlerForRead(u32 addr, ReadHandler<u8>* read)
+{
+	m_read_handlers8[UniqueID(addr)] = read;
+}
+
+template <>
+inline void Mapping::SetHandlerForRead(u32 addr, ReadHandler<u16>* read)
+{
+	m_read_handlers16[UniqueID(addr) >> 1] = read;
+}
+
+template <>
+inline void Mapping::SetHandlerForRead(u32 addr, ReadHandler<u32>* read)
+{
+	m_read_handlers32[UniqueID(addr) >> 2] = read;
+}
+
+template <>
+inline void Mapping::SetHandlerForWrite(u32 addr, WriteHandler<u8>* write)
+{
+	m_write_handlers8[UniqueID(addr)] = write;
+}
+
+template <>
+inline void Mapping::SetHandlerForWrite(u32 addr, WriteHandler<u16>* write)
+{
+	m_write_handlers16[UniqueID(addr) >> 1] = write;
+}
+
+template <>
+inline void Mapping::SetHandlerForWrite(u32 addr, WriteHandler<u32>* write)
+{
+	m_write_handlers32[UniqueID(addr) >> 2] = write;
 }
 
 // Dummy 64 bits variants of these functions. While 64 bits MMIO access is
@@ -199,4 +245,79 @@ inline void Mapping::Write(u32 addr, u64 val)
 {
   DEBUG_ASSERT(0);
 }
+
+// Converters to larger and smaller size. Probably the most complex of these
+// handlers to implement. They do not define new handling method types but
+// instead will internally use the types defined above.
+template <typename T>
+struct SmallerAccessSize
+{
+};
+template <>
+struct SmallerAccessSize<u16>
+{
+    typedef u8 value;
+};
+template <>
+struct SmallerAccessSize<u32>
+{
+    typedef u16 value;
+};
+
+template <typename T>
+struct LargerAccessSize
+{
+};
+template <>
+struct LargerAccessSize<u8>
+{
+    typedef u16 value;
+};
+template <>
+struct LargerAccessSize<u16>
+{
+    typedef u32 value;
+};
+
+template <typename T>
+ReadHandler<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_part_addr)
+{
+  typedef typename SmallerAccessSize<T>::value ST;
+
+  ReadHandler<ST>* high_part = mmio->GetHandlerForRead<ST>(high_part_addr);
+  ReadHandler<ST>* low_part = mmio->GetHandlerForRead<ST>(low_part_addr);
+
+  // TODO(delroth): optimize
+  return ComplexRead<T>([=](u32 addr) {
+      return ((T)high_part->Read(high_part_addr) << (8 * sizeof(ST))) | low_part->Read(low_part_addr);
+  });
+}
+
+template <typename T>
+WriteHandler<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_part_addr)
+{
+  typedef typename SmallerAccessSize<T>::value ST;
+
+  WriteHandler<ST>* high_part = mmio->GetHandlerForWrite<ST>(high_part_addr);
+  WriteHandler<ST>* low_part = mmio->GetHandlerForWrite<ST>(low_part_addr);
+
+  // TODO(delroth): optimize
+  return ComplexWrite<T>([=](u32 addr, T val) {
+      high_part->Write(high_part_addr, val >> (8 * sizeof(ST)));
+      low_part->Write(low_part_addr, (ST)val);
+  });
+}
+
+template <typename T>
+ReadHandler<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
+{
+  typedef typename LargerAccessSize<T>::value LT;
+
+  ReadHandler<LT>* large = mmio->GetHandlerForRead<LT>(larger_addr);
+
+  // TODO(delroth): optimize
+  return ComplexRead<T>(
+    [large, shift](u32 addr) { return large->Read(addr & ~(sizeof(LT) - 1)) >> shift; });
+}
+
 }
