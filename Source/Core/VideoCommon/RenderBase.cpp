@@ -669,7 +669,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_last_xfb_ticks = ticks;
 
       auto xfb_rect = texture_config.GetRect();
-      xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
+      if (texture_config.width == fbStride)
+        xfb_rect.right -= fbStride - fbWidth;
+      else
+        xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
 
       m_last_xfb_region = xfb_rect;
 
