@@ -191,26 +191,10 @@ void NetPlayServer::ThreadFunc()
       {
       case ENET_EVENT_TYPE_CONNECT:
       {
-        ENetPeer* accept_peer = netEvent.peer;
-        unsigned int error;
-        {
-          std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-          error = OnConnect(accept_peer);
-        }
-
-        if (error)
-        {
-          sf::Packet spac;
-          spac << (MessageId)error;
-          // don't need to lock, this client isn't in the client map
-          Send(accept_peer, spac);
-          if (netEvent.peer->data)
-          {
-            delete (PlayerId*)netEvent.peer->data;
-            netEvent.peer->data = nullptr;
-          }
-          enet_peer_disconnect_later(accept_peer, 0);
-        }
+        // Actual client initialization is deferred to the receive event, so here
+        // we'll just log the new connection.
+        INFO_LOG(NETPLAY, "Peer connected from: %x:%u", netEvent.peer->address.host,
+                 netEvent.peer->address.port);
       }
       break;
       case ENET_EVENT_TYPE_RECEIVE:
@@ -218,18 +202,45 @@ void NetPlayServer::ThreadFunc()
         sf::Packet rpac;
         rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 
-        auto it = m_players.find(*(PlayerId*)netEvent.peer->data);
-        Client& client = it->second;
-        if (OnData(rpac, client) != 0)
+        if (!netEvent.peer->data)
         {
-          // if a bad packet is received, disconnect the client
-          std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-          OnDisconnect(client);
-
-          if (netEvent.peer->data)
+          // uninitialized client, we'll assume this is their initialization packet
+          unsigned int error;
           {
-            delete (PlayerId*)netEvent.peer->data;
-            netEvent.peer->data = nullptr;
+            std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+            error = OnConnect(netEvent.peer, rpac);
+          }
+
+          if (error)
+          {
+            sf::Packet spac;
+            spac << static_cast<MessageId>(error);
+            // don't need to lock, this client isn't in the client map
+            Send(netEvent.peer, spac);
+            if (netEvent.peer->data)
+            {
+              delete static_cast<PlayerId*>(netEvent.peer->data);
+              netEvent.peer->data = nullptr;
+            }
+            enet_peer_disconnect_later(netEvent.peer, 0);
+          }
+        }
+        else
+        {
+          PlayerId* const id = static_cast<PlayerId*>(netEvent.peer->data);
+          auto it = m_players.find(*id);
+          Client& client = it->second;
+          if (OnData(rpac, client) != 0)
+          {
+            // if a bad packet is received, disconnect the client
+            std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+            OnDisconnect(client);
+
+            if (netEvent.peer->data)
+            {
+              delete id;
+              netEvent.peer->data = nullptr;
+            }
           }
         }
         enet_packet_destroy(netEvent.packet);
@@ -240,7 +251,8 @@ void NetPlayServer::ThreadFunc()
         std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
         if (!netEvent.peer->data)
           break;
-        auto it = m_players.find(*(PlayerId*)netEvent.peer->data);
+        PlayerId* const id = static_cast<PlayerId*>(netEvent.peer->data);
+        auto it = m_players.find(*id);
         if (it != m_players.end())
         {
           Client& client = it->second;
@@ -248,7 +260,7 @@ void NetPlayServer::ThreadFunc()
 
           if (netEvent.peer->data)
           {
-            delete (PlayerId*)netEvent.peer->data;
+            delete id;
             netEvent.peer->data = nullptr;
           }
         }
@@ -270,16 +282,8 @@ void NetPlayServer::ThreadFunc()
 }
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
+unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 {
-  sf::Packet rpac;
-  ENetPacket* epack;
-  do
-  {
-    epack = enet_peer_receive(socket, nullptr);
-  } while (epack == nullptr);
-  rpac.append(epack->data, epack->dataLength);
-
   // give new client first available id
   PlayerId pid = 1;
   for (auto i = m_players.begin(); i != m_players.end(); ++i)
@@ -316,7 +320,6 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   rpac >> player.revision;
   rpac >> player.name;
 
-  enet_packet_destroy(epack);
   // try to automatically assign new user a pad
   for (PadMapping& mapping : m_pad_map)
   {
