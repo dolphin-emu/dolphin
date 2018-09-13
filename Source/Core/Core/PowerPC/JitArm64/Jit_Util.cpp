@@ -13,7 +13,7 @@
 using namespace Arm64Gen;
 
 template <typename T>
-class MMIOWriteCodeGenerator : public MMIO::WriteHandlingMethodVisitor<T>
+class MMIOWriteCodeGenerator : public MMIO::WriteHandlerVisitor<T>
 {
 public:
   MMIOWriteCodeGenerator(ARM64XEmitter* emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
@@ -93,7 +93,7 @@ private:
 };
 // Visitor that generates code to read a MMIO value.
 template <typename T>
-class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
+class MMIOReadCodeGenerator : public MMIO::ReadHandlerVisitor<T>
 {
 public:
   MMIOReadCodeGenerator(ARM64XEmitter* emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,

@@ -203,7 +203,7 @@ public final class SettingsFragmentPresenter {
 		syncGpuOverclock = coreSection.getSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK);
 		//mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
 		//fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
-		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
+		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_THRESHOLD);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP).getSetting(SettingsFile.KEY_AUDIO_BACKEND);
 		enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
@@ -235,7 +235,7 @@ public final class SettingsFragmentPresenter {
 		sl.add(new SliderSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK, Settings.SECTION_INI_CORE, R.string.sync_gpu_overclock, R.string.sync_gpu_overclock_description, 200, "%", 100, syncGpuOverclock));
 		//sl.add(new CheckBoxSetting(SettingsFile.KEY_MMU_EMULATION, Settings.SECTION_INI_CORE, R.string.mmu_emulation, R.string.mmu_emulation_description, false, mmuEmulation));
 		//sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DISC_SPEED, Settings.SECTION_INI_CORE, R.string.fast_disc_speed, R.string.fast_disc_speed_description, false, fastDiscSpeed));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH, Settings.SECTION_INI_CORE, R.string.jit_follow_branch, R.string.jit_follow_branch_description, true, followBranch));
+		sl.add(new SliderSetting(SettingsFile.KEY_JIT_FOLLOW_THRESHOLD, Settings.SECTION_INI_CORE, R.string.jit_follow_branch, R.string.jit_follow_branch_description, 10, "", 3, followBranch));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_CHEATS, Settings.SECTION_INI_CORE, R.string.enable_cheats, R.string.enable_cheats_description, false, enableCheats));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 

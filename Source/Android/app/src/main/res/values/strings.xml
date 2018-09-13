@@ -146,7 +146,7 @@
     <string name="fast_disc_speed">Fast Disc Speed</string>
     <string name="fast_disc_speed_description">Accelerates the emulated disc speed, removing any loading emulation.</string>
     <string name="jit_follow_branch">JIT Follow Branch</string>
-    <string name="jit_follow_branch_description">JIT follow branch is great improve performance, but some games will crash with this enabled.</string>
+    <string name="jit_follow_branch_description">JIT follow branch is great improve performance, but some games will crash with this enabled. 0 don\'t follow branch.</string>
     <string name="audio_backend">Audio Backend</string>
     <string name="audio_backend_description">Set backend used for audio output.</string>
     <string name="enable_cheats">Enable Cheats</string>

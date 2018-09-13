@@ -83,7 +83,7 @@ struct SConfig
 
   PowerPC::CPUCore cpu_core;
 
-  bool bJITFollowBranch;
+  int iJITFollowThreshold = 3;
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
   bool bJITOff = false;

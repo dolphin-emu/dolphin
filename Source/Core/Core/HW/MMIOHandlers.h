@@ -28,7 +28,7 @@ class Mapping;
 // visitor implementing that interface, then use handler->VisitHandlingMethod
 // to run the proper function.
 template <typename T>
-class ReadHandlingMethodVisitor
+class ReadHandlerVisitor
 {
 public:
 	virtual void VisitConstant(T value) = 0;
@@ -37,7 +37,7 @@ public:
 };
 
 template <typename T>
-class WriteHandlingMethodVisitor
+class WriteHandlerVisitor
 {
 public:
     virtual void VisitNop() = 0;
@@ -54,7 +54,7 @@ class ReadHandler
 {
 public:
 	virtual T Read(u32 addr) = 0;
-	virtual void Visit(ReadHandlingMethodVisitor<T>& visitor) = 0;
+	virtual void Visit(ReadHandlerVisitor<T>& visitor) = 0;
 };
 
 template <typename T>
@@ -62,7 +62,7 @@ class WriteHandler
 {
 public:
 	virtual void Write(u32 addr, T val) = 0;
-  virtual void Visit(WriteHandlingMethodVisitor<T>& visitor) = 0;
+  virtual void Visit(WriteHandlerVisitor<T>& visitor) = 0;
 };
 
 
@@ -80,7 +80,7 @@ public:
 		return value_;
 	}
 
-	void Visit(ReadHandlingMethodVisitor<T>& visitor) override
+	void Visit(ReadHandlerVisitor<T>& visitor) override
 	{
 		visitor.VisitConstant(value_);
 	}
@@ -103,7 +103,7 @@ class NopWriteHandler : public WriteHandler<T>
 {
 public:
 
-	void Visit(WriteHandlingMethodVisitor<T>& visitor) override
+	void Visit(WriteHandlerVisitor<T>& visitor) override
 	{
 		visitor.VisitNop();
 	}
@@ -134,7 +134,7 @@ public:
 		return *addr_ & mask_;
 	}
 
-	void Visit(ReadHandlingMethodVisitor<T>& visitor) override
+	void Visit(ReadHandlerVisitor<T>& visitor) override
 	{
 		visitor.VisitDirect(addr_, mask_);
 	}
@@ -144,7 +144,7 @@ public:
 		*addr_ = val & mask_;
 	}
 
-	void Visit(WriteHandlingMethodVisitor<T>& visitor) override
+	void Visit(WriteHandlerVisitor<T>& visitor) override
 	{
 		visitor.VisitDirect(addr_, mask_);
 	}
@@ -200,7 +200,7 @@ public:
 		return read_lambda_(addr);
 	}
 
-	void Visit(ReadHandlingMethodVisitor<T>& visitor) override
+	void Visit(ReadHandlerVisitor<T>& visitor) override
 	{
 		visitor.VisitComplex(&read_lambda_);
 	}
@@ -210,7 +210,7 @@ public:
 		write_lambda_(addr, val);
 	}
 
-	void Visit(WriteHandlingMethodVisitor<T>& visitor) override
+	void Visit(WriteHandlerVisitor<T>& visitor) override
 	{
 		visitor.VisitComplex(&write_lambda_);
 	}

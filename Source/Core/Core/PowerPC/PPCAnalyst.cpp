@@ -9,6 +9,7 @@
 #include <queue>
 #include <string>
 #include <vector>
+#include <android/log.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -37,9 +38,6 @@
 
 namespace PPCAnalyst
 {
-// 0 does not perform block merging
-constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 3;
-
 constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
 static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
@@ -756,7 +754,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   u32 numFollows = 0;
   u32 num_inst = 0;
 
-  const bool enable_follow = SConfig::GetInstance().bJITFollowBranch;
+  const int branchFollowThreshold = SConfig::GetInstance().iJITFollowThreshold;
 
   for (std::size_t i = 0; i < block_size; ++i)
   {
@@ -790,58 +788,68 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     //       If it is small, the performance will be down.
     //       If it is big, the size of generated code will be big and
     //       cache clearning will happen many times.
-    if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW) && numFollows < BRANCH_FOLLOWING_THRESHOLD)
+    if (HasOption(OPTION_BRANCH_FOLLOW) && numFollows < branchFollowThreshold)
     {
-      if (inst.OPCD == 18 && block_size > 1)
+      switch (inst.OPCD)
       {
-        // Always follow BX instructions.
-        follow = true;
-        if (inst.LK)
-        {
-          found_call = true;
-          caller = i;
-        }
-      }
-      else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
-               (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
-      {
-        // Always follow unconditional BCX instructions, but they are very rare.
-        follow = true;
-        if (inst.LK)
-        {
-          found_call = true;
-          caller = i;
-        }
-      }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call)
-      {
-        code[i].branchTo = code[caller].address + 4;
-        if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
-        {
-          // bclrx with unconditional branch = return
-          // Follow it if we can propagate the LR value of the last CALL instruction.
-          // Through it would be easy to track the upper level of call/return,
-          // we can't guarantee the LR value. The PPC ABI forces all functions to push
-          // the LR value on the stack as there are no spare registers. So we'd need
-          // to check all store instruction to not alias with the stack.
-          follow = true;
-          found_call = false;
-          code[i].skip = true;
+        case 18:
+          if(block_size > 1)
+          {
+            // Always follow BX instructions.
+            follow = true;
+            if (inst.LK)
+            {
+              found_call = true;
+              caller = i;
+            }
+          }
+          break;
+        case 16:
+          if((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION) && block_size > 1)
+          {
+            // Always follow unconditional BCX instructions, but they are very rare.
+            follow = true;
+            if (inst.LK)
+            {
+              found_call = true;
+              caller = i;
+            }
+          }
+          break;
+        case 19:
+          if(inst.SUBOP10 == 16 && !inst.LK && found_call)
+          {
+            code[i].branchTo = code[caller].address + 4;
+            if ((inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
+            {
+              // bclrx with unconditional branch = return
+              // Follow it if we can propagate the LR value of the last CALL instruction.
+              // Through it would be easy to track the upper level of call/return,
+              // we can't guarantee the LR value. The PPC ABI forces all functions to push
+              // the LR value on the stack as there are no spare registers. So we'd need
+              // to check all store instruction to not alias with the stack.
+              follow = true;
+              found_call = false;
+              code[i].skip = true;
 
-          // Skip the RET, so also don't generate the stack entry for the BLR optimization.
-          code[caller].skipLRStack = true;
-        }
-      }
-      else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
-      {
-        // mtspr, skip CALL/RET merging as LR is overwritten.
-        const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-        if (index == SPR_LR)
-        {
-          // We give up to follow the return address
-          // because we have to check the register usage.
-          found_call = false;
-        }
+              // Skip the RET, so also don't generate the stack entry for the BLR optimization.
+              code[caller].skipLRStack = true;
+            }
+          }
+          break;
+        case 31:
+          if(inst.SUBOP10 == 467)
+          {
+            // mtspr, skip CALL/RET merging as LR is overwritten.
+            const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
+            if (index == SPR_LR)
+            {
+              // We give up to follow the return address
+              // because we have to check the register usage.
+              found_call = false;
+            }
+          }
+          break;
       }
     }
 
@@ -873,8 +881,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
       }
     }
 
-    code[i].branchIsIdleLoop =
-        code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
+    code[i].branchIsIdleLoop = code[i].branchTo == block->m_address && IsBusyWaitLoop(block, code, i);
 
     if (follow)
     {
