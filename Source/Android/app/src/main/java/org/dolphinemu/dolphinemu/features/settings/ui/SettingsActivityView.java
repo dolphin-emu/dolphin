@@ -120,15 +120,15 @@ public interface SettingsActivityView
   void showExternalStorageNotMountedHint();
 
   /**
-   * Start the DirectoryInitializationService and listen for the result.
+   * Start the DirectoryInitialization and listen for the result.
    *
-   * @param receiver the broadcast receiver for the DirectoryInitializationService
+   * @param receiver the broadcast receiver for the DirectoryInitialization
    * @param filter   the Intent broadcasts to be received.
    */
   void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter);
 
   /**
-   * Stop listening to the DirectoryInitializationService.
+   * Stop listening to the DirectoryInitialization.
    *
    * @param receiver The broadcast receiver to unregister.
    */
