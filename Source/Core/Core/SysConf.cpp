@@ -277,7 +277,7 @@ void SysConf::InsertDefaultEntries()
   console_nick[21] = static_cast<u8>(strlen("dolphin"));
   AddEntry({Entry::Type::SmallArray, "IPL.NIK", std::move(console_nick)});
 
-  AddEntry({Entry::Type::Byte, "IPL.LNG", {1}});
+  AddEntry({Entry::Type::Byte, "IPL.LNG", {0}});
   std::vector<u8> ipl_sadr(0x1007 + 1);
   ipl_sadr[0] = 0x6c;
   AddEntry({Entry::Type::BigArray, "IPL.SADR", std::move(ipl_sadr)});

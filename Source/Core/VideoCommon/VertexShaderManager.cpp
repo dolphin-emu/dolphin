@@ -379,7 +379,8 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
 
-      g_fProjectionMatrix[14] = -1.0f;
+      // Hack to fix depth clipping precision issues (such as Sonic Adventure UI) #4164
+      g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
       g_fProjectionMatrix[15] = 0.0f;
 
       SETSTAT_FT(stats.gproj_0, g_fProjectionMatrix[0]);
@@ -421,7 +422,9 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[13] = 0.0f;
 
       g_fProjectionMatrix[14] = 0.0f;
-      g_fProjectionMatrix[15] = 1.0f;
+
+      // Hack to fix depth clipping precision issues (such as Sonic Unleashed UI) #4164
+      g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
 
       SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
       SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
