@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 #if defined(_M_X86) || defined(_M_X86_64)
 #include <pmmintrin.h>
 #endif
@@ -1286,6 +1287,15 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
 
   u32 numBlocksX = entry_to_update->native_width / tex_info.block_width;
 
+  // It is possible that some of the overlapping textures overlap eachother.
+  // This behavior has been seen with XFB copies in Rogue Leader.
+  // To get the correct result, we apply the texture updates in the order the textures were
+  // originally loaded. This ensures that the parts of the texture that would have been overwritten
+  // in memory on real hardware get overwritten the same way here too.
+  // This should work, but it may be a better idea to keep track of partial XFB copy invalidations
+  // instead, which would reduce the amount of copying work here.
+  std::vector<TCacheEntry*> candidates;
+
   auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
   while (iter.first != iter.second)
   {
@@ -1297,106 +1307,7 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
     {
       if (entry->hash == entry->CalculateHash())
       {
-        if (tex_info.is_palette_texture)
-        {
-          TCacheEntry* decoded_entry =
-              ApplyPaletteToEntry(entry, nullptr, tex_info.full_format.tlutfmt);
-          if (decoded_entry)
-          {
-            // Link the efb copy with the partially updated texture, so we won't apply this partial
-            // update again
-            entry->CreateReference(entry_to_update);
-            // Mark the texture update as used, as if it was loaded directly
-            entry->frameCount = FRAMECOUNT_INVALID;
-            entry = decoded_entry;
-          }
-          else
-          {
-            ++iter.first;
-            continue;
-          }
-        }
-
-        s32 src_x, src_y, dst_x, dst_y;
-
-        // Note for understanding the math:
-        // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
-        if (entry->addr >= entry_to_update->addr)
-        {
-          s32 block_offset = (entry->addr - entry_to_update->addr) / tex_info.bytes_per_block;
-          s32 block_x = block_offset % numBlocksX;
-          s32 block_y = block_offset / numBlocksX;
-          src_x = 0;
-          src_y = 0;
-          dst_x = block_x * tex_info.block_width;
-          dst_y = block_y * tex_info.block_height;
-        }
-        else
-        {
-          s32 block_offset = (entry_to_update->addr - entry->addr) / tex_info.bytes_per_block;
-          s32 block_x = block_offset % numBlocksX;
-          s32 block_y = block_offset / numBlocksX;
-          src_x = block_x * tex_info.block_width;
-          src_y = block_y * tex_info.block_height;
-          dst_x = 0;
-          dst_y = 0;
-        }
-
-        u32 copy_width =
-            std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
-        u32 copy_height =
-            std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
-
-        // If one of the textures is scaled, scale both with the current efb scaling factor
-        if (entry_to_update->native_width != entry_to_update->GetWidth() ||
-            entry_to_update->native_height != entry_to_update->GetHeight() ||
-            entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
-        {
-          ScaleTextureCacheEntryTo(entry_to_update,
-                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
-                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
-          ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-                                   g_renderer->EFBToScaledY(entry->native_height));
-
-          src_x = g_renderer->EFBToScaledX(src_x);
-          src_y = g_renderer->EFBToScaledY(src_y);
-          dst_x = g_renderer->EFBToScaledX(dst_x);
-          dst_y = g_renderer->EFBToScaledY(dst_y);
-          copy_width = g_renderer->EFBToScaledX(copy_width);
-          copy_height = g_renderer->EFBToScaledY(copy_height);
-        }
-
-        MathUtil::Rectangle<int> srcrect, dstrect;
-        srcrect.left = src_x;
-        srcrect.top = src_y;
-        srcrect.right = (src_x + copy_width);
-        srcrect.bottom = (src_y + copy_height);
-
-        dstrect.left = dst_x;
-        dstrect.top = dst_y;
-        dstrect.right = (dst_x + copy_width);
-        dstrect.bottom = (dst_y + copy_height);
-
-        for (u32 layer = 0; layer < entry->texture->GetConfig().layers; layer++)
-        {
-          entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer,
-                                                             0, dstrect, layer, 0);
-        }
-        updated_entry = true;
-
-        if (tex_info.is_palette_texture)
-        {
-          // Remove the temporary converted texture, it won't be used anywhere else
-          // TODO: It would be nice to convert and copy in one step, but this code path isn't common
-          InvalidateTexture(GetTexCacheIter(entry));
-        }
-        else
-        {
-          // Link the two textures together, so we won't apply this partial update again
-          entry->CreateReference(entry_to_update);
-          // Mark the texture update as used, as if it was loaded directly
-          entry->frameCount = FRAMECOUNT_INVALID;
-        }
+        candidates.emplace_back(entry);
       }
       else
       {
@@ -1406,6 +1317,111 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
       }
     }
     ++iter.first;
+  }
+
+  std::sort(candidates.begin(), candidates.end(),
+            [](const TCacheEntry* a, const TCacheEntry* b) { return a->id < b->id; });
+
+  for (TCacheEntry* entry : candidates)
+  {
+    if (tex_info.is_palette_texture)
+    {
+      TCacheEntry* decoded_entry =
+          ApplyPaletteToEntry(entry, nullptr, tex_info.full_format.tlutfmt);
+      if (decoded_entry)
+      {
+        // Link the efb copy with the partially updated texture, so we won't apply this partial
+        // update again
+        entry->CreateReference(entry_to_update);
+        // Mark the texture update as used, as if it was loaded directly
+        entry->frameCount = FRAMECOUNT_INVALID;
+        entry = decoded_entry;
+      }
+      else
+      {
+        continue;
+      }
+    }
+
+    s32 src_x, src_y, dst_x, dst_y;
+
+    // Note for understanding the math:
+    // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
+    if (entry->addr >= entry_to_update->addr)
+    {
+      s32 block_offset = (entry->addr - entry_to_update->addr) / tex_info.bytes_per_block;
+      s32 block_x = block_offset % numBlocksX;
+      s32 block_y = block_offset / numBlocksX;
+      src_x = 0;
+      src_y = 0;
+      dst_x = block_x * tex_info.block_width;
+      dst_y = block_y * tex_info.block_height;
+    }
+    else
+    {
+      s32 block_offset = (entry_to_update->addr - entry->addr) / tex_info.bytes_per_block;
+      s32 block_x = block_offset % numBlocksX;
+      s32 block_y = block_offset / numBlocksX;
+      src_x = block_x * tex_info.block_width;
+      src_y = block_y * tex_info.block_height;
+      dst_x = 0;
+      dst_y = 0;
+    }
+
+    u32 copy_width = std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
+    u32 copy_height =
+        std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
+
+    // If one of the textures is scaled, scale both with the current efb scaling factor
+    if (entry_to_update->native_width != entry_to_update->GetWidth() ||
+        entry_to_update->native_height != entry_to_update->GetHeight() ||
+        entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
+    {
+      ScaleTextureCacheEntryTo(entry_to_update,
+                               g_renderer->EFBToScaledX(entry_to_update->native_width),
+                               g_renderer->EFBToScaledY(entry_to_update->native_height));
+      ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
+                               g_renderer->EFBToScaledY(entry->native_height));
+
+      src_x = g_renderer->EFBToScaledX(src_x);
+      src_y = g_renderer->EFBToScaledY(src_y);
+      dst_x = g_renderer->EFBToScaledX(dst_x);
+      dst_y = g_renderer->EFBToScaledY(dst_y);
+      copy_width = g_renderer->EFBToScaledX(copy_width);
+      copy_height = g_renderer->EFBToScaledY(copy_height);
+    }
+
+    MathUtil::Rectangle<int> srcrect, dstrect;
+    srcrect.left = src_x;
+    srcrect.top = src_y;
+    srcrect.right = (src_x + copy_width);
+    srcrect.bottom = (src_y + copy_height);
+
+    dstrect.left = dst_x;
+    dstrect.top = dst_y;
+    dstrect.right = (dst_x + copy_width);
+    dstrect.bottom = (dst_y + copy_height);
+
+    for (u32 layer = 0; layer < entry->texture->GetConfig().layers; layer++)
+    {
+      entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer, 0,
+                                                         dstrect, layer, 0);
+    }
+    updated_entry = true;
+
+    if (tex_info.is_palette_texture)
+    {
+      // Remove the temporary converted texture, it won't be used anywhere else
+      // TODO: It would be nice to convert and copy in one step, but this code path isn't common
+      InvalidateTexture(GetTexCacheIter(entry));
+    }
+    else
+    {
+      // Link the two textures together, so we won't apply this partial update again
+      entry->CreateReference(entry_to_update);
+      // Mark the texture update as used, as if it was loaded directly
+      entry->frameCount = FRAMECOUNT_INVALID;
+    }
   }
 
   return updated_entry;
