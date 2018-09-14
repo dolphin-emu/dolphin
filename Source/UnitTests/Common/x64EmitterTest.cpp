@@ -547,6 +547,24 @@ TWO_OP_ARITH_TEST(OR)
 TWO_OP_ARITH_TEST(XOR)
 TWO_OP_ARITH_TEST(MOV)
 
+TEST_F(x64EmitterTest, MOV_Imm64)
+{
+  for (size_t i = 0; i < reg64names.size(); i++)
+  {
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEFDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 10);
+    ExpectDisassembly("mov " + reg64names[i].name + ", 0xdeadbeefdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xFFFFFFFFDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 7);
+    ExpectDisassembly("mov " + reg64names[i].name + ", 0xffffffffdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
+    ExpectDisassembly("mov " + reg32names[i].name + ", 0xdeadbeef");
+  }
+}
+
 // TODO: Disassembler inverts operands here.
 // TWO_OP_ARITH_TEST(XCHG)
 // TWO_OP_ARITH_TEST(TEST)
