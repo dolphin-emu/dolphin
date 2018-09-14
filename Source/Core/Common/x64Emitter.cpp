@@ -1591,6 +1591,12 @@ void XEmitter::XOR(int bits, const OpArg& a1, const OpArg& a2)
 }
 void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
 {
+  if (bits == 64 && a1.IsSimpleReg() && a2.scale == SCALE_IMM64 &&
+      a2.offset == static_cast<u32>(a2.offset))
+  {
+    WriteNormalOp(32, NormalOp::MOV, a1, a2.AsImm32());
+    return;
+  }
   if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
     ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
   WriteNormalOp(bits, NormalOp::MOV, a1, a2);
