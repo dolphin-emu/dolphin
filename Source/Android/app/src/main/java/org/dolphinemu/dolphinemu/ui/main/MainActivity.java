@@ -16,8 +16,8 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -138,7 +138,7 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					DirectoryInitializationService.startService(this);
+					DirectoryInitialization.start(this);
 					GameFileCacheService.startLoad(this);
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)

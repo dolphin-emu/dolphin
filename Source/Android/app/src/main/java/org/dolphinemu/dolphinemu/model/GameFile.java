@@ -2,7 +2,7 @@ package org.dolphinemu.dolphinemu.model;
 
 import android.os.Environment;
 
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class GameFile {
 	public native int getBannerHeight();
 
 	public String getCoverPath() {
-		return DirectoryInitializationService.getCoverDirectory() + File.separator + getGameId() + ".png";
+		return DirectoryInitialization.getCoverDirectory() + File.separator + getGameId() + ".png";
 	}
 
 	public List<String> getSavedStates() {

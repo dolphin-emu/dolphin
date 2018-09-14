@@ -6,8 +6,8 @@ import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 public final class SettingsActivityPresenter {
@@ -62,12 +62,12 @@ public final class SettingsActivityPresenter {
 	}
 
 	private void prepareDolphinDirectoriesIfNeeded() {
-		if (DirectoryInitializationService.areDolphinDirectoriesReady()) {
+		if (DirectoryInitialization.areDolphinDirectoriesReady()) {
 			loadSettingsUI();
 		} else {
 			mView.showLoading();
 			IntentFilter statusIntentFilter = new IntentFilter(
-				DirectoryInitializationService.BROADCAST_ACTION);
+				DirectoryInitialization.BROADCAST_ACTION);
 
 			directoryStateReceiver =
 				new DirectoryStateReceiver(directoryInitializationState ->

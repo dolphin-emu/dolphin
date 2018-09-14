@@ -20,7 +20,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -387,7 +387,7 @@ public final class SettingsFragmentPresenter {
 
 	private String[] getShaderList(String subDir) {
 		try {
-			String shadersPath = DirectoryInitializationService.getDolphinInternalDirectory() + "/Shaders";
+			String shadersPath = DirectoryInitialization.getDolphinInternalDirectory() + "/Shaders";
 			if (!TextUtils.isEmpty(subDir)) {
 				shadersPath += "/" + subDir;
 			}

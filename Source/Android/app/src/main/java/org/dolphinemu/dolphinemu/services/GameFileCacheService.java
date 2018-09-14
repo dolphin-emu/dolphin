@@ -8,6 +8,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -94,7 +95,7 @@ public final class GameFileCacheService extends IntentService {
 		// Load the game list cache if it isn't already loaded, otherwise do nothing
 		if (ACTION_LOAD.equals(intent.getAction()) && gameFileCache == null) {
 			GameFileCache temp = new GameFileCache(
-				DirectoryInitializationService.getCacheDirectory() + File.separator + "gamelist.cache");
+				DirectoryInitialization.getCacheDirectory() + File.separator + "gamelist.cache");
 			synchronized (temp) {
 				gameFileCache = temp;
 				gameFileCache.load();

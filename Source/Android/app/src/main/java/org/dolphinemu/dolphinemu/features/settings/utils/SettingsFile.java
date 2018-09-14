@@ -11,8 +11,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.BiMap;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.BufferedReader;
@@ -420,21 +420,21 @@ public final class SettingsFile {
 
 	@NonNull
 	private static File getSettingsFile(String fileName) {
-		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
+		return new File(DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
 	}
 
 	private static File getGenericGameSettingsForAllRegions(String gameId) {
 		// Use the first 3 chars from the gameId to load the generic game settings for all regions
 		gameId = gameId.substring(0, 3);
-		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
+		return new File(DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
 	private static File getGenericGameSettingsFile(String gameId) {
-		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
+		return new File(DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
 	private static File getCustomGameSettingsFile(String gameId) {
-		return new File(DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
+		return new File(DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
 	private static SettingSection sectionFromLine(String line, boolean isCustomGame) {

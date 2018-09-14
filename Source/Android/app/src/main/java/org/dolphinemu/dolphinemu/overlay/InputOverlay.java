@@ -232,7 +232,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
-				} else if(JoyStickSetting == JOYSTICK_EMULATE_SHAKE) {
+				} else if (JoyStickSetting == JOYSTICK_EMULATE_SHAKE) {
 					factor = -1;
 					axisIDs[0] = ButtonType.WIIMOTE_TILT_MODIFIER;
 					axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;

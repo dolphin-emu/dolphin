@@ -132,12 +132,12 @@ public class Settings {
 
 		int sensitivity = sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_SENSITIVITY];
 		setting = new IntSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, SECTION_SYSCONF,
-			(int)((sensitivity - 4) / 123.0f * 100.0f));
+			(int) ((sensitivity - 4) / 123.0f * 100.0f));
 		section.putSetting(setting);
 
 		float voulme = sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SPEAKER_VOLUME];
 		setting = new IntSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, SECTION_SYSCONF,
-			(int)(voulme / 127.0f * 100.0f));
+			(int) (voulme / 127.0f * 100.0f));
 		section.putSetting(setting);
 
 		setting = new BooleanSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, SECTION_SYSCONF,
@@ -149,33 +149,33 @@ public class Settings {
 
 	private void saveWiiSysconf() {
 		int[] sysconf = new int[9];
-		SettingSection section =sections.get(SECTION_SYSCONF);
+		SettingSection section = sections.get(SECTION_SYSCONF);
 
-		BooleanSetting boolSetting = (BooleanSetting)section.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
+		BooleanSetting boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SCREENSAVER] = boolSetting.getValue() ? 1 : 0;
 
-		IntSetting intSetting = (IntSetting)section.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
+		IntSetting intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_LANGUAGE] = intSetting.getValue();
 
-		boolSetting = (BooleanSetting)section.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
+		boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_WIDESCREEN] = boolSetting.getValue() ? 1 : 0;
 
-		boolSetting = (BooleanSetting)section.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
+		boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_PROGRESSIVE_SCAN] = boolSetting.getValue() ? 1 : 0;
 
-		boolSetting = (BooleanSetting)section.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
+		boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_PAL60] = boolSetting.getValue() ? 1 : 0;
 
-		intSetting = (IntSetting)section.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
+		intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_POSITION] = intSetting.getValue();
 
-		intSetting = (IntSetting)section.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
-		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_SENSITIVITY] = (int)(intSetting.getValue() / 100.0f * 123.0f + 4);
+		intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
+		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SENSOR_BAR_SENSITIVITY] = (int) (intSetting.getValue() / 100.0f * 123.0f + 4);
 
-		intSetting = (IntSetting)section.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
-		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SPEAKER_VOLUME] = (int)(intSetting.getValue() / 100.0f * 127.0f);
+		intSetting = (IntSetting) section.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
+		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_SPEAKER_VOLUME] = (int) (intSetting.getValue() / 100.0f * 127.0f);
 
-		boolSetting = (BooleanSetting)section.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
+		boolSetting = (BooleanSetting) section.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
 		sysconf[NativeLibrary.SYSCONFSetting.SYSCONF_WIIMOTE_MOTOR] = boolSetting.getValue() ? 1 : 0;
 
 		NativeLibrary.setSysconfSettings(sysconf);

@@ -18,8 +18,8 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.io.File;
 
@@ -92,13 +92,13 @@ public final class GameDetailsDialog extends DialogFragment {
 	}
 
 	private boolean isGameSetingExist(String gameId) {
-		String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
+		String path = DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
 		File gameSettingsFile = new File(path);
 		return gameSettingsFile.exists();
 	}
 
 	private void deleteGameSetting(Context context, String gameId) {
-		String path = DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
+		String path = DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
 		File gameSettingsFile = new File(path);
 		if (gameSettingsFile.exists()) {
 			if (gameSettingsFile.delete()) {

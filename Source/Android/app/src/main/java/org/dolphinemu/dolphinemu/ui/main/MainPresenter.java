@@ -13,8 +13,8 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.io.File;
 
@@ -105,7 +105,7 @@ public final class MainPresenter {
 
 	private void clearGameData(Context context) {
 		int count = 0;
-		String cachePath = DirectoryInitializationService.getCacheDirectory();
+		String cachePath = DirectoryInitialization.getCacheDirectory();
 		File dir = new File(cachePath);
 		if (dir.exists()) {
 			for (File f : dir.listFiles()) {

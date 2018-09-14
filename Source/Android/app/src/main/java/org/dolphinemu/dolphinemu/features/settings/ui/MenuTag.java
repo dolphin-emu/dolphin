@@ -83,15 +83,15 @@ public enum MenuTag {
 
 	@Nullable
 	public static MenuTag getMenuTag(String menuTagStr) {
-		if(menuTagStr == null || menuTagStr.isEmpty()) {
+		if (menuTagStr == null || menuTagStr.isEmpty()) {
 			return null;
 		}
 		String tag = menuTagStr;
 		int subtype = -1;
 		int sep = menuTagStr.indexOf('|');
-		if(sep != -1) {
+		if (sep != -1) {
 			tag = menuTagStr.substring(0, sep);
-			subtype = Integer.parseInt(menuTagStr.substring(sep+1));
+			subtype = Integer.parseInt(menuTagStr.substring(sep + 1));
 		}
 		return getMenuTag(tag, subtype);
 	}

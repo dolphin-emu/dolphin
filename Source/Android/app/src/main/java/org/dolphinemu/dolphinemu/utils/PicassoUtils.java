@@ -46,6 +46,7 @@ public class PicassoUtils {
 						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
 							gameFile.getCoverPath());
 					}
+
 					@Override
 					public void onError() {
 						imageView.setImageResource(R.drawable.nintendo);

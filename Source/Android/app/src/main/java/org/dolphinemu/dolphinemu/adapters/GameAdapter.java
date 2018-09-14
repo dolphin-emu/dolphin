@@ -159,6 +159,5 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 				mDivider.draw(c);
 			}
 		}
-
 	}
 }
