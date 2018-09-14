@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.AppLinkHelper;
@@ -64,24 +64,24 @@ public class AppLinkActivity extends FragmentActivity
   private void initResources()
   {
     IntentFilter statusIntentFilter = new IntentFilter(
-            DirectoryInitializationService.BROADCAST_ACTION);
+            DirectoryInitialization.BROADCAST_ACTION);
 
     directoryStateReceiver =
             new DirectoryStateReceiver(directoryInitializationState ->
             {
               if (directoryInitializationState ==
-                      DirectoryInitializationService.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+                      DirectoryInitialization.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
               {
                 play(playAction);
               }
               else if (directoryInitializationState ==
-                      DirectoryInitializationService.DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
+                      DirectoryInitialization.DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
               {
                 Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
                         .show();
               }
               else if (directoryInitializationState ==
-                      DirectoryInitializationService.DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
+                      DirectoryInitialization.DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
               {
                 Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
                         .show();
@@ -92,7 +92,7 @@ public class AppLinkActivity extends FragmentActivity
     LocalBroadcastManager.getInstance(this).registerReceiver(
             directoryStateReceiver,
             statusIntentFilter);
-    DirectoryInitializationService.startService(this);
+    DirectoryInitialization.start(this);
     GameFileCacheService.startLoad(this);
   }
 

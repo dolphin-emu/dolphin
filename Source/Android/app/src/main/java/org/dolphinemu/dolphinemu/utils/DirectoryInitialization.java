@@ -4,9 +4,8 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.services;
+package org.dolphinemu.dolphinemu.utils;
 
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,8 +14,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * A service that spawns its own thread in order to copy several binary and shader files
  * from the Dolphin APK to the external file system.
  */
-public final class DirectoryInitializationService extends IntentService
+public final class DirectoryInitialization
 {
   public static final String BROADCAST_ACTION =
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
@@ -48,31 +45,25 @@ public final class DirectoryInitializationService extends IntentService
     CANT_FIND_EXTERNAL_STORAGE
   }
 
-  public DirectoryInitializationService()
+  public static void start(Context context)
   {
-    // Superclass constructor is called to name the thread on which this service executes.
-    super("DirectoryInitializationService");
+    // Can take a few seconds to run, so don't block UI thread.
+    //noinspection TrivialFunctionalExpressionUsage
+    ((Runnable) () -> init(context)).run();
   }
 
-  public static void startService(Context context)
-  {
-    Intent intent = new Intent(context, DirectoryInitializationService.class);
-    context.startService(intent);
-  }
-
-  @Override
-  protected void onHandleIntent(Intent intent)
+  private static void init(Context context)
   {
     isDolphinDirectoryInitializationRunning.set(true);
 
     if (directoryState != DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
     {
-      if (PermissionsHandler.hasWriteAccess(this))
+      if (PermissionsHandler.hasWriteAccess(context))
       {
         if (setDolphinUserDirectory())
         {
-          initializeInternalStorage();
-          initializeExternalStorage();
+          initializeInternalStorage(context);
+          initializeExternalStorage(context);
 
           directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
         }
@@ -88,10 +79,10 @@ public final class DirectoryInitializationService extends IntentService
     }
 
     isDolphinDirectoryInitializationRunning.set(false);
-    sendBroadcastState(directoryState);
+    sendBroadcastState(directoryState, context);
   }
 
-  private boolean setDolphinUserDirectory()
+  private static boolean setDolphinUserDirectory()
   {
     if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
     {
@@ -99,7 +90,7 @@ public final class DirectoryInitializationService extends IntentService
       if (externalPath != null)
       {
         userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
-        Log.debug("[DirectoryInitializationService] User Dir: " + userPath);
+        Log.debug("[DirectoryInitialization] User Dir: " + userPath);
         NativeLibrary.SetUserDirectory(userPath);
         return true;
       }
@@ -109,19 +100,19 @@ public final class DirectoryInitializationService extends IntentService
     return false;
   }
 
-  private void initializeInternalStorage()
+  private static void initializeInternalStorage(Context context)
   {
-    File sysDirectory = new File(getFilesDir(), "Sys");
+    File sysDirectory = new File(context.getFilesDir(), "Sys");
     internalPath = sysDirectory.getAbsolutePath();
 
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     String revision = NativeLibrary.GetGitRevision();
     if (!preferences.getString("sysDirectoryVersion", "").equals(revision))
     {
       // There is no extracted Sys directory, or there is a Sys directory from another
       // version of Dolphin that might contain outdated files. Let's (re-)extract Sys.
       deleteDirectoryRecursively(sysDirectory);
-      copyAssetFolder("Sys", sysDirectory, true);
+      copyAssetFolder("Sys", sysDirectory, true, context);
 
       SharedPreferences.Editor editor = preferences.edit();
       editor.putString("sysDirectoryVersion", revision);
@@ -132,7 +123,7 @@ public final class DirectoryInitializationService extends IntentService
     SetSysDirectory(sysDirectory.getPath());
   }
 
-  private void initializeExternalStorage()
+  private static void initializeExternalStorage(Context context)
   {
     // Create User directory structure and copy some NAND files from the extracted Sys directory.
     CreateUserDirectories();
@@ -147,8 +138,8 @@ public final class DirectoryInitializationService extends IntentService
     //
     // TODO: Redo the Android controller system so that we don't have to extract these INIs.
     String configDirectory = NativeLibrary.GetUserDirectory() + File.separator + "Config";
-    copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true);
-    copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false);
+    copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true, context);
+    copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false, context);
   }
 
   private static void deleteDirectoryRecursively(File file)
@@ -170,12 +161,12 @@ public final class DirectoryInitializationService extends IntentService
   {
     if (directoryState == null)
     {
-      throw new IllegalStateException("DirectoryInitializationService has to run at least once!");
+      throw new IllegalStateException("DirectoryInitialization has to run at least once!");
     }
     else if (isDolphinDirectoryInitializationRunning.get())
     {
       throw new IllegalStateException(
-              "DirectoryInitializationService has to finish running first!");
+              "DirectoryInitialization has to finish running first!");
     }
     return userPath;
 
@@ -185,34 +176,34 @@ public final class DirectoryInitializationService extends IntentService
   {
     if (directoryState == null)
     {
-      throw new IllegalStateException("DirectoryInitializationService has to run at least once!");
+      throw new IllegalStateException("DirectoryInitialization has to run at least once!");
     }
     else if (isDolphinDirectoryInitializationRunning.get())
     {
       throw new IllegalStateException(
-              "DirectoryInitializationService has to finish running first!");
+              "DirectoryInitialization has to finish running first!");
     }
     return internalPath;
 
   }
 
-  private void sendBroadcastState(DirectoryInitializationState state)
+  private static void sendBroadcastState(DirectoryInitializationState state, Context context)
   {
     Intent localIntent =
             new Intent(BROADCAST_ACTION)
                     .putExtra(EXTRA_STATE, state);
-    LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+    LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
   }
 
-  private void copyAsset(String asset, File output, Boolean overwrite)
+  private static void copyAsset(String asset, File output, Boolean overwrite, Context context)
   {
-    Log.verbose("[DirectoryInitializationService] Copying File " + asset + " to " + output);
+    Log.verbose("[DirectoryInitialization] Copying File " + asset + " to " + output);
 
     try
     {
       if (!output.exists() || overwrite)
       {
-        InputStream in = getAssets().open(asset);
+        InputStream in = context.getAssets().open(asset);
         OutputStream out = new FileOutputStream(output);
         copyFile(in, out);
         in.close();
@@ -221,20 +212,21 @@ public final class DirectoryInitializationService extends IntentService
     }
     catch (IOException e)
     {
-      Log.error("[DirectoryInitializationService] Failed to copy asset file: " + asset +
+      Log.error("[DirectoryInitialization] Failed to copy asset file: " + asset +
               e.getMessage());
     }
   }
 
-  private void copyAssetFolder(String assetFolder, File outputFolder, Boolean overwrite)
+  private static void copyAssetFolder(String assetFolder, File outputFolder, Boolean overwrite,
+          Context context)
   {
-    Log.verbose("[DirectoryInitializationService] Copying Folder " + assetFolder + " to " +
+    Log.verbose("[DirectoryInitialization] Copying Folder " + assetFolder + " to " +
             outputFolder);
 
     try
     {
       boolean createdFolder = false;
-      for (String file : getAssets().list(assetFolder))
+      for (String file : context.getAssets().list(assetFolder))
       {
         if (!createdFolder)
         {
@@ -242,18 +234,19 @@ public final class DirectoryInitializationService extends IntentService
           createdFolder = true;
         }
         copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file),
-                overwrite);
-        copyAsset(assetFolder + File.separator + file, new File(outputFolder, file), overwrite);
+                overwrite, context);
+        copyAsset(assetFolder + File.separator + file, new File(outputFolder, file), overwrite,
+                context);
       }
     }
     catch (IOException e)
     {
-      Log.error("[DirectoryInitializationService] Failed to copy asset folder: " + assetFolder +
+      Log.error("[DirectoryInitialization] Failed to copy asset folder: " + assetFolder +
               e.getMessage());
     }
   }
 
-  private void copyFile(InputStream in, OutputStream out) throws IOException
+  private static void copyFile(InputStream in, OutputStream out) throws IOException
   {
     byte[] buffer = new byte[1024];
     int read;

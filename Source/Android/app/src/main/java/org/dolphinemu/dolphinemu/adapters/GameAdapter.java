@@ -15,7 +15,7 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
@@ -166,7 +166,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
                     break;
                   case 2:
                     String path =
-                            DirectoryInitializationService.getUserDirectory() + "/GameSettings/" +
+                            DirectoryInitialization.getUserDirectory() + "/GameSettings/" +
                                     gameId + ".ini";
                     File gameSettingsFile = new File(path);
                     if (gameSettingsFile.exists())
