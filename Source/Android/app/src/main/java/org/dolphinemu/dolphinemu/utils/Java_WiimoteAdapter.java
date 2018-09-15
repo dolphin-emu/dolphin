@@ -82,7 +82,28 @@ public class Java_WiimoteAdapter
 
   public static int Input(int index)
   {
-    return usb_con.bulkTransfer(usb_in[index], wiimote_payload[index], MAX_PAYLOAD, TIMEOUT);
+    int readSize =
+            usb_con.bulkTransfer(usb_in[index], wiimote_payload[index], MAX_PAYLOAD, TIMEOUT);
+
+    // When initializing an official wiimote, some input report reads error out. From debugging it appears
+    // that some games send a request to read memory on the wiimote and get an input report that the memory
+    // does not exist. This is expected(see EmuSubroutines.cpp SendReadDataReply()). The issue is
+    // the next input report we get a failure which causes a crash.
+    // From testing, these failures only occur when initializing the wiimote or when emulation exits,
+    // never during normal gameplay.
+    // So instead of returning a failure to read, we modify the input report to be a data report
+    // with a size of 3, which will just return the state of the wiimote buttons from the previous report
+    // I know this is really hacky but I don't know enough about wiimotes to figure it out atm and
+    // this will allow the use of official wiimotes for the time. Note that this behaviour has only
+    // been reported when using official wiimotes. Use of EEEkit wiimotes do not produce such failures.
+    // TODO not this
+    if (readSize < 0)
+    {
+      wiimote_payload[index][0] = 0x30;
+      return 3;
+    }
+
+    return readSize;
   }
 
   public static int Output(int index, byte[] buf, int size)
