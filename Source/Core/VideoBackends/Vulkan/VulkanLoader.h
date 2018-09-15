@@ -21,14 +21,12 @@
 
 #include "vulkan/vulkan.h"
 
+#include "VideoBackends/Vulkan/VulkanEntryPoints.h"
+
 // We abuse the preprocessor here to only need to specify function names once.
-#define VULKAN_MODULE_ENTRY_POINT(name, required) extern PFN_##name name;
-#define VULKAN_INSTANCE_ENTRY_POINT(name, required) extern PFN_##name name;
-#define VULKAN_DEVICE_ENTRY_POINT(name, required) extern PFN_##name name;
-#include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
-#undef VULKAN_DEVICE_ENTRY_POINT
-#undef VULKAN_INSTANCE_ENTRY_POINT
-#undef VULKAN_MODULE_ENTRY_POINT
+#define VULKAN_ENTRY_POINT(name, required) extern PFN_##name name;
+VULKAN_EACH_ENTRY_POINT(VULKAN_ENTRY_POINT)
+#undef VULKAN_ENTRY_POINT
 
 namespace Vulkan
 {
