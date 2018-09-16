@@ -13,10 +13,76 @@
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 #include <Windows.h>
+#define LOADER_WINDOWS 1
+
 #elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
     defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(USE_HEADLESS)
 #include <dlfcn.h>
+#define LOADER_UNIX 1
 #endif
+
+namespace
+{
+#if defined(LOADER_WINDOWS)
+using Module = HMODULE;
+const char* const search_lib_names[] = {"vulkan-1.dll"};
+
+Module LoadModule(const char* lib_name) noexcept
+{
+  return LoadLibraryA(lib_name);
+}
+
+void UnloadModule(Module* module) noexcept
+{
+  FreeLibrary(*module);
+  *module = nullptr;
+}
+
+void* LoadModuleFunction(Module module, const char* name) noexcept
+{
+  return static_cast<void*>(GetProcAddress(module, name));
+}
+
+#elif defined(LOADER_UNIX)
+using Module = void*;
+const char* const search_lib_names[] = {"libvulkan.so.1", "libvulkan.so"};
+
+Module LoadModule(const char* lib_name) noexcept
+{
+  return dlopen(lib_name, RTLD_NOW);
+}
+
+void UnloadModule(Module* module) noexcept
+{
+  dlclose(*module);
+  *module = nullptr;
+}
+
+void* LoadModuleFunction(Module module, const char* name) noexcept
+{
+  return dlsym(module, name);
+}
+
+#else
+using Module = void*;
+const char* const search_lib_names[] = {};
+
+Module LoadModule(const char* lib_name) noexcept
+{
+  return nullptr;
+}
+
+void UnloadModule(Module* module) noexcept
+{
+}
+
+void* LoadModuleFunction(Module module, const char* name) noexcept
+{
+  return nullptr;
+}
+
+#endif
+}  // namespace
 
 #define VULKAN_ENTRY_POINT(name, required) PFN_##name name;
 VULKAN_EACH_ENTRY_POINT(VULKAN_ENTRY_POINT)
@@ -31,9 +97,7 @@ static void ResetVulkanLibraryFunctionPointers()
 #undef VULKAN_ENTRY_POINT
 }
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-
-static HMODULE vulkan_module;
+static Module vulkan_module = {};
 static std::atomic_int vulkan_module_ref_count = {0};
 
 bool LoadVulkanLibrary()
@@ -45,101 +109,39 @@ bool LoadVulkanLibrary()
     return true;
   }
 
-  vulkan_module = LoadLibraryA("vulkan-1.dll");
-  if (!vulkan_module)
+  for (auto lib_name : search_lib_names)
   {
-    ERROR_LOG(VIDEO, "Failed to load vulkan-1.dll");
-    return false;
-  }
-
-  bool required_functions_missing = false;
-  auto LoadFunction = [&](FARPROC* func_ptr, const char* name, bool is_required) {
-    *func_ptr = GetProcAddress(vulkan_module, name);
-    if (!(*func_ptr) && is_required)
-    {
-      ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", name);
-      required_functions_missing = true;
-    }
-  };
-
-#define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
-  LoadFunction(reinterpret_cast<FARPROC*>(&name), #name, required);
-  VULKAN_EACH_MODULE_ENTRY_POINT(VULKAN_MODULE_ENTRY_POINT)
-#undef VULKAN_MODULE_ENTRY_POINT
-
-  if (required_functions_missing)
-  {
-    ResetVulkanLibraryFunctionPointers();
-    FreeLibrary(vulkan_module);
-    vulkan_module = nullptr;
-    return false;
-  }
-
-  vulkan_module_ref_count++;
-  return true;
-}
-
-void UnloadVulkanLibrary()
-{
-  if ((--vulkan_module_ref_count) > 0)
-    return;
-
-  ResetVulkanLibraryFunctionPointers();
-  FreeLibrary(vulkan_module);
-  vulkan_module = nullptr;
-}
-
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(USE_HEADLESS)
-
-static void* vulkan_module;
-static std::atomic_int vulkan_module_ref_count = {0};
-
-bool LoadVulkanLibrary()
-{
-  // Not thread safe if a second thread calls the loader whilst the first is still in-progress.
-  if (vulkan_module)
-  {
-    vulkan_module_ref_count++;
-    return true;
-  }
-
-  // Names of libraries to search. Desktop should use libvulkan.so.1 or libvulkan.so.
-  static const char* search_lib_names[] = {"libvulkan.so.1", "libvulkan.so"};
-
-  for (size_t i = 0; i < ArraySize(search_lib_names); i++)
-  {
-    vulkan_module = dlopen(search_lib_names[i], RTLD_NOW);
+    vulkan_module = LoadModule(lib_name);
     if (vulkan_module)
       break;
   }
 
   if (!vulkan_module)
   {
-    ERROR_LOG(VIDEO, "Failed to load or locate libvulkan.so");
+    ERROR_LOG(VIDEO, "Failed to load or locate libvulkan");
     return false;
   }
 
   bool required_functions_missing = false;
-  auto LoadFunction = [&](void** func_ptr, const char* name, bool is_required) {
-    *func_ptr = dlsym(vulkan_module, name);
-    if (!(*func_ptr) && is_required)
+  auto LoadFunction = [&](const char* name, bool is_required) {
+    void* func_ptr = LoadModuleFunction(vulkan_module, name);
+    if (!func_ptr && is_required)
     {
       ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", name);
       required_functions_missing = true;
     }
+    return func_ptr;
   };
 
 #define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
-  LoadFunction(reinterpret_cast<void**>(&name), #name, required);
+  *reinterpret_cast<void**>(&name) = LoadFunction(#name, required);
   VULKAN_EACH_MODULE_ENTRY_POINT(VULKAN_MODULE_ENTRY_POINT)
 #undef VULKAN_MODULE_ENTRY_POINT
 
   if (required_functions_missing)
   {
     ResetVulkanLibraryFunctionPointers();
-    dlclose(vulkan_module);
-    vulkan_module = nullptr;
+    UnloadModule(&vulkan_module);
     return false;
   }
 
@@ -153,24 +155,8 @@ void UnloadVulkanLibrary()
     return;
 
   ResetVulkanLibraryFunctionPointers();
-  dlclose(vulkan_module);
-  vulkan_module = nullptr;
+  UnloadModule(&vulkan_module);
 }
-#else
-
-//#warning Unknown platform, not compiling loader.
-
-bool LoadVulkanLibrary()
-{
-  return false;
-}
-
-void UnloadVulkanLibrary()
-{
-  ResetVulkanLibraryFunctionPointers();
-}
-
-#endif
 
 bool LoadVulkanInstanceFunctions(VkInstance instance)
 {
