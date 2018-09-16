@@ -415,6 +415,8 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
           &QAction::setChecked);
 
+  // i18n: This kind of "watch" is used for watching emulated memory.
+  // It's not related to timekeeping devices.
   m_show_watch = view_menu->addAction(tr("&Watch"));
   m_show_watch->setCheckable(true);
   m_show_watch->setChecked(Settings::Instance().IsWatchVisible());

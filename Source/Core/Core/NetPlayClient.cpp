@@ -150,7 +150,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     if (address.size() > NETPLAY_CODE_SIZE)
     {
       m_dialog->OnConnectionError(
-          _trans("Host code size is too large.\nPlease recheck that you have the correct code."));
+          _trans("The host code is too long.\nPlease recheck that you have the correct code."));
       return;
     }
 
