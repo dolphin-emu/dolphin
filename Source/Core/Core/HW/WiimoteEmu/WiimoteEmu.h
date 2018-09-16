@@ -341,12 +341,26 @@ private:
   u8 m_eeprom[WIIMOTE_EEPROM_SIZE];
   struct MotionPlusReg
   {
-    u8 unknown[0xF0];
+    u8 unknown1[0x20];
+
+    // address 0x20
+    u8 calibration[0x20];
+
+    // address 0x40
+    u8 ext_calib[0x10];
+
+    // address 0x50
+    u8 gyro_calib[0xA0];
 
     // address 0xF0
     u8 activated;
 
-    u8 unknown2[9];
+    u8 unknown3[6];
+
+    // address 0xF7
+    u8 state;
+
+    u8 unknown4[2];
 
     // address 0xFA
     u8 ext_identifier[6];
