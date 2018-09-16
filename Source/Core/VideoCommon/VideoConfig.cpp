@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -170,7 +171,8 @@ void VideoConfig::VerifyValidity()
 
 bool VideoConfig::IsVSync() const
 {
-  return bVSync && !Core::GetIsThrottlerTempDisabled();
+  return bVSync && !Core::GetIsThrottlerTempDisabled() &&
+         SConfig::GetInstance().m_EmulationSpeed == 1.0;
 }
 
 static u32 GetNumAutoShaderCompilerThreads()
