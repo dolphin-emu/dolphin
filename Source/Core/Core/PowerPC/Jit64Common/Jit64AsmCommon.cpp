@@ -34,15 +34,15 @@ void CommonAsmRoutines::GenFrsqrte()
 
   // Negative and zero inputs set an exception and take the complex path.
   TEST(64, R(RSCRATCH), R(RSCRATCH));
-  FixupBranch zero = J_CC(CC_Z, true);
-  FixupBranch negative = J_CC(CC_S, true);
+  FixupBranch zero = J_CC(CC_Z);
+  FixupBranch negative = J_CC(CC_S);
   MOV(64, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHR(64, R(RSCRATCH_EXTRA), Imm8(52));
 
   // Zero and max exponents (non-normal floats) take the complex path.
-  FixupBranch complex1 = J_CC(CC_Z, true);
+  FixupBranch complex1 = J_CC(CC_Z);
   CMP(32, R(RSCRATCH_EXTRA), Imm32(0x7FF));
-  FixupBranch complex2 = J_CC(CC_E, true);
+  FixupBranch complex2 = J_CC(CC_E);
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x3FD));
   SAR(32, R(RSCRATCH_EXTRA), Imm8(1));
