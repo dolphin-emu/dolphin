@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include <string>
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -14,11 +13,17 @@ namespace ControllerEmu
 class Tilt : public ControlGroup
 {
 public:
+  struct StateData
+  {
+    ControlState x{};
+    ControlState y{};
+  };
+
   explicit Tilt(const std::string& name);
 
-  void GetState(ControlState* x, ControlState* y, bool step = true);
+  StateData GetState(bool step = true);
 
 private:
-  std::array<ControlState, 2> m_tilt{};
+  StateData m_tilt;
 };
 }  // namespace ControllerEmu

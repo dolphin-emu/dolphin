@@ -18,10 +18,16 @@ public:
     SETTING_DEADZONE,
   };
 
+  struct StateData
+  {
+    ControlState x{};
+    ControlState y{};
+  };
+
   // The GameCube controller and Wiimote attachments have a different default radius
   AnalogStick(const char* name, ControlState default_radius);
   AnalogStick(const char* name, const char* ui_name, ControlState default_radius);
 
-  void GetState(ControlState* x, ControlState* y);
+  StateData GetState();
 };
 }  // namespace ControllerEmu

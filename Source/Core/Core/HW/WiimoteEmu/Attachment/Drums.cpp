@@ -74,11 +74,10 @@ void Drums::GetState(u8* const data)
 
   // stick
   {
-    ControlState x, y;
-    m_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    drum_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
-    drum_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
+    drum_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
+    drum_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
   }
 
   // TODO: softness maybe
@@ -87,6 +86,7 @@ void Drums::GetState(u8* const data)
 
   // buttons
   m_buttons->GetState(&drum_data.bt, drum_button_bitmasks.data());
+
   // pads
   m_pads->GetState(&drum_data.bt, drum_pad_bitmasks.data());
 

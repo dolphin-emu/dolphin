@@ -39,18 +39,18 @@ Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor
   boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Auto-Hide"), false));
 }
 
-void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState* const z,
-                      const bool adjusted)
+Cursor::StateData Cursor::GetState(const bool adjusted)
 {
   const ControlState zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
 
   // silly being here
-  if (zz > m_z)
-    m_z = std::min(m_z + 0.1, zz);
-  else if (zz < m_z)
-    m_z = std::max(m_z - 0.1, zz);
+  if (zz > m_state.z)
+    m_state.z = std::min(m_state.z + 0.1, zz);
+  else if (zz < m_state.z)
+    m_state.z = std::max(m_state.z - 0.1, zz);
 
-  *z = m_z;
+  StateData result;
+  result.z = m_state.z;
 
   if (m_autohide_timer > -1)
   {
@@ -69,11 +69,11 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
   }
 
   // hide
-  bool autohide = boolean_settings[1]->GetValue() && m_autohide_timer < 0;
+  const bool autohide = boolean_settings[1]->GetValue() && m_autohide_timer < 0;
   if (controls[6]->control_ref->State() > 0.5 || autohide)
   {
-    *x = 10000;
-    *y = 0;
+    result.x = 10000;
+    result.y = 0;
   }
   else
   {
@@ -90,28 +90,30 @@ void Cursor::GetState(ControlState* const x, ControlState* const y, ControlState
     {
       // deadzone to avoid the cursor slowly drifting
       if (std::abs(xx) > deadzone)
-        m_x = MathUtil::Clamp(m_x + xx * SPEED_MULTIPLIER, -1.0, 1.0);
+        m_state.x = MathUtil::Clamp(m_state.x + xx * SPEED_MULTIPLIER, -1.0, 1.0);
       if (std::abs(yy) > deadzone)
-        m_y = MathUtil::Clamp(m_y + yy * SPEED_MULTIPLIER, -1.0, 1.0);
+        m_state.y = MathUtil::Clamp(m_state.y + yy * SPEED_MULTIPLIER, -1.0, 1.0);
 
       // recenter
       if (controls[7]->control_ref->State() > 0.5)
       {
-        m_x = 0.0;
-        m_y = 0.0;
+        m_state.x = 0.0;
+        m_state.y = 0.0;
       }
     }
     else
     {
-      m_x = xx;
-      m_y = yy;
+      m_state.x = xx;
+      m_state.y = yy;
     }
 
-    *x = m_x;
-    *y = m_y;
+    result.x = m_state.x;
+    result.y = m_state.y;
   }
 
   m_prev_xx = xx;
   m_prev_yy = yy;
+
+  return result;
 }
 }  // namespace ControllerEmu
