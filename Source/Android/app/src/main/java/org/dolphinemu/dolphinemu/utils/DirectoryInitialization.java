@@ -76,8 +76,7 @@ public final class DirectoryInitialization {
 		if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
 			File externalPath = Environment.getExternalStorageDirectory();
 			if (externalPath != null) {
-				userPath = externalPath.getAbsolutePath() + "/dolphin-mmj";
-				Log.debug("[DirectoryInitialization] User Dir: " + userPath);
+				userPath = getDolphinDirectory();
 				NativeLibrary.SetUserDirectory(userPath);
 				return true;
 			}
@@ -150,11 +149,11 @@ public final class DirectoryInitialization {
 	}
 
 	public static String getDolphinDirectory() {
-		return Environment.getExternalStorageDirectory().getPath() + File.separator + "dolphin-emu";
+		return Environment.getExternalStorageDirectory().getPath() + File.separator + "dolphin-mmj";
 	}
 
 	public static String getCacheDirectory() {
-		return getDolphinDirectory() + File.separator + "CCache";
+		return getDolphinDirectory() + File.separator + "Cache";
 	}
 
 	public static String getCoverDirectory() {

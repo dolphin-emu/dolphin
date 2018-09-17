@@ -89,7 +89,6 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.5.2'
     // Allows FRP-style asynchronous operations in Android.
     implementation 'io.reactivex:rxandroid:1.2.1'
-    implementation 'com.nononsenseapps:filepicker:4.1.0'
 }
 
 def getVersion() {

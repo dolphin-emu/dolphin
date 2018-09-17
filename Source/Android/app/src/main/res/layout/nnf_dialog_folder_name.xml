@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <EditText
+        android:id="@+id/edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:fontFamily="light"
+        android:padding="4dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:hint="@string/nnf_name"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:gravity="center_vertical"
+        android:imeOptions="actionDone"
+        style="?android:textAppearanceMedium"
+        android:inputType="textAutoComplete|textAutoCorrect"
+        tools:ignore="UnusedAttribute" />
+</FrameLayout>

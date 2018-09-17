@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+
+<resources>
+    <!-- Specifies theme to apply to the toolbar -->
+    <attr name="nnf_toolbarTheme" format="reference"/>
+    <!-- Color to apply to separator for OK/Cancel buttons -->
+    <attr name="nnf_separator_color" format="color"/>
+    <!-- Color to apply to the save icon -->
+    <attr name="nnf_save_icon_color" format="color"/>
+    <!-- Color to apply to the directory icons in list -->
+    <attr name="nnf_dir_icon_color" format="color"/>
+    <!-- Drawable to use as a divider between list items (optional) -->
+    <attr name="nnf_list_item_divider" format="reference"/>
+</resources>

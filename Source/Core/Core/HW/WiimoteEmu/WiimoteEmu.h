@@ -279,6 +279,9 @@ private:
   void SpeakerData(const wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
+  bool IsMotionPlusAttached() const;
+  bool IsMotionPlusActived() const;
+
   // control groups
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_dpad;
@@ -296,6 +299,9 @@ private:
   ControllerEmu::Output* m_motor;
   ControllerEmu::Extension* m_extension;
   ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::BooleanSetting* m_motion_plus_setting;
+  ControllerEmu::BooleanSetting* m_motion_plus_fast_setting;
+  ControllerEmu::BooleanSetting* m_hide_ir;
   ControllerEmu::BooleanSetting* m_sideways_setting;
   ControllerEmu::BooleanSetting* m_upright_setting;
   ControllerEmu::NumericSetting* m_battery_setting;

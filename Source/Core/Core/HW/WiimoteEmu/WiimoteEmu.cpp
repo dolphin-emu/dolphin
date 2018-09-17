@@ -295,6 +295,15 @@ static const char* const named_buttons[] = {
     "A", "B", "1", "2", "-", "+", "Home",
 };
 
+bool Wiimote::IsMotionPlusAttached() const
+{
+  return m_motion_plus_setting->GetValue();
+}
+bool Wiimote::IsMotionPlusActived() const
+{
+  return m_reg_motion_plus.ext_identifier[2] == 0xa4;
+}
+
 void Wiimote::Reset()
 {
   m_reporting_mode = RT_REPORT_CORE;
@@ -428,6 +437,11 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+
+  m_options->boolean_settings.emplace_back(m_motion_plus_setting = new ControllerEmu::BooleanSetting(_trans("Motion Plus"), true));
+  m_options->boolean_settings.emplace_back(m_motion_plus_fast_setting = new ControllerEmu::BooleanSetting(_trans("MotionPlus Fast"), false));
+  m_options->boolean_settings.emplace_back(m_hide_ir = new ControllerEmu::BooleanSetting(_trans("Hide IR"), false));
+
   m_options->boolean_settings.emplace_back(
       new ControllerEmu::BooleanSetting("Forward Wiimote", _trans("Forward Wii Remote"), true,
                                         ControllerEmu::SettingType::NORMAL, true));

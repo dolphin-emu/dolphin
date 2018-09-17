@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nnf_item_container"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="?selectableItemBackground"
+    android:focusable="true"
+    android:minHeight="50dp"
+    android:nextFocusLeft="@+id/nnf_button_cancel"
+    android:nextFocusRight="@+id/nnf_button_ok"
+    android:orientation="horizontal">
+
+    <!--suppress AndroidDomInspection -->
+    <ImageView
+        android:id="@+id/item_icon"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:adjustViewBounds="true"
+        android:scaleType="center"
+        app:srcCompat="@drawable/nnf_ic_folder_black_48dp"
+        android:tint="?attr/nnf_dir_icon_color"
+        android:visibility="visible"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@android:id/text1"
+        style="?android:textAppearanceLarge"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:textSize="15sp"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:maxLines="1"
+        android:padding="8dp"
+        android:singleLine="true"
+        android:text="@string/nnf_name" />
+</LinearLayout>
