@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -74,11 +75,12 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 		mRecyclerView = (RecyclerView) findViewById(R.id.grid_games);
 
 		int columns = getResources().getInteger(R.integer.game_grid_columns);
+		Drawable lineDivider = getDrawable(R.drawable.line_divider);
 		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, columns);
 		mAdapter = new GameAdapter();
 		mRecyclerView.setLayoutManager(layoutManager);
 		mRecyclerView.setAdapter(mAdapter);
-		mRecyclerView.addItemDecoration(new DividerItemDecoration(getDrawable(R.drawable.line_divider)));
+		mRecyclerView.addItemDecoration(new DividerItemDecoration(lineDivider));
 	}
 
 	@Override
