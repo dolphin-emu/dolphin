@@ -7,6 +7,8 @@
 #include "Common/Common.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+#include <mutex>
+
 namespace Vulkan
 {
 class VideoBackend : public VideoBackendBase
@@ -18,5 +20,8 @@ public:
   std::string GetName() const override { return "Vulkan"; }
   std::string GetDisplayName() const override { return _trans("Vulkan"); }
   void InitBackendInfo() override;
+
+private:
+  std::mutex mtx;
 };
 }

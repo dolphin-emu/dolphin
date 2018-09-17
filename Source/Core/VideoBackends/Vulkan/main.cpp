@@ -26,7 +26,7 @@
 
 namespace Vulkan
 {
-void VideoBackend::InitBackendInfo()
+static void InstantiateBackendInfo()
 {
   VulkanContext::PopulateBackendInfo(&g_Config);
 
@@ -72,6 +72,14 @@ void VideoBackend::InitBackendInfo()
   }
 }
 
+void VideoBackend::InitBackendInfo()
+{
+  std::unique_lock<std::mutex> guard(mtx);
+
+  if (!g_vulkan_context)
+    InstantiateBackendInfo();
+}
+
 // Helper method to check whether the Host GPU logging category is enabled.
 static bool IsHostGPULoggingEnabled()
 {
@@ -91,6 +99,8 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
 
 bool VideoBackend::Initialize(void* window_handle)
 {
+  std::unique_lock<std::mutex> guard(mtx);
+
   if (!LoadVulkanLibrary())
   {
     PanicAlert("Failed to load Vulkan library.");
@@ -246,6 +256,8 @@ bool VideoBackend::Initialize(void* window_handle)
 
 void VideoBackend::Shutdown()
 {
+  std::unique_lock<std::mutex> guard(mtx);
+
   if (g_command_buffer_mgr)
     g_command_buffer_mgr->WaitForGPUIdle();
 
