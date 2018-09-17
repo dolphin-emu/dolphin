@@ -21,6 +21,7 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import com.nononsenseapps.filepicker.DividerItemDecoration;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -77,7 +78,7 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 		mAdapter = new GameAdapter();
 		mRecyclerView.setLayoutManager(layoutManager);
 		mRecyclerView.setAdapter(mAdapter);
-		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(getDrawable(R.drawable.line_divider)));
+		mRecyclerView.addItemDecoration(new DividerItemDecoration(getDrawable(R.drawable.line_divider)));
 	}
 
 	@Override

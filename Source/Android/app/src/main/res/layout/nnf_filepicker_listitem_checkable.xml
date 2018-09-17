@@ -13,15 +13,16 @@
     android:layout_height="50dp"
     android:background="?selectableItemBackground"
     android:focusable="true"
-    android:minHeight="50dp"
+    android:minHeight="?android:listPreferredItemHeight"
     android:nextFocusLeft="@+id/nnf_button_cancel"
-    android:nextFocusRight="@+id/nnf_button_ok"
+    android:nextFocusRight="@id/checkbox"
     android:orientation="horizontal">
+
 
     <!--suppress AndroidDomInspection -->
     <ImageView
         android:id="@+id/item_icon"
-        android:layout_width="50dp"
+        android:layout_width="?android:listPreferredItemHeight"
         android:layout_height="50dp"
         android:adjustViewBounds="true"
         android:scaleType="center"
@@ -42,4 +43,15 @@
         android:padding="8dp"
         android:singleLine="true"
         android:text="@string/nnf_name" />
+
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:nextFocusLeft="@id/nnf_item_container"
+        android:nextFocusRight="@+id/nnf_button_ok"
+        android:paddingEnd="8dp"
+        android:paddingRight="8dp"
+        tools:ignore="RtlSymmetry" />
+
 </LinearLayout>

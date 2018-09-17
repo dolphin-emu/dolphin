@@ -49,7 +49,7 @@ public class PicassoUtils {
 
 					@Override
 					public void onError() {
-						imageView.setImageResource(R.drawable.nintendo);
+						imageView.setImageResource(R.drawable.no_banner);
 						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), gameFile.getCoverPath());
 					}
 				});

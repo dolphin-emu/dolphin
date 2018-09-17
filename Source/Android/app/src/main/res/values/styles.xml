@@ -96,7 +96,7 @@
         <item name="colorAccent">@color/dolphin_accent_gamecube</item>
 
         <!--&lt;!&ndash; Setting a divider is entirely optional &ndash;&gt;-->
-        <item name="nnf_list_item_divider">?android:attr/listDivider</item>
+        <item name="nnf_list_item_divider">@drawable/line_divider</item>
 
         <!-- Need to set this also to style create folder dialog -->
         <item name="alertDialogTheme">@style/FilePickerAlertDialogTheme</item>

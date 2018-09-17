@@ -20,6 +20,7 @@ public interface LogicHandler<T> {
 
     int VIEWTYPE_HEADER = 0;
     int VIEWTYPE_DIR = 1;
+    int VIEWTYPE_CHECKABLE = 2;
 
     /**
      * Return true if the path is a directory and not a file.
