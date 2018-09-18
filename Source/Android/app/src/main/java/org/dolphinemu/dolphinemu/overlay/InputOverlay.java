@@ -444,6 +444,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 					R.drawable.gcwii_dpad_pressed_one_direction, R.drawable.gcwii_dpad_pressed_two_directions,
 					ButtonType.WIIMOTE_RIGHT, ButtonType.WIIMOTE_LEFT,
 					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN));
+				// emulate joystick
+				if(JoyStickSetting != JOYSTICK_RELATIVE_CENTER && JoyStickSetting != JOYSTICK_FIXED_CENTER) {
+					overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
+						R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed, ButtonType.NUNCHUK_STICK));
+				}
 			}
 		}
 	}

@@ -409,6 +409,7 @@ public final class EmulationActivity extends AppCompatActivity {
 			editor.apply();
 			InputOverlay.JoyStickSetting = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY,
 				InputOverlay.JOYSTICK_RELATIVE_CENTER);
+			mEmulationFragment.refreshInputOverlay();
 		});
 
 		AlertDialog alertDialog = builder.create();
