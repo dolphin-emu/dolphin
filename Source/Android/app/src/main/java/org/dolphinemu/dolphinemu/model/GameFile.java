@@ -46,8 +46,7 @@ public class GameFile {
 
 	public List<String> getSavedStates() {
 		final int NUM_STATES = 10;
-		final String statePath = Environment.getExternalStorageDirectory().getPath() +
-			"/dolphin-emu/StateSaves/";
+		final String statePath = DirectoryInitialization.getDolphinDirectory() + "/StateSaves/";
 		final String gameId = getGameId();
 		long lastModified = Long.MAX_VALUE;
 		ArrayList<String> savedStates = new ArrayList<>();
@@ -68,8 +67,7 @@ public class GameFile {
 
 	public String getLastSavedState() {
 		final int NUM_STATES = 10;
-		final String statePath = Environment.getExternalStorageDirectory().getPath() +
-			"/dolphin-emu/StateSaves/";
+		final String statePath = DirectoryInitialization.getDolphinDirectory() + "/StateSaves/";
 		final String gameId = getGameId();
 		long lastModified = Long.MAX_VALUE;
 		String savedState = null;

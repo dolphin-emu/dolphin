@@ -344,12 +344,6 @@ u8* ARM64XEmitter::AlignCodePage()
   return m_code;
 }
 
-void ARM64XEmitter::Write32(u32 value)
-{
-  std::memcpy(m_code, &value, sizeof(u32));
-  m_code += sizeof(u32);
-}
-
 void ARM64XEmitter::FlushIcache()
 {
   FlushIcacheSection(m_lastCacheFlushEnd, m_code);
@@ -970,7 +964,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
     break;
   }
 
-  std::memcpy(branch.ptr, &inst, sizeof(inst));
+  *(u32*)branch.ptr = inst;
 }
 
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
@@ -2008,11 +2002,20 @@ void ARM64XEmitter::ADRP(ARM64Reg Rd, s32 imm)
   EncodeAddressInst(1, Rd, imm >> 12);
 }
 
+
+static int Count(bool part[4]) {
+	int cnt = 0;
+	for (int i = 0; i < 4; i++) {
+		if (part[i])
+			cnt++;
+	}
+	return cnt;
+}
 // Wrapper around MOVZ+MOVK (and later MOVN)
 void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
 {
   unsigned int parts = Is64Bit(Rd) ? 4 : 2;
-  BitSet32 upload_part(0);
+  bool upload_part[4];
 
   // Always start with a movz! Kills the dependency on the register.
   bool use_movz = true;
@@ -2058,7 +2061,7 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   u64 aligned_pc = (u64)GetCodePtr() & ~0xFFF;
   s64 aligned_offset = (s64)imm - (s64)aligned_pc;
   // The offset for ADR/ADRP is an s32, so make sure it can be represented in that
-  if (upload_part.Count() > 1 && std::abs(aligned_offset) < 0x7FFFFFFFLL)
+  if (Count(upload_part) > 1 && std::abs(aligned_offset) < 0x7FFFFFFFLL)
   {
     // Immediate we are loading is within 4GB of our aligned range
     // Most likely a address that we can load in one or two instructions

@@ -529,7 +529,7 @@ private:
   void EncodeLoadStoreUnscaled(u32 size, u32 op, ARM64Reg Rt, ARM64Reg Rn, s32 imm);
 
 protected:
-  void Write32(u32 value);
+    inline void Write32(u32 value) { *(u32*)m_code = value; m_code += sizeof(u32); }
 
 public:
   ARM64XEmitter() : m_code(nullptr), m_lastCacheFlushEnd(nullptr) {}
@@ -1131,16 +1131,14 @@ class ARM64CodeBlock : public Common::CodeBlock<ARM64XEmitter>
 private:
   void PoisonMemory() override
   {
-    // If our memory isn't a multiple of u32 then this won't write the last remaining bytes with
-    // anything
+    const int offset = 0;
+    u32* ptr = (u32*)(region + offset);
+    u32* maxptr = (u32*)(region + region_size - offset);
+    // If our memory isn't a multiple of u32 then this won't write the last remaining bytes with anything
     // Less than optimal, but there would be nothing we could do but throw a runtime warning anyway.
     // AArch64: 0xD4200000 = BRK 0
-    constexpr u32 brk_0 = 0xD4200000;
-
-    for (size_t i = 0; i < region_size; i += sizeof(u32))
-    {
-      std::memcpy(region + i, &brk_0, sizeof(u32));
-    }
+    while (ptr < maxptr)
+      *ptr++ = 0xD4200000;
   }
 };
 }
