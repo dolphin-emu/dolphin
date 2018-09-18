@@ -13,7 +13,7 @@
 using namespace Arm64Gen;
 
 template <typename T>
-class MMIOWriteCodeGenerator : public MMIO::WriteHandlingMethodVisitor<T>
+class MMIOWriteCodeGenerator : public MMIO::WriteHandlerVisitor<T>
 {
 public:
   MMIOWriteCodeGenerator(ARM64XEmitter* emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
@@ -93,7 +93,7 @@ private:
 };
 // Visitor that generates code to read a MMIO value.
 template <typename T>
-class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
+class MMIOReadCodeGenerator : public MMIO::ReadHandlerVisitor<T>
 {
 public:
   MMIOReadCodeGenerator(ARM64XEmitter* emit, BitSet32 gprs_in_use, BitSet32 fprs_in_use,
@@ -199,19 +199,19 @@ void MMIOLoadToReg(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitSet32 
   {
     MMIOReadCodeGenerator<u8> gen(emit, gprs_in_use, fprs_in_use, dst_reg, address,
                                   flags & BackPatchInfo::FLAG_EXTEND);
-    mmio->GetHandlerForRead<u8>(address).Visit(gen);
+    mmio->GetHandlerForRead<u8>(address)->Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_16)
   {
     MMIOReadCodeGenerator<u16> gen(emit, gprs_in_use, fprs_in_use, dst_reg, address,
                                    flags & BackPatchInfo::FLAG_EXTEND);
-    mmio->GetHandlerForRead<u16>(address).Visit(gen);
+    mmio->GetHandlerForRead<u16>(address)->Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_32)
   {
     MMIOReadCodeGenerator<u32> gen(emit, gprs_in_use, fprs_in_use, dst_reg, address,
                                    flags & BackPatchInfo::FLAG_EXTEND);
-    mmio->GetHandlerForRead<u32>(address).Visit(gen);
+    mmio->GetHandlerForRead<u32>(address)->Visit(gen);
   }
 }
 
@@ -221,16 +221,16 @@ void MMIOWriteRegToAddr(MMIO::Mapping* mmio, Arm64Gen::ARM64XEmitter* emit, BitS
   if (flags & BackPatchInfo::FLAG_SIZE_8)
   {
     MMIOWriteCodeGenerator<u8> gen(emit, gprs_in_use, fprs_in_use, src_reg, address);
-    mmio->GetHandlerForWrite<u8>(address).Visit(gen);
+    mmio->GetHandlerForWrite<u8>(address)->Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_16)
   {
     MMIOWriteCodeGenerator<u16> gen(emit, gprs_in_use, fprs_in_use, src_reg, address);
-    mmio->GetHandlerForWrite<u16>(address).Visit(gen);
+    mmio->GetHandlerForWrite<u16>(address)->Visit(gen);
   }
   else if (flags & BackPatchInfo::FLAG_SIZE_32)
   {
     MMIOWriteCodeGenerator<u32> gen(emit, gprs_in_use, fprs_in_use, src_reg, address);
-    mmio->GetHandlerForWrite<u32>(address).Visit(gen);
+    mmio->GetHandlerForWrite<u32>(address)->Visit(gen);
   }
 }

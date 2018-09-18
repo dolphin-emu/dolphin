@@ -106,19 +106,18 @@ void Guitar::GetState(u8* const data)
 
   // stick
   {
-    ControlState x, y;
-    m_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    guitar_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
-    guitar_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
+    guitar_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
+    guitar_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
   }
 
   // slider bar
   if (m_slider_bar->controls[0]->control_ref->BoundCount())
   {
-    ControlState slider_bar;
-    m_slider_bar->GetState(&slider_bar);
-    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
+    const ControllerEmu::Slider::StateData slider_data = m_slider_bar->GetState();
+
+    guitar_data.sb = s_slider_bar_control_codes.lower_bound(slider_data.value)->second;
   }
   else
   {
@@ -127,14 +126,15 @@ void Guitar::GetState(u8* const data)
   }
 
   // whammy bar
-  ControlState whammy;
-  m_whammy->GetState(&whammy);
-  guitar_data.whammy = static_cast<u8>(whammy * 0x1F);
+  const ControllerEmu::Triggers::StateData whammy_state = m_whammy->GetState();
+  guitar_data.whammy = static_cast<u8>(whammy_state.data[0] * 0x1F);
 
   // buttons
   m_buttons->GetState(&guitar_data.bt, guitar_button_bitmasks.data());
+
   // frets
   m_frets->GetState(&guitar_data.bt, guitar_fret_bitmasks.data());
+
   // strum
   m_strum->GetState(&guitar_data.bt, guitar_strum_bitmasks.data());
 

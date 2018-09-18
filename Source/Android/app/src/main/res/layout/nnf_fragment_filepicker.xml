@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~ This Source Code Form is subject to the terms of the Mozilla Public
+  ~ License, v. 2.0. If a copy of the MPL was not distributed with this
+  ~ file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  -->
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".FilePickerActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/nnf_picker_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?nnf_toolbarTheme">
+
+        <TextView
+            android:id="@+id/nnf_current_dir"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="start"
+            android:singleLine="true"
+            android:textAppearance="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"/>
+    </android.support.v7.widget.Toolbar>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/nnf_buttons_container"
+        android:layout_below="@+id/nnf_picker_toolbar"
+        android:descendantFocusability="afterDescendants"
+        android:focusable="true"
+        tools:listitem="@layout/nnf_filepicker_listitem_dir"/>
+
+    <FrameLayout
+        android:id="@+id/nnf_buttons_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <LinearLayout
+            android:id="@+id/nnf_button_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/nnf_button_cancel"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/nnf_list_cancel"/>
+
+            <Button
+                android:id="@+id/nnf_button_ok"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/nnf_list_ok"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/nnf_newfile_button_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/nnf_text_filename"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:hint="@string/nnf_filename"
+                android:maxLines="1"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"/>
+
+            <ImageButton
+                android:id="@+id/nnf_button_ok_newfile"
+                style="?attr/borderlessButtonStyle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:hint="@string/nnf_list_ok"
+                app:srcCompat="@drawable/nnf_ic_save_black_24dp"
+                android:tint="?attr/nnf_save_icon_color"/>
+
+        </LinearLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@id/nnf_buttons_container"
+        android:background="?nnf_separator_color"/>
+</RelativeLayout>

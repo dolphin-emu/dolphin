@@ -459,16 +459,6 @@ void ControllersWindow::OnWiimoteConfigure()
   MappingWindow(this, type, static_cast<int>(index)).exec();
 }
 
-void ControllersWindow::UnimplementedButton()
-{
-  QMessageBox error_dialog(this);
-
-  error_dialog.setIcon(QMessageBox::Warning);
-  error_dialog.setWindowTitle(tr("Unimplemented"));
-  error_dialog.setText(tr("Not implemented yet."));
-  error_dialog.exec();
-}
-
 void ControllersWindow::LoadSettings()
 {
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)

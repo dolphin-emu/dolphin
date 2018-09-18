@@ -209,7 +209,8 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  if (title_id == Titles::SHOP && m_ios.GetIOSC().IsUsingDefaultId())
+  if ((title_id == Titles::SHOP || title_id == Titles::KOREAN_SHOP) &&
+      m_ios.GetIOSC().IsUsingDefaultId())
   {
     ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
     CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."

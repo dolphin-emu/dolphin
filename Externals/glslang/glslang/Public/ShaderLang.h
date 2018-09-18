@@ -70,7 +70,7 @@
 // This should always increase, as some paths to do not consume
 // a more major number.
 // It should increment by one when new functionality is added.
-#define GLSLANG_MINOR_VERSION 8
+#define GLSLANG_MINOR_VERSION 9
 
 //
 // Call before doing any other compiler/linker operations.
@@ -532,6 +532,8 @@ public:
         return parse(builtInResources, defaultVersion, ENoProfile, false, forwardCompatible, messages, includer);
     }
 
+    // NOTE: Doing just preprocessing to obtain a correct preprocessed shader string
+    // is not an officially supported or fully working path.
     bool preprocess(const TBuiltInResource* builtInResources,
                     int defaultVersion, EProfile defaultProfile, bool forceDefaultVersionAndProfile,
                     bool forwardCompatible, EShMessages message, std::string* outputString,

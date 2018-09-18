@@ -150,7 +150,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
     if (address.size() > NETPLAY_CODE_SIZE)
     {
       m_dialog->OnConnectionError(
-          _trans("Host code size is too large.\nPlease recheck that you have the correct code."));
+          _trans("The host code is too long.\nPlease recheck that you have the correct code."));
       return;
     }
 
@@ -523,7 +523,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_SyncGpuMaxDistance;
       packet >> m_net_settings.m_SyncGpuMinDistance;
       packet >> m_net_settings.m_SyncGpuOverclock;
-      packet >> m_net_settings.m_JITFollowBranch;
+      packet >> m_net_settings.m_JITFollowThreshold;
       packet >> m_net_settings.m_FastDiscSpeed;
       packet >> m_net_settings.m_MMU;
       packet >> m_net_settings.m_Fastmem;

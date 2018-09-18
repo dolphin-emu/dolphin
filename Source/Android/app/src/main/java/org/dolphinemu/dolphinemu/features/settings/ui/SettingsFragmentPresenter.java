@@ -20,7 +20,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -203,7 +203,7 @@ public final class SettingsFragmentPresenter {
 		syncGpuOverclock = coreSection.getSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK);
 		//mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
 		//fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
-		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
+		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_THRESHOLD);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP).getSetting(SettingsFile.KEY_AUDIO_BACKEND);
 		enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
@@ -235,7 +235,7 @@ public final class SettingsFragmentPresenter {
 		sl.add(new SliderSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK, Settings.SECTION_INI_CORE, R.string.sync_gpu_overclock, R.string.sync_gpu_overclock_description, 200, "%", 100, syncGpuOverclock));
 		//sl.add(new CheckBoxSetting(SettingsFile.KEY_MMU_EMULATION, Settings.SECTION_INI_CORE, R.string.mmu_emulation, R.string.mmu_emulation_description, false, mmuEmulation));
 		//sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DISC_SPEED, Settings.SECTION_INI_CORE, R.string.fast_disc_speed, R.string.fast_disc_speed_description, false, fastDiscSpeed));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH, Settings.SECTION_INI_CORE, R.string.jit_follow_branch, R.string.jit_follow_branch_description, true, followBranch));
+		sl.add(new SliderSetting(SettingsFile.KEY_JIT_FOLLOW_THRESHOLD, Settings.SECTION_INI_CORE, R.string.jit_follow_branch, R.string.jit_follow_branch_description, 10, "", 3, followBranch));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_CHEATS, Settings.SECTION_INI_CORE, R.string.enable_cheats, R.string.enable_cheats_description, false, enableCheats));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE, R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 
@@ -286,8 +286,29 @@ public final class SettingsFragmentPresenter {
 		continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
 		wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 
+		SettingSection sysconfSection = mSettings.getSection(Settings.SECTION_SYSCONF);
+		Setting screensaver = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER);
+		Setting language = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_LANGUAGE);
+		Setting widescreen = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN);
+		//Setting progressiveScan = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN);
+		Setting pal60 = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_PAL60);
+		//Setting sensorBarPosition = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION);
+		//Setting sensorBarSensitivity = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY);
+		//Setting speakerVolume = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME);
+		//Setting wiimoteMotor = sysconfSection.getSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR);
+
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, Settings.SECTION_INI_CORE, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
+
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_SCREENSAVER, Settings.SECTION_SYSCONF, R.string.sysconf_screensaver, 0, true, screensaver));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_LANGUAGE, Settings.SECTION_SYSCONF, R.string.sysconf_language, 0, R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues, 7, language));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIDESCREEN, Settings.SECTION_SYSCONF, R.string.sysconf_widescreen, 0, true, widescreen));
+		//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PROGRESSIVE_SCAN, Settings.SECTION_SYSCONF, R.string.sysconf_progressive_scan, 0, true, progressiveScan));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_PAL60, Settings.SECTION_SYSCONF, R.string.sysconf_pal60, 0, true, pal60));
+		//sl.add(new SingleChoiceSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_POSITION, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_position, 0, R.array.sensorBarPositionEntries, R.array.sensorBarPositionValues, 0, sensorBarPosition));
+		//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SENSOR_BAR_SENSITIVITY, Settings.SECTION_SYSCONF, R.string.sysconf_sensor_bar_sensitivity, 0, 100, "", 70, sensorBarSensitivity));
+		//sl.add(new SliderSetting(SettingsFile.KEY_SYSCONF_SPEAKER_VOLUME, Settings.SECTION_SYSCONF, R.string.sysconf_speaker_volume, 0, 100, "", 70, speakerVolume));
+		//sl.add(new CheckBoxSetting(SettingsFile.KEY_SYSCONF_WIIMOTE_MOTOR, Settings.SECTION_SYSCONF, R.string.sysconf_wiimote_motor, 0, true, wiimoteMotor));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl) {
@@ -366,7 +387,7 @@ public final class SettingsFragmentPresenter {
 
 	private String[] getShaderList(String subDir) {
 		try {
-			String shadersPath = DirectoryInitializationService.getDolphinInternalDirectory() + "/Shaders";
+			String shadersPath = DirectoryInitialization.getDolphinInternalDirectory() + "/Shaders";
 			if (!TextUtils.isEmpty(subDir)) {
 				shadersPath += "/" + subDir;
 			}

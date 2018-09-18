@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,11 +17,12 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import com.nononsenseapps.filepicker.DividerItemDecoration;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -73,11 +75,12 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 		mRecyclerView = (RecyclerView) findViewById(R.id.grid_games);
 
 		int columns = getResources().getInteger(R.integer.game_grid_columns);
+		Drawable lineDivider = getDrawable(R.drawable.line_divider);
 		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, columns);
 		mAdapter = new GameAdapter();
 		mRecyclerView.setLayoutManager(layoutManager);
 		mRecyclerView.setAdapter(mAdapter);
-		mRecyclerView.addItemDecoration(new GameAdapter.SpacesItemDecoration(getDrawable(R.drawable.line_divider)));
+		mRecyclerView.addItemDecoration(new DividerItemDecoration(lineDivider));
 	}
 
 	@Override
@@ -138,7 +141,7 @@ public final class MainActivity extends AppCompatActivity implements MainView {
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					DirectoryInitializationService.startService(this);
+					DirectoryInitialization.start(this);
 					GameFileCacheService.startLoad(this);
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)

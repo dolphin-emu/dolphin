@@ -62,10 +62,8 @@ bool InputConfig::LoadConfig(bool isGC)
 
           if (profiles.empty())
           {
-            const std::string error =
-                "No profiles found for game setting '" + profile_setting + "'";
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("%s", error.c_str());
+            PanicAlertT("No profiles found for game setting '%s'", profile_setting.c_str());
             continue;
           }
 

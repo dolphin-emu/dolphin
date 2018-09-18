@@ -304,6 +304,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new WiimoteEmuGeneral(this, extension);
     setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
+    // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
     AddWidget(tr("Motion Controls and IR"), new WiimoteEmuMotionControl(this));
     AddWidget(tr("Extension"), extension);
     break;
@@ -312,6 +313,8 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   {
     widget = new HotkeyGeneral(this);
     AddWidget(tr("General"), widget);
+    // i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
+    // Frame advance is an example of a typical TAS tool.
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
 
     AddWidget(tr("Debugging"), new HotkeyDebugging(this));
@@ -319,6 +322,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("Wii and Wii Remote"), new HotkeyWii(this));
     AddWidget(tr("Controller Profile"), new HotkeyControllerProfile(this));
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
+    // i18n: Stereoscopic 3D
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));

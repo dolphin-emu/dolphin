@@ -2,7 +2,7 @@ package org.dolphinemu.dolphinemu;
 
 import android.app.Application;
 
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 public class DolphinApplication extends Application {
@@ -13,6 +13,6 @@ public class DolphinApplication extends Application {
 		System.loadLibrary("main");
 
 		if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
-			DirectoryInitializationService.startService(getApplicationContext());
+			DirectoryInitialization.start(getApplicationContext());
 	}
 }

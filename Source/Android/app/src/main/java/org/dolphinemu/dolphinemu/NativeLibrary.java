@@ -193,6 +193,24 @@ public final class NativeLibrary {
 		public static final int PRESSED = 1;
 	}
 
+	/**
+	 * Sysconf settings
+	 */
+	public static final class SYSCONFSetting {
+		// SYSCONF.IPL
+		public static final int SYSCONF_SCREENSAVER = 0;
+		public static final int SYSCONF_LANGUAGE = 1;
+		public static final int SYSCONF_WIDESCREEN = 2;
+		public static final int SYSCONF_PROGRESSIVE_SCAN = 3;
+		public static final int SYSCONF_PAL60 = 4;
+
+		// SYSCONF.BT
+		public static final int SYSCONF_SENSOR_BAR_POSITION = 5;
+		public static final int SYSCONF_SENSOR_BAR_SENSITIVITY = 6;
+		public static final int SYSCONF_SPEAKER_VOLUME = 7;
+		public static final int SYSCONF_WIIMOTE_MOTOR = 8;
+	}
+
 	private NativeLibrary() {
 		// Disallows instantiation.
 	}
@@ -316,6 +334,16 @@ public final class NativeLibrary {
 	 * Returns the current working audio backend
 	 */
 	public static native String DefaultAudioBackend();
+
+	/**
+	 * Get sysconf settings
+	 */
+	public static native int[] getSysconfSettings();
+
+	/**
+	 * Set sysconf settings
+	 */
+	public static native void setSysconfSettings(int[] settings);
 
 	/**
 	 * Begins emulation.

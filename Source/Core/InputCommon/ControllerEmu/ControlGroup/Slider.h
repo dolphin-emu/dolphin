@@ -13,9 +13,14 @@ namespace ControllerEmu
 class Slider : public ControlGroup
 {
 public:
+  struct StateData
+  {
+    ControlState value{};
+  };
+
   Slider(const std::string& name_, const std::string& ui_name_);
   explicit Slider(const std::string& name_);
 
-  void GetState(ControlState* slider);
+  StateData GetState();
 };
 }  // namespace ControllerEmu

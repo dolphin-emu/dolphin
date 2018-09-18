@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,18 +12,13 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 
 public class CheatCodeDialog extends DialogFragment {
 	public static final int CODE_TYPE_AR = 0;
@@ -69,7 +63,7 @@ public class CheatCodeDialog extends DialogFragment {
 	}
 
 	private void setGameSettings(String gameId, EditText editCode) {
-		String filename = DirectoryInitializationService.getLocalSettingFile(gameId);
+		String filename = DirectoryInitialization.getLocalSettingFile(gameId);
 		int index1 = -1;
 		int index2 = -1;
 		int count = 0;
@@ -82,12 +76,12 @@ public class CheatCodeDialog extends DialogFragment {
 			while (line != null) {
 				//
 				int index = line.indexOf(target1);
-				if(index > 0) {
+				if (index > 0) {
 					index1 += count + index;
 				}
 				//
 				index = line.indexOf(target2);
-				if(index > 0) {
+				if (index > 0) {
 					index2 += count + index;
 				}
 				//
@@ -100,7 +94,7 @@ public class CheatCodeDialog extends DialogFragment {
 			// ignore
 		}
 
-		if(index1 == -1 && index2 == -1) {
+		if (index1 == -1 && index2 == -1) {
 			sb.append(System.lineSeparator());
 			sb.append("[ActionReplay]");
 			sb.append(System.lineSeparator());
@@ -119,10 +113,9 @@ public class CheatCodeDialog extends DialogFragment {
 		}
 
 		int cursorPos = 0;
-		if(index1 != -1) {
+		if (index1 != -1) {
 			cursorPos = index1 + target1.length() + 3;
-		}
-		else if(index2 != -1) {
+		} else if (index2 != -1) {
 			cursorPos = index2 + target2.length() + 3;
 		}
 		editCode.setText(sb.toString());
@@ -130,7 +123,7 @@ public class CheatCodeDialog extends DialogFragment {
 	}
 
 	private void AcceptCheatCode(String gameId, String content) {
-		String filename = DirectoryInitializationService.getLocalSettingFile(gameId);
+		String filename = DirectoryInitialization.getLocalSettingFile(gameId);
 		//String[] lines = content.split(System.lineSeparator());
 		boolean saved = false;
 		try {

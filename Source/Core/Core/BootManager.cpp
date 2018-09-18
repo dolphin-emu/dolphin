@@ -71,7 +71,7 @@ public:
 private:
   bool valid;
   bool bCPUThread;
-  bool bJITFollowBranch;
+  int iJITFollowThreshold;
   bool bEnableCheats;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
@@ -105,7 +105,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   valid = true;
 
   bCPUThread = config.bCPUThread;
-  bJITFollowBranch = config.bJITFollowBranch;
+  iJITFollowThreshold = config.iJITFollowThreshold;
   bEnableCheats = config.bEnableCheats;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
@@ -148,7 +148,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   valid = false;
 
   config->bCPUThread = bCPUThread;
-  config->bJITFollowBranch = bJITFollowBranch;
+  config->iJITFollowThreshold = iJITFollowThreshold;
   config->bEnableCheats = bEnableCheats;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
@@ -248,7 +248,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
-    core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
+    core_section->Get("JITFollowThreshold", &StartUp.iJITFollowThreshold, StartUp.iJITFollowThreshold);
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
@@ -320,7 +320,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
   {
     // TODO: remove this once ConfigManager starts using OnionConfig.
     StartUp.bCPUThread = Config::Get(Config::MAIN_CPU_THREAD);
-    StartUp.bJITFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
+    StartUp.iJITFollowThreshold = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
     StartUp.bDSPHLE = Config::Get(Config::MAIN_DSP_HLE);
     StartUp.bFastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
     StartUp.cpu_core = Config::Get(Config::MAIN_CPU_CORE);
@@ -367,7 +367,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     StartUp.iSyncGpuMaxDistance = netplay_settings.m_SyncGpuMaxDistance;
     StartUp.iSyncGpuMinDistance = netplay_settings.m_SyncGpuMinDistance;
     StartUp.fSyncGpuOverclock = netplay_settings.m_SyncGpuOverclock;
-    StartUp.bJITFollowBranch = netplay_settings.m_JITFollowBranch;
+    StartUp.iJITFollowThreshold = netplay_settings.m_JITFollowThreshold;
     StartUp.bFastDiscSpeed = netplay_settings.m_FastDiscSpeed;
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;

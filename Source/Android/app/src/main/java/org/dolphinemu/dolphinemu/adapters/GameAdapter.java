@@ -1,8 +1,6 @@
 package org.dolphinemu.dolphinemu.adapters;
 
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -131,34 +129,5 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		GameDetailsDialog.newInstance(holder.gameFile.getPath()).show(
 			activity.getSupportFragmentManager(), "GameDetailsDialog");
 		return true;
-	}
-
-	public static class SpacesItemDecoration extends RecyclerView.ItemDecoration {
-		private Drawable mDivider;
-
-		public SpacesItemDecoration(Drawable divider) {
-			this.mDivider = divider;
-		}
-
-		@Override
-		public void onDrawOver(Canvas c, RecyclerView parent, RecyclerView.State state) {
-			int left, right, top, bottom;
-			RecyclerView.LayoutParams params;
-			View child;
-
-			for (int i = 0; i < parent.getChildCount(); i++) {
-				child = parent.getChildAt(i);
-				params = (RecyclerView.LayoutParams) child.getLayoutParams();
-
-				// Vertical
-				left = child.getLeft() - params.leftMargin;
-				right = child.getRight() + params.rightMargin;
-				top = child.getBottom() + params.bottomMargin;
-				bottom = top + mDivider.getIntrinsicHeight() - 1;
-				mDivider.setBounds(left, top, right, bottom);
-				mDivider.draw(c);
-			}
-		}
-
 	}
 }

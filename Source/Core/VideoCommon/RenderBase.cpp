@@ -669,7 +669,16 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       m_last_xfb_ticks = ticks;
 
       auto xfb_rect = texture_config.GetRect();
-      xfb_rect.right -= EFBToScaledX(fbStride - fbWidth);
+
+      // It's possible that the returned XFB texture is native resolution
+      // even when we're rendering at higher than native resolution
+      // if the XFB was was loaded entirely from console memory.
+      // If so, adjust the rectangle by native resolution instead of scaled resolution.
+      const u32 native_stride_width_difference = fbStride - fbWidth;
+      if (texture_config.width == xfb_entry->native_width)
+        xfb_rect.right -= native_stride_width_difference;
+      else
+        xfb_rect.right -= EFBToScaledX(native_stride_width_difference);
 
       m_last_xfb_region = xfb_rect;
 

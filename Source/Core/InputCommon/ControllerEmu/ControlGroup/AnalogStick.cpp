@@ -36,20 +36,20 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-void AnalogStick::GetState(ControlState* const x, ControlState* const y)
+AnalogStick::StateData AnalogStick::GetState()
 {
-  ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+  ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-  ControlState radius = numeric_settings[SETTING_RADIUS]->GetValue();
-  ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
-  ControlState m = controls[4]->control_ref->State();
+  const ControlState radius = numeric_settings[SETTING_RADIUS]->GetValue();
+  const ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
+  const ControlState m = controls[4]->control_ref->State();
 
-  ControlState ang = atan2(yy, xx);
-  ControlState ang_sin = sin(ang);
-  ControlState ang_cos = cos(ang);
+  const ControlState ang = atan2(y, x);
+  const ControlState ang_sin = sin(ang);
+  const ControlState ang_cos = cos(ang);
 
-  ControlState dist = sqrt(xx * xx + yy * yy);
+  ControlState dist = sqrt(x * x + y * y);
 
   // dead zone code
   dist = std::max(0.0, dist - deadzone);
@@ -63,10 +63,9 @@ void AnalogStick::GetState(ControlState* const x, ControlState* const y)
   if (m)
     dist *= 0.5;
 
-  yy = std::max(-1.0, std::min(1.0, ang_sin * dist));
-  xx = std::max(-1.0, std::min(1.0, ang_cos * dist));
+  y = std::max(-1.0, std::min(1.0, ang_sin * dist));
+  x = std::max(-1.0, std::min(1.0, ang_cos * dist));
 
-  *y = yy;
-  *x = xx;
+  return {x, y};
 }
 }  // namespace ControllerEmu

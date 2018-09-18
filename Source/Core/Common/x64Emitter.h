@@ -378,10 +378,10 @@ private:
                               size_t* shadowp, size_t* subtractionp, size_t* xmm_offsetp);
 
 protected:
-  void Write8(u8 value);
-  void Write16(u16 value);
-  void Write32(u32 value);
-  void Write64(u64 value);
+  inline void Write8(u8 value) { *code++ = value; }
+  inline void Write16(u16 value) { *(u16*)code = (value); code += sizeof(u16); }
+  inline void Write32(u32 value) { *(u32*)code = (value); code += sizeof(u32); }
+  inline void Write64(u64 value) { *(u64*)code = (value); code += sizeof(u64); }
 
 public:
   XEmitter() = default;

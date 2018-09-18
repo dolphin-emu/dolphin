@@ -50,12 +50,20 @@ constexpr std::array<const char*, 131> s_hotkey_labels{{
     _trans("Export Recording"),
     _trans("Read-Only Mode"),
 
+    // i18n: Here, "Step" is a verb. This feature is used for
+    // going through code step by step.
     _trans("Step Into"),
+    // i18n: Here, "Step" is a verb. This feature is used for
+    // going through code step by step.
     _trans("Step Over"),
+    // i18n: Here, "Step" is a verb. This feature is used for
+    // going through code step by step.
     _trans("Step Out"),
     _trans("Skip"),
 
+    // i18n: Here, PC is an acronym for program counter, not personal computer.
     _trans("Show PC"),
+    // i18n: Here, PC is an acronym for program counter, not personal computer.
     _trans("Set PC"),
 
     _trans("Toggle Breakpoint"),
@@ -277,7 +285,9 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
      {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
+     // i18n: Stereoscopic 3D
      {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_3DVISION},
+     // i18n: Stereoscopic 3D
      {_trans("3D Depth"), HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
      {_trans("Load State"), HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
      {_trans("Save State"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},

@@ -14,13 +14,13 @@
     <integer name="BUTTON_Z_X">60</integer>
     <integer name="BUTTON_Z_Y">-40</integer>
     <integer name="BUTTON_UP_X">-85</integer>
-    <integer name="BUTTON_UP_Y">-10</integer>
+    <integer name="BUTTON_UP_Y">-15</integer>
     <integer name="TRIGGER_L_X">-80</integer>
     <integer name="TRIGGER_L_Y">-60</integer>
     <integer name="TRIGGER_R_X">80</integer>
     <integer name="TRIGGER_R_Y">-60</integer>
     <integer name="BUTTON_START_X">0</integer>
-    <integer name="BUTTON_START_Y">65</integer>
+    <integer name="BUTTON_START_Y">75</integer>
     <integer name="STICK_C_X">82</integer>
     <integer name="STICK_C_Y">-10</integer>
     <integer name="STICK_MAIN_X">-70</integer>
@@ -46,7 +46,7 @@
     <integer name="WIIMOTE_UP_X">-85</integer>
     <integer name="WIIMOTE_UP_Y">-10</integer>
     <integer name="WIIMOTE_BUTTON_HOME_X">0</integer>
-    <integer name="WIIMOTE_BUTTON_HOME_Y">55</integer>
+    <integer name="WIIMOTE_BUTTON_HOME_Y">75</integer>
     <integer name="NUNCHUK_STICK_X">-75</integer>
     <integer name="NUNCHUK_STICK_Y">55</integer>
 
@@ -72,7 +72,7 @@
     <integer name="CLASSIC_BUTTON_ZR_X">75</integer>
     <integer name="CLASSIC_BUTTON_ZR_Y">-75</integer>
     <integer name="CLASSIC_DPAD_UP_X">-85</integer>
-    <integer name="CLASSIC_DPAD_UP_Y">-10</integer>
+    <integer name="CLASSIC_DPAD_UP_Y">-15</integer>
     <integer name="CLASSIC_STICK_LEFT_X">-70</integer>
     <integer name="CLASSIC_STICK_LEFT_Y">55</integer>
     <integer name="CLASSIC_STICK_RIGHT_X">80</integer>

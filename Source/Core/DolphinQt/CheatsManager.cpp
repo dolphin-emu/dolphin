@@ -334,6 +334,7 @@ QWidget* CheatsManager::CreateCheatSearch()
   auto* group_layout = new QHBoxLayout;
   group_box->setLayout(group_layout);
 
+  // i18n: The base 10 numeral system. Not related to non-integer numbers
   m_match_decimal = new QRadioButton(tr("Decimal"));
   m_match_hexadecimal = new QRadioButton(tr("Hexadecimal"));
   m_match_octal = new QRadioButton(tr("Octal"));

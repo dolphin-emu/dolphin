@@ -11,7 +11,6 @@ PUBLIC
   common
 
 PRIVATE
-  bdisasm
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 
@@ -21,6 +20,11 @@ if(NOT ANDROID)
   target_sources(uicommon PRIVATE DiscordPresence.cpp)
   target_sources(uicommon PRIVATE Disassembler.cpp)
   target_link_libraries(uicommon PUBLIC cpp-optparse)
+endif()
+
+if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
+    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
+  target_link_libraries(uicommon PRIVATE bdisasm)
 endif()
 
 if(USE_X11)

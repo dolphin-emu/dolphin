@@ -168,6 +168,7 @@ void WiiPane::CreateWiiRemoteSettings()
   m_wiimote_ir_sensor_position->addItem(tr("Bottom"));
 
   // IR Sensitivity Slider
+  // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   m_wiimote_ir_sensitivity_label = new QLabel(tr("IR Sensitivity:"));
   m_wiimote_ir_sensitivity = new QSlider(Qt::Horizontal);
   m_wiimote_ir_sensitivity->setMinimum(4);

@@ -125,9 +125,12 @@ void WatchWidget::Update()
 
   m_table->setRowCount(size + 1);
 
-  m_table->setHorizontalHeaderLabels({tr("Label"), tr("Address"), tr("Hexadecimal"), tr("Decimal"),
-                                      // i18n: Data type used in computing
-                                      tr("String")});
+  m_table->setHorizontalHeaderLabels(
+      {tr("Label"), tr("Address"), tr("Hexadecimal"),
+       // i18n: The base 10 numeral system. Not related to non-integer numbers
+       tr("Decimal"),
+       // i18n: Data type used in computing
+       tr("String")});
 
   for (int i = 0; i < size; i++)
   {

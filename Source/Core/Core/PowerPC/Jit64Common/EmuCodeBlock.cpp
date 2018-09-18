@@ -207,7 +207,7 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
 
 // Visitor that generates code to read a MMIO value.
 template <typename T>
-class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
+class MMIOReadCodeGenerator : public MMIO::ReadHandlerVisitor<T>
 {
 public:
   MMIOReadCodeGenerator(Gen::X64CodeBlock* code, BitSet32 registers_in_use, Gen::X64Reg dst_reg,
@@ -295,19 +295,19 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
   case 8:
   {
     MMIOReadCodeGenerator<u8> gen(this, registers_in_use, reg_value, address, sign_extend);
-    mmio->GetHandlerForRead<u8>(address).Visit(gen);
+    mmio->GetHandlerForRead<u8>(address)->Visit(gen);
     break;
   }
   case 16:
   {
     MMIOReadCodeGenerator<u16> gen(this, registers_in_use, reg_value, address, sign_extend);
-    mmio->GetHandlerForRead<u16>(address).Visit(gen);
+    mmio->GetHandlerForRead<u16>(address)->Visit(gen);
     break;
   }
   case 32:
   {
     MMIOReadCodeGenerator<u32> gen(this, registers_in_use, reg_value, address, sign_extend);
-    mmio->GetHandlerForRead<u32>(address).Visit(gen);
+    mmio->GetHandlerForRead<u32>(address)->Visit(gen);
     break;
   }
   }

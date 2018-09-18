@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include <array>
-#include <string>
-#include <tuple>
-#include <type_traits>
-
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
@@ -16,23 +11,6 @@
 
 namespace MMIO
 {
-// There are three main MMIO blocks on the Wii (only one on the GameCube):
-//  - 0x0C00xxxx: GameCube MMIOs (CP, PE, VI, PI, MI, DSP, DVD, SI, EI, AI, GP)
-//  - 0x0D00xxxx: Wii MMIOs and GC mirrors (IPC, DVD, SI, EI, AI)
-//  - 0x0D80xxxx: Mirror of 0x0D00xxxx.
-//
-// In practice, since the third block is a mirror of the second one, we can
-// assume internally that there are only two blocks: one for GC, one for Wii.
-enum Block
-{
-  GC_BLOCK = 0,
-  WII_BLOCK = 1,
-
-  NUM_BLOCKS
-};
-const u32 BLOCK_SIZE = 0x10000;
-const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
-
 // Checks if a given physical memory address refers to the MMIO address range.
 // In practice, most games use a virtual memory mapping (via BATs set in the
 // IPL) that matches the physical memory mapping for MMIOs.
@@ -54,21 +32,6 @@ inline bool IsMMIOAddress(u32 address)
   }
 
   return false;
-}
-
-// Compute the internal unique ID for a given MMIO address. This ID is computed
-// from a very simple formula: (block_id << 16) | lower_16_bits(address).
-//
-// The block ID can easily be computed by simply checking bit 24 (CC vs. CD).
-inline u32 UniqueID(u32 address)
-{
-  DEBUG_ASSERT_MSG(MEMMAP,
-                   ((address & 0xFFFF0000) == 0x0C000000) ||
-                       ((address & 0xFFFF0000) == 0x0D000000) ||
-                       ((address & 0xFFFF0000) == 0x0D800000),
-                   "Trying to get the ID of a non-existing MMIO address.");
-
-  return (((address >> 24) & 1) << 16) | (address & 0xFFFF);
 }
 
 // Some utilities functions to define MMIO mappings.
@@ -95,28 +58,89 @@ inline u16* HighPart(volatile u32* ptr)
 
 class Mapping
 {
+private:
+  // These arrays contain the handlers for each MMIO access type: read/write
+  // to 8/16/32 bits. They are indexed using the UniqueID(addr) function
+  // defined earlier, which maps an MMIO address to a unique ID by using the
+  // MMIO block ID.
+  //
+  // Each array contains NUM_MMIOS / sizeof (AccessType) because larger
+  // access types mean less possible adresses (assuming aligned only
+  // accesses).
+  template <typename Unit>
+  struct MMIOHander
+  {
+    // There are three main MMIO blocks on the Wii (only one on the GameCube):
+    //  - 0x0C00xxxx: GameCube MMIOs (CP, PE, VI, PI, MI, DSP, DVD, SI, EI, AI, GP)
+    //  - 0x0D00xxxx: Wii MMIOs and GC mirrors (IPC, DVD, SI, EI, AI)
+    //  - 0x0D80xxxx: Mirror of 0x0D00xxxx.
+    //
+    // In practice, since the third block is a mirror of the second one, we can
+    // assume internally that there are only two blocks: one for GC, one for Wii.
+    enum Block
+    {
+      GC_BLOCK = 0,
+      WII_BLOCK = 1,
+
+      NUM_BLOCKS
+    };
+    static const u32 BLOCK_SIZE = 0x10000;
+    static const u32 NUM_MMIOS = NUM_BLOCKS * BLOCK_SIZE;
+
+    static MMIOHander* Instance()
+    {
+      static MMIOHander inst;
+      return &inst;
+    }
+
+    // Compute the internal unique ID for a given MMIO address. This ID is computed
+    // from a very simple formula: (block_id << 16) | lower_16_bits(address).
+    //
+    // The block ID can easily be computed by simply checking bit 24 (CC vs. CD).
+    inline u32 UniqueID(u32 address)
+    {
+      DEBUG_ASSERT_MSG(MEMMAP,
+        ((address & 0xFFFF0000) == 0x0C000000) ||
+        ((address & 0xFFFF0000) == 0x0D000000) ||
+        ((address & 0xFFFF0000) == 0x0D800000),
+        "Trying to get the ID of a non-existing MMIO address.");
+
+      return (((address >> 24) & 1) << 16) | (address & 0xFFFF);
+    }
+
+    ReadHandler<Unit>* GetHandlerForRead(u32 addr)
+    {
+      return m_read_handlers[UniqueID(addr) / sizeof(Unit)];
+    }
+    WriteHandler<Unit>* GetHandlerForWrite(u32 addr)
+    {
+      return m_write_handlers[UniqueID(addr) / sizeof(Unit)];
+    }
+
+    void SetHandlerForRead(u32 addr, ReadHandler<Unit>* read)
+    {
+      m_read_handlers[UniqueID(addr) / sizeof(Unit)] = read;
+    }
+
+    void SetHandlerForWrite(u32 addr, WriteHandler<Unit>* write)
+    {
+      m_write_handlers[UniqueID(addr) / sizeof(Unit)] = write;
+    }
+
+    ReadHandler<Unit>* m_read_handlers[NUM_MMIOS / sizeof(Unit)];
+    WriteHandler<Unit>* m_write_handlers[NUM_MMIOS / sizeof(Unit)];
+  };
+
 public:
   // MMIO registration interface. Use this to register new MMIO handlers.
   //
   // Example usages can be found in just about any HW/ module in Dolphin's
   // codebase.
   template <typename Unit>
-  void RegisterRead(u32 addr, ReadHandlingMethod<Unit>* read)
+  void Register(u32 addr, ReadHandler<Unit>* read, WriteHandler<Unit>* write)
   {
-    GetHandlerForRead<Unit>(addr).ResetMethod(read);
-  }
-
-  template <typename Unit>
-  void RegisterWrite(u32 addr, WriteHandlingMethod<Unit>* write)
-  {
-    GetHandlerForWrite<Unit>(addr).ResetMethod(write);
-  }
-
-  template <typename Unit>
-  void Register(u32 addr, ReadHandlingMethod<Unit>* read, WriteHandlingMethod<Unit>* write)
-  {
-    RegisterRead(addr, read);
-    RegisterWrite(addr, write);
+    MMIOHander<Unit>::Instance()->SetHandlerForRead(addr, read);
+    MMIOHander<Unit>::Instance()->SetHandlerForWrite(addr, write);
   }
 
   // Direct read/write interface.
@@ -128,13 +152,13 @@ public:
   template <typename Unit>
   Unit Read(u32 addr)
   {
-    return GetHandlerForRead<Unit>(addr).Read(addr);
+    return MMIOHander<Unit>::Instance()->GetHandlerForRead(addr)->Read(addr);
   }
 
   template <typename Unit>
   void Write(u32 addr, Unit val)
   {
-    GetHandlerForWrite<Unit>(addr).Write(addr, val);
+    MMIOHander<Unit>::Instance()->GetHandlerForWrite(addr)->Write(addr, val);
   }
 
   // Handlers access interface.
@@ -143,66 +167,27 @@ public:
   // address than the current value of that register. For example, this is
   // what could be used to implement fast MMIO accesses in Dolphin's JIT.
   template <typename Unit>
-  ReadHandler<Unit>& GetHandlerForRead(u32 addr)
+  ReadHandler<Unit>* GetHandlerForRead(u32 addr)
   {
-    return GetReadHandler<Unit>(UniqueID(addr) / sizeof(Unit));
+    return MMIOHander<Unit>::Instance()->GetHandlerForRead(addr);
   }
 
   template <typename Unit>
-  WriteHandler<Unit>& GetHandlerForWrite(u32 addr)
+  WriteHandler<Unit>* GetHandlerForWrite(u32 addr)
   {
-    return GetWriteHandler<Unit>(UniqueID(addr) / sizeof(Unit));
-  }
-
-private:
-  // These arrays contain the handlers for each MMIO access type: read/write
-  // to 8/16/32 bits. They are indexed using the UniqueID(addr) function
-  // defined earlier, which maps an MMIO address to a unique ID by using the
-  // MMIO block ID.
-  //
-  // Each array contains NUM_MMIOS / sizeof (AccessType) because larger
-  // access types mean less possible adresses (assuming aligned only
-  // accesses).
-  template <typename Unit>
-  struct HandlerArray
-  {
-    using Read = std::array<ReadHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
-    using Write = std::array<WriteHandler<Unit>, NUM_MMIOS / sizeof(Unit)>;
-  };
-
-  HandlerArray<u8>::Read m_read_handlers8;
-  HandlerArray<u16>::Read m_read_handlers16;
-  HandlerArray<u32>::Read m_read_handlers32;
-
-  HandlerArray<u8>::Write m_write_handlers8;
-  HandlerArray<u16>::Write m_write_handlers16;
-  HandlerArray<u32>::Write m_write_handlers32;
-
-  // Getter functions for the handler arrays.
-  template <typename Unit>
-  ReadHandler<Unit>& GetReadHandler(size_t index)
-  {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
-
-    auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
-
-    using ArrayType = typename HandlerArray<Unit>::Read;
-    return std::get<ArrayType&>(handlers)[index];
+    return MMIOHander<Unit>::Instance()->GetHandlerForWrite(addr);
   }
 
   template <typename Unit>
-  WriteHandler<Unit>& GetWriteHandler(size_t index)
+  void SetHandlerForRead(u32 addr, ReadHandler<Unit>* read)
   {
-    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
-                      std::is_same<Unit, u32>(),
-                  "Invalid unit used");
+    MMIOHander<Unit>::Instance()->SetHandlerForRead(addr, read);
+  }
 
-    auto handlers = std::tie(m_write_handlers8, m_write_handlers16, m_write_handlers32);
-
-    using ArrayType = typename HandlerArray<Unit>::Write;
-    return std::get<ArrayType&>(handlers)[index];
+  template <typename Unit>
+  void SetHandlerForWrite(u32 addr, WriteHandler<Unit>* write)
+  {
+    MMIOHander<Unit>::Instance()->SetHandlerForWrite(addr, write);
   }
 };
 
@@ -220,4 +205,79 @@ inline void Mapping::Write(u32 addr, u64 val)
 {
   DEBUG_ASSERT(0);
 }
+
+// Converters to larger and smaller size. Probably the most complex of these
+// handlers to implement. They do not define new handling method types but
+// instead will internally use the types defined above.
+template <typename T>
+struct SmallerAccessSize
+{
+};
+template <>
+struct SmallerAccessSize<u16>
+{
+    typedef u8 value;
+};
+template <>
+struct SmallerAccessSize<u32>
+{
+    typedef u16 value;
+};
+
+template <typename T>
+struct LargerAccessSize
+{
+};
+template <>
+struct LargerAccessSize<u8>
+{
+    typedef u16 value;
+};
+template <>
+struct LargerAccessSize<u16>
+{
+    typedef u32 value;
+};
+
+template <typename T>
+ReadHandler<T>* ReadToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_part_addr)
+{
+  typedef typename SmallerAccessSize<T>::value ST;
+
+  ReadHandler<ST>* high_part = mmio->GetHandlerForRead<ST>(high_part_addr);
+  ReadHandler<ST>* low_part = mmio->GetHandlerForRead<ST>(low_part_addr);
+
+  // TODO(delroth): optimize
+  return ComplexRead<T>([=](u32 addr) {
+      return ((T)high_part->Read(high_part_addr) << (8 * sizeof(ST))) | low_part->Read(low_part_addr);
+  });
+}
+
+template <typename T>
+WriteHandler<T>* WriteToSmaller(Mapping* mmio, u32 high_part_addr, u32 low_part_addr)
+{
+  typedef typename SmallerAccessSize<T>::value ST;
+
+  WriteHandler<ST>* high_part = mmio->GetHandlerForWrite<ST>(high_part_addr);
+  WriteHandler<ST>* low_part = mmio->GetHandlerForWrite<ST>(low_part_addr);
+
+  // TODO(delroth): optimize
+  return ComplexWrite<T>([=](u32 addr, T val) {
+      high_part->Write(high_part_addr, val >> (8 * sizeof(ST)));
+      low_part->Write(low_part_addr, (ST)val);
+  });
+}
+
+template <typename T>
+ReadHandler<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
+{
+  typedef typename LargerAccessSize<T>::value LT;
+
+  ReadHandler<LT>* large = mmio->GetHandlerForRead<LT>(larger_addr);
+
+  // TODO(delroth): optimize
+  return ComplexRead<T>(
+    [large, shift](u32 addr) { return large->Read(addr & ~(sizeof(LT) - 1)) >> shift; });
+}
+
 }

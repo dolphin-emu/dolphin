@@ -489,7 +489,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #else
   core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::Interpreter);
 #endif
-  core->Get("JITFollowBranch", &bJITFollowBranch, true);
+  core->Get("JITFollowThreshold", &iJITFollowThreshold, 3);
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);

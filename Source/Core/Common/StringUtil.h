@@ -90,6 +90,7 @@ std::string ValueToString(double value);
 std::string ValueToString(int value);
 std::string ValueToString(s64 value);
 std::string ValueToString(bool value);
+std::string ValueToString(const std::string& value);
 template <typename T, std::enable_if_t<std::is_enum<T>::value>* = nullptr>
 std::string ValueToString(T value)
 {

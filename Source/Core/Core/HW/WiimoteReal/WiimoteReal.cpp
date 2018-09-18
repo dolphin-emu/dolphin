@@ -34,9 +34,9 @@ unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace WiimoteReal
 {
-void TryToConnectBalanceBoard(Wiimote*);
-void TryToConnectWiimote(Wiimote*);
-void HandleWiimoteDisconnect(int index);
+static void TryToConnectBalanceBoard(Wiimote*);
+static void TryToConnectWiimote(Wiimote*);
+static void HandleWiimoteDisconnect(int index);
 
 static bool g_real_wiimotes_initialized = false;
 
@@ -813,7 +813,7 @@ static bool TryToConnectWiimoteToSlot(Wiimote* wm, unsigned int i)
   return false;
 }
 
-void TryToConnectWiimote(Wiimote* wm)
+static void TryToConnectWiimote(Wiimote* wm)
 {
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
@@ -826,7 +826,7 @@ void TryToConnectWiimote(Wiimote* wm)
   delete wm;
 }
 
-void TryToConnectBalanceBoard(Wiimote* wm)
+static void TryToConnectBalanceBoard(Wiimote* wm)
 {
   if (TryToConnectWiimoteToSlot(wm, WIIMOTE_BALANCE_BOARD))
   {
@@ -835,7 +835,7 @@ void TryToConnectBalanceBoard(Wiimote* wm)
   delete wm;
 }
 
-void HandleWiimoteDisconnect(int index)
+static void HandleWiimoteDisconnect(int index)
 {
   Wiimote* wm = nullptr;
   std::swap(wm, g_wiimotes[index]);

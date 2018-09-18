@@ -146,7 +146,7 @@
     <string name="fast_disc_speed">Fast Disc Speed</string>
     <string name="fast_disc_speed_description">Accelerates the emulated disc speed, removing any loading emulation.</string>
     <string name="jit_follow_branch">JIT Follow Branch</string>
-    <string name="jit_follow_branch_description">JIT follow branch is great improve performance, but some games will crash with this enabled.</string>
+    <string name="jit_follow_branch_description">JIT follow branch is great improve performance, but some games will crash with this enabled. (0 don\'t follow branch.)</string>
     <string name="audio_backend">Audio Backend</string>
     <string name="audio_backend_description">Set backend used for audio output.</string>
     <string name="enable_cheats">Enable Cheats</string>
@@ -321,4 +321,25 @@
     <string name="interface_show_extended_fps">Show Extended FPS</string>
     <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>
 
+    <string name="sysconf_screensaver">Screensaver</string>
+    <string name="sysconf_language">Language</string>
+    <string name="sysconf_widescreen">Widescreen</string>
+    <string name="sysconf_progressive_scan">Progressive Scan</string>
+    <string name="sysconf_pal60">PAL60</string>
+    <string name="sysconf_sensor_bar_position">Sensor Bar Position</string>
+    <string name="sysconf_sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
+    <string name="sysconf_speaker_volume">Speaker Volume</string>
+    <string name="sysconf_wiimote_motor">Wiimote Motor</string>
+
+	<string name="nnf_new_folder">New folder</string>
+    <string name="nnf_create_folder_error">Failed to create folder</string>
+    <string name="nnf_name">Name</string>
+    <string name="nnf_select_something_first">Please select something first</string>
+    <string name="nnf_need_valid_filename">Please enter or select a valid filename</string>
+    <string name="nnf_permission_external_write_denied">Permisson to access filesystem denied</string>
+    <string name="nnf_filename">Filename</string>
+    <string name="nnf_list_ok">@android:string/ok</string>
+    <string name="nnf_list_cancel">@android:string/cancel</string>
+    <string name="nnf_new_folder_ok">@android:string/ok</string>
+    <string name="nnf_new_folder_cancel">@android:string/cancel</string>
 </resources>

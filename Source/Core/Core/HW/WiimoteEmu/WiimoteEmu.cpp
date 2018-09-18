@@ -5,8 +5,10 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <mutex>
 
@@ -175,28 +177,24 @@ void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, const bool sideways,
                  const bool upright)
 {
-  ControlState roll, pitch;
   // 180 degrees
-  tilt_group->GetState(&roll, &pitch);
+  const ControllerEmu::Tilt::StateData state = tilt_group->GetState();
+  const ControlState roll = state.x * PI;
+  const ControlState pitch = state.y * PI;
 
-  roll *= PI;
-  pitch *= PI;
-
-  unsigned int ud = 0, lr = 0, fb = 0;
-
-  // some notes that no one will understand but me :p
+  // Some notes that no one will understand but me :p
   // left, forward, up
   // lr/ left == negative for all orientations
   // ud/ up == negative for upright longways
   // fb/ forward == positive for (sideways flat)
 
-  // determine which axis is which direction
-  ud = upright ? (sideways ? 0 : 1) : 2;
-  lr = sideways;
-  fb = upright ? 2 : (sideways ? 0 : 1);
+  // Determine which axis is which direction
+  const u32 ud = upright ? (sideways ? 0 : 1) : 2;
+  const u32 lr = sideways;
+  const u32 fb = upright ? 2 : (sideways ? 0 : 1);
 
-  int sgn[3] = {-1, 1, 1};  // sign fix
-
+  // Sign fix
+  std::array<int, 3> sgn{{-1, 1, 1}};
   if (sideways && !upright)
     sgn[fb] *= -1;
   if (!sideways && upright)
@@ -210,25 +208,24 @@ void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, 
 void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const swing_group,
                   const double intensity, const bool sideways, const bool upright)
 {
-  ControlState swing[3];
-  swing_group->GetState(swing);
+  const ControllerEmu::Force::StateData swing = swing_group->GetState();
 
-  s8 g_dir[3] = {-1, -1, -1};
-  u8 axis_map[3];
+  // Determine which axis is which direction
+  const std::array<int, 3> axis_map{{
+      upright ? (sideways ? 0 : 1) : 2,  // up/down
+      sideways,                          // left/right
+      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
+  }};
 
-  // determine which axis is which direction
-  axis_map[0] = upright ? (sideways ? 0 : 1) : 2;  // up/down
-  axis_map[1] = sideways;                          // left|right
-  axis_map[2] = upright ? 2 : (sideways ? 0 : 1);  // forward/backward
-
-  // some orientations have up as positive, some as negative
+  // Some orientations have up as positive, some as negative
   // same with forward
+  std::array<s8, 3> g_dir{{-1, -1, -1}};
   if (sideways && !upright)
     g_dir[axis_map[2]] *= -1;
   if (!sideways && upright)
     g_dir[axis_map[0]] *= -1;
 
-  for (unsigned int i = 0; i < 3; ++i)
+  for (std::size_t i = 0; i < swing.size(); ++i)
     (&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * intensity;
 }
 
@@ -237,25 +234,24 @@ void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
                          const DynamicConfiguration& config, const bool sideways,
                          const bool upright)
 {
-  ControlState swing[3];
-  swing_group->GetState(swing);
+  const ControllerEmu::Force::StateData swing = swing_group->GetState();
 
-  s8 g_dir[3] = {-1, -1, -1};
-  u8 axis_map[3];
+  // Determine which axis is which direction
+  const std::array<int, 3> axis_map{{
+      upright ? (sideways ? 0 : 1) : 2,  // up/down
+      sideways,                          // left/right
+      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
+  }};
 
-  // determine which axis is which direction
-  axis_map[0] = upright ? (sideways ? 0 : 1) : 2;  // up/down
-  axis_map[1] = sideways;                          // left|right
-  axis_map[2] = upright ? 2 : (sideways ? 0 : 1);  // forward/backward
-
-  // some orientations have up as positive, some as negative
+  // Some orientations have up as positive, some as negative
   // same with forward
+  std::array<s8, 3> g_dir{{-1, -1, -1}};
   if (sideways && !upright)
     g_dir[axis_map[2]] *= -1;
   if (!sideways && upright)
     g_dir[axis_map[0]] *= -1;
 
-  for (unsigned int i = 0; i < 3; ++i)
+  for (std::size_t i = 0; i < swing.size(); ++i)
   {
     if (swing[i] > 0 && dynamic_data.executing_frames_left[i] == 0)
     {
@@ -298,6 +294,15 @@ static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LE
 static const char* const named_buttons[] = {
     "A", "B", "1", "2", "-", "+", "Home",
 };
+
+bool Wiimote::IsMotionPlusAttached() const
+{
+  return m_motion_plus_setting->GetValue();
+}
+bool Wiimote::IsMotionPlusActived() const
+{
+  return m_reg_motion_plus.ext_identifier[2] == 0xa4;
+}
 
 void Wiimote::Reset()
 {
@@ -432,9 +437,14 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(new ControllerEmu::BooleanSetting(
-                                               "Forward Wiimote", _trans("Forward Wii Remote"),
-                                               true, ControllerEmu::SettingType::NORMAL, true));
+
+  m_options->boolean_settings.emplace_back(m_motion_plus_setting = new ControllerEmu::BooleanSetting(_trans("Motion Plus"), true));
+  m_options->boolean_settings.emplace_back(m_motion_plus_fast_setting = new ControllerEmu::BooleanSetting(_trans("MotionPlus Fast"), false));
+  m_options->boolean_settings.emplace_back(m_hide_ir = new ControllerEmu::BooleanSetting(_trans("Hide IR"), false));
+
+  m_options->boolean_settings.emplace_back(
+      new ControllerEmu::BooleanSetting("Forward Wiimote", _trans("Forward Wii Remote"), true,
+                                        ControllerEmu::SettingType::NORMAL, true));
   m_options->boolean_settings.emplace_back(m_upright_setting = new ControllerEmu::BooleanSetting(
                                                "Upright Wiimote", _trans("Upright Wii Remote"),
                                                false, ControllerEmu::SettingType::NORMAL, true));
@@ -682,15 +692,14 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   u16 x[4], y[4];
   memset(x, 0xFF, sizeof(x));
 
-  ControlState xx = 10000, yy = 0, zz = 0;
   double nsin, ncos;
 
   if (use_accel)
   {
-    double ax, az, len;
-    ax = m_accel.x;
-    az = m_accel.z;
-    len = sqrt(ax * ax + az * az);
+    double ax = m_accel.x;
+    double az = m_accel.z;
+    const double len = sqrt(ax * ax + az * az);
+
     if (len)
     {
       ax /= len;
@@ -714,33 +723,34 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   LowPassFilter(ir_sin, nsin, 1.0 / 60);
   LowPassFilter(ir_cos, ncos, 1.0 / 60);
 
-  m_ir->GetState(&xx, &yy, &zz, true);
+  static constexpr int camWidth = 1024;
+  static constexpr int camHeight = 768;
+  static constexpr double bndup = -0.315447;
+  static constexpr double bnddown = 0.85;
+  static constexpr double bndleft = 0.78820266;
+  static constexpr double bndright = -0.78820266;
+  static constexpr double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
+  static constexpr double dist2 = 1.2 * dist1;
 
-  Vertex v[4];
+  const ControllerEmu::Cursor::StateData cursor_state = m_ir->GetState(true);
 
-  static const int camWidth = 1024;
-  static const int camHeight = 768;
-  static const double bndup = -0.315447;
-  static const double bnddown = 0.85;
-  static const double bndleft = 0.78820266;
-  static const double bndright = -0.78820266;
-  static const double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
-  static const double dist2 = 1.2 * dist1;
-
+  std::array<Vertex, 4> v;
   for (auto& vtx : v)
   {
-    vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+    vtx.x = cursor_state.x * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+
     if (m_sensor_bar_on_top)
-      vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+      vtx.y = cursor_state.y * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
     else
-      vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+      vtx.y = cursor_state.y * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+
     vtx.z = 0;
   }
 
-  v[0].x -= (zz * 0.5 + 1) * dist1;
-  v[1].x += (zz * 0.5 + 1) * dist1;
-  v[2].x -= (zz * 0.5 + 1) * dist2;
-  v[3].x += (zz * 0.5 + 1) * dist2;
+  v[0].x -= (cursor_state.z * 0.5 + 1) * dist1;
+  v[1].x += (cursor_state.z * 0.5 + 1) * dist1;
+  v[2].x -= (cursor_state.z * 0.5 + 1) * dist2;
+  v[3].x += (cursor_state.z * 0.5 + 1) * dist2;
 
 #define printmatrix(m)                                                                             \
   PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n", m[0][0], m[0][1], m[0][2],    \
@@ -752,14 +762,17 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   MatrixRotationByZ(rot, ir_sin, ir_cos);
   MatrixMultiply(tot, scale, rot);
 
-  for (int i = 0; i < 4; i++)
+  for (std::size_t i = 0; i < v.size(); i++)
   {
     MatrixTransformVertex(tot, v[i]);
+
     if ((v[i].x < -1) || (v[i].x > 1) || (v[i].y < -1) || (v[i].y > 1))
       continue;
-    x[i] = (u16)lround((v[i].x + 1) / 2 * (camWidth - 1));
-    y[i] = (u16)lround((v[i].y + 1) / 2 * (camHeight - 1));
+
+    x[i] = static_cast<u16>(lround((v[i].x + 1) / 2 * (camWidth - 1)));
+    y[i] = static_cast<u16>(lround((v[i].y + 1) / 2 * (camHeight - 1)));
   }
+
   // Fill report with valid data when full handshake was done
   if (m_reg_ir.data[0x30])
     // ir mode

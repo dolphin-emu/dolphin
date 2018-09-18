@@ -11,8 +11,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.utils.BiMap;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.BufferedReader;
@@ -45,7 +45,7 @@ public final class SettingsFile {
 	public static final String KEY_SYNC_GPU_OVERCLOCK = "SyncGpuOverclock";
 	public static final String KEY_MMU_EMULATION = "MMU";
 	public static final String KEY_FAST_DISC_SPEED = "FastDiscSpeed";
-	public static final String KEY_JIT_FOLLOW_BRANCH = "JITFollowBranch";
+	public static final String KEY_JIT_FOLLOW_THRESHOLD = "JITFollowThreshold";
 	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 	public static final String KEY_AUDIO_STRETCH = "AudioStretch";
 	public static final String KEY_AUDIO_BACKEND = "Backend";
@@ -239,6 +239,19 @@ public final class SettingsFile {
 	public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
 	public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
+	// SYSCONF.IPL
+	public static final String KEY_SYSCONF_SCREENSAVER = "Screensaver";
+	public static final String KEY_SYSCONF_LANGUAGE = "Language";
+	public static final String KEY_SYSCONF_WIDESCREEN = "Widescreen";
+	public static final String KEY_SYSCONF_PROGRESSIVE_SCAN = "ProgressiveScan";
+	public static final String KEY_SYSCONF_PAL60 = "PAL60";
+
+	// SYSCONF.BT
+	public static final String KEY_SYSCONF_SENSOR_BAR_POSITION = "SensorBarPosition";
+	public static final String KEY_SYSCONF_SENSOR_BAR_SENSITIVITY = "SensorBarSensitivity";
+	public static final String KEY_SYSCONF_SPEAKER_VOLUME = "SpeakerVolume";
+	public static final String KEY_SYSCONF_WIIMOTE_MOTOR = "WiimoteMotor";
+
 	// Internal only, not actually found in settings file.
 	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
 
@@ -407,21 +420,21 @@ public final class SettingsFile {
 
 	@NonNull
 	private static File getSettingsFile(String fileName) {
-		return new File(DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
+		return new File(DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
 	}
 
 	private static File getGenericGameSettingsForAllRegions(String gameId) {
 		// Use the first 3 chars from the gameId to load the generic game settings for all regions
 		gameId = gameId.substring(0, 3);
-		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
+		return new File(DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
 	private static File getGenericGameSettingsFile(String gameId) {
-		return new File(DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
+		return new File(DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
 	private static File getCustomGameSettingsFile(String gameId) {
-		return new File(DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
+		return new File(DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
 	}
 
 	private static SettingSection sectionFromLine(String line, boolean isCustomGame) {

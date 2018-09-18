@@ -266,12 +266,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			closeDialog();
 		} else if (mClickedItem instanceof SliderSetting) {
 			SliderSetting sliderSetting = (SliderSetting) mClickedItem;
-			if (sliderSetting.getSetting() instanceof FloatSetting) {
+			if (sliderSetting.isPercentSetting() || sliderSetting.getSetting() instanceof FloatSetting) {
 				float value;
-
-				if (sliderSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
-					|| sliderSetting.getKey().equals(SettingsFile.KEY_SPEED_LIMIT)
-					|| sliderSetting.getKey().equals(SettingsFile.KEY_SYNC_GPU_OVERCLOCK)) {
+				if (sliderSetting.isPercentSetting()) {
 					value = mSeekbarProgress / 100.0f;
 				} else {
 					value = (float) mSeekbarProgress;
@@ -303,7 +300,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-		mSeekbarProgress = (progress / 5) * 5;
+		mSeekbarProgress = progress > 99 ? (progress / 5) * 5 : progress;
 		mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
 	}
 

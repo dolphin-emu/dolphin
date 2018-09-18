@@ -64,6 +64,9 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   MakeGridView();
   MakeEmptyView();
 
+  if (Settings::GetQSettings().contains(QStringLiteral("gridview/scale")))
+    m_model->SetScale(Settings::GetQSettings().value(QStringLiteral("gridview/scale")).toFloat());
+
   connect(m_list, &QTableView::doubleClicked, this, &GameList::GameSelected);
   connect(m_grid, &QListView::doubleClicked, this, &GameList::GameSelected);
   connect(m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
@@ -155,6 +158,7 @@ GameList::~GameList()
 {
   Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
                                     m_list->horizontalHeader()->saveState());
+  Settings::GetQSettings().setValue(QStringLiteral("gridview/scale"), m_model->GetScale());
 }
 
 void GameList::UpdateColumnVisibility()

@@ -4,8 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 
 import rx.functions.Action1;
 
@@ -19,7 +18,7 @@ public class DirectoryStateReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		DirectoryInitializationState state = (DirectoryInitializationState) intent
-			.getSerializableExtra(DirectoryInitializationService.EXTRA_STATE);
+			.getSerializableExtra(DirectoryInitialization.EXTRA_STATE);
 		callback.call(state);
 	}
 }

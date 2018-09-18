@@ -1032,7 +1032,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_SyncGpuMaxDistance;
   spac << m_settings.m_SyncGpuMinDistance;
   spac << m_settings.m_SyncGpuOverclock;
-  spac << m_settings.m_JITFollowBranch;
+  spac << m_settings.m_JITFollowThreshold;
   spac << m_settings.m_FastDiscSpeed;
   spac << m_settings.m_MMU;
   spac << m_settings.m_Fastmem;

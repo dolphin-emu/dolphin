@@ -61,8 +61,10 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 #ifdef _WIN32
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)
-#else
+#elif DEBUG
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, ##__VA_ARGS__)
+#else
+#define PRIM_LOG(...)
 #endif
 
 // warning: mapping buffer should be disabled to use this

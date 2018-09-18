@@ -29,11 +29,13 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
+#include "Core/ConfigLoaders/BaseConfigLoader.h"
+#include "Common/Config/Config.h"
+#include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -58,14 +60,14 @@ namespace
 {
 static constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
 
-ANativeWindow* s_surf;
+static ANativeWindow* s_surf;
 
 // The Core only supports using a single Host thread.
 // If multiple threads want to call host functions then they need to queue
 // sequentially for access.
-std::mutex s_host_identity_lock;
-Common::Event s_update_main_frame_event;
-bool s_have_wm_user_stop = false;
+static std::mutex s_host_identity_lock;
+static Common::Event s_update_main_frame_event;
+static bool s_have_wm_user_stop = false;
 }  // Anonymous namespace
 
 void Host_NotifyMapLoaded()
@@ -345,8 +347,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadStateAs(
   State::LoadAs(GetJString(env, path));
 }
 
-JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_services_DirectoryInitializationService_SetSysDirectory(
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_DirectoryInitialization_SetSysDirectory(
     JNIEnv* env, jobject obj, jstring jPath)
 {
   const std::string path = GetJString(env, jPath);
@@ -354,8 +355,8 @@ Java_org_dolphinemu_dolphinemu_services_DirectoryInitializationService_SetSysDir
 }
 
 JNIEXPORT void JNICALL
-Java_org_dolphinemu_dolphinemu_services_DirectoryInitializationService_CreateUserDirectories(
-    JNIEnv* env, jobject obj)
+Java_org_dolphinemu_dolphinemu_utils_DirectoryInitialization_CreateUserDirectories(JNIEnv* env,
+                                                                                   jobject obj)
 {
   UICommon::CreateDirectories();
 }
@@ -365,6 +366,9 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
   UICommon::SetUserDirectory(GetJString(env, jDirectory));
+
+  UICommon::CreateDirectories();
+  UICommon::Init();
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
@@ -400,6 +404,49 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultAu
                                                                                    jobject obj)
 {
   return ToJString(env, AudioCommon::GetDefaultSoundBackend());
+}
+
+JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getSysconfSettings
+  (JNIEnv * env, jobject obj)
+{
+  int settings[9];
+  jintArray array = env->NewIntArray(9);
+
+  // SYSCONF.IPL
+  settings[0] = Config::Get(Config::SYSCONF_SCREENSAVER);
+  settings[1] = Config::Get(Config::SYSCONF_LANGUAGE);
+  settings[2] = Config::Get(Config::SYSCONF_WIDESCREEN);
+  settings[3] = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
+  settings[4] = Config::Get(Config::SYSCONF_PAL60);
+  // SYSCONF.BT
+  settings[5] = Config::Get(Config::SYSCONF_SENSOR_BAR_POSITION);
+  settings[6] = Config::Get(Config::SYSCONF_SENSOR_BAR_SENSITIVITY);
+  settings[7] = Config::Get(Config::SYSCONF_SPEAKER_VOLUME);
+  settings[8] = Config::Get(Config::SYSCONF_WIIMOTE_MOTOR);
+
+  env->SetIntArrayRegion(array, 0, 9, settings);
+  return array;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSysconfSettings
+  (JNIEnv * env, jobject obj, jintArray array)
+{
+  jint * settings = env->GetIntArrayElements(array, 0);
+  // SYSCONF.IPL
+  Config::SetBase<bool>(Config::SYSCONF_SCREENSAVER, settings[0]);
+  Config::SetBase<u32>(Config::SYSCONF_LANGUAGE, settings[1]);
+  Config::SetBase<bool>(Config::SYSCONF_WIDESCREEN, settings[2]);
+  Config::SetBase<bool>(Config::SYSCONF_PROGRESSIVE_SCAN, settings[3]);
+  Config::SetBase<bool>(Config::SYSCONF_PAL60, settings[4]);
+  // SYSCONF.BT
+  Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION, settings[5]);
+  Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_SENSITIVITY, settings[6]);
+  Config::SetBase<u32>(Config::SYSCONF_SPEAKER_VOLUME, settings[7]);
+  Config::SetBase<bool>(Config::SYSCONF_WIIMOTE_MOTOR, settings[8]);
+
+  ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+
+  env->ReleaseIntArrayElements(array, settings, 0);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
@@ -459,8 +506,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
 static void Run(const std::string& path,
                 std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
 {
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", path.c_str());
-
   // Install our callbacks
   OSD::AddCallback(OSD::CallbackType::Initialization, ButtonManager::Init);
   OSD::AddCallback(OSD::CallbackType::Shutdown, ButtonManager::Shutdown);
@@ -468,9 +513,10 @@ static void Run(const std::string& path,
   RegisterMsgAlertHandler(&MsgAlert);
 
   std::unique_lock<std::mutex> guard(s_host_identity_lock);
-  UICommon::Init();
 
-  WiimoteReal::InitAdapterClass();
+  // test
+  SConfig::GetInstance().LoadSettings();
+  VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
@@ -497,7 +543,6 @@ static void Run(const std::string& path,
   }
 
   Core::Shutdown();
-  UICommon::Shutdown();
   guard.unlock();
 
   if (s_surf)

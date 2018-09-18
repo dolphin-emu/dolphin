@@ -76,11 +76,9 @@ void Nunchuk::GetState(u8* const data)
   wm_nc nc_data = {};
 
   // stick
-  double jx, jy;
-  m_stick->GetState(&jx, &jy);
-
-  nc_data.jx = u8(STICK_CENTER + jx * STICK_RADIUS);
-  nc_data.jy = u8(STICK_CENTER + jy * STICK_RADIUS);
+  const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
+  nc_data.jx = u8(STICK_CENTER + stick_state.x * STICK_RADIUS);
+  nc_data.jy = u8(STICK_CENTER + stick_state.y * STICK_RADIUS);
 
   // Some terribly coded games check whether to move with a check like
   //

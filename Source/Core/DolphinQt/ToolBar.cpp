@@ -90,11 +90,19 @@ void ToolBar::OnDebugModeToggled(bool enabled)
 
 void ToolBar::MakeActions()
 {
+  // i18n: Here, "Step" is a verb. This feature is used for
+  // going through code step by step.
   m_step_action = addAction(tr("Step"), this, &ToolBar::StepPressed);
+  // i18n: Here, "Step" is a verb. This feature is used for
+  // going through code step by step.
   m_step_over_action = addAction(tr("Step Over"), this, &ToolBar::StepOverPressed);
+  // i18n: Here, "Step" is a verb. This feature is used for
+  // going through code step by step.
   m_step_out_action = addAction(tr("Step Out"), this, &ToolBar::StepOutPressed);
   m_skip_action = addAction(tr("Skip"), this, &ToolBar::SkipPressed);
+  // i18n: Here, PC is an acronym for program counter, not personal computer.
   m_show_pc_action = addAction(tr("Show PC"), this, &ToolBar::ShowPCPressed);
+  // i18n: Here, PC is an acronym for program counter, not personal computer.
   m_set_pc_action = addAction(tr("Set PC"), this, &ToolBar::SetPCPressed);
 
   m_open_action = addAction(tr("Open"), this, &ToolBar::OpenPressed);
