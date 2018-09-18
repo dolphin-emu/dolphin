@@ -10,10 +10,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nnf_item_container"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_height="56dp"
     android:background="?selectableItemBackground"
     android:focusable="true"
-    android:minHeight="50dp"
     android:nextFocusLeft="@+id/nnf_button_cancel"
     android:nextFocusRight="@+id/nnf_button_ok"
     android:orientation="horizontal">
@@ -21,8 +20,8 @@
     <!--suppress AndroidDomInspection -->
     <ImageView
         android:id="@+id/item_icon"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:adjustViewBounds="true"
         android:scaleType="center"
         app:srcCompat="@drawable/nnf_ic_folder_black_48dp"
