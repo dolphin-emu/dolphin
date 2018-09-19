@@ -62,11 +62,11 @@
     <integer name="CLASSIC_BUTTON_Y_X">50</integer>
     <integer name="CLASSIC_BUTTON_Y_Y">55</integer>
     <integer name="CLASSIC_BUTTON_MINUS_X">-15</integer>
-    <integer name="CLASSIC_BUTTON_MINUS_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_MINUS_Y">75</integer>
     <integer name="CLASSIC_BUTTON_PLUS_X">15</integer>
-    <integer name="CLASSIC_BUTTON_PLUS_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_PLUS_Y">75</integer>
     <integer name="CLASSIC_BUTTON_HOME_X">0</integer>
-    <integer name="CLASSIC_BUTTON_HOME_Y">55</integer>
+    <integer name="CLASSIC_BUTTON_HOME_Y">75</integer>
     <integer name="CLASSIC_BUTTON_ZL_X">-75</integer>
     <integer name="CLASSIC_BUTTON_ZL_Y">-75</integer>
     <integer name="CLASSIC_BUTTON_ZR_X">75</integer>

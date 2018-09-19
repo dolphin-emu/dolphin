@@ -174,16 +174,11 @@ public final class InputOverlayDrawableJoystick {
 	}
 
 	public float[] getAxisValues() {
-		float[] joyaxises = {0f, 0f, 0f, 0f};
-		joyaxises[1] = Math.min(axises[0], 1.0f);
-		joyaxises[0] = Math.min(axises[0], 0.0f);
-		joyaxises[3] = Math.min(axises[1], 1.0f);
-		joyaxises[2] = Math.min(axises[1], 0.0f);
-		return joyaxises;
+		return new float[] {axises[0], axises[0], axises[1], axises[1]};
 	}
 
 	public int[] getAxisIDs() {
-		return axisIDs;
+		return new int[] {axisIDs[0], axisIDs[1], axisIDs[2], axisIDs[3]};
 	}
 
 	private void SetInnerBounds() {

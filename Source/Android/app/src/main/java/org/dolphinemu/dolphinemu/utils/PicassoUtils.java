@@ -35,6 +35,7 @@ public class PicassoUtils {
 		 * the cover will be by the disk's region, second will be the US cover, and third EN.
 		 */
 		else {
+			imageView.setImageResource(R.drawable.no_banner);
 			Picasso.with(imageView.getContext())
 				.load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
 				.noPlaceholder()

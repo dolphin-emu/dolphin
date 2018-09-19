@@ -209,31 +209,31 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks) {
 			joystick.TrackEvent(event);
-			int factor = 1;
+			float factor = 1.0f;
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
 			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP) {
 				if (JoyStickSetting == JOYSTICK_EMULATE_IR) {
-					factor = -1;
+					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_IR + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_IR + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_IR + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_IR + 4;
 				} else if (JoyStickSetting == JOYSTICK_EMULATE_SWING) {
-					factor = -1;
+					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
 				} else if (JoyStickSetting == JOYSTICK_EMULATE_TILT) {
-					factor = -1;
+					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
 				} else if (JoyStickSetting == JOYSTICK_EMULATE_SHAKE) {
-					factor = -1;
+					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_TILT_MODIFIER;
 					axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;
 					axisIDs[2] = ButtonType.WIIMOTE_SHAKE_Y;
@@ -621,11 +621,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 				break;
 			case ButtonType.CLASSIC_TRIGGER_L:
 			case ButtonType.CLASSIC_TRIGGER_R:
-				scale = 0.25f;
+				scale = 0.20f;
 				break;
 			case ButtonType.CLASSIC_BUTTON_ZL:
 			case ButtonType.CLASSIC_BUTTON_ZR:
-				scale = 0.20f;
+				scale = 0.18f;
 				break;
 			default:
 				scale = 0.125f;
