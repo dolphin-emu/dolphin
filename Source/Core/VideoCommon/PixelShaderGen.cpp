@@ -1354,7 +1354,7 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.SetConstantsUsed(C_FOGF, C_FOGF);
     out.Write("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n");
     out.Write("\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n");
-    out.Write("\tuint indexlower = uint(floor(floatindex));\n");
+    out.Write("\tuint indexlower = uint(floatindex);\n");
     out.Write("\tuint indexupper = indexlower + 1u;\n");
     out.Write("\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n");
     out.Write("\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n");

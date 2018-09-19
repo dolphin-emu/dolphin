@@ -1171,7 +1171,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "      // ze *= x_adjust\n"
             "      float offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
             "      float floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
-            "      uint indexlower = uint(floor(floatindex));\n"
+            "      uint indexlower = uint(floatindex);\n"
             "      uint indexupper = indexlower + 1u;\n"
             "      float klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
             "      float kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"

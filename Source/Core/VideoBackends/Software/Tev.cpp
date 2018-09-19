@@ -781,7 +781,7 @@ void Tev::Draw()
                        (floatindex > 9.f) ? 9.f : floatindex;  // TODO: This shouldn't be necessary!
 
       // Get the two closest integer indices, look up the corresponding samples
-      const int indexlower = (int)floor(floatindex);
+      const int indexlower = (int)floatindex;
       const int indexupper = indexlower + 1;
       // Look up coefficient... Seems like multiplying by 4 makes Fortune Street work properly (fog
       // is too strong without the factor)
