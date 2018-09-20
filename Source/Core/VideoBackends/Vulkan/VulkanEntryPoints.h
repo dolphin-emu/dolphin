@@ -41,8 +41,35 @@
 
 #endif
 
+/* need it in VULKAN_EACH_INSTANCE_ENTRY_POINT for early configuration */
+#define VULKAN_EACH_DEVICE_CONFIG_ENTRY_POINT(ACTION)                                              \
+  ACTION(vkEnumerateDeviceExtensionProperties, true)                                               \
+  ACTION(vkEnumerateDeviceLayerProperties, true)                                                   \
+  ACTION(vkGetPhysicalDeviceFeatures, true)                                                        \
+  ACTION(vkGetPhysicalDeviceFormatProperties, true)                                                \
+  ACTION(vkGetPhysicalDeviceImageFormatProperties, true)                                           \
+  ACTION(vkGetPhysicalDeviceMemoryProperties, true)                                                \
+  ACTION(vkGetPhysicalDeviceProperties, true)                                                      \
+  ACTION(vkGetPhysicalDeviceQueueFamilyProperties, true)                                           \
+  ACTION(vkGetPhysicalDeviceSparseImageFormatProperties, true)                                     \
+  ACTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, false)                                         \
+  ACTION(vkGetPhysicalDeviceSurfaceFormatsKHR, false)                                              \
+  ACTION(vkGetPhysicalDeviceSurfacePresentModesKHR, false)                                         \
+  ACTION(vkGetPhysicalDeviceSurfaceSupportKHR, false)                                              \
+  ACTION(vkCreateDevice, true)
+
 #define VULKAN_EACH_INSTANCE_ENTRY_POINT(ACTION)                                                   \
   VULKAN_EACH_PLATFORM_INSTANCE_ENTRY_POINT(ACTION)                                                \
+  VULKAN_EACH_DEVICE_CONFIG_ENTRY_POINT(ACTION)                                                    \
+  ACTION(vkCreateDebugReportCallbackEXT, false)                                                    \
+  ACTION(vkDebugReportMessageEXT, false)                                                           \
+  ACTION(vkDestroyDebugReportCallbackEXT, false)                                                   \
+  ACTION(vkDestroyInstance, true)                                                                  \
+  ACTION(vkDestroySurfaceKHR, false)                                                               \
+  ACTION(vkEnumeratePhysicalDevices, true)
+
+#define VULKAN_EACH_DEVICE_ENTRY_POINT(ACTION)                                                     \
+  ACTION(vkAcquireNextImageKHR, false)                                                             \
   ACTION(vkAllocateCommandBuffers, true)                                                           \
   ACTION(vkAllocateDescriptorSets, true)                                                           \
   ACTION(vkAllocateMemory, true)                                                                   \
@@ -97,10 +124,8 @@
   ACTION(vkCreateBufferView, true)                                                                 \
   ACTION(vkCreateCommandPool, true)                                                                \
   ACTION(vkCreateComputePipelines, true)                                                           \
-  ACTION(vkCreateDebugReportCallbackEXT, false)                                                    \
   ACTION(vkCreateDescriptorPool, true)                                                             \
   ACTION(vkCreateDescriptorSetLayout, true)                                                        \
-  ACTION(vkCreateDevice, true)                                                                     \
   ACTION(vkCreateEvent, true)                                                                      \
   ACTION(vkCreateFence, true)                                                                      \
   ACTION(vkCreateFramebuffer, true)                                                                \
@@ -114,11 +139,10 @@
   ACTION(vkCreateSampler, true)                                                                    \
   ACTION(vkCreateSemaphore, true)                                                                  \
   ACTION(vkCreateShaderModule, true)                                                               \
-  ACTION(vkDebugReportMessageEXT, false)                                                           \
+  ACTION(vkCreateSwapchainKHR, false)                                                              \
   ACTION(vkDestroyBuffer, true)                                                                    \
   ACTION(vkDestroyBufferView, true)                                                                \
   ACTION(vkDestroyCommandPool, true)                                                               \
-  ACTION(vkDestroyDebugReportCallbackEXT, false)                                                   \
   ACTION(vkDestroyDescriptorPool, true)                                                            \
   ACTION(vkDestroyDescriptorSetLayout, true)                                                       \
   ACTION(vkDestroyDevice, true)                                                                    \
@@ -127,7 +151,6 @@
   ACTION(vkDestroyFramebuffer, true)                                                               \
   ACTION(vkDestroyImage, true)                                                                     \
   ACTION(vkDestroyImageView, true)                                                                 \
-  ACTION(vkDestroyInstance, true)                                                                  \
   ACTION(vkDestroyPipeline, true)                                                                  \
   ACTION(vkDestroyPipelineCache, true)                                                             \
   ACTION(vkDestroyPipelineLayout, true)                                                            \
@@ -136,12 +159,9 @@
   ACTION(vkDestroySampler, true)                                                                   \
   ACTION(vkDestroySemaphore, true)                                                                 \
   ACTION(vkDestroyShaderModule, true)                                                              \
-  ACTION(vkDestroySurfaceKHR, false)                                                               \
+  ACTION(vkDestroySwapchainKHR, false)                                                             \
   ACTION(vkDeviceWaitIdle, true)                                                                   \
   ACTION(vkEndCommandBuffer, true)                                                                 \
-  ACTION(vkEnumerateDeviceExtensionProperties, true)                                               \
-  ACTION(vkEnumerateDeviceLayerProperties, true)                                                   \
-  ACTION(vkEnumeratePhysicalDevices, true)                                                         \
   ACTION(vkFlushMappedMemoryRanges, true)                                                          \
   ACTION(vkFreeCommandBuffers, true)                                                               \
   ACTION(vkFreeDescriptorSets, true)                                                               \
@@ -154,24 +174,15 @@
   ACTION(vkGetImageMemoryRequirements, true)                                                       \
   ACTION(vkGetImageSparseMemoryRequirements, true)                                                 \
   ACTION(vkGetImageSubresourceLayout, true)                                                        \
-  ACTION(vkGetPhysicalDeviceFeatures, true)                                                        \
-  ACTION(vkGetPhysicalDeviceFormatProperties, true)                                                \
-  ACTION(vkGetPhysicalDeviceImageFormatProperties, true)                                           \
-  ACTION(vkGetPhysicalDeviceMemoryProperties, true)                                                \
-  ACTION(vkGetPhysicalDeviceProperties, true)                                                      \
-  ACTION(vkGetPhysicalDeviceQueueFamilyProperties, true)                                           \
-  ACTION(vkGetPhysicalDeviceSparseImageFormatProperties, true)                                     \
-  ACTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR, false)                                         \
-  ACTION(vkGetPhysicalDeviceSurfaceFormatsKHR, false)                                              \
-  ACTION(vkGetPhysicalDeviceSurfacePresentModesKHR, false)                                         \
-  ACTION(vkGetPhysicalDeviceSurfaceSupportKHR, false)                                              \
   ACTION(vkGetPipelineCacheData, true)                                                             \
   ACTION(vkGetQueryPoolResults, true)                                                              \
   ACTION(vkGetRenderAreaGranularity, true)                                                         \
+  ACTION(vkGetSwapchainImagesKHR, false)                                                           \
   ACTION(vkInvalidateMappedMemoryRanges, true)                                                     \
   ACTION(vkMapMemory, true)                                                                        \
   ACTION(vkMergePipelineCaches, true)                                                              \
   ACTION(vkQueueBindSparse, true)                                                                  \
+  ACTION(vkQueuePresentKHR, false)                                                                 \
   ACTION(vkQueueSubmit, true)                                                                      \
   ACTION(vkQueueWaitIdle, true)                                                                    \
   ACTION(vkResetCommandBuffer, true)                                                               \
@@ -183,13 +194,6 @@
   ACTION(vkUnmapMemory, true)                                                                      \
   ACTION(vkUpdateDescriptorSets, true)                                                             \
   ACTION(vkWaitForFences, true)
-
-#define VULKAN_EACH_DEVICE_ENTRY_POINT(ACTION)                                                     \
-  ACTION(vkAcquireNextImageKHR, false)                                                             \
-  ACTION(vkCreateSwapchainKHR, false)                                                              \
-  ACTION(vkDestroySwapchainKHR, false)                                                             \
-  ACTION(vkGetSwapchainImagesKHR, false)                                                           \
-  ACTION(vkQueuePresentKHR, false)
 
 #define VULKAN_EACH_ENTRY_POINT(ACTION)                                                            \
   VULKAN_EACH_MODULE_ENTRY_POINT(ACTION)                                                           \
