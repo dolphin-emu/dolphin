@@ -127,7 +127,10 @@ void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 // Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
 u64 DiscScrubber::ToClusterOffset(u64 offset) const
 {
-  return offset / 0x7c00 * CLUSTER_SIZE;
+  if (m_disc->IsEncryptedAndHashed())
+    return offset / 0x7c00 * CLUSTER_SIZE;
+  else
+    return offset % CLUSTER_SIZE;
 }
 
 // Helper functions for reading the BE volume
