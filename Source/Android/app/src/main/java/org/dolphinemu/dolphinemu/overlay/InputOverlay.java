@@ -604,7 +604,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			case ButtonType.BUTTON_Z:
 			case ButtonType.TRIGGER_L:
 			case ButtonType.TRIGGER_R:
-				scale = 0.175f;
+				scale = 0.18f;
 				break;
 			case ButtonType.BUTTON_START:
 				scale = 0.075f;
@@ -621,7 +621,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 				break;
 			case ButtonType.CLASSIC_TRIGGER_L:
 			case ButtonType.CLASSIC_TRIGGER_R:
-				scale = 0.20f;
+				scale = 0.22f;
 				break;
 			case ButtonType.CLASSIC_BUTTON_ZL:
 			case ButtonType.CLASSIC_BUTTON_ZR:

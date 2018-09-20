@@ -79,7 +79,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
 
   s32 z = (s32)MathUtil::Clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
-  if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc)
+  if (bpmem.zmode.testenable && bpmem.zcontrol.early_ztest && g_ActiveConfig.bZComploc)
   {
     // TODO: Test if perf regs are incremented even if test is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);

@@ -67,9 +67,9 @@
     <integer name="CLASSIC_BUTTON_PLUS_Y">75</integer>
     <integer name="CLASSIC_BUTTON_HOME_X">0</integer>
     <integer name="CLASSIC_BUTTON_HOME_Y">75</integer>
-    <integer name="CLASSIC_BUTTON_ZL_X">-75</integer>
+    <integer name="CLASSIC_BUTTON_ZL_X">-85</integer>
     <integer name="CLASSIC_BUTTON_ZL_Y">-75</integer>
-    <integer name="CLASSIC_BUTTON_ZR_X">75</integer>
+    <integer name="CLASSIC_BUTTON_ZR_X">85</integer>
     <integer name="CLASSIC_BUTTON_ZR_Y">-75</integer>
     <integer name="CLASSIC_DPAD_UP_X">-85</integer>
     <integer name="CLASSIC_DPAD_UP_Y">-15</integer>
@@ -78,7 +78,7 @@
     <integer name="CLASSIC_STICK_RIGHT_X">80</integer>
     <integer name="CLASSIC_STICK_RIGHT_Y">-10</integer>
     <integer name="CLASSIC_TRIGGER_L_X">-55</integer>
-    <integer name="CLASSIC_TRIGGER_L_Y">-40</integer>
+    <integer name="CLASSIC_TRIGGER_L_Y">-55</integer>
     <integer name="CLASSIC_TRIGGER_R_X">55</integer>
-    <integer name="CLASSIC_TRIGGER_R_Y">-40</integer>
+    <integer name="CLASSIC_TRIGGER_R_Y">-55</integer>
 </resources>

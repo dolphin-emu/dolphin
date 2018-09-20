@@ -289,9 +289,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   GLenum depth_data_type = GL_FLOAT;
   if (m_enable_stencil_buffer)
   {
-    depth_internal_format = GL_DEPTH32F_STENCIL8;
+    depth_internal_format = GL_DEPTH24_STENCIL8;
     depth_pixel_format = GL_DEPTH_STENCIL;
-    depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+    depth_data_type = GL_UNSIGNED_INT_24_8;
   }
 
   const bool multilayer = m_EFBLayers > 1;
