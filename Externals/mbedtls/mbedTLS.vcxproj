@@ -35,6 +35,15 @@
     <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <TreatWarningAsError>false</TreatWarningAsError>
+    </ClCompile>
+    <Lib>
+      <TreatLibWarningAsErrors>false</TreatLibWarningAsErrors>
+    </Lib>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="library\aes.c" />
     <ClCompile Include="library\aesni.c" />

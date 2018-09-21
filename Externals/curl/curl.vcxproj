@@ -315,6 +315,9 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)curl\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BUILDING_LIBCURL;CURL_STATICLIB;CURL_DISABLE_LDAP;USE_WINDOWS_SSPI;USE_SCHANNEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Lib>
+      <TreatLibWarningAsErrors Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</TreatLibWarningAsErrors>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

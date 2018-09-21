@@ -214,8 +214,9 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    auto* updater = new Updater(&win);
-    updater->start();
+   //NARRYSMOD_HIJACK - No updater
+   // auto* updater = new Updater(&win);
+   //updater->start();
 
     retval = app.exec();
   }

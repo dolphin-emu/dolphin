@@ -14,7 +14,7 @@
     <ProjectGuid>{FA3FA62B-6F58-4B86-9453-4D149940A066}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
     <ProjectName>Dolphin</ProjectName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -521,10 +521,13 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\RTCV\NetCore\NetCore.csproj">
+    <ProjectReference Include="C:\Users\Daniel\Documents\RTCV\DolphinCorrupt\DolphinCorrupt.csproj">
+      <Project>{2d844e66-b89b-452e-a5ca-0e4b40866d2c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\Daniel\Documents\RTCV\NetCore\NetCore.csproj">
       <Project>{7e106aec-5614-4206-9e4d-25759c90e8ae}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\RTCV\Vanguard\Vanguard.csproj">
+    <ProjectReference Include="C:\Users\Daniel\Documents\RTCV\Vanguard\Vanguard.csproj">
       <Project>{364c705e-b7ab-4a94-a59b-88899ce65958}</Project>
     </ProjectReference>
   </ItemGroup>
