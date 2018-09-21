@@ -32,6 +32,9 @@
 #include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Common/Config/Config.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "VideoCommon/VideoConfig.h"
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -408,6 +411,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultAu
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getSysconfSettings
   (JNIEnv * env, jobject obj)
 {
+  int i = 0;
   int settings[9];
   jintArray array = env->NewIntArray(9);
 
@@ -430,6 +434,7 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getSysc
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSysconfSettings
   (JNIEnv * env, jobject obj, jintArray array)
 {
+  int i = 0;
   jint * settings = env->GetIntArrayElements(array, 0);
   // SYSCONF.IPL
   Config::SetBase<bool>(Config::SYSCONF_SCREENSAVER, settings[0]);
@@ -444,6 +449,47 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSysconfSe
   Config::SetBase<bool>(Config::SYSCONF_WIIMOTE_MOTOR, settings[8]);
 
   ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+
+  env->ReleaseIntArrayElements(array, settings, 0);
+}
+
+JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getRunningSettings
+  (JNIEnv * env, jobject obj)
+{
+  int i = 0;
+  int settings[7];
+  jintArray array = env->NewIntArray(7);
+
+  settings[i++] = Config::Get(Config::GFX_SHOW_FPS);
+  settings[i++] = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
+  settings[i++] = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+
+  settings[i++] = SConfig::GetInstance().bSyncGPUOnSkipIdleHack;
+  settings[i++] = SConfig::GetInstance().m_OCEnable;
+  settings[i++] = static_cast<int>(SConfig::GetInstance().m_OCFactor * 100.0f);
+  settings[i++] = SConfig::GetInstance().iJITFollowThreshold;
+
+  env->SetIntArrayRegion(array, 0, 9, settings);
+  return array;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setRunningSettings
+  (JNIEnv * env, jobject obj, jintArray array)
+{
+  int i = 0;
+  jint * settings = env->GetIntArrayElements(array, 0);
+
+  // gfx settings need refresh to take effect
+  Config::SetBaseOrCurrent(Config::GFX_SHOW_FPS, settings[i++]);
+  Config::SetBaseOrCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, settings[i++]);
+  Config::SetBaseOrCurrent(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, settings[i++]);
+  g_Config.Refresh();
+
+  // core settings will save at end of game
+  SConfig::GetInstance().bSyncGPUOnSkipIdleHack = settings[i++];
+  SConfig::GetInstance().iJITFollowThreshold = settings[i++];
+  SConfig::GetInstance().m_OCEnable = settings[i++];
+  SConfig::GetInstance().m_OCFactor = settings[i++] / 100.0f;
 
   env->ReleaseIntArrayElements(array, settings, 0);
 }
@@ -542,6 +588,7 @@ static void Run(const std::string& path,
   }
 
   Core::Shutdown();
+  SConfig::GetInstance().SaveSettings();
   guard.unlock();
 
   if (s_surf)

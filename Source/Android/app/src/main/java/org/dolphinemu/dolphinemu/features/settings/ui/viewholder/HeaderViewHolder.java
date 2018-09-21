@@ -17,7 +17,7 @@ public final class HeaderViewHolder extends SettingViewHolder {
 
 	@Override
 	protected void findViews(View root) {
-		mHeaderName = (TextView) root.findViewById(R.id.text_header_name);
+		mHeaderName = root.findViewById(R.id.text_header_name);
 	}
 
 	@Override

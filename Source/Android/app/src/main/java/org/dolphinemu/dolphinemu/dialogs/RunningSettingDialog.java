@@ -11,30 +11,158 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.RadioButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.nononsenseapps.filepicker.DividerItemDecoration;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import java.util.ArrayList;
 
 public class RunningSettingDialog extends DialogFragment {
 
 	public class SettingsItem {
+		//
+		public static final int SETTING_SHOW_FPS = 0;
+		public static final int SETTING_EFB_TEXTURE = 1;
+		public static final int SETTING_IGNORE_FORMAT = 2;
+		public static final int SETTING_SYNC_ON_SKIP_IDLE = 3;
+		public static final int SETTING_OVERCLOCK_ENABLE = 4;
+		public static final int SETTING_OVERCLOCK_PERCENT = 5;
+		public static final int SETTING_JIT_FOLLOW_THRESHOLD = 6;
+		//
 		public static final int TYPE_CHECKBOX = 1;
 		public static final int TYPE_RADIO_BUTTON = 2;
-		public static final int TYPE_SLIDER = 3;
+		public static final int TYPE_SEEK_BAR = 3;
 
-		private String mSetting;
+		private int mSetting;
 		private int mNameId;
 		private int mType;
+		private int mValue;
+
+		public SettingsItem(int setting, int nameId, int type, int value) {
+			mSetting = setting;
+			mNameId = nameId;
+			mType = type;
+			mValue = value;
+		}
 
 		public int getType() {
 			return mType;
 		}
+
+		public int getSetting() {
+			return mSetting;
+		}
+
+		public int getNameId() {
+			return mNameId;
+		}
+
+		public boolean isChecked() {
+			return mValue > 0;
+		}
 	}
 
-	public class SettingViewHolder extends RecyclerView.ViewHolder {
-		public SettingViewHolder(View itemView, int viewType) {
+	public abstract class SettingViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+		public SettingViewHolder(View itemView) {
 			super(itemView);
+			itemView.setOnClickListener(this);
+			findViews(itemView);
+		}
+
+		protected abstract void findViews(View root);
+
+		public abstract void bind(SettingsItem item);
+
+		public abstract void onClick(View clicked);
+	}
+
+
+	public final class CheckBoxSettingViewHolder extends SettingViewHolder {
+		SettingsItem mItem;
+		private TextView mTextSettingName;
+		private CheckBox mCheckbox;
+
+		public CheckBoxSettingViewHolder(View itemView) {
+			super(itemView);
+		}
+
+		@Override
+		protected void findViews(View root) {
+			mTextSettingName = root.findViewById(R.id.text_setting_name);
+			mCheckbox = root.findViewById(R.id.checkbox);
+		}
+
+		@Override
+		public void bind(SettingsItem item) {
+			mItem = item;
+			mTextSettingName.setText(item.getNameId());
+			mCheckbox.setChecked(mItem.isChecked());
+		}
+
+		@Override
+		public void onClick(View clicked) {
+			mCheckbox.toggle();
+		}
+	}
+
+	public final class RadioButtonSettingViewHolder extends SettingViewHolder {
+		SettingsItem mItem;
+		private TextView mTextSettingName;
+		private RadioButton mRadioButton;
+
+		public RadioButtonSettingViewHolder(View itemView) {
+			super(itemView);
+		}
+
+		@Override
+		protected void findViews(View root) {
+			mTextSettingName = root.findViewById(R.id.text_setting_name);
+			mRadioButton = root.findViewById(R.id.radiobutton);
+		}
+
+		@Override
+		public void bind(SettingsItem item) {
+			mItem = item;
+			mTextSettingName.setText(item.getNameId());
+			mRadioButton.setChecked(mItem.isChecked());
+		}
+
+		@Override
+		public void onClick(View clicked) {
+			mRadioButton.toggle();
+		}
+	}
+
+	public final class SeekBarSettingViewHolder extends SettingViewHolder {
+		SettingsItem mItem;
+		private TextView mTextSettingName;
+		private SeekBar mSeekBar;
+
+		public SeekBarSettingViewHolder(View itemView) {
+			super(itemView);
+		}
+
+		@Override
+		protected void findViews(View root) {
+			mTextSettingName = root.findViewById(R.id.text_setting_name);
+			mSeekBar = root.findViewById(R.id.seekbar);
+		}
+
+		@Override
+		public void bind(SettingsItem item) {
+			mItem = item;
+			mTextSettingName.setText(item.getNameId());
+			mSeekBar.setMax(99);
+		}
+
+		@Override
+		public void onClick(View clicked) {
+
 		}
 	}
 
@@ -52,15 +180,15 @@ public class RunningSettingDialog extends DialogFragment {
 			switch (viewType) {
 				case SettingsItem.TYPE_CHECKBOX:
 					itemView = inflater.inflate(R.layout.list_item_running_checkbox, parent, false);
-					break;
+					return new CheckBoxSettingViewHolder(itemView);
 				case SettingsItem.TYPE_RADIO_BUTTON:
 					itemView = inflater.inflate(R.layout.list_item_running_radiobutton, parent, false);
-					break;
-				case SettingsItem.TYPE_SLIDER:
+					return new RadioButtonSettingViewHolder(itemView);
+				case SettingsItem.TYPE_SEEK_BAR:
 					itemView = inflater.inflate(R.layout.list_item_running_seekbar, parent, false);
-					break;
+					return new SeekBarSettingViewHolder(itemView);
 			}
-			return new SettingViewHolder(itemView, viewType);
+			return null;
 		}
 
 		@Override
@@ -75,7 +203,7 @@ public class RunningSettingDialog extends DialogFragment {
 
 		@Override
 		public void onBindViewHolder(@NonNull SettingViewHolder holder, int position) {
-
+			holder.bind(mSettings.get(position));
 		}
 
 		public void setSettings(ArrayList<SettingsItem> settings) {
@@ -93,7 +221,7 @@ public class RunningSettingDialog extends DialogFragment {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater().inflate(R.layout.dialog_running_settings, null);
 
-		int columns = 2;
+		int columns = 1;
 		SettingsAdapter adapter = new SettingsAdapter();
 		Drawable lineDivider = getContext().getDrawable(R.drawable.line_divider);
 		RecyclerView recyclerView = contents.findViewById(R.id.list_settings);
@@ -110,7 +238,18 @@ public class RunningSettingDialog extends DialogFragment {
 	}
 
 	private ArrayList<SettingsItem> getSettings() {
-		return null;
+		int i = 0;
+		int[] running = NativeLibrary.getRunningSettings();
+		ArrayList<SettingsItem> settings = new ArrayList<>();
+		settings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps, SettingsItem.TYPE_CHECKBOX, running[i++]));
+		settings.add(new SettingsItem(SettingsItem.SETTING_EFB_TEXTURE, R.string.efb_copy_method, SettingsItem.TYPE_CHECKBOX, running[i++]));
+		settings.add(new SettingsItem(SettingsItem.SETTING_IGNORE_FORMAT, R.string.ignore_format_changes, SettingsItem.TYPE_SEEK_BAR, 0));
+		settings.add(new SettingsItem(SettingsItem.SETTING_SYNC_ON_SKIP_IDLE, R.string.sync_on_skip_idle, SettingsItem.TYPE_CHECKBOX, running[i++]));
+		settings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_ENABLE, R.string.overclock_enable, SettingsItem.TYPE_CHECKBOX, running[i++]));
+		settings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_PERCENT, R.string.overclock_title, SettingsItem.TYPE_SEEK_BAR, running[i++]));
+		settings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_THRESHOLD, R.string.jit_follow_branch, SettingsItem.TYPE_SEEK_BAR, running[i++]));
+
+		return settings;
 	}
 
 }

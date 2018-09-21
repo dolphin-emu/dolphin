@@ -71,7 +71,7 @@ public:
 private:
   bool valid;
   bool bCPUThread;
-  int iJITFollowThreshold;
+  u8 iJITFollowThreshold;
   bool bEnableCheats;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;

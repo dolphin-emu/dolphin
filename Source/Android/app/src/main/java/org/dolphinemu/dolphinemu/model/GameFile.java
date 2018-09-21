@@ -40,6 +40,8 @@ public class GameFile {
 
 	public native int getBannerHeight();
 
+	public native String[] getCodes();
+
 	public String getCoverPath() {
 		return DirectoryInitialization.getCoverDirectory() + File.separator + getGameId() + ".png";
 	}

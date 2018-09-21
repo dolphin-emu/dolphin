@@ -23,9 +23,9 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder {
 
 	@Override
 	protected void findViews(View root) {
-		mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
-		mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
-		mCheckbox = (CheckBox) root.findViewById(R.id.checkbox);
+		mTextSettingName = root.findViewById(R.id.text_setting_name);
+		mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+		mCheckbox = root.findViewById(R.id.checkbox);
 	}
 
 	@Override

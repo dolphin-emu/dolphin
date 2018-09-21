@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.dialogs.RunningSettingDialog;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -67,72 +68,6 @@ public final class EmulationActivity extends AppCompatActivity {
 	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
 	public static final String EXTRA_PLATFORM = "Platform";
 	public static final String EXTRA_SAVED_STATE = "SavedState";
-
-	@Retention(SOURCE)
-	@IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
-		MENU_ACTION_CHOOSE_CONTROLLER, MENU_ACTION_REFRESH_WIIMOTES, MENU_ACTION_TAKE_SCREENSHOT,
-		MENU_ACTION_QUICK_SAVE, MENU_ACTION_QUICK_LOAD, MENU_ACTION_SAVE_ROOT,
-		MENU_ACTION_LOAD_ROOT, MENU_ACTION_SAVE_SLOT1, MENU_ACTION_SAVE_SLOT2,
-		MENU_ACTION_SAVE_SLOT3, MENU_ACTION_SAVE_SLOT4, MENU_ACTION_SAVE_SLOT5,
-		MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
-		MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
-		MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC})
-	public @interface MenuAction {
-	}
-
-	public static final int MENU_ACTION_EDIT_CONTROLS_PLACEMENT = 0;
-	public static final int MENU_ACTION_TOGGLE_CONTROLS = 1;
-	public static final int MENU_ACTION_ADJUST_SCALE = 2;
-	public static final int MENU_ACTION_CHOOSE_CONTROLLER = 3;
-	public static final int MENU_ACTION_REFRESH_WIIMOTES = 4;
-	public static final int MENU_ACTION_TAKE_SCREENSHOT = 5;
-	public static final int MENU_ACTION_QUICK_SAVE = 6;
-	public static final int MENU_ACTION_QUICK_LOAD = 7;
-	public static final int MENU_ACTION_SAVE_ROOT = 8;
-	public static final int MENU_ACTION_LOAD_ROOT = 9;
-	public static final int MENU_ACTION_SAVE_SLOT1 = 10;
-	public static final int MENU_ACTION_SAVE_SLOT2 = 11;
-	public static final int MENU_ACTION_SAVE_SLOT3 = 12;
-	public static final int MENU_ACTION_SAVE_SLOT4 = 13;
-	public static final int MENU_ACTION_SAVE_SLOT5 = 14;
-	public static final int MENU_ACTION_SAVE_SLOT6 = 15;
-	public static final int MENU_ACTION_LOAD_SLOT1 = 16;
-	public static final int MENU_ACTION_LOAD_SLOT2 = 17;
-	public static final int MENU_ACTION_LOAD_SLOT3 = 18;
-	public static final int MENU_ACTION_LOAD_SLOT4 = 19;
-	public static final int MENU_ACTION_LOAD_SLOT5 = 20;
-	public static final int MENU_ACTION_LOAD_SLOT6 = 21;
-	public static final int MENU_ACTION_EXIT = 22;
-	public static final int MENU_ACTION_CHANGE_DISC = 23;
-	public static final int MENU_ACTION_JOYSTICK_SETTINGS = 24;
-
-
-	private static SparseIntArray buttonsActionsMap = new SparseIntArray();
-
-	static {
-		buttonsActionsMap.append(R.id.menu_emulation_edit_layout, EmulationActivity.MENU_ACTION_EDIT_CONTROLS_PLACEMENT);
-		buttonsActionsMap.append(R.id.menu_emulation_toggle_controls, EmulationActivity.MENU_ACTION_TOGGLE_CONTROLS);
-		buttonsActionsMap.append(R.id.menu_emulation_adjust_scale, EmulationActivity.MENU_ACTION_ADJUST_SCALE);
-		buttonsActionsMap.append(R.id.menu_emulation_choose_controller, EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
-		buttonsActionsMap.append(R.id.menu_emulation_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
-
-		buttonsActionsMap.append(R.id.menu_quicksave, EmulationActivity.MENU_ACTION_QUICK_SAVE);
-		buttonsActionsMap.append(R.id.menu_quickload, EmulationActivity.MENU_ACTION_QUICK_LOAD);
-		buttonsActionsMap.append(R.id.menu_emulation_save_root, EmulationActivity.MENU_ACTION_SAVE_ROOT);
-		buttonsActionsMap.append(R.id.menu_emulation_load_root, EmulationActivity.MENU_ACTION_LOAD_ROOT);
-		buttonsActionsMap.append(R.id.menu_emulation_save_1, EmulationActivity.MENU_ACTION_SAVE_SLOT1);
-		buttonsActionsMap.append(R.id.menu_emulation_save_2, EmulationActivity.MENU_ACTION_SAVE_SLOT2);
-		buttonsActionsMap.append(R.id.menu_emulation_save_3, EmulationActivity.MENU_ACTION_SAVE_SLOT3);
-		buttonsActionsMap.append(R.id.menu_emulation_save_4, EmulationActivity.MENU_ACTION_SAVE_SLOT4);
-		buttonsActionsMap.append(R.id.menu_emulation_save_5, EmulationActivity.MENU_ACTION_SAVE_SLOT5);
-		buttonsActionsMap.append(R.id.menu_emulation_load_1, EmulationActivity.MENU_ACTION_LOAD_SLOT1);
-		buttonsActionsMap.append(R.id.menu_emulation_load_2, EmulationActivity.MENU_ACTION_LOAD_SLOT2);
-		buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
-		buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
-		buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
-		buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
-		buttonsActionsMap.append(R.id.menu_emulation_joystick_settings, EmulationActivity.MENU_ACTION_JOYSTICK_SETTINGS);
-	}
 
 	public static void launch(FragmentActivity activity, GameFile gameFile, String savedState) {
 		Intent launcher = new Intent(activity, EmulationActivity.class);
@@ -282,114 +217,106 @@ public final class EmulationActivity extends AppCompatActivity {
 		return true;
 	}
 
-	@SuppressWarnings("WrongConstant")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		int action = buttonsActionsMap.get(item.getItemId(), -1);
-		if (action >= 0) {
-			handleMenuAction(action);
-		}
-		return true;
-	}
-
-	public void handleMenuAction(@MenuAction int menuAction) {
-		switch (menuAction) {
+		switch (item.getItemId()) {
 			// Edit the placement of the controls
-			case MENU_ACTION_EDIT_CONTROLS_PLACEMENT:
+			case R.id.menu_emulation_edit_layout:
 				editControlsPlacement();
 				break;
 
-			case MENU_ACTION_JOYSTICK_SETTINGS:
+			case R.id.menu_emulation_joystick_settings:
 				showJoystickSettings();
-				return;
+				break;
 
 			// Enable/Disable specific buttons or the entire input overlay.
-			case MENU_ACTION_TOGGLE_CONTROLS:
+			case R.id.menu_emulation_toggle_controls:
 				toggleControls();
-				return;
+				break;
 
 			// Adjust the scale of the overlay controls.
-			case MENU_ACTION_ADJUST_SCALE:
+			case R.id.menu_emulation_adjust_scale:
 				adjustScale();
-				return;
+				break;
 
 			// (Wii games only) Change the controller for the input overlay.
-			case MENU_ACTION_CHOOSE_CONTROLLER:
+			case R.id.menu_emulation_choose_controller:
 				chooseController();
-				return;
+				break;
 
-			case MENU_ACTION_REFRESH_WIIMOTES:
+			/*case R.id.menu_refresh_wiimotes:
 				NativeLibrary.RefreshWiimotes();
-				return;
+				break;*/
 
 			// Screenshot capturing
-			case MENU_ACTION_TAKE_SCREENSHOT:
+			case R.id.menu_emulation_screenshot:
 				NativeLibrary.SaveScreenShot();
-				return;
+				break;
 
 			// Quick save / load
-			case MENU_ACTION_QUICK_SAVE:
+			case R.id.menu_quicksave:
 				NativeLibrary.SaveState(9, false);
-				return;
+				break;
 
-			case MENU_ACTION_QUICK_LOAD:
+			case R.id.menu_quickload:
 				NativeLibrary.LoadState(9);
-				return;
+				break;
 
 			// Save state slots
-			case MENU_ACTION_SAVE_SLOT1:
+			case R.id.menu_emulation_save_1:
 				NativeLibrary.SaveState(0, false);
-				return;
+				break;
 
-			case MENU_ACTION_SAVE_SLOT2:
+			case R.id.menu_emulation_save_2:
 				NativeLibrary.SaveState(1, false);
-				return;
+				break;
 
-			case MENU_ACTION_SAVE_SLOT3:
+			case R.id.menu_emulation_save_3:
 				NativeLibrary.SaveState(2, false);
-				return;
+				break;
 
-			case MENU_ACTION_SAVE_SLOT4:
+			case R.id.menu_emulation_save_4:
 				NativeLibrary.SaveState(3, false);
-				return;
+				break;
 
-			case MENU_ACTION_SAVE_SLOT5:
+			case R.id.menu_emulation_save_5:
 				NativeLibrary.SaveState(4, false);
-				return;
-
-			case MENU_ACTION_SAVE_SLOT6:
-				NativeLibrary.SaveState(5, false);
-				return;
+				break;
 
 			// Load state slots
-			case MENU_ACTION_LOAD_SLOT1:
+			case R.id.menu_emulation_load_1:
 				NativeLibrary.LoadState(0);
-				return;
+				break;
 
-			case MENU_ACTION_LOAD_SLOT2:
+			case R.id.menu_emulation_load_2:
 				NativeLibrary.LoadState(1);
-				return;
+				break;
 
-			case MENU_ACTION_LOAD_SLOT3:
+			case R.id.menu_emulation_load_3:
 				NativeLibrary.LoadState(2);
-				return;
+				break;
 
-			case MENU_ACTION_LOAD_SLOT4:
+			case R.id.menu_emulation_load_4:
 				NativeLibrary.LoadState(3);
-				return;
+				break;
 
-			case MENU_ACTION_LOAD_SLOT5:
+			case R.id.menu_emulation_load_5:
 				NativeLibrary.LoadState(4);
-				return;
+				break;
 
-			case MENU_ACTION_LOAD_SLOT6:
-				NativeLibrary.LoadState(5);
-				return;
-
-			case MENU_ACTION_CHANGE_DISC:
+			case R.id.menu_change_disc:
 				FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
-				return;
+				break;
+
+			case R.id.menu_running_setting:
+				RunningSettingDialog.newInstance().show(getSupportFragmentManager(), "RunningSettingDialog");
+				break;
+
+			default:
+				return false;
 		}
+
+		return true;
 	}
 
 	private void showJoystickSettings() {

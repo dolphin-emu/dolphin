@@ -15,6 +15,12 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 #include "jni/AndroidCommon/IDCache.h"
 
+#include "Common/IniFile.h"
+#include "Core/ActionReplay.h"
+#include "Core/GeckoCodeConfig.h"
+#include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
+
 static std::shared_ptr<const UICommon::GameFile>* GetPointer(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<std::shared_ptr<const UICommon::GameFile>*>(
@@ -116,6 +122,40 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
                                                                                      jobject obj)
 {
   return static_cast<jint>(GetRef(env, obj)->GetBannerImage().height);
+}
+
+JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getCodes(JNIEnv* env,
+                                                                                        jobject obj)
+{
+  IniFile game_ini_local;
+  const std::shared_ptr<const UICommon::GameFile>& game_file = GetRef(env, obj);
+  const std::string& game_id = game_file->GetGameID();
+  const u16 game_revision = game_file->GetRevision();
+  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini");
+
+  IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(game_id, game_revision);
+  std::vector<ActionReplay::ARCode> ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
+  std::vector<Gecko::GeckoCode> gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+
+  jsize ar_size = (jsize)ar_codes.size();
+  jsize gc_size = (jsize)gecko_codes.size();
+
+  jobjectArray list = (jobjectArray) env->NewObjectArray(
+    ar_size + gc_size,
+    env->FindClass("java/lang/String"),
+    ToJString(env, ""));
+
+  for(int i = 0; i < ar_size; ++i)
+  {
+    env->SetObjectArrayElement(list, i, ToJString(env, ar_codes[i].name));
+  }
+
+  for(int i = 0; i < gc_size; ++i)
+  {
+    env->SetObjectArrayElement(list, i, ToJString(env, gecko_codes[i].name));
+  }
+
+  return list;
 }
 
 #ifdef __cplusplus

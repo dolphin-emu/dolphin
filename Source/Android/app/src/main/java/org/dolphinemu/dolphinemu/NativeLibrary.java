@@ -346,6 +346,16 @@ public final class NativeLibrary {
 	public static native void setSysconfSettings(int[] settings);
 
 	/**
+	 * Get sysconf settings
+	 */
+	public static native int[] getRunningSettings();
+
+	/**
+	 * Set sysconf settings
+	 */
+	public static native void setRunningSettings(int[] settings);
+
+	/**
 	 * Begins emulation.
 	 */
 	public static native void Run(String path);

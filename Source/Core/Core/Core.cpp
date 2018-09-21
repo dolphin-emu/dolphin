@@ -76,6 +76,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 #include "Core/Config/GraphicsSettings.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace Core
 {
@@ -98,8 +99,6 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
-
-static bool s_show_fps = false;
 
 struct HostJob
 {
@@ -217,8 +216,6 @@ bool Init(std::unique_ptr<BootParameters> boot)
   INFO_LOG(BOOT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
-
-  s_show_fps = Config::Get(Config::GFX_SHOW_FPS);
 
   s_window_handle = Host_GetRenderHandle();
 
@@ -834,7 +831,7 @@ void UpdateTitle()
       FPS, VPS, Speed,
       (int)(diff), (int)(diff - idleDiff), (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
   }
-  else if(s_show_fps)
+  else if(g_ActiveConfig.bShowFPS)
   {
     SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
   }
