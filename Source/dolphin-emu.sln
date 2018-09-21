@@ -88,13 +88,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Updater", "Core\Updater\Upd
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "discord-rpc", "..\Externals\discord-rpc\src\discord-rpc.vcxproj", "{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanguard", "..\..\RTCV\Vanguard\Vanguard.csproj", "{364C705E-B7AB-4A94-A59B-88899CE65958}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanguard", "C:\Users\Daniel\Documents\RTCV\Vanguard\Vanguard.csproj", "{364C705E-B7AB-4A94-A59B-88899CE65958}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCore", "..\..\RTCV\NetCore\NetCore.csproj", "{7E106AEC-5614-4206-9E4D-25759C90E8AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetCore", "C:\Users\Daniel\Documents\RTCV\NetCore\NetCore.csproj", "{7E106AEC-5614-4206-9E4D-25759C90E8AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DolphinCorrupt", "..\..\RTCV\DolphinCorrupt\DolphinCorrupt.csproj", "{2D844E66-B89B-452E-A5CA-0E4B40866D2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DolphinCorrupt", "C:\Users\Daniel\Documents\RTCV\DolphinCorrupt\DolphinCorrupt.csproj", "{2D844E66-B89B-452E-A5CA-0E4B40866D2C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorruptCore", "..\..\RTCV\CorruptCore\CorruptCore.csproj", "{603CE184-B72E-447C-8D02-65CE86F732EF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CorruptCore", "C:\Users\Daniel\Documents\RTCV\CorruptCore\CorruptCore.csproj", "{603CE184-B72E-447C-8D02-65CE86F732EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
