@@ -18,7 +18,6 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DolphinQt/Debugger/NewBreakpointDialog.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -79,9 +78,11 @@ BreakpointWidget::~BreakpointWidget()
 void BreakpointWidget::CreateWidgets()
 {
   m_toolbar = new QToolBar;
+  m_toolbar->setContentsMargins(0, 0, 0, 0);
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
+  m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -101,13 +102,15 @@ void BreakpointWidget::CreateWidgets()
 
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
 
-  m_new = AddAction(m_toolbar, tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
-  m_delete = AddAction(m_toolbar, tr("Delete"), this, &BreakpointWidget::OnDelete);
-  m_clear = AddAction(m_toolbar, tr("Clear"), this, &BreakpointWidget::OnClear);
+  m_new = m_toolbar->addAction(tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
+  m_delete = m_toolbar->addAction(tr("Delete"), this, &BreakpointWidget::OnDelete);
+  m_clear = m_toolbar->addAction(tr("Clear"), this, &BreakpointWidget::OnClear);
 
-  m_load = AddAction(m_toolbar, tr("Load"), this, &BreakpointWidget::OnLoad);
-  m_save = AddAction(m_toolbar, tr("Save"), this, &BreakpointWidget::OnSave);
+  m_load = m_toolbar->addAction(tr("Load"), this, &BreakpointWidget::OnLoad);
+  m_save = m_toolbar->addAction(tr("Save"), this, &BreakpointWidget::OnSave);
 
   m_new->setEnabled(false);
   m_load->setEnabled(false);

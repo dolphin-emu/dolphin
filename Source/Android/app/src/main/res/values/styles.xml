@@ -8,6 +8,7 @@
         <item name="colorPrimary">@color/dolphin_blue</item>
         <!-- Darker variant for the status bar and contextual app bars -->
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="colorAccent">@color/dolphin_purple</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
@@ -21,34 +22,7 @@
     <style name="DolphinSettingsBase" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
-    </style>
-
-    <!-- Inherit from the Base Dolphin Theme -->
-    <style name="DolphinWii" parent="DolphinBase">
-        <!-- Theme UI controls like checkboxes and text fields -->
-        <item name="colorAccent">@color/dolphin_accent_wii</item>
-    </style>
-
-    <style name="DolphinGamecube" parent="DolphinBase">
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
-    </style>
-
-    <style name="DolphinWiiware" parent="DolphinBase">
-        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
-    </style>
-
-    <!-- Inherit from the Base Dolphin Settings Theme -->
-    <style name="DolphinSettingsWii" parent="DolphinSettingsBase">
-        <item name="colorAccent">@color/dolphin_accent_wii</item>
-    </style>
-
-    <style name="DolphinSettingsGamecube" parent="DolphinSettingsBase">
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
-    </style>
-
-    <style name="DolphinSettingsWiiware" parent="DolphinSettingsBase">
-        <!-- Theme UI controls like checkboxes and text fields -->
-        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
+        <item name="colorAccent">@color/dolphin_purple</item>
     </style>
 
     <!-- Themes for Dialogs -->
@@ -58,6 +32,7 @@
     <style name="DolphinEmulationBase" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="colorAccent">@color/dolphin_purple</item>
         <item name="android:windowTranslucentNavigation">true</item>
 
         <item name="android:windowBackground">@android:color/black</item>
@@ -66,24 +41,12 @@
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
-    </style>
-
-    <!-- Inherit from the Base Dolphin Emulation Theme -->
-    <style name="DolphinEmulationWii" parent="DolphinEmulationBase">
-        <item name="colorAccent">@color/dolphin_accent_wii</item>
-    </style>
-
-    <style name="DolphinEmulationGamecube" parent="DolphinEmulationBase">
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
-    </style>
-
-    <style name="DolphinEmulationWiiware" parent="DolphinEmulationBase">
-        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
     <style name="DolphinEmulationTvBase" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="colorAccent">@color/dolphin_purple</item>
         <item name="android:windowTranslucentNavigation">true</item>
 
         <item name="android:windowBackground">@android:color/black</item>
@@ -92,19 +55,6 @@
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
-    </style>
-
-    <!-- Inherit from the Base Dolphin Emulation Theme -->
-    <style name="DolphinEmulationTvWii" parent="DolphinEmulationTvBase">
-        <item name="colorAccent">@color/dolphin_accent_wii</item>
-    </style>
-
-    <style name="DolphinEmulationTvGamecube" parent="DolphinEmulationTvBase">
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
-    </style>
-
-    <style name="DolphinEmulationTvWiiware" parent="DolphinEmulationTvBase">
-        <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
     <!-- Hax to make Tablayout render icons -->
@@ -116,15 +66,14 @@
     <style name="DolphinTvBase" parent="Theme.Leanback.Browse">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
+        <item name="colorAccent">@color/dolphin_purple</item>
 
         <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
-    </style>
 
-    <style name="DolphinTvGamecube" parent="DolphinTvBase">
-        <item name="colorAccent">@color/dolphin_accent_gamecube</item>
+        <!-- Use CustomTitleView as the leanback title view. -->
         <item name="browseTitleViewLayout">@layout/titleview</item>
     </style>
 
@@ -159,7 +108,7 @@
 
         <!-- If you want to set a specific toolbar theme, do it here -->
 
-         <item name="nnf_toolbarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="nnf_toolbarTheme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
     </style>
 
     <style name="FilePickerAlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">

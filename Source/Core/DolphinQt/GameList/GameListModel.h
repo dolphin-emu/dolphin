@@ -14,7 +14,10 @@
 
 #include "DolphinQt/GameList/GameTracker.h"
 
-#include "UICommon/GameFile.h"
+namespace UICommon
+{
+class GameFile;
+}
 
 class GameListModel final : public QAbstractTableModel
 {
@@ -32,12 +35,9 @@ public:
 
   std::shared_ptr<const UICommon::GameFile> GetGameFile(int index) const;
   // Path of the game at the specified index.
-  QString GetPath(int index) const { return QString::fromStdString(m_games[index]->GetFilePath()); }
+  QString GetPath(int index) const;
   // Unique identifier of the game at the specified index.
-  QString GetUniqueIdentifier(int index) const
-  {
-    return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
-  }
+  QString GetUniqueIdentifier(int index) const;
   bool ShouldDisplayGameListItem(int index) const;
   void SetSearchTerm(const QString& term);
 
@@ -59,6 +59,9 @@ public:
   void UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game);
   void RemoveGame(const std::string& path);
 
+  void SetScale(float scale);
+  float GetScale() const;
+
 private:
   // Index in m_games, or -1 if it isn't found
   int FindGame(const std::string& path) const;
@@ -67,4 +70,5 @@ private:
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
   Core::TitleDatabase m_title_database;
   QString m_term;
+  float m_scale = 1.0;
 };

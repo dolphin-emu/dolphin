@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstring>
+#include <locale>
 #include <mutex>
 #include <ostream>
 #include <string>
@@ -67,8 +69,18 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
 
 static size_t DeterminePathCutOffPoint()
 {
-  constexpr const char* pattern = DIR_SEP "Source" DIR_SEP "Core" DIR_SEP;
-  size_t pos = std::string(__FILE__).find(pattern);
+  constexpr const char* pattern = "/source/core/";
+#ifdef _WIN32
+  constexpr const char* pattern2 = "\\source\\core\\";
+#endif
+  std::string path = __FILE__;
+  std::transform(path.begin(), path.end(), path.begin(),
+                 [](char c) { return std::tolower(c, std::locale::classic()); });
+  size_t pos = path.find(pattern);
+#ifdef _WIN32
+  if (pos == std::string::npos)
+    pos = path.find(pattern2);
+#endif
   if (pos != std::string::npos)
     return pos + strlen(pattern);
   return 0;
@@ -109,7 +121,7 @@ LogManager::LogManager()
   m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
   m_log[LogTypes::IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
   m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
-  m_log[LogTypes::MASTER_LOG] = {"*", "Master Log"};
+  m_log[LogTypes::MASTER_LOG] = {"MASTER", "Master Log"};
   m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
   m_log[LogTypes::MEMMAP] = {"MI", "MI & memmap"};
   m_log[LogTypes::NETPLAY] = {"NETPLAY", "Netplay"};

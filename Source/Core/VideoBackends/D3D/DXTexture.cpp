@@ -49,6 +49,8 @@ DXGI_FORMAT GetDXGIFormatForHostFormat(AbstractTextureFormat format)
     return DXGI_FORMAT_R32_FLOAT;
   case AbstractTextureFormat::D16:
     return DXGI_FORMAT_R16_TYPELESS;
+  case AbstractTextureFormat::D24_S8:
+    return DXGI_FORMAT_R24G8_TYPELESS;
   case AbstractTextureFormat::D32F:
     return DXGI_FORMAT_R32_TYPELESS;
   case AbstractTextureFormat::D32F_S8:
@@ -64,6 +66,8 @@ DXGI_FORMAT GetSRVFormatForHostFormat(AbstractTextureFormat format)
   {
   case AbstractTextureFormat::D16:
     return DXGI_FORMAT_R16_UNORM;
+  case AbstractTextureFormat::D24_S8:
+    return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
   case AbstractTextureFormat::D32F:
     return DXGI_FORMAT_R32_FLOAT;
   case AbstractTextureFormat::D32F_S8:
@@ -78,6 +82,8 @@ DXGI_FORMAT GetDSVFormatForHostFormat(AbstractTextureFormat format)
   {
   case AbstractTextureFormat::D16:
     return DXGI_FORMAT_D16_UNORM;
+  case AbstractTextureFormat::D24_S8:
+    return DXGI_FORMAT_D24_UNORM_S8_UINT;
   case AbstractTextureFormat::D32F:
     return DXGI_FORMAT_D32_FLOAT;
   case AbstractTextureFormat::D32F_S8:

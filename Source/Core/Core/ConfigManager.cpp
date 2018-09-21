@@ -141,21 +141,12 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("UsePanicHandlers", bUsePanicHandlers);
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
-  interface->Set("MainWindowPosX", iPosX);
-  interface->Set("MainWindowPosY", iPosY);
-  interface->Set("MainWindowWidth", iWidth);
-  interface->Set("MainWindowHeight", iHeight);
   interface->Set("LanguageCode", m_InterfaceLanguage);
-  interface->Set("ShowToolbar", m_InterfaceToolbar);
-  interface->Set("ShowStatusbar", m_InterfaceStatusbar);
-  interface->Set("ShowLogWindow", m_InterfaceLogWindow);
-  interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
   interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
-  interface->Set("DisableTooltips", m_DisableTooltips);
   interface->Set("DebugModeEnabled", bEnableDebugging);
 }
 
@@ -236,8 +227,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("AudioLatency", iLatency);
   core->Set("AudioStretch", m_audio_stretch);
   core->Set("AudioStretchMaxLatency", m_audio_stretch_max_latency);
-  core->Set("MemcardAPath", m_strMemoryCardA);
-  core->Set("MemcardBPath", m_strMemoryCardB);
   core->Set("AgpCartAPath", m_strGbaCartA);
   core->Set("AgpCartBPath", m_strGbaCartB);
   core->Set("SlotA", m_EXIDevice[0]);
@@ -257,7 +246,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("RunCompareServer", bRunCompareServer);
   core->Set("RunCompareClient", bRunCompareClient);
   core->Set("EmulationSpeed", m_EmulationSpeed);
-  core->Set("FrameSkip", m_FrameSkip);
   core->Set("Overclock", m_OCFactor);
   core->Set("OverclockEnable", m_OCEnable);
   core->Set("GFXBackend", m_strVideoBackend);
@@ -426,21 +414,12 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("UsePanicHandlers", &bUsePanicHandlers, false);
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, false);
-  interface->Get("MainWindowPosX", &iPosX, INT_MIN);
-  interface->Get("MainWindowPosY", &iPosY, INT_MIN);
-  interface->Get("MainWindowWidth", &iWidth, -1);
-  interface->Get("MainWindowHeight", &iHeight, -1);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
-  interface->Get("ShowToolbar", &m_InterfaceToolbar, true);
-  interface->Get("ShowStatusbar", &m_InterfaceStatusbar, true);
-  interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
-  interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
   interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
-  interface->Get("DisableTooltips", &m_DisableTooltips, false);
   interface->Get("DebugModeEnabled", &bEnableDebugging, false);
 }
 
@@ -511,6 +490,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #else
   core->Get("CPUCore", &cpu_core, PowerPC::CPUCore::Interpreter);
 #endif
+  core->Get("JITFollowBranch", &bJITFollowBranch, true);
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
@@ -523,8 +503,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("AudioLatency", &iLatency, 20);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
-  core->Get("MemcardAPath", &m_strMemoryCardA);
-  core->Get("MemcardBPath", &m_strMemoryCardB);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
@@ -551,14 +529,12 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
-  core->Get("DCBZ", &bDCBZOFF, false);
   core->Get("LowDCBZHack", &bLowDCBZHack, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
-  core->Get("FrameSkip", &m_FrameSkip, 0);
   core->Get("GFXBackend", &m_strVideoBackend, "");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
@@ -776,7 +752,6 @@ void SConfig::LoadDefaults()
 #else
   bMMU = false;
 #endif
-  bDCBZOFF = false;
   bLowDCBZHack = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
@@ -791,11 +766,6 @@ void SConfig::LoadDefaults()
   m_audio_stretch_max_latency = 80;
   bUsePanicHandlers = true;
   bOnScreenDisplayMessages = true;
-
-  iPosX = INT_MIN;
-  iPosY = INT_MIN;
-  iWidth = -1;
-  iHeight = -1;
 
   m_analytics_id = "";
   m_analytics_enabled = false;
@@ -835,6 +805,9 @@ DiscIO::Region SConfig::ToGameCubeRegion(DiscIO::Region region)
 
 const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 {
+  if (region == DiscIO::Region::Unknown)
+    region = ToGameCubeRegion(GetFallbackRegion());
+
   switch (region)
   {
   case DiscIO::Region::NTSC_J:
@@ -848,10 +821,11 @@ const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 
   case DiscIO::Region::NTSC_K:
     ASSERT_MSG(BOOT, false, "NTSC-K is not a valid GameCube region");
-    return nullptr;
+    return JAP_DIR;  // See ToGameCubeRegion
 
   default:
-    return nullptr;
+    ASSERT_MSG(BOOT, false, "Default case should not be reached");
+    return EUR_DIR;
   }
 }
 
@@ -955,75 +929,27 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   if (!std::visit(SetGameMetadata(this, &m_region), boot.parameters))
     return false;
 
-  // Fall back to the system menu region, if possible.
   if (m_region == DiscIO::Region::Unknown)
-  {
-    IOS::HLE::Kernel ios;
-    const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
-    if (system_menu_tmd.IsValid())
-      m_region = system_menu_tmd.GetRegion();
-  }
-
-  // Fall back to PAL.
-  if (m_region == DiscIO::Region::Unknown)
-    m_region = DiscIO::Region::PAL;
+    m_region = GetFallbackRegion();
 
   // Set up paths
   const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, region_dir, true);
-  CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, region_dir, false);
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
   m_strBootROM = GetBootROMPath(region_dir);
 
   return true;
 }
 
-void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion,
-                               bool isSlotA)
+DiscIO::Region SConfig::GetFallbackRegion()
 {
-  std::string ext("." + gameRegion + ".raw");
-  if (memcardPath.empty())
-  {
-    // Use default memcard path if there is no user defined name
-    std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
-    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
-  }
-  else
-  {
-    std::string filename = memcardPath;
-    std::string region = filename.substr(filename.size() - 7, 3);
-    bool hasregion = false;
-    hasregion |= region.compare(USA_DIR) == 0;
-    hasregion |= region.compare(JAP_DIR) == 0;
-    hasregion |= region.compare(EUR_DIR) == 0;
-    if (!hasregion)
-    {
-      // filename doesn't have region in the extension
-      if (File::Exists(filename))
-      {
-        // If the old file exists we are polite and ask if we should copy it
-        std::string oldFilename = filename;
-        filename.replace(filename.size() - 4, 4, ext);
-        if (PanicYesNoT("Memory Card filename in Slot %c is incorrect\n"
-                        "Region not specified\n\n"
-                        "Slot %c path was changed to\n"
-                        "%s\n"
-                        "Would you like to copy the old file to this new location?\n",
-                        isSlotA ? 'A' : 'B', isSlotA ? 'A' : 'B', filename.c_str()))
-        {
-          if (!File::Copy(oldFilename, filename))
-            PanicAlertT("Copy failed");
-        }
-      }
-      memcardPath = filename;  // Always correct the path!
-    }
-    else if (region.compare(gameRegion) != 0)
-    {
-      // filename has region, but it's not == gameRegion
-      // Just set the correct filename, the EXI Device will create it if it doesn't exist
-      memcardPath = filename.replace(filename.size() - ext.size(), ext.size(), ext);
-    }
-  }
+  // Fall back to the system menu region, if possible.
+  IOS::HLE::Kernel ios;
+  const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  if (system_menu_tmd.IsValid())
+    return system_menu_tmd.GetRegion();
+
+  // Fall back to PAL.
+  return DiscIO::Region::PAL;
 }
 
 DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const

@@ -90,54 +90,46 @@ void Turntable::GetState(u8* const data)
 
   // stick
   {
-    ControlState x, y;
-    m_stick->GetState(&x, &y);
+    const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    tt_data.sx = static_cast<u8>((x * 0x1F) + 0x20);
-    tt_data.sy = static_cast<u8>((y * 0x1F) + 0x20);
+    tt_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
+    tt_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
   }
 
   // left table
   {
-    ControlState tt;
-    m_left_table->GetState(&tt);
+    const ControllerEmu::Slider::StateData lt = m_left_table->GetState();
+    const s8 tt = static_cast<s8>(lt.value * 0x1F);
 
-    const s8 tt_ = static_cast<s8>(tt * 0x1F);
-
-    tt_data.ltable1 = tt_;
-    tt_data.ltable2 = tt_ >> 5;
+    tt_data.ltable1 = tt;
+    tt_data.ltable2 = tt >> 5;
   }
 
   // right table
   {
-    ControlState tt;
-    m_right_table->GetState(&tt);
+    const ControllerEmu::Slider::StateData rt = m_right_table->GetState();
+    const s8 tt = static_cast<s8>(rt.value * 0x1F);
 
-    const s8 tt_ = static_cast<s8>(tt * 0x1F);
-
-    tt_data.rtable1 = tt_;
-    tt_data.rtable2 = tt_ >> 1;
-    tt_data.rtable3 = tt_ >> 3;
-    tt_data.rtable4 = tt_ >> 5;
+    tt_data.rtable1 = tt;
+    tt_data.rtable2 = tt >> 1;
+    tt_data.rtable3 = tt >> 3;
+    tt_data.rtable4 = tt >> 5;
   }
 
   // effect dial
   {
-    ControlState dial;
-    m_effect_dial->GetState(&dial);
+    const ControllerEmu::Triggers::StateData state = m_effect_dial->GetState();
+    const u8 dial = static_cast<u8>(state.data[0] * 0x0F);
 
-    const u8 dial_ = static_cast<u8>(dial * 0x0F);
-
-    tt_data.dial1 = dial_;
-    tt_data.dial2 = dial_ >> 3;
+    tt_data.dial1 = dial;
+    tt_data.dial2 = dial >> 3;
   }
 
   // crossfade slider
   {
-    ControlState cfs;
-    m_crossfade->GetState(&cfs);
+    const ControllerEmu::Slider::StateData cfs = m_crossfade->GetState();
 
-    tt_data.slider = static_cast<u8>((cfs * 0x07) + 0x08);
+    tt_data.slider = static_cast<u8>((cfs.value * 0x07) + 0x08);
   }
 
   // buttons

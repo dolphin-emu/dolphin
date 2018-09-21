@@ -633,9 +633,6 @@
     <ClCompile Include="PowerPC\PPCTables.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Profiler.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -908,6 +905,9 @@
       <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
     <ClCompile Include="Config\UISettings.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\WiimoteInputSettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1269,6 +1269,9 @@
     <ClInclude Include="HW\WiiSave.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
+    <ClInclude Include="HW\WiiSaveStructs.h">
+      <Filter>HW %28Flipper/Hollywood%29</Filter>
+    </ClInclude>
     <ClInclude Include="DSP\DSPAssembler.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
@@ -1602,6 +1605,9 @@
       <Filter>HW %28Flipper/Hollywood%29\WiimoteCommon</Filter>
     </ClInclude>
     <ClInclude Include="Config\UISettings.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\WiimoteInputSettings.h">
       <Filter>Config</Filter>
     </ClInclude>
   </ItemGroup>

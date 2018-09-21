@@ -19,15 +19,18 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+// "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
+// 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
+constexpr double SCROLL_FRACTION_DEGREES = 15.;
 
 MemoryViewWidget::MemoryViewWidget(QWidget* parent) : QTableWidget(parent)
 {
   horizontalHeader()->hide();
   verticalHeader()->hide();
-  verticalScrollBar()->setHidden(true);
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setShowGrid(false);
 
   setFont(Settings::Instance().GetDebugFont());
@@ -237,11 +240,11 @@ void MemoryViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address -= 3 * 16;
+    m_address -= 16;
     Update();
     return;
   case Qt::Key_Down:
-    m_address += 3 * 16;
+    m_address += 16;
     Update();
     return;
   case Qt::Key_PageUp:
@@ -298,9 +301,13 @@ void MemoryViewWidget::ToggleBreakpoint()
 
 void MemoryViewWidget::wheelEvent(QWheelEvent* event)
 {
-  int delta = event->delta() > 0 ? -1 : 1;
+  auto delta =
+      -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
-  m_address += delta * 3 * 16;
+  if (delta == 0)
+    return;
+
+  m_address += delta * 16;
   Update();
 }
 
@@ -351,16 +358,16 @@ void MemoryViewWidget::OnContextMenu()
 {
   auto* menu = new QMenu(this);
 
-  AddAction(menu, tr("Copy Address"), this, &MemoryViewWidget::OnCopyAddress);
+  menu->addAction(tr("Copy Address"), this, &MemoryViewWidget::OnCopyAddress);
 
-  auto* copy_hex = AddAction(menu, tr("Copy Hex"), this, &MemoryViewWidget::OnCopyHex);
+  auto* copy_hex = menu->addAction(tr("Copy Hex"), this, &MemoryViewWidget::OnCopyHex);
 
   copy_hex->setEnabled(Core::GetState() != Core::State::Uninitialized &&
                        PowerPC::HostIsRAMAddress(GetContextAddress()));
 
   menu->addSeparator();
 
-  AddAction(menu, tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
+  menu->addAction(tr("Toggle Breakpoint"), this, &MemoryViewWidget::ToggleBreakpoint);
 
   menu->exec(QCursor::pos());
 }

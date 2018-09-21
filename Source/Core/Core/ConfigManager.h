@@ -83,6 +83,7 @@ struct SConfig
 
   PowerPC::CPUCore cpu_core;
 
+  bool bJITFollowBranch;
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
   bool bJITOff = false;
@@ -103,15 +104,12 @@ struct SConfig
   bool bAccurateNaNs = false;
 
   int iTimingVariance = 40;  // in milli secounds
-  //narrysmod_hijack
-  //1-2-2018 HIJACK DISABLED BECAUSE I DON'T THINK IT WAS REALLY WORTH THE PERFORMANCE IMPACT. DIDN'T SEEM TO IMPROVE ANYTHING
   bool bCPUThread = true;
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bHLE_BS2 = true;
-  //narrysmod_hijack
-  bool bEnableCheats = true;
+  bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 
@@ -123,11 +121,7 @@ struct SConfig
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
 
-  //Narrysmod_Hijack. Enable mmu by default to handle bad calls.
-  //1-2-2018 HIJACK DISABLED BECAUSE I DON'T THINK IT WAS REALLY WORTH THE PERFORMANCE IMPACT. DIDN'T SEEM TO IMPROVE ANYTHING
   bool bMMU = false;
-
-  bool bDCBZOFF = false;
   bool bLowDCBZHack = false;
   int iBBDumpPort = 0;
   bool bFastDiscSpeed = false;
@@ -146,9 +140,7 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
-
-  //Narrysmod_hijack
-  bool bUsePanicHandlers = false;
+  bool bUsePanicHandlers = true;
   bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
@@ -161,8 +153,6 @@ struct SConfig
   bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
   bool bFullscreen = false, bRenderToMain = false;
   bool bDisableScreenSaver = false;
-
-  int iPosX, iPosY, iWidth, iHeight;
 
   // Analytics settings.
   std::string m_analytics_id;
@@ -221,7 +211,7 @@ struct SConfig
   static const char* GetDirectoryForRegion(DiscIO::Region region);
   std::string GetBootROMPath(const std::string& region_directory) const;
   bool SetPathsAndGameMetadata(const BootParameters& boot);
-  void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
+  static DiscIO::Region GetFallbackRegion();
   DiscIO::Language GetCurrentLanguage(bool wii) const;
 
   IniFile LoadDefaultGameIni() const;
@@ -232,8 +222,6 @@ struct SConfig
   static IniFile LoadLocalGameIni(const std::string& id, std::optional<u16> revision);
   static IniFile LoadGameIni(const std::string& id, std::optional<u16> revision);
 
-  std::string m_strMemoryCardA;
-  std::string m_strMemoryCardB;
   std::string m_strGbaCartA;
   std::string m_strGbaCartB;
   ExpansionInterface::TEXIDevices m_EXIDevice[3];
@@ -246,10 +234,6 @@ struct SConfig
   bool m_OCEnable;
   float m_OCFactor;
   // other interface settings
-  bool m_InterfaceToolbar;
-  bool m_InterfaceStatusbar;
-  bool m_InterfaceLogWindow;
-  bool m_InterfaceLogConfigWindow;
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
   bool m_use_builtin_title_database = true;
@@ -293,14 +277,11 @@ struct SConfig
   bool m_ShowFrameCount;
   bool m_ShowRTC;
   std::string m_strMovieAuthor;
-  unsigned int m_FrameSkip;
   bool m_DumpFrames;
   bool m_DumpFramesSilent;
   bool m_ShowInputDisplay;
 
   bool m_PauseOnFocusLost;
-
-  bool m_DisableTooltips;
 
   // DSP settings
   bool m_DSPEnableJIT;

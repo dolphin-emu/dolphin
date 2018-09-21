@@ -19,10 +19,13 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 
 Settings::Settings()
@@ -35,8 +38,13 @@ Settings::Settings()
   Config::AddConfigChangedCallback(
       [this] { QueueOnObject(this, [this] { emit ConfigChanged(); }); });
 
+  g_controller_interface.RegisterDevicesChangedCallback(
+      [this] { QueueOnObject(this, [this] { emit DevicesChanged(); }); });
+
   SetCurrentUserStyle(GetCurrentUserStyle());
 }
+
+Settings::~Settings() = default;
 
 Settings& Settings::Instance()
 {
@@ -127,6 +135,16 @@ void Settings::RemovePath(const QString& qpath)
 void Settings::RefreshGameList()
 {
   emit GameListRefreshRequested();
+}
+
+void Settings::RefreshMetadata()
+{
+  emit MetadataRefreshRequested();
+}
+
+void Settings::NotifyMetadataRefreshComplete()
+{
+  emit MetadataRefreshCompleted();
 }
 
 void Settings::ReloadTitleDB()
@@ -268,22 +286,22 @@ GameListModel* Settings::GetGameListModel() const
   return model;
 }
 
-NetPlayClient* Settings::GetNetPlayClient()
+std::shared_ptr<NetPlay::NetPlayClient> Settings::GetNetPlayClient()
 {
-  return m_client.get();
+  return m_client;
 }
 
-void Settings::ResetNetPlayClient(NetPlayClient* client)
+void Settings::ResetNetPlayClient(NetPlay::NetPlayClient* client)
 {
   m_client.reset(client);
 }
 
-NetPlayServer* Settings::GetNetPlayServer()
+std::shared_ptr<NetPlay::NetPlayServer> Settings::GetNetPlayServer()
 {
-  return m_server.get();
+  return m_server;
 }
 
-void Settings::ResetNetPlayServer(NetPlayServer* server)
+void Settings::ResetNetPlayServer(NetPlay::NetPlayServer* server)
 {
   m_server.reset(server);
 }
@@ -416,6 +434,13 @@ bool Settings::IsJITVisible() const
   return QSettings().value(QStringLiteral("debugger/showjit")).toBool();
 }
 
+void Settings::RefreshWidgetVisibility()
+{
+  emit DebugModeToggled(IsDebugModeEnabled());
+  emit LogVisibilityChanged(IsLogVisible());
+  emit LogConfigVisibilityChanged(IsLogConfigVisible());
+}
+
 void Settings::SetDebugFont(QFont font)
 {
   if (GetDebugFont() != font)
@@ -501,4 +526,18 @@ bool Settings::IsBatchModeEnabled() const
 void Settings::SetBatchModeEnabled(bool batch)
 {
   m_batch = batch;
+}
+
+bool Settings::IsUSBKeyboardConnected() const
+{
+  return SConfig::GetInstance().m_WiiKeyboard;
+}
+
+void Settings::SetUSBKeyboardConnected(bool connected)
+{
+  if (IsUSBKeyboardConnected() != connected)
+  {
+    SConfig::GetInstance().m_WiiKeyboard = connected;
+    emit USBKeyboardConnectionChanged(connected);
+  }
 }

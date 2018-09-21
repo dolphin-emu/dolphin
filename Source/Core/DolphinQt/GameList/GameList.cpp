@@ -15,11 +15,15 @@
 #include <QFrame>
 #include <QHeaderView>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QListView>
 #include <QMap>
 #include <QMenu>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QScrollBar>
+#include <QShortcut>
+#include <QSortFilterProxyModel>
+#include <QTableView>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
@@ -34,13 +38,15 @@
 #include "DiscIO/Enums.h"
 
 #include "DolphinQt/Config/PropertiesDialog.h"
+#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/GameList/GridProxyModel.h"
 #include "DolphinQt/GameList/ListProxyModel.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
+
+#include "UICommon/GameFile.h"
 
 static bool CompressCB(const std::string&, float, void*);
 
@@ -58,6 +64,9 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   MakeGridView();
   MakeEmptyView();
 
+  if (Settings::GetQSettings().contains(QStringLiteral("gridview/scale")))
+    m_model->SetScale(Settings::GetQSettings().value(QStringLiteral("gridview/scale")).toFloat());
+
   connect(m_list, &QTableView::doubleClicked, this, &GameList::GameSelected);
   connect(m_grid, &QListView::doubleClicked, this, &GameList::GameSelected);
   connect(m_model, &QAbstractItemModel::rowsInserted, this, &GameList::ConsiderViewChange);
@@ -68,6 +77,15 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   addWidget(m_empty);
   m_prefer_list = Settings::Instance().GetPreferredView();
   ConsiderViewChange();
+
+  auto* zoom_in = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
+  auto* zoom_out = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
+
+  connect(zoom_in, &QShortcut::activated, this, &GameList::ZoomIn);
+  connect(zoom_out, &QShortcut::activated, this, &GameList::ZoomOut);
+
+  connect(&Settings::Instance(), &Settings::MetadataRefreshCompleted, this,
+          [this] { m_grid_proxy->invalidate(); });
 }
 
 void GameList::MakeListView()
@@ -140,6 +158,7 @@ GameList::~GameList()
 {
   Settings::GetQSettings().setValue(QStringLiteral("tableheader/state"),
                                     m_list->horizontalHeader()->saveState());
+  Settings::GetQSettings().setValue(QStringLiteral("gridview/scale"), m_model->GetScale());
 }
 
 void GameList::UpdateColumnVisibility()
@@ -227,19 +246,19 @@ void GameList::ShowContextMenu(const QPoint&)
     }
 
     if (compress)
-      AddAction(menu, tr("Compress selected ISOs..."), this, [this] { CompressISO(false); });
+      menu->addAction(tr("Compress selected ISOs..."), this, [this] { CompressISO(false); });
     if (decompress)
-      AddAction(menu, tr("Decompress selected ISOs..."), this, [this] { CompressISO(true); });
+      menu->addAction(tr("Decompress selected ISOs..."), this, [this] { CompressISO(true); });
     if (compress || decompress)
       menu->addSeparator();
 
     if (wii_saves)
     {
-      AddAction(menu, tr("Export Wii saves (Experimental)"), this, &GameList::ExportWiiSave);
+      menu->addAction(tr("Export Wii saves (Experimental)"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
-    AddAction(menu, tr("Delete selected files..."), this, &GameList::DeleteFile);
+    menu->addAction(tr("Delete selected files..."), this, &GameList::DeleteFile);
   }
   else
   {
@@ -248,23 +267,23 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform != DiscIO::Platform::ELFOrDOL)
     {
-      AddAction(menu, tr("&Properties"), this, &GameList::OpenProperties);
-      AddAction(menu, tr("&Wiki"), this, &GameList::OpenWiki);
+      menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
+      menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
 
       menu->addSeparator();
     }
 
     if (platform == DiscIO::Platform::GameCubeDisc || platform == DiscIO::Platform::WiiDisc)
     {
-      AddAction(menu, tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
+      menu->addAction(tr("Set as &default ISO"), this, &GameList::SetDefaultISO);
       const auto blob_type = game->GetBlobType();
 
       if (blob_type == DiscIO::BlobType::GCZ)
-        AddAction(menu, tr("Decompress ISO..."), this, [this] { CompressISO(true); });
+        menu->addAction(tr("Decompress ISO..."), this, [this] { CompressISO(true); });
       else if (blob_type == DiscIO::BlobType::PLAIN)
-        AddAction(menu, tr("Compress ISO..."), this, [this] { CompressISO(false); });
+        menu->addAction(tr("Compress ISO..."), this, [this] { CompressISO(false); });
 
-      QAction* change_disc = AddAction(menu, tr("Change &Disc"), this, &GameList::ChangeDisc);
+      QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
 
       connect(&Settings::Instance(), &Settings::EmulationStateChanged, change_disc,
               [change_disc] { change_disc->setEnabled(Core::IsRunning()); });
@@ -275,7 +294,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiDisc)
     {
-      auto* perform_disc_update = AddAction(menu, tr("Perform System Update"), this, [this] {
+      auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this, [this] {
         WiiUpdate::PerformDiscUpdate(GetSelectedGame()->GetFilePath(), this);
       });
       perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
@@ -309,13 +328,13 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
     {
-      AddAction(menu, tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
-      AddAction(menu, tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
+      menu->addAction(tr("Open Wii &save folder"), this, &GameList::OpenSaveFolder);
+      menu->addAction(tr("Export Wii save (Experimental)"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
-    AddAction(menu, tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
-    AddAction(menu, tr("Delete File..."), this, &GameList::DeleteFile);
+    menu->addAction(tr("Open &containing folder"), this, &GameList::OpenContainingFolder);
+    menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
 
     QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
@@ -678,6 +697,11 @@ bool GameList::HasMultipleSelected() const
                                      m_grid->selectionModel()->selectedIndexes().size() > 1;
 }
 
+void GameList::SetViewColumn(int col, bool view)
+{
+  m_list->setColumnHidden(col, !view);
+}
+
 void GameList::SetPreferredView(bool list)
 {
   m_prefer_list = list;
@@ -843,4 +867,36 @@ void GameList::SetSearchTerm(const QString& term)
   m_grid_proxy->invalidate();
 
   UpdateColumnVisibility();
+}
+
+void GameList::ZoomIn()
+{
+  m_model->SetScale(m_model->GetScale() + 0.1);
+
+  m_list_proxy->invalidate();
+  m_grid_proxy->invalidate();
+
+  UpdateFont();
+}
+
+void GameList::ZoomOut()
+{
+  if (m_model->GetScale() <= 0.1)
+    return;
+
+  m_model->SetScale(m_model->GetScale() - 0.1);
+
+  m_list_proxy->invalidate();
+  m_grid_proxy->invalidate();
+
+  UpdateFont();
+}
+
+void GameList::UpdateFont()
+{
+  QFont f;
+
+  f.setPointSizeF(m_model->GetScale() * f.pointSize());
+
+  m_grid->setFont(f);
 }

@@ -46,7 +46,7 @@
 % Document front page material
 \title{\textbf{\Huge GameCube DSP User's Manual}}
 \author{Reverse-engineered and documented by Duddie \\ \href{mailto:duddie@walla.com}{duddie@walla.com}}
-\date{\today\\v0.0.5}
+\date{\today\\v0.0.6}
 
 % Title formatting commands
 \newcommand{\OpcodeTitle}[1]{\subsection{\textbf{\Large #1}}}
@@ -238,6 +238,7 @@ The purpose of this documentation is purely academic and it aims at understandin
 0.0.3            & 2005.05.09    & Duddie          & Fixed BLOOP and BLOOPI and added description of the loop stack.                          \\ \hline
 0.0.4            & 2005.05.12    & Duddie          & Added preliminary DSP memory map and opcode syntax.                                      \\ \hline
 0.0.5            & 2018.04.09    & Lioncache       & Converted document over to LaTeX.                                                        \\ \hline
+0.0.6            & 2018.04.13    & BhaaL           & Updated register tables, fixed opcode operations                                         \\ \hline
 \end{tabular}
 \end{table}
 
@@ -400,39 +401,39 @@ The DSP has 32 16-bit registers, although their individual purpose and their fun
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-                &                  &                      &                       \\ \hline
-\Register{\$0}  & \Register{\$r00} & \Register{\$ar0}     & Addressing register 0 \\ \hline
-\Register{\$1}  & \Register{\$r01} & \Register{\$ar1}     &                       \\ \hline
-\Register{\$2}  & \Register{\$r02} & \Register{\$ar2}     &                       \\ \hline
-\Register{\$3}  & \Register{\$r03} & \Register{\$ar3}     &                       \\ \hline
-\Register{\$4}  & \Register{\$r04} & \Register{\$ix0}     &                       \\ \hline
-\Register{\$5}  & \Register{\$r05} & \Register{\$ix1}     &                       \\ \hline
-\Register{\$6}  & \Register{\$r06} & \Register{\$ix2}     &                       \\ \hline
-\Register{\$7}  & \Register{\$r07} & \Register{\$ix3}     &                       \\ \hline
-\Register{\$8}  & \Register{\$r08} &                      &                       \\ \hline
-\Register{\$9}  & \Register{\$r09} &                      &                       \\ \hline
-\Register{\$10} & \Register{\$r0A} &                      &                       \\ \hline
-\Register{\$11} & \Register{\$r0B} &                      &                       \\ \hline
-\Register{\$12} & \Register{\$r0C} & \Register{\$st0}     &                       \\ \hline
-\Register{\$13} & \Register{\$r0D} & \Register{\$st1}     &                       \\ \hline
-\Register{\$14} & \Register{\$r0E} & \Register{\$st2}     &                       \\ \hline
-\Register{\$15} & \Register{\$r0F} & \Register{\$st3}     &                       \\ \hline
-\Register{\$16} & \Register{\$r10} & \Register{\$ac0.h}   &                       \\ \hline
-\Register{\$17} & \Register{\$r11} & \Register{\$ac1.h}   &                       \\ \hline
-\Register{\$18} & \Register{\$r12} & \Register{\$config}  &                       \\ \hline
-\Register{\$19} & \Register{\$r13} & \Register{\$sr}      &                       \\ \hline
-\Register{\$20} & \Register{\$r14} & \Register{\$prod.l}  &                       \\ \hline
-\Register{\$21} & \Register{\$r15} & \Register{\$prod.m1} &                       \\ \hline
-\Register{\$22} & \Register{\$r16} & \Register{\$prod.h}  &                       \\ \hline
-\Register{\$23} & \Register{\$r17} & \Register{\$prod.m2} &                       \\ \hline
-\Register{\$24} & \Register{\$r18} & \Register{\$ax0.l}   &                       \\ \hline
-\Register{\$25} & \Register{\$r19} & \Register{\$ax0.h}   &                       \\ \hline
-\Register{\$26} & \Register{\$r1A} & \Register{\$ax1.l}   &                       \\ \hline
-\Register{\$27} & \Register{\$r1B} & \Register{\$ax1.h}   &                       \\ \hline
-\Register{\$28} & \Register{\$r1C} & \Register{\$ac0.l}   &                       \\ \hline
-\Register{\$29} & \Register{\$r1D} & \Register{\$ac1.l}   &                       \\ \hline
-\Register{\$30} & \Register{\$r1E} & \Register{\$ac0.m}   &                       \\ \hline
-\Register{\$31} & \Register{\$r1F} & \Register{\$ac1.m}   &                       \\ \hline
+                &                  &                      &                             \\ \hline
+\Register{\$0}  & \Register{\$r00} & \Register{\$ar0}     & Addressing register 0       \\ \hline
+\Register{\$1}  & \Register{\$r01} & \Register{\$ar1}     & Addressing register 1       \\ \hline
+\Register{\$2}  & \Register{\$r02} & \Register{\$ar2}     & Addressing register 2       \\ \hline
+\Register{\$3}  & \Register{\$r03} & \Register{\$ar3}     & Addressing register 3       \\ \hline
+\Register{\$4}  & \Register{\$r04} & \Register{\$ix0}     & Indexing register 0         \\ \hline
+\Register{\$5}  & \Register{\$r05} & \Register{\$ix1}     & Indexing register 1         \\ \hline
+\Register{\$6}  & \Register{\$r06} & \Register{\$ix2}     & Indexing register 2         \\ \hline
+\Register{\$7}  & \Register{\$r07} & \Register{\$ix3}     & Indexing register 3         \\ \hline
+\Register{\$8}  & \Register{\$r08} &                      &                             \\ \hline
+\Register{\$9}  & \Register{\$r09} &                      &                             \\ \hline
+\Register{\$10} & \Register{\$r0A} &                      &                             \\ \hline
+\Register{\$11} & \Register{\$r0B} &                      &                             \\ \hline
+\Register{\$12} & \Register{\$r0C} & \Register{\$st0}     & Call stack register         \\ \hline
+\Register{\$13} & \Register{\$r0D} & \Register{\$st1}     & Data stack register         \\ \hline
+\Register{\$14} & \Register{\$r0E} & \Register{\$st2}     & Loop address stack register \\ \hline
+\Register{\$15} & \Register{\$r0F} & \Register{\$st3}     & Loop counter register       \\ \hline
+\Register{\$16} & \Register{\$r10} & \Register{\$ac0.h}   & 40-bit Accumulator 0 (high) \\ \hline
+\Register{\$17} & \Register{\$r11} & \Register{\$ac1.h}   & 40-bit Accumulator 1 (high) \\ \hline
+\Register{\$18} & \Register{\$r12} & \Register{\$config}  & Config register             \\ \hline
+\Register{\$19} & \Register{\$r13} & \Register{\$sr}      & Status register             \\ \hline
+\Register{\$20} & \Register{\$r14} & \Register{\$prod.l}  & Product register (low)      \\ \hline
+\Register{\$21} & \Register{\$r15} & \Register{\$prod.m1} & Product register (mid 1)    \\ \hline
+\Register{\$22} & \Register{\$r16} & \Register{\$prod.h}  & Product register (high)     \\ \hline
+\Register{\$23} & \Register{\$r17} & \Register{\$prod.m2} & Product register (mid 2)    \\ \hline
+\Register{\$24} & \Register{\$r18} & \Register{\$ax0.l}   & 32-bit Accumulator 0 (low)  \\ \hline
+\Register{\$25} & \Register{\$r19} & \Register{\$ax0.h}   & 32-bit Accumulator 0 (high) \\ \hline
+\Register{\$26} & \Register{\$r1A} & \Register{\$ax1.l}   & 32-bit Accumulator 1 (low)  \\ \hline
+\Register{\$27} & \Register{\$r1B} & \Register{\$ax1.h}   & 32-bit Accumulator 1 (high) \\ \hline
+\Register{\$28} & \Register{\$r1C} & \Register{\$ac0.l}   & 40-bit Accumulator 0 (low)  \\ \hline
+\Register{\$29} & \Register{\$r1D} & \Register{\$ac1.l}   & 40-bit Accumulator 1 (low)  \\ \hline
+\Register{\$30} & \Register{\$r1E} & \Register{\$ac0.m}   & 40-bit Accumulator 0 (mid)  \\ \hline
+\Register{\$31} & \Register{\$r1F} & \Register{\$ac1.m}   & 40-bit Accumulator 1 (mid)  \\ \hline
 \end{tabular}
 \end{table}
 
@@ -502,14 +503,23 @@ Furthermore, it also contains control bits to configure the flow of certain oper
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Bit} & \textbf{Name} & \textbf{Comment}                                    \\ \hline
-\texttt{14}  & \texttt{AM}   & Product multiply result by 2 (when \texttt{AM = 0}) \\ \hline
-\texttt{9}   & \texttt{IE}   & Interrupt enable                                    \\ \hline
-\texttt{8}   & \texttt{0}    & Hardwired to 0?                                     \\ \hline
-\texttt{6}   & \texttt{LZ}   & Logic zero                                          \\ \hline
-\texttt{4}   & \texttt{AS}   &                                                     \\ \hline
-\texttt{3}   & \texttt{S}    & Sign                                                \\ \hline
-\texttt{2}   & \texttt{Z}    & Zero                                                \\ \hline
+\textbf{Bit} & \textbf{Name} & \textbf{Comment}                                              \\ \hline
+\texttt{15}  & \texttt{SU}   & Operands are signed (1 = unsigned)                            \\ \hline
+\texttt{14}  & \texttt{SXM}  & Sign extension mode (0 = \texttt{set16}, 1 = \texttt{set40})  \\ \hline
+\texttt{13}  & \texttt{AM}   & Product multiply result by 2 (when \texttt{AM = 0})           \\ \hline
+\texttt{12}  &               &                                                               \\ \hline
+\texttt{11}  & \texttt{EIE}  & External interrupt enable                                     \\ \hline
+\texttt{10}  &               &                                                               \\ \hline
+\texttt{9}   & \texttt{IE}   & Interrupt enable                                              \\ \hline
+\texttt{8}   & \texttt{0}    & Hardwired to 0?                                               \\ \hline
+\texttt{7}   & \texttt{OS}   & Overflow (sticky)                                             \\ \hline
+\texttt{6}   & \texttt{LZ}   & Logic zero                                                    \\ \hline
+\texttt{5}   &               & Top two bits are equal                                        \\ \hline
+\texttt{4}   & \texttt{AS}   & Above s32                                                     \\ \hline
+\texttt{3}   & \texttt{S}    & Sign                                                          \\ \hline
+\texttt{2}   & \texttt{Z}    & Arithmetic zero                                               \\ \hline
+\texttt{1}   & \texttt{O}    & Overflow                                                      \\ \hline
+\texttt{0}   & \texttt{C}    & Carry                                                         \\ \hline
 \end{tabular}
 \end{table}
 
@@ -558,15 +568,15 @@ Exception vectors are located at address \Address{0x0000} in Instruction RAM.
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Level} & \textbf{Address} & \textbf{Name}  & \textbf{Description}         \\ \hline
-0              & \Address{0x0000} & \texttt{RESET} &                              \\ \hline
-1              & \Address{0x0002} & \texttt{STOVF} & Stack under/overflow         \\ \hline
-2              & \Address{0x0004} &                &                              \\ \hline
-3              & \Address{0x0006} &                &                              \\ \hline
-4              & \Address{0x0008} &                &                              \\ \hline
-5              & \Address{0x000A} & \texttt{ACCOV} & Accelerator address overflow \\ \hline
-6              & \Address{0x000C} &                &                              \\ \hline
-7              & \Address{0x000E} &                &                              \\ \hline
+\textbf{Level} & \textbf{Address} & \textbf{Name}  & \textbf{Description}          \\ \hline
+0              & \Address{0x0000} & \texttt{RESET} &                               \\ \hline
+1              & \Address{0x0002} & \texttt{STOVF} & Stack under/overflow          \\ \hline
+2              & \Address{0x0004} &                &                               \\ \hline
+3              & \Address{0x0006} &                &                               \\ \hline
+4              & \Address{0x0008} &                &                               \\ \hline
+5              & \Address{0x000A} & \texttt{ACCOV} & Accelerator address overflow  \\ \hline
+6              & \Address{0x000C} &                &                               \\ \hline
+7              & \Address{0x000E} & \texttt{INT}   & External interrupt (from CPU) \\ \hline
 \end{tabular}
 \end{table}
 
@@ -855,21 +865,21 @@ The groups of conditional instructions are, \Opcode{CALL}, \Opcode{JMP}, \Opcode
 \begin{tabular}{|l|l|l|l|}
 \hline
 \textbf{Bits} & \textbf{\texttt{cc}} & \textbf{Name}                & \textbf{Evaluated expression} \\ \hline
-\texttt{0b0000}        &             &                              &                               \\ \hline
-\texttt{0b0001}        &             &                              &                               \\ \hline
-\texttt{0b0010}        &             &                              &                               \\ \hline
-\texttt{0b0011}        &             &                              &                               \\ \hline
-\texttt{0b0100}        & \texttt{EQ} & Equal                        &                               \\ \hline
-\texttt{0b0101}        & \texttt{NE} & Not equal                    &                               \\ \hline
-\texttt{0b0110}        &             &                              &                               \\ \hline
-\texttt{0b0111}        &             &                              &                               \\ \hline
-\texttt{0b1000}        &             &                              &                               \\ \hline
-\texttt{0b1001}        &             &                              &                               \\ \hline
+\texttt{0b0000}        & \texttt{GE} & Greater than or equal        &                               \\ \hline
+\texttt{0b0001}        & \texttt{L}  & Less than                    &                               \\ \hline
+\texttt{0b0010}        & \texttt{G}  & Greater than                 &                               \\ \hline
+\texttt{0b0011}        & \texttt{LE} & Less than or equal           &                               \\ \hline
+\texttt{0b0100}        & \texttt{NE} & Not equal                    & \texttt{(\$sr \& 0x4) == 0}   \\ \hline
+\texttt{0b0101}        & \texttt{EQ} & Equal                        & \texttt{(\$sr \& 0x4) != 0}   \\ \hline
+\texttt{0b0110}        & \texttt{NC} & Not carry                    & \texttt{(\$sr \& 0x1) == 0}   \\ \hline
+\texttt{0b0111}        & \texttt{C}  & Carry                        & \texttt{(\$sr \& 0x1) != 0}   \\ \hline
+\texttt{0b1000}        &             & Below s32                    & \texttt{(\$sr \& 0x10) == 0}  \\ \hline
+\texttt{0b1001}        &             & Above s32                    & \texttt{(\$sr \& 0x10) != 0}  \\ \hline
 \texttt{0b1010}        &             &                              &                               \\ \hline
 \texttt{0b1011}        &             &                              &                               \\ \hline
-\texttt{0b1100}        & \texttt{ZR} & Zero                         & \texttt{(\$sr \& 0x40) != 0}  \\ \hline
-\texttt{0b1101}        & \texttt{NZ} & Not zero                     & \texttt{(\$sr \& 0x40) == 0}  \\ \hline
-\texttt{0b1110}        &             &                              &                               \\ \hline
+\texttt{0b1100}        & \texttt{NZ} & Not zero                     & \texttt{(\$sr \& 0x40) == 0}  \\ \hline
+\texttt{0b1101}        & \texttt{ZR} & Zero                         & \texttt{(\$sr \& 0x40) != 0}  \\ \hline
+\texttt{0b1110}        & \texttt{O}  & Overflow                     & \texttt{(\$sr \& 0x2) != 0}   \\ \hline
 \texttt{0b1111}        &             & \textless always\textgreater &                               \\ \hline
 \end{tabular}
 \end{table}
@@ -981,7 +991,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.hm += #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1109,7 +1119,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     ELSE
         $sr.LZ = 0
     ENDIF
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1135,7 +1145,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     ELSE
         $sr.LZ = 0
     ENDIF
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1156,7 +1166,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.m &= #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1261,7 +1271,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $st0 = $pc + 2
     $st2 = addrA
     $st3 = $R
-    $pc + 2
+    $pc += 2
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
@@ -1297,7 +1307,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
     $st0 = $pc + 2
     $st2 = addrA
     $st3 = I
-    $pc + 2
+    $pc += 2
 
     // On real hardware, the below does not happen,
     // this opcode only sets stack registers
@@ -1490,7 +1500,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     res = ($acD.hm - I) | $acD.l
     FLAGS(res)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -2030,7 +2040,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     $(0x18+D) = MEM[M]
-    $pc += 2
+    $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -2812,7 +2822,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.m |= #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3079,7 +3089,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
 
   \begin{DSPOpcodeOperation}
     MEM[M] = $(0x18+S)
-    $pc += 2
+    $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3218,7 +3228,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeOperation}
     $acD.m ^= #I
     FLAGS($acD)
-    $pc++
+    $pc += 2
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3375,13 +3385,13 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
-\begin{DSPOpcode}{'LSMN}
+\begin{DSPOpcode}{'LSNM}
   \begin{DSPOpcodeBytefield}{16}
     \monobitbox{4}{xxxx} & \monobitbox{4}{xxxx} & \monobitbox{4}{10dd} & \monobitbox{4}{110s}
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'LSMN $(0x18+D), $acS.m
+    'LSNM $(0x18+D), $acS.m
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
@@ -3494,8 +3504,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0++
     $ar3++
   \end{DSPOpcodeOperation}
@@ -3517,8 +3527,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0++
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
@@ -3541,8 +3551,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0 += $ix0
     $ar3 += $ix3
   \end{DSPOpcodeOperation}
@@ -3564,8 +3574,8 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$ar0]
-    MEM[$ar3] = $acS.m
+    $(0x18+D) = MEM[$ar3]
+    MEM[$ar0] = $acS.m
     $ar0 += $ix0
     $ar3++
   \end{DSPOpcodeOperation}

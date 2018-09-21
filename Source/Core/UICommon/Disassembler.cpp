@@ -1,11 +1,11 @@
-#include <disasm.h>  // Bochs
-
 #if defined(HAVE_LLVM)
 // PowerPC.h defines PC.
 // This conflicts with a function that has an argument named PC
 #undef PC
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
+#elif defined(_M_X86)
+#include <disasm.h>  // Bochs
 #endif
 
 #include "Common/StringUtil.h"
@@ -15,18 +15,6 @@
 #include "Core/PowerPC/JitInterface.h"
 
 #include "UICommon/Disassembler.h"
-
-class HostDisassemblerX86 : public HostDisassembler
-{
-public:
-  HostDisassemblerX86();
-
-private:
-  disassembler m_disasm;
-
-  std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
-                                   u32* host_instructions_count, u64 starting_pc) override;
-};
 
 #if defined(HAVE_LLVM)
 class HostDisassemblerLLVM : public HostDisassembler
@@ -126,7 +114,18 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
 
   return x86_disasm.str();
 }
-#endif
+#elif defined(_M_X86)
+class HostDisassemblerX86 : public HostDisassembler
+{
+public:
+  HostDisassemblerX86();
+
+private:
+  disassembler m_disasm;
+
+  std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
+                                   u32* host_instructions_count, u64 starting_pc) override;
+};
 
 HostDisassemblerX86::HostDisassemblerX86()
 {
@@ -150,6 +149,7 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
 
   return x86_disasm.str();
 }
+#endif
 
 std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
 {
@@ -180,7 +180,7 @@ std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_i
   }
   else if (res == 2)
   {
-    host_instructions_count = 0;
+    *host_instructions_count = 0;
     return "(No translation)";
   }
   return disasm->DisassembleHostBlock(code, *code_size, host_instructions_count, (u64)code);

@@ -52,7 +52,7 @@ public:
   // Jit!
 
   void Jit(u32 em_address) override;
-  const u8* DoJit(u32 em_address, JitBlock* b, u32 nextPC);
+  u8* DoJit(u32 em_address, JitBlock* b, u32 nextPC);
 
   BitSet32 CallerSavedRegistersInUse() const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;

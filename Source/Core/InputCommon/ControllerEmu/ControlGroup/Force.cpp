@@ -29,21 +29,23 @@ Force::Force(const std::string& name_) : ControlGroup(name_, GroupType::Force)
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-void Force::GetState(ControlState* axis)
+Force::StateData Force::GetState()
 {
+  StateData state_data;
   const ControlState deadzone = numeric_settings[0]->GetValue();
 
   for (u32 i = 0; i < 6; i += 2)
   {
-    ControlState tmpf = 0;
     const ControlState state =
         controls[i + 1]->control_ref->State() - controls[i]->control_ref->State();
+
+    ControlState tmpf = 0;
     if (fabs(state) > deadzone)
       tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
 
-    ControlState& ax = m_swing[i >> 1];
-    *axis++ = (tmpf - ax);
-    ax = tmpf;
+    state_data[i / 2] = tmpf;
   }
+
+  return state_data;
 }
 }  // namespace ControllerEmu

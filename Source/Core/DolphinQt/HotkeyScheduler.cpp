@@ -11,6 +11,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 
+#include "Common/Config/Config.h"
 #include "Common/Thread.h"
 
 #include "Core/Config/GraphicsSettings.h"
@@ -21,7 +22,6 @@
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/State.h"
 
-#include "DolphinQt/MainWindow.h"
 #include "DolphinQt/Settings.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -63,9 +63,9 @@ static bool IsHotkey(int id, bool held = false)
   return HotkeyManagerEmu::IsPressed(id, held);
 }
 
-static void HandleFrameskipHotkeys()
+static void HandleFrameStepHotkeys()
 {
-  constexpr int MAX_FRAME_SKIP_DELAY = 60;
+  constexpr int MAX_FRAME_STEP_DELAY = 60;
   constexpr int FRAME_STEP_DELAY = 30;
 
   static int frame_step_count = 0;
@@ -75,7 +75,7 @@ static void HandleFrameskipHotkeys()
 
   if (IsHotkey(HK_FRAME_ADVANCE_INCREASE_SPEED))
   {
-    frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_SKIP_DELAY);
+    frame_step_delay = std::min(frame_step_delay + 1, MAX_FRAME_STEP_DELAY);
     return;
   }
 
@@ -181,8 +181,8 @@ void HotkeyScheduler::Run()
       if (IsHotkey(HK_RESET))
         emit ResetHotkey();
 
-      // Frameskipping
-      HandleFrameskipHotkeys();
+      // Frame advance
+      HandleFrameStepHotkeys();
 
       // Screenshot
       if (IsHotkey(HK_SCREENSHOT))
@@ -238,7 +238,53 @@ void HotkeyScheduler::Run()
 
         if (wiimote_id > -1)
           emit ConnectWiiRemote(wiimote_id);
+
+        if (IsHotkey(HK_TOGGLE_USB_KEYBOARD))
+        {
+          Settings::Instance().SetUSBKeyboardConnected(
+              !Settings::Instance().IsUSBKeyboardConnected());
+        }
       }
+
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_1))
+        m_profile_cycler.PreviousWiimoteProfile(0);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_1))
+        m_profile_cycler.NextWiimoteProfile(0);
+
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_2))
+        m_profile_cycler.PreviousWiimoteProfile(1);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_2))
+        m_profile_cycler.NextWiimoteProfile(1);
+
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_3))
+        m_profile_cycler.PreviousWiimoteProfile(2);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_3))
+        m_profile_cycler.NextWiimoteProfile(2);
+
+      if (IsHotkey(HK_PREV_WIIMOTE_PROFILE_4))
+        m_profile_cycler.PreviousWiimoteProfile(3);
+      else if (IsHotkey(HK_NEXT_WIIMOTE_PROFILE_4))
+        m_profile_cycler.NextWiimoteProfile(3);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_1))
+        m_profile_cycler.PreviousWiimoteProfileForGame(0);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_1))
+        m_profile_cycler.NextWiimoteProfileForGame(0);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_2))
+        m_profile_cycler.PreviousWiimoteProfileForGame(1);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_2))
+        m_profile_cycler.NextWiimoteProfileForGame(1);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_3))
+        m_profile_cycler.PreviousWiimoteProfileForGame(2);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_3))
+        m_profile_cycler.NextWiimoteProfileForGame(2);
+
+      if (IsHotkey(HK_PREV_GAME_WIIMOTE_PROFILE_4))
+        m_profile_cycler.PreviousWiimoteProfileForGame(3);
+      else if (IsHotkey(HK_NEXT_GAME_WIIMOTE_PROFILE_4))
+        m_profile_cycler.NextWiimoteProfileForGame(3);
 
       const auto show_msg = [](OSDMessage message) {
         if (g_renderer)

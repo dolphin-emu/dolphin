@@ -11,9 +11,6 @@
 #include <QSettings>
 #include <QVector>
 
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
-
 namespace Core
 {
 enum class State;
@@ -23,6 +20,12 @@ namespace DiscIO
 {
 enum class Language;
 }
+
+namespace NetPlay
+{
+class NetPlayClient;
+class NetPlayServer;
+}  // namespace NetPlay
 
 class GameListModel;
 class InputConfig;
@@ -38,6 +41,8 @@ public:
   Settings& operator=(const Settings&) = delete;
   Settings(Settings&&) = delete;
   Settings& operator=(Settings&&) = delete;
+
+  ~Settings();
 
   static Settings& Instance();
   static QSettings& GetQSettings();
@@ -61,6 +66,8 @@ public:
   void SetWidgetsLocked(bool visible);
   bool AreWidgetsLocked() const;
 
+  void RefreshWidgetVisibility();
+
   // GameList
   QStringList GetPaths() const;
   void AddPath(const QString& path);
@@ -70,6 +77,8 @@ public:
   QString GetDefaultGame() const;
   void SetDefaultGame(QString path);
   void RefreshGameList();
+  void RefreshMetadata();
+  void NotifyMetadataRefreshComplete();
   void ReloadTitleDB();
   bool IsAutoRefreshEnabled() const;
   void SetAutoRefreshEnabled(bool enabled);
@@ -79,6 +88,9 @@ public:
   void SetStateSlot(int);
   bool IsBatchModeEnabled() const;
   void SetBatchModeEnabled(bool batch);
+
+  bool IsUSBKeyboardConnected() const;
+  void SetUSBKeyboardConnected(bool connected);
 
   // Graphics
   void SetHideCursor(bool hide_cursor);
@@ -93,10 +105,10 @@ public:
   void DecreaseVolume(int volume);
 
   // NetPlay
-  NetPlayClient* GetNetPlayClient();
-  void ResetNetPlayClient(NetPlayClient* client = nullptr);
-  NetPlayServer* GetNetPlayServer();
-  void ResetNetPlayServer(NetPlayServer* server = nullptr);
+  std::shared_ptr<NetPlay::NetPlayClient> GetNetPlayClient();
+  void ResetNetPlayClient(NetPlay::NetPlayClient* client = nullptr);
+  std::shared_ptr<NetPlay::NetPlayServer> GetNetPlayServer();
+  void ResetNetPlayServer(NetPlay::NetPlayServer* server = nullptr);
 
   // Cheats
   bool GetCheatsEnabled() const;
@@ -139,6 +151,8 @@ signals:
   void DefaultGameChanged(const QString&);
   void GameListRefreshRequested();
   void TitleDBReloadRequested();
+  void MetadataRefreshRequested();
+  void MetadataRefreshCompleted();
   void AutoRefreshToggled(bool enabled);
   void HideCursorChanged();
   void KeepWindowOnTopChanged(bool top);
@@ -159,12 +173,14 @@ signals:
   void DebugFontChanged(QFont font);
   void AutoUpdateTrackChanged(const QString& mode);
   void AnalyticsToggled(bool enabled);
+  void DevicesChanged();
+  void USBKeyboardConnectionChanged(bool connected);
 
 private:
   bool m_batch = false;
   bool m_controller_state_needed = false;
-  std::unique_ptr<NetPlayClient> m_client;
-  std::unique_ptr<NetPlayServer> m_server;
+  std::shared_ptr<NetPlay::NetPlayClient> m_client;
+  std::shared_ptr<NetPlay::NetPlayServer> m_server;
   Settings();
 };
 

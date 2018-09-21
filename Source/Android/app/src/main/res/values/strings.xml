@@ -3,6 +3,8 @@
 
     <!-- Title of the app -->
     <string name="app_name">Dolphin Emulator</string>
+    <string name="host">app</string>
+    <string name="scheme">dolphinemu</string>
 
     <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
             is made that they are placed together so that we can access them sequentially in a loop. -->
@@ -21,11 +23,12 @@
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
     <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
-            is made that they are placed together so that we can access them sequentially in a loop. -->
-    <string name="wiimote_0">Wii Remote 1</string>
-    <string name="wiimote_1">Wii Remote 2</string>
-    <string name="wiimote_2">Wii Remote 3</string>
-    <string name="wiimote_3">Wii Remote 4</string>
+            is made that they are placed together so that we can access them sequentially in a loop.
+            Wiimotes start at 4 since they are mapped to padID's 4-7 in the native code.-->
+    <string name="wiimote_4">Wii Remote 1</string>
+    <string name="wiimote_5">Wii Remote 2</string>
+    <string name="wiimote_6">Wii Remote 3</string>
+    <string name="wiimote_7">Wii Remote 4</string>
     <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
@@ -132,6 +135,9 @@
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
+    <string name="analytics">Enable usage statistics reporting</string>
+    <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
+    <string name="gametdb_thanks">Thanks to GameTDB.com for providing GameCube and Wii covers!</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -215,6 +221,7 @@
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
     <string name="shader_compilation_mode_description">Specifies when to use Ubershaders. Disabled - Never, Hybrid - Use ubershaders while compiling specialized shaders. Exclusive - Use only ubershaders, largest performance impact. Skip Drawing - Do not draw objects while shaders are compiling, will cause broken effects.</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
+    <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
 
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
@@ -263,8 +270,10 @@
     <string name="emulation_toggle_controls">Toggle Controls</string>
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Adjust Scale</string>
+    <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_choose_controller">Choose Controller</string>
     <string name="emulation_controller_changed">You may have to reload the game after changing extensions.</string>
+    <string name="emulation_touch_button_help">To change the button layout, open the menu -> Configure Controls -> Edit Layout</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
@@ -281,4 +290,7 @@
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
+
+    <!-- Extra Leanback Homescreen Channels-->
+    <string name="homescreen_favorites">Favorites</string>
 </resources>

@@ -150,6 +150,8 @@ private:
   void SaveSymbolMap();
   void SaveSymbolMapAs();
   void SaveCode();
+  bool TryLoadMapFile(const QString& path);
+  void TrySaveSymbolMap(const QString& path);
   void CreateSignatureFile();
   void PatchHLEFunctions();
   void ClearCache();
@@ -239,4 +241,5 @@ private:
   QAction* m_jit_integer_off;
   QAction* m_jit_paired_off;
   QAction* m_jit_systemregisters_off;
+  QAction* m_jit_branch_off;
 };

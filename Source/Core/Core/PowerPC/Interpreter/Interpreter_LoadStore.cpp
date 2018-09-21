@@ -502,11 +502,6 @@ void Interpreter::dcbtst(UGeckoInstruction inst)
 
 void Interpreter::dcbz(UGeckoInstruction inst)
 {
-  // DCBZOFF is a hack to fix certain games which would otherwise require
-  // accurate L2 emulation.
-  if (SConfig::GetInstance().bDCBZOFF)
-    return;
-
   const u32 dcbz_addr = Helper_Get_EA_X(inst);
 
   if (!HID0.DCE)
@@ -695,9 +690,9 @@ void Interpreter::lswx(UGeckoInstruction inst)
       rGPR[reg] = 0;
 
     const u32 temp_value = PowerPC::Read_U8(EA) << (24 - offset);
+    // Not64 (Homebrew N64 Emulator for Wii) triggers the following case.
     if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
     {
-      PanicAlert("DSI exception in lswx.");
       NOTICE_LOG(POWERPC, "DSI exception in lswx");
       return;
     }

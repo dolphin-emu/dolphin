@@ -30,6 +30,7 @@ add_library(core
   Config/NetplaySettings.cpp
   Config/SYSCONFSettings.cpp
   Config/UISettings.cpp
+  Config/WiimoteInputSettings.cpp
   ConfigLoaders/BaseConfigLoader.cpp
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/IsSettingSaveable.cpp
@@ -201,7 +202,6 @@ add_library(core
   PowerPC/PPCCache.cpp
   PowerPC/PPCSymbolDB.cpp
   PowerPC/PPCTables.cpp
-  PowerPC/Profiler.cpp
   PowerPC/SignatureDB/CSVSignatureDB.cpp
   PowerPC/SignatureDB/DSYSignatureDB.cpp
   PowerPC/SignatureDB/MEGASignatureDB.cpp
@@ -295,10 +295,14 @@ PUBLIC
   videosoftware
 
 PRIVATE
-  bdisasm
   ${LZO}
   ZLIB::ZLIB
 )
+
+if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
+    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
+  target_link_libraries(core PRIVATE bdisasm)
+endif()
 
 if (APPLE)
   target_link_libraries(core

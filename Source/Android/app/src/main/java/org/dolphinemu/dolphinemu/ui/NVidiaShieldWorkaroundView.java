@@ -15,11 +15,11 @@ import android.view.View;
  */
 public final class NVidiaShieldWorkaroundView extends View
 {
-	public NVidiaShieldWorkaroundView(Context context, AttributeSet attrs)
-	{
-		super(context, attrs);
+  public NVidiaShieldWorkaroundView(Context context, AttributeSet attrs)
+  {
+    super(context, attrs);
 
-		// Setting this seems to workaround the bug
-		setWillNotDraw(false);
-	}
+    // Setting this seems to workaround the bug
+    setWillNotDraw(false);
+  }
 }

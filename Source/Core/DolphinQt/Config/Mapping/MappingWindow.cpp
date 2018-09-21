@@ -25,6 +25,7 @@
 #include "DolphinQt/Config/Mapping/GCMicrophone.h"
 #include "DolphinQt/Config/Mapping/GCPadEmu.h"
 #include "DolphinQt/Config/Mapping/Hotkey3D.h"
+#include "DolphinQt/Config/Mapping/HotkeyControllerProfile.h"
 #include "DolphinQt/Config/Mapping/HotkeyDebugging.h"
 #include "DolphinQt/Config/Mapping/HotkeyGeneral.h"
 #include "DolphinQt/Config/Mapping/HotkeyGraphics.h"
@@ -136,6 +137,8 @@ void MappingWindow::CreateMainLayout()
 
 void MappingWindow::ConnectWidgets()
 {
+  connect(&Settings::Instance(), &Settings::DevicesChanged, this,
+          &MappingWindow::OnGlobalDevicesChanged);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_devices_refresh, &QPushButton::clicked, this, &MappingWindow::RefreshDevices);
   connect(m_devices_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -243,10 +246,14 @@ bool MappingWindow::IsMappingAllDevices() const
 
 void MappingWindow::RefreshDevices()
 {
+  Core::RunAsCPUThread([&] { g_controller_interface.RefreshDevices(); });
+}
+
+void MappingWindow::OnGlobalDevicesChanged()
+{
   m_devices_combo->clear();
 
   Core::RunAsCPUThread([&] {
-    g_controller_interface.RefreshDevices();
     m_controller->UpdateReferences(g_controller_interface);
 
     const auto default_device = m_controller->GetDefaultDevice().ToString();
@@ -297,6 +304,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     widget = new WiimoteEmuGeneral(this, extension);
     setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
+    // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
     AddWidget(tr("Motion Controls and IR"), new WiimoteEmuMotionControl(this));
     AddWidget(tr("Extension"), extension);
     break;
@@ -305,12 +313,16 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
   {
     widget = new HotkeyGeneral(this);
     AddWidget(tr("General"), widget);
+    // i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
+    // Frame advance is an example of a typical TAS tool.
     AddWidget(tr("TAS Tools"), new HotkeyTAS(this));
 
     AddWidget(tr("Debugging"), new HotkeyDebugging(this));
 
     AddWidget(tr("Wii and Wii Remote"), new HotkeyWii(this));
+    AddWidget(tr("Controller Profile"), new HotkeyControllerProfile(this));
     AddWidget(tr("Graphics"), new HotkeyGraphics(this));
+    // i18n: Stereoscopic 3D
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));

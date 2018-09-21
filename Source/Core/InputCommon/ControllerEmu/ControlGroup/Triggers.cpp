@@ -21,12 +21,15 @@ Triggers::Triggers(const std::string& name_) : ControlGroup(name_, GroupType::Tr
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-void Triggers::GetState(ControlState* analog)
+Triggers::StateData Triggers::GetState()
 {
   const size_t trigger_count = controls.size();
   const ControlState deadzone = numeric_settings[0]->GetValue();
 
-  for (size_t i = 0; i < trigger_count; ++i, ++analog)
-    *analog = std::max(controls[i]->control_ref->State() - deadzone, 0.0) / (1 - deadzone);
+  StateData result(trigger_count);
+  for (size_t i = 0; i < trigger_count; ++i)
+    result.data[i] = std::max(controls[i]->control_ref->State() - deadzone, 0.0) / (1 - deadzone);
+
+  return result;
 }
 }  // namespace ControllerEmu

@@ -95,19 +95,19 @@ void Resources::Init()
   m_misc.append(GetScaledPixmap("Dolphin"));
 }
 
-QPixmap Resources::GetPlatform(int platform)
+QPixmap Resources::GetPlatform(DiscIO::Platform platform)
 {
-  return m_platforms[platform];
+  return m_platforms[static_cast<int>(platform)];
 }
 
-QPixmap Resources::GetCountry(int country)
+QPixmap Resources::GetCountry(DiscIO::Country country)
 {
-  return m_countries[country];
+  return m_countries[static_cast<int>(country)];
 }
 
-QPixmap Resources::GetMisc(int id)
+QPixmap Resources::GetMisc(MiscID id)
 {
-  return m_misc[id];
+  return m_misc[static_cast<int>(id)];
 }
 
 QIcon Resources::GetAppIcon()

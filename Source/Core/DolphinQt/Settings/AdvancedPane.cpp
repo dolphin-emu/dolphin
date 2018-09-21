@@ -9,10 +9,12 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QSlider>
 #include <QVBoxLayout>
 #include <cmath>
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
@@ -101,13 +103,15 @@ void AdvancedPane::ConnectLayout()
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
     SConfig::GetInstance().m_OCEnable = enable_clock_override;
+    Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK_ENABLE, enable_clock_override);
     Update();
   });
 
   connect(m_cpu_clock_override_slider, &QSlider::valueChanged, [this](int oc_factor) {
     // Vaguely exponential scaling?
-    SConfig::GetInstance().m_OCFactor =
-        std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
+    const float factor = std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
+    SConfig::GetInstance().m_OCFactor = factor;
+    Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
     Update();
   });
 
@@ -135,8 +139,11 @@ void AdvancedPane::Update()
   m_cpu_clock_override_slider->setEnabled(enable_cpu_clock_override_widgets);
   m_cpu_clock_override_slider_label->setEnabled(enable_cpu_clock_override_widgets);
 
-  m_cpu_clock_override_slider->setValue(
-      static_cast<int>(std::ceil(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+  {
+    const QSignalBlocker blocker(m_cpu_clock_override_slider);
+    m_cpu_clock_override_slider->setValue(
+        static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f)));
+  }
 
   m_cpu_clock_override_slider_label->setText([] {
     int core_clock = SystemTimers::GetTicksPerSecond() / std::pow(10, 6);

@@ -17,6 +17,8 @@
 
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/GameFile.h"
+
 // NOTE: Qt likes to be case-sensitive here even though it shouldn't be thus this ugly regex hack
 static const QStringList game_filters{
     QStringLiteral("*.[gG][cC][mM]"), QStringLiteral("*.[iI][sS][oO]"),
@@ -42,6 +44,10 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     }
   });
 
+  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this, [this] {
+    m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}});
+  });
+
   m_load_thread.Reset([this](Command command) {
     switch (command.type)
     {
@@ -61,6 +67,13 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       break;
     case CommandType::UpdateFile:
       UpdateFileInternal(command.path);
+      break;
+    case CommandType::UpdateMetadata:
+      m_cache.UpdateAdditionalMetadata(
+          [this](const std::shared_ptr<const UICommon::GameFile>& game) {
+            emit GameUpdated(game);
+          });
+      QueueOnObject(this, [this] { Settings::Instance().NotifyMetadataRefreshComplete(); });
       break;
     }
   });
@@ -119,6 +132,8 @@ void GameTracker::StartInternal()
   cache_updated |= m_cache.UpdateAdditionalMetadata(emit_game_updated);
   if (cache_updated)
     m_cache.Save();
+
+  QueueOnObject(this, [this] { Settings::Instance().NotifyMetadataRefreshComplete(); });
 }
 
 bool GameTracker::AddPath(const QString& dir)

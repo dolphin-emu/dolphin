@@ -26,9 +26,12 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
+
+// "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
+// 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
+constexpr double SCROLL_FRACTION_DEGREES = 15.;
 
 constexpr size_t VALID_BRANCH_LENGTH = 10;
 
@@ -39,7 +42,8 @@ CodeViewWidget::CodeViewWidget()
   setContextMenuPolicy(Qt::CustomContextMenu);
   setSelectionMode(QAbstractItemView::SingleSelection);
   setSelectionBehavior(QAbstractItemView::SelectRows);
-  verticalScrollBar()->setHidden(true);
+
+  setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   for (int i = 0; i < columnCount(); i++)
   {
@@ -215,36 +219,36 @@ void CodeViewWidget::OnContextMenu()
   bool has_symbol = g_symbolDB.GetSymbolFromAddr(addr);
 
   auto* follow_branch_action =
-      AddAction(menu, tr("Follow &branch"), this, &CodeViewWidget::OnFollowBranch);
+      menu->addAction(tr("Follow &branch"), this, &CodeViewWidget::OnFollowBranch);
 
   menu->addSeparator();
 
-  AddAction(menu, tr("&Copy address"), this, &CodeViewWidget::OnCopyAddress);
+  menu->addAction(tr("&Copy address"), this, &CodeViewWidget::OnCopyAddress);
   auto* copy_address_action =
-      AddAction(menu, tr("Copy &function"), this, &CodeViewWidget::OnCopyFunction);
+      menu->addAction(tr("Copy &function"), this, &CodeViewWidget::OnCopyFunction);
   auto* copy_line_action =
-      AddAction(menu, tr("Copy code &line"), this, &CodeViewWidget::OnCopyCode);
-  auto* copy_hex_action = AddAction(menu, tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
+      menu->addAction(tr("Copy code &line"), this, &CodeViewWidget::OnCopyCode);
+  auto* copy_hex_action = menu->addAction(tr("Copy &hex"), this, &CodeViewWidget::OnCopyHex);
   menu->addSeparator();
 
   auto* symbol_rename_action =
-      AddAction(menu, tr("&Rename symbol"), this, &CodeViewWidget::OnRenameSymbol);
+      menu->addAction(tr("&Rename symbol"), this, &CodeViewWidget::OnRenameSymbol);
   auto* symbol_size_action =
-      AddAction(menu, tr("Set symbol &size"), this, &CodeViewWidget::OnSetSymbolSize);
+      menu->addAction(tr("Set symbol &size"), this, &CodeViewWidget::OnSetSymbolSize);
   auto* symbol_end_action =
-      AddAction(menu, tr("Set symbol &end address"), this, &CodeViewWidget::OnSetSymbolEndAddress);
+      menu->addAction(tr("Set symbol &end address"), this, &CodeViewWidget::OnSetSymbolEndAddress);
   menu->addSeparator();
 
-  AddAction(menu, tr("Run &To Here"), this, &CodeViewWidget::OnRunToHere);
+  menu->addAction(tr("Run &To Here"), this, &CodeViewWidget::OnRunToHere);
   auto* function_action =
-      AddAction(menu, tr("&Add function"), this, &CodeViewWidget::OnAddFunction);
-  auto* ppc_action = AddAction(menu, tr("PPC vs Host"), this, &CodeViewWidget::OnPPCComparison);
-  auto* insert_blr_action = AddAction(menu, tr("&Insert blr"), this, &CodeViewWidget::OnInsertBLR);
-  auto* insert_nop_action = AddAction(menu, tr("Insert &nop"), this, &CodeViewWidget::OnInsertNOP);
+      menu->addAction(tr("&Add function"), this, &CodeViewWidget::OnAddFunction);
+  auto* ppc_action = menu->addAction(tr("PPC vs Host"), this, &CodeViewWidget::OnPPCComparison);
+  auto* insert_blr_action = menu->addAction(tr("&Insert blr"), this, &CodeViewWidget::OnInsertBLR);
+  auto* insert_nop_action = menu->addAction(tr("Insert &nop"), this, &CodeViewWidget::OnInsertNOP);
   auto* replace_action =
-      AddAction(menu, tr("Re&place instruction"), this, &CodeViewWidget::OnReplaceInstruction);
+      menu->addAction(tr("Re&place instruction"), this, &CodeViewWidget::OnReplaceInstruction);
   auto* restore_action =
-      AddAction(menu, tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
+      menu->addAction(tr("Restore instruction"), this, &CodeViewWidget::OnRestoreInstruction);
 
   follow_branch_action->setEnabled(running && GetBranchFromAddress(addr));
 
@@ -484,11 +488,11 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
   switch (event->key())
   {
   case Qt::Key_Up:
-    m_address -= 3 * sizeof(u32);
+    m_address -= sizeof(u32);
     Update();
     return;
   case Qt::Key_Down:
-    m_address += 3 * sizeof(u32);
+    m_address += sizeof(u32);
     Update();
     return;
   case Qt::Key_PageUp:
@@ -507,9 +511,13 @@ void CodeViewWidget::keyPressEvent(QKeyEvent* event)
 
 void CodeViewWidget::wheelEvent(QWheelEvent* event)
 {
-  int delta = event->delta() > 0 ? -1 : 1;
+  auto delta =
+      -static_cast<int>(std::round((event->angleDelta().y() / (SCROLL_FRACTION_DEGREES * 8))));
 
-  m_address += delta * 3 * sizeof(u32);
+  if (delta == 0)
+    return;
+
+  m_address += delta * sizeof(u32);
   Update();
 }
 

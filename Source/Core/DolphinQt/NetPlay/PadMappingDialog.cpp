@@ -3,14 +3,17 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
-#include "DolphinQt/Settings.h"
-
-#include "Core/NetPlayClient.h"
 
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QSignalBlocker>
+
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
+
+#include "DolphinQt/Settings.h"
 
 PadMappingDialog::PadMappingDialog(QWidget* parent) : QDialog(parent)
 {
@@ -57,8 +60,8 @@ void PadMappingDialog::ConnectWidgets()
 
 int PadMappingDialog::exec()
 {
-  auto* client = Settings::Instance().GetNetPlayClient();
-  auto* server = Settings::Instance().GetNetPlayServer();
+  auto client = Settings::Instance().GetNetPlayClient();
+  auto server = Settings::Instance().GetNetPlayServer();
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();
@@ -80,7 +83,7 @@ int PadMappingDialog::exec()
     for (size_t i = 0; i < combo_group.size(); i++)
     {
       auto& combo = combo_group[i];
-      const bool old = combo->blockSignals(true);
+      const QSignalBlocker blocker(combo);
 
       combo->clear();
       combo->addItems(players);
@@ -88,18 +91,18 @@ int PadMappingDialog::exec()
       const auto index = gc ? m_pad_mapping[i] : m_wii_mapping[i];
 
       combo->setCurrentIndex(index == -1 ? 0 : index);
-      combo->blockSignals(old);
     }
   }
 
   return QDialog::exec();
 }
-PadMappingArray PadMappingDialog::GetGCPadArray()
+
+NetPlay::PadMappingArray PadMappingDialog::GetGCPadArray()
 {
   return m_pad_mapping;
 }
 
-PadMappingArray PadMappingDialog::GetWiimoteArray()
+NetPlay::PadMappingArray PadMappingDialog::GetWiimoteArray()
 {
   return m_wii_mapping;
 }

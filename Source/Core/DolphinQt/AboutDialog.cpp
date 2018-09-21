@@ -67,7 +67,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
                  QStringLiteral("</p>"));
 
   QLabel* logo = new QLabel();
-  logo->setPixmap(Resources::GetMisc(Resources::LOGO_LARGE));
+  logo->setPixmap(Resources::GetMisc(Resources::MiscID::LogoLarge));
   logo->setContentsMargins(30, 0, 30, 0);
 
   QVBoxLayout* main_layout = new QVBoxLayout;

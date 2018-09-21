@@ -18,244 +18,274 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.ui.settings.MenuTag;
-import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity implements MainView
 {
-	private MainPresenter mPresenter = new MainPresenter(this, this);
+  private MainPresenter mPresenter = new MainPresenter(this, this);
 
-	private BrowseSupportFragment mBrowseFragment;
+  private BrowseSupportFragment mBrowseFragment;
 
-	private ArrayObjectAdapter mRowsAdapter;
+  private ArrayObjectAdapter mRowsAdapter;
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_tv_main);
+  @Override
+  protected void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_tv_main);
 
-		setupUI();
+    setupUI();
 
-		mPresenter.onCreate();
+    mPresenter.onCreate();
 
-		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
-		if (savedInstanceState == null)
-			StartupHandler.HandleInit(this);
-	}
+    // Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
+    if (savedInstanceState == null)
+    {
+      StartupHandler.HandleInit(this);
+    }
+    // Setup and/or sync channels
+    TvUtil.scheduleSyncingChannel(getApplicationContext());
+  }
 
-	@Override
-	protected void onResume()
-	{
-		super.onResume();
-		mPresenter.addDirIfNeeded(this);
-	}
+  @Override
+  protected void onResume()
+  {
+    super.onResume();
+    mPresenter.addDirIfNeeded(this);
+  }
 
-	@Override
-	protected void onDestroy()
-	{
-		super.onDestroy();
-		mPresenter.onDestroy();
-	}
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    mPresenter.onDestroy();
+  }
 
-	void setupUI() {
-		final FragmentManager fragmentManager = getSupportFragmentManager();
-		mBrowseFragment = new BrowseSupportFragment();
-		fragmentManager
-				.beginTransaction()
-				.add(R.id.content, mBrowseFragment, "BrowseFragment")
-				.commit();
+  @Override
+  protected void onStart()
+  {
+    super.onStart();
+    StartupHandler.checkSessionReset(this);
+  }
 
-		// Set display parameters for the BrowseFragment
-		mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
-		mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
-		buildRowsAdapter();
+  @Override
+  protected void onStop()
+  {
+    super.onStop();
+    StartupHandler.setSessionTime(this);
+  }
 
-		mBrowseFragment.setOnItemViewClickedListener(
-                (itemViewHolder, item, rowViewHolder, row) ->
-                {
-                    // Special case: user clicked on a settings row item.
-                    if (item instanceof TvSettingsItem)
-                    {
-                        TvSettingsItem settingsItem = (TvSettingsItem) item;
-                        mPresenter.handleOptionSelection(settingsItem.getItemId(), this);
-                    }
-                    else
-                    {
-                        TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
+  void setupUI()
+  {
+    final FragmentManager fragmentManager = getSupportFragmentManager();
+    mBrowseFragment = new BrowseSupportFragment();
+    fragmentManager
+            .beginTransaction()
+            .add(R.id.content, mBrowseFragment, "BrowseFragment")
+            .commit();
 
-                        // Start the emulation activity and send the path of the clicked ISO to it.
-                        EmulationActivity.launch(TvMainActivity.this,
-                                holder.gameFile,
-                                -1,
-                                holder.imageScreenshot);
-                    }
-                });
-	}
-	/**
-	 * MainView
-	 */
+    // Set display parameters for the BrowseFragment
+    mBrowseFragment.setHeadersState(BrowseFragment.HEADERS_ENABLED);
+    mBrowseFragment.setBrandColor(ContextCompat.getColor(this, R.color.dolphin_blue_dark));
+    buildRowsAdapter();
 
-	@Override
-	public void setVersionString(String version)
-	{
-		mBrowseFragment.setTitle(version);
-	}
+    mBrowseFragment.setOnItemViewClickedListener(
+            (itemViewHolder, item, rowViewHolder, row) ->
+            {
+              // Special case: user clicked on a settings row item.
+              if (item instanceof TvSettingsItem)
+              {
+                TvSettingsItem settingsItem = (TvSettingsItem) item;
+                mPresenter.handleOptionSelection(settingsItem.getItemId(), this);
+              }
+              else
+              {
+                TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
-	@Override
-	public void refreshFragmentScreenshot(int fragmentPosition)
-	{
-		mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
-	}
+                // Start the emulation activity and send the path of the clicked ISO to it.
+                EmulationActivity.launch(TvMainActivity.this,
+                        holder.gameFile,
+                        -1,
+                        holder.imageScreenshot);
+              }
+            });
+  }
 
-	@Override
-	public void launchSettingsActivity(MenuTag menuTag)
-	{
-		SettingsActivity.launch(this, menuTag, "");
-	}
+  /**
+   * MainView
+   */
 
-	@Override
-	public void launchFileListActivity()
-	{
-		FileBrowserHelper.openDirectoryPicker(this);
-	}
+  @Override
+  public void setVersionString(String version)
+  {
+    mBrowseFragment.setTitle(version);
+  }
 
-	@Override
-	public void showGames()
-	{
-		recreate();
-	}
+  @Override
+  public void refreshFragmentScreenshot(int fragmentPosition)
+  {
+    mRowsAdapter.notifyArrayItemRangeChanged(0, mRowsAdapter.size());
+  }
 
-	/**
-	 * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
-	 *
-	 * @param requestCode An int describing whether the Activity that is returning did so successfully.
-	 * @param resultCode  An int describing what Activity is giving us this callback.
-	 * @param result      The information the returning Activity is providing us.
-	 */
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent result)
-	{
-		switch (requestCode)
-		{
-			case MainPresenter.REQUEST_ADD_DIRECTORY:
-				// If the user picked a file, as opposed to just backing out.
-				if (resultCode == MainActivity.RESULT_OK)
-				{
-					mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
-				}
-				break;
+  @Override
+  public void launchSettingsActivity(MenuTag menuTag)
+  {
+    SettingsActivity.launch(this, menuTag, "");
+  }
 
-			case MainPresenter.REQUEST_EMULATE_GAME:
-				mPresenter.refreshFragmentScreenshot(resultCode);
-				break;
-		}
-	}
+  @Override
+  public void launchFileListActivity()
+  {
+    FileBrowserHelper.openDirectoryPicker(this);
+  }
 
-	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-		switch (requestCode) {
-			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
-				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					DirectoryInitializationService.startService(this);
-					GameFileCacheService.startLoad(this);
-				} else {
-					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-							.show();
-				}
-				break;
-			default:
-				super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-				break;
-		}
-	}
+  @Override
+  public void showGames()
+  {
+    // Kicks off the program services to update all channels
+    TvUtil.updateAllChannels(getApplicationContext());
 
-	private void buildRowsAdapter()
-	{
-		mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+    recreate();
+  }
 
-		if (PermissionsHandler.hasWriteAccess(this))
-		{
-			GameFileCacheService.startLoad(this);
-		}
+  /**
+   * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
+   *
+   * @param requestCode An int describing whether the Activity that is returning did so successfully.
+   * @param resultCode  An int describing what Activity is giving us this callback.
+   * @param result      The information the returning Activity is providing us.
+   */
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent result)
+  {
+    switch (requestCode)
+    {
+      case MainPresenter.REQUEST_ADD_DIRECTORY:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+        }
+        break;
 
-		mRowsAdapter.add(buildSettingsRow());
+      case MainPresenter.REQUEST_EMULATE_GAME:
+        mPresenter.refreshFragmentScreenshot(resultCode);
+        break;
+    }
+  }
 
-		for (Platform platform : Platform.values())
-		{
-			ListRow row = buildGamesRow(platform, GameFileCacheService.getGameFilesForPlatform(platform));
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+  {
+    switch (requestCode)
+    {
+      case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        {
+          DirectoryInitializationService.startService(this);
+          GameFileCacheService.startLoad(this);
+        }
+        else
+        {
+          Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+                  .show();
+        }
+        break;
+      default:
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        break;
+    }
+  }
 
-			// Add row to the adapter only if it is not empty.
-			if (row != null)
-			{
-				mRowsAdapter.add(row);
-			}
-		}
+  private void buildRowsAdapter()
+  {
+    mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
-		mBrowseFragment.setAdapter(mRowsAdapter);
-	}
+    if (PermissionsHandler.hasWriteAccess(this))
+    {
+      GameFileCacheService.startLoad(this);
+    }
 
-	private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)
-	{
-		// If there are no games, don't return a Row.
-		if (gameFiles.size() == 0)
-		{
-			return null;
-		}
+    for (Platform platform : Platform.values())
+    {
+      ListRow row = buildGamesRow(platform, GameFileCacheService.getGameFilesForPlatform(platform));
 
-		// Create an adapter for this row.
-		ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
-		row.addAll(0, gameFiles);
+      // Add row to the adapter only if it is not empty.
+      if (row != null)
+      {
+        mRowsAdapter.add(row);
+      }
+    }
 
-		// Create a header for this row.
-		HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
+    mRowsAdapter.add(buildSettingsRow());
 
-		// Create the row, passing it the filled adapter and the header, and give it to the master adapter.
-		return new ListRow(header, row);
-	}
+    mBrowseFragment.setAdapter(mRowsAdapter);
+  }
 
-	private ListRow buildSettingsRow()
-	{
-		ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
+  private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)
+  {
+    // If there are no games, don't return a Row.
+    if (gameFiles.size() == 0)
+    {
+      return null;
+    }
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
-				R.drawable.ic_settings_core_tv,
-				R.string.grid_menu_config));
+    // Create an adapter for this row.
+    ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
+    row.addAll(0, gameFiles);
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings_graphics,
-				R.drawable.ic_settings_graphics_tv,
-				R.string.grid_menu_graphics_settings));
+    // Create a header for this row.
+    HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings_gcpad,
-				R.drawable.ic_settings_gcpad,
-				R.string.grid_menu_gcpad_settings));
+    // Create the row, passing it the filled adapter and the header, and give it to the master adapter.
+    return new ListRow(header, row);
+  }
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings_wiimote,
-				R.drawable.ic_settings_wiimote,
-				R.string.grid_menu_wiimote_settings));
+  private ListRow buildSettingsRow()
+  {
+    ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
 
-		rowItems.add(new TvSettingsItem(R.id.button_add_directory,
-				R.drawable.ic_add_tv,
-				R.string.add_directory_title));
+    rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
+            R.drawable.ic_settings_core_tv,
+            R.string.grid_menu_config));
 
-		rowItems.add(new TvSettingsItem(R.id.menu_refresh,
-				R.drawable.ic_refresh_tv,
-				R.string.grid_menu_refresh));
+    rowItems.add(new TvSettingsItem(R.id.menu_settings_graphics,
+            R.drawable.ic_settings_graphics_tv,
+            R.string.grid_menu_graphics_settings));
 
-		// Create a header for this row.
-		HeaderItem header = new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
+    rowItems.add(new TvSettingsItem(R.id.menu_settings_gcpad,
+            R.drawable.ic_settings_gcpad,
+            R.string.grid_menu_gcpad_settings));
 
-		return new ListRow(header, rowItems);
-	}
+    rowItems.add(new TvSettingsItem(R.id.menu_settings_wiimote,
+            R.drawable.ic_settings_wiimote,
+            R.string.grid_menu_wiimote_settings));
+
+    rowItems.add(new TvSettingsItem(R.id.button_add_directory,
+            R.drawable.ic_add_tv,
+            R.string.add_directory_title));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_refresh,
+            R.drawable.ic_refresh_tv,
+            R.string.grid_menu_refresh));
+
+    // Create a header for this row.
+    HeaderItem header =
+            new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
+
+    return new ListRow(header, rowItems);
+  }
 }

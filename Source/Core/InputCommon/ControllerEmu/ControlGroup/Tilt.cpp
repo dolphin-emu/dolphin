@@ -31,7 +31,7 @@ Tilt::Tilt(const std::string& name_) : ControlGroup(name_, GroupType::Tilt)
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.9, 0, 180));
 }
 
-void Tilt::GetState(ControlState* const x, ControlState* const y, const bool step)
+Tilt::StateData Tilt::GetState(const bool step)
 {
   // this is all a mess
 
@@ -80,18 +80,17 @@ void Tilt::GetState(ControlState* const x, ControlState* const y, const bool ste
   // silly
   if (step)
   {
-    if (xx > m_tilt[0])
-      m_tilt[0] = std::min(m_tilt[0] + 0.1, xx);
-    else if (xx < m_tilt[0])
-      m_tilt[0] = std::max(m_tilt[0] - 0.1, xx);
+    if (xx > m_tilt.x)
+      m_tilt.x = std::min(m_tilt.x + 0.1, xx);
+    else if (xx < m_tilt.x)
+      m_tilt.x = std::max(m_tilt.x - 0.1, xx);
 
-    if (yy > m_tilt[1])
-      m_tilt[1] = std::min(m_tilt[1] + 0.1, yy);
-    else if (yy < m_tilt[1])
-      m_tilt[1] = std::max(m_tilt[1] - 0.1, yy);
+    if (yy > m_tilt.y)
+      m_tilt.y = std::min(m_tilt.y + 0.1, yy);
+    else if (yy < m_tilt.y)
+      m_tilt.y = std::max(m_tilt.y - 0.1, yy);
   }
 
-  *y = m_tilt[1] * angle;
-  *x = m_tilt[0] * angle;
+  return {m_tilt.x * angle, m_tilt.y * angle};
 }
 }  // namespace ControllerEmu

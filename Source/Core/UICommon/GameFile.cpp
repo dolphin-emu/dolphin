@@ -23,6 +23,7 @@
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/HttpRequest.h"
 #include "Common/Image.h"
 #include "Common/IniFile.h"
 #include "Common/NandPaths.h"
@@ -30,6 +31,7 @@
 #include "Common/Swap.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/TitleDatabase.h"
@@ -39,9 +41,22 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
 
+constexpr const char* COVER_URL = "https://art.gametdb.com/wii/cover/%s/%s.png";
+
 namespace UICommon
 {
 static const std::string EMPTY_STRING;
+
+static bool UseGameCovers()
+{
+// We ifdef this out on Android because accessing the config before emulation start makes us crash.
+// The Android GUI doesn't support covers anyway, so this doesn't make us lose out on functionality.
+#ifdef ANDROID
+  return false;
+#else
+  return Config::Get(Config::MAIN_USE_GAME_COVERS);
+#endif
+}
 
 bool operator==(const GameBanner& lhs, const GameBanner& rhs)
 {
@@ -149,11 +164,152 @@ bool GameFile::IsValid() const
   return true;
 }
 
+bool GameFile::CustomCoverChanged()
+{
+  if (!m_custom_cover.buffer.empty() || !UseGameCovers())
+    return false;
+
+  std::string path, name;
+  SplitPath(m_file_path, &path, &name, nullptr);
+
+  std::string contents;
+
+  // This icon naming format is intended as an alternative to Homebrew Channel icons
+  // for those who don't want to have a Homebrew Channel style folder structure.
+  bool success = File::Exists(path + name + ".cover.png") &&
+                 File::ReadFileToString(path + name + ".cover.png", contents);
+
+  if (!success)
+  {
+    success =
+        File::Exists(path + "cover.png") && File::ReadFileToString(path + "cover.png", contents);
+  }
+
+  if (success)
+    m_pending.custom_cover.buffer = {contents.begin(), contents.end()};
+
+  return success;
+}
+
+void GameFile::DownloadDefaultCover()
+{
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
+    return;
+
+  const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
+
+  // If covers have already been downloaded, abort
+  if (File::Exists(cover_path + m_game_id + ".png") ||
+      File::Exists(cover_path + m_game_id.substr(0, 4) + ".png"))
+    return;
+
+  Common::HttpRequest request;
+
+  std::string region_code;
+
+  auto user_lang = SConfig::GetInstance().GetCurrentLanguage(DiscIO::IsWii(GetPlatform()));
+
+  switch (m_region)
+  {
+  case DiscIO::Region::NTSC_J:
+    region_code = "JA";
+    break;
+  case DiscIO::Region::NTSC_U:
+    region_code = "US";
+    break;
+  case DiscIO::Region::NTSC_K:
+    region_code = "KO";
+    break;
+  case DiscIO::Region::PAL:
+    switch (user_lang)
+    {
+    case DiscIO::Language::German:
+      region_code = "DE";
+      break;
+    case DiscIO::Language::French:
+      region_code = "FR";
+      break;
+    case DiscIO::Language::Spanish:
+      region_code = "ES";
+      break;
+    case DiscIO::Language::Italian:
+      region_code = "IT";
+      break;
+    case DiscIO::Language::Dutch:
+      region_code = "NL";
+      break;
+    case DiscIO::Language::English:
+    default:
+      region_code = "EN";
+      break;
+    }
+    break;
+  case DiscIO::Region::Unknown:
+    region_code = "EN";
+    break;
+  }
+
+  auto response = request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.c_str()));
+
+  if (response)
+  {
+    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
+                            cover_path + m_game_id + ".png");
+    return;
+  }
+
+  response =
+      request.Get(StringFromFormat(COVER_URL, region_code.c_str(), m_game_id.substr(0, 4).c_str()));
+
+  if (response)
+  {
+    File::WriteStringToFile(std::string(response.value().begin(), response.value().end()),
+                            cover_path + m_game_id.substr(0, 4) + ".png");
+  }
+}
+
+bool GameFile::DefaultCoverChanged()
+{
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
+    return false;
+
+  const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
+
+  std::string contents;
+
+  File::ReadFileToString(cover_path + m_game_id + ".png", contents);
+
+  if (contents.empty())
+    File::ReadFileToString(cover_path + m_game_id.substr(0, 4).c_str() + ".png", contents);
+
+  if (contents.empty())
+    return false;
+
+  m_pending.default_cover.buffer = {contents.begin(), contents.end()};
+
+  return true;
+}
+
+void GameFile::CustomCoverCommit()
+{
+  m_custom_cover = std::move(m_pending.custom_cover);
+}
+
+void GameFile::DefaultCoverCommit()
+{
+  m_default_cover = std::move(m_pending.default_cover);
+}
+
 void GameBanner::DoState(PointerWrap& p)
 {
   p.Do(buffer);
   p.Do(width);
   p.Do(height);
+}
+
+void GameCover::DoState(PointerWrap& p)
+{
+  p.Do(buffer);
 }
 
 void GameFile::DoState(PointerWrap& p)
@@ -185,6 +341,8 @@ void GameFile::DoState(PointerWrap& p)
 
   m_volume_banner.DoState(p);
   m_custom_banner.DoState(p);
+  m_default_cover.DoState(p);
+  m_custom_cover.DoState(p);
 }
 
 bool GameFile::IsElfOrDol() const
@@ -351,6 +509,11 @@ std::string GameFile::GetWiiFSPath() const
 const GameBanner& GameFile::GetBannerImage() const
 {
   return m_custom_banner.empty() ? m_volume_banner : m_custom_banner;
+}
+
+const GameCover& GameFile::GetCoverImage() const
+{
+  return m_custom_cover.empty() ? m_default_cover : m_custom_cover;
 }
 
 }  // namespace UICommon

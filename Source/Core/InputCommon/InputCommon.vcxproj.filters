@@ -110,6 +110,7 @@
     <ClCompile Include="ControlReference\ControlReference.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
+    <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -202,6 +203,7 @@
     <ClInclude Include="ControlReference\ControlReference.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
+    <ClInclude Include="InputProfile.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

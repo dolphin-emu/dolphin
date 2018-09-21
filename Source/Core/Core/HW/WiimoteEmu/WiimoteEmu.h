@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <queue>
 #include <string>
 
@@ -123,6 +124,33 @@ struct AccelData
   double x, y, z;
 };
 
+// Used for a dynamic swing or
+// shake
+struct DynamicData
+{
+  std::array<int, 3> timing;                 // Hold length in frames for each axis
+  std::array<double, 3> intensity;           // Swing or shake intensity
+  std::array<int, 3> executing_frames_left;  // Number of frames to execute the intensity operation
+};
+
+// Used for a dynamic swing or
+// shake.  This is used to pass
+// in data that defines the dynamic
+// action
+struct DynamicConfiguration
+{
+  double low_intensity;
+  int frames_needed_for_low_intensity;
+
+  double med_intensity;
+  // Frames needed for med intensity can be calculated between high & low
+
+  double high_intensity;
+  int frames_needed_for_high_intensity;
+
+  int frames_to_execute;  // How many frames should we execute the action for?
+};
+
 struct ADPCMState
 {
   s32 predictor, step;
@@ -153,14 +181,22 @@ struct ExtensionReg
 };
 #pragma pack(pop)
 
-void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
-                  u8* const shake_step);
+void EmulateShake(AccelData* accel, ControllerEmu::Buttons* buttons_group, double intensity,
+                  u8* shake_step);
 
-void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
-                 const bool sideways = false, const bool upright = false);
+void EmulateDynamicShake(AccelData* accel, DynamicData& dynamic_data,
+                         ControllerEmu::Buttons* buttons_group, const DynamicConfiguration& config,
+                         u8* shake_step);
 
-void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group,
-                  const bool sideways = false, const bool upright = false);
+void EmulateTilt(AccelData* accel, ControllerEmu::Tilt* tilt_group, bool sideways = false,
+                 bool upright = false);
+
+void EmulateSwing(AccelData* accel, ControllerEmu::Force* swing_group, double intensity,
+                  bool sideways = false, bool upright = false);
+
+void EmulateDynamicSwing(AccelData* accel, DynamicData& dynamic_data,
+                         ControllerEmu::Force* swing_group, const DynamicConfiguration& config,
+                         bool sideways = false, bool upright = false);
 
 enum
 {
@@ -190,7 +226,7 @@ public:
     BUTTON_HOME = 0x8000,
   };
 
-  Wiimote(const unsigned int index);
+  explicit Wiimote(unsigned int index);
   std::string GetName() const override;
   ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
   ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
@@ -200,8 +236,8 @@ public:
   ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
 
   void Update();
-  void InterruptChannel(const u16 channel_id, const void* data, u32 size);
-  void ControlChannel(const u16 channel_id, const void* data, u32 size);
+  void InterruptChannel(u16 channel_id, const void* data, u32 size);
+  void ControlChannel(u16 channel_id, const void* data, u32 size);
   bool CheckForButtonPress();
   void Reset();
 
@@ -214,14 +250,14 @@ public:
 
 protected:
   bool Step();
-  void HidOutputReport(const wm_report* const sr, const bool send_ack = true);
+  void HidOutputReport(const wm_report* sr, bool send_ack = true);
   void HandleExtensionSwap();
   void UpdateButtonsStatus();
 
-  void GetButtonData(u8* const data);
-  void GetAccelData(u8* const data, const ReportFeatures& rptf);
-  void GetIRData(u8* const data, bool use_accel);
-  void GetExtData(u8* const data);
+  void GetButtonData(u8* data);
+  void GetAccelData(u8* data, const ReportFeatures& rptf);
+  void GetIRData(u8* data, bool use_accel);
+  void GetExtData(u8* data);
 
   bool HaveExtension() const;
   bool WantExtension() const;
@@ -234,11 +270,11 @@ private:
     u8* data;
   };
 
-  void ReportMode(const wm_report_mode* const dr);
-  void SendAck(const u8 report_id);
-  void RequestStatus(const wm_request_status* const rs = nullptr);
-  void ReadData(const wm_read_data* const rd);
-  void WriteData(const wm_write_data* const wd);
+  void ReportMode(const wm_report_mode* dr);
+  void SendAck(u8 report_id);
+  void RequestStatus(const wm_request_status* rs = nullptr);
+  void ReadData(const wm_read_data* rd);
+  void WriteData(const wm_write_data* wd);
   void SendReadDataReply(ReadRequest& request);
   void SpeakerData(const wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
@@ -247,9 +283,15 @@ private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::Buttons* m_dpad;
   ControllerEmu::Buttons* m_shake;
+  ControllerEmu::Buttons* m_shake_soft;
+  ControllerEmu::Buttons* m_shake_hard;
+  ControllerEmu::Buttons* m_shake_dynamic;
   ControllerEmu::Cursor* m_ir;
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
+  ControllerEmu::Force* m_swing_slow;
+  ControllerEmu::Force* m_swing_fast;
+  ControllerEmu::Force* m_swing_dynamic;
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Output* m_motor;
   ControllerEmu::Extension* m_extension;
@@ -258,6 +300,9 @@ private:
   ControllerEmu::BooleanSetting* m_upright_setting;
   ControllerEmu::NumericSetting* m_battery_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
+
+  DynamicData m_swing_dynamic_data;
+  DynamicData m_shake_dynamic_data;
 
   // Wiimote accel data
   AccelData m_accel;
@@ -274,7 +319,10 @@ private:
   u8 m_reporting_mode;
   u16 m_reporting_channel;
 
-  u8 m_shake_step[3];
+  std::array<u8, 3> m_shake_step{};
+  std::array<u8, 3> m_shake_soft_step{};
+  std::array<u8, 3> m_shake_hard_step{};
+  std::array<u8, 3> m_shake_dynamic_step{};
 
   bool m_sensor_bar_on_top;
 

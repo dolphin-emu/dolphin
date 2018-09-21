@@ -6,15 +6,18 @@
 
 #include <memory>
 
-#include <QLabel>
-#include <QListView>
-#include <QSortFilterProxyModel>
 #include <QStackedWidget>
-#include <QTableView>
 
-#include "DolphinQt/GameList/GameListModel.h"
+class GameListModel;
+class QLabel;
+class QListView;
+class QSortFilterProxyModel;
+class QTableView;
 
-#include "UICommon/GameFile.h"
+namespace UICommon
+{
+class GameFile;
+}
 
 class GameList final : public QStackedWidget
 {
@@ -30,7 +33,7 @@ public:
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
-  void SetViewColumn(int col, bool view) { m_list->setColumnHidden(col, !view); }
+  void SetViewColumn(int col, bool view);
   void SetSearchTerm(const QString& term);
 
   void OnColumnVisibilityToggled(const QString& row, bool visible);
@@ -59,6 +62,9 @@ private:
   void ChangeDisc();
   void UpdateColumnVisibility();
 
+  void ZoomIn();
+  void ZoomOut();
+
   void OnHeaderViewChanged();
   void OnSectionResized(int index, int, int);
 
@@ -68,6 +74,7 @@ private:
   // We only have two views, just use a bool to distinguish.
   void SetPreferredView(bool list);
   void ConsiderViewChange();
+  void UpdateFont();
 
   GameListModel* m_model;
   QSortFilterProxyModel* m_list_proxy;

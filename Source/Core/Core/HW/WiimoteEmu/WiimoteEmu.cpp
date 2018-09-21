@@ -5,8 +5,10 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <cstring>
 #include <mutex>
 
@@ -17,6 +19,7 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/Config/WiimoteInputSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
@@ -99,14 +102,11 @@ static const ReportFeatures reporting_mode_features[] = {
 };
 
 void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_group,
-                  u8* const shake_step)
+                  const double intensity, u8* const shake_step)
 {
   // frame count of one up/down shake
   // < 9 no shake detection in "Wario Land: Shake It"
   auto const shake_step_max = 15;
-
-  // peak G-force
-  auto const shake_intensity = 3.0;
 
   // shake is a bitfield of X,Y,Z shake button states
   static const unsigned int btns[] = {0x01, 0x02, 0x04};
@@ -117,7 +117,7 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   {
     if (shake & (1 << i))
     {
-      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * shake_intensity;
+      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * intensity;
       shake_step[i] = (shake_step[i] + 1) % shake_step_max;
     }
     else
@@ -125,31 +125,76 @@ void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_
   }
 }
 
+void EmulateDynamicShake(AccelData* const accel, DynamicData& dynamic_data,
+                         ControllerEmu::Buttons* const buttons_group,
+                         const DynamicConfiguration& config, u8* const shake_step)
+{
+  // frame count of one up/down shake
+  // < 9 no shake detection in "Wario Land: Shake It"
+  auto const shake_step_max = 15;
+
+  // shake is a bitfield of X,Y,Z shake button states
+  static const unsigned int btns[] = {0x01, 0x02, 0x04};
+  unsigned int shake = 0;
+  buttons_group->GetState(&shake, btns);
+
+  for (int i = 0; i != 3; ++i)
+  {
+    if ((shake & (1 << i)) && dynamic_data.executing_frames_left[i] == 0)
+    {
+      dynamic_data.timing[i]++;
+    }
+    else if (dynamic_data.executing_frames_left[i] > 0)
+    {
+      (&(accel->x))[i] = std::sin(TAU * shake_step[i] / shake_step_max) * dynamic_data.intensity[i];
+      shake_step[i] = (shake_step[i] + 1) % shake_step_max;
+      dynamic_data.executing_frames_left[i]--;
+    }
+    else if (shake == 0 && dynamic_data.timing[i] > 0)
+    {
+      if (dynamic_data.timing[i] > config.frames_needed_for_high_intensity)
+      {
+        dynamic_data.intensity[i] = config.high_intensity;
+      }
+      else if (dynamic_data.timing[i] < config.frames_needed_for_low_intensity)
+      {
+        dynamic_data.intensity[i] = config.low_intensity;
+      }
+      else
+      {
+        dynamic_data.intensity[i] = config.med_intensity;
+      }
+      dynamic_data.timing[i] = 0;
+      dynamic_data.executing_frames_left[i] = config.frames_to_execute;
+    }
+    else
+    {
+      shake_step[i] = 0;
+    }
+  }
+}
+
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, const bool sideways,
                  const bool upright)
 {
-  ControlState roll, pitch;
   // 180 degrees
-  tilt_group->GetState(&roll, &pitch);
+  const ControllerEmu::Tilt::StateData state = tilt_group->GetState();
+  const ControlState roll = state.x * PI;
+  const ControlState pitch = state.y * PI;
 
-  roll *= PI;
-  pitch *= PI;
-
-  unsigned int ud = 0, lr = 0, fb = 0;
-
-  // some notes that no one will understand but me :p
+  // Some notes that no one will understand but me :p
   // left, forward, up
   // lr/ left == negative for all orientations
   // ud/ up == negative for upright longways
   // fb/ forward == positive for (sideways flat)
 
-  // determine which axis is which direction
-  ud = upright ? (sideways ? 0 : 1) : 2;
-  lr = sideways;
-  fb = upright ? 2 : (sideways ? 0 : 1);
+  // Determine which axis is which direction
+  const u32 ud = upright ? (sideways ? 0 : 1) : 2;
+  const u32 lr = sideways;
+  const u32 fb = upright ? 2 : (sideways ? 0 : 1);
 
-  int sgn[3] = {-1, 1, 1};  // sign fix
-
+  // Sign fix
+  std::array<int, 3> sgn{{-1, 1, 1}};
   if (sideways && !upright)
     sgn[fb] *= -1;
   if (!sideways && upright)
@@ -160,31 +205,81 @@ void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group, 
   (&accel->x)[fb] = sin(pitch) * sgn[fb];
 }
 
-#define SWING_INTENSITY 2.5  //-uncalibrated(aprox) 0x40-calibrated
-
 void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const swing_group,
-                  const bool sideways, const bool upright)
+                  const double intensity, const bool sideways, const bool upright)
 {
-  ControlState swing[3];
-  swing_group->GetState(swing);
+  const ControllerEmu::Force::StateData swing = swing_group->GetState();
 
-  s8 g_dir[3] = {-1, -1, -1};
-  u8 axis_map[3];
+  // Determine which axis is which direction
+  const std::array<int, 3> axis_map{{
+      upright ? (sideways ? 0 : 1) : 2,  // up/down
+      sideways,                          // left/right
+      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
+  }};
 
-  // determine which axis is which direction
-  axis_map[0] = upright ? (sideways ? 0 : 1) : 2;  // up/down
-  axis_map[1] = sideways;                          // left|right
-  axis_map[2] = upright ? 2 : (sideways ? 0 : 1);  // forward/backward
-
-  // some orientations have up as positive, some as negative
+  // Some orientations have up as positive, some as negative
   // same with forward
+  std::array<s8, 3> g_dir{{-1, -1, -1}};
   if (sideways && !upright)
     g_dir[axis_map[2]] *= -1;
   if (!sideways && upright)
     g_dir[axis_map[0]] *= -1;
 
-  for (unsigned int i = 0; i < 3; ++i)
-    (&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * SWING_INTENSITY;
+  for (std::size_t i = 0; i < swing.size(); ++i)
+    (&accel->x)[axis_map[i]] += swing[i] * g_dir[i] * intensity;
+}
+
+void EmulateDynamicSwing(AccelData* const accel, DynamicData& dynamic_data,
+                         ControllerEmu::Force* const swing_group,
+                         const DynamicConfiguration& config, const bool sideways,
+                         const bool upright)
+{
+  const ControllerEmu::Force::StateData swing = swing_group->GetState();
+
+  // Determine which axis is which direction
+  const std::array<int, 3> axis_map{{
+      upright ? (sideways ? 0 : 1) : 2,  // up/down
+      sideways,                          // left/right
+      upright ? 2 : (sideways ? 0 : 1),  // forward/backward
+  }};
+
+  // Some orientations have up as positive, some as negative
+  // same with forward
+  std::array<s8, 3> g_dir{{-1, -1, -1}};
+  if (sideways && !upright)
+    g_dir[axis_map[2]] *= -1;
+  if (!sideways && upright)
+    g_dir[axis_map[0]] *= -1;
+
+  for (std::size_t i = 0; i < swing.size(); ++i)
+  {
+    if (swing[i] > 0 && dynamic_data.executing_frames_left[i] == 0)
+    {
+      dynamic_data.timing[i]++;
+    }
+    else if (dynamic_data.executing_frames_left[i] > 0)
+    {
+      (&accel->x)[axis_map[i]] += g_dir[i] * dynamic_data.intensity[i];
+      dynamic_data.executing_frames_left[i]--;
+    }
+    else if (swing[i] == 0 && dynamic_data.timing[i] > 0)
+    {
+      if (dynamic_data.timing[i] > config.frames_needed_for_high_intensity)
+      {
+        dynamic_data.intensity[i] = config.high_intensity;
+      }
+      else if (dynamic_data.timing[i] < config.frames_needed_for_low_intensity)
+      {
+        dynamic_data.intensity[i] = config.low_intensity;
+      }
+      else
+      {
+        dynamic_data.intensity[i] = config.med_intensity;
+      }
+      dynamic_data.timing[i] = 0;
+      dynamic_data.executing_frames_left[i] = config.frames_to_execute;
+    }
+  }
 }
 
 static const u16 button_bitmasks[] = {
@@ -238,7 +333,11 @@ void Wiimote::Reset()
   //   0x55 - 0xff: level 4
   m_status.battery = (u8)(m_battery_setting->GetValue() * 100);
 
-  memset(m_shake_step, 0, sizeof(m_shake_step));
+  m_shake_step = {};
+  m_shake_soft_step = {};
+  m_shake_hard_step = {};
+  m_swing_dynamic_data = {};
+  m_shake_dynamic_data = {};
 
   // clear read request queue
   while (!m_read_requests.empty())
@@ -271,6 +370,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // swing
   groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
+  groups.emplace_back(m_swing_slow = new ControllerEmu::Force("SwingSlow"));
+  groups.emplace_back(m_swing_fast = new ControllerEmu::Force("SwingFast"));
+  groups.emplace_back(m_swing_dynamic = new ControllerEmu::Force("Swing Dynamic"));
 
   // tilt
   groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
@@ -283,6 +385,24 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
   m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
   m_shake->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
+
+  groups.emplace_back(m_shake_soft = new ControllerEmu::Buttons("ShakeSoft"));
+  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_soft->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+
+  groups.emplace_back(m_shake_hard = new ControllerEmu::Buttons("ShakeHard"));
+  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_hard->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+
+  groups.emplace_back(m_shake_dynamic = new ControllerEmu::Buttons("Shake Dynamic"));
+  m_shake_dynamic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "X"));
+  m_shake_dynamic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Y"));
+  m_shake_dynamic->controls.emplace_back(
+      new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
 
   // extension
   groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
@@ -308,9 +428,12 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index), ir_sin(0), ir_cos(1
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
+  m_options->boolean_settings.emplace_back(
+      new ControllerEmu::BooleanSetting("Forward Wiimote", _trans("Forward Wii Remote"), true,
+                                        ControllerEmu::SettingType::NORMAL, true));
   m_options->boolean_settings.emplace_back(m_upright_setting = new ControllerEmu::BooleanSetting(
                                                "Upright Wiimote", _trans("Upright Wii Remote"),
-                                               true, ControllerEmu::SettingType::NORMAL, true));
+                                               false, ControllerEmu::SettingType::NORMAL, true));
   m_options->boolean_settings.emplace_back(m_sideways_setting = new ControllerEmu::BooleanSetting(
                                                "Sideways Wiimote", _trans("Sideways Wii Remote"),
                                                false, ControllerEmu::SettingType::NORMAL, true));
@@ -481,8 +604,44 @@ void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
       m_upright_setting->GetValue() ^ upright_modifier_toggle ^ upright_modifier_switch;
 
   EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
-  EmulateSwing(&m_accel, m_swing, is_sideways, is_upright);
-  EmulateShake(&m_accel, m_shake, m_shake_step);
+
+  DynamicConfiguration swing_config;
+  swing_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW);
+  swing_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM);
+  swing_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST);
+  swing_config.frames_needed_for_high_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_FAST);
+  swing_config.frames_needed_for_low_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_HELD_SLOW);
+  swing_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SWING_DYNAMIC_FRAMES_LENGTH);
+
+  EmulateSwing(&m_accel, m_swing, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_MEDIUM),
+               is_sideways, is_upright);
+  EmulateSwing(&m_accel, m_swing_slow, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_SLOW),
+               is_sideways, is_upright);
+  EmulateSwing(&m_accel, m_swing_fast, Config::Get(Config::WIIMOTE_INPUT_SWING_INTENSITY_FAST),
+               is_sideways, is_upright);
+  EmulateDynamicSwing(&m_accel, m_swing_dynamic_data, m_swing_dynamic, swing_config, is_sideways,
+                      is_upright);
+
+  DynamicConfiguration shake_config;
+  shake_config.low_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT);
+  shake_config.med_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM);
+  shake_config.high_intensity = Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD);
+  shake_config.frames_needed_for_high_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_HARD);
+  shake_config.frames_needed_for_low_intensity =
+      Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_HELD_SOFT);
+  shake_config.frames_to_execute = Config::Get(Config::WIIMOTE_INPUT_SHAKE_DYNAMIC_FRAMES_LENGTH);
+
+  EmulateShake(&m_accel, m_shake, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_MEDIUM),
+               m_shake_step.data());
+  EmulateShake(&m_accel, m_shake_soft, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_SOFT),
+               m_shake_soft_step.data());
+  EmulateShake(&m_accel, m_shake_hard, Config::Get(Config::WIIMOTE_INPUT_SHAKE_INTENSITY_HARD),
+               m_shake_hard_step.data());
+  EmulateDynamicShake(&m_accel, m_shake_dynamic_data, m_shake_dynamic, shake_config,
+                      m_shake_dynamic_step.data());
 
   wm_accel& accel = *reinterpret_cast<wm_accel*>(data + rptf.accel);
   wm_buttons& core = *reinterpret_cast<wm_buttons*>(data + rptf.core);
@@ -519,15 +678,14 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   u16 x[4], y[4];
   memset(x, 0xFF, sizeof(x));
 
-  ControlState xx = 10000, yy = 0, zz = 0;
   double nsin, ncos;
 
   if (use_accel)
   {
-    double ax, az, len;
-    ax = m_accel.x;
-    az = m_accel.z;
-    len = sqrt(ax * ax + az * az);
+    double ax = m_accel.x;
+    double az = m_accel.z;
+    const double len = sqrt(ax * ax + az * az);
+
     if (len)
     {
       ax /= len;
@@ -551,33 +709,34 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   LowPassFilter(ir_sin, nsin, 1.0 / 60);
   LowPassFilter(ir_cos, ncos, 1.0 / 60);
 
-  m_ir->GetState(&xx, &yy, &zz, true);
+  static constexpr int camWidth = 1024;
+  static constexpr int camHeight = 768;
+  static constexpr double bndup = -0.315447;
+  static constexpr double bnddown = 0.85;
+  static constexpr double bndleft = 0.78820266;
+  static constexpr double bndright = -0.78820266;
+  static constexpr double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
+  static constexpr double dist2 = 1.2 * dist1;
 
-  Vertex v[4];
+  const ControllerEmu::Cursor::StateData cursor_state = m_ir->GetState(true);
 
-  static const int camWidth = 1024;
-  static const int camHeight = 768;
-  static const double bndup = -0.315447;
-  static const double bnddown = 0.85;
-  static const double bndleft = 0.443364;
-  static const double bndright = -0.443364;
-  static const double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
-  static const double dist2 = 1.2 * dist1;
-
+  std::array<Vertex, 4> v;
   for (auto& vtx : v)
   {
-    vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+    vtx.x = cursor_state.x * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+
     if (m_sensor_bar_on_top)
-      vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+      vtx.y = cursor_state.y * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
     else
-      vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+      vtx.y = cursor_state.y * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+
     vtx.z = 0;
   }
 
-  v[0].x -= (zz * 0.5 + 1) * dist1;
-  v[1].x += (zz * 0.5 + 1) * dist1;
-  v[2].x -= (zz * 0.5 + 1) * dist2;
-  v[3].x += (zz * 0.5 + 1) * dist2;
+  v[0].x -= (cursor_state.z * 0.5 + 1) * dist1;
+  v[1].x += (cursor_state.z * 0.5 + 1) * dist1;
+  v[2].x -= (cursor_state.z * 0.5 + 1) * dist2;
+  v[3].x += (cursor_state.z * 0.5 + 1) * dist2;
 
 #define printmatrix(m)                                                                             \
   PanicAlert("%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n", m[0][0], m[0][1], m[0][2],    \
@@ -589,14 +748,17 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   MatrixRotationByZ(rot, ir_sin, ir_cos);
   MatrixMultiply(tot, scale, rot);
 
-  for (int i = 0; i < 4; i++)
+  for (std::size_t i = 0; i < v.size(); i++)
   {
     MatrixTransformVertex(tot, v[i]);
+
     if ((v[i].x < -1) || (v[i].x > 1) || (v[i].y < -1) || (v[i].y > 1))
       continue;
-    x[i] = (u16)lround((v[i].x + 1) / 2 * (camWidth - 1));
-    y[i] = (u16)lround((v[i].y + 1) / 2 * (camHeight - 1));
+
+    x[i] = static_cast<u16>(lround((v[i].x + 1) / 2 * (camWidth - 1)));
+    y[i] = static_cast<u16>(lround((v[i].y + 1) / 2 * (camHeight - 1)));
   }
+
   // Fill report with valid data when full handshake was done
   if (m_reg_ir.data[0x30])
     // ir mode

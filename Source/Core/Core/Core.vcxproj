@@ -56,6 +56,7 @@
     <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
     <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="Config\WiimoteInputSettings.cpp" />
     <ClCompile Include="Core.cpp" />
     <ClCompile Include="CoreTiming.cpp" />
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp" />
@@ -294,7 +295,6 @@
     <ClCompile Include="PowerPC\PPCCache.cpp" />
     <ClCompile Include="PowerPC\PPCSymbolDB.cpp" />
     <ClCompile Include="PowerPC\PPCTables.cpp" />
-    <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="SysConf.cpp" />
     <ClCompile Include="TitleDatabase.cpp" />
@@ -321,6 +321,7 @@
     <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="Config\UISettings.h" />
+    <ClInclude Include="Config\WiimoteInputSettings.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="CoreTiming.h" />
     <ClInclude Include="Debugger\Debugger_SymbolMap.h" />
@@ -446,6 +447,7 @@
     <ClInclude Include="HW\WiimoteReal\WiimoteReal.h" />
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="HW\WiiSave.h" />
+    <ClInclude Include="HW\WiiSaveStructs.h" />
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IOS\Device.h" />
     <ClInclude Include="IOS\DeviceStub.h" />

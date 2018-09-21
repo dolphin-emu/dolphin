@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 
+#include <QSignalBlocker>
+
 #include "Common/Config/Config.h"
 
 #include "DolphinQt/Settings.h"
@@ -25,9 +27,8 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInf
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
-    bool old = blockSignals(true);
+    const QSignalBlocker blocker(this);
     setValue(Config::Get(m_setting));
-    blockSignals(old);
   });
 }
 

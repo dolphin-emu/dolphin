@@ -14,6 +14,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 const QSize GAMECUBE_BANNER_SIZE(96, 32);
@@ -54,13 +55,13 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   {
   case COL_PLATFORM:
     if (role == Qt::DecorationRole)
-      return Resources::GetPlatform(static_cast<int>(game.GetPlatform()));
+      return Resources::GetPlatform(game.GetPlatform());
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game.GetPlatform());
     break;
   case COL_COUNTRY:
     if (role == Qt::DecorationRole)
-      return Resources::GetCountry(static_cast<int>(game.GetCountry()));
+      return Resources::GetCountry(game.GetCountry());
     if (role == Qt::InitialSortOrderRole)
       return static_cast<int>(game.GetCountry());
     break;
@@ -70,7 +71,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
       // GameCube banners are 96x32, but Wii banners are 192x64.
       QPixmap banner = ToQPixmap(game.GetBannerImage());
       if (banner.isNull())
-        banner = Resources::GetMisc(Resources::BANNER_MISSING);
+        banner = Resources::GetMisc(Resources::MiscID::BannerMissing);
 
       banner.setDevicePixelRatio(
           std::max(static_cast<qreal>(banner.width()) / GAMECUBE_BANNER_SIZE.width(),
@@ -226,6 +227,16 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) 
   return m_games[index];
 }
 
+QString GameListModel::GetPath(int index) const
+{
+  return QString::fromStdString(m_games[index]->GetFilePath());
+}
+
+QString GameListModel::GetUniqueIdentifier(int index) const
+{
+  return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
+}
+
 void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
   beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
@@ -271,4 +282,14 @@ int GameListModel::FindGame(const std::string& path) const
 void GameListModel::SetSearchTerm(const QString& term)
 {
   m_term = term;
+}
+
+void GameListModel::SetScale(float scale)
+{
+  m_scale = scale;
+}
+
+float GameListModel::GetScale() const
+{
+  return m_scale;
 }

@@ -246,7 +246,8 @@ enum Bug
   // BUG: The GPU shader code appears to be context-specific on Mesa/i965.
   // This means that if we compiled the ubershaders asynchronously, they will be recompiled
   // on the main thread the first time they are used, causing stutter. For now, disable
-  // asynchronous compilation on Mesa i965.
+  // asynchronous compilation on Mesa i965. On nouveau, our use of glFinish() can cause
+  // crashes and/or lockups.
   // Started version: -1
   // Ended Version: -1
   BUG_SHARED_CONTEXT_SHADER_COMPILATION,
@@ -268,6 +269,13 @@ enum Bug
   // Started Version: 1.7
   // Ended Version: 1.10
   BUG_BROKEN_CLEAR_LOADOP_RENDERPASS,
+
+  // BUG: 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
+  // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
+  // We still resolve this to a R32F texture, as there is no 24-bit format.
+  // Started version: -1
+  // Ended version: -1
+  BUG_BROKEN_D32F_CLEAR,
 };
 
 // Initializes our internal vendor, device family, and driver version

@@ -19,6 +19,7 @@
 #include <QWidget>
 
 #include "Core/Analytics.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -83,6 +84,10 @@ void GeneralPane::OnEmulationStateChanged(Core::State state)
 
   m_checkbox_dualcore->setEnabled(!running);
   m_checkbox_cheats->setEnabled(!running);
+#ifdef USE_DISCORD_PRESENCE
+  m_checkbox_discord_presence->setEnabled(!running);
+#endif
+
   for (QRadioButton* radio_button : m_cpu_cores)
     radio_button->setEnabled(!running);
 }
@@ -287,7 +292,9 @@ void GeneralPane::OnSaveConfig()
   Settings::Instance().SetAnalyticsEnabled(m_checkbox_enable_analytics->isChecked());
 #endif
   settings.bCPUThread = m_checkbox_dualcore->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_CPU_THREAD, m_checkbox_dualcore->isChecked());
   Settings::Instance().SetCheatsEnabled(m_checkbox_cheats->isChecked());
+  Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
 
   for (size_t i = 0; i < m_cpu_cores.size(); ++i)
@@ -295,6 +302,7 @@ void GeneralPane::OnSaveConfig()
     if (m_cpu_cores[i]->isChecked())
     {
       settings.cpu_core = PowerPC::AvailableCPUCores()[i];
+      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[i]);
       break;
     }
   }

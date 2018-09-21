@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -30,6 +30,7 @@
 ////////////////////////////////////////////////////////////
 #include <SFML/Network/Export.hpp>
 #include <SFML/Network/Socket.hpp>
+#include <SFML/Network/IPAddress.hpp>
 
 
 namespace sf
@@ -42,7 +43,7 @@ class TcpSocket;
 ////////////////////////////////////////////////////////////
 class SFML_NETWORK_API TcpListener : public Socket
 {
-public :
+public:
 
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
@@ -64,21 +65,24 @@ public :
     unsigned short getLocalPort() const;
 
     ////////////////////////////////////////////////////////////
-    /// \brief Start listening for connections
+    /// \brief Start listening for incoming connection attempts
     ///
-    /// This functions makes the socket listen to the specified
-    /// port, waiting for new connections.
-    /// If the socket was previously listening to another port,
-    /// it will be stopped first and bound to the new port.
+    /// This function makes the socket start listening on the
+    /// specified port, waiting for incoming connection attempts.
     ///
-    /// \param port Port to listen for new connections
+    /// If the socket is already listening on a port when this
+    /// function is called, it will stop listening on the old
+    /// port before starting to listen on the new port.
+    ///
+    /// \param port    Port to listen on for incoming connection attempts
+    /// \param address Address of the interface to listen on
     ///
     /// \return Status code
     ///
     /// \see accept, close
     ///
     ////////////////////////////////////////////////////////////
-    Status listen(unsigned short port);
+    Status listen(unsigned short port, const IpAddress& address = IpAddress::Any);
 
     ////////////////////////////////////////////////////////////
     /// \brief Stop listening and close the socket

@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/MMU.h"
@@ -671,6 +672,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   u32 numFollows = 0;
   u32 num_inst = 0;
 
+  const bool enable_follow = SConfig::GetInstance().bJITFollowBranch;
+
   for (std::size_t i = 0; i < block_size; ++i)
   {
     auto result = PowerPC::TryReadInstruction(address);
@@ -706,14 +709,12 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
     //       If it is small, the performance will be down.
     //       If it is big, the size of generated code will be big and
     //       cache clearning will happen many times.
-    if (HasOption(OPTION_BRANCH_FOLLOW) && numFollows < BRANCH_FOLLOWING_THRESHOLD)
+    if (enable_follow && HasOption(OPTION_BRANCH_FOLLOW) && numFollows < BRANCH_FOLLOWING_THRESHOLD)
     {
       if (inst.OPCD == 18 && block_size > 1)
       {
         // Always follow BX instructions.
-        // TODO: Loop unrolling might bloat the code size too much.
-        //       Enable it carefully.
-        follow = destination != block->m_address;
+        follow = true;
         destination = SignExt26(inst.LI << 2) + (inst.AA ? 0 : address);
         if (inst.LK)
         {

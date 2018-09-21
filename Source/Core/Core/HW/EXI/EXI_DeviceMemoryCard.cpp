@@ -13,12 +13,14 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
@@ -31,6 +33,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "DiscIO/Enums.h"
 
 namespace ExpansionInterface
@@ -169,24 +172,46 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 
   std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
 
+  bool migrate = true;
+
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
       Movie::IsStartingFromClearSave())
+  {
     strDirectoryName += "Movie" DIR_SEP;
+    migrate = false;
+  }
 
-  strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
-                     StringFromFormat("Card %c", 'A' + card_index);
+  const std::string path_override =
+      Config::Get(card_index == 0 ? Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE :
+                                    Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
+  if (!path_override.empty())
+  {
+    strDirectoryName = path_override;
+    migrate = false;
+  }
+  else
+  {
+    strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+                       StringFromFormat("Card %c", 'A' + card_index);
+  }
 
   const File::FileInfo file_info(strDirectoryName);
-  if (!file_info.Exists())  // first use of memcard folder, migrate automatically
+  if (!file_info.Exists())
   {
-    MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+    if (migrate)  // first use of memcard folder, migrate automatically
+      MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+    else
+      File::CreateFullPath(strDirectoryName + DIR_SEP);
   }
   else if (!file_info.IsDirectory())
   {
     if (File::Rename(strDirectoryName, strDirectoryName + ".original"))
     {
       PanicAlertT("%s was not a directory, moved to *.original", strDirectoryName.c_str());
-      MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+      if (migrate)
+        MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+      else
+        File::CreateFullPath(strDirectoryName + DIR_SEP);
     }
     else  // we tried but the user wants to crash
     {
@@ -204,17 +229,21 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 {
-  std::string filename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA :
-                                             SConfig::GetInstance().m_strMemoryCardB;
+  const bool is_slot_a = card_index == 0;
+  std::string filename = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                     Config::Get(Config::MAIN_MEMCARD_B_PATH);
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
       Movie::IsStartingFromClearSave())
-    filename = File::GetUserPath(D_GCUSER_IDX) +
-               StringFromFormat("Movie%s.raw", (card_index == 0) ? "A" : "B");
+    filename =
+        File::GetUserPath(D_GCUSER_IDX) + StringFromFormat("Movie%s.raw", is_slot_a ? "A" : "B");
+
+  const std::string region_dir =
+      SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
+  MemoryCard::CheckPath(filename, region_dir, is_slot_a);
 
   if (sizeMb == MemCard251Mb)
-  {
     filename.insert(filename.find_last_of("."), ".251");
-  }
+
   memorycard = std::make_unique<MemoryCard>(filename, card_index, sizeMb);
 }
 

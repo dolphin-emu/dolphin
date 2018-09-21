@@ -36,6 +36,7 @@ add_library(common
   QoSSession.cpp
   Random.cpp
   SDCardUtil.cpp
+  SFMLHelper.cpp
   SettingsHandler.cpp
   StringUtil.cpp
   SymbolDB.cpp
@@ -70,6 +71,7 @@ endif()
 
 if(ANDROID)
   target_sources(common PRIVATE
+    AndroidAnalytics.cpp
     Logging/ConsoleListenerDroid.cpp
   )
 elseif(WIN32)

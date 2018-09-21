@@ -33,13 +33,41 @@
 #include "DolphinQt/Config/ARCodeWidget.h"
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/GameList/GameListModel.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Settings.h"
 
 constexpr u32 MAX_RESULTS = 50;
 
 constexpr int INDEX_ROLE = Qt::UserRole;
 constexpr int COLUMN_ROLE = Qt::UserRole + 1;
+
+enum class CompareType : int
+{
+  Equal = 0,
+  NotEqual = 1,
+  Less = 2,
+  LessEqual = 3,
+  More = 4,
+  MoreEqual = 5
+};
+
+enum class DataType : int
+{
+  Byte = 0,
+  Short = 1,
+  Int = 2,
+  Float = 3,
+  Double = 4,
+  String = 5
+};
+
+struct Result
+{
+  u32 address;
+  DataType type;
+  QString name;
+  bool locked = false;
+  u32 locked_value;
+};
 
 CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
 {
@@ -56,6 +84,8 @@ CheatsManager::CheatsManager(QWidget* parent) : QDialog(parent)
   Reset();
   Update();
 }
+
+CheatsManager::~CheatsManager() = default;
 
 void CheatsManager::OnStateChanged(Core::State state)
 {
@@ -132,7 +162,7 @@ void CheatsManager::OnWatchContextMenu()
 
   QMenu* menu = new QMenu(this);
 
-  AddAction(menu, tr("Remove from Watch"), this, [this] {
+  menu->addAction(tr("Remove from Watch"), this, [this] {
     auto* item = m_match_table->selectedItems()[0];
 
     int index = item->data(INDEX_ROLE).toInt();
@@ -144,7 +174,7 @@ void CheatsManager::OnWatchContextMenu()
 
   menu->addSeparator();
 
-  AddAction(menu, tr("Generate Action Replay Code"), this, &CheatsManager::GenerateARCode);
+  menu->addAction(tr("Generate Action Replay Code"), this, &CheatsManager::GenerateARCode);
 
   menu->exec(QCursor::pos());
 }
@@ -156,7 +186,7 @@ void CheatsManager::OnMatchContextMenu()
 
   QMenu* menu = new QMenu(this);
 
-  AddAction(menu, tr("Add to Watch"), this, [this] {
+  menu->addAction(tr("Add to Watch"), this, [this] {
     auto* item = m_match_table->selectedItems()[0];
 
     int index = item->data(INDEX_ROLE).toInt();
@@ -197,7 +227,7 @@ void CheatsManager::GenerateARCode()
   if (!m_ar_code)
     return;
 
-  auto* item = m_match_table->selectedItems()[0];
+  auto* item = m_watch_table->selectedItems()[0];
 
   int index = item->data(INDEX_ROLE).toInt();
   ActionReplay::ARCode ar_code;
@@ -304,6 +334,7 @@ QWidget* CheatsManager::CreateCheatSearch()
   auto* group_layout = new QHBoxLayout;
   group_box->setLayout(group_layout);
 
+  // i18n: The base 10 numeral system. Not related to non-integer numbers
   m_match_decimal = new QRadioButton(tr("Decimal"));
   m_match_hexadecimal = new QRadioButton(tr("Hexadecimal"));
   m_match_octal = new QRadioButton(tr("Octal"));

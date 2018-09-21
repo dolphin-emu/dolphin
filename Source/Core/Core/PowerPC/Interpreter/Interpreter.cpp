@@ -94,9 +94,9 @@ static void Trace(UGeckoInstruction& inst)
 
   const std::string ppc_inst = Common::GekkoDisassembler::Disassemble(inst.hex, PC);
   DEBUG_LOG(POWERPC,
-            "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016lx FPSCR: %08x MSR: %08x LR: "
+            "INTER PC: %08x SRR0: %08x SRR1: %08x CRval: %016" PRIx64 " FPSCR: %08x MSR: %08x LR: "
             "%08x %s %08x %s",
-            PC, SRR0, SRR1, (unsigned long)PowerPC::ppcState.cr_val[0], FPSCR.Hex, MSR.Hex,
+            PC, SRR0, SRR1, PowerPC::ppcState.cr_val[0], FPSCR.Hex, MSR.Hex,
             PowerPC::ppcState.spr[8], regs.c_str(), inst.hex, ppc_inst.c_str());
 }
 
@@ -117,7 +117,7 @@ int Interpreter::SingleStepInner()
     {
       Host_UpdateDisasmDialog();
 
-      gdb_signal(SIGTRAP);
+      gdb_signal(GDB_SIGTRAP);
       gdb_handle_exception();
     }
 #endif

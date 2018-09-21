@@ -37,8 +37,8 @@ void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBl
 void JitBlockCache::WriteDestroyBlock(const JitBlock& block)
 {
   // Only clear the entry points as we might still be within this block.
-  Gen::XEmitter emit(const_cast<u8*>(block.checkedEntry));
+  Gen::XEmitter emit(block.checkedEntry);
   emit.INT3();
-  Gen::XEmitter emit2(const_cast<u8*>(block.normalEntry));
+  Gen::XEmitter emit2(block.normalEntry);
   emit2.INT3();
 }

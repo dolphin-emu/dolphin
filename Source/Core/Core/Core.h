@@ -66,7 +66,6 @@ void DisplayMessage(const std::string& message, int time_in_ms);
 
 void FrameUpdateOnCPUThread();
 
-bool ShouldSkipFrame(int skipped);
 void VideoThrottle();
 void RequestRefreshInfo();
 

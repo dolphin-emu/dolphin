@@ -72,7 +72,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     else
     {
       // Stash PC in case asm_routine causes exception
-      MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+      MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
       // We know what GQR is here, so we can load RSCRATCH2 and call into the store method directly
       // with just the scale bits.
       MOV(32, R(RSCRATCH2), Imm32(gqrValue & 0x3F00));
@@ -86,7 +86,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   else
   {
     // Stash PC incase asm_routine causes exception
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
     // Hence, we need to mask out the unused bits. The layout of the GQR register is
     // UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
@@ -154,7 +154,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   else
   {
     // Stash PC in case asm_routine causes exception
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Get the high part of the GQR register
     OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
     gqr.AddMemOffset(2);

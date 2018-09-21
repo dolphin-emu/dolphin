@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QRadioButton>
+#include <QSignalBlocker>
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
@@ -41,6 +42,7 @@ GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWin
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void GeneralWidget::CreateWidgets()
@@ -258,7 +260,7 @@ void GeneralWidget::AddDescriptions()
       QT_TR_NOOP("Ubershaders are never used. Stuttering will occur during shader "
                  "compilation, but GPU demands are low. Recommended for low-end hardware.\n\nIf "
                  "unsure, select this mode.");
-  static const char TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION[] = QT_TR_NOOP(
+  static const char TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION[] = QT_TR_NOOP(
       "Ubershaders will always be used. Provides a near stutter-free experience at the cost of "
       "high GPU performance requirements. Only recommended for high-end systems.");
   static const char TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION[] =
@@ -289,7 +291,7 @@ void GeneralWidget::AddDescriptions()
   AddDescription(m_show_messages, TR_SHOW_NETPLAY_MESSAGES_DESCRIPTION);
   AddDescription(m_render_main_window, TR_RENDER_TO_MAINWINDOW_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[0], TR_SHADER_COMPILE_SYNC_DESCRIPTION);
-  AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_UBER_ONLY_DESCRIPTION);
+  AddDescription(m_shader_compilation_mode[1], TR_SHADER_COMPILE_SYNC_UBER_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[2], TR_SHADER_COMPILE_ASYNC_UBER_DESCRIPTION);
   AddDescription(m_shader_compilation_mode[3], TR_SHADER_COMPILE_ASYNC_SKIP_DESCRIPTION);
   AddDescription(m_wait_for_shaders, TR_SHADER_COMPILE_BEFORE_START_DESCRIPTION);
@@ -299,7 +301,7 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
 {
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(QVariant(backend_name)));
 
-  const bool old = m_adapter_combo->blockSignals(true);
+  const QSignalBlocker blocker(m_adapter_combo);
 
   m_adapter_combo->clear();
 
@@ -317,6 +319,4 @@ void GeneralWidget::OnBackendChanged(const QString& backend_name)
                                   QStringLiteral("") :
                                   tr("%1 doesn't support this feature.")
                                       .arg(tr(g_video_backend->GetDisplayName().c_str())));
-
-  m_adapter_combo->blockSignals(old);
 }

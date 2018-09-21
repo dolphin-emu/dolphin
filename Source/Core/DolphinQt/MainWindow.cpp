@@ -14,6 +14,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 #include <future>
@@ -66,26 +67,32 @@
 #include "DolphinQt/Debugger/MemoryWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
+#include "DolphinQt/DiscordHandler.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/GameList/GameList.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/MenuBar.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
+#include "DolphinQt/RenderWidget.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/SearchBar.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 #include "DolphinQt/TAS/WiiTASInputWindow.h"
+#include "DolphinQt/ToolBar.h"
 #include "DolphinQt/WiiUpdate.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "UICommon/DiscordPresence.h"
+#include "UICommon/GameFile.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoConfig.h"
@@ -152,12 +159,23 @@ MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainW
   restoreGeometry(settings.value(QStringLiteral("mainwindow/geometry")).toByteArray());
 
   m_render_widget_geometry = settings.value(QStringLiteral("renderwidget/geometry")).toByteArray();
+
+  // Restoring of window states can sometimes go wrong, resulting in widgets being visible when they
+  // shouldn't be so we have to reapply all our rules afterwards.
+  Settings::Instance().RefreshWidgetVisibility();
 }
 
 MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
   m_netplay_dialog->deleteLater();
+
+  for (int i = 0; i < 4; i++)
+  {
+    m_gc_tas_input_windows[i]->deleteLater();
+    m_wii_tas_input_windows[i]->deleteLater();
+  }
+
   ShutdownControllers();
 
   QSettings& settings = Settings::GetQSettings();
@@ -247,8 +265,8 @@ void MainWindow::CreateComponents()
 
   for (int i = 0; i < 4; i++)
   {
-    m_gc_tas_input_windows[i] = new GCTASInputWindow(this, i);
-    m_wii_tas_input_windows[i] = new WiiTASInputWindow(this, i);
+    m_gc_tas_input_windows[i] = new GCTASInputWindow(nullptr, i);
+    m_wii_tas_input_windows[i] = new WiiTASInputWindow(nullptr, i);
   }
 
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
@@ -543,7 +561,7 @@ QString MainWindow::PromptFileName()
   QString path = QFileDialog::getOpenFileName(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QStringLiteral("")).toString(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff);;"
          "All Files (*)"));
 
   if (!path.isEmpty())
@@ -633,7 +651,8 @@ void MainWindow::OnStopComplete()
   HideRenderWidget();
   EnableScreenSaver(true);
 #ifdef USE_DISCORD_PRESENCE
-  Discord::UpdateDiscordPresence();
+  if (!m_netplay_dialog->isVisible())
+    Discord::UpdateDiscordPresence();
 #endif
 
   SetFullScreenResolution(false);
@@ -667,7 +686,7 @@ bool MainWindow::RequestStop()
     const Core::State state = Core::GetState();
 
     // Only pause the game, if NetPlay is not running
-    bool pause = Settings::Instance().GetNetPlayClient() == nullptr;
+    bool pause = !Settings::Instance().GetNetPlayClient();
 
     if (pause)
       Core::SetState(Core::State::Paused);
@@ -787,7 +806,8 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
   ShowRenderWidget();
 #ifdef USE_DISCORD_PRESENCE
-  Discord::UpdateDiscordPresence();
+  if (!NetPlay::IsNetPlayRunning())
+    Discord::UpdateDiscordPresence();
 #endif
 
   if (SConfig::GetInstance().bFullscreen)
@@ -1038,6 +1058,9 @@ void MainWindow::NetPlayInit()
 {
   m_netplay_setup_dialog = new NetPlaySetupDialog(this);
   m_netplay_dialog = new NetPlayDialog;
+#ifdef USE_DISCORD_PRESENCE
+  m_netplay_discord = new DiscordHandler(this);
+#endif
 
   connect(m_netplay_dialog, &NetPlayDialog::Boot, this,
           [this](const QString& path) { StartGame(path); });
@@ -1045,6 +1068,12 @@ void MainWindow::NetPlayInit()
   connect(m_netplay_dialog, &NetPlayDialog::rejected, this, &MainWindow::NetPlayQuit);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Join, this, &MainWindow::NetPlayJoin);
   connect(m_netplay_setup_dialog, &NetPlaySetupDialog::Host, this, &MainWindow::NetPlayHost);
+#ifdef USE_DISCORD_PRESENCE
+  connect(m_netplay_discord, &DiscordHandler::Join, this, &MainWindow::NetPlayJoin);
+
+  Discord::InitNetPlayFunctionality(*m_netplay_discord);
+  m_netplay_discord->Start();
+#endif
 }
 
 bool MainWindow::NetPlayJoin()
@@ -1070,7 +1099,7 @@ bool MainWindow::NetPlayJoin()
 
   std::string host_ip;
   u16 host_port;
-  if (Settings::Instance().GetNetPlayServer() != nullptr)
+  if (Settings::Instance().GetNetPlayServer())
   {
     host_ip = "127.0.0.1";
     host_port = Settings::Instance().GetNetPlayServer()->GetPort();
@@ -1087,16 +1116,20 @@ bool MainWindow::NetPlayJoin()
   const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
 
   // Create Client
-  Settings::Instance().ResetNetPlayClient(new NetPlayClient(
+  const bool is_hosting_netplay = Settings::Instance().GetNetPlayServer() != nullptr;
+  Settings::Instance().ResetNetPlayClient(new NetPlay::NetPlayClient(
       host_ip, host_port, m_netplay_dialog, nickname,
-      NetTraversalConfig{Settings::Instance().GetNetPlayServer() != nullptr ? false : is_traversal,
-                         traversal_host, traversal_port}));
+      NetPlay::NetTraversalConfig{is_hosting_netplay ? false : is_traversal, traversal_host,
+                                  traversal_port}));
 
   if (!Settings::Instance().GetNetPlayClient()->IsConnected())
   {
     NetPlayQuit();
     return false;
   }
+
+  if (Settings::Instance().GetNetPlayServer() != nullptr)
+    Settings::Instance().GetNetPlayServer()->SetNetPlayUI(m_netplay_dialog);
 
   m_netplay_setup_dialog->close();
   m_netplay_dialog->show(nickname, is_traversal);
@@ -1134,8 +1167,9 @@ bool MainWindow::NetPlayHost(const QString& game_id)
     host_port = Config::Get(Config::NETPLAY_LISTEN_PORT);
 
   // Create Server
-  Settings::Instance().ResetNetPlayServer(new NetPlayServer(
-      host_port, use_upnp, NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
+  Settings::Instance().ResetNetPlayServer(new NetPlay::NetPlayServer(
+      host_port, use_upnp,
+      NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
   {
@@ -1158,6 +1192,9 @@ void MainWindow::NetPlayQuit()
 {
   Settings::Instance().ResetNetPlayClient();
   Settings::Instance().ResetNetPlayServer();
+#ifdef USE_DISCORD_PRESENCE
+  Discord::UpdateDiscordPresence();
+#endif
 }
 
 void MainWindow::EnableScreenSaver(bool enable)

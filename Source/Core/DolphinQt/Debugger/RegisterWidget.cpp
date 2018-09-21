@@ -15,7 +15,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/ActionHelper.h"
 #include "DolphinQt/Settings.h"
 
 RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
@@ -88,6 +87,7 @@ void RegisterWidget::CreateWidgets()
   QWidget* widget = new QWidget;
   auto* layout = new QVBoxLayout;
   layout->addWidget(m_table);
+  layout->setContentsMargins(2, 2, 2, 2);
   widget->setLayout(layout);
 
   setWidget(widget);
@@ -118,8 +118,10 @@ void RegisterWidget::ShowContextMenu()
     auto type = static_cast<RegisterType>(item->data(DATA_TYPE).toInt());
     auto display = item->GetDisplay();
 
-    AddAction(menu, tr("Add to &watch"), this,
-              [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
+    // i18n: This kind of "watch" is used for watching emulated memory.
+    // It's not related to timekeeping devices.
+    menu->addAction(tr("Add to &watch"), this,
+                    [this, item] { emit RequestMemoryBreakpoint(item->GetValue()); });
     menu->addAction(tr("View &memory"));
     menu->addAction(tr("View &code"));
 
@@ -211,7 +213,7 @@ void RegisterWidget::ShowContextMenu()
     menu->addSeparator();
   }
 
-  AddAction(menu, tr("Update"), this, [this] { emit RequestTableUpdate(); });
+  menu->addAction(tr("Update"), this, [this] { emit RequestTableUpdate(); });
 
   menu->exec(QCursor::pos());
 }

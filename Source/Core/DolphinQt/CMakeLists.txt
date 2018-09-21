@@ -1,4 +1,4 @@
-find_package(Qt5 REQUIRED COMPONENTS Gui Widgets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
 
 set_property(TARGET Qt5::Core PROPERTY INTERFACE_COMPILE_FEATURES "")
 message(STATUS "Found Qt version ${Qt5Core_VERSION}")
@@ -8,6 +8,8 @@ set(CMAKE_AUTOMOC ON)
 add_executable(dolphin-emu
   AboutDialog.cpp
   CheatsManager.cpp
+  DiscordHandler.cpp
+  DiscordJoinRequestDialog.cpp
   FIFO/FIFOPlayerWindow.cpp
   FIFO/FIFOAnalyzer.cpp
   HotkeyScheduler.cpp
@@ -50,6 +52,7 @@ add_executable(dolphin-emu
   Config/Mapping/GCPadEmu.cpp
   Config/Mapping/GCPadWiiUConfigDialog.cpp
   Config/Mapping/Hotkey3D.cpp
+  Config/Mapping/HotkeyControllerProfile.cpp
   Config/Mapping/HotkeyDebugging.cpp
   Config/Mapping/HotkeyGeneral.cpp
   Config/Mapping/HotkeyGraphics.cpp
@@ -97,6 +100,7 @@ add_executable(dolphin-emu
   NetPlay/PadMappingDialog.cpp
   QtUtils/DoubleClickEventFilter.cpp
   QtUtils/ElidedButton.cpp
+  QtUtils/FlowLayout.cpp
   QtUtils/ImageConverter.cpp
   QtUtils/SignalDaemon.cpp
   QtUtils/WindowActivationEventFilter.cpp

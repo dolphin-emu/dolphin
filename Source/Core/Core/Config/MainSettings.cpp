@@ -16,8 +16,10 @@ namespace Config
 // Main.Core
 
 const ConfigInfo<bool> MAIN_SKIP_IPL{{System::Main, "Core", "SkipIPL"}, true};
+const ConfigInfo<bool> MAIN_LOAD_IPL_DUMP{{System::Main, "Core", "LoadIPLDump"}, true};
 const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE{{System::Main, "Core", "CPUCore"},
                                                  PowerPC::DefaultCPUCore()};
+const ConfigInfo<bool> MAIN_JIT_FOLLOW_BRANCH{{System::Main, "Core", "JITFollowBranch"}, true};
 const ConfigInfo<bool> MAIN_FASTMEM{{System::Main, "Core", "Fastmem"}, true};
 const ConfigInfo<bool> MAIN_DSP_HLE{{System::Main, "Core", "DSPHLE"}, true};
 const ConfigInfo<int> MAIN_TIMING_VARIANCE{{System::Main, "Core", "TimingVariance"}, 40};
@@ -36,6 +38,12 @@ const ConfigInfo<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "Memcar
 const ConfigInfo<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
 const ConfigInfo<std::string> MAIN_AGP_CART_A_PATH{{System::Main, "Core", "AgpCartAPath"}, ""};
 const ConfigInfo<std::string> MAIN_AGP_CART_B_PATH{{System::Main, "Core", "AgpCartBPath"}, ""};
+const ConfigInfo<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE{
+    {System::Main, "Core", "GCIFolderAPathOverride"}, ""};
+const ConfigInfo<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE{
+    {System::Main, "Core", "GCIFolderBPathOverride"}, ""};
+const ConfigInfo<bool> MAIN_GCI_FOLDER_CURRENT_GAME_ONLY{
+    {System::Main, "Core", "GCIFolderCurrentGameOnly"}, false};
 const ConfigInfo<int> MAIN_SLOT_A{{System::Main, "Core", "SlotA"},
                                   ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER};
 const ConfigInfo<int> MAIN_SLOT_B{{System::Main, "Core", "SlotB"},
@@ -79,7 +87,6 @@ const ConfigInfo<int> MAIN_SYNC_GPU_MIN_DISTANCE{{System::Main, "Core", "SyncGpu
                                                  -200000};
 const ConfigInfo<float> MAIN_SYNC_GPU_OVERCLOCK{{System::Main, "Core", "SyncGpuOverclock"}, 1.0f};
 const ConfigInfo<bool> MAIN_FAST_DISC_SPEED{{System::Main, "Core", "FastDiscSpeed"}, false};
-const ConfigInfo<bool> MAIN_DCBZ{{System::Main, "Core", "DCBZ"}, false};
 const ConfigInfo<bool> MAIN_LOW_DCBZ_HACK{{System::Main, "Core", "LowDCBZHack"}, false};
 const ConfigInfo<bool> MAIN_FPRF{{System::Main, "Core", "FPRF"}, false};
 const ConfigInfo<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}, false};

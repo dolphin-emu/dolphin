@@ -12,13 +12,15 @@
 
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
+#include "Common/StringUtil.h"
+
 // This is an input plugin using the XInput 2.0 extension to the X11 protocol,
 // loosely based on the old XLib plugin. (Has nothing to do with the XInput
 // API on Windows.)
 
 // This plugin creates one KeyboardMouse object for each master pointer/
 // keyboard pair. Each KeyboardMouse object exports four types of controls:
-// *    Mouse button controls: hardcoded at five of them, but could be made to
+// *    Mouse button controls: hardcoded at 32 of them, but could be made to
 //      support infinitely many mouse buttons in theory; XInput2 has no limit.
 // *    Mouse cursor controls: one for each cardinal direction. Calculated by
 //      comparing the absolute position of the mouse pointer on screen to the
@@ -173,7 +175,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   }
 
   // Mouse Buttons
-  for (int i = 0; i < 5; i++)
+  for (int i = 0; i < 32; i++)
     AddInput(new Button(i, &m_state.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+
@@ -338,8 +340,7 @@ ControlState KeyboardMouse::Key::GetState() const
 KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
     : m_buttons(buttons), m_index(index)
 {
-  // this will be a problem if we remove the hardcoded five-button limit
-  name = std::string("Click ") + (char)('1' + m_index);
+  name = StringFromFormat("Click %d", m_index + 1);
 }
 
 ControlState KeyboardMouse::Button::GetState() const

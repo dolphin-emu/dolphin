@@ -13,9 +13,16 @@ namespace ControllerEmu
 class Cursor : public ControlGroup
 {
 public:
+  struct StateData
+  {
+    ControlState x{};
+    ControlState y{};
+    ControlState z{};
+  };
+
   explicit Cursor(const std::string& name);
 
-  void GetState(ControlState* x, ControlState* y, ControlState* z, bool adjusted = false);
+  StateData GetState(bool adjusted = false);
 
 private:
   // This is used to reduce the cursor speed for relative input
@@ -25,9 +32,7 @@ private:
   // Sets the length for the auto-hide timer
   static constexpr int TIMER_VALUE = 500;
 
-  ControlState m_x = 0.0;
-  ControlState m_y = 0.0;
-  ControlState m_z = 0.0;
+  StateData m_state;
 
   int m_autohide_timer = TIMER_VALUE;
   ControlState m_prev_xx;

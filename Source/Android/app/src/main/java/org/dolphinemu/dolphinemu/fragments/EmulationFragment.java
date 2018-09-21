@@ -24,433 +24,444 @@ import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
 import java.io.File;
 
-import rx.functions.Action1;
-
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
-	private static final String KEY_GAMEPATH = "gamepath";
+  private static final String KEY_GAMEPATH = "gamepath";
 
-	private SharedPreferences mPreferences;
+  private SharedPreferences mPreferences;
 
-	private InputOverlay mInputOverlay;
+  private InputOverlay mInputOverlay;
 
-	private EmulationState mEmulationState;
+  private EmulationState mEmulationState;
 
-	private DirectoryStateReceiver directoryStateReceiver;
+  private DirectoryStateReceiver directoryStateReceiver;
 
-	private EmulationActivity activity;
+  private EmulationActivity activity;
 
-	public static EmulationFragment newInstance(String gamePath)
-	{
+  public static EmulationFragment newInstance(String gamePath)
+  {
 
-		Bundle args = new Bundle();
-		args.putString(KEY_GAMEPATH, gamePath);
+    Bundle args = new Bundle();
+    args.putString(KEY_GAMEPATH, gamePath);
 
-		EmulationFragment fragment = new EmulationFragment();
-		fragment.setArguments(args);
-		return fragment;
-	}
+    EmulationFragment fragment = new EmulationFragment();
+    fragment.setArguments(args);
+    return fragment;
+  }
 
-	@Override
-	public void onAttach(Context context)
-	{
-		super.onAttach(context);
+  @Override
+  public void onAttach(Context context)
+  {
+    super.onAttach(context);
 
-		if (context instanceof EmulationActivity)
-		{
-			activity = (EmulationActivity)context;
-			NativeLibrary.setEmulationActivity((EmulationActivity) context);
-		}
-		else
-		{
-			throw new IllegalStateException("EmulationFragment must have EmulationActivity parent");
-		}
-	}
+    if (context instanceof EmulationActivity)
+    {
+      activity = (EmulationActivity) context;
+      NativeLibrary.setEmulationActivity((EmulationActivity) context);
+    }
+    else
+    {
+      throw new IllegalStateException("EmulationFragment must have EmulationActivity parent");
+    }
+  }
 
-	/**
-	 * Initialize anything that doesn't depend on the layout / views in here.
-	 */
-	@Override
-	public void onCreate(Bundle savedInstanceState)
-	{
-		super.onCreate(savedInstanceState);
+  /**
+   * Initialize anything that doesn't depend on the layout / views in here.
+   */
+  @Override
+  public void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
 
-		// So this fragment doesn't restart on configuration changes; i.e. rotation.
-		setRetainInstance(true);
+    // So this fragment doesn't restart on configuration changes; i.e. rotation.
+    setRetainInstance(true);
 
-		mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
-		String gamePath = getArguments().getString(KEY_GAMEPATH);
-		mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath());
-	}
+    String gamePath = getArguments().getString(KEY_GAMEPATH);
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+    boolean firstOpen = preferences.getBoolean(StartupHandler.NEW_SESSION, true);
+    SharedPreferences.Editor sPrefsEditor = preferences.edit();
+    sPrefsEditor.putBoolean(StartupHandler.NEW_SESSION, false);
+    sPrefsEditor.apply();
+    mEmulationState = new EmulationState(gamePath, getTemporaryStateFilePath(), firstOpen);
+  }
 
-	/**
-	 * Initialize the UI and start emulation in here.
-	 */
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
-	{
-		View contents = inflater.inflate(R.layout.fragment_emulation, container, false);
+  /**
+   * Initialize the UI and start emulation in here.
+   */
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+  {
+    View contents = inflater.inflate(R.layout.fragment_emulation, container, false);
 
-		SurfaceView surfaceView = contents.findViewById(R.id.surface_emulation);
-		surfaceView.getHolder().addCallback(this);
+    SurfaceView surfaceView = contents.findViewById(R.id.surface_emulation);
+    surfaceView.getHolder().addCallback(this);
 
-		mInputOverlay = contents.findViewById(R.id.surface_input_overlay);
-		if (mInputOverlay != null)
-		{
-			// If the input overlay was previously disabled, then don't show it.
-			if (!mPreferences.getBoolean("showInputOverlay", true))
-			{
-				mInputOverlay.setVisibility(View.GONE);
-			}
-		}
+    mInputOverlay = contents.findViewById(R.id.surface_input_overlay);
+    if (mInputOverlay != null)
+    {
+      // If the input overlay was previously disabled, then don't show it.
+      if (!mPreferences.getBoolean("showInputOverlay", true))
+      {
+        mInputOverlay.setVisibility(View.GONE);
+      }
+    }
 
-		Button doneButton = contents.findViewById(R.id.done_control_config);
-		if (doneButton != null)
-		{
-			doneButton.setOnClickListener(v -> stopConfiguringControls());
-		}
+    Button doneButton = contents.findViewById(R.id.done_control_config);
+    if (doneButton != null)
+    {
+      doneButton.setOnClickListener(v -> stopConfiguringControls());
+    }
 
-		// The new Surface created here will get passed to the native code via onSurfaceChanged.
+    // The new Surface created here will get passed to the native code via onSurfaceChanged.
 
-		return contents;
-	}
+    return contents;
+  }
 
-	@Override
-	public void onResume()
-	{
-		super.onResume();
-		if (DirectoryInitializationService.areDolphinDirectoriesReady())
-		{
-			mEmulationState.run(activity.isActivityRecreated());
-		}
-		else
-		{
-			setupDolphinDirectoriesThenStartEmulation();
-		}
-	}
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+    if (DirectoryInitializationService.areDolphinDirectoriesReady())
+    {
+      mEmulationState.run(activity.isActivityRecreated());
+    }
+    else
+    {
+      setupDolphinDirectoriesThenStartEmulation();
+    }
+  }
 
-	@Override
-	public void onPause()
-	{
-		if (directoryStateReceiver != null)
-		{
-			LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(directoryStateReceiver);
-			directoryStateReceiver = null;
-		}
+  @Override
+  public void onPause()
+  {
+    if (directoryStateReceiver != null)
+    {
+      LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(directoryStateReceiver);
+      directoryStateReceiver = null;
+    }
 
-		mEmulationState.pause();
-		super.onPause();
-	}
+    mEmulationState.pause();
+    super.onPause();
+  }
 
-	@Override
-	public void onDetach()
-	{
-		NativeLibrary.clearEmulationActivity();
-		super.onDetach();
-	}
+  @Override
+  public void onDetach()
+  {
+    NativeLibrary.clearEmulationActivity();
+    super.onDetach();
+  }
 
-	private void setupDolphinDirectoriesThenStartEmulation() {
-		IntentFilter statusIntentFilter = new IntentFilter(
-				DirectoryInitializationService.BROADCAST_ACTION);
+  private void setupDolphinDirectoriesThenStartEmulation()
+  {
+    IntentFilter statusIntentFilter = new IntentFilter(
+            DirectoryInitializationService.BROADCAST_ACTION);
 
-		directoryStateReceiver =
-				new DirectoryStateReceiver(directoryInitializationState ->
-				{
-					if (directoryInitializationState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-					{
-						mEmulationState.run(activity.isActivityRecreated());
-					}
-					else if (directoryInitializationState == DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
-					{
-						Toast.makeText(getContext(), R.string.write_permission_needed, Toast.LENGTH_SHORT)
-								.show();
-					}
-					else if (directoryInitializationState == DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
-					{
-						Toast.makeText(getContext(), R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
-								.show();
-					}
-				});
+    directoryStateReceiver =
+            new DirectoryStateReceiver(directoryInitializationState ->
+            {
+              if (directoryInitializationState ==
+                      DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+              {
+                mEmulationState.run(activity.isActivityRecreated());
+              }
+              else if (directoryInitializationState ==
+                      DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
+              {
+                Toast.makeText(getContext(), R.string.write_permission_needed, Toast.LENGTH_SHORT)
+                        .show();
+              }
+              else if (directoryInitializationState ==
+                      DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
+              {
+                Toast.makeText(getContext(), R.string.external_storage_not_mounted,
+                        Toast.LENGTH_SHORT)
+                        .show();
+              }
+            });
 
-		// Registers the DirectoryStateReceiver and its intent filters
-		LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
-				directoryStateReceiver,
-				statusIntentFilter);
-		DirectoryInitializationService.startService(getActivity());
-	}
+    // Registers the DirectoryStateReceiver and its intent filters
+    LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
+            directoryStateReceiver,
+            statusIntentFilter);
+    DirectoryInitializationService.startService(getActivity());
+  }
 
-	public void toggleInputOverlayVisibility()
-	{
-		SharedPreferences.Editor editor = mPreferences.edit();
+  public void toggleInputOverlayVisibility()
+  {
+    SharedPreferences.Editor editor = mPreferences.edit();
 
-		// If the overlay is currently set to INVISIBLE
-		if (!mPreferences.getBoolean("showInputOverlay", false))
-		{
-			// Set it to VISIBLE
-			mInputOverlay.setVisibility(View.VISIBLE);
-			editor.putBoolean("showInputOverlay", true);
-		}
-		else
-		{
-			// Set it to INVISIBLE
-			mInputOverlay.setVisibility(View.GONE);
-			editor.putBoolean("showInputOverlay", false);
-		}
+    // If the overlay is currently set to INVISIBLE
+    if (!mPreferences.getBoolean("showInputOverlay", false))
+    {
+      // Set it to VISIBLE
+      mInputOverlay.setVisibility(View.VISIBLE);
+      editor.putBoolean("showInputOverlay", true);
+    }
+    else
+    {
+      // Set it to INVISIBLE
+      mInputOverlay.setVisibility(View.GONE);
+      editor.putBoolean("showInputOverlay", false);
+    }
 
-		editor.apply();
-	}
+    editor.apply();
+  }
 
-	public void refreshInputOverlay()
-	{
-		mInputOverlay.refreshControls();
-	}
+  public void refreshInputOverlay()
+  {
+    mInputOverlay.refreshControls();
+  }
 
-	@Override
-	public void surfaceCreated(SurfaceHolder holder)
-	{
-		// We purposely don't do anything here.
-		// All work is done in surfaceChanged, which we are guaranteed to get even for surface creation.
-	}
+  @Override
+  public void surfaceCreated(SurfaceHolder holder)
+  {
+    // We purposely don't do anything here.
+    // All work is done in surfaceChanged, which we are guaranteed to get even for surface creation.
+  }
 
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
-	{
-		Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height);
-		mEmulationState.newSurface(holder.getSurface());
-	}
+  @Override
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+  {
+    Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height);
+    mEmulationState.newSurface(holder.getSurface());
+  }
 
-	@Override
-	public void surfaceDestroyed(SurfaceHolder holder)
-	{
-		mEmulationState.clearSurface();
-	}
+  @Override
+  public void surfaceDestroyed(SurfaceHolder holder)
+  {
+    mEmulationState.clearSurface();
+  }
 
-	public void stopEmulation()
-	{
-		mEmulationState.stop();
-	}
+  public void stopEmulation()
+  {
+    mEmulationState.stop();
+  }
 
-	public void startConfiguringControls()
-	{
-		getView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
-		mInputOverlay.setIsInEditMode(true);
-	}
+  public void startConfiguringControls()
+  {
+    getView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
+    mInputOverlay.setIsInEditMode(true);
+  }
 
-	public void stopConfiguringControls()
-	{
-		getView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
-		mInputOverlay.setIsInEditMode(false);
-	}
+  public void stopConfiguringControls()
+  {
+    getView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
+    mInputOverlay.setIsInEditMode(false);
+  }
 
-	public boolean isConfiguringControls()
-	{
-		return mInputOverlay.isInEditMode();
-	}
+  public boolean isConfiguringControls()
+  {
+    return mInputOverlay.isInEditMode();
+  }
 
-	private static class EmulationState
-	{
-		private enum State
-		{
-			STOPPED, RUNNING, PAUSED
-		}
+  private static class EmulationState
+  {
+    private enum State
+    {
+      STOPPED, RUNNING, PAUSED
+    }
 
-		private final String mGamePath;
-		private Thread mEmulationThread;
-		private State state;
-		private Surface mSurface;
-		private boolean mRunWhenSurfaceIsValid;
-		private boolean loadPreviousTemporaryState;
-		private final String temporaryStatePath;
+    private final String mGamePath;
+    private Thread mEmulationThread;
+    private State state;
+    private Surface mSurface;
+    private boolean mRunWhenSurfaceIsValid;
+    private boolean loadPreviousTemporaryState;
+    private boolean firstOpen;
+    private final String temporaryStatePath;
 
-		EmulationState(String gamePath, String temporaryStatePath)
-		{
-			mGamePath = gamePath;
-			this.temporaryStatePath = temporaryStatePath;
-			// Starting state is stopped.
-			state = State.STOPPED;
-		}
+    EmulationState(String gamePath, String temporaryStatePath, boolean firstOpen)
+    {
+      this.firstOpen = firstOpen;
+      mGamePath = gamePath;
+      this.temporaryStatePath = temporaryStatePath;
+      // Starting state is stopped.
+      state = State.STOPPED;
+    }
 
-		// Getters for the current state
+    // Getters for the current state
 
-		public synchronized boolean isStopped()
-		{
-			return state == State.STOPPED;
-		}
+    public synchronized boolean isStopped()
+    {
+      return state == State.STOPPED;
+    }
 
-		public synchronized boolean isPaused()
-		{
-			return state == State.PAUSED;
-		}
+    public synchronized boolean isPaused()
+    {
+      return state == State.PAUSED;
+    }
 
-		public synchronized boolean isRunning()
-		{
-			return state == State.RUNNING;
-		}
+    public synchronized boolean isRunning()
+    {
+      return state == State.RUNNING;
+    }
 
-		// State changing methods
+    // State changing methods
 
-		public synchronized void stop()
-		{
-			if (state != State.STOPPED)
-			{
-				Log.debug("[EmulationFragment] Stopping emulation.");
-				state = State.STOPPED;
-				NativeLibrary.StopEmulation();
-			}
-			else
-			{
-				Log.warning("[EmulationFragment] Stop called while already stopped.");
-			}
-		}
+    public synchronized void stop()
+    {
+      if (state != State.STOPPED)
+      {
+        Log.debug("[EmulationFragment] Stopping emulation.");
+        state = State.STOPPED;
+        NativeLibrary.StopEmulation();
+      }
+      else
+      {
+        Log.warning("[EmulationFragment] Stop called while already stopped.");
+      }
+    }
 
-		public synchronized void pause()
-		{
-			if (state != State.PAUSED)
-			{
-				state = State.PAUSED;
-				Log.debug("[EmulationFragment] Pausing emulation.");
+    public synchronized void pause()
+    {
+      if (state != State.PAUSED)
+      {
+        state = State.PAUSED;
+        Log.debug("[EmulationFragment] Pausing emulation.");
 
-				// Release the surface before pausing, since emulation has to be running for that.
-				NativeLibrary.SurfaceDestroyed();
-				NativeLibrary.PauseEmulation();
-			}
-			else
-			{
-				Log.warning("[EmulationFragment] Pause called while already paused.");
-			}
-		}
+        // Release the surface before pausing, since emulation has to be running for that.
+        NativeLibrary.SurfaceDestroyed();
+        NativeLibrary.PauseEmulation();
+      }
+      else
+      {
+        Log.warning("[EmulationFragment] Pause called while already paused.");
+      }
+    }
 
-		public synchronized void run(boolean isActivityRecreated)
-		{
-			if (isActivityRecreated)
-			{
-				if (NativeLibrary.IsRunning())
-				{
-					loadPreviousTemporaryState = false;
-					state = State.PAUSED;
-					deleteFile(temporaryStatePath);
-				}
-				else
-				{
-					loadPreviousTemporaryState = true;
-				}
-			}
-			else
-			{
-				Log.debug("[EmulationFragment] activity resumed or fresh start");
-				loadPreviousTemporaryState = false;
-				// activity resumed without being killed or this is the first run
-				deleteFile(temporaryStatePath);
-			}
+    public synchronized void run(boolean isActivityRecreated)
+    {
+      if (isActivityRecreated)
+      {
+        if (NativeLibrary.IsRunning())
+        {
+          loadPreviousTemporaryState = false;
+          state = State.PAUSED;
+          deleteFile(temporaryStatePath);
+        }
+        else
+        {
+          loadPreviousTemporaryState = true;
+        }
+      }
+      else
+      {
+        Log.debug("[EmulationFragment] activity resumed or fresh start");
+        loadPreviousTemporaryState = false;
+        // activity resumed without being killed or this is the first run
+        deleteFile(temporaryStatePath);
+      }
 
-			// If the surface is set, run now. Otherwise, wait for it to get set.
-			if (mSurface != null)
-			{
-				runWithValidSurface();
-			}
-			else
-			{
-				mRunWhenSurfaceIsValid = true;
-			}
-		}
+      // If the surface is set, run now. Otherwise, wait for it to get set.
+      if (mSurface != null)
+      {
+        runWithValidSurface();
+      }
+      else
+      {
+        mRunWhenSurfaceIsValid = true;
+      }
+    }
 
-		// Surface callbacks
-		public synchronized void newSurface(Surface surface)
-		{
-			mSurface = surface;
-			if (mRunWhenSurfaceIsValid)
-			{
-				runWithValidSurface();
-			}
-		}
+    // Surface callbacks
+    public synchronized void newSurface(Surface surface)
+    {
+      mSurface = surface;
+      if (mRunWhenSurfaceIsValid)
+      {
+        runWithValidSurface();
+      }
+    }
 
-		public synchronized void clearSurface()
-		{
-			if (mSurface == null)
-			{
-				Log.warning("[EmulationFragment] clearSurface called, but surface already null.");
-			}
-			else
-			{
-				mSurface = null;
-				Log.debug("[EmulationFragment] Surface destroyed.");
+    public synchronized void clearSurface()
+    {
+      if (mSurface == null)
+      {
+        Log.warning("[EmulationFragment] clearSurface called, but surface already null.");
+      }
+      else
+      {
+        mSurface = null;
+        Log.debug("[EmulationFragment] Surface destroyed.");
 
-				if (state == State.RUNNING)
-				{
-					NativeLibrary.SurfaceDestroyed();
-					state = State.PAUSED;
-				}
-				else if (state == State.PAUSED)
-				{
-					Log.warning("[EmulationFragment] Surface cleared while emulation paused.");
-				}
-				else
-				{
-					Log.warning("[EmulationFragment] Surface cleared while emulation stopped.");
-				}
-			}
-		}
+        if (state == State.RUNNING)
+        {
+          NativeLibrary.SurfaceDestroyed();
+          state = State.PAUSED;
+        }
+        else if (state == State.PAUSED)
+        {
+          Log.warning("[EmulationFragment] Surface cleared while emulation paused.");
+        }
+        else
+        {
+          Log.warning("[EmulationFragment] Surface cleared while emulation stopped.");
+        }
+      }
+    }
 
-		private void runWithValidSurface()
-		{
-			mRunWhenSurfaceIsValid = false;
-			if (state == State.STOPPED)
-			{
-				mEmulationThread = new Thread(() ->
-				{
-					NativeLibrary.SurfaceChanged(mSurface);
-					if (loadPreviousTemporaryState)
-					{
-						Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
-						NativeLibrary.Run(mGamePath, temporaryStatePath, true);
-					}
-					else
-					{
-						Log.debug("[EmulationFragment] Starting emulation thread.");
-						NativeLibrary.Run(mGamePath);
-					}
-				}, "NativeEmulation");
-				mEmulationThread.start();
+    private void runWithValidSurface()
+    {
+      mRunWhenSurfaceIsValid = false;
+      if (state == State.STOPPED)
+      {
+        mEmulationThread = new Thread(() ->
+        {
+          NativeLibrary.SurfaceChanged(mSurface);
+          if (loadPreviousTemporaryState)
+          {
+            Log.debug("[EmulationFragment] Starting emulation thread from previous state.");
+            NativeLibrary.Run(mGamePath, temporaryStatePath, true);
+          }
+          else
+          {
+            Log.debug("[EmulationFragment] Starting emulation thread.");
+            NativeLibrary.Run(mGamePath, firstOpen);
+          }
+        }, "NativeEmulation");
+        mEmulationThread.start();
 
-			}
-			else if (state == State.PAUSED)
-			{
-				Log.debug("[EmulationFragment] Resuming emulation.");
-				NativeLibrary.SurfaceChanged(mSurface);
-				NativeLibrary.UnPauseEmulation();
-			}
-			else
-			{
-				Log.debug("[EmulationFragment] Bug, run called while already running.");
-			}
-			state = State.RUNNING;
-		}
-	}
+      }
+      else if (state == State.PAUSED)
+      {
+        Log.debug("[EmulationFragment] Resuming emulation.");
+        NativeLibrary.SurfaceChanged(mSurface);
+        NativeLibrary.UnPauseEmulation();
+      }
+      else
+      {
+        Log.debug("[EmulationFragment] Bug, run called while already running.");
+      }
+      state = State.RUNNING;
+    }
+  }
 
-	public void saveTemporaryState()
-	{
-		NativeLibrary.SaveStateAs(getTemporaryStateFilePath(), true);
-	}
+  public void saveTemporaryState()
+  {
+    NativeLibrary.SaveStateAs(getTemporaryStateFilePath(), true);
+  }
 
-	private String getTemporaryStateFilePath()
-	{
-		return getContext().getFilesDir() + File.separator + "temp.sav";
-	}
+  private String getTemporaryStateFilePath()
+  {
+    return getContext().getFilesDir() + File.separator + "temp.sav";
+  }
 
-	private static void deleteFile(String path)
-	{
-		try
-		{
-			File file = new File(path);
-			file.delete();
-		}
-		catch (Exception ex)
-		{
-			// fail safely
-		}
-	}
+  private static void deleteFile(String path)
+  {
+    try
+    {
+      File file = new File(path);
+      file.delete();
+    }
+    catch (Exception ex)
+    {
+      // fail safely
+    }
+  }
 }

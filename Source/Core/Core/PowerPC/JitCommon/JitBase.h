@@ -53,6 +53,7 @@ protected:
     bool accurateSinglePrecision;
     bool fastmem;
     bool memcheck;
+    bool profile_blocks;
   };
   struct JitState
   {
@@ -131,6 +132,3 @@ public:
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);
-
-// Merged routines that should be moved somewhere better
-u32 Helper_Mask(u8 mb, u8 me);

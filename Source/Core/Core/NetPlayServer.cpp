@@ -5,28 +5,43 @@
 #include "Core/NetPlayServer.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <type_traits>
 #include <unordered_set>
 #include <vector>
 
+#include <lzo/lzo1x.h>
+
+#include "Common/CommonPaths.h"
 #include "Common/ENetUtil.h"
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/SFMLHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/GCMemcard/GCMemcardDirectory.h"
+#include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/WiiSave.h"
+#include "Core/HW/WiiSaveStructs.h"
+#include "Core/IOS/FS/FileSystem.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
+#include "DiscIO/Enums.h"
 #include "InputCommon/GCPadStatus.h"
+#include "UICommon/GameFile.h"
 
 #if !defined(_WIN32)
 #include <sys/socket.h>
@@ -40,8 +55,8 @@
 #include <arpa/inet.h>
 #endif
 
-u64 g_netplay_initial_rtc = 1272737767;
-
+namespace NetPlay
+{
 NetPlayServer::~NetPlayServer()
 {
   if (is_connected)
@@ -293,13 +308,13 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 
   // send join message to already connected clients
   sf::Packet spac;
-  spac << (MessageId)NP_MSG_PLAYER_JOIN;
+  spac << static_cast<MessageId>(NP_MSG_PLAYER_JOIN);
   spac << player.pid << player.name << player.revision;
   SendToClients(spac);
 
   // send new client success message with their id
   spac.clear();
-  spac << (MessageId)0;
+  spac << static_cast<MessageId>(0);
   spac << player.pid;
   Send(player.socket, spac);
 
@@ -307,15 +322,24 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   if (m_selected_game != "")
   {
     spac.clear();
-    spac << (MessageId)NP_MSG_CHANGE_GAME;
+    spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
     spac << m_selected_game;
     Send(player.socket, spac);
   }
 
-  // send the pad buffer value
+  if (!m_host_input_authority)
+  {
+    // send the pad buffer value
+    spac.clear();
+    spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+    spac << static_cast<u32>(m_target_buffer_size);
+    Send(player.socket, spac);
+  }
+
+  // send input authority state
   spac.clear();
-  spac << (MessageId)NP_MSG_PAD_BUFFER;
-  spac << (u32)m_target_buffer_size;
+  spac << static_cast<MessageId>(NP_MSG_HOST_INPUT_AUTHORITY);
+  spac << m_host_input_authority;
   Send(player.socket, spac);
 
   // sync GC SRAM with new client
@@ -326,7 +350,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
     g_SRAM_netplay_initialized = true;
   }
   spac.clear();
-  spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
+  spac << static_cast<MessageId>(NP_MSG_SYNC_GC_SRAM);
   for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
   {
     spac << g_SRAM.p_SRAM[i];
@@ -364,7 +388,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnDisconnect(const Client& player)
 {
-  PlayerId pid = player.pid;
+  const PlayerId pid = player.pid;
 
   if (m_is_running)
   {
@@ -403,18 +427,18 @@ unsigned int NetPlayServer::OnDisconnect(const Client& player)
     if (mapping == pid)
     {
       mapping = -1;
+      UpdatePadMapping();
     }
   }
-  UpdatePadMapping();
 
   for (PadMapping& mapping : m_wiimote_map)
   {
     if (mapping == pid)
     {
       mapping = -1;
+      UpdateWiimoteMapping();
     }
   }
-  UpdateWiimoteMapping();
 
   return 0;
 }
@@ -483,6 +507,24 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   SendAsyncToClients(std::move(spac));
 }
 
+void NetPlayServer::SetHostInputAuthority(const bool enable)
+{
+  std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+  m_host_input_authority = enable;
+
+  // tell clients about the new value
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_HOST_INPUT_AUTHORITY);
+  spac << m_host_input_authority;
+
+  SendAsyncToClients(std::move(spac));
+
+  // resend pad buffer to clients when disabled
+  if (!m_host_input_authority)
+    AdjustPadBufferSize(m_target_buffer_size);
+}
+
 void NetPlayServer::SendAsyncToClients(sf::Packet&& packet)
 {
   {
@@ -497,6 +539,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 {
   MessageId mid;
   packet >> mid;
+
+  INFO_LOG(NETPLAY, "Got client message: %x", mid);
 
   // don't need lock because this is the only thread that modifies the players
   // only need locks for writes to m_players in this thread
@@ -524,26 +568,78 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (player.current_game != m_current_game)
       break;
 
-    PadMapping map = 0;
-    GCPadStatus pad;
-    packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
-        pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
 
-    // If the data is not from the correct player,
-    // then disconnect them.
-    if (m_pad_map.at(map) != player.pid)
+    while (!packet.endOfPacket())
     {
-      return 1;
+      PadMapping map;
+      packet >> map;
+
+      // If the data is not from the correct player,
+      // then disconnect them.
+      if (m_pad_map.at(map) != player.pid)
+      {
+        return 1;
+      }
+
+      GCPadStatus pad;
+      packet >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >>
+          pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight >> pad.isConnected;
+
+      if (m_host_input_authority)
+      {
+        m_last_pad_status[map] = pad;
+
+        if (!m_first_pad_status_received[map])
+        {
+          m_first_pad_status_received[map] = true;
+          SendFirstReceivedToHost(map, true);
+        }
+      }
+      else
+      {
+        spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+             << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
+             << pad.isConnected;
+      }
     }
 
-    // Relay to clients
-    sf::Packet spac;
-    spac << (MessageId)NP_MSG_PAD_DATA;
-    spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
-         << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
-         << pad.isConnected;
+    if (!m_host_input_authority)
+      SendToClients(spac, player.pid);
+  }
+  break;
 
-    SendToClients(spac, player.pid);
+  case NP_MSG_PAD_HOST_POLL:
+  {
+    PadMapping pad_num;
+    packet >> pad_num;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+
+    if (pad_num < 0)
+    {
+      for (size_t i = 0; i < m_pad_map.size(); i++)
+      {
+        if (m_pad_map[i] == -1)
+          continue;
+
+        const GCPadStatus& pad = m_last_pad_status[i];
+        spac << static_cast<PadMapping>(i) << pad.button << pad.analogA << pad.analogB << pad.stickX
+             << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
+             << pad.isConnected;
+      }
+    }
+    else if (m_pad_map.at(pad_num) != -1)
+    {
+      const GCPadStatus& pad = m_last_pad_status[pad_num];
+      spac << pad_num << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY
+           << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight
+           << pad.isConnected;
+    }
+
+    SendToClients(spac);
   }
   break;
 
@@ -638,17 +734,24 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_IPL_STATUS:
+  {
+    bool status;
+    packet >> status;
+
+    m_players[player.pid].has_ipl_dump = status;
+  }
+  break;
+
   case NP_MSG_TIMEBASE:
   {
-    u32 x, y, frame;
-    packet >> x;
-    packet >> y;
+    u64 timebase = Common::PacketReadU64(packet);
+    u32 frame;
     packet >> frame;
 
     if (m_desync_detected)
       break;
 
-    u64 timebase = x | ((u64)y << 32);
     std::vector<std::pair<PlayerId, u64>>& timebases = m_timebase_by_frame[frame];
     timebases.emplace_back(player.pid, timebase);
     if (timebases.size() >= m_players.size())
@@ -727,12 +830,50 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_SYNC_SAVE_DATA:
+  {
+    MessageId sub_id;
+    packet >> sub_id;
+
+    switch (sub_id)
+    {
+    case SYNC_SAVE_DATA_SUCCESS:
+    {
+      if (m_start_pending)
+      {
+        m_save_data_synced_players++;
+        if (m_save_data_synced_players >= m_players.size() - 1)
+        {
+          m_dialog->AppendChat(GetStringT("All players synchronized."));
+          StartGame();
+        }
+      }
+    }
+    break;
+
+    case SYNC_SAVE_DATA_FAILURE:
+    {
+      m_dialog->AppendChat(
+          StringFromFormat(GetStringT("%s failed to synchronize.").c_str(), player.name.c_str()));
+      m_dialog->OnSaveDataSyncFailure();
+      m_start_pending = false;
+    }
+    break;
+
+    default:
+      PanicAlertT(
+          "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking player!",
+          sub_id, player.pid);
+      return 1;
+    }
+  }
+  break;
+
   default:
     PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid,
                 player.pid);
     // unknown message, kick the client
     return 1;
-    break;
   }
 
   return 0;
@@ -740,8 +881,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  if (m_dialog && m_traversal_client->GetState() == TraversalClient::Failure)
+  if (!m_dialog)
+    return;
+
+  const TraversalClient::State state = m_traversal_client->GetState();
+
+  if (state == TraversalClient::Failure)
     m_dialog->OnTraversalError(m_traversal_client->GetFailureReason());
+
+  m_dialog->OnTraversalStateChanged(state);
 }
 
 // called from ---GUI--- thread
@@ -801,7 +949,34 @@ void NetPlayServer::SetNetSettings(const NetSettings& settings)
   m_settings = settings;
 }
 
+bool NetPlayServer::DoAllPlayersHaveIPLDump() const
+{
+  return std::all_of(m_players.begin(), m_players.end(),
+                     [](const auto& p) { return p.second.has_ipl_dump; });
+}
+
 // called from ---GUI--- thread
+bool NetPlayServer::RequestStartGame()
+{
+  if (m_settings.m_SyncSaveData && m_players.size() > 1)
+  {
+    if (!SyncSaveData())
+    {
+      PanicAlertT("Error synchronizing save data!");
+      return false;
+    }
+
+    m_start_pending = true;
+  }
+  else
+  {
+    return StartGame();
+  }
+
+  return true;
+}
+
+// called from multiple threads
 bool NetPlayServer::StartGame()
 {
   m_timebase_by_frame.clear();
@@ -810,12 +985,15 @@ bool NetPlayServer::StartGame()
   m_current_game = Common::Timer::GetTimeMs();
 
   // no change, just update with clients
-  AdjustPadBufferSize(m_target_buffer_size);
+  if (!m_host_input_authority)
+    AdjustPadBufferSize(m_target_buffer_size);
 
-  if (SConfig::GetInstance().bEnableCustomRTC)
-    g_netplay_initial_rtc = SConfig::GetInstance().m_customRTCValue;
-  else
-    g_netplay_initial_rtc = Common::Timer::GetLocalTimeSinceJan1970();
+  m_first_pad_status_received.fill(false);
+
+  const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
+
+  const std::string region = SConfig::GetDirectoryForRegion(
+      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
 
   // tell clients to start game
   sf::Packet spac;
@@ -837,14 +1015,376 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_ReducePollingRate;
   spac << m_settings.m_EXIDevice[0];
   spac << m_settings.m_EXIDevice[1];
-  spac << static_cast<u32>(g_netplay_initial_rtc);
-  spac << static_cast<u32>(g_netplay_initial_rtc >> 32);
+  spac << m_settings.m_EFBAccessEnable;
+  spac << m_settings.m_BBoxEnable;
+  spac << m_settings.m_ForceProgressive;
+  spac << m_settings.m_EFBToTextureEnable;
+  spac << m_settings.m_XFBToTextureEnable;
+  spac << m_settings.m_DisableCopyToVRAM;
+  spac << m_settings.m_ImmediateXFBEnable;
+  spac << m_settings.m_EFBEmulateFormatChanges;
+  spac << m_settings.m_SafeTextureCacheColorSamples;
+  spac << m_settings.m_PerfQueriesEnable;
+  spac << m_settings.m_FPRF;
+  spac << m_settings.m_AccurateNaNs;
+  spac << m_settings.m_SyncOnSkipIdle;
+  spac << m_settings.m_SyncGPU;
+  spac << m_settings.m_SyncGpuMaxDistance;
+  spac << m_settings.m_SyncGpuMinDistance;
+  spac << m_settings.m_SyncGpuOverclock;
+  spac << m_settings.m_JITFollowBranch;
+  spac << m_settings.m_FastDiscSpeed;
+  spac << m_settings.m_MMU;
+  spac << m_settings.m_Fastmem;
+  spac << m_settings.m_SkipIPL;
+  spac << m_settings.m_LoadIPLDump;
+  spac << m_settings.m_VertexRounding;
+  spac << m_settings.m_InternalResolution;
+  spac << m_settings.m_EFBScaledCopy;
+  spac << m_settings.m_FastDepthCalc;
+  spac << m_settings.m_EnablePixelLighting;
+  spac << m_settings.m_WidescreenHack;
+  spac << m_settings.m_ForceFiltering;
+  spac << m_settings.m_MaxAnisotropy;
+  spac << m_settings.m_ForceTrueColor;
+  spac << m_settings.m_DisableCopyFilter;
+  spac << m_settings.m_DisableFog;
+  spac << m_settings.m_ArbitraryMipmapDetection;
+  spac << m_settings.m_ArbitraryMipmapDetectionThreshold;
+  spac << m_settings.m_EnableGPUTextureDecoding;
+  spac << m_settings.m_StrictSettingsSync;
+  spac << initial_rtc;
+  spac << m_settings.m_SyncSaveData;
+  spac << region;
 
   SendAsyncToClients(std::move(spac));
 
+  m_start_pending = false;
   m_is_running = true;
 
   return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::SyncSaveData()
+{
+  m_save_data_synced_players = 0;
+
+  u8 save_count = 0;
+
+  constexpr size_t exi_device_count = 2;
+  for (size_t i = 0; i < exi_device_count; i++)
+  {
+    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+        SConfig::GetInstance().m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+    {
+      save_count++;
+    }
+  }
+
+  const auto game = m_dialog->FindGameFile(m_selected_game);
+  if (game == nullptr)
+  {
+    PanicAlertT("Selected game doesn't exist in game list!");
+    return false;
+  }
+
+  bool wii_save = false;
+  if (m_settings.m_CopyWiiSave && (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
+                                   game->GetPlatform() == DiscIO::Platform::WiiWAD))
+  {
+    wii_save = true;
+    save_count++;
+  }
+
+  {
+    sf::Packet pac;
+    pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+    pac << static_cast<MessageId>(SYNC_SAVE_DATA_NOTIFY);
+    pac << save_count;
+
+    SendAsyncToClients(std::move(pac));
+  }
+
+  if (save_count == 0)
+    return true;
+
+  const std::string region =
+      SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(game->GetRegion()));
+
+  for (size_t i = 0; i < exi_device_count; i++)
+  {
+    const bool is_slot_a = i == 0;
+
+    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD)
+    {
+      std::string path = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                     Config::Get(Config::MAIN_MEMCARD_B_PATH);
+
+      MemoryCard::CheckPath(path, region, is_slot_a);
+
+      bool mc251;
+      IniFile gameIni = SConfig::LoadGameIni(game->GetGameID(), game->GetRevision());
+      gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &mc251, false);
+
+      if (mc251)
+        path.insert(path.find_last_of('.'), ".251");
+
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+      pac << static_cast<MessageId>(SYNC_SAVE_DATA_RAW);
+      pac << is_slot_a << region << mc251;
+
+      if (File::Exists(path))
+      {
+        if (!CompressFileIntoPacket(path, pac))
+          return false;
+      }
+      else
+      {
+        // No file, so we'll say the size is 0
+        pac << sf::Uint64{0};
+      }
+
+      SendAsyncToClients(std::move(pac));
+    }
+    else if (SConfig::GetInstance().m_EXIDevice[i] ==
+             ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+    {
+      const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
+                               StringFromFormat("Card %c", is_slot_a ? 'A' : 'B');
+
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+      pac << static_cast<MessageId>(SYNC_SAVE_DATA_GCI);
+      pac << is_slot_a;
+
+      if (File::IsDirectory(path))
+      {
+        std::vector<std::string> files =
+            GCMemcardDirectory::GetFileNamesForGameID(path + DIR_SEP, game->GetGameID());
+
+        pac << static_cast<u8>(files.size());
+
+        for (const std::string& file : files)
+        {
+          pac << file.substr(file.find_last_of('/') + 1);
+          if (!CompressFileIntoPacket(file, pac))
+            return false;
+        }
+      }
+      else
+      {
+        pac << static_cast<u8>(0);
+      }
+
+      SendAsyncToClients(std::move(pac));
+    }
+  }
+
+  if (wii_save)
+  {
+    const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+    const auto save = WiiSave::MakeNandStorage(configured_fs.get(), game->GetTitleID());
+
+    sf::Packet pac;
+    pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
+    pac << static_cast<MessageId>(SYNC_SAVE_DATA_WII);
+
+    if (save->SaveExists())
+    {
+      const std::optional<WiiSave::Header> header = save->ReadHeader();
+      const std::optional<WiiSave::BkHeader> bk_header = save->ReadBkHeader();
+      const std::optional<std::vector<WiiSave::Storage::SaveFile>> files = save->ReadFiles();
+      if (!header || !bk_header || !files)
+        return false;
+
+      pac << true;  // save exists
+
+      // Header
+      pac << sf::Uint64{header->tid};
+      pac << header->banner_size << header->permissions << header->unk1;
+      for (size_t i = 0; i < header->md5.size(); i++)
+        pac << header->md5[i];
+      pac << header->unk2;
+      for (size_t i = 0; i < header->banner_size; i++)
+        pac << header->banner[i];
+
+      // BkHeader
+      pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
+          << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
+          << bk_header->total_size;
+      for (size_t i = 0; i < bk_header->unk3.size(); i++)
+        pac << bk_header->unk3[i];
+      pac << sf::Uint64{bk_header->tid};
+      for (size_t i = 0; i < bk_header->mac_address.size(); i++)
+        pac << bk_header->mac_address[i];
+
+      // Files
+      for (const WiiSave::Storage::SaveFile& file : *files)
+      {
+        pac << file.mode << file.attributes << static_cast<u8>(file.type) << file.path;
+
+        if (file.type == WiiSave::Storage::SaveFile::Type::File)
+        {
+          const std::optional<std::vector<u8>>& data = *file.data;
+          if (!data || !CompressBufferIntoPacket(*data, pac))
+            return false;
+        }
+      }
+    }
+    else
+    {
+      pac << false;  // save does not exist
+    }
+
+    SendAsyncToClients(std::move(pac));
+  }
+
+  return true;
+}
+
+bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
+{
+  File::IOFile file(file_path, "rb");
+  if (!file)
+  {
+    PanicAlertT("Failed to open file \"%s\".", file_path.c_str());
+    return false;
+  }
+
+  const sf::Uint64 size = file.GetSize();
+  packet << size;
+
+  if (size == 0)
+    return true;
+
+  std::vector<u8> in_buffer(NETPLAY_LZO_IN_LEN);
+  std::vector<u8> out_buffer(NETPLAY_LZO_OUT_LEN);
+  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
+
+  lzo_uint i = 0;
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;  // number of bytes to read
+    lzo_uint out_len = 0;    // number of bytes to write
+
+    if ((i + NETPLAY_LZO_IN_LEN) >= size)
+    {
+      cur_len = static_cast<lzo_uint32>(size - i);
+    }
+    else
+    {
+      cur_len = NETPLAY_LZO_IN_LEN;
+    }
+
+    if (cur_len <= 0)
+      break;  // EOF
+
+    if (!file.ReadBytes(in_buffer.data(), cur_len))
+    {
+      PanicAlertT("Error reading file: %s", file_path.c_str());
+      return false;
+    }
+
+    if (lzo1x_1_compress(in_buffer.data(), cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
+        LZO_E_OK)
+    {
+      PanicAlertT("Internal LZO Error - compression failed");
+      return false;
+    }
+
+    // The size of the data to write is 'out_len'
+    packet << static_cast<u32>(out_len);
+    for (size_t j = 0; j < out_len; j++)
+    {
+      packet << out_buffer[j];
+    }
+
+    if (cur_len != NETPLAY_LZO_IN_LEN)
+      break;
+
+    i += cur_len;
+  }
+
+  // Mark end of data
+  packet << static_cast<u32>(0);
+
+  return true;
+}
+
+bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, sf::Packet& packet)
+{
+  const sf::Uint64 size = in_buffer.size();
+  packet << size;
+
+  if (size == 0)
+    return true;
+
+  std::vector<u8> out_buffer(NETPLAY_LZO_OUT_LEN);
+  std::vector<u8> wrkmem(LZO1X_1_MEM_COMPRESS);
+
+  lzo_uint i = 0;
+  while (true)
+  {
+    lzo_uint32 cur_len = 0;  // number of bytes to read
+    lzo_uint out_len = 0;    // number of bytes to write
+
+    if ((i + NETPLAY_LZO_IN_LEN) >= size)
+    {
+      cur_len = static_cast<lzo_uint32>(size - i);
+    }
+    else
+    {
+      cur_len = NETPLAY_LZO_IN_LEN;
+    }
+
+    if (cur_len <= 0)
+      break;  // end of buffer
+
+    if (lzo1x_1_compress(&in_buffer[i], cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
+        LZO_E_OK)
+    {
+      PanicAlertT("Internal LZO Error - compression failed");
+      return false;
+    }
+
+    // The size of the data to write is 'out_len'
+    packet << static_cast<u32>(out_len);
+    for (size_t j = 0; j < out_len; j++)
+    {
+      packet << out_buffer[j];
+    }
+
+    if (cur_len != NETPLAY_LZO_IN_LEN)
+      break;
+
+    i += cur_len;
+  }
+
+  // Mark end of data
+  packet << static_cast<u32>(0);
+
+  return true;
+}
+
+void NetPlayServer::SendFirstReceivedToHost(const PadMapping map, const bool state)
+{
+  sf::Packet pac;
+  pac << static_cast<MessageId>(NP_MSG_PAD_FIRST_RECEIVED);
+  pac << map;
+  pac << state;
+  Send(m_players.at(1).socket, pac);
+}
+
+u64 NetPlayServer::GetInitialNetPlayRTC() const
+{
+  const auto& config = SConfig::GetInstance();
+
+  if (config.bEnableCustomRTC)
+    return config.m_customRTCValue;
+
+  return Common::Timer::GetLocalTimeSinceJan1970();
 }
 
 // called from multiple threads
@@ -951,3 +1491,4 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
     result.emplace_back(std::make_pair("!local!", "127.0.0.1"));
   return result;
 }
+}  // namespace NetPlay

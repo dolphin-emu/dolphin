@@ -352,6 +352,11 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
   return true;
 }
 
+static bool IsHelpFlag(const std::string& argument)
+{
+  return argument == "--help" || argument == "-?";
+}
+
 // Usage:
 // Disassemble a file:
 //   dsptool -d -o asdf.txt asdf.bin
@@ -365,7 +370,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 //   dsptool -p dsp_dump0.bin
 int main(int argc, const char* argv[])
 {
-  if (argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
+  if (argc == 1 || (argc == 2 && IsHelpFlag(argv[1])))
   {
     printf("USAGE: DSPTool [-?] [--help] [-f] [-d] [-m] [-p <FILE>] [-o <FILE>] [-h <FILE>] <DSP "
            "ASSEMBLER FILE>\n");
@@ -393,33 +398,34 @@ int main(int argc, const char* argv[])
        print_results = false, print_results_prodhack = false, print_results_srhack = false;
   for (int i = 1; i < argc; i++)
   {
-    if (!strcmp(argv[i], "-d"))
+    const std::string argument = argv[i];
+    if (argument == "-d")
       disassemble = true;
-    else if (!strcmp(argv[i], "-o"))
+    else if (argument == "-o")
       output_name = argv[++i];
-    else if (!strcmp(argv[i], "-h"))
+    else if (argument == "-h")
       output_header_name = argv[++i];
-    else if (!strcmp(argv[i], "-c"))
+    else if (argument == "-c")
       compare = true;
-    else if (!strcmp(argv[i], "-s"))
+    else if (argument == "-s")
       outputSize = true;
-    else if (!strcmp(argv[i], "-m"))
+    else if (argument == "-m")
       multiple = true;
-    else if (!strcmp(argv[i], "-f"))
+    else if (argument == "-f")
       force = true;
-    else if (!strcmp(argv[i], "-p"))
+    else if (argument == "-p")
       print_results = true;
-    else if (!strcmp(argv[i], "-ps"))
+    else if (argument == "-ps")
     {
       print_results = true;
       print_results_srhack = true;
     }
-    else if (!strcmp(argv[i], "-pm"))
+    else if (argument == "-pm")
     {
       print_results = true;
       print_results_prodhack = true;
     }
-    else if (!strcmp(argv[i], "-psm"))
+    else if (argument == "-psm")
     {
       print_results = true;
       print_results_srhack = true;

@@ -13,6 +13,8 @@
 #include "Common/Debug/MemoryPatches.h"
 #include "Common/Debug/Watches.h"
 
+namespace Common
+{
 class DebugInterface
 {
 protected:
@@ -75,3 +77,4 @@ public:
   virtual std::string GetDescription(unsigned int /*address*/) = 0;
   virtual void Clear() = 0;
 };
+}  // namespace Common

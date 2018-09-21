@@ -11,8 +11,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
-#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
@@ -600,6 +598,10 @@ void ChangeDeviceDeterministic(SIDevices device, int channel)
 
 void UpdateDevices()
 {
+  // Hinting NetPlay that all controllers will be polled in
+  // succession, in order to optimize networking
+  NetPlay::SetSIPollBatching(true);
+
   // Update inputs at the rate of SI
   // Typically 120hz but is variable
   g_controller_interface.UpdateInput();
@@ -615,6 +617,9 @@ void UpdateDevices()
       !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
 
   UpdateInterrupts();
+
+  // Polling finished
+  NetPlay::SetSIPollBatching(false);
 }
 
 SIDevices GetDeviceType(int channel)
@@ -627,11 +632,7 @@ SIDevices GetDeviceType(int channel)
 
 u32 GetPollXLines()
 {
-  // Returning 0 here effectively makes polling happen once per frame, as this is used to increment
-  // a value in VI for when the next SI poll happens. This should normally only be set during
-  // NetPlay, as it does not matter for a non-networked session. However, it may also be set during
-  // movie playback for movies recorded during NetPlay.
-  return Config::Get(Config::MAIN_REDUCE_POLLING_RATE) ? 0 : s_poll.X;
+  return s_poll.X;
 }
 
 }  // end of namespace SerialInterface

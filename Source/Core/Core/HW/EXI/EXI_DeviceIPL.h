@@ -31,6 +31,8 @@ public:
 
   static void Descrambler(u8* data, u32 size);
 
+  static bool HasIPLDump();
+
 private:
   enum
   {
@@ -74,6 +76,7 @@ private:
   u32 CommandRegion() const { return (m_address & ~(1 << 31)) >> 8; }
   bool LoadFileToIPL(const std::string& filename, u32 offset);
   void LoadFontFile(const std::string& filename, u32 offset);
-  std::string FindIPLDump(const std::string& path_prefix);
+
+  static std::string FindIPLDump(const std::string& path_prefix);
 };
 }  // namespace ExpansionInterface

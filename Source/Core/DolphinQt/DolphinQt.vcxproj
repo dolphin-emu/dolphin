@@ -75,6 +75,7 @@
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />
     <QtMoc Include="Config\Mapping\GCPadWiiUConfigDialog.h" />
     <QtMoc Include="Config\Mapping\Hotkey3D.h" />
+    <QtMoc Include="Config\Mapping\HotkeyControllerProfile.h" />
     <QtMoc Include="Config\Mapping\HotkeyDebugging.h" />
     <QtMoc Include="Config\Mapping\HotkeyGeneral.h" />
     <QtMoc Include="Config\Mapping\HotkeyGraphics.h" />
@@ -111,6 +112,8 @@
     <QtMoc Include="Config\PatchesWidget.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
+    <QtMoc Include="DiscordHandler.h" />
+    <QtMoc Include="DiscordJoinRequestDialog.h" />
     <QtMoc Include="FIFO\FIFOAnalyzer.h" />
     <QtMoc Include="FIFO\FIFOPlayerWindow.h" />
     <QtMoc Include="TAS\GCTASInputWindow.h" />
@@ -152,6 +155,7 @@
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
     <QtMoc Include="QtUtils\ElidedButton.h" />
+    <QtMoc Include="QtUtils\FlowLayout.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -178,8 +182,11 @@
     <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DiscordHandler.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DoubleClickEventFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ElidedButton.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FlowLayout.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)EnhancementsWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOAnalyzer.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)FIFOPlayerWindow.cpp" />
@@ -209,6 +216,7 @@
     <ClCompile Include="$(QtMocOutPrefix)HacksWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Hotkey3D.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)HotkeyControllerProfile.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyDebugging.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)HotkeyGraphics.cpp" />
@@ -290,6 +298,7 @@
     <ClCompile Include="Config\Mapping\GCPadEmu.cpp" />
     <ClCompile Include="Config\Mapping\GCPadWiiUConfigDialog.cpp" />
     <ClCompile Include="Config\Mapping\Hotkey3D.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyControllerProfile.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
@@ -320,6 +329,8 @@
     <ClCompile Include="Debugger\JITWidget.cpp" />
     <ClCompile Include="Debugger\MemoryWidget.cpp" />
     <ClCompile Include="Debugger\MemoryViewWidget.cpp" />
+    <ClCompile Include="DiscordHandler.cpp" />
+    <ClCompile Include="DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
     <ClCompile Include="NarrysMod\NetcoreClient.cpp">
@@ -409,6 +420,7 @@
     <ClCompile Include="QtUtils\BlockUserInputFilter.cpp" />
     <ClCompile Include="QtUtils\DoubleClickEventFilter.cpp" />
     <ClCompile Include="QtUtils\ElidedButton.cpp" />
+    <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />

@@ -118,6 +118,9 @@ VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
   case AbstractTextureFormat::D16:
     return VK_FORMAT_D16_UNORM;
 
+  case AbstractTextureFormat::D24_S8:
+    return VK_FORMAT_D24_UNORM_S8_UINT;
+
   case AbstractTextureFormat::R32F:
     return VK_FORMAT_R32_SFLOAT;
 
@@ -130,6 +133,24 @@ VkFormat GetVkFormatForHostTextureFormat(AbstractTextureFormat format)
   default:
     PanicAlert("Unhandled texture format.");
     return VK_FORMAT_R8G8B8A8_UNORM;
+  }
+}
+
+VkImageAspectFlags GetImageAspectForFormat(VkFormat format)
+{
+  switch (format)
+  {
+  case VK_FORMAT_D16_UNORM_S8_UINT:
+  case VK_FORMAT_D24_UNORM_S8_UINT:
+  case VK_FORMAT_D32_SFLOAT_S8_UINT:
+    return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+
+  case VK_FORMAT_D16_UNORM:
+  case VK_FORMAT_D32_SFLOAT:
+    return VK_IMAGE_ASPECT_DEPTH_BIT;
+
+  default:
+    return VK_IMAGE_ASPECT_COLOR_BIT;
   }
 }
 

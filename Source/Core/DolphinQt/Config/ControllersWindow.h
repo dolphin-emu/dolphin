@@ -32,7 +32,6 @@ private:
   void OnWiimoteTypeChanged(int state);
   void OnGCTypeChanged(int state);
   void SaveSettings();
-  void UnimplementedButton();
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
   void OnWiimoteRefreshPressed();
