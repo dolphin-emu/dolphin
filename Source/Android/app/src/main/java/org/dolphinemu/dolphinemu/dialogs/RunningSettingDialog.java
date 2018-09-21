@@ -62,8 +62,8 @@ public class RunningSettingDialog extends DialogFragment {
 			return mNameId;
 		}
 
-		public boolean isChecked() {
-			return mValue > 0;
+		public int getValue() {
+			return mValue;
 		}
 	}
 
@@ -101,7 +101,7 @@ public class RunningSettingDialog extends DialogFragment {
 		public void bind(SettingsItem item) {
 			mItem = item;
 			mTextSettingName.setText(item.getNameId());
-			mCheckbox.setChecked(mItem.isChecked());
+			mCheckbox.setChecked(mItem.getValue() > 0);
 		}
 
 		@Override
@@ -129,7 +129,7 @@ public class RunningSettingDialog extends DialogFragment {
 		public void bind(SettingsItem item) {
 			mItem = item;
 			mTextSettingName.setText(item.getNameId());
-			mRadioButton.setChecked(mItem.isChecked());
+			mRadioButton.setChecked(mItem.getValue() > 0);
 		}
 
 		@Override
@@ -141,6 +141,7 @@ public class RunningSettingDialog extends DialogFragment {
 	public final class SeekBarSettingViewHolder extends SettingViewHolder {
 		SettingsItem mItem;
 		private TextView mTextSettingName;
+		private TextView mTextSettingValue;
 		private SeekBar mSeekBar;
 
 		public SeekBarSettingViewHolder(View itemView) {
@@ -150,6 +151,7 @@ public class RunningSettingDialog extends DialogFragment {
 		@Override
 		protected void findViews(View root) {
 			mTextSettingName = root.findViewById(R.id.text_setting_name);
+			mTextSettingValue = root.findViewById(R.id.text_setting_value);
 			mSeekBar = root.findViewById(R.id.seekbar);
 		}
 
@@ -157,7 +159,14 @@ public class RunningSettingDialog extends DialogFragment {
 		public void bind(SettingsItem item) {
 			mItem = item;
 			mTextSettingName.setText(item.getNameId());
-			mSeekBar.setMax(99);
+			if(item.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT) {
+				mTextSettingValue.setText(item.getValue() + "%");
+				mSeekBar.setMax(400);
+			} else {
+				mTextSettingValue.setText(Integer.toString(item.getValue()));
+				mSeekBar.setMax(10);
+			}
+			mSeekBar.setProgress(item.getValue());
 		}
 
 		@Override
@@ -243,7 +252,7 @@ public class RunningSettingDialog extends DialogFragment {
 		ArrayList<SettingsItem> settings = new ArrayList<>();
 		settings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps, SettingsItem.TYPE_CHECKBOX, running[i++]));
 		settings.add(new SettingsItem(SettingsItem.SETTING_EFB_TEXTURE, R.string.efb_copy_method, SettingsItem.TYPE_CHECKBOX, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_IGNORE_FORMAT, R.string.ignore_format_changes, SettingsItem.TYPE_SEEK_BAR, 0));
+		settings.add(new SettingsItem(SettingsItem.SETTING_IGNORE_FORMAT, R.string.ignore_format_changes, SettingsItem.TYPE_CHECKBOX, running[i++]));
 		settings.add(new SettingsItem(SettingsItem.SETTING_SYNC_ON_SKIP_IDLE, R.string.sync_on_skip_idle, SettingsItem.TYPE_CHECKBOX, running[i++]));
 		settings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_ENABLE, R.string.overclock_enable, SettingsItem.TYPE_CHECKBOX, running[i++]));
 		settings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_PERCENT, R.string.overclock_title, SettingsItem.TYPE_SEEK_BAR, running[i++]));

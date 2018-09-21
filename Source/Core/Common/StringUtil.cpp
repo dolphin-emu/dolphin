@@ -233,6 +233,19 @@ std::string StripQuotes(const std::string& s)
     return s;
 }
 
+bool TryParse(const std::string& str, u8* const output)
+{
+  u64 value;
+  if (!TryParse(str, &value))
+    return false;
+
+  if (value >= 0x100ull && value <= 0xFFFFFFFFFFFFFF00ull)
+    return false;
+
+  *output = static_cast<u8>(value);
+  return true;
+}
+
 bool TryParse(const std::string& str, u16* const output)
 {
   u64 value;

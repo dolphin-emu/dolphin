@@ -43,6 +43,7 @@ std::string StripSpaces(const std::string& s);
 std::string StripQuotes(const std::string& s);
 
 bool TryParse(const std::string& str, bool* output);
+bool TryParse(const std::string& str, u8* output);
 bool TryParse(const std::string& str, u16* output);
 bool TryParse(const std::string& str, u32* output);
 bool TryParse(const std::string& str, u64* output);

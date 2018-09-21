@@ -462,14 +462,14 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getRunn
 
   settings[i++] = Config::Get(Config::GFX_SHOW_FPS);
   settings[i++] = Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
-  settings[i++] = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
+  settings[i++] = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES) == false;
 
   settings[i++] = SConfig::GetInstance().bSyncGPUOnSkipIdleHack;
   settings[i++] = SConfig::GetInstance().m_OCEnable;
   settings[i++] = static_cast<int>(SConfig::GetInstance().m_OCFactor * 100.0f);
   settings[i++] = SConfig::GetInstance().iJITFollowThreshold;
 
-  env->SetIntArrayRegion(array, 0, 9, settings);
+  env->SetIntArrayRegion(array, 0, 7, settings);
   return array;
 }
 
