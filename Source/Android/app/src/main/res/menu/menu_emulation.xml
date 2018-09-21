@@ -102,6 +102,10 @@
                 android:id="@+id/menu_emulation_rumble"
                 android:checkable="true"
                 android:title="@string/emulation_control_rumble"/>
+
+            <item
+                android:id="@+id/menu_emulation_reset_overlay"
+                android:title="@string/emulation_touch_overlay_reset"/>
         </menu>
     </item>
 

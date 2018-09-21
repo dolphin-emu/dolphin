@@ -94,7 +94,8 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT3, MENU_ACTION_SAVE_SLOT4, MENU_ACTION_SAVE_SLOT5,
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
-          MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC})
+          MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
+          MENU_ACTION_RESET_OVERLAY})
   public @interface MenuAction
   {
   }
@@ -125,6 +126,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_CHANGE_DISC = 23;
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
   public static final int MENU_ACTION_RUMBLE = 25;
+  public static final int MENU_ACTION_RESET_OVERLAY = 26;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -165,6 +167,8 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center,
             EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
+    buttonsActionsMap
+            .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
   }
 
   public static void launch(FragmentActivity activity, GameFile gameFile, int position,
@@ -525,6 +529,11 @@ public final class EmulationActivity extends AppCompatActivity
         editControlsPlacement();
         break;
 
+      // Reset overlay placement
+      case MENU_ACTION_RESET_OVERLAY:
+        resetOverlay();
+        break;
+
       // Enable/Disable specific buttons or the entire input overlay.
       case MENU_ACTION_TOGGLE_CONTROLS:
         toggleControls();
@@ -831,6 +840,21 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog alertDialog = builder.create();
     alertDialog.show();
 
+  }
+
+  private void resetOverlay()
+  {
+    new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.emulation_touch_overlay_reset))
+            .setPositiveButton(R.string.yes, (dialogInterface, i) ->
+            {
+              mEmulationFragment.resetInputOverlay();
+            })
+            .setNegativeButton(R.string.cancel, (dialogInterface, i) ->
+            {
+            })
+            .create()
+            .show();
   }
 
   @Override
