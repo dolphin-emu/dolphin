@@ -98,11 +98,16 @@
                     android:id="@+id/menu_emulation_joystick_rel_center"
                     android:checkable="true"
                     android:title="@string/emulation_control_joystick_rel_center"/>
+                <item
+                    android:id="@+id/menu_emulation_rumble"
+                    android:checkable="true"
+                    android:title="@string/emulation_control_rumble"/>
             </group>
 
             <item
                 android:id="@+id/menu_emulation_choose_controller"
                 android:title="@string/emulation_choose_controller"/>
+
         </menu>
     </item>
 
