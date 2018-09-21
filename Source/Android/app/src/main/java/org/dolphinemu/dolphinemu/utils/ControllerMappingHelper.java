@@ -58,7 +58,9 @@ public class ControllerMappingHelper
 
   private static boolean isXboxOneWireless(InputDevice inputDevice)
   {
-    // Microsoft Xbox One controller
-    return inputDevice.getVendorId() == 0x45e && inputDevice.getProductId() == 0x2e0;
+		// TODO: get productID for Xbox One Elite Controller
+		// Microsoft Xbox One controller; each revision has a different product ID, but the same behavior with regards to the triggers.
+		// These IDs are for the first, second, and third revision of the standard controller, respectively
+		return inputDevice.getVendorId() == 0x45e && (inputDevice.getProductId() == 0x2d1 || inputDevice.getProductId() == 0x2dd || inputDevice.getProductId() == 0x2e0);
   }
 }
