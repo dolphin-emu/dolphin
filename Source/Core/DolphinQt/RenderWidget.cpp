@@ -6,9 +6,11 @@
 #include <QDesktopWidget>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QIcon>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QMimeData>
 #include <QMouseEvent>
 #include <QPalette>
@@ -26,8 +28,6 @@
 
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-#include <QFileInfo>
-#include <QMessageBox>
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
