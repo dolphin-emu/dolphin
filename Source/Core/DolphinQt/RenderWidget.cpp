@@ -110,10 +110,12 @@ void RenderWidget::dropEvent(QDropEvent* event)
     return;
   }
 
-  if (file_info.isFile())
+  if (!file_info.isFile())
   {
-    State::LoadAs(path.toStdString());
+    return;
   }
+
+  State::LoadAs(path.toStdString());
 }
 
 void RenderWidget::OnHideCursorChanged()

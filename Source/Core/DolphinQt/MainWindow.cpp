@@ -1243,11 +1243,7 @@ void MainWindow::dropEvent(QDropEvent* event)
     return;
   }
 
-  if (file_info.isFile())
-  {
-    StartGame(path);
-  }
-  else
+  if (!file_info.isFile())
   {
     auto& settings = Settings::Instance();
 
@@ -1260,6 +1256,10 @@ void MainWindow::dropEvent(QDropEvent* event)
         return;
     }
     settings.AddPath(path);
+  }
+  else
+  {
+    StartGame(path);
   }
 }
 
