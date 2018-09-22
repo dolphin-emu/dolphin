@@ -29,6 +29,7 @@ class HotkeyScheduler;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
+class MappingWindow;
 class MemoryWidget;
 class MenuBar;
 class NetPlayDialog;
@@ -130,6 +131,7 @@ private:
   void ShowNetPlaySetupDialog();
   void ShowFIFOPlayer();
   void ShowMemcardManager();
+  void ShowResourcePackManager();
   void ShowCheatsManager();
 
   void NetPlayInit();
@@ -172,7 +174,7 @@ private:
   MenuBar* m_menu_bar;
   SearchBar* m_search_bar;
   GameList* m_game_list;
-  RenderWidget* m_render_widget;
+  RenderWidget* m_render_widget = nullptr;
   bool m_rendering_to_main;
   bool m_stop_requested = false;
   bool m_exit_requested = false;
@@ -180,13 +182,16 @@ private:
   int m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 
+  ControllersWindow* m_controllers_window = nullptr;
+  SettingsWindow* m_settings_window = nullptr;
+  GraphicsWindow* m_graphics_window = nullptr;
+  FIFOPlayerWindow* m_fifo_window = nullptr;
+  MappingWindow* m_hotkey_window = nullptr;
+
   HotkeyScheduler* m_hotkey_scheduler;
-  ControllersWindow* m_controllers_window;
-  SettingsWindow* m_settings_window;
   NetPlayDialog* m_netplay_dialog;
   DiscordHandler* m_netplay_discord;
   NetPlaySetupDialog* m_netplay_setup_dialog;
-  GraphicsWindow* m_graphics_window;
   static constexpr int num_gc_controllers = 4;
   std::array<GCTASInputWindow*, num_gc_controllers> m_gc_tas_input_windows{};
   static constexpr int num_wii_controllers = 4;
@@ -198,7 +203,6 @@ private:
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   MemoryWidget* m_memory_widget;
-  FIFOPlayerWindow* m_fifo_window;
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;

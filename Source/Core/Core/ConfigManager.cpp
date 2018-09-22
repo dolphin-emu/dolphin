@@ -92,6 +92,7 @@ void SConfig::SaveSettings()
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
+  SaveJitDebugSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -201,6 +202,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
   gamelist->Set("ColumnID", m_showIDColumn);
   gamelist->Set("ColumnRegion", m_showRegionColumn);
   gamelist->Set("ColumnSize", m_showSizeColumn);
+  gamelist->Set("ColumnTags", m_showTagsColumn);
 }
 
 void SConfig::SaveCoreSettings(IniFile& ini)
@@ -351,6 +353,21 @@ void SConfig::SaveAutoUpdateSettings(IniFile& ini)
   section->Set("HashOverride", m_auto_update_hash_override);
 }
 
+void SConfig::SaveJitDebugSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Debug");
+
+  section->Set("JitOff", bJITOff);
+  section->Set("JitLoadStoreOff", bJITLoadStoreOff);
+  section->Set("JitLoadStoreFloatingOff", bJITLoadStoreFloatingOff);
+  section->Set("JitLoadStorePairedOff", bJITLoadStorePairedOff);
+  section->Set("JitFloatingPointOff", bJITFloatingPointOff);
+  section->Set("JitIntegerOff", bJITIntegerOff);
+  section->Set("JitPairedOff", bJITPairedOff);
+  section->Set("JitSystemRegistersOff", bJITSystemRegistersOff);
+  section->Set("JitBranchOff", bJITBranchOff);
+}
+
 void SConfig::LoadSettings()
 {
   Config::Load();
@@ -373,6 +390,7 @@ void SConfig::LoadSettings()
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
   LoadAutoUpdateSettings(ini);
+  LoadJitDebugSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -475,6 +493,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ColumnID", &m_showIDColumn, false);
   gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
   gamelist->Get("ColumnSize", &m_showSizeColumn, true);
+  gamelist->Get("ColumnTags", &m_showTagsColumn, false);
 }
 
 void SConfig::LoadCoreSettings(IniFile& ini)
@@ -645,6 +664,20 @@ void SConfig::LoadAutoUpdateSettings(IniFile& ini)
   section->Get("HashOverride", &m_auto_update_hash_override, "");
 }
 
+void SConfig::LoadJitDebugSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Debug");
+  section->Get("JitOff", &bJITOff, false);
+  section->Get("JitLoadStoreOff", &bJITLoadStoreOff, false);
+  section->Get("JitLoadStoreFloatingOff", &bJITLoadStoreFloatingOff, false);
+  section->Get("JitLoadStorePairedOff", &bJITLoadStorePairedOff, false);
+  section->Get("JitFloatingPointOff", &bJITFloatingPointOff, false);
+  section->Get("JitIntegerOff", &bJITIntegerOff, false);
+  section->Get("JitPairedOff", &bJITPairedOff, false);
+  section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
+  section->Get("JitBranchOff", &bJITBranchOff, false);
+}
+
 void SConfig::ResetRunningGameMetadata()
 {
   SetRunningGameMetadata("00000000", 0, 0, Core::TitleDatabase::TitleType::Other);
@@ -653,9 +686,17 @@ void SConfig::ResetRunningGameMetadata()
 void SConfig::SetRunningGameMetadata(const DiscIO::Volume& volume,
                                      const DiscIO::Partition& partition)
 {
-  SetRunningGameMetadata(volume.GetGameID(partition), volume.GetTitleID(partition).value_or(0),
-                         volume.GetRevision(partition).value_or(0),
-                         Core::TitleDatabase::TitleType::Other);
+  if (partition == volume.GetGamePartition())
+  {
+    SetRunningGameMetadata(volume.GetGameID(), volume.GetTitleID().value_or(0),
+                           volume.GetRevision().value_or(0), Core::TitleDatabase::TitleType::Other);
+  }
+  else
+  {
+    SetRunningGameMetadata(volume.GetGameID(partition), volume.GetTitleID(partition).value_or(0),
+                           volume.GetRevision(partition).value_or(0),
+                           Core::TitleDatabase::TitleType::Other);
+  }
 }
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
@@ -945,7 +986,11 @@ DiscIO::Region SConfig::GetFallbackRegion()
   IOS::HLE::Kernel ios;
   const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
   if (system_menu_tmd.IsValid())
-    return system_menu_tmd.GetRegion();
+  {
+    const DiscIO::Region region = system_menu_tmd.GetRegion();
+    if (region != DiscIO::Region::Unknown)
+      return region;
+  }
 
   // Fall back to PAL.
   return DiscIO::Region::PAL;

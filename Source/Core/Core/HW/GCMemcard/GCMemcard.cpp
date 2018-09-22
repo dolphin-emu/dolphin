@@ -14,6 +14,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
+#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
@@ -576,11 +577,14 @@ u16 BlockAlloc::GetNextBlock(u16 Block) const
   return Common::swap16(Map[Block - MC_FST_BLOCKS]);
 }
 
+// Parameters and return value are expected as memory card block index,
+// not BAT index; that is, block 5 is the first file data block.
 u16 BlockAlloc::NextFreeBlock(u16 MaxBlock, u16 StartingBlock) const
 {
   if (FreeBlocks)
   {
-    MaxBlock = std::min<u16>(MaxBlock, BAT_SIZE);
+    StartingBlock = MathUtil::Clamp<u16>(StartingBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
+    MaxBlock = MathUtil::Clamp<u16>(MaxBlock, MC_FST_BLOCKS, BAT_SIZE + MC_FST_BLOCKS);
     for (u16 i = StartingBlock; i < MaxBlock; ++i)
       if (Map[i - MC_FST_BLOCKS] == 0)
         return i;
@@ -661,8 +665,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
   }
 
   // find first free data block
-  u16 firstBlock =
-      CurrentBat->NextFreeBlock(maxBlock - MC_FST_BLOCKS, BE16(CurrentBat->LastAllocated));
+  u16 firstBlock = CurrentBat->NextFreeBlock(maxBlock, BE16(CurrentBat->LastAllocated));
   if (firstBlock == 0xFFFF)
     return OUTOFBLOCKS;
   Directory UpdatedDir = *CurrentDir;
@@ -707,7 +710,7 @@ u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlo
     if (i == fileBlocks - 1)
       nextBlock = 0xFFFF;
     else
-      nextBlock = UpdatedBat.NextFreeBlock(maxBlock - MC_FST_BLOCKS, firstBlock + 1);
+      nextBlock = UpdatedBat.NextFreeBlock(maxBlock, firstBlock + 1);
     UpdatedBat.Map[firstBlock - MC_FST_BLOCKS] = BE16(nextBlock);
     UpdatedBat.LastAllocated = BE16(firstBlock);
     firstBlock = nextBlock;
@@ -739,8 +742,8 @@ u32 GCMemcard::RemoveFile(u8 index)  // index in the directory array
   if (index >= DIRLEN)
     return DELETE_FAIL;
 
-  u16 startingblock = BE16(dir.Dir[index].FirstBlock);
-  u16 numberofblocks = BE16(dir.Dir[index].BlockCount);
+  u16 startingblock = BE16(CurrentDir->Dir[index].FirstBlock);
+  u16 numberofblocks = BE16(CurrentDir->Dir[index].BlockCount);
 
   BlockAlloc UpdatedBat = *CurrentBat;
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))

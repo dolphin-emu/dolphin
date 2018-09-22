@@ -93,6 +93,7 @@ add_executable(dolphin-emu
   GameList/ListProxyModel.cpp
   GCMemcardManager.cpp
   QtUtils/BlockUserInputFilter.cpp
+  NetPlay/ChunkedProgressDialog.cpp
   NetPlay/GameListDialog.cpp
   NetPlay/MD5Dialog.cpp
   NetPlay/NetPlayDialog.cpp
@@ -107,6 +108,7 @@ add_executable(dolphin-emu
   QtUtils/WinIconHelper.cpp
   QtUtils/WrapInScrollArea.cpp
   QtUtils/AspectRatioWidget.cpp
+	ResourcePackManager.cpp
   Settings/AdvancedPane.cpp
   Settings/AudioPane.cpp
   Settings/GameCubePane.cpp
@@ -218,6 +220,10 @@ if(APPLE)
       MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
     source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
   endforeach()
+
+  # Copy MoltenVK into the bundle
+  target_sources(dolphin-emu PRIVATE "${CMAKE_SOURCE_DIR}/Externals/MoltenVK/libvulkan.dylib")
+  set_source_files_properties("${CMAKE_SOURCE_DIR}/Externals/MoltenVK/libvulkan.dylib" PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
 
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)

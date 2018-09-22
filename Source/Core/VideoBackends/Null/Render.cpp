@@ -14,7 +14,7 @@
 namespace Null
 {
 // Init functions
-Renderer::Renderer() : ::Renderer(1, 1)
+Renderer::Renderer() : ::Renderer(1, 1, AbstractTextureFormat::RGBA8)
 {
   UpdateActiveConfig();
 }
@@ -22,6 +22,11 @@ Renderer::Renderer() : ::Renderer(1, 1)
 Renderer::~Renderer()
 {
   UpdateActiveConfig();
+}
+
+bool Renderer::IsHeadless() const
+{
+  return true;
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)

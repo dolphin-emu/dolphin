@@ -54,10 +54,9 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   InitializeShared();
-  InitBackendInfo();
 
   g_renderer = std::make_unique<Renderer>();
   g_vertex_manager = std::make_unique<VertexManager>();
@@ -65,7 +64,7 @@ bool VideoBackend::Initialize(void* window_handle)
   g_framebuffer_manager = std::make_unique<FramebufferManagerBase>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  return g_shader_cache->Initialize();
+  return g_renderer->Initialize() && g_shader_cache->Initialize();
 }
 
 void VideoBackend::Shutdown()
@@ -81,4 +80,4 @@ void VideoBackend::Shutdown()
 
   ShutdownShared();
 }
-}
+}  // namespace Null

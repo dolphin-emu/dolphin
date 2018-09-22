@@ -48,9 +48,12 @@ void USBDeviceAddToWhitelistDialog::InitControls()
 
   m_whitelist_buttonbox = new QDialogButtonBox();
   auto* add_button = new QPushButton(tr("Add"));
+  auto* cancel_button = new QPushButton(tr("Cancel"));
   m_whitelist_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);
+  m_whitelist_buttonbox->addButton(cancel_button, QDialogButtonBox::RejectRole);
   connect(add_button, &QPushButton::clicked, this,
           &USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist);
+  connect(cancel_button, &QPushButton::clicked, this, &USBDeviceAddToWhitelistDialog::reject);
   add_button->setDefault(true);
 
   main_layout = new QVBoxLayout();
@@ -85,6 +88,8 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   m_refresh_devices_timer = new QTimer(this);
   connect(usb_inserted_devices_list, &QListWidget::currentItemChanged, this,
           &USBDeviceAddToWhitelistDialog::OnDeviceSelection);
+  connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, add_button,
+          &QPushButton::clicked);
   connect(m_refresh_devices_timer, &QTimer::timeout, this,
           &USBDeviceAddToWhitelistDialog::RefreshDeviceList);
   m_refresh_devices_timer->start(1000);
@@ -124,7 +129,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   if (!IsValidUSBIDString(vid_string))
   {
     // i18n: Here, VID means Vendor ID (for a USB device).
-    QMessageBox vid_warning_box;
+    QMessageBox vid_warning_box(this);
     vid_warning_box.setIcon(QMessageBox::Warning);
     vid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
     // i18n: Here, VID means Vendor ID (for a USB device).
@@ -136,7 +141,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   if (!IsValidUSBIDString(pid_string))
   {
     // i18n: Here, PID means Product ID (for a USB device).
-    QMessageBox pid_warning_box;
+    QMessageBox pid_warning_box(this);
     pid_warning_box.setIcon(QMessageBox::Warning);
     pid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
     // i18n: Here, PID means Product ID (for a USB device).

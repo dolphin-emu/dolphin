@@ -27,20 +27,6 @@
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
 {
-  // GraphicsWindow initialization is heavy due to dependencies on the graphics subsystem.
-  // To prevent blocking startup, we create the layout and children at first show time.
-}
-
-void GraphicsWindow::Initialize()
-{
-  if (m_lazy_initialized)
-    return;
-
-  m_lazy_initialized = true;
-
-  g_Config.Refresh();
-  g_video_backend->InitBackendInfo();
-
   CreateMainLayout();
 
   setWindowTitle(tr("Graphics"));
@@ -109,18 +95,7 @@ void GraphicsWindow::CreateMainLayout()
 void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
   SConfig::GetInstance().m_strVideoBackend = backend_name.toStdString();
-
-  for (const auto& backend : g_available_video_backends)
-  {
-    if (backend->GetName() == backend_name.toStdString())
-    {
-      g_Config.Refresh();
-
-      g_video_backend = backend.get();
-      g_video_backend->InitBackendInfo();
-      break;
-    }
-  }
+  VideoBackendBase::PopulateBackendInfo();
 
   setWindowTitle(
       tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));

@@ -8,6 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
+#include "Core/Analytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -148,6 +149,13 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   // update plru
   plru[set] = (plru[set] & ~s_plru_mask[t]) | s_plru_value[t];
   u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
+  u32 inmem = Memory::Read_U32(addr);
+  if (res != inmem)
+  {
+    INFO_LOG(POWERPC, "ICache read at %08x returned stale data: CACHED: %08x vs. RAM: %08x", addr,
+             res, inmem);
+    DolphinAnalytics::Instance()->ReportGameQuirk(GameQuirk::ICACHE_MATTERS);
+  }
   return res;
 }
 

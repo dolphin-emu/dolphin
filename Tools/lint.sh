@@ -67,7 +67,6 @@ COMMIT=${1:---cached}
 modified_files=$(git diff --name-only --diff-filter=ACMRTUXB $COMMIT)
 
 function java_check() {
-  echo >&0 "Java changes detected, running Android Studio formatter." || true
   "${ANDROID_STUDIO_ROOT}/bin/format.sh" -s "${JAVA_CODESTYLE_FILE}" -R "${java_temp_dir}" >/dev/null
 
   # ignore 'added'/'deleted' files, we copied only files of interest to the tmpdir

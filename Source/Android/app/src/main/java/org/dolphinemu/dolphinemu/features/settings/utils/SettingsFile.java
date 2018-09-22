@@ -11,7 +11,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -49,6 +49,8 @@ public final class SettingsFile
   public static final String KEY_OVERRIDE_GAME_CUBE_LANGUAGE = "OverrideGCLang";
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
+  public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
+  public static final String KEY_LOCK_LANDSCAPE = "LockLandscape";
 
   public static final String KEY_ANALYTICS_ENABLED = "Enabled";
   public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";
@@ -78,6 +80,7 @@ public final class SettingsFile
   public static final String KEY_SKIP_EFB = "EFBAccessEnable";
   public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
   public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
+  public static final String KEY_DEFER_EFB_COPIES = "DeferEFBCopies";
   public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
   public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
   public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";
@@ -87,7 +90,18 @@ public final class SettingsFile
   public static final String KEY_SHADER_COMPILATION_MODE = "ShaderCompilationMode";
   public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
 
+  public static final String KEY_DEBUG_JITOFF = "JitOff";
+  public static final String KEY_DEBUG_JITLOADSTOREOFF = "JitLoadStoreOff";
+  public static final String KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF = "JitLoadStoreFloatingOff";
+  public static final String KEY_DEBUG_JITLOADSTOREPAIREDOFF = "JitLoadStorePairedOff";
+  public static final String KEY_DEBUG_JITFLOATINGPOINTOFF = "JitFloatingPointOff";
+  public static final String KEY_DEBUG_JITINTEGEROFF = "JitIntegerOff";
+  public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
+  public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
+  public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
+
   public static final String KEY_GCPAD_TYPE = "SIDevice";
+  public static final String KEY_GCPAD_G_TYPE = "PadType";
 
   public static final String KEY_GCBIND_A = "InputA_";
   public static final String KEY_GCBIND_B = "InputB_";
@@ -113,8 +127,14 @@ public final class SettingsFile
   public static final String KEY_GCADAPTER_RUMBLE = "AdapterRumble";
   public static final String KEY_GCADAPTER_BONGOS = "SimulateKonga";
 
+  public static final String KEY_EMU_RUMBLE = "EmuRumble";
+
   public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
+
+  // Controller keys for game specific settings
+  public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
+  public static final String KEY_WIIMOTE_PROFILE = "WiimoteProfile";
 
   public static final String KEY_WIIBIND_A = "WiimoteA_";
   public static final String KEY_WIIBIND_B = "WiimoteB_";
@@ -366,6 +386,12 @@ public final class SettingsFile
     return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
   }
 
+  public static HashMap<String, SettingSection> readWiimoteProfile(final String gameId,
+          final String padId)
+  {
+    String profile = gameId + "_Wii" + padId;
+    return readFile(getWiiProfile(profile, padId), true, null);
+  }
 
   /**
    * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
@@ -428,14 +454,86 @@ public final class SettingsFile
       HashMap<String, Setting> settings = section.getSettings();
       Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
 
+      // Profile options(wii extension) are not saved, only used to properly display values
+      if (sectionKey.contains(Settings.SECTION_PROFILE))
+      {
+        continue;
+      }
+      else
+      {
+        NativeLibrary.LoadGameIniFile(gameId);
+      }
       for (String settingKey : sortedKeySet)
       {
         Setting setting = settings.get(settingKey);
-        NativeLibrary
-                .SetUserSetting(gameId, mapSectionNameFromIni(section.getName()), setting.getKey(),
-                        setting.getValueAsString());
+        // Special case. Extension gets saved into a controller profile
+        if (settingKey.contains(SettingsFile.KEY_WIIMOTE_EXTENSION))
+        {
+          String padId =
+                  setting.getKey()
+                          .substring(setting.getKey().length() - 1, setting.getKey().length());
+
+          saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, setting.getValueAsString(),
+                  padId);
+        }
+        else
+        {
+          NativeLibrary.SetUserSetting(gameId, mapSectionNameFromIni(section.getName()),
+                  setting.getKey(), setting.getValueAsString());
+        }
       }
+      NativeLibrary.SaveGameIniFile(gameId);
     }
+  }
+
+  public static void saveSingleCustomSetting(final String gameId, final String section,
+          final String key,
+          final String value)
+  {
+    NativeLibrary.LoadGameIniFile(gameId);
+    NativeLibrary.SetUserSetting(gameId, section,
+            key, value);
+    NativeLibrary.SaveGameIniFile(gameId);
+  }
+
+  /**
+   * Saves the wiimote setting in a profile and enables that profile.
+   *
+   * @param gameId
+   * @param key
+   * @param value
+   * @param padId
+   */
+  public static void saveCustomWiimoteSetting(final String gameId, final String key,
+          final String value,
+          final String padId)
+  {
+    String profile = gameId + "_Wii" + padId;
+
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+    File wiiProfile = new File(wiiConfigPath);
+    // If it doesn't exist, create it
+    if (!wiiProfile.exists())
+    {
+      String defautlWiiProfilePath =
+              DirectoryInitialization.getUserDirectory() +
+                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
+      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
+
+      NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
+              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
+    }
+
+    NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key,
+            value);
+
+    // Enable the profile
+    NativeLibrary.LoadGameIniFile(gameId);
+    NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
+            KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
+    NativeLibrary.SaveGameIniFile(gameId);
   }
 
   private static String mapSectionNameFromIni(String generalSectionName)
@@ -462,7 +560,7 @@ public final class SettingsFile
   private static File getSettingsFile(String fileName)
   {
     return new File(
-            DirectoryInitializationService.getUserDirectory() + "/Config/" + fileName + ".ini");
+            DirectoryInitialization.getUserDirectory() + "/Config/" + fileName + ".ini");
   }
 
   private static File getGenericGameSettingsForAllRegions(String gameId)
@@ -470,21 +568,31 @@ public final class SettingsFile
     // Use the first 3 chars from the gameId to load the generic game settings for all regions
     gameId = gameId.substring(0, 3);
     return new File(
-            DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" +
+            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
                     gameId + ".ini");
   }
 
   private static File getGenericGameSettingsFile(String gameId)
   {
     return new File(
-            DirectoryInitializationService.getDolphinInternalDirectory() + "/GameSettings/" +
+            DirectoryInitialization.getDolphinInternalDirectory() + "/GameSettings/" +
                     gameId + ".ini");
   }
 
   private static File getCustomGameSettingsFile(String gameId)
   {
+
     return new File(
-            DirectoryInitializationService.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
+            DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
+  }
+
+  private static File getWiiProfile(String profile, String padId)
+  {
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+
+    return new File(wiiConfigPath);
   }
 
   private static SettingSection sectionFromLine(String line, boolean isCustomGame)
@@ -621,5 +729,11 @@ public final class SettingsFile
   private static String settingAsString(Setting setting)
   {
     return setting.getKey() + " = " + setting.getValueAsString();
+  }
+
+  private static String customWiimoteExtSettingAsString(Setting setting)
+  {
+    return setting.getKey().substring(0, setting.getKey().length() - 1) + " = " +
+            setting.getValueAsString();
   }
 }

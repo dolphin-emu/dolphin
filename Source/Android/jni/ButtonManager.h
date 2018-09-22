@@ -176,6 +176,8 @@ enum ButtonType
   TURNTABLE_CROSSFADE = 622,  // To Be Used on Java Side
   TURNTABLE_CROSSFADE_LEFT = 623,
   TURNTABLE_CROSSFADE_RIGHT = 624,
+  // Rumble
+  RUMBLE = 700,
 };
 enum ButtonState
 {
@@ -248,7 +250,7 @@ public:
   float AxisValue(int padID, ButtonType axis);
 };
 
-void Init();
+void Init(const std::string&);
 bool GetButtonPressed(int padID, ButtonType button);
 float GetAxisValue(int padID, ButtonType axis);
 bool GamepadEvent(const std::string& dev, int button, int action);

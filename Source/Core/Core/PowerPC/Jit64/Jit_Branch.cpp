@@ -8,7 +8,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -160,9 +160,13 @@ void Jit64::bcx(UGeckoInstruction inst)
   else
     destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-  gpr.Flush(RegCache::FlushMode::MaintainState);
-  fpr.Flush(RegCache::FlushMode::MaintainState);
-  WriteExit(destination, inst.LK, js.compilerPC + 4);
+  {
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+    gpr.Flush();
+    fpr.Flush();
+    WriteExit(destination, inst.LK, js.compilerPC + 4);
+  }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
@@ -215,10 +219,14 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
-    gpr.Flush(RegCache::FlushMode::MaintainState);
-    fpr.Flush(RegCache::FlushMode::MaintainState);
-    WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
-    // Would really like to continue the block here, but it ends. TODO.
+    {
+      RCForkGuard gpr_guard = gpr.Fork();
+      RCForkGuard fpr_guard = fpr.Fork();
+      gpr.Flush();
+      fpr.Flush();
+      WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+      // Would really like to continue the block here, but it ends. TODO.
+    }
     SetJumpTarget(b);
 
     if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
@@ -269,9 +277,13 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-  gpr.Flush(RegCache::FlushMode::MaintainState);
-  fpr.Flush(RegCache::FlushMode::MaintainState);
-  WriteBLRExit();
+  {
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+    gpr.Flush();
+    fpr.Flush();
+    WriteBLRExit();
+  }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);

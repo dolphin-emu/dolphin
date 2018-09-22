@@ -270,6 +270,7 @@ struct SConfig
   bool m_showIDColumn;
   bool m_showRegionColumn;
   bool m_showSizeColumn;
+  bool m_showTagsColumn;
 
   std::string m_WirelessMac;
   bool m_PauseMovie;
@@ -348,6 +349,7 @@ private:
   void SaveBluetoothPassthroughSettings(IniFile& ini);
   void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveAutoUpdateSettings(IniFile& ini);
+  void SaveJitDebugSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
@@ -363,6 +365,7 @@ private:
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadAutoUpdateSettings(IniFile& ini);
+  void LoadJitDebugSettings(IniFile& ini);
 
   void SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision,
                               Core::TitleDatabase::TitleType type);

@@ -15,7 +15,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
@@ -142,7 +142,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     LocalBroadcastManager.getInstance(this).registerReceiver(
             receiver,
             filter);
-    DirectoryInitializationService.startService(this);
+    DirectoryInitialization.start(this);
   }
 
   @Override

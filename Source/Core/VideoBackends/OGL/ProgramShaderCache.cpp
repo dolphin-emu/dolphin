@@ -12,7 +12,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -257,6 +257,21 @@ void ProgramShaderCache::UploadConstants()
 
     ADDSTAT(stats.thisFrame.bytesUniformStreamed, s_ubo_buffer_size);
   }
+}
+
+void ProgramShaderCache::UploadConstants(const void* data, u32 data_size)
+{
+  // allocate and copy
+  const u32 alloc_size = Common::AlignUp(data_size, s_ubo_align);
+  auto buffer = s_buffer->Map(alloc_size, s_ubo_align);
+  std::memcpy(buffer.first, data, data_size);
+  s_buffer->Unmap(alloc_size);
+
+  // bind the same sub-buffer to all stages
+  for (u32 index = 1; index <= 3; index++)
+    glBindBufferRange(GL_UNIFORM_BUFFER, index, s_buffer->m_buffer, buffer.second, data_size);
+
+  ADDSTAT(stats.thisFrame.bytesUniformStreamed, data_size);
 }
 
 bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
@@ -539,6 +554,11 @@ void ProgramShaderCache::BindVertexFormat(const GLVertexFormat* vertex_format)
   s_last_VAO = new_VAO;
 }
 
+bool ProgramShaderCache::IsValidVertexFormatBound()
+{
+  return s_last_VAO != 0 && s_last_VAO != s_attributeless_VAO;
+}
+
 void ProgramShaderCache::InvalidateVertexFormat()
 {
   s_last_VAO = 0;
@@ -805,7 +825,8 @@ void ProgramShaderCache::CreateHeader()
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 {
-  std::unique_ptr<cInterfaceBase> context = GLInterface->CreateSharedContext();
+  std::unique_ptr<GLContext> context =
+      static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
     PanicAlert("Failed to create shared context for shader compiling.");
@@ -818,20 +839,20 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 {
-  cInterfaceBase* context = static_cast<cInterfaceBase*>(param);
+  GLContext* context = static_cast<GLContext*>(param);
   if (!context->MakeCurrent())
     return false;
 
   s_is_shared_context = true;
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+    GLUtil::EnablePrimitiveRestart(context);
 
   return true;
 }
 
 void SharedContextAsyncShaderCompiler::WorkerThreadExit(void* param)
 {
-  cInterfaceBase* context = static_cast<cInterfaceBase*>(param);
+  GLContext* context = static_cast<GLContext*>(param);
   context->ClearCurrent();
   delete context;
 }

@@ -12,7 +12,7 @@ class AnalogStick;
 class Buttons;
 class ControlGroup;
 class MixedTriggers;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
@@ -48,16 +48,27 @@ public:
     PAD_UP = 0x0100,
   };
 
-  static const u8 LEFT_STICK_CENTER_X = 0x20;
-  static const u8 LEFT_STICK_CENTER_Y = 0x20;
-  static const u8 LEFT_STICK_RADIUS = 0x1F;
+  enum
+  {
+    CAL_STICK_CENTER = 0x80,
+    CAL_STICK_RANGE = 0x7f,
+    CAL_STICK_BITS = 8,
 
-  static const u8 RIGHT_STICK_CENTER_X = 0x10;
-  static const u8 RIGHT_STICK_CENTER_Y = 0x10;
-  static const u8 RIGHT_STICK_RADIUS = 0x0F;
+    LEFT_STICK_BITS = 6,
+    LEFT_STICK_CENTER_X = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS),
+    LEFT_STICK_CENTER_Y = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS),
+    LEFT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS),
 
-  static const u8 LEFT_TRIGGER_RANGE = 0x1F;
-  static const u8 RIGHT_TRIGGER_RANGE = 0x1F;
+    RIGHT_STICK_BITS = 5,
+    RIGHT_STICK_CENTER_X = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS),
+    RIGHT_STICK_CENTER_Y = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS),
+    RIGHT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS),
+
+    LEFT_TRIGGER_RANGE = 0x1F,
+    RIGHT_TRIGGER_RANGE = 0x1F,
+  };
+
+  static const u8 STICK_GATE_RADIUS = 0x16;
 
 private:
   ControllerEmu::Buttons* m_buttons;
@@ -66,4 +77,4 @@ private:
   ControllerEmu::AnalogStick* m_left_stick;
   ControllerEmu::AnalogStick* m_right_stick;
 };
-}
+}  // namespace WiimoteEmu

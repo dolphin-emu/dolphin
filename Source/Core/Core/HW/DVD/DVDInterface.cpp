@@ -961,7 +961,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     case 0x01:  // Returns the current offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08" PRIx64,
                s_audio_position);
-      WriteImmediate(static_cast<u32>(s_audio_position >> 2), output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>((s_audio_position & 0xffffffffffff8000ull) >> 2),
+                     output_address, reply_to_ios);
       break;
     case 0x02:  // Returns the start offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08" PRIx64,
@@ -991,27 +992,18 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
   // DVD Audio Enable/Disable (Immediate). GC uses this, and apparently Wii also does...?
   case DVDLowAudioBufferConfig:
-    // For more information: http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm (dead link?)
-    //
-    // Upon Power up or reset , 2 commands must be issued for proper use of audio streaming:
-    // DVDReadDiskID A8000040,00000000,00000020
-    // DVDLowAudioBufferConfig E4xx00yy,00000000,00000020
-    //
-    // xx=byte 8 [0 or 1] from the disk header retrieved from DVDReadDiskID
-    // yy=0 (if xx=0) or 0xA (if xx=1)
+    // The IPL uses this command to enable or disable DTK audio depending on the value of byte 0x8
+    // in the disc header. See http://www.crazynation.org/GC/GC_DD_TECH/GCTech.htm for more info.
+    // The link is dead, but you can access the page using the Wayback Machine at archive.org.
+
+    // TODO: Dolphin doesn't prevent the game from using DTK when the IPL doesn't enable it.
+    // Should we be failing with an error code when the game tries to use the 0xE1 command?
+    // (Not that this should matter normally, since games that use DTK set the header byte to 1)
 
     if ((command_0 >> 16) & 0xFF)
-    {
-      // TODO: What is this actually supposed to do?
-      s_stream = true;
-      INFO_LOG(DVDINTERFACE, "(Audio): Audio enabled");
-    }
+      INFO_LOG(DVDINTERFACE, "DTK enabled");
     else
-    {
-      // TODO: What is this actually supposed to do?
-      s_stream = false;
-      INFO_LOG(DVDINTERFACE, "(Audio): Audio disabled");
-    }
+      INFO_LOG(DVDINTERFACE, "DTK disabled");
     break;
 
   // yet another (GC?) command we prolly don't care about
@@ -1307,4 +1299,4 @@ void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u
             ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
 }
 
-}  // namespace
+}  // namespace DVDInterface

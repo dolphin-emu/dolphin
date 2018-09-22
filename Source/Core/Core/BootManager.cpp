@@ -92,6 +92,7 @@ private:
   float m_EmulationSpeed;
   float m_OCFactor;
   bool m_OCEnable;
+  bool m_bt_passthrough_enabled;
   std::string strBackend;
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
@@ -128,6 +129,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_OCFactor = config.m_OCFactor;
   m_OCEnable = config.m_OCEnable;
+  m_bt_passthrough_enabled = config.m_bt_passthrough_enabled;
 
   std::copy(std::begin(g_wiimote_sources), std::end(g_wiimote_sources), std::begin(iWiimoteSource));
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
@@ -203,6 +205,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
   config->m_OCFactor = m_OCFactor;
   config->m_OCEnable = m_OCEnable;
+  config->m_bt_passthrough_enabled = m_bt_passthrough_enabled;
   VideoBackendBase::ActivateBackend(config->m_strVideoBackend);
 }
 
@@ -222,7 +225,7 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 }
 
 // Boot the ISO or file
-bool BootCore(std::unique_ptr<BootParameters> boot)
+bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
   if (!boot)
     return false;
@@ -372,6 +375,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     StartUp.bMMU = netplay_settings.m_MMU;
     StartUp.bFastmem = netplay_settings.m_Fastmem;
     StartUp.bHLE_BS2 = netplay_settings.m_SkipIPL;
+    StartUp.m_bt_passthrough_enabled = false;
     if (netplay_settings.m_HostInputAuthority && !netplay_settings.m_IsHosting)
       config_cache.bSetEmulationSpeed = true;
   }
@@ -403,12 +407,14 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {
-    return Core::Init(std::make_unique<BootParameters>(
-        BootParameters::IPL{StartUp.m_region,
-                            std::move(std::get<BootParameters::Disc>(boot->parameters))},
-        boot->savestate_path));
+    return Core::Init(
+        std::make_unique<BootParameters>(
+            BootParameters::IPL{StartUp.m_region,
+                                std::move(std::get<BootParameters::Disc>(boot->parameters))},
+            boot->savestate_path),
+        wsi);
   }
-  return Core::Init(std::move(boot));
+  return Core::Init(std::move(boot), wsi);
 }
 
 // SYSCONF can be modified during emulation by the user and internally, which makes it

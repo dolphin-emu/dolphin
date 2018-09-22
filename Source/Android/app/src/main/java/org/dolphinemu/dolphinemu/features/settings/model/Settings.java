@@ -21,11 +21,15 @@ public class Settings
   public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
   public static final String SECTION_GFX_HACKS = "Hacks";
 
+  public static final String SECTION_DEBUG = "Debug";
+
   public static final String SECTION_STEREOSCOPY = "Stereoscopy";
 
   public static final String SECTION_WIIMOTE = "Wiimote";
 
   public static final String SECTION_BINDINGS = "Android";
+  public static final String SECTION_CONTROLS = "Controls";
+  public static final String SECTION_PROFILE = "Profile";
 
   public static final String SECTION_ANALYTICS = "Analytics";
 
@@ -37,7 +41,7 @@ public class Settings
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
             Arrays.asList(SECTION_INI_CORE, SECTION_INI_INTERFACE, SECTION_BINDINGS,
-                    SECTION_ANALYTICS));
+                    SECTION_ANALYTICS, SECTION_DEBUG));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
             Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS,
                     SECTION_STEREOSCOPY));
@@ -134,6 +138,11 @@ public class Settings
     mergeSections(SettingsFile.readCustomGameSettings(gameId, view));
   }
 
+  public void loadWiimoteProfile(String gameId, String padId)
+  {
+    mergeSections(SettingsFile.readWiimoteProfile(gameId, padId));
+  }
+
   private void mergeSections(HashMap<String, SettingSection> updatedSections)
   {
     for (Map.Entry<String, SettingSection> entry : updatedSections.entrySet())
@@ -182,6 +191,5 @@ public class Settings
       view.showToastMessage("Saved settings for " + gameId);
       SettingsFile.saveCustomGameSettings(gameId, sections);
     }
-
   }
 }

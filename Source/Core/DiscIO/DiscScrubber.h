@@ -61,6 +61,7 @@ private:
 
   void MarkAsUsed(u64 offset, u64 size);
   void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
+  u64 ToClusterOffset(u64 offset) const;
   bool ReadFromVolume(u64 offset, u32& buffer, const Partition& partition);
   bool ReadFromVolume(u64 offset, u64& buffer, const Partition& partition);
   bool ParseDisc();

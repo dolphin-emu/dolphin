@@ -10,9 +10,11 @@
 #include <QPainter>
 #include <QTimer>
 
+#include "Common/MathUtil.h"
+
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -28,7 +30,7 @@ MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group
     BindCursorControls(false);
     break;
   case ControllerEmu::GroupType::Stick:
-    BindStickControls();
+    // Nothing needed:
     break;
   case ControllerEmu::GroupType::Tilt:
     BindCursorControls(true);
@@ -66,18 +68,6 @@ void MappingIndicator::BindCursorControls(bool tilt)
   {
     m_cursor_deadzone = m_group->numeric_settings[0].get();
   }
-}
-
-void MappingIndicator::BindStickControls()
-{
-  m_stick_up = m_group->controls[0]->control_ref.get();
-  m_stick_down = m_group->controls[1]->control_ref.get();
-  m_stick_left = m_group->controls[2]->control_ref.get();
-  m_stick_right = m_group->controls[3]->control_ref.get();
-  m_stick_modifier = m_group->controls[4]->control_ref.get();
-
-  m_stick_radius = m_group->numeric_settings[0].get();
-  m_stick_deadzone = m_group->numeric_settings[1].get();
 }
 
 void MappingIndicator::BindMixedTriggersControls()
@@ -144,83 +134,93 @@ void MappingIndicator::DrawCursor(bool tilt)
   p.fillRect(curx, cury, 8, 8, Qt::red);
 }
 
+// Constructs a polygon by querying a radius at varying angles:
+template <typename F>
+QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale)
+{
+  // A multiple of 8 (octagon) and enough points to be visibly pleasing:
+  constexpr int shape_point_count = 32;
+  QPolygonF shape{shape_point_count};
+
+  int p = 0;
+  for (auto& point : shape)
+  {
+    const double angle = MathUtil::TAU * p / shape.size();
+    const double radius = radius_getter(angle) * scale;
+
+    point = {std::cos(angle) * radius, std::sin(angle) * radius};
+    ++p;
+  }
+
+  return shape;
+}
+
 void MappingIndicator::DrawStick()
 {
-  float centerx = width() / 2., centery = height() / 2.;
+  // Make the c-stick yellow:
+  const bool is_c_stick = m_group->name == "C-Stick";
+  const QColor gate_brush_color = is_c_stick ? Qt::yellow : Qt::lightGray;
+  const QColor gate_pen_color = gate_brush_color.darker(125);
 
-  bool c_stick = m_group->name == "C-Stick";
-  bool classic_controller = m_group->name == "Left Stick" || m_group->name == "Right Stick";
+  auto& stick = *static_cast<ControllerEmu::AnalogStick*>(m_group);
 
-  float ratio = 1;
+  // TODO: This SetControllerStateNeeded interface leaks input into the game
+  // We should probably hold the mutex for UI updates.
+  Settings::Instance().SetControllerStateNeeded(true);
+  const auto raw_coord = stick.GetState(false);
+  const auto adj_coord = stick.GetState(true);
+  Settings::Instance().SetControllerStateNeeded(false);
 
-  if (c_stick)
-    ratio = 1.;
-  else if (classic_controller)
-    ratio = 0.9f;
+  // Bounding box size:
+  const double scale = height() / 2.5;
 
-  // Polled values
-  float mod = PollControlState(m_stick_modifier) ? 0.5 : 1;
-  float radius = m_stick_radius->GetValue();
-  float curx = -PollControlState(m_stick_left) + PollControlState(m_stick_right),
-        cury = -PollControlState(m_stick_up) + PollControlState(m_stick_down);
-  // The maximum deadzone value covers 50% of the stick area
-  float deadzone = m_stick_deadzone->GetValue() / 2.;
-
-  // Size parameters
-  float max_size = (height() / 2.5) / ratio;
-  float stick_size = (height() / 3.) / ratio;
-
-  // Emulated cursor position
-  float virt_curx, virt_cury;
-
-  if (std::abs(curx) < deadzone && std::abs(cury) < deadzone)
-  {
-    virt_curx = virt_cury = 0;
-  }
-  else
-  {
-    virt_curx = curx * mod;
-    virt_cury = cury * mod;
-  }
-
-  // Coordinates for an octagon
-  std::array<QPointF, 8> radius_octagon = {{
-      QPointF(centerx, centery + stick_size),                                   // Bottom
-      QPointF(centerx + stick_size / sqrt(2), centery + stick_size / sqrt(2)),  // Bottom Right
-      QPointF(centerx + stick_size, centery),                                   // Right
-      QPointF(centerx + stick_size / sqrt(2), centery - stick_size / sqrt(2)),  // Top Right
-      QPointF(centerx, centery - stick_size),                                   // Top
-      QPointF(centerx - stick_size / sqrt(2), centery - stick_size / sqrt(2)),  // Top Left
-      QPointF(centerx - stick_size, centery),                                   // Left
-      QPointF(centerx - stick_size / sqrt(2), centery + stick_size / sqrt(2))   // Bottom Left
-  }};
+  const float dot_radius = 2;
 
   QPainter p(this);
+  p.translate(width() / 2, height() / 2);
+
+  // Bounding box.
+  p.setBrush(Qt::white);
+  p.setPen(Qt::gray);
+  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+
+  // UI y-axis is opposite that of stick.
+  p.scale(1.0, -1.0);
+
+  // Enable AA after drawing bounding box.
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  // Draw maximum values
-  p.setBrush(Qt::white);
-  p.setPen(Qt::black);
-  p.drawRect(centerx - max_size, centery - max_size, max_size * 2, max_size * 2);
+  // Input gate. (i.e. the octagon shape)
+  p.setPen(gate_pen_color);
+  p.setBrush(gate_brush_color);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, scale));
 
-  // Draw radius
-  p.setBrush(c_stick ? Qt::yellow : Qt::darkGray);
-  p.drawPolygon(radius_octagon.data(), static_cast<int>(radius_octagon.size()));
+  // Deadzone.
+  p.setPen(Qt::darkGray);
+  p.setBrush(QBrush(Qt::darkGray, Qt::BDiagPattern));
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, scale));
 
-  // Draw deadzone
-  p.setBrush(c_stick ? Qt::darkYellow : Qt::lightGray);
-  p.drawEllipse(centerx - deadzone * stick_size, centery - deadzone * stick_size,
-                deadzone * stick_size * 2, deadzone * stick_size * 2);
+  // Input shape.
+  p.setPen(QPen(Qt::darkGray, 1.0, Qt::DashLine));
+  p.setBrush(Qt::NoBrush);
+  p.drawPolygon(GetPolygonFromRadiusGetter(
+      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, scale));
 
-  // Draw stick
-  p.setBrush(Qt::black);
-  p.drawEllipse(centerx - 4 + curx * max_size, centery - 4 + cury * max_size, 8, 8);
+  // Raw stick position.
+  p.setPen(Qt::NoPen);
+  p.setBrush(Qt::darkGray);
+  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, dot_radius, dot_radius);
 
-  // Draw virtual stick
-  p.setBrush(Qt::red);
-  p.drawEllipse(centerx - 4 + virt_curx * max_size * radius,
-                centery - 4 + virt_cury * max_size * radius, 8, 8);
+  // Adjusted stick position.
+  if (adj_coord.x || adj_coord.y)
+  {
+    p.setPen(Qt::NoPen);
+    p.setBrush(Qt::red);
+    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale, dot_radius, dot_radius);
+  }
 }
 
 void MappingIndicator::DrawMixedTriggers()

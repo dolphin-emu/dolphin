@@ -6,9 +6,11 @@
 
 #include <QDialog>
 
+#include "Common/Lazy.h"
 #include "Core/NetPlayClient.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
+class ChunkedProgressDialog;
 class MD5Dialog;
 class GameListModel;
 class PadMappingDialog;
@@ -46,6 +48,7 @@ public:
   void OnMsgChangeGame(const std::string& filename) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
+  void OnMsgPowerButton() override;
   void OnPadBufferChanged(u32 buffer) override;
   void OnHostInputAuthorityChanged(bool enabled) override;
   void OnDesync(u32 frame, const std::string& player) override;
@@ -58,10 +61,18 @@ public:
   bool IsRecording() override;
   std::string FindGame(const std::string& game) override;
   std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) override;
+
+  void SaveSettings();
+
   void ShowMD5Dialog(const std::string& file_identifier) override;
   void SetMD5Progress(int pid, int progress) override;
   void SetMD5Result(int pid, const std::string& result) override;
   void AbortMD5() override;
+
+  void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
+                                 const std::vector<int>& players) override;
+  void HideChunkedProgressDialog() override;
+  void SetChunkedProgress(int pid, u64 progress) override;
 signals:
   void Boot(const QString& filename);
   void Stop();
@@ -75,6 +86,7 @@ private:
   void OnStart();
   void DisplayMessage(const QString& msg, const std::string& color,
                       int duration = OSD::Duration::NORMAL);
+  void ResetExternalIP();
   void UpdateDiscordPresence();
   void UpdateGUI();
   void GameStatusChanged(bool running);
@@ -106,18 +118,21 @@ private:
   QCheckBox* m_save_sd_box;
   QCheckBox* m_load_wii_box;
   QCheckBox* m_sync_save_data_box;
+  QCheckBox* m_sync_codes_box;
   QCheckBox* m_record_input_box;
   QCheckBox* m_reduce_polling_rate_box;
   QCheckBox* m_strict_settings_sync_box;
   QCheckBox* m_host_input_authority_box;
+  QCheckBox* m_sync_all_wii_saves_box;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
+  ChunkedProgressDialog* m_chunked_progress_dialog;
   PadMappingDialog* m_pad_mapping;
   std::string m_current_game;
-  std::string m_external_ip_address;
+  Common::Lazy<std::string> m_external_ip_address;
   std::string m_nickname;
   GameListModel* m_game_list_model = nullptr;
   bool m_use_traversal = false;

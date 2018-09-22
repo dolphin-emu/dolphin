@@ -30,10 +30,6 @@ public:
   static bool CreateInstance();
   static void DestroyInstance();
 
-  const std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS>& GetPSSamplerBindings() const
-  {
-    return m_bindings.ps_samplers;
-  }
   VkFramebuffer GetFramebuffer() const { return m_framebuffer; }
   const VKPipeline* GetPipeline() const { return m_pipeline; }
   void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
@@ -46,6 +42,9 @@ public:
   void UpdateVertexShaderConstants();
   void UpdateGeometryShaderConstants();
   void UpdatePixelShaderConstants();
+
+  // Updates constants from external data, e.g. utility draws.
+  void UpdateConstants(const void* data, u32 data_size);
 
   void SetTexture(size_t index, VkImageView view);
   void SetSampler(size_t index, VkSampler sampler);
@@ -86,8 +85,10 @@ public:
   void OnDraw();
 
   // Call after CPU access is requested.
-  // This can be via EFBCache or EFB2RAM.
-  void OnReadback();
+  void OnCPUEFBAccess();
+
+  // Call after an EFB copy to RAM. If true, the current command buffer should be executed.
+  void OnEFBCopyToRAM();
 
   // Call at the end of a frame.
   void OnEndFrame();
@@ -102,7 +103,8 @@ private:
   // Number of descriptor sets for game draws.
   enum
   {
-    NUM_GX_DRAW_DESCRIPTOR_SETS = DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER + 1
+    NUM_GX_DRAW_DESCRIPTOR_SETS = DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER + 1,
+    NUM_UTILITY_DRAW_DESCRIPTOR_SETS = 2
   };
 
   enum DITRY_FLAG : u32
@@ -131,6 +133,8 @@ private:
   bool IsViewportWithinRenderArea() const;
 
   bool UpdateDescriptorSet();
+  bool UpdateGXDescriptorSet();
+  bool UpdateUtilityDescriptorSet();
 
   // Allocates storage in the uniform buffer of the specified size. If this storage cannot be
   // allocated immediately, the current command buffer will be submitted and all stage's
@@ -165,6 +169,7 @@ private:
   } m_bindings;
   size_t m_uniform_buffer_reserve_size = 0;
   u32 m_num_active_descriptor_sets = 0;
+  u32 m_num_dynamic_offsets = 0;
 
   // rasterization
   VkViewport m_viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
@@ -182,6 +187,7 @@ private:
 
   // CPU access tracking
   u32 m_draw_counter = 0;
+  u32 m_last_efb_copy_draw_counter = 0;
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;

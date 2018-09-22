@@ -83,8 +83,9 @@ Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
   m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "+"));
 
   // stick
-  groups.emplace_back(
-      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // whammy
   groups.emplace_back(m_whammy = new ControllerEmu::Triggers(_trans("Whammy")));
@@ -108,8 +109,8 @@ void Guitar::GetState(u8* const data)
   {
     const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    guitar_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
-    guitar_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
+    guitar_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
+    guitar_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
   }
 
   // slider bar
@@ -174,4 +175,4 @@ ControllerEmu::ControlGroup* Guitar::GetGroup(GuitarGroup group)
     return nullptr;
   }
 }
-}
+}  // namespace WiimoteEmu

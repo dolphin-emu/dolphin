@@ -35,22 +35,26 @@
             <Button
                 android:id="@+id/menu_quicksave"
                 android:text="@string/emulation_quicksave"
-                style="@style/InGameMenuOption"/>
+                style="@style/InGameMenuOption"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_quickload"
                 android:text="@string/emulation_quickload"
-                style="@style/InGameMenuOption"/>
+                style="@style/InGameMenuOption"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_emulation_save_root"
                 android:text="@string/emulation_savestate"
-                style="@style/InGameMenuOption"/>
+                style="@style/InGameMenuOption"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_emulation_load_root"
                 android:text="@string/emulation_loadstate"
-                style="@style/InGameMenuOption"/>
+                style="@style/InGameMenuOption"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/menu_refresh_wiimotes"

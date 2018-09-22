@@ -1171,7 +1171,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "      // ze *= x_adjust\n"
             "      float offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
             "      float floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
-            "      uint indexlower = uint(floor(floatindex));\n"
+            "      uint indexlower = uint(floatindex);\n"
             "      uint indexupper = indexlower + 1u;\n"
             "      float klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
             "      float kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
@@ -1239,17 +1239,23 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (bounding_box)
   {
-    const char* atomic_op =
-        (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan) ? "atomic" : "Interlocked";
     out.Write("  if (bpmem_bounding_box) {\n");
-    out.Write("    if(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n",
-              atomic_op);
-    out.Write("    if(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n",
-              atomic_op);
-    out.Write("    if(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n",
-              atomic_op);
-    out.Write("    if(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
-              atomic_op);
+    if (ApiType == APIType::D3D)
+    {
+      out.Write(
+          "    if(bbox_data[0] > int(rawpos.x)) InterlockedMin(bbox_data[0], int(rawpos.x));\n"
+          "    if(bbox_data[1] < int(rawpos.x)) InterlockedMax(bbox_data[1], int(rawpos.x));\n"
+          "    if(bbox_data[2] > int(rawpos.y)) InterlockedMin(bbox_data[2], int(rawpos.y));\n"
+          "    if(bbox_data[3] < int(rawpos.y)) InterlockedMax(bbox_data[3], int(rawpos.y));\n");
+    }
+    else
+    {
+      out.Write("\tif(bbox_left > int(rawpos.x)) atomicMin(bbox_left, int(rawpos.x));\n"
+                "\tif(bbox_right < int(rawpos.x)) atomicMax(bbox_right, int(rawpos.x));\n"
+                "\tif(bbox_top > int(rawpos.y)) atomicMin(bbox_top, int(rawpos.y));\n"
+                "\tif(bbox_bottom < int(rawpos.y)) atomicMax(bbox_bottom, int(rawpos.y));\n");
+    }
+
     out.Write("  }\n");
   }
 
@@ -1414,4 +1420,4 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
     }
   }
 }
-}
+}  // namespace UberShader

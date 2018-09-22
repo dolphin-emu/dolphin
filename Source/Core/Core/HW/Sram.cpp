@@ -10,13 +10,22 @@
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
-// english
-const SRAM sram_dump = {{0x00, 0x2C, 0xFF, 0xD0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x44, 0x4F,
-                         0x4C, 0x50, 0x48, 0x49, 0x4E, 0x53, 0x4C, 0x4F, 0x54, 0x41, 0x44,
-                         0x4F, 0x4C, 0x50, 0x48, 0x49, 0x4E, 0x53, 0x4C, 0x4F, 0x54, 0x42,
-                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                         0x00, 0x00, 0x00, 0x6E, 0x6D, 0x00, 0x00, 0x00, 0x00}};
+// English
+// This is just a template. Most/all fields are updated with sane(r) values at runtime.
+const Sram sram_dump = {Common::BigEndianValue<u32>{0},
+                        {Common::BigEndianValue<u16>{0x2c}, Common::BigEndianValue<u16>{0xffd0}, 0,
+                         0, 0, 0, 0, 0, 0x20 | SramFlags::kOobeDone | SramFlags::kStereo},
+                        {{
+                             {'D', 'O', 'L', 'P', 'H', 'I', 'N', 'S', 'L', 'O', 'T', 'A'},
+                             {'D', 'O', 'L', 'P', 'H', 'I', 'N', 'S', 'L', 'O', 'T', 'B'},
+                         },
+                         0,
+                         {},
+                         0,
+                         0,
+                         {0x6E, 0x6D},
+                         0,
+                         {}}};
 
 #if 0
 // german
@@ -69,23 +78,25 @@ void SetCardFlashID(const u8* buffer, u8 card_index)
   for (int i = 0; i < 12; i++)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    csum += g_SRAM.flash_id[card_index][i] = buffer[i] - ((u8)rand & 0xff);
+    csum += g_SRAM.settings_ex.flash_id[card_index][i] = buffer[i] - ((u8)rand & 0xff);
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     rand &= (u64)0x0000000000007fffULL;
   }
-  g_SRAM.flashID_chksum[card_index] = csum ^ 0xFF;
+  g_SRAM.settings_ex.flash_id_checksum[card_index] = csum ^ 0xFF;
 }
 
 void FixSRAMChecksums()
 {
+  // 16bit big-endian additive checksum
   u16 checksum = 0;
   u16 checksum_inv = 0;
-  for (int i = 0x0C; i < 0x14; i += 2)
+  for (auto p = reinterpret_cast<u16*>(&g_SRAM.settings.rtc_bias);
+       p != reinterpret_cast<u16*>(&g_SRAM.settings_ex); p++)
   {
-    int value = (g_SRAM.p_SRAM[i] << 8) + g_SRAM.p_SRAM[i + 1];
+    u16 value = Common::FromBigEndian(*p);
     checksum += value;
-    checksum_inv += value ^ 0xFFFF;
+    checksum_inv += ~value;
   }
-  g_SRAM.checksum = Common::swap16(checksum);
-  g_SRAM.checksum_inv = Common::swap16(checksum_inv);
+  g_SRAM.settings.checksum = checksum;
+  g_SRAM.settings.checksum_inv = checksum_inv;
 }

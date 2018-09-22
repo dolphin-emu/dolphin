@@ -46,7 +46,6 @@ struct EncodingProgram
 
 std::map<EFBCopyParams, EncodingProgram> s_encoding_programs;
 std::unique_ptr<AbstractTexture> s_encoding_render_texture;
-std::unique_ptr<AbstractStagingTexture> s_encoding_readback_texture;
 
 const int renderBufferWidth = EFB_WIDTH * 4;
 const int renderBufferHeight = 1024;
@@ -93,16 +92,11 @@ static EncodingProgram& GetOrCreateEncodingShader(const EFBCopyParams& params)
 
 void Init()
 {
-  TextureConfig config(renderBufferWidth, renderBufferHeight, 1, 1, 1, AbstractTextureFormat::BGRA8,
-                       true);
-  s_encoding_render_texture = g_renderer->CreateTexture(config);
-  s_encoding_readback_texture =
-      g_renderer->CreateStagingTexture(StagingTextureType::Readback, config);
+  s_encoding_render_texture = g_renderer->CreateTexture(TextureCache::GetEncodingTextureConfig());
 }
 
 void Shutdown()
 {
-  s_encoding_readback_texture.reset();
   s_encoding_render_texture.reset();
 
   for (auto& program : s_encoding_programs)
@@ -112,8 +106,9 @@ void Shutdown()
 
 // dst_line_size, writeStride in bytes
 
-static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line_size,
-                                   u32 dstHeight, u32 writeStride, bool linearFilter, float y_scale)
+static void EncodeToRamUsingShader(GLuint srcTexture, AbstractStagingTexture* destAddr,
+                                   u32 dst_line_size, u32 dstHeight, u32 writeStride,
+                                   bool linearFilter, float y_scale)
 {
   FramebufferManager::SetFramebuffer(
       static_cast<OGLTexture*>(s_encoding_render_texture.get())->GetFramebuffer());
@@ -137,15 +132,14 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   MathUtil::Rectangle<int> copy_rect(0, 0, dst_line_size / 4, dstHeight);
-  s_encoding_readback_texture->CopyFromTexture(s_encoding_render_texture.get(), copy_rect, 0, 0,
-                                               copy_rect);
-  s_encoding_readback_texture->ReadTexels(copy_rect, destAddr, writeStride);
+
+  destAddr->CopyFromTexture(s_encoding_render_texture.get(), copy_rect, 0, 0, copy_rect);
 }
 
-void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 native_width,
-                            u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                            const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
-                            float gamma, float clamp_top, float clamp_bottom,
+void EncodeToRamFromTexture(AbstractStagingTexture* dest, const EFBCopyParams& params,
+                            u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+                            u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half,
+                            float y_scale, float gamma, float clamp_top, float clamp_bottom,
                             const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients)
 {
   g_renderer->ResetAPIState();
@@ -165,7 +159,7 @@ void EncodeToRamFromTexture(u8* dest_ptr, const EFBCopyParams& params, u32 nativ
                                   FramebufferManager::ResolveAndGetDepthTarget(src_rect) :
                                   FramebufferManager::ResolveAndGetRenderTarget(src_rect);
 
-  EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
+  EncodeToRamUsingShader(read_texture, dest, bytes_per_row, num_blocks_y, memory_stride,
                          scale_by_half && !params.depth, y_scale);
 
   g_renderer->RestoreAPIState();

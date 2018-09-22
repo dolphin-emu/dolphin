@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -50,13 +51,13 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   GCPadStatus pad_status = GetPadStatus();
   if (!pad_status.isConnected)
   {
-    constexpr u32 reply = SI_ERROR_NO_RESPONSE;
+    u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
     std::memcpy(buffer, &reply, sizeof(reply));
     return 4;
   }
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[3]);
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
@@ -64,7 +65,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   case CMD_RESET:
   case CMD_ID:
   {
-    constexpr u32 id = SI_GC_CONTROLLER;
+    u32 id = Common::swap32(SI_GC_CONTROLLER);
     std::memcpy(buffer, &id, sizeof(id));
     break;
   }
@@ -76,8 +77,8 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
     GetData(high, low);
     for (int i = 0; i < (length - 1) / 2; i++)
     {
-      buffer[i + 0] = (high >> (i * 8)) & 0xff;
-      buffer[i + 4] = (low >> (i * 8)) & 0xff;
+      buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
+      buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
     }
   }
   break;
@@ -92,7 +93,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
-      buffer[i ^ 3] = *calibration++;
+      buffer[i] = *calibration++;
     }
   }
   break;
@@ -108,7 +109,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
-      buffer[i ^ 3] = *calibration++;
+      buffer[i] = *calibration++;
     }
   }
   break;
@@ -230,12 +231,6 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
     low |= pad_status.substickX << 24;  // All 8 bits
   }
 
-  // Unset all bits except those that represent
-  // A, B, X, Y, Start and the error bits, as they
-  // are not used.
-  if (m_simulate_konga)
-    hi &= ~0x20FFFFFF;
-
   return true;
 }
 
@@ -348,4 +343,21 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_timer_button_combo);
   p.Do(m_last_button_combo);
 }
+
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
+    : CSIDevice_GCController(device, device_number)
+{
+}
+
+bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
+{
+  CSIDevice_GCController::GetData(hi, low);
+
+  // Unsets the first 16 bits (StickX/Y), PAD_USE_ORIGIN,
+  // and all buttons except: A, B, X, Y, Start, R
+  hi &= HI_BUTTON_MASK;
+
+  return true;
+}
+
 }  // namespace SerialInterface

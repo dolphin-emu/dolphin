@@ -306,9 +306,17 @@
         <item>Right Stick</item>
     </string-array>
 
-    <string-array name="gameSettingsMenus">
+    <string-array name="gameSettingsMenusGC">
         <item>Core Settings</item>
         <item>GFX Settings</item>
+        <item>GameCube Controller Settings</item>
+        <item>Clear Game Settings</item>
+    </string-array>
+    <string-array name="gameSettingsMenusWii">
+        <item>Core Settings</item>
+        <item>GFX Settings</item>
+        <item>GameCube Controller Settings</item>
+        <item>Wii Controller Settings</item>
         <item>Clear Game Settings</item>
     </string-array>
 </resources>

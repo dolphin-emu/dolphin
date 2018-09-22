@@ -61,6 +61,7 @@ enum class Installation
 static Installation s_code_handler_installed = Installation::Uninstalled;
 // the currently active codes
 static std::vector<GeckoCode> s_active_codes;
+static std::vector<GeckoCode> s_synced_codes;
 static std::mutex s_active_codes_lock;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
@@ -77,6 +78,40 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
   s_active_codes.shrink_to_fit();
 
   s_code_handler_installed = Installation::Uninstalled;
+}
+
+void SetSyncedCodesAsActive()
+{
+  s_active_codes.clear();
+  s_active_codes.reserve(s_synced_codes.size());
+  s_active_codes = s_synced_codes;
+}
+
+void UpdateSyncedCodes(const std::vector<GeckoCode>& gcodes)
+{
+  s_synced_codes.clear();
+  s_synced_codes.reserve(gcodes.size());
+  std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_synced_codes),
+               [](const GeckoCode& code) { return code.enabled; });
+  s_synced_codes.shrink_to_fit();
+}
+
+std::vector<GeckoCode> SetAndReturnActiveCodes(const std::vector<GeckoCode>& gcodes)
+{
+  std::lock_guard<std::mutex> lk(s_active_codes_lock);
+
+  s_active_codes.clear();
+  if (SConfig::GetInstance().bEnableCheats)
+  {
+    s_active_codes.reserve(gcodes.size());
+    std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
+                 [](const GeckoCode& code) { return code.enabled; });
+  }
+  s_active_codes.shrink_to_fit();
+
+  s_code_handler_installed = Installation::Uninstalled;
+
+  return s_active_codes;
 }
 
 // Requires s_active_codes_lock
@@ -237,8 +272,8 @@ void RunCodeHandler()
   // Registers FPR0->13 are volatile
   for (int i = 0; i < 14; ++i)
   {
-    PowerPC::HostWrite_U64(riPS0(i), SP + 24 + 2 * i * sizeof(u64));
-    PowerPC::HostWrite_U64(riPS1(i), SP + 24 + (2 * i + 1) * sizeof(u64));
+    PowerPC::HostWrite_U64(rPS(i).PS0AsU64(), SP + 24 + 2 * i * sizeof(u64));
+    PowerPC::HostWrite_U64(rPS(i).PS1AsU64(), SP + 24 + (2 * i + 1) * sizeof(u64));
   }
   DEBUG_LOG(ACTIONREPLAY,
             "GeckoCodes: Initiating phantom branch-and-link. "

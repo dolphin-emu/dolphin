@@ -32,6 +32,7 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/RenderState.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractFramebuffer;
@@ -72,10 +73,15 @@ enum class OSDMessage : s32
 class Renderer
 {
 public:
-  Renderer(int backbuffer_width, int backbuffer_height);
+  Renderer(int backbuffer_width, int backbuffer_height, AbstractTextureFormat backbuffer_format);
   virtual ~Renderer();
 
   using ClearColor = std::array<float, 4>;
+
+  virtual bool IsHeadless() const = 0;
+
+  virtual bool Initialize();
+  virtual void Shutdown();
 
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
@@ -108,6 +114,10 @@ public:
   {
   }
 
+  // Drawing with currently-bound pipeline state.
+  virtual void Draw(u32 base_vertex, u32 num_vertices) {}
+  virtual void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) {}
+
   // Shader modules/objects.
   virtual std::unique_ptr<AbstractShader>
   CreateShaderFromSource(ShaderStage stage, const char* source, size_t length) = 0;
@@ -134,7 +144,6 @@ public:
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
-  bool IsHeadless() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
@@ -175,6 +184,7 @@ public:
   void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
             u64 ticks);
   virtual void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) = 0;
+  virtual void Flush() {}
 
   PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
@@ -182,22 +192,10 @@ public:
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface(int new_width, int new_height);
+  void ResizeSurface();
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
-
-  virtual void Shutdown();
-
-  // Drawing utility shaders.
-  virtual void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-  {
-  }
-  virtual void DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-  {
-  }
 
   void ShowOSDMessage(OSDMessage message);
 
@@ -228,15 +226,13 @@ protected:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
-  int m_new_backbuffer_width = 0;
-  int m_new_backbuffer_height = 0;
+  AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
 
   FPSCounter m_fps_counter;
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
-  void* m_surface_handle = nullptr;
   void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;

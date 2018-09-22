@@ -13,6 +13,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -22,6 +23,7 @@
 #include "VideoCommon/VideoCommon.h"
 
 struct VideoConfig;
+class AbstractStagingTexture;
 
 struct TextureAndTLUTFormat
 {
@@ -149,6 +151,12 @@ public:
     //   * partially updated textures which refer to this efb copy
     std::unordered_set<TCacheEntry*> references;
 
+    // Pending EFB copy
+    std::unique_ptr<AbstractStagingTexture> pending_efb_copy;
+    u32 pending_efb_copy_width = 0;
+    u32 pending_efb_copy_height = 0;
+    bool pending_efb_copy_invalidated = false;
+
     explicit TCacheEntry(std::unique_ptr<AbstractTexture> tex);
 
     ~TCacheEntry();
@@ -216,10 +224,10 @@ public:
 
   void Invalidate();
 
-  virtual void CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
-                       u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect,
-                       bool scale_by_half, float y_scale, float gamma, bool clamp_top,
-                       bool clamp_bottom,
+  virtual void CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width,
+                       u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                       const EFBRectangle& src_rect, bool scale_by_half, float y_scale, float gamma,
+                       bool clamp_top, bool clamp_bottom,
                        const CopyFilterCoefficientArray& filter_coefficients) = 0;
 
   virtual bool CompileShaders() = 0;
@@ -278,6 +286,12 @@ public:
 
   void ScaleTextureCacheEntryTo(TCacheEntry* entry, u32 new_width, u32 new_height);
 
+  // Flushes all pending EFB copies to emulated RAM.
+  void FlushEFBCopies();
+
+  // Returns a texture config suitable for drawing a RAM EFB copy into.
+  static TextureConfig GetEncodingTextureConfig();
+
 protected:
   TextureCacheBase();
 
@@ -329,7 +343,8 @@ private:
                                    const CopyFilterCoefficientArray& filter_coefficients) = 0;
 
   // Removes and unlinks texture from texture cache and returns it to the pool
-  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
+  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter,
+                                           bool discard_pending_efb_copy = false);
 
   void UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row, u32 num_blocks_y);
 
@@ -338,6 +353,17 @@ private:
   GetRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients) const;
   CopyFilterCoefficientArray
   GetVRAMCopyFilterCoefficients(const CopyFilterCoefficients::Values& coefficients) const;
+
+  // Flushes a pending EFB copy to RAM from the host to the guest RAM.
+  void WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32 stride,
+                         std::unique_ptr<AbstractStagingTexture> staging_texture);
+  void FlushEFBCopy(TCacheEntry* entry);
+
+  // Returns a staging texture of the maximum EFB copy size.
+  std::unique_ptr<AbstractStagingTexture> GetEFBCopyStagingTexture();
+
+  // Returns an EFB copy staging texture to the pool, so it can be re-used.
+  void ReleaseEFBCopyStagingTexture(std::unique_ptr<AbstractStagingTexture> tex);
 
   TexAddrCache textures_by_address;
   TexHashCache textures_by_hash;
@@ -360,6 +386,13 @@ private:
     bool arbitrary_mipmap_detection;
   };
   BackupConfig backup_config = {};
+
+  // Pool of readback textures used for deferred EFB copies.
+  std::vector<std::unique_ptr<AbstractStagingTexture>> m_efb_copy_staging_texture_pool;
+
+  // List of pending EFB copies. It is important that the order is preserved for these,
+  // so that overlapping textures are written to guest RAM in the order they are issued.
+  std::vector<TCacheEntry*> m_pending_efb_copies;
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

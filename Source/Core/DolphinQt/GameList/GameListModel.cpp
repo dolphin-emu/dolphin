@@ -42,6 +42,11 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutAboutToBeChanged();
     emit layoutChanged();
   });
+
+  auto& settings = Settings::GetQSettings();
+
+  m_tag_list = settings.value(QStringLiteral("gamelist/tags")).toStringList();
+  m_game_tags = settings.value(QStringLiteral("gamelist/game_tags")).toMap();
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const
@@ -84,6 +89,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
       QString name = QString::fromStdString(game.GetName(m_title_database));
+
+      // Add disc numbers > 1 to title if not present.
       const int disc_nr = game.GetDiscNumber() + 1;
       if (disc_nr > 1)
       {
@@ -92,6 +99,21 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
           name.append(tr(" (Disc %1)").arg(disc_nr));
         }
       }
+
+      // For natural sorting, pad all numbers to the same length.
+      if (Qt::InitialSortOrderRole == role)
+      {
+        constexpr int MAX_NUMBER_LENGTH = 10;
+
+        QRegExp rx(QStringLiteral("\\d+"));
+        int pos = 0;
+        while ((pos = rx.indexIn(name, pos)) != -1)
+        {
+          name.replace(pos, rx.matchedLength(), rx.cap().rightJustified(MAX_NUMBER_LENGTH));
+          pos += MAX_NUMBER_LENGTH;
+        }
+      }
+
       return name;
     }
     break;
@@ -117,6 +139,14 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::InitialSortOrderRole)
       return static_cast<quint64>(game.GetFileSize());
     break;
+  case COL_TAGS:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    {
+      auto tags = GetGameTags(game.GetFilePath());
+      tags.sort();
+
+      return tags.join(QStringLiteral(", "));
+    }
   }
 
   return QVariant();
@@ -143,6 +173,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("File Name");
   case COL_SIZE:
     return tr("Size");
+  case COL_TAGS:
+    return tr("Tags");
   }
   return QVariant();
 }
@@ -292,4 +324,63 @@ void GameListModel::SetScale(float scale)
 float GameListModel::GetScale() const
 {
   return m_scale;
+}
+
+const QStringList& GameListModel::GetAllTags() const
+{
+  return m_tag_list;
+}
+
+const QStringList GameListModel::GetGameTags(const std::string& path) const
+{
+  return m_game_tags[QString::fromStdString(path)].toStringList();
+}
+
+void GameListModel::AddGameTag(const std::string& path, const QString& name)
+{
+  auto tags = GetGameTags(path);
+
+  if (tags.contains(name))
+    return;
+
+  tags << name;
+
+  m_game_tags[QString::fromStdString(path)] = tags;
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/game_tags"), m_game_tags);
+}
+
+void GameListModel::RemoveGameTag(const std::string& path, const QString& name)
+{
+  auto tags = GetGameTags(path);
+
+  tags.removeAll(name);
+
+  m_game_tags[QString::fromStdString(path)] = tags;
+
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/game_tags"), m_game_tags);
+}
+
+void GameListModel::NewTag(const QString& name)
+{
+  if (m_tag_list.contains(name))
+    return;
+
+  m_tag_list << name;
+
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/tags"), m_tag_list);
+}
+
+void GameListModel::DeleteTag(const QString& name)
+{
+  m_tag_list.removeAll(name);
+
+  for (const auto& file : m_game_tags.keys())
+    RemoveGameTag(file.toStdString(), name);
+
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/tags"), m_tag_list);
+}
+
+void GameListModel::PurgeCache()
+{
+  m_tracker.PurgeCache();
 }

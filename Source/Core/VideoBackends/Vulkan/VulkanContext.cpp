@@ -186,6 +186,9 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
   if (enable_surface && !SupportsExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
     return false;
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+  if (enable_surface && !SupportsExtension(VK_MVK_MACOS_SURFACE_EXTENSION_NAME, true))
+    return false;
 #endif
 
   // VK_EXT_debug_report
@@ -418,7 +421,6 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   if (enable_surface && !SupportsExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
     return false;
 
-  m_supports_nv_glsl_extension = SupportsExtension(VK_NV_GLSL_SHADER_EXTENSION_NAME, false);
   return true;
 }
 
@@ -833,6 +835,13 @@ void VulkanContext::InitDriverDetails()
     vendor = DriverDetails::VENDOR_UNKNOWN;
     driver = DriverDetails::DRIVER_UNKNOWN;
   }
+
+#ifdef __APPLE__
+  // Vulkan on macOS goes through Metal, and is not susceptible to the same bugs
+  // as the vendor's native Vulkan drivers. We use a different driver fields to
+  // differentiate MoltenVK.
+  driver = DriverDetails::DRIVER_PORTABILITY;
+#endif
 
   DriverDetails::Init(DriverDetails::API_VULKAN, vendor, driver,
                       static_cast<double>(m_device_properties.driverVersion),

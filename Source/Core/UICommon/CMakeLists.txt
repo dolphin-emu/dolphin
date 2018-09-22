@@ -5,6 +5,9 @@ add_library(uicommon
   DiscordPresence.cpp
   GameFile.cpp
   GameFileCache.cpp
+  ResourcePack/Manager.cpp
+  ResourcePack/Manifest.cpp
+  ResourcePack/ResourcePack.cpp
   UICommon.cpp
   USBUtils.cpp
   VideoUtils.cpp
@@ -14,6 +17,7 @@ target_link_libraries(uicommon
 PUBLIC
   common
   cpp-optparse
+  minizip
 
 PRIVATE
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
@@ -24,8 +28,10 @@ if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_
   target_link_libraries(uicommon PRIVATE bdisasm)
 endif()
 
-if(USE_X11)
+if(ENABLE_X11 AND X11_FOUND)
+  target_include_directories(uicommon PRIVATE ${X11_INCLUDE_DIR})
   target_sources(uicommon PRIVATE X11Utils.cpp)
+  target_link_libraries(uicommon PUBLIC ${XRANDR_LIBRARIES})
 endif()
 
 if(LIBUSB_FOUND)

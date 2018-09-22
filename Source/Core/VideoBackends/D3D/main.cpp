@@ -127,15 +127,11 @@ void VideoBackend::InitBackendInfo()
   DX11::D3D::UnloadD3D();
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
-  if (window_handle == nullptr)
-    return false;
-
-  InitBackendInfo();
   InitializeShared();
 
-  if (FAILED(D3D::Create(reinterpret_cast<HWND>(window_handle))))
+  if (FAILED(D3D::Create(reinterpret_cast<HWND>(wsi.render_surface))))
   {
     PanicAlert("Failed to create D3D device.");
     return false;
@@ -165,7 +161,8 @@ bool VideoBackend::Initialize(void* window_handle)
 
   D3D::InitUtils();
   BBox::Init();
-  return true;
+
+  return g_renderer->Initialize();
 }
 
 void VideoBackend::Shutdown()
@@ -189,4 +186,4 @@ void VideoBackend::Shutdown()
 
   D3D::Close();
 }
-}
+}  // namespace DX11

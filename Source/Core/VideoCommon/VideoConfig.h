@@ -62,6 +62,7 @@ struct VideoConfig final
   bool bVSync;
   bool bWidescreenHack;
   AspectMode aspect_mode;
+  AspectMode suggested_aspect_mode;
   bool bCrop;  // Aspect ratio controls.
   bool bShaderCache;
 
@@ -120,6 +121,7 @@ struct VideoConfig final
   bool bSkipEFBCopyToRam;
   bool bSkipXFBCopyToRam;
   bool bDisableCopyToVRAM;
+  bool bDeferEFBCopies;
   bool bImmediateXFB;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;

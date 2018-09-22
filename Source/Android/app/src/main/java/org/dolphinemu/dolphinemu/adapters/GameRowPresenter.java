@@ -14,10 +14,11 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.dialogs.GameSettingsDialog;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
@@ -80,72 +81,29 @@ public final class GameRowPresenter extends Presenter
     Context context = holder.cardParent.getContext();
     Drawable background = ContextCompat.getDrawable(context, backgroundId);
     holder.cardParent.setInfoAreaBackground(background);
-    holder.cardParent.setOnLongClickListener(new View.OnLongClickListener()
+    holder.cardParent.setOnLongClickListener((view) ->
     {
-      @Override
-      public boolean onLongClick(View view)
+      FragmentActivity activity = (FragmentActivity) view.getContext();
+      String gameId = gameFile.getGameId();
+
+      if (gameId.isEmpty())
       {
-        FragmentActivity activity = (FragmentActivity) view.getContext();
-        String gameId = gameFile.getGameId();
-
-        if (gameId.isEmpty())
-        {
-          AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-          builder.setTitle("Game Settings");
-          builder.setMessage("Files without game IDs don't support game-specific settings.");
-
-          builder.show();
-          return true;
-        }
-
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
-        builder.setTitle("Game Settings")
-                .setItems(R.array.gameSettingsMenus, new DialogInterface.OnClickListener()
-                {
-                  public void onClick(DialogInterface dialog, int which)
-                  {
-                    switch (which)
-                    {
-                      case 0:
-                        SettingsActivity.launch(activity, MenuTag.CONFIG, gameId);
-                        break;
-                      case 1:
-                        SettingsActivity.launch(activity, MenuTag.GRAPHICS, gameId);
-                        break;
-                      case 2:
-                        String path = DirectoryInitializationService.getUserDirectory() +
-                                "/GameSettings/" + gameId + ".ini";
-                        File gameSettingsFile = new File(path);
-                        if (gameSettingsFile.exists())
-                        {
-                          if (gameSettingsFile.delete())
-                          {
-                            Toast.makeText(view.getContext(), "Cleared settings for " + gameId,
-                                    Toast.LENGTH_SHORT).show();
-                          }
-                          else
-                          {
-                            Toast.makeText(view.getContext(),
-                                    "Unable to clear settings for " + gameId, Toast.LENGTH_SHORT)
-                                    .show();
-                          }
-                        }
-                        else
-                        {
-                          Toast.makeText(view.getContext(), "No game settings to delete",
-                                  Toast.LENGTH_SHORT).show();
-                        }
-                        break;
-                    }
-                  }
-                });
+        builder.setTitle("Game Settings");
+        builder.setMessage("Files without game IDs don't support game-specific settings.");
 
         builder.show();
         return true;
       }
+
+      GameSettingsDialog fragment =
+              GameSettingsDialog.newInstance(gameId, holder.gameFile.getPlatform());
+      ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
+              .add(fragment, GameSettingsDialog.TAG).commit();
+
+      return true;
     });
   }
-
 
   @Override
   public void onUnbindViewHolder(ViewHolder viewHolder)

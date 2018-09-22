@@ -25,7 +25,6 @@ public:
 
 private:
   void BindCursorControls(bool tilt);
-  void BindStickControls();
   void BindMixedTriggersControls();
 
   void DrawCursor(bool tilt);
@@ -34,16 +33,6 @@ private:
 
   void paintEvent(QPaintEvent*) override;
   ControllerEmu::ControlGroup* m_group;
-
-  // Stick settings
-  ControlReference* m_stick_up;
-  ControlReference* m_stick_down;
-  ControlReference* m_stick_left;
-  ControlReference* m_stick_right;
-  ControlReference* m_stick_modifier;
-
-  ControllerEmu::NumericSetting* m_stick_radius;
-  ControllerEmu::NumericSetting* m_stick_deadzone;
 
   // Cursor settings
   ControlReference* m_cursor_up;

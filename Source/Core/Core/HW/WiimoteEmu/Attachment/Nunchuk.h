@@ -14,7 +14,7 @@ class Buttons;
 class ControlGroup;
 class Force;
 class Tilt;
-}
+}  // namespace ControllerEmu
 
 namespace WiimoteEmu
 {
@@ -48,6 +48,7 @@ public:
   {
     STICK_CENTER = 0x80,
     STICK_RADIUS = 0x7F,
+    STICK_GATE_RADIUS = 0x52,
   };
 
   void LoadDefaults(const ControllerInterface& ciface) override;
@@ -69,4 +70,4 @@ private:
   std::array<u8, 3> m_shake_soft_step{};
   std::array<u8, 3> m_shake_hard_step{};
 };
-}
+}  // namespace WiimoteEmu

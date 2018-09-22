@@ -20,8 +20,8 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService.DirectoryInitializationState;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -127,7 +127,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void onResume()
   {
     super.onResume();
-    if (DirectoryInitializationService.areDolphinDirectoriesReady())
+    if (DirectoryInitialization.areDolphinDirectoriesReady())
     {
       mEmulationState.run(activity.isActivityRecreated());
     }
@@ -146,7 +146,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       directoryStateReceiver = null;
     }
 
-    mEmulationState.pause();
+    if (mEmulationState.isRunning())
+      mEmulationState.pause();
     super.onPause();
   }
 
@@ -160,7 +161,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   private void setupDolphinDirectoriesThenStartEmulation()
   {
     IntentFilter statusIntentFilter = new IntentFilter(
-            DirectoryInitializationService.BROADCAST_ACTION);
+            DirectoryInitialization.BROADCAST_ACTION);
 
     directoryStateReceiver =
             new DirectoryStateReceiver(directoryInitializationState ->
@@ -189,7 +190,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
             directoryStateReceiver,
             statusIntentFilter);
-    DirectoryInitializationService.startService(getActivity());
+    DirectoryInitialization.start(getActivity());
   }
 
   public void toggleInputOverlayVisibility()
@@ -216,6 +217,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void refreshInputOverlay()
   {
     mInputOverlay.refreshControls();
+  }
+
+  public void resetInputOverlay()
+  {
+    mInputOverlay.resetButtonPlacement();
   }
 
   @Override

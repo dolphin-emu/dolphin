@@ -46,13 +46,8 @@ PSTextureEncoder::~PSTextureEncoder() = default;
 
 void PSTextureEncoder::Init()
 {
-  // TODO: Move this to a constant somewhere in common.
-  TextureConfig encoding_texture_config(EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8,
-                                        true);
-  m_encoding_render_texture = g_renderer->CreateTexture(encoding_texture_config);
-  m_encoding_readback_texture =
-      g_renderer->CreateStagingTexture(StagingTextureType::Readback, encoding_texture_config);
-  ASSERT(m_encoding_render_texture && m_encoding_readback_texture);
+  m_encoding_render_texture = g_renderer->CreateTexture(TextureCache::GetEncodingTextureConfig());
+  ASSERT(m_encoding_render_texture);
 
   // Create constant buffer for uploading data to shaders
   D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams), D3D11_BIND_CONSTANT_BUFFER);
@@ -71,9 +66,9 @@ void PSTextureEncoder::Shutdown()
 }
 
 void PSTextureEncoder::Encode(
-    u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-    u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half, float y_scale, float gamma,
-    bool clamp_top, bool clamp_bottom,
+    AbstractStagingTexture* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_per_row,
+    u32 num_blocks_y, u32 memory_stride, const EFBRectangle& src_rect, bool scale_by_half,
+    float y_scale, float gamma, bool clamp_top, bool clamp_bottom,
     const TextureCacheBase::CopyFilterCoefficientArray& filter_coefficients)
 {
   // Resolve MSAA targets before copying.
@@ -133,14 +128,7 @@ void PSTextureEncoder::Encode(
 
     // Copy to staging buffer
     MathUtil::Rectangle<int> copy_rect(0, 0, words_per_row, num_blocks_y);
-    m_encoding_readback_texture->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0,
-                                                 copy_rect);
-    m_encoding_readback_texture->Flush();
-    if (m_encoding_readback_texture->Map())
-    {
-      m_encoding_readback_texture->ReadTexels(copy_rect, dst, memory_stride);
-      m_encoding_readback_texture->Unmap();
-    }
+    dst->CopyFromTexture(m_encoding_render_texture.get(), copy_rect, 0, 0, copy_rect);
   }
 
   g_renderer->RestoreAPIState();

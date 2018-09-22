@@ -13,7 +13,8 @@
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -32,17 +33,14 @@ void CommonAsmRoutines::GenFrsqrte()
   // This function clobbers all three RSCRATCH.
   MOVQ_xmm(R(RSCRATCH), XMM0);
 
-  // Negative and zero inputs set an exception and take the complex path.
-  TEST(64, R(RSCRATCH), R(RSCRATCH));
-  FixupBranch zero = J_CC(CC_Z, true);
-  FixupBranch negative = J_CC(CC_S, true);
+  // Extract exponent
   MOV(64, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHR(64, R(RSCRATCH_EXTRA), Imm8(52));
 
-  // Zero and max exponents (non-normal floats) take the complex path.
-  FixupBranch complex1 = J_CC(CC_Z, true);
-  CMP(32, R(RSCRATCH_EXTRA), Imm32(0x7FF));
-  FixupBranch complex2 = J_CC(CC_E, true);
+  // Negatives, zeros, denormals, infinities and NaNs take the complex path.
+  LEA(32, RSCRATCH2, MDisp(RSCRATCH_EXTRA, -1));
+  CMP(32, R(RSCRATCH2), Imm32(0x7FE));
+  FixupBranch complex = J_CC(CC_AE, true);
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x3FD));
   SAR(32, R(RSCRATCH_EXTRA), Imm8(1));
@@ -75,24 +73,53 @@ void CommonAsmRoutines::GenFrsqrte()
   MOVQ_xmm(XMM0, R(RSCRATCH2));
   RET();
 
-  // Exception flags for zero input.
-  SetJumpTarget(zero);
+  SetJumpTarget(complex);
+  AND(32, R(RSCRATCH_EXTRA), Imm32(0x7FF));
+  CMP(32, R(RSCRATCH_EXTRA), Imm32(0x7FF));
+  FixupBranch nan_or_inf = J_CC(CC_E);
+
+  MOV(64, R(RSCRATCH2), R(RSCRATCH));
+  SHL(64, R(RSCRATCH2), Imm8(1));
+  FixupBranch nonzero = J_CC(CC_NZ);
+
+  // +0.0 or -0.0
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_ZX));
   FixupBranch skip_set_fx1 = J_CC(CC_NZ);
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_ZX));
-  FixupBranch complex3 = J();
+  SetJumpTarget(skip_set_fx1);
+  MOV(64, R(RSCRATCH2), Imm64(0x7FF0'0000'0000'0000));
+  OR(64, R(RSCRATCH2), R(RSCRATCH));
+  MOVQ_xmm(XMM0, R(RSCRATCH2));
+  RET();
 
-  // Exception flags for negative input.
+  // SNaN or QNaN or +Inf or -Inf
+  SetJumpTarget(nan_or_inf);
+  MOV(64, R(RSCRATCH2), R(RSCRATCH));
+  SHL(64, R(RSCRATCH2), Imm8(12));
+  FixupBranch inf = J_CC(CC_Z);
+  BTS(64, R(RSCRATCH), Imm8(51));
+  MOVQ_xmm(XMM0, R(RSCRATCH));
+  RET();
+  SetJumpTarget(inf);
+  BT(64, R(RSCRATCH), Imm8(63));
+  FixupBranch negative = J_CC(CC_C);
+  XORPD(XMM0, R(XMM0));
+  RET();
+
+  SetJumpTarget(nonzero);
+  FixupBranch denormal = J_CC(CC_NC);
+
+  // Negative sign
   SetJumpTarget(negative);
   TEST(32, PPCSTATE(fpscr), Imm32(FPSCR_VXSQRT));
   FixupBranch skip_set_fx2 = J_CC(CC_NZ);
   OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX | FPSCR_VXSQRT));
-
-  SetJumpTarget(skip_set_fx1);
   SetJumpTarget(skip_set_fx2);
-  SetJumpTarget(complex1);
-  SetJumpTarget(complex2);
-  SetJumpTarget(complex3);
+  MOV(64, R(RSCRATCH2), Imm64(0x7FF8'0000'0000'0000));
+  MOVQ_xmm(XMM0, R(RSCRATCH2));
+  RET();
+
+  SetJumpTarget(denormal);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   ABI_CallFunction(Common::ApproximateReciprocalSquareRoot);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
@@ -479,7 +506,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
 
   bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
 
-  if (g_jit->jo.memcheck)
+  if (m_jit.jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
     int flags = isInline ? 0 :
@@ -606,7 +633,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   int size = single ? 32 : 64;
   bool extend = false;
 
-  if (g_jit->jo.memcheck)
+  if (m_jit.jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
     int flags = isInline ? 0 :
@@ -617,7 +644,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
 
   if (single)
   {
-    if (g_jit->jo.memcheck)
+    if (m_jit.jo.memcheck)
     {
       MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
     }
@@ -642,7 +669,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
     // for a good reason, or merely because no game does this.
     // If we find something that actually does do this, maybe this should be changed. How
     // much of a performance hit would it be?
-    if (g_jit->jo.memcheck)
+    if (m_jit.jo.memcheck)
     {
       ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
       MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));

@@ -8,7 +8,10 @@
 #include <string>
 
 #include <QAbstractTableModel>
+#include <QMap>
 #include <QString>
+#include <QStringList>
+#include <QVariant>
 
 #include "Core/TitleDatabase.h"
 
@@ -52,6 +55,7 @@ public:
     COL_COUNTRY,
     COL_SIZE,
     COL_FILE_NAME,
+    COL_TAGS,
     NUM_COLS
   };
 
@@ -62,9 +66,23 @@ public:
   void SetScale(float scale);
   float GetScale() const;
 
+  const QStringList& GetAllTags() const;
+  const QStringList GetGameTags(const std::string& path) const;
+
+  void AddGameTag(const std::string& path, const QString& name);
+  void RemoveGameTag(const std::string& path, const QString& name);
+
+  void NewTag(const QString& name);
+  void DeleteTag(const QString& name);
+
+  void PurgeCache();
+
 private:
   // Index in m_games, or -1 if it isn't found
   int FindGame(const std::string& path) const;
+
+  QStringList m_tag_list;
+  QMap<QString, QVariant> m_game_tags;
 
   GameTracker m_tracker;
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;

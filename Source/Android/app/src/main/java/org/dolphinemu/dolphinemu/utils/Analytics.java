@@ -15,7 +15,6 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
 
 public class Analytics
 {
@@ -36,16 +35,16 @@ public class Analytics
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     if (!preferences.getBoolean(analyticsAsked, false))
     {
-      if (!DirectoryInitializationService.areDolphinDirectoriesReady())
+      if (!DirectoryInitialization.areDolphinDirectoriesReady())
       {
         // Wait for directories to get initialized
         IntentFilter statusIntentFilter = new IntentFilter(
-                DirectoryInitializationService.BROADCAST_ACTION);
+                DirectoryInitialization.BROADCAST_ACTION);
 
         directoryStateReceiver = new DirectoryStateReceiver(directoryInitializationState ->
         {
           if (directoryInitializationState ==
-                  DirectoryInitializationService.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
+                  DirectoryInitialization.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
           {
             LocalBroadcastManager.getInstance(context).unregisterReceiver(directoryStateReceiver);
             directoryStateReceiver = null;

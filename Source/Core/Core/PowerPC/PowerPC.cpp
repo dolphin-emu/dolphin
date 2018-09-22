@@ -4,6 +4,7 @@
 
 #include "Core/PowerPC/PowerPC.h"
 
+#include <algorithm>
 #include <cstring>
 #include <istream>
 #include <ostream>
@@ -11,6 +12,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FPURoundMode.h"
@@ -30,7 +32,7 @@
 namespace PowerPC
 {
 // STATE_TO_SAVE
-PowerPCState ppcState;
+PowerPCState ppcState{};
 
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
@@ -42,6 +44,27 @@ MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
 static CoreTiming::EventType* s_invalidate_cache_thread_safe;
+
+double PairedSingle::PS0AsDouble() const
+{
+  return Common::BitCast<double>(ps0);
+}
+
+double PairedSingle::PS1AsDouble() const
+{
+  return Common::BitCast<double>(ps1);
+}
+
+void PairedSingle::SetPS0(double value)
+{
+  ps0 = Common::BitCast<u64>(value);
+}
+
+void PairedSingle::SetPS1(double value)
+{
+  ps1 = Common::BitCast<u64>(value);
+}
+
 static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
 {
   ppcState.iCache.Invalidate(static_cast<u32>(userdata));
@@ -135,10 +158,11 @@ void DoState(PointerWrap& p)
 
 static void ResetRegisters()
 {
-  memset(ppcState.ps, 0, sizeof(ppcState.ps));
-  memset(ppcState.sr, 0, sizeof(ppcState.sr));
-  memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
-  memset(ppcState.spr, 0, sizeof(ppcState.spr));
+  std::fill(std::begin(ppcState.ps), std::end(ppcState.ps), PairedSingle{});
+  std::fill(std::begin(ppcState.sr), std::end(ppcState.sr), 0U);
+  std::fill(std::begin(ppcState.gpr), std::end(ppcState.gpr), 0U);
+  std::fill(std::begin(ppcState.spr), std::end(ppcState.spr), 0U);
+
   /*
   0x00080200 = lonestar 2.0
   0x00088202 = lonestar 2.2
@@ -191,7 +215,8 @@ static void InitializeCPUCore(CPUCore cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.", cpu_core);
+      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.",
+               static_cast<int>(cpu_core));
       s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;

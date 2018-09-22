@@ -6,26 +6,30 @@
 
 #include <windows.h>
 #include <string>
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 
-class cInterfaceWGL : public cInterfaceBase
+class GLContextWGL final : public GLContext
 {
 public:
-  void SwapInterval(int interval) override;
-  void Swap() override;
-  void* GetFuncAddress(const std::string& name) override;
-  bool Create(void* window_handle, bool stereo, bool core) override;
-  bool Create(cInterfaceBase* main_context) override;
+  ~GLContextWGL();
+
+  bool IsHeadless() const;
+
+  std::unique_ptr<GLContext> CreateSharedContext() override;
+
   bool MakeCurrent() override;
   bool ClearCurrent() override;
-  void Shutdown() override;
 
   void Update() override;
-  bool PeekMessages() override;
 
-  std::unique_ptr<cInterfaceBase> CreateSharedContext() override;
+  void Swap() override;
+  void SwapInterval(int interval) override;
 
-private:
+  void* GetFuncAddress(const std::string& name) override;
+
+protected:
+  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
+
   static HGLRC CreateCoreContext(HDC dc, HGLRC share_context);
   static bool CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
                             HDC* pbuffer_dc);

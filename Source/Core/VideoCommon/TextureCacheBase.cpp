@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 #if defined(_M_X86) || defined(_M_X86_64)
 #include <pmmintrin.h>
 #endif
@@ -27,6 +28,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
@@ -88,6 +90,7 @@ TextureCacheBase::TextureCacheBase()
 
 void TextureCacheBase::Invalidate()
 {
+  FlushEFBCopies();
   InvalidateAllBindPoints();
   for (size_t i = 0; i < bound_textures.size(); ++i)
   {
@@ -811,6 +814,11 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
       continue;
     }
 
+    // TODO: Some games (Rogue Squadron 3, Twin Snakes) seem to load a previously made XFB
+    // copy as a regular texture. You can see this particularly well in RS3 whenever the
+    // game freezes the image and fades it out to black on screen transitions, which fades
+    // out a purple screen in XFB2Tex. Check for this here and convert them if necessary.
+
     // Do not load strided EFB copies, they are not meant to be used directly.
     // Also do not directly load EFB copies, which were partly overwritten.
     if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
@@ -863,8 +871,10 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     // improves the performance a lot in some games that use paletted textures.
     // Example: Sonic the Fighters (inside Sonic Gems Collection)
     // Skip EFB copies here, so they can be used for partial texture updates
+    // Also skip XFB copies, we might need to still scan them out
+    // or load them as regular textures later.
     if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
-        !entry->IsEfbCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
+        !entry->IsCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
     {
       temp_frameCount = entry->frameCount;
       oldest_entry = iter;
@@ -1296,6 +1306,15 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
 
   u32 numBlocksX = entry_to_update->native_width / tex_info.block_width;
 
+  // It is possible that some of the overlapping textures overlap each other.
+  // This behavior has been seen with XFB copies in Rogue Leader.
+  // To get the correct result, we apply the texture updates in the order the textures were
+  // originally loaded. This ensures that the parts of the texture that would have been overwritten
+  // in memory on real hardware get overwritten the same way here too.
+  // This should work, but it may be a better idea to keep track of partial XFB copy invalidations
+  // instead, which would reduce the amount of copying work here.
+  std::vector<TCacheEntry*> candidates;
+
   auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
   while (iter.first != iter.second)
   {
@@ -1307,106 +1326,7 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
     {
       if (entry->hash == entry->CalculateHash())
       {
-        if (tex_info.is_palette_texture)
-        {
-          TCacheEntry* decoded_entry =
-              ApplyPaletteToEntry(entry, nullptr, tex_info.full_format.tlutfmt);
-          if (decoded_entry)
-          {
-            // Link the efb copy with the partially updated texture, so we won't apply this partial
-            // update again
-            entry->CreateReference(entry_to_update);
-            // Mark the texture update as used, as if it was loaded directly
-            entry->frameCount = FRAMECOUNT_INVALID;
-            entry = decoded_entry;
-          }
-          else
-          {
-            ++iter.first;
-            continue;
-          }
-        }
-
-        s32 src_x, src_y, dst_x, dst_y;
-
-        // Note for understanding the math:
-        // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
-        if (entry->addr >= entry_to_update->addr)
-        {
-          s32 block_offset = (entry->addr - entry_to_update->addr) / tex_info.bytes_per_block;
-          s32 block_x = block_offset % numBlocksX;
-          s32 block_y = block_offset / numBlocksX;
-          src_x = 0;
-          src_y = 0;
-          dst_x = block_x * tex_info.block_width;
-          dst_y = block_y * tex_info.block_height;
-        }
-        else
-        {
-          s32 block_offset = (entry_to_update->addr - entry->addr) / tex_info.bytes_per_block;
-          s32 block_x = block_offset % numBlocksX;
-          s32 block_y = block_offset / numBlocksX;
-          src_x = block_x * tex_info.block_width;
-          src_y = block_y * tex_info.block_height;
-          dst_x = 0;
-          dst_y = 0;
-        }
-
-        u32 copy_width =
-            std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
-        u32 copy_height =
-            std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
-
-        // If one of the textures is scaled, scale both with the current efb scaling factor
-        if (entry_to_update->native_width != entry_to_update->GetWidth() ||
-            entry_to_update->native_height != entry_to_update->GetHeight() ||
-            entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
-        {
-          ScaleTextureCacheEntryTo(entry_to_update,
-                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
-                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
-          ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
-                                   g_renderer->EFBToScaledY(entry->native_height));
-
-          src_x = g_renderer->EFBToScaledX(src_x);
-          src_y = g_renderer->EFBToScaledY(src_y);
-          dst_x = g_renderer->EFBToScaledX(dst_x);
-          dst_y = g_renderer->EFBToScaledY(dst_y);
-          copy_width = g_renderer->EFBToScaledX(copy_width);
-          copy_height = g_renderer->EFBToScaledY(copy_height);
-        }
-
-        MathUtil::Rectangle<int> srcrect, dstrect;
-        srcrect.left = src_x;
-        srcrect.top = src_y;
-        srcrect.right = (src_x + copy_width);
-        srcrect.bottom = (src_y + copy_height);
-
-        dstrect.left = dst_x;
-        dstrect.top = dst_y;
-        dstrect.right = (dst_x + copy_width);
-        dstrect.bottom = (dst_y + copy_height);
-
-        for (u32 layer = 0; layer < entry->texture->GetConfig().layers; layer++)
-        {
-          entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer,
-                                                             0, dstrect, layer, 0);
-        }
-        updated_entry = true;
-
-        if (tex_info.is_palette_texture)
-        {
-          // Remove the temporary converted texture, it won't be used anywhere else
-          // TODO: It would be nice to convert and copy in one step, but this code path isn't common
-          InvalidateTexture(GetTexCacheIter(entry));
-        }
-        else
-        {
-          // Link the two textures together, so we won't apply this partial update again
-          entry->CreateReference(entry_to_update);
-          // Mark the texture update as used, as if it was loaded directly
-          entry->frameCount = FRAMECOUNT_INVALID;
-        }
+        candidates.emplace_back(entry);
       }
       else
       {
@@ -1416,6 +1336,111 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
       }
     }
     ++iter.first;
+  }
+
+  std::sort(candidates.begin(), candidates.end(),
+            [](const TCacheEntry* a, const TCacheEntry* b) { return a->id < b->id; });
+
+  for (TCacheEntry* entry : candidates)
+  {
+    if (tex_info.is_palette_texture)
+    {
+      TCacheEntry* decoded_entry =
+          ApplyPaletteToEntry(entry, nullptr, tex_info.full_format.tlutfmt);
+      if (decoded_entry)
+      {
+        // Link the efb copy with the partially updated texture, so we won't apply this partial
+        // update again
+        entry->CreateReference(entry_to_update);
+        // Mark the texture update as used, as if it was loaded directly
+        entry->frameCount = FRAMECOUNT_INVALID;
+        entry = decoded_entry;
+      }
+      else
+      {
+        continue;
+      }
+    }
+
+    s32 src_x, src_y, dst_x, dst_y;
+
+    // Note for understanding the math:
+    // Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
+    if (entry->addr >= entry_to_update->addr)
+    {
+      s32 block_offset = (entry->addr - entry_to_update->addr) / tex_info.bytes_per_block;
+      s32 block_x = block_offset % numBlocksX;
+      s32 block_y = block_offset / numBlocksX;
+      src_x = 0;
+      src_y = 0;
+      dst_x = block_x * tex_info.block_width;
+      dst_y = block_y * tex_info.block_height;
+    }
+    else
+    {
+      s32 block_offset = (entry_to_update->addr - entry->addr) / tex_info.bytes_per_block;
+      s32 block_x = block_offset % numBlocksX;
+      s32 block_y = block_offset / numBlocksX;
+      src_x = block_x * tex_info.block_width;
+      src_y = block_y * tex_info.block_height;
+      dst_x = 0;
+      dst_y = 0;
+    }
+
+    u32 copy_width = std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
+    u32 copy_height =
+        std::min(entry->native_height - src_y, entry_to_update->native_height - dst_y);
+
+    // If one of the textures is scaled, scale both with the current efb scaling factor
+    if (entry_to_update->native_width != entry_to_update->GetWidth() ||
+        entry_to_update->native_height != entry_to_update->GetHeight() ||
+        entry->native_width != entry->GetWidth() || entry->native_height != entry->GetHeight())
+    {
+      ScaleTextureCacheEntryTo(entry_to_update,
+                               g_renderer->EFBToScaledX(entry_to_update->native_width),
+                               g_renderer->EFBToScaledY(entry_to_update->native_height));
+      ScaleTextureCacheEntryTo(entry, g_renderer->EFBToScaledX(entry->native_width),
+                               g_renderer->EFBToScaledY(entry->native_height));
+
+      src_x = g_renderer->EFBToScaledX(src_x);
+      src_y = g_renderer->EFBToScaledY(src_y);
+      dst_x = g_renderer->EFBToScaledX(dst_x);
+      dst_y = g_renderer->EFBToScaledY(dst_y);
+      copy_width = g_renderer->EFBToScaledX(copy_width);
+      copy_height = g_renderer->EFBToScaledY(copy_height);
+    }
+
+    MathUtil::Rectangle<int> srcrect, dstrect;
+    srcrect.left = src_x;
+    srcrect.top = src_y;
+    srcrect.right = (src_x + copy_width);
+    srcrect.bottom = (src_y + copy_height);
+
+    dstrect.left = dst_x;
+    dstrect.top = dst_y;
+    dstrect.right = (dst_x + copy_width);
+    dstrect.bottom = (dst_y + copy_height);
+
+    for (u32 layer = 0; layer < entry->texture->GetConfig().layers; layer++)
+    {
+      entry_to_update->texture->CopyRectangleFromTexture(entry->texture.get(), srcrect, layer, 0,
+                                                         dstrect, layer, 0);
+    }
+    updated_entry = true;
+
+    if (tex_info.is_palette_texture)
+    {
+      // Remove the temporary converted texture, it won't be used anywhere else
+      // TODO: It would be nice to convert and copy in one step, but this code path isn't common
+      InvalidateTexture(GetTexCacheIter(entry));
+    }
+    else
+    {
+      // Link the two textures together, so we won't apply this partial update again
+      entry->CreateReference(entry_to_update);
+      // Mark the texture update as used, as if it was loaded directly
+      entry->frameCount = FRAMECOUNT_INVALID;
+    }
   }
 
   return updated_entry;
@@ -1670,47 +1695,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   const u32 bytes_per_row = num_blocks_x * bytes_per_block;
   const u32 covered_range = num_blocks_y * dstStride;
 
-  if (copy_to_ram)
-  {
-    CopyFilterCoefficientArray coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
-    PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
-    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
-                         NeedsCopyFilterInShader(coefficients));
-    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect, scaleByHalf,
-            y_scale, gamma, clamp_top, clamp_bottom, coefficients);
-  }
-  else
-  {
-    if (is_xfb_copy)
-    {
-      UninitializeXFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
-    }
-    else
-    {
-      // Hack: Most games don't actually need the correct texture data in RAM
-      //       and we can just keep a copy in VRAM. We zero the memory so we
-      //       can check it hasn't changed before using our copy in VRAM.
-      u8* ptr = dst;
-      for (u32 i = 0; i < num_blocks_y; i++)
-      {
-        memset(ptr, 0, bytes_per_row);
-        ptr += dstStride;
-      }
-    }
-  }
-
-  if (g_bRecordFifoData)
-  {
-    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
-    u32 address = dstAddr;
-    for (u32 i = 0; i < num_blocks_y; i++)
-    {
-      FifoRecorder::GetInstance().UseMemory(address, bytes_per_row, MemoryUpdate::TEXTURE_MAP,
-                                            true);
-      address += dstStride;
-    }
-  }
-
   if (dstStride < bytes_per_row)
   {
     // This kind of efb copy results in a scrambled image.
@@ -1726,61 +1710,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     copy_to_vram = false;
   }
 
-  // Invalidate all textures, if they are either fully overwritten by our efb copy, or if they
-  // have a different stride than our efb copy. Partly overwritten textures with the same stride
-  // as our efb copy are marked to check them for partial texture updates.
-  // TODO: The logic to detect overlapping strided efb copies is not 100% accurate.
-  bool strided_efb_copy = dstStride != bytes_per_row;
-  auto iter = FindOverlappingTextures(dstAddr, covered_range);
-  while (iter.first != iter.second)
-  {
-    TCacheEntry* entry = iter.first->second;
-
-    if (entry->addr == dstAddr && entry->is_xfb_copy)
-    {
-      for (auto& reference : entry->references)
-      {
-        reference->reference_changed = true;
-      }
-    }
-
-    if (entry->OverlapsMemoryRange(dstAddr, covered_range))
-    {
-      u32 overlap_range = std::min(entry->addr + entry->size_in_bytes, dstAddr + covered_range) -
-                          std::max(entry->addr, dstAddr);
-      if (!copy_to_vram || entry->memory_stride != dstStride ||
-          (!strided_efb_copy && entry->size_in_bytes == overlap_range) ||
-          (strided_efb_copy && entry->size_in_bytes == overlap_range && entry->addr == dstAddr))
-      {
-        iter.first = InvalidateTexture(iter.first);
-        continue;
-      }
-      entry->may_have_overlapping_textures = true;
-
-      // There are cases (Rogue Squadron 2 / Texas Holdem on Wiiware) where
-      // for xfb copies the textures overlap which causes the hash of the first copy
-      // to be different (from when it was originally created).  This has no implications
-      // for XFB2Tex because the underlying memory doesn't change (dummy values) but
-      // can affect XFB2Ram when we compare the texture cache copy hash with the
-      // newly computed hash
-      // By calculating the hash when we receive overlapping xfbs, we are able
-      // to mitigate this
-      if (entry->is_xfb_copy && copy_to_ram)
-      {
-        entry->hash = entry->CalculateHash();
-      }
-
-      // Do not load textures by hash, if they were at least partly overwritten by an efb copy.
-      // In this case, comparing the hash is not enough to check, if two textures are identical.
-      if (entry->textures_by_hash_iter != textures_by_hash.end())
-      {
-        textures_by_hash.erase(entry->textures_by_hash_iter);
-        entry->textures_by_hash_iter = textures_by_hash.end();
-      }
-    }
-    ++iter.first;
-  }
-
+  TCacheEntry* entry = nullptr;
   if (copy_to_vram)
   {
     // create the texture
@@ -1790,8 +1720,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     config.height = scaled_tex_h;
     config.layers = FramebufferManagerBase::GetEFBLayers();
 
-    TCacheEntry* entry = AllocateCacheEntry(config);
-
+    entry = AllocateCacheEntry(config);
     if (entry)
     {
       entry->SetGeneralParameters(dstAddr, 0, baseFormat, is_xfb_copy);
@@ -1813,9 +1742,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                           clamp_top, clamp_bottom,
                           GetVRAMCopyFilterCoefficients(filter_coefficients));
 
-      u64 hash = entry->CalculateHash();
-      entry->SetHashes(hash, hash);
-
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
         static int efb_count = 0;
@@ -1833,10 +1759,225 @@ void TextureCacheBase::CopyRenderTargetToTexture(
                                               xfb_count++),
                              0);
       }
-
-      textures_by_address.emplace(dstAddr, entry);
     }
   }
+
+  if (copy_to_ram)
+  {
+    CopyFilterCoefficientArray coefficients = GetRAMCopyFilterCoefficients(filter_coefficients);
+    PEControl::PixelFormat srcFormat = bpmem.zcontrol.pixel_format;
+    EFBCopyParams format(srcFormat, dstFormat, is_depth_copy, isIntensity,
+                         NeedsCopyFilterInShader(coefficients));
+
+    std::unique_ptr<AbstractStagingTexture> staging_texture = GetEFBCopyStagingTexture();
+    if (staging_texture)
+    {
+      CopyEFB(staging_texture.get(), format, tex_w, bytes_per_row, num_blocks_y, dstStride, srcRect,
+              scaleByHalf, y_scale, gamma, clamp_top, clamp_bottom, coefficients);
+
+      // We can't defer if there is no VRAM copy (since we need to update the hash).
+      if (!copy_to_vram || !g_ActiveConfig.bDeferEFBCopies)
+      {
+        // Immediately flush it.
+        WriteEFBCopyToRAM(dst, bytes_per_row / sizeof(u32), num_blocks_y, dstStride,
+                          std::move(staging_texture));
+      }
+      else
+      {
+        // Defer the flush until later.
+        entry->pending_efb_copy = std::move(staging_texture);
+        entry->pending_efb_copy_width = bytes_per_row / sizeof(u32);
+        entry->pending_efb_copy_height = num_blocks_y;
+        entry->pending_efb_copy_invalidated = false;
+        m_pending_efb_copies.push_back(entry);
+      }
+    }
+  }
+  else
+  {
+    if (is_xfb_copy)
+    {
+      UninitializeXFBMemory(dst, dstStride, bytes_per_row, num_blocks_y);
+    }
+    else
+    {
+      // Hack: Most games don't actually need the correct texture data in RAM
+      //       and we can just keep a copy in VRAM. We zero the memory so we
+      //       can check it hasn't changed before using our copy in VRAM.
+      u8* ptr = dst;
+      for (u32 i = 0; i < num_blocks_y; i++)
+      {
+        std::memset(ptr, 0, bytes_per_row);
+        ptr += dstStride;
+      }
+    }
+  }
+
+  // Invalidate all textures, if they are either fully overwritten by our efb copy, or if they
+  // have a different stride than our efb copy. Partly overwritten textures with the same stride
+  // as our efb copy are marked to check them for partial texture updates.
+  // TODO: The logic to detect overlapping strided efb copies is not 100% accurate.
+  bool strided_efb_copy = dstStride != bytes_per_row;
+  auto iter = FindOverlappingTextures(dstAddr, covered_range);
+  while (iter.first != iter.second)
+  {
+    TCacheEntry* overlapping_entry = iter.first->second;
+
+    if (overlapping_entry->addr == dstAddr && overlapping_entry->is_xfb_copy)
+    {
+      for (auto& reference : overlapping_entry->references)
+      {
+        reference->reference_changed = true;
+      }
+    }
+
+    if (overlapping_entry->OverlapsMemoryRange(dstAddr, covered_range))
+    {
+      u32 overlap_range = std::min(overlapping_entry->addr + overlapping_entry->size_in_bytes,
+                                   dstAddr + covered_range) -
+                          std::max(overlapping_entry->addr, dstAddr);
+      if (!copy_to_vram || overlapping_entry->memory_stride != dstStride ||
+          (!strided_efb_copy && overlapping_entry->size_in_bytes == overlap_range) ||
+          (strided_efb_copy && overlapping_entry->size_in_bytes == overlap_range &&
+           overlapping_entry->addr == dstAddr))
+      {
+        // Pending EFB copies which are completely covered by this new copy can simply be tossed,
+        // instead of having to flush them later on, since this copy will write over everything.
+        iter.first = InvalidateTexture(iter.first, true);
+        continue;
+      }
+      overlapping_entry->may_have_overlapping_textures = true;
+
+      // There are cases (Rogue Squadron 2 / Texas Holdem on Wiiware) where
+      // for xfb copies the textures overlap which causes the hash of the first copy
+      // to be different (from when it was originally created).  This has no implications
+      // for XFB2Tex because the underlying memory doesn't change (dummy values) but
+      // can affect XFB2Ram when we compare the texture cache copy hash with the
+      // newly computed hash
+      // By calculating the hash when we receive overlapping xfbs, we are able
+      // to mitigate this
+      if (overlapping_entry->is_xfb_copy && copy_to_ram)
+      {
+        overlapping_entry->hash = overlapping_entry->CalculateHash();
+      }
+
+      // Do not load textures by hash, if they were at least partly overwritten by an efb copy.
+      // In this case, comparing the hash is not enough to check, if two textures are identical.
+      if (overlapping_entry->textures_by_hash_iter != textures_by_hash.end())
+      {
+        textures_by_hash.erase(overlapping_entry->textures_by_hash_iter);
+        overlapping_entry->textures_by_hash_iter = textures_by_hash.end();
+      }
+    }
+    ++iter.first;
+  }
+
+  if (g_bRecordFifoData)
+  {
+    // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
+    u32 address = dstAddr;
+    for (u32 i = 0; i < num_blocks_y; i++)
+    {
+      FifoRecorder::GetInstance().UseMemory(address, bytes_per_row, MemoryUpdate::TEXTURE_MAP,
+                                            true);
+      address += dstStride;
+    }
+  }
+
+  // Even if the copy is deferred, still compute the hash. This way if the copy is used as a texture
+  // in a subsequent draw before it is flushed, it will have the same hash.
+  if (entry)
+  {
+    const u64 hash = entry->CalculateHash();
+    entry->SetHashes(hash, hash);
+    textures_by_address.emplace(dstAddr, entry);
+  }
+}
+
+void TextureCacheBase::FlushEFBCopies()
+{
+  if (m_pending_efb_copies.empty())
+    return;
+
+  for (TCacheEntry* entry : m_pending_efb_copies)
+    FlushEFBCopy(entry);
+  m_pending_efb_copies.clear();
+}
+
+TextureConfig TextureCacheBase::GetEncodingTextureConfig()
+{
+  return TextureConfig(EFB_WIDTH * 4, 1024, 1, 1, 1, AbstractTextureFormat::BGRA8, true);
+}
+
+void TextureCacheBase::WriteEFBCopyToRAM(u8* dst_ptr, u32 width, u32 height, u32 stride,
+                                         std::unique_ptr<AbstractStagingTexture> staging_texture)
+{
+  MathUtil::Rectangle<int> copy_rect(0, 0, static_cast<int>(width), static_cast<int>(height));
+  staging_texture->ReadTexels(copy_rect, dst_ptr, stride);
+  ReleaseEFBCopyStagingTexture(std::move(staging_texture));
+}
+
+void TextureCacheBase::FlushEFBCopy(TCacheEntry* entry)
+{
+  // Copy from texture -> guest memory.
+  u8* const dst = Memory::GetPointer(entry->addr);
+  WriteEFBCopyToRAM(dst, entry->pending_efb_copy_width, entry->pending_efb_copy_height,
+                    entry->memory_stride, std::move(entry->pending_efb_copy));
+
+  // If the EFB copy was invalidated (e.g. the bloom case mentioned in InvalidateTexture), now is
+  // the time to clean up the TCacheEntry. In which case, we don't need to compute the new hash of
+  // the RAM copy. But we need to clean up the TCacheEntry, as InvalidateTexture doesn't free it.
+  if (entry->pending_efb_copy_invalidated)
+  {
+    delete entry;
+    return;
+  }
+
+  // Re-hash the texture now that the guest memory is populated.
+  // This should be safe because we'll catch any writes before the game can modify it.
+  const u64 hash = entry->CalculateHash();
+  entry->SetHashes(hash, hash);
+
+  // Check for any overlapping XFB copies which now need the hash recomputed.
+  // See the comment above regarding Rogue Squadron 2.
+  if (entry->is_xfb_copy)
+  {
+    const u32 covered_range = entry->pending_efb_copy_height * entry->memory_stride;
+    auto range = FindOverlappingTextures(entry->addr, covered_range);
+    for (auto iter = range.first; iter != range.second; ++iter)
+    {
+      TCacheEntry* overlapping_entry = iter->second;
+      if (overlapping_entry->may_have_overlapping_textures && overlapping_entry->is_xfb_copy &&
+          overlapping_entry->OverlapsMemoryRange(entry->addr, covered_range))
+      {
+        const u64 overlapping_hash = overlapping_entry->CalculateHash();
+        entry->SetHashes(overlapping_hash, overlapping_hash);
+      }
+    }
+  }
+}
+
+std::unique_ptr<AbstractStagingTexture> TextureCacheBase::GetEFBCopyStagingTexture()
+{
+  // Pull off the back first to re-use the most frequently used textures.
+  if (!m_efb_copy_staging_texture_pool.empty())
+  {
+    auto ptr = std::move(m_efb_copy_staging_texture_pool.back());
+    m_efb_copy_staging_texture_pool.pop_back();
+    return ptr;
+  }
+
+  std::unique_ptr<AbstractStagingTexture> tex =
+      g_renderer->CreateStagingTexture(StagingTextureType::Readback, GetEncodingTextureConfig());
+  if (!tex)
+    WARN_LOG(VIDEO, "Failed to create EFB copy staging texture");
+
+  return tex;
+}
+
+void TextureCacheBase::ReleaseEFBCopyStagingTexture(std::unique_ptr<AbstractStagingTexture> tex)
+{
+  m_efb_copy_staging_texture_pool.push_back(std::move(tex));
 }
 
 void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_row,
@@ -1966,7 +2107,7 @@ TextureCacheBase::FindOverlappingTextures(u32 addr, u32 size_in_bytes)
 }
 
 TextureCacheBase::TexAddrCache::iterator
-TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
+TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter, bool discard_pending_efb_copy)
 {
   if (iter == textures_by_address.end())
     return textures_by_address.end();
@@ -1991,8 +2132,38 @@ TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
     }
   }
 
+  // If this is a pending EFB copy, we don't want to flush it here.
+  // Why? Because let's say a game is rendering a bloom-type effect, using EFB copies to essentially
+  // downscale the framebuffer. Copy from EFB->Texture, draw texture to EFB, copy EFB->Texture,
+  // draw, repeat. The second copy will invalidate the first, forcing a flush. Which means we lose
+  // any benefit of EFB copy batching. So instead, let's just leave the EFB copy pending, but remove
+  // it from the texture cache. This way we don't use the old VRAM copy. When the EFB copies are
+  // eventually flushed, they will overwrite each other, and the end result should be the same.
+  if (entry->pending_efb_copy)
+  {
+    if (discard_pending_efb_copy)
+    {
+      // If the RAM copy is being completely overwritten by a new EFB copy, we can discard the
+      // existing pending copy, and not bother waiting for it in the future. This happens in
+      // Xenoblade's sunset scene, where 35 copies are done per frame, and 25 of them are
+      // copied to the same address, and can be skipped.
+      ReleaseEFBCopyStagingTexture(std::move(entry->pending_efb_copy));
+      auto pending_it = std::find(m_pending_efb_copies.begin(), m_pending_efb_copies.end(), entry);
+      if (pending_it != m_pending_efb_copies.end())
+        m_pending_efb_copies.erase(pending_it);
+    }
+    else
+    {
+      entry->pending_efb_copy_invalidated = true;
+    }
+  }
+
   auto config = entry->texture->GetConfig();
   texture_pool.emplace(config, TexPoolEntry(std::move(entry->texture)));
+
+  // Don't delete if there's a pending EFB copy, as we need the TCacheEntry alive.
+  if (!entry->pending_efb_copy)
+    delete entry;
 
   return textures_by_address.erase(iter);
 }

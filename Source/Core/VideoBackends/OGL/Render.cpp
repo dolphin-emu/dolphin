@@ -16,7 +16,7 @@
 #include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
@@ -353,9 +353,11 @@ static void InitDriverInfo()
 }
 
 // Init functions
-Renderer::Renderer()
-    : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
+Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
+    : ::Renderer(static_cast<int>(std::max(main_gl_context->GetBackBufferWidth(), 1u)),
+                 static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u)),
+                 AbstractTextureFormat::RGBA8),
+      m_main_gl_context(std::move(main_gl_context))
 {
   bool bSuccess = true;
 
@@ -365,7 +367,7 @@ Renderer::Renderer()
 
   InitDriverInfo();
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+  if (!m_main_gl_context->IsGLES())
   {
     if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
     {
@@ -473,6 +475,7 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsDynamicSamplerIndexing =
       GLExtensions::Supports("GL_ARB_gpu_shader5");
 
+  g_ogl_config.bIsES = m_main_gl_context->IsGLES();
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
@@ -500,7 +503,7 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsBPTCTextures =
       GLExtensions::Supports("GL_ARB_texture_compression_bptc");
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  if (m_main_gl_context->IsGLES())
   {
     g_ogl_config.SupportedESPointSize =
         GLExtensions::Supports("GL_OES_geometry_point_size") ?
@@ -730,10 +733,9 @@ Renderer::Renderer()
 
   if (!g_ogl_config.bSupportsGLBufferStorage && !g_ogl_config.bSupportsGLPinnedMemory)
   {
-    OSD::AddMessage(
-        StringFromFormat("Your OpenGL driver does not support %s_buffer_storage.",
-                         GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 ? "EXT" : "ARB"),
-        60000);
+    OSD::AddMessage(StringFromFormat("Your OpenGL driver does not support %s_buffer_storage.",
+                                     m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
+                    60000);
     OSD::AddMessage("This device's performance will be terrible.", 60000);
     OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
   }
@@ -761,7 +763,7 @@ Renderer::Renderer()
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-    GLInterface->SwapInterval(s_vsync);
+    m_main_gl_context->SwapInterval(s_vsync);
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
@@ -796,7 +798,7 @@ Renderer::Renderer()
   glClearDepthf(1.0f);
 
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+    GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
   IndexGenerator::Init();
 
   UpdateActiveConfig();
@@ -804,6 +806,28 @@ Renderer::Renderer()
 }
 
 Renderer::~Renderer() = default;
+
+bool Renderer::IsHeadless() const
+{
+  return m_main_gl_context->IsHeadless();
+}
+
+bool Renderer::Initialize()
+{
+  if (!::Renderer::Initialize())
+    return false;
+
+  // Initialize the FramebufferManager
+  g_framebuffer_manager = std::make_unique<FramebufferManager>(
+      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
+  m_current_framebuffer_width = m_target_width;
+  m_current_framebuffer_height = m_target_height;
+
+  m_post_processor = std::make_unique<OpenGLPostProcessing>();
+  s_raster_font = std::make_unique<RasterFont>();
+
+  return true;
+}
 
 void Renderer::Shutdown()
 {
@@ -814,18 +838,6 @@ void Renderer::Shutdown()
 
   s_raster_font.reset();
   m_post_processor.reset();
-}
-
-void Renderer::Init()
-{
-  // Initialize the FramebufferManager
-  g_framebuffer_manager = std::make_unique<FramebufferManager>(
-      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
-  m_current_framebuffer_width = m_target_width;
-  m_current_framebuffer_height = m_target_height;
-
-  m_post_processor = std::make_unique<OpenGLPostProcessing>();
-  s_raster_font = std::make_unique<RasterFont>();
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -1044,7 +1056,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
       std::unique_ptr<u32[]> colorMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
 
-      if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+      if (IsGLES())
         // XXX: Swap colours
         glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth,
                      targetPixelRcHeight, GL_RGBA, GL_UNSIGNED_BYTE, colorMap.get());
@@ -1170,6 +1182,27 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   }
 
   glDepthRangef(near_depth, far_depth);
+}
+
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  glDrawArrays(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(), base_vertex,
+               num_vertices);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  if (g_ogl_config.bSupportsGLBaseVertex)
+  {
+    glDrawElementsBaseVertex(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(),
+                             num_indices, GL_UNSIGNED_SHORT,
+                             static_cast<u16*>(nullptr) + base_index, base_vertex);
+  }
+  else
+  {
+    glDrawElements(static_cast<const OGLPipeline*>(m_graphics_pipeline)->GetGLPrimitive(),
+                   num_indices, GL_UNSIGNED_SHORT, static_cast<u16*>(nullptr) + base_index);
+  }
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -1351,7 +1384,7 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
       GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
       GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
 
-  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+  if (IsGLES())
   {
     // Logic ops aren't available in GLES3
   }
@@ -1421,7 +1454,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     OSD::DrawMessages();
 
     // Swap the back and front buffers, presenting the image.
-    GLInterface->Swap();
+    m_main_gl_context->Swap();
   }
   else
   {
@@ -1466,7 +1499,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   {
     s_vsync = g_ActiveConfig.IsVSync();
     if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-      GLInterface->SwapInterval(s_vsync);
+      m_main_gl_context->SwapInterval(s_vsync);
   }
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
@@ -1495,19 +1528,24 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   ClearEFBCache();
 }
 
+void Renderer::Flush()
+{
+  // ensure all commands are sent to the GPU.
+  // Otherwise the driver could batch several frames togehter.
+  glFlush();
+}
+
 void Renderer::CheckForSurfaceChange()
 {
   if (!m_surface_changed.TestAndClear())
     return;
 
-  m_surface_handle = m_new_surface_handle;
+  m_main_gl_context->UpdateSurface(m_new_surface_handle);
   m_new_surface_handle = nullptr;
-  GLInterface->UpdateHandle(m_surface_handle);
-  GLInterface->UpdateSurface();
 
   // With a surface change, the window likely has new dimensions.
-  m_backbuffer_width = GLInterface->GetBackBufferWidth();
-  m_backbuffer_height = GLInterface->GetBackBufferHeight();
+  m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
+  m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
 }
 
 void Renderer::CheckForSurfaceResize()
@@ -1515,9 +1553,9 @@ void Renderer::CheckForSurfaceResize()
   if (!m_surface_resized.TestAndClear())
     return;
 
-  GLInterface->Update();
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
+  m_main_gl_context->Update();
+  m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
+  m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
 }
 
 void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
@@ -1538,7 +1576,7 @@ void Renderer::ResetAPIState()
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+  if (!IsGLES())
     glDisable(GL_COLOR_LOGIC_OP);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
@@ -1665,56 +1703,8 @@ void Renderer::SetInterlacingMode()
   // TODO
 }
 
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Copy in uniforms.
-  if (uniforms_size > 0)
-    UploadUtilityUniforms(uniforms, uniforms_size);
-
-  // Draw from base index if there is vertex data.
-  if (vertices)
-  {
-    StreamBuffer* vbuf = static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBuffer();
-    auto buf = vbuf->Map(vertex_stride * num_vertices, vertex_stride);
-    std::memcpy(buf.first, vertices, vertex_stride * num_vertices);
-    vbuf->Unmap(vertex_stride * num_vertices);
-    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), buf.second / vertex_stride, num_vertices);
-  }
-  else
-  {
-    glDrawArrays(m_graphics_pipeline->GetGLPrimitive(), 0, num_vertices);
-  }
-}
-
-void Renderer::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
-{
-  DEBUG_ASSERT(uniforms_size > 0);
-
-  auto buf = ProgramShaderCache::GetUniformBuffer()->Map(
-      uniforms_size, ProgramShaderCache::GetUniformBufferAlignment());
-  std::memcpy(buf.first, uniforms, uniforms_size);
-  ProgramShaderCache::GetUniformBuffer()->Unmap(uniforms_size);
-  glBindBufferRange(GL_UNIFORM_BUFFER, 1, ProgramShaderCache::GetUniformBuffer()->m_buffer,
-                    buf.second, uniforms_size);
-
-  // This is rather horrible, but because of how the UBOs are bound, this forces it to rebind.
-  ProgramShaderCache::InvalidateConstants();
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  glUseProgram(static_cast<const OGLShader*>(shader)->GetGLComputeProgramID());
-  if (uniforms_size > 0)
-    UploadUtilityUniforms(uniforms, uniforms_size);
-
-  glDispatchCompute(groups_x, groups_y, groups_z);
-  ProgramShaderCache::InvalidateLastProgram();
-}
-
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
 {
   return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
-}
+}  // namespace OGL

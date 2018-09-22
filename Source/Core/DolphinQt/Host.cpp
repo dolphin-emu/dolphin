@@ -19,6 +19,8 @@
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -30,14 +32,18 @@ Host* Host::GetInstance()
   return s_instance;
 }
 
-void* Host::GetRenderHandle()
-{
-  return m_render_handle;
-}
-
 void Host::SetRenderHandle(void* handle)
 {
+  if (m_render_handle == handle)
+    return;
+
   m_render_handle = handle;
+  if (g_renderer)
+  {
+    g_renderer->ChangeSurface(handle);
+    if (g_controller_interface.IsInit())
+      g_controller_interface.ChangeWindow(handle);
+  }
 }
 
 bool Host::GetRenderFocus()
@@ -72,7 +78,7 @@ void Host::SetRenderFullscreen(bool fullscreen)
 void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
-    g_renderer->ResizeSurface(new_width, new_height);
+    g_renderer->ResizeSurface();
 }
 
 void Host_Message(HostMessageID id)
@@ -92,11 +98,6 @@ void Host_Message(HostMessageID id)
 void Host_UpdateTitle(const std::string& title)
 {
   emit Host::GetInstance()->RequestTitle(QString::fromStdString(title));
-}
-
-void* Host_GetRenderHandle()
-{
-  return Host::GetInstance()->GetRenderHandle();
 }
 
 bool Host_RendererHasFocus()
@@ -149,9 +150,6 @@ void Host_RequestRenderWindowSize(int w, int h)
 bool Host_UINeedsControllerState()
 {
   return Settings::Instance().IsControllerStateNeeded();
-}
-void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
-{
 }
 void Host_RefreshDSPDebuggerWindow()
 {

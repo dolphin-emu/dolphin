@@ -29,10 +29,31 @@ const ConfigInfo<u16> NETPLAY_LISTEN_PORT{{System::Main, "NetPlay", "ListenPort"
                                           DEFAULT_LISTEN_PORT};
 
 const ConfigInfo<std::string> NETPLAY_NICKNAME{{System::Main, "NetPlay", "Nickname"}, "Player"};
-const ConfigInfo<std::string> NETPLAY_SELECTED_HOST_GAME{
-    {System::Main, "NetPlay", "SelectedHostGame"}, ""};
 const ConfigInfo<bool> NETPLAY_USE_UPNP{{System::Main, "NetPlay", "UseUPNP"}, false};
 
 const ConfigInfo<bool> NETPLAY_ENABLE_QOS{{System::Main, "NetPlay", "EnableQoS"}, true};
+
+const ConfigInfo<bool> NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT{
+    {System::Main, "NetPlay", "EnableChunkedUploadLimit"}, false};
+const ConfigInfo<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT{{System::Main, "NetPlay", "ChunkedUploadLimit"},
+                                                   3000};
+
+const ConfigInfo<u32> NETPLAY_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSize"}, 5};
+const ConfigInfo<u32> NETPLAY_CLIENT_BUFFER_SIZE{{System::Main, "NetPlay", "BufferSizeClient"}, 1};
+
+const ConfigInfo<bool> NETPLAY_WRITE_SAVE_SDCARD_DATA{
+    {System::Main, "NetPlay", "WriteSaveSDCardData"}, false};
+const ConfigInfo<bool> NETPLAY_LOAD_WII_SAVE{{System::Main, "NetPlay", "LoadWiiSave"}, false};
+const ConfigInfo<bool> NETPLAY_SYNC_SAVES{{System::Main, "NetPlay", "SyncSaves"}, true};
+const ConfigInfo<bool> NETPLAY_SYNC_CODES{{System::Main, "NetPlay", "SyncCodes"}, true};
+const ConfigInfo<bool> NETPLAY_RECORD_INPUTS{{System::Main, "NetPlay", "RecordInputs"}, false};
+const ConfigInfo<bool> NETPLAY_REDUCE_POLLING_RATE{{System::Main, "NetPlay", "ReducePollingRate"},
+                                                   false};
+const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "StrictSettingsSync"},
+                                                    false};
+const ConfigInfo<bool> NETPLAY_HOST_INPUT_AUTHORITY{{System::Main, "NetPlay", "HostInputAuthority"},
+                                                    false};
+const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES{{System::Main, "NetPlay", "SyncAllWiiSaves"},
+                                                  false};
 
 }  // namespace Config

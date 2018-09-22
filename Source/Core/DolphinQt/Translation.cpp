@@ -148,7 +148,7 @@ public:
 
     if (!file)
     {
-      ERROR_LOG(COMMON, "Error reading MO file '%s'", filename.c_str());
+      WARN_LOG(COMMON, "Error reading MO file '%s'", filename.c_str());
       m_data = {};
       return;
     }
@@ -264,6 +264,9 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 #elif defined __APPLE__
         File::GetBundleDirectory() +
         StringFromFormat("/Contents/Resources/%s.lproj/dolphin-emu.mo", lang.c_str())
+#elif defined LINUX_LOCAL_DEV
+        File::GetExeDirectory() +
+        StringFromFormat("/../Source/Core/DolphinQt/%s/dolphin-emu.mo", lang.c_str())
 #else
         StringFromFormat(DATA_DIR "/../locale/%s/LC_MESSAGES/dolphin-emu.mo", lang.c_str())
 #endif
@@ -281,6 +284,7 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     }
     translator->deleteLater();
   }
+  ERROR_LOG(COMMON, "No suitable translation file found");
   return false;
 }
 

@@ -67,6 +67,6 @@ private:
   std::function<u64()> m_get_register;
   std::function<void(u64)> m_set_register;
 
-  u64 m_value;
+  u64 m_value = 0;
   RegisterDisplay m_display = RegisterDisplay::Hex;
 };

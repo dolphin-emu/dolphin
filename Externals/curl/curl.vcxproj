@@ -11,25 +11,37 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="lib\amigaos.c" />
-    <ClCompile Include="lib\asyn-ares.c" />
+    <ClCompile Include="lib\amigaos.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\asyn-ares.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\asyn-thread.c" />
     <ClCompile Include="lib\base64.c" />
     <ClCompile Include="lib\conncache.c" />
     <ClCompile Include="lib\connect.c" />
-    <ClCompile Include="lib\content_encoding.c" />
+    <ClCompile Include="lib\content_encoding.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\cookie.c" />
     <ClCompile Include="lib\curl_addrinfo.c" />
     <ClCompile Include="lib\curl_des.c" />
     <ClCompile Include="lib\curl_endian.c" />
     <ClCompile Include="lib\curl_fnmatch.c" />
     <ClCompile Include="lib\curl_gethostname.c" />
-    <ClCompile Include="lib\curl_gssapi.c" />
+    <ClCompile Include="lib\curl_gssapi.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\curl_memrchr.c" />
     <ClCompile Include="lib\curl_multibyte.c" />
     <ClCompile Include="lib\curl_ntlm_core.c" />
-    <ClCompile Include="lib\curl_ntlm_wb.c" />
-    <ClCompile Include="lib\curl_rtmp.c" />
+    <ClCompile Include="lib\curl_ntlm_wb.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\curl_rtmp.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\curl_sasl.c" />
     <ClCompile Include="lib\curl_sspi.c" />
     <ClCompile Include="lib\curl_threads.c" />
@@ -48,11 +60,17 @@
     <ClCompile Include="lib\hash.c" />
     <ClCompile Include="lib\hmac.c" />
     <ClCompile Include="lib\hostasyn.c" />
-    <ClCompile Include="lib\hostcheck.c" />
+    <ClCompile Include="lib\hostcheck.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\hostip.c" />
     <ClCompile Include="lib\hostip4.c" />
-    <ClCompile Include="lib\hostip6.c" />
-    <ClCompile Include="lib\hostsyn.c" />
+    <ClCompile Include="lib\hostip6.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\hostsyn.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\http.c" />
     <ClCompile Include="lib\http2.c" />
     <ClCompile Include="lib\http_chunks.c" />
@@ -60,25 +78,43 @@
     <ClCompile Include="lib\http_negotiate.c" />
     <ClCompile Include="lib\http_ntlm.c" />
     <ClCompile Include="lib\http_proxy.c" />
-    <ClCompile Include="lib\idn_win32.c" />
+    <ClCompile Include="lib\idn_win32.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\if2ip.c" />
     <ClCompile Include="lib\imap.c" />
     <ClCompile Include="lib\inet_ntop.c" />
     <ClCompile Include="lib\inet_pton.c" />
-    <ClCompile Include="lib\krb5.c" />
-    <ClCompile Include="lib\ldap.c" />
+    <ClCompile Include="lib\krb5.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\ldap.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\llist.c" />
-    <ClCompile Include="lib\md4.c" />
+    <ClCompile Include="lib\md4.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\md5.c" />
-    <ClCompile Include="lib\memdebug.c" />
+    <ClCompile Include="lib\memdebug.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\mprintf.c" />
     <ClCompile Include="lib\multi.c" />
     <ClCompile Include="lib\netrc.c" />
-    <ClCompile Include="lib\non-ascii.c" />
+    <ClCompile Include="lib\non-ascii.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\nonblock.c" />
-    <ClCompile Include="lib\nwlib.c" />
-    <ClCompile Include="lib\nwos.c" />
-    <ClCompile Include="lib\openldap.c" />
+    <ClCompile Include="lib\nwlib.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\nwos.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\openldap.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\parsedate.c" />
     <ClCompile Include="lib\pingpong.c" />
     <ClCompile Include="lib\pipeline.c" />
@@ -86,7 +122,9 @@
     <ClCompile Include="lib\progress.c" />
     <ClCompile Include="lib\rawstr.c" />
     <ClCompile Include="lib\rtsp.c" />
-    <ClCompile Include="lib\security.c" />
+    <ClCompile Include="lib\security.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\select.c" />
     <ClCompile Include="lib\sendf.c" />
     <ClCompile Include="lib\share.c" />
@@ -94,16 +132,22 @@
     <ClCompile Include="lib\smb.c" />
     <ClCompile Include="lib\smtp.c" />
     <ClCompile Include="lib\socks.c" />
-    <ClCompile Include="lib\socks_gssapi.c" />
+    <ClCompile Include="lib\socks_gssapi.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\socks_sspi.c" />
     <ClCompile Include="lib\speedcheck.c" />
     <ClCompile Include="lib\splay.c" />
-    <ClCompile Include="lib\ssh.c" />
+    <ClCompile Include="lib\ssh.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\strdup.c" />
     <ClCompile Include="lib\strequal.c" />
     <ClCompile Include="lib\strerror.c" />
     <ClCompile Include="lib\strtok.c" />
-    <ClCompile Include="lib\strtoofft.c" />
+    <ClCompile Include="lib\strtoofft.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\system_win32.c" />
     <ClCompile Include="lib\telnet.c" />
     <ClCompile Include="lib\tftp.c" />
@@ -114,25 +158,51 @@
     <ClCompile Include="lib\vauth\cram.c" />
     <ClCompile Include="lib\vauth\digest.c" />
     <ClCompile Include="lib\vauth\digest_sspi.c" />
-    <ClCompile Include="lib\vauth\krb5_gssapi.c" />
+    <ClCompile Include="lib\vauth\krb5_gssapi.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\vauth\krb5_sspi.c" />
-    <ClCompile Include="lib\vauth\ntlm.c" />
+    <ClCompile Include="lib\vauth\ntlm.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\vauth\ntlm_sspi.c" />
     <ClCompile Include="lib\vauth\oauth2.c" />
-    <ClCompile Include="lib\vauth\spnego_gssapi.c" />
+    <ClCompile Include="lib\vauth\spnego_gssapi.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\vauth\spnego_sspi.c" />
     <ClCompile Include="lib\vauth\vauth.c" />
     <ClCompile Include="lib\version.c" />
-    <ClCompile Include="lib\vtls\axtls.c" />
-    <ClCompile Include="lib\vtls\cyassl.c" />
-    <ClCompile Include="lib\vtls\darwinssl.c" />
-    <ClCompile Include="lib\vtls\gskit.c" />
-    <ClCompile Include="lib\vtls\gtls.c" />
-    <ClCompile Include="lib\vtls\mbedtls.c" />
-    <ClCompile Include="lib\vtls\nss.c" />
-    <ClCompile Include="lib\vtls\openssl.c" />
-    <ClCompile Include="lib\vtls\polarssl.c" />
-    <ClCompile Include="lib\vtls\polarssl_threadlock.c" />
+    <ClCompile Include="lib\vtls\axtls.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\cyassl.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\darwinssl.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\gskit.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\gtls.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\mbedtls.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\nss.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\openssl.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\polarssl.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="lib\vtls\polarssl_threadlock.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="lib\vtls\schannel.c" />
     <ClCompile Include="lib\vtls\vtls.c" />
     <ClCompile Include="lib\warnless.c" />
@@ -286,7 +356,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BB00605C-125F-4A21-B33B-7BF418322DCB}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -313,7 +383,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)curl\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>BUILDING_LIBCURL;CURL_STATICLIB;CURL_DISABLE_LDAP;USE_WINDOWS_SSPI;USE_SCHANNEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;CURL_DISABLE_LDAP;USE_WINDOWS_SSPI;USE_SCHANNEL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -383,6 +383,11 @@ s32 WFSSRV::Rename(std::string source, std::string dest) const
   return IPC_SUCCESS;
 }
 
+void WFSSRV::SetHomeDir(const std::string& home_directory)
+{
+  m_home_directory = home_directory;
+}
+
 std::string WFSSRV::NormalizePath(const std::string& path) const
 {
   std::string expanded;

@@ -236,26 +236,25 @@ if(_M_X86)
     DSP/Jit/x64/DSPJitMultiplier.cpp
     DSP/Jit/x64/DSPJitTables.cpp
     DSP/Jit/x64/DSPJitUtil.cpp
-    PowerPC/Jit64/FPURegCache.cpp
-    PowerPC/Jit64/GPRRegCache.cpp
-    PowerPC/Jit64/Jit64_Tables.cpp
-    PowerPC/Jit64/JitAsm.cpp
-    PowerPC/Jit64/Jit_Branch.cpp
     PowerPC/Jit64/Jit.cpp
+    PowerPC/Jit64/Jit64_Tables.cpp
+    PowerPC/Jit64/Jit_Branch.cpp
     PowerPC/Jit64/Jit_FloatingPoint.cpp
     PowerPC/Jit64/Jit_Integer.cpp
     PowerPC/Jit64/Jit_LoadStore.cpp
     PowerPC/Jit64/Jit_LoadStoreFloating.cpp
     PowerPC/Jit64/Jit_LoadStorePaired.cpp
     PowerPC/Jit64/Jit_Paired.cpp
-    PowerPC/Jit64/JitRegCache.cpp
     PowerPC/Jit64/Jit_SystemRegisters.cpp
+    PowerPC/Jit64/JitAsm.cpp
+    PowerPC/Jit64/RegCache/FPURegCache.cpp
+    PowerPC/Jit64/RegCache/GPRRegCache.cpp
+    PowerPC/Jit64/RegCache/JitRegCache.cpp
     PowerPC/Jit64Common/BlockCache.cpp
     PowerPC/Jit64Common/ConstantPool.cpp
     PowerPC/Jit64Common/EmuCodeBlock.cpp
     PowerPC/Jit64Common/FarCodeCache.cpp
     PowerPC/Jit64Common/Jit64AsmCommon.cpp
-    PowerPC/Jit64Common/Jit64Base.cpp
     PowerPC/Jit64Common/TrampolineCache.cpp
   )
 elseif(_M_ARM_64)
@@ -293,6 +292,7 @@ PUBLIC
   videonull
   videoogl
   videosoftware
+  videovulkan
 
 PRIVATE
   ${LZO}
@@ -320,10 +320,6 @@ if(LIBUSB_FOUND)
     IOS/USB/LibusbDevice.cpp
     IOS/USB/Bluetooth/BTReal.cpp
   )
-endif()
-
-if(NOT APPLE)
-  target_link_libraries(core PUBLIC videovulkan)
 endif()
 
 if(WIN32)

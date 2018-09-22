@@ -264,7 +264,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, RegisterExtensi
     CMP(64, R(host_dreg), acc_reg);
     FixupBranch no_saturate = J_CC(CC_Z);
 
-    CMP(64, acc_reg, Imm32(0));
+    TEST(64, acc_reg, acc_reg);
     FixupBranch negative = J_CC(CC_LE);
 
     MOV(64, R(host_dreg), Imm32(0x7fff));  // this works for all extend modes
@@ -594,7 +594,6 @@ void DSPEmitter::dmem_read(X64Reg address)
   FixupBranch dram = J_CC(CC_A);
   //	return g_dsp.dram[addr & DSP_DRAM_MASK];
   AND(32, R(address), Imm32(DSP_DRAM_MASK));
-  MOVZX(64, 16, address, R(address));
   MOV(64, R(ECX), ImmPtr(g_dsp.dram));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 
@@ -605,7 +604,6 @@ void DSPEmitter::dmem_read(X64Reg address)
   FixupBranch ifx = J_CC(CC_A);
   //		return g_dsp.coef[addr & DSP_COEF_MASK];
   AND(32, R(address), Imm32(DSP_COEF_MASK));
-  MOVZX(64, 16, address, R(address));
   MOV(64, R(ECX), ImmPtr(g_dsp.coef));
   MOV(16, R(EAX), MComplex(ECX, address, SCALE_2, 0));
 

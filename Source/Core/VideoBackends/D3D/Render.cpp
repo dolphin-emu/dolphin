@@ -63,7 +63,7 @@ typedef struct _Nv_Stereo_Image_Header
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
 Renderer::Renderer(int backbuffer_width, int backbuffer_height)
-    : ::Renderer(backbuffer_width, backbuffer_height)
+    : ::Renderer(backbuffer_width, backbuffer_height, AbstractTextureFormat::RGBA8)
 {
   m_last_multisamples = g_ActiveConfig.iMultisamples;
   m_last_stereo_mode = g_ActiveConfig.stereo_mode != StereoMode::Off;
@@ -167,16 +167,6 @@ void Renderer::SetupDeviceObjects()
   D3D::SetDebugObjectName(m_reset_rast_state, "rasterizer state for Renderer::ResetAPIState");
 
   m_screenshot_texture = nullptr;
-
-  CD3D11_BUFFER_DESC vbo_desc(UTILITY_VBO_SIZE, D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC,
-                              D3D11_CPU_ACCESS_WRITE);
-  hr = D3D::device->CreateBuffer(&vbo_desc, nullptr, &m_utility_vertex_buffer);
-  CHECK(SUCCEEDED(hr), "Create utility VBO");
-
-  CD3D11_BUFFER_DESC ubo_desc(UTILITY_UBO_SIZE, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC,
-                              D3D11_CPU_ACCESS_WRITE);
-  hr = D3D::device->CreateBuffer(&ubo_desc, nullptr, &m_utility_uniform_buffer);
-  CHECK(SUCCEEDED(hr), "Create utility UBO");
 }
 
 // Kill off all device objects
@@ -196,8 +186,6 @@ void Renderer::TeardownDeviceObjects()
   SAFE_RELEASE(m_reset_rast_state);
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);
-  SAFE_RELEASE(m_utility_vertex_buffer);
-  SAFE_RELEASE(m_utility_uniform_buffer);
 }
 
 void Renderer::Create3DVisionTexture(int width, int height)
@@ -223,6 +211,11 @@ void Renderer::Create3DVisionTexture(int width, int height)
   m_3d_vision_texture =
       D3DTexture2D::Create(width * 2, height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT,
                            DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sys_data);
+}
+
+bool Renderer::IsHeadless() const
+{
+  return D3D::swapchain == nullptr;
 }
 
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
@@ -268,25 +261,6 @@ std::unique_ptr<AbstractPipeline> Renderer::CreatePipeline(const AbstractPipelin
   return DXPipeline::Create(config);
 }
 
-void Renderer::UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size)
-{
-  DEBUG_ASSERT(uniforms_size > 0 && uniforms_size < UTILITY_UBO_SIZE);
-  D3D11_MAPPED_SUBRESOURCE mapped;
-  HRESULT hr = D3D::context->Map(m_utility_uniform_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-  CHECK(SUCCEEDED(hr), "Map utility UBO");
-  std::memcpy(mapped.pData, uniforms, uniforms_size);
-  D3D::context->Unmap(m_utility_uniform_buffer, 0);
-}
-
-void Renderer::UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices)
-{
-  D3D11_MAPPED_SUBRESOURCE mapped;
-  HRESULT hr = D3D::context->Map(m_utility_vertex_buffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-  CHECK(SUCCEEDED(hr), "Map utility VBO");
-  std::memcpy(mapped.pData, vertices, num_vertices * vertex_stride);
-  D3D::context->Unmap(m_utility_vertex_buffer, 0);
-}
-
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
   const DXPipeline* dx_pipeline = static_cast<const DXPipeline*>(pipeline);
@@ -301,54 +275,6 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   D3D::stateman->SetVertexShader(dx_pipeline->GetVertexShader());
   D3D::stateman->SetGeometryShader(dx_pipeline->GetGeometryShader());
   D3D::stateman->SetPixelShader(dx_pipeline->GetPixelShader());
-}
-
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Copy in uniforms.
-  if (uniforms_size > 0)
-  {
-    UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-    D3D::stateman->SetVertexConstants(m_utility_uniform_buffer);
-    D3D::stateman->SetPixelConstants(m_utility_uniform_buffer);
-    D3D::stateman->SetGeometryConstants(m_utility_uniform_buffer);
-  }
-
-  // If the vertices are larger than our buffer, we need to break it up into multiple draws.
-  const char* vertices_ptr = static_cast<const char*>(vertices);
-  while (num_vertices > 0)
-  {
-    u32 vertices_this_draw = num_vertices;
-    if (vertices_ptr)
-    {
-      vertices_this_draw = std::min(vertices_this_draw, UTILITY_VBO_SIZE / vertex_stride);
-      DEBUG_ASSERT(vertices_this_draw > 0);
-      UpdateUtilityVertexBuffer(vertices_ptr, vertex_stride, vertices_this_draw);
-      D3D::stateman->SetVertexBuffer(m_utility_vertex_buffer, vertex_stride, 0);
-    }
-
-    // Apply pending state and draw.
-    D3D::stateman->Apply();
-    D3D::context->Draw(vertices_this_draw, 0);
-    vertices_ptr += vertex_stride * vertices_this_draw;
-    num_vertices -= vertices_this_draw;
-  }
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  D3D::stateman->SetComputeShader(static_cast<const DXShader*>(shader)->GetD3DComputeShader());
-
-  if (uniforms_size > 0)
-  {
-    UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-    D3D::stateman->SetComputeConstants(m_utility_uniform_buffer);
-  }
-
-  D3D::stateman->Apply();
-  D3D::context->Dispatch(groups_x, groups_y, groups_z);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -544,13 +470,27 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
 {
   // In D3D, the viewport rectangle must fit within the render target.
   D3D11_VIEWPORT vp;
-  vp.TopLeftX = MathUtil::Clamp(x, 0.0f, static_cast<float>(m_target_width - 1));
-  vp.TopLeftY = MathUtil::Clamp(y, 0.0f, static_cast<float>(m_target_height - 1));
-  vp.Width = MathUtil::Clamp(width, 1.0f, static_cast<float>(m_target_width) - vp.TopLeftX);
-  vp.Height = MathUtil::Clamp(height, 1.0f, static_cast<float>(m_target_height) - vp.TopLeftY);
+  vp.TopLeftX = MathUtil::Clamp(x, 0.0f, static_cast<float>(m_current_framebuffer_width - 1));
+  vp.TopLeftY = MathUtil::Clamp(y, 0.0f, static_cast<float>(m_current_framebuffer_height - 1));
+  vp.Width =
+      MathUtil::Clamp(width, 1.0f, static_cast<float>(m_current_framebuffer_width) - vp.TopLeftX);
+  vp.Height =
+      MathUtil::Clamp(height, 1.0f, static_cast<float>(m_current_framebuffer_height) - vp.TopLeftY);
   vp.MinDepth = near_depth;
   vp.MaxDepth = far_depth;
   D3D::context->RSSetViewports(1, &vp);
+}
+
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  D3D::stateman->Apply();
+  D3D::context->Draw(num_vertices, base_vertex);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  D3D::stateman->Apply();
+  D3D::context->DrawIndexed(num_indices, base_index, base_vertex);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -698,12 +638,12 @@ void Renderer::CheckForSurfaceChange()
   if (!m_surface_changed.TestAndClear())
     return;
 
-  m_surface_handle = m_new_surface_handle;
-  m_new_surface_handle = nullptr;
-
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);
+
   D3D::Reset(reinterpret_cast<HWND>(m_new_surface_handle));
+  m_new_surface_handle = nullptr;
+
   UpdateBackbufferSize();
 }
 
@@ -713,9 +653,6 @@ void Renderer::CheckForSurfaceResize()
   const bool exclusive_fullscreen_changed = fullscreen_state != m_last_fullscreen_state;
   if (!m_surface_resized.TestAndClear() && !exclusive_fullscreen_changed)
     return;
-
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
 
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);

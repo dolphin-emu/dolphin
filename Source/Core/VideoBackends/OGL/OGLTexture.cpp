@@ -4,7 +4,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
@@ -234,6 +233,9 @@ void OGLTexture::BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle
                               dst_layer);
   }
 
+  // glBlitFramebuffer is still affected by the scissor test, which is enabled by default.
+  glDisable(GL_SCISSOR_TEST);
+
   glBlitFramebuffer(src_rect.left, src_rect.top, src_rect.right, src_rect.bottom, dst_rect.left,
                     dst_rect.top, dst_rect.right, dst_rect.bottom, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
@@ -252,6 +254,9 @@ void OGLTexture::BlitFramebuffer(OGLTexture* srcentry, const MathUtil::Rectangle
         0);
   }
 
+  // The default state for the scissor test is enabled. We don't need to do a full state
+  // restore, as the framebuffer and scissor test are the only things we changed.
+  glEnable(GL_SCISSOR_TEST);
   FramebufferManager::SetFramebuffer(0);
 }
 

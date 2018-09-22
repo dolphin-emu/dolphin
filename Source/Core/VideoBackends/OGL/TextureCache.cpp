@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
@@ -33,41 +32,135 @@
 
 namespace OGL
 {
-constexpr const char* vertex_program =
-    "out vec3 %c_uv0;\n"
-    "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-    "uniform vec4 copy_position;\n"  // left, top, right, bottom
-    "void main()\n"
-    "{\n"
-    "	vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);\n"
-    "	%c_uv0 = vec3(mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, "
-    "0).xy), 0.0);\n"
-    "	gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);\n"
-    "}\n";
+constexpr const char GLSL_PROGRAM_VS[] = R"GLSL(
+out vec3 %c_uv0;
+SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+uniform vec4 copy_position;  // left, top, right, bottom
 
-constexpr const char* geometry_program = "layout(triangles) in;\n"
-                                         "layout(triangle_strip, max_vertices = 6) out;\n"
-                                         "in vec3 v_uv0[3];\n"
-                                         "out vec3 f_uv0;\n"
-                                         "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-                                         "void main()\n"
-                                         "{\n"
-                                         "	int layers = textureSize(samp9, 0).z;\n"
-                                         "	for (int layer = 0; layer < layers; ++layer) {\n"
-                                         "		for (int i = 0; i < 3; ++i) {\n"
-                                         "			f_uv0 = vec3(v_uv0[i].xy, layer);\n"
-                                         "			gl_Position = gl_in[i].gl_Position;\n"
-                                         "			gl_Layer = layer;\n"
-                                         "			EmitVertex();\n"
-                                         "		}\n"
-                                         "		EndPrimitive();\n"
-                                         "	}\n"
-                                         "}\n";
+void main()
+{
+  vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);
+  %c_uv0 = vec3(mix(copy_position.xy, copy_position.zw, rawpos) / vec2(textureSize(samp9, 0).xy), 0.0);
+  gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);
+}
+)GLSL";
+
+constexpr const char GLSL_PROGRAM_GS[] = R"GLSL(
+layout(triangles) in;
+layout(triangle_strip, max_vertices = 6) out;
+in vec3 v_uv0[3];
+out vec3 f_uv0;
+SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+
+void main()
+{
+  int layers = textureSize(samp9, 0).z;
+  for (int layer = 0; layer < layers; ++layer) {
+    for (int i = 0; i < 3; ++i) {
+      f_uv0 = vec3(v_uv0[i].xy, layer);
+      gl_Position = gl_in[i].gl_Position;
+      gl_Layer = layer;
+      EmitVertex();
+  }
+  EndPrimitive();
+}
+)GLSL";
+
+constexpr const char GLSL_COLOR_COPY_FS[] = R"GLSL(
+SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+in vec3 f_uv0;
+out vec4 ocol0;
+
+void main()
+{
+  vec4 texcol = texture(samp9, f_uv0);
+  ocol0 = texcol;
+}
+)GLSL";
+
+constexpr const char GLSL_PALETTE_FS[] = R"GLSL(
+uniform int texture_buffer_offset;
+uniform float multiplier;
+SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+SAMPLER_BINDING(10) uniform usamplerBuffer samp10;
+
+in vec3 f_uv0;
+out vec4 ocol0;
+
+int Convert3To8(int v)
+{
+  // Swizzle bits: 00000123 -> 12312312
+  return (v << 5) | (v << 2) | (v >> 1);
+}
+
+int Convert4To8(int v)
+{
+  // Swizzle bits: 00001234 -> 12341234
+  return (v << 4) | v;
+}
+
+int Convert5To8(int v)
+{
+  // Swizzle bits: 00012345 -> 12345123
+  return (v << 3) | (v >> 2);
+}
+
+int Convert6To8(int v)
+{
+  // Swizzle bits: 00123456 -> 12345612
+  return (v << 2) | (v >> 4);
+}
+
+float4 DecodePixel_RGB5A3(int val)
+{
+  int r,g,b,a;
+  if ((val&0x8000) > 0)
+  {
+    r=Convert5To8((val>>10) & 0x1f);
+    g=Convert5To8((val>>5 ) & 0x1f);
+    b=Convert5To8((val    ) & 0x1f);
+    a=0xFF;
+  }
+  else
+  {
+    a=Convert3To8((val>>12) & 0x7);
+    r=Convert4To8((val>>8 ) & 0xf);
+    g=Convert4To8((val>>4 ) & 0xf);
+    b=Convert4To8((val    ) & 0xf);
+  }
+  return float4(r, g, b, a) / 255.0;
+}
+
+float4 DecodePixel_RGB565(int val)
+{
+  int r, g, b, a;
+  r = Convert5To8((val >> 11) & 0x1f);
+  g = Convert6To8((val >> 5) & 0x3f);
+  b = Convert5To8((val) & 0x1f);
+  a = 0xFF;
+  return float4(r, g, b, a) / 255.0;
+}
+
+float4 DecodePixel_IA8(int val)
+{
+  int i = val & 0xFF;
+  int a = val >> 8;
+  return float4(i, i, i, a) / 255.0;
+}
+
+void main()
+{
+  int src = int(round(texture(samp9, f_uv0).r * multiplier));
+  src = int(texelFetch(samp10, src + texture_buffer_offset).r);
+  src = ((src << 8) & 0xFF00) | (src >> 8);
+  ocol0 = DecodePixel_%s(src);
+}
+)GLSL";
 
 //#define TIME_TEXTURE_DECODING 1
 
-void TextureCache::CopyEFB(u8* dst, const EFBCopyParams& params, u32 native_width,
-                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+void TextureCache::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams& params,
+                           u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                            const EFBRectangle& src_rect, bool scale_by_half, float y_scale,
                            float gamma, bool clamp_top, bool clamp_bottom,
                            const CopyFilterCoefficientArray& filter_coefficients)
@@ -156,124 +249,35 @@ bool TextureCache::CompilePaletteShader(TLUTFormat tlutfmt, const std::string& v
 
 bool TextureCache::CompileShaders()
 {
-  constexpr const char* color_copy_program = "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-                                             "in vec3 f_uv0;\n"
-                                             "out vec4 ocol0;\n"
-                                             "\n"
-                                             "void main(){\n"
-                                             "	vec4 texcol = texture(samp9, f_uv0);\n"
-                                             "	ocol0 = texcol;\n"
-                                             "}\n";
-
   std::string geo_program = "";
   char prefix = 'f';
   if (g_ActiveConfig.stereo_mode != StereoMode::Off)
   {
-    geo_program = geometry_program;
+    geo_program = GLSL_PROGRAM_GS;
     prefix = 'v';
   }
 
   if (!ProgramShaderCache::CompileShader(m_colorCopyProgram,
-                                         StringFromFormat(vertex_program, prefix, prefix),
-                                         color_copy_program, geo_program))
+                                         StringFromFormat(GLSL_PROGRAM_VS, prefix, prefix),
+                                         GLSL_COLOR_COPY_FS, geo_program))
   {
     return false;
   }
 
   m_colorCopyPositionUniform = glGetUniformLocation(m_colorCopyProgram.glprogid, "copy_position");
 
-  std::string palette_shader =
-      R"GLSL(
-		uniform int texture_buffer_offset;
-		uniform float multiplier;
-		SAMPLER_BINDING(9) uniform sampler2DArray samp9;
-		SAMPLER_BINDING(10) uniform usamplerBuffer samp10;
-
-		in vec3 f_uv0;
-		out vec4 ocol0;
-
-		int Convert3To8(int v)
-		{
-			// Swizzle bits: 00000123 -> 12312312
-			return (v << 5) | (v << 2) | (v >> 1);
-		}
-
-		int Convert4To8(int v)
-		{
-			// Swizzle bits: 00001234 -> 12341234
-			return (v << 4) | v;
-		}
-
-		int Convert5To8(int v)
-		{
-			// Swizzle bits: 00012345 -> 12345123
-			return (v << 3) | (v >> 2);
-		}
-
-		int Convert6To8(int v)
-		{
-			// Swizzle bits: 00123456 -> 12345612
-			return (v << 2) | (v >> 4);
-		}
-
-		float4 DecodePixel_RGB5A3(int val)
-		{
-			int r,g,b,a;
-			if ((val&0x8000) > 0)
-			{
-				r=Convert5To8((val>>10) & 0x1f);
-				g=Convert5To8((val>>5 ) & 0x1f);
-				b=Convert5To8((val    ) & 0x1f);
-				a=0xFF;
-			}
-			else
-			{
-				a=Convert3To8((val>>12) & 0x7);
-				r=Convert4To8((val>>8 ) & 0xf);
-				g=Convert4To8((val>>4 ) & 0xf);
-				b=Convert4To8((val    ) & 0xf);
-			}
-			return float4(r, g, b, a) / 255.0;
-		}
-
-		float4 DecodePixel_RGB565(int val)
-		{
-			int r, g, b, a;
-			r = Convert5To8((val >> 11) & 0x1f);
-			g = Convert6To8((val >> 5) & 0x3f);
-			b = Convert5To8((val) & 0x1f);
-			a = 0xFF;
-			return float4(r, g, b, a) / 255.0;
-		}
-
-		float4 DecodePixel_IA8(int val)
-		{
-			int i = val & 0xFF;
-			int a = val >> 8;
-			return float4(i, i, i, a) / 255.0;
-		}
-
-		void main()
-		{
-			int src = int(round(texture(samp9, f_uv0).r * multiplier));
-			src = int(texelFetch(samp10, src + texture_buffer_offset).r);
-			src = ((src << 8) & 0xFF00) | (src >> 8);
-			ocol0 = DECODE(src);
-		}
-		)GLSL";
-
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
-    if (!CompilePaletteShader(TLUTFormat::IA8, StringFromFormat(vertex_program, prefix, prefix),
-                              "#define DECODE DecodePixel_IA8" + palette_shader, geo_program))
+    if (!CompilePaletteShader(TLUTFormat::IA8, StringFromFormat(GLSL_PROGRAM_VS, prefix, prefix),
+                              StringFromFormat(GLSL_PALETTE_FS, "IA8"), geo_program))
       return false;
 
-    if (!CompilePaletteShader(TLUTFormat::RGB565, StringFromFormat(vertex_program, prefix, prefix),
-                              "#define DECODE DecodePixel_RGB565" + palette_shader, geo_program))
+    if (!CompilePaletteShader(TLUTFormat::RGB565, StringFromFormat(GLSL_PROGRAM_VS, prefix, prefix),
+                              StringFromFormat(GLSL_PALETTE_FS, "RGB565"), geo_program))
       return false;
 
-    if (!CompilePaletteShader(TLUTFormat::RGB5A3, StringFromFormat(vertex_program, prefix, prefix),
-                              "#define DECODE DecodePixel_RGB5A3" + palette_shader, geo_program))
+    if (!CompilePaletteShader(TLUTFormat::RGB5A3, StringFromFormat(GLSL_PROGRAM_VS, prefix, prefix),
+                              StringFromFormat(GLSL_PALETTE_FS, "RGB5A3"), geo_program))
       return false;
   }
 
@@ -530,12 +534,12 @@ void TextureCache::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_copy,
     char prefix = 'f';
     if (g_ActiveConfig.stereo_mode != StereoMode::Off)
     {
-      geo_program = geometry_program;
+      geo_program = GLSL_PROGRAM_GS;
       prefix = 'v';
     }
 
     ProgramShaderCache::CompileShader(shader.shader,
-                                      StringFromFormat(vertex_program, prefix, prefix),
+                                      StringFromFormat(GLSL_PROGRAM_VS, prefix, prefix),
                                       code.GetBuffer(), geo_program);
 
     shader.position_uniform = glGetUniformLocation(shader.shader.glprogid, "copy_position");

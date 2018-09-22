@@ -19,7 +19,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
@@ -188,7 +188,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
       case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
-          DirectoryInitializationService.startService(this);
+          DirectoryInitialization.start(this);
           PlatformPagerAdapter platformPagerAdapter = new PlatformPagerAdapter(
                   getSupportFragmentManager(), this);
           mViewPager.setAdapter(platformPagerAdapter);

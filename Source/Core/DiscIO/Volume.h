@@ -75,14 +75,10 @@ public:
   {
     return offset;
   }
-  std::string GetGameID() const { return GetGameID(GetGamePartition()); }
-  virtual std::string GetGameID(const Partition& partition) const = 0;
-  std::string GetMakerID() const { return GetMakerID(GetGamePartition()); }
-  virtual std::string GetMakerID(const Partition& partition) const = 0;
-  std::optional<u16> GetRevision() const { return GetRevision(GetGamePartition()); }
-  virtual std::optional<u16> GetRevision(const Partition& partition) const = 0;
-  std::string GetInternalName() const { return GetInternalName(GetGamePartition()); }
-  virtual std::string GetInternalName(const Partition& partition) const = 0;
+  virtual std::string GetGameID(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual std::string GetMakerID(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual std::string GetInternalName(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::map<Language, std::string> GetShortNames() const { return {}; }
   virtual std::map<Language, std::string> GetLongNames() const { return {}; }
   virtual std::map<Language, std::string> GetShortMakers() const { return {}; }
@@ -92,15 +88,15 @@ public:
   std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }
   virtual std::string GetApploaderDate(const Partition& partition) const = 0;
   // 0 is the first disc, 1 is the second disc
-  std::optional<u8> GetDiscNumber() const { return GetDiscNumber(GetGamePartition()); }
-  virtual std::optional<u8> GetDiscNumber(const Partition& partition) const { return 0; }
+  virtual std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const
+  {
+    return 0;
+  }
   virtual Platform GetVolumeType() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckIntegrity(const Partition& partition) const { return false; }
-  // May be inaccurate for WADs
   virtual Region GetRegion() const = 0;
-  Country GetCountry() const { return GetCountry(GetGamePartition()); }
-  virtual Country GetCountry(const Partition& partition) const = 0;
+  virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (may be inaccurate depending on the blob type)
   virtual u64 GetSize() const = 0;

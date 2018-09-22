@@ -220,6 +220,7 @@ void MemoryWidget::ConnectWidgets()
   connect(m_bp_log_check, &QCheckBox::toggled, this, &MemoryWidget::OnBPLogChanged);
   connect(m_memory_view, &MemoryViewWidget::BreakpointsChanged, this,
           &MemoryWidget::BreakpointsChanged);
+  connect(m_memory_view, &MemoryViewWidget::ShowCode, this, &MemoryWidget::ShowCode);
 }
 
 void MemoryWidget::closeEvent(QCloseEvent*)
@@ -260,6 +261,13 @@ void MemoryWidget::LoadSettings()
   bool bp_r = settings.value(QStringLiteral("memorywidget/bpread"), false).toBool();
   bool bp_w = settings.value(QStringLiteral("memorywidget/bpwrite"), false).toBool();
   bool bp_log = settings.value(QStringLiteral("memorywidget/bplog"), true).toBool();
+
+  if (bp_rw)
+    m_memory_view->SetBPType(MemoryViewWidget::BPType::ReadWrite);
+  else if (bp_r)
+    m_memory_view->SetBPType(MemoryViewWidget::BPType::ReadOnly);
+  else
+    m_memory_view->SetBPType(MemoryViewWidget::BPType::WriteOnly);
 
   m_bp_read_write->setChecked(bp_rw);
   m_bp_read_only->setChecked(bp_r);
@@ -329,6 +337,15 @@ void MemoryWidget::OnBPTypeChanged()
   m_memory_view->SetBPType(type);
 
   SaveSettings();
+}
+
+void MemoryWidget::SetAddress(u32 address)
+{
+  m_memory_view->SetAddress(address);
+  Settings::Instance().SetMemoryVisible(true);
+  raise();
+
+  m_memory_view->setFocus();
 }
 
 void MemoryWidget::OnSearchAddress()

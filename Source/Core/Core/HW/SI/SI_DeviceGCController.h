@@ -83,9 +83,6 @@ protected:
   // Type of button combo from the last/current poll
   EButtonCombo m_last_button_combo = COMBO_NONE;
 
-  // Set this if we want to simulate the "TaruKonga" DK Bongo controller
-  bool m_simulate_konga = false;
-
 public:
   // Constructor
   CSIDevice_GCController(SIDevices device, int device_number);
@@ -122,10 +119,12 @@ protected:
 class CSIDevice_TaruKonga : public CSIDevice_GCController
 {
 public:
-  CSIDevice_TaruKonga(SIDevices device, int device_number)
-      : CSIDevice_GCController(device, device_number)
-  {
-    m_simulate_konga = true;
-  }
+  CSIDevice_TaruKonga(SIDevices device, int device_number);
+
+  bool GetData(u32& hi, u32& low) override;
+
+  static const u32 HI_BUTTON_MASK =
+      (PAD_BUTTON_A | PAD_BUTTON_B | PAD_BUTTON_X | PAD_BUTTON_Y | PAD_BUTTON_START | PAD_TRIGGER_R)
+      << 16;
 };
 }  // namespace SerialInterface

@@ -69,10 +69,63 @@ VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_dec
   return std::make_unique<VertexFormat>(vtx_decl);
 }
 
-void VertexManager::PrepareDrawBuffers(u32 stride)
+void VertexManager::UploadUtilityUniforms(const void* uniforms, u32 uniforms_size)
 {
-  size_t vertex_data_size = IndexGenerator::GetNumVerts() * stride;
-  size_t index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
+  StateTracker::GetInstance()->UpdateConstants(uniforms, uniforms_size);
+}
+
+void VertexManager::ResetBuffer(u32 vertex_stride, bool cull_all)
+{
+  if (cull_all)
+  {
+    // Not drawing on the gpu, so store in a heap buffer instead
+    m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_vertex_buffer.data();
+    m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
+    IndexGenerator::Start(m_cpu_index_buffer.data());
+    return;
+  }
+
+  // Attempt to allocate from buffers
+  bool has_vbuffer_allocation =
+      m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, vertex_stride);
+  bool has_ibuffer_allocation =
+      m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
+  if (!has_vbuffer_allocation || !has_ibuffer_allocation)
+  {
+    // Flush any pending commands first, so that we can wait on the fences
+    WARN_LOG(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
+    Util::ExecuteCurrentCommandsAndRestoreState(false);
+
+    // Attempt to allocate again, this may cause a fence wait
+    if (!has_vbuffer_allocation)
+      has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, vertex_stride);
+    if (!has_ibuffer_allocation)
+      has_ibuffer_allocation =
+          m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
+
+    // If we still failed, that means the allocation was too large and will never succeed, so panic
+    if (!has_vbuffer_allocation || !has_ibuffer_allocation)
+      PanicAlert("Failed to allocate space in streaming buffers for pending draw");
+  }
+
+  // Update pointers
+  m_base_buffer_pointer = m_vertex_stream_buffer->GetHostPointer();
+  m_end_buffer_pointer = m_vertex_stream_buffer->GetCurrentHostPointer() + MAXVBUFFERSIZE;
+  m_cur_buffer_pointer = m_vertex_stream_buffer->GetCurrentHostPointer();
+  IndexGenerator::Start(reinterpret_cast<u16*>(m_index_stream_buffer->GetCurrentHostPointer()));
+}
+
+void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
+                                 u32* out_base_vertex, u32* out_base_index)
+{
+  const u32 vertex_data_size = num_vertices * vertex_stride;
+  const u32 index_data_size = num_indices * sizeof(u16);
+
+  *out_base_vertex =
+      vertex_stride > 0 ?
+          static_cast<u32>(m_vertex_stream_buffer->GetCurrentOffset() / vertex_stride) :
+          0;
+  *out_base_index = static_cast<u32>(m_index_stream_buffer->GetCurrentOffset() / sizeof(u16));
 
   m_vertex_stream_buffer->CommitMemory(vertex_data_size);
   m_index_stream_buffer->CommitMemory(index_data_size);
@@ -85,70 +138,15 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
                                               VK_INDEX_TYPE_UINT16);
 }
 
-void VertexManager::ResetBuffer(u32 stride)
+void VertexManager::UploadConstants()
 {
-  if (m_cull_all)
-  {
-    // Not drawing on the gpu, so store in a heap buffer instead
-    m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_vertex_buffer.data();
-    m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
-    IndexGenerator::Start(m_cpu_index_buffer.data());
-    return;
-  }
-
-  // Attempt to allocate from buffers
-  bool has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride);
-  bool has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE, sizeof(u16));
-  if (!has_vbuffer_allocation || !has_ibuffer_allocation)
-  {
-    // Flush any pending commands first, so that we can wait on the fences
-    WARN_LOG(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(false);
-
-    // Attempt to allocate again, this may cause a fence wait
-    if (!has_vbuffer_allocation)
-      has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride);
-    if (!has_ibuffer_allocation)
-      has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE, sizeof(u16));
-
-    // If we still failed, that means the allocation was too large and will never succeed, so panic
-    if (!has_vbuffer_allocation || !has_ibuffer_allocation)
-      PanicAlert("Failed to allocate space in streaming buffers for pending draw");
-  }
-
-  // Update pointers
-  m_base_buffer_pointer = m_vertex_stream_buffer->GetHostPointer();
-  m_end_buffer_pointer = m_vertex_stream_buffer->GetCurrentHostPointer() + MAXVBUFFERSIZE;
-  m_cur_buffer_pointer = m_vertex_stream_buffer->GetCurrentHostPointer();
-  IndexGenerator::Start(reinterpret_cast<u16*>(m_index_stream_buffer->GetCurrentHostPointer()));
-
-  // Update base indices
-  m_current_draw_base_vertex =
-      static_cast<u32>(m_vertex_stream_buffer->GetCurrentOffset() / stride);
-  m_current_draw_base_index =
-      static_cast<u32>(m_index_stream_buffer->GetCurrentOffset() / sizeof(u16));
-}
-
-void VertexManager::vFlush()
-{
-  const VertexFormat* vertex_format =
-      static_cast<VertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
-  u32 vertex_stride = vertex_format->GetVertexStride();
-
-  // Figure out the number of indices to draw
-  u32 index_count = IndexGenerator::GetIndexLen();
-
-  // Update tracked state
   StateTracker::GetInstance()->UpdateVertexShaderConstants();
   StateTracker::GetInstance()->UpdateGeometryShaderConstants();
   StateTracker::GetInstance()->UpdatePixelShaderConstants();
+}
 
-  // Commit memory to device.
-  // NOTE: This must be done after constant upload, as a constant buffer overrun can cause
-  // the current command buffer to be executed, and we want the buffer space to be associated
-  // with the command buffer that has the corresponding draw.
-  PrepareDrawBuffers(vertex_stride);
-
+void VertexManager::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
+{
   // Flush all EFB pokes and invalidate the peek cache.
   FramebufferManager::GetInstance()->InvalidatePeekCache();
   FramebufferManager::GetInstance()->FlushEFBPokes();
@@ -166,18 +164,14 @@ void VertexManager::vFlush()
   }
 
   // Bind all pending state to the command buffer
-  if (m_current_pipeline_object)
+  if (StateTracker::GetInstance()->Bind())
   {
-    g_renderer->SetPipeline(m_current_pipeline_object);
-    if (!StateTracker::GetInstance()->Bind())
-    {
-      WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
-      return;
-    }
-
-    // Execute the draw
-    vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
-                     m_current_draw_base_index, m_current_draw_base_vertex, 0);
+    vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, 1, base_index,
+                     base_vertex, 0);
+  }
+  else
+  {
+    WARN_LOG(VIDEO, "Skipped draw of %u indices", num_indices);
   }
 
   StateTracker::GetInstance()->OnDraw();

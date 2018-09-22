@@ -3,11 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/OGL/SamplerCache.h"
+#include "VideoBackends/OGL/Render.h"
 
 #include <memory>
 
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -99,7 +99,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const SamplerState& params)
   glSamplerParameterf(sampler_id, GL_TEXTURE_MIN_LOD, params.min_lod / 16.f);
   glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_LOD, params.max_lod / 16.f);
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+  if (!static_cast<Renderer*>(g_renderer.get())->IsGLES())
     glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, params.lod_bias / 256.f);
 
   if (params.anisotropic_filtering && g_ogl_config.bSupportsAniso)
@@ -117,4 +117,4 @@ void SamplerCache::Clear()
     p.second = 0;
   m_cache.clear();
 }
-}
+}  // namespace OGL

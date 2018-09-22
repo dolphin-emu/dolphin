@@ -35,7 +35,10 @@ const std::vector<NamedReg> reg8names{
 };
 
 const std::vector<NamedReg> reg8hnames{
-    {AH, "ah"}, {BH, "bh"}, {CH, "ch"}, {DH, "dh"},
+    {AH, "ah"},
+    {BH, "bh"},
+    {CH, "ch"},
+    {DH, "dh"},
 };
 
 const std::vector<NamedReg> reg16names{
@@ -306,10 +309,12 @@ TEST_F(x64EmitterTest, CMOVcc_Register)
     emitter->CMOVcc(32, RAX, R(R12), cc.cc);
     emitter->CMOVcc(16, RAX, R(R12), cc.cc);
 
-    ExpectDisassembly("cmov" + cc.name + " rax, r12 "
-                                         "cmov" +
-                      cc.name + " eax, r12d "
-                                "cmov" +
+    ExpectDisassembly("cmov" + cc.name +
+                      " rax, r12 "
+                      "cmov" +
+                      cc.name +
+                      " eax, r12d "
+                      "cmov" +
                       cc.name + " ax, r12w");
   }
 }
@@ -379,10 +384,12 @@ TEST_F(x64EmitterTest, MOVNT_DQ_PS_PD)
     emitter->MOVNTDQ(MatR(RAX), r.reg);
     emitter->MOVNTPS(MatR(RAX), r.reg);
     emitter->MOVNTPD(MatR(RAX), r.reg);
-    ExpectDisassembly("movntdq dqword ptr ds:[rax], " + r.name + " "
-                                                                 "movntps dqword ptr ds:[rax], " +
-                      r.name + " "
-                               "movntpd dqword ptr ds:[rax], " +
+    ExpectDisassembly("movntdq dqword ptr ds:[rax], " + r.name +
+                      " "
+                      "movntps dqword ptr ds:[rax], " +
+                      r.name +
+                      " "
+                      "movntpd dqword ptr ds:[rax], " +
                       r.name);
   }
 }
@@ -547,6 +554,24 @@ TWO_OP_ARITH_TEST(OR)
 TWO_OP_ARITH_TEST(XOR)
 TWO_OP_ARITH_TEST(MOV)
 
+TEST_F(x64EmitterTest, MOV_Imm64)
+{
+  for (size_t i = 0; i < reg64names.size(); i++)
+  {
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEFDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 10);
+    ExpectDisassembly("mov " + reg64names[i].name + ", 0xdeadbeefdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xFFFFFFFFDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 7);
+    ExpectDisassembly("mov " + reg64names[i].name + ", 0xffffffffdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
+    ExpectDisassembly("mov " + reg32names[i].name + ", 0xdeadbeef");
+  }
+}
+
 // TODO: Disassembler inverts operands here.
 // TWO_OP_ARITH_TEST(XCHG)
 // TWO_OP_ARITH_TEST(TEST)
@@ -558,7 +583,8 @@ TEST_F(x64EmitterTest, BSWAP)
     int bits;
     std::vector<NamedReg> regs;
   } regsets[] = {
-      {32, reg32names}, {64, reg64names},
+      {32, reg32names},
+      {64, reg64names},
   };
   for (const auto& regset : regsets)
     for (const auto& r : regset.regs)
@@ -856,9 +882,27 @@ TWO_OP_SSE_TEST(PMOVZXWD, "qword")
 TWO_OP_SSE_TEST(PMOVZXWQ, "dword")
 TWO_OP_SSE_TEST(PMOVZXDQ, "qword")
 
-// TODO: BLEND
+TWO_OP_SSE_TEST(PBLENDVB, "dqword")
+TWO_OP_SSE_TEST(BLENDVPS, "dqword")
+TWO_OP_SSE_TEST(BLENDVPD, "dqword")
 
-// TODO: AVX
+#define TWO_OP_PLUS_IMM_SSE_TEST(Name, MemBits)                                                    \
+  TEST_F(x64EmitterTest, Name)                                                                     \
+  {                                                                                                \
+    for (const auto& r1 : xmmnames)                                                                \
+    {                                                                                              \
+      for (const auto& r2 : xmmnames)                                                              \
+      {                                                                                            \
+        emitter->Name(r1.reg, R(r2.reg), 0x0b);                                                    \
+        ExpectDisassembly(#Name " " + r1.name + ", " + r2.name + ", 0x0b");                        \
+      }                                                                                            \
+      emitter->Name(r1.reg, MatR(R12), 0x0b);                                                      \
+      ExpectDisassembly(#Name " " + r1.name + ", " MemBits " ptr ds:[r12], 0x0b");                 \
+    }                                                                                              \
+  }
+
+TWO_OP_PLUS_IMM_SSE_TEST(BLENDPS, "dqword")
+TWO_OP_PLUS_IMM_SSE_TEST(BLENDPD, "dqword")
 
 // for VEX GPR instructions that take the form op reg, r/m, reg
 #define VEX_RMR_TEST(Name)                                                                         \
@@ -871,7 +915,8 @@ TWO_OP_SSE_TEST(PMOVZXDQ, "qword")
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -903,7 +948,8 @@ VEX_RMR_TEST(BZHI)
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -934,7 +980,8 @@ VEX_RRM_TEST(ANDN)
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -963,7 +1010,8 @@ VEX_RM_TEST(BLSI)
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -1005,6 +1053,26 @@ VEX_RMI_TEST(RORX)
       }                                                                                            \
   }
 
+AVX_RRM_TEST(VADDSS, "dword")
+AVX_RRM_TEST(VSUBSS, "dword")
+AVX_RRM_TEST(VMULSS, "dword")
+AVX_RRM_TEST(VDIVSS, "dword")
+AVX_RRM_TEST(VADDPS, "dqword")
+AVX_RRM_TEST(VSUBPS, "dqword")
+AVX_RRM_TEST(VMULPS, "dqword")
+AVX_RRM_TEST(VDIVPS, "dqword")
+AVX_RRM_TEST(VADDSD, "qword")
+AVX_RRM_TEST(VSUBSD, "qword")
+AVX_RRM_TEST(VMULSD, "qword")
+AVX_RRM_TEST(VDIVSD, "qword")
+AVX_RRM_TEST(VADDPD, "dqword")
+AVX_RRM_TEST(VSUBPD, "dqword")
+AVX_RRM_TEST(VMULPD, "dqword")
+AVX_RRM_TEST(VDIVPD, "dqword")
+AVX_RRM_TEST(VSQRTSD, "qword")
+AVX_RRM_TEST(VUNPCKLPS, "dqword")
+AVX_RRM_TEST(VUNPCKLPD, "dqword")
+AVX_RRM_TEST(VUNPCKHPD, "dqword")
 AVX_RRM_TEST(VANDPS, "dqword")
 AVX_RRM_TEST(VANDPD, "dqword")
 AVX_RRM_TEST(VANDNPS, "dqword")
@@ -1036,6 +1104,31 @@ FMA3_TEST(VFNMSUB, P, true)
 FMA3_TEST(VFNMSUB, S, false)
 FMA3_TEST(VFMADDSUB, P, true)
 FMA3_TEST(VFMSUBADD, P, true)
+
+#define AVX_RRMI_TEST(Name, MemBits)                                                               \
+  TEST_F(x64EmitterTest, Name)                                                                     \
+  {                                                                                                \
+    for (const auto& r1 : xmmnames)                                                                \
+    {                                                                                              \
+      for (const auto& r2 : xmmnames)                                                              \
+      {                                                                                            \
+        for (const auto& r3 : xmmnames)                                                            \
+        {                                                                                          \
+          emitter->Name(r1.reg, r2.reg, R(r3.reg), 0x0b);                                          \
+          ExpectDisassembly(#Name " " + r1.name + ", " + r2.name + ", " + r3.name + ", 0x0b");     \
+        }                                                                                          \
+        emitter->Name(r1.reg, r2.reg, MatR(R12), 0x0b);                                            \
+        ExpectDisassembly(#Name " " + r1.name + ", " + r2.name +                                   \
+                          ", " MemBits " ptr ds:[r12], 0x0b");                                     \
+      }                                                                                            \
+    }                                                                                              \
+  }
+
+AVX_RRMI_TEST(VCMPPD, "dqword")
+AVX_RRMI_TEST(VSHUFPS, "dqword")
+AVX_RRMI_TEST(VSHUFPD, "dqword")
+AVX_RRMI_TEST(VBLENDPS, "dqword")
+AVX_RRMI_TEST(VBLENDPD, "dqword")
 
 // for VEX instructions that take the form op reg, reg, r/m, reg OR reg, reg, reg, r/m
 #define VEX_RRMR_RRRM_TEST(Name, sizename)                                                         \

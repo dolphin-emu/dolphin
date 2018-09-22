@@ -34,22 +34,6 @@ static int s_wakeup_eventfd;
 // sysfs is not stable, so this is probably the easiest way to get a name for a node.
 static std::map<std::string, std::string> s_devnode_name_map;
 
-static std::string GetName(const std::string& devnode)
-{
-  int fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);
-  libevdev* dev = nullptr;
-  int ret = libevdev_new_from_fd(fd, &dev);
-  if (ret != 0)
-  {
-    close(fd);
-    return std::string();
-  }
-  std::string res = StripSpaces(libevdev_get_name(dev));
-  libevdev_free(dev);
-  close(fd);
-  return res;
-}
-
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("evdev Hotplug Thread");
@@ -95,17 +79,13 @@ static void HotplugThreadFunc()
       });
       s_devnode_name_map.erase(devnode);
     }
-    // Only react to "device added" events for evdev devices that we can access.
-    else if (strcmp(action, "add") == 0 && access(devnode, W_OK) == 0)
+    else if (strcmp(action, "add") == 0)
     {
-      const std::string name = GetName(devnode);
-      if (name.empty())
-        continue;  // probably not an evdev device
       auto device = std::make_shared<evdevDevice>(devnode);
       if (device->IsInteresting())
       {
+        s_devnode_name_map.emplace(devnode, device->GetName());
         g_controller_interface.AddDevice(std::move(device));
-        s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
       }
     }
   }
@@ -169,8 +149,7 @@ void PopulateDevices()
     udev_device* dev = udev_device_new_from_syspath(udev, path);
 
     const char* devnode = udev_device_get_devnode(dev);
-    // We only care about devices which we have read/write access to.
-    if (devnode && access(devnode, W_OK) == 0)
+    if (devnode)
     {
       // Unfortunately udev gives us no way to filter out the non event device interfaces.
       // So we open it and see if it works with evdev ioctls or not.
@@ -178,9 +157,8 @@ void PopulateDevices()
 
       if (input->IsInteresting())
       {
+        s_devnode_name_map.emplace(devnode, input->GetName());
         g_controller_interface.AddDevice(std::move(input));
-        std::string name = GetName(devnode);
-        s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
       }
     }
     udev_device_unref(dev);
@@ -198,6 +176,12 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
 {
   // The device file will be read on one of the main threads, so we open in non-blocking mode.
   m_fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);
+  if (m_fd == -1)
+  {
+    m_initialized = false;
+    return;
+  }
+
   int ret = libevdev_new_from_fd(m_fd, &m_dev);
 
   if (ret != 0)

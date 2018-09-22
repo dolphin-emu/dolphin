@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO
@@ -35,13 +36,16 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(void* window_handle) = 0;
+  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
   virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  void ShowConfig(void* parent_handle);
   virtual void InitBackendInfo() = 0;
+
+  // Prepares a native window for rendering. This is called on the main thread, or the
+  // thread which owns the window.
+  virtual void PrepareWindow(const WindowSystemInfo& wsi) {}
 
   void Video_ExitLoop();
 
@@ -54,6 +58,10 @@ public:
   static void PopulateList();
   static void ClearList();
   static void ActivateBackend(const std::string& name);
+
+  // Fills the backend_info fields with the capabilities of the selected backend/device.
+  // Called by the UI thread when the graphics config is opened.
+  static void PopulateBackendInfo();
 
   // the implementation needs not do synchronization logic, because calls to it are surrounded by
   // PauseAndLock now

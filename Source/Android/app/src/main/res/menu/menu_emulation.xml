@@ -5,27 +5,30 @@
 
     <item
         android:id="@+id/menu_emulation_screenshot"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_screenshot"
         android:title="@string/emulation_screenshot"/>
 
     <item
         android:id="@+id/menu_quicksave"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quicksave"
-        android:title="@string/emulation_quicksave"/>
+        android:title="@string/emulation_quicksave"
+        android:visible="false"/>
 
     <item
         android:id="@+id/menu_quickload"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quickload"
-        android:title="@string/emulation_quickload"/>
+        android:title="@string/emulation_quickload"
+        android:visible="false"/>
 
     <!-- Save State Slots -->
     <item
         android:id="@+id/menu_emulation_save_root"
-        android:showAsAction="never"
-        android:title="@string/emulation_savestate">
+        app:showAsAction="never"
+        android:title="@string/emulation_savestate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/menu_emulation_save_1"
@@ -52,8 +55,9 @@
     <!-- Load State Slots -->
     <item
         android:id="@+id/menu_emulation_load_root"
-        android:showAsAction="never"
-        android:title="@string/emulation_loadstate">
+        app:showAsAction="never"
+        android:title="@string/emulation_loadstate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/menu_emulation_load_1"
@@ -79,7 +83,7 @@
 
     <item
         android:id="@+id/menu_emulation_configure_controls"
-        android:showAsAction="never"
+        app:showAsAction="never"
         android:title="@string/emulation_configure_controls">
         <menu>
             <item
@@ -98,6 +102,14 @@
                 android:id="@+id/menu_emulation_joystick_rel_center"
                 android:checkable="true"
                 android:title="@string/emulation_control_joystick_rel_center"/>
+            <item
+                android:id="@+id/menu_emulation_rumble"
+                android:checkable="true"
+                android:title="@string/emulation_control_rumble"/>
+
+            <item
+                android:id="@+id/menu_emulation_reset_overlay"
+                android:title="@string/emulation_touch_overlay_reset"/>
         </menu>
     </item>
 

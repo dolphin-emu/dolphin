@@ -27,7 +27,7 @@
 
 namespace UICommon
 {
-static constexpr u32 CACHE_REVISION = 12;  // Last changed in PR 7285
+static constexpr u32 CACHE_REVISION = 14;  // Last changed in PR 7441
 
 std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& directories_to_scan,
                                           bool recursive_scan)
@@ -58,8 +58,11 @@ size_t GameFileCache::GetSize() const
   return m_cached_files.size();
 }
 
-void GameFileCache::Clear()
+void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
 {
+  if (delete_on_disk != DeleteOnDisk::No)
+    File::Delete(m_path);
+
   m_cached_files.clear();
 }
 

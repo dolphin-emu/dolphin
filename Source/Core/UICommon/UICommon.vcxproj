@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{604C8368-F34A-4D55-82C8-CC92A0C13254}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -53,6 +53,9 @@
     <ClCompile Include="AutoUpdate.cpp" />
     <ClCompile Include="CommandLineParse.cpp" />
     <ClCompile Include="DiscordPresence.cpp" />
+    <ClCompile Include="ResourcePack\Manager.cpp" />
+    <ClCompile Include="ResourcePack\Manifest.cpp" />
+    <ClCompile Include="ResourcePack\ResourcePack.cpp" />
     <ClCompile Include="UICommon.cpp" />
     <ClCompile Include="Disassembler.cpp" />
     <ClCompile Include="USBUtils.cpp">
@@ -66,6 +69,9 @@
     <ClInclude Include="AutoUpdate.h" />
     <ClInclude Include="CommandLineParse.h" />
     <ClInclude Include="DiscordPresence.h" />
+    <ClInclude Include="ResourcePack\Manager.h" />
+    <ClInclude Include="ResourcePack\Manifest.h" />
+    <ClInclude Include="ResourcePack\ResourcePack.h" />
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="Disassembler.h" />
     <ClInclude Include="USBUtils.h" />

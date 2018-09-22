@@ -25,8 +25,9 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(void* native_handle, VkSurfaceKHR surface, bool vsync)
-    : m_native_handle(native_handle), m_surface(surface), m_vsync_enabled(vsync)
+SwapChain::SwapChain(void* display_handle, void* native_handle, VkSurfaceKHR surface, bool vsync)
+    : m_display_handle(display_handle), m_native_handle(native_handle), m_surface(surface),
+      m_vsync_enabled(vsync)
 {
 }
 
@@ -37,7 +38,7 @@ SwapChain::~SwapChain()
   DestroySurface();
 }
 
-VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
+VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* display_handle, void* hwnd)
 {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
   VkWin32SurfaceCreateInfoKHR surface_create_info = {
@@ -59,15 +60,11 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
   return surface;
 
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
-  // Assuming the display handles are compatible, or shared. This matches what we do in the
-  // GL backend, but it's not ideal.
-  Display* display = XOpenDisplay(nullptr);
-
   VkXlibSurfaceCreateInfoKHR surface_create_info = {
       VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
       nullptr,                                         // const void*                   pNext
       0,                                               // VkXlibSurfaceCreateFlagsKHR   flags
-      display,                                         // Display*                      dpy
+      static_cast<Display*>(display_handle),           // Display*                      dpy
       reinterpret_cast<Window>(hwnd)                   // Window                        window
   };
 
@@ -83,8 +80,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
 
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
   // If we ever switch to using xcb, we should pass the display handle as well.
-  Display* display = XOpenDisplay(nullptr);
-  xcb_connection_t* connection = XGetXCBConnection(display);
+  xcb_connection_t* connection = XGetXCBConnection(display_handle);
 
   VkXcbSurfaceCreateInfoKHR surface_create_info = {
       VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
@@ -122,21 +118,32 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
 
   return surface;
 
+#elif defined(VK_USE_PLATFORM_MACOS_MVK)
+  VkMacOSSurfaceCreateInfoMVK surface_create_info = {
+      VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, hwnd};
+
+  VkSurfaceKHR surface;
+  VkResult res = vkCreateMacOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateMacOSSurfaceMVK failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  return surface;
 #else
   return VK_NULL_HANDLE;
 #endif
 }
 
-std::unique_ptr<SwapChain> SwapChain::Create(void* native_handle, VkSurfaceKHR surface, bool vsync)
+std::unique_ptr<SwapChain> SwapChain::Create(void* display_handle, void* native_handle,
+                                             VkSurfaceKHR surface, bool vsync)
 {
   std::unique_ptr<SwapChain> swap_chain =
-      std::make_unique<SwapChain>(native_handle, surface, vsync);
+      std::make_unique<SwapChain>(display_handle, native_handle, surface, vsync);
 
-  if (!swap_chain->CreateSwapChain() || !swap_chain->CreateRenderPass() ||
-      !swap_chain->SetupSwapChainImages())
-  {
+  if (!swap_chain->CreateSwapChain() || !swap_chain->SetupSwapChainImages())
     return nullptr;
-  }
 
   return swap_chain;
 }
@@ -165,13 +172,27 @@ bool SwapChain::SelectSurfaceFormat()
     return true;
   }
 
-  // Use the first surface format, just use what it prefers.
-  // Some drivers seem to return a SRGB format here (Intel Mesa).
-  // This results in gamma correction when presenting to the screen, which we don't want.
-  // Use a linear format instead, if this is the case.
-  m_surface_format.format = Util::GetLinearFormat(surface_formats[0].format);
-  m_surface_format.colorSpace = surface_formats[0].colorSpace;
-  return true;
+  // Try to find a suitable format.
+  for (const VkSurfaceFormatKHR& surface_format : surface_formats)
+  {
+    // Some drivers seem to return a SRGB format here (Intel Mesa).
+    // This results in gamma correction when presenting to the screen, which we don't want.
+    // Use a linear format instead, if this is the case.
+    VkFormat format = Util::GetLinearFormat(surface_format.format);
+    if (format == VK_FORMAT_R8G8B8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::RGBA8;
+    else if (format == VK_FORMAT_B8G8R8A8_UNORM)
+      m_texture_format = AbstractTextureFormat::BGRA8;
+    else
+      continue;
+
+    m_surface_format.format = format;
+    m_surface_format.colorSpace = surface_format.colorSpace;
+    return true;
+  }
+
+  PanicAlert("Failed to find a suitable format for swap chain buffers.");
+  return false;
 }
 
 bool SwapChain::SelectPresentMode()
@@ -224,14 +245,6 @@ bool SwapChain::SelectPresentMode()
   // Fall back to whatever is available.
   m_present_mode = present_modes[0];
   return true;
-}
-
-bool SwapChain::CreateRenderPass()
-{
-  // render pass for rendering to the swap chain
-  m_render_pass = g_object_cache->GetRenderPass(m_surface_format.format, VK_FORMAT_UNDEFINED, 1,
-                                                VK_ATTACHMENT_LOAD_OP_CLEAR);
-  return m_render_pass != VK_NULL_HANDLE;
 }
 
 bool SwapChain::CreateSwapChain()
@@ -357,6 +370,9 @@ bool SwapChain::SetupSwapChainImages()
                                 images.data());
   ASSERT(res == VK_SUCCESS);
 
+  VkRenderPass render_pass = g_object_cache->GetRenderPass(
+      m_surface_format.format, VK_FORMAT_UNDEFINED, 1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+
   m_swap_chain_images.reserve(image_count);
   for (uint32_t i = 0; i < image_count; i++)
   {
@@ -372,7 +388,7 @@ bool SwapChain::SetupSwapChainImages()
     VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                                                 nullptr,
                                                 0,
-                                                m_render_pass,
+                                                render_pass,
                                                 1,
                                                 &view,
                                                 m_width,
@@ -467,7 +483,8 @@ bool SwapChain::RecreateSurface(void* native_handle)
 
   // Re-create the surface with the new native handle
   m_native_handle = native_handle;
-  m_surface = CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), native_handle);
+  m_surface =
+      CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_display_handle, native_handle);
   if (m_surface == VK_NULL_HANDLE)
     return false;
 
@@ -488,7 +505,7 @@ bool SwapChain::RecreateSurface(void* native_handle)
   }
 
   // Finally re-create the swap chain
-  if (!CreateSwapChain() || !SetupSwapChainImages() || !CreateRenderPass())
+  if (!CreateSwapChain() || !SetupSwapChainImages())
     return false;
 
   return true;
@@ -499,4 +516,4 @@ void SwapChain::DestroySurface()
   vkDestroySurfaceKHR(g_vulkan_context->GetVulkanInstance(), m_surface, nullptr);
   m_surface = VK_NULL_HANDLE;
 }
-}
+}  // namespace Vulkan

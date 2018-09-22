@@ -22,7 +22,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.services.DirectoryInitializationService;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -116,10 +116,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
                 TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
                 // Start the emulation activity and send the path of the clicked ISO to it.
-                EmulationActivity.launch(TvMainActivity.this,
-                        holder.gameFile,
-                        -1,
-                        holder.imageScreenshot);
+                EmulationActivity.launch(TvMainActivity.this, holder.gameFile);
               }
             });
   }
@@ -158,7 +155,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     // Kicks off the program services to update all channels
     TvUtil.updateAllChannels(getApplicationContext());
 
-    recreate();
+    buildRowsAdapter();
   }
 
   /**
@@ -195,7 +192,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
-          DirectoryInitializationService.startService(this);
+          DirectoryInitialization.start(this);
           GameFileCacheService.startLoad(this);
         }
         else

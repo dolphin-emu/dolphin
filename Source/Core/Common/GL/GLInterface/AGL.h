@@ -12,22 +12,28 @@ struct NSOpenGLPixelFormat;
 struct NSView;
 #endif
 
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 
-class cInterfaceAGL : public cInterfaceBase
+class GLContextAGL final : public GLContext
 {
 public:
-  void Swap() override;
-  bool Create(void* window_handle, bool stereo, bool core) override;
-  bool Create(cInterfaceBase* main_context) override;
+  ~GLContextAGL() override;
+
+  bool IsHeadless() const override;
+
+  std::unique_ptr<GLContext> CreateSharedContext() override;
+
   bool MakeCurrent() override;
   bool ClearCurrent() override;
-  void Shutdown() override;
-  void Update() override;
-  void SwapInterval(int interval) override;
-  std::unique_ptr<cInterfaceBase> CreateSharedContext() override;
 
-private:
+  void Update() override;
+
+  void Swap() override;
+  void SwapInterval(int interval) override;
+
+protected:
+  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
+
   NSView* m_view = nullptr;
   NSOpenGLContext* m_context = nullptr;
   NSOpenGLPixelFormat* m_pixel_format = nullptr;

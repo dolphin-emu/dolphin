@@ -11,6 +11,7 @@ import android.view.Surface;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.lang.ref.WeakReference;
 
@@ -225,9 +226,34 @@ public final class NativeLibrary
    */
   public static native void onGamePadMoveEvent(String Device, int Axis, float Value);
 
+  /**
+   * Rumble sent from native. Currently only supports phone rumble.
+   *
+   * @param padID Ignored for now. Future use would be to pass rumble to a connected controller
+   * @param state Ignored for now since phone rumble can't just be 'turned' on/off
+   */
+  public static void rumble(int padID, double state)
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null");
+      return;
+    }
+
+    Rumble.checkRumble(padID, state);
+  }
+
+  public static native void LoadGameIniFile(String gameId);
+
+  public static native void SaveGameIniFile(String gameId);
+
   public static native String GetUserSetting(String gameID, String Section, String Key);
 
   public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
+
+  public static native void SetProfileSetting(String profile, String Section, String Key,
+          String Value);
 
   public static native void InitGameIni(String gameID);
 

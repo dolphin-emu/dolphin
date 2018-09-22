@@ -75,6 +75,9 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
           });
       QueueOnObject(this, [this] { Settings::Instance().NotifyMetadataRefreshComplete(); });
       break;
+    case CommandType::PurgeCache:
+      m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
+      break;
     }
   });
 
@@ -321,4 +324,10 @@ void GameTracker::LoadGame(const QString& path)
     if (cache_changed)
       m_cache.Save();
   }
+}
+
+void GameTracker::PurgeCache()
+{
+  m_load_thread.EmplaceItem(Command{CommandType::PurgeCache, {}});
+  RefreshAll();
 }

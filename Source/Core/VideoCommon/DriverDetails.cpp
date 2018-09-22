@@ -35,8 +35,6 @@ const u32 m_os = OS_ALL | OS_LINUX;
 const u32 m_os = OS_ALL | OS_FREEBSD;
 #elif __OpenBSD__
 const u32 m_os = OS_ALL | OS_OPENBSD;
-#elif __HAIKU__
-const u32 m_os = OS_ALL | OS_HAIKU;
 #endif
 
 static API m_api = API_OPENGL;

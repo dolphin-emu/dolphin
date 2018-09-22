@@ -145,25 +145,34 @@ Country TypicalCountryForRegion(Region region)
   }
 }
 
-Region RegionSwitchGC(u8 country_code)
-{
-  Region region = RegionSwitchWii(country_code);
-  return region == Region::NTSC_K ? Region::NTSC_J : region;
-}
-
-Region RegionSwitchWii(u8 country_code)
+Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_region)
 {
   switch (country_code)
   {
   case 'J':
-  case 'W':
     return Region::NTSC_J;
 
-  case 'B':
+  case 'W':
+    if (expected_region == Region::PAL)
+      return Region::PAL;  // Only the Nordic version of Ratatouille (Wii)
+    else
+      return Region::NTSC_J;  // Korean GC games in English or Taiwanese Wii games
+
   case 'E':
+    if (expected_region == Region::NTSC_J)
+      return Region::NTSC_J;  // Korean GC games in English
+    else
+      return Region::NTSC_U;  // The most common country code for NTSC-U
+
+  case 'B':
   case 'N':
-  case 'Z':
     return Region::NTSC_U;
+
+  case 'X':
+  case 'Y':
+  case 'Z':
+    // Additional language versions, store-exclusive versions, other special versions
+    return expected_region == Region::NTSC_U ? Region::NTSC_U : Region::PAL;
 
   case 'D':
   case 'F':
@@ -175,21 +184,21 @@ Region RegionSwitchWii(u8 country_code)
   case 'R':
   case 'S':
   case 'U':
-  case 'X':
-  case 'Y':
+  case 'V':
     return Region::PAL;
 
   case 'K':
   case 'Q':
   case 'T':
-    return Region::NTSC_K;
+    // All of these country codes are Korean, but the NTSC-K region doesn't exist on GC
+    return platform == Platform::GameCubeDisc ? Region::NTSC_J : Region::NTSC_K;
 
   default:
     return Region::Unknown;
   }
 }
 
-Country CountrySwitch(u8 country_code)
+Country CountryCodeToCountry(u8 country_code, Platform platform, Region region)
 {
   switch (country_code)
   {
@@ -197,15 +206,29 @@ Country CountrySwitch(u8 country_code)
   case 'A':
     return Country::World;
 
+  // Mixed regions
+  case 'X':
+  case 'Y':
+  case 'Z':
+    // Additional language versions, store-exclusive versions, other special versions
+    return region == Region::NTSC_U ? Country::USA : Country::Europe;
+
+  case 'W':
+    if (region == Region::PAL)
+      return Country::Europe;  // Only the Nordic version of Ratatouille (Wii)
+    else if (platform == Platform::GameCubeDisc)
+      return Country::Korea;  // GC games in English released in Korea
+    else
+      return Country::Taiwan;  // Wii games in traditional Chinese released in Taiwan
+
   // PAL
   case 'D':
     return Country::Germany;
 
-  case 'X':  // Used by a couple PAL games
-  case 'Y':  // German, French
-  case 'L':  // Japanese import to PAL regions
-  case 'M':  // Japanese import to PAL regions
-  case 'P':
+  case 'L':  // NTSC-J games released on PAL VC
+  case 'M':  // NTSC-U games released on PAL VC
+  case 'V':  // Used by some Nordic Wii releases
+  case 'P':  // The most common country code for PAL
     return Country::Europe;
 
   case 'U':
@@ -228,21 +251,22 @@ Country CountrySwitch(u8 country_code)
 
   // NTSC
   case 'E':
-  case 'N':  // Japanese import to USA and other NTSC regions
-  case 'Z':  // Prince of Persia - The Forgotten Sands (Wii)
-  case 'B':  // Ufouria: The Saga (Virtual Console)
+    if (region == Region::NTSC_J)
+      return Country::Korea;  // GC games in English released in Korea
+    else
+      return Country::USA;  // The most common country code for NTSC-U
+
+  case 'B':  // PAL games released on NTSC-U VC
+  case 'N':  // NTSC-J games released on NTSC-U VC
     return Country::USA;
 
   case 'J':
     return Country::Japan;
 
-  case 'K':
-  case 'Q':  // Korea with Japanese language
-  case 'T':  // Korea with English language
+  case 'K':  // Games in Korean released in Korea
+  case 'Q':  // NTSC-J games released on NTSC-K VC
+  case 'T':  // NTSC-U games released on NTSC-K VC
     return Country::Korea;
-
-  case 'W':
-    return Country::Taiwan;
 
   default:
     if (country_code > 'A')  // Silently ignore IOS wads
@@ -253,9 +277,6 @@ Country CountrySwitch(u8 country_code)
 
 Region GetSysMenuRegion(u16 title_version)
 {
-  if (title_version == 33)
-    return Region::Unknown;  // 1.0 uses 33 as the version number in all regions
-
   switch (title_version & 0xf)
   {
   case 0:
@@ -273,9 +294,6 @@ Region GetSysMenuRegion(u16 title_version)
 
 std::string GetSysMenuVersionString(u16 title_version)
 {
-  if (title_version == 33)
-    return "1.0";  // 1.0 uses 33 as the version number in all regions
-
   std::string region_letter;
 
   switch (GetSysMenuRegion(title_version))
@@ -299,6 +317,8 @@ std::string GetSysMenuVersionString(u16 title_version)
 
   switch (title_version & ~0xf)
   {
+  case 32:
+    return "1.0" + region_letter;
   case 96:
   case 128:
     return "2.0" + region_letter;

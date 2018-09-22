@@ -295,10 +295,16 @@ u16 TMDReader::GetGroupId() const
 
 DiscIO::Region TMDReader::GetRegion() const
 {
+  if (!IsChannel(GetTitleId()))
+    return DiscIO::Region::Unknown;
+
   if (GetTitleId() == Titles::SYSTEM_MENU)
     return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
-  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
+  const DiscIO::Region region =
+      static_cast<DiscIO::Region>(Common::swap16(m_bytes.data() + offsetof(TMDHeader, region)));
+
+  return region <= DiscIO::Region::NTSC_K ? region : DiscIO::Region::Unknown;
 }
 
 std::string TMDReader::GetGameID() const

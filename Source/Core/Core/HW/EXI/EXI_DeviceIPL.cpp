@@ -34,8 +34,7 @@
 namespace ExpansionInterface
 {
 // We should provide an option to choose from the above, or figure out the checksum (the algo in
-// yagcd seems wrong)
-// so that people can change default language.
+// yagcd seems wrong) so that people can change default language.
 
 static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                      "(C) 1999 ArtX Inc.  All rights reserved."
@@ -99,8 +98,8 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
 
 CEXIIPL::CEXIIPL()
 {
-  // Create the IPL
-  m_ipl = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
+  // Fill the ROM
+  m_rom = std::make_unique<u8[]>(ROM_SIZE);
 
   // Load whole ROM dump
   // Note: The Wii doesn't have a copy of the IPL, only fonts.
@@ -108,8 +107,9 @@ CEXIIPL::CEXIIPL()
       LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
   {
     // Descramble the encrypted section (contains BS1 and BS2)
-    Descrambler(m_ipl + 0x100, 0x1afe00);
-    INFO_LOG(BOOT, "Loaded bootrom: %s", m_ipl);  // yay for null-terminated strings ;p
+    Descrambler(&m_rom[0x100], 0x1afe00);
+    // yay for null-terminated strings
+    INFO_LOG(BOOT, "Loaded bootrom: %s", &m_rom[0]);
   }
   else
   {
@@ -117,31 +117,28 @@ CEXIIPL::CEXIIPL()
 
     // Copy header
     if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
-      memcpy(m_ipl, iplverNTSC, sizeof(iplverNTSC));
+      memcpy(&m_rom[0], iplverNTSC, sizeof(iplverNTSC));
     else
-      memcpy(m_ipl, iplverPAL, sizeof(iplverPAL));
+      memcpy(&m_rom[0], iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
   }
 
+  // Clear RTC
+  g_SRAM.rtc = 0;
+
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
-  g_SRAM.lang = SConfig::GetInstance().SelectedLanguage;
+  g_SRAM.settings.language = SConfig::GetInstance().SelectedLanguage;
   if (SConfig::GetInstance().bEnableCustomRTC)
-    g_SRAM.counter_bias = 0;
+    g_SRAM.settings.rtc_bias = 0;
   FixSRAMChecksums();
-
-  Common::WriteProtectMemory(m_ipl, ROM_SIZE);
-  m_address = 0;
 }
 
 CEXIIPL::~CEXIIPL()
 {
-  Common::FreeMemoryPages(m_ipl, ROM_SIZE);
-  m_ipl = nullptr;
-
   // SRAM
   if (!g_SRAM_netplay_initialized)
   {
@@ -151,10 +148,10 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap& p)
 {
-  p.Do(m_rtc);
-  p.Do(m_position);
-  p.Do(m_address);
-  p.Do(m_rw_offset);
+  p.Do(g_SRAM.rtc);
+  p.Do(m_command);
+  p.Do(m_command_bytes_received);
+  p.Do(m_cursor);
   p.Do(m_buffer);
   p.Do(m_fonts_loaded);
 }
@@ -167,7 +164,7 @@ bool CEXIIPL::LoadFileToIPL(const std::string& filename, u32 offset)
 
   u64 filesize = stream.GetSize();
 
-  if (!stream.ReadBytes(m_ipl + offset, filesize))
+  if (!stream.ReadBytes(&m_rom[offset], filesize))
     return false;
 
   m_fonts_loaded = true;
@@ -237,24 +234,23 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
            ((offset == 0x1aff00) ? "Shift JIS" : "Windows-1252"), (ipl_rom_path).c_str());
 
   stream.Seek(offset, 0);
-  stream.ReadBytes(m_ipl + offset, fontsize);
+  stream.ReadBytes(&m_rom[offset], fontsize);
 
   m_fonts_loaded = true;
 }
 
 void CEXIIPL::SetCS(int cs)
 {
-  if (!cs)
-    return;
-
-  // cs transition to high
-  m_position = 0;
+  if (cs)
+  {
+    m_command_bytes_received = 0;
+    m_cursor = 0;
+  }
 }
 
 void CEXIIPL::UpdateRTC()
 {
-  const u32 rtc = Common::swap32(GetEmulatedTime(GC_EPOCH));
-  std::memcpy(m_rtc.data(), &rtc, sizeof(u32));
+  g_SRAM.rtc = GetEmulatedTime(GC_EPOCH);
 }
 
 bool CEXIIPL::IsPresent() const
@@ -262,97 +258,46 @@ bool CEXIIPL::IsPresent() const
   return true;
 }
 
-void CEXIIPL::TransferByte(u8& byte)
+void CEXIIPL::TransferByte(u8& data)
 {
-  // The first 4 bytes must be the address
+  // The first 4 bytes must be the command
   // If we haven't read it, do it now
-  if (m_position <= 3)
+  if (m_command_bytes_received < sizeof(m_command))
   {
-    m_address <<= 8;
-    m_address |= byte;
-    m_rw_offset = 0;
-    byte = 0xFF;
+    m_command.value <<= 8;
+    m_command.value |= data;
+    data = 0xff;
+    m_command_bytes_received++;
 
-    // Check if the command is complete
-    if (m_position == 3)
+    if (m_command_bytes_received == sizeof(m_command))
     {
-      // Get the time...
+      // Update RTC when a command is latched
+      // This is technically not very accurate :(
       UpdateRTC();
 
-      // Log the command
-      std::string device_name;
-
-      switch (CommandRegion())
-      {
-      case REGION_RTC:
-        device_name = "RTC";
-        break;
-      case REGION_SRAM:
-        device_name = "SRAM";
-        break;
-      case REGION_UART:
-        device_name = "UART";
-        break;
-      case REGION_EUART:
-      case REGION_EUART_UNK:
-        device_name = "EUART";
-        break;
-      case REGION_UART_UNK:
-        device_name = "UART Other?";
-        break;
-      case REGION_BARNACLE:
-        device_name = "UART Barnacle";
-        break;
-      case REGION_WRTC0:
-      case REGION_WRTC1:
-      case REGION_WRTC2:
-        device_name = "Wii RTC flags - not implemented";
-        break;
-      default:
-        if ((m_address >> 6) < ROM_SIZE)
-        {
-          device_name = "ROM";
-        }
-        else
-        {
-          device_name = "illegal address";
-          DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, 0, "EXI IPL-DEV: %s %08x", device_name.c_str(),
-                           m_address);
-        }
-        break;
-      }
-
-      DEBUG_LOG(EXPANSIONINTERFACE, "%s %s %08x", device_name.c_str(),
-                IsWriteCommand() ? "write" : "read", m_address);
+      DEBUG_LOG(EXPANSIONINTERFACE, "IPL-DEV cmd %s %08x %02x",
+                m_command.is_write() ? "write" : "read", m_command.address(), m_command.low_bits());
     }
   }
   else
   {
     // Actually read or write a byte
-    switch (CommandRegion())
-    {
-    case REGION_RTC:
-      if (IsWriteCommand())
-        m_rtc[(m_address & 0x03) + m_rw_offset] = byte;
-      else
-        byte = m_rtc[(m_address & 0x03) + m_rw_offset];
-      break;
+    u32 address = m_command.address();
 
-    case REGION_SRAM:
-      if (IsWriteCommand())
-        g_SRAM.p_SRAM[(m_address & 0x3F) + m_rw_offset] = byte;
-      else
-        byte = g_SRAM.p_SRAM[(m_address & 0x3F) + m_rw_offset];
-      break;
+    DEBUG_LOG(EXPANSIONINTERFACE, "IPL-DEV data %s %08x %02x",
+              m_command.is_write() ? "write" : "read", address, data);
 
-    case REGION_UART:
-    case REGION_EUART:
-      if (IsWriteCommand())
+#define IN_RANGE(x) (address >= x##_BASE && address < x##_BASE + x##_SIZE)
+#define DEV_ADDR(x) (address - x##_BASE)
+#define DEV_ADDR_CURSOR(x) (DEV_ADDR(x) + m_cursor++)
+
+    auto UartFifoAccess = [&]() {
+      if (m_command.is_write())
       {
-        if (byte != '\0')
-          m_buffer += byte;
+        if (data != '\0')
+          m_buffer += data;
 
-        if (byte == '\r')
+        if (data == '\r')
         {
           NOTICE_LOG(OSREPORT, "%s", SHIFTJISToUTF8(m_buffer).c_str());
           m_buffer.clear();
@@ -361,68 +306,88 @@ void CEXIIPL::TransferByte(u8& byte)
       else
       {
         // "Queue Length"... return 0 cause we're instant
-        byte = 0;
+        data = 0;
       }
-      break;
+    };
 
-    case REGION_EUART_UNK:
-      // Writes 0xf2 then 0xf3 on EUART init. Just need to return non-zero
-      // so we can leave the byte untouched.
-      break;
-
-    case REGION_UART_UNK:
-      DEBUG_LOG(OSREPORT, "UART? %x", byte);
-      byte = 0xff;
-      break;
-
-    case REGION_BARNACLE:
-      DEBUG_LOG(OSREPORT, "UART Barnacle %x", byte);
-      break;
-
-    case REGION_WRTC0:
-    case REGION_WRTC1:
-    case REGION_WRTC2:
-    // Wii only RTC flags... afaik just the Wii Menu initialize it
-    default:
-      if ((m_address >> 6) < ROM_SIZE)
+    if (IN_RANGE(ROM))
+    {
+      if (!m_command.is_write())
       {
-        if (!IsWriteCommand())
+        u32 dev_addr = DEV_ADDR_CURSOR(ROM);
+        // Technically we should descramble here iff descrambling logic is enabled.
+        // At the moment, we pre-decrypt the whole thing and
+        // ignore the "enabled" bit - see CEXIIPL::CEXIIPL
+        data = m_rom[dev_addr];
+
+        if ((dev_addr >= 0x001AFF00) && (dev_addr <= 0x001FF474) && !m_fonts_loaded)
         {
-          u32 position = ((m_address >> 6) & ROM_MASK) + m_rw_offset;
-
-          // Technically we should descramble here iff descrambling logic is enabled.
-          // At the moment, we pre-decrypt the whole thing and
-          // ignore the "enabled" bit - see CEXIIPL::CEXIIPL
-          byte = m_ipl[position];
-
-          if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_fonts_loaded)
+          if (dev_addr >= 0x001FCF00)
           {
-            if (position >= 0x001FCF00)
-            {
-              PanicAlertT("Error: Trying to access Windows-1252 fonts but they are not loaded. "
-                          "Games may not show fonts correctly, or crash.");
-            }
-            else
-            {
-              PanicAlertT("Error: Trying to access Shift JIS fonts but they are not loaded. "
-                          "Games may not show fonts correctly, or crash.");
-            }
-            m_fonts_loaded = true;  // Don't be a nag :p
+            PanicAlertT("Error: Trying to access Windows-1252 fonts but they are not loaded. "
+                        "Games may not show fonts correctly, or crash.");
           }
+          else
+          {
+            PanicAlertT("Error: Trying to access Shift JIS fonts but they are not loaded. "
+                        "Games may not show fonts correctly, or crash.");
+          }
+          // Don't be a nag
+          m_fonts_loaded = true;
         }
       }
+    }
+    else if (IN_RANGE(SRAM))
+    {
+      u32 dev_addr = DEV_ADDR_CURSOR(SRAM);
+      if (m_command.is_write())
+        g_SRAM[dev_addr] = data;
       else
+        data = g_SRAM[dev_addr];
+    }
+    else if (IN_RANGE(UART))
+    {
+      switch (DEV_ADDR(UART))
       {
-        NOTICE_LOG(OSREPORT, "EXI IPL-DEV: %s %x at %08x", IsWriteCommand() ? "write" : "read",
-                   byte, m_address);
+      case 0:
+        // Seems to be 16byte fifo
+        UartFifoAccess();
+        break;
+      case 0xc:
+        // Seen being written to after reading 4 bytes from barnacle
+        break;
+      case 0x4c:
+        DEBUG_LOG(OSREPORT, "UART Barnacle %x", data);
+        break;
       }
-      break;
+    }
+    else if (IN_RANGE(WII_RTC))
+    {
+      // Wii only RTC flags... afaik only the Wii Menu initializes it
+      // Seems to be 4bytes at dev_addr 0x20
+    }
+    else if (IN_RANGE(EUART))
+    {
+      switch (DEV_ADDR(EUART))
+      {
+      case 0:
+        // Writes 0xf2 then 0xf3 on EUART init. Just need to return non-zero
+        // so we can leave the byte untouched.
+        break;
+      case 4:
+        UartFifoAccess();
+        break;
+      }
+    }
+    else
+    {
+      NOTICE_LOG(EXPANSIONINTERFACE, "IPL-DEV Accessing unknown device");
     }
 
-    m_rw_offset++;
+#undef DEV_ADDR_CURSOR
+#undef DEV_ADDR
+#undef IN_RANGE
   }
-
-  m_position++;
 }
 
 u32 CEXIIPL::GetEmulatedTime(u32 epoch)

@@ -32,6 +32,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -105,6 +106,9 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   if (!running)
     m_recording_stop->setEnabled(false);
   m_recording_play->setEnabled(!running);
+
+  // Options
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   // Tools
   m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
@@ -203,6 +207,9 @@ void MenuBar::AddToolsMenu()
 
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
+
+  tools_menu->addAction(tr("&Resource Pack Manager"), this,
+                        [this] { emit ShowResourcePackManager(); });
 
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
@@ -458,6 +465,8 @@ void MenuBar::AddViewMenu()
   AddShowRegionsMenu(view_menu);
 
   view_menu->addSeparator();
+  view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
+  view_menu->addSeparator();
   view_menu->addAction(tr("Search"), this, &MenuBar::ToggleSearch,
                        QKeySequence(QStringLiteral("Ctrl+F")));
 }
@@ -469,7 +478,8 @@ void MenuBar::AddOptionsMenu()
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
-  options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
+  m_controllers_action =
+      options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
 
   options_menu->addSeparator();
@@ -570,7 +580,8 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn}};
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
+      {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
@@ -876,13 +887,19 @@ void MenuBar::AddSymbolsMenu()
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
+  m_symbols->addAction(tr("Load &Bad Map File..."), this, &MenuBar::LoadBadSymbolMap);
   m_symbols->addAction(tr("Save Symbol Map &As..."), this, &MenuBar::SaveSymbolMapAs);
   m_symbols->addSeparator();
 
-  m_symbols->addAction(tr("Save Code"), this, &MenuBar::SaveCode);
+  m_symbols->addAction(tr("Sa&ve Code"), this, &MenuBar::SaveCode);
   m_symbols->addSeparator();
 
-  m_symbols->addAction(tr("&Create Signature File..."), this, &MenuBar::CreateSignatureFile);
+  m_symbols->addAction(tr("C&reate Signature File..."), this, &MenuBar::CreateSignatureFile);
+  m_symbols->addAction(tr("Append to &Existing Signature File..."), this,
+                       &MenuBar::AppendSignatureFile);
+  m_symbols->addAction(tr("Combine &Two Signature Files..."), this,
+                       &MenuBar::CombineSignatureFiles);
+  m_symbols->addAction(tr("Appl&y Signature File..."), this, &MenuBar::ApplySignatureFile);
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
@@ -1226,6 +1243,22 @@ void MenuBar::LoadOtherSymbolMap()
   emit NotifySymbolsUpdated();
 }
 
+void MenuBar::LoadBadSymbolMap()
+{
+  const QString file = QFileDialog::getOpenFileName(
+      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      tr("Dolphin Map File (*.map)"));
+
+  if (file.isEmpty())
+    return;
+
+  if (!TryLoadMapFile(file, true))
+    return;
+
+  HLE::PatchFunctions();
+  emit NotifySymbolsUpdated();
+}
+
 void MenuBar::SaveSymbolMapAs()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
@@ -1256,9 +1289,9 @@ void MenuBar::SaveCode()
   }
 }
 
-bool MenuBar::TryLoadMapFile(const QString& path)
+bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 {
-  if (!g_symbolDB.LoadMap(path.toStdString()))
+  if (!g_symbolDB.LoadMap(path.toStdString(), bad))
   {
     QMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
     return false;
@@ -1279,10 +1312,9 @@ void MenuBar::CreateSignatureFile()
 {
   const QString text = QInputDialog::getText(
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
-  if (text.isEmpty())
-    return;
 
-  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"));
+  const QString file = QFileDialog::getSaveFileName(
+      this, tr("Save signature file"), QDir::homePath(), tr("Function signature file (*.dsy)"));
   if (file.isEmpty())
     return;
 
@@ -1294,6 +1326,85 @@ void MenuBar::CreateSignatureFile()
   if (!db.Save(save_path))
   {
     QMessageBox::warning(this, tr("Error"), tr("Failed to save signature file '%1'").arg(file));
+    return;
+  }
+
+  db.List();
+}
+
+void MenuBar::AppendSignatureFile()
+{
+  const QString text = QInputDialog::getText(
+      this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"));
+
+  const QString file = QFileDialog::getSaveFileName(
+      this, tr("Append signature to"), QDir::homePath(), tr("Function signature file (*.dsy)"));
+  if (file.isEmpty())
+    return;
+
+  const std::string prefix = text.toStdString();
+  const std::string signature_path = file.toStdString();
+  SignatureDB db(signature_path);
+  db.Populate(&g_symbolDB, prefix);
+  db.List();
+  db.Load(signature_path);
+  if (!db.Save(signature_path))
+  {
+    QMessageBox::warning(this, tr("Error"),
+                         tr("Failed to append to signature file '%1'").arg(file));
+    return;
+  }
+
+  db.List();
+}
+
+void MenuBar::ApplySignatureFile()
+{
+  const QString file = QFileDialog::getOpenFileName(
+      this, tr("Apply signature file"), QDir::homePath(), tr("Function signature file (*.dsy)"));
+
+  if (file.isEmpty())
+    return;
+
+  const std::string load_path = file.toStdString();
+  SignatureDB db(load_path);
+  db.Load(load_path);
+  db.Apply(&g_symbolDB);
+  db.List();
+  HLE::PatchFunctions();
+  emit NotifySymbolsUpdated();
+}
+
+void MenuBar::CombineSignatureFiles()
+{
+  const QString priorityFile =
+      QFileDialog::getOpenFileName(this, tr("Choose priority input file"), QDir::homePath(),
+                                   tr("Function signature file (*.dsy)"));
+  if (priorityFile.isEmpty())
+    return;
+
+  const QString secondaryFile =
+      QFileDialog::getOpenFileName(this, tr("Choose secondary input file"), QDir::homePath(),
+                                   tr("Function signature file (*.dsy)"));
+  if (secondaryFile.isEmpty())
+    return;
+
+  const QString saveFile =
+      QFileDialog::getSaveFileName(this, tr("Save combined output file as"), QDir::homePath(),
+                                   tr("Function signature file (*.dsy)"));
+  if (saveFile.isEmpty())
+    return;
+
+  const std::string load_pathPriorityFile = priorityFile.toStdString();
+  const std::string load_pathSecondaryFile = secondaryFile.toStdString();
+  const std::string save_path = saveFile.toStdString();
+  SignatureDB db(load_pathPriorityFile);
+  db.Load(load_pathPriorityFile);
+  db.Load(load_pathSecondaryFile);
+  if (!db.Save(save_path))
+  {
+    QMessageBox::warning(this, tr("Error"),
+                         tr("Failed to save to signature file '%1'").arg(saveFile));
     return;
   }
 

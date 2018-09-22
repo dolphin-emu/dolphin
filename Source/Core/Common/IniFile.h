@@ -35,26 +35,26 @@ public:
     bool Exists(const std::string& key) const;
     bool Delete(const std::string& key);
 
-    void Set(const std::string& key, const std::string& newValue);
+    void Set(const std::string& key, std::string new_value);
+
     template <typename T>
-    void Set(const std::string& key, const T& new_value)
+    void Set(const std::string& key, T&& new_value)
     {
-      Set(key, ValueToString(new_value));
+      Set(key, ValueToString(std::forward<T>(new_value)));
     }
 
     template <typename T>
-    void Set(const std::string& key, const T& new_value, const std::common_type_t<T>& default_value)
+    void Set(const std::string& key, T&& new_value, const std::common_type_t<T>& default_value)
     {
       if (new_value != default_value)
-        Set(key, new_value);
+        Set(key, std::forward<T>(new_value));
       else
         Delete(key);
     }
 
-    void Set(const std::string& key, const std::vector<std::string>& newValues);
-
     bool Get(const std::string& key, std::string* value,
-             const std::string& defaultValue = NULL_STRING) const;
+             const std::string& default_value = NULL_STRING) const;
+
     template <typename T>
     bool Get(const std::string& key, T* value,
              const std::common_type_t<T>& default_value = {}) const
@@ -66,10 +66,8 @@ public:
       *value = default_value;
       return false;
     }
-    bool Get(const std::string& key, std::vector<std::string>* values) const;
 
-    void SetLines(const std::vector<std::string>& lines);
-    void SetLines(std::vector<std::string>&& lines);
+    void SetLines(std::vector<std::string> lines);
     bool GetLines(std::vector<std::string>* lines, const bool remove_comments = true) const;
 
     bool operator<(const Section& other) const { return name < other.name; }

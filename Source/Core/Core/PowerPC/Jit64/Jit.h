@@ -21,20 +21,23 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/FPURegCache.h"
-#include "Core/PowerPC/Jit64/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/RegCache/FPURegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/GPRRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/BlockCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
 namespace PPCAnalyst
 {
 struct CodeBlock;
 struct CodeOp;
-}
+}  // namespace PPCAnalyst
 
-class Jit64 : public Jitx86Base
+class Jit64 : public JitBase, public QuantizedMemoryRoutines
 {
 public:
   Jit64();
@@ -45,6 +48,7 @@ public:
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
   bool HandleStackFault() override;
+  bool BackPatch(u32 emAddress, SContext* ctx);
 
   void EnableOptimization();
   void EnableBlockLink();
@@ -88,10 +92,8 @@ public:
   void FinalizeCarryOverflow(bool oe, bool inv = false);
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
-  void ComputeRC(const Gen::OpArg& arg, bool needs_test = true, bool needs_sext = true);
+  void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
 
-  // Use to extract bytes from a register using the regcache. offset is in bytes.
-  Gen::OpArg ExtractFromReg(int reg, int offset);
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   bool CheckMergedBranch(u32 crf) const;
   void DoMergedBranch();
@@ -119,10 +121,6 @@ public:
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
                 void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
                 bool Rc = false, bool carry = false);
-  Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
-                        void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
-                        void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&), bool packed,
-                        bool preserve_inputs, bool roundRHS = false);
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();
 
@@ -245,6 +243,9 @@ private:
   void AllocStack();
   void FreeStack();
 
+  JitBlockCache blocks{*this};
+  TrampolineCache trampolines{*this};
+
   GPRRegCache gpr{*this};
   FPURegCache fpr{*this};
 
@@ -254,3 +255,6 @@ private:
   bool m_cleanup_after_stackfault;
   u8* m_stack;
 };
+
+void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, const u8* normalEntry,
+                     const JitBlock* b);

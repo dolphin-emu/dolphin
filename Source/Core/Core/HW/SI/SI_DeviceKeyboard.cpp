@@ -9,6 +9,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/HW/GCKeyboard.h"
 #include "InputCommon/KeyboardStatus.h"
 
@@ -26,7 +27,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
   ISIDevice::RunBuffer(buffer, length);
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[3]);
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
@@ -34,7 +35,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
   case CMD_RESET:
   case CMD_ID:
   {
-    constexpr u32 id = SI_GC_KEYBOARD;
+    u32 id = Common::swap32(SI_GC_KEYBOARD);
     std::memcpy(buffer, &id, sizeof(id));
     break;
   }
@@ -46,8 +47,8 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
     GetData(high, low);
     for (int i = 0; i < (length - 1) / 2; i++)
     {
-      buffer[i + 0] = (high >> (i * 8)) & 0xff;
-      buffer[i + 4] = (low >> (i * 8)) & 0xff;
+      buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
+      buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
     }
   }
   break;

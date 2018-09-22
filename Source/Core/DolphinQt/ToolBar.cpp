@@ -8,6 +8,7 @@
 #include <QIcon>
 
 #include "Core/Core.h"
+#include "Core/NetPlayProto.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -54,6 +55,7 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   bool playing = running && state != Core::State::Paused;
   UpdatePausePlayButtonState(playing);
@@ -167,8 +169,8 @@ void ToolBar::UpdateIcons()
   m_step_over_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_over"));
   m_step_out_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_out"));
   m_skip_action->setIcon(Resources::GetScaledThemeIcon("debugger_skip"));
-  m_show_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_set_pc"));
-  m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
+  m_show_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
+  m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_set_pc"));
 
   m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
   m_refresh_action->setIcon(Resources::GetScaledThemeIcon("refresh"));

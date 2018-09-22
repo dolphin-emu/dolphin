@@ -54,8 +54,9 @@ Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
   }
 
   // stick
-  groups.emplace_back(
-      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::OctagonAnalogStick(_trans("Stick"), gate_radius));
 
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
@@ -76,8 +77,8 @@ void Drums::GetState(u8* const data)
   {
     const ControllerEmu::AnalogStick::StateData stick_state = m_stick->GetState();
 
-    drum_data.sx = static_cast<u8>((stick_state.x * 0x1F) + 0x20);
-    drum_data.sy = static_cast<u8>((stick_state.y * 0x1F) + 0x20);
+    drum_data.sx = static_cast<u8>((stick_state.x * STICK_RADIUS) + STICK_CENTER);
+    drum_data.sy = static_cast<u8>((stick_state.y * STICK_RADIUS) + STICK_CENTER);
   }
 
   // TODO: softness maybe
@@ -119,4 +120,4 @@ ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
     return nullptr;
   }
 }
-}
+}  // namespace WiimoteEmu

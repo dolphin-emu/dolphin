@@ -49,7 +49,8 @@ namespace Vulkan
 {
 Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
-                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0,
+                 swap_chain ? swap_chain->GetTextureFormat() : AbstractTextureFormat::Undefined),
       m_swap_chain(std::move(swap_chain))
 {
   UpdateActiveConfig();
@@ -57,21 +58,23 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
     m_sampler_states[i].hex = RenderState::GetPointSamplerState().hex;
 }
 
-Renderer::~Renderer()
-{
-  UpdateActiveConfig();
-
-  DestroyShaders();
-  DestroySemaphores();
-}
+Renderer::~Renderer() = default;
 
 Renderer* Renderer::GetInstance()
 {
   return static_cast<Renderer*>(g_renderer.get());
 }
 
+bool Renderer::IsHeadless() const
+{
+  return m_swap_chain == nullptr;
+}
+
 bool Renderer::Initialize()
 {
+  if (!::Renderer::Initialize())
+    return false;
+
   BindEFBToStateTracker();
 
   if (!CreateSemaphores())
@@ -91,6 +94,23 @@ bool Renderer::Initialize()
   {
     PanicAlert("Failed to initialize raster font.");
     return false;
+  }
+
+  // Swap chain render pass.
+  if (m_swap_chain)
+  {
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
   }
 
   m_bounding_box = std::make_unique<BoundingBox>();
@@ -124,6 +144,18 @@ bool Renderer::Initialize()
   BeginFrame();
 
   return true;
+}
+
+void Renderer::Shutdown()
+{
+  ::Renderer::Shutdown();
+
+  // Submit the current command buffer, in case there's a partial frame.
+  StateTracker::GetInstance()->EndRenderPass();
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+
+  DestroyShaders();
+  DestroySemaphores();
 }
 
 bool Renderer::CreateSemaphores()
@@ -227,164 +259,12 @@ void Renderer::SetPipeline(const AbstractPipeline* pipeline)
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
 }
 
-void Renderer::DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                                   u32 vertex_stride, u32 num_vertices)
-{
-  // Binding the utility pipeline layout breaks the standard layout.
-  StateTracker::GetInstance()->SetPendingRebind();
-
-  // Upload uniforms.
-  VkBuffer uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-  u32 uniform_buffer_offset = 0;
-  if (uniforms_size > 0)
-    std::tie(uniform_buffer, uniform_buffer_offset) =
-        UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-
-  // Upload vertices.
-  VkBuffer vertex_buffer = VK_NULL_HANDLE;
-  VkDeviceSize vertex_buffer_offset = 0;
-  if (vertices)
-  {
-    u32 vertices_size = vertex_stride * num_vertices;
-    StreamBuffer* vbo_buf = g_object_cache->GetUtilityShaderVertexBuffer();
-    if (!vbo_buf->ReserveMemory(vertices_size, vertex_stride))
-    {
-      Util::ExecuteCurrentCommandsAndRestoreState(true);
-      if (!vbo_buf->ReserveMemory(vertices_size, vertex_stride))
-      {
-        PanicAlert("Failed to reserve vertex buffer space for utility draw.");
-        return;
-      }
-    }
-
-    vertex_buffer = vbo_buf->GetBuffer();
-    vertex_buffer_offset = vbo_buf->GetCurrentOffset();
-    std::memcpy(vbo_buf->GetCurrentHostPointer(), vertices, vertices_size);
-    vbo_buf->CommitMemory(vertices_size);
-  }
-
-  // Allocate descriptor sets.
-  std::array<VkDescriptorSet, 2> dsets;
-  dsets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
-  dsets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
-
-  // Flush first if failed.
-  if (dsets[0] == VK_NULL_HANDLE || dsets[1] == VK_NULL_HANDLE)
-  {
-    Util::ExecuteCurrentCommandsAndRestoreState(true);
-    dsets[0] = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SINGLE_UNIFORM_BUFFER));
-    dsets[1] = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
-
-    if (dsets[0] == VK_NULL_HANDLE || dsets[1] == VK_NULL_HANDLE)
-    {
-      PanicAlert("Failed to allocate descriptor sets in utility draw.");
-      return;
-    }
-  }
-
-  // Build UBO descriptor set.
-  std::array<VkWriteDescriptorSet, 2> dswrites;
-  VkDescriptorBufferInfo dsbuffer = {uniform_buffer, 0, std::max(uniforms_size, 4u)};
-  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,    nullptr, dsets[0],  0,      0, 1,
-                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &dsbuffer, nullptr};
-  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                 nullptr,
-                 dsets[1],
-                 0,
-                 0,
-                 NUM_PIXEL_SHADER_SAMPLERS,
-                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                 StateTracker::GetInstance()->GetPSSamplerBindings().data(),
-                 nullptr,
-                 nullptr};
-
-  // Build commands.
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                    StateTracker::GetInstance()->GetPipeline()->GetVkPipeline());
-  if (vertex_buffer != VK_NULL_HANDLE)
-    vkCmdBindVertexBuffers(command_buffer, 0, 1, &vertex_buffer, &vertex_buffer_offset);
-
-  // Update and bind descriptors.
-  VkPipelineLayout pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
-  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
-                         dswrites.data(), 0, nullptr);
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0,
-                          static_cast<u32>(dsets.size()), dsets.data(), 1, &uniform_buffer_offset);
-
-  // Ensure we're in a render pass before drawing, just in case we had to flush.
-  StateTracker::GetInstance()->BeginRenderPass();
-  vkCmdDraw(command_buffer, num_vertices, 1, 0, 0);
-}
-
-void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* uniforms,
-                                     u32 uniforms_size, u32 groups_x, u32 groups_y, u32 groups_z)
-{
-  // Binding the utility pipeline layout breaks the standard layout.
-  StateTracker::GetInstance()->SetPendingRebind();
-  StateTracker::GetInstance()->EndRenderPass();
-
-  // Upload uniforms.
-  VkBuffer uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-  u32 uniform_buffer_offset = 0;
-  if (uniforms_size > 0)
-    std::tie(uniform_buffer, uniform_buffer_offset) =
-        UpdateUtilityUniformBuffer(uniforms, uniforms_size);
-
-  // Flush first if failed.
-  VkDescriptorSet dset = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
-  if (dset == VK_NULL_HANDLE)
-  {
-    Util::ExecuteCurrentCommandsAndRestoreState(true);
-    dset = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
-    if (dset == VK_NULL_HANDLE)
-    {
-      PanicAlert("Failed to allocate descriptor sets in utility dispatch.");
-      return;
-    }
-  }
-
-  std::array<VkWriteDescriptorSet, 2> dswrites;
-  VkDescriptorBufferInfo dsbuffer = {uniform_buffer, 0, std::max(uniforms_size, 4u)};
-  dswrites[0] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,    nullptr, dset,      0,      0, 1,
-                 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &dsbuffer, nullptr};
-  dswrites[1] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                 nullptr,
-                 dset,
-                 1,
-                 0,
-                 NUM_PIXEL_SHADER_SAMPLERS,
-                 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                 StateTracker::GetInstance()->GetPSSamplerBindings().data(),
-                 nullptr,
-                 nullptr};
-
-  // TODO: Texel buffers, storage images.
-
-  // Build commands.
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  VkPipelineLayout pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_UTILITY);
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-                    static_cast<const VKShader*>(shader)->GetComputePipeline());
-  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), static_cast<u32>(dswrites.size()),
-                         dswrites.data(), 0, nullptr);
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout, 0, 1,
-                          &dset, 1, &uniform_buffer_offset);
-  vkCmdDispatch(command_buffer, groups_x, groups_y, groups_z);
-}
-
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
   u32 backbuffer_width = m_swap_chain->GetWidth();
   u32 backbuffer_height = m_swap_chain->GetHeight();
 
-  m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(), text,
+  m_raster_font->PrintMultiLineText(m_swap_chain_render_pass, text,
                                     left * 2.0f / static_cast<float>(backbuffer_width) - 1,
                                     1 - top * 2.0f / static_cast<float>(backbuffer_height),
                                     backbuffer_width, backbuffer_height, color);
@@ -760,6 +640,11 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   TextureCache::GetInstance()->Cleanup(frameCount);
 }
 
+void Renderer::Flush()
+{
+  Util::ExecuteCurrentCommandsAndRestoreState(true, false);
+}
+
 void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region)
 {
   VkResult res;
@@ -802,20 +687,18 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   m_current_framebuffer_width = backbuffer->GetWidth();
   m_current_framebuffer_height = backbuffer->GetHeight();
 
+  // Draw to the backbuffer.
+  VkRect2D region = {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}};
+  StateTracker::GetInstance()->SetRenderPass(m_swap_chain_render_pass,
+                                             m_swap_chain_clear_render_pass);
+  StateTracker::GetInstance()->SetFramebuffer(m_swap_chain->GetCurrentFramebuffer(), region);
+
   // Begin render pass for rendering to the swap chain.
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-  VkRenderPassBeginInfo info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                nullptr,
-                                m_swap_chain->GetRenderPass(),
-                                m_swap_chain->GetCurrentFramebuffer(),
-                                {{0, 0}, {backbuffer->GetWidth(), backbuffer->GetHeight()}},
-                                1,
-                                &clear_value};
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
-                       VK_SUBPASS_CONTENTS_INLINE);
+  StateTracker::GetInstance()->BeginClearRenderPass(region, &clear_value, 1);
 
   // Draw
-  BlitScreen(m_swap_chain->GetRenderPass(), GetTargetRectangle(), xfb_region,
+  BlitScreen(m_swap_chain_render_pass, GetTargetRectangle(), xfb_region,
              xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
@@ -826,7 +709,7 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
   OSD::DrawMessages();
 
   // End drawing to backbuffer
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+  StateTracker::GetInstance()->EndRenderPass();
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.
@@ -860,11 +743,8 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!m_surface_changed.TestAndClear())
+  if (!m_surface_changed.TestAndClear() || !m_swap_chain)
     return;
-
-  m_surface_handle = m_new_surface_handle;
-  m_new_surface_handle = nullptr;
 
   // Submit the current draws up until rendering the XFB.
   g_command_buffer_mgr->ExecuteCommandBuffer(false, false);
@@ -873,37 +753,10 @@ void Renderer::CheckForSurfaceChange()
   // Clear the present failed flag, since we don't want to resize after recreating.
   g_command_buffer_mgr->CheckLastPresentFail();
 
-  // Did we previously have a swap chain?
-  if (m_swap_chain)
-  {
-    if (!m_surface_handle)
-    {
-      // If there is no surface now, destroy the swap chain.
-      m_swap_chain.reset();
-    }
-    else
-    {
-      // Recreate the surface. If this fails we're in trouble.
-      if (!m_swap_chain->RecreateSurface(m_surface_handle))
-        PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
-    }
-  }
-  else
-  {
-    // Previously had no swap chain. So create one.
-    VkSurfaceKHR surface =
-        SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_surface_handle);
-    if (surface != VK_NULL_HANDLE)
-    {
-      m_swap_chain = SwapChain::Create(m_surface_handle, surface, g_ActiveConfig.IsVSync());
-      if (!m_swap_chain)
-        PanicAlert("Failed to create swap chain.");
-    }
-    else
-    {
-      PanicAlert("Failed to create surface.");
-    }
-  }
+  // Recreate the surface. If this fails we're in trouble.
+  if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
+    PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
+  m_new_surface_handle = nullptr;
 
   // Handle case where the dimensions are now different.
   OnSwapChainResized();
@@ -913,9 +766,6 @@ void Renderer::CheckForSurfaceResize()
 {
   if (!m_surface_resized.TestAndClear())
     return;
-
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
 
   // If we don't have a surface, how can we resize the swap chain?
   // CheckForSurfaceChange should handle this case.
@@ -1049,6 +899,8 @@ void Renderer::RestoreAPIState()
     static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
 
   BindEFBToStateTracker();
+  BPFunctions::SetViewport();
+  BPFunctions::SetScissor();
 
   // Instruct the state tracker to re-bind everything before the next draw
   StateTracker::GetInstance()->SetPendingRebind();
@@ -1184,6 +1036,23 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
   VkViewport viewport = {x,          y,        std::max(width, 1.0f), std::max(height, 1.0f),
                          near_depth, far_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
+}
+
+void Renderer::Draw(u32 base_vertex, u32 num_vertices)
+{
+  if (StateTracker::GetInstance()->Bind())
+    return;
+
+  vkCmdDraw(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_vertices, 1, base_vertex, 0);
+}
+
+void Renderer::DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex)
+{
+  if (!StateTracker::GetInstance()->Bind())
+    return;
+
+  vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_indices, 1, base_index,
+                   base_vertex, 0);
 }
 
 void Renderer::RecompileShaders()

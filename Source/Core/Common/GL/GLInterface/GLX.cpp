@@ -30,43 +30,57 @@ static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
   return 0;
 }
 
-void cInterfaceGLX::SwapInterval(int Interval)
+GLContextGLX::~GLContextGLX()
 {
-  if (!m_has_handle)
+  DestroyWindowSurface();
+  if (m_context)
+  {
+    if (glXGetCurrentContext() == m_context)
+      glXMakeCurrent(m_display, None, nullptr);
+
+    glXDestroyContext(m_display, m_context);
+  }
+}
+
+bool GLContextGLX::IsHeadless() const
+{
+  return !m_render_window;
+}
+
+void GLContextGLX::SwapInterval(int Interval)
+{
+  if (!m_drawable)
     return;
 
   // Try EXT_swap_control, then MESA_swap_control.
   if (glXSwapIntervalEXTPtr)
-    glXSwapIntervalEXTPtr(dpy, win, Interval);
+    glXSwapIntervalEXTPtr(m_display, m_drawable, Interval);
   else if (glXSwapIntervalMESAPtr)
     glXSwapIntervalMESAPtr(static_cast<unsigned int>(Interval));
   else
     ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
 }
 
-void* cInterfaceGLX::GetFuncAddress(const std::string& name)
+void* GLContextGLX::GetFuncAddress(const std::string& name)
 {
-  return (void*)glXGetProcAddress((const GLubyte*)name.c_str());
+  return reinterpret_cast<void*>(glXGetProcAddress(reinterpret_cast<const GLubyte*>(name.c_str())));
 }
 
-void cInterfaceGLX::Swap()
+void GLContextGLX::Swap()
 {
-  glXSwapBuffers(dpy, win);
+  glXSwapBuffers(m_display, m_drawable);
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
+bool GLContextGLX::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
 {
-  m_has_handle = !!window_handle;
-  m_host_window = (Window)window_handle;
-
-  dpy = XOpenDisplay(nullptr);
-  int screen = DefaultScreen(dpy);
+  m_display = static_cast<Display*>(display_handle);
+  int screen = DefaultScreen(m_display);
 
   // checking glx version
   int glxMajorVersion, glxMinorVersion;
-  glXQueryVersion(dpy, &glxMajorVersion, &glxMinorVersion);
+  glXQueryVersion(m_display, &glxMajorVersion, &glxMinorVersion);
   if (glxMajorVersion < 1 || (glxMajorVersion == 1 && glxMinorVersion < 4))
   {
     ERROR_LOG(VIDEO, "glX-Version %d.%d detected, but need at least 1.4", glxMajorVersion,
@@ -107,54 +121,53 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
                           stereo ? True : False,
                           None};
   int fbcount = 0;
-  GLXFBConfig* fbc = glXChooseFBConfig(dpy, screen, visual_attribs, &fbcount);
+  GLXFBConfig* fbc = glXChooseFBConfig(m_display, screen, visual_attribs, &fbcount);
   if (!fbc || !fbcount)
   {
     ERROR_LOG(VIDEO, "Failed to retrieve a framebuffer config");
     return false;
   }
-  fbconfig = *fbc;
+  m_fbconfig = *fbc;
   XFree(fbc);
 
   s_glxError = false;
   XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 
   // Create a GLX context.
-  // We try to get a 4.0 core profile, else we try 3.3, else try it with anything we get.
-  std::array<int, 9> context_attribs = {
-      {GLX_CONTEXT_MAJOR_VERSION_ARB, 4, GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-       GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, GLX_CONTEXT_FLAGS_ARB,
-       GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
-  ctx = nullptr;
   if (core)
   {
-    ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, &context_attribs[0]);
-    XSync(dpy, False);
-    m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
+    for (const auto& version : s_desktop_opengl_versions)
+    {
+      std::array<int, 9> context_attribs = {
+          {GLX_CONTEXT_MAJOR_VERSION_ARB, version.first, GLX_CONTEXT_MINOR_VERSION_ARB,
+           version.second, GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+           GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
+
+      s_glxError = false;
+      m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs[0]);
+      XSync(m_display, False);
+      m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
+      if (!m_context || s_glxError)
+        continue;
+
+      // Got a context.
+      INFO_LOG(VIDEO, "Created a GLX context with version %d.%d", version.first, version.second);
+      break;
+    }
   }
-  if (core && (!ctx || s_glxError))
-  {
-    std::array<int, 9> context_attribs_33 = {
-        {GLX_CONTEXT_MAJOR_VERSION_ARB, 3, GLX_CONTEXT_MINOR_VERSION_ARB, 3,
-         GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, GLX_CONTEXT_FLAGS_ARB,
-         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
-    s_glxError = false;
-    ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, &context_attribs_33[0]);
-    XSync(dpy, False);
-    m_attribs.clear();
-    m_attribs.insert(m_attribs.end(), context_attribs_33.begin(), context_attribs_33.end());
-  }
-  if (!ctx || s_glxError)
+
+  // Failed to create any core contexts, try for anything.
+  if (!m_context || s_glxError)
   {
     std::array<int, 5> context_attribs_legacy = {
         {GLX_CONTEXT_MAJOR_VERSION_ARB, 1, GLX_CONTEXT_MINOR_VERSION_ARB, 0, None}};
     s_glxError = false;
-    ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, &context_attribs_legacy[0]);
-    XSync(dpy, False);
+    m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs_legacy[0]);
+    XSync(m_display, False);
     m_attribs.clear();
     m_attribs.insert(m_attribs.end(), context_attribs_legacy.begin(), context_attribs_legacy.end());
   }
-  if (!ctx || s_glxError)
+  if (!m_context || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
     XSetErrorHandler(oldHandler);
@@ -168,7 +181,7 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
   m_supports_pbuffer = false;
 
   std::string tmp;
-  std::istringstream buffer(glXQueryExtensionsString(dpy, screen));
+  std::istringstream buffer(glXQueryExtensionsString(m_display, screen));
   while (buffer >> tmp)
   {
     if (tmp == "GLX_SGIX_pbuffer")
@@ -191,7 +204,7 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
     }
   }
 
-  if (!CreateWindowSurface())
+  if (!CreateWindowSurface(reinterpret_cast<Window>(window_handle)))
   {
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
     XSetErrorHandler(oldHandler);
@@ -199,119 +212,95 @@ bool cInterfaceGLX::Create(void* window_handle, bool stereo, bool core)
   }
 
   XSetErrorHandler(oldHandler);
-  return true;
+  m_opengl_mode = Mode::OpenGL;
+  return MakeCurrent();
 }
 
-bool cInterfaceGLX::Create(cInterfaceBase* main_context)
+std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
 {
-  cInterfaceGLX* glx_context = static_cast<cInterfaceGLX*>(main_context);
-
-  m_has_handle = false;
-  m_supports_pbuffer = glx_context->m_supports_pbuffer;
-  dpy = glx_context->dpy;
-  fbconfig = glx_context->fbconfig;
   s_glxError = false;
   XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 
-  ctx = glXCreateContextAttribs(dpy, fbconfig, glx_context->ctx, True, &glx_context->m_attribs[0]);
-  XSync(dpy, False);
+  GLXContext new_glx_context =
+      glXCreateContextAttribs(m_display, m_fbconfig, m_context, True, &m_attribs[0]);
+  XSync(m_display, False);
 
-  if (!ctx || s_glxError)
+  if (!new_glx_context || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
     XSetErrorHandler(oldHandler);
-    return false;
+    return nullptr;
   }
 
-  if (m_supports_pbuffer && !CreateWindowSurface())
+  std::unique_ptr<GLContextGLX> new_context = std::make_unique<GLContextGLX>();
+  new_context->m_context = new_glx_context;
+  new_context->m_opengl_mode = m_opengl_mode;
+  new_context->m_supports_pbuffer = m_supports_pbuffer;
+  new_context->m_display = m_display;
+  new_context->m_fbconfig = m_fbconfig;
+  new_context->m_is_shared = true;
+
+  if (m_supports_pbuffer && !new_context->CreateWindowSurface(None))
   {
-    ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
+    ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed");
     XSetErrorHandler(oldHandler);
-    return false;
+    return nullptr;
   }
 
   XSetErrorHandler(oldHandler);
-  return true;
+  return new_context;
 }
 
-std::unique_ptr<cInterfaceBase> cInterfaceGLX::CreateSharedContext()
+bool GLContextGLX::CreateWindowSurface(Window window_handle)
 {
-  std::unique_ptr<cInterfaceBase> context = std::make_unique<cInterfaceGLX>();
-  if (!context->Create(this))
-    return nullptr;
-  return context;
-}
-
-bool cInterfaceGLX::CreateWindowSurface()
-{
-  if (m_has_handle)
+  if (window_handle)
   {
     // Get an appropriate visual
-    XVisualInfo* vi = glXGetVisualFromFBConfig(dpy, fbconfig);
-
-    XWindow.Initialize(dpy);
-
-    XWindowAttributes attribs;
-    if (!XGetWindowAttributes(dpy, m_host_window, &attribs))
-    {
-      ERROR_LOG(VIDEO, "Window attribute retrieval failed");
+    XVisualInfo* vi = glXGetVisualFromFBConfig(m_display, m_fbconfig);
+    m_render_window = GLX11Window::Create(m_display, window_handle, vi);
+    if (!m_render_window)
       return false;
-    }
 
-    s_backbuffer_width = attribs.width;
-    s_backbuffer_height = attribs.height;
-
-    win = XWindow.CreateXWindow(m_host_window, vi);
+    m_backbuffer_width = m_render_window->GetWidth();
+    m_backbuffer_height = m_render_window->GetHeight();
+    m_drawable = static_cast<GLXDrawable>(m_render_window->GetWindow());
     XFree(vi);
   }
   else if (m_supports_pbuffer)
   {
-    win = m_pbuffer = glXCreateGLXPbufferSGIX(dpy, fbconfig, 1, 1, nullptr);
+    m_pbuffer = glXCreateGLXPbufferSGIX(m_display, m_fbconfig, 1, 1, nullptr);
     if (!m_pbuffer)
       return false;
+
+    m_drawable = static_cast<GLXDrawable>(m_pbuffer);
   }
 
   return true;
 }
 
-void cInterfaceGLX::DestroyWindowSurface()
+void GLContextGLX::DestroyWindowSurface()
 {
-  if (m_has_handle)
+  m_render_window.reset();
+  if (m_supports_pbuffer && m_pbuffer)
   {
-    XWindow.DestroyXWindow();
-  }
-  else if (m_supports_pbuffer && m_pbuffer)
-  {
-    glXDestroyGLXPbufferSGIX(dpy, m_pbuffer);
+    glXDestroyGLXPbufferSGIX(m_display, m_pbuffer);
     m_pbuffer = 0;
   }
 }
 
-bool cInterfaceGLX::MakeCurrent()
+bool GLContextGLX::MakeCurrent()
 {
-  return glXMakeCurrent(dpy, win, ctx);
+  return glXMakeCurrent(m_display, m_drawable, m_context);
 }
 
-bool cInterfaceGLX::ClearCurrent()
+bool GLContextGLX::ClearCurrent()
 {
-  return glXMakeCurrent(dpy, None, nullptr);
+  return glXMakeCurrent(m_display, None, nullptr);
 }
 
-// Close backend
-void cInterfaceGLX::Shutdown()
+void GLContextGLX::Update()
 {
-  DestroyWindowSurface();
-  if (ctx)
-  {
-    glXDestroyContext(dpy, ctx);
-
-    // Don't close the display connection if we are a shared context.
-    // Saves doing reference counting on this object, and the main context will always
-    // be shut down last anyway.
-    if (m_has_handle)
-    {
-      XCloseDisplay(dpy);
-      ctx = nullptr;
-    }
-  }
+  m_render_window->UpdateDimensions();
+  m_backbuffer_width = m_render_window->GetWidth();
+  m_backbuffer_height = m_render_window->GetHeight();
 }

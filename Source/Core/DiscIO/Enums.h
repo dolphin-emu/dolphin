@@ -40,13 +40,13 @@ enum class Country
   NumberOfCountries
 };
 
-// Regions 0 - 2 and 4 match Nintendo's GameCube/Wii region numbering.
+// This numbering matches Nintendo's GameCube/Wii region numbering.
 enum class Region
 {
   NTSC_J = 0,   // Japan and Taiwan (and South Korea for GameCube only)
   NTSC_U = 1,   // Mainly North America
   PAL = 2,      // Mainly Europe and Oceania
-  Unknown = 3,  // 3 seems to be unused? Anyway, we need an Unknown entry. Let's put it here
+  Unknown = 3,  // Nintendo uses this to mean region free, but we also use it for unknown regions
   NTSC_K = 4    // South Korea (Wii only)
 };
 
@@ -62,8 +62,8 @@ enum class Language
   Spanish = 4,
   Italian = 5,
   Dutch = 6,
-  SimplifiedChinese = 7,
-  TraditionalChinese = 8,
+  SimplifiedChinese = 7,   // Not selectable on any unmodded retail Wii
+  TraditionalChinese = 8,  // Not selectable on any unmodded retail Wii
   Korean = 9,
   Unknown
 };
@@ -77,10 +77,9 @@ bool IsNTSC(Region region);
 
 Country TypicalCountryForRegion(Region region);
 // Avoid using this function if you can. Country codes aren't always reliable region indicators.
-Region RegionSwitchGC(u8 country_code);
-// Avoid using this function if you can. Country codes aren't always reliable region indicators.
-Region RegionSwitchWii(u8 country_code);
-Country CountrySwitch(u8 country_code);
+Region CountryCodeToRegion(u8 country_code, Platform platform,
+                           Region expected_region = Region::Unknown);
+Country CountryCodeToCountry(u8 country_code, Platform platform, Region region = Region::Unknown);
 
 Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);

@@ -63,10 +63,14 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
   }
 
   // sticks
-  groups.emplace_back(m_main_stick = new ControllerEmu::AnalogStick(
-                          "Main Stick", _trans("Control Stick"), DEFAULT_PAD_STICK_RADIUS));
-  groups.emplace_back(m_c_stick = new ControllerEmu::AnalogStick("C-Stick", _trans("C Stick"),
-                                                                 DEFAULT_PAD_STICK_RADIUS));
+  constexpr auto main_gate_radius =
+      ControlState(MAIN_STICK_GATE_RADIUS) / GCPadStatus::MAIN_STICK_RADIUS;
+  groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
+                          "Main Stick", _trans("Control Stick"), main_gate_radius));
+
+  constexpr auto c_gate_radius = ControlState(C_STICK_GATE_RADIUS) / GCPadStatus::MAIN_STICK_RADIUS;
+  groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
+                          "C-Stick", _trans("C Stick"), c_gate_radius));
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
@@ -226,7 +230,8 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(4, "LSHIFT");  // Modifier
 
 #elif __APPLE__
-  m_c_stick->SetControlExpression(4, "Left Control");  // Modifier
+  // Modifier
+  m_c_stick->SetControlExpression(4, "Left Control");
 
   // Control Stick
   m_main_stick->SetControlExpression(0, "Up Arrow");     // Up

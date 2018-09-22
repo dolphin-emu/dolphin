@@ -243,9 +243,6 @@
     <ClInclude Include="GL\GLInterface\WGL.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
-    <ClInclude Include="GL\GLInterfaceBase.h">
-      <Filter>GL\GLInterface</Filter>
-    </ClInclude>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
@@ -274,6 +271,9 @@
     </ClInclude>
     <ClInclude Include="Debug\MemoryPatches.h">
       <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLContext.h">
+      <Filter>GL\GLInterface</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -339,9 +339,6 @@
     <ClCompile Include="GL\GLInterface\WGL.cpp">
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
-    <ClCompile Include="GL\GLInterface\GLInterface.cpp">
-      <Filter>GL\GLInterface</Filter>
-    </ClCompile>
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="File.cpp" />
@@ -354,6 +351,9 @@
     <ClCompile Include="QoSSession.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp">
       <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\GLContext.cpp">
+      <Filter>GL\GLInterface</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -471,20 +471,25 @@ std::wstring CPToUTF16(u32 code_page, const std::string& input)
 
 std::string UTF16ToCP(u32 code_page, const std::wstring& input)
 {
-  auto const size = WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                        nullptr, 0, nullptr, false);
-
   std::string output;
-  output.resize(size);
 
-  if (size == 0 ||
-      size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
-                                  &output[0], static_cast<int>(output.size()), nullptr, false))
+  if (0 != input.size())
   {
-    const DWORD error_code = GetLastError();
-    ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
-    output.clear();
+    // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
+    auto const size = WideCharToMultiByte(
+        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, false);
+
+    output.resize(size);
+
+    if (size != WideCharToMultiByte(code_page, 0, input.data(), static_cast<int>(input.size()),
+                                    &output[0], static_cast<int>(output.size()), nullptr, false))
+    {
+      const DWORD error_code = GetLastError();
+      ERROR_LOG(COMMON, "WideCharToMultiByte Error in String '%s': %lu", input.c_str(), error_code);
+      output.clear();
+    }
   }
+
   return output;
 }
 

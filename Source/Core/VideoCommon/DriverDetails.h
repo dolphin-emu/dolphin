@@ -27,7 +27,6 @@ enum OS
   OS_ANDROID = (1 << 4),
   OS_FREEBSD = (1 << 5),
   OS_OPENBSD = (1 << 6),
-  OS_HAIKU = (1 << 7),
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences
@@ -50,19 +49,20 @@ enum Vendor
 enum Driver
 {
   DRIVER_ALL = 0,
-  DRIVER_NVIDIA,     // Official Nvidia, including mobile GPU
-  DRIVER_NOUVEAU,    // OSS nouveau
-  DRIVER_ATI,        // Official ATI
-  DRIVER_R600,       // OSS Radeon
-  DRIVER_INTEL,      // Official Intel
-  DRIVER_I965,       // OSS Intel
-  DRIVER_ARM,        // Official Mali driver
-  DRIVER_LIMA,       // OSS Mali driver
-  DRIVER_QUALCOMM,   // Official Adreno driver
-  DRIVER_FREEDRENO,  // OSS Adreno driver
-  DRIVER_IMGTEC,     // Official PowerVR driver
-  DRIVER_VIVANTE,    // Official Vivante driver
-  DRIVER_UNKNOWN     // Unknown driver, default to official hardware driver
+  DRIVER_NVIDIA,       // Official Nvidia, including mobile GPU
+  DRIVER_NOUVEAU,      // OSS nouveau
+  DRIVER_ATI,          // Official ATI
+  DRIVER_R600,         // OSS Radeon
+  DRIVER_INTEL,        // Official Intel
+  DRIVER_I965,         // OSS Intel
+  DRIVER_ARM,          // Official Mali driver
+  DRIVER_LIMA,         // OSS Mali driver
+  DRIVER_QUALCOMM,     // Official Adreno driver
+  DRIVER_FREEDRENO,    // OSS Adreno driver
+  DRIVER_IMGTEC,       // Official PowerVR driver
+  DRIVER_VIVANTE,      // Official Vivante driver
+  DRIVER_PORTABILITY,  // Vulkan via Metal on macOS
+  DRIVER_UNKNOWN       // Unknown driver, default to official hardware driver
 };
 
 enum class Family
@@ -284,4 +284,4 @@ void Init(API api, Vendor vendor, Driver driver, const double version, const Fam
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.
 bool HasBug(Bug bug);
-}
+}  // namespace DriverDetails

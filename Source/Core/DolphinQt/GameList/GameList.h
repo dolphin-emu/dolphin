@@ -41,6 +41,8 @@ public:
 
   void resizeEvent(QResizeEvent* event) override;
 
+  void PurgeCache();
+
 signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);
@@ -60,6 +62,8 @@ private:
   void ExportWiiSave();
   void CompressISO(bool decompress);
   void ChangeDisc();
+  void NewTag();
+  void DeleteTag();
   void UpdateColumnVisibility();
 
   void ZoomIn();

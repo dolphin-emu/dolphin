@@ -22,6 +22,9 @@ public:
   ~Renderer() override;
 
   StateCache& GetStateCache() { return m_state_cache; }
+
+  bool IsHeadless() const override;
+
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;
@@ -47,6 +50,8 @@ public:
   void SetInterlacingMode() override;
   void SetViewport(float x, float y, float width, float height, float near_depth,
                    float far_depth) override;
+  void Draw(u32 base_vertex, u32 num_vertices) override;
+  void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
   void SetFullscreen(bool enable_fullscreen) override;
   bool IsFullscreen() const override;
 
@@ -70,11 +75,6 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  void DrawUtilityPipeline(const void* uniforms, u32 uniforms_size, const void* vertices,
-                           u32 vertex_stride, u32 num_vertices) override;
-  void DispatchComputeShader(const AbstractShader* shader, const void* uniforms, u32 uniforms_size,
-                             u32 groups_x, u32 groups_y, u32 groups_z) override;
-
 private:
   void SetupDeviceObjects();
   void TeardownDeviceObjects();
@@ -86,9 +86,6 @@ private:
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
                   u32 src_width, u32 src_height);
 
-  void UpdateUtilityUniformBuffer(const void* uniforms, u32 uniforms_size);
-  void UpdateUtilityVertexBuffer(const void* vertices, u32 vertex_stride, u32 num_vertices);
-
   StateCache m_state_cache;
 
   std::array<ID3D11BlendState*, 4> m_clear_blend_states{};
@@ -99,9 +96,6 @@ private:
 
   ID3D11Texture2D* m_screenshot_texture = nullptr;
   D3DTexture2D* m_3d_vision_texture = nullptr;
-
-  ID3D11Buffer* m_utility_vertex_buffer = nullptr;
-  ID3D11Buffer* m_utility_uniform_buffer = nullptr;
 
   u32 m_last_multisamples = 1;
   bool m_last_stereo_mode = false;

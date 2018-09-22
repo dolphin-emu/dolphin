@@ -9,7 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
@@ -78,26 +78,24 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(void* window_handle)
+bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 {
-  InitBackendInfo();
   InitializeShared();
 
-  SWOGLWindow::Init(window_handle);
+  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
+  if (!window)
+    return false;
 
   Clipper::Init();
   Rasterizer::Init();
   DebugUtil::Init();
 
-  GLInterface->MakeCurrent();
-  SWOGLWindow::s_instance->Prepare();
-
-  g_renderer = std::make_unique<SWRenderer>();
+  g_renderer = std::make_unique<SWRenderer>(std::move(window));
   g_vertex_manager = std::make_unique<SWVertexLoader>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  return g_shader_cache->Initialize();
+  return g_renderer->Initialize() && g_shader_cache->Initialize();
 }
 
 void VideoSoftware::Shutdown()
@@ -109,7 +107,6 @@ void VideoSoftware::Shutdown()
     g_renderer->Shutdown();
 
   DebugUtil::Shutdown();
-  SWOGLWindow::Shutdown();
   g_framebuffer_manager.reset();
   g_texture_cache.reset();
   g_perf_query.reset();
@@ -117,4 +114,4 @@ void VideoSoftware::Shutdown()
   g_renderer.reset();
   ShutdownShared();
 }
-}
+}  // namespace SW
