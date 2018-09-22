@@ -284,9 +284,11 @@
     <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_control_scale">Adjust Scale</string>
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
+    <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
     <string name="emulation_controller_changed">You may have to reload the game after changing extensions.</string>
     <string name="emulation_touch_button_help">To change the button layout, open the menu -> Configure Controls -> Edit Layout</string>
+    <string name="emulation_touch_overlay_reset">Reset Overlay</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

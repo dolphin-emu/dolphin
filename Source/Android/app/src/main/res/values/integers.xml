@@ -26,6 +26,30 @@
     <integer name="STICK_MAIN_X">-70</integer>
     <integer name="STICK_MAIN_Y">55</integer>
 
+    <!-- Default GameCube portrait layout -->
+    <integer name="BUTTON_A_PORTRAIT_X">638</integer>
+    <integer name="BUTTON_A_PORTRAIT_Y">534</integer>
+    <integer name="BUTTON_B_PORTRAIT_X">560</integer>
+    <integer name="BUTTON_B_PORTRAIT_Y">648</integer>
+    <integer name="BUTTON_X_PORTRAIT_X">795</integer>
+    <integer name="BUTTON_X_PORTRAIT_Y">519</integer>
+    <integer name="BUTTON_Y_PORTRAIT_X">594</integer>
+    <integer name="BUTTON_Y_PORTRAIT_Y">463</integer>
+    <integer name="BUTTON_Z_PORTRAIT_X">357</integer>
+    <integer name="BUTTON_Z_PORTRAIT_Y">560</integer>
+    <integer name="BUTTON_UP_PORTRAIT_X">44</integer>
+    <integer name="BUTTON_UP_PORTRAIT_Y">448</integer>
+    <integer name="TRIGGER_L_PORTRAIT_X">76</integer>
+    <integer name="TRIGGER_L_PORTRAIT_Y">582</integer>
+    <integer name="TRIGGER_R_PORTRAIT_X">739</integer>
+    <integer name="TRIGGER_R_PORTRAIT_Y">629</integer>
+    <integer name="BUTTON_START_PORTRAIT_X">472</integer>
+    <integer name="BUTTON_START_PORTRAIT_Y">789</integer>
+    <integer name="STICK_C_PORTRAIT_X">622</integer>
+    <integer name="STICK_C_PORTRAIT_Y">715</integer>
+    <integer name="STICK_MAIN_PORTRAIT_X">134</integer>
+    <integer name="STICK_MAIN_PORTRAIT_Y">687</integer>
+
     <!-- Default Wii landscape layout -->
     <integer name="WIIMOTE_BUTTON_A_X">60</integer>
     <integer name="WIIMOTE_BUTTON_A_Y">65</integer>

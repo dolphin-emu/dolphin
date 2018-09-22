@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
+#include <jni/AndroidCommon/IDCache.h>
 #include <sstream>
+#include <thread>
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface
@@ -190,6 +192,8 @@ Touchscreen::Touchscreen(int padID) : _padID(padID)
                   new Axis(_padID, ButtonManager::TURNTABLE_CROSSFADE_RIGHT));
   AddAnalogInputs(new Axis(_padID, ButtonManager::TURNTABLE_EFFECT_DIAL),
                   new Axis(_padID, ButtonManager::TURNTABLE_EFFECT_DIAL));
+  // Rumble
+  AddOutput(new Motor(_padID, ButtonManager::RUMBLE));
 }
 // Buttons and stuff
 
@@ -214,6 +218,35 @@ std::string Touchscreen::Axis::GetName() const
 ControlState Touchscreen::Axis::GetState() const
 {
   return ButtonManager::GetAxisValue(_padID, _index) * _neg;
+}
+
+Touchscreen::Motor::~Motor()
+{
+}
+
+std::string Touchscreen::Motor::GetName() const
+{
+  std::ostringstream ss;
+  ss << "Rumble " << (int)_index;
+  return ss.str();
+}
+
+void Touchscreen::Motor::SetState(ControlState state)
+{
+  if (state > 0)
+  {
+    std::thread(Rumble, _padID, state).detach();
+  }
+}
+
+void Touchscreen::Motor::Rumble(int padID, double state)
+{
+  JNIEnv* env;
+  IDCache::GetJavaVM()->AttachCurrentThread(&env, nullptr);
+  jmethodID rumbleMethod =
+      env->GetStaticMethodID(IDCache::GetNativeLibraryClass(), "rumble", "(ID)V");
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), rumbleMethod, padID, state);
+  IDCache::GetJavaVM()->DetachCurrentThread();
 }
 }
 }

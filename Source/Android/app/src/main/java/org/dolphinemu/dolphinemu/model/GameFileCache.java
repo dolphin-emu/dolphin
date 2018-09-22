@@ -11,83 +11,96 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class GameFileCache {
-	private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
-	private long mPointer;  // Do not rename or move without editing the native code
+public class GameFileCache
+{
+  private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
+  private long mPointer;  // Do not rename or move without editing the native code
 
-	public GameFileCache(String path) {
-		mPointer = newGameFileCache(path);
-	}
+  public GameFileCache(String path)
+  {
+    mPointer = newGameFileCache(path);
+  }
 
-	private static native long newGameFileCache(String path);
+  private static native long newGameFileCache(String path);
 
-	@Override
-	public native void finalize();
+  @Override
+  public native void finalize();
 
-	public static void addGameFolder(String path, Context context) {
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-		Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
-		if (!folderPaths.contains(path)) {
-			folderPaths.add(path);
-			SharedPreferences.Editor editor = preferences.edit();
-			editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPaths);
-			editor.apply();
-		}
-	}
+  public static void addGameFolder(String path, Context context)
+  {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    Set<String> folderPaths =
+            preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
+    if (!folderPaths.contains(path))
+    {
+      folderPaths.add(path);
+      SharedPreferences.Editor editor = preferences.edit();
+      editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPaths);
+      editor.apply();
+    }
+  }
 
-	/**
-	 * Scans through the file system and updates the cache to match.
-	 *
-	 * @return true if the cache was modified
-	 */
-	public boolean scanLibrary(Context context) {
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-		Set<String> folderPathsSet = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
+  /**
+   * Scans through the file system and updates the cache to match.
+   *
+   * @return true if the cache was modified
+   */
+  public boolean scanLibrary(Context context)
+  {
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    Set<String> folderPathsSet =
+            preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, new HashSet<>());
 
-		// get paths from gamefiles
-		List<GameFile> gameFiles = GameFileCacheService.getAllGameFiles();
-		for (GameFile f : gameFiles) {
-			String filename = f.getPath();
-			int lastSep = filename.lastIndexOf(File.separator);
-			if (lastSep > 0) {
-				String path = filename.substring(0, lastSep);
-				if (!folderPathsSet.contains(path)) {
-					folderPathsSet.add(path);
-				}
-			}
-		}
+    // get paths from gamefiles
+    List<GameFile> gameFiles = GameFileCacheService.getAllGameFiles();
+    for (GameFile f : gameFiles)
+    {
+      String filename = f.getPath();
+      int lastSep = filename.lastIndexOf(File.separator);
+      if (lastSep > 0)
+      {
+        String path = filename.substring(0, lastSep);
+        if (!folderPathsSet.contains(path))
+        {
+          folderPathsSet.add(path);
+        }
+      }
+    }
 
-		// remove non exists paths
-		for (String p : folderPathsSet) {
-			File folder = new File(p);
-			if (!folder.exists()) {
-				folderPathsSet.remove(p);
-			}
-		}
+    // remove non exists paths
+    for (String p : folderPathsSet)
+    {
+      File folder = new File(p);
+      if (!folder.exists())
+      {
+        folderPathsSet.remove(p);
+      }
+    }
 
-		// apply changes
-		SharedPreferences.Editor editor = preferences.edit();
-		editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPathsSet);
-		editor.apply();
+    // apply changes
+    SharedPreferences.Editor editor = preferences.edit();
+    editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPathsSet);
+    editor.apply();
 
-		String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
-		boolean cacheChanged = update(folderPaths);
-		cacheChanged |= updateAdditionalMetadata();
-		if (cacheChanged) {
-			save();
-		}
-		return cacheChanged;
-	}
+    String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
+    boolean cacheChanged = update(folderPaths);
+    cacheChanged |= updateAdditionalMetadata();
+    if (cacheChanged)
+    {
+      save();
+    }
+    return cacheChanged;
+  }
 
-	public native GameFile[] getAllGames();
+  public native GameFile[] getAllGames();
 
-	public native GameFile addOrGet(String gamePath);
+  public native GameFile addOrGet(String gamePath);
 
-	private native boolean update(String[] folderPaths);
+  private native boolean update(String[] folderPaths);
 
-	private native boolean updateAdditionalMetadata();
+  private native boolean updateAdditionalMetadata();
 
-	public native boolean load();
+  public native boolean load();
 
-	private native boolean save();
+  private native boolean save();
 }

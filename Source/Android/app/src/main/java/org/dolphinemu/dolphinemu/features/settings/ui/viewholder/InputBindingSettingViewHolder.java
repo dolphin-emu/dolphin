@@ -11,38 +11,43 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
-public final class InputBindingSettingViewHolder extends SettingViewHolder {
-	private InputBindingSetting mItem;
+public final class InputBindingSettingViewHolder extends SettingViewHolder
+{
+  private InputBindingSetting mItem;
 
-	private TextView mTextSettingName;
-	private TextView mTextSettingDescription;
+  private TextView mTextSettingName;
+  private TextView mTextSettingDescription;
 
-	private Context mContext;
+  private Context mContext;
 
-	public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter, Context context) {
-		super(itemView, adapter);
+  public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter, Context context)
+  {
+    super(itemView, adapter);
 
-		mContext = context;
-	}
+    mContext = context;
+  }
 
-	@Override
-	protected void findViews(View root) {
-		mTextSettingName = root.findViewById(R.id.text_setting_name);
-		mTextSettingDescription = root.findViewById(R.id.text_setting_description);
-	}
+  @Override
+  protected void findViews(View root)
+  {
+    mTextSettingName = root.findViewById(R.id.text_setting_name);
+    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
+  }
 
-	@Override
-	public void bind(SettingsItem item) {
-		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+  @Override
+  public void bind(SettingsItem item)
+  {
+    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 
-		mItem = (InputBindingSetting) item;
+    mItem = (InputBindingSetting) item;
 
-		mTextSettingName.setText(item.getNameId());
-		mTextSettingDescription.setText(sharedPreferences.getString(mItem.getKey(), ""));
-	}
+    mTextSettingName.setText(item.getNameId());
+    mTextSettingDescription.setText(sharedPreferences.getString(mItem.getKey(), ""));
+  }
 
-	@Override
-	public void onClick(View clicked) {
-		getAdapter().onInputBindingClick(mItem, getAdapterPosition());
-	}
+  @Override
+  public void onClick(View clicked)
+  {
+    getAdapter().onInputBindingClick(mItem, getAdapterPosition());
+  }
 }

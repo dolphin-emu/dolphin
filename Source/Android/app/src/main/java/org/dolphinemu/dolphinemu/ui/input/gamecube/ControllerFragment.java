@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.ui.input.gamecube;
 
 
-public class ControllerFragment {
+public class ControllerFragment
+{
 }

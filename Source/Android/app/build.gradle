@@ -32,9 +32,9 @@ android {
 
     signingConfigs {
         release {
-            keyAlias 'dolphin-release-key'
+            keyAlias 'bboo-release-key'
             keyPassword 'zhangwei'
-            storeFile file('D:/Android/android-sign-key/dolphin-release-key.jks')
+            storeFile file('/Users/wei/Workspace/android/keystore/bboo-release-key')
             storePassword 'zhangwei'
         }
     }
