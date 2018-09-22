@@ -482,14 +482,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setRunningSe
   // gfx settings need refresh to take effect
   Config::SetBaseOrCurrent(Config::GFX_SHOW_FPS, settings[i++]);
   Config::SetBaseOrCurrent(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, settings[i++]);
-  Config::SetBaseOrCurrent(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, settings[i++]);
+  Config::SetBaseOrCurrent(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, settings[i++] == 0);
   g_Config.Refresh();
 
   // core settings will save at end of game
   SConfig::GetInstance().bSyncGPUOnSkipIdleHack = settings[i++];
-  SConfig::GetInstance().iJITFollowThreshold = settings[i++];
   SConfig::GetInstance().m_OCEnable = settings[i++];
-  SConfig::GetInstance().m_OCFactor = settings[i++] / 100.0f;
+  SConfig::GetInstance().m_OCFactor = (settings[i++] + 1) / 100.0f;
+  SConfig::GetInstance().iJITFollowThreshold = settings[i++];
 
   env->ReleaseIntArrayElements(array, settings, 0);
 }

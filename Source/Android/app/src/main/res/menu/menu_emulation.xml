@@ -4,16 +4,16 @@
       tools:context="org.dolphinemu.dolphinemu.activities.EmulationActivity">
 
     <item
-        android:id="@+id/menu_running_setting"
-        app:showAsAction="ifRoom"
-        android:icon="@drawable/ic_settings_core"
-        android:title="@string/grid_menu_config"/>
-
-    <item
         android:id="@+id/menu_emulation_screenshot"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_screenshot"
         android:title="@string/emulation_screenshot"/>
+
+    <item
+        android:id="@+id/menu_running_setting"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_settings_core"
+        android:title="@string/grid_menu_config"/>
 
     <item
         android:id="@+id/menu_quicksave"

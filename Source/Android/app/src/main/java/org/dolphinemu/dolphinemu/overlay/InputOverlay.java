@@ -601,6 +601,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener {
 			case ButtonType.NUNCHUK_BUTTON_Z:
 			case ButtonType.BUTTON_X:
 			case ButtonType.BUTTON_Y:
+				scale = 0.17f;
+				break;
 			case ButtonType.BUTTON_Z:
 			case ButtonType.TRIGGER_L:
 			case ButtonType.TRIGGER_R:

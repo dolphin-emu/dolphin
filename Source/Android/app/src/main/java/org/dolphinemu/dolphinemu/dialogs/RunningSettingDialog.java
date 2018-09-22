@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -65,6 +66,10 @@ public class RunningSettingDialog extends DialogFragment {
 		public int getValue() {
 			return mValue;
 		}
+
+		public void setValue(int value) {
+			mValue = value;
+		}
 	}
 
 	public abstract class SettingViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -107,6 +112,7 @@ public class RunningSettingDialog extends DialogFragment {
 		@Override
 		public void onClick(View clicked) {
 			mCheckbox.toggle();
+			mItem.setValue(mCheckbox.isChecked() ? 1 : 0);
 		}
 	}
 
@@ -159,13 +165,32 @@ public class RunningSettingDialog extends DialogFragment {
 		public void bind(SettingsItem item) {
 			mItem = item;
 			mTextSettingName.setText(item.getNameId());
-			if(item.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT) {
-				mTextSettingValue.setText(item.getValue() + "%");
-				mSeekBar.setMax(400);
+			if(mItem.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT) {
+				mSeekBar.setMax(300);
 			} else {
-				mTextSettingValue.setText(Integer.toString(item.getValue()));
 				mSeekBar.setMax(10);
 			}
+			mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+				@Override
+				public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
+					if(mItem.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT) {
+						mTextSettingValue.setText(progress + "%");
+					} else {
+						mTextSettingValue.setText(String.valueOf(progress));
+					}
+					mItem.setValue(progress);
+				}
+
+				@Override
+				public void onStartTrackingTouch(SeekBar seekBar) {
+
+				}
+
+				@Override
+				public void onStopTrackingTouch(SeekBar seekBar) {
+
+				}
+			});
 			mSeekBar.setProgress(item.getValue());
 		}
 
@@ -176,10 +201,20 @@ public class RunningSettingDialog extends DialogFragment {
 	}
 
 	public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder> {
+		private int[] mRunningSettings;
 		private ArrayList<SettingsItem> mSettings;
 
 		public SettingsAdapter() {
+			int i = 0;
+			mRunningSettings = NativeLibrary.getRunningSettings();
 			mSettings = new ArrayList<>();
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_EFB_TEXTURE, R.string.efb_copy_method, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_IGNORE_FORMAT, R.string.ignore_format_changes, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_SYNC_ON_SKIP_IDLE, R.string.sync_on_skip_idle, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_ENABLE, R.string.overclock_enable, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_PERCENT, R.string.overclock_title, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_THRESHOLD, R.string.jit_follow_branch, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
 		}
 
 		@Override
@@ -215,9 +250,18 @@ public class RunningSettingDialog extends DialogFragment {
 			holder.bind(mSettings.get(position));
 		}
 
-		public void setSettings(ArrayList<SettingsItem> settings) {
-			mSettings = settings;
-			notifyDataSetChanged();
+		public void saveSettings() {
+			boolean isChanged = false;
+			int[] newSettings = new int[mSettings.size()];
+			for(int i = 0; i < mSettings.size(); ++i) {
+				newSettings[i] = mSettings.get(i).getValue();
+				if(newSettings[i] != mRunningSettings[i]) {
+					isChanged = true;
+				}
+			}
+			if(isChanged) {
+				NativeLibrary.setRunningSettings(newSettings);
+			}
 		}
 	}
 
@@ -225,40 +269,29 @@ public class RunningSettingDialog extends DialogFragment {
 		return new RunningSettingDialog();
 	}
 
+	private SettingsAdapter mAdapter;
+
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 		ViewGroup contents = (ViewGroup) getActivity().getLayoutInflater().inflate(R.layout.dialog_running_settings, null);
 
 		int columns = 1;
-		SettingsAdapter adapter = new SettingsAdapter();
 		Drawable lineDivider = getContext().getDrawable(R.drawable.line_divider);
 		RecyclerView recyclerView = contents.findViewById(R.id.list_settings);
 		RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getContext(), columns);
 		recyclerView.setLayoutManager(layoutManager);
-		recyclerView.setAdapter(adapter);
+		mAdapter = new SettingsAdapter();
+		recyclerView.setAdapter(mAdapter);
 		recyclerView.addItemDecoration(new DividerItemDecoration(lineDivider));
-
-		// show settings
-		adapter.setSettings(getSettings());
-
 		builder.setView(contents);
 		return builder.create();
 	}
 
-	private ArrayList<SettingsItem> getSettings() {
-		int i = 0;
-		int[] running = NativeLibrary.getRunningSettings();
-		ArrayList<SettingsItem> settings = new ArrayList<>();
-		settings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps, SettingsItem.TYPE_CHECKBOX, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_EFB_TEXTURE, R.string.efb_copy_method, SettingsItem.TYPE_CHECKBOX, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_IGNORE_FORMAT, R.string.ignore_format_changes, SettingsItem.TYPE_CHECKBOX, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_SYNC_ON_SKIP_IDLE, R.string.sync_on_skip_idle, SettingsItem.TYPE_CHECKBOX, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_ENABLE, R.string.overclock_enable, SettingsItem.TYPE_CHECKBOX, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_PERCENT, R.string.overclock_title, SettingsItem.TYPE_SEEK_BAR, running[i++]));
-		settings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_THRESHOLD, R.string.jit_follow_branch, SettingsItem.TYPE_SEEK_BAR, running[i++]));
-
-		return settings;
+	@Override
+	public void onDismiss(DialogInterface dialog) {
+		super.onDismiss(dialog);
+		mAdapter.saveSettings();
 	}
 
 }
