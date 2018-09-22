@@ -3,17 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QDragEnterEvent>
 #include <QDropEvent>
-#include <QDesktopWidget>
 #include <QGuiApplication>
 #include <QIcon>
 #include <QKeyEvent>
+#include <QMimeData>
 #include <QMouseEvent>
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
-#include <QMimeData>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -87,7 +87,11 @@ void RenderWidget::SetFillBackground(bool fill)
   setAutoFillBackground(fill);
 }
 
-
+void RenderWidget::dragEnterEvent(QDragEnterEvent* event)
+{
+  if (event->mimeData()->hasUrls() && event->mimeData()->urls().size() == 1)
+    event->acceptProposedAction();
+}
 
 void RenderWidget::dropEvent(QDropEvent* event)
 {
