@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <QApplication>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include <QDesktopWidget>
 #include <QGuiApplication>
 #include <QIcon>
@@ -11,9 +13,11 @@
 #include <QPalette>
 #include <QScreen>
 #include <QTimer>
+#include <QMimeData>
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/State.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/RenderWidget.h"
@@ -22,11 +26,14 @@
 
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include <QFileInfo>
+#include <QMessageBox>
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
   setWindowTitle(QStringLiteral("Dolphin"));
   setWindowIcon(Resources::GetAppIcon());
+  setAcceptDrops(true);
 
   QPalette p;
   p.setColor(QPalette::Background, Qt::black);
@@ -78,6 +85,31 @@ void RenderWidget::SetFillBackground(bool fill)
   setAttribute(Qt::WA_OpaquePaintEvent, !fill);
   setAttribute(Qt::WA_NoSystemBackground, !fill);
   setAutoFillBackground(fill);
+}
+
+
+
+void RenderWidget::dropEvent(QDropEvent* event)
+{
+  const auto& urls = event->mimeData()->urls();
+  if (urls.empty())
+    return;
+
+  const auto& url = urls[0];
+  QFileInfo file_info(url.toLocalFile());
+
+  auto path = file_info.filePath();
+
+  if (!file_info.exists() || !file_info.isReadable())
+  {
+    QMessageBox::critical(this, tr("Error"), tr("Failed to open '%1'").arg(path));
+    return;
+  }
+
+  if (file_info.isFile())
+  {
+    State::LoadAs(path.toStdString());
+  }
 }
 
 void RenderWidget::OnHideCursorChanged()
