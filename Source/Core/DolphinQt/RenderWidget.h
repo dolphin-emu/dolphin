@@ -11,6 +11,7 @@
 
 class QMouseEvent;
 class QTimer;
+class DragEnterEvent;
 
 class RenderWidget final : public QWidget
 {
@@ -36,6 +37,8 @@ private:
   void OnKeepOnTopChanged(bool top);
   void SetFillBackground(bool fill);
   void OnFreeLookMouseMove(QMouseEvent* event);
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;
