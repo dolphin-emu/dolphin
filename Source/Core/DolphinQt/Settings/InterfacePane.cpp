@@ -151,12 +151,19 @@ void InterfacePane::CreateUI()
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
+  m_checkbox_use_full_covers = new QCheckBox(tr("Download High Resolution Game Covers"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
+
+  m_checkbox_use_full_covers->setToolTip(
+      tr("When available, these will look sharper at large size or HiDPI, but will use more "
+         "resources.\nWill take a long time to load with a slow internet connection or large game "
+         "list, and may hang initially."));
 
   groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_userstyle);
   groupbox_layout->addWidget(m_checkbox_use_covers);
+  groupbox_layout->addWidget(m_checkbox_use_full_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
 }
 
@@ -188,6 +195,7 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_full_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_combobox_theme,
           static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
@@ -239,7 +247,10 @@ void InterfacePane::LoadConfig()
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
   m_checkbox_use_covers->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
+  m_checkbox_use_full_covers->setChecked(Config::Get(Config::MAIN_USE_FULL_GAME_COVERS));
   m_checkbox_hide_mouse->setChecked(Settings::Instance().GetHideCursor());
+
+  m_checkbox_use_full_covers->setEnabled(Config::Get(Config::MAIN_USE_GAME_COVERS));
 }
 
 void InterfacePane::OnSaveConfig()
@@ -281,6 +292,17 @@ void InterfacePane::OnSaveConfig()
     Config::SetBase(Config::MAIN_USE_GAME_COVERS, use_covers);
     Settings::Instance().RefreshMetadata();
   }
+
+  const bool use_full_covers = m_checkbox_use_full_covers->isChecked();
+
+  if (use_full_covers != Config::Get(Config::MAIN_USE_FULL_GAME_COVERS))
+  {
+    Config::SetBase(Config::MAIN_USE_FULL_GAME_COVERS, use_full_covers);
+    if (Config::Get(Config::MAIN_USE_GAME_COVERS))
+      Settings::Instance().RefreshMetadata();
+  }
+
+  m_checkbox_use_full_covers->setEnabled(Config::Get(Config::MAIN_USE_GAME_COVERS));
 
   settings.SaveSettings();
 }

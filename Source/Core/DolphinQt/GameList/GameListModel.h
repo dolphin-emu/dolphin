@@ -40,6 +40,7 @@ public:
   QString GetUniqueIdentifier(int index) const;
   bool ShouldDisplayGameListItem(int index) const;
   void SetSearchTerm(const QString& term);
+  const GameTracker* GetGameTracker() const { return &m_tracker; };
 
   enum
   {
