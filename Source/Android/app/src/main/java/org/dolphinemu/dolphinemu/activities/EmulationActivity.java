@@ -5,8 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
@@ -598,6 +601,25 @@ public final class EmulationActivity extends AppCompatActivity
     }
 
     return true;
+  }
+
+  public void rumble(int padID, double state)
+  {
+    if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("phoneRumble", true))
+    {
+      Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+      if (vibrator != null && vibrator.hasVibrator())
+      {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+          vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+        }
+        else
+        {
+          vibrator.vibrate(100);
+        }
+      }
+    }
   }
 
   public static boolean isGameCubeGame()

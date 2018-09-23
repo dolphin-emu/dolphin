@@ -29,18 +29,21 @@ public class RunningSettingDialog extends DialogFragment
 
   public class SettingsItem
   {
-    //
+    // gfx
     public static final int SETTING_SHOW_FPS = 0;
     public static final int SETTING_EFB_TEXTURE = 1;
     public static final int SETTING_IGNORE_FORMAT = 2;
-    public static final int SETTING_SYNC_ON_SKIP_IDLE = 3;
-    public static final int SETTING_OVERCLOCK_ENABLE = 4;
-    public static final int SETTING_OVERCLOCK_PERCENT = 5;
-    public static final int SETTING_JIT_FOLLOW_THRESHOLD = 6;
-    //
-    public static final int TYPE_CHECKBOX = 1;
-    public static final int TYPE_RADIO_BUTTON = 2;
-    public static final int TYPE_SEEK_BAR = 3;
+    public static final int SETTING_ARBITRARY_MIPMAP_DETECTION = 3;
+    // core
+    public static final int SETTING_SYNC_ON_SKIP_IDLE = 4;
+    public static final int SETTING_OVERCLOCK_ENABLE = 5;
+    public static final int SETTING_OVERCLOCK_PERCENT = 6;
+    public static final int SETTING_JIT_FOLLOW_THRESHOLD = 7;
+
+    // view type
+    public static final int TYPE_CHECKBOX = 0;
+    public static final int TYPE_RADIO_BUTTON = 1;
+    public static final int TYPE_SEEK_BAR = 2;
 
     private int mSetting;
     private int mNameId;
@@ -247,12 +250,18 @@ public class RunningSettingDialog extends DialogFragment
       int i = 0;
       mRunningSettings = NativeLibrary.getRunningSettings();
       mSettings = new ArrayList<>();
+
+      // gfx
       mSettings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps,
               SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
       mSettings.add(new SettingsItem(SettingsItem.SETTING_EFB_TEXTURE, R.string.efb_copy_method,
               SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
       mSettings.add(new SettingsItem(SettingsItem.SETTING_IGNORE_FORMAT,
               R.string.ignore_format_changes, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+      mSettings.add(new SettingsItem(SettingsItem.SETTING_ARBITRARY_MIPMAP_DETECTION,
+              R.string.arbitrary_mipmap_detection, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+
+      // core
       mSettings.add(new SettingsItem(SettingsItem.SETTING_SYNC_ON_SKIP_IDLE,
               R.string.sync_on_skip_idle, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
       mSettings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_ENABLE,

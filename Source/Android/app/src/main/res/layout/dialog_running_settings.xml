@@ -10,7 +10,6 @@
         android:textColor="@android:color/white"
         android:background="@color/dolphin_blue"
         android:layout_alignParentTop="true"
-        android:padding="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
