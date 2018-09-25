@@ -10,18 +10,18 @@ import rx.functions.Action1;
 
 public class DirectoryStateReceiver extends BroadcastReceiver
 {
-  Action1<DirectoryInitializationState> callback;
+	Action1<DirectoryInitializationState> callback;
 
-  public DirectoryStateReceiver(Action1<DirectoryInitializationState> callback)
-  {
-    this.callback = callback;
-  }
+	public DirectoryStateReceiver(Action1<DirectoryInitializationState> callback)
+	{
+		this.callback = callback;
+	}
 
-  @Override
-  public void onReceive(Context context, Intent intent)
-  {
-    DirectoryInitializationState state = (DirectoryInitializationState) intent
-            .getSerializableExtra(DirectoryInitialization.EXTRA_STATE);
-    callback.call(state);
-  }
+	@Override
+	public void onReceive(Context context, Intent intent)
+	{
+		DirectoryInitializationState state = (DirectoryInitializationState) intent
+			.getSerializableExtra(DirectoryInitialization.EXTRA_STATE);
+		callback.call(state);
+	}
 }

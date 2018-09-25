@@ -19,249 +19,249 @@ import android.view.MotionEvent;
  */
 public final class InputOverlayDrawableJoystick
 {
-  private final int[] axisIDs = {0, 0, 0, 0};
-  private final float[] axises = {0f, 0f};
-  private int trackId = -1;
-  private int mJoystickType;
-  private int mControlPositionX, mControlPositionY;
-  private int mPreviousTouchX, mPreviousTouchY;
-  private int mWidth;
-  private int mHeight;
-  private Rect mVirtBounds;
-  private Rect mOrigBounds;
-  private BitmapDrawable mOuterBitmap;
-  private BitmapDrawable mDefaultStateInnerBitmap;
-  private BitmapDrawable mPressedStateInnerBitmap;
-  private BitmapDrawable mBoundsBoxBitmap;
-  private boolean mPressedState = false;
+	private final int[] axisIDs = {0, 0, 0, 0};
+	private final float[] axises = {0f, 0f};
+	private int trackId = -1;
+	private int mJoystickType;
+	private int mControlPositionX, mControlPositionY;
+	private int mPreviousTouchX, mPreviousTouchY;
+	private int mWidth;
+	private int mHeight;
+	private Rect mVirtBounds;
+	private Rect mOrigBounds;
+	private BitmapDrawable mOuterBitmap;
+	private BitmapDrawable mDefaultStateInnerBitmap;
+	private BitmapDrawable mPressedStateInnerBitmap;
+	private BitmapDrawable mBoundsBoxBitmap;
+	private boolean mPressedState = false;
 
-  /**
-   * Constructor
-   *
-   * @param res                {@link Resources} instance.
-   * @param bitmapOuter        {@link Bitmap} which represents the outer non-movable part of the joystick.
-   * @param bitmapInnerDefault {@link Bitmap} which represents the default inner movable part of the joystick.
-   * @param bitmapInnerPressed {@link Bitmap} which represents the pressed inner movable part of the joystick.
-   * @param rectOuter          {@link Rect} which represents the outer joystick bounds.
-   * @param rectInner          {@link Rect} which represents the inner joystick bounds.
-   * @param joystick           Identifier for which joystick this is.
-   */
-  public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter,
-          Bitmap bitmapInnerDefault, Bitmap bitmapInnerPressed,
-          Rect rectOuter, Rect rectInner, int joystick)
-  {
-    axisIDs[0] = joystick + 1;
-    axisIDs[1] = joystick + 2;
-    axisIDs[2] = joystick + 3;
-    axisIDs[3] = joystick + 4;
-    mJoystickType = joystick;
+	/**
+	 * Constructor
+	 *
+	 * @param res                {@link Resources} instance.
+	 * @param bitmapOuter        {@link Bitmap} which represents the outer non-movable part of the joystick.
+	 * @param bitmapInnerDefault {@link Bitmap} which represents the default inner movable part of the joystick.
+	 * @param bitmapInnerPressed {@link Bitmap} which represents the pressed inner movable part of the joystick.
+	 * @param rectOuter          {@link Rect} which represents the outer joystick bounds.
+	 * @param rectInner          {@link Rect} which represents the inner joystick bounds.
+	 * @param joystick           Identifier for which joystick this is.
+	 */
+	public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter,
+		Bitmap bitmapInnerDefault, Bitmap bitmapInnerPressed,
+		Rect rectOuter, Rect rectInner, int joystick)
+	{
+		axisIDs[0] = joystick + 1;
+		axisIDs[1] = joystick + 2;
+		axisIDs[2] = joystick + 3;
+		axisIDs[3] = joystick + 4;
+		mJoystickType = joystick;
 
-    mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
-    mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
-    mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
-    mBoundsBoxBitmap = new BitmapDrawable(res, bitmapOuter);
-    mWidth = bitmapOuter.getWidth();
-    mHeight = bitmapOuter.getHeight();
+		mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
+		mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
+		mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
+		mBoundsBoxBitmap = new BitmapDrawable(res, bitmapOuter);
+		mWidth = bitmapOuter.getWidth();
+		mHeight = bitmapOuter.getHeight();
 
-    setBounds(rectOuter);
-    mDefaultStateInnerBitmap.setBounds(rectInner);
-    mPressedStateInnerBitmap.setBounds(rectInner);
-    mVirtBounds = getBounds();
-    mOrigBounds = mOuterBitmap.copyBounds();
-    mBoundsBoxBitmap.setAlpha(0);
-    mBoundsBoxBitmap.setBounds(getVirtBounds());
-    SetInnerBounds();
-  }
+		setBounds(rectOuter);
+		mDefaultStateInnerBitmap.setBounds(rectInner);
+		mPressedStateInnerBitmap.setBounds(rectInner);
+		mVirtBounds = getBounds();
+		mOrigBounds = mOuterBitmap.copyBounds();
+		mBoundsBoxBitmap.setAlpha(0);
+		mBoundsBoxBitmap.setBounds(getVirtBounds());
+		SetInnerBounds();
+	}
 
-  /**
-   * Gets this InputOverlayDrawableJoystick's button ID.
-   *
-   * @return this InputOverlayDrawableJoystick's button ID.
-   */
-  public int getId()
-  {
-    return mJoystickType;
-  }
+	/**
+	 * Gets this InputOverlayDrawableJoystick's button ID.
+	 *
+	 * @return this InputOverlayDrawableJoystick's button ID.
+	 */
+	public int getId()
+	{
+		return mJoystickType;
+	}
 
-  public void draw(Canvas canvas)
-  {
-    mOuterBitmap.draw(canvas);
-    getCurrentStateBitmapDrawable().draw(canvas);
-    mBoundsBoxBitmap.draw(canvas);
-  }
+	public void draw(Canvas canvas)
+	{
+		mOuterBitmap.draw(canvas);
+		getCurrentStateBitmapDrawable().draw(canvas);
+		mBoundsBoxBitmap.draw(canvas);
+	}
 
-  public void TrackEvent(MotionEvent event)
-  {
-    boolean reCenter = InputOverlay.JoyStickSetting == InputOverlay.JOYSTICK_RELATIVE_CENTER;
-    int pointerIndex = event.getActionIndex();
+	public void TrackEvent(MotionEvent event)
+	{
+		boolean reCenter = InputOverlay.JoyStickSetting == InputOverlay.JOYSTICK_RELATIVE_CENTER;
+		int pointerIndex = event.getActionIndex();
 
-    switch (event.getAction() & MotionEvent.ACTION_MASK)
-    {
-      case MotionEvent.ACTION_DOWN:
-      case MotionEvent.ACTION_POINTER_DOWN:
-        if (getBounds().contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
-        {
-          mPressedState = true;
-          mOuterBitmap.setAlpha(0);
-          mBoundsBoxBitmap.setAlpha(255);
-          if (reCenter)
-          {
-            getVirtBounds().offset((int) event.getX(pointerIndex) - getVirtBounds().centerX(),
-                    (int) event.getY(pointerIndex) - getVirtBounds().centerY());
-          }
-          mBoundsBoxBitmap.setBounds(getVirtBounds());
-          trackId = event.getPointerId(pointerIndex);
-        }
-        break;
-      case MotionEvent.ACTION_UP:
-      case MotionEvent.ACTION_POINTER_UP:
-        if (trackId == event.getPointerId(pointerIndex))
-        {
-          mPressedState = false;
-          axises[0] = axises[1] = 0.0f;
-          mOuterBitmap.setAlpha(255);
-          mBoundsBoxBitmap.setAlpha(0);
-          setVirtBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right,
-                  mOrigBounds.bottom));
-          setBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right,
-                  mOrigBounds.bottom));
-          SetInnerBounds();
-          trackId = -1;
-        }
-        break;
-    }
+		switch (event.getAction() & MotionEvent.ACTION_MASK)
+		{
+			case MotionEvent.ACTION_DOWN:
+			case MotionEvent.ACTION_POINTER_DOWN:
+				if (getBounds().contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+				{
+					mPressedState = true;
+					mOuterBitmap.setAlpha(0);
+					mBoundsBoxBitmap.setAlpha(255);
+					if (reCenter)
+					{
+						getVirtBounds().offset((int) event.getX(pointerIndex) - getVirtBounds().centerX(),
+							(int) event.getY(pointerIndex) - getVirtBounds().centerY());
+					}
+					mBoundsBoxBitmap.setBounds(getVirtBounds());
+					trackId = event.getPointerId(pointerIndex);
+				}
+				break;
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_POINTER_UP:
+				if (trackId == event.getPointerId(pointerIndex))
+				{
+					mPressedState = false;
+					axises[0] = axises[1] = 0.0f;
+					mOuterBitmap.setAlpha(255);
+					mBoundsBoxBitmap.setAlpha(0);
+					setVirtBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right,
+						mOrigBounds.bottom));
+					setBounds(new Rect(mOrigBounds.left, mOrigBounds.top, mOrigBounds.right,
+						mOrigBounds.bottom));
+					SetInnerBounds();
+					trackId = -1;
+				}
+				break;
+		}
 
-    if (trackId == -1)
-      return;
+		if (trackId == -1)
+			return;
 
-    for (int i = 0; i < event.getPointerCount(); i++)
-    {
-      if (trackId == event.getPointerId(i))
-      {
-        float touchX = event.getX(i);
-        float touchY = event.getY(i);
-        float maxY = getVirtBounds().bottom;
-        float maxX = getVirtBounds().right;
-        touchX -= getVirtBounds().centerX();
-        maxX -= getVirtBounds().centerX();
-        touchY -= getVirtBounds().centerY();
-        maxY -= getVirtBounds().centerY();
-        final float AxisX = touchX / maxX;
-        final float AxisY = touchY / maxY;
-        axises[0] = AxisY;
-        axises[1] = AxisX;
+		for (int i = 0; i < event.getPointerCount(); i++)
+		{
+			if (trackId == event.getPointerId(i))
+			{
+				float touchX = event.getX(i);
+				float touchY = event.getY(i);
+				float maxY = getVirtBounds().bottom;
+				float maxX = getVirtBounds().right;
+				touchX -= getVirtBounds().centerX();
+				maxX -= getVirtBounds().centerX();
+				touchY -= getVirtBounds().centerY();
+				maxY -= getVirtBounds().centerY();
+				final float AxisX = touchX / maxX;
+				final float AxisY = touchY / maxY;
+				axises[0] = AxisY;
+				axises[1] = AxisX;
 
-        SetInnerBounds();
-      }
-    }
-  }
+				SetInnerBounds();
+			}
+		}
+	}
 
-  public boolean onConfigureTouch(MotionEvent event)
-  {
-    int pointerIndex = event.getActionIndex();
-    int fingerPositionX = (int) event.getX(pointerIndex);
-    int fingerPositionY = (int) event.getY(pointerIndex);
-    switch (event.getAction())
-    {
-      case MotionEvent.ACTION_DOWN:
-        mPreviousTouchX = fingerPositionX;
-        mPreviousTouchY = fingerPositionY;
-        break;
-      case MotionEvent.ACTION_MOVE:
-        int deltaX = fingerPositionX - mPreviousTouchX;
-        int deltaY = fingerPositionY - mPreviousTouchY;
-        mControlPositionX += deltaX;
-        mControlPositionY += deltaY;
-        setBounds(new Rect(mControlPositionX, mControlPositionY,
-                mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
-                mOuterBitmap.getIntrinsicHeight() + mControlPositionY));
-        setVirtBounds(new Rect(mControlPositionX, mControlPositionY,
-                mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
-                mOuterBitmap.getIntrinsicHeight() + mControlPositionY));
-        SetInnerBounds();
-        setOrigBounds(new Rect(new Rect(mControlPositionX, mControlPositionY,
-                mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
-                mOuterBitmap.getIntrinsicHeight() + mControlPositionY)));
-        mPreviousTouchX = fingerPositionX;
-        mPreviousTouchY = fingerPositionY;
-        break;
-    }
-    return true;
-  }
+	public boolean onConfigureTouch(MotionEvent event)
+	{
+		int pointerIndex = event.getActionIndex();
+		int fingerPositionX = (int) event.getX(pointerIndex);
+		int fingerPositionY = (int) event.getY(pointerIndex);
+		switch (event.getAction())
+		{
+			case MotionEvent.ACTION_DOWN:
+				mPreviousTouchX = fingerPositionX;
+				mPreviousTouchY = fingerPositionY;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				int deltaX = fingerPositionX - mPreviousTouchX;
+				int deltaY = fingerPositionY - mPreviousTouchY;
+				mControlPositionX += deltaX;
+				mControlPositionY += deltaY;
+				setBounds(new Rect(mControlPositionX, mControlPositionY,
+					mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
+					mOuterBitmap.getIntrinsicHeight() + mControlPositionY));
+				setVirtBounds(new Rect(mControlPositionX, mControlPositionY,
+					mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
+					mOuterBitmap.getIntrinsicHeight() + mControlPositionY));
+				SetInnerBounds();
+				setOrigBounds(new Rect(new Rect(mControlPositionX, mControlPositionY,
+					mOuterBitmap.getIntrinsicWidth() + mControlPositionX,
+					mOuterBitmap.getIntrinsicHeight() + mControlPositionY)));
+				mPreviousTouchX = fingerPositionX;
+				mPreviousTouchY = fingerPositionY;
+				break;
+		}
+		return true;
+	}
 
-  public float[] getAxisValues()
-  {
-    return new float[]{axises[0], axises[0], axises[1], axises[1]};
-  }
+	public float[] getAxisValues()
+	{
+		return new float[]{axises[0], axises[0], axises[1], axises[1]};
+	}
 
-  public int[] getAxisIDs()
-  {
-    return new int[]{axisIDs[0], axisIDs[1], axisIDs[2], axisIDs[3]};
-  }
+	public int[] getAxisIDs()
+	{
+		return new int[]{axisIDs[0], axisIDs[1], axisIDs[2], axisIDs[3]};
+	}
 
-  private void SetInnerBounds()
-  {
-    int X = getVirtBounds().centerX() + (int) ((axises[1]) * (getVirtBounds().width() / 2));
-    int Y = getVirtBounds().centerY() + (int) ((axises[0]) * (getVirtBounds().height() / 2));
+	private void SetInnerBounds()
+	{
+		int X = getVirtBounds().centerX() + (int) ((axises[1]) * (getVirtBounds().width() / 2));
+		int Y = getVirtBounds().centerY() + (int) ((axises[0]) * (getVirtBounds().height() / 2));
 
-    if (X > getVirtBounds().centerX() + (getVirtBounds().width() / 2))
-      X = getVirtBounds().centerX() + (getVirtBounds().width() / 2);
-    if (X < getVirtBounds().centerX() - (getVirtBounds().width() / 2))
-      X = getVirtBounds().centerX() - (getVirtBounds().width() / 2);
-    if (Y > getVirtBounds().centerY() + (getVirtBounds().height() / 2))
-      Y = getVirtBounds().centerY() + (getVirtBounds().height() / 2);
-    if (Y < getVirtBounds().centerY() - (getVirtBounds().height() / 2))
-      Y = getVirtBounds().centerY() - (getVirtBounds().height() / 2);
+		if (X > getVirtBounds().centerX() + (getVirtBounds().width() / 2))
+			X = getVirtBounds().centerX() + (getVirtBounds().width() / 2);
+		if (X < getVirtBounds().centerX() - (getVirtBounds().width() / 2))
+			X = getVirtBounds().centerX() - (getVirtBounds().width() / 2);
+		if (Y > getVirtBounds().centerY() + (getVirtBounds().height() / 2))
+			Y = getVirtBounds().centerY() + (getVirtBounds().height() / 2);
+		if (Y < getVirtBounds().centerY() - (getVirtBounds().height() / 2))
+			Y = getVirtBounds().centerY() - (getVirtBounds().height() / 2);
 
-    int width = mPressedStateInnerBitmap.getBounds().width() / 2;
-    int height = mPressedStateInnerBitmap.getBounds().height() / 2;
-    mDefaultStateInnerBitmap.setBounds(X - width, Y - height, X + width, Y + height);
-    mPressedStateInnerBitmap.setBounds(mDefaultStateInnerBitmap.getBounds());
-  }
+		int width = mPressedStateInnerBitmap.getBounds().width() / 2;
+		int height = mPressedStateInnerBitmap.getBounds().height() / 2;
+		mDefaultStateInnerBitmap.setBounds(X - width, Y - height, X + width, Y + height);
+		mPressedStateInnerBitmap.setBounds(mDefaultStateInnerBitmap.getBounds());
+	}
 
-  public void setPosition(int x, int y)
-  {
-    mControlPositionX = x;
-    mControlPositionY = y;
-  }
+	public void setPosition(int x, int y)
+	{
+		mControlPositionX = x;
+		mControlPositionY = y;
+	}
 
-  private BitmapDrawable getCurrentStateBitmapDrawable()
-  {
-    return mPressedState ? mPressedStateInnerBitmap : mDefaultStateInnerBitmap;
-  }
+	private BitmapDrawable getCurrentStateBitmapDrawable()
+	{
+		return mPressedState ? mPressedStateInnerBitmap : mDefaultStateInnerBitmap;
+	}
 
-  public void setBounds(Rect bounds)
-  {
-    mOuterBitmap.setBounds(bounds);
-  }
+	public void setBounds(Rect bounds)
+	{
+		mOuterBitmap.setBounds(bounds);
+	}
 
-  public Rect getBounds()
-  {
-    return mOuterBitmap.getBounds();
-  }
+	public Rect getBounds()
+	{
+		return mOuterBitmap.getBounds();
+	}
 
-  private void setVirtBounds(Rect bounds)
-  {
-    mVirtBounds = bounds;
-  }
+	private void setVirtBounds(Rect bounds)
+	{
+		mVirtBounds = bounds;
+	}
 
-  private void setOrigBounds(Rect bounds)
-  {
-    mOrigBounds = bounds;
-  }
+	private void setOrigBounds(Rect bounds)
+	{
+		mOrigBounds = bounds;
+	}
 
-  private Rect getVirtBounds()
-  {
-    return mVirtBounds;
-  }
+	private Rect getVirtBounds()
+	{
+		return mVirtBounds;
+	}
 
-  public int getWidth()
-  {
-    return mWidth;
-  }
+	public int getWidth()
+	{
+		return mWidth;
+	}
 
-  public int getHeight()
-  {
-    return mHeight;
-  }
+	public int getHeight()
+	{
+		return mHeight;
+	}
 }

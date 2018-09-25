@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.1'
+    buildToolsVersion '28.0.2'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -32,9 +32,9 @@ android {
 
     signingConfigs {
         release {
-            keyAlias 'bboo-release-key'
+            keyAlias 'dolphin-release-key'
             keyPassword 'zhangwei'
-            storeFile file('/Users/wei/Workspace/android/keystore/bboo-release-key')
+            storeFile file('D:/Android/android-sign-key/dolphin-release-key.jks')
             storePassword 'zhangwei'
         }
     }
@@ -96,8 +96,8 @@ def getVersion() {
 
     try {
         versionNumber = 'git describe --always --long'.execute([], project.rootDir).text
-                .trim()
-                .replaceAll(/(-0)?-[^-]+$/, "")
+            .trim()
+            .replaceAll(/(-0)?-[^-]+$/, "")
     } catch (Exception e) {
         logger.error('Cannot find git, defaulting to dummy version number')
     }
@@ -109,7 +109,7 @@ def getVersion() {
 def getBuildVersionCode() {
     try {
         def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
-                .trim()
+            .trim()
         return Integer.valueOf(versionNumber);
     } catch (Exception e) {
         logger.error('Cannot find git, defaulting to dummy version number')
