@@ -439,6 +439,15 @@ public final class SettingsFile
       HashMap<String, Setting> settings = section.getSettings();
       Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
 
+      // Profile options(wii extension) are not saved, only used to properly display values
+      if (sectionKey.contains(Settings.SECTION_PROFILE))
+      {
+        continue;
+      }
+      else
+      {
+        NativeLibrary.LoadGameIniFile(gameId);
+      }
       for (String settingKey : sortedKeySet)
       {
         Setting setting = settings.get(settingKey);
@@ -453,6 +462,7 @@ public final class SettingsFile
                   setting.getKey(), setting.getValueAsString());
         }
       }
+      NativeLibrary.SaveGameIniFile(gameId);
     }
   }
 
@@ -465,8 +475,6 @@ public final class SettingsFile
    */
   public static void saveCustomWiimoteSetting(final String gameId, final Setting setting)
   {
-    if (setting.getSection().equals(Settings.SECTION_PROFILE))
-      return;
     String padId =
             setting.getKey().substring(setting.getKey().length() - 1, setting.getKey().length());
     String profile = gameId + "_Wii" + padId;
@@ -475,8 +483,10 @@ public final class SettingsFile
             setting.getValueAsString());
 
     // Enable the profile
+    NativeLibrary.LoadGameIniFile(gameId);
     NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
             KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
+    NativeLibrary.SaveGameIniFile(gameId);
   }
 
   private static String mapSectionNameFromIni(String generalSectionName)

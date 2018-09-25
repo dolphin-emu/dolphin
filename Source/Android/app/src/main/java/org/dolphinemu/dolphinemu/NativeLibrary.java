@@ -263,6 +263,10 @@ public final class NativeLibrary
     }
   }
 
+  public static native void LoadGameIniFile(String gameId);
+
+  public static native void SaveGameIniFile(String gameId);
+
   public static native String GetUserSetting(String gameID, String Section, String Key);
 
   public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
