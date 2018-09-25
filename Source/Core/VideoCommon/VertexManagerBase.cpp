@@ -541,3 +541,47 @@ void VertexManagerBase::UpdatePipelineObject()
   break;
   }
 }
+
+const AbstractPipeline* VertexManagerBase::GetPipelineObjectForAlphaPass()
+{
+  const AbstractPipeline* pipeline_object = nullptr;
+  if(m_current_pipeline_config.blending_state.IsDualSourceBlend())
+  {
+    VideoCommon::GXPipelineUid pipeline_config(m_current_pipeline_config);
+    // Skip depth writes for this pass. The results will be the same, so no
+    // point in overwriting depth values with the same value.
+    pipeline_config.depth_state.hex = 0;
+    // Only allow alpha writes, and disable blending.
+    pipeline_config.blending_state.hex = 0;
+    pipeline_config.blending_state.alphaupdate = true;
+    // diable fog
+    pixel_shader_uid_data* uid_data = pipeline_config.ps_uid.GetUidData<pixel_shader_uid_data>();
+    uid_data->doAlphaPass = true;
+    uid_data->fog_fsel = 0;
+    uid_data->fog_proj  = 0;
+    uid_data->fog_RangeBaseEnabled = 0;
+
+    switch (g_ActiveConfig.iShaderCompilationMode)
+    {
+    case ShaderCompilationMode::Synchronous:
+    {
+      // Ubershaders disabled? Block and compile the specialized shader.
+      pipeline_object = g_shader_cache->GetPipelineForUid(pipeline_config);
+    }
+    break;
+
+    case ShaderCompilationMode::AsynchronousSkipRendering:
+    {
+      // Can we background compile shaders? If so, get the pipeline asynchronously.
+      auto res = g_shader_cache->GetPipelineForUidAsync(pipeline_config);
+      if (res)
+      {
+        // Specialized shaders are ready, prefer these.
+        pipeline_object = *res;
+      }
+    }
+    break;
+    }
+  }
+  return pipeline_object;
+}

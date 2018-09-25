@@ -142,19 +142,6 @@ void VideoConfig::Refresh()
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 
-  // Biohazard 4
-  const std::string& gameId = SConfig::GetInstance().GetGameID();
-  if (gameId == "RB4E08" || gameId == "RB4J08" || gameId == "G4BE08" || gameId == "G4BJ08")
-  {
-    // use shader blend
-    bDualSourceShaderBlend = true;
-  }
-  else
-  {
-    // use device blend
-    bDualSourceShaderBlend = false;
-  }
-
   VerifyValidity();
 }
 

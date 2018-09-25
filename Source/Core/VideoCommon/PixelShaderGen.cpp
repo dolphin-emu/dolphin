@@ -332,16 +332,22 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
-  if (state.IsDualSourceBlend() && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
-    (g_ActiveConfig.backend_info.bSupportsFramebufferFetch || g_ActiveConfig.bDualSourceShaderBlend))
+  if (state.IsDualSourceBlend() && !g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
   {
-    uid_data->blend_enable = state.blendenable;
-    uid_data->blend_src_factor = state.srcfactor;
-    uid_data->blend_src_factor_alpha = state.srcfactoralpha;
-    uid_data->blend_dst_factor = state.dstfactor;
-    uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
-    uid_data->blend_subtract = state.subtract;
-    uid_data->blend_subtract_alpha = state.subtractAlpha;
+    if(g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
+    {
+      uid_data->blend_enable = state.blendenable;
+      uid_data->blend_src_factor = state.srcfactor;
+      uid_data->blend_src_factor_alpha = state.srcfactoralpha;
+      uid_data->blend_dst_factor = state.dstfactor;
+      uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
+      uid_data->blend_subtract = state.subtract;
+      uid_data->blend_subtract_alpha = state.subtractAlpha;
+    }
+    else
+    {
+      uid_data->useDstAlpha = false;
+    }
   }
 
   return out;
@@ -529,11 +535,19 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   }
 
   // Only use dual-source blending when required on drivers that don't support it very well.
-  const bool use_dual_source =
-      host_config.backend_dual_source_blend &&
-      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->useDstAlpha);
-  bool use_shader_blend = !use_dual_source && (uid_data->useDstAlpha);
+  bool use_dual_source = false;
+  bool use_shader_blend = false;
+  if(uid_data->useDstAlpha)
+  {
+    if(host_config.backend_dual_source_blend)
+    {
+      use_dual_source = true;
+    }
+    else if(host_config.backend_shader_framebuffer_fetch)
+    {
+      use_shader_blend = true;
+    }
+  }
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -544,18 +558,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     }
     else if (use_shader_blend)
     {
-      if (host_config.backend_shader_framebuffer_fetch)
-      {
-        // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
-        // intermediate value with multiple reads & modifications, so pull out the "real" output value
-        // and use a temporary for calculations, then set the output value once at the end of the
-        // shader
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
-      }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 real_ocol0;\n");
-      }
+      // QComm's Adreno driver doesn't seem to like using the framebuffer_fetch value as an
+      // intermediate value with multiple reads & modifications, so pull out the "real" output value
+      // and use a temporary for calculations, then set the output value once at the end of the
+      // shader
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) FRAGMENT_INOUT vec4 real_ocol0;\n");
     }
     else
     {
@@ -596,15 +603,8 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
     out.Write("\tfloat4 rawpos = gl_FragCoord;\n");
     if (use_shader_blend)
     {
-      if (host_config.backend_shader_framebuffer_fetch)
-      {
-        // Store off a copy of the initial fb value for blending
-        out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
-      }
-      else
-      {
-        out.Write("\tfloat4 initial_ocol0 = float4(0.0, 0.0, 0.0, 1.0);\n");
-      }
+      // Store off a copy of the initial fb value for blending
+      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n");
       out.Write("\tfloat4 ocol0;\n");
       out.Write("\tfloat4 ocol1;\n");
     }
@@ -1400,7 +1400,7 @@ static void WriteColor(ShaderCode& out, APIType api_type, const pixel_shader_uid
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
-  if (uid_data->useDstAlpha)
+  if (uid_data->useDstAlpha || uid_data->doAlphaPass)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
     out.Write("\tprev.a = " I_ALPHA ".a;\n");

@@ -168,13 +168,6 @@ void VertexManager::vFlush()
   // Bind all pending state to the command buffer
   if (m_current_pipeline_object)
   {
-    // bind shader blend texture
-    /*bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-    if (useDstAlpha && !g_vulkan_context->SupportsDualSourceBlend())
-    {
-      Renderer::GetInstance()->BindFramebufferAsTexture(1);
-    }*/
-
     g_renderer->SetPipeline(m_current_pipeline_object);
     if (!StateTracker::GetInstance()->Bind())
     {
@@ -186,7 +179,26 @@ void VertexManager::vFlush()
     vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
                      m_current_draw_base_index, m_current_draw_base_vertex, 0);
 
-	INCSTAT(stats.thisFrame.numDrawCalls);
+    INCSTAT(stats.thisFrame.numDrawCalls);
+
+    // dual source blend
+    if (!g_vulkan_context->SupportsDualSourceBlend())
+    {
+      const AbstractPipeline* pipeline = GetPipelineObjectForAlphaPass();
+      if(pipeline)
+      {
+        g_renderer->SetPipeline(pipeline);
+        if (!StateTracker::GetInstance()->Bind())
+        {
+          WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
+          return;
+        }
+
+        // Execute the draw, again
+        vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
+                         m_current_draw_base_index, m_current_draw_base_vertex, 0);
+      }
+    }
   }
 
   StateTracker::GetInstance()->OnDraw();

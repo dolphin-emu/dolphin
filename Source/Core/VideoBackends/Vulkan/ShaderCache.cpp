@@ -163,65 +163,48 @@ static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const De
 
 static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const BlendingState& state)
 {
+  bool doDualSourceBlend = g_vulkan_context->SupportsDualSourceBlend() && state.IsDualSourceBlend();
   VkPipelineColorBlendAttachmentState vk_state = {};
   vk_state.blendEnable = static_cast<VkBool32>(state.blendenable);
   vk_state.colorBlendOp = state.subtract ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
   vk_state.alphaBlendOp = state.subtractAlpha ? VK_BLEND_OP_REVERSE_SUBTRACT : VK_BLEND_OP_ADD;
 
-  if (g_vulkan_context->SupportsDualSourceBlend())
-  {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC1_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
+  const VkBlendFactor src_factors[] = {
+    VK_BLEND_FACTOR_ZERO,
+    VK_BLEND_FACTOR_ONE,
+    VK_BLEND_FACTOR_DST_COLOR,
+    VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR,
+    doDualSourceBlend ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA,
+    doDualSourceBlend ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+    VK_BLEND_FACTOR_DST_ALPHA,
+    VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA
+  };
+  const VkBlendFactor dst_factors[] = {
+    VK_BLEND_FACTOR_ZERO,
+    VK_BLEND_FACTOR_ONE,
+    VK_BLEND_FACTOR_SRC_COLOR,
+    VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR,
+    doDualSourceBlend ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA,
+    doDualSourceBlend ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+    VK_BLEND_FACTOR_DST_ALPHA,
+    VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA
+  };
 
-    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
-    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
-    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
-    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
-  }
-  else if(state.IsDualSourceBlend() && g_ActiveConfig.bDualSourceShaderBlend)
-  {
-    vk_state.blendEnable = VK_FALSE;
-  }
-  else
-  {
-    static constexpr std::array<VkBlendFactor, 8> src_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_DST_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-
-    static constexpr std::array<VkBlendFactor, 8> dst_factors = {
-        {VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ONE, VK_BLEND_FACTOR_SRC_COLOR,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_FACTOR_SRC_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, VK_BLEND_FACTOR_DST_ALPHA,
-         VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA}};
-
-    vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
-    vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
-    vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
-    vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
-  }
+  vk_state.srcColorBlendFactor = src_factors[state.srcfactor];
+  vk_state.srcAlphaBlendFactor = src_factors[state.srcfactoralpha];
+  vk_state.dstColorBlendFactor = dst_factors[state.dstfactor];
+  vk_state.dstAlphaBlendFactor = dst_factors[state.dstfactoralpha];
 
   if (state.colorupdate)
   {
     vk_state.colorWriteMask =
         VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
   }
-  else
-  {
-    vk_state.colorWriteMask = 0;
-  }
 
   if (state.alphaupdate)
+  {
     vk_state.colorWriteMask |= VK_COLOR_COMPONENT_A_BIT;
+  }
 
   return vk_state;
 }

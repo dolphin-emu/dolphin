@@ -103,8 +103,6 @@ struct VideoConfig final
   bool bBBoxEnable;
   bool bBBoxPreferStencilImplementation;  // OpenGL-only, to see how slow it is compared to SSBOs
   bool bForceProgressive;
-  // vulkan only, when don't support dual source, true: use shader blend, false: use device blend
-  bool bDualSourceShaderBlend;
 
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
