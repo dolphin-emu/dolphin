@@ -397,11 +397,11 @@ static bool Compare(T mem_value, T value, CompareType op)
   case CompareType::Less:
     return mem_value < value;
   case CompareType::LessEqual:
-    return mem_value <= mem_value;
+    return mem_value <= value;
   case CompareType::More:
-    return value > mem_value;
+    return mem_value > value;
   case CompareType::MoreEqual:
-    return value >= mem_value;
+    return mem_value >= value;
   default:
     return false;
   }
