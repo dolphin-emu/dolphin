@@ -7,7 +7,6 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <android/log.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
