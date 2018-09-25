@@ -19,6 +19,7 @@ import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -147,8 +148,13 @@ public final class DirectoryInitializationService extends IntentService
     //
     // TODO: Redo the Android controller system so that we don't have to extract these INIs.
     String configDirectory = NativeLibrary.GetUserDirectory() + File.separator + "Config";
+    String profileDirectory =
+            NativeLibrary.GetUserDirectory() + File.separator + "Config/Profiles/Wiimote/";
+    createWiimoteProfileDirectory(profileDirectory);
+
     copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true);
     copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false);
+    copyAsset("WiimoteProfile.ini", new File(profileDirectory, "WiimoteProfile.ini"), true);
   }
 
   private static void deleteDirectoryRecursively(File file)
@@ -253,7 +259,21 @@ public final class DirectoryInitializationService extends IntentService
     }
   }
 
-  private void copyFile(InputStream in, OutputStream out) throws IOException
+  public static void copyFile(String from, String to)
+  {
+    try
+    {
+      InputStream in = new FileInputStream(from);
+      OutputStream out = new FileOutputStream(to);
+      copyFile(in, out);
+    }
+    catch (IOException e)
+    {
+
+    }
+  }
+
+  private static void copyFile(InputStream in, OutputStream out) throws IOException
   {
     byte[] buffer = new byte[1024];
     int read;
@@ -261,6 +281,15 @@ public final class DirectoryInitializationService extends IntentService
     while ((read = in.read(buffer)) != -1)
     {
       out.write(buffer, 0, read);
+    }
+  }
+
+  private static void createWiimoteProfileDirectory(String directory)
+  {
+    File wiiPath = new File(directory);
+    if (!wiiPath.isDirectory())
+    {
+      wiiPath.mkdirs();
     }
   }
 

@@ -212,7 +212,7 @@ public final class MotionAlertDialog extends AlertDialog
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
     SharedPreferences.Editor editor = preferences.edit();
 
-    editor.putString(setting.getKey(), ui);
+    editor.putString(setting.getKey() + setting.getGameId(), ui);
     editor.apply();
 
     dismiss();
@@ -223,7 +223,7 @@ public final class MotionAlertDialog extends AlertDialog
     setting.setValue("");
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
     SharedPreferences.Editor editor = preferences.edit();
-    editor.remove(setting.getKey());
+    editor.remove(setting.getKey() + setting.getGameId());
     editor.apply();
     dismiss();
   }
