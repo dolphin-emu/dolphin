@@ -35,7 +35,10 @@ const std::vector<NamedReg> reg8names{
 };
 
 const std::vector<NamedReg> reg8hnames{
-    {AH, "ah"}, {BH, "bh"}, {CH, "ch"}, {DH, "dh"},
+    {AH, "ah"},
+    {BH, "bh"},
+    {CH, "ch"},
+    {DH, "dh"},
 };
 
 const std::vector<NamedReg> reg16names{
@@ -306,10 +309,12 @@ TEST_F(x64EmitterTest, CMOVcc_Register)
     emitter->CMOVcc(32, RAX, R(R12), cc.cc);
     emitter->CMOVcc(16, RAX, R(R12), cc.cc);
 
-    ExpectDisassembly("cmov" + cc.name + " rax, r12 "
-                                         "cmov" +
-                      cc.name + " eax, r12d "
-                                "cmov" +
+    ExpectDisassembly("cmov" + cc.name +
+                      " rax, r12 "
+                      "cmov" +
+                      cc.name +
+                      " eax, r12d "
+                      "cmov" +
                       cc.name + " ax, r12w");
   }
 }
@@ -379,10 +384,12 @@ TEST_F(x64EmitterTest, MOVNT_DQ_PS_PD)
     emitter->MOVNTDQ(MatR(RAX), r.reg);
     emitter->MOVNTPS(MatR(RAX), r.reg);
     emitter->MOVNTPD(MatR(RAX), r.reg);
-    ExpectDisassembly("movntdq dqword ptr ds:[rax], " + r.name + " "
-                                                                 "movntps dqword ptr ds:[rax], " +
-                      r.name + " "
-                               "movntpd dqword ptr ds:[rax], " +
+    ExpectDisassembly("movntdq dqword ptr ds:[rax], " + r.name +
+                      " "
+                      "movntps dqword ptr ds:[rax], " +
+                      r.name +
+                      " "
+                      "movntpd dqword ptr ds:[rax], " +
                       r.name);
   }
 }
@@ -547,6 +554,24 @@ TWO_OP_ARITH_TEST(OR)
 TWO_OP_ARITH_TEST(XOR)
 TWO_OP_ARITH_TEST(MOV)
 
+TEST_F(x64EmitterTest, MOV_Imm64)
+{
+  for (size_t i = 0; i < reg64names.size(); i++)
+  {
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEFDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 10);
+    ExpectDisassembly("mov " + reg64names[i].name + ", 0xdeadbeefdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xFFFFFFFFDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 7);
+    ExpectDisassembly("mov " + reg64names[i].name + ", 0xffffffffdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
+    ExpectDisassembly("mov " + reg32names[i].name + ", 0xdeadbeef");
+  }
+}
+
 // TODO: Disassembler inverts operands here.
 // TWO_OP_ARITH_TEST(XCHG)
 // TWO_OP_ARITH_TEST(TEST)
@@ -558,7 +583,8 @@ TEST_F(x64EmitterTest, BSWAP)
     int bits;
     std::vector<NamedReg> regs;
   } regsets[] = {
-      {32, reg32names}, {64, reg64names},
+      {32, reg32names},
+      {64, reg64names},
   };
   for (const auto& regset : regsets)
     for (const auto& r : regset.regs)
@@ -871,7 +897,8 @@ TWO_OP_SSE_TEST(PMOVZXDQ, "qword")
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -903,7 +930,8 @@ VEX_RMR_TEST(BZHI)
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -934,7 +962,8 @@ VEX_RRM_TEST(ANDN)
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
@@ -963,7 +992,8 @@ VEX_RM_TEST(BLSI)
       std::string out_name;                                                                        \
       std::string size;                                                                            \
     } regsets[] = {                                                                                \
-        {32, reg32names, "eax", "dword"}, {64, reg64names, "rax", "qword"},                        \
+        {32, reg32names, "eax", "dword"},                                                          \
+        {64, reg64names, "rax", "qword"},                                                          \
     };                                                                                             \
     for (const auto& regset : regsets)                                                             \
       for (const auto& r : regset.regs)                                                            \
