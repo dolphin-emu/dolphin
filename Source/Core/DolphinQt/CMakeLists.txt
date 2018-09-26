@@ -148,36 +148,39 @@ if(WIN32)
 endif()
 
 # Handle localization
-find_package(Gettext)
-if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
-  set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
-  file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
+option(DISABLE_NLS "Disable native language support (NLS)" OFF)
+if(NOT DISABLE_NLS)
+  find_package(Gettext)
+  if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
+    set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
+    file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 
-  target_sources(dolphin-emu PRIVATE ${pot_file} ${LINGUAS})
-  source_group("Localization" FILES ${LINGUAS})
-  source_group("Localization\\\\Generated" FILES ${pot_file})
+    target_sources(dolphin-emu PRIVATE ${pot_file} ${LINGUAS})
+    source_group("Localization" FILES ${LINGUAS})
+    source_group("Localization\\\\Generated" FILES ${pot_file})
 
-  foreach(po ${LINGUAS})
-    get_filename_component(lang ${po} NAME_WE)
-    set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
-    set(mo ${mo_dir}/dolphin-emu.mo)
+    foreach(po ${LINGUAS})
+      get_filename_component(lang ${po} NAME_WE)
+      set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+      set(mo ${mo_dir}/dolphin-emu.mo)
 
-    target_sources(dolphin-emu PRIVATE ${mo})
-    source_group("Localization\\\\Generated" FILES ${mo})
+      target_sources(dolphin-emu PRIVATE ${mo})
+      source_group("Localization\\\\Generated" FILES ${mo})
 
-    if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-      set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
-    else()
-      install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
-    endif()
+      if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+        set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
+      else()
+        install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
+      endif()
 
-    add_custom_command(OUTPUT ${mo}
-      COMMAND cmake -E make_directory ${mo_dir}
-      COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
-      COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
-      DEPENDS ${po}
-    )
-  endforeach()
+      add_custom_command(OUTPUT ${mo}
+        COMMAND cmake -E make_directory ${mo_dir}
+        COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+        COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+        DEPENDS ${po}
+      )
+    endforeach()
+  endif()
 endif()
 
 if(APPLE)
