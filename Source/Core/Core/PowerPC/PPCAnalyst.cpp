@@ -753,7 +753,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, std:
   u32 numFollows = 0;
   u32 num_inst = 0;
 
-  const u32 branchFollowThreshold = SConfig::GetInstance().iJITFollowThreshold;
+  const u32 branchFollowThreshold = SConfig::GetInstance().bJITFollowBranch ? 3 : 0;
 
   for (std::size_t i = 0; i < block_size; ++i)
   {

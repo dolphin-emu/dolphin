@@ -63,8 +63,7 @@ public final class SliderSetting extends SettingsItem
 	public boolean isPercentSetting()
 	{
 		return getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT)
-			|| getKey().equals(SettingsFile.KEY_SPEED_LIMIT)
-			|| getKey().equals(SettingsFile.KEY_SYNC_GPU_OVERCLOCK);
+			|| getKey().equals(SettingsFile.KEY_SPEED_LIMIT);
 	}
 
 	/**

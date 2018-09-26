@@ -104,7 +104,7 @@ struct DTMHeader
   bool bPAL60;
   u8 language;
   bool bReducePollingRate;
-  u8 JITFollowThreshold;
+  bool bFollowBranch;
   std::array<u8, 9> reserved;       // Padding for any new config options
   std::array<char, 40> discChange;  // Name of iso file to switch to, for two disc games.
   std::array<u8, 20> revision;      // Git hash

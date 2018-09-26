@@ -20,7 +20,7 @@ namespace Config
 extern const ConfigInfo<bool> MAIN_SKIP_IPL;
 extern const ConfigInfo<bool> MAIN_LOAD_IPL_DUMP;
 extern const ConfigInfo<PowerPC::CPUCore> MAIN_CPU_CORE;
-extern const ConfigInfo<u8> MAIN_JIT_FOLLOW_BRANCH;
+extern const ConfigInfo<bool> MAIN_JIT_FOLLOW_BRANCH;
 extern const ConfigInfo<bool> MAIN_FASTMEM;
 // Should really be in the DSP section, but we're kind of stuck with bad decisions made in the past.
 extern const ConfigInfo<bool> MAIN_DSP_HLE;

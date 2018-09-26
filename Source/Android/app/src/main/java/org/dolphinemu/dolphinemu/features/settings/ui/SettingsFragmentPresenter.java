@@ -208,7 +208,6 @@ public final class SettingsFragmentPresenter
 		Setting overclock = null;
 		Setting speedLimit = null;
 		Setting syncOnSkipIdle = null;
-		Setting syncGpuOverclock = null;
 		//Setting mmuEmulation = null;
 		//Setting fastDiscSpeed = null;
 		Setting followBranch = null;
@@ -223,10 +222,9 @@ public final class SettingsFragmentPresenter
 		overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
 		speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
 		syncOnSkipIdle = coreSection.getSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE);
-		syncGpuOverclock = coreSection.getSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK);
 		//mmuEmulation = coreSection.getSetting(SettingsFile.KEY_MMU_EMULATION);
 		//fastDiscSpeed = coreSection.getSetting(SettingsFile.KEY_FAST_DISC_SPEED);
-		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_THRESHOLD);
+		followBranch = coreSection.getSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH);
 		audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP)
 			.getSetting(SettingsFile.KEY_AUDIO_BACKEND);
@@ -268,13 +266,10 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SYNC_ON_SKIP_IDLE, Settings.SECTION_INI_CORE,
 			R.string.sync_on_skip_idle, R.string.sync_on_skip_idle_description, true,
 			syncOnSkipIdle));
-		sl.add(new SliderSetting(SettingsFile.KEY_SYNC_GPU_OVERCLOCK, Settings.SECTION_INI_CORE,
-			R.string.sync_gpu_overclock, R.string.sync_gpu_overclock_description, 200, "%", 100,
-			syncGpuOverclock));
 		//sl.add(new CheckBoxSetting(SettingsFile.KEY_MMU_EMULATION, Settings.SECTION_INI_CORE, R.string.mmu_emulation, R.string.mmu_emulation_description, false, mmuEmulation));
 		//sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DISC_SPEED, Settings.SECTION_INI_CORE, R.string.fast_disc_speed, R.string.fast_disc_speed_description, false, fastDiscSpeed));
-		sl.add(new SliderSetting(SettingsFile.KEY_JIT_FOLLOW_THRESHOLD, Settings.SECTION_INI_CORE,
-			R.string.jit_follow_branch, R.string.jit_follow_branch_description, 10, "", 3,
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_JIT_FOLLOW_BRANCH, Settings.SECTION_INI_CORE,
+			R.string.jit_follow_branch, R.string.jit_follow_branch_description, true,
 			followBranch));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_CHEATS, Settings.SECTION_INI_CORE,
 			R.string.enable_cheats, R.string.enable_cheats_description, false, enableCheats));
@@ -561,7 +556,7 @@ public final class SettingsFragmentPresenter
 				ignoreFormatValue);
 		Setting efbToTexture = hacksSection.getSetting(SettingsFile.KEY_EFB_TEXTURE);
 		Setting texCacheAccuracy = gfxSection.getSetting(SettingsFile.KEY_TEXCACHE_ACCURACY);
-		//Setting gpuTextureDecoding = gfxSection.getSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING);
+		Setting gpuTextureDecoding = gfxSection.getSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING);
 		Setting xfbToTexture = hacksSection.getSetting(SettingsFile.KEY_XFB_TEXTURE);
 		Setting immediateXfb = hacksSection.getSetting(SettingsFile.KEY_IMMEDIATE_XFB);
 		Setting fastDepth = hacksSection.getSetting(SettingsFile.KEY_FAST_DEPTH);
@@ -580,7 +575,7 @@ public final class SettingsFragmentPresenter
 			Settings.SECTION_GFX_SETTINGS, R.string.texture_cache_accuracy,
 			R.string.texture_cache_accuracy_description, R.array.textureCacheAccuracyEntries,
 			R.array.textureCacheAccuracyValues, 128, texCacheAccuracy));
-		//sl.add(new CheckBoxSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING, Settings.SECTION_GFX_SETTINGS, R.string.gpu_texture_decoding, R.string.gpu_texture_decoding_description, false, gpuTextureDecoding));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING, Settings.SECTION_GFX_SETTINGS, R.string.gpu_texture_decoding, R.string.gpu_texture_decoding_description, false, gpuTextureDecoding));
 
 		sl.add(new HeaderSetting(null, null, R.string.external_frame_buffer, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_XFB_TEXTURE, Settings.SECTION_GFX_HACKS,

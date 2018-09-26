@@ -469,7 +469,7 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_getRunn
   settings[i++] = SConfig::GetInstance().bSyncGPUOnSkipIdleHack;
   settings[i++] = SConfig::GetInstance().m_OCEnable;
   settings[i++] = static_cast<int>(SConfig::GetInstance().m_OCFactor * 100.0f);
-  settings[i++] = SConfig::GetInstance().iJITFollowThreshold;
+  settings[i++] = SConfig::GetInstance().bJITFollowBranch;
 
   env->SetIntArrayRegion(array, 0, 9, settings);
   return array;
@@ -495,7 +495,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setRunningSe
   SConfig::GetInstance().bSyncGPUOnSkipIdleHack = settings[i++];
   SConfig::GetInstance().m_OCEnable = settings[i++];
   SConfig::GetInstance().m_OCFactor = (settings[i++] + 1) / 100.0f;
-  SConfig::GetInstance().iJITFollowThreshold = settings[i++];
+  SConfig::GetInstance().bJITFollowBranch = settings[i++];
 
   env->ReleaseIntArrayElements(array, settings, 0);
 }

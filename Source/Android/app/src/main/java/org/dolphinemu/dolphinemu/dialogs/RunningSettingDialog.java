@@ -39,7 +39,7 @@ public class RunningSettingDialog extends DialogFragment
 		public static final int SETTING_SYNC_ON_SKIP_IDLE = 5;
 		public static final int SETTING_OVERCLOCK_ENABLE = 6;
 		public static final int SETTING_OVERCLOCK_PERCENT = 7;
-		public static final int SETTING_JIT_FOLLOW_THRESHOLD = 8;
+		public static final int SETTING_JIT_FOLLOW_BRANCH = 8;
 
 		// view type
 		public static final int TYPE_CHECKBOX = 0;
@@ -271,8 +271,8 @@ public class RunningSettingDialog extends DialogFragment
 				R.string.overclock_enable, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
 			mSettings.add(new SettingsItem(SettingsItem.SETTING_OVERCLOCK_PERCENT,
 				R.string.overclock_title, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
-			mSettings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_THRESHOLD,
-				R.string.jit_follow_branch, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_BRANCH,
+				R.string.jit_follow_branch, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
 		}
 
 		@Override
