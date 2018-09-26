@@ -1579,8 +1579,7 @@ void XEmitter::XCHG(int bits, const OpArg& a1, const OpArg& a2)
 void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  if (a1.IsSimpleReg() && a2.IsImm() &&
-      a2.offset == 0)  // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
+  if (a1.IsSimpleReg() && a2.IsZero())  // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
   {
     WriteNormalOp(bits, NormalOp::TEST, a1, a1);
   }

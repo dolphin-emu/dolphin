@@ -39,7 +39,7 @@ void CommonAsmRoutines::GenFrsqrte()
   // Negatives, zeros, denormals, infinities and NaNs take the complex path.
   LEA(32, RSCRATCH2, MDisp(RSCRATCH_EXTRA, -1));
   CMP(32, R(RSCRATCH2), Imm32(0x7FE));
-  FixupBranch complex = J_CC(CC_AE, true);
+  FixupBranch complex = J_CC(CC_AE);
 
   SUB(32, R(RSCRATCH_EXTRA), Imm32(0x3FD));
   SAR(32, R(RSCRATCH_EXTRA), Imm8(1));

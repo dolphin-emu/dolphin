@@ -1056,8 +1056,6 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
         MScaled(RSCRATCH, Common::PPC_FPCLASS_NN - Common::PPC_FPCLASS_PN, Common::PPC_FPCLASS_PN));
     continue1 = J();
     SetJumpTarget(nan);
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    SHR(64, R(RSCRATCH), Imm8(63));
     MOV(32, R(RSCRATCH), Imm32(Common::PPC_FPCLASS_QNAN));
     continue2 = J();
     SetJumpTarget(infinity);
