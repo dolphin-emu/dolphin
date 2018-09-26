@@ -172,7 +172,7 @@ public:
     bool isImageType(Id typeId)        const { return getTypeClass(typeId) == OpTypeImage; }
     bool isSamplerType(Id typeId)      const { return getTypeClass(typeId) == OpTypeSampler; }
     bool isSampledImageType(Id typeId) const { return getTypeClass(typeId) == OpTypeSampledImage; }
-    bool containsType(Id typeId, Op typeOp, int width) const;
+    bool containsType(Id typeId, Op typeOp, unsigned int width) const;
 
     bool isConstantOpCode(Op opcode) const;
     bool isSpecConstantOpCode(Op opcode) const;

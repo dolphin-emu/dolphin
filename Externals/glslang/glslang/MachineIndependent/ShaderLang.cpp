@@ -600,6 +600,7 @@ bool DeduceVersionProfile(TInfoSink& infoSink, EShLanguage stage, bool versionNo
     case EShLangIntersectNV:
     case EShLangAnyHitNV:
     case EShLangClosestHitNV:
+    case EShLangMissNV:
     case EShLangCallableNV:
         if (profile == EEsProfile || version < 460) {
             correct = false;
