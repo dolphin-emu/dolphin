@@ -136,7 +136,9 @@ u16* IndexGenerator::AddQuads(u16* Iptr, u32 numVerts, u32 index)
   int v2 = ccw ? 1 : 2;
   int v3 = ccw ? 3 : 2;
   int v4 = ccw ? 2 : 3;
-  for (u32 i = 0; i < numVerts; i += 4)
+  u32 i = 0;
+
+  for (; i < (numVerts & ~3); i += 4)
   {
     *Iptr++ = index + i;
     *Iptr++ = index + i + v1;
@@ -146,6 +148,16 @@ u16* IndexGenerator::AddQuads(u16* Iptr, u32 numVerts, u32 index)
     *Iptr++ = index + i + v3;
     *Iptr++ = index + i + v4;
   }
+
+  // Legend of Zelda The Wind Waker
+  // if three vertices remaining, render a triangle
+  if (numVerts & 3)
+  {
+    *Iptr++ = index + i;
+    *Iptr++ = index + i + v1;
+    *Iptr++ = index + i + v2;
+  }
+
   return Iptr;
 }
 
@@ -158,10 +170,10 @@ u16* IndexGenerator::AddQuads_nonstandard(u16* Iptr, u32 numVerts, u32 index)
 // Lines
 u16* IndexGenerator::AddLineList(u16* Iptr, u32 numVerts, u32 index)
 {
-  for (u32 i = 1; i < numVerts; i += 2)
+  for (u32 i = 0; i < numVerts; i += 2)
   {
-    *Iptr++ = index + i - 1;
     *Iptr++ = index + i;
+    *Iptr++ = index + i + 1;
   }
   return Iptr;
 }
@@ -170,10 +182,10 @@ u16* IndexGenerator::AddLineList(u16* Iptr, u32 numVerts, u32 index)
 // so converting them to lists
 u16* IndexGenerator::AddLineStrip(u16* Iptr, u32 numVerts, u32 index)
 {
-  for (u32 i = 1; i < numVerts; ++i)
+  for (u32 i = 0; i < numVerts - 1; ++i)
   {
-    *Iptr++ = index + i - 1;
     *Iptr++ = index + i;
+    *Iptr++ = index + i + 1;
   }
   return Iptr;
 }

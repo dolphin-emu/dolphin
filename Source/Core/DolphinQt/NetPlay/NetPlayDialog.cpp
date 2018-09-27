@@ -392,7 +392,7 @@ void NetPlayDialog::OnStart()
   settings.m_SyncGpuMaxDistance = Config::Get(Config::MAIN_SYNC_GPU_MAX_DISTANCE);
   settings.m_SyncGpuMinDistance = Config::Get(Config::MAIN_SYNC_GPU_MIN_DISTANCE);
   settings.m_SyncGpuOverclock = Config::Get(Config::MAIN_SYNC_GPU_OVERCLOCK);
-  settings.m_JITFollowThreshold = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH) ? 3 : 0;
+  settings.m_JITFollowBranch = Config::Get(Config::MAIN_JIT_FOLLOW_BRANCH);
   settings.m_FastDiscSpeed = Config::Get(Config::MAIN_FAST_DISC_SPEED);
   settings.m_MMU = Config::Get(Config::MAIN_MMU);
   settings.m_Fastmem = Config::Get(Config::MAIN_FASTMEM);
