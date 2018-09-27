@@ -82,6 +82,7 @@ extern const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE;
 
 extern const ConfigInfo<bool> MAIN_DSP_CAPTURE_LOG;
 extern const ConfigInfo<bool> MAIN_DSP_JIT;
+extern const ConfigInfo<bool> MAIN_DSP_INTERRUPT_HACK;
 extern const ConfigInfo<bool> MAIN_DUMP_AUDIO;
 extern const ConfigInfo<bool> MAIN_DUMP_AUDIO_SILENT;
 extern const ConfigInfo<bool> MAIN_DUMP_UCODE;

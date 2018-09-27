@@ -108,6 +108,7 @@ const ConfigInfo<bool> MAIN_REDUCE_POLLING_RATE{{System::Main, "Core", "ReducePo
 
 const ConfigInfo<bool> MAIN_DSP_CAPTURE_LOG{{System::Main, "DSP", "CaptureLog"}, false};
 const ConfigInfo<bool> MAIN_DSP_JIT{{System::Main, "DSP", "EnableJIT"}, true};
+const ConfigInfo<bool> MAIN_DSP_INTERRUPT_HACK{{System::Main, "DSP", "InterruptHack" }, false};
 const ConfigInfo<bool> MAIN_DUMP_AUDIO{{System::Main, "DSP", "DumpAudio"}, false};
 const ConfigInfo<bool> MAIN_DUMP_AUDIO_SILENT{{System::Main, "DSP", "DumpAudioSilent"}, false};
 const ConfigInfo<bool> MAIN_DUMP_UCODE{{System::Main, "DSP", "DumpUCode"}, false};
