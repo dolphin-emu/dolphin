@@ -417,7 +417,6 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   if (enable_surface && !SupportsExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
     return false;
 
-  m_supports_nv_glsl_extension = SupportsExtension(VK_NV_GLSL_SHADER_EXTENSION_NAME, false);
   return true;
 }
 
