@@ -542,7 +542,7 @@ void VertexManagerBase::UpdatePipelineObject()
   }
 }
 
-const AbstractPipeline* VertexManagerBase::GetPipelineObjectForAlphaPass()
+const AbstractPipeline* VertexManagerBase::GetPipelineForAlphaPass()
 {
   const AbstractPipeline* pipeline_object = nullptr;
   if(m_current_pipeline_config.blending_state.IsDualSourceBlend())
@@ -556,10 +556,11 @@ const AbstractPipeline* VertexManagerBase::GetPipelineObjectForAlphaPass()
     pipeline_config.blending_state.alphaupdate = true;
     // diable fog
     pixel_shader_uid_data* uid_data = pipeline_config.ps_uid.GetUidData<pixel_shader_uid_data>();
-    uid_data->doAlphaPass = true;
     uid_data->fog_fsel = 0;
     uid_data->fog_proj  = 0;
     uid_data->fog_RangeBaseEnabled = 0;
+    // alpha pass
+    uid_data->doAlphaPass = true;
 
     switch (g_ActiveConfig.iShaderCompilationMode)
     {

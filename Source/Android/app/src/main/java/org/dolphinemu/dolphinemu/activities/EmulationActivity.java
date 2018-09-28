@@ -555,8 +555,6 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			editor.apply();
 			mEmulationFragment.refreshInputOverlay();
-			Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT)
-				.show();
 		});
 
 		AlertDialog alertDialog = builder.create();

@@ -103,11 +103,6 @@
             <item
                 android:id="@+id/menu_emulation_joystick_settings"
                 android:title="@string/emulation_joystick_settings"/>
-
-            <item
-                android:id="@+id/menu_emulation_rumble"
-                android:checkable="true"
-                android:title="@string/emulation_control_rumble"/>
         </menu>
     </item>
 
@@ -115,4 +110,10 @@
         android:id="@+id/menu_change_disc"
         app:showAsAction="never"
         android:title="@string/emulation_change_disc"/>
+
+    <item
+        android:id="@+id/menu_emulation_rumble"
+        android:checkable="true"
+        android:title="@string/emulation_control_rumble"/>
+
 </menu>

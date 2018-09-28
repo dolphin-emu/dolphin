@@ -184,7 +184,7 @@ void VertexManager::vFlush()
     // dual source blend
     if (!g_vulkan_context->SupportsDualSourceBlend())
     {
-      const AbstractPipeline* pipeline = GetPipelineObjectForAlphaPass();
+      const AbstractPipeline* pipeline = GetPipelineForAlphaPass();
       if(pipeline)
       {
         g_renderer->SetPipeline(pipeline);

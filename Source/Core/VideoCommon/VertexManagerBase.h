@@ -84,7 +84,7 @@ protected:
   void CalculateZSlope(NativeVertexFormat* format);
 
   // dual source blend
-  const AbstractPipeline* GetPipelineObjectForAlphaPass();
+  const AbstractPipeline* GetPipelineForAlphaPass();
 
   VideoCommon::GXPipelineUid m_current_pipeline_config;
   const AbstractPipeline* m_current_pipeline_object = nullptr;
