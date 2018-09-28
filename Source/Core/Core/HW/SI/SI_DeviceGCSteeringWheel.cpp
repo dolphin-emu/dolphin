@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/HW/GCPad.h"
 
 namespace SerialInterface
@@ -23,7 +24,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int length)
   ISIDevice::RunBuffer(buffer, length);
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[3]);
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
@@ -31,7 +32,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int length)
   case CMD_RESET:
   case CMD_ID:
   {
-    constexpr u32 id = SI_GC_STEERING;
+    u32 id = Common::swap32(SI_GC_STEERING);
     std::memcpy(buffer, &id, sizeof(id));
     break;
   }
