@@ -40,7 +40,6 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  void ShowConfig(void* parent_handle);
   virtual void InitBackendInfo() = 0;
 
   void Video_ExitLoop();

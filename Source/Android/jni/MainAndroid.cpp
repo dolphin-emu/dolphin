@@ -127,10 +127,6 @@ bool Host_RendererIsFullscreen()
   return false;
 }
 
-void Host_ShowVideoConfig(void*, const std::string&)
-{
-}
-
 void Host_YieldToUI()
 {
 }

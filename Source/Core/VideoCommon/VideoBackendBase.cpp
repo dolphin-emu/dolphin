@@ -60,14 +60,6 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 }
 #endif
 
-void VideoBackendBase::ShowConfig(void* parent_handle)
-{
-  if (!m_initialized)
-    InitBackendInfo();
-
-  Host_ShowVideoConfig(parent_handle, GetDisplayName());
-}
-
 void VideoBackendBase::Video_ExitLoop()
 {
   Fifo::ExitGpuLoop();

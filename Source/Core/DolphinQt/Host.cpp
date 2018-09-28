@@ -150,9 +150,6 @@ bool Host_UINeedsControllerState()
 {
   return Settings::Instance().IsControllerStateNeeded();
 }
-void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
-{
-}
 void Host_RefreshDSPDebuggerWindow()
 {
 }
