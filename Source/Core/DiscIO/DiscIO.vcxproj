@@ -65,6 +65,7 @@
     <ClCompile Include="VolumeWad.cpp" />
     <ClCompile Include="VolumeWii.cpp" />
     <ClCompile Include="WbfsBlob.cpp" />
+    <ClCompile Include="WIABlob.cpp" />
     <ClCompile Include="WiiEncryptionCache.cpp" />
     <ClCompile Include="WiiSaveBanner.cpp" />
   </ItemGroup>
@@ -91,6 +92,7 @@
     <ClInclude Include="VolumeWad.h" />
     <ClInclude Include="VolumeWii.h" />
     <ClInclude Include="WbfsBlob.h" />
+    <ClInclude Include="WIABlob.h" />
     <ClInclude Include="WiiEncryptionCache.h" />
     <ClInclude Include="WiiSaveBanner.h" />
   </ItemGroup>

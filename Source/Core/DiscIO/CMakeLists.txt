@@ -42,6 +42,8 @@ add_library(discio
   VolumeWii.h
   WbfsBlob.cpp
   WbfsBlob.h
+  WIABlob.cpp
+  WIABlob.h
   WiiEncryptionCache.cpp
   WiiEncryptionCache.h
   WiiSaveBanner.cpp

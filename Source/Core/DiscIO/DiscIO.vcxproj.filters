@@ -90,6 +90,9 @@
     <ClCompile Include="ScrubbedBlob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
+    <ClCompile Include="WIABlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -162,6 +165,9 @@
       <Filter>Volume\Blob</Filter>
     </ClInclude>
     <ClInclude Include="MultithreadedCompressor.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="WIABlob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
   </ItemGroup>

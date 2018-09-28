@@ -34,7 +34,8 @@ enum class BlobType
   GCZ,
   CISO,
   WBFS,
-  TGC
+  TGC,
+  WIA
 };
 
 class BlobReader
