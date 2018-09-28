@@ -193,7 +193,6 @@ void WiiPane::OnEmulationStateChanged(bool running)
 {
   m_screensaver_checkbox->setEnabled(!running);
   m_pal60_mode_checkbox->setEnabled(!running);
-  m_sd_card_checkbox->setEnabled(!running);
   m_system_language_choice->setEnabled(!running);
   m_aspect_ratio_choice->setEnabled(!running);
   m_wiimote_motor->setEnabled(!running);
@@ -225,7 +224,15 @@ void WiiPane::OnSaveConfig()
   Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
   Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
-  SConfig::GetInstance().m_WiiSDCard = m_sd_card_checkbox->isChecked();
+
+  if (SConfig::GetInstance().m_WiiSDCard != m_sd_card_checkbox->isChecked())
+  {
+    SConfig::GetInstance().m_WiiSDCard = m_sd_card_checkbox->isChecked();
+    auto* ios = IOS::HLE::GetIOS();
+    if (ios)
+      ios->SDIO_EventNotify();
+  }
+
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
                        TranslateSensorBarPosition(m_wiimote_ir_sensor_position->currentIndex()));
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_SENSITIVITY, m_wiimote_ir_sensitivity->value());
