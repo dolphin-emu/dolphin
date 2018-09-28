@@ -106,10 +106,9 @@ void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
   }
 }
 
-// Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
 void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 {
-  u64 first_cluster_start = offset / 0x7c00 * CLUSTER_SIZE + partition_data_offset;
+  u64 first_cluster_start = ToClusterOffset(offset) + partition_data_offset;
 
   u64 last_cluster_end;
   if (size == 0)
@@ -119,10 +118,19 @@ void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
   }
   else
   {
-    last_cluster_end = ((offset + size - 1) / 0x7c00 + 1) * CLUSTER_SIZE + partition_data_offset;
+    last_cluster_end = ToClusterOffset(offset + size - 1) + CLUSTER_SIZE + partition_data_offset;
   }
 
   MarkAsUsed(first_cluster_start, last_cluster_end - first_cluster_start);
+}
+
+// Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
+u64 DiscScrubber::ToClusterOffset(u64 offset) const
+{
+  if (m_disc->IsEncryptedAndHashed())
+    return offset / 0x7c00 * CLUSTER_SIZE;
+  else
+    return offset % CLUSTER_SIZE;
 }
 
 // Helper functions for reading the BE volume
