@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "InputCommon/GCPadStatus.h"
 
 namespace SerialInterface
@@ -19,13 +20,13 @@ CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int device_number)
 int CSIDevice_DanceMat::RunBuffer(u8* buffer, int length)
 {
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[3]);
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   if (command == CMD_RESET)
   {
     ISIDevice::RunBuffer(buffer, length);
 
-    constexpr u32 id = SI_DANCEMAT;
+    u32 id = Common::swap32(SI_DANCEMAT);
     std::memcpy(buffer, &id, sizeof(id));
   }
   else
