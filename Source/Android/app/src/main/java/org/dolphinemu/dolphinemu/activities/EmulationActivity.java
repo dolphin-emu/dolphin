@@ -4,6 +4,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +18,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -23,7 +28,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -42,10 +46,11 @@ import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import java.io.File;
 import java.util.List;
 
-public final class EmulationActivity extends AppCompatActivity
+public final class EmulationActivity extends AppCompatActivity implements SensorEventListener
 {
 	public static final int REQUEST_CHANGE_DISC = 1;
 
+	private SensorManager mSensorManager;
 	private View mDecorView;
 	private EmulationFragment mEmulationFragment;
 
@@ -56,6 +61,11 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mMenuVisible;
 
 	private static boolean sIsGameCubeGame;
+
+	private float[] mRotationVector = new float[4];
+	private float mBaseAzimuth = 0.0f;
+	private float mBasePitch = 0.0f;
+	private float mBaseRoll = 0.0f;
 
 	private boolean activityRecreated;
 	private String mSelectedTitle;
@@ -145,6 +155,7 @@ public final class EmulationActivity extends AppCompatActivity
 		setTitle(mSelectedTitle);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 	}
 
 	@Override
@@ -254,6 +265,10 @@ public final class EmulationActivity extends AppCompatActivity
 
 			case R.id.menu_emulation_joystick_settings:
 				showJoystickSettings();
+				break;
+
+			case R.id.menu_emulation_sensor_settings:
+				showSensorSettings();
 				break;
 
 			case R.id.menu_emulation_rumble:
@@ -378,6 +393,86 @@ public final class EmulationActivity extends AppCompatActivity
 		alertDialog.show();
 	}
 
+	private void showSensorSettings()
+	{
+		final SharedPreferences.Editor editor = mPreferences.edit();
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setTitle(R.string.emulation_sensor_settings);
+
+		if(sIsGameCubeGame)
+		{
+			int sensor = mPreferences
+				.getInt(InputOverlay.SENSOR_GAMECUBE_KEY, InputOverlay.SENSOR_GC_JOYSTICK);
+
+			builder.setSingleChoiceItems(R.array.gcSensorSettings, sensor,
+				(dialog, indexSelected) ->
+				{
+					editor.putInt(InputOverlay.SENSOR_GAMECUBE_KEY, indexSelected);
+				});
+
+			builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+			{
+				editor.apply();
+				InputOverlay.SensorGCSetting = mPreferences.getInt(InputOverlay.SENSOR_GAMECUBE_KEY,
+					InputOverlay.SENSOR_GC_JOYSTICK);
+			});
+		}
+		else
+		{
+			int sensor = mPreferences
+				.getInt(InputOverlay.SENSOR_WIIMOTE_KEY, InputOverlay.SENSOR_WII_DPAD);
+
+			builder.setSingleChoiceItems(R.array.wiiSensorSettings, sensor,
+				(dialog, indexSelected) ->
+				{
+					editor.putInt(InputOverlay.SENSOR_WIIMOTE_KEY, indexSelected);
+				});
+
+			builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+			{
+				editor.apply();
+				InputOverlay.SensorWiiSetting = mPreferences.getInt(InputOverlay.SENSOR_WIIMOTE_KEY,
+					InputOverlay.SENSOR_WII_DPAD);
+			});
+		}
+
+		AlertDialog alertDialog = builder.create();
+		alertDialog.show();
+	}
+
+	private void registerSensor()
+	{
+		if(mSensorManager == null)
+		{
+			mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
+			if(rotationVector != null)
+			{
+				mSensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+			}
+		}
+	}
+
+	private void resumeSensor()
+	{
+		if(mSensorManager != null)
+		{
+			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
+			if(rotationVector != null)
+			{
+				mSensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+			}
+		}
+	}
+
+	private void pauseSensor()
+	{
+		if(mSensorManager != null)
+		{
+				mSensorManager.unregisterListener(this);
+		}
+	}
+
 	private void editControlsPlacement()
 	{
 		if (mEmulationFragment.isConfiguringControls())
@@ -395,6 +490,19 @@ public final class EmulationActivity extends AppCompatActivity
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		editor.putBoolean("phoneRumble", state);
 		editor.apply();
+	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		resumeSensor();
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		pauseSensor();
 	}
 
 	// Gets button presses
@@ -599,6 +707,32 @@ public final class EmulationActivity extends AppCompatActivity
 		}
 
 		return true;
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event)
+	{
+		int sensorType = event.sensor.getType();
+		if(sensorType == Sensor.TYPE_GAME_ROTATION_VECTOR)
+		{
+			System.arraycopy(event.values, 0, mRotationVector, 0, mRotationVector.length);
+
+			float[] rotationMtx = new float[9];
+			float[] rotationVal = new float[3];
+			SensorManager.getRotationMatrixFromVector(rotationMtx, event.values);
+			SensorManager.remapCoordinateSystem(rotationMtx, SensorManager.AXIS_X, SensorManager.AXIS_Y, rotationMtx);
+			SensorManager.getOrientation(rotationMtx, rotationVal);
+			float azimuth = (float) Math.toDegrees(rotationVal[0]);
+			float pitch = (float) Math.toDegrees(rotationVal[1]);
+			float roll = (float) Math.toDegrees(rotationVal[2]);
+			Log.v("zhangwei", "azimuth: " + (rotationVal[0] * 1) + ", pitch: " + (rotationVal[1] * 1) + ", roll: " + (rotationVal[2] * 1));
+		}
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy)
+	{
+		Log.v("zhangwei", "sensor: " + sensor.getType() + ", accuracy: " + accuracy);
 	}
 
 	public void rumble(int padID, double state)

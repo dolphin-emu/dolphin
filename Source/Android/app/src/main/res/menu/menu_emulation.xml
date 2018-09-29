@@ -103,6 +103,10 @@
             <item
                 android:id="@+id/menu_emulation_joystick_settings"
                 android:title="@string/emulation_joystick_settings"/>
+
+            <item
+                android:id="@+id/menu_emulation_sensor_settings"
+                android:title="@string/emulation_sensor_settings"/>
         </menu>
     </item>
 

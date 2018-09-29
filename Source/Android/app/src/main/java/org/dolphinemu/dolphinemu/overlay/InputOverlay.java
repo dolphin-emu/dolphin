@@ -55,6 +55,21 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static final int JOYSTICK_EMULATE_SHAKE = 4;
 	public static int JoyStickSetting;
 
+	public static final String SENSOR_GAMECUBE_KEY = "SensorGCSetting";
+	public static final int SENSOR_GC_JOYSTICK = 0;
+	public static final int SENSOR_GC_CSTICK = 1;
+	public static final int SENSOR_GC_DPAD = 2;
+	public static int SensorGCSetting;
+
+	public static final String SENSOR_WIIMOTE_KEY = "SensorWiiSetting";
+	public static final int SENSOR_WII_DPAD = 0;
+	public static final int SENSOR_WII_STICK = 1;
+	public static final int SENSOR_WII_IR = 2;
+	public static final int SENSOR_WII_SWING = 3;
+	public static final int SENSOR_WII_TILT = 4;
+	public static final int SENSOR_WII_SHAKE = 5;
+	public static int SensorWiiSetting;
+
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
 	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();

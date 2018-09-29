@@ -264,7 +264,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, RegisterExtensi
     CMP(64, R(host_dreg), acc_reg);
     FixupBranch no_saturate = J_CC(CC_Z);
 
-    CMP_or_TEST(64, acc_reg, Imm32(0));
+    TEST(64, acc_reg, acc_reg);
     FixupBranch negative = J_CC(CC_LE);
 
     MOV(64, R(host_dreg), Imm32(0x7fff));  // this works for all extend modes

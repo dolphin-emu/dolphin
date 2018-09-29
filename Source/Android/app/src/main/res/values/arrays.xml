@@ -266,6 +266,21 @@
         <item>Joystick Emulate Shake</item>
     </string-array>
 
+    <string-array name="wiiSensorSettings">
+        <item>Wiimote Dpad</item>
+        <item>Nunchuk Joystick</item>
+        <item>Emulate IR</item>
+        <item>Emulate Swing</item>
+        <item>Emulate Tilt</item>
+        <item>Emulate Shake</item>
+    </string-array>
+
+    <string-array name="gcSensorSettings">
+        <item>GameCube Joystick</item>
+        <item>GameCube C Stick</item>
+        <item>GameCube Dpad</item>
+    </string-array>
+
     <string-array name="gcpadButtons">
         <item>A</item>
         <item>B</item>

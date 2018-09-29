@@ -308,6 +308,7 @@
     <string name="homescreen_favorites">Favorites</string>
 
     <string name="emulation_joystick_settings">Joystick Settings</string>
+    <string name="emulation_sensor_settings">Sensor Settings</string>
     <string name="game_platform_wii">[Wii] %1$s</string>
     <string name="game_platform_ngc">[NGC] %1$s</string>
     <string name="game_platform_ware">[Ware] %1$s</string>
@@ -322,7 +323,7 @@
     <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>
 
     <string name="sysconf_screensaver">Screensaver</string>
-    <string name="sysconf_language">Language</string>
+    <string name="sysconf_language">System Language</string>
     <string name="sysconf_widescreen">Widescreen</string>
     <string name="sysconf_progressive_scan">Progressive Scan</string>
     <string name="sysconf_pal60">PAL60</string>
