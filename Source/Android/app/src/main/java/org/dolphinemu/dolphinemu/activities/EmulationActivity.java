@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
@@ -18,7 +16,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -46,7 +43,7 @@ import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import java.io.File;
 import java.util.List;
 
-public final class EmulationActivity extends AppCompatActivity implements SensorEventListener
+public final class EmulationActivity extends AppCompatActivity
 {
 	public static final int REQUEST_CHANGE_DISC = 1;
 
@@ -62,16 +59,14 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 
 	private static boolean sIsGameCubeGame;
 
-	private float[] mRotationVector = new float[4];
-	private float mBaseAzimuth = 0.0f;
-	private float mBasePitch = 0.0f;
-	private float mBaseRoll = 0.0f;
-
 	private boolean activityRecreated;
 	private String mSelectedTitle;
 	private int mPlatform;
 	private String mPath;
 	private String mSavedState;
+
+	public static final String RUMBLE_PREF_KEY = "phoneRumble";
+	private Vibrator mVibrator;
 
 	public static final String EXTRA_SELECTED_GAME = "SelectedGame";
 	public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
@@ -156,6 +151,7 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 		mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+		setRumbeState(mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
 	}
 
 	@Override
@@ -248,8 +244,6 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 		{
 			getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
 		}
-		menu.findItem(R.id.menu_emulation_rumble)
-			.setChecked(mPreferences.getBoolean("phoneRumble", true));
 		return true;
 	}
 
@@ -269,11 +263,6 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 
 			case R.id.menu_emulation_sensor_settings:
 				showSensorSettings();
-				break;
-
-			case R.id.menu_emulation_rumble:
-				item.setChecked(!item.isChecked());
-				toggleRumble(item.isChecked());
 				break;
 
 			// Enable/Disable specific buttons or the entire input overlay.
@@ -448,7 +437,7 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
 			if(rotationVector != null)
 			{
-				mSensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+				mSensorManager.registerListener(mEmulationFragment, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
 			}
 		}
 	}
@@ -460,7 +449,7 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
 			if(rotationVector != null)
 			{
-				mSensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+				mSensorManager.registerListener(mEmulationFragment, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
 			}
 		}
 	}
@@ -469,7 +458,7 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 	{
 		if(mSensorManager != null)
 		{
-				mSensorManager.unregisterListener(this);
+				mSensorManager.unregisterListener(mEmulationFragment);
 		}
 	}
 
@@ -483,13 +472,6 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 		{
 			mEmulationFragment.startConfiguringControls();
 		}
-	}
-
-	private void toggleRumble(boolean state)
-	{
-		final SharedPreferences.Editor editor = mPreferences.edit();
-		editor.putBoolean("phoneRumble", state);
-		editor.apply();
 	}
 
 	@Override
@@ -709,47 +691,36 @@ public final class EmulationActivity extends AppCompatActivity implements Sensor
 		return true;
 	}
 
-	@Override
-	public void onSensorChanged(SensorEvent event)
+	public void setRumbeState(boolean rumble)
 	{
-		int sensorType = event.sensor.getType();
-		if(sensorType == Sensor.TYPE_GAME_ROTATION_VECTOR)
+		if(rumble)
 		{
-			System.arraycopy(event.values, 0, mRotationVector, 0, mRotationVector.length);
-
-			float[] rotationMtx = new float[9];
-			float[] rotationVal = new float[3];
-			SensorManager.getRotationMatrixFromVector(rotationMtx, event.values);
-			SensorManager.remapCoordinateSystem(rotationMtx, SensorManager.AXIS_X, SensorManager.AXIS_Y, rotationMtx);
-			SensorManager.getOrientation(rotationMtx, rotationVal);
-			float azimuth = (float) Math.toDegrees(rotationVal[0]);
-			float pitch = (float) Math.toDegrees(rotationVal[1]);
-			float roll = (float) Math.toDegrees(rotationVal[2]);
-			Log.v("zhangwei", "azimuth: " + (rotationVal[0] * 1) + ", pitch: " + (rotationVal[1] * 1) + ", roll: " + (rotationVal[2] * 1));
+			if(mVibrator == null)
+			{
+				mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+				if (mVibrator != null && !mVibrator.hasVibrator())
+				{
+					mVibrator = null;
+				}
+			}
 		}
-	}
-
-	@Override
-	public void onAccuracyChanged(Sensor sensor, int accuracy)
-	{
-		Log.v("zhangwei", "sensor: " + sensor.getType() + ", accuracy: " + accuracy);
+		else
+		{
+			mVibrator = null;
+		}
 	}
 
 	public void rumble(int padID, double state)
 	{
-		if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("phoneRumble", true))
+		if (mVibrator != null)
 		{
-			Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-			if (vibrator != null && vibrator.hasVibrator())
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
 			{
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-				{
-					vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
-				}
-				else
-				{
-					vibrator.vibrate(100);
-				}
+				mVibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+			}
+			else
+			{
+				mVibrator.vibrate(100);
 			}
 		}
 	}

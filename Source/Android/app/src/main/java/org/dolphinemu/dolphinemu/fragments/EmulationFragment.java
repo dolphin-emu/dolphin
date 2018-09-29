@@ -3,6 +3,10 @@ package org.dolphinemu.dolphinemu.fragments;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -27,7 +31,7 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
 
-public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
+public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback, SensorEventListener
 {
 	private static final String KEY_GAMEPATH = "gamepath";
 
@@ -230,6 +234,27 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	public void surfaceDestroyed(SurfaceHolder holder)
 	{
 		mEmulationState.clearSurface();
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event)
+	{
+		int sensorType = event.sensor.getType();
+		if(sensorType == Sensor.TYPE_GAME_ROTATION_VECTOR)
+		{
+			float[] rotationMtx = new float[9];
+			float[] rotationVal = new float[3];
+			SensorManager.getRotationMatrixFromVector(rotationMtx, event.values);
+			SensorManager.remapCoordinateSystem(rotationMtx, SensorManager.AXIS_X, SensorManager.AXIS_Y, rotationMtx);
+			SensorManager.getOrientation(rotationMtx, rotationVal);
+			mInputOverlay.onSensorChanged(rotationVal);
+		}
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy)
+	{
+		Log.verbose("sensor: " + sensor.getType() + ", accuracy: " + accuracy);
 	}
 
 	public void stopEmulation()

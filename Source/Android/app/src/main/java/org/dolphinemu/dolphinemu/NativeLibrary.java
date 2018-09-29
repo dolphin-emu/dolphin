@@ -527,7 +527,6 @@ public final class NativeLibrary
 	public static void clearEmulationActivity()
 	{
 		Log.verbose("[NativeLibrary] Unregistering EmulationActivity.");
-
 		sEmulationActivity.clear();
 	}
 }

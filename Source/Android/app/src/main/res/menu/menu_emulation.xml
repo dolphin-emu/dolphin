@@ -115,9 +115,4 @@
         app:showAsAction="never"
         android:title="@string/emulation_change_disc"/>
 
-    <item
-        android:id="@+id/menu_emulation_rumble"
-        android:checkable="true"
-        android:title="@string/emulation_control_rumble"/>
-
 </menu>

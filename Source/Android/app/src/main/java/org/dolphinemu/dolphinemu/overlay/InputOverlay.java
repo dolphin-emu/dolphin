@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -416,6 +417,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 
 		return true;
+	}
+
+	public void onSensorChanged(float[] rotation)
+	{
+		float azimuth = (float) Math.toDegrees(rotation[0]);
+		float pitch = (float) Math.toDegrees(rotation[1]);
+		float roll = (float) Math.toDegrees(rotation[2]);
+		Log.v("zhangwei", "azimuth: " + (rotation[0] * 1) + ", pitch: " + (rotation[1] * 1) + ", roll: " + (rotation[2] * 1));
 	}
 
 	private void setDpadState(InputOverlayDrawableDpad dpad, boolean up, boolean down, boolean left,

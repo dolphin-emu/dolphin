@@ -3,12 +3,15 @@ package org.dolphinemu.dolphinemu.dialogs;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +24,7 @@ import com.nononsenseapps.filepicker.DividerItemDecoration;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import java.util.ArrayList;
 
@@ -40,6 +44,8 @@ public class RunningSettingDialog extends DialogFragment
 		public static final int SETTING_OVERCLOCK_ENABLE = 6;
 		public static final int SETTING_OVERCLOCK_PERCENT = 7;
 		public static final int SETTING_JIT_FOLLOW_BRANCH = 8;
+		//
+		public static final int SETTING_PHONE_RUMBLE = 9;
 
 		// view type
 		public static final int TYPE_CHECKBOX = 0;
@@ -243,6 +249,7 @@ public class RunningSettingDialog extends DialogFragment
 
 	public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 	{
+		private int mRumble;
 		private int[] mRunningSettings;
 		private ArrayList<SettingsItem> mSettings;
 
@@ -251,6 +258,11 @@ public class RunningSettingDialog extends DialogFragment
 			int i = 0;
 			mRunningSettings = NativeLibrary.getRunningSettings();
 			mSettings = new ArrayList<>();
+
+			mRumble = PreferenceManager.getDefaultSharedPreferences(getContext())
+				.getBoolean(EmulationActivity.RUMBLE_PREF_KEY, true) ? 1 : 0;
+			mSettings.add(new SettingsItem(SettingsItem.SETTING_PHONE_RUMBLE, R.string.emulation_control_rumble,
+				SettingsItem.TYPE_CHECKBOX, mRumble));
 
 			// gfx
 			mSettings.add(new SettingsItem(SettingsItem.SETTING_SHOW_FPS, R.string.show_fps,
@@ -316,7 +328,18 @@ public class RunningSettingDialog extends DialogFragment
 		public void saveSettings()
 		{
 			boolean isChanged = false;
-			int[] newSettings = new int[mSettings.size()];
+			int[] newSettings = new int[mRunningSettings.length];
+
+			int rumble = mSettings.get(0).getValue();
+			if(mRumble != rumble)
+			{
+				SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
+				editor.putBoolean(EmulationActivity.RUMBLE_PREF_KEY, rumble > 0);
+				editor.apply();
+				NativeLibrary.sEmulationActivity.get().setRumbeState(rumble > 0);
+			}
+			mSettings.remove(0);
+
 			for (int i = 0; i < mSettings.size(); ++i)
 			{
 				newSettings[i] = mSettings.get(i).getValue();
