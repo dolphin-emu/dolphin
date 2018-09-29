@@ -5,6 +5,7 @@
 #include <cstring>
 #include <vector>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FloatUtils.h"
 #include "Common/x64ABI.h"
@@ -87,17 +88,14 @@ TEST(Jit64, Frsqrte)
 
   for (u64 ivalue : special_values)
   {
-    double dvalue;
-    std::memcpy(&dvalue, &ivalue, sizeof(double));
+    double dvalue = Common::BitCast<double>(ivalue);
 
-    double dexpected = Common::ApproximateReciprocalSquareRoot(dvalue);
-    u64 iexpected;
-    std::memcpy(&iexpected, &dexpected, sizeof(u64));
+    u64 expected = Common::BitCast<u64>(Common::ApproximateReciprocalSquareRoot(dvalue));
 
     u64 actual = routines.wrapped_frsqrte(ivalue, fpscr);
 
-    printf("%016llx -> %016llx == %016llx\n", ivalue, actual, iexpected);
+    printf("%016llx -> %016llx == %016llx\n", ivalue, actual, expected);
 
-    EXPECT_EQ(iexpected, actual);
+    EXPECT_EQ(expected, actual);
   }
 }
