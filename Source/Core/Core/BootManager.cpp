@@ -269,6 +269,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
     if (dsp_section->Get("Volume", &StartUp.m_Volume, StartUp.m_Volume))
       config_cache.bSetVolume = true;
     dsp_section->Get("EnableJIT", &StartUp.m_DSPEnableJIT, StartUp.m_DSPEnableJIT);
+    dsp_section->Get("InterruptHack", &StartUp.m_DSPInterruptHack, false);
     dsp_section->Get("Backend", &StartUp.sBackend, StartUp.sBackend);
     VideoBackendBase::ActivateBackend(StartUp.m_strVideoBackend);
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,

@@ -53,8 +53,8 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
   filenames.push_back(id + ".ini");
 
   // INIs with specific revisions
-  if (revision)
-    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
+  //if (revision)
+  //  filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
 
   return filenames;
 }

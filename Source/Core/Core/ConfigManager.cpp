@@ -274,7 +274,6 @@ void SConfig::SaveDSPSettings(IniFile& ini)
   IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
 
   dsp->Set("EnableJIT", m_DSPEnableJIT);
-  dsp->Set("InterruptHack", &m_DSPInterruptHack);
   dsp->Set("DumpAudio", m_DumpAudio);
   dsp->Set("DumpAudioSilent", m_DumpAudioSilent);
   dsp->Set("DumpUCode", m_DumpUCode);
@@ -562,7 +561,6 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
 
   dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
-  dsp->Get("InterruptHack", &m_DSPInterruptHack, false);
   dsp->Get("DumpAudio", &m_DumpAudio, false);
   dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
   dsp->Get("DumpUCode", &m_DumpUCode, false);

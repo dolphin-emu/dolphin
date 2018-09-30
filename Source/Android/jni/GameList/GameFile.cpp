@@ -127,13 +127,13 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
 JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getCodes(JNIEnv* env,
                                                                                         jobject obj)
 {
-  IniFile game_ini_local;
   const std::shared_ptr<const UICommon::GameFile>& game_file = GetRef(env, obj);
   const std::string& game_id = game_file->GetGameID();
   const u16 game_revision = game_file->GetRevision();
-  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini");
 
   IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(game_id, game_revision);
+  IniFile game_ini_local = SConfig::GetInstance().LoadLocalGameIni(game_id, game_revision);
+
   std::vector<ActionReplay::ARCode> ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
   std::vector<Gecko::GeckoCode> gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
 

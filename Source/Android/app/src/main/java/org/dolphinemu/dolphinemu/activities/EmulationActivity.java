@@ -150,7 +150,7 @@ public final class EmulationActivity extends AppCompatActivity
 		setTitle(mSelectedTitle);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+		//mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 		setRumbeState(mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
 	}
 
