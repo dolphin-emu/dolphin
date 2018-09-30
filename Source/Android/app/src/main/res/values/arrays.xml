@@ -267,6 +267,7 @@
     </string-array>
 
     <string-array name="wiiSensorSettings">
+        <item>None</item>
         <item>Wiimote Dpad</item>
         <item>Nunchuk Joystick</item>
         <item>Emulate IR</item>
@@ -276,6 +277,7 @@
     </string-array>
 
     <string-array name="gcSensorSettings">
+        <item>None</item>
         <item>GameCube Joystick</item>
         <item>GameCube C Stick</item>
         <item>GameCube Dpad</item>

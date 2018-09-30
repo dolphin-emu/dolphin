@@ -46,6 +46,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static final int COCONTROLLER_CLASSIC = 1;
 	public static final int CONTROLLER_WIINUNCHUK = 2;
 	public static final int CONTROLLER_WIIREMOTE = 3;
+	public static int InputControllerType;
 
 	public static final String JOYSTICK_PREF_KEY = "JoystickSetting";
 	public static final int JOYSTICK_RELATIVE_CENTER = 0;
@@ -56,20 +57,25 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static final int JOYSTICK_EMULATE_SHAKE = 4;
 	public static int JoyStickSetting;
 
-	public static final String SENSOR_GAMECUBE_KEY = "SensorGCSetting";
-	public static final int SENSOR_GC_JOYSTICK = 0;
-	public static final int SENSOR_GC_CSTICK = 1;
-	public static final int SENSOR_GC_DPAD = 2;
+	public static final int SENSOR_GC_NONE = 0;
+	public static final int SENSOR_GC_JOYSTICK = 1;
+	public static final int SENSOR_GC_CSTICK = 2;
+	public static final int SENSOR_GC_DPAD = 3;
 	public static int SensorGCSetting;
 
-	public static final String SENSOR_WIIMOTE_KEY = "SensorWiiSetting";
-	public static final int SENSOR_WII_DPAD = 0;
-	public static final int SENSOR_WII_STICK = 1;
-	public static final int SENSOR_WII_IR = 2;
-	public static final int SENSOR_WII_SWING = 3;
-	public static final int SENSOR_WII_TILT = 4;
-	public static final int SENSOR_WII_SHAKE = 5;
+	public static final int SENSOR_WII_NONE = 0;
+	public static final int SENSOR_WII_DPAD = 1;
+	public static final int SENSOR_WII_STICK = 2;
+	public static final int SENSOR_WII_IR = 3;
+	public static final int SENSOR_WII_SWING = 4;
+	public static final int SENSOR_WII_TILT = 5;
+	public static final int SENSOR_WII_SHAKE = 6;
 	public static int SensorWiiSetting;
+
+	private boolean mAccuracyChanged;
+	private float mBaseAzimuth;
+	private float mBasePitch;
+	private float mBaseRoll;
 
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
@@ -117,8 +123,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		if (!mPreferences.getBoolean(CONTROL_INIT_PREF_KEY, false))
 			defaultOverlay();
 
+		InputControllerType = mPreferences.getInt(InputOverlay.CONTROL_TYPE_PREF_KEY,
+			InputOverlay.CONTROLLER_WIINUNCHUK);
+
 		JoyStickSetting = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY,
 			InputOverlay.JOYSTICK_RELATIVE_CENTER);
+
+		SensorGCSetting = SENSOR_GC_NONE;
+		SensorWiiSetting = SENSOR_WII_NONE;
+		mAccuracyChanged = false;
 
 		// Load the controls.
 		refreshControls();
@@ -421,10 +434,140 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	public void onSensorChanged(float[] rotation)
 	{
-		float azimuth = (float) Math.toDegrees(rotation[0]);
-		float pitch = (float) Math.toDegrees(rotation[1]);
-		float roll = (float) Math.toDegrees(rotation[2]);
-		Log.v("zhangwei", "azimuth: " + (rotation[0] * 1) + ", pitch: " + (rotation[1] * 1) + ", roll: " + (rotation[2] * 1));
+		if(mAccuracyChanged)
+		{
+			if(Math.abs(mBaseAzimuth - rotation[0]) > 0.1f ||
+				Math.abs(mBasePitch - rotation[1]) > 0.1f ||
+				Math.abs(mBaseRoll - rotation[2]) > 0.1f)
+			{
+				mBaseAzimuth = rotation[0];
+				mBasePitch = rotation[1];
+				mBaseRoll = rotation[2];
+				return;
+			}
+			mAccuracyChanged = false;
+		}
+
+		float y = (mBasePitch - rotation[1]) * 1.6f;
+		float x = (mBaseRoll - rotation[2]) * 1.6f;
+		int[] axisIDs = new int[4];
+		float[] axises = new float[4];
+
+		if(EmulationActivity.isGameCubeGame())
+		{
+			switch (SensorGCSetting)
+			{
+				case SENSOR_GC_JOYSTICK:
+					axisIDs[0] = ButtonType.STICK_MAIN + 1;
+					axisIDs[1] = ButtonType.STICK_MAIN + 2;
+					axisIDs[2] = ButtonType.STICK_MAIN + 3;
+					axisIDs[3] = ButtonType.STICK_MAIN + 4;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_GC_CSTICK:
+					axisIDs[0] = ButtonType.STICK_C + 1;
+					axisIDs[1] = ButtonType.STICK_C + 2;
+					axisIDs[2] = ButtonType.STICK_C + 3;
+					axisIDs[3] = ButtonType.STICK_C + 4;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_GC_DPAD:
+					axisIDs[0] = ButtonType.BUTTON_UP;
+					axisIDs[1] = ButtonType.BUTTON_DOWN;
+					axisIDs[2] = ButtonType.BUTTON_LEFT;
+					axisIDs[3] = ButtonType.BUTTON_RIGHT;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+			}
+		}
+		else
+		{
+			switch (SensorWiiSetting)
+			{
+				case SENSOR_WII_DPAD:
+					axisIDs[0] = ButtonType.WIIMOTE_UP;
+					axisIDs[1] = ButtonType.WIIMOTE_DOWN;
+					axisIDs[2] = ButtonType.WIIMOTE_LEFT;
+					axisIDs[3] = ButtonType.WIIMOTE_RIGHT;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_WII_STICK:
+					axisIDs[0] = ButtonType.NUNCHUK_STICK + 1;
+					axisIDs[1] = ButtonType.NUNCHUK_STICK + 2;
+					axisIDs[2] = ButtonType.NUNCHUK_STICK + 3;
+					axisIDs[3] = ButtonType.NUNCHUK_STICK + 4;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_WII_IR:
+					axisIDs[0] = ButtonType.WIIMOTE_IR + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_IR + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_IR + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_IR + 4;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_WII_SWING:
+					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_WII_TILT:
+					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+				case SENSOR_WII_SHAKE:
+					axisIDs[0] = ButtonType.WIIMOTE_TILT_MODIFIER;
+					axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;
+					axisIDs[2] = ButtonType.WIIMOTE_SHAKE_Y;
+					axisIDs[3] = ButtonType.WIIMOTE_SHAKE_Z;
+					axises[0] = x;
+					axises[1] = x;
+					axises[2] = y;
+					axises[3] = y;
+					break;
+			}
+		}
+
+		for (int i = 0; i < 4; i++)
+		{
+			NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
+		}
+	}
+
+	public void onAccuracyChanged(int accuracy)
+	{
+		mAccuracyChanged = true;
+		mBaseAzimuth = (float)Math.PI;
+		mBasePitch = (float)Math.PI;
+		mBaseRoll = (float)Math.PI;
 	}
 
 	private void setDpadState(InputOverlayDrawableDpad dpad, boolean up, boolean down, boolean left,
@@ -564,8 +707,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		if (mPreferences.getBoolean("buttonToggleWii7", true))
 		{
-			if (mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK) ==
-				CONTROLLER_WIINUNCHUK)
+			if (InputControllerType == CONTROLLER_WIINUNCHUK)
 			{
 				overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
 					R.drawable.gcwii_dpad_pressed_one_direction,
@@ -697,26 +839,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	public void refreshControls()
 	{
-		final int controller = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
-
 		// Remove all the overlay buttons from the HashSet.
 		overlayButtons.removeAll(overlayButtons);
 		overlayDpads.removeAll(overlayDpads);
 		overlayJoysticks.removeAll(overlayJoysticks);
 
 		// Add all the enabled overlay items back to the HashSet.
-		if (EmulationActivity.isGameCubeGame() || controller == CONTROLLER_GAMECUBE)
+		if (EmulationActivity.isGameCubeGame() || InputControllerType == CONTROLLER_GAMECUBE)
 		{
 			addGameCubeOverlayControls();
 		}
-		else if (controller == COCONTROLLER_CLASSIC)
+		else if (InputControllerType == COCONTROLLER_CLASSIC)
 		{
 			addClassicOverlayControls();
 		}
 		else
 		{
 			addWiimoteOverlayControls();
-			if (controller == CONTROLLER_WIINUNCHUK)
+			if (InputControllerType == CONTROLLER_WIINUNCHUK)
 			{
 				addNunchukOverlayControls();
 			}
@@ -740,8 +880,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	private int getControllerType()
 	{
-		return EmulationActivity.isGameCubeGame() ?
-			CONTROLLER_GAMECUBE : mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		return EmulationActivity.isGameCubeGame() ? CONTROLLER_GAMECUBE : InputControllerType;
 	}
 
 	/**

@@ -520,13 +520,11 @@ public final class NativeLibrary
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
-		Log.verbose("[NativeLibrary] Registering EmulationActivity.");
 		sEmulationActivity = new WeakReference<>(emulationActivity);
 	}
 
 	public static void clearEmulationActivity()
 	{
-		Log.verbose("[NativeLibrary] Unregistering EmulationActivity.");
 		sEmulationActivity.clear();
 	}
 }

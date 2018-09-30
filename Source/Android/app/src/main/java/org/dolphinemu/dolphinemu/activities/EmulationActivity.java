@@ -150,7 +150,6 @@ public final class EmulationActivity extends AppCompatActivity
 		setTitle(mSelectedTitle);
 
 		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-		//mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
 		setRumbeState(mPreferences.getBoolean(RUMBLE_PREF_KEY, true));
 	}
 
@@ -358,24 +357,21 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void showJoystickSettings()
 	{
-		final SharedPreferences.Editor editor = mPreferences.edit();
-		int joystick = mPreferences
-			.getInt(InputOverlay.JOYSTICK_PREF_KEY, InputOverlay.JOYSTICK_RELATIVE_CENTER);
+		final int joystick = InputOverlay.JoyStickSetting;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_joystick_settings);
 
 		builder.setSingleChoiceItems(R.array.joystickSettings, joystick,
 			(dialog, indexSelected) ->
 			{
-				editor.putInt(InputOverlay.JOYSTICK_PREF_KEY, indexSelected);
+				InputOverlay.JoyStickSetting = indexSelected;
 			});
-
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
-			editor.apply();
-			InputOverlay.JoyStickSetting = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY,
-				InputOverlay.JOYSTICK_RELATIVE_CENTER);
-			mEmulationFragment.refreshInputOverlay();
+			if(InputOverlay.JoyStickSetting == joystick)
+			{
+				mEmulationFragment.refreshInputOverlay();
+			}
 		});
 
 		AlertDialog alertDialog = builder.create();
@@ -384,44 +380,33 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void showSensorSettings()
 	{
-		final SharedPreferences.Editor editor = mPreferences.edit();
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_sensor_settings);
 
 		if(sIsGameCubeGame)
 		{
-			int sensor = mPreferences
-				.getInt(InputOverlay.SENSOR_GAMECUBE_KEY, InputOverlay.SENSOR_GC_JOYSTICK);
-
+			int sensor = InputOverlay.SensorGCSetting;
 			builder.setSingleChoiceItems(R.array.gcSensorSettings, sensor,
 				(dialog, indexSelected) ->
 				{
-					editor.putInt(InputOverlay.SENSOR_GAMECUBE_KEY, indexSelected);
+					InputOverlay.SensorGCSetting = indexSelected;
 				});
-
 			builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 			{
-				editor.apply();
-				InputOverlay.SensorGCSetting = mPreferences.getInt(InputOverlay.SENSOR_GAMECUBE_KEY,
-					InputOverlay.SENSOR_GC_JOYSTICK);
+				setSensorState(InputOverlay.SensorGCSetting > 0);
 			});
 		}
 		else
 		{
-			int sensor = mPreferences
-				.getInt(InputOverlay.SENSOR_WIIMOTE_KEY, InputOverlay.SENSOR_WII_DPAD);
-
+			int sensor = InputOverlay.SensorWiiSetting;
 			builder.setSingleChoiceItems(R.array.wiiSensorSettings, sensor,
 				(dialog, indexSelected) ->
 				{
-					editor.putInt(InputOverlay.SENSOR_WIIMOTE_KEY, indexSelected);
+					InputOverlay.SensorWiiSetting = indexSelected;
 				});
-
 			builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 			{
-				editor.apply();
-				InputOverlay.SensorWiiSetting = mPreferences.getInt(InputOverlay.SENSOR_WIIMOTE_KEY,
-					InputOverlay.SENSOR_WII_DPAD);
+				setSensorState(InputOverlay.SensorWiiSetting > 0);
 			});
 		}
 
@@ -429,37 +414,31 @@ public final class EmulationActivity extends AppCompatActivity
 		alertDialog.show();
 	}
 
-	private void registerSensor()
+	private void setSensorState(boolean enabled)
 	{
-		if(mSensorManager == null)
+		if(enabled)
 		{
-			mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
-			if(rotationVector != null)
+			if(mSensorManager == null)
 			{
-				mSensorManager.registerListener(mEmulationFragment, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+				mSensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+				Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
+				if(rotationVector != null)
+				{
+					mSensorManager.registerListener(mEmulationFragment, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+				}
 			}
 		}
-	}
-
-	private void resumeSensor()
-	{
-		if(mSensorManager != null)
+		else
 		{
-			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
-			if(rotationVector != null)
+			if(mSensorManager != null)
 			{
-				mSensorManager.registerListener(mEmulationFragment, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-			}
-		}
-	}
-
-	private void pauseSensor()
-	{
-		if(mSensorManager != null)
-		{
 				mSensorManager.unregisterListener(mEmulationFragment);
+				mSensorManager = null;
+			}
 		}
+
+		//
+		mEmulationFragment.onAccuracyChanged(null, 0);
 	}
 
 	private void editControlsPlacement()
@@ -478,13 +457,31 @@ public final class EmulationActivity extends AppCompatActivity
 	protected void onResume()
 	{
 		super.onResume();
-		resumeSensor();
+
+		if(mSensorManager != null)
+		{
+			Sensor rotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
+			if(rotationVector != null)
+			{
+				mSensorManager.registerListener(mEmulationFragment, rotationVector, SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+			}
+		}
 	}
 
 	@Override
-	protected void onPause() {
+	protected void onPause()
+	{
 		super.onPause();
-		pauseSensor();
+
+		final SharedPreferences.Editor editor = mPreferences.edit();
+		editor.putInt(InputOverlay.JOYSTICK_PREF_KEY, InputOverlay.JoyStickSetting);
+		editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, InputOverlay.InputControllerType);
+		editor.apply();
+
+		if(mSensorManager != null)
+		{
+			mSensorManager.unregisterListener(mEmulationFragment);
+		}
 	}
 
 	// Gets button presses
@@ -523,8 +520,7 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		boolean[] enabledButtons = new boolean[14];
-		int controller = mPreferences
-			.getInt(InputOverlay.CONTROL_TYPE_PREF_KEY, InputOverlay.CONTROLLER_WIINUNCHUK);
+		int controller = InputOverlay.InputControllerType;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_toggle_controls);
 
@@ -629,21 +625,18 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void chooseController()
 	{
-		final SharedPreferences.Editor editor = mPreferences.edit();
-		int controller = mPreferences.getInt(InputOverlay.CONTROL_TYPE_PREF_KEY,
-			InputOverlay.CONTROLLER_WIINUNCHUK);
+		int controller = InputOverlay.InputControllerType;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_choose_controller);
 		builder.setSingleChoiceItems(R.array.controllersEntries, controller,
 			(dialog, indexSelected) ->
 			{
-				editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, indexSelected);
-				NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
-					getResources().getStringArray(R.array.controllersValues)[indexSelected]);
+				InputOverlay.InputControllerType = indexSelected;
 			});
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
-			editor.apply();
+			NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+				getResources().getStringArray(R.array.controllersValues)[InputOverlay.InputControllerType]);
 			mEmulationFragment.refreshInputOverlay();
 		});
 

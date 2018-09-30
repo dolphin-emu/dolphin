@@ -254,7 +254,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy)
 	{
-		Log.verbose("sensor: " + sensor.getType() + ", accuracy: " + accuracy);
+		mInputOverlay.onAccuracyChanged(accuracy);
 	}
 
 	public void stopEmulation()
