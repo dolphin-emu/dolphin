@@ -955,7 +955,11 @@ DiscIO::Region SConfig::GetFallbackRegion()
   IOS::HLE::Kernel ios;
   const IOS::ES::TMDReader system_menu_tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
   if (system_menu_tmd.IsValid())
-    return system_menu_tmd.GetRegion();
+  {
+    const DiscIO::Region region = system_menu_tmd.GetRegion();
+    if (region != DiscIO::Region::Unknown)
+      return region;
+  }
 
   // Fall back to PAL.
   return DiscIO::Region::PAL;
