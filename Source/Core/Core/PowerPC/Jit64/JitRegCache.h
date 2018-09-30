@@ -144,9 +144,6 @@ public:
 
   void Flush(FlushMode mode = FlushMode::All, BitSet32 regsToFlush = BitSet32::AllTrue(32));
 
-  void FlushR(Gen::X64Reg reg);
-  void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2);
-
   void FlushLockX(Gen::X64Reg reg);
   void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2);
 
@@ -218,6 +215,8 @@ protected:
 
   virtual BitSet32 GetRegUtilization() const = 0;
   virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) const = 0;
+
+  void FlushX(Gen::X64Reg reg);
 
   float ScoreRegister(Gen::X64Reg xreg) const;
 

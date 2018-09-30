@@ -78,32 +78,16 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
   }
 }
 
-void RegCache::FlushR(X64Reg reg)
-{
-  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);
-  ASSERT(!m_xregs[reg].IsLocked());
-  if (!m_xregs[reg].IsFree())
-  {
-    StoreFromRegister(m_xregs[reg].Contents());
-  }
-}
-
-void RegCache::FlushR(X64Reg reg, X64Reg reg2)
-{
-  FlushR(reg);
-  FlushR(reg2);
-}
-
 void RegCache::FlushLockX(X64Reg reg)
 {
-  FlushR(reg);
+  FlushX(reg);
   LockX(reg);
 }
 
 void RegCache::FlushLockX(X64Reg reg1, X64Reg reg2)
 {
-  FlushR(reg1);
-  FlushR(reg2);
+  FlushX(reg1);
+  FlushX(reg2);
   LockX(reg1);
   LockX(reg2);
 }
@@ -291,6 +275,16 @@ int RegCache::NumFreeRegisters() const
     if (m_xregs[aOrder[i]].IsFree())
       count++;
   return count;
+}
+
+void RegCache::FlushX(X64Reg reg)
+{
+  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);
+  ASSERT(!m_xregs[reg].IsLocked());
+  if (!m_xregs[reg].IsFree())
+  {
+    StoreFromRegister(m_xregs[reg].Contents());
+  }
 }
 
 // Estimate roughly how bad it would be to de-allocate this register. Higher score
