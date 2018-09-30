@@ -50,20 +50,15 @@ void RegCache::SetEmitter(XEmitter* emitter)
 
 void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 {
-  for (size_t i = 0; i < m_xregs.size(); i++)
-  {
-    if (m_xregs[i].IsLocked())
-    {
-      PanicAlert("Someone forgot to unlock X64 reg %zu", i);
-    }
-  }
+  ASSERT_MSG(
+      DYNA_REC,
+      std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }),
+      "Someone forgot to unlock a X64 reg");
 
   for (unsigned int i : regsToFlush)
   {
-    if (m_regs[i].IsLocked())
-    {
-      PanicAlert("Someone forgot to unlock PPC reg %u (X64 reg %i).", i, RX(i));
-    }
+    ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg %u (X64 reg %i).",
+               i, RX(i));
 
     switch (m_regs[i].GetLocationType())
     {
@@ -85,8 +80,7 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 
 void RegCache::FlushR(X64Reg reg)
 {
-  if (reg >= m_xregs.size())
-    PanicAlert("Flushing non existent reg");
+  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);
   ASSERT(!m_xregs[reg].IsLocked());
   if (!m_xregs[reg].IsFree())
   {
@@ -160,20 +154,22 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
   if (!m_regs[i].IsBound())
   {
     X64Reg xr = GetFreeXReg();
-    if (m_xregs[xr].IsDirty())
-      PanicAlert("Xreg already dirty");
-    if (m_xregs[xr].IsLocked())
-      PanicAlert("GetFreeXReg returned locked register");
+
+    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg %i already dirty", xr);
+    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
+
     m_xregs[xr].BoundTo(i, makeDirty || m_regs[i].IsAway());
+
     if (doLoad)
-      LoadRegister(i, xr);
-    for (size_t j = 0; j < m_regs.size(); j++)
     {
-      if (i != j && m_regs[j].Location().IsSimpleReg(xr))
-      {
-        Crash();
-      }
+      LoadRegister(i, xr);
     }
+
+    ASSERT_MSG(DYNA_REC,
+               std::none_of(m_regs.begin(), m_regs.end(),
+                            [xr](const auto& r) { return r.Location().IsSimpleReg(xr); }),
+               "Xreg %i already bound", xr);
+
     m_regs[i].BoundTo(xr);
   }
   else
@@ -183,10 +179,7 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
     m_xregs[RX(i)].MakeDirty(makeDirty);
   }
 
-  if (m_xregs[RX(i)].IsLocked())
-  {
-    PanicAlert("Seriously WTF, this reg should have been flushed");
-  }
+  ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(), "WTF, this reg should have been flushed");
 }
 
 void RegCache::StoreFromRegister(size_t i, FlushMode mode)
@@ -224,11 +217,8 @@ const OpArg& RegCache::R(size_t preg) const
 
 X64Reg RegCache::RX(size_t preg) const
 {
-  if (m_regs[preg].IsBound())
-    return m_regs[preg].Location().GetSimpleReg();
-
-  PanicAlert("Unbound register - %zu", preg);
-  return Gen::INVALID_REG;
+  ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - %zu", preg);
+  return m_regs[preg].Location().GetSimpleReg();
 }
 
 void RegCache::UnlockAll()
@@ -288,7 +278,7 @@ X64Reg RegCache::GetFreeXReg()
   }
 
   // Still no dice? Die!
-  ASSERT_MSG(DYNA_REC, 0, "Regcache ran out of regs");
+  ASSERT_MSG(DYNA_REC, false, "Regcache ran out of regs");
   return INVALID_REG;
 }
 
