@@ -20,7 +20,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 
-SRAM g_SRAM;
+Sram g_SRAM;
 bool g_SRAM_netplay_initialized = false;
 
 namespace ExpansionInterface
