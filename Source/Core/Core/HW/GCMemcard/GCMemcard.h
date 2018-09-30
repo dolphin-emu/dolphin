@@ -143,12 +143,12 @@ struct Header  // Offset    Size    Description
     for (int i = 0; i < 12; i++)
     {
       rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-      serial[i] = (u8)(g_SRAM.flash_id[slot][i] + (u32)rand);
+      serial[i] = (u8)(g_SRAM.settings_ex.flash_id[slot][i] + (u32)rand);
       rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
       rand &= (u64)0x0000000000007fffULL;
     }
-    SramBias = g_SRAM.counter_bias;
-    SramLang = BE32(g_SRAM.lang);
+    SramBias = g_SRAM.settings.rtc_bias;
+    SramLang = BE32(g_SRAM.settings.language);
     // TODO: determine the purpose of Unk2 1 works for slot A, 0 works for both slot A and slot B
     *(u32*)&Unk2 = 0;  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
     *(u16*)&deviceID = 0;

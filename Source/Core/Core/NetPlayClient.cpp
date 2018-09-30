@@ -620,15 +620,16 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_SYNC_GC_SRAM:
   {
-    u8 sram[sizeof(g_SRAM.p_SRAM)];
-    for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+    const size_t sram_settings_len = sizeof(g_SRAM) - offsetof(Sram, settings);
+    u8 sram[sram_settings_len];
+    for (size_t i = 0; i < sram_settings_len; ++i)
     {
       packet >> sram[i];
     }
 
     {
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-      memcpy(g_SRAM.p_SRAM, sram, sizeof(g_SRAM.p_SRAM));
+      memcpy(&g_SRAM.settings, sram, sram_settings_len);
       g_SRAM_netplay_initialized = true;
     }
   }
