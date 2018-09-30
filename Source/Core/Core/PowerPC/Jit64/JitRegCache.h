@@ -133,8 +133,6 @@ public:
   explicit RegCache(Jit64& jit);
   virtual ~RegCache() = default;
 
-  virtual void StoreRegister(size_t preg, const Gen::OpArg& new_loc) = 0;
-  virtual void LoadRegister(size_t preg, Gen::X64Reg new_loc) = 0;
   virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
 
   void Start();
@@ -211,6 +209,9 @@ public:
   int NumFreeRegisters() const;
 
 protected:
+  virtual void StoreRegister(size_t preg, const Gen::OpArg& new_loc) = 0;
+  virtual void LoadRegister(size_t preg, Gen::X64Reg new_loc) = 0;
+
   virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) const = 0;
 
   virtual BitSet32 GetRegUtilization() const = 0;

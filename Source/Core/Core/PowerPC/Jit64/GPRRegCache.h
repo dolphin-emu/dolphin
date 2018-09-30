@@ -12,12 +12,13 @@ class GPRRegCache final : public RegCache
 {
 public:
   explicit GPRRegCache(Jit64& jit);
+  Gen::OpArg GetDefaultLocation(size_t reg) const override;
+  void SetImmediate32(size_t preg, u32 imm_value, bool dirty = true);
 
+protected:
   void StoreRegister(size_t preg, const Gen::OpArg& new_loc) override;
   void LoadRegister(size_t preg, Gen::X64Reg new_loc) override;
-  Gen::OpArg GetDefaultLocation(size_t reg) const override;
   const Gen::X64Reg* GetAllocationOrder(size_t* count) const override;
-  void SetImmediate32(size_t preg, u32 imm_value, bool dirty = true);
   BitSet32 GetRegUtilization() const override;
   BitSet32 CountRegsIn(size_t preg, u32 lookahead) const override;
 };
