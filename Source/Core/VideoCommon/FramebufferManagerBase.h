@@ -7,21 +7,24 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/TextureConfig.h"
 
-enum class AbstractTextureFormat : u32;
-
-inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+/*inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
   return !((aLower >= bUpper) || (bLower >= aUpper));
-}
+}*/
 
 class FramebufferManagerBase
 {
 public:
-  virtual ~FramebufferManagerBase();
+  virtual ~FramebufferManagerBase() = default;
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
-  static AbstractTextureFormat GetEFBDepthFormat();
+
+  // 32-bit depth clears are broken in the Adreno Vulkan driver, and have no effect.
+  // To work around this, we use a D24_S8 buffer instead, which results in a loss of accuracy.
+  // We still resolve this to a R32F texture, as there is no 24-bit format.
+  static AbstractTextureFormat GetEFBDepthFormat() { return AbstractTextureFormat::D24_S8; }
 
 protected:
   static unsigned int m_EFBLayers;

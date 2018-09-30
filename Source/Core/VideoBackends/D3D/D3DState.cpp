@@ -330,7 +330,7 @@ ID3D11BlendState* StateCache::Get(BlendingState state)
        use_dual_source ? D3D11_BLEND_INV_SRC1_ALPHA : D3D11_BLEND_INV_SRC_ALPHA,
        D3D11_BLEND_DEST_ALPHA, D3D11_BLEND_INV_DEST_ALPHA}};
 
-  tdesc.SrcBlend = src_factors[state.srcfactor];
+  tdesc.SrcBlend = state.IsPremultipliedAlpha() ? D3D11_BLEND_ONE : src_factors[state.srcfactor];
   tdesc.SrcBlendAlpha = src_factors[state.srcfactoralpha];
   tdesc.DestBlend = dst_factors[state.dstfactor];
   tdesc.DestBlendAlpha = dst_factors[state.dstfactoralpha];

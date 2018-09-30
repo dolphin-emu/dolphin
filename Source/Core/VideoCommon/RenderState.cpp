@@ -265,4 +265,4 @@ SamplerState GetLinearSamplerState()
   state.anisotropic_filtering = false;
   return state;
 }
-}
+}  // namespace RenderState

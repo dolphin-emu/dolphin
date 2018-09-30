@@ -307,7 +307,7 @@ void Tev::DrawAlphaRegular(const TevStageCombiner::AlphaCombiner& ac, const Inpu
 
   s32 temp = InputReg.a * (256 - c) + (InputReg.b * c);
   temp <<= m_ScaleLShiftLUT[ac.shift];
-  temp += (ac.shift != 3) ? 0 : (ac.op == 1) ? 127 : 128;
+  temp += (ac.shift == 3) ? 0 : (ac.op == 1) ? 127 : 128;
   temp = ac.op ? (-temp >> 8) : (temp >> 8);
 
   s32 result = ((InputReg.d + m_BiasLUT[ac.bias]) << m_ScaleLShiftLUT[ac.shift]) + temp;

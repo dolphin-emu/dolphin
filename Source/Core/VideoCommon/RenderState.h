@@ -57,7 +57,11 @@ union BlendingState
   void Generate(const BPMemory& bp);
 
   bool IsDualSourceBlend() const {
-    return dstalpha && (srcfactor == BlendMode::SRCALPHA || dstfactor == BlendMode::INVSRCALPHA);
+    return dstalpha && (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA);
+  }
+
+  bool IsPremultipliedAlpha() const {
+    return !dstalpha && (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA);
   }
 
   BlendingState& operator=(const BlendingState& rhs);
@@ -65,7 +69,6 @@ union BlendingState
   bool operator==(const BlendingState& rhs) const { return hex == rhs.hex; }
   bool operator!=(const BlendingState& rhs) const { return hex != rhs.hex; }
   bool operator<(const BlendingState& rhs) const { return hex < rhs.hex; }
-
 
 	struct {
 		unsigned int blendenable:1;
@@ -131,4 +134,4 @@ DepthState GetNoDepthTestingDepthStencilState();
 BlendingState GetNoBlendingBlendState();
 SamplerState GetPointSamplerState();
 SamplerState GetLinearSamplerState();
-}
+}  // namespace RenderState
