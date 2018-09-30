@@ -84,12 +84,39 @@ private:
   bool locked = false;
 };
 
-struct X64CachedReg
+class X64CachedReg
 {
-  size_t ppcReg;
-  bool dirty;
-  bool free;
-  bool locked;
+public:
+  size_t Contents() const { return ppcReg; }
+
+  void BoundTo(size_t ppcReg_, bool dirty_)
+  {
+    free = false;
+    ppcReg = ppcReg_;
+    dirty = dirty_;
+  }
+
+  void Flushed()
+  {
+    ppcReg = static_cast<size_t>(Gen::INVALID_REG);
+    free = true;
+    dirty = false;
+  }
+
+  bool IsFree() const { return free && !locked; }
+
+  bool IsDirty() const { return dirty; }
+  void MakeDirty(bool makeDirty = true) { dirty |= makeDirty; }
+
+  bool IsLocked() const { return locked; }
+  void Lock() { locked = true; }
+  void Unlock() { locked = false; }
+
+private:
+  size_t ppcReg = static_cast<size_t>(Gen::INVALID_REG);
+  bool free = true;
+  bool dirty = false;
+  bool locked = false;
 };
 
 class RegCache
@@ -153,9 +180,9 @@ public:
   template <typename T>
   void LockX(T x)
   {
-    if (m_xregs[x].locked)
+    if (m_xregs[x].IsLocked())
       PanicAlert("RegCache: x %i already locked!", x);
-    m_xregs[x].locked = true;
+    m_xregs[x].Lock();
   }
   template <typename T, typename... Args>
   void LockX(T first, Args... args)
@@ -167,9 +194,9 @@ public:
   template <typename T>
   void UnlockX(T x)
   {
-    if (!m_xregs[x].locked)
+    if (!m_xregs[x].IsLocked())
       PanicAlert("RegCache: x %i already unlocked!", x);
-    m_xregs[x].locked = false;
+    m_xregs[x].Unlock();
   }
   template <typename T, typename... Args>
   void UnlockX(T first, Args... args)
