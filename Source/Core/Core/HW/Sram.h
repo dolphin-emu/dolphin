@@ -36,6 +36,7 @@ distribution.
 
 #include <array>
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 using CardFlashId = std::array<u8, 12>;
 
@@ -79,8 +80,8 @@ struct SramFlags
 struct SramSettings
 {
   // checksum covers [rtc_bias, flags]
-  u16 checksum;
-  u16 checksum_inv;
+  Common::BigEndianValue<u16> checksum;
+  Common::BigEndianValue<u16> checksum_inv;
 
   // Unknown attributes
   u32 ead0;
@@ -119,7 +120,7 @@ union Sram
   u8 raw[0x44];
   struct
   {
-    u8 rtc[4];
+    Common::BigEndianValue<u32> rtc;
     SramSettings settings;
     SramSettingsEx settings_ex;
   };

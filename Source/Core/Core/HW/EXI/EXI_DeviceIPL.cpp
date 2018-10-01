@@ -127,7 +127,7 @@ CEXIIPL::CEXIIPL()
   }
 
   // Clear RTC
-  memset(g_SRAM.rtc, 0, sizeof(g_SRAM.rtc));
+  g_SRAM.rtc = 0;
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
@@ -250,8 +250,7 @@ void CEXIIPL::SetCS(int cs)
 
 void CEXIIPL::UpdateRTC()
 {
-  const u32 rtc = Common::swap32(GetEmulatedTime(GC_EPOCH));
-  std::memcpy(g_SRAM.rtc, &rtc, sizeof(u32));
+  g_SRAM.rtc = GetEmulatedTime(GC_EPOCH);
 }
 
 bool CEXIIPL::IsPresent() const

@@ -78,14 +78,16 @@ void SetCardFlashID(const u8* buffer, u8 card_index)
 
 void FixSRAMChecksums()
 {
+  // 16bit big-endian additive checksum
   u16 checksum = 0;
   u16 checksum_inv = 0;
   for (auto p = reinterpret_cast<u16*>(&g_SRAM.settings.rtc_bias);
        p != reinterpret_cast<u16*>(&g_SRAM.settings_ex); p++)
   {
-    checksum += *p;
-    checksum_inv += ~*p;
+    u16 value = Common::FromBigEndian(*p);
+    checksum += value;
+    checksum_inv += ~value;
   }
-  g_SRAM.settings.checksum = Common::swap16(checksum);
-  g_SRAM.settings.checksum_inv = Common::swap16(checksum_inv);
+  g_SRAM.settings.checksum = checksum;
+  g_SRAM.settings.checksum_inv = checksum_inv;
 }
