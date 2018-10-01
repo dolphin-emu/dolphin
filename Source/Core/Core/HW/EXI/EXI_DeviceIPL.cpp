@@ -291,13 +291,13 @@ void CEXIIPL::TransferByte(u8& data)
 #define DEV_ADDR(x) (address - x##_BASE)
 #define DEV_ADDR_CURSOR(x) (DEV_ADDR(x) + m_cursor++)
 
-    auto UartFifoAccess = [&](u8* data) {
+    auto UartFifoAccess = [&]() {
       if (m_command.is_write())
       {
-        if (*data != '\0')
-          m_buffer += *data;
+        if (data != '\0')
+          m_buffer += data;
 
-        if (*data == '\r')
+        if (data == '\r')
         {
           NOTICE_LOG(OSREPORT, "%s", SHIFTJISToUTF8(m_buffer).c_str());
           m_buffer.clear();
@@ -306,7 +306,7 @@ void CEXIIPL::TransferByte(u8& data)
       else
       {
         // "Queue Length"... return 0 cause we're instant
-        *data = 0;
+        data = 0;
       }
     };
 
@@ -351,7 +351,7 @@ void CEXIIPL::TransferByte(u8& data)
       {
       case 0:
         // Seems to be 16byte fifo
-        UartFifoAccess(&data);
+        UartFifoAccess();
         break;
       case 0xc:
         // Seen being written to after reading 4 bytes from barnacle
@@ -375,7 +375,7 @@ void CEXIIPL::TransferByte(u8& data)
         // so we can leave the byte untouched.
         break;
       case 4:
-        UartFifoAccess(&data);
+        UartFifoAccess();
         break;
       }
     }
