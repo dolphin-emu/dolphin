@@ -341,9 +341,9 @@ void CEXIIPL::TransferByte(u8& data)
     {
       u32 dev_addr = DEV_ADDR_CURSOR(SRAM);
       if (m_command.is_write())
-        g_SRAM.raw[dev_addr] = data;
+        g_SRAM[dev_addr] = data;
       else
-        data = g_SRAM.raw[dev_addr];
+        data = g_SRAM[dev_addr];
     }
     else if (IN_RANGE(UART))
     {

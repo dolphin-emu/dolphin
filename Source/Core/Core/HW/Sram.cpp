@@ -10,13 +10,22 @@
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
-// english
-const Sram sram_dump = {{0,    0,    0,    0,    0x00, 0x2C, 0xFF, 0xD0, 0x00, 0x00, 0x00, 0x00,
-                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2C,
-                         0x44, 0x4F, 0x4C, 0x50, 0x48, 0x49, 0x4E, 0x53, 0x4C, 0x4F, 0x54, 0x41,
-                         0x44, 0x4F, 0x4C, 0x50, 0x48, 0x49, 0x4E, 0x53, 0x4C, 0x4F, 0x54, 0x42,
-                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                         0x00, 0x00, 0x6E, 0x6D, 0x00, 0x00, 0x00, 0x00}};
+// English
+// This is just a template. Most/all fields are updated with sane(r) values at runtime.
+const Sram sram_dump = {Common::BigEndianValue<u32>{0},
+                        {Common::BigEndianValue<u16>{0}, Common::BigEndianValue<u16>{0}, 0, 0, 0, 0,
+                         0, 0, 0x20 | SramFlags::kOobeDone | SramFlags::kStereo},
+                        {{
+                             {'D', 'O', 'L', 'P', 'H', 'I', 'N', 'S', 'L', 'O', 'T', 'A'},
+                             {'D', 'O', 'L', 'P', 'H', 'I', 'N', 'S', 'L', 'O', 'T', 'B'},
+                         },
+                         0,
+                         {},
+                         0,
+                         0,
+                         {0x6E, 0x6D},
+                         0,
+                         {}}};
 
 #if 0
 // german
