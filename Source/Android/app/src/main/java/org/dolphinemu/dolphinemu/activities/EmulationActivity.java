@@ -50,6 +50,7 @@ import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
+import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.lang.annotation.Retention;
@@ -277,6 +278,7 @@ public final class EmulationActivity extends AppCompatActivity
 
     Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
     Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+    Rumble.initRumble(this);
 
     setContentView(R.layout.activity_emulation);
 
@@ -359,6 +361,13 @@ public final class EmulationActivity extends AppCompatActivity
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
     mScreenPath = savedInstanceState.getString(EXTRA_SCREEN_PATH);
     mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
+  }
+
+  @Override
+  protected void onStop()
+  {
+    super.onStop();
+    Rumble.clear();
   }
 
   @Override
@@ -693,6 +702,7 @@ public final class EmulationActivity extends AppCompatActivity
     final SharedPreferences.Editor editor = mPreferences.edit();
     editor.putBoolean("phoneRumble", state);
     editor.apply();
+    Rumble.setPhoneVibrator(state, this);
   }
 
 
@@ -948,6 +958,11 @@ public final class EmulationActivity extends AppCompatActivity
             .replace(R.id.frame_submenu, fragment)
             .addToBackStack(BACKSTACK_NAME_SUBMENU)
             .commit();
+  }
+
+  public boolean deviceHasTouchScreen()
+  {
+    return mDeviceHasTouchScreen;
   }
 
   public String getSelectedTitle()

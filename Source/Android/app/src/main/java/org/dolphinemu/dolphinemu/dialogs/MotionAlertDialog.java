@@ -3,14 +3,18 @@ package org.dolphinemu.dolphinemu.dialogs;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.util.ArrayList;
@@ -49,7 +53,8 @@ public final class MotionAlertDialog extends AlertDialog
       case KeyEvent.ACTION_UP:
         if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
         {
-          saveKeyInput(event);
+          setting.onKeyInput(event);
+          dismiss();
         }
         // Even if we ignore the key, we still consume it. Thus return true regardless.
         return true;
@@ -63,13 +68,11 @@ public final class MotionAlertDialog extends AlertDialog
   public boolean onKeyLongPress(int keyCode, KeyEvent event)
   {
     // Option to clear by long back is only needed on the TV interface
-    if (TvUtil.isLeanback(getContext()))
+    if (TvUtil.isLeanback(getContext()) && keyCode == KeyEvent.KEYCODE_BACK)
     {
-      if (keyCode == KeyEvent.KEYCODE_BACK)
-      {
-        clearBinding();
-        return true;
-      }
+      setting.clearValue();
+      dismiss();
+      return true;
     }
     return super.onKeyLongPress(keyCode, event);
   }
@@ -162,69 +165,10 @@ public final class MotionAlertDialog extends AlertDialog
       if (numMovedAxis == 1)
       {
         mWaitingForEvent = false;
-        saveMotionInput(input, lastMovedRange, lastMovedDir);
+        setting.onMotionInput(input, lastMovedRange, lastMovedDir);
+        dismiss();
       }
     }
-
     return true;
-  }
-
-  /**
-   * Saves the provided key input setting both to the INI file (so native code can use it) and as
-   * an Android preference (so it persists correctly and is human-readable.)
-   *
-   * @param keyEvent KeyEvent of this key press.
-   */
-  private void saveKeyInput(KeyEvent keyEvent)
-  {
-    InputDevice device = keyEvent.getDevice();
-    String bindStr = "Device '" + device.getDescriptor() + "'-Button " + keyEvent.getKeyCode();
-    String uiString = device.getName() + ": Button " + keyEvent.getKeyCode();
-
-    saveInput(bindStr, uiString);
-  }
-
-  /**
-   * Saves the provided motion input setting both to the INI file (so native code can use it) and as
-   * an Android preference (so it persists correctly and is human-readable.)
-   *
-   * @param device      InputDevice from which the input event originated.
-   * @param motionRange MotionRange of the movement
-   * @param axisDir     Either '-' or '+'
-   */
-  private void saveMotionInput(InputDevice device, InputDevice.MotionRange motionRange,
-          char axisDir)
-  {
-    String bindStr =
-            "Device '" + device.getDescriptor() + "'-Axis " + motionRange.getAxis() + axisDir;
-    String uiString = device.getName() + ": Axis " + motionRange.getAxis() + axisDir;
-
-    saveInput(bindStr, uiString);
-  }
-
-  /**
-   * Save the input string to settings and SharedPreferences, then dismiss this Dialog.
-   */
-  private void saveInput(String bind, String ui)
-  {
-    setting.setValue(bind);
-
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-    SharedPreferences.Editor editor = preferences.edit();
-
-    editor.putString(setting.getKey(), ui);
-    editor.apply();
-
-    dismiss();
-  }
-
-  private void clearBinding()
-  {
-    setting.setValue("");
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-    SharedPreferences.Editor editor = preferences.edit();
-    editor.remove(setting.getKey());
-    editor.apply();
-    dismiss();
   }
 }

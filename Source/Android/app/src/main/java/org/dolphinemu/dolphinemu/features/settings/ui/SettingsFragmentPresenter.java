@@ -14,6 +14,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
@@ -632,6 +633,8 @@ public final class SettingsFragmentPresenter
               bindingsSection.getSetting(SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber);
       Setting bindDPadRight =
               bindingsSection.getSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber);
+      Setting gcEmuRumble =
+              bindingsSection.getSetting(SettingsFile.KEY_EMU_RUMBLE + gcPadNumber);
 
       sl.add(new HeaderSetting(null, null, R.string.generic_buttons, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_A + gcPadNumber,
@@ -682,6 +685,11 @@ public final class SettingsFragmentPresenter
               Settings.SECTION_BINDINGS, R.string.generic_left, bindDPadLeft));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber,
               Settings.SECTION_BINDINGS, R.string.generic_right, bindDPadRight));
+
+
+      sl.add(new HeaderSetting(null, null, R.string.emulation_control_rumble, 0));
+      sl.add(new RumbleBindingSetting(SettingsFile.KEY_EMU_RUMBLE + gcPadNumber,
+              Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, gcEmuRumble));
     }
     else // Adapter
     {
@@ -761,6 +769,8 @@ public final class SettingsFragmentPresenter
             bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber);
     Setting bindDPadRight =
             bindingsSection.getSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber);
+    Setting wiiEmuRumble =
+            bindingsSection.getSetting(SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
             Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), R.string.wiimote_extensions,
@@ -843,6 +853,11 @@ public final class SettingsFragmentPresenter
             Settings.SECTION_BINDINGS, R.string.generic_left, bindDPadLeft));
     sl.add(new InputBindingSetting(SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber,
             Settings.SECTION_BINDINGS, R.string.generic_right, bindDPadRight));
+
+
+    sl.add(new HeaderSetting(null, null, R.string.emulation_control_rumble, 0));
+    sl.add(new RumbleBindingSetting(SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber,
+            Settings.SECTION_BINDINGS, R.string.emulation_control_rumble, wiiEmuRumble));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,

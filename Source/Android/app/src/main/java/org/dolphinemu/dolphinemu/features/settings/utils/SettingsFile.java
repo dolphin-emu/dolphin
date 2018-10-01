@@ -115,6 +115,8 @@ public final class SettingsFile
   public static final String KEY_GCADAPTER_RUMBLE = "AdapterRumble";
   public static final String KEY_GCADAPTER_BONGOS = "SimulateKonga";
 
+  public static final String KEY_EMU_RUMBLE = "EmuRumble";
+
   public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
 
