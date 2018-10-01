@@ -36,6 +36,7 @@ distribution.
 
 #include <array>
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 using CardFlashId = std::array<u8, 12>;
 
@@ -79,8 +80,8 @@ struct SramFlags
 struct SramSettings
 {
   // checksum covers [rtc_bias, flags]
-  u16 checksum;
-  u16 checksum_inv;
+  Common::BigEndianValue<u16> checksum;
+  Common::BigEndianValue<u16> checksum_inv;
 
   // Unknown attributes
   u32 ead0;
@@ -113,17 +114,17 @@ struct SramSettingsEx
   u8 field_3e[2];
 };
 
-union Sram
+struct Sram
 {
-  // TODO determine real full sram size for gc/wii
-  u8 raw[0x44];
-  struct
-  {
-    u8 rtc[4];
-    SramSettings settings;
-    SramSettingsEx settings_ex;
-  };
+  Common::BigEndianValue<u32> rtc;
+  SramSettings settings;
+  SramSettingsEx settings_ex;
+  // Allow access to this entire structure as a raw blob
+  // Typical union-with-byte-array method can't be used here on GCC
+  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
 };
+// TODO determine real full sram size for gc/wii
+static_assert(sizeof(Sram) == 0x44);
 
 #pragma pack(pop)
 
