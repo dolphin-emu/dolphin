@@ -811,6 +811,11 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
       continue;
     }
 
+    // TODO: Some games (Rogue Squadron 3, Twin Snakes) seem to load a previously made XFB
+    // copy as a regular texture. You can see this particularly well in RS3 whenever the
+    // game freezes the image and fades it out to black on screen transitions, which fades
+    // out a purple screen in XFB2Tex. Check for this here and convert them if necessary.
+
     // Do not load strided EFB copies, they are not meant to be used directly.
     // Also do not directly load EFB copies, which were partly overwritten.
     if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
@@ -863,8 +868,10 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
     // improves the performance a lot in some games that use paletted textures.
     // Example: Sonic the Fighters (inside Sonic Gems Collection)
     // Skip EFB copies here, so they can be used for partial texture updates
+    // Also skip XFB copies, we might need to still scan them out
+    // or load them as regular textures later.
     if (entry->frameCount != FRAMECOUNT_INVALID && entry->frameCount < temp_frameCount &&
-        !entry->IsEfbCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
+        !entry->IsCopy() && !(isPaletteTexture && entry->base_hash == base_hash))
     {
       temp_frameCount = entry->frameCount;
       oldest_entry = iter;
