@@ -122,7 +122,7 @@ std::vector<std::string> configStrings = {
     "GuitarGreen",
     "GuitarRed",
     "GuitarYellow",
-    "GuitarBue",
+    "GuitarBlue",
     "GuitarOrange",
     "GuitarStrumUp",
     "GuitarStrumDown",
