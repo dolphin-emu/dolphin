@@ -5,15 +5,18 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 
 namespace sf
 {
 class Packet;
 }
 
+sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u16>& data);
+sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u32>& data);
+sf::Packet& operator>>(sf::Packet& packet, Common::BigEndianValue<u64>& data);
+
 namespace Common
 {
-u16 PacketReadU16(sf::Packet& packet);
-u32 PacketReadU32(sf::Packet& packet);
 u64 PacketReadU64(sf::Packet& packet);
 }  // namespace Common
