@@ -314,7 +314,7 @@ void GeneralPane::OnSaveConfig()
 void GeneralPane::GenerateNewIdentity()
 {
   DolphinAnalytics::Instance()->GenerateNewIdentity();
-  QMessageBox message_box;
+  QMessageBox message_box(this);
   message_box.setIcon(QMessageBox::Information);
   message_box.setWindowTitle(tr("Identity Generation"));
   message_box.setText(tr("New identity generated."));
