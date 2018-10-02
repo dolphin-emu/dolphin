@@ -62,6 +62,7 @@ namespace NetPlay
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static std::unique_ptr<IOS::HLE::FS::FileSystem> s_wii_sync_fs;
+static std::vector<u64> s_wii_sync_titles;
 static bool s_si_poll_batching;
 
 // called from ---GUI--- thread
@@ -608,6 +609,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_SyncSaveData;
       packet >> m_net_settings.m_SaveDataRegion;
       packet >> m_net_settings.m_SyncCodes;
+      packet >> m_net_settings.m_SyncAllWiiSaves;
 
       m_net_settings.m_IsHosting = m_local_player->IsHost();
       m_net_settings.m_HostInputAuthority = m_host_input_authority;
@@ -787,13 +789,6 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       if (m_local_player->IsHost())
         return 0;
 
-      const auto game = m_dialog->FindGameFile(m_selected_game);
-      if (game == nullptr)
-      {
-        SyncSaveDataResponse(true);  // whatever, we won't be booting anyways
-        return 0;
-      }
-
       const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
 
       if (File::Exists(path) && !File::DeleteDirRecursively(path))
@@ -804,16 +799,25 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       }
 
       auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
-      temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                               Common::GetTitleDataPath(game->GetTitleID()), 0,
-                               {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                IOS::HLE::FS::Mode::ReadWrite});
-      auto save = WiiSave::MakeNandStorage(temp_fs.get(), game->GetTitleID());
+      std::vector<u64> titles;
 
-      bool exists;
-      packet >> exists;
-      if (exists)
+      u32 save_count;
+      packet >> save_count;
+      for (u32 n = 0; n < save_count; n++)
       {
+        u64 title_id = Common::PacketReadU64(packet);
+        titles.push_back(title_id);
+        temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                 Common::GetTitleDataPath(title_id), 0,
+                                 {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
+                                  IOS::HLE::FS::Mode::ReadWrite});
+        auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
+
+        bool exists;
+        packet >> exists;
+        if (!exists)
+          continue;
+
         // Header
         WiiSave::Header header;
         packet >> header.tid;
@@ -879,7 +883,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         }
       }
 
-      SetWiiSyncFS(std::move(temp_fs));
+      SetWiiSyncData(std::move(temp_fs), titles);
       SyncSaveDataResponse(true);
     }
     break;
@@ -1925,7 +1929,7 @@ bool NetPlayClient::StopGame()
   // stop game
   m_dialog->StopGame();
 
-  ClearWiiSyncFS();
+  ClearWiiSyncData();
 
   return true;
 }
@@ -2126,12 +2130,18 @@ IOS::HLE::FS::FileSystem* GetWiiSyncFS()
   return s_wii_sync_fs.get();
 }
 
-void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs)
+const std::vector<u64>& GetWiiSyncTitles()
 {
-  s_wii_sync_fs = std::move(fs);
+  return s_wii_sync_titles;
 }
 
-void ClearWiiSyncFS()
+void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles)
+{
+  s_wii_sync_fs = std::move(fs);
+  s_wii_sync_titles.insert(s_wii_sync_titles.end(), titles.begin(), titles.end());
+}
+
+void ClearWiiSyncData()
 {
   // We're just assuming it will always be here because it is
   const std::string path = File::GetUserPath(D_USER_IDX) + "Wii" GC_MEMCARD_NETPLAY DIR_SEP;
@@ -2139,6 +2149,7 @@ void ClearWiiSyncFS()
     File::DeleteDirRecursively(path);
 
   s_wii_sync_fs.reset();
+  s_wii_sync_titles.clear();
 }
 
 void SetSIPollBatching(bool state)
@@ -2150,6 +2161,16 @@ void SendPowerButtonEvent()
 {
   ASSERT(IsNetPlayRunning());
   netplay_client->SendPowerButtonEvent();
+}
+
+bool IsSyncingAllWiiSaves()
+{
+  std::lock_guard<std::mutex> lk(crit_netplay_client);
+
+  if (netplay_client)
+    return netplay_client->GetNetSettings().m_SyncAllWiiSaves;
+
+  return false;
 }
 
 void NetPlay_Enable(NetPlayClient* const np)

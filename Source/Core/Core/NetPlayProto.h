@@ -79,6 +79,7 @@ struct NetSettings
   bool m_SyncSaveData;
   bool m_SyncCodes;
   std::string m_SaveDataRegion;
+  bool m_SyncAllWiiSaves;
   bool m_IsHosting;
   bool m_HostInputAuthority;
 };
@@ -202,8 +203,10 @@ bool IsNetPlayRunning();
 //               IsNetPlayRunning() must be true before calling this.
 const NetSettings& GetNetSettings();
 IOS::HLE::FS::FileSystem* GetWiiSyncFS();
-void SetWiiSyncFS(std::unique_ptr<IOS::HLE::FS::FileSystem> fs);
-void ClearWiiSyncFS();
+const std::vector<u64>& GetWiiSyncTitles();
+void SetWiiSyncData(std::unique_ptr<IOS::HLE::FS::FileSystem> fs, const std::vector<u64>& titles);
+void ClearWiiSyncData();
 void SetSIPollBatching(bool state);
 void SendPowerButtonEvent();
+bool IsSyncingAllWiiSaves();
 }  // namespace NetPlay

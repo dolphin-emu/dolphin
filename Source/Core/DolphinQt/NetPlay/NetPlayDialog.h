@@ -123,6 +123,7 @@ private:
   QCheckBox* m_reduce_polling_rate_box;
   QCheckBox* m_strict_settings_sync_box;
   QCheckBox* m_host_input_authority_box;
+  QCheckBox* m_sync_all_wii_saves_box;
   QPushButton* m_quit_button;
   QSplitter* m_splitter;
 

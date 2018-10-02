@@ -53,5 +53,7 @@ const ConfigInfo<bool> NETPLAY_STRICT_SETTINGS_SYNC{{System::Main, "NetPlay", "S
                                                     false};
 const ConfigInfo<bool> NETPLAY_HOST_INPUT_AUTHORITY{{System::Main, "NetPlay", "HostInputAuthority"},
                                                     false};
+const ConfigInfo<bool> NETPLAY_SYNC_ALL_WII_SAVES{{System::Main, "NetPlay", "SyncAllWiiSaves"},
+                                                  false};
 
 }  // namespace Config
