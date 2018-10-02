@@ -13,8 +13,8 @@
 // English
 // This is just a template. Most/all fields are updated with sane(r) values at runtime.
 const Sram sram_dump = {Common::BigEndianValue<u32>{0},
-                        {Common::BigEndianValue<u16>{0}, Common::BigEndianValue<u16>{0}, 0, 0, 0, 0,
-                         0, 0, 0x20 | SramFlags::kOobeDone | SramFlags::kStereo},
+                        {Common::BigEndianValue<u16>{0x2c}, Common::BigEndianValue<u16>{0xffd0}, 0,
+                         0, 0, 0, 0, 0, 0x20 | SramFlags::kOobeDone | SramFlags::kStereo},
                         {{
                              {'D', 'O', 'L', 'P', 'H', 'I', 'N', 'S', 'L', 'O', 'T', 'A'},
                              {'D', 'O', 'L', 'P', 'H', 'I', 'N', 'S', 'L', 'O', 'T', 'B'},
