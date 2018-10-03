@@ -13,9 +13,9 @@
 
 std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
 
-void SWOGLWindow::Init(void* display_handle, void* window_handle)
+void SWOGLWindow::Init(const WindowSystemInfo& wsi)
 {
-  g_main_gl_context = GLContext::Create(display_handle, window_handle);
+  g_main_gl_context = GLContext::Create(wsi);
   if (!g_main_gl_context)
   {
     ERROR_LOG(VIDEO, "GLInterface::Create failed.");

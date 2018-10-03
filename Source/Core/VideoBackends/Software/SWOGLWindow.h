@@ -12,11 +12,12 @@
 #include "VideoCommon/VideoCommon.h"
 
 class AbstractTexture;
+struct WindowSystemInfo;
 
 class SWOGLWindow
 {
 public:
-  static void Init(void* display_handle, void* window_handle);
+  static void Init(const WindowSystemInfo& wsi);
   static void Shutdown();
   void Prepare();
 

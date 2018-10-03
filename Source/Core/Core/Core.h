@@ -18,6 +18,7 @@
 #include "Common/CommonTypes.h"
 
 struct BootParameters;
+struct WindowSystemInfo;
 
 namespace Core
 {
@@ -35,7 +36,7 @@ enum class State
   Starting,
 };
 
-bool Init(std::unique_ptr<BootParameters> boot);
+bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
 void Stop();
 void Shutdown();
 
@@ -104,4 +105,4 @@ void HostDispatchJobs();
 
 void DoFrameStep();
 
-}  // namespace
+}  // namespace Core

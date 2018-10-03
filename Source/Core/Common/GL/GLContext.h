@@ -8,6 +8,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 
 class GLContext
 {
@@ -44,8 +45,8 @@ public:
   virtual void* GetFuncAddress(const std::string& name);
 
   // Creates an instance of GLInterface specific to the platform we are running on.
-  static std::unique_ptr<GLContext> Create(void* display_handle, void* window_handle,
-                                           bool stereo = false, bool core = true);
+  static std::unique_ptr<GLContext> Create(const WindowSystemInfo& wsi, bool stereo = false,
+                                           bool core = true);
 
 protected:
   virtual bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core);

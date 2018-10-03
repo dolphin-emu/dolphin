@@ -157,12 +157,11 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(void* display_handle, void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   InitializeShared();
 
-  g_main_gl_context = GLContext::Create(display_handle, window_handle,
-                                        g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer);
+  g_main_gl_context = GLContext::Create(wsi, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer);
   if (!g_main_gl_context)
     return false;
 

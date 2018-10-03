@@ -78,11 +78,11 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(void* display_handle, void* window_handle)
+bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 {
   InitializeShared();
 
-  SWOGLWindow::Init(display_handle, window_handle);
+  SWOGLWindow::Init(wsi);
 
   Clipper::Init();
   Rasterizer::Init();

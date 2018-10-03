@@ -25,6 +25,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/Version.h"
+#include "Common/WindowSystemInfo.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
@@ -560,7 +561,8 @@ static void Run(const std::string& path, bool first_open,
   s_have_wm_user_stop = false;
   std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(path, savestate_path);
   boot->delete_savestate = delete_savestate;
-  if (BootManager::BootCore(std::move(boot)))
+  WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf);
+  if (BootManager::BootCore(std::move(boot), wsi))
   {
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;

@@ -68,6 +68,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   OnKeepOnTopChanged(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
 
+  // We need a native window to render into.
+  setAttribute(Qt::WA_NativeWindow);
+
   SetFillBackground(true);
 }
 

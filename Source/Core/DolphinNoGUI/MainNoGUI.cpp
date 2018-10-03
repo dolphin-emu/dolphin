@@ -72,8 +72,9 @@ public:
   virtual void Shutdown() {}
   virtual ~Platform() {}
 
-  virtual void* GetDisplayHandle() { return nullptr; }
-  virtual void* GetWindowHandle() { return nullptr; }
+  virtual WindowSystemType GetWindowSystem() const { return WindowSystemType::Headless; }
+  virtual void* GetDisplayHandle() const { return nullptr; }
+  virtual void* GetWindowHandle() const { return nullptr; }
 };
 
 static Platform* platform;
@@ -342,9 +343,9 @@ class PlatformX11 : public Platform
     XCloseDisplay(dpy);
   }
 
-  void* GetDisplayHandle() override { return static_cast<void*>(dpy); }
-
-  void* GetWindowHandle() override { return reinterpret_cast<void*>(win); }
+  WindowSystemType GetWindowSystem() const override { return WindowSystemType::X11; }
+  void* GetDisplayHandle() const override { return static_cast<void*>(dpy); }
+  void* GetWindowHandle() const override { return reinterpret_cast<void*>(win); }
 };
 #endif
 
@@ -424,10 +425,10 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
-  boot->display_connection = platform->GetDisplayHandle();
-  boot->render_surface = platform->GetWindowHandle();
+  WindowSystemInfo wsi(platform->GetWindowSystem(), platform->GetDisplayHandle(),
+                       platform->GetWindowHandle());
 
-  if (!BootManager::BootCore(std::move(boot)))
+  if (!BootManager::BootCore(std::move(boot), wsi))
   {
     fprintf(stderr, "Could not boot the specified file\n");
     return 1;

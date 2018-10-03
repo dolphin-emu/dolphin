@@ -107,7 +107,7 @@ static std::queue<HostJob> s_host_jobs_queue;
 
 static thread_local bool tls_is_cpu_thread = false;
 
-static void EmuThread(std::unique_ptr<BootParameters> boot);
+static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi);
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -190,7 +190,7 @@ bool WantsDeterminism()
 
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
-bool Init(std::unique_ptr<BootParameters> boot)
+bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
   if (s_emu_thread.joinable())
   {
@@ -215,7 +215,7 @@ bool Init(std::unique_ptr<BootParameters> boot)
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
   // Start the emu thread
-  s_emu_thread = std::thread(EmuThread, std::move(boot));
+  s_emu_thread = std::thread(EmuThread, std::move(boot), wsi);
   return true;
 }
 
@@ -386,7 +386,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-static void EmuThread(std::unique_ptr<BootParameters> boot)
+static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi)
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
@@ -438,7 +438,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   g_video_backend->InitBackendInfo();
   g_Config.Refresh();
 
-  if (!g_video_backend->Initialize(boot->display_connection, boot->render_surface))
+  if (!g_video_backend->Initialize(wsi))
   {
     PanicAlert("Failed to initialize video backend!");
     return;
@@ -459,7 +459,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   bool init_controllers = false;
   if (!g_controller_interface.IsInit())
   {
-    g_controller_interface.Initialize(boot->render_surface);
+    g_controller_interface.Initialize(wsi.display_connection);
     Pad::Initialize();
     Keyboard::Initialize();
     init_controllers = true;

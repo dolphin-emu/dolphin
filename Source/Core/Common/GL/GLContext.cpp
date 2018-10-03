@@ -82,8 +82,7 @@ void* GLContext::GetFuncAddress(const std::string& name)
   return nullptr;
 }
 
-std::unique_ptr<GLContext> GLContext::Create(void* display_handle, void* window_handle, bool stereo,
-                                             bool core)
+std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
   std::unique_ptr<GLContext> context;
 #if defined(__APPLE__)
@@ -103,7 +102,7 @@ std::unique_ptr<GLContext> GLContext::Create(void* display_handle, void* window_
 #else
   return nullptr;
 #endif
-  if (!context->Initialize(display_handle, window_handle, stereo, core))
+  if (!context->Initialize(wsi.display_connection, wsi.render_surface, stereo, core))
     return nullptr;
 
   return context;
