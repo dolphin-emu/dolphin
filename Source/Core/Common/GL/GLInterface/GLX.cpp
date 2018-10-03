@@ -30,6 +30,11 @@ static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
   return 0;
 }
 
+bool GLContextGLX::IsHeadless() const
+{
+  return m_render_window == nullptr;
+}
+
 void GLContextGLX::SwapInterval(int Interval)
 {
   if (!m_drawable)
@@ -200,50 +205,38 @@ bool GLContextGLX::Initialize(void* display_handle, void* window_handle, bool st
   return true;
 }
 
-bool GLContextGLX::Initialize(GLContext* main_context)
+std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
 {
-  GLContextGLX* glx_context = static_cast<GLContextGLX*>(main_context);
-
-  m_opengl_mode = glx_context->m_opengl_mode;
-  m_supports_pbuffer = glx_context->m_supports_pbuffer;
-  m_display = glx_context->m_display;
-  m_fbconfig = glx_context->m_fbconfig;
   s_glxError = false;
   XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 
-  m_context = glXCreateContextAttribs(m_display, m_fbconfig, glx_context->m_context, True,
-                                      &glx_context->m_attribs[0]);
+  GLXContext new_glx_context =
+      glXCreateContextAttribs(m_display, m_fbconfig, m_context, True, &m_attribs[0]);
   XSync(m_display, False);
 
-  if (!m_context || s_glxError)
+  if (!new_glx_context || s_glxError)
   {
     ERROR_LOG(VIDEO, "Unable to create GL context.");
     XSetErrorHandler(oldHandler);
-    return false;
+    return nullptr;
   }
 
-  if (m_supports_pbuffer && !CreateWindowSurface(None))
+  std::unique_ptr<GLContextGLX> new_context = std::make_unique<GLContextGLX>();
+  new_context->m_context = new_glx_context;
+  new_context->m_opengl_mode = m_opengl_mode;
+  new_context->m_supports_pbuffer = m_supports_pbuffer;
+  new_context->m_display = m_display;
+  new_context->m_fbconfig = m_fbconfig;
+
+  if (m_supports_pbuffer && !new_context->CreateWindowSurface(None))
   {
-    ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
+    ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed");
     XSetErrorHandler(oldHandler);
-    return false;
+    return nullptr;
   }
 
   XSetErrorHandler(oldHandler);
-  return true;
-}
-
-bool GLContextGLX::IsHeadless() const
-{
-  return m_render_window == nullptr;
-}
-
-std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
-{
-  std::unique_ptr<GLContextGLX> context = std::make_unique<GLContextGLX>();
-  if (!context->Initialize(this))
-    return nullptr;
-  return context;
+  return new_context;
 }
 
 bool GLContextGLX::CreateWindowSurface(Window window_handle)

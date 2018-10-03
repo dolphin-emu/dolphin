@@ -30,11 +30,6 @@ bool GLContext::Initialize(void* display_handle, void* window_handle, bool stere
   return false;
 }
 
-bool GLContext::Initialize(GLContext* main_context)
-{
-  return false;
-}
-
 bool GLContext::IsHeadless() const
 {
   return true;

@@ -28,7 +28,6 @@ public:
 
 protected:
   bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
-  bool Initialize(GLContext* main_context) override;
 
   static HGLRC CreateCoreContext(HDC dc, HGLRC share_context);
   static bool CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,

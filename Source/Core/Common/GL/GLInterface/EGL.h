@@ -36,7 +36,6 @@ protected:
   virtual EGLNativeWindowType GetEGLNativeWindow(EGLConfig config);
 
   bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
-  bool Initialize(GLContext* main_context) override;
 
   bool CreateWindowSurface();
   void DestroyWindowSurface();

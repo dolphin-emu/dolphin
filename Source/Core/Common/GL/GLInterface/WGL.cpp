@@ -306,34 +306,29 @@ bool GLContextWGL::Initialize(void* display_handle, void* window_handle, bool st
   return true;
 }
 
-bool GLContextWGL::Initialize(GLContext* main_context)
-{
-  GLContextWGL* wgl_main_context = static_cast<GLContextWGL*>(main_context);
-
-  m_opengl_mode = wgl_main_context->m_opengl_mode;
-
-  // WGL does not support surfaceless contexts, so we use a 1x1 pbuffer instead.
-  if (!CreatePBuffer(wgl_main_context->m_dc, 1, 1, &m_pbuffer_handle, &m_dc))
-    return false;
-
-  m_rc = CreateCoreContext(m_dc, wgl_main_context->m_rc);
-  if (!m_rc)
-    return false;
-
-  m_is_core_context = true;
-  return true;
-}
-
 std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
 {
-  std::unique_ptr<GLContextWGL> context = std::make_unique<GLContextWGL>();
-  if (!context->Initialize(this))
+  // WGL does not support surfaceless contexts, so we use a 1x1 pbuffer instead.
+  HANDLE pbuffer;
+  HDC dc;
+  if (!CreatePBuffer(m_dc, 1, 1, &pbuffer, &dc))
+    return nullptr;
+
+  HGLRC rc = CreateCoreContext(dc, m_rc);
+  if (!rc)
   {
-    context->Shutdown();
+    wglReleasePbufferDCARB(static_cast<HPBUFFERARB>(pbuffer), dc);
+    wglDestroyPbufferARB(static_cast<HPBUFFERARB>(pbuffer));
     return nullptr;
   }
 
-  return std::move(context);
+  std::unique_ptr<GLContextWGL> context = std::make_unique<GLContextWGL>();
+  context->m_pbuffer_handle = pbuffer;
+  context->m_dc = dc;
+  context->m_rc = rc;
+  context->m_opengl_mode = m_opengl_mode;
+  context->m_is_core_context = m_is_core_context;
+  return context;
 }
 
 HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)

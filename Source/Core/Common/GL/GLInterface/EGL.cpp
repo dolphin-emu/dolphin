@@ -289,43 +289,31 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
 
 std::unique_ptr<GLContext> GLContextEGL::CreateSharedContext()
 {
-  std::unique_ptr<GLContextEGL> context = std::make_unique<GLContextEGL>();
-  if (!context->Initialize(this))
-    return nullptr;
-  return context;
-}
-
-bool GLContextEGL::Initialize(GLContext* main_context)
-{
-  GLContextEGL* egl_context = static_cast<GLContextEGL*>(main_context);
-
-  m_opengl_mode = egl_context->m_opengl_mode;
-  m_host_display = egl_context->m_host_display;
-  m_egl_display = egl_context->m_egl_display;
-  m_is_core_context = egl_context->m_is_core_context;
-  m_config = egl_context->m_config;
-  m_supports_surfaceless = egl_context->m_supports_surfaceless;
-  m_is_shared = true;
-
-  if (egl_context->GetMode() == Mode::OpenGL)
-    eglBindAPI(EGL_OPENGL_API);
-  else
-    eglBindAPI(EGL_OPENGL_ES_API);
-
-  m_egl_context = eglCreateContext(m_egl_display, m_config, egl_context->m_egl_context,
-                                   egl_context->m_attribs.data());
-  if (!m_egl_context)
+  eglBindAPI(m_opengl_mode == Mode::OpenGL ? EGL_OPENGL_API : EGL_OPENGL_ES_API);
+  EGLContext new_egl_context =
+      eglCreateContext(m_egl_display, m_config, m_egl_context, m_attribs.data());
+  if (!new_egl_context)
   {
     INFO_LOG(VIDEO, "Error: eglCreateContext failed 0x%04x", eglGetError());
-    return false;
+    return nullptr;
   }
 
-  if (!CreateWindowSurface())
+  std::unique_ptr<GLContextEGL> new_context = std::make_unique<GLContextEGL>();
+  new_context->m_opengl_mode = m_opengl_mode;
+  new_context->m_egl_context = new_egl_context;
+  new_context->m_host_display = m_host_display;
+  new_context->m_egl_display = m_egl_display;
+  new_context->m_is_core_context = m_is_core_context;
+  new_context->m_config = m_config;
+  new_context->m_supports_surfaceless = m_supports_surfaceless;
+  new_context->m_is_shared = true;
+  if (!new_context->CreateWindowSurface())
   {
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed 0x%04x", eglGetError());
-    return false;
+    return nullptr;
   }
-  return true;
+
+  return new_context;
 }
 
 bool GLContextEGL::CreateWindowSurface()

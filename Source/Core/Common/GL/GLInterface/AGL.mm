@@ -86,28 +86,21 @@ bool GLContextAGL::Initialize(void* display_handle, void* window_handle, bool st
   return AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
 }
 
-bool GLContextAGL::Initialize(GLContext* main_context)
-{
-  GLContextAGL* agl_context = static_cast<GLContextAGL*>(main_context);
-  NSOpenGLPixelFormat* pixel_format = agl_context->m_pixel_format;
-  NSOpenGLContext* share_context = agl_context->m_context;
-
-  m_context = [[NSOpenGLContext alloc] initWithFormat:pixel_format shareContext:share_context];
-  if (m_context == nil)
-  {
-    ERROR_LOG(VIDEO, "failed to create shared context");
-    return false;
-  }
-
-  return true;
-}
-
 std::unique_ptr<GLContext> GLContextAGL::CreateSharedContext()
 {
-  std::unique_ptr<GLContextAGL> context = std::make_unique<GLContextAGL>();
-  if (!context->Initialize(this))
+  NSOpenGLContext* new_agl_context =
+      [[NSOpenGLContext alloc] initWithFormat:m_pixel_format shareContext:m_context];
+  if (new_agl_context == nil)
+  {
+    ERROR_LOG(VIDEO, "failed to create shared context");
     return nullptr;
-  return context;
+  }
+
+  std::unique_ptr<GLContextAGL> new_context = std::make_unique<GLContextAGL>();
+  new_context->m_context = new_agl_context;
+  new_context->m_pixel_format = m_pixel_format;
+  [new_context->m_pixel_format retain];
+  return new_context;
 }
 
 bool GLContextAGL::MakeCurrent()
