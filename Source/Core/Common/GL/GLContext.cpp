@@ -27,7 +27,7 @@ std::unique_ptr<GLContext> g_main_gl_context;
 
 GLContext::~GLContext() = default;
 
-bool GLContext::Initialize(void* window_handle, bool stereo, bool core)
+bool GLContext::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
 {
   return false;
 }
@@ -35,12 +35,6 @@ bool GLContext::Initialize(void* window_handle, bool stereo, bool core)
 bool GLContext::Initialize(GLContext* main_context)
 {
   return false;
-}
-
-void GLContext::SetBackBufferDimensions(u32 w, u32 h)
-{
-  m_backbuffer_width = w;
-  m_backbuffer_height = h;
 }
 
 bool GLContext::IsHeadless() const
@@ -88,7 +82,8 @@ void* GLContext::GetFuncAddress(const std::string& name)
   return nullptr;
 }
 
-std::unique_ptr<GLContext> GLContext::Create(void* window_handle, bool stereo, bool core)
+std::unique_ptr<GLContext> GLContext::Create(void* display_handle, void* window_handle, bool stereo,
+                                             bool core)
 {
   std::unique_ptr<GLContext> context;
 #if defined(__APPLE__)
@@ -108,7 +103,7 @@ std::unique_ptr<GLContext> GLContext::Create(void* window_handle, bool stereo, b
 #else
   return nullptr;
 #endif
-  if (!context->Initialize(window_handle, stereo, core))
+  if (!context->Initialize(display_handle, window_handle, stereo, core))
     return nullptr;
 
   return context;

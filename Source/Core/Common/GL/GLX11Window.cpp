@@ -4,25 +4,28 @@
 
 #include "Common/GL/GLX11Window.h"
 #include "Common/GL/GLContext.h"
-#include "Common/Thread.h"
 
 GLX11Window::GLX11Window(Display* display, Window parent_window, Colormap color_map, Window window,
                          int width, int height)
     : m_display(display), m_parent_window(parent_window), m_color_map(color_map), m_window(window),
-      m_width(width), m_height(height),
-      m_event_thread(std::thread(&GLX11Window::XEventThread, this))
+      m_width(width), m_height(height)
 {
 }
 
 GLX11Window::~GLX11Window()
 {
-  Window window = m_window;
-  m_window = None;
-  if (m_event_thread.joinable())
-    m_event_thread.join();
-  XUnmapWindow(m_display, window);
-  XDestroyWindow(m_display, window);
+  XUnmapWindow(m_display, m_window);
+  XDestroyWindow(m_display, m_window);
   XFreeColormap(m_display, m_color_map);
+}
+
+void GLX11Window::UpdateDimensions()
+{
+  XWindowAttributes attribs;
+  XGetWindowAttributes(m_display, m_parent_window, &attribs);
+  XResizeWindow(m_display, m_window, attribs.width, attribs.height);
+  m_width = attribs.width;
+  m_height = attribs.height;
 }
 
 std::unique_ptr<GLX11Window> GLX11Window::Create(Display* display, Window parent_window,
@@ -47,31 +50,4 @@ std::unique_ptr<GLX11Window> GLX11Window::Create(Display* display, Window parent
 
   return std::make_unique<GLX11Window>(display, parent_window, color_map, window,
                                        parent_attribs.width, parent_attribs.height);
-}
-
-void GLX11Window::XEventThread()
-{
-  // There's a potential race here on m_window. But this thread will disappear soon.
-  while (m_window)
-  {
-    XEvent event;
-    for (int num_events = XPending(m_display); num_events > 0; num_events--)
-    {
-      XNextEvent(m_display, &event);
-      switch (event.type)
-      {
-      case ConfigureNotify:
-      {
-        m_width = event.xconfigure.width;
-        m_height = event.xconfigure.height;
-        XResizeWindow(m_display, m_window, m_width, m_height);
-        g_main_gl_context->SetBackBufferDimensions(m_width, m_height);
-      }
-      break;
-      default:
-        break;
-      }
-    }
-    Common::SleepCurrentThread(20);
-  }
 }

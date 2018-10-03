@@ -14,10 +14,11 @@ class GLContextEGLX11 : public GLContextEGL
 public:
   ~GLContextEGLX11() override;
 
+  void Update() override;
+
 protected:
   EGLDisplay OpenEGLDisplay() override;
   EGLNativeWindowType GetEGLNativeWindow(EGLConfig config) override;
 
-  Display* m_display = nullptr;
-  std::unique_ptr<GLX11Window> m_x_window;
+  std::unique_ptr<GLX11Window> m_render_window;
 };

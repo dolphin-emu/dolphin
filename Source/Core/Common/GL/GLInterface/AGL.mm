@@ -55,7 +55,7 @@ void GLContextAGL::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextAGL::Initialize(void* window_handle, bool stereo, bool core)
+bool GLContextAGL::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
 {
   NSOpenGLPixelFormatAttribute attr[] = {
       NSOpenGLPFADoubleBuffer,

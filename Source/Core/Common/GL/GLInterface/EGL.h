@@ -35,13 +35,14 @@ protected:
   virtual EGLDisplay OpenEGLDisplay();
   virtual EGLNativeWindowType GetEGLNativeWindow(EGLConfig config);
 
-  bool Initialize(void* window_handle, bool stereo, bool core) override;
+  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
   bool Initialize(GLContext* main_context) override;
 
   bool CreateWindowSurface();
   void DestroyWindowSurface();
   void DetectMode(bool has_handle);
 
+  void* m_host_display = nullptr;
   void* m_host_window = nullptr;
 
   EGLConfig m_config;

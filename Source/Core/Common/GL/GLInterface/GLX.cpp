@@ -56,9 +56,9 @@ void GLContextGLX::Swap()
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextGLX::Initialize(void* window_handle, bool stereo, bool core)
+bool GLContextGLX::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
 {
-  m_display = XOpenDisplay(nullptr);
+  m_display = static_cast<Display*>(display_handle);
   int screen = DefaultScreen(m_display);
 
   // checking glx version
@@ -298,16 +298,12 @@ void GLContextGLX::Shutdown()
 {
   DestroyWindowSurface();
   if (m_context)
-  {
     glXDestroyContext(m_display, m_context);
+}
 
-    // Don't close the display connection if we are a shared context.
-    // Saves doing reference counting on this object, and the main context will always
-    // be shut down last anyway.
-    if (m_render_window)
-    {
-      XCloseDisplay(m_display);
-      m_context = nullptr;
-    }
-  }
+void GLContextGLX::Update()
+{
+  m_render_window->UpdateDimensions();
+  m_backbuffer_width = m_render_window->GetWidth();
+  m_backbuffer_height = m_render_window->GetHeight();
 }

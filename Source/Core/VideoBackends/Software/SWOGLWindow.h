@@ -16,7 +16,7 @@ class AbstractTexture;
 class SWOGLWindow
 {
 public:
-  static void Init(void* window_handle);
+  static void Init(void* display_handle, void* window_handle);
   static void Shutdown();
   void Prepare();
 

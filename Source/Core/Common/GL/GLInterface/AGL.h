@@ -31,7 +31,7 @@ public:
   void SwapInterval(int interval) override;
 
 protected:
-  bool Initialize(void* window_handle, bool stereo, bool core) override;
+  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
   bool Initialize(GLContext* main_context) override;
 
   NSView* m_view = nullptr;

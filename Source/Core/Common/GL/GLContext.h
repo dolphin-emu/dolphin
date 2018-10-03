@@ -26,7 +26,6 @@ public:
 
   u32 GetBackBufferWidth() { return m_backbuffer_width; }
   u32 GetBackBufferHeight() { return m_backbuffer_height; }
-  void SetBackBufferDimensions(u32 w, u32 h);
 
   virtual bool IsHeadless() const;
 
@@ -45,11 +44,11 @@ public:
   virtual void* GetFuncAddress(const std::string& name);
 
   // Creates an instance of GLInterface specific to the platform we are running on.
-  static std::unique_ptr<GLContext> Create(void* window_handle, bool stereo = false,
-                                           bool core = true);
+  static std::unique_ptr<GLContext> Create(void* display_handle, void* window_handle,
+                                           bool stereo = false, bool core = true);
 
 protected:
-  virtual bool Initialize(void* window_handle, bool stereo, bool core);
+  virtual bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core);
   virtual bool Initialize(GLContext* main_context);
 
   Mode m_opengl_mode = Mode::Detect;

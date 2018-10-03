@@ -190,7 +190,7 @@ void* GLContextWGL::GetFuncAddress(const std::string& name)
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextWGL::Initialize(void* window_handle, bool stereo, bool core)
+bool GLContextWGL::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
 {
   if (!window_handle)
     return false;

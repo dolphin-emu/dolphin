@@ -3,20 +3,19 @@
 // Refer to the license.txt file included.
 
 #include "Common/GL/GLInterface/EGLX11.h"
-#include "Common/Logging/Log.h"
 
-GLContextEGLX11::~GLContextEGLX11()
+GLContextEGLX11::~GLContextEGLX11() = default;
+
+void GLContextEGLX11::Update()
 {
-  if (m_display)
-    XCloseDisplay(m_display);
+  m_render_window->UpdateDimensions();
+  m_backbuffer_width = m_render_window->GetWidth();
+  m_backbuffer_height = m_render_window->GetHeight();
 }
 
 EGLDisplay GLContextEGLX11::OpenEGLDisplay()
 {
-  if (!m_display)
-    m_display = XOpenDisplay(nullptr);
-
-  return eglGetDisplay(m_display);
+  return eglGetDisplay(static_cast<Display*>(m_host_display));
 }
 
 EGLNativeWindowType GLContextEGLX11::GetEGLNativeWindow(EGLConfig config)
@@ -28,16 +27,18 @@ EGLNativeWindowType GLContextEGLX11::GetEGLNativeWindow(EGLConfig config)
   visTemplate.visualid = vid;
 
   int nVisuals;
-  XVisualInfo* vi = XGetVisualInfo(m_display, VisualIDMask, &visTemplate, &nVisuals);
+  XVisualInfo* vi =
+      XGetVisualInfo(static_cast<Display*>(m_host_display), VisualIDMask, &visTemplate, &nVisuals);
 
-  if (m_x_window)
-    m_x_window.reset();
+  if (m_render_window)
+    m_render_window.reset();
 
-  m_x_window = GLX11Window::Create(m_display, reinterpret_cast<Window>(m_host_window), vi);
-  m_backbuffer_width = m_x_window->GetWidth();
-  m_backbuffer_height = m_x_window->GetHeight();
+  m_render_window = GLX11Window::Create(static_cast<Display*>(m_host_display),
+                                        reinterpret_cast<Window>(m_host_window), vi);
+  m_backbuffer_width = m_render_window->GetWidth();
+  m_backbuffer_height = m_render_window->GetHeight();
 
   XFree(vi);
 
-  return reinterpret_cast<EGLNativeWindowType>(m_x_window->GetWindow());
+  return reinterpret_cast<EGLNativeWindowType>(m_render_window->GetWindow());
 }

@@ -23,12 +23,12 @@ public:
   int GetWidth() const { return m_width; }
   int GetHeight() const { return m_height; }
 
+  void UpdateDimensions();
+
   static std::unique_ptr<GLX11Window> Create(Display* display, Window parent_window,
                                              XVisualInfo* vi);
 
 private:
-  void XEventThread();
-
   Display* m_display;
   Window m_parent_window;
   Colormap m_color_map;
@@ -36,6 +36,4 @@ private:
 
   int m_width;
   int m_height;
-
-  std::thread m_event_thread;
 };

@@ -24,13 +24,15 @@ public:
   bool MakeCurrent() override;
   bool ClearCurrent() override;
 
+  void Update() override;
+
   void SwapInterval(int Interval) override;
   void Swap() override;
 
   void* GetFuncAddress(const std::string& name) override;
 
 protected:
-  bool Initialize(void* window_handle, bool stereo, bool core) override;
+  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
   bool Initialize(GLContext* main_context) override;
 
   Display* m_display = nullptr;

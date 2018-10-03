@@ -152,15 +152,16 @@ EGLNativeWindowType GLContextEGL::GetEGLNativeWindow(EGLConfig config)
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool GLContextEGL::Initialize(void* window_handle, bool stereo, bool core)
+bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)
 {
   const bool has_handle = !!window_handle;
 
   EGLint egl_major, egl_minor;
   bool supports_core_profile = false;
 
-  m_egl_display = OpenEGLDisplay();
+  m_host_display = display_handle;
   m_host_window = window_handle;
+  m_egl_display = OpenEGLDisplay();
   m_is_core_context = core;
 
   if (!m_egl_display)
@@ -299,6 +300,7 @@ bool GLContextEGL::Initialize(GLContext* main_context)
   GLContextEGL* egl_context = static_cast<GLContextEGL*>(main_context);
 
   m_opengl_mode = egl_context->m_opengl_mode;
+  m_host_display = egl_context->m_host_display;
   m_egl_display = egl_context->m_egl_display;
   m_is_core_context = egl_context->m_is_core_context;
   m_config = egl_context->m_config;

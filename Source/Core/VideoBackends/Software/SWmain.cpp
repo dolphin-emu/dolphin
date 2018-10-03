@@ -82,7 +82,7 @@ bool VideoSoftware::Initialize(void* display_handle, void* window_handle)
 {
   InitializeShared();
 
-  SWOGLWindow::Init(window_handle);
+  SWOGLWindow::Init(display_handle, window_handle);
 
   Clipper::Init();
   Rasterizer::Init();
