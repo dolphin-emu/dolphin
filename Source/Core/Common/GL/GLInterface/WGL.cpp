@@ -157,6 +157,39 @@ static void ClearWGLExtensionPointers()
   wglDestroyPbufferARB = nullptr;
 }
 
+GLContextWGL::~GLContextWGL()
+{
+  if (m_rc)
+  {
+    if (wglGetCurrentContext() == m_rc && !wglMakeCurrent(m_dc, nullptr))
+      NOTICE_LOG(VIDEO, "Could not release drawing context.");
+
+    if (!wglDeleteContext(m_rc))
+      ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
+
+    m_rc = nullptr;
+  }
+
+  if (m_dc)
+  {
+    if (m_pbuffer_handle)
+    {
+      wglReleasePbufferDCARB(static_cast<HPBUFFERARB>(m_pbuffer_handle), m_dc);
+      m_dc = nullptr;
+
+      wglDestroyPbufferARB(static_cast<HPBUFFERARB>(m_pbuffer_handle));
+      m_pbuffer_handle = nullptr;
+    }
+    else
+    {
+      if (!ReleaseDC(m_window_handle, m_dc))
+        ERROR_LOG(VIDEO, "Attempt to release device context failed.");
+
+      m_dc = nullptr;
+    }
+  }
+}
+
 bool GLContextWGL::IsHeadless() const
 {
   return !m_window_handle;
@@ -295,7 +328,6 @@ bool GLContextWGL::Initialize(void* display_handle, void* window_handle, bool st
     {
       wglDeleteContext(m_rc);
       m_rc = core_context;
-      m_is_core_context = true;
     }
     else
     {
@@ -303,7 +335,7 @@ bool GLContextWGL::Initialize(void* display_handle, void* window_handle, bool st
     }
   }
 
-  return true;
+  return MakeCurrent();
 }
 
 std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
@@ -327,7 +359,7 @@ std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
   context->m_dc = dc;
   context->m_rc = rc;
   context->m_opengl_mode = m_opengl_mode;
-  context->m_is_core_context = m_is_core_context;
+  context->m_is_shared = true;
   return context;
 }
 
@@ -467,38 +499,4 @@ void GLContextWGL::Update()
   // Get the new window width and height
   m_backbuffer_width = rcWindow.right - rcWindow.left;
   m_backbuffer_height = rcWindow.bottom - rcWindow.top;
-}
-
-// Close backend
-void GLContextWGL::Shutdown()
-{
-  if (m_rc)
-  {
-    if (!wglMakeCurrent(m_dc, nullptr))
-      NOTICE_LOG(VIDEO, "Could not release drawing context.");
-
-    if (!wglDeleteContext(m_rc))
-      ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
-
-    m_rc = nullptr;
-  }
-
-  if (m_dc)
-  {
-    if (m_pbuffer_handle)
-    {
-      wglReleasePbufferDCARB(static_cast<HPBUFFERARB>(m_pbuffer_handle), m_dc);
-      m_dc = nullptr;
-
-      wglDestroyPbufferARB(static_cast<HPBUFFERARB>(m_pbuffer_handle));
-      m_pbuffer_handle = nullptr;
-    }
-    else
-    {
-      if (!ReleaseDC(m_window_handle, m_dc))
-        ERROR_LOG(VIDEO, "Attempt to release device context failed.");
-
-      m_dc = nullptr;
-    }
-  }
 }

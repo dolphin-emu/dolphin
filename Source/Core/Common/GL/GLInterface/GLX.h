@@ -13,13 +13,14 @@
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLX11Window.h"
 
-class GLContextGLX : public GLContext
+class GLContextGLX final : public GLContext
 {
 public:
+  ~GLContextGLX() override;
+
   bool IsHeadless() const override;
 
   std::unique_ptr<GLContext> CreateSharedContext() override;
-  void Shutdown() override;
 
   bool MakeCurrent() override;
   bool ClearCurrent() override;
@@ -38,7 +39,7 @@ protected:
   std::unique_ptr<GLX11Window> m_render_window;
 
   GLXDrawable m_drawable = {};
-  GLXContext m_context = {};
+  GLXContext m_context = nullptr;
   GLXFBConfig m_fbconfig = {};
   bool m_supports_pbuffer = false;
   GLXPbufferSGIX m_pbuffer = 0;

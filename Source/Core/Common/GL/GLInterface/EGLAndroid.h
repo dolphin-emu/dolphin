@@ -6,7 +6,7 @@
 
 #include "Common/GL/GLInterface/EGL.h"
 
-class GLContextEGLAndroid : public GLContextEGL
+class GLContextEGLAndroid final : public GLContextEGL
 {
 protected:
   EGLDisplay OpenEGLDisplay() override;

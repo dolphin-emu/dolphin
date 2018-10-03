@@ -28,7 +28,11 @@
 #define EGL_OPENGL_ES3_BIT_KHR 0x00000040
 #endif /* EGL_KHR_create_context */
 
-GLContextEGL::~GLContextEGL() = default;
+GLContextEGL::~GLContextEGL()
+{
+  DestroyWindowSurface();
+  DestroyContext();
+}
 
 bool GLContextEGL::IsHeadless() const
 {
@@ -162,7 +166,6 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
   m_host_display = display_handle;
   m_host_window = window_handle;
   m_egl_display = OpenEGLDisplay();
-  m_is_core_context = core;
 
   if (!m_egl_display)
   {
@@ -268,7 +271,6 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
 
   if (!m_egl_context)
   {
-    m_is_core_context = false;
     m_egl_context = eglCreateContext(m_egl_display, m_config, EGL_NO_CONTEXT, &ctx_attribs[0]);
     m_attribs = std::move(ctx_attribs);
   }
@@ -284,7 +286,8 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
     ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed 0x%04x", eglGetError());
     return false;
   }
-  return true;
+
+  return MakeCurrent();
 }
 
 std::unique_ptr<GLContext> GLContextEGL::CreateSharedContext()
@@ -303,7 +306,6 @@ std::unique_ptr<GLContext> GLContextEGL::CreateSharedContext()
   new_context->m_egl_context = new_egl_context;
   new_context->m_host_display = m_host_display;
   new_context->m_egl_display = m_egl_display;
-  new_context->m_is_core_context = m_is_core_context;
   new_context->m_config = m_config;
   new_context->m_supports_surfaceless = m_supports_surfaceless;
   new_context->m_is_shared = true;
@@ -349,7 +351,12 @@ bool GLContextEGL::CreateWindowSurface()
 
 void GLContextEGL::DestroyWindowSurface()
 {
-  if (m_egl_surface != EGL_NO_SURFACE && !eglDestroySurface(m_egl_display, m_egl_surface))
+  if (m_egl_surface == EGL_NO_SURFACE)
+    return;
+
+  if (eglGetCurrentSurface(EGL_DRAW) == m_egl_surface)
+    eglMakeCurrent(m_egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  if (!eglDestroySurface(m_egl_display, m_egl_surface))
     NOTICE_LOG(VIDEO, "Could not destroy window surface.");
   m_egl_surface = EGL_NO_SURFACE;
 }
@@ -374,18 +381,17 @@ bool GLContextEGL::ClearCurrent()
 }
 
 // Close backend
-void GLContextEGL::Shutdown()
+void GLContextEGL::DestroyContext()
 {
-  if (m_egl_context)
-  {
-    if (!eglMakeCurrent(m_egl_display, m_egl_surface, m_egl_surface, m_egl_context))
-      NOTICE_LOG(VIDEO, "Could not release drawing context.");
+  if (!m_egl_context)
+    return;
+
+  if (eglGetCurrentContext() == m_egl_context)
     eglMakeCurrent(m_egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (!eglDestroyContext(m_egl_display, m_egl_context))
-      NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
-    DestroyWindowSurface();
-    if (!m_is_shared && !eglTerminate(m_egl_display))
-      NOTICE_LOG(VIDEO, "Could not destroy display connection.");
-    m_egl_context = nullptr;
-  }
+  if (!eglDestroyContext(m_egl_display, m_egl_context))
+    NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
+  if (!m_is_shared && !eglTerminate(m_egl_display))
+    NOTICE_LOG(VIDEO, "Could not destroy display connection.");
+  m_egl_context = EGL_NO_CONTEXT;
+  m_egl_display = EGL_NO_DISPLAY;
 }

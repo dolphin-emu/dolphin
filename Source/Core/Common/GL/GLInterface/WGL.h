@@ -8,16 +8,17 @@
 #include <string>
 #include "Common/GL/GLContext.h"
 
-class GLContextWGL : public GLContext
+class GLContextWGL final : public GLContext
 {
 public:
+  ~GLContextWGL();
+
   bool IsHeadless() const;
 
   std::unique_ptr<GLContext> CreateSharedContext() override;
 
   bool MakeCurrent() override;
   bool ClearCurrent() override;
-  void Shutdown() override;
 
   void Update() override;
 

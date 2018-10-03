@@ -14,13 +14,14 @@ struct NSView;
 
 #include "Common/GL/GLContext.h"
 
-class GLContextAGL : public GLContext
+class GLContextAGL final : public GLContext
 {
 public:
+  ~GLContextAGL() override;
+
   bool IsHeadless() const override;
 
   std::unique_ptr<GLContext> CreateSharedContext() override;
-  void Shutdown() override;
 
   bool MakeCurrent() override;
   bool ClearCurrent() override;

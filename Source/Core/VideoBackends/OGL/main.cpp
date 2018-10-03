@@ -166,7 +166,6 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   if (!main_gl_context)
     return false;
 
-  main_gl_context->MakeCurrent();
   if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 

@@ -30,9 +30,21 @@ static int ctxErrorHandler(Display* dpy, XErrorEvent* ev)
   return 0;
 }
 
+GLContextGLX::~GLContextGLX()
+{
+  DestroyWindowSurface();
+  if (m_context)
+  {
+    if (glXGetCurrentContext() == m_context)
+      glXMakeCurrent(m_display, None, nullptr);
+
+    glXDestroyContext(m_display, m_context);
+  }
+}
+
 bool GLContextGLX::IsHeadless() const
 {
-  return m_render_window == nullptr;
+  return !m_render_window;
 }
 
 void GLContextGLX::SwapInterval(int Interval)
@@ -202,7 +214,7 @@ bool GLContextGLX::Initialize(void* display_handle, void* window_handle, bool st
 
   XSetErrorHandler(oldHandler);
   m_opengl_mode = Mode::OpenGL;
-  return true;
+  return MakeCurrent();
 }
 
 std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
@@ -227,6 +239,7 @@ std::unique_ptr<GLContext> GLContextGLX::CreateSharedContext()
   new_context->m_supports_pbuffer = m_supports_pbuffer;
   new_context->m_display = m_display;
   new_context->m_fbconfig = m_fbconfig;
+  new_context->m_is_shared = true;
 
   if (m_supports_pbuffer && !new_context->CreateWindowSurface(None))
   {
@@ -284,14 +297,6 @@ bool GLContextGLX::MakeCurrent()
 bool GLContextGLX::ClearCurrent()
 {
   return glXMakeCurrent(m_display, None, nullptr);
-}
-
-// Close backend
-void GLContextGLX::Shutdown()
-{
-  DestroyWindowSurface();
-  if (m_context)
-    glXDestroyContext(m_display, m_context);
 }
 
 void GLContextGLX::Update()

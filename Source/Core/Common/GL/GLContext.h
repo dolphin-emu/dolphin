@@ -31,7 +31,6 @@ public:
   virtual bool IsHeadless() const;
 
   virtual std::unique_ptr<GLContext> CreateSharedContext();
-  virtual void Shutdown();
 
   virtual bool MakeCurrent();
   virtual bool ClearCurrent();
@@ -44,7 +43,8 @@ public:
 
   virtual void* GetFuncAddress(const std::string& name);
 
-  // Creates an instance of GLInterface specific to the platform we are running on.
+  // Creates an instance of GLContext specific to the platform we are running on.
+  // If successful, the context is made current on the calling thread.
   static std::unique_ptr<GLContext> Create(const WindowSystemInfo& wsi, bool stereo = false,
                                            bool core = true);
 
@@ -56,6 +56,5 @@ protected:
   // Window dimensions.
   u32 m_backbuffer_width = 0;
   u32 m_backbuffer_height = 0;
-  bool m_is_core_context = false;
   bool m_is_shared = false;
 };

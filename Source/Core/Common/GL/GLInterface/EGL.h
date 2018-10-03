@@ -14,12 +14,11 @@
 class GLContextEGL : public GLContext
 {
 public:
-  virtual ~GLContextEGL();
+  virtual ~GLContextEGL() override;
 
   bool IsHeadless() const override;
 
   std::unique_ptr<GLContext> CreateSharedContext() override;
-  virtual void Shutdown() override;
 
   bool MakeCurrent() override;
   bool ClearCurrent() override;
@@ -40,6 +39,7 @@ protected:
   bool CreateWindowSurface();
   void DestroyWindowSurface();
   void DetectMode(bool has_handle);
+  void DestroyContext();
 
   void* m_host_display = nullptr;
   void* m_host_window = nullptr;
@@ -48,7 +48,7 @@ protected:
   bool m_supports_surfaceless = false;
   std::vector<int> m_attribs;
 
-  EGLSurface m_egl_surface;
-  EGLContext m_egl_context;
-  EGLDisplay m_egl_display;
+  EGLSurface m_egl_surface = EGL_NO_SURFACE;
+  EGLContext m_egl_context = EGL_NO_CONTEXT;
+  EGLDisplay m_egl_display = EGL_NO_DISPLAY;
 };

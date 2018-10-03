@@ -9,7 +9,7 @@
 #include "Common/GL/GLInterface/EGL.h"
 #include "Common/GL/GLX11Window.h"
 
-class GLContextEGLX11 : public GLContextEGL
+class GLContextEGLX11 final : public GLContextEGL
 {
 public:
   ~GLContextEGLX11() override;

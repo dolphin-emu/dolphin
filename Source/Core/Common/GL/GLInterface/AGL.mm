@@ -43,6 +43,20 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
   return true;
 }
 
+GLContextAGL::~GLContextAGL()
+{
+  if ([NSOpenGLContext currentContext] == m_context)
+    [NSOpenGLContext clearCurrentContext];
+
+  if (m_context)
+  {
+    [m_context clearDrawable];
+    [m_context release];
+  }
+  if (m_pixel_format)
+    [m_pixel_format release];
+}
+
 bool GLContextAGL::IsHeadless() const
 {
   return !m_view;
@@ -83,7 +97,11 @@ bool GLContextAGL::Initialize(void* display_handle, void* window_handle, bool st
 
   m_view = static_cast<NSView*>(window_handle);
   m_opengl_mode = Mode::OpenGL;
-  return AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
+  if (!AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height))
+    return false;
+
+  [m_context makeCurrentContext];
+  return true;
 }
 
 std::unique_ptr<GLContext> GLContextAGL::CreateSharedContext()
@@ -100,6 +118,7 @@ std::unique_ptr<GLContext> GLContextAGL::CreateSharedContext()
   new_context->m_context = new_agl_context;
   new_context->m_pixel_format = m_pixel_format;
   [new_context->m_pixel_format retain];
+  new_context->m_is_shared = true;
   return new_context;
 }
 
@@ -113,16 +132,6 @@ bool GLContextAGL::ClearCurrent()
 {
   [NSOpenGLContext clearCurrentContext];
   return true;
-}
-
-// Close backend
-void GLContextAGL::Shutdown()
-{
-  [m_context clearDrawable];
-  [m_context release];
-  m_context = nil;
-  [m_pixel_format release];
-  m_pixel_format = nil;
 }
 
 void GLContextAGL::Update()

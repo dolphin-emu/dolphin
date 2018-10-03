@@ -50,10 +50,6 @@ bool GLContext::ClearCurrent()
   return false;
 }
 
-void GLContext::Shutdown()
-{
-}
-
 void GLContext::Update()
 {
 }

@@ -4,7 +4,13 @@
 
 #include "Common/GL/GLInterface/EGLX11.h"
 
-GLContextEGLX11::~GLContextEGLX11() = default;
+GLContextEGLX11::~GLContextEGLX11()
+{
+  // The context must be destroyed before the window.
+  DestroyWindowSurface();
+  DestroyContext();
+  m_render_window.reset();
+}
 
 void GLContextEGLX11::Update()
 {

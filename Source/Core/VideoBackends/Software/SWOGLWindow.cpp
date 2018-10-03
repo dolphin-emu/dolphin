@@ -13,15 +13,7 @@
 #include "VideoBackends/Software/SWTexture.h"
 
 SWOGLWindow::SWOGLWindow() = default;
-
-SWOGLWindow::~SWOGLWindow()
-{
-  if (m_gl_context)
-  {
-    m_gl_context->ClearCurrent();
-    m_gl_context->Shutdown();
-  }
-}
+SWOGLWindow::~SWOGLWindow() = default;
 
 std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
 {
@@ -45,8 +37,6 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
   m_gl_context = GLContext::Create(wsi);
   if (!m_gl_context)
     return false;
-
-  m_gl_context->MakeCurrent();
 
   // Init extension support.
   if (!GLExtensions::Init(m_gl_context.get()))

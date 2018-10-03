@@ -803,11 +803,7 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
   ClearEFBCache();
 }
 
-Renderer::~Renderer()
-{
-  m_main_gl_context->ClearCurrent();
-  m_main_gl_context->Shutdown();
-}
+Renderer::~Renderer() = default;
 
 bool Renderer::IsHeadless() const
 {
