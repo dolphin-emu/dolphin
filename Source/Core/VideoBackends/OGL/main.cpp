@@ -43,6 +43,8 @@ Make AA apply instantly during gameplay if possible
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/Config/GraphicsSettings.h"
+
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -162,7 +164,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   InitializeShared();
 
   std::unique_ptr<GLContext> main_gl_context =
-      GLContext::Create(wsi, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer);
+      GLContext::Create(wsi, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer, true, false,
+                        Config::Get(Config::GFX_PREFER_GLES));
   if (!main_gl_context)
     return false;
 

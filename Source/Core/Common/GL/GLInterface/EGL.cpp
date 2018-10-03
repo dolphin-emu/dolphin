@@ -9,7 +9,6 @@
 
 #include "Common/GL/GLInterface/EGL.h"
 #include "Common/Logging/Log.h"
-#include "Core/Config/GraphicsSettings.h"
 
 #ifndef EGL_KHR_create_context
 #define EGL_KHR_create_context 1
@@ -56,8 +55,6 @@ void* GLContextEGL::GetFuncAddress(const std::string& name)
 
 void GLContextEGL::DetectMode(bool has_handle)
 {
-  bool preferGLES = Config::Get(Config::GFX_PREFER_GLES);
-
   EGLint num_configs;
   bool supportsGL = false, supportsGLES3 = false;
   std::array<int, 3> renderable_types{{EGL_OPENGL_BIT, EGL_OPENGL_ES3_BIT_KHR}};
@@ -111,30 +108,17 @@ void GLContextEGL::DetectMode(bool has_handle)
     delete[] config;
   }
 
-  if (preferGLES)
-  {
-    if (supportsGLES3)
-      m_opengl_mode = Mode::OpenGLES;
-    else if (supportsGL)
-      m_opengl_mode = Mode::OpenGL;
-  }
-  else
-  {
-    if (supportsGL)
-      m_opengl_mode = Mode::OpenGL;
-    else if (supportsGLES3)
-      m_opengl_mode = Mode::OpenGLES;
-  }
-
-  if (m_opengl_mode == Mode::OpenGL)
+  if (supportsGL)
   {
     INFO_LOG(VIDEO, "Using OpenGL");
+    m_opengl_mode = Mode::OpenGL;
   }
-  else if (m_opengl_mode == Mode::OpenGLES)
+  else if (supportsGLES3)
   {
     INFO_LOG(VIDEO, "Using OpenGL|ES");
+    m_opengl_mode = Mode::OpenGLES;
   }
-  else if (m_opengl_mode == Mode::Detect)
+  else
   {
     // Errored before we found a mode
     ERROR_LOG(VIDEO, "Error: Failed to detect OpenGL flavour, falling back to OpenGL");
