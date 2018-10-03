@@ -23,8 +23,6 @@
 #error Platform doesnt have a GLInterface
 #endif
 
-std::unique_ptr<GLContext> g_main_gl_context;
-
 GLContext::~GLContext() = default;
 
 bool GLContext::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)

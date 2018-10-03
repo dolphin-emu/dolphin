@@ -4,14 +4,18 @@
 
 #pragma once
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 
 #include "VideoCommon/RenderBase.h"
 
+class SWOGLWindow;
+
 class SWRenderer : public Renderer
 {
 public:
-  SWRenderer();
+  SWRenderer(std::unique_ptr<SWOGLWindow> window);
 
   bool IsHeadless() const override;
 
@@ -42,4 +46,7 @@ public:
                    u32 color, u32 z) override;
 
   void ReinterpretPixelData(unsigned int convtype) override {}
+
+private:
+  std::unique_ptr<SWOGLWindow> m_window;
 };

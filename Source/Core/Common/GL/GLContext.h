@@ -60,5 +60,3 @@ protected:
   bool m_is_core_context = false;
   bool m_is_shared = false;
 };
-
-extern std::unique_ptr<GLContext> g_main_gl_context;

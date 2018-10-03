@@ -7,6 +7,8 @@
 #include <string>
 #include "VideoCommon/VideoBackendBase.h"
 
+class GLContext;
+
 namespace OGL
 {
 class VideoBackend : public VideoBackendBase
@@ -20,7 +22,7 @@ class VideoBackend : public VideoBackendBase
   void InitBackendInfo() override;
 
 private:
-  bool InitializeGLExtensions();
+  bool InitializeGLExtensions(GLContext* context);
   bool FillBackendInfo();
 };
 }  // namespace OGL

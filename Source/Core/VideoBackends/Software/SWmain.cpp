@@ -82,16 +82,15 @@ bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 {
   InitializeShared();
 
-  SWOGLWindow::Init(wsi);
+  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
+  if (!window)
+    return false;
 
   Clipper::Init();
   Rasterizer::Init();
   DebugUtil::Init();
 
-  g_main_gl_context->MakeCurrent();
-  SWOGLWindow::s_instance->Prepare();
-
-  g_renderer = std::make_unique<SWRenderer>();
+  g_renderer = std::make_unique<SWRenderer>(std::move(window));
   g_vertex_manager = std::make_unique<SWVertexLoader>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
@@ -108,7 +107,6 @@ void VideoSoftware::Shutdown()
     g_renderer->Shutdown();
 
   DebugUtil::Shutdown();
-  SWOGLWindow::Shutdown();
   g_framebuffer_manager.reset();
   g_texture_cache.reset();
   g_perf_query.reset();

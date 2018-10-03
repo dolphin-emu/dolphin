@@ -7,48 +7,58 @@
 #include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWTexture.h"
 
-std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
+SWOGLWindow::SWOGLWindow() = default;
 
-void SWOGLWindow::Init(const WindowSystemInfo& wsi)
+SWOGLWindow::~SWOGLWindow()
 {
-  g_main_gl_context = GLContext::Create(wsi);
-  if (!g_main_gl_context)
+  if (m_gl_context)
   {
-    ERROR_LOG(VIDEO, "GLInterface::Create failed.");
+    m_gl_context->ClearCurrent();
+    m_gl_context->Shutdown();
+  }
+}
+
+std::unique_ptr<SWOGLWindow> SWOGLWindow::Create(const WindowSystemInfo& wsi)
+{
+  std::unique_ptr<SWOGLWindow> window = std::unique_ptr<SWOGLWindow>(new SWOGLWindow());
+  if (!window->Initialize(wsi))
+  {
+    PanicAlert("Failed to create OpenGL window");
+    return nullptr;
   }
 
-  s_instance.reset(new SWOGLWindow());
+  return window;
 }
 
-void SWOGLWindow::Shutdown()
+bool SWOGLWindow::IsHeadless() const
 {
-  g_main_gl_context->Shutdown();
-  g_main_gl_context.reset();
-
-  s_instance.reset();
+  return m_gl_context->IsHeadless();
 }
 
-void SWOGLWindow::Prepare()
+bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
 {
-  if (m_init)
-    return;
-  m_init = true;
+  m_gl_context = GLContext::Create(wsi);
+  if (!m_gl_context)
+    return false;
+
+  m_gl_context->MakeCurrent();
 
   // Init extension support.
-  if (!GLExtensions::Init())
+  if (!GLExtensions::Init(m_gl_context.get()))
   {
     ERROR_LOG(VIDEO, "GLExtensions::Init failed!Does your video card support OpenGL 2.0?");
-    return;
+    return false;
   }
   else if (GLExtensions::Version() < 310)
   {
     ERROR_LOG(VIDEO, "OpenGL Version %d detected, but at least 3.1 is required.",
               GLExtensions::Version());
-    return;
+    return false;
   }
 
   std::string frag_shader = "in vec2 TexCoord;\n"
@@ -65,9 +75,9 @@ void SWOGLWindow::Prepare()
                               "	TexCoord = vec2(rawpos.x, -rawpos.y);\n"
                               "}\n";
 
-  std::string header = g_main_gl_context->IsGLES() ? "#version 300 es\n"
-                                                     "precision highp float;\n" :
-                                                     "#version 140\n";
+  std::string header = m_gl_context->IsGLES() ? "#version 300 es\n"
+                                                "precision highp float;\n" :
+                                                "#version 140\n";
 
   m_image_program = GLUtil::CompileProgram(header + vertex_shader, header + frag_shader);
 
@@ -81,6 +91,7 @@ void SWOGLWindow::Prepare()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
   glGenVertexArrays(1, &m_image_vao);
+  return true;
 }
 
 void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
@@ -91,10 +102,10 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region)
 {
   SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
-  g_main_gl_context->Update();  // just updates the render window position and the backbuffer size
+  m_gl_context->Update();  // just updates the render window position and the backbuffer size
 
-  GLsizei glWidth = (GLsizei)g_main_gl_context->GetBackBufferWidth();
-  GLsizei glHeight = (GLsizei)g_main_gl_context->GetBackBufferHeight();
+  GLsizei glWidth = (GLsizei)m_gl_context->GetBackBufferWidth();
+  GLsizei glHeight = (GLsizei)m_gl_context->GetBackBufferHeight();
 
   glViewport(0, 0, glWidth, glHeight);
 
@@ -121,5 +132,5 @@ void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_regi
   //	}
   m_text.clear();
 
-  g_main_gl_context->Swap();
+  m_gl_context->Swap();
 }

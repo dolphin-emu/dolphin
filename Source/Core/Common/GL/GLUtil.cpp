@@ -96,11 +96,11 @@ GLuint CompileProgram(const std::string& vertexShader, const std::string& fragme
   return programID;
 }
 
-void EnablePrimitiveRestart()
+void EnablePrimitiveRestart(const GLContext* context)
 {
   constexpr GLuint PRIMITIVE_RESTART_INDEX = 65535;
 
-  if (g_main_gl_context->GetMode() == GLContext::Mode::OpenGLES)
+  if (context->IsGLES())
   {
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
   }

@@ -805,7 +805,8 @@ void ProgramShaderCache::CreateHeader()
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 {
-  std::unique_ptr<GLContext> context = g_main_gl_context->CreateSharedContext();
+  std::unique_ptr<GLContext> context =
+      static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
     PanicAlert("Failed to create shared context for shader compiling.");
@@ -824,7 +825,7 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 
   s_is_shared_context = true;
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+    GLUtil::EnablePrimitiveRestart(context);
 
   return true;
 }
