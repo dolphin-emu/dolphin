@@ -78,7 +78,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(void* window_handle)
+bool VideoSoftware::Initialize(void* display_handle, void* window_handle)
 {
   InitializeShared();
 

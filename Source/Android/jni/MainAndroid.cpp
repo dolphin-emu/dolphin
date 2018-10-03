@@ -89,11 +89,6 @@ void Host_Message(HostMessageID id)
   }
 }
 
-void* Host_GetRenderHandle()
-{
-  return s_surf;
-}
-
 void Host_UpdateTitle(const std::string& title)
 {
   __android_log_write(ANDROID_LOG_INFO, DOLPHIN_TAG, title.c_str());

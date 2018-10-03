@@ -78,6 +78,14 @@ struct BootParameters
   Parameters parameters;
   std::optional<std::string> savestate_path;
   bool delete_savestate = false;
+
+  // Connection to a display server. This is used on X11 and Wayland platforms.
+  void* display_connection = nullptr;
+
+  // Render surface. This is a pointer to the native window handle, which depends
+  // on the platform. e.g. HWND for Windows, Window for X11. If the surface is
+  // set to nullptr, the video backend will run in headless mode.
+  void* render_surface = nullptr;
 };
 
 class CBoot

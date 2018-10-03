@@ -13,6 +13,8 @@ class SWRenderer : public Renderer
 public:
   SWRenderer();
 
+  bool IsHeadless() const override;
+
   std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) override;
   std::unique_ptr<AbstractStagingTexture>
   CreateStagingTexture(StagingTextureType type, const TextureConfig& config) override;

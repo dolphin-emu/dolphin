@@ -35,7 +35,7 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(void* window_handle) = 0;
+  virtual bool Initialize(void* display_handle, void* window_handle) = 0;
   virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;

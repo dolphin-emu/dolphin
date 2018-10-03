@@ -89,7 +89,6 @@ static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
-static void* s_window_handle = nullptr;
 static std::thread s_emu_thread;
 static StateChangedCallbackFunc s_on_state_changed_callback;
 
@@ -214,8 +213,6 @@ bool Init(std::unique_ptr<BootParameters> boot)
   INFO_LOG(BOOT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
-
-  s_window_handle = Host_GetRenderHandle();
 
   // Start the emu thread
   s_emu_thread = std::thread(EmuThread, std::move(boot));
@@ -441,7 +438,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   g_video_backend->InitBackendInfo();
   g_Config.Refresh();
 
-  if (!g_video_backend->Initialize(s_window_handle))
+  if (!g_video_backend->Initialize(boot->display_connection, boot->render_surface))
   {
     PanicAlert("Failed to initialize video backend!");
     return;
@@ -462,7 +459,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
   bool init_controllers = false;
   if (!g_controller_interface.IsInit())
   {
-    g_controller_interface.Initialize(s_window_handle);
+    g_controller_interface.Initialize(boot->render_surface);
     Pad::Initialize();
     Keyboard::Initialize();
     init_controllers = true;
@@ -958,4 +955,4 @@ void DoFrameStep()
   }
 }
 
-}  // Core
+}  // namespace Core

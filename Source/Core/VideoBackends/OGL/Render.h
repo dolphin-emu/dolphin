@@ -84,6 +84,8 @@ public:
   Renderer();
   ~Renderer() override;
 
+  bool IsHeadless() const override;
+
   void Init();
   void Shutdown() override;
 

@@ -86,7 +86,6 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   if (SConfig::GetInstance().bWii)
     m_aspect_wide = Config::Get(Config::SYSCONF_WIDESCREEN);
 
-  m_surface_handle = Host_GetRenderHandle();
   m_last_host_config_bits = ShaderHostConfig::GetCurrent().bits;
   m_last_efb_multisamples = g_ActiveConfig.iMultisamples;
 }
@@ -408,7 +407,7 @@ float Renderer::CalculateDrawAspectRatio() const
 
 bool Renderer::IsHeadless() const
 {
-  return !m_surface_handle;
+  return true;
 }
 
 void Renderer::ChangeSurface(void* new_surface_handle)

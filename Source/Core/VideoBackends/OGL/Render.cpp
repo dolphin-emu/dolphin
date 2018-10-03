@@ -804,6 +804,11 @@ Renderer::Renderer()
 
 Renderer::~Renderer() = default;
 
+bool Renderer::IsHeadless() const
+{
+  return g_main_gl_context->IsHeadless();
+}
+
 void Renderer::Shutdown()
 {
   ::Renderer::Shutdown();
@@ -1499,9 +1504,8 @@ void Renderer::CheckForSurfaceChange()
   if (!m_surface_changed.TestAndClear())
     return;
 
-  m_surface_handle = m_new_surface_handle;
+  g_main_gl_context->UpdateSurface(m_new_surface_handle);
   m_new_surface_handle = nullptr;
-  g_main_gl_context->UpdateSurface(m_surface_handle);
 
   // With a surface change, the window likely has new dimensions.
   m_backbuffer_width = g_main_gl_context->GetBackBufferWidth();

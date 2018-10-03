@@ -11,7 +11,7 @@ namespace OGL
 {
 class VideoBackend : public VideoBackendBase
 {
-  bool Initialize(void*) override;
+  bool Initialize(void* display_handle, void* window_handle) override;
   void Shutdown() override;
 
   std::string GetName() const override;
@@ -23,4 +23,4 @@ private:
   bool InitializeGLExtensions();
   bool FillBackendInfo();
 };
-}
+}  // namespace OGL

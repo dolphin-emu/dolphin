@@ -26,6 +26,10 @@
 #include "QtUtils/SignalDaemon.h"
 #endif
 
+#ifndef WIN32
+#include <qpa/qplatformnativeinterface.h>
+#endif
+
 #include "Common/Version.h"
 
 #include "Core/Boot/Boot.h"
@@ -98,7 +102,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include <qpa/qplatformnativeinterface.h>
 #include "UICommon/X11Utils.h"
 #endif
 
@@ -797,14 +800,26 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     m_pending_boot = std::move(parameters);
     return;
   }
+
+  // We need the render widget before booting.
+  ShowRenderWidget();
+
+  // Populate the video backend fields of the boot parameters.
+  parameters->render_surface = reinterpret_cast<void*>(m_render_widget->winId());
+#ifndef WIN32
+  parameters->display_connection =
+      QGuiApplication::platformNativeInterface()->nativeResourceForWindow("display",
+                                                                          windowHandle());
+#endif
+
   // Boot up, show an error if it fails to load the game.
   if (!BootManager::BootCore(std::move(parameters)))
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
+    HideRenderWidget();
     return;
   }
 
-  ShowRenderWidget();
 #ifdef USE_DISCORD_PRESENCE
   if (!NetPlay::IsNetPlayRunning())
     Discord::UpdateDiscordPresence();

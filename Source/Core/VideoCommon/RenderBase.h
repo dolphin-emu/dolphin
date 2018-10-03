@@ -77,6 +77,8 @@ public:
 
   using ClearColor = std::array<float, 4>;
 
+  virtual bool IsHeadless() const = 0;
+
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
@@ -134,7 +136,6 @@ public:
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
-  bool IsHeadless() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
@@ -236,7 +237,6 @@ protected:
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
-  void* m_surface_handle = nullptr;
   void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;

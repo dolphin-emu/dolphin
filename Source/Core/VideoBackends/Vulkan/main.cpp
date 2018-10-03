@@ -89,7 +89,7 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
   return enable_validation_layers || IsHostGPULoggingEnabled();
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(void* display_handle, void* window_handle)
 {
   if (!LoadVulkanLibrary())
   {
@@ -146,7 +146,7 @@ bool VideoBackend::Initialize(void* window_handle)
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   if (enable_surface)
   {
-    surface = SwapChain::CreateVulkanSurface(instance, window_handle);
+    surface = SwapChain::CreateVulkanSurface(instance, display_handle, window_handle);
     if (surface == VK_NULL_HANDLE)
     {
       PanicAlert("Failed to create Vulkan surface.");
@@ -209,7 +209,7 @@ bool VideoBackend::Initialize(void* window_handle)
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(window_handle, surface, g_Config.IsVSync());
+    swap_chain = SwapChain::Create(display_handle, window_handle, surface, g_Config.IsVSync());
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
@@ -271,4 +271,4 @@ void VideoBackend::Shutdown()
   ShutdownShared();
   UnloadVulkanLibrary();
 }
-}
+}  // namespace Vulkan

@@ -71,6 +71,9 @@ public:
   }
   virtual void Shutdown() {}
   virtual ~Platform() {}
+
+  virtual void* GetDisplayHandle() { return nullptr; }
+  virtual void* GetWindowHandle() { return nullptr; }
 };
 
 static Platform* platform;
@@ -89,12 +92,6 @@ void Host_Message(HostMessageID id)
     s_running.Clear();
   if (id == HostMessageID::WMUserJobDispatch || id == HostMessageID::WMUserStop)
     updateMainFrameEvent.Set();
-}
-
-static void* s_window_handle = nullptr;
-void* Host_GetRenderHandle()
-{
-  return s_window_handle;
 }
 
 void Host_UpdateTitle(const std::string& title)
@@ -187,7 +184,6 @@ class PlatformX11 : public Platform
     }
     XMapRaised(dpy, win);
     XFlush(dpy);
-    s_window_handle = (void*)win;
 
     if (SConfig::GetInstance().bDisableScreenSaver)
       X11Utils::InhibitScreensaver(win, true);
@@ -354,6 +350,10 @@ class PlatformX11 : public Platform
 
     XCloseDisplay(dpy);
   }
+
+  void* GetDisplayHandle() override { return static_cast<void*>(dpy); }
+
+  void* GetWindowHandle() override { return reinterpret_cast<void*>(win); }
 };
 #endif
 
@@ -432,6 +432,9 @@ int main(int argc, char* argv[])
   sigaction(SIGTERM, &sa, nullptr);
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
+
+  boot->display_connection = platform->GetDisplayHandle();
+  boot->render_surface = platform->GetWindowHandle();
 
   if (!BootManager::BootCore(std::move(boot)))
   {

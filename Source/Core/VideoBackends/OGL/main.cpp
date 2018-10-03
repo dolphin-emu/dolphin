@@ -157,7 +157,7 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(void* display_handle, void* window_handle)
 {
   InitializeShared();
 

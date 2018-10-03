@@ -127,7 +127,7 @@ void VideoBackend::InitBackendInfo()
   DX11::D3D::UnloadD3D();
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(void* display_handle, void* window_handle)
 {
   if (window_handle == nullptr)
     return false;
@@ -188,4 +188,4 @@ void VideoBackend::Shutdown()
 
   D3D::Close();
 }
-}
+}  // namespace DX11

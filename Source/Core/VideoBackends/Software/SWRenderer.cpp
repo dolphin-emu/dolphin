@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/GL/GLContext.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/Memmap.h"
@@ -26,6 +27,11 @@
 SWRenderer::SWRenderer()
     : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT))
 {
+}
+
+bool SWRenderer::IsHeadless() const
+{
+  return g_main_gl_context->IsHeadless();
 }
 
 std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
