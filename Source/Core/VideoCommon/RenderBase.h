@@ -183,7 +183,7 @@ public:
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface(int new_width, int new_height);
+  void ResizeSurface();
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
@@ -229,8 +229,6 @@ protected:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
-  int m_new_backbuffer_width = 0;
-  int m_new_backbuffer_height = 0;
   TargetRectangle m_target_rectangle = {};
 
   FPSCounter m_fps_counter;

@@ -889,9 +889,6 @@ void Renderer::CheckForSurfaceResize()
   if (!m_surface_resized.TestAndClear())
     return;
 
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
-
   // If we don't have a surface, how can we resize the swap chain?
   // CheckForSurfaceChange should handle this case.
   if (!m_swap_chain)

@@ -417,11 +417,9 @@ void Renderer::ChangeSurface(void* new_surface_handle)
   m_surface_changed.Set();
 }
 
-void Renderer::ResizeSurface(int new_width, int new_height)
+void Renderer::ResizeSurface()
 {
   std::lock_guard<std::mutex> lock(m_swap_mutex);
-  m_new_backbuffer_width = new_width;
-  m_new_backbuffer_height = new_height;
   m_surface_resized.Set();
 }
 

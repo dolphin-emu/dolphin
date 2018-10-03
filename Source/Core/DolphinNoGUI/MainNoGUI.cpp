@@ -209,9 +209,6 @@ class PlatformX11 : public Platform
   void MainLoop() override
   {
     bool fullscreen = SConfig::GetInstance().bFullscreen;
-    int last_window_width = SConfig::GetInstance().iRenderWindowWidth;
-    int last_window_height = SConfig::GetInstance().iRenderWindowHeight;
-
     if (fullscreen)
     {
       rendererIsFullscreen = X11Utils::ToggleFullscreen(dpy, win);
@@ -311,14 +308,8 @@ class PlatformX11 : public Platform
           break;
         case ConfigureNotify:
         {
-          if (last_window_width != event.xconfigure.width ||
-              last_window_height != event.xconfigure.height)
-          {
-            last_window_width = event.xconfigure.width;
-            last_window_height = event.xconfigure.height;
-            if (g_renderer)
-              g_renderer->ResizeSurface(last_window_width, last_window_height);
-          }
+          if (g_renderer)
+            g_renderer->ResizeSurface();
         }
         break;
         }

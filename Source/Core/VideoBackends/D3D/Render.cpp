@@ -719,9 +719,6 @@ void Renderer::CheckForSurfaceResize()
   if (!m_surface_resized.TestAndClear() && !exclusive_fullscreen_changed)
     return;
 
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
-
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);
   m_last_fullscreen_state = fullscreen_state;

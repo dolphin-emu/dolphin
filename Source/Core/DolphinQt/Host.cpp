@@ -68,7 +68,7 @@ void Host::SetRenderFullscreen(bool fullscreen)
 void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
-    g_renderer->ResizeSurface(new_width, new_height);
+    g_renderer->ResizeSurface();
 }
 
 void Host_Message(HostMessageID id)

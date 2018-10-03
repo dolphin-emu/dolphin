@@ -1518,8 +1518,8 @@ void Renderer::CheckForSurfaceResize()
     return;
 
   g_main_gl_context->Update();
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
+  m_backbuffer_width = g_main_gl_context->GetBackBufferWidth();
+  m_backbuffer_height = g_main_gl_context->GetBackBufferHeight();
 }
 
 void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
