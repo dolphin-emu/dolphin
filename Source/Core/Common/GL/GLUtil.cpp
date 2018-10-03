@@ -5,19 +5,12 @@
 #include <memory>
 
 #include "Common/Assert.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
 
-std::unique_ptr<cInterfaceBase> GLInterface;
-
 namespace GLUtil
 {
-void InitInterface()
-{
-  GLInterface = HostGL_CreateGLInterface();
-}
-
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader)
 {
   // generate objects
@@ -107,7 +100,7 @@ void EnablePrimitiveRestart()
 {
   constexpr GLuint PRIMITIVE_RESTART_INDEX = 65535;
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  if (g_main_gl_context->GetMode() == GLContext::Mode::OpenGLES)
   {
     glEnable(GL_PRIMITIVE_RESTART_FIXED_INDEX);
   }
@@ -125,4 +118,4 @@ void EnablePrimitiveRestart()
     }
   }
 }
-}
+}  // namespace GLUtil

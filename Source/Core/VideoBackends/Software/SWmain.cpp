@@ -9,7 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
@@ -88,7 +88,7 @@ bool VideoSoftware::Initialize(void* window_handle)
   Rasterizer::Init();
   DebugUtil::Init();
 
-  GLInterface->MakeCurrent();
+  g_main_gl_context->MakeCurrent();
   SWOGLWindow::s_instance->Prepare();
 
   g_renderer = std::make_unique<SWRenderer>();
@@ -116,4 +116,4 @@ void VideoSoftware::Shutdown()
   g_renderer.reset();
   ShutdownShared();
 }
-}
+}  // namespace SW

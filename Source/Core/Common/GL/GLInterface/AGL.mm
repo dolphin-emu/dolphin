@@ -10,16 +10,15 @@ static bool UpdateCachedDimensions(NSView* view, u32* width, u32* height)
   NSWindow* window = [view window];
   NSSize size = [view frame].size;
 
-  float scale = [window backingScaleFactor];
-  size.width *= scale;
-  size.height *= scale;
+  const CGFloat scale = [window backingScaleFactor];
+  u32 new_width = static_cast<u32>(size.width * scale);
+  u32 new_height = static_cast<u32>(size.height * scale);
 
-  if (*width == size.width && *height == size.height)
+  if (*width == new_width && *height == new_height)
     return false;
 
-  *width = size.width;
-  *height = size.height;
-
+  *width = new_width;
+  *height = new_height;
   return true;
 }
 
@@ -44,14 +43,19 @@ static bool AttachContextToView(NSOpenGLContext* context, NSView* view, u32* wid
   return true;
 }
 
-void cInterfaceAGL::Swap()
+bool GLContextAGL::IsHeadless() const
+{
+  return !m_view;
+}
+
+void GLContextAGL::Swap()
 {
   [m_context flushBuffer];
 }
 
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceAGL::Create(void* window_handle, bool stereo, bool core)
+bool GLContextAGL::Initialize(void* window_handle, bool stereo, bool core)
 {
   NSOpenGLPixelFormatAttribute attr[] = {
       NSOpenGLPFADoubleBuffer,
@@ -78,12 +82,13 @@ bool cInterfaceAGL::Create(void* window_handle, bool stereo, bool core)
     return true;
 
   m_view = static_cast<NSView*>(window_handle);
-  return AttachContextToView(m_context, m_view, &s_backbuffer_width, &s_backbuffer_height);
+  m_opengl_mode = Mode::OpenGL;
+  return AttachContextToView(m_context, m_view, &m_backbuffer_width, &m_backbuffer_height);
 }
 
-bool cInterfaceAGL::Create(cInterfaceBase* main_context)
+bool GLContextAGL::Initialize(GLContext* main_context)
 {
-  cInterfaceAGL* agl_context = static_cast<cInterfaceAGL*>(main_context);
+  GLContextAGL* agl_context = static_cast<GLContextAGL*>(main_context);
   NSOpenGLPixelFormat* pixel_format = agl_context->m_pixel_format;
   NSOpenGLContext* share_context = agl_context->m_context;
 
@@ -97,28 +102,28 @@ bool cInterfaceAGL::Create(cInterfaceBase* main_context)
   return true;
 }
 
-std::unique_ptr<cInterfaceBase> cInterfaceAGL::CreateSharedContext()
+std::unique_ptr<GLContext> GLContextAGL::CreateSharedContext()
 {
-  std::unique_ptr<cInterfaceBase> context = std::make_unique<cInterfaceAGL>();
-  if (!context->Create(this))
+  std::unique_ptr<GLContextAGL> context = std::make_unique<GLContextAGL>();
+  if (!context->Initialize(this))
     return nullptr;
   return context;
 }
 
-bool cInterfaceAGL::MakeCurrent()
+bool GLContextAGL::MakeCurrent()
 {
   [m_context makeCurrentContext];
   return true;
 }
 
-bool cInterfaceAGL::ClearCurrent()
+bool GLContextAGL::ClearCurrent()
 {
   [NSOpenGLContext clearCurrentContext];
   return true;
 }
 
 // Close backend
-void cInterfaceAGL::Shutdown()
+void GLContextAGL::Shutdown()
 {
   [m_context clearDrawable];
   [m_context release];
@@ -127,16 +132,16 @@ void cInterfaceAGL::Shutdown()
   m_pixel_format = nil;
 }
 
-void cInterfaceAGL::Update()
+void GLContextAGL::Update()
 {
   if (!m_view)
     return;
 
-  if (UpdateCachedDimensions(m_view, &s_backbuffer_width, &s_backbuffer_height))
+  if (UpdateCachedDimensions(m_view, &m_backbuffer_width, &m_backbuffer_height))
     [m_context update];
 }
 
-void cInterfaceAGL::SwapInterval(int interval)
+void GLContextAGL::SwapInterval(int interval)
 {
   [m_context setValues:static_cast<GLint*>(&interval) forParameter:NSOpenGLCPSwapInterval];
 }

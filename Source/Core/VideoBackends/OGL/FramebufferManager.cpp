@@ -9,7 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -414,7 +414,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   glBindBuffer(GL_ARRAY_BUFFER,
                static_cast<VertexManager*>(g_vertex_manager.get())->GetVertexBufferHandle());
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+  if (!g_main_gl_context->IsGLES())
     glEnable(GL_PROGRAM_POINT_SIZE);
 }
 

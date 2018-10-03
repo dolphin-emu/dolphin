@@ -5,41 +5,39 @@
 #include "Common/GL/GLInterface/EGLX11.h"
 #include "Common/Logging/Log.h"
 
-EGLDisplay cInterfaceEGLX11::OpenDisplay()
+GLContextEGLX11::~GLContextEGLX11()
 {
-  dpy = XOpenDisplay(nullptr);
-  XWindow.Initialize(dpy);
-  return eglGetDisplay(dpy);
+  if (m_display)
+    XCloseDisplay(m_display);
 }
 
-EGLNativeWindowType cInterfaceEGLX11::InitializePlatform(EGLNativeWindowType host_window,
-                                                         EGLConfig config)
+EGLDisplay GLContextEGLX11::OpenEGLDisplay()
+{
+  if (!m_display)
+    m_display = XOpenDisplay(nullptr);
+
+  return eglGetDisplay(m_display);
+}
+
+EGLNativeWindowType GLContextEGLX11::GetEGLNativeWindow(EGLConfig config)
 {
   EGLint vid;
-  eglGetConfigAttrib(egl_dpy, config, EGL_NATIVE_VISUAL_ID, &vid);
+  eglGetConfigAttrib(m_egl_display, config, EGL_NATIVE_VISUAL_ID, &vid);
 
-  XVisualInfo visTemplate;
+  XVisualInfo visTemplate = {};
   visTemplate.visualid = vid;
 
-  XVisualInfo* vi;
   int nVisuals;
-  vi = XGetVisualInfo(dpy, VisualIDMask, &visTemplate, &nVisuals);
+  XVisualInfo* vi = XGetVisualInfo(m_display, VisualIDMask, &visTemplate, &nVisuals);
 
-  XWindowAttributes attribs;
-  if (!XGetWindowAttributes(dpy, (Window)host_window, &attribs))
-  {
-    ERROR_LOG(VIDEO, "Window attribute retrieval failed");
-    return 0;
-  }
+  if (m_x_window)
+    m_x_window.reset();
 
-  s_backbuffer_width = attribs.width;
-  s_backbuffer_height = attribs.height;
+  m_x_window = GLX11Window::Create(m_display, reinterpret_cast<Window>(m_host_window), vi);
+  m_backbuffer_width = m_x_window->GetWidth();
+  m_backbuffer_height = m_x_window->GetHeight();
 
-  return (EGLNativeWindowType)XWindow.CreateXWindow((Window)host_window, vi);
-}
+  XFree(vi);
 
-void cInterfaceEGLX11::ShutdownPlatform()
-{
-  XWindow.DestroyXWindow();
-  XCloseDisplay(dpy);
+  return reinterpret_cast<EGLNativeWindowType>(m_x_window->GetWindow());
 }

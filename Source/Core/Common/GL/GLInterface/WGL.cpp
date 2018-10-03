@@ -130,8 +130,8 @@ static PFNWGLDESTROYPBUFFERARBPROC wglDestroyPbufferARB = nullptr;
 
 static void LoadWGLExtensions()
 {
-  wglSwapIntervalEXT = reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>(
-      GLInterface->GetFuncAddress("wglSwapIntervalEXT"));
+  wglSwapIntervalEXT =
+      reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>(wglGetProcAddress("wglSwapIntervalEXT"));
   wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(
       wglGetProcAddress("wglCreateContextAttribsARB"));
   wglChoosePixelFormatARB = reinterpret_cast<PFNWGLCHOOSEPIXELFORMATARBPROC>(
@@ -157,19 +157,24 @@ static void ClearWGLExtensionPointers()
   wglDestroyPbufferARB = nullptr;
 }
 
-void cInterfaceWGL::SwapInterval(int Interval)
+bool GLContextWGL::IsHeadless() const
+{
+  return !m_window_handle;
+}
+
+void GLContextWGL::SwapInterval(int interval)
 {
   if (wglSwapIntervalEXT)
-    wglSwapIntervalEXT(Interval);
+    wglSwapIntervalEXT(interval);
   else
     ERROR_LOG(VIDEO, "No support for SwapInterval (framerate clamped to monitor refresh rate).");
 }
-void cInterfaceWGL::Swap()
+void GLContextWGL::Swap()
 {
   SwapBuffers(m_dc);
 }
 
-void* cInterfaceWGL::GetFuncAddress(const std::string& name)
+void* GLContextWGL::GetFuncAddress(const std::string& name)
 {
   FARPROC func = wglGetProcAddress(name.c_str());
   if (func == nullptr)
@@ -183,24 +188,9 @@ void* cInterfaceWGL::GetFuncAddress(const std::string& name)
   return func;
 }
 
-// Draw messages on top of the screen
-bool cInterfaceWGL::PeekMessages()
-{
-  // TODO: peekmessage
-  MSG msg;
-  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-  {
-    if (msg.message == WM_QUIT)
-      return FALSE;
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-  return TRUE;
-}
-
 // Create rendering window.
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
+bool GLContextWGL::Initialize(void* window_handle, bool stereo, bool core)
 {
   if (!window_handle)
     return false;
@@ -216,8 +206,8 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
   // Control window size and picture scaling
   int twidth = window_rect.right - window_rect.left;
   int theight = window_rect.bottom - window_rect.top;
-  s_backbuffer_width = twidth;
-  s_backbuffer_height = theight;
+  m_backbuffer_width = twidth;
+  m_backbuffer_height = theight;
 
   const DWORD stereo_flag = stereo ? PFD_STEREO : 0;
 
@@ -274,8 +264,7 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
   }
 
   // WGL only supports desktop GL, for now.
-  if (s_opengl_mode == GLInterfaceMode::MODE_DETECT)
-    s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
+  m_opengl_mode = Mode::OpenGL;
 
   if (core)
   {
@@ -306,7 +295,7 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
     {
       wglDeleteContext(m_rc);
       m_rc = core_context;
-      m_core = true;
+      m_is_core_context = true;
     }
     else
     {
@@ -317,9 +306,11 @@ bool cInterfaceWGL::Create(void* window_handle, bool stereo, bool core)
   return true;
 }
 
-bool cInterfaceWGL::Create(cInterfaceBase* main_context)
+bool GLContextWGL::Initialize(GLContext* main_context)
 {
-  cInterfaceWGL* wgl_main_context = static_cast<cInterfaceWGL*>(main_context);
+  GLContextWGL* wgl_main_context = static_cast<GLContextWGL*>(main_context);
+
+  m_opengl_mode = wgl_main_context->m_opengl_mode;
 
   // WGL does not support surfaceless contexts, so we use a 1x1 pbuffer instead.
   if (!CreatePBuffer(wgl_main_context->m_dc, 1, 1, &m_pbuffer_handle, &m_dc))
@@ -329,14 +320,14 @@ bool cInterfaceWGL::Create(cInterfaceBase* main_context)
   if (!m_rc)
     return false;
 
-  m_core = true;
+  m_is_core_context = true;
   return true;
 }
 
-std::unique_ptr<cInterfaceBase> cInterfaceWGL::CreateSharedContext()
+std::unique_ptr<GLContext> GLContextWGL::CreateSharedContext()
 {
-  std::unique_ptr<cInterfaceWGL> context = std::make_unique<cInterfaceWGL>();
-  if (!context->Create(this))
+  std::unique_ptr<GLContextWGL> context = std::make_unique<GLContextWGL>();
+  if (!context->Initialize(this))
   {
     context->Shutdown();
     return nullptr;
@@ -345,7 +336,7 @@ std::unique_ptr<cInterfaceBase> cInterfaceWGL::CreateSharedContext()
   return std::move(context);
 }
 
-HGLRC cInterfaceWGL::CreateCoreContext(HDC dc, HGLRC share_context)
+HGLRC GLContextWGL::CreateCoreContext(HDC dc, HGLRC share_context)
 {
   if (!wglCreateContextAttribsARB)
   {
@@ -402,8 +393,8 @@ HGLRC cInterfaceWGL::CreateCoreContext(HDC dc, HGLRC share_context)
   return nullptr;
 }
 
-bool cInterfaceWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
-                                  HDC* pbuffer_dc)
+bool GLContextWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
+                                 HDC* pbuffer_dc)
 {
   if (!wglChoosePixelFormatARB || !wglCreatePbufferARB || !wglGetPbufferDCARB ||
       !wglReleasePbufferDCARB || !wglDestroyPbufferARB)
@@ -462,29 +453,29 @@ bool cInterfaceWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE
   return true;
 }
 
-bool cInterfaceWGL::MakeCurrent()
+bool GLContextWGL::MakeCurrent()
 {
   return wglMakeCurrent(m_dc, m_rc) == TRUE;
 }
 
-bool cInterfaceWGL::ClearCurrent()
+bool GLContextWGL::ClearCurrent()
 {
   return wglMakeCurrent(m_dc, nullptr) == TRUE;
 }
 
 // Update window width, size and etc. Called from Render.cpp
-void cInterfaceWGL::Update()
+void GLContextWGL::Update()
 {
   RECT rcWindow;
   GetClientRect(m_window_handle, &rcWindow);
 
   // Get the new window width and height
-  s_backbuffer_width = rcWindow.right - rcWindow.left;
-  s_backbuffer_height = rcWindow.bottom - rcWindow.top;
+  m_backbuffer_width = rcWindow.right - rcWindow.left;
+  m_backbuffer_height = rcWindow.bottom - rcWindow.top;
 }
 
 // Close backend
-void cInterfaceWGL::Shutdown()
+void GLContextWGL::Shutdown()
 {
   if (m_rc)
   {

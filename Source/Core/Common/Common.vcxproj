@@ -121,7 +121,7 @@
     <ClInclude Include="GL\GLExtensions\NV_depth_buffer_float.h" />
     <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h" />
     <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h" />
-    <ClInclude Include="GL\GLInterfaceBase.h" />
+    <ClInclude Include="GL\GLContext.h" />
     <ClInclude Include="GL\GLInterface\WGL.h" />
     <ClInclude Include="GL\GLUtil.h" />
     <ClInclude Include="FloatUtils.h" />
@@ -189,7 +189,7 @@
     <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
-    <ClCompile Include="GL\GLInterface\GLInterface.cpp" />
+    <ClCompile Include="GL\GLContext.cpp" />
     <ClCompile Include="GL\GLInterface\WGL.cpp" />
     <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />

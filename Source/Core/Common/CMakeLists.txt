@@ -110,7 +110,7 @@ endif()
 target_sources(common PRIVATE
   GL/GLUtil.cpp
   GL/GLExtensions/GLExtensions.cpp
-  GL/GLInterface/GLInterface.cpp
+  GL/GLContext.cpp
 )
 
 if(USE_EGL)
@@ -137,7 +137,7 @@ elseif(USE_X11)
     # Make sure to link to it if using GLX.
     target_link_libraries(common PUBLIC ${OPENGL_LIBRARIES})
   endif()
-  target_sources(common PRIVATE GL/GLInterface/X11_Util.cpp)
+  target_sources(common PRIVATE GL/GLX11Window.cpp)
   target_link_libraries(common PUBLIC ${XRANDR_LIBRARIES})
 endif()
 

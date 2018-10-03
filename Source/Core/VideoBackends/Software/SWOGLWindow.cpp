@@ -4,7 +4,7 @@
 
 #include <memory>
 
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
 
@@ -15,9 +15,8 @@ std::unique_ptr<SWOGLWindow> SWOGLWindow::s_instance;
 
 void SWOGLWindow::Init(void* window_handle)
 {
-  GLUtil::InitInterface();
-  GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle))
+  g_main_gl_context = GLContext::Create(window_handle);
+  if (!g_main_gl_context)
   {
     ERROR_LOG(VIDEO, "GLInterface::Create failed.");
   }
@@ -27,8 +26,8 @@ void SWOGLWindow::Init(void* window_handle)
 
 void SWOGLWindow::Shutdown()
 {
-  GLInterface->Shutdown();
-  GLInterface.reset();
+  g_main_gl_context->Shutdown();
+  g_main_gl_context.reset();
 
   s_instance.reset();
 }
@@ -66,10 +65,9 @@ void SWOGLWindow::Prepare()
                               "	TexCoord = vec2(rawpos.x, -rawpos.y);\n"
                               "}\n";
 
-  std::string header = GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL ?
-                           "#version 140\n" :
-                           "#version 300 es\n"
-                           "precision highp float;\n";
+  std::string header = g_main_gl_context->IsGLES() ? "#version 300 es\n"
+                                                     "precision highp float;\n" :
+                                                     "#version 140\n";
 
   m_image_program = GLUtil::CompileProgram(header + vertex_shader, header + frag_shader);
 
@@ -93,10 +91,10 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region)
 {
   SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
-  GLInterface->Update();  // just updates the render window position and the backbuffer size
+  g_main_gl_context->Update();  // just updates the render window position and the backbuffer size
 
-  GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
-  GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();
+  GLsizei glWidth = (GLsizei)g_main_gl_context->GetBackBufferWidth();
+  GLsizei glHeight = (GLsizei)g_main_gl_context->GetBackBufferHeight();
 
   glViewport(0, 0, glWidth, glHeight);
 
@@ -123,10 +121,5 @@ void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_regi
   //	}
   m_text.clear();
 
-  GLInterface->Swap();
-}
-
-int SWOGLWindow::PeekMessages()
-{
-  return GLInterface->PeekMessages();
+  g_main_gl_context->Swap();
 }

@@ -26,8 +26,6 @@ public:
   // Image to show, will be swapped immediately
   void ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region);
 
-  int PeekMessages();
-
   static std::unique_ptr<SWOGLWindow> s_instance;
 
 private:

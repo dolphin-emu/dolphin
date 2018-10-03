@@ -39,7 +39,7 @@ Make AA apply instantly during gameplay if possible
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
@@ -66,7 +66,7 @@ std::string VideoBackend::GetName() const
 
 std::string VideoBackend::GetDisplayName() const
 {
-  if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  if (g_main_gl_context && g_main_gl_context->GetMode() == GLContext::Mode::OpenGLES)
     return _trans("OpenGL ES");
   else
     return _trans("OpenGL");
@@ -161,12 +161,12 @@ bool VideoBackend::Initialize(void* window_handle)
 {
   InitializeShared();
 
-  GLUtil::InitInterface();
-  GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer))
+  g_main_gl_context =
+      GLContext::Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer);
+  if (!g_main_gl_context)
     return false;
 
-  GLInterface->MakeCurrent();
+  g_main_gl_context->MakeCurrent();
   if (!InitializeGLExtensions() || !FillBackendInfo())
     return false;
 
@@ -196,9 +196,9 @@ void VideoBackend::Shutdown()
   g_perf_query.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
-  GLInterface->ClearCurrent();
-  GLInterface->Shutdown();
-  GLInterface.reset();
+  g_main_gl_context->ClearCurrent();
+  g_main_gl_context->Shutdown();
+  g_main_gl_context.reset();
   ShutdownShared();
 }
-}
+}  // namespace OGL

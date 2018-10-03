@@ -6,7 +6,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 
 #include "VideoBackends/OGL/PerfQuery.h"
@@ -17,11 +17,10 @@ namespace OGL
 {
 std::unique_ptr<PerfQueryBase> GetPerfQuery()
 {
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 &&
-      GLExtensions::Supports("GL_NV_occlusion_query_samples"))
+  if (g_main_gl_context->IsGLES() && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  if (g_main_gl_context->IsGLES())
     return std::make_unique<PerfQueryGL>(GL_ANY_SAMPLES_PASSED);
 
   return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
@@ -266,4 +265,4 @@ void PerfQueryGLESNV::FlushResults()
     FlushOne();
 }
 
-}  // namespace
+}  // namespace OGL

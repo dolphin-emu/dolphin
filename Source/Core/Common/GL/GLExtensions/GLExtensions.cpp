@@ -5,8 +5,8 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/Log.h"
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -2432,7 +2432,7 @@ static void InitVersion()
 
 static void* GetFuncAddress(const std::string& name, void** func)
 {
-  *func = GLInterface->GetFuncAddress(name);
+  *func = g_main_gl_context->GetFuncAddress(name);
   if (*func == nullptr)
   {
 #if defined(__linux__) || defined(__APPLE__)
@@ -2457,7 +2457,7 @@ bool Supports(const std::string& name)
 
 bool Init()
 {
-  _isES = GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL;
+  _isES = g_main_gl_context->GetMode() == GLContext::Mode::OpenGLES;
 
   // Grab a few functions for initial checking
   // We need them to grab the extension list
@@ -2507,4 +2507,4 @@ bool InitFunctionPointers()
       result &= !!GetFuncAddress(it.function_name, it.function_ptr);
   return result;
 }
-}
+}  // namespace GLExtensions
