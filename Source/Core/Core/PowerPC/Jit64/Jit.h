@@ -119,10 +119,6 @@ public:
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
                 void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
                 bool Rc = false, bool carry = false);
-  Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
-                        void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
-                        void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&), bool packed,
-                        bool preserve_inputs, bool roundRHS = false);
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();
 
