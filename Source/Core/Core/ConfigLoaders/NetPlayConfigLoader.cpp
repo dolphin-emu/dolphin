@@ -105,6 +105,13 @@ public:
 
       layer->Set(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY, true);
     }
+
+    // Check To Override Client's Cheat Codes
+    if (m_settings.m_SyncCodes && !m_settings.m_IsHosting)
+    {
+      // Raise flag to use host's codes
+      layer->Set(Config::MAIN_CODE_SYNC_OVERRIDE, true);
+    }
   }
 
   void Save(Config::Layer* layer) override

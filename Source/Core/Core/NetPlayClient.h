@@ -190,6 +190,7 @@ private:
   void SendStopGamePacket();
 
   void SyncSaveDataResponse(bool success);
+  void SyncCodeResponse(bool success);
   bool DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path);
   std::optional<std::vector<u8>> DecompressPacketIntoBuffer(sf::Packet& packet);
 
@@ -224,6 +225,12 @@ private:
   Common::Event m_first_pad_status_received_event;
   u8 m_sync_save_data_count = 0;
   u8 m_sync_save_data_success_count = 0;
+  u16 m_sync_gecko_codes_count = 0;
+  u16 m_sync_gecko_codes_success_count = 0;
+  bool m_sync_gecko_codes_complete = false;
+  u16 m_sync_ar_codes_count = 0;
+  u16 m_sync_ar_codes_success_count = 0;
+  bool m_sync_ar_codes_complete = false;
 
   u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;

@@ -29,9 +29,13 @@
 #include "Common/StringUtil.h"
 #include "Common/UPnP.h"
 #include "Common/Version.h"
+#include "Core/ActionReplay.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/NetplaySettings.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
+#include "Core/GeckoCodeConfig.h"
 #include "Core/HW/GCMemcard/GCMemcardDirectory.h"
 #include "Core/HW/GCMemcard/GCMemcardRaw.h"
 #include "Core/HW/Sram.h"
@@ -844,8 +848,11 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
         m_save_data_synced_players++;
         if (m_save_data_synced_players >= m_players.size() - 1)
         {
-          m_dialog->AppendChat(GetStringT("All players synchronized."));
-          StartGame();
+          m_dialog->AppendChat(GetStringT("All players saves synchronized."));
+
+          // Saves are synced, check if codes are as well and attempt to start the game
+          m_saves_synced = true;
+          CheckSyncAndStartGame();
         }
       }
     }
@@ -863,6 +870,48 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     default:
       PanicAlertT(
           "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking player!",
+          sub_id, player.pid);
+      return 1;
+    }
+  }
+  break;
+
+  case NP_MSG_SYNC_CODES:
+  {
+    // Receive Status of Code Sync
+    MessageId sub_id;
+    packet >> sub_id;
+
+    // Check If Code Sync was successful or not
+    switch (sub_id)
+    {
+    case SYNC_CODES_SUCCESS:
+    {
+      if (m_start_pending)
+      {
+        if (++m_codes_synced_players >= m_players.size() - 1)
+        {
+          m_dialog->AppendChat(GetStringT("All players' codes synchronized."));
+
+          // Codes are synced, check if saves are as well and attempt to start the game
+          m_codes_synced = true;
+          CheckSyncAndStartGame();
+        }
+      }
+    }
+    break;
+
+    case SYNC_CODES_FAILURE:
+    {
+      m_dialog->AppendChat(StringFromFormat(GetStringT("%s failed to synchronize codes.").c_str(),
+                                            player.name.c_str()));
+      m_start_pending = false;
+    }
+    break;
+
+    default:
+      PanicAlertT(
+          "Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking player!",
           sub_id, player.pid);
       return 1;
     }
@@ -958,17 +1007,34 @@ bool NetPlayServer::DoAllPlayersHaveIPLDump() const
 // called from ---GUI--- thread
 bool NetPlayServer::RequestStartGame()
 {
+  bool start_now = true;
+
   if (m_settings.m_SyncSaveData && m_players.size() > 1)
   {
+    start_now = false;
+    m_start_pending = true;
     if (!SyncSaveData())
     {
       PanicAlertT("Error synchronizing save data!");
+      m_start_pending = false;
       return false;
     }
-
-    m_start_pending = true;
   }
-  else
+
+  // Check To Send Codes to Clients
+  if (m_settings.m_SyncCodes && m_players.size() > 1)
+  {
+    start_now = false;
+    m_start_pending = true;
+    if (!SyncCodes())
+    {
+      PanicAlertT("Error synchronizing save gecko codes!");
+      m_start_pending = false;
+      return false;
+    }
+  }
+
+  if (start_now)
   {
     return StartGame();
   }
@@ -1056,6 +1122,7 @@ bool NetPlayServer::StartGame()
   spac << initial_rtc;
   spac << m_settings.m_SyncSaveData;
   spac << region;
+  spac << m_settings.m_SyncCodes;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1068,6 +1135,9 @@ bool NetPlayServer::StartGame()
 // called from ---GUI--- thread
 bool NetPlayServer::SyncSaveData()
 {
+  // We're about to sync saves, so set m_saves_synced to false (waits to start game)
+  m_saves_synced = false;
+
   m_save_data_synced_players = 0;
 
   u8 save_count = 0;
@@ -1242,6 +1312,150 @@ bool NetPlayServer::SyncSaveData()
   }
 
   return true;
+}
+
+bool NetPlayServer::SyncCodes()
+{
+  // Sync Codes is ticked, so set m_codes_synced to false
+  m_codes_synced = false;
+
+  // Get Game Path
+  const auto game = m_dialog->FindGameFile(m_selected_game);
+  if (game == nullptr)
+  {
+    PanicAlertT("Selected game doesn't exist in game list!");
+    return false;
+  }
+
+  // Find all INI files
+  const auto game_id = game->GetGameID();
+  const auto revision = game->GetRevision();
+  IniFile globalIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    globalIni.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
+  IniFile localIni;
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+    localIni.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
+
+  // Initialize Number of Synced Players
+  m_codes_synced_players = 0;
+
+  // Notify Clients of Incoming Code Sync
+  {
+    sf::Packet pac;
+    pac << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+    pac << static_cast<MessageId>(SYNC_CODES_NOTIFY);
+    SendAsyncToClients(std::move(pac));
+  }
+  // Sync Gecko Codes
+  {
+    // Create a Gecko Code Vector with just the active codes
+    std::vector<Gecko::GeckoCode> s_active_codes =
+        Gecko::SetAndReturnActiveCodes(Gecko::LoadCodes(globalIni, localIni));
+
+    // Determine Codelist Size
+    u16 codelines = 0;
+    for (const Gecko::GeckoCode& active_code : s_active_codes)
+    {
+      NOTICE_LOG(ACTIONREPLAY, "Indexing %s", active_code.name.c_str());
+      for (const Gecko::GeckoCode::Code& code : active_code.codes)
+      {
+        NOTICE_LOG(ACTIONREPLAY, "%08x %08x", code.address, code.data);
+        codelines++;
+      }
+    }
+
+    // Output codelines to send
+    NOTICE_LOG(ACTIONREPLAY, "Sending %d Gecko codelines", codelines);
+
+    // Send initial packet. Notify of the sync operation and total number of lines being sent.
+    {
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+      pac << static_cast<MessageId>(SYNC_CODES_NOTIFY_GECKO);
+      pac << codelines;
+      SendAsyncToClients(std::move(pac));
+    }
+
+    // Send entire codeset in the second packet
+    {
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+      pac << static_cast<MessageId>(SYNC_CODES_DATA_GECKO);
+      // Iterate through the active code vector and send each codeline
+      for (const Gecko::GeckoCode& active_code : s_active_codes)
+      {
+        NOTICE_LOG(ACTIONREPLAY, "Sending %s", active_code.name.c_str());
+        for (const Gecko::GeckoCode::Code& code : active_code.codes)
+        {
+          NOTICE_LOG(ACTIONREPLAY, "%08x %08x", code.address, code.data);
+          pac << code.address;
+          pac << code.data;
+        }
+      }
+      SendAsyncToClients(std::move(pac));
+    }
+  }
+
+  // Sync AR Codes
+  {
+    // Create an AR Code Vector with just the active codes
+    std::vector<ActionReplay::ARCode> s_active_codes =
+        ActionReplay::ApplyAndReturnCodes(ActionReplay::LoadCodes(globalIni, localIni));
+
+    // Determine Codelist Size
+    u16 codelines = 0;
+    for (const ActionReplay::ARCode& active_code : s_active_codes)
+    {
+      NOTICE_LOG(ACTIONREPLAY, "Indexing %s", active_code.name.c_str());
+      for (const ActionReplay::AREntry& op : active_code.ops)
+      {
+        NOTICE_LOG(ACTIONREPLAY, "%08x %08x", op.cmd_addr, op.value);
+        codelines++;
+      }
+    }
+
+    // Output codelines to send
+    NOTICE_LOG(ACTIONREPLAY, "Sending %d AR codelines", codelines);
+
+    // Send initial packet. Notify of the sync operation and total number of lines being sent.
+    {
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+      pac << static_cast<MessageId>(SYNC_CODES_NOTIFY_AR);
+      pac << codelines;
+      SendAsyncToClients(std::move(pac));
+    }
+
+    // Send entire codeset in the second packet
+    {
+      sf::Packet pac;
+      pac << static_cast<MessageId>(NP_MSG_SYNC_CODES);
+      pac << static_cast<MessageId>(SYNC_CODES_DATA_AR);
+      // Iterate through the active code vector and send each codeline
+      for (const ActionReplay::ARCode& active_code : s_active_codes)
+      {
+        NOTICE_LOG(ACTIONREPLAY, "Sending %s", active_code.name.c_str());
+        for (const ActionReplay::AREntry& op : active_code.ops)
+        {
+          NOTICE_LOG(ACTIONREPLAY, "%08x %08x", op.cmd_addr, op.value);
+          pac << op.cmd_addr;
+          pac << op.value;
+        }
+      }
+      SendAsyncToClients(std::move(pac));
+    }
+  }
+
+  return true;
+}
+
+void NetPlayServer::CheckSyncAndStartGame()
+{
+  if (m_saves_synced && m_codes_synced)
+  {
+    StartGame();
+  }
 }
 
 bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Packet& packet)
