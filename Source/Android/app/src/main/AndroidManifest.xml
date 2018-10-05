@@ -85,7 +85,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".services.DirectoryInitializationService"/>
+        <service android:name=".utils.DirectoryInitialization"/>
         <service android:name=".services.GameFileCacheService"/>
         <service
             android:name=".services.SyncChannelJobService"
