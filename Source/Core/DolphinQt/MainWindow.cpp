@@ -1473,13 +1473,14 @@ void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
 {
   if (!m_progress_dialog)
   {
-    m_progress_dialog = new QProgressDialog(m_render_widget);
+    m_progress_dialog = new QProgressDialog(m_render_widget, Qt::WindowTitleHint);
     m_progress_dialog->show();
+    m_progress_dialog->setCancelButton(nullptr);
+    m_progress_dialog->setWindowTitle(tr("Dolphin"));
   }
 
   m_progress_dialog->setValue(progress);
   m_progress_dialog->setLabelText(title);
-  m_progress_dialog->setWindowTitle(title);
   m_progress_dialog->setMaximum(total);
 
   if (total < 0 || progress >= total)
