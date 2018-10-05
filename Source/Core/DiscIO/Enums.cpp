@@ -145,7 +145,7 @@ Country TypicalCountryForRegion(Region region)
   }
 }
 
-Region RegionSwitch(u8 country_code, Platform platform)
+Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
 {
   switch (country_code)
   {
@@ -153,8 +153,10 @@ Region RegionSwitch(u8 country_code, Platform platform)
   case 'W':
     return Region::NTSC_J;
 
-  case 'B':
   case 'E':
+    return expected_region == Region::NTSC_J ? Region::NTSC_J : Region::NTSC_U;
+
+  case 'B':
   case 'N':
   case 'Z':
     return Region::NTSC_U;
@@ -183,7 +185,7 @@ Region RegionSwitch(u8 country_code, Platform platform)
   }
 }
 
-Country CountrySwitch(u8 country_code)
+Country CountrySwitch(u8 country_code, Platform platform, Region region)
 {
   switch (country_code)
   {
@@ -222,6 +224,8 @@ Country CountrySwitch(u8 country_code)
 
   // NTSC
   case 'E':
+    return region == Region::NTSC_J ? Country::Korea : Country::USA;
+
   case 'N':  // Japanese import to USA and other NTSC regions
   case 'Z':  // Prince of Persia - The Forgotten Sands (Wii)
   case 'B':  // Ufouria: The Saga (Virtual Console)
@@ -236,7 +240,7 @@ Country CountrySwitch(u8 country_code)
     return Country::Korea;
 
   case 'W':
-    return Country::Taiwan;
+    return platform == Platform::GameCubeDisc ? Country::Korea : Country::Taiwan;
 
   default:
     if (country_code > 'A')  // Silently ignore IOS wads
