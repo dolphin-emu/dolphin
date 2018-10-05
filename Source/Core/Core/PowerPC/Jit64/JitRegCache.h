@@ -13,6 +13,8 @@
 
 class Jit64;
 
+using preg_t = size_t;
+
 class PPCCachedReg
 {
 public:
@@ -87,9 +89,9 @@ private:
 class X64CachedReg
 {
 public:
-  size_t Contents() const { return ppcReg; }
+  preg_t Contents() const { return ppcReg; }
 
-  void BoundTo(size_t ppcReg_, bool dirty_)
+  void BoundTo(preg_t ppcReg_, bool dirty_)
   {
     free = false;
     ppcReg = ppcReg_;
@@ -98,7 +100,7 @@ public:
 
   void Flushed()
   {
-    ppcReg = static_cast<size_t>(Gen::INVALID_REG);
+    ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
     free = true;
     dirty = false;
   }
@@ -113,7 +115,7 @@ public:
   void Unlock() { locked = false; }
 
 private:
-  size_t ppcReg = static_cast<size_t>(Gen::INVALID_REG);
+  preg_t ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
   bool free = true;
   bool dirty = false;
   bool locked = false;
@@ -133,11 +135,11 @@ public:
   explicit RegCache(Jit64& jit);
   virtual ~RegCache() = default;
 
-  virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
+  virtual Gen::OpArg GetDefaultLocation(preg_t preg) const = 0;
 
   void Start();
 
-  void DiscardRegContentsIfCached(size_t preg);
+  void DiscardRegContentsIfCached(preg_t preg);
   void SetEmitter(Gen::XEmitter* emitter);
 
   void Flush(FlushMode mode = FlushMode::All, BitSet32 regsToFlush = BitSet32::AllTrue(32));
@@ -146,15 +148,15 @@ public:
   void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2);
 
   int SanityCheck() const;
-  void KillImmediate(size_t preg, bool doLoad, bool makeDirty);
+  void KillImmediate(preg_t preg, bool doLoad, bool makeDirty);
 
   // TODO - instead of doload, use "read", "write"
   // read only will not set dirty flag
-  void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
-  void StoreFromRegister(size_t preg, FlushMode mode = FlushMode::All);
+  void BindToRegister(preg_t preg, bool doLoad = true, bool makeDirty = true);
+  void StoreFromRegister(preg_t preg, FlushMode mode = FlushMode::All);
 
-  const Gen::OpArg& R(size_t preg) const;
-  Gen::X64Reg RX(size_t preg) const;
+  const Gen::OpArg& R(preg_t preg) const;
+  Gen::X64Reg RX(preg_t preg) const;
 
   // Register locking.
 
@@ -209,13 +211,13 @@ public:
   int NumFreeRegisters() const;
 
 protected:
-  virtual void StoreRegister(size_t preg, const Gen::OpArg& new_loc) = 0;
-  virtual void LoadRegister(size_t preg, Gen::X64Reg new_loc) = 0;
+  virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) = 0;
+  virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
 
   virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) const = 0;
 
   virtual BitSet32 GetRegUtilization() const = 0;
-  virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) const = 0;
+  virtual BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const = 0;
 
   void FlushX(Gen::X64Reg reg);
 

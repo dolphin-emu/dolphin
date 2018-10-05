@@ -12,12 +12,12 @@ class FPURegCache final : public RegCache
 {
 public:
   explicit FPURegCache(Jit64& jit);
-  Gen::OpArg GetDefaultLocation(size_t reg) const override;
+  Gen::OpArg GetDefaultLocation(preg_t preg) const override;
 
 protected:
-  void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
-  void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
+  void StoreRegister(preg_t preg, const Gen::OpArg& newLoc) override;
+  void LoadRegister(preg_t preg, Gen::X64Reg newLoc) override;
   const Gen::X64Reg* GetAllocationOrder(size_t* count) const override;
   BitSet32 GetRegUtilization() const override;
-  BitSet32 CountRegsIn(size_t preg, u32 lookahead) const override;
+  BitSet32 CountRegsIn(preg_t preg, u32 lookahead) const override;
 };

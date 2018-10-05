@@ -33,7 +33,7 @@ void RegCache::Start()
   }
 }
 
-void RegCache::DiscardRegContentsIfCached(size_t preg)
+void RegCache::DiscardRegContentsIfCached(preg_t preg)
 {
   if (m_regs[preg].IsBound())
   {
@@ -117,7 +117,7 @@ int RegCache::SanityCheck() const
   return 0;
 }
 
-void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
+void RegCache::KillImmediate(preg_t preg, bool doLoad, bool makeDirty)
 {
   switch (m_regs[preg].GetLocationType())
   {
@@ -133,7 +133,7 @@ void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
   }
 }
 
-void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 {
   if (!m_regs[i].IsBound())
   {
@@ -166,7 +166,7 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(), "WTF, this reg should have been flushed");
 }
 
-void RegCache::StoreFromRegister(size_t i, FlushMode mode)
+void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 {
   bool doStore = false;
 
@@ -194,12 +194,12 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
     m_regs[i].Flushed();
 }
 
-const OpArg& RegCache::R(size_t preg) const
+const OpArg& RegCache::R(preg_t preg) const
 {
   return m_regs[preg].Location();
 }
 
-X64Reg RegCache::RX(size_t preg) const
+X64Reg RegCache::RX(preg_t preg) const
 {
   ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - %zu", preg);
   return m_regs[preg].Location().GetSimpleReg();
@@ -243,7 +243,7 @@ X64Reg RegCache::GetFreeXReg()
   for (size_t i = 0; i < aCount; i++)
   {
     X64Reg xreg = (X64Reg)aOrder[i];
-    size_t preg = m_xregs[xreg].Contents();
+    preg_t preg = m_xregs[xreg].Contents();
     if (m_xregs[xreg].IsLocked() || m_regs[preg].IsLocked())
       continue;
     float score = ScoreRegister(xreg);
@@ -291,7 +291,7 @@ void RegCache::FlushX(X64Reg reg)
 // means more bad.
 float RegCache::ScoreRegister(X64Reg xreg) const
 {
-  size_t preg = m_xregs[xreg].Contents();
+  preg_t preg = m_xregs[xreg].Contents();
   float score = 0;
 
   // If it's not dirty, we don't need a store to write it back to the register file, so

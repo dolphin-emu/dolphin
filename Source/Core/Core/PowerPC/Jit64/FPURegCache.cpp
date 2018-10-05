@@ -14,12 +14,12 @@ FPURegCache::FPURegCache(Jit64& jit) : RegCache{jit}
 {
 }
 
-void FPURegCache::StoreRegister(size_t preg, const OpArg& new_loc)
+void FPURegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
 {
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location().GetSimpleReg());
 }
 
-void FPURegCache::LoadRegister(size_t preg, X64Reg new_loc)
+void FPURegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
   m_emitter->MOVAPD(new_loc, m_regs[preg].Location());
 }
@@ -32,9 +32,9 @@ const X64Reg* FPURegCache::GetAllocationOrder(size_t* count) const
   return allocation_order;
 }
 
-OpArg FPURegCache::GetDefaultLocation(size_t reg) const
+OpArg FPURegCache::GetDefaultLocation(preg_t preg) const
 {
-  return PPCSTATE(ps[reg][0]);
+  return PPCSTATE(ps[preg][0]);
 }
 
 BitSet32 FPURegCache::GetRegUtilization() const
@@ -42,7 +42,7 @@ BitSet32 FPURegCache::GetRegUtilization() const
   return m_jit.js.op->gprInReg;
 }
 
-BitSet32 FPURegCache::CountRegsIn(size_t preg, u32 lookahead) const
+BitSet32 FPURegCache::CountRegsIn(preg_t preg, u32 lookahead) const
 {
   BitSet32 regs_used;
 
