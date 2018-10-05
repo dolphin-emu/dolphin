@@ -1469,11 +1469,21 @@ void OpArg::WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& o
       // mov reg64, imm64
       else if (op == NormalOp::MOV)
       {
-        emit->Write8(0xB8 + (offsetOrBaseReg & 7));
-        emit->Write64((u64)operand.offset);
-        return;
+        // movabs reg64, imm64 (10 bytes)
+        if (static_cast<s64>(operand.offset) != static_cast<s32>(operand.offset))
+        {
+          emit->Write8(0xB8 + (offsetOrBaseReg & 7));
+          emit->Write64(operand.offset);
+          return;
+        }
+        // mov reg64, simm32 (7 bytes)
+        emit->Write8(op_def.imm32);
+        immToWrite = 32;
       }
-      ASSERT_MSG(DYNA_REC, 0, "WriteNormalOp - Only MOV can take 64-bit imm");
+      else
+      {
+        ASSERT_MSG(DYNA_REC, 0, "WriteNormalOp - Only MOV can take 64-bit imm");
+      }
     }
     else
     {
@@ -1581,6 +1591,12 @@ void XEmitter::XOR(int bits, const OpArg& a1, const OpArg& a2)
 }
 void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
 {
+  if (bits == 64 && a1.IsSimpleReg() && a2.scale == SCALE_IMM64 &&
+      a2.offset == static_cast<u32>(a2.offset))
+  {
+    WriteNormalOp(32, NormalOp::MOV, a1, a2.AsImm32());
+    return;
+  }
   if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
     ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
   WriteNormalOp(bits, NormalOp::MOV, a1, a2);
