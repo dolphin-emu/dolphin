@@ -298,7 +298,7 @@ DiscIO::Region TMDReader::GetRegion() const
   if (GetTitleId() == Titles::SYSTEM_MENU)
     return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
-  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
+  return DiscIO::RegionSwitch(static_cast<u8>(GetTitleId() & 0xff), DiscIO::Platform::WiiWAD);
 }
 
 std::string TMDReader::GetGameID() const

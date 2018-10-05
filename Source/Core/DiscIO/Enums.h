@@ -77,9 +77,7 @@ bool IsNTSC(Region region);
 
 Country TypicalCountryForRegion(Region region);
 // Avoid using this function if you can. Country codes aren't always reliable region indicators.
-Region RegionSwitchGC(u8 country_code);
-// Avoid using this function if you can. Country codes aren't always reliable region indicators.
-Region RegionSwitchWii(u8 country_code);
+Region RegionSwitch(u8 country_code, Platform platform);
 Country CountrySwitch(u8 country_code);
 
 Region GetSysMenuRegion(u16 title_version);

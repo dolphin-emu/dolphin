@@ -290,10 +290,10 @@ Region VolumeWii::GetRegion() const
 Country VolumeWii::GetCountry(const Partition& partition) const
 {
   // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
-  u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
+  const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
 
-  if (RegionSwitchWii(country_byte) != region)
+  if (RegionSwitch(country_byte, Platform::WiiDisc) != region)
     return TypicalCountryForRegion(region);
 
   return CountrySwitch(country_byte);

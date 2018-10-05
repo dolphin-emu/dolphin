@@ -95,7 +95,7 @@ Country VolumeGC::GetCountry(const Partition& partition) const
   if (region == Region::NTSC_J && (country == 'E' || country == 'K' || country == 'W'))
     return Country::Korea;
 
-  if (RegionSwitchGC(country) != region)
+  if (RegionSwitch(country, Platform::GameCubeDisc) != region)
     return TypicalCountryForRegion(region);
 
   return CountrySwitch(country);

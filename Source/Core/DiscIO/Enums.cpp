@@ -145,13 +145,7 @@ Country TypicalCountryForRegion(Region region)
   }
 }
 
-Region RegionSwitchGC(u8 country_code)
-{
-  Region region = RegionSwitchWii(country_code);
-  return region == Region::NTSC_K ? Region::NTSC_J : region;
-}
-
-Region RegionSwitchWii(u8 country_code)
+Region RegionSwitch(u8 country_code, Platform platform)
 {
   switch (country_code)
   {
@@ -182,7 +176,7 @@ Region RegionSwitchWii(u8 country_code)
   case 'K':
   case 'Q':
   case 'T':
-    return Region::NTSC_K;
+    return platform == Platform::GameCubeDisc ? Region::NTSC_J : Region::NTSC_K;
 
   default:
     return Region::Unknown;
