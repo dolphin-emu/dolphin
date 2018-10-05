@@ -102,14 +102,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     surfaceView.getHolder().addCallback(this);
 
     mInputOverlay = contents.findViewById(R.id.surface_input_overlay);
-    if (mInputOverlay != null)
-    {
-      // If the input overlay was previously disabled, then don't show it.
-      if (!mPreferences.getBoolean("showInputOverlay", true))
-      {
-        mInputOverlay.setVisibility(View.GONE);
-      }
-    }
 
     Button doneButton = contents.findViewById(R.id.done_control_config);
     if (doneButton != null)
@@ -199,18 +191,14 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     // If the overlay is currently set to INVISIBLE
     if (!mPreferences.getBoolean("showInputOverlay", false))
     {
-      // Set it to VISIBLE
-      mInputOverlay.setVisibility(View.VISIBLE);
       editor.putBoolean("showInputOverlay", true);
     }
     else
     {
-      // Set it to INVISIBLE
-      mInputOverlay.setVisibility(View.GONE);
       editor.putBoolean("showInputOverlay", false);
     }
-
-    editor.apply();
+    editor.commit();
+    mInputOverlay.refreshControls();
   }
 
   public void refreshInputOverlay()
