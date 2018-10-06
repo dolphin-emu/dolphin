@@ -1,5 +1,5 @@
 ---
-Language:        Cpp
+# Global config for all languages
 AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
 AlignConsecutiveAssignments: false
@@ -25,7 +25,6 @@ BraceWrapping:
   AfterEnum:       true
   AfterFunction:   true
   AfterNamespace:  true
-  AfterObjCDeclaration: true
   AfterStruct:     true
   AfterUnion:      true
   BeforeCatch:     true
@@ -59,9 +58,6 @@ MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
-ObjCBlockIndentWidth: 2
-ObjCSpaceAfterProperty: false
-ObjCSpaceBeforeProtocolList: true
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
@@ -84,5 +80,16 @@ SpacesInSquareBrackets: false
 Standard:        Cpp11
 TabWidth:        2
 UseTab:          Never
+---
+# C++ Specific Config
+Language:        Cpp
+---
+# Objective-C Specific Config
+Language:        ObjC
+ObjCBlockIndentWidth: 2
+ObjCSpaceAfterProperty: false
+ObjCSpaceBeforeProtocolList: true
+BraceWrapping:
+  AfterObjCDeclaration: true
 ...
 
