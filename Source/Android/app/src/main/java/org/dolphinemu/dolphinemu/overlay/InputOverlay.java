@@ -54,7 +54,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static final int JOYSTICK_EMULATE_IR = 2;
 	public static final int JOYSTICK_EMULATE_SWING = 3;
 	public static final int JOYSTICK_EMULATE_TILT = 4;
-	public static final int JOYSTICK_EMULATE_SHAKE = 4;
+	public static final int JOYSTICK_EMULATE_SHAKE = 5;
 	public static int JoyStickSetting;
 
 	public static final int SENSOR_GC_NONE = 0;
@@ -73,9 +73,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static int SensorWiiSetting;
 
 	private boolean mAccuracyChanged;
-	private float mBaseAzimuth;
+	private float mBaseYaw;
 	private float mBasePitch;
 	private float mBaseRoll;
+
+	// axis to button
+	private int[] mShakeState = new int[4];
 
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
@@ -293,14 +296,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
+					axises[0] = 0;
+					axises[3] = 0;
 				}
 				else if (JoyStickSetting == JOYSTICK_EMULATE_SHAKE)
 				{
-					factor = -1.0f;
-					axisIDs[0] = ButtonType.WIIMOTE_TILT_MODIFIER;
-					axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;
-					axisIDs[2] = ButtonType.WIIMOTE_SHAKE_Y;
-					axisIDs[3] = ButtonType.WIIMOTE_SHAKE_Z;
+					handleShakeEvent(axises);
+					continue;
 				}
 			}
 
@@ -434,24 +436,31 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	public void onSensorChanged(float[] rotation)
 	{
+		// portrait:  yaw(0) - pitch(1) - roll(2)
+		// landscape: yaw(0) - pitch(2) - roll(1)
 		if(mAccuracyChanged)
 		{
-			if(Math.abs(mBaseAzimuth - rotation[0]) > 0.1f ||
-				Math.abs(mBasePitch - rotation[1]) > 0.1f ||
-				Math.abs(mBaseRoll - rotation[2]) > 0.1f)
+			if(Math.abs(mBaseYaw - rotation[0]) > 0.1f ||
+				Math.abs(mBasePitch - rotation[2]) > 0.1f ||
+				Math.abs(mBaseRoll - rotation[1]) > 0.1f)
 			{
-				mBaseAzimuth = rotation[0];
-				mBasePitch = rotation[1];
-				mBaseRoll = rotation[2];
+				mBaseYaw = rotation[0];
+				mBasePitch = rotation[2];
+				mBaseRoll = rotation[1];
 				return;
 			}
 			mAccuracyChanged = false;
 		}
 
-		float y = (mBasePitch - rotation[1]) * 1.6f;
-		float x = (mBaseRoll - rotation[2]) * 1.6f;
+		float z = mBaseYaw - rotation[0];
+		float y = mBasePitch - rotation[2];
+		float x = mBaseRoll - rotation[1];
 		int[] axisIDs = new int[4];
 		float[] axises = new float[4];
+
+		z = z * (1 + Math.abs(z));
+		y = y * (1 + Math.abs(y));
+		x = x * (1 + Math.abs(x));
 
 		if(EmulationActivity.isGameCubeGame())
 		{
@@ -462,30 +471,30 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axisIDs[1] = ButtonType.STICK_MAIN + 2;
 					axisIDs[2] = ButtonType.STICK_MAIN + 3;
 					axisIDs[3] = ButtonType.STICK_MAIN + 4;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 				case SENSOR_GC_CSTICK:
 					axisIDs[0] = ButtonType.STICK_C + 1;
 					axisIDs[1] = ButtonType.STICK_C + 2;
 					axisIDs[2] = ButtonType.STICK_C + 3;
 					axisIDs[3] = ButtonType.STICK_C + 4;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 				case SENSOR_GC_DPAD:
 					axisIDs[0] = ButtonType.BUTTON_UP;
 					axisIDs[1] = ButtonType.BUTTON_DOWN;
 					axisIDs[2] = ButtonType.BUTTON_LEFT;
 					axisIDs[3] = ButtonType.BUTTON_RIGHT;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 			}
 		}
@@ -498,61 +507,58 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axisIDs[1] = ButtonType.WIIMOTE_DOWN;
 					axisIDs[2] = ButtonType.WIIMOTE_LEFT;
 					axisIDs[3] = ButtonType.WIIMOTE_RIGHT;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 				case SENSOR_WII_STICK:
 					axisIDs[0] = ButtonType.NUNCHUK_STICK + 1;
 					axisIDs[1] = ButtonType.NUNCHUK_STICK + 2;
 					axisIDs[2] = ButtonType.NUNCHUK_STICK + 3;
 					axisIDs[3] = ButtonType.NUNCHUK_STICK + 4;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 				case SENSOR_WII_IR:
 					axisIDs[0] = ButtonType.WIIMOTE_IR + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_IR + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_IR + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_IR + 4;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 				case SENSOR_WII_SWING:
 					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axises[0] = y; // up
+					axises[1] = y; // down
+					axises[2] = x; // left
+					axises[3] = x; // right
 					break;
 				case SENSOR_WII_TILT:
-					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
-					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
-					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
-					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
+					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1; // forward
+					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2; // backward
+					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3; // left
+					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4; // right
+					axises[0] = 0;
+					axises[1] = y;
+					axises[2] = x;
+					axises[3] = 0;
 					break;
 				case SENSOR_WII_SHAKE:
-					axisIDs[0] = ButtonType.WIIMOTE_TILT_MODIFIER;
-					axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;
-					axisIDs[2] = ButtonType.WIIMOTE_SHAKE_Y;
-					axisIDs[3] = ButtonType.WIIMOTE_SHAKE_Z;
-					axises[0] = x;
-					axises[1] = x;
-					axises[2] = y;
-					axises[3] = y;
-					break;
+					axises[0] = 0;
+					axises[1] = -x;
+					axises[2] = -y;
+					axises[3] = -z;
+					handleShakeEvent(axises);
+					return;
 			}
 		}
 
@@ -562,10 +568,36 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 	}
 
+	private void handleShakeEvent(float[] axises)
+	{
+		int[] axisIDs = new int[4];
+		axisIDs[0] = 0;
+		axisIDs[1] = ButtonType.WIIMOTE_SHAKE_X;
+		axisIDs[2] = ButtonType.WIIMOTE_SHAKE_Y;
+		axisIDs[3] = ButtonType.WIIMOTE_SHAKE_Z;
+
+		for(int i = 0; i < axises.length; ++i)
+		{
+			if(axises[i] > 0.15f)
+			{
+				if(mShakeState[i] != ButtonState.PRESSED)
+				{
+					mShakeState[i] = ButtonState.PRESSED;
+					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], mShakeState[i]);
+				}
+			}
+			else if(mShakeState[i] != ButtonState.RELEASED)
+			{
+				mShakeState[i] = ButtonState.RELEASED;
+				NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], mShakeState[i]);
+			}
+		}
+	}
+
 	public void onAccuracyChanged(int accuracy)
 	{
 		mAccuracyChanged = true;
-		mBaseAzimuth = (float)Math.PI;
+		mBaseYaw = (float)Math.PI;
 		mBasePitch = (float)Math.PI;
 		mBaseRoll = (float)Math.PI;
 	}
