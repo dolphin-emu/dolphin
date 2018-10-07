@@ -14,19 +14,19 @@ GPRRegCache::GPRRegCache(Jit64& jit) : RegCache{jit}
 {
 }
 
-void GPRRegCache::StoreRegister(size_t preg, const OpArg& new_loc)
+void GPRRegCache::StoreRegister(preg_t preg, const OpArg& new_loc)
 {
-  m_emitter->MOV(32, new_loc, m_regs[preg].location);
+  m_emitter->MOV(32, new_loc, m_regs[preg].Location());
 }
 
-void GPRRegCache::LoadRegister(size_t preg, X64Reg new_loc)
+void GPRRegCache::LoadRegister(preg_t preg, X64Reg new_loc)
 {
-  m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].location);
+  m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].Location());
 }
 
-OpArg GPRRegCache::GetDefaultLocation(size_t reg) const
+OpArg GPRRegCache::GetDefaultLocation(preg_t preg) const
 {
-  return PPCSTATE(gpr[reg]);
+  return PPCSTATE(gpr[preg]);
 }
 
 const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count) const
@@ -46,13 +46,12 @@ const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count) const
   return allocation_order;
 }
 
-void GPRRegCache::SetImmediate32(size_t preg, u32 imm_value, bool dirty)
+void GPRRegCache::SetImmediate32(preg_t preg, u32 imm_value, bool dirty)
 {
   // "dirty" can be false to avoid redundantly flushing an immediate when
   // processing speculative constants.
   DiscardRegContentsIfCached(preg);
-  m_regs[preg].away |= dirty;
-  m_regs[preg].location = Imm32(imm_value);
+  m_regs[preg].SetToImm32(imm_value, dirty);
 }
 
 BitSet32 GPRRegCache::GetRegUtilization() const
@@ -60,7 +59,7 @@ BitSet32 GPRRegCache::GetRegUtilization() const
   return m_jit.js.op->gprInReg;
 }
 
-BitSet32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead) const
+BitSet32 GPRRegCache::CountRegsIn(preg_t preg, u32 lookahead) const
 {
   BitSet32 regs_used;
 

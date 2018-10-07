@@ -460,7 +460,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 
   fpr.Lock(b, d);
 
-  if (fpr.IsBound(d))
+  if (fpr.R(d).IsSimpleReg())
   {
     // We don't need to load d, but if it is loaded, we need to mark it as dirty.
     fpr.BindToRegister(d);
