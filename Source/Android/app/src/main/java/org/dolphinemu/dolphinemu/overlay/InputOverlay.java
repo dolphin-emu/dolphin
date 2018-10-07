@@ -554,9 +554,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					break;
 				case SENSOR_WII_SHAKE:
 					axises[0] = 0;
-					axises[1] = -x;
-					axises[2] = -y;
-					axises[3] = -z;
+					axises[1] = -x / 1.5f;
+					axises[2] = -y / 1.5f;
+					axises[3] = -z / 1.5f;
 					handleShakeEvent(axises);
 					return;
 			}
