@@ -935,10 +935,10 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-    if (gpr.SanityCheck() || fpr.SanityCheck())
+    if (!gpr.SanityCheck() || !fpr.SanityCheck())
     {
       std::string ppc_inst = Common::GekkoDisassembler::Disassemble(op.inst.hex, em_address);
-      // NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
+      NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
     }
 #endif
     i += js.skipInstructions;

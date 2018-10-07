@@ -26,47 +26,20 @@ RegCache::RegCache(Jit64& jit) : m_jit{jit}
 
 void RegCache::Start()
 {
-  for (auto& xreg : m_xregs)
-  {
-    xreg.free = true;
-    xreg.dirty = false;
-    xreg.locked = false;
-    xreg.ppcReg = static_cast<size_t>(INVALID_REG);
-  }
+  m_xregs.fill({});
   for (size_t i = 0; i < m_regs.size(); i++)
   {
-    m_regs[i].location = GetDefaultLocation(i);
-    m_regs[i].away = false;
-    m_regs[i].locked = false;
+    m_regs[i] = PPCCachedReg{GetDefaultLocation(i)};
   }
-
-  // todo: sort to find the most popular regs
-  /*
-  int maxPreload = 2;
-  for (int i = 0; i < 32; i++)
-  {
-    if (stats.numReads[i] > 2 || stats.numWrites[i] >= 2)
-    {
-      LoadToX64(i, true, false); //stats.firstRead[i] <= stats.firstWrite[i], false);
-      maxPreload--;
-      if (!maxPreload)
-        break;
-    }
-  }*/
-  // Find top regs - preload them (load bursts ain't bad)
-  // But only preload IF written OR reads >= 3
 }
 
-void RegCache::DiscardRegContentsIfCached(size_t preg)
+void RegCache::DiscardRegContentsIfCached(preg_t preg)
 {
-  if (IsBound(preg))
+  if (m_regs[preg].IsBound())
   {
-    X64Reg xr = m_regs[preg].location.GetSimpleReg();
-    m_xregs[xr].free = true;
-    m_xregs[xr].dirty = false;
-    m_xregs[xr].ppcReg = static_cast<size_t>(INVALID_REG);
-    m_regs[preg].away = false;
-    m_regs[preg].location = GetDefaultLocation(preg);
+    X64Reg xr = m_regs[preg].Location().GetSimpleReg();
+    m_xregs[xr].SetFlushed();
+    m_regs[preg].SetFlushed();
   }
 }
 
@@ -77,207 +50,180 @@ void RegCache::SetEmitter(XEmitter* emitter)
 
 void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
 {
-  for (size_t i = 0; i < m_xregs.size(); i++)
-  {
-    if (m_xregs[i].locked)
-      PanicAlert("Someone forgot to unlock X64 reg %zu", i);
-  }
+  ASSERT_MSG(
+      DYNA_REC,
+      std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x) { return x.IsLocked(); }),
+      "Someone forgot to unlock a X64 reg");
 
   for (unsigned int i : regsToFlush)
   {
-    if (m_regs[i].locked)
-    {
-      PanicAlert("Someone forgot to unlock PPC reg %u (X64 reg %i).", i, RX(i));
-    }
+    ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg %u (X64 reg %i).",
+               i, RX(i));
 
-    if (m_regs[i].away)
+    switch (m_regs[i].GetLocationType())
     {
-      if (m_regs[i].location.IsSimpleReg() || m_regs[i].location.IsImm())
-      {
-        StoreFromRegister(i, mode);
-      }
-      else
-      {
-        ASSERT_MSG(DYNA_REC, 0, "Jit64 - Flush unhandled case, reg %u PC: %08x", i, PC);
-      }
-    }
-    else if (m_regs[i].location.IsImm())
-    {
+    case PPCCachedReg::LocationType::Default:
+      break;
+    case PPCCachedReg::LocationType::SpeculativeImmediate:
       // We can have a cached value without a host register through speculative constants.
       // It must be cleared when flushing, otherwise it may be out of sync with PPCSTATE,
       // if PPCSTATE is modified externally (e.g. fallback to interpreter).
-      m_regs[i].location = GetDefaultLocation(i);
+      m_regs[i].SetFlushed();
+      break;
+    case PPCCachedReg::LocationType::Bound:
+    case PPCCachedReg::LocationType::Immediate:
+      StoreFromRegister(i, mode);
+      break;
     }
   }
-}
-
-void RegCache::FlushR(X64Reg reg)
-{
-  if (reg >= m_xregs.size())
-    PanicAlert("Flushing non existent reg");
-  if (!m_xregs[reg].free)
-  {
-    StoreFromRegister(m_xregs[reg].ppcReg);
-  }
-}
-
-void RegCache::FlushR(X64Reg reg, X64Reg reg2)
-{
-  FlushR(reg);
-  FlushR(reg2);
 }
 
 void RegCache::FlushLockX(X64Reg reg)
 {
-  FlushR(reg);
+  FlushX(reg);
   LockX(reg);
 }
 
 void RegCache::FlushLockX(X64Reg reg1, X64Reg reg2)
 {
-  FlushR(reg1);
-  FlushR(reg2);
+  FlushX(reg1);
+  FlushX(reg2);
   LockX(reg1);
   LockX(reg2);
 }
 
-int RegCache::SanityCheck() const
+bool RegCache::SanityCheck() const
 {
   for (size_t i = 0; i < m_regs.size(); i++)
   {
-    if (m_regs[i].away)
+    switch (m_regs[i].GetLocationType())
     {
-      if (m_regs[i].location.IsSimpleReg())
-      {
-        Gen::X64Reg simple = m_regs[i].location.GetSimpleReg();
-        if (m_xregs[simple].locked)
-          return 1;
-        if (m_xregs[simple].ppcReg != i)
-          return 2;
-      }
-      else if (m_regs[i].location.IsImm())
-      {
-        return 3;
-      }
+    case PPCCachedReg::LocationType::Default:
+    case PPCCachedReg::LocationType::SpeculativeImmediate:
+    case PPCCachedReg::LocationType::Immediate:
+      break;
+    case PPCCachedReg::LocationType::Bound:
+    {
+      if (m_regs[i].IsLocked())
+        return false;
+
+      Gen::X64Reg xr = m_regs[i].Location().GetSimpleReg();
+      if (m_xregs[xr].IsLocked())
+        return false;
+      if (m_xregs[xr].Contents() != i)
+        return false;
+      break;
+    }
     }
   }
-  return 0;
+  return true;
 }
 
-void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
+void RegCache::KillImmediate(preg_t preg, bool doLoad, bool makeDirty)
 {
-  if (m_regs[preg].away)
+  switch (m_regs[preg].GetLocationType())
   {
-    if (m_regs[preg].location.IsImm())
-      BindToRegister(preg, doLoad, makeDirty);
-    else if (m_regs[preg].location.IsSimpleReg())
-      m_xregs[RX(preg)].dirty |= makeDirty;
+  case PPCCachedReg::LocationType::Default:
+  case PPCCachedReg::LocationType::SpeculativeImmediate:
+    break;
+  case PPCCachedReg::LocationType::Bound:
+    if (makeDirty)
+      m_xregs[RX(preg)].MakeDirty();
+    break;
+  case PPCCachedReg::LocationType::Immediate:
+    BindToRegister(preg, doLoad, makeDirty);
+    break;
   }
 }
 
-void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 {
-  if (!m_regs[i].away || m_regs[i].location.IsImm())
+  if (!m_regs[i].IsBound())
   {
     X64Reg xr = GetFreeXReg();
-    if (m_xregs[xr].dirty)
-      PanicAlert("Xreg already dirty");
-    if (m_xregs[xr].locked)
-      PanicAlert("GetFreeXReg returned locked register");
-    m_xregs[xr].free = false;
-    m_xregs[xr].ppcReg = i;
-    m_xregs[xr].dirty = makeDirty || m_regs[i].away;
+
+    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg %i already dirty", xr);
+    ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
+
+    m_xregs[xr].SetBoundTo(i, makeDirty || m_regs[i].IsAway());
+
     if (doLoad)
-      LoadRegister(i, xr);
-    for (size_t j = 0; j < m_regs.size(); j++)
     {
-      if (i != j && m_regs[j].location.IsSimpleReg(xr))
-      {
-        Crash();
-      }
+      LoadRegister(i, xr);
     }
-    m_regs[i].away = true;
-    m_regs[i].location = ::Gen::R(xr);
+
+    ASSERT_MSG(DYNA_REC,
+               std::none_of(m_regs.begin(), m_regs.end(),
+                            [xr](const auto& r) { return r.Location().IsSimpleReg(xr); }),
+               "Xreg %i already bound", xr);
+
+    m_regs[i].SetBoundTo(xr);
   }
   else
   {
     // reg location must be simplereg; memory locations
     // and immediates are taken care of above.
-    m_xregs[RX(i)].dirty |= makeDirty;
+    if (makeDirty)
+      m_xregs[RX(i)].MakeDirty();
   }
 
-  if (m_xregs[RX(i)].locked)
-  {
-    PanicAlert("Seriously WTF, this reg should have been flushed");
-  }
+  ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(), "WTF, this reg should have been flushed");
 }
 
-void RegCache::StoreFromRegister(size_t i, FlushMode mode)
+void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 {
-  if (m_regs[i].away)
+  bool doStore = false;
+
+  switch (m_regs[i].GetLocationType())
   {
-    bool doStore;
-    if (m_regs[i].location.IsSimpleReg())
-    {
-      X64Reg xr = RX(i);
-      doStore = m_xregs[xr].dirty;
-      if (mode == FlushMode::All)
-      {
-        m_xregs[xr].free = true;
-        m_xregs[xr].ppcReg = static_cast<size_t>(INVALID_REG);
-        m_xregs[xr].dirty = false;
-      }
-    }
-    else
-    {
-      // must be immediate - do nothing
-      doStore = true;
-    }
-    OpArg newLoc = GetDefaultLocation(i);
-    if (doStore)
-      StoreRegister(i, newLoc);
+  case PPCCachedReg::LocationType::Default:
+  case PPCCachedReg::LocationType::SpeculativeImmediate:
+    return;
+  case PPCCachedReg::LocationType::Bound:
+  {
+    X64Reg xr = RX(i);
+    doStore = m_xregs[xr].IsDirty();
     if (mode == FlushMode::All)
-    {
-      m_regs[i].location = newLoc;
-      m_regs[i].away = false;
-    }
+      m_xregs[xr].SetFlushed();
+    break;
   }
+  case PPCCachedReg::LocationType::Immediate:
+    doStore = true;
+    break;
+  }
+
+  if (doStore)
+    StoreRegister(i, GetDefaultLocation(i));
+  if (mode == FlushMode::All)
+    m_regs[i].SetFlushed();
 }
 
-const OpArg& RegCache::R(size_t preg) const
+const OpArg& RegCache::R(preg_t preg) const
 {
-  return m_regs[preg].location;
+  return m_regs[preg].Location();
 }
 
-X64Reg RegCache::RX(size_t preg) const
+X64Reg RegCache::RX(preg_t preg) const
 {
-  if (IsBound(preg))
-    return m_regs[preg].location.GetSimpleReg();
-
-  PanicAlert("Unbound register - %zu", preg);
-  return Gen::INVALID_REG;
+  ASSERT_MSG(DYNA_REC, m_regs[preg].IsBound(), "Unbound register - %zu", preg);
+  return m_regs[preg].Location().GetSimpleReg();
 }
 
 void RegCache::UnlockAll()
 {
   for (auto& reg : m_regs)
-    reg.locked = false;
+    reg.Unlock();
 }
 
 void RegCache::UnlockAllX()
 {
   for (auto& xreg : m_xregs)
-    xreg.locked = false;
+    xreg.Unlock();
 }
 
 bool RegCache::IsFreeX(size_t xreg) const
 {
-  return m_xregs[xreg].free && !m_xregs[xreg].locked;
-}
-
-bool RegCache::IsBound(size_t preg) const
-{
-  return m_regs[preg].away && m_regs[preg].location.IsSimpleReg();
+  return m_xregs[xreg].IsFree();
 }
 
 X64Reg RegCache::GetFreeXReg()
@@ -287,7 +233,7 @@ X64Reg RegCache::GetFreeXReg()
   for (size_t i = 0; i < aCount; i++)
   {
     X64Reg xr = aOrder[i];
-    if (!m_xregs[xr].locked && m_xregs[xr].free)
+    if (m_xregs[xr].IsFree())
     {
       return xr;
     }
@@ -301,8 +247,8 @@ X64Reg RegCache::GetFreeXReg()
   for (size_t i = 0; i < aCount; i++)
   {
     X64Reg xreg = (X64Reg)aOrder[i];
-    size_t preg = m_xregs[xreg].ppcReg;
-    if (m_xregs[xreg].locked || m_regs[preg].locked)
+    preg_t preg = m_xregs[xreg].Contents();
+    if (m_xregs[xreg].IsLocked() || m_regs[preg].IsLocked())
       continue;
     float score = ScoreRegister(xreg);
     if (score < min_score)
@@ -320,7 +266,7 @@ X64Reg RegCache::GetFreeXReg()
   }
 
   // Still no dice? Die!
-  ASSERT_MSG(DYNA_REC, 0, "Regcache ran out of regs");
+  ASSERT_MSG(DYNA_REC, false, "Regcache ran out of regs");
   return INVALID_REG;
 }
 
@@ -330,23 +276,33 @@ int RegCache::NumFreeRegisters() const
   size_t aCount;
   const X64Reg* aOrder = GetAllocationOrder(&aCount);
   for (size_t i = 0; i < aCount; i++)
-    if (!m_xregs[aOrder[i]].locked && m_xregs[aOrder[i]].free)
+    if (m_xregs[aOrder[i]].IsFree())
       count++;
   return count;
+}
+
+void RegCache::FlushX(X64Reg reg)
+{
+  ASSERT_MSG(DYNA_REC, reg < m_xregs.size(), "Flushing non-existent reg %i", reg);
+  ASSERT(!m_xregs[reg].IsLocked());
+  if (!m_xregs[reg].IsFree())
+  {
+    StoreFromRegister(m_xregs[reg].Contents());
+  }
 }
 
 // Estimate roughly how bad it would be to de-allocate this register. Higher score
 // means more bad.
 float RegCache::ScoreRegister(X64Reg xreg) const
 {
-  size_t preg = m_xregs[xreg].ppcReg;
+  preg_t preg = m_xregs[xreg].Contents();
   float score = 0;
 
   // If it's not dirty, we don't need a store to write it back to the register file, so
   // bias a bit against dirty registers. Testing shows that a bias of 2 seems roughly
   // right: 3 causes too many extra clobbers, while 1 saves very few clobbers relative
   // to the number of extra stores it causes.
-  if (m_xregs[xreg].dirty)
+  if (m_xregs[xreg].IsDirty())
     score += 2;
 
   // If the register isn't actually needed in a physical register for a later instruction,
