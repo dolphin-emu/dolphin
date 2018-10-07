@@ -26,6 +26,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinQt/Debugger/InstructionDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -455,14 +456,13 @@ void CodeViewWidget::OnReplaceInstruction()
   if (!read_result.valid)
     return;
 
-  bool good;
-  QString name = QInputDialog::getText(
-      this, tr("Change instruction"), tr("New instruction:"), QLineEdit::Normal,
-      QStringLiteral("%1").arg(read_result.hex, 8, 16, QLatin1Char('0')), &good);
+  u32 code = read_result.hex;
 
-  u32 code = name.toUInt(&good, 16);
+  // Show instruction edit dialog
+  InstructionDialog instr_dialog = InstructionDialog(this, addr, code);
+  int instr_dialog_res = instr_dialog.ShowModal(&code);
 
-  if (good)
+  if (instr_dialog_res == QDialog::Accepted)
   {
     PowerPC::debug_interface.UnsetPatch(addr);
     PowerPC::debug_interface.SetPatch(addr, code);

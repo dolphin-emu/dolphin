@@ -328,6 +328,7 @@
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
+    <ClCompile Include="Debugger\InstructionDialog.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
     <ClCompile Include="TAS\WiiTASInputWindow.cpp" />
@@ -385,6 +386,7 @@
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\MappingRadio.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
+    <ClInclude Include="Debugger\InstructionDialog.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
