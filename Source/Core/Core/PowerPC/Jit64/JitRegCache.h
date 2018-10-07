@@ -57,13 +57,13 @@ public:
   bool IsAway() const { return away; }
   bool IsBound() const { return GetLocationType() == LocationType::Bound; }
 
-  void BoundTo(Gen::X64Reg xreg)
+  void SetBoundTo(Gen::X64Reg xreg)
   {
     away = true;
     location = Gen::R(xreg);
   }
 
-  void Flushed()
+  void SetFlushed()
   {
     away = false;
     location = default_location;
@@ -91,14 +91,14 @@ class X64CachedReg
 public:
   preg_t Contents() const { return ppcReg; }
 
-  void BoundTo(preg_t ppcReg_, bool dirty_)
+  void SetBoundTo(preg_t ppcReg_, bool dirty_)
   {
     free = false;
     ppcReg = ppcReg_;
     dirty = dirty_;
   }
 
-  void Flushed()
+  void SetFlushed()
   {
     ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
     free = true;
@@ -108,7 +108,7 @@ public:
   bool IsFree() const { return free && !locked; }
 
   bool IsDirty() const { return dirty; }
-  void MakeDirty(bool makeDirty = true) { dirty |= makeDirty; }
+  void MakeDirty() { dirty = true; }
 
   bool IsLocked() const { return locked; }
   void Lock() { locked = true; }

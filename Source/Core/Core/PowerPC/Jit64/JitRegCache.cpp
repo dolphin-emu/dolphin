@@ -38,8 +38,8 @@ void RegCache::DiscardRegContentsIfCached(preg_t preg)
   if (m_regs[preg].IsBound())
   {
     X64Reg xr = m_regs[preg].Location().GetSimpleReg();
-    m_xregs[xr].Flushed();
-    m_regs[preg].Flushed();
+    m_xregs[xr].SetFlushed();
+    m_regs[preg].SetFlushed();
   }
 }
 
@@ -68,7 +68,7 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
       // We can have a cached value without a host register through speculative constants.
       // It must be cleared when flushing, otherwise it may be out of sync with PPCSTATE,
       // if PPCSTATE is modified externally (e.g. fallback to interpreter).
-      m_regs[i].Flushed();
+      m_regs[i].SetFlushed();
       break;
     case PPCCachedReg::LocationType::Bound:
     case PPCCachedReg::LocationType::Immediate:
@@ -125,7 +125,8 @@ void RegCache::KillImmediate(preg_t preg, bool doLoad, bool makeDirty)
   case PPCCachedReg::LocationType::SpeculativeImmediate:
     break;
   case PPCCachedReg::LocationType::Bound:
-    m_xregs[RX(preg)].MakeDirty(makeDirty);
+    if (makeDirty)
+      m_xregs[RX(preg)].MakeDirty();
     break;
   case PPCCachedReg::LocationType::Immediate:
     BindToRegister(preg, doLoad, makeDirty);
@@ -142,7 +143,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg %i already dirty", xr);
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
 
-    m_xregs[xr].BoundTo(i, makeDirty || m_regs[i].IsAway());
+    m_xregs[xr].SetBoundTo(i, makeDirty || m_regs[i].IsAway());
 
     if (doLoad)
     {
@@ -154,13 +155,14 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
                             [xr](const auto& r) { return r.Location().IsSimpleReg(xr); }),
                "Xreg %i already bound", xr);
 
-    m_regs[i].BoundTo(xr);
+    m_regs[i].SetBoundTo(xr);
   }
   else
   {
     // reg location must be simplereg; memory locations
     // and immediates are taken care of above.
-    m_xregs[RX(i)].MakeDirty(makeDirty);
+    if (makeDirty)
+      m_xregs[RX(i)].MakeDirty();
   }
 
   ASSERT_MSG(DYNA_REC, !m_xregs[RX(i)].IsLocked(), "WTF, this reg should have been flushed");
@@ -180,7 +182,7 @@ void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
     X64Reg xr = RX(i);
     doStore = m_xregs[xr].IsDirty();
     if (mode == FlushMode::All)
-      m_xregs[xr].Flushed();
+      m_xregs[xr].SetFlushed();
     break;
   }
   case PPCCachedReg::LocationType::Immediate:
@@ -191,7 +193,7 @@ void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
   if (doStore)
     StoreRegister(i, GetDefaultLocation(i));
   if (mode == FlushMode::All)
-    m_regs[i].Flushed();
+    m_regs[i].SetFlushed();
 }
 
 const OpArg& RegCache::R(preg_t preg) const
