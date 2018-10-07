@@ -92,7 +92,7 @@ void RegCache::FlushLockX(X64Reg reg1, X64Reg reg2)
   LockX(reg2);
 }
 
-int RegCache::SanityCheck() const
+bool RegCache::SanityCheck() const
 {
   for (size_t i = 0; i < m_regs.size(); i++)
   {
@@ -100,21 +100,23 @@ int RegCache::SanityCheck() const
     {
     case PPCCachedReg::LocationType::Default:
     case PPCCachedReg::LocationType::SpeculativeImmediate:
+    case PPCCachedReg::LocationType::Immediate:
       break;
     case PPCCachedReg::LocationType::Bound:
     {
-      Gen::X64Reg simple = m_regs[i].Location().GetSimpleReg();
-      if (m_xregs[simple].IsLocked())
-        return 1;
-      if (m_xregs[simple].Contents() != i)
-        return 2;
+      if (m_regs[i].IsLocked())
+        return false;
+
+      Gen::X64Reg xr = m_regs[i].Location().GetSimpleReg();
+      if (m_xregs[xr].IsLocked())
+        return false;
+      if (m_xregs[xr].Contents() != i)
+        return false;
       break;
     }
-    case PPCCachedReg::LocationType::Immediate:
-      return 3;
     }
   }
-  return 0;
+  return true;
 }
 
 void RegCache::KillImmediate(preg_t preg, bool doLoad, bool makeDirty)

@@ -147,7 +147,7 @@ public:
   void FlushLockX(Gen::X64Reg reg);
   void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2);
 
-  int SanityCheck() const;
+  bool SanityCheck() const;
   void KillImmediate(preg_t preg, bool doLoad, bool makeDirty);
 
   // TODO - instead of doload, use "read", "write"
