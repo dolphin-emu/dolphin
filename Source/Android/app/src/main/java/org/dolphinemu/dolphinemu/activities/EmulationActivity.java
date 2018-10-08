@@ -58,6 +58,7 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mMenuVisible;
 
 	private static boolean sIsGameCubeGame;
+	private static GameFile sGameFile;
 
 	private boolean activityRecreated;
 	private String mSelectedTitle;
@@ -82,6 +83,9 @@ public final class EmulationActivity extends AppCompatActivity
 		launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
 		launcher.putExtra(EXTRA_SAVED_STATE, savedState);
 		Bundle options = new Bundle();
+
+		//
+		sGameFile = gameFile;
 
 		// I believe this warning is a bug. Activities are FragmentActivity from the support lib
 		//noinspection RestrictedApi
@@ -721,6 +725,11 @@ public final class EmulationActivity extends AppCompatActivity
 	public static boolean isGameCubeGame()
 	{
 		return sIsGameCubeGame;
+	}
+
+	public static GameFile getGameFile()
+	{
+		return sGameFile;
 	}
 
 	public boolean isActivityRecreated()

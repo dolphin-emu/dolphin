@@ -7,17 +7,13 @@
     <uses-feature
         android:name="android.hardware.gamepad"
         android:required="false"/>
-    <uses-feature
-        android:name="android.software.leanback"
-        android:required="false"/>
 
     <uses-feature android:glEsVersion="0x00030000" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA"/>
-    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
         android:name=".DolphinApplication"
@@ -31,6 +27,10 @@
         <activity
             android:name=".ui.main.MainActivity"
             android:theme="@style/DolphinBase">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+            </intent-filter>
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
             <intent-filter>
@@ -60,7 +60,6 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".utils.DirectoryInitialization"/>
         <service android:name=".services.GameFileCacheService"/>
 
         <provider

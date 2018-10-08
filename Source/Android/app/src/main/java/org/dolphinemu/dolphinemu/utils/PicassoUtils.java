@@ -1,7 +1,10 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Callback;
@@ -14,6 +17,13 @@ import java.io.File;
 
 public class PicassoUtils
 {
+	private static boolean isNetworkConnected(Context context)
+	{
+		ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+		return activeNetwork != null && activeNetwork.isConnected();
+	}
+
 	public static void loadGameBanner(ImageView imageView, GameFile gameFile)
 	{
 		File cover = new File(gameFile.getCustomCoverPath());
@@ -42,6 +52,9 @@ public class PicassoUtils
 		else
 		{
 			imageView.setImageResource(R.drawable.no_banner);
+			if(!isNetworkConnected(imageView.getContext()))
+				return;
+
 			Picasso.with(imageView.getContext())
 				.load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
 				.noPlaceholder()

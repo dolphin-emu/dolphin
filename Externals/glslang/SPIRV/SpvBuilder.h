@@ -131,10 +131,8 @@ public:
     Id makeSamplerType();
     Id makeSampledImageType(Id imageType);
 
-#ifdef NV_EXTENSIONS
     // accelerationStructureNV type
     Id makeAccelerationStructureNVType();
-#endif
 
     // For querying about types.
     Id getTypeId(Id resultId) const { return module.getTypeId(resultId); }
@@ -371,10 +369,8 @@ public:
         Id component;
         Id texelOut;
         Id lodClamp;
-#ifdef NV_EXTENSIONS
         Id granularity;
         Id coarse;
-#endif
         bool nonprivate;
         bool volatil;
     };

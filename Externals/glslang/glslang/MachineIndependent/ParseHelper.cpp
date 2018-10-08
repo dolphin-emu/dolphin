@@ -400,9 +400,21 @@ TIntermTyped* TParseContext::handleBracketDereference(const TSourceLoc& loc, TIn
         handleIoResizeArrayAccess(loc, base);
 
     if (index->getQualifier().isFrontEndConstant()) {
-        if (base->getType().isUnsizedArray())
+        if (base->getType().isUnsizedArray()) {
             base->getWritableType().updateImplicitArraySize(indexValue + 1);
-        else
+#ifdef NV_EXTENSIONS
+            // For 2D per-view builtin arrays, update the inner dimension size in parent type
+            if (base->getQualifier().isPerView() && base->getQualifier().builtIn != EbvNone) {
+                TIntermBinary* binaryNode = base->getAsBinaryNode();
+                if (binaryNode) {
+                    TType& leftType = binaryNode->getLeft()->getWritableType();
+                    TArraySizes& arraySizes = *leftType.getArraySizes();
+                    assert(arraySizes.getNumDims() == 2);
+                    arraySizes.setDimSize(1, std::max(arraySizes.getDimSize(1), indexValue + 1));
+                }
+            }
+#endif
+        } else
             checkIndex(loc, base->getType(), indexValue);
         result = intermediate.addIndex(EOpIndexDirect, base, index, loc);
     } else {
@@ -612,7 +624,7 @@ int TParseContext::getIoArrayImplicitSize(bool isPerPrimitive) const
         return 3; //Number of vertices for Fragment shader is always three.
     else if (language == EShLangMeshNV) {
         if (isPerPrimitive) {
-            return intermediate.getPrimitives() != TQualifier::layoutNotSet ? intermediate.getPrimitives() : 0;            
+            return intermediate.getPrimitives() != TQualifier::layoutNotSet ? intermediate.getPrimitives() : 0;
         } else {
             return intermediate.getVertices() != TQualifier::layoutNotSet ? intermediate.getVertices() : 0;
         }
@@ -813,6 +825,8 @@ TIntermTyped* TParseContext::handleDotDereference(const TSourceLoc& loc, TInterm
                 TIntermTyped* index = intermediate.addConstantUnion(member, loc);
                 result = intermediate.addIndex(EOpIndexDirectStruct, base, index, loc);
                 result->setType(*(*fields)[member].type);
+                if ((*fields)[member].type->getQualifier().isIo())
+                    intermediate.addIoAccessed(field);
             }
         } else
             error(loc, "no such field in structure", field.c_str(), "");
@@ -3602,6 +3616,14 @@ void TParseContext::arraySizesCheck(const TSourceLoc& loc, const TQualifier& qua
                 extensionsTurnedOn(Num_AEP_tessellation_shader, AEP_tessellation_shader))
                 return;
         break;
+#ifdef NV_EXTENSIONS
+    case EShLangMeshNV:
+        if (qualifier.storage == EvqVaryingOut)
+            if ((profile == EEsProfile && version >= 320) ||
+                extensionTurnedOn(E_GL_NV_mesh_shader))
+                return;
+        break;
+#endif
     default:
         break;
     }
@@ -4051,10 +4073,31 @@ void TParseContext::redeclareBuiltinBlock(const TSourceLoc& loc, TTypeList& newT
                 error(memberLoc, "cannot redeclare block member with a different type", member->type->getFieldName().c_str(), "");
             if (oldType.isArray() != newType.isArray())
                 error(memberLoc, "cannot change arrayness of redeclared block member", member->type->getFieldName().c_str(), "");
-            else if (! oldType.sameArrayness(newType) && oldType.isSizedArray())
+            else if (! oldType.getQualifier().isPerView() && ! oldType.sameArrayness(newType) && oldType.isSizedArray())
                 error(memberLoc, "cannot change array size of redeclared block member", member->type->getFieldName().c_str(), "");
-            else if (newType.isArray())
+            else if (! oldType.getQualifier().isPerView() && newType.isArray())
                 arrayLimitCheck(loc, member->type->getFieldName(), newType.getOuterArraySize());
+#ifdef NV_EXTENSIONS
+            if (oldType.getQualifier().isPerView() && ! newType.getQualifier().isPerView())
+                error(memberLoc, "missing perviewNV qualifier to redeclared block member", member->type->getFieldName().c_str(), "");
+            else if (! oldType.getQualifier().isPerView() && newType.getQualifier().isPerView())
+                error(memberLoc, "cannot add perviewNV qualifier to redeclared block member", member->type->getFieldName().c_str(), "");
+            else if (newType.getQualifier().isPerView()) {
+                if (oldType.getArraySizes()->getNumDims() != newType.getArraySizes()->getNumDims())
+                    error(memberLoc, "cannot change arrayness of redeclared block member", member->type->getFieldName().c_str(), "");
+                else if (! newType.isUnsizedArray() && newType.getOuterArraySize() != resources.maxMeshViewCountNV)
+                    error(loc, "mesh view output array size must be gl_MaxMeshViewCountNV or implicitly sized", "[]", "");
+                else if (newType.getArraySizes()->getNumDims() == 2) {
+                    int innerDimSize = newType.getArraySizes()->getDimSize(1);
+                    arrayLimitCheck(memberLoc, member->type->getFieldName(), innerDimSize);
+                    oldType.getArraySizes()->setDimSize(1, innerDimSize);
+                }
+            }
+            if (oldType.getQualifier().isPerPrimitive() && ! newType.getQualifier().isPerPrimitive())
+                error(memberLoc, "missing perprimitiveNV qualifier to redeclared block member", member->type->getFieldName().c_str(), "");
+            else if (! oldType.getQualifier().isPerPrimitive() && newType.getQualifier().isPerPrimitive())
+                error(memberLoc, "cannot add perprimitiveNV qualifier to redeclared block member", member->type->getFieldName().c_str(), "");
+#endif
             if (newType.getQualifier().isMemory())
                 error(memberLoc, "cannot add memory qualifier to redeclared block member", member->type->getFieldName().c_str(), "");
             if (newType.getQualifier().hasNonXfbLayout())
@@ -4413,6 +4456,12 @@ void TParseContext::arrayLimitCheck(const TSourceLoc& loc, const TString& identi
         limitCheck(loc, size, "gl_MaxClipDistances", "gl_ClipDistance array size");
     else if (identifier.compare("gl_CullDistance") == 0)
         limitCheck(loc, size, "gl_MaxCullDistances", "gl_CullDistance array size");
+#ifdef NV_EXTENSIONS
+    else if (identifier.compare("gl_ClipDistancePerViewNV") == 0)
+        limitCheck(loc, size, "gl_MaxClipDistances", "gl_ClipDistancePerViewNV array size");
+    else if (identifier.compare("gl_CullDistancePerViewNV") == 0)
+        limitCheck(loc, size, "gl_MaxCullDistances", "gl_CullDistancePerViewNV array size");
+#endif
 }
 
 // See if the provided value is less than or equal to the symbol indicated by limit,
@@ -4462,6 +4511,12 @@ void TParseContext::finish()
         if (profile != EEsProfile && version < 430)
             requireExtensions(getCurrentLoc(), 1, &E_GL_ARB_compute_shader, "compute shaders");
         break;
+#ifdef NV_EXTENSIONS
+    case EShLangTaskNV:
+    case EShLangMeshNV:
+        requireExtensions(getCurrentLoc(), 1, &E_GL_NV_mesh_shader, "mesh shaders");
+        break;
+#endif
     default:
         break;
     }
@@ -4473,7 +4528,7 @@ void TParseContext::finish()
             switch (intermediate.getInputPrimitive()) {
             case ElgPoints:      intermediate.setOutputPrimitive(ElgPoints);    break;
             case ElgLines:       intermediate.setOutputPrimitive(ElgLineStrip); break;
-            case ElgTriangles:   intermediate.setOutputPrimitive(ElgTriangles); break;
+            case ElgTriangles:   intermediate.setOutputPrimitive(ElgTriangleStrip); break;
             default: break;
             }
         }
@@ -4965,12 +5020,14 @@ void TParseContext::setLayoutQualifier(const TSourceLoc& loc, TPublicType& publi
 #ifdef NV_EXTENSIONS
     case EShLangMeshNV:
         if (id == "max_vertices") {
+            requireExtensions(loc, 1, &E_GL_NV_mesh_shader, "max_vertices");
             publicType.shaderQualifiers.vertices = value;
             if (value > resources.maxMeshOutputVerticesNV)
                 error(loc, "too large, must be less than gl_MaxMeshOutputVerticesNV", "max_vertices", "");
             return;
         }
         if (id == "max_primitives") {
+            requireExtensions(loc, 1, &E_GL_NV_mesh_shader, "max_primitives");
             publicType.shaderQualifiers.primitives = value;
             if (value > resources.maxMeshOutputPrimitivesNV)
                 error(loc, "too large, must be less than gl_MaxMeshOutputPrimitivesNV", "max_primitives", "");
@@ -4985,7 +5042,7 @@ void TParseContext::setLayoutQualifier(const TSourceLoc& loc, TPublicType& publi
         if (id.compare(0, 11, "local_size_") == 0) {
 #ifdef NV_EXTENSIONS
             if (language == EShLangMeshNV || language == EShLangTaskNV) {
-                profileRequires(loc, ~EEsProfile, 450, E_GL_NV_mesh_shader, "gl_WorkGroupSize");
+                requireExtensions(loc, 1, &E_GL_NV_mesh_shader, "gl_WorkGroupSize");
             }
             else
 #endif

@@ -33,6 +33,8 @@ public class RunningSettingDialog extends DialogFragment
 
 	public class SettingsItem
 	{
+		//
+		public static final int SETTING_CHEAT_CODE = -1;
 		// gfx
 		public static final int SETTING_SHOW_FPS = 0;
 		public static final int SETTING_SKIP_EFB = 1;
@@ -53,14 +55,23 @@ public class RunningSettingDialog extends DialogFragment
 		public static final int TYPE_SEEK_BAR = 2;
 
 		private int mSetting;
-		private int mNameId;
+		private String mName;
 		private int mType;
 		private int mValue;
 
 		public SettingsItem(int setting, int nameId, int type, int value)
 		{
+
 			mSetting = setting;
-			mNameId = nameId;
+			mName = getString(nameId);
+			mType = type;
+			mValue = value;
+		}
+
+		public SettingsItem(int setting, String name, int type, int value)
+		{
+			mSetting = setting;
+			mName = name;
 			mType = type;
 			mValue = value;
 		}
@@ -75,9 +86,9 @@ public class RunningSettingDialog extends DialogFragment
 			return mSetting;
 		}
 
-		public int getNameId()
+		public String getName()
 		{
-			return mNameId;
+			return mName;
 		}
 
 		public int getValue()
@@ -131,7 +142,7 @@ public class RunningSettingDialog extends DialogFragment
 		public void bind(SettingsItem item)
 		{
 			mItem = item;
-			mTextSettingName.setText(item.getNameId());
+			mTextSettingName.setText(item.getName());
 			mCheckbox.setChecked(mItem.getValue() > 0);
 		}
 
@@ -165,7 +176,7 @@ public class RunningSettingDialog extends DialogFragment
 		public void bind(SettingsItem item)
 		{
 			mItem = item;
-			mTextSettingName.setText(item.getNameId());
+			mTextSettingName.setText(item.getName());
 			mRadioButton.setChecked(mItem.getValue() > 0);
 		}
 
@@ -200,7 +211,7 @@ public class RunningSettingDialog extends DialogFragment
 		public void bind(SettingsItem item)
 		{
 			mItem = item;
-			mTextSettingName.setText(item.getNameId());
+			mTextSettingName.setText(item.getName());
 			if (mItem.getSetting() == SettingsItem.SETTING_OVERCLOCK_PERCENT)
 			{
 				mSeekBar.setMax(300);
@@ -285,6 +296,13 @@ public class RunningSettingDialog extends DialogFragment
 				R.string.overclock_title, SettingsItem.TYPE_SEEK_BAR, mRunningSettings[i++]));
 			mSettings.add(new SettingsItem(SettingsItem.SETTING_JIT_FOLLOW_BRANCH,
 				R.string.jit_follow_branch, SettingsItem.TYPE_CHECKBOX, mRunningSettings[i++]));
+
+			// cheat code
+			/*String[] codes = EmulationActivity.getGameFile().getCodes();
+			for(String c : codes)
+			{
+				mSettings.add(new SettingsItem(SettingsItem.SETTING_CHEAT_CODE, c, SettingsItem.TYPE_CHECKBOX, 0));
+			}*/
 		}
 
 		@Override
@@ -340,7 +358,7 @@ public class RunningSettingDialog extends DialogFragment
 			}
 			mSettings.remove(0);
 
-			for (int i = 0; i < mSettings.size(); ++i)
+			for (int i = 0; i < mRunningSettings.length; ++i)
 			{
 				newSettings[i] = mSettings.get(i).getValue();
 				if (newSettings[i] != mRunningSettings[i])
