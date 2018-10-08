@@ -214,8 +214,8 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'D':
     return Country::Germany;
 
-  case 'L':  // Japanese import to PAL regions
-  case 'M':  // Japanese import to PAL regions
+  case 'L':  // NTSC-J games released on PAL VC
+  case 'M':  // NTSC-U games released on PAL VC
   case 'V':
   case 'P':
     return Country::Europe;
@@ -242,16 +242,16 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'E':
     return region == Region::NTSC_J ? Country::Korea : Country::USA;
 
-  case 'N':  // Japanese import to USA and other NTSC regions
-  case 'B':  // Ufouria: The Saga (Virtual Console)
+  case 'B':  // PAL games released on NTSC-U VC
+  case 'N':  // NTSC-J games released on NTSC-U VC
     return Country::USA;
 
   case 'J':
     return Country::Japan;
 
   case 'K':
-  case 'Q':  // Korea with Japanese language
-  case 'T':  // Korea with English language
+  case 'Q':  // NTSC-J games released on NTSC-K VC
+  case 'T':  // NTSC-U games released on NTSC-K VC
     return Country::Korea;
 
   default:
