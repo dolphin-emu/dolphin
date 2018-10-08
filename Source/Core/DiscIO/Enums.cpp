@@ -171,6 +171,7 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
   case 'R':
   case 'S':
   case 'U':
+  case 'V':
   case 'X':
   case 'Y':
     return Region::PAL;
@@ -201,6 +202,7 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'Y':  // German, French
   case 'L':  // Japanese import to PAL regions
   case 'M':  // Japanese import to PAL regions
+  case 'V':
   case 'P':
     return Country::Europe;
 
