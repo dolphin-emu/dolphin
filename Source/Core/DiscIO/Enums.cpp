@@ -153,10 +153,16 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
     return Region::NTSC_J;
 
   case 'W':
-    return expected_region == Region::PAL ? Region::PAL : Region::NTSC_J;
+    if (expected_region == Region::PAL)
+      return Region::PAL;  // Only the Nordic version of Ratatouille (Wii)
+    else
+      return Region::NTSC_J;  // Korean GC games in English or Taiwanese Wii games
 
   case 'E':
-    return expected_region == Region::NTSC_J ? Region::NTSC_J : Region::NTSC_U;
+    if (expected_region == Region::NTSC_J)
+      return Region::NTSC_J;  // Korean GC games in English
+    else
+      return Region::NTSC_U;  // The most common country code for NTSC-U
 
   case 'B':
   case 'N':
@@ -165,6 +171,7 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
   case 'X':
   case 'Y':
   case 'Z':
+    // Additional language versions, store-exclusive versions, other special versions
     return expected_region == Region::NTSC_U ? Region::NTSC_U : Region::PAL;
 
   case 'D':
@@ -183,6 +190,7 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
   case 'K':
   case 'Q':
   case 'T':
+    // All of these country codes are Korean, but the NTSC-K region doesn't exist on GC
     return platform == Platform::GameCubeDisc ? Region::NTSC_J : Region::NTSC_K;
 
   default:
@@ -202,13 +210,16 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'X':
   case 'Y':
   case 'Z':
+    // Additional language versions, store-exclusive versions, other special versions
     return region == Region::NTSC_U ? Country::USA : Country::Europe;
 
   case 'W':
     if (region == Region::PAL)
-      return Country::Europe;
+      return Country::Europe;  // Only the Nordic version of Ratatouille (Wii)
+    else if (platform == Platform::GameCubeDisc)
+      return Country::Korea;  // GC games in English released in Korea
     else
-      return platform == Platform::GameCubeDisc ? Country::Korea : Country::Taiwan;
+      return Country::Taiwan;  // Wii games in traditional Chinese released in Taiwan
 
   // PAL
   case 'D':
@@ -216,8 +227,8 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
 
   case 'L':  // NTSC-J games released on PAL VC
   case 'M':  // NTSC-U games released on PAL VC
-  case 'V':
-  case 'P':
+  case 'V':  // Used by some Nordic Wii releases
+  case 'P':  // The most common country code for PAL
     return Country::Europe;
 
   case 'U':
@@ -240,7 +251,10 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
 
   // NTSC
   case 'E':
-    return region == Region::NTSC_J ? Country::Korea : Country::USA;
+    if (region == Region::NTSC_J)
+      return Country::Korea;  // GC games in English released in Korea
+    else
+      return Country::USA;  // The most common country code for NTSC-U
 
   case 'B':  // PAL games released on NTSC-U VC
   case 'N':  // NTSC-J games released on NTSC-U VC
@@ -249,10 +263,9 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'J':
     return Country::Japan;
 
-  case 'K':
+  case 'K':  // Games in Korean released in Korea
   case 'Q':  // NTSC-J games released on NTSC-K VC
   case 'T':  // NTSC-U games released on NTSC-K VC
-    return Country::Korea;
 
   default:
     if (country_code > 'A')  // Silently ignore IOS wads
