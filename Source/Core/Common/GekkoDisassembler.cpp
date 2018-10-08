@@ -2242,7 +2242,7 @@ u32* GekkoDisassembler::DoDisassembly(bool big_endian)
         if ((in & 0x02010000) == 0)
         {
           m_opcode = StringFromFormat("mtfsf%s", rcsel[in & 1]);
-          m_operands = StringFromFormat("0x%x,%u", (in >> 17) & 0xff, regnames[PPCGETB(in)]);
+          m_operands = StringFromFormat("0x%x, f%u", (in >> 17) & 0xff, PPCGETB(in));
         }
         else
         {
