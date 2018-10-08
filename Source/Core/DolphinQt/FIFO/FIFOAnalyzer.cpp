@@ -281,7 +281,7 @@ void FIFOAnalyzer::UpdateDetails()
       {
         u32 cmd2 = Common::swap32(objectdata);
         objectdata += 4;
-        new_label = QStringLiteral("BP  %02X %06X")
+        new_label = QStringLiteral("BP  %02 %06")
                         .arg(cmd2 >> 24, 2, 16, QLatin1Char('0'))
                         .arg(cmd2 & 0xFFFFFF, 6, 16, QLatin1Char('0'));
       }
