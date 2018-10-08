@@ -242,10 +242,10 @@ void FIFOAnalyzer::UpdateDetails()
         const u8* stream_start = objectdata;
         const u8* stream_end = stream_start + streamSize * 4;
 
-        new_label = QStringLiteral("XF  %1  ").arg(cmd2, 16, 8, QLatin1Char('0'));
+        new_label = QStringLiteral("XF  %1  ").arg(cmd2, 8, 16, QLatin1Char('0'));
         while (objectdata < stream_end)
         {
-          new_label += QStringLiteral("%1").arg(*objectdata++, 16, 2, QLatin1Char('0'));
+          new_label += QStringLiteral("%1").arg(*objectdata++, 2, 16, QLatin1Char('0'));
 
           if (((objectdata - stream_start) % 4) == 0)
             new_label += QLatin1Char(' ');
@@ -281,7 +281,7 @@ void FIFOAnalyzer::UpdateDetails()
       {
         u32 cmd2 = Common::swap32(objectdata);
         objectdata += 4;
-        new_label = QStringLiteral("BP  %02X %06X")
+        new_label = QStringLiteral("BP  %02 %06")
                         .arg(cmd2 >> 24, 2, 16, QLatin1Char('0'))
                         .arg(cmd2 & 0xFFFFFF, 6, 16, QLatin1Char('0'));
       }
