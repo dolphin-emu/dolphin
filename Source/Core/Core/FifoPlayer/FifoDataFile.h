@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace File
 {
@@ -50,9 +51,10 @@ public:
     BP_MEM_SIZE = 256,
     CP_MEM_SIZE = 256,
     XF_MEM_SIZE = 4096,
-    XF_REGS_SIZE = 96,
+    XF_REGS_SIZE = 88,
     TEX_MEM_SIZE = 1024 * 1024,
   };
+  static_assert((XF_MEM_SIZE + XF_REGS_SIZE) * sizeof(u32) == sizeof(XFMemory));
 
   FifoDataFile();
   ~FifoDataFile();
