@@ -150,16 +150,22 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
   switch (country_code)
   {
   case 'J':
-  case 'W':
     return Region::NTSC_J;
+
+  case 'W':
+    return expected_region == Region::PAL ? Region::PAL : Region::NTSC_J;
 
   case 'E':
     return expected_region == Region::NTSC_J ? Region::NTSC_J : Region::NTSC_U;
 
   case 'B':
   case 'N':
-  case 'Z':
     return Region::NTSC_U;
+
+  case 'X':
+  case 'Y':
+  case 'Z':
+    return expected_region == Region::NTSC_U ? Region::NTSC_U : Region::PAL;
 
   case 'D':
   case 'F':
@@ -172,8 +178,6 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
   case 'S':
   case 'U':
   case 'V':
-  case 'X':
-  case 'Y':
     return Region::PAL;
 
   case 'K':
@@ -194,12 +198,22 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'A':
     return Country::World;
 
+  // Mixed regions
+  case 'X':
+  case 'Y':
+  case 'Z':
+    return region == Region::NTSC_U ? Country::USA : Country::Europe;
+
+  case 'W':
+    if (region == Region::PAL)
+      return Country::Europe;
+    else
+      return platform == Platform::GameCubeDisc ? Country::Korea : Country::Taiwan;
+
   // PAL
   case 'D':
     return Country::Germany;
 
-  case 'X':  // Used by a couple PAL games
-  case 'Y':  // German, French
   case 'L':  // Japanese import to PAL regions
   case 'M':  // Japanese import to PAL regions
   case 'V':
@@ -229,7 +243,6 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
     return region == Region::NTSC_J ? Country::Korea : Country::USA;
 
   case 'N':  // Japanese import to USA and other NTSC regions
-  case 'Z':  // Prince of Persia - The Forgotten Sands (Wii)
   case 'B':  // Ufouria: The Saga (Virtual Console)
     return Country::USA;
 
@@ -240,9 +253,6 @@ Country CountrySwitch(u8 country_code, Platform platform, Region region)
   case 'Q':  // Korea with Japanese language
   case 'T':  // Korea with English language
     return Country::Korea;
-
-  case 'W':
-    return platform == Platform::GameCubeDisc ? Country::Korea : Country::Taiwan;
 
   default:
     if (country_code > 'A')  // Silently ignore IOS wads
