@@ -293,10 +293,10 @@ Country VolumeWii::GetCountry(const Partition& partition) const
   const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
 
-  if (RegionSwitch(country_byte, Platform::WiiDisc, region) != region)
+  if (CountryCodeToRegion(country_byte, Platform::WiiDisc, region) != region)
     return TypicalCountryForRegion(region);
 
-  return CountrySwitch(country_byte, Platform::WiiDisc, region);
+  return CountryCodeToCountry(country_byte, Platform::WiiDisc, region);
 }
 
 std::string VolumeWii::GetMakerID(const Partition& partition) const

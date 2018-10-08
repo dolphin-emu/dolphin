@@ -88,7 +88,7 @@ Country VolumeWAD::GetCountry(const Partition& partition) const
   if (country_code == 2)  // SYSMENU
     return TypicalCountryForRegion(GetSysMenuRegion(m_tmd.GetTitleVersion()));
 
-  return CountrySwitch(country_code, Platform::WiiWAD);
+  return CountryCodeToCountry(country_code, Platform::WiiWAD);
 }
 
 const IOS::ES::TMDReader& VolumeWAD::GetTMD(const Partition& partition) const

@@ -87,10 +87,10 @@ Country VolumeGC::GetCountry(const Partition& partition) const
   const u8 country = ReadSwapped<u8>(3, partition).value_or(0);
   const Region region = GetRegion();
 
-  if (RegionSwitch(country, Platform::GameCubeDisc, region) != region)
+  if (CountryCodeToRegion(country, Platform::GameCubeDisc, region) != region)
     return TypicalCountryForRegion(region);
 
-  return CountrySwitch(country, Platform::GameCubeDisc, region);
+  return CountryCodeToCountry(country, Platform::GameCubeDisc, region);
 }
 
 std::string VolumeGC::GetMakerID(const Partition& partition) const

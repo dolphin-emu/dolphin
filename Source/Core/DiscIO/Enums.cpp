@@ -145,7 +145,7 @@ Country TypicalCountryForRegion(Region region)
   }
 }
 
-Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
+Region CountryCodeToRegion(u8 country_code, Platform platform, Region expected_region)
 {
   switch (country_code)
   {
@@ -198,7 +198,7 @@ Region RegionSwitch(u8 country_code, Platform platform, Region expected_region)
   }
 }
 
-Country CountrySwitch(u8 country_code, Platform platform, Region region)
+Country CountryCodeToCountry(u8 country_code, Platform platform, Region region)
 {
   switch (country_code)
   {

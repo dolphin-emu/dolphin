@@ -77,8 +77,9 @@ bool IsNTSC(Region region);
 
 Country TypicalCountryForRegion(Region region);
 // Avoid using this function if you can. Country codes aren't always reliable region indicators.
-Region RegionSwitch(u8 country_code, Platform platform, Region expected_region = Region::Unknown);
-Country CountrySwitch(u8 country_code, Platform platform, Region region = Region::Unknown);
+Region CountryCodeToRegion(u8 country_code, Platform platform,
+                           Region expected_region = Region::Unknown);
+Country CountryCodeToCountry(u8 country_code, Platform platform, Region region = Region::Unknown);
 
 Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);
