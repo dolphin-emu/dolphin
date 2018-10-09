@@ -52,9 +52,6 @@ public class PicassoUtils
 		else
 		{
 			imageView.setImageResource(R.drawable.no_banner);
-			if(!isNetworkConnected(imageView.getContext()))
-				return;
-
 			Picasso.with(imageView.getContext())
 				.load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
 				.noPlaceholder()
@@ -72,7 +69,8 @@ public class PicassoUtils
 					@Override
 					public void onError()
 					{
-						imageView.setImageResource(R.drawable.no_banner);
+						if(!isNetworkConnected(imageView.getContext()))
+							return;
 						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
 							gameFile.getCoverPath());
 					}
