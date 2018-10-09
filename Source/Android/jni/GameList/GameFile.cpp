@@ -124,21 +124,34 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
   return static_cast<jint>(GetRef(env, obj)->GetBannerImage().height);
 }
 
+static struct {
+    std::string game_id;
+    u16 game_revision;
+    std::vector<ActionReplay::ARCode> ar_codes;
+    std::vector<Gecko::GeckoCode> gecko_codes;
+
+    void LoadGameIni(const std::string& id, u16 revision)
+    {
+      if(game_id != id || game_revision != revision)
+      {
+        IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(game_id, game_revision);
+        IniFile game_ini_local = SConfig::GetInstance().LoadLocalGameIni(game_id, game_revision);
+        game_id = id;
+        game_revision = revision;
+        ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
+        gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
+      }
+    }
+} s_game_code_cache;
+
 JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getCodes(JNIEnv* env,
                                                                                         jobject obj)
 {
   const std::shared_ptr<const UICommon::GameFile>& game_file = GetRef(env, obj);
-  const std::string& game_id = game_file->GetGameID();
-  const u16 game_revision = game_file->GetRevision();
+  s_game_code_cache.LoadGameIni(game_file->GetGameID(), game_file->GetRevision());
 
-  IniFile game_ini_default = SConfig::GetInstance().LoadDefaultGameIni(game_id, game_revision);
-  IniFile game_ini_local = SConfig::GetInstance().LoadLocalGameIni(game_id, game_revision);
-
-  std::vector<ActionReplay::ARCode> ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
-  std::vector<Gecko::GeckoCode> gecko_codes = Gecko::LoadCodes(game_ini_default, game_ini_local);
-
-  jsize ar_size = (jsize)ar_codes.size();
-  jsize gc_size = (jsize)gecko_codes.size();
+  jsize ar_size = (jsize)s_game_code_cache.ar_codes.size();
+  jsize gc_size = (jsize)s_game_code_cache.gecko_codes.size();
 
   jobjectArray list = (jobjectArray) env->NewObjectArray(
     ar_size + gc_size,
@@ -147,12 +160,12 @@ JNIEXPORT jobjectArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_get
 
   for(int i = 0; i < ar_size; ++i)
   {
-    env->SetObjectArrayElement(list, i, ToJString(env, ar_codes[i].name));
+    env->SetObjectArrayElement(list, i, ToJString(env, s_game_code_cache.ar_codes[i].name));
   }
 
   for(int i = 0; i < gc_size; ++i)
   {
-    env->SetObjectArrayElement(list, i, ToJString(env, gecko_codes[i].name));
+    env->SetObjectArrayElement(list, i, ToJString(env, s_game_code_cache.gecko_codes[i].name));
   }
 
   return list;

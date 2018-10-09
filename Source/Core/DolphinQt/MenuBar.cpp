@@ -1279,8 +1279,6 @@ void MenuBar::CreateSignatureFile()
 {
   const QString text = QInputDialog::getText(
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
-  if (text.isEmpty())
-    return;
 
   const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"));
   if (file.isEmpty())

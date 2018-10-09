@@ -17,7 +17,6 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
@@ -291,16 +290,37 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				}
 				else if (JoyStickSetting == JOYSTICK_EMULATE_TILT)
 				{
-					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
 					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
-					axises[0] = 0;
-					axises[3] = 0;
+					//
+					if(axises[0] < -0.15f)
+					{
+						axises[0] = 0.0f;
+						axises[1] = 1.0f;
+					}
+					else if(axises[0] > 0.15f)
+					{
+						axises[0] = 1.0f;
+						axises[1] = 0.0f;
+					}
+					//
+					if(axises[2] < -0.15f)
+					{
+						axises[2] = 0.0f;
+						axises[3] = 1.0f;
+					}
+					else if(axises[2] > 0.15f)
+					{
+						axises[2] = 1.0f;
+						axises[3] = 0.0f;
+					}
 				}
 				else if (JoyStickSetting == JOYSTICK_EMULATE_SHAKE)
 				{
+					axises[1] = -axises[1];
+					axises[3] = -axises[3];
 					handleShakeEvent(axises);
 					continue;
 				}
@@ -547,16 +567,34 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2; // backward
 					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3; // left
 					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4; // right
-					axises[0] = 0;
-					axises[1] = y;
-					axises[2] = x;
-					axises[3] = 0;
+					//
+					if(y < -0.15f)
+					{
+						axises[0] = 0.0f;
+						axises[1] = 1.0f;
+					}
+					else if(y > 0.15f)
+					{
+						axises[0] = 1.0f;
+						axises[1] = 0.0f;
+					}
+					//
+					if(x < -0.15f)
+					{
+						axises[2] = 0.0f;
+						axises[3] = 1.0f;
+					}
+					else if(x > 0.15f)
+					{
+						axises[2] = 1.0f;
+						axises[3] = 0.0f;
+					}
 					break;
 				case SENSOR_WII_SHAKE:
-					axises[0] = 0;
-					axises[1] = -x / 1.5f;
-					axises[2] = -y / 1.5f;
-					axises[3] = -z / 1.5f;
+					axises[0] = -x;
+					axises[1] = x;
+					axises[2] = -y;
+					axises[3] = y;
 					handleShakeEvent(axises);
 					return;
 			}

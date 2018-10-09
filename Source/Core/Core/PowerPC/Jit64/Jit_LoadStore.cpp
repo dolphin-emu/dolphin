@@ -126,6 +126,9 @@ void Jit64::lXXx(UGeckoInstruction inst)
   else
     update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
 
+  // Determine whether this instruction indexes with inst.RB
+  const bool indexed = inst.OPCD == 31;
+
   bool storeAddress = false;
   s32 loadOffset = 0;
 
@@ -133,7 +136,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
   OpArg opAddress;
   if (!update && !a)
   {
-    if (inst.OPCD == 31)
+    if (indexed)
     {
       if (!gpr.R(b).IsImm())
         gpr.BindToRegister(b, true, false);
@@ -150,14 +153,14 @@ void Jit64::lXXx(UGeckoInstruction inst)
   }
   else
   {
-    if ((inst.OPCD != 31) && gpr.R(a).IsImm() && !jo.memcheck)
+    if (!indexed && gpr.R(a).IsImm() && !jo.memcheck)
     {
       u32 val = gpr.R(a).Imm32() + inst.SIMM_16;
       opAddress = Imm32(val);
       if (update)
         gpr.SetImmediate32(a, val);
     }
-    else if ((inst.OPCD == 31) && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !jo.memcheck)
+    else if (indexed && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !jo.memcheck)
     {
       u32 val = gpr.R(a).Imm32() + gpr.R(b).Imm32();
       opAddress = Imm32(val);
@@ -167,11 +170,11 @@ void Jit64::lXXx(UGeckoInstruction inst)
     else
     {
       // If we're using reg+reg mode and b is an immediate, pretend we're using constant offset mode
-      bool use_constant_offset = inst.OPCD != 31 || gpr.R(b).IsImm();
+      bool use_constant_offset = !indexed || gpr.R(b).IsImm();
 
       s32 offset = 0;
       if (use_constant_offset)
-        offset = inst.OPCD == 31 ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
+        offset = indexed ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
       // Depending on whether we have an immediate and/or update, find the optimum way to calculate
       // the load address.
       if ((update || use_constant_offset) && !jo.memcheck)
