@@ -65,6 +65,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -261,139 +262,64 @@ bool Renderer::CheckForHostConfigChanges()
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
 {
-  std::string final_yellow, final_cyan;
+  const auto& config = SConfig::GetInstance();
 
-  if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
+  if (g_ActiveConfig.bShowFPS)
   {
-    if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %.2f", m_fps_counter.GetFPS());
+    // Position in the top-right corner of the screen.
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
+                                   10.0f * m_backbuffer_scale),
+                            ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(100.0f * m_backbuffer_scale, 30.0f * m_backbuffer_scale));
 
-    if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
-      final_cyan += " - ";
-    if (SConfig::GetInstance().m_ShowFrameCount)
+    if (ImGui::Begin("FPS", nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs |
+                         ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav |
+                         ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
     {
-      final_cyan += StringFromFormat("Frame: %" PRIu64, Movie::GetCurrentFrame());
+      ImGui::TextColored(ImVec4(0.0f, 1.0f, 1.0f, 1.0f), "FPS: %.2f", m_fps_counter.GetFPS());
+    }
+    ImGui::End();
+  }
+
+  const bool show_movie_window =
+      config.m_ShowFrameCount | config.m_ShowLag | config.m_ShowInputDisplay | config.m_ShowRTC;
+  if (show_movie_window)
+  {
+    // Position under the FPS display.
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - (10.0f * m_backbuffer_scale),
+                                   50.0f * m_backbuffer_scale),
+                            ImGuiCond_FirstUseEver, ImVec2(1.0f, 0.0f));
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(150.0f * m_backbuffer_scale, 20.0f * m_backbuffer_scale),
+        ImGui::GetIO().DisplaySize);
+    if (ImGui::Begin("Movie", nullptr, ImGuiWindowFlags_NoFocusOnAppearing))
+    {
+      if (config.m_ShowFrameCount)
+      {
+        ImGui::Text("Frame: %" PRIu64, Movie::GetCurrentFrame());
+      }
       if (Movie::IsPlayingInput())
-        final_cyan += StringFromFormat("\nInput: %" PRIu64 " / %" PRIu64,
-                                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount());
+      {
+        ImGui::Text("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
+                    Movie::GetTotalInputCount());
+      }
+      if (SConfig::GetInstance().m_ShowLag)
+        ImGui::Text("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
+      if (SConfig::GetInstance().m_ShowInputDisplay)
+        ImGui::TextUnformatted(Movie::GetInputDisplay().c_str());
+      if (SConfig::GetInstance().m_ShowRTC)
+        ImGui::TextUnformatted(Movie::GetRTCDisplay().c_str());
     }
-
-    final_cyan += "\n";
-    final_yellow += "\n";
+    ImGui::End();
   }
-
-  if (SConfig::GetInstance().m_ShowLag)
-  {
-    final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
-    final_yellow += "\n";
-  }
-
-  if (SConfig::GetInstance().m_ShowInputDisplay)
-  {
-    final_cyan += Movie::GetInputDisplay();
-    final_yellow += "\n";
-  }
-
-  if (SConfig::GetInstance().m_ShowRTC)
-  {
-    final_cyan += Movie::GetRTCDisplay();
-    final_yellow += "\n";
-  }
-
-  // OSD Menu messages
-  if (m_osd_message > 0)
-  {
-    m_osd_time = Common::Timer::GetTimeMs() + 3000;
-    m_osd_message = -m_osd_message;
-  }
-
-  if (static_cast<u32>(m_osd_time) > Common::Timer::GetTimeMs())
-  {
-    std::string res_text;
-    switch (g_ActiveConfig.iEFBScale)
-    {
-    case EFB_SCALE_AUTO_INTEGRAL:
-      res_text = "Auto (integral)";
-      break;
-    case 1:
-      res_text = "Native";
-      break;
-    default:
-      res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale);
-      break;
-    }
-    const char* ar_text = "";
-    switch (g_ActiveConfig.aspect_mode)
-    {
-    case AspectMode::Stretch:
-      ar_text = "Stretch";
-      break;
-    case AspectMode::Analog:
-      ar_text = "Force 4:3";
-      break;
-    case AspectMode::AnalogWide:
-      ar_text = "Force 16:9";
-      break;
-    case AspectMode::Auto:
-    default:
-      ar_text = "Auto";
-      break;
-    }
-    const std::string audio_text = SConfig::GetInstance().m_IsMuted ?
-                                       "Muted" :
-                                       std::to_string(SConfig::GetInstance().m_Volume) + "%";
-
-    const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
-    const char* const xfbcopy_text = g_ActiveConfig.bSkipXFBCopyToRam ? "to Texture" : "to RAM";
-
-    // The rows
-    const std::string lines[] = {
-        std::string("Internal Resolution: ") + res_text,
-        std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
-        std::string("Copy EFB: ") + efbcopy_text,
-        std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-        SConfig::GetInstance().m_EmulationSpeed <= 0 ?
-            "Speed Limit: Unlimited" :
-            StringFromFormat("Speed Limit: %li%%",
-                             std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
-        std::string("Copy XFB: ") + xfbcopy_text +
-            (g_ActiveConfig.bImmediateXFB ? " (Immediate)" : ""),
-        "Volume: " + audio_text,
-    };
-
-    enum
-    {
-      lines_count = sizeof(lines) / sizeof(*lines)
-    };
-
-    // The latest changed setting in yellow
-    for (int i = 0; i != lines_count; ++i)
-    {
-      if (m_osd_message == -i - 1)
-        final_yellow += lines[i];
-      final_yellow += '\n';
-    }
-
-    // The other settings in cyan
-    for (int i = 0; i != lines_count; ++i)
-    {
-      if (m_osd_message != -i - 1)
-        final_cyan += lines[i];
-      final_cyan += '\n';
-    }
-  }
-
-  final_cyan += Common::Profiler::ToString();
 
   if (g_ActiveConfig.bOverlayStats)
-    final_cyan += Statistics::ToString();
+    Statistics::Display();
 
   if (g_ActiveConfig.bOverlayProjStats)
-    final_cyan += Statistics::ToStringProj();
-
-  // and then the text
-  RenderText(final_cyan, 20, 20, 0xFF00FFFF);
-  RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+    Statistics::DisplayProj();
 }
 
 float Renderer::CalculateDrawAspectRatio() const
@@ -955,6 +881,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
       // Draw any imgui overlays we have. Note that "draw" here means "create commands", the actual
       // draw calls don't get issued until DrawImGui is called, which happens in SwapImpl.
+      DrawDebugText();
+      OSD::DrawMessages();
       ImGui::Render();
 
       // TODO: merge more generic parts into VideoCommon
@@ -1331,9 +1259,4 @@ bool Renderer::UseVertexDepthRange() const
 std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCompiler()
 {
   return std::make_unique<VideoCommon::AsyncShaderCompiler>();
-}
-
-void Renderer::ShowOSDMessage(OSDMessage message)
-{
-  m_osd_message = static_cast<s32>(message);
 }

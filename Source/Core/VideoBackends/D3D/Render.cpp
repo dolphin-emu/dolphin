@@ -595,10 +595,6 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_backbuffer_width),
                                       static_cast<float>(m_backbuffer_height));
   D3D::context->RSSetViewports(1, &vp);
-
-  Renderer::DrawDebugText();
-
-  OSD::DrawMessages();
   DrawImGui();
 
   g_texture_cache->Cleanup(frameCount);

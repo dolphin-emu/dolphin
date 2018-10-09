@@ -595,9 +595,6 @@ static void Run(const std::vector<std::string>& paths, bool first_open,
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
 
-  // Install our callbacks
-  OSD::AddCallback(OSD::CallbackType::Shutdown, ButtonManager::Shutdown);
-
   RegisterMsgAlertHandler(&MsgAlert);
   Common::AndroidSetReportHandler(&ReportSend);
   DolphinAnalytics::AndroidSetGetValFunc(&GetAnalyticValue);
@@ -639,6 +636,7 @@ static void Run(const std::vector<std::string>& paths, bool first_open,
   }
 
   Core::Shutdown();
+  ButtonManager::Shutdown();
   UICommon::Shutdown();
   guard.unlock();
 
