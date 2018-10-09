@@ -549,10 +549,12 @@ void Renderer::SetViewport(float x, float y, float width, float height, float ne
 {
   // In D3D, the viewport rectangle must fit within the render target.
   D3D11_VIEWPORT vp;
-  vp.TopLeftX = MathUtil::Clamp(x, 0.0f, static_cast<float>(m_target_width - 1));
-  vp.TopLeftY = MathUtil::Clamp(y, 0.0f, static_cast<float>(m_target_height - 1));
-  vp.Width = MathUtil::Clamp(width, 1.0f, static_cast<float>(m_target_width) - vp.TopLeftX);
-  vp.Height = MathUtil::Clamp(height, 1.0f, static_cast<float>(m_target_height) - vp.TopLeftY);
+  vp.TopLeftX = MathUtil::Clamp(x, 0.0f, static_cast<float>(m_current_framebuffer_width - 1));
+  vp.TopLeftY = MathUtil::Clamp(y, 0.0f, static_cast<float>(m_current_framebuffer_height - 1));
+  vp.Width =
+      MathUtil::Clamp(width, 1.0f, static_cast<float>(m_current_framebuffer_width) - vp.TopLeftX);
+  vp.Height =
+      MathUtil::Clamp(height, 1.0f, static_cast<float>(m_current_framebuffer_height) - vp.TopLeftY);
   vp.MinDepth = near_depth;
   vp.MaxDepth = far_depth;
   D3D::context->RSSetViewports(1, &vp);
