@@ -51,8 +51,6 @@ void GeckoCodeWidget::CreateWidgets()
   m_name_label = new QLabel;
   m_creator_label = new QLabel;
 
-  m_code_list->setSortingEnabled(true);
-
   QFont monospace(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   const auto line_height = QFontMetrics(font()).lineSpacing();
