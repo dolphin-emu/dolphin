@@ -47,10 +47,12 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   m_whitelist_buttonbox = new QDialogButtonBox();
-  auto* add_button = new QPushButton(tr("Add"));
-  m_whitelist_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);
+  auto* add_button = m_whitelist_buttonbox->addButton(tr("Add"), QDialogButtonBox::AcceptRole);
+  auto* cancel_button =
+      m_whitelist_buttonbox->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
   connect(add_button, &QPushButton::clicked, this,
           &USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist);
+  connect(cancel_button, &QPushButton::clicked, this, &QDialog::reject);
   add_button->setDefault(true);
 
   main_layout = new QVBoxLayout();
@@ -85,6 +87,8 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   m_refresh_devices_timer = new QTimer(this);
   connect(usb_inserted_devices_list, &QListWidget::currentItemChanged, this,
           &USBDeviceAddToWhitelistDialog::OnDeviceSelection);
+  connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, add_button,
+          &QPushButton::clicked);
   connect(m_refresh_devices_timer, &QTimer::timeout, this,
           &USBDeviceAddToWhitelistDialog::RefreshDeviceList);
   m_refresh_devices_timer->start(1000);

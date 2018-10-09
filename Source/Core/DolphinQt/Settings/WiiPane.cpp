@@ -83,6 +83,8 @@ void WiiPane::ConnectLayout()
           &WiiPane::OnUSBWhitelistAddButton);
   connect(m_whitelist_usb_remove_button, &QPushButton::pressed, this,
           &WiiPane::OnUSBWhitelistRemoveButton);
+  connect(m_whitelist_usb_list, &QListWidget::itemDoubleClicked, m_whitelist_usb_remove_button,
+          &QPushButton::pressed);
 
   // Wii Remote Settings
   connect(m_wiimote_ir_sensor_position,
