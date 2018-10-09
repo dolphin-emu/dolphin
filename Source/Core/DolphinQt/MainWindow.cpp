@@ -1093,16 +1093,18 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
+  auto server = Settings::Instance().GetNetPlayServer();
+
   // Settings
   const std::string traversal_choice = Config::Get(Config::NETPLAY_TRAVERSAL_CHOICE);
   const bool is_traversal = traversal_choice == "traversal";
 
   std::string host_ip;
   u16 host_port;
-  if (Settings::Instance().GetNetPlayServer())
+  if (server)
   {
     host_ip = "127.0.0.1";
-    host_port = Settings::Instance().GetNetPlayServer()->GetPort();
+    host_port = server->GetPort();
   }
   else
   {
@@ -1114,9 +1116,17 @@ bool MainWindow::NetPlayJoin()
   const std::string traversal_host = Config::Get(Config::NETPLAY_TRAVERSAL_SERVER);
   const u16 traversal_port = Config::Get(Config::NETPLAY_TRAVERSAL_PORT);
   const std::string nickname = Config::Get(Config::NETPLAY_NICKNAME);
+  const bool host_input_authority = Config::Get(Config::NETPLAY_HOST_INPUT_AUTHORITY);
+
+  if (server)
+  {
+    server->SetHostInputAuthority(host_input_authority);
+    if (!host_input_authority)
+      server->AdjustPadBufferSize(Config::Get(Config::NETPLAY_BUFFER_SIZE));
+  }
 
   // Create Client
-  const bool is_hosting_netplay = Settings::Instance().GetNetPlayServer() != nullptr;
+  const bool is_hosting_netplay = server != nullptr;
   Settings::Instance().ResetNetPlayClient(new NetPlay::NetPlayClient(
       host_ip, host_port, m_netplay_dialog, nickname,
       NetPlay::NetTraversalConfig{is_hosting_netplay ? false : is_traversal, traversal_host,
@@ -1128,8 +1138,8 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
-  if (Settings::Instance().GetNetPlayServer() != nullptr)
-    Settings::Instance().GetNetPlayServer()->SetNetPlayUI(m_netplay_dialog);
+  if (server != nullptr)
+    server->SetNetPlayUI(m_netplay_dialog);
 
   m_netplay_setup_dialog->close();
   m_netplay_dialog->show(nickname, is_traversal);

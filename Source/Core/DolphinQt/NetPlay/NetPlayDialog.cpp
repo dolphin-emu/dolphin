@@ -71,6 +71,25 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
   CreateChatLayout();
   CreatePlayersLayout();
   CreateMainLayout();
+
+  const int buffer_size = Config::Get(Config::NETPLAY_BUFFER_SIZE);
+  const bool write_save_sdcard_data = Config::Get(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA);
+  const bool load_wii_save = Config::Get(Config::NETPLAY_LOAD_WII_SAVE);
+  const bool sync_saves = Config::Get(Config::NETPLAY_SYNC_SAVES);
+  const bool record_inputs = Config::Get(Config::NETPLAY_RECORD_INPUTS);
+  const bool reduce_polling_rate = Config::Get(Config::NETPLAY_REDUCE_POLLING_RATE);
+  const bool strict_settings_sync = Config::Get(Config::NETPLAY_STRICT_SETTINGS_SYNC);
+  const bool host_input_authority = Config::Get(Config::NETPLAY_HOST_INPUT_AUTHORITY);
+
+  m_buffer_size_box->setValue(buffer_size);
+  m_save_sd_box->setChecked(write_save_sdcard_data);
+  m_load_wii_box->setChecked(load_wii_save);
+  m_sync_save_data_box->setChecked(sync_saves);
+  m_record_input_box->setChecked(record_inputs);
+  m_reduce_polling_rate_box->setChecked(reduce_polling_rate);
+  m_strict_settings_sync_box->setChecked(strict_settings_sync);
+  m_host_input_authority_box->setChecked(host_input_authority);
+
   ConnectWidgets();
 
   auto& settings = Settings::Instance().GetQSettings();
@@ -306,6 +325,18 @@ void NetPlayDialog::ConnectWidgets()
         DisplayMessage(tr("Stopped game"), "red");
     }
   });
+
+  // SaveSettings() - Save Hosting-Dialog Settings
+
+  connect(m_buffer_size_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+          &NetPlayDialog::SaveSettings);
+  connect(m_save_sd_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_load_wii_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_sync_save_data_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_record_input_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_reduce_polling_rate_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_strict_settings_sync_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
+  connect(m_host_input_authority_box, &QCheckBox::stateChanged, this, &NetPlayDialog::SaveSettings);
 }
 
 void NetPlayDialog::OnChat()
@@ -802,7 +833,7 @@ void NetPlayDialog::OnHostInputAuthorityChanged(bool enabled)
       m_buffer_label->setHidden(!enable_buffer);
 
       if (enabled)
-        m_buffer_size_box->setValue(1);
+        m_buffer_size_box->setValue(Config::Get(Config::NETPLAY_CLIENT_BUFFER_SIZE));
     }
   });
   DisplayMessage(enabled ? tr("Host input authority enabled") : tr("Host input authority disabled"),
@@ -908,6 +939,26 @@ std::shared_ptr<const UICommon::GameFile> NetPlayDialog::FindGameFile(const std:
   if (game_file)
     return *game_file;
   return nullptr;
+}
+
+void NetPlayDialog::SaveSettings()
+{
+  if (m_host_input_authority)
+  {
+    if (!IsHosting())
+      Config::SetBase(Config::NETPLAY_CLIENT_BUFFER_SIZE, m_buffer_size_box->value());
+  }
+  else
+  {
+    Config::SetBase(Config::NETPLAY_BUFFER_SIZE, m_buffer_size_box->value());
+  }
+  Config::SetBase(Config::NETPLAY_WRITE_SAVE_SDCARD_DATA, m_save_sd_box->isChecked());
+  Config::SetBase(Config::NETPLAY_LOAD_WII_SAVE, m_load_wii_box->isChecked());
+  Config::SetBase(Config::NETPLAY_SYNC_SAVES, m_sync_save_data_box->isChecked());
+  Config::SetBase(Config::NETPLAY_RECORD_INPUTS, m_record_input_box->isChecked());
+  Config::SetBase(Config::NETPLAY_REDUCE_POLLING_RATE, m_reduce_polling_rate_box->isChecked());
+  Config::SetBase(Config::NETPLAY_STRICT_SETTINGS_SYNC, m_strict_settings_sync_box->isChecked());
+  Config::SetBase(Config::NETPLAY_HOST_INPUT_AUTHORITY, m_host_input_authority_box->isChecked());
 }
 
 void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)
