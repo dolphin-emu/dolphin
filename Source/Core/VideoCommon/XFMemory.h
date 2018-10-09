@@ -288,6 +288,7 @@ struct XFMemory
   u32 unk9[8];                              // 0x1048 - 0x104f
   PostMtxInfo postMtxInfo[8];               // 0x1050 - 0x1057
 };
+static_assert(sizeof(XFMemory) == sizeof(u32) * 0x1058);
 
 extern XFMemory xfmem;
 
