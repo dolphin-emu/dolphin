@@ -40,6 +40,7 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
+class NativeVertexFormat;
 class PostProcessingShaderImplementation;
 struct TextureConfig;
 struct ComputePipelineConfig;
@@ -166,6 +167,9 @@ public:
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
 
+  // ImGui initialization depends on being able to create textures and pipelines, so do it last.
+  bool InitializeImGui();
+
   virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
 
   virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -208,6 +212,15 @@ protected:
   void CheckFifoRecording();
   void RecordVideoMemory();
 
+  // Renders ImGui windows to the currently-bound framebuffer.
+  void DrawImGui();
+
+  // Destroys all ImGui GPU resources, must do before shutdown.
+  void ShutdownImGui();
+
+  // Sets up ImGui state for the next frame.
+  void BeginImGuiFrame();
+
   // TODO: Remove the width/height parameters once we make the EFB an abstract framebuffer.
   const AbstractFramebuffer* m_current_framebuffer = nullptr;
   u32 m_current_framebuffer_width = 1;
@@ -240,6 +253,12 @@ protected:
 
   u32 m_last_host_config_bits = 0;
   u32 m_last_efb_multisamples = 1;
+
+  // ImGui resources.
+  std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
+  std::vector<std::unique_ptr<AbstractTexture>> m_imgui_textures;
+  std::unique_ptr<AbstractPipeline> m_imgui_pipeline;
+  u64 m_imgui_last_frame_time;
 
 private:
   void RunFrameDumps();

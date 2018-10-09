@@ -21,6 +21,8 @@
 #include <string>
 #include <tuple>
 
+#include "imgui.h"
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -97,7 +99,7 @@ Renderer::~Renderer() = default;
 
 bool Renderer::Initialize()
 {
-  return true;
+  return InitializeImGui();
 }
 
 void Renderer::Shutdown()
@@ -105,6 +107,7 @@ void Renderer::Shutdown()
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
+  ShutdownImGui();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
@@ -638,6 +641,251 @@ void Renderer::RecordVideoMemory()
                                              texMem);
 }
 
+static std::string GenerateImGuiVertexShader()
+{
+  const APIType api_type = g_ActiveConfig.backend_info.api_type;
+  std::stringstream ss;
+
+  // Uniform buffer contains the viewport size, and we transform in the vertex shader.
+  if (api_type == APIType::D3D)
+    ss << "cbuffer PSBlock : register(b0) {\n";
+  else if (api_type == APIType::OpenGL)
+    ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
+  else if (api_type == APIType::Vulkan)
+    ss << "UBO_BINDING(std140, 1) uniform PSBlock {\n";
+  ss << "float2 u_rcp_viewport_size_mul2;\n";
+  ss << "};\n";
+
+  if (api_type == APIType::D3D)
+  {
+    ss << "void main(in float2 rawpos : POSITION,\n"
+       << "          in float2 rawtex0 : TEXCOORD,\n"
+       << "          in float4 rawcolor0 : COLOR,\n"
+       << "          out float2 frag_uv : TEXCOORD,\n"
+       << "          out float4 frag_color : COLOR,\n"
+       << "          out float4 out_pos : SV_Position)\n";
+  }
+  else
+  {
+    ss << "ATTRIBUTE_LOCATION(" << SHADER_POSITION_ATTRIB << ") in float2 rawpos;\n"
+       << "ATTRIBUTE_LOCATION(" << SHADER_TEXTURE0_ATTRIB << ") in float2 rawtex0;\n"
+       << "ATTRIBUTE_LOCATION(" << SHADER_COLOR0_ATTRIB << ") in float4 rawcolor0;\n"
+       << "VARYING_LOCATION(0) out float2 frag_uv;\n"
+       << "VARYING_LOCATION(1) out float4 frag_color;\n"
+       << "void main()\n";
+  }
+
+  ss << "{\n"
+     << "  frag_uv = rawtex0;\n"
+     << "  frag_color = rawcolor0;\n";
+
+  ss << "  " << (api_type == APIType::D3D ? "out_pos" : "gl_Position")
+     << "= float4(rawpos.x * u_rcp_viewport_size_mul2.x - 1.0, 1.0 - rawpos.y * "
+        "u_rcp_viewport_size_mul2.y, 0.0, 1.0);\n";
+
+  // Clip-space is flipped in Vulkan
+  if (api_type == APIType::Vulkan)
+    ss << "  gl_Position.y = -gl_Position.y;\n";
+
+  ss << "}\n";
+  return ss.str();
+}
+
+static std::string GenerateImGuiPixelShader()
+{
+  const APIType api_type = g_ActiveConfig.backend_info.api_type;
+
+  std::stringstream ss;
+  if (api_type == APIType::D3D)
+  {
+    ss << "Texture2DArray tex0 : register(t0);\n"
+       << "SamplerState samp0 : register(s0);\n"
+       << "void main(in float2 frag_uv : TEXCOORD,\n"
+       << "          in float4 frag_color : COLOR,\n"
+       << "          out float4 ocol0 : SV_Target)\n";
+  }
+  else
+  {
+    ss << "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n"
+       << "VARYING_LOCATION(0) in float2 frag_uv; \n"
+       << "VARYING_LOCATION(1) in float4 frag_color;\n"
+       << "FRAGMENT_OUTPUT_LOCATION(0) out float4 ocol0;\n"
+       << "void main()\n";
+  }
+
+  ss << "{\n";
+
+  if (api_type == APIType::D3D)
+    ss << "  ocol0 = tex0.Sample(samp0, float3(frag_uv, 0.0)) * frag_color;\n";
+  else
+    ss << "  ocol0 = texture(samp0, float3(frag_uv, 0.0)) * frag_color;\n";
+
+  ss << "}\n";
+
+  return ss.str();
+}
+
+bool Renderer::InitializeImGui()
+{
+  if (!ImGui::CreateContext())
+  {
+    PanicAlert("Creating ImGui context failed");
+    return false;
+  }
+
+  // Don't create an ini file. TODO: Do we want this in the future?
+  ImGui::GetIO().IniFilename = nullptr;
+
+  PortableVertexDeclaration vdecl = {};
+  vdecl.position = {VAR_FLOAT, 2, offsetof(ImDrawVert, pos), true, false};
+  vdecl.texcoords[0] = {VAR_FLOAT, 2, offsetof(ImDrawVert, uv), true, false};
+  vdecl.colors[0] = {VAR_UNSIGNED_BYTE, 4, offsetof(ImDrawVert, col), true, false};
+  vdecl.stride = sizeof(ImDrawVert);
+  m_imgui_vertex_format = g_vertex_manager->CreateNativeVertexFormat(vdecl);
+  if (!m_imgui_vertex_format)
+  {
+    PanicAlert("Failed to create imgui vertex format");
+    return false;
+  }
+
+  const std::string vertex_shader_source = GenerateImGuiVertexShader();
+  const std::string pixel_shader_source = GenerateImGuiPixelShader();
+  std::unique_ptr<AbstractShader> vertex_shader = CreateShaderFromSource(
+      ShaderStage::Vertex, vertex_shader_source.c_str(), vertex_shader_source.size());
+  std::unique_ptr<AbstractShader> pixel_shader = CreateShaderFromSource(
+      ShaderStage::Pixel, pixel_shader_source.c_str(), pixel_shader_source.size());
+  if (!vertex_shader || !pixel_shader)
+  {
+    PanicAlert("Failed to compile imgui shaders");
+    return false;
+  }
+
+  AbstractPipelineConfig pconfig = {};
+  pconfig.vertex_format = m_imgui_vertex_format.get();
+  pconfig.vertex_shader = vertex_shader.get();
+  pconfig.pixel_shader = pixel_shader.get();
+  pconfig.rasterization_state.hex = RenderState::GetNoCullRasterizationState().hex;
+  pconfig.rasterization_state.primitive = PrimitiveType::Triangles;
+  pconfig.depth_state.hex = RenderState::GetNoDepthTestingDepthStencilState().hex;
+  pconfig.blending_state.hex = RenderState::GetNoBlendingBlendState().hex;
+  pconfig.blending_state.blendenable = true;
+  pconfig.blending_state.srcfactor = BlendMode::SRCALPHA;
+  pconfig.blending_state.dstfactor = BlendMode::INVSRCALPHA;
+  pconfig.blending_state.srcfactoralpha = BlendMode::ZERO;
+  pconfig.blending_state.dstfactoralpha = BlendMode::ONE;
+  pconfig.framebuffer_state.color_texture_format = m_backbuffer_format;
+  pconfig.framebuffer_state.depth_texture_format = AbstractTextureFormat::Undefined;
+  pconfig.framebuffer_state.samples = 1;
+  pconfig.framebuffer_state.per_sample_shading = false;
+  pconfig.usage = AbstractPipelineUsage::Utility;
+  m_imgui_pipeline = g_renderer->CreatePipeline(pconfig);
+  if (!m_imgui_pipeline)
+  {
+    PanicAlert("Failed to create imgui pipeline");
+    return false;
+  }
+
+  // Font texture(s).
+  {
+    ImGuiIO& io = ImGui::GetIO();
+    u8* font_tex_pixels;
+    int font_tex_width, font_tex_height;
+    io.Fonts->GetTexDataAsRGBA32(&font_tex_pixels, &font_tex_width, &font_tex_height);
+
+    TextureConfig font_tex_config(font_tex_width, font_tex_height, 1, 1, 1,
+                                  AbstractTextureFormat::RGBA8, false);
+    std::unique_ptr<AbstractTexture> font_tex = CreateTexture(font_tex_config);
+    if (!font_tex)
+    {
+      PanicAlert("Failed to create imgui texture");
+      return false;
+    }
+    font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
+                   sizeof(u32) * font_tex_width * font_tex_height);
+
+    io.Fonts->TexID = font_tex.get();
+
+    m_imgui_textures.push_back(std::move(font_tex));
+  }
+
+  m_imgui_last_frame_time = Common::Timer::GetTimeUs();
+  BeginImGuiFrame();
+  return true;
+}
+
+void Renderer::ShutdownImGui()
+{
+  ImGui::EndFrame();
+  ImGui::DestroyContext();
+  m_imgui_pipeline.reset();
+  m_imgui_vertex_format.reset();
+  m_imgui_textures.clear();
+}
+
+void Renderer::BeginImGuiFrame()
+{
+  const u64 current_time_us = Common::Timer::GetTimeUs();
+  const u64 time_diff_us = current_time_us - m_imgui_last_frame_time;
+  const float time_diff_secs = static_cast<float>(time_diff_us / 1000000.0);
+  m_imgui_last_frame_time = current_time_us;
+
+  // Update I/O with window dimensions.
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize =
+      ImVec2(static_cast<float>(m_backbuffer_width), static_cast<float>(m_backbuffer_height));
+  io.DeltaTime = time_diff_secs;
+
+  ImGui::NewFrame();
+}
+
+void Renderer::DrawImGui()
+{
+  ImDrawData* draw_data = ImGui::GetDrawData();
+  if (!draw_data)
+    return;
+
+  // Uniform buffer for draws.
+  struct ImGuiUbo
+  {
+    float u_rcp_viewport_size_mul2[2];
+    float padding[2];
+  };
+  ImGuiUbo ubo = {{1.0f / m_backbuffer_width * 2.0f, 1.0f / m_backbuffer_height * 2.0f}};
+
+  // Set up common state for drawing.
+  g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
+  SetSamplerState(0, RenderState::GetPointSamplerState());
+
+  for (int i = 0; i < draw_data->CmdListsCount; i++)
+  {
+    const ImDrawList* cmdlist = draw_data->CmdLists[i];
+    if (cmdlist->VtxBuffer.empty() || cmdlist->IdxBuffer.empty())
+      return;
+
+    u32 base_vertex, base_index;
+    g_vertex_manager->UploadUtilityVertices(cmdlist->VtxBuffer.Data, sizeof(ImDrawVert),
+                                            cmdlist->VtxBuffer.Size, cmdlist->IdxBuffer.Data,
+                                            cmdlist->IdxBuffer.Size, &base_vertex, &base_index);
+
+    for (const ImDrawCmd& cmd : cmdlist->CmdBuffer)
+    {
+      if (cmd.UserCallback)
+      {
+        cmd.UserCallback(cmdlist, &cmd);
+        continue;
+      }
+
+      SetPipeline(m_imgui_pipeline.get());
+      SetScissorRect(MathUtil::Rectangle<int>(
+          static_cast<int>(cmd.ClipRect.x), static_cast<int>(cmd.ClipRect.y),
+          static_cast<int>(cmd.ClipRect.z), static_cast<int>(cmd.ClipRect.w)));
+      SetTexture(0, reinterpret_cast<const AbstractTexture*>(cmd.TextureId));
+      DrawIndexed(base_index, cmd.ElemCount, base_vertex);
+      base_index += cmd.ElemCount;
+    }
+  }
+}
+
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     u64 ticks)
 {
@@ -705,6 +953,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // with the loader, and it has not been unmapped yet. Force a pipeline flush to avoid this.
       g_vertex_manager->Flush();
 
+      // Draw any imgui overlays we have. Note that "draw" here means "create commands", the actual
+      // draw calls don't get issued until DrawImGui is called, which happens in SwapImpl.
+      ImGui::Render();
+
       // TODO: merge more generic parts into VideoCommon
       {
         std::lock_guard<std::mutex> guard(m_swap_mutex);
@@ -744,6 +996,8 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       // Flush any outstanding EFB copies to RAM, in case the game is running at an uncapped frame
       // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
       g_texture_cache->FlushEFBCopies();
+
+      BeginImGuiFrame();
 
       Core::Callback_VideoCopiedToXFB(true);
     }

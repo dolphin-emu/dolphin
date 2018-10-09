@@ -1455,6 +1455,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     DrawDebugText();
     OSD::DrawMessages();
+    DrawImGui();
 
     // Swap the back and front buffers, presenting the image.
     m_main_gl_context->Swap();

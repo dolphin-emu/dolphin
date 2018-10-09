@@ -599,6 +599,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   Renderer::DrawDebugText();
 
   OSD::DrawMessages();
+  DrawImGui();
 
   g_texture_cache->Cleanup(frameCount);
 

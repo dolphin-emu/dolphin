@@ -702,11 +702,13 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
              xfb_texture->GetRawTexIdentifier());
 
   // Draw OSD
-  Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
-                              backbuffer->GetWidth(), backbuffer->GetHeight());
+  SetViewport(0.0f, 0.0f, static_cast<float>(backbuffer->GetWidth()),
+              static_cast<float>(backbuffer->GetHeight()), 0.0f, 1.0f);
   DrawDebugText();
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
   OSD::DrawMessages();
+  StateTracker::GetInstance()->SetPendingRebind();
+  DrawImGui();
 
   // End drawing to backbuffer
   StateTracker::GetInstance()->EndRenderPass();
