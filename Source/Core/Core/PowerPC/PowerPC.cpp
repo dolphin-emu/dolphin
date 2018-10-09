@@ -30,7 +30,7 @@
 namespace PowerPC
 {
 // STATE_TO_SAVE
-PowerPCState ppcState;
+PowerPCState ppcState{};
 
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
