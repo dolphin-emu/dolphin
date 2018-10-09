@@ -119,8 +119,6 @@ public:
   void Draw(u32 base_vertex, u32 num_vertices) override;
   void DrawIndexed(u32 base_index, u32 num_indices, u32 base_vertex) override;
 
-  void RenderText(const std::string& text, int left, int top, u32 color) override;
-
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
 

@@ -28,7 +28,5 @@ void drawClearQuad(u32 Color, float z);
 void drawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2);
 
 void DrawEFBPokeQuads(EFBAccessType type, const EfbPokeData* points, size_t num_points);
-void DrawTextScaled(float x, float y, float size, float spacing, u32 color,
-                    const std::string& text);
 }
 }

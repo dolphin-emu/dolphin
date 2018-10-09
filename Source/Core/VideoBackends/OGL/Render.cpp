@@ -33,7 +33,6 @@
 #include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/RasterFont.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 #include "VideoBackends/OGL/TextureCache.h"
@@ -57,7 +56,6 @@ VideoConfig g_ogl_config;
 
 // Declarations and definitions
 // ----------------------------
-static std::unique_ptr<RasterFont> s_raster_font;
 
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
@@ -827,8 +825,6 @@ bool Renderer::Initialize()
   m_current_framebuffer_height = m_target_height;
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
-  s_raster_font = std::make_unique<RasterFont>();
-
   return true;
 }
 
@@ -839,7 +835,6 @@ void Renderer::Shutdown()
 
   UpdateActiveConfig();
 
-  s_raster_font.reset();
   m_post_processor.reset();
 }
 
@@ -860,21 +855,6 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 {
   return OGLFramebuffer::Create(static_cast<const OGLTexture*>(color_attachment),
                                 static_cast<const OGLTexture*>(depth_attachment));
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  int screen_width = m_backbuffer_width;
-  int screen_height = m_backbuffer_height;
-  if (screen_width >= 2000)
-  {
-    screen_width /= 2;
-    screen_height /= 2;
-  }
-
-  s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(screen_width) - 1.0f,
-                                    1.0f - top * 2.0f / static_cast<float>(screen_height), 0,
-                                    screen_width, screen_height, color);
 }
 
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,

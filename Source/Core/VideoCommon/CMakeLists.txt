@@ -65,6 +65,7 @@ PUBLIC
 PRIVATE
   png
   xxhash
+  imgui
 )
 
 if(_M_X86)

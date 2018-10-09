@@ -84,11 +84,6 @@ bool SWOGLWindow::Initialize(const WindowSystemInfo& wsi)
   return true;
 }
 
-void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
-{
-  m_text.push_back({text, x, y, color});
-}
-
 void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_region)
 {
   SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(image);
@@ -115,12 +110,6 @@ void SWOGLWindow::ShowImage(AbstractTexture* image, const EFBRectangle& xfb_regi
 
   glBindVertexArray(m_image_vao);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-  // TODO: implement OSD
-  //	for (TextData& text : m_text)
-  //	{
-  //	}
-  m_text.clear();
 
   m_gl_context->Swap();
 }

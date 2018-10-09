@@ -21,7 +21,6 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PostProcessing.h"
-#include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -89,13 +88,6 @@ bool Renderer::Initialize()
     return false;
   }
 
-  m_raster_font = std::make_unique<RasterFont>();
-  if (!m_raster_font->Initialize())
-  {
-    PanicAlert("Failed to initialize raster font.");
-    return false;
-  }
-
   // Swap chain render pass.
   if (m_swap_chain)
   {
@@ -130,8 +122,7 @@ bool Renderer::Initialize()
 
   // Initialize post processing.
   m_post_processor = std::make_unique<VulkanPostProcessing>();
-  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())
-           ->Initialize(m_raster_font->GetTexture()))
+  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())->Initialize())
   {
     PanicAlert("failed to initialize post processor.");
     return false;
@@ -257,17 +248,6 @@ std::tuple<VkBuffer, u32> Renderer::UpdateUtilityUniformBuffer(const void* unifo
 void Renderer::SetPipeline(const AbstractPipeline* pipeline)
 {
   StateTracker::GetInstance()->SetPipeline(static_cast<const VKPipeline*>(pipeline));
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  u32 backbuffer_width = m_swap_chain->GetWidth();
-  u32 backbuffer_height = m_swap_chain->GetHeight();
-
-  m_raster_font->PrintMultiLineText(m_swap_chain_render_pass, text,
-                                    left * 2.0f / static_cast<float>(backbuffer_width) - 1,
-                                    1 - top * 2.0f / static_cast<float>(backbuffer_height),
-                                    backbuffer_width, backbuffer_height, color);
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)

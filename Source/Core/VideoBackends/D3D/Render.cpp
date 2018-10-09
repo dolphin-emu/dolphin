@@ -237,13 +237,6 @@ Renderer::CreateFramebuffer(const AbstractTexture* color_attachment,
                                static_cast<const DXTexture*>(depth_attachment));
 }
 
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  D3D::DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f,
-                      color & 0xFF000000, text);
-  D3D::DrawTextScaled(static_cast<float>(left), static_cast<float>(top), 20.f, 0.0f, color, text);
-}
-
 std::unique_ptr<AbstractShader> Renderer::CreateShaderFromSource(ShaderStage stage,
                                                                  const char* source, size_t length)
 {
