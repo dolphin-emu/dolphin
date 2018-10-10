@@ -36,6 +36,8 @@ private:
   void OnKeepOnTopChanged(bool top);
   void SetFillBackground(bool fill);
   void OnFreeLookMouseMove(QMouseEvent* event);
+  void PassEventToImGui(const QEvent* event);
+  void SetImGuiKeyMap();
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 

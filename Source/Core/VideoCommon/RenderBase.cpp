@@ -812,9 +812,18 @@ void Renderer::DrawImGui()
   }
 }
 
+std::unique_lock<std::mutex> Renderer::GetImGuiLock()
+{
+  return std::unique_lock<std::mutex>(m_imgui_mutex);
+}
+
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     u64 ticks)
 {
+  // Hold the imgui lock while we're presenting.
+  // It's only to prevent races on inputs anyway, at this point.
+  std::unique_lock<std::mutex> imgui_lock(m_imgui_mutex);
+
   const AspectMode suggested = g_ActiveConfig.suggested_aspect_mode;
   if (suggested == AspectMode::Analog || suggested == AspectMode::AnalogWide)
   {

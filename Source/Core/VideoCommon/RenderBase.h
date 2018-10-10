@@ -188,6 +188,11 @@ public:
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
 
+  // Returns a lock for the ImGui mutex, enabling data structures to be modified from outside.
+  // Use with care, only non-drawing functions should be called from outside the video thread,
+  // as the drawing is tied to a "frame".
+  std::unique_lock<std::mutex> GetImGuiLock();
+
 protected:
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
@@ -243,6 +248,7 @@ protected:
   std::unique_ptr<NativeVertexFormat> m_imgui_vertex_format;
   std::vector<std::unique_ptr<AbstractTexture>> m_imgui_textures;
   std::unique_ptr<AbstractPipeline> m_imgui_pipeline;
+  std::mutex m_imgui_mutex;
   u64 m_imgui_last_frame_time;
 
 private:

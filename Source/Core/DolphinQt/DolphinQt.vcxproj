@@ -463,6 +463,9 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
       <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Externals\imgui\imgui.vcxproj">
+      <Project>{4c3b2264-ea73-4a7b-9cfe-65b0fd635ebb}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
