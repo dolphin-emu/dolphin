@@ -30,7 +30,7 @@
 namespace PowerPC
 {
 // STATE_TO_SAVE
-PowerPCState ppcState;
+PowerPCState ppcState{};
 
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
@@ -191,7 +191,8 @@ static void InitializeCPUCore(CPUCore cpu_core)
     s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
     if (!s_cpu_core_base)  // Handle Situations where JIT core isn't available
     {
-      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.", cpu_core);
+      WARN_LOG(POWERPC, "CPU core %d not available. Falling back to default.",
+               static_cast<int>(cpu_core));
       s_cpu_core_base = JitInterface::InitJitCore(DefaultCPUCore());
     }
     break;

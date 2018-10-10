@@ -319,7 +319,7 @@ void CodeWidget::UpdateSymbols()
 
     item->setData(Qt::UserRole, symbol.second.address);
 
-    if (name.indexOf(m_symbol_filter) != -1)
+    if (name.toUpper().indexOf(m_symbol_filter.toUpper()) != -1)
       m_symbols_list->addItem(item);
   }
 
