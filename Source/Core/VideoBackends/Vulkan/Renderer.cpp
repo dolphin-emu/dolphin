@@ -857,7 +857,6 @@ void Renderer::DrawScreen(VKTexture* xfb_texture, const EFBRectangle& xfb_region
 
   // End drawing to backbuffer
   StateTracker::GetInstance()->EndRenderPass();
-  BindEFBToStateTracker();
 
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing
   // to it have finished before present.
@@ -1047,6 +1046,8 @@ void Renderer::RestoreAPIState()
     static_cast<const VKFramebuffer*>(m_current_framebuffer)->TransitionForSample();
 
   BindEFBToStateTracker();
+  BPFunctions::SetViewport();
+  BPFunctions::SetScissor();
 
   // Instruct the state tracker to re-bind everything before the next draw
   StateTracker::GetInstance()->SetPendingRebind();
