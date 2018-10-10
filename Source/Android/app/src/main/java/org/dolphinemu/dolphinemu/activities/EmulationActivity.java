@@ -372,7 +372,7 @@ public final class EmulationActivity extends AppCompatActivity
 			});
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
-			if(InputOverlay.JoyStickSetting == joystick)
+			if(InputOverlay.JoyStickSetting != joystick)
 			{
 				mEmulationFragment.refreshInputOverlay();
 			}
