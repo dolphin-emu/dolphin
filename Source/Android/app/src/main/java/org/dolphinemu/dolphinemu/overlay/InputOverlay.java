@@ -39,13 +39,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
 	public static final String CONTROL_INIT_PREF_KEY = "InitOverlay";
 	public static final String CONTROL_SCALE_PREF_KEY = "ControlScale";
+	public static int sControllerScale;
 
 	public static final String CONTROL_TYPE_PREF_KEY = "WiiController";
 	public static final int CONTROLLER_GAMECUBE = 0;
 	public static final int COCONTROLLER_CLASSIC = 1;
 	public static final int CONTROLLER_WIINUNCHUK = 2;
 	public static final int CONTROLLER_WIIREMOTE = 3;
-	public static int InputControllerType;
+	public static int sControllerType;
 
 	public static final String JOYSTICK_PREF_KEY = "JoystickSetting";
 	public static final int JOYSTICK_RELATIVE_CENTER = 0;
@@ -54,13 +55,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static final int JOYSTICK_EMULATE_SWING = 3;
 	public static final int JOYSTICK_EMULATE_TILT = 4;
 	public static final int JOYSTICK_EMULATE_SHAKE = 5;
-	public static int JoyStickSetting;
+	public static int sJoyStickSetting;
 
 	public static final int SENSOR_GC_NONE = 0;
 	public static final int SENSOR_GC_JOYSTICK = 1;
 	public static final int SENSOR_GC_CSTICK = 2;
 	public static final int SENSOR_GC_DPAD = 3;
-	public static int SensorGCSetting;
+	public static int sSensorGCSetting;
 
 	public static final int SENSOR_WII_NONE = 0;
 	public static final int SENSOR_WII_DPAD = 1;
@@ -69,7 +70,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	public static final int SENSOR_WII_SWING = 4;
 	public static final int SENSOR_WII_TILT = 5;
 	public static final int SENSOR_WII_SHAKE = 6;
-	public static int SensorWiiSetting;
+	public static int sSensorWiiSetting;
 
 	private boolean mAccuracyChanged;
 	private float mBaseYaw;
@@ -125,14 +126,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		if (!mPreferences.getBoolean(CONTROL_INIT_PREF_KEY, false))
 			defaultOverlay();
 
-		InputControllerType = mPreferences.getInt(InputOverlay.CONTROL_TYPE_PREF_KEY,
-			InputOverlay.CONTROLLER_WIINUNCHUK);
+		sControllerScale = mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50);
+		sControllerType = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
+		sJoyStickSetting = mPreferences.getInt(JOYSTICK_PREF_KEY, JOYSTICK_RELATIVE_CENTER);
 
-		JoyStickSetting = mPreferences.getInt(InputOverlay.JOYSTICK_PREF_KEY,
-			InputOverlay.JOYSTICK_RELATIVE_CENTER);
-
-		SensorGCSetting = SENSOR_GC_NONE;
-		SensorWiiSetting = SENSOR_WII_NONE;
+		sSensorGCSetting = SENSOR_GC_NONE;
+		sSensorWiiSetting = SENSOR_WII_NONE;
 		mAccuracyChanged = false;
 
 		// Load the controls.
@@ -272,7 +271,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP)
 			{
-				if (JoyStickSetting == JOYSTICK_EMULATE_IR)
+				if (sJoyStickSetting == JOYSTICK_EMULATE_IR)
 				{
 					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_IR + 1;
@@ -280,7 +279,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axisIDs[2] = ButtonType.WIIMOTE_IR + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_IR + 4;
 				}
-				else if (JoyStickSetting == JOYSTICK_EMULATE_SWING)
+				else if (sJoyStickSetting == JOYSTICK_EMULATE_SWING)
 				{
 					factor = -1.0f;
 					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
@@ -288,7 +287,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
 					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
 				}
-				else if (JoyStickSetting == JOYSTICK_EMULATE_TILT)
+				else if (sJoyStickSetting == JOYSTICK_EMULATE_TILT)
 				{
 					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
 					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
@@ -317,7 +316,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 						axises[3] = 0.0f;
 					}
 				}
-				else if (JoyStickSetting == JOYSTICK_EMULATE_SHAKE)
+				else if (sJoyStickSetting == JOYSTICK_EMULATE_SHAKE)
 				{
 					axises[1] = -axises[1];
 					axises[3] = -axises[3];
@@ -484,7 +483,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		if(EmulationActivity.isGameCubeGame())
 		{
-			switch (SensorGCSetting)
+			switch (sSensorGCSetting)
 			{
 				case SENSOR_GC_JOYSTICK:
 					axisIDs[0] = ButtonType.STICK_MAIN + 1;
@@ -520,7 +519,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		else
 		{
-			switch (SensorWiiSetting)
+			switch (sSensorWiiSetting)
 			{
 				case SENSOR_WII_DPAD:
 					axisIDs[0] = ButtonType.WIIMOTE_UP;
@@ -777,7 +776,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 		if (mPreferences.getBoolean("buttonToggleWii7", true))
 		{
-			if (InputControllerType == CONTROLLER_WIINUNCHUK)
+			if (sControllerType == CONTROLLER_WIINUNCHUK)
 			{
 				overlayDpads.add(initializeOverlayDpad(R.drawable.gcwii_dpad,
 					R.drawable.gcwii_dpad_pressed_one_direction,
@@ -794,7 +793,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					ButtonType.WIIMOTE_RIGHT, ButtonType.WIIMOTE_LEFT,
 					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN));
 				// emulate joystick
-				if (JoyStickSetting != JOYSTICK_RELATIVE_CENTER && JoyStickSetting != JOYSTICK_FIXED_CENTER)
+				if (sJoyStickSetting != JOYSTICK_RELATIVE_CENTER && sJoyStickSetting != JOYSTICK_FIXED_CENTER)
 				{
 					overlayJoysticks.add(initializeOverlayJoystick(R.drawable.gcwii_joystick_range,
 						R.drawable.gcwii_joystick, R.drawable.gcwii_joystick_pressed,
@@ -915,18 +914,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		overlayJoysticks.removeAll(overlayJoysticks);
 
 		// Add all the enabled overlay items back to the HashSet.
-		if (EmulationActivity.isGameCubeGame() || InputControllerType == CONTROLLER_GAMECUBE)
+		if (EmulationActivity.isGameCubeGame() || sControllerType == CONTROLLER_GAMECUBE)
 		{
 			addGameCubeOverlayControls();
 		}
-		else if (InputControllerType == COCONTROLLER_CLASSIC)
+		else if (sControllerType == COCONTROLLER_CLASSIC)
 		{
 			addClassicOverlayControls();
 		}
 		else
 		{
 			addWiimoteOverlayControls();
-			if (InputControllerType == CONTROLLER_WIINUNCHUK)
+			if (sControllerType == CONTROLLER_WIINUNCHUK)
 			{
 				addNunchukOverlayControls();
 			}
@@ -950,7 +949,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 	private int getControllerType()
 	{
-		return EmulationActivity.isGameCubeGame() ? CONTROLLER_GAMECUBE : InputControllerType;
+		return EmulationActivity.isGameCubeGame() ? CONTROLLER_GAMECUBE : sControllerType;
 	}
 
 	/**
@@ -1015,6 +1014,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			case ButtonType.WIIMOTE_BUTTON_2:
 			case ButtonType.WIIMOTE_BUTTON_PLUS:
 			case ButtonType.WIIMOTE_BUTTON_MINUS:
+				scale = 0.0725f;
+				if(sControllerType == CONTROLLER_WIIREMOTE)
+					scale = 0.123f;
+				break;
 			case ButtonType.WIIMOTE_BUTTON_HOME:
 			case ButtonType.CLASSIC_BUTTON_PLUS:
 			case ButtonType.CLASSIC_BUTTON_MINUS:
@@ -1034,7 +1037,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				break;
 		}
 
-		scale *= (mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50) + 50);
+		scale *= sControllerScale + 50;
 		scale /= 100;
 
 		// Initialize the InputOverlayDrawableButton.
@@ -1108,8 +1111,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				break;
 		}
 
-		scale *= (mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50) + 50);
+		scale *= sControllerScale + 50;
 		scale /= 100;
+
+		if(sControllerType == CONTROLLER_WIIREMOTE)
+			scale *= 1.4f;
 
 		// Initialize the InputOverlayDrawableDpad.
 		final Bitmap defaultStateBitmap =
@@ -1167,7 +1173,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Decide scale based on user preference
 		float scale = 0.275f;
-		scale *= (mPreferences.getInt(CONTROL_SCALE_PREF_KEY, 50) + 50);
+		scale *= sControllerScale + 50;
 		scale /= 100;
 
 		// Initialize the InputOverlayDrawableJoystick.
