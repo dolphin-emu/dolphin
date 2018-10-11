@@ -289,31 +289,19 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				}
 				else if (sJoyStickSetting == JOYSTICK_EMULATE_TILT)
 				{
-					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
-					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
-					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
-					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
-					//
-					if(axises[0] < -0.15f)
+					if(sControllerType == CONTROLLER_WIINUNCHUK)
 					{
-						axises[0] = 0.0f;
-						axises[1] = 1.0f;
+						axisIDs[0] = ButtonType.WIIMOTE_TILT + 1;
+						axisIDs[1] = ButtonType.WIIMOTE_TILT + 2;
+						axisIDs[2] = ButtonType.WIIMOTE_TILT + 3;
+						axisIDs[3] = ButtonType.WIIMOTE_TILT + 4;
 					}
-					else if(axises[0] > 0.15f)
+					else
 					{
-						axises[0] = 1.0f;
-						axises[1] = 0.0f;
-					}
-					//
-					if(axises[2] < -0.15f)
-					{
-						axises[2] = 0.0f;
-						axises[3] = 1.0f;
-					}
-					else if(axises[2] > 0.15f)
-					{
-						axises[2] = 1.0f;
-						axises[3] = 0.0f;
+						axisIDs[0] = ButtonType.WIIMOTE_TILT + 4;
+						axisIDs[1] = ButtonType.WIIMOTE_TILT + 3;
+						axisIDs[2] = ButtonType.WIIMOTE_TILT + 1;
+						axisIDs[3] = ButtonType.WIIMOTE_TILT + 2;
 					}
 				}
 				else if (sJoyStickSetting == JOYSTICK_EMULATE_SHAKE)
@@ -562,32 +550,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axises[3] = x; // right
 					break;
 				case SENSOR_WII_TILT:
-					axisIDs[0] = ButtonType.WIIMOTE_TILT + 1; // forward
-					axisIDs[1] = ButtonType.WIIMOTE_TILT + 2; // backward
-					axisIDs[2] = ButtonType.WIIMOTE_TILT + 3; // left
-					axisIDs[3] = ButtonType.WIIMOTE_TILT + 4; // right
-					//
-					if(y < -0.15f)
+					if(sControllerType == CONTROLLER_WIINUNCHUK)
 					{
-						axises[0] = 0.0f;
-						axises[1] = 1.0f;
+						axisIDs[0] = ButtonType.WIIMOTE_TILT + 1; // up
+						axisIDs[1] = ButtonType.WIIMOTE_TILT + 2; // down
+						axisIDs[2] = ButtonType.WIIMOTE_TILT + 3; // left
+						axisIDs[3] = ButtonType.WIIMOTE_TILT + 4; // right
 					}
-					else if(y > 0.15f)
+					else
 					{
-						axises[0] = 1.0f;
-						axises[1] = 0.0f;
+						axisIDs[0] = ButtonType.WIIMOTE_TILT + 4; // right
+						axisIDs[1] = ButtonType.WIIMOTE_TILT + 3; // left
+						axisIDs[2] = ButtonType.WIIMOTE_TILT + 1; // up
+						axisIDs[3] = ButtonType.WIIMOTE_TILT + 2; // down
 					}
-					//
-					if(x < -0.15f)
-					{
-						axises[2] = 0.0f;
-						axises[3] = 1.0f;
-					}
-					else if(x > 0.15f)
-					{
-						axises[2] = 1.0f;
-						axises[3] = 0.0f;
-					}
+					axises[0] = y / 2.0f;
+					axises[1] = y / 2.0f;
+					axises[2] = x / 2.0f;
+					axises[3] = x / 2.0f;
 					break;
 				case SENSOR_WII_SHAKE:
 					axises[0] = -x;
