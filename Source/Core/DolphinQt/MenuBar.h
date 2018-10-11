@@ -147,12 +147,16 @@ private:
   void GenerateSymbolsFromRSO();
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
+  void LoadBadSymbolMap();
   void SaveSymbolMap();
   void SaveSymbolMapAs();
   void SaveCode();
-  bool TryLoadMapFile(const QString& path);
+  bool TryLoadMapFile(const QString& path, const bool bad = false);
   void TrySaveSymbolMap(const QString& path);
   void CreateSignatureFile();
+  void AppendSignatureFile();
+  void ApplySignatureFile();
+  void CombineSignatureFiles();
   void PatchHLEFunctions();
   void ClearCache();
   void LogInstructions();
