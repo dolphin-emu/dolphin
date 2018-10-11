@@ -1,7 +1,6 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -14,6 +13,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
 
 import java.io.File;
+import java.io.IOException;
 
 public class PicassoUtils
 {
@@ -26,13 +26,33 @@ public class PicassoUtils
 
 	public static void loadGameBanner(ImageView imageView, GameFile gameFile)
 	{
+		String gameId = gameFile.getGameId();
+		try
+		{
+			String[] files = imageView.getContext().getAssets().list("GameCovers");
+			for(String f : files)
+			{
+				if(f.contains(gameId))
+				{
+					Picasso.with(imageView.getContext()).load("file:///android_asset/GameCovers/" + f)
+						.noPlaceholder()
+						.error(R.drawable.no_banner)
+						.into(imageView);
+					return;
+				}
+			}
+		}
+		catch (IOException e)
+		{
+			//
+		}
+
 		File cover = new File(gameFile.getCustomCoverPath());
 		if (cover.exists())
 		{
 			Picasso.with(imageView.getContext())
 				.load(cover)
 				.noPlaceholder()
-				.config(Bitmap.Config.ARGB_8888)
 				.error(R.drawable.no_banner)
 				.into(imageView);
 		}
@@ -41,7 +61,6 @@ public class PicassoUtils
 			Picasso.with(imageView.getContext())
 				.load(cover)
 				.noPlaceholder()
-				.config(Bitmap.Config.ARGB_8888)
 				.error(R.drawable.no_banner)
 				.into(imageView);
 		}
@@ -51,11 +70,9 @@ public class PicassoUtils
 		 */
 		else
 		{
-			imageView.setImageResource(R.drawable.no_banner);
 			Picasso.with(imageView.getContext())
 				.load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
-				.noPlaceholder()
-				.config(Bitmap.Config.ARGB_8888)
+				.placeholder(R.drawable.no_banner)
 				.error(R.drawable.no_banner)
 				.into(imageView, new Callback()
 				{
