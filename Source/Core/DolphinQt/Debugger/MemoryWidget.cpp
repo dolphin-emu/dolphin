@@ -261,6 +261,13 @@ void MemoryWidget::LoadSettings()
   bool bp_w = settings.value(QStringLiteral("memorywidget/bpwrite"), false).toBool();
   bool bp_log = settings.value(QStringLiteral("memorywidget/bplog"), true).toBool();
 
+  if (bp_rw)
+    m_memory_view->SetBPType(MemoryViewWidget::BPType::ReadWrite);
+  else if (bp_r)
+    m_memory_view->SetBPType(MemoryViewWidget::BPType::ReadOnly);
+  else
+    m_memory_view->SetBPType(MemoryViewWidget::BPType::WriteOnly);
+
   m_bp_read_write->setChecked(bp_rw);
   m_bp_read_only->setChecked(bp_r);
   m_bp_write_only->setChecked(bp_w);
