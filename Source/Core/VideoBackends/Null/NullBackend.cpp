@@ -57,7 +57,6 @@ void VideoBackend::InitBackendInfo()
 bool VideoBackend::Initialize(void* window_handle)
 {
   InitializeShared();
-  InitBackendInfo();
 
   g_renderer = std::make_unique<Renderer>();
   g_vertex_manager = std::make_unique<VertexManager>();
