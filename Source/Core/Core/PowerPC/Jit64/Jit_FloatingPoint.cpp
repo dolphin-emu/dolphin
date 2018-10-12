@@ -26,34 +26,6 @@ alignas(16) static const u64 psAbsMask2[2] = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFF
 alignas(16) static const u64 psGeneratedQNaN[2] = {0x7FF8000000000000ULL, 0x7FF8000000000000ULL};
 alignas(16) static const double half_qnan_and_s32_max[2] = {0x7FFFFFFF, -0x80000};
 
-X64Reg Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single,
-                        void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
-                        void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool packed,
-                        bool preserve_inputs, bool roundRHS)
-{
-  fpr.Lock(d, a, b);
-  fpr.BindToRegister(d, d == a || d == b || !single);
-  X64Reg dest = preserve_inputs ? XMM1 : fpr.RX(d);
-  if (roundRHS)
-  {
-    if (d == a && !preserve_inputs)
-    {
-      Force25BitPrecision(XMM0, fpr.R(b), XMM1);
-      (this->*sseOp)(fpr.RX(d), R(XMM0));
-    }
-    else
-    {
-      Force25BitPrecision(dest, fpr.R(b), XMM0);
-      (this->*sseOp)(dest, fpr.R(a));
-    }
-  }
-  else
-  {
-    avx_op(avxOp, sseOp, dest, fpr.R(a), fpr.R(b), packed, reversible);
-  }
-  return dest;
-}
-
 // We can avoid calculating FPRF if it's not needed; every float operation resets it, so
 // if it's going to be clobbered in a future instruction before being read, we can just
 // not calculate it.
@@ -200,34 +172,58 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   bool round_input = single && !js.op->fprIsSingle[inst.FC];
   bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
-  X64Reg dest = INVALID_REG;
+  const auto fp_tri_op = [&](int d, int a, int b, bool reversible,
+                             void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
+                             void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool roundRHS = false) {
+    fpr.Lock(d, a, b);
+    fpr.BindToRegister(d, d == a || d == b || !single);
+    X64Reg dest = preserve_inputs ? XMM1 : fpr.RX(d);
+    if (roundRHS)
+    {
+      if (d == a && !preserve_inputs)
+      {
+        Force25BitPrecision(XMM0, fpr.R(b), XMM1);
+        (this->*sseOp)(fpr.RX(d), R(XMM0));
+      }
+      else
+      {
+        Force25BitPrecision(dest, fpr.R(b), XMM0);
+        (this->*sseOp)(dest, fpr.R(a));
+      }
+    }
+    else
+    {
+      avx_op(avxOp, sseOp, dest, fpr.R(a), fpr.R(b), packed, reversible);
+    }
+
+    HandleNaNs(inst, fpr.RX(d), dest);
+    if (single)
+      ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
+    SetFPRFIfNeeded(fpr.RX(d));
+    fpr.UnlockAll();
+  };
+
   switch (inst.SUBOP5)
   {
   case 18:
-    dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
-                     packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, packed, preserve_inputs);
+    fp_tri_op(d, a, b, false, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
+              packed ? &XEmitter::DIVPD : &XEmitter::DIVSD);
     break;
   case 20:
-    dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
-                     packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, packed, preserve_inputs);
+    fp_tri_op(d, a, b, false, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
+              packed ? &XEmitter::SUBPD : &XEmitter::SUBSD);
     break;
   case 21:
-    dest = fp_tri_op(d, a, b, true, single, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
-                     packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, packed, preserve_inputs);
+    fp_tri_op(d, a, b, true, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
+              packed ? &XEmitter::ADDPD : &XEmitter::ADDSD);
     break;
   case 25:
-    dest = fp_tri_op(d, a, c, true, single, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
-                     packed ? &XEmitter::MULPD : &XEmitter::MULSD, packed, preserve_inputs,
-                     round_input);
+    fp_tri_op(d, a, c, true, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
+              packed ? &XEmitter::MULPD : &XEmitter::MULSD, round_input);
     break;
   default:
     ASSERT_MSG(DYNA_REC, 0, "fp_arith WTF!!!");
   }
-  HandleNaNs(inst, fpr.RX(d), dest);
-  if (single)
-    ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
 }
 
 void Jit64::fmaddXX(UGeckoInstruction inst)
