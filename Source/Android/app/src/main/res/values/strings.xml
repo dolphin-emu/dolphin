@@ -151,6 +151,8 @@
     <string name="audio_backend_description">Set backend used for audio output.</string>
     <string name="enable_cheats">Enable Cheats</string>
     <string name="enable_cheats_description">Put AR &amp; Gecko Codes in game setting file.</string>
+    <string name="enable_save_states">Enable Savestates</string>
+    <string name="enable_save_states_description">WARNING: Savestates may not be compatible with future versions of Dolphin and can make it impossible to create normal saves in some cases. Never use savestates as the only way of saving your progress.</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -332,7 +334,7 @@
     <string name="sysconf_speaker_volume">Speaker Volume</string>
     <string name="sysconf_wiimote_motor">Wiimote Motor</string>
 
-	<string name="nnf_new_folder">New folder</string>
+    <string name="nnf_new_folder">New folder</string>
     <string name="nnf_create_folder_error">Failed to create folder</string>
     <string name="nnf_name">Name</string>
     <string name="nnf_select_something_first">Please select something first</string>

@@ -25,19 +25,22 @@
         android:id="@+id/menu_quicksave"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quicksave"
-        android:title="@string/emulation_quicksave"/>
+        android:title="@string/emulation_quicksave"
+        android:visible="false"/>
 
     <item
         android:id="@+id/menu_quickload"
         app:showAsAction="never"
         android:icon="@drawable/ic_quickload"
-        android:title="@string/emulation_quickload"/>
+        android:title="@string/emulation_quickload"
+        android:visible="false"/>
 
     <!-- Save State Slots -->
     <item
         android:id="@+id/menu_emulation_save_root"
         app:showAsAction="never"
-        android:title="@string/emulation_savestate">
+        android:title="@string/emulation_savestate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/menu_emulation_save_1"
@@ -65,7 +68,8 @@
     <item
         android:id="@+id/menu_emulation_load_root"
         app:showAsAction="never"
-        android:title="@string/emulation_loadstate">
+        android:title="@string/emulation_loadstate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/menu_emulation_load_1"

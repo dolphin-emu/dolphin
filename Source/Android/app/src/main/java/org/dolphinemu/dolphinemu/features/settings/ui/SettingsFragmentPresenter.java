@@ -214,6 +214,7 @@ public final class SettingsFragmentPresenter
 		Setting audioStretch = null;
 		Setting audioBackend = null;
 		Setting enableCheats = null;
+		Setting enableSaveState = null;
 
 		SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
 		cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
@@ -229,6 +230,7 @@ public final class SettingsFragmentPresenter
 		audioBackend = mSettings.getSection(Settings.SECTION_INI_DSP)
 			.getSetting(SettingsFile.KEY_AUDIO_BACKEND);
 		enableCheats = coreSection.getSetting(SettingsFile.KEY_ENABLE_CHEATS);
+		enableSaveState = coreSection.getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
 
 		// TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
 		// The proper solution would be to have one emuCoresEntries and one emuCoresValues
@@ -273,6 +275,9 @@ public final class SettingsFragmentPresenter
 			followBranch));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_CHEATS, Settings.SECTION_INI_CORE,
 			R.string.enable_cheats, R.string.enable_cheats_description, false, enableCheats));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_SAVE_STATES, Settings.SECTION_INI_CORE,
+			R.string.enable_save_states, R.string.enable_save_states_description, false,
+			enableSaveState));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
 			R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
 

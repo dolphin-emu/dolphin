@@ -79,7 +79,6 @@ void VideoSoftware::InitBackendInfo()
 
 bool VideoSoftware::Initialize(void* window_handle)
 {
-  InitBackendInfo();
   InitializeShared();
 
   SWOGLWindow::Init(window_handle);

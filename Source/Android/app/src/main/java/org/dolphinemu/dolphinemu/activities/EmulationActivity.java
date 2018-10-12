@@ -29,6 +29,9 @@ import android.widget.TextView;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.RunningSettingDialog;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -53,6 +56,8 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private SharedPreferences mPreferences;
 	private ControllerMappingHelper mControllerMappingHelper;
+
+	private Settings mSettings;
 
 	private boolean mStopEmulation;
 	private boolean mMenuVisible;
@@ -105,6 +110,8 @@ public final class EmulationActivity extends AppCompatActivity
 			mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
 			mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
 			mSavedState = gameToEmulate.getStringExtra(EXTRA_SAVED_STATE);
+			mSettings = new Settings();
+			mSettings.loadSettings(null);
 			activityRecreated = false;
 		}
 		else
@@ -247,6 +254,18 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
 		}
+
+		BooleanSetting enableSaveStates =
+			(BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
+				.getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
+		if (enableSaveStates != null && enableSaveStates.getValue())
+		{
+			menu.findItem(R.id.menu_quicksave).setVisible(true);
+			menu.findItem(R.id.menu_quickload).setVisible(true);
+			menu.findItem(R.id.menu_emulation_save_root).setVisible(true);
+			menu.findItem(R.id.menu_emulation_load_root).setVisible(true);
+		}
+
 		return true;
 	}
 
@@ -746,5 +765,10 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		mSavedState = getFilesDir() + File.separator + "temp.sav";
 		NativeLibrary.SaveStateAs(mSavedState, true);
+	}
+
+	public Settings getSettings()
+	{
+		return mSettings;
 	}
 }

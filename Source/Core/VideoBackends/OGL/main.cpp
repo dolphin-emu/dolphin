@@ -158,7 +158,6 @@ bool VideoBackend::FillBackendInfo()
 
 bool VideoBackend::Initialize(void* window_handle)
 {
-  InitBackendInfo();
   InitializeShared();
 
   GLUtil::InitInterface();

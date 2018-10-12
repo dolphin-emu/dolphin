@@ -74,6 +74,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/VideoConfig.h"
@@ -437,6 +438,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot)
     PatchEngine::Shutdown();
     HLE::Clear();
   }};
+
+  // Backend info has to be initialized before we can initialize the backend.
+  // This is because when we load the config, we validate it against the current backend info.
+  // We also should have the correct adapter selected for creating the device in Initialize().
+  g_video_backend->InitBackendInfo();
+  g_Config.Refresh();
 
   if (!g_video_backend->Initialize(s_window_handle))
   {
