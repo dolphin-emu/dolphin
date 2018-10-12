@@ -13,6 +13,9 @@ import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
@@ -53,6 +56,20 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     View rootView = inflater.inflate(R.layout.fragment_ingame_menu, container, false);
 
     LinearLayout options = (LinearLayout) rootView.findViewById(R.id.layout_options);
+
+    BooleanSetting enableSaveStates =
+            (BooleanSetting) ((EmulationActivity) getActivity()).getSettings()
+                    .getSection(Settings.SECTION_INI_CORE)
+                    .getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
+
+    if (enableSaveStates != null && enableSaveStates.getValue())
+    {
+      options.findViewById(R.id.menu_quicksave).setVisibility(View.VISIBLE);
+      options.findViewById(R.id.menu_quickload).setVisibility(View.VISIBLE);
+      options.findViewById(R.id.menu_emulation_save_root).setVisibility(View.VISIBLE);
+      options.findViewById(R.id.menu_emulation_load_root).setVisibility(View.VISIBLE);
+    }
+
     for (int childIndex = 0; childIndex < options.getChildCount(); childIndex++)
     {
       Button button = (Button) options.getChildAt(childIndex);

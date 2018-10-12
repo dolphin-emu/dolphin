@@ -33,6 +33,9 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
@@ -64,6 +67,8 @@ public final class EmulationActivity extends AppCompatActivity
 
   private SharedPreferences mPreferences;
   private ControllerMappingHelper mControllerMappingHelper;
+
+  private Settings mSettings;
 
   // So that MainActivity knows which view to invalidate before the return animation.
   private int mPosition;
@@ -212,6 +217,8 @@ public final class EmulationActivity extends AppCompatActivity
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
       mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
+      mSettings = new Settings();
+      mSettings.loadSettings(null);
       activityRecreated = false;
     }
     else
@@ -474,6 +481,17 @@ public final class EmulationActivity extends AppCompatActivity
     else
     {
       getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
+    }
+
+    BooleanSetting enableSaveStates =
+            (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
+                    .getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
+    if (enableSaveStates != null && enableSaveStates.getValue())
+    {
+      menu.findItem(R.id.menu_quicksave).setVisible(true);
+      menu.findItem(R.id.menu_quickload).setVisible(true);
+      menu.findItem(R.id.menu_emulation_save_root).setVisible(true);
+      menu.findItem(R.id.menu_emulation_load_root).setVisible(true);
     }
 
     // Populate the checkbox value for joystick center on touch
@@ -928,5 +946,10 @@ public final class EmulationActivity extends AppCompatActivity
   public boolean isActivityRecreated()
   {
     return activityRecreated;
+  }
+
+  public Settings getSettings()
+  {
+    return mSettings;
   }
 }
