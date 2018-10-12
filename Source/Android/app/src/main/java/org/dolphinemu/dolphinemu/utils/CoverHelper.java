@@ -1,18 +1,17 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.graphics.Bitmap;
-
 import org.dolphinemu.dolphinemu.model.GameFile;
-
 import java.io.FileOutputStream;
 
 public final class CoverHelper
 {
 	private static String baseUrl = "https://art.gametdb.com/wii/cover/%s/%s.png";
 
-	public static String buildGameTDBUrl(GameFile game, String region)
+	public static String buildGameTDBUrl(GameFile game)
 	{
 		String gameId = game.getGameId();
+		String region = getRegion(game);
 		if (game.getPlatform() == 2) // WiiWare
 			gameId = gameId.substring(0, 4);
 		return String.format(baseUrl, region, gameId);

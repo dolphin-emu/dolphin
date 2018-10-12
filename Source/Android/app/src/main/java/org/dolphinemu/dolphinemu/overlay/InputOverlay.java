@@ -995,7 +995,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			case ButtonType.WIIMOTE_BUTTON_PLUS:
 			case ButtonType.WIIMOTE_BUTTON_MINUS:
 				scale = 0.0725f;
-				if(sControllerType == CONTROLLER_WIIREMOTE)
+				if(controller == CONTROLLER_WIIREMOTE)
 					scale = 0.123f;
 				break;
 			case ButtonType.WIIMOTE_BUTTON_HOME:
@@ -1094,7 +1094,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		scale *= sControllerScale + 50;
 		scale /= 100;
 
-		if(sControllerType == CONTROLLER_WIIREMOTE)
+		if(controller == CONTROLLER_WIIREMOTE)
 			scale *= 1.4f;
 
 		// Initialize the InputOverlayDrawableDpad.

@@ -7,6 +7,9 @@
 package org.dolphinemu.dolphinemu;
 
 import android.app.AlertDialog;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.view.Surface;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -526,5 +529,12 @@ public final class NativeLibrary
 	public static void clearEmulationActivity()
 	{
 		sEmulationActivity.clear();
+	}
+
+	public static boolean isNetworkConnected(Context context)
+	{
+		ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+		return activeNetwork != null && activeNetwork.isConnected();
 	}
 }

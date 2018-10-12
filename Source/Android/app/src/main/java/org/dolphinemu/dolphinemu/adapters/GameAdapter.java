@@ -11,7 +11,6 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
-import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 import java.util.ArrayList;
@@ -65,7 +64,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	public void onBindViewHolder(GameViewHolder holder, int position)
 	{
 		GameFile gameFile = mGameFiles.get(position);
-		PicassoUtils.loadGameBanner(holder.imageScreenshot, gameFile);
+		gameFile.loadGameBanner(holder.imageScreenshot);
 
 		holder.textGameTitle.setText(gameFile.getTitle());
 		holder.textCompany.setText(gameFile.getCompany());
