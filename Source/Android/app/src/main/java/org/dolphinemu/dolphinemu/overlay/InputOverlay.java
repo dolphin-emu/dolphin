@@ -130,6 +130,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		sControllerType = mPreferences.getInt(CONTROL_TYPE_PREF_KEY, CONTROLLER_WIINUNCHUK);
 		sJoyStickSetting = mPreferences.getInt(JOYSTICK_PREF_KEY, JOYSTICK_RELATIVE_CENTER);
 
+		if(EmulationActivity.isGameCubeGame() && sJoyStickSetting > JOYSTICK_FIXED_CENTER)
+			sJoyStickSetting = JOYSTICK_RELATIVE_CENTER;
+
 		sSensorGCSetting = SENSOR_GC_NONE;
 		sSensorWiiSetting = SENSOR_WII_NONE;
 		mAccuracyChanged = false;

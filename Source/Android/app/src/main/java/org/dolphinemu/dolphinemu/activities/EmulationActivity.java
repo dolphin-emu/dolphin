@@ -362,10 +362,11 @@ public final class EmulationActivity extends AppCompatActivity
 	private void showJoystickSettings()
 	{
 		final int joystick = InputOverlay.sJoyStickSetting;
+		final int itemsId = isGameCubeGame() ? R.array.gcJoystickSettings : R.array.wiiJoystickSettings;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_joystick_settings);
 
-		builder.setSingleChoiceItems(R.array.joystickSettings, joystick,
+		builder.setSingleChoiceItems(itemsId, joystick,
 			(dialog, indexSelected) ->
 			{
 				InputOverlay.sJoyStickSetting = indexSelected;

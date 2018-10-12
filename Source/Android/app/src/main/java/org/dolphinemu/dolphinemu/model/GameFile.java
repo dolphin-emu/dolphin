@@ -117,36 +117,32 @@ public class GameFile
 	{
 		if(mCoverType == COVER_UNKNOWN)
 		{
-			if(isCoverInAssets(imageView.getContext(), getGameId()))
+			String gameId = getGameId();
+			if(isCoverInAssets(imageView.getContext(), gameId))
 			{
 				mCoverType = COVER_ASSETS;
 				loadFromAssets(imageView, null);
 			}
+			else if(isCoverInCache(gameId))
+			{
+				mCoverType = COVER_CACHE;
+				loadFromCache(imageView, null);
+			}
 			else
 			{
-				loadFromCache(imageView, new Callback()
+				mCoverType = COVER_NONE;
+				loadFromNetwork(imageView, new Callback()
 				{
 					@Override public void onSuccess()
 					{
 						mCoverType = COVER_CACHE;
+						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
 					}
 					@Override public void onError()
 					{
-						loadFromNetwork(imageView, new Callback()
-						{
-							@Override public void onSuccess()
-							{
-								mCoverType = COVER_CACHE;
-								CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
-							}
-							@Override public void onError()
-							{
-								mCoverType = COVER_NONE;
-								if(!NativeLibrary.isNetworkConnected(imageView.getContext()))
-									return;
-								CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
-							}
-						});
+						if(!NativeLibrary.isNetworkConnected(imageView.getContext()))
+							return;
+						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
 					}
 				});
 			}
@@ -192,26 +188,54 @@ public class GameFile
 			.into(imageView, callback);
 	}
 
-	private static String[] sGameCovers;
+	private static String[] sAssetsCovers;
 	private static boolean isCoverInAssets(Context context, String gameId)
 	{
-		if(sGameCovers == null)
+		if(sAssetsCovers == null)
 		{
 			try
 			{
-				sGameCovers = context.getAssets().list("GameCovers");
+				sAssetsCovers = context.getAssets().list("GameCovers");
 			}
 			catch (IOException e)
 			{
-				sGameCovers = new String[0];
+				sAssetsCovers = new String[0];
 			}
 		}
 
-		for(String cover : sGameCovers)
+		if(sAssetsCovers != null)
 		{
-			if(cover.contains(gameId))
+			for(String cover : sAssetsCovers)
 			{
-				return true;
+				if(cover.contains(gameId))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static String[] sCacheCovers;
+	private static boolean isCoverInCache(String gameId)
+	{
+		if(sCacheCovers == null)
+		{
+			File dir = new File(DirectoryInitialization.getCoverDirectory());
+			if(dir.exists())
+			{
+				sCacheCovers = dir.list();
+			}
+		}
+
+		if(sCacheCovers != null)
+		{
+			for(String cover : sCacheCovers)
+			{
+				if(cover.contains(gameId))
+				{
+					return true;
+				}
 			}
 		}
 		return false;
