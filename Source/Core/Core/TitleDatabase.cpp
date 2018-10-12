@@ -97,12 +97,20 @@ static bool IsWiiTitle(const std::string& game_id)
 
 static bool IsJapaneseGCTitle(const std::string& game_id)
 {
-  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) == DiscIO::Country::Japan;
+  if (!IsGCTitle(game_id))
+    return false;
+
+  return DiscIO::CountryCodeToCountry(game_id[3], DiscIO::Platform::GameCubeDisc) ==
+         DiscIO::Country::Japan;
 }
 
 static bool IsNonJapaneseGCTitle(const std::string& game_id)
 {
-  return IsGCTitle(game_id) && DiscIO::CountrySwitch(game_id[3]) != DiscIO::Country::Japan;
+  if (!IsGCTitle(game_id))
+    return false;
+
+  return DiscIO::CountryCodeToCountry(game_id[3], DiscIO::Platform::GameCubeDisc) !=
+         DiscIO::Country::Japan;
 }
 
 // Note that this function will not overwrite entries that already are in the maps
