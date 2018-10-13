@@ -281,7 +281,7 @@ void FIFOAnalyzer::UpdateDetails()
       {
         u32 cmd2 = Common::swap32(objectdata);
         objectdata += 4;
-        new_label = QStringLiteral("BP  %02 %06")
+        new_label = QStringLiteral("BP  %1 %2")
                         .arg(cmd2 >> 24, 2, 16, QLatin1Char('0'))
                         .arg(cmd2 & 0xFFFFFF, 6, 16, QLatin1Char('0'));
       }
@@ -474,7 +474,7 @@ void FIFOAnalyzer::UpdateDescription()
 
     text = tr("BP register ");
     text += name.empty() ?
-                QStringLiteral("UNKNOWN_%02X").arg(*(cmddata + 1), 2, 16, QLatin1Char('0')) :
+                QStringLiteral("UNKNOWN_%1").arg(*(cmddata + 1), 2, 16, QLatin1Char('0')) :
                 QString::fromStdString(name);
     text += QStringLiteral("\n");
 
