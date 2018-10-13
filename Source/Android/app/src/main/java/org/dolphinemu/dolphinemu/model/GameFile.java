@@ -8,6 +8,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.utils.CoverHelper;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -121,12 +122,12 @@ public class GameFile
 			if(isCoverInAssets(imageView.getContext(), gameId))
 			{
 				mCoverType = COVER_ASSETS;
-				loadFromAssets(imageView, null);
+				loadFromAssets(imageView);
 			}
 			else if(isCoverInCache(gameId))
 			{
 				mCoverType = COVER_CACHE;
-				loadFromCache(imageView, null);
+				loadFromCache(imageView);
 			}
 			else
 			{
@@ -138,8 +139,9 @@ public class GameFile
 						mCoverType = COVER_CACHE;
 						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
 					}
-					@Override public void onError()
+					@Override public void onError(Exception e)
 					{
+						Log.error(e.getMessage());
 						if(!NativeLibrary.isNetworkConnected(imageView.getContext()))
 							return;
 						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
@@ -149,11 +151,11 @@ public class GameFile
 		}
 		else if(mCoverType == COVER_ASSETS)
 		{
-			loadFromAssets(imageView, null);
+			loadFromAssets(imageView);
 		}
 		else if(mCoverType == COVER_CACHE)
 		{
-			loadFromCache(imageView, null);
+			loadFromCache(imageView);
 		}
 		else if(mCoverType == COVER_NONE)
 		{
@@ -161,27 +163,40 @@ public class GameFile
 		}
 	}
 
-	private void loadFromAssets(ImageView imageView, Callback callback)
+	private Picasso mPicasso;
+	private Picasso getPicasso(Context context)
 	{
-		Picasso.with(imageView.getContext())
-			.load("file:///android_asset/GameCovers/" + getGameId() + ".png")
-			.placeholder(R.drawable.no_banner)
-			.error(R.drawable.no_banner)
-			.into(imageView, callback);
+		if(mPicasso == null)
+		{
+			Picasso.Builder builder = new Picasso.Builder(context);
+			mPicasso = builder.build();
+		}
+		return mPicasso;
 	}
 
-	private void loadFromCache(ImageView imageView, Callback callback)
+	private void loadFromAssets(ImageView imageView)
 	{
-		Picasso.with(imageView.getContext())
-			.load("file://" + getCoverPath())
-			.placeholder(R.drawable.no_banner)
+		getPicasso(imageView.getContext())
+			.load("file:///android_asset/GameCovers/" + getGameId() + ".png")
+			.noPlaceholder()
+			.noFade()
 			.error(R.drawable.no_banner)
-			.into(imageView, callback);
+			.into(imageView);
+	}
+
+	private void loadFromCache(ImageView imageView)
+	{
+		getPicasso(imageView.getContext())
+			.load("file://" + getCoverPath())
+			.noPlaceholder()
+			.noFade()
+			.error(R.drawable.no_banner)
+			.into(imageView);
 	}
 
 	private void loadFromNetwork(ImageView imageView, Callback callback)
 	{
-		Picasso.with(imageView.getContext())
+		getPicasso(imageView.getContext())
 			.load(CoverHelper.buildGameTDBUrl(this))
 			.placeholder(R.drawable.no_banner)
 			.error(R.drawable.no_banner)
