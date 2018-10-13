@@ -397,6 +397,8 @@ public final class NativeLibrary
    */
   public static native void RefreshWiimotes();
 
+  public static native void ReloadWiimoteConfig();
+
   private static boolean alertResult = false;
 
   public static boolean displayAlertMsg(final String caption, final String text,

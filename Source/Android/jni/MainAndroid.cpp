@@ -571,6 +571,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
   WiimoteReal::Refresh();
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadWiimoteConfig(JNIEnv* env,
+                                                                                        jobject obj)
+{
+  Wiimote::LoadConfig();
+}
+
 static void Run(const std::vector<std::string>& paths, bool first_open,
                 std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
 {

@@ -114,6 +114,11 @@
                 android:title="@string/emulation_choose_controller"/>
 
             <item
+                android:id="@+id/menu_emulation_set_ir_sensitivity"
+                app:showAsAction="ifRoom"
+                android:title="@string/emulation_ir_sensitivity"/>
+
+            <item
                 android:id="@+id/menu_emulation_reset_overlay"
                 android:title="@string/emulation_touch_overlay_reset"/>
         </menu>

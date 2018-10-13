@@ -74,12 +74,14 @@ public final class EmulationActivity extends AppCompatActivity
 
   private boolean activityRecreated;
   private String mSelectedTitle;
+  private String mSelectedGameId;
   private int mPlatform;
   private String[] mPaths;
   private boolean backPressedOnce = false;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
+  public static final String EXTRA_SELECTED_GAMEID = "SelectedGameId";
   public static final String EXTRA_PLATFORM = "Platform";
 
   @Retention(SOURCE)
@@ -91,7 +93,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_SAVE_SLOT6, MENU_ACTION_LOAD_SLOT1, MENU_ACTION_LOAD_SLOT2,
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
-          MENU_ACTION_RESET_OVERLAY})
+          MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY})
   public @interface MenuAction
   {
   }
@@ -123,6 +125,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_JOYSTICK_REL_CENTER = 24;
   public static final int MENU_ACTION_RUMBLE = 25;
   public static final int MENU_ACTION_RESET_OVERLAY = 26;
+  public static final int MENU_SET_IR_SENSITIVITY = 27;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -165,6 +168,8 @@ public final class EmulationActivity extends AppCompatActivity
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
     buttonsActionsMap
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
+    buttonsActionsMap.append(R.id.menu_emulation_set_ir_sensitivity,
+            EmulationActivity.MENU_SET_IR_SENSITIVITY);
   }
 
   private static String[] scanForSecondDisc(GameFile gameFile)
@@ -182,6 +187,7 @@ public final class EmulationActivity extends AppCompatActivity
 
     launcher.putExtra(EXTRA_SELECTED_GAMES, scanForSecondDisc(gameFile));
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
+    launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
     activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME);
   }
@@ -201,6 +207,7 @@ public final class EmulationActivity extends AppCompatActivity
       Intent gameToEmulate = getIntent();
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
+      mSelectedGameId = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAMEID);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       activityRecreated = false;
     }
@@ -294,6 +301,7 @@ public final class EmulationActivity extends AppCompatActivity
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
+    outState.putString(EXTRA_SELECTED_GAMEID, mSelectedGameId);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
     super.onSaveInstanceState(outState);
   }
@@ -302,6 +310,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
+    mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
   }
 
@@ -578,6 +587,10 @@ public final class EmulationActivity extends AppCompatActivity
         FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC);
         return;
 
+      case MENU_SET_IR_SENSITIVITY:
+        setIRSensitivity();
+        return;
+
       case MENU_ACTION_EXIT:
         // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
         if (TvUtil.isLeanback(getApplicationContext()))
@@ -783,6 +796,132 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog alertDialog = builder.create();
     alertDialog.show();
 
+  }
+
+  private void setIRSensitivity()
+  {
+    int irHeight = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_HEIGHT + mSelectedGameId, "50"));
+
+    LayoutInflater inflater = LayoutInflater.from(this);
+    View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
+
+    TextView mTextSliderValueHeight = (TextView) view.findViewById(R.id.text_ir_height);
+    TextView units = (TextView) view.findViewById(R.id.text_ir_height_units);
+    SeekBar seekbarHeight = view.findViewById(R.id.seekbar_height);
+
+    mTextSliderValueHeight.setText(String.valueOf(irHeight));
+    units.setText(getString(R.string.height));
+    seekbarHeight.setMax(100);
+    seekbarHeight.setProgress(irHeight);
+    seekbarHeight.setKeyProgressIncrement(5);
+    seekbarHeight.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        mTextSliderValueHeight.setText(String.valueOf(progress));
+      }
+
+      @Override public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      @Override public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+    int irWidth = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_WIDTH + mSelectedGameId, "50"));
+
+    TextView mTextSliderValueWidth = (TextView) view.findViewById(R.id.text_ir_width);
+    TextView unitsWidth = (TextView) view.findViewById(R.id.text_ir_width_units);
+    SeekBar seekbarWidth = view.findViewById(R.id.seekbar_width);
+
+    mTextSliderValueWidth.setText(String.valueOf(irWidth));
+    unitsWidth.setText(getString(R.string.width));
+    seekbarWidth.setMax(100);
+    seekbarWidth.setProgress(irWidth);
+    seekbarWidth.setKeyProgressIncrement(5);
+    seekbarWidth.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        mTextSliderValueWidth.setText(String.valueOf(progress));
+      }
+
+      @Override public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      @Override public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+
+    int irCenter = Integer.valueOf(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_CENTER + mSelectedGameId, "50"));
+
+    TextView mTextSliderValueCenter = (TextView) view.findViewById(R.id.text_ir_center);
+    TextView unitsCenter = (TextView) view.findViewById(R.id.text_ir_center_units);
+    SeekBar seekbarCenter = view.findViewById(R.id.seekbar_center);
+
+    mTextSliderValueCenter.setText(String.valueOf(irCenter));
+    unitsCenter.setText(getString(R.string.center));
+    seekbarCenter.setMax(100);
+    seekbarCenter.setProgress(irCenter);
+    seekbarCenter.setKeyProgressIncrement(5);
+    seekbarCenter.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        mTextSliderValueCenter.setText(String.valueOf(progress));
+      }
+
+      @Override public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      @Override public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    builder.setTitle(getString(R.string.emulation_ir_sensitivity));
+    builder.setView(view);
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
+    {
+      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+              SettingsFile.KEY_WIIBIND_IR_HEIGHT, mTextSliderValueHeight.getText().toString());
+      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+              SettingsFile.KEY_WIIBIND_IR_WIDTH, mTextSliderValueWidth.getText().toString());
+      SettingsFile.saveSingleCustomSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
+              SettingsFile.KEY_WIIBIND_IR_CENTER, mTextSliderValueCenter.getText().toString());
+
+      NativeLibrary.ReloadWiimoteConfig();
+
+      SharedPreferences.Editor editor = mPreferences.edit();
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_HEIGHT + mSelectedGameId,
+              mTextSliderValueHeight.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_WIDTH + mSelectedGameId,
+              mTextSliderValueWidth.getText().toString());
+      editor.putString(SettingsFile.KEY_WIIBIND_IR_CENTER + mSelectedGameId,
+              mTextSliderValueCenter.getText().toString());
+      editor.apply();
+    });
+    builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->
+    {
+      // Do nothing
+    });
+    builder.show();
   }
 
   private void resetOverlay()
