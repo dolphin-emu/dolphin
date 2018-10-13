@@ -1,14 +1,10 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 public final class SettingsActivityPresenter
 {
@@ -23,8 +19,6 @@ public final class SettingsActivityPresenter
 	private int mStackCount;
 
 	private boolean mShouldSave;
-
-	private DirectoryStateReceiver directoryStateReceiver;
 
 	private MenuTag menuTag;
 	private String gameId;
@@ -52,7 +46,7 @@ public final class SettingsActivityPresenter
 
 	public void onStart()
 	{
-		prepareDolphinDirectoriesIfNeeded();
+		loadSettingsUI();
 	}
 
 	private void loadSettingsUI()
@@ -73,45 +67,6 @@ public final class SettingsActivityPresenter
 		mView.onSettingsFileLoaded(mSettings);
 	}
 
-	private void prepareDolphinDirectoriesIfNeeded()
-	{
-		if (DirectoryInitialization.areDolphinDirectoriesReady())
-		{
-			loadSettingsUI();
-		}
-		else
-		{
-			mView.showLoading();
-			IntentFilter statusIntentFilter = new IntentFilter(
-				DirectoryInitialization.BROADCAST_ACTION);
-
-			directoryStateReceiver =
-				new DirectoryStateReceiver(directoryInitializationState ->
-				{
-					if (directoryInitializationState ==
-						DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-					{
-						mView.hideLoading();
-						loadSettingsUI();
-					}
-					else if (directoryInitializationState ==
-						DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
-					{
-						mView.showPermissionNeededHint();
-						mView.hideLoading();
-					}
-					else if (directoryInitializationState ==
-						DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
-					{
-						mView.showExternalStorageNotMountedHint();
-						mView.hideLoading();
-					}
-				});
-
-			mView.startDirectoryInitializationService(directoryStateReceiver, statusIntentFilter);
-		}
-	}
-
 	public void setSettings(Settings settings)
 	{
 		mSettings = settings;
@@ -124,12 +79,6 @@ public final class SettingsActivityPresenter
 
 	public void onStop(boolean finishing)
 	{
-		if (directoryStateReceiver != null)
-		{
-			mView.stopListeningToDirectoryInitializationService(directoryStateReceiver);
-			directoryStateReceiver = null;
-		}
-
 		if (mSettings != null && finishing && mShouldSave)
 		{
 			mSettings.saveSettings(mView);

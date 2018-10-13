@@ -3,11 +3,9 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,8 +13,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
@@ -133,22 +129,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 			getContentResolver(),
 			Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
 		return duration != 0 && transition != 0;
-	}
-
-	@Override
-	public void startDirectoryInitializationService(DirectoryStateReceiver receiver,
-		IntentFilter filter)
-	{
-		LocalBroadcastManager.getInstance(this).registerReceiver(
-			receiver,
-			filter);
-		DirectoryInitialization.start(this);
-	}
-
-	@Override
-	public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver)
-	{
-		LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
 	}
 
 	@Override
