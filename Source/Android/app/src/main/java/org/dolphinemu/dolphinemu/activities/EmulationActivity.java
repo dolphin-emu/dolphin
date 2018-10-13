@@ -217,8 +217,6 @@ public final class EmulationActivity extends AppCompatActivity
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
       mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
-      mSettings = new Settings();
-      mSettings.loadSettings(null);
       activityRecreated = false;
     }
     else
@@ -226,6 +224,9 @@ public final class EmulationActivity extends AppCompatActivity
       activityRecreated = true;
       restoreState(savedInstanceState);
     }
+
+    mSettings = new Settings();
+    mSettings.loadSettings(null);
 
     // TODO: The accurate way to find out which console we're emulating is to
     // first launch emulation and then ask the core which console we're emulating
