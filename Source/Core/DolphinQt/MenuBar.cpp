@@ -570,7 +570,8 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn}};
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
+      {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
   QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));

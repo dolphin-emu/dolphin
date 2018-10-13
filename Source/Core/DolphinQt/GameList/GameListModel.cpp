@@ -42,6 +42,11 @@ GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
     emit layoutAboutToBeChanged();
     emit layoutChanged();
   });
+
+  auto& settings = Settings::GetQSettings();
+
+  m_tag_list = settings.value(QStringLiteral("gamelist/tags")).toStringList();
+  m_game_tags = settings.value(QStringLiteral("gamelist/game_tags")).toMap();
 }
 
 QVariant GameListModel::data(const QModelIndex& index, int role) const
@@ -117,6 +122,14 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::InitialSortOrderRole)
       return static_cast<quint64>(game.GetFileSize());
     break;
+  case COL_TAGS:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    {
+      auto tags = GetGameTags(game.GetFilePath());
+      tags.sort();
+
+      return tags.join(QStringLiteral(", "));
+    }
   }
 
   return QVariant();
@@ -143,6 +156,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("File Name");
   case COL_SIZE:
     return tr("Size");
+  case COL_TAGS:
+    return tr("Tags");
   }
   return QVariant();
 }
@@ -292,4 +307,58 @@ void GameListModel::SetScale(float scale)
 float GameListModel::GetScale() const
 {
   return m_scale;
+}
+
+const QStringList& GameListModel::GetAllTags() const
+{
+  return m_tag_list;
+}
+
+const QStringList GameListModel::GetGameTags(const std::string& path) const
+{
+  return m_game_tags[QString::fromStdString(path)].toStringList();
+}
+
+void GameListModel::AddGameTag(const std::string& path, const QString& name)
+{
+  auto tags = GetGameTags(path);
+
+  if (tags.contains(name))
+    return;
+
+  tags << name;
+
+  m_game_tags[QString::fromStdString(path)] = tags;
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/game_tags"), m_game_tags);
+}
+
+void GameListModel::RemoveGameTag(const std::string& path, const QString& name)
+{
+  auto tags = GetGameTags(path);
+
+  tags.removeAll(name);
+
+  m_game_tags[QString::fromStdString(path)] = tags;
+
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/game_tags"), m_game_tags);
+}
+
+void GameListModel::NewTag(const QString& name)
+{
+  if (m_tag_list.contains(name))
+    return;
+
+  m_tag_list << name;
+
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/tags"), m_tag_list);
+}
+
+void GameListModel::DeleteTag(const QString& name)
+{
+  m_tag_list.removeAll(name);
+
+  for (const auto& file : m_game_tags.keys())
+    RemoveGameTag(file.toStdString(), name);
+
+  Settings::GetQSettings().setValue(QStringLiteral("gamelist/tags"), m_tag_list);
 }
