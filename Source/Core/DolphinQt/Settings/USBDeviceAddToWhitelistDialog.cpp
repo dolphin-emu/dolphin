@@ -35,6 +35,28 @@ static bool IsValidUSBIDString(const std::string& string)
                      [](const auto character) { return std::isxdigit(character) != 0; });
 }
 
+bool USBDeviceAddToWhitelistDialog::IsPIDAndVIDValidFormat()
+{
+  int vid_text_count = device_vid_textbox->text().count();
+  int pid_text_count = device_pid_textbox->text().count();
+
+  return vid_text_count == 4 && pid_text_count == 4;
+}
+
+void USBDeviceAddToWhitelistDialog::HandleButtonBehavior()
+{
+  if (IsPIDAndVIDValidFormat())
+  {
+    m_add_button->setDefault(true);
+    m_add_button->setEnabled(true);
+  }
+  else
+  {
+    m_add_button->setDefault(false);  // fixes bug being stuck highlighted when disabled
+    m_add_button->setEnabled(false);
+  }
+}
+
 USBDeviceAddToWhitelistDialog::USBDeviceAddToWhitelistDialog(QWidget* parent) : QDialog(parent)
 {
   InitControls();
@@ -47,14 +69,15 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   m_whitelist_buttonbox = new QDialogButtonBox();
-  auto* add_button = new QPushButton(tr("Add"));
-  auto* cancel_button = new QPushButton(tr("Cancel"));
-  m_whitelist_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);
-  m_whitelist_buttonbox->addButton(cancel_button, QDialogButtonBox::RejectRole);
-  connect(add_button, &QPushButton::clicked, this,
+  m_add_button = new QPushButton(tr("Add"));
+  m_cancel_button = new QPushButton(tr("Cancel"));
+  m_whitelist_buttonbox->addButton(m_add_button, QDialogButtonBox::AcceptRole);
+  m_whitelist_buttonbox->addButton(m_cancel_button, QDialogButtonBox::RejectRole);
+  connect(m_add_button, &QPushButton::clicked, this,
           &USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist);
-  connect(cancel_button, &QPushButton::clicked, this, &USBDeviceAddToWhitelistDialog::reject);
-  add_button->setDefault(true);
+  connect(m_cancel_button, &QPushButton::clicked, this, &USBDeviceAddToWhitelistDialog::reject);
+  m_add_button->setDefault(true);
+  m_add_button->setEnabled(false);
 
   main_layout = new QVBoxLayout();
   enter_device_id_label = new QLabel(tr("Enter USB device ID"));
@@ -78,6 +101,11 @@ void USBDeviceAddToWhitelistDialog::InitControls()
 
   entry_hbox_layout->addWidget(device_pid_textbox);
   main_layout->addLayout(entry_hbox_layout);
+
+  connect(device_vid_textbox, &QLineEdit::textChanged, this,
+          &USBDeviceAddToWhitelistDialog::HandleButtonBehavior);
+  connect(device_pid_textbox, &QLineEdit::textChanged, this,
+          &USBDeviceAddToWhitelistDialog::HandleButtonBehavior);
 
   select_label = new QLabel(tr("or select a device"));
   select_label->setAlignment(Qt::AlignCenter);

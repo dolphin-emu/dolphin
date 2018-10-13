@@ -32,6 +32,8 @@ private:
   static constexpr int DEVICE_REFRESH_INTERVAL_MS = 100;
   QTimer* m_refresh_devices_timer;
   QDialogButtonBox* m_whitelist_buttonbox;
+  QPushButton* m_add_button;
+  QPushButton* m_cancel_button;
   QVBoxLayout* main_layout;
   QLabel* enter_device_id_label;
   QHBoxLayout* entry_hbox_layout;
@@ -40,11 +42,15 @@ private:
   QLabel* select_label;
   QListWidget* usb_inserted_devices_list;
 
+  bool IsPIDAndVIDValidFormat();
+
   void InitControls();
   void RefreshDeviceList();
   void AddUSBDeviceToWhitelist();
 
   void OnDeviceSelection();
+
+  void HandleButtonBehavior();
 
   std::map<std::pair<quint16, quint16>, std::string> m_shown_devices;
 };
