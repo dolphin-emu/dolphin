@@ -1,7 +1,9 @@
 package org.dolphinemu.dolphinemu.model;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.widget.ImageView;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -13,9 +15,12 @@ import org.dolphinemu.dolphinemu.utils.Log;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.support.v4.content.FileProvider.getUriForFile;
 
 public class GameFile
 {
@@ -110,148 +115,93 @@ public class GameFile
 	}
 
 	private static final int COVER_UNKNOWN = 0;
-	private static final int COVER_ASSETS = 1;
-	private static final int COVER_CACHE = 2;
-	private static final int COVER_NONE = 3;
+	private static final int COVER_CACHE = 1;
+	private static final int COVER_NONE = 2;
 	private int mCoverType = COVER_UNKNOWN;
 	public void loadGameBanner(ImageView imageView)
 	{
 		if(mCoverType == COVER_UNKNOWN)
 		{
-			String gameId = getGameId();
-			if(isCoverInAssets(imageView.getContext(), gameId))
-			{
-				mCoverType = COVER_ASSETS;
-				loadFromAssets(imageView);
-			}
-			else if(isCoverInCache(gameId))
+			if(loadFromCache(imageView))
 			{
 				mCoverType = COVER_CACHE;
-				loadFromCache(imageView);
+				return;
 			}
-			else
+
+			mCoverType = COVER_NONE;
+			loadFromNetwork(imageView, new Callback()
 			{
-				mCoverType = COVER_NONE;
-				loadFromNetwork(imageView, new Callback()
+				@Override public void onSuccess()
 				{
-					@Override public void onSuccess()
+					mCoverType = COVER_CACHE;
+					CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
+				}
+				@Override public void onError(Exception e)
+				{
+					if(loadFromISO(imageView))
 					{
 						mCoverType = COVER_CACHE;
-						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
 					}
-					@Override public void onError(Exception e)
+					else if(NativeLibrary.isNetworkConnected(imageView.getContext()))
 					{
-						Log.error(e.getMessage());
-						if(!NativeLibrary.isNetworkConnected(imageView.getContext()))
-							return;
+						// save placeholder to file
 						CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(), getCoverPath());
 					}
-				});
-			}
-		}
-		else if(mCoverType == COVER_ASSETS)
-		{
-			loadFromAssets(imageView);
+				}
+			});
 		}
 		else if(mCoverType == COVER_CACHE)
 		{
 			loadFromCache(imageView);
 		}
-		else if(mCoverType == COVER_NONE)
+		else
 		{
 			imageView.setImageResource(R.drawable.no_banner);
 		}
 	}
 
-	private Picasso mPicasso;
-	private Picasso getPicasso(Context context)
+	private boolean loadFromCache(ImageView imageView)
 	{
-		if(mPicasso == null)
+		File file = new File(getCoverPath());
+		if(file.exists())
 		{
-			Picasso.Builder builder = new Picasso.Builder(context);
-			mPicasso = builder.build();
+			imageView.setImageURI(Uri.parse("file://" + getCoverPath()));
+			return true;
 		}
-		return mPicasso;
-	}
-
-	private void loadFromAssets(ImageView imageView)
-	{
-		getPicasso(imageView.getContext())
-			.load("file:///android_asset/GameCovers/" + getGameId() + ".png")
-			.noPlaceholder()
-			.noFade()
-			.error(R.drawable.no_banner)
-			.into(imageView);
-	}
-
-	private void loadFromCache(ImageView imageView)
-	{
-		getPicasso(imageView.getContext())
-			.load("file://" + getCoverPath())
-			.noPlaceholder()
-			.noFade()
-			.error(R.drawable.no_banner)
-			.into(imageView);
+		return false;
 	}
 
 	private void loadFromNetwork(ImageView imageView, Callback callback)
 	{
-		getPicasso(imageView.getContext())
+		new Picasso.Builder(imageView.getContext())
+			.build()
 			.load(CoverHelper.buildGameTDBUrl(this))
 			.placeholder(R.drawable.no_banner)
 			.error(R.drawable.no_banner)
 			.into(imageView, callback);
 	}
 
-	private static String[] sAssetsCovers;
-	private static boolean isCoverInAssets(Context context, String gameId)
+	private boolean loadFromISO(ImageView imageView)
 	{
-		if(sAssetsCovers == null)
+		int[] vector = getBanner();
+		int width = getBannerWidth();
+		int height = getBannerHeight();
+		if (vector.length > 0 && width > 0 && height > 0)
 		{
+			File file = new File(getCoverPath());
+			Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+			bitmap.setPixels(vector, 0, width, 0, 0, width, height);
 			try
 			{
-				sAssetsCovers = context.getAssets().list("GameCovers");
+				FileOutputStream out = new FileOutputStream(file);
+				bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+				out.close();
 			}
-			catch (IOException e)
+			catch (Exception e)
 			{
-				sAssetsCovers = new String[0];
+				return false;
 			}
-		}
-
-		if(sAssetsCovers != null)
-		{
-			for(String cover : sAssetsCovers)
-			{
-				if(cover.contains(gameId))
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private static String[] sCacheCovers;
-	private static boolean isCoverInCache(String gameId)
-	{
-		if(sCacheCovers == null)
-		{
-			File dir = new File(DirectoryInitialization.getCoverDirectory());
-			if(dir.exists())
-			{
-				sCacheCovers = dir.list();
-			}
-		}
-
-		if(sCacheCovers != null)
-		{
-			for(String cover : sCacheCovers)
-			{
-				if(cover.contains(gameId))
-				{
-					return true;
-				}
-			}
+			return loadFromCache(imageView);
 		}
 		return false;
 	}

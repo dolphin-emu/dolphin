@@ -13,6 +13,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
@@ -23,7 +24,7 @@ WiimoteEmuGeneral::WiimoteEmuGeneral(MappingWindow* window, WiimoteEmuExtension*
     : MappingWidget(window), m_extension_widget(extension)
 {
   CreateMainLayout();
-  Connect();
+  Connect(window);
 }
 
 void WiimoteEmuGeneral::CreateMainLayout()
@@ -66,10 +67,11 @@ void WiimoteEmuGeneral::CreateMainLayout()
   setLayout(m_main_layout);
 }
 
-void WiimoteEmuGeneral::Connect()
+void WiimoteEmuGeneral::Connect(MappingWindow* window)
 {
   connect(m_extension_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
           this, &WiimoteEmuGeneral::OnAttachmentChanged);
+  connect(window, &MappingWindow::Update, this, &WiimoteEmuGeneral::Update);
 }
 
 void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
@@ -92,14 +94,17 @@ void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
   SaveSettings();
 }
 
-void WiimoteEmuGeneral::LoadSettings()
+void WiimoteEmuGeneral::Update()
 {
   auto* ce_extension = static_cast<ControllerEmu::Extension*>(
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Extension));
 
   m_extension_combo->setCurrentIndex(ce_extension->switch_extension);
-  OnAttachmentChanged(ce_extension->switch_extension);
+}
 
+void WiimoteEmuGeneral::LoadSettings()
+{
+  Update();
   Wiimote::LoadConfig();
 }
 

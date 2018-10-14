@@ -78,8 +78,8 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	// TODO: Replace with a ButterKnife injection.
 	private void findViews()
 	{
-		mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
-		mRecyclerView = (RecyclerView) findViewById(R.id.grid_games);
+		mToolbar = findViewById(R.id.toolbar_main);
+		mRecyclerView = findViewById(R.id.grid_games);
 
 		int columns = getResources().getInteger(R.integer.game_grid_columns);
 		Drawable lineDivider = getDrawable(R.drawable.line_divider);

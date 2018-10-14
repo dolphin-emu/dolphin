@@ -22,8 +22,9 @@ private:
   void LoadSettings() override;
   void SaveSettings() override;
   void CreateMainLayout();
-  void Connect();
+  void Connect(MappingWindow* window);
   void OnAttachmentChanged(int index);
+  void Update();
 
   // Main
   QHBoxLayout* m_main_layout;

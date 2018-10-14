@@ -249,11 +249,10 @@ void WiiPane::ValidateSelectionState()
 
 void WiiPane::OnUSBWhitelistAddButton()
 {
-  USBDeviceAddToWhitelistDialog* usb_whitelist_dialog = new USBDeviceAddToWhitelistDialog(this);
-  connect(usb_whitelist_dialog, &USBDeviceAddToWhitelistDialog::accepted, this,
+  USBDeviceAddToWhitelistDialog usb_whitelist_dialog(this);
+  connect(&usb_whitelist_dialog, &USBDeviceAddToWhitelistDialog::accepted, this,
           &WiiPane::PopulateUSBPassthroughListWidget);
-  usb_whitelist_dialog->setModal(true);
-  usb_whitelist_dialog->show();
+  usb_whitelist_dialog.exec();
 }
 
 void WiiPane::OnUSBWhitelistRemoveButton()

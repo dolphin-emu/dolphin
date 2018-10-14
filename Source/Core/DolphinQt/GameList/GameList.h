@@ -60,6 +60,8 @@ private:
   void ExportWiiSave();
   void CompressISO(bool decompress);
   void ChangeDisc();
+  void NewTag();
+  void DeleteTag();
   void UpdateColumnVisibility();
 
   void ZoomIn();
