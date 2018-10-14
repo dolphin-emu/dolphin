@@ -25,6 +25,9 @@
 #endif
 #endif
 
+const std::array<std::pair<int, int>, 9> GLContext::s_desktop_opengl_versions = {
+    {{4, 6}, {4, 5}, {4, 4}, {4, 3}, {4, 2}, {4, 1}, {4, 0}, {3, 3}, {3, 2}}};
+
 GLContext::~GLContext() = default;
 
 bool GLContext::Initialize(void* display_handle, void* window_handle, bool stereo, bool core)

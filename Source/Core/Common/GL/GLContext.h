@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/WindowSystemInfo.h"
@@ -58,4 +60,8 @@ protected:
   u32 m_backbuffer_width = 0;
   u32 m_backbuffer_height = 0;
   bool m_is_shared = false;
+
+  // A list of desktop OpenGL versions to attempt to create a context for.
+  // (4.6-3.2, geometry shaders is a minimum requirement since we're using core profile).
+  static const std::array<std::pair<int, int>, 9> s_desktop_opengl_versions;
 };

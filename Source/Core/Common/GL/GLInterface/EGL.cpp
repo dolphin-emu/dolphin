@@ -222,17 +222,7 @@ bool GLContextEGL::Initialize(void* display_handle, void* window_handle, bool st
 
   if (supports_core_profile && core && m_opengl_mode == Mode::OpenGL)
   {
-    std::array<std::pair<int, int>, 7> versions_to_try = {{
-        {4, 5},
-        {4, 4},
-        {4, 3},
-        {4, 2},
-        {4, 1},
-        {4, 0},
-        {3, 3},
-    }};
-
-    for (const auto& version : versions_to_try)
+    for (const auto& version : s_desktop_opengl_versions)
     {
       std::vector<EGLint> core_attribs = {EGL_CONTEXT_MAJOR_VERSION_KHR,
                                           version.first,

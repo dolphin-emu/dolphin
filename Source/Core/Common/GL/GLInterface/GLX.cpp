@@ -134,30 +134,29 @@ bool GLContextGLX::Initialize(void* display_handle, void* window_handle, bool st
   XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
 
   // Create a GLX context.
-  // We try to get a 4.0 core profile, else we try 3.3, else try it with anything we get.
-  std::array<int, 9> context_attribs = {
-      {GLX_CONTEXT_MAJOR_VERSION_ARB, 4, GLX_CONTEXT_MINOR_VERSION_ARB, 0,
-       GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, GLX_CONTEXT_FLAGS_ARB,
-       GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
-  m_context = nullptr;
   if (core)
   {
-    m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs[0]);
-    XSync(m_display, False);
-    m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
+    for (const auto& version : s_desktop_opengl_versions)
+    {
+      std::array<int, 9> context_attribs = {
+          {GLX_CONTEXT_MAJOR_VERSION_ARB, version.first, GLX_CONTEXT_MINOR_VERSION_ARB,
+           version.second, GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+           GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
+
+      s_glxError = false;
+      m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs[0]);
+      XSync(m_display, False);
+      m_attribs.insert(m_attribs.end(), context_attribs.begin(), context_attribs.end());
+      if (!m_context || s_glxError)
+        continue;
+
+      // Got a context.
+      INFO_LOG(VIDEO, "Created a GLX context with version %d.%d", version.first, version.second);
+      break;
+    }
   }
-  if (core && (!m_context || s_glxError))
-  {
-    std::array<int, 9> context_attribs_33 = {
-        {GLX_CONTEXT_MAJOR_VERSION_ARB, 3, GLX_CONTEXT_MINOR_VERSION_ARB, 3,
-         GLX_CONTEXT_PROFILE_MASK_ARB, GLX_CONTEXT_CORE_PROFILE_BIT_ARB, GLX_CONTEXT_FLAGS_ARB,
-         GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB, None}};
-    s_glxError = false;
-    m_context = glXCreateContextAttribs(m_display, m_fbconfig, 0, True, &context_attribs_33[0]);
-    XSync(m_display, False);
-    m_attribs.clear();
-    m_attribs.insert(m_attribs.end(), context_attribs_33.begin(), context_attribs_33.end());
-  }
+
+  // Failed to create any core contexts, try for anything.
   if (!m_context || s_glxError)
   {
     std::array<int, 5> context_attribs_legacy = {
