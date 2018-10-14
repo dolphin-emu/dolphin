@@ -496,6 +496,9 @@ void GameList::CompressISO(bool decompress)
             .append(decompress ? QStringLiteral(".gcm") : QStringLiteral(".gcz")),
         decompress ? tr("Uncompressed GC/Wii images (*.iso *.gcm)") :
                      tr("Compressed GC/Wii images (*.gcz)"));
+
+    if (dst_path.isEmpty())
+      return;
   }
 
   for (const auto& file : files)
