@@ -29,6 +29,7 @@ class HotkeyScheduler;
 class JITWidget;
 class LogConfigWidget;
 class LogWidget;
+class MappingWindow;
 class MemoryWidget;
 class MenuBar;
 class NetPlayDialog;
@@ -184,6 +185,7 @@ private:
   SettingsWindow* m_settings_window = nullptr;
   GraphicsWindow* m_graphics_window = nullptr;
   FIFOPlayerWindow* m_fifo_window = nullptr;
+  MappingWindow* m_hotkey_window = nullptr;
 
   HotkeyScheduler* m_hotkey_scheduler;
   NetPlayDialog* m_netplay_dialog;

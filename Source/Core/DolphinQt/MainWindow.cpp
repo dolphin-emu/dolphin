@@ -937,13 +937,15 @@ void MainWindow::ShowAboutDialog()
 
 void MainWindow::ShowHotkeyDialog()
 {
-  auto* hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+  if (!m_hotkey_window)
+  {
+    m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+    InstallHotkeyFilter(m_hotkey_window);
+  }
 
-  InstallHotkeyFilter(hotkey_window);
-
-  hotkey_window->show();
-  hotkey_window->raise();
-  hotkey_window->activateWindow();
+  m_hotkey_window->show();
+  m_hotkey_window->raise();
+  m_hotkey_window->activateWindow();
 }
 
 void MainWindow::ShowGraphicsWindow()
