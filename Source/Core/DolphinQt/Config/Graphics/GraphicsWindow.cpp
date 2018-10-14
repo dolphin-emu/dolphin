@@ -27,17 +27,6 @@
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
 {
-  // GraphicsWindow initialization is heavy due to dependencies on the graphics subsystem.
-  // To prevent blocking startup, we create the layout and children at first show time.
-}
-
-void GraphicsWindow::Initialize()
-{
-  if (m_lazy_initialized)
-    return;
-
-  m_lazy_initialized = true;
-
   CreateMainLayout();
 
   setWindowTitle(tr("Graphics"));
