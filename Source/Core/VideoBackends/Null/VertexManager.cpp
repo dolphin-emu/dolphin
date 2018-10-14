@@ -13,13 +13,13 @@ namespace Null
 class NullNativeVertexFormat : public NativeVertexFormat
 {
 public:
-  NullNativeVertexFormat() {}
+  NullNativeVertexFormat(const PortableVertexDeclaration& vtx_decl_) { vtx_decl = vtx_decl_; }
 };
 
 std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return std::make_unique<NullNativeVertexFormat>();
+  return std::make_unique<NullNativeVertexFormat>(vtx_decl);
 }
 
 VertexManager::VertexManager() : m_local_v_buffer(MAXVBUFFERSIZE), m_local_i_buffer(MAXIBUFFERSIZE)
