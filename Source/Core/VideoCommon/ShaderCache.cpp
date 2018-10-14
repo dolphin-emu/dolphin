@@ -35,7 +35,7 @@ bool ShaderCache::Initialize()
   m_async_shader_compiler->ResizeWorkerThreads(g_ActiveConfig.GetShaderPrecompilerThreads());
 
   // Load shader and UID caches.
-  if (g_ActiveConfig.bShaderCache)
+  if (g_ActiveConfig.bShaderCache && m_api_type != APIType::Nothing)
   {
     LoadShaderCaches();
     LoadPipelineUIDCache();
