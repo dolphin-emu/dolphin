@@ -285,20 +285,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				else if (sJoyStickSetting == JOYSTICK_EMULATE_SWING)
 				{
 					factor = -1.0f;
-					if(sControllerType == CONTROLLER_WIIREMOTE)
-					{
-						axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
-						axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
-						axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
-						axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
-					}
-					else
-					{
-						axisIDs[0] = ButtonType.NUNCHUK_SWING + 1;
-						axisIDs[1] = ButtonType.NUNCHUK_SWING + 2;
-						axisIDs[2] = ButtonType.NUNCHUK_SWING + 3;
-						axisIDs[3] = ButtonType.NUNCHUK_SWING + 4;
-					}
+					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
 				}
 				else if (sJoyStickSetting == JOYSTICK_EMULATE_TILT)
 				{
@@ -553,20 +543,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axises[3] = x; // right
 					break;
 				case SENSOR_WII_SWING:
-					if(sControllerType == CONTROLLER_WIIREMOTE)
-					{
-						axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
-						axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
-						axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
-						axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
-					}
-					else
-					{
-						axisIDs[0] = ButtonType.NUNCHUK_SWING + 1;
-						axisIDs[1] = ButtonType.NUNCHUK_SWING + 2;
-						axisIDs[2] = ButtonType.NUNCHUK_SWING + 3;
-						axisIDs[3] = ButtonType.NUNCHUK_SWING + 4;
-					}
+					axisIDs[0] = ButtonType.WIIMOTE_SWING + 1;
+					axisIDs[1] = ButtonType.WIIMOTE_SWING + 2;
+					axisIDs[2] = ButtonType.WIIMOTE_SWING + 3;
+					axisIDs[3] = ButtonType.WIIMOTE_SWING + 4;
 					axises[0] = y; // up
 					axises[1] = y; // down
 					axises[2] = x; // left
