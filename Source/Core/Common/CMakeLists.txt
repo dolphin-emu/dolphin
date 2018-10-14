@@ -113,12 +113,15 @@ target_sources(common PRIVATE
   GL/GLContext.cpp
 )
 
-if(ENABLE_EGL)
+if(ENABLE_EGL AND EGL_FOUND)
   target_sources(common PRIVATE GL/GLInterface/EGL.cpp)
   if(ANDROID)
     target_sources(common PRIVATE GL/GLInterface/EGLAndroid.cpp)
+  elseif(ENABLE_X11 AND X11_FOUND)
+    target_sources(common PRIVATE GL/GLInterface/EGLX11.cpp)
   endif()
-  target_link_libraries(common PUBLIC EGL)
+  target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS})
+  target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
 endif()
 
 if(WIN32)
@@ -128,7 +131,7 @@ if(WIN32)
   )
 elseif(APPLE)
   target_sources(common PRIVATE GL/GLInterface/AGL.mm)
-elseif(ENABLE_X11)
+elseif(ENABLE_X11 AND X11_FOUND)
   target_sources(common PRIVATE
     GL/GLX11Window.cpp
     GL/GLInterface/GLX.cpp)
@@ -136,10 +139,6 @@ elseif(ENABLE_X11)
   # GLX has a hard dependency on libGL.
   # Make sure to link to it if using GLX.
   target_link_libraries(common PUBLIC ${OPENGL_LIBRARIES})
-
-  if (ENABLE_EGL)
-    target_sources(common PRIVATE GL/GLInterface/EGLX11.cpp)
-  endif()
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

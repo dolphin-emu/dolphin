@@ -8,15 +8,21 @@
 
 #if defined(__APPLE__)
 #include "Common/GL/GLInterface/AGL.h"
-#elif defined(_WIN32)
+#endif
+#if defined(WIN32)
 #include "Common/GL/GLInterface/WGL.h"
-#elif defined(ANDROID)
-#include "Common/GL/GLInterface/EGLAndroid.h"
-#elif HAVE_X11
-#include "Common/GL/GLInterface/EGLX11.h"
+#endif
+#if HAVE_X11
 #include "Common/GL/GLInterface/GLX.h"
-#elif HAVE_EGL
+#endif
+#if HAVE_EGL
 #include "Common/GL/GLInterface/EGL.h"
+#if HAVE_X11
+#include "Common/GL/GLInterface/EGLX11.h"
+#endif
+#if defined(ANDROID)
+#include "Common/GL/GLInterface/EGLAndroid.h"
+#endif
 #endif
 
 GLContext::~GLContext() = default;
@@ -72,22 +78,39 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
 {
   std::unique_ptr<GLContext> context;
 #if defined(__APPLE__)
-  context = std::make_unique<GLContextAGL>();
-#elif defined(_WIN32)
-  context = std::make_unique<GLContextWGL>();
-#elif defined(ANDROID)
-  context = std::make_unique<GLContextEGLAndroid>();
-#elif HAVE_X11
-  // GLES is not supported via GLX?
-  if (prefer_egl || prefer_gles)
-    context = std::make_unique<GLContextEGLX11>();
-  else
-    context = std::make_unique<GLContextGLX>();
-#elif HAVE_EGL
-  context = std::make_unique<GLContextEGL>();
-#else
-  return nullptr;
+  if (wsi.type == WindowSystemType::MacOS || wsi.type == WindowSystemType::Headless)
+    context = std::make_unique<GLContextAGL>();
 #endif
+#if defined(_WIN32)
+  if (wsi.type == WindowSystemType::Windows)
+    context = std::make_unique<GLContextWGL>();
+#endif
+#if defined(ANDROID)
+  if (wsi.type == WindowSystemType::Android)
+    context = std::make_unique<GLContextEGLAndroid>();
+#endif
+#if HAVE_X11
+  if (wsi.type == WindowSystemType::X11)
+  {
+    // GLES 3 is not supported via GLX.
+    const bool use_egl = prefer_egl || prefer_gles;
+#if defined(HAVE_EGL)
+    if (use_egl)
+      context = std::make_unique<GLContextEGLX11>();
+    else
+      context = std::make_unique<GLContextGLX>();
+#else
+    context = std::make_unique<GLContextGLX>();
+#endif
+  }
+#endif
+#if HAVE_EGL
+  if (wsi.type == WindowSystemType::Headless)
+    context = std::make_unique<GLContextEGL>();
+#endif
+
+  if (!context)
+    return nullptr;
 
   // Option to prefer GLES on desktop platforms, useful for testing.
   if (prefer_gles)
