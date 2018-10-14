@@ -88,6 +88,8 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   m_refresh_devices_timer = new QTimer(this);
   connect(usb_inserted_devices_list, &QListWidget::currentItemChanged, this,
           &USBDeviceAddToWhitelistDialog::OnDeviceSelection);
+  connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, add_button,
+          &QPushButton::clicked);
   connect(m_refresh_devices_timer, &QTimer::timeout, this,
           &USBDeviceAddToWhitelistDialog::RefreshDeviceList);
   m_refresh_devices_timer->start(1000);
