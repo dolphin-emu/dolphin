@@ -58,8 +58,11 @@ size_t GameFileCache::GetSize() const
   return m_cached_files.size();
 }
 
-void GameFileCache::Clear()
+void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
 {
+  if (delete_on_disk != DeleteOnDisk::No)
+    File::Delete(m_path);
+
   m_cached_files.clear();
 }
 

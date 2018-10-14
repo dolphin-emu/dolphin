@@ -458,6 +458,8 @@ void MenuBar::AddViewMenu()
   AddShowRegionsMenu(view_menu);
 
   view_menu->addSeparator();
+  view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
+  view_menu->addSeparator();
   view_menu->addAction(tr("Search"), this, &MenuBar::ToggleSearch,
                        QKeySequence(QStringLiteral("Ctrl+F")));
 }

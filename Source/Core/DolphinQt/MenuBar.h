@@ -90,6 +90,7 @@ signals:
   // View
   void ShowList();
   void ShowGrid();
+  void PurgeGameListCache();
   void ToggleSearch();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);

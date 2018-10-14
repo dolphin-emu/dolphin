@@ -89,6 +89,11 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
           [this] { m_grid_proxy->invalidate(); });
 }
 
+void GameList::PurgeCache()
+{
+  m_model->PurgeCache();
+}
+
 void GameList::MakeListView()
 {
   m_list = new QTableView(this);
