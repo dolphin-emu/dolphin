@@ -499,6 +499,22 @@ public final class SettingsFile
   {
     String profile = gameId + "_Wii" + padId;
 
+    String wiiConfigPath =
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
+                    profile + ".ini";
+    File wiiProfile = new File(wiiConfigPath);
+    // If it doesn't exist, create it
+    if (!wiiProfile.exists())
+    {
+      String defautlWiiProfilePath =
+              DirectoryInitialization.getUserDirectory() +
+                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
+      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
+
+      NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
+              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
+    }
+
     NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key,
             value);
 
@@ -565,19 +581,7 @@ public final class SettingsFile
             DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
                     profile + ".ini";
 
-    File wiiProfile = new File(wiiConfigPath);
-    // If it doesn't exist, create it
-    if (!wiiProfile.exists())
-    {
-      String defautlWiiProfilePath =
-              DirectoryInitialization.getUserDirectory() +
-                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
-      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
-
-      NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
-              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
-    }
-    return wiiProfile;
+    return new File(wiiConfigPath);
   }
 
   private static SettingSection sectionFromLine(String line, boolean isCustomGame)
