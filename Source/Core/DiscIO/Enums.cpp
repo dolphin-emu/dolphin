@@ -293,9 +293,6 @@ Region GetSysMenuRegion(u16 title_version)
 
 std::string GetSysMenuVersionString(u16 title_version)
 {
-  if (title_version == 33)
-    return "1.0";  // 1.0 uses 33 as the version number in all regions
-
   std::string region_letter;
 
   switch (GetSysMenuRegion(title_version))
@@ -319,6 +316,8 @@ std::string GetSysMenuVersionString(u16 title_version)
 
   switch (title_version & ~0xf)
   {
+  case 32:
+    return "1.0" + region_letter;
   case 96:
   case 128:
     return "2.0" + region_letter;
