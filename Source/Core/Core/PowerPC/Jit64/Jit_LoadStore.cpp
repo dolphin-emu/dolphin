@@ -269,10 +269,12 @@ void Jit64::dcbx(UGeckoInstruction inst)
 
   X64Reg addr = RSCRATCH;
   X64Reg value = RSCRATCH2;
-  X64Reg tmp = gpr.GetFreeXReg();
-  gpr.FlushLockX(tmp);
+  RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
+  RCOpArg Rb = gpr.Use(inst.RB, RCMode::Read);
+  RCX64Reg tmp = gpr.Scratch(gpr.GetFreeXReg());
+  RegCache::Realize(Ra, Rb, tmp);
 
-  MOV_sum(32, addr, inst.RA ? gpr.R(inst.RA) : Imm32(0), gpr.R(inst.RB));
+  MOV_sum(32, addr, Ra, Rb);
 
   // Check whether a JIT cache line needs to be invalidated.
   LEA(32, value, MScaled(addr, SCALE_8, 0));  // addr << 3 (masks the first 3 bits)
@@ -297,8 +299,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
   c = J(true);
   SwitchToNearCode();
   SetJumpTarget(c);
-
-  gpr.UnlockAllX();
 }
 
 void Jit64::dcbt(UGeckoInstruction inst)
