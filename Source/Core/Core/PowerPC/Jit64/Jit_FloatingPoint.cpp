@@ -676,13 +676,13 @@ void Jit64::fresx(UGeckoInstruction inst)
   int b = inst.FB;
   int d = inst.FD;
 
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  fpr.Lock(b, d);
-  MOVAPD(XMM0, fpr.R(b));
-  fpr.BindToRegister(d, false);
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(scratch_guard, Rb, Rd);
+
+  MOVAPD(XMM0, Rb);
   CALL(asm_routines.fres);
-  MOVDDUP(fpr.RX(d), R(XMM0));
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
-  gpr.UnlockAllX();
+  MOVDDUP(Rd, R(XMM0));
+  SetFPRFIfNeeded(Rd);
 }
