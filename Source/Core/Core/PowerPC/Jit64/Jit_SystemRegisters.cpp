@@ -219,26 +219,32 @@ void Jit64::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-    MOV(32, R(RSCRATCH), gpr.R(d));
+  {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Read);
+    RegCache::Realize(Rd);
+
+    MOV(32, R(RSCRATCH), Rd);
     AND(32, R(RSCRATCH), Imm32(0xff7f));
     MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
 
-    MOV(32, R(RSCRATCH), gpr.R(d));
+    MOV(32, R(RSCRATCH), Rd);
     SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
     AND(8, R(RSCRATCH), Imm8(1));
     MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
 
-    MOV(32, R(RSCRATCH), gpr.R(d));
+    MOV(32, R(RSCRATCH), Rd);
     SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
     MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
-    gpr.UnlockAll();
+
     return;
+  }
 
   case SPR_HID0:
   {
-    MOV(32, R(RSCRATCH), gpr.R(d));
+    RCOpArg Rd = gpr.Use(d, RCMode::Read);
+    RegCache::Realize(Rd);
+
+    MOV(32, R(RSCRATCH), Rd);
     BTR(32, R(RSCRATCH), Imm8(31 - 20));  // ICFI
     MOV(32, PPCSTATE(spr[iIndex]), R(RSCRATCH));
     FixupBranch dont_reset_icache = J_CC(CC_NC);
@@ -255,13 +261,9 @@ void Jit64::mtspr(UGeckoInstruction inst)
   }
 
   // OK, this is easy.
-  if (!gpr.R(d).IsImm())
-  {
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-  }
-  MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
-  gpr.UnlockAll();
+  RCOpArg Rd = gpr.BindOrImm(d, RCMode::Read);
+  RegCache::Realize(Rd);
+  MOV(32, PPCSTATE(spr[iIndex]), Rd);
 }
 
 void Jit64::mfspr(UGeckoInstruction inst)
