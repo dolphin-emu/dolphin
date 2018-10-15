@@ -243,17 +243,32 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   bool packed = inst.OPCD == 4 || (!cpu_info.bAtom && single && js.op->fprIsDuplicated[a] &&
                                    js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
 
-  fpr.Lock(a, b, c, d);
+  // While we don't know if any games are actually affected (replays seem to work with all the usual
+  // suspects for desyncing), netplay and other applications need absolute perfect determinism, so
+  // be extra careful and don't use FMA, even if in theory it might be okay.
+  // Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
+  // to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
+  // instances on different computers giving identical results.
+  const bool use_fma = cpu_info.bFMA && !Core::WantsDeterminism();
+
+  // For use_fma == true:
+  //   Statistics suggests b is a lot less likely to be unbound in practice, so
+  //   if we have to pick one of a or b to bind, let's make it b.
+  RCOpArg Ra = fpr.Use(a, RCMode::Read);
+  RCOpArg Rb = use_fma ? fpr.Bind(b, RCMode::Read) : fpr.Use(b, RCMode::Read);
+  RCOpArg Rc = fpr.Use(c, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, single ? RCMode::Write : RCMode::ReadWrite);
+  RegCache::Realize(Ra, Rb, Rc, Rd);
 
   switch (inst.SUBOP5)
   {
   case 14:
-    MOVDDUP(XMM1, fpr.R(c));
+    MOVDDUP(XMM1, Rc);
     if (round_input)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
   case 15:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, fpr.R(c), fpr.R(c), 3);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
     if (round_input)
       Force25BitPrecision(XMM1, R(XMM1), XMM0);
     break;
@@ -262,38 +277,29 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     X64Reg tmp1 = special ? XMM0 : XMM1;
     X64Reg tmp2 = special ? XMM1 : XMM0;
     if (single && round_input)
-      Force25BitPrecision(tmp1, fpr.R(c), tmp2);
+      Force25BitPrecision(tmp1, Rc, tmp2);
     else
-      MOVAPD(tmp1, fpr.R(c));
+      MOVAPD(tmp1, Rc);
     break;
   }
 
-  // While we don't know if any games are actually affected (replays seem to work with all the usual
-  // suspects for desyncing), netplay and other applications need absolute perfect determinism, so
-  // be extra careful and don't use FMA, even if in theory it might be okay.
-  // Note that FMA isn't necessarily less correct (it may actually be closer to correct) compared
-  // to what the Gekko does here; in deterministic mode, the important thing is multiple Dolphin
-  // instances on different computers giving identical results.
-  if (cpu_info.bFMA && !Core::WantsDeterminism())
+  if (use_fma)
   {
-    // Statistics suggests b is a lot less likely to be unbound in practice, so
-    // if we have to pick one of a or b to bind, let's make it b.
-    fpr.BindToRegister(b, true, false);
     switch (inst.SUBOP5)
     {
     case 28:  // msub
       if (packed)
-        VFMSUB132PD(XMM1, fpr.RX(b), fpr.R(a));
+        VFMSUB132PD(XMM1, Rb.GetSimpleReg(), Ra);
       else
-        VFMSUB132SD(XMM1, fpr.RX(b), fpr.R(a));
+        VFMSUB132SD(XMM1, Rb.GetSimpleReg(), Ra);
       break;
     case 14:  // madds0
     case 15:  // madds1
     case 29:  // madd
       if (packed)
-        VFMADD132PD(XMM1, fpr.RX(b), fpr.R(a));
+        VFMADD132PD(XMM1, Rb.GetSimpleReg(), Ra);
       else
-        VFMADD132SD(XMM1, fpr.RX(b), fpr.R(a));
+        VFMADD132SD(XMM1, Rb.GetSimpleReg(), Ra);
       break;
     // PowerPC and x86 define NMADD/NMSUB differently
     // x86: D = -A*C (+/-) B
@@ -301,15 +307,15 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
     // so we have to swap them; the ADD/SUB here isn't a typo.
     case 30:  // nmsub
       if (packed)
-        VFNMADD132PD(XMM1, fpr.RX(b), fpr.R(a));
+        VFNMADD132PD(XMM1, Rb.GetSimpleReg(), Ra);
       else
-        VFNMADD132SD(XMM1, fpr.RX(b), fpr.R(a));
+        VFNMADD132SD(XMM1, Rb.GetSimpleReg(), Ra);
       break;
     case 31:  // nmadd
       if (packed)
-        VFNMSUB132PD(XMM1, fpr.RX(b), fpr.R(a));
+        VFNMSUB132PD(XMM1, Rb.GetSimpleReg(), Ra);
       else
-        VFNMSUB132SD(XMM1, fpr.RX(b), fpr.R(a));
+        VFNMSUB132SD(XMM1, Rb.GetSimpleReg(), Ra);
       break;
     }
   }
@@ -317,15 +323,15 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   {
     // We implement nmsub a little differently ((b - a*c) instead of -(a*c - b)), so handle it
     // separately.
-    MOVAPD(XMM1, fpr.R(b));
+    MOVAPD(XMM1, Rb);
     if (packed)
     {
-      MULPD(XMM0, fpr.R(a));
+      MULPD(XMM0, Ra);
       SUBPD(XMM1, R(XMM0));
     }
     else
     {
-      MULSD(XMM0, fpr.R(a));
+      MULSD(XMM0, Ra);
       SUBSD(XMM1, R(XMM0));
     }
   }
@@ -333,36 +339,35 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   {
     if (packed)
     {
-      MULPD(XMM1, fpr.R(a));
+      MULPD(XMM1, Ra);
       if (inst.SUBOP5 == 28)  // msub
-        SUBPD(XMM1, fpr.R(b));
+        SUBPD(XMM1, Rb);
       else  //(n)madd(s[01])
-        ADDPD(XMM1, fpr.R(b));
+        ADDPD(XMM1, Rb);
     }
     else
     {
-      MULSD(XMM1, fpr.R(a));
+      MULSD(XMM1, Ra);
       if (inst.SUBOP5 == 28)
-        SUBSD(XMM1, fpr.R(b));
+        SUBSD(XMM1, Rb);
       else
-        ADDSD(XMM1, fpr.R(b));
+        ADDSD(XMM1, Rb);
     }
     if (inst.SUBOP5 == 31)  // nmadd
       XORPD(XMM1, MConst(packed ? psSignBits2 : psSignBits));
   }
-  fpr.BindToRegister(d, !single);
+
   if (single)
   {
-    HandleNaNs(inst, fpr.RX(d), XMM1);
-    ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
+    HandleNaNs(inst, Rd, XMM1);
+    ForceSinglePrecision(Rd, Rd, packed, true);
   }
   else
   {
     HandleNaNs(inst, XMM1, XMM1);
-    MOVSD(fpr.RX(d), R(XMM1));
+    MOVSD(Rd, R(XMM1));
   }
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
+  SetFPRFIfNeeded(Rd);
 }
 
 void Jit64::fsign(UGeckoInstruction inst)
