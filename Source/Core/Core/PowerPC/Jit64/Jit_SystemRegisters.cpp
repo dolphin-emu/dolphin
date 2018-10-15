@@ -467,13 +467,13 @@ void Jit64::mtcrf(UGeckoInstruction inst)
   u32 crm = inst.CRM;
   if (crm != 0)
   {
-    if (gpr.R(inst.RS).IsImm())
+    if (gpr.IsImm(inst.RS))
     {
       for (int i = 0; i < 8; i++)
       {
         if ((crm & (0x80 >> i)) != 0)
         {
-          u8 newcr = (gpr.R(inst.RS).Imm32() >> (28 - (i * 4))) & 0xF;
+          u8 newcr = (gpr.Imm32(inst.RS) >> (28 - (i * 4))) & 0xF;
           u64 newcrval = PowerPC::PPCCRToInternal(newcr);
           if ((s64)newcrval == (s32)newcrval)
           {
@@ -490,13 +490,13 @@ void Jit64::mtcrf(UGeckoInstruction inst)
     else
     {
       MOV(64, R(RSCRATCH2), ImmPtr(PowerPC::m_crTable.data()));
-      gpr.Lock(inst.RS);
-      gpr.BindToRegister(inst.RS, true, false);
+      RCX64Reg Rs = gpr.Bind(inst.RS, RCMode::Read);
+      RegCache::Realize(Rs);
       for (int i = 0; i < 8; i++)
       {
         if ((crm & (0x80 >> i)) != 0)
         {
-          MOV(32, R(RSCRATCH), gpr.R(inst.RS));
+          MOV(32, R(RSCRATCH), Rs);
           if (i != 7)
             SHR(32, R(RSCRATCH), Imm8(28 - (i * 4)));
           if (i != 0)
@@ -505,7 +505,6 @@ void Jit64::mtcrf(UGeckoInstruction inst)
           MOV(64, PPCSTATE(cr_val[i]), R(RSCRATCH));
         }
       }
-      gpr.UnlockAll();
     }
   }
 }
