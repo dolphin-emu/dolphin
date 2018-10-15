@@ -917,6 +917,12 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
           m_exception_handler_at_loc[js.fastmemLoadStore] = GetWritableCodePtr();
         }
 
+        RCForkGuard gpr_guard = gpr.Fork();
+        RCForkGuard fpr_guard = fpr.Fork();
+
+        gpr.Revert();
+        fpr.Revert();
+
         BitSet32 gprToFlush = BitSet32::AllTrue(32);
         BitSet32 fprToFlush = BitSet32::AllTrue(32);
         if (js.revertGprLoad >= 0)
@@ -929,6 +935,9 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         WriteExceptionExit();
         SwitchToNearCode();
       }
+
+      gpr.Commit();
+      fpr.Commit();
 
       // If we have a register that will never be used again, flush it.
       for (int j : ~op.gprInUse)
