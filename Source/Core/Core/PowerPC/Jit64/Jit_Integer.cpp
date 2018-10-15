@@ -1827,29 +1827,32 @@ void Jit64::srawx(UGeckoInstruction inst)
   int b = inst.RB;
   int s = inst.RS;
 
-  gpr.FlushLockX(ECX);
-  gpr.Lock(a, s, b);
-  gpr.BindToRegister(a, (a == s || a == b), true);
-  MOV(32, R(ECX), gpr.R(b));
-  if (a != s)
-    MOV(32, gpr.R(a), gpr.R(s));
-  SHL(64, gpr.R(a), Imm8(32));
-  SAR(64, gpr.R(a), R(ECX));
-  if (js.op->wantsCA)
   {
-    MOV(32, R(RSCRATCH), gpr.R(a));
-    SHR(64, gpr.R(a), Imm8(32));
-    TEST(32, gpr.R(a), R(RSCRATCH));
+    RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(ecx, Ra, Rb, Rs);
+
+    MOV(32, ecx, Rb);
+    if (a != s)
+      MOV(32, Ra, Rs);
+    SHL(64, Ra, Imm8(32));
+    SAR(64, Ra, ecx);
+    if (js.op->wantsCA)
+    {
+      MOV(32, R(RSCRATCH), Ra);
+      SHR(64, Ra, Imm8(32));
+      TEST(32, Ra, R(RSCRATCH));
+    }
+    else
+    {
+      SHR(64, Ra, Imm8(32));
+    }
+    FinalizeCarry(CC_NZ);
   }
-  else
-  {
-    SHR(64, gpr.R(a), Imm8(32));
-  }
-  FinalizeCarry(CC_NZ);
   if (inst.Rc)
-    ComputeRC(gpr.R(a));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    ComputeRC(a);
 }
 
 void Jit64::srawix(UGeckoInstruction inst)
