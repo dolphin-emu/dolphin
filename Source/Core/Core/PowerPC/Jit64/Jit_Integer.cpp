@@ -1466,37 +1466,41 @@ void Jit64::arithcx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   bool add = !!(inst.SUBOP10 & 2);  // add or sub
   int a = inst.RA, b = inst.RB, d = inst.RD;
-  gpr.Lock(a, b, d);
-  gpr.BindToRegister(d, d == a || d == b, true);
 
-  if (d == a && d != b)
   {
-    if (add)
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rd);
+
+    if (d == a && d != b)
     {
-      ADD(32, gpr.R(d), gpr.R(b));
+      if (add)
+      {
+        ADD(32, Rd, Rb);
+      }
+      else
+      {
+        // special case, because sub isn't reversible
+        MOV(32, R(RSCRATCH), Ra);
+        MOV(32, Rd, Rb);
+        SUB(32, Rd, R(RSCRATCH));
+      }
     }
     else
     {
-      // special case, because sub isn't reversible
-      MOV(32, R(RSCRATCH), gpr.R(a));
-      MOV(32, gpr.R(d), gpr.R(b));
-      SUB(32, gpr.R(d), R(RSCRATCH));
+      if (d != b)
+        MOV(32, Rd, Rb);
+      if (add)
+        ADD(32, Rd, Ra);
+      else
+        SUB(32, Rd, Ra);
     }
-  }
-  else
-  {
-    if (d != b)
-      MOV(32, gpr.R(d), gpr.R(b));
-    if (add)
-      ADD(32, gpr.R(d), gpr.R(a));
-    else
-      SUB(32, gpr.R(d), gpr.R(a));
   }
 
   FinalizeCarryOverflow(inst.OE, !add);
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
+    ComputeRC(d);
 }
 
 void Jit64::rlwinmx(UGeckoInstruction inst)
