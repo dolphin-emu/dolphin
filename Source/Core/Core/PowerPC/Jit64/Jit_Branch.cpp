@@ -219,10 +219,14 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
-    gpr.Flush(RegCache::FlushMode::MaintainState);
-    fpr.Flush(RegCache::FlushMode::MaintainState);
-    WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
-    // Would really like to continue the block here, but it ends. TODO.
+    {
+      RCForkGuard gpr_guard = gpr.Fork();
+      RCForkGuard fpr_guard = fpr.Fork();
+      gpr.Flush();
+      fpr.Flush();
+      WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
+      // Would really like to continue the block here, but it ends. TODO.
+    }
     SetJumpTarget(b);
 
     if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
