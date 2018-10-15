@@ -388,13 +388,12 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
-  if (!gpr.R(inst.RS).IsImm())
+
   {
-    gpr.Lock(inst.RS);
-    gpr.BindToRegister(inst.RS, true, false);
+    RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
+    RegCache::Realize(Rs);
+    MOV(32, PPCSTATE(msr), Rs);
   }
-  MOV(32, PPCSTATE(msr), gpr.R(inst.RS));
-  gpr.UnlockAll();
   gpr.Flush();
   fpr.Flush();
 
