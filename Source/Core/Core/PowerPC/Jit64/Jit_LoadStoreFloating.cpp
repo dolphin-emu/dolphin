@@ -195,12 +195,16 @@ void Jit64::stfiwx(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
-  MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
+  RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
+  RCOpArg Rb = gpr.Use(b, RCMode::Read);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RegCache::Realize(Ra, Rb, Rs);
 
-  if (fpr.R(s).IsSimpleReg())
-    MOVD_xmm(R(RSCRATCH), fpr.RX(s));
+  MOV_sum(32, RSCRATCH2, Ra, Rb);
+
+  if (Rs.IsSimpleReg())
+    MOVD_xmm(R(RSCRATCH), Rs.GetSimpleReg());
   else
-    MOV(32, R(RSCRATCH), fpr.R(s));
+    MOV(32, R(RSCRATCH), Rs);
   SafeWriteRegToReg(RSCRATCH, RSCRATCH2, 32, 0, CallerSavedRegistersInUse());
-  gpr.UnlockAllX();
 }
