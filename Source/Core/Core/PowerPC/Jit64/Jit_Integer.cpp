@@ -488,8 +488,8 @@ void Jit64::DoMergedBranchImmediate(s64 val)
   bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+  ASSERT(gpr.IsAllUnlocked());
+
   bool branch;
   if (test_bit & 8)
     branch = condition ? val < 0 : val >= 0;
