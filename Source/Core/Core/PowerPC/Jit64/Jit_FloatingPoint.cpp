@@ -641,12 +641,12 @@ void Jit64::frspx(UGeckoInstruction inst)
   int d = inst.FD;
   bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
-  fpr.Lock(b, d);
-  OpArg src = fpr.R(b);
-  fpr.BindToRegister(d, false);
-  ForceSinglePrecision(fpr.RX(d), src, packed, true);
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rb, Rd);
+
+  ForceSinglePrecision(Rd, Rb, packed, true);
+  SetFPRFIfNeeded(Rd);
 }
 
 void Jit64::frsqrtex(UGeckoInstruction inst)
