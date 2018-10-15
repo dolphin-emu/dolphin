@@ -22,8 +22,10 @@ void Jit64::ps_mr(UGeckoInstruction inst)
   if (d == b)
     return;
 
-  fpr.BindToRegister(d, false);
-  MOVAPD(fpr.RX(d), fpr.R(b));
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rb, Rd);
+  MOVAPD(Rd, Rb);
 }
 
 void Jit64::ps_sum(UGeckoInstruction inst)
