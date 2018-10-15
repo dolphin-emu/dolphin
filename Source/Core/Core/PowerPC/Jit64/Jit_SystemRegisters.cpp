@@ -753,10 +753,14 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
   }
 
   int b = inst.FB;
-  if (fpr.R(b).IsSimpleReg())
-    MOVQ_xmm(R(RSCRATCH), fpr.RX(b));
+
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RegCache::Realize(Rb);
+
+  if (Rb.IsSimpleReg())
+    MOVQ_xmm(R(RSCRATCH), Rb.GetSimpleReg());
   else
-    MOV(32, R(RSCRATCH), fpr.R(b));
+    MOV(32, R(RSCRATCH), Rb);
 
   MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
   AND(32, R(RSCRATCH), Imm32(mask));
