@@ -1966,13 +1966,17 @@ void Jit64::twX(UGeckoInstruction inst)
 
   if (inst.OPCD == 3)  // twi
   {
-    gpr.KillImmediate(a, true, false);
-    CMP(32, gpr.R(a), Imm32((s32)(s16)inst.SIMM_16));
+    RCOpArg Ra = gpr.UseNoImm(a, RCMode::Read);
+    RegCache::Realize(Ra);
+    CMP(32, Ra, Imm32((s32)(s16)inst.SIMM_16));
   }
   else  // tw
   {
-    gpr.BindToRegister(a, true, false);
-    CMP(32, gpr.R(a), gpr.R(inst.RB));
+    s32 b = inst.RB;
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RegCache::Realize(Ra, Rb);
+    CMP(32, Ra, Rb);
   }
 
   constexpr std::array<CCFlags, 5> conditions{{CC_A, CC_B, CC_E, CC_G, CC_L}};
@@ -1988,17 +1992,22 @@ void Jit64::twX(UGeckoInstruction inst)
   }
   FixupBranch dont_trap = J();
 
-  for (const FixupBranch& fixup : fixups)
   {
-    SetJumpTarget(fixup);
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+
+    for (const FixupBranch& fixup : fixups)
+    {
+      SetJumpTarget(fixup);
+    }
+    LOCK();
+    OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
+
+    gpr.Flush();
+    fpr.Flush();
+
+    WriteExceptionExit();
   }
-  LOCK();
-  OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
-
-  gpr.Flush(RegCache::FlushMode::MaintainState);
-  fpr.Flush(RegCache::FlushMode::MaintainState);
-
-  WriteExceptionExit();
 
   SetJumpTarget(dont_trap);
 
