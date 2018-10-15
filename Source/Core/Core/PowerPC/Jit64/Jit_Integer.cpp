@@ -448,8 +448,8 @@ void Jit64::DoMergedBranchCondition()
   bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+  ASSERT(gpr.IsAllUnlocked());
+
   FixupBranch pDontBranch;
   if (test_bit & 8)
     pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
@@ -460,10 +460,15 @@ void Jit64::DoMergedBranchCondition()
   else  // SO bit, do not branch (we don't emulate SO for cmp).
     pDontBranch = J(true);
 
-  gpr.Flush(RegCache::FlushMode::MaintainState);
-  fpr.Flush(RegCache::FlushMode::MaintainState);
+  {
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
 
-  DoMergedBranch();
+    gpr.Flush();
+    fpr.Flush();
+
+    DoMergedBranch();
+  }
 
   SetJumpTarget(pDontBranch);
 
