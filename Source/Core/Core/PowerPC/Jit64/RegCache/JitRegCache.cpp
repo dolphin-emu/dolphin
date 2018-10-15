@@ -666,6 +666,17 @@ bool RegCache::IsAllUnlocked() const
          !IsAnyConstraintActive();
 }
 
+void RegCache::PreloadRegisters(BitSet32 to_preload)
+{
+  for (preg_t preg : to_preload)
+  {
+    if (NumFreeRegisters() < 2)
+      return;
+    if (!R(preg).IsImm())
+      BindToRegister(preg, true, false);
+  }
+}
+
 void RegCache::NewLock(preg_t preg)
 {
   m_regs[preg].Lock();

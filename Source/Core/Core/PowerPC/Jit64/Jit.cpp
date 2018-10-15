@@ -873,20 +873,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       // output, which needs to be bound in the actual instruction compilation.
       // TODO: make this smarter in the case that we're actually register-starved, i.e.
       // prioritize the more important registers.
-      for (int reg : op.regsIn)
-      {
-        if (gpr.NumFreeRegisters() < 2)
-          break;
-        if (op.gprInReg[reg] && !gpr.R(reg).IsImm())
-          gpr.BindToRegister(reg, true, false);
-      }
-      for (int reg : op.fregsIn)
-      {
-        if (fpr.NumFreeRegisters() < 2)
-          break;
-        if (op.fprInXmm[reg])
-          fpr.BindToRegister(reg, true, false);
-      }
+      gpr.PreloadRegisters(op.regsIn & op.gprInReg);
+      fpr.PreloadRegisters(op.fregsIn & op.fprInXmm);
 
       CompileInstruction(op);
 
