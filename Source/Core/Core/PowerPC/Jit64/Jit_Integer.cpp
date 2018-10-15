@@ -866,19 +866,19 @@ void Jit64::extsXx(UGeckoInstruction inst)
   int a = inst.RA, s = inst.RS;
   int size = inst.SUBOP10 == 922 ? 16 : 8;
 
-  if (gpr.R(s).IsImm())
+  if (gpr.IsImm(s))
   {
-    gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.R(s).Imm32() : (s8)gpr.R(s).Imm32()));
+    gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.Imm32(s) : (s8)gpr.Imm32(s)));
   }
   else
   {
-    gpr.Lock(a, s);
-    gpr.BindToRegister(a, a == s, true);
-    MOVSX(32, size, gpr.RX(a), gpr.R(s));
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RegCache::Realize(Rs, Ra);
+    MOVSX(32, size, Ra, Rs);
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(a));
-  gpr.UnlockAll();
+    ComputeRC(a);
 }
 
 void Jit64::subfic(UGeckoInstruction inst)
