@@ -269,31 +269,28 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
                      void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
 {
   bool needs_test = doop == Add;
-  gpr.Lock(d, a);
   // Be careful; addic treats r0 as r0, but addi treats r0 as zero.
   if (a || binary || carry)
   {
     carry &= js.op->wantsCA;
-    if (gpr.R(a).IsImm() && !carry)
+    if (gpr.IsImm(a) && !carry)
     {
-      gpr.SetImmediate32(d, doop(gpr.R(a).Imm32(), value));
-    }
-    else if (a == d)
-    {
-      gpr.BindToRegister(d, true);
-      (this->*op)(32, gpr.R(d), Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+      gpr.SetImmediate32(d, doop(gpr.Imm32(a), value));
     }
     else
     {
-      gpr.BindToRegister(d, false);
-      if (doop == Add && gpr.R(a).IsSimpleReg() && !carry)
+      RCOpArg Ra = gpr.Use(a, RCMode::Read);
+      RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+      RegCache::Realize(Ra, Rd);
+      if (doop == Add && Ra.IsSimpleReg() && !carry && d != a)
       {
-        LEA(32, gpr.RX(d), MDisp(gpr.RX(a), value));
+        LEA(32, Rd, MDisp(Ra.GetSimpleReg(), value));
       }
       else
       {
-        MOV(32, gpr.R(d), gpr.R(a));
-        (this->*op)(32, gpr.R(d), Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+        if (d != a)
+          MOV(32, Rd, Ra);
+        (this->*op)(32, Rd, Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
       }
     }
     if (carry)
@@ -309,8 +306,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
     ASSERT_MSG(DYNA_REC, 0, "WTF regimmop");
   }
   if (Rc)
-    ComputeRC(gpr.R(d), needs_test, doop != And || (value & 0x80000000));
-  gpr.UnlockAll();
+    ComputeRC(d, needs_test, doop != And || (value & 0x80000000));
 }
 
 void Jit64::reg_imm(UGeckoInstruction inst)
@@ -322,16 +318,16 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   {
   case 14:  // addi
     // occasionally used as MOV - emulate, with immediate propagation
-    if (gpr.R(a).IsImm() && d != a && a != 0)
+    if (gpr.IsImm(a) && d != a && a != 0)
     {
-      gpr.SetImmediate32(d, gpr.R(a).Imm32() + (u32)(s32)inst.SIMM_16);
+      gpr.SetImmediate32(d, gpr.Imm32(a) + (u32)(s32)inst.SIMM_16);
     }
     else if (inst.SIMM_16 == 0 && d != a && a != 0)
     {
-      gpr.Lock(a, d);
-      gpr.BindToRegister(d, false, true);
-      MOV(32, gpr.R(d), gpr.R(a));
-      gpr.UnlockAll();
+      RCOpArg Ra = gpr.Use(a, RCMode::Read);
+      RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+      RegCache::Realize(Ra, Rd);
+      MOV(32, Rd, Ra);
     }
     else
     {
