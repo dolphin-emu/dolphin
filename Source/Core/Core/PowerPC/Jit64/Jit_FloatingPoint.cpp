@@ -76,7 +76,9 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
     std::vector<FixupBranch> fixups;
     for (u32 x : inputs)
     {
-      MOVDDUP(xmm, fpr.R(x));
+      RCOpArg Rx = fpr.Use(x, RCMode::Read);
+      RegCache::Realize(Rx);
+      MOVDDUP(xmm, Rx);
       UCOMISD(xmm, R(xmm));
       fixups.push_back(J_CC(CC_P));
     }
@@ -102,8 +104,10 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       BLENDVPD(xmm, MConst(psGeneratedQNaN));
       for (u32 x : inputs)
       {
-        avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, fpr.R(x), fpr.R(x), CMP_UNORD);
-        BLENDVPD(xmm, fpr.R(x));
+        RCOpArg Rx = fpr.Use(x, RCMode::Read);
+        RegCache::Realize(Rx);
+        avx_op(&XEmitter::VCMPPD, &XEmitter::CMPPD, clobber, Rx, Rx, CMP_UNORD);
+        BLENDVPD(xmm, Rx);
       }
       FixupBranch done = J(true);
       SwitchToNearCode();
@@ -112,8 +116,8 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
     else
     {
       // SSE2 fallback
-      X64Reg tmp = fpr.GetFreeXReg();
-      fpr.FlushLockX(tmp);
+      RCX64Reg tmp = fpr.Scratch(fpr.GetFreeXReg());
+      RegCache::Realize(tmp);
       MOVAPD(clobber, R(xmm));
       CMPPD(clobber, R(clobber), CMP_UNORD);
       MOVMSKPD(RSCRATCH, R(clobber));
@@ -125,20 +129,21 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
       ANDNPD(clobber, R(xmm));
       ANDPD(tmp, MConst(psGeneratedQNaN));
       ORPD(tmp, R(clobber));
-      MOVAPD(xmm, R(tmp));
+      MOVAPD(xmm, tmp);
       for (u32 x : inputs)
       {
-        MOVAPD(clobber, fpr.R(x));
+        RCOpArg Rx = fpr.Use(x, RCMode::Read);
+        RegCache::Realize(Rx);
+        MOVAPD(clobber, Rx);
         CMPPD(clobber, R(clobber), CMP_ORD);
         MOVAPD(tmp, R(clobber));
-        ANDNPD(clobber, fpr.R(x));
-        ANDPD(xmm, R(tmp));
+        ANDNPD(clobber, Rx);
+        ANDPD(xmm, tmp);
         ORPD(xmm, R(clobber));
       }
       FixupBranch done = J(true);
       SwitchToNearCode();
       SetJumpTarget(done);
-      fpr.UnlockX(tmp);
     }
   }
   if (xmm_out != xmm)
