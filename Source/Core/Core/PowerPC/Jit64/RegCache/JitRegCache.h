@@ -56,6 +56,7 @@ public:
   bool IsImm() const;
   s32 SImm32() const;
   u32 Imm32() const;
+  bool IsZero() const { return IsImm() && Imm32() == 0; }
 
 private:
   friend class RegCache;
