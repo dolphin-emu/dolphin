@@ -182,23 +182,21 @@ void Jit64::ps_res(UGeckoInstruction inst)
   int b = inst.FB;
   int d = inst.FD;
 
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  fpr.Lock(b, d);
-  fpr.BindToRegister(b, true, false);
-  fpr.BindToRegister(d, false);
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
+  RCX64Reg Rb = fpr.Bind(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(scratch_guard, Rb, Rd);
 
-  MOVSD(XMM0, fpr.R(b));
+  MOVSD(XMM0, Rb);
   CALL(asm_routines.fres);
-  MOVSD(fpr.R(d), XMM0);
+  MOVSD(Rd, XMM0);
 
-  MOVHLPS(XMM0, fpr.RX(b));
+  MOVHLPS(XMM0, Rb);
   CALL(asm_routines.fres);
-  MOVLHPS(fpr.RX(d), XMM0);
+  MOVLHPS(Rd, XMM0);
 
-  ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
-  gpr.UnlockAllX();
+  ForceSinglePrecision(Rd, Rd);
+  SetFPRFIfNeeded(Rd);
 }
 
 void Jit64::ps_cmpXX(UGeckoInstruction inst)
