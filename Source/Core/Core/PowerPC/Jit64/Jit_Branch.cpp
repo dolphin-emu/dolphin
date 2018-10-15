@@ -277,9 +277,13 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-  gpr.Flush(RegCache::FlushMode::MaintainState);
-  fpr.Flush(RegCache::FlushMode::MaintainState);
-  WriteBLRExit();
+  {
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+    gpr.Flush();
+    fpr.Flush();
+    WriteBLRExit();
+  }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
