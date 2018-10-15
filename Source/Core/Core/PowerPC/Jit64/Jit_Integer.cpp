@@ -1284,9 +1284,9 @@ void Jit64::divwx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+  if (gpr.IsImm(a, b))
   {
-    s32 i = gpr.R(a).SImm32(), j = gpr.R(b).SImm32();
+    s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
     if (j == 0 || (i == (s32)0x80000000 && j == -1))
     {
       const u32 result = i < 0 ? 0xFFFFFFFF : 0x00000000;
@@ -1303,25 +1303,27 @@ void Jit64::divwx(UGeckoInstruction inst)
   }
   else
   {
-    gpr.Lock(a, b, d);
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rb = gpr.Bind(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     // no register choice
-    gpr.FlushLockX(EAX, EDX);
-    gpr.BindToRegister(d, (d == a || d == b), true);
-    MOV(32, R(EAX), gpr.R(a));
-    gpr.BindToRegister(b, true, false);
+    RCX64Reg eax = gpr.Scratch(EAX);
+    RCX64Reg edx = gpr.Scratch(EDX);
+    RegCache::Realize(Ra, Rb, Rd, eax, edx);
 
-    TEST(32, gpr.R(b), gpr.R(b));
+    MOV(32, eax, Ra);
+    TEST(32, Rb, Rb);
     const FixupBranch overflow = J_CC(CC_E);
 
-    CMP(32, R(EAX), Imm32(0x80000000));
+    CMP(32, eax, Imm32(0x80000000));
     const FixupBranch normal_path1 = J_CC(CC_NE);
 
-    CMP(32, gpr.R(b), Imm32(0xFFFFFFFF));
+    CMP(32, Rb, Imm32(0xFFFFFFFF));
     const FixupBranch normal_path2 = J_CC(CC_NE);
 
     SetJumpTarget(overflow);
-    SAR(32, R(EAX), Imm8(31));
-    MOV(32, gpr.R(d), R(EAX));
+    SAR(32, eax, Imm8(31));
+    MOV(32, Rd, eax);
     if (inst.OE)
     {
       GenerateConstantOverflow(true);
@@ -1332,8 +1334,8 @@ void Jit64::divwx(UGeckoInstruction inst)
     SetJumpTarget(normal_path2);
 
     CDQ();
-    IDIV(32, gpr.R(b));
-    MOV(32, gpr.R(d), R(EAX));
+    IDIV(32, Rb);
+    MOV(32, Rd, eax);
     if (inst.OE)
     {
       GenerateConstantOverflow(false);
@@ -1341,9 +1343,7 @@ void Jit64::divwx(UGeckoInstruction inst)
     SetJumpTarget(done);
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    ComputeRC(d);
 }
 
 void Jit64::addx(UGeckoInstruction inst)
