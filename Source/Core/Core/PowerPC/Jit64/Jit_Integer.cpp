@@ -899,40 +899,42 @@ void Jit64::subfic(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, d = inst.RD;
-  gpr.Lock(a, d);
-  gpr.BindToRegister(d, a == d, true);
+
+  RCOpArg Ra = gpr.Use(a, RCMode::Read);
+  RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Ra, Rd);
+
   int imm = inst.SIMM_16;
   if (d == a)
   {
     if (imm == 0)
     {
       // Flags act exactly like subtracting from 0
-      NEG(32, gpr.R(d));
+      NEG(32, Rd);
       // Output carry is inverted
       FinalizeCarry(CC_NC);
     }
     else if (imm == -1)
     {
-      NOT(32, gpr.R(d));
+      NOT(32, Rd);
       // CA is always set in this case
       FinalizeCarry(true);
     }
     else
     {
-      NOT(32, gpr.R(d));
-      ADD(32, gpr.R(d), Imm32(imm + 1));
+      NOT(32, Rd);
+      ADD(32, Rd, Imm32(imm + 1));
       // Output carry is normal
       FinalizeCarry(CC_C);
     }
   }
   else
   {
-    MOV(32, gpr.R(d), Imm32(imm));
-    SUB(32, gpr.R(d), gpr.R(a));
+    MOV(32, Rd, Imm32(imm));
+    SUB(32, Rd, Ra);
     // Output carry is inverted
     FinalizeCarry(CC_NC);
   }
-  gpr.UnlockAll();
   // This instruction has no RC flag
 }
 
