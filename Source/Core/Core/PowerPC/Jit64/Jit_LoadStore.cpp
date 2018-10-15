@@ -460,13 +460,6 @@ void Jit64::stXx(UGeckoInstruction inst)
   bool byte_reverse = !!(inst.SUBOP10 & 512);
   FALLBACK_IF(!a || (update && a == s) || (update && jo.memcheck && a == b));
 
-  gpr.Lock(a, b, s);
-
-  if (update)
-    gpr.BindToRegister(a, true, true);
-
-  MOV_sum(32, RSCRATCH2, gpr.R(a), gpr.R(b));
-
   int accessSize;
   switch (inst.SUBOP10 & ~32)
   {
@@ -487,39 +480,28 @@ void Jit64::stXx(UGeckoInstruction inst)
     break;
   }
 
-  if (gpr.R(s).IsImm())
+  const bool does_clobber = WriteClobbersRegValue(accessSize, /* swap */ !byte_reverse);
+
+  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RCOpArg Rb = gpr.Use(b, RCMode::Read);
+  RCOpArg Rs = does_clobber ? gpr.Use(s, RCMode::Read) : gpr.BindOrImm(s, RCMode::Read);
+  RegCache::Realize(Ra, Rb, Rs);
+
+  MOV_sum(32, RSCRATCH2, Ra, Rb);
+
+  if (!Rs.IsImm() && does_clobber)
   {
-    BitSet32 registersInUse = CallerSavedRegistersInUse();
-    if (update)
-      registersInUse[RSCRATCH2] = true;
-    SafeWriteRegToReg(gpr.R(s), RSCRATCH2, accessSize, 0, registersInUse,
-                      byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
+    MOV(32, R(RSCRATCH), Rs);
+    Rs = RCOpArg::R(RSCRATCH);
   }
-  else
-  {
-    X64Reg reg_value;
-    if (WriteClobbersRegValue(accessSize, /* swap */ !byte_reverse))
-    {
-      MOV(32, R(RSCRATCH), gpr.R(s));
-      reg_value = RSCRATCH;
-    }
-    else
-    {
-      gpr.BindToRegister(s, true, false);
-      reg_value = gpr.RX(s);
-    }
-    BitSet32 registersInUse = CallerSavedRegistersInUse();
-    if (update)
-      registersInUse[RSCRATCH2] = true;
-    SafeWriteRegToReg(reg_value, RSCRATCH2, accessSize, 0, registersInUse,
-                      byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
-  }
+  BitSet32 registersInUse = CallerSavedRegistersInUse();
+  if (update)
+    registersInUse[RSCRATCH2] = true;
+  SafeWriteRegToReg(Rs, RSCRATCH2, accessSize, 0, registersInUse,
+                    byte_reverse ? SAFE_LOADSTORE_NO_SWAP : 0);
 
   if (update)
-    MOV(32, gpr.R(a), R(RSCRATCH2));
-
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    MOV(32, Ra, R(RSCRATCH2));
 }
 
 // A few games use these heavily in video codecs.
