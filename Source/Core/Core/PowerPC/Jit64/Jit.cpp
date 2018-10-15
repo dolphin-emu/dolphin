@@ -756,7 +756,6 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.downcountAmount += opinfo->numCycles;
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
-    js.revertFprLoad = -1;
 
     if (!SConfig::GetInstance().bEnableDebugging)
       js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
@@ -921,13 +920,9 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         gpr.Revert();
         fpr.Revert();
+        gpr.Flush();
+        fpr.Flush();
 
-        BitSet32 gprToFlush = BitSet32::AllTrue(32);
-        BitSet32 fprToFlush = BitSet32::AllTrue(32);
-        if (js.revertFprLoad >= 0)
-          fprToFlush[js.revertFprLoad] = false;
-        gpr.Flush(RegCache::FlushMode::MaintainState, gprToFlush);
-        fpr.Flush(RegCache::FlushMode::MaintainState, fprToFlush);
         MOV(32, PPCSTATE(pc), Imm32(op.address));
         WriteExceptionExit();
         SwitchToNearCode();
