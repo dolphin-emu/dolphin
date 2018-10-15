@@ -463,26 +463,25 @@ void Jit64::fmrx(UGeckoInstruction inst)
   if (d == b)
     return;
 
-  fpr.Lock(b, d);
-
-  if (fpr.R(d).IsSimpleReg())
+  RCOpArg Rd = fpr.Use(d, RCMode::Write);
+  RegCache::Realize(Rd);
+  if (Rd.IsSimpleReg())
   {
-    // We don't need to load d, but if it is loaded, we need to mark it as dirty.
-    fpr.BindToRegister(d);
+    RCOpArg Rb = fpr.Use(b, RCMode::Read);
+    RegCache::Realize(Rb);
     // We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
     // to zero and we don't want that.
-    if (!fpr.R(b).IsSimpleReg())
-      MOVLPD(fpr.RX(d), fpr.R(b));
+    if (!Rb.IsSimpleReg())
+      MOVLPD(Rd.GetSimpleReg(), Rb);
     else
-      MOVSD(fpr.R(d), fpr.RX(b));
+      MOVSD(Rd, Rb.GetSimpleReg());
   }
   else
   {
-    fpr.BindToRegister(b, true, false);
-    MOVSD(fpr.R(d), fpr.RX(b));
+    RCOpArg Rb = fpr.Bind(b, RCMode::Read);
+    RegCache::Realize(Rb);
+    MOVSD(Rd, Rb.GetSimpleReg());
   }
-
-  fpr.UnlockAll();
 }
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
