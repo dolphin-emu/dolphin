@@ -47,6 +47,9 @@ public:
   bool IsSimpleReg(Gen::X64Reg reg) const { return Location().IsSimpleReg(reg); }
   Gen::X64Reg GetSimpleReg() const { return Location().GetSimpleReg(); }
 
+  // Use to extract bytes from a register using the regcache. offset is in bytes.
+  Gen::OpArg ExtractWithByteOffset(int offset);
+
   void Unlock();
 
   bool IsImm() const;
