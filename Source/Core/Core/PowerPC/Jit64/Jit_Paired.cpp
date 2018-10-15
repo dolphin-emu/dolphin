@@ -124,27 +124,29 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
   int d = inst.FD;
   int a = inst.FA;
   int b = inst.FB;
-  fpr.Lock(a, b, d);
-  fpr.BindToRegister(d, d == a || d == b);
+
+  RCOpArg Ra = fpr.Use(a, RCMode::Read);
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Ra, Rb, Rd);
 
   switch (inst.SUBOP10)
   {
   case 528:
-    avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, fpr.RX(d), fpr.R(a), fpr.R(b));
+    avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, Rd, Ra, Rb);
     break;  // 00
   case 560:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, fpr.RX(d), fpr.R(a), fpr.R(b), 2);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 2);
     break;  // 01
   case 592:
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, fpr.RX(d), fpr.R(a), fpr.R(b), 1);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, Rd, Ra, Rb, 1);
     break;  // 10
   case 624:
-    avx_op(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, fpr.RX(d), fpr.R(a), fpr.R(b));
+    avx_op(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, Rd, Ra, Rb);
     break;  // 11
   default:
     ASSERT_MSG(DYNA_REC, 0, "ps_merge - invalid op");
   }
-  fpr.UnlockAll();
 }
 
 void Jit64::ps_rsqrte(UGeckoInstruction inst)
