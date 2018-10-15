@@ -1865,49 +1865,51 @@ void Jit64::srawix(UGeckoInstruction inst)
 
   if (amount != 0)
   {
-    gpr.Lock(a, s);
-    gpr.BindToRegister(a, a == s, true);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
+
     if (!js.op->wantsCA)
     {
       if (a != s)
-        MOV(32, gpr.R(a), gpr.R(s));
-      SAR(32, gpr.R(a), Imm8(amount));
+        MOV(32, Ra, Rs);
+      SAR(32, Ra, Imm8(amount));
     }
     else
     {
-      MOV(32, R(RSCRATCH), gpr.R(s));
+      MOV(32, R(RSCRATCH), Rs);
       if (a != s)
-        MOV(32, gpr.R(a), R(RSCRATCH));
+        MOV(32, Ra, R(RSCRATCH));
       // some optimized common cases that can be done in slightly fewer ops
       if (amount == 1)
       {
         SHR(32, R(RSCRATCH), Imm8(31));  // sign
-        AND(32, R(RSCRATCH), gpr.R(a));  // (sign && carry)
-        SAR(32, gpr.R(a), Imm8(1));
+        AND(32, R(RSCRATCH), Ra);        // (sign && carry)
+        SAR(32, Ra, Imm8(1));
         MOV(8, PPCSTATE(xer_ca),
             R(RSCRATCH));  // XER.CA = sign && carry, aka (input&0x80000001) == 0x80000001
       }
       else
       {
-        SAR(32, gpr.R(a), Imm8(amount));
+        SAR(32, Ra, Imm8(amount));
         SHL(32, R(RSCRATCH), Imm8(32 - amount));
-        TEST(32, R(RSCRATCH), gpr.R(a));
+        TEST(32, R(RSCRATCH), Ra);
         FinalizeCarry(CC_NZ);
       }
     }
   }
   else
   {
-    gpr.Lock(a, s);
     FinalizeCarry(false);
-    gpr.BindToRegister(a, a == s, true);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
 
     if (a != s)
-      MOV(32, gpr.R(a), gpr.R(s));
+      MOV(32, Ra, Rs);
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(a));
-  gpr.UnlockAll();
+    ComputeRC(a);
 }
 
 // count leading zeroes
