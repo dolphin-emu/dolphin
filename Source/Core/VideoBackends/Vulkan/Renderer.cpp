@@ -31,6 +31,7 @@
 #include "VideoBackends/Vulkan/VKPipeline.h"
 #include "VideoBackends/Vulkan/VKShader.h"
 #include "VideoBackends/Vulkan/VKTexture.h"
+#include "VideoBackends/Vulkan/VideoBackend.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/BPFunctions.h"
@@ -891,11 +892,13 @@ void Renderer::CheckForSurfaceChange()
   else
   {
     // Previously had no swap chain. So create one.
-    VkSurfaceKHR surface =
-        SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_surface_handle);
+    void* display_handle = static_cast<VideoBackend*>(g_video_backend)->GetDisplayHandle();
+    VkSurfaceKHR surface = SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(),
+                                                          display_handle, m_new_surface_handle);
     if (surface != VK_NULL_HANDLE)
     {
-      m_swap_chain = SwapChain::Create(m_surface_handle, surface, g_ActiveConfig.IsVSync());
+      m_swap_chain =
+          SwapChain::Create(display_handle, m_surface_handle, surface, g_ActiveConfig.IsVSync());
       if (!m_swap_chain)
         PanicAlert("Failed to create swap chain.");
     }

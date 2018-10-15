@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <atomic>
 #include <cstdarg>
 
@@ -11,10 +12,11 @@
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if defined(_WIN32)
+#define USE_LOADLIBRARY
 #include <Windows.h>
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(USE_HEADLESS)
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(ANDROID)
+#define USE_DLOPEN
 #include <dlfcn.h>
 #endif
 
@@ -39,7 +41,7 @@ static void ResetVulkanLibraryFunctionPointers()
 #undef VULKAN_MODULE_ENTRY_POINT
 }
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if defined(USE_LOADLIBRARY)
 
 static HMODULE vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
@@ -97,8 +99,7 @@ void UnloadVulkanLibrary()
   vulkan_module = nullptr;
 }
 
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
-    defined(VK_USE_PLATFORM_ANDROID_KHR) || defined(USE_HEADLESS)
+#elif defined(USE_DLOPEN)
 
 static void* vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
@@ -113,11 +114,11 @@ bool LoadVulkanLibrary()
   }
 
   // Names of libraries to search. Desktop should use libvulkan.so.1 or libvulkan.so.
-  static const char* search_lib_names[] = {"libvulkan.so.1", "libvulkan.so"};
+  static const std::array<const char*, 2> search_lib_names = {"libvulkan.so.1", "libvulkan.so"};
 
-  for (size_t i = 0; i < ArraySize(search_lib_names); i++)
+  for (const char* libname : search_lib_names)
   {
-    vulkan_module = dlopen(search_lib_names[i], RTLD_NOW);
+    vulkan_module = dlopen(libname, RTLD_NOW);
     if (vulkan_module)
       break;
   }
@@ -170,6 +171,7 @@ void UnloadVulkanLibrary()
 
 bool LoadVulkanLibrary()
 {
+  PanicAlert("Vulkan not supported on this platform.");
   return false;
 }
 

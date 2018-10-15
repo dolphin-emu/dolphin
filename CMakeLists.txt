@@ -67,6 +67,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   endif()
 endif()
 
+if(NOT APPLE)
+  option(ENABLE_VULKAN "Enables Vulkan backend" ON)
+endif()
+
 if(UNIX)
   # Builds a relocatable binary on Linux.
   # The Sys folder will need to be copied to the Binaries folder.
@@ -538,7 +542,10 @@ if (_M_X86)
   add_subdirectory(Externals/Bochs_disasm)
 endif()
 add_subdirectory(Externals/cpp-optparse)
-add_subdirectory(Externals/glslang)
+
+# glslang is only currently used by the Vulkan backend, so only build it when
+# the Vulkan backend is also being built.
+add_subdirectory(Externals/glslang EXCLUDE_FROM_ALL)
 
 find_package(pugixml)
 if(NOT pugixml_FOUND)

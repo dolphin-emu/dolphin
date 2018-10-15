@@ -24,6 +24,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+#include <X11/Xlib.h>
+#endif
+
 namespace Vulkan
 {
 void VideoBackend::InitBackendInfo()
@@ -61,14 +65,19 @@ void VideoBackend::InitBackendInfo()
     }
     else
     {
-      PanicAlert("Failed to create Vulkan instance.");
+      PanicAlert("Failed to create Vulkan instance.\n\n"
+                 "This may be due to your GPU or driver not supporting Vulkan, "
+                 "or a required extension is unsupported.");
     }
 
     UnloadVulkanLibrary();
   }
   else
   {
-    PanicAlert("Failed to load Vulkan library.");
+    PanicAlert("Failed to load Vulkan library.\n\n"
+               "This may be due to the loader not being installed on your system.\n\n"
+               "The loader is usually provided with your display driver on Windows, "
+               "or in a package named 'libvulkan1' or 'vulkan-icd-loader' on Linux.");
   }
 }
 
@@ -89,11 +98,51 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
   return enable_validation_layers || IsHostGPULoggingEnabled();
 }
 
+// Helpers to manage the connection to the X server.
+bool VideoBackend::OpenDisplayConnection()
+{
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+  // We could probably use a xcb_connection_t here, however since we get passed an XLib window
+  // handle, not a xcb_window_t handle, to keep things consistent we will use an XLib connection.
+  m_display_handle = XOpenDisplay(nullptr);
+  if (!m_display_handle)
+  {
+    PanicAlert("Failed to open X display.");
+    return false;
+  }
+#endif
+
+  return true;
+}
+
+void VideoBackend::CloseDisplayConnection()
+{
+#if defined(VK_USE_PLATFORM_XCB_KHR)
+  if (m_display_handle)
+  {
+    XCloseDisplay(reinterpret_cast<Display*>(m_display_handle));
+    m_display_handle = nullptr;
+  }
+#endif
+}
+
 bool VideoBackend::Initialize(void* window_handle)
 {
+  // If we are running headless, we don't need the surface extensions or a display connection.
+  bool enable_surface = window_handle != nullptr;
+
+  // Ensure we have a connection to the display server (if any) before continuing.
+  if (enable_surface && !OpenDisplayConnection())
+    return false;
+
+  // Dynamically load vulkan-1.dll/libvulkan.so.
   if (!LoadVulkanLibrary())
   {
-    PanicAlert("Failed to load Vulkan library.");
+    PanicAlert("Failed to load Vulkan library.\n\n"
+               "This may be due to the loader not being installed on your system.\n\n"
+               "The loader is usually provided with your display driver on Windows, "
+               "or in a package named 'libvulkan1' or 'vulkan-icd-loader' on Linux.");
+    CloseDisplayConnection();
     return false;
   }
 
@@ -107,14 +156,16 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
   // We use this instance to fill in backend info, then re-use it for the actual device.
-  bool enable_surface = window_handle != nullptr;
   bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
   VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
                                                             enable_validation_layer);
   if (instance == VK_NULL_HANDLE)
   {
-    PanicAlert("Failed to create Vulkan instance.");
+    PanicAlert("Failed to create Vulkan instance.\n\n"
+               "This may be due to your GPU or driver not supporting Vulkan, "
+               "or a required extension is unsupported.");
     UnloadVulkanLibrary();
+    CloseDisplayConnection();
     return false;
   }
 
@@ -124,6 +175,7 @@ bool VideoBackend::Initialize(void* window_handle)
     PanicAlert("Failed to load Vulkan instance functions.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
+    CloseDisplayConnection();
     return false;
   }
 
@@ -132,9 +184,11 @@ bool VideoBackend::Initialize(void* window_handle)
   VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
   if (gpu_list.empty())
   {
-    PanicAlert("No Vulkan physical devices available.");
+    PanicAlert("No Vulkan physical devices (GPUs) available.\n\n"
+               "This may be due to your GPU or driver not supporting Vulkan.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
+    CloseDisplayConnection();
     return false;
   }
 
@@ -146,12 +200,13 @@ bool VideoBackend::Initialize(void* window_handle)
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   if (enable_surface)
   {
-    surface = SwapChain::CreateVulkanSurface(instance, window_handle);
+    surface = SwapChain::CreateVulkanSurface(instance, m_display_handle, window_handle);
     if (surface == VK_NULL_HANDLE)
     {
       PanicAlert("Failed to create Vulkan surface.");
       vkDestroyInstance(instance, nullptr);
       UnloadVulkanLibrary();
+      CloseDisplayConnection();
       return false;
     }
   }
@@ -172,6 +227,7 @@ bool VideoBackend::Initialize(void* window_handle)
   {
     PanicAlert("Failed to create Vulkan device");
     UnloadVulkanLibrary();
+    CloseDisplayConnection();
     return false;
   }
 
@@ -209,7 +265,7 @@ bool VideoBackend::Initialize(void* window_handle)
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(window_handle, surface, g_Config.IsVSync());
+    swap_chain = SwapChain::Create(m_display_handle, window_handle, surface, g_Config.IsVSync());
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
@@ -270,5 +326,6 @@ void VideoBackend::Shutdown()
   g_vulkan_context.reset();
   ShutdownShared();
   UnloadVulkanLibrary();
+  CloseDisplayConnection();
 }
 }
