@@ -403,10 +403,14 @@ void Jit64::stX(UGeckoInstruction inst)
   }
 
   // If we already know the address of the write
-  if (!a || gpr.R(a).IsImm())
+  if (!a || gpr.IsImm(a))
   {
-    u32 addr = (a ? gpr.R(a).Imm32() : 0) + offset;
-    bool exception = WriteToConstAddress(accessSize, gpr.R(s), addr, CallerSavedRegistersInUse());
+    const u32 addr = (a ? gpr.Imm32(a) : 0) + offset;
+    const bool exception = [&] {
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RegCache::Realize(Rs);
+      return WriteToConstAddress(accessSize, Rs, addr, CallerSavedRegistersInUse());
+    }();
     if (update)
     {
       if (!jo.memcheck || !exception)
@@ -415,42 +419,35 @@ void Jit64::stX(UGeckoInstruction inst)
       }
       else
       {
-        gpr.KillImmediate(a, true, true);
+        RCOpArg Ra = gpr.UseNoImm(a, RCMode::ReadWrite);
+        RegCache::Realize(Ra);
         MemoryExceptionCheck();
-        ADD(32, gpr.R(a), Imm32((u32)offset));
+        ADD(32, Ra, Imm32((u32)offset));
       }
     }
   }
   else
   {
-    gpr.Lock(a, s);
-    gpr.BindToRegister(a, true, update);
-    if (gpr.R(s).IsImm())
+    RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+    RCOpArg reg_value;
+    if (!gpr.IsImm(s) && WriteClobbersRegValue(accessSize, /* swap */ true))
     {
-      SafeWriteRegToReg(gpr.R(s), gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(),
-                        SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RegCache::Realize(Rs);
+      reg_value = RCOpArg::R(RSCRATCH2);
+      MOV(32, reg_value, Rs);
     }
     else
     {
-      X64Reg reg_value;
-      if (WriteClobbersRegValue(accessSize, /* swap */ true))
-      {
-        MOV(32, R(RSCRATCH2), gpr.R(s));
-        reg_value = RSCRATCH2;
-      }
-      else
-      {
-        gpr.BindToRegister(s, true, false);
-        reg_value = gpr.RX(s);
-      }
-      SafeWriteRegToReg(reg_value, gpr.RX(a), accessSize, offset, CallerSavedRegistersInUse(),
-                        SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
+      reg_value = gpr.BindOrImm(s, RCMode::Read);
     }
+    RegCache::Realize(Ra, reg_value);
+    SafeWriteRegToReg(reg_value, Ra, accessSize, offset, CallerSavedRegistersInUse(),
+                      SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR);
 
     if (update)
-      ADD(32, gpr.R(a), Imm32((u32)offset));
+      ADD(32, Ra, Imm32((u32)offset));
   }
-  gpr.UnlockAll();
 }
 
 void Jit64::stXx(UGeckoInstruction inst)
