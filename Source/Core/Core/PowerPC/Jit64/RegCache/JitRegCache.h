@@ -247,6 +247,7 @@ public:
   bool IsAllUnlocked() const;
 
   void PreloadRegisters(BitSet32 regs);
+  BitSet32 RegistersInUse() const;
 
 protected:
   friend class RCOpArg;

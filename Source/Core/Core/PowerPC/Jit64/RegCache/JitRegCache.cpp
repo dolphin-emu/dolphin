@@ -677,6 +677,17 @@ void RegCache::PreloadRegisters(BitSet32 to_preload)
   }
 }
 
+BitSet32 RegCache::RegistersInUse() const
+{
+  BitSet32 result;
+  for (size_t i = 0; i < m_xregs.size(); i++)
+  {
+    if (!m_xregs[i].IsFree())
+      result[i] = true;
+  }
+  return result;
+}
+
 void RegCache::NewLock(preg_t preg)
 {
   m_regs[preg].Lock();

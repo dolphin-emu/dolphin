@@ -967,15 +967,8 @@ BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 
 BitSet32 Jit64::CallerSavedRegistersInUse() const
 {
-  BitSet32 result;
-  for (size_t i = 0; i < NUM_XREGS; i++)
-  {
-    if (!gpr.IsFreeX(i))
-      result[i] = true;
-    if (!fpr.IsFreeX(i))
-      result[16 + i] = true;
-  }
-  return result & ABI_ALL_CALLER_SAVED;
+  BitSet32 in_use = gpr.RegistersInUse() | (fpr.RegistersInUse() << 16);
+  return in_use & ABI_ALL_CALLER_SAVED;
 }
 
 void Jit64::EnableBlockLink()
