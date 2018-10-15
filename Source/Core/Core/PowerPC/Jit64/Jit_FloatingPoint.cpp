@@ -172,53 +172,55 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   bool round_input = single && !js.op->fprIsSingle[inst.FC];
   bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
-  const auto fp_tri_op = [&](int d, int a, int b, bool reversible,
+  const auto fp_tri_op = [&](int op1, int op2, bool reversible,
                              void (XEmitter::*avxOp)(X64Reg, X64Reg, const OpArg&),
                              void (XEmitter::*sseOp)(X64Reg, const OpArg&), bool roundRHS = false) {
-    fpr.Lock(d, a, b);
-    fpr.BindToRegister(d, d == a || d == b || !single);
-    X64Reg dest = preserve_inputs ? XMM1 : fpr.RX(d);
+    RCX64Reg Rd = fpr.Bind(d, !single ? RCMode::ReadWrite : RCMode::Write);
+    RCOpArg Rop1 = fpr.Use(op1, RCMode::Read);
+    RCOpArg Rop2 = fpr.Use(op2, RCMode::Read);
+    RegCache::Realize(Rd, Rop1, Rop2);
+
+    X64Reg dest = preserve_inputs ? XMM1 : static_cast<X64Reg>(Rd);
     if (roundRHS)
     {
-      if (d == a && !preserve_inputs)
+      if (d == op1 && !preserve_inputs)
       {
-        Force25BitPrecision(XMM0, fpr.R(b), XMM1);
-        (this->*sseOp)(fpr.RX(d), R(XMM0));
+        Force25BitPrecision(XMM0, Rop2, XMM1);
+        (this->*sseOp)(Rd, R(XMM0));
       }
       else
       {
-        Force25BitPrecision(dest, fpr.R(b), XMM0);
-        (this->*sseOp)(dest, fpr.R(a));
+        Force25BitPrecision(dest, Rop2, XMM0);
+        (this->*sseOp)(dest, Rop1);
       }
     }
     else
     {
-      avx_op(avxOp, sseOp, dest, fpr.R(a), fpr.R(b), packed, reversible);
+      avx_op(avxOp, sseOp, dest, Rop1, Rop2, packed, reversible);
     }
 
-    HandleNaNs(inst, fpr.RX(d), dest);
+    HandleNaNs(inst, Rd, dest);
     if (single)
-      ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
-    SetFPRFIfNeeded(fpr.RX(d));
-    fpr.UnlockAll();
+      ForceSinglePrecision(Rd, Rd, packed, true);
+    SetFPRFIfNeeded(Rd);
   };
 
   switch (inst.SUBOP5)
   {
   case 18:
-    fp_tri_op(d, a, b, false, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
+    fp_tri_op(a, b, false, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
               packed ? &XEmitter::DIVPD : &XEmitter::DIVSD);
     break;
   case 20:
-    fp_tri_op(d, a, b, false, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
+    fp_tri_op(a, b, false, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
               packed ? &XEmitter::SUBPD : &XEmitter::SUBSD);
     break;
   case 21:
-    fp_tri_op(d, a, b, true, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
+    fp_tri_op(a, b, true, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
               packed ? &XEmitter::ADDPD : &XEmitter::ADDSD);
     break;
   case 25:
-    fp_tri_op(d, a, c, true, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
+    fp_tri_op(a, c, true, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
               packed ? &XEmitter::MULPD : &XEmitter::MULSD, round_input);
     break;
   default:
