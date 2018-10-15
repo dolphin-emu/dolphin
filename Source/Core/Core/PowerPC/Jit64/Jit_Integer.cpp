@@ -1755,29 +1755,27 @@ void Jit64::srwx(UGeckoInstruction inst)
   int b = inst.RB;
   int s = inst.RS;
 
-  if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
+  if (gpr.IsImm(b, s))
   {
-    u32 amount = gpr.R(b).Imm32();
-    gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (gpr.R(s).Imm32() >> (amount & 0x1f)));
+    u32 amount = gpr.Imm32(b);
+    gpr.SetImmediate32(a, (amount & 0x20) ? 0 : (gpr.Imm32(s) >> (amount & 0x1f)));
   }
   else
   {
-    // no register choice
-    gpr.FlushLockX(ECX);
-    gpr.Lock(a, b, s);
-    MOV(32, R(ECX), gpr.R(b));
-    gpr.BindToRegister(a, a == s, true);
+    RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(ecx, Ra, Rb, Rs);
+
+    MOV(32, ecx, Rb);
     if (a != s)
-    {
-      MOV(32, gpr.R(a), gpr.R(s));
-    }
-    SHR(64, gpr.R(a), R(ECX));
+      MOV(32, Ra, Rs);
+    SHR(64, Ra, ecx);
   }
   // Shift of 0 doesn't update flags, so we need to test just in case
   if (inst.Rc)
-    ComputeRC(gpr.R(a));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    ComputeRC(a);
 }
 
 void Jit64::slwx(UGeckoInstruction inst)
