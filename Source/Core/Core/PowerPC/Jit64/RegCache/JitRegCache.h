@@ -235,9 +235,12 @@ public:
   RCOpArg Use(preg_t preg, RCMode mode);
   RCOpArg UseNoImm(preg_t preg, RCMode mode);
   RCX64Reg Bind(preg_t preg, RCMode mode);
+  RCX64Reg RevertableBind(preg_t preg, RCMode mode);
   RCX64Reg Scratch(Gen::X64Reg xr);
 
   RCForkGuard Fork();
+  void Revert();
+  void Commit();
 
   bool IsAllUnlocked() const;
 

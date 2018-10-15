@@ -41,6 +41,8 @@ public:
   {
     if (!away)
     {
+      ASSERT(!revertable);
+
       if (location.IsImm())
         return LocationType::SpeculativeImmediate;
 
@@ -63,6 +65,7 @@ public:
 
   void SetFlushed()
   {
+    ASSERT(!revertable);
     away = false;
     location = default_location;
   }
@@ -71,6 +74,24 @@ public:
   {
     away |= dirty;
     location = Gen::Imm32(imm32);
+  }
+
+  bool IsRevertable() const { return revertable; }
+  void SetRevertable()
+  {
+    ASSERT(IsBound());
+    revertable = true;
+  }
+  void SetRevert()
+  {
+    ASSERT(revertable);
+    revertable = false;
+    SetFlushed();
+  }
+  void SetCommit()
+  {
+    ASSERT(revertable);
+    revertable = false;
   }
 
   bool IsLocked() const { return locked > 0; }
@@ -86,6 +107,7 @@ private:
   Gen::OpArg default_location{};
   Gen::OpArg location{};
   bool away = false;  // value not in source register
+  bool revertable = false;
   size_t locked = 0;
 };
 
@@ -139,6 +161,7 @@ public:
   bool ShouldLoad() const { return read; }
   bool ShouldDirty() const { return write; }
   bool ShouldKillImmediate() const { return kill_imm; }
+  bool ShouldBeRevertable() const { return revertable; }
 
   void Realized() { realized = true; }
   void RealizedBound()
@@ -147,16 +170,17 @@ public:
     bind = true;
   }
 
-  void AddUse(RCMode mode) { AddConstraint(false, mode, false); }
-  void AddUseNoImm(RCMode mode) { AddConstraint(false, mode, true); }
-  void AddBind(RCMode mode) { AddConstraint(true, mode, false); }
+  void AddUse(RCMode mode) { AddConstraint(false, mode, false, false); }
+  void AddUseNoImm(RCMode mode) { AddConstraint(false, mode, true, false); }
+  void AddBind(RCMode mode) { AddConstraint(true, mode, false, false); }
+  void AddRevertableBind(RCMode mode) { AddConstraint(true, mode, false, true); }
 
 private:
-  void AddConstraint(bool should_bind, RCMode mode, bool should_kill_imm)
+  void AddConstraint(bool should_bind, RCMode mode, bool should_kill_imm, bool should_revertable)
   {
     if (realized)
     {
-      ASSERT(IsCompatible(should_bind, mode, should_kill_imm));
+      ASSERT(IsCompatible(should_bind, mode, should_kill_imm, should_revertable));
       return;
     }
 
@@ -165,6 +189,9 @@ private:
 
     if (should_kill_imm)
       kill_imm = true;
+
+    if (should_revertable)
+      revertable = true;
 
     switch (mode)
     {
@@ -181,11 +208,13 @@ private:
     }
   }
 
-  bool IsCompatible(bool should_bind, RCMode mode, bool should_kill_imm)
+  bool IsCompatible(bool should_bind, RCMode mode, bool should_kill_imm, bool should_revertable)
   {
     if (should_bind && !bind)
       return false;
     if (should_kill_imm && !kill_imm)
+      return false;
+    if (should_revertable && !revertable)
       return false;
 
     switch (mode)
@@ -204,4 +233,5 @@ private:
   bool write = false;
   bool read = false;
   bool kill_imm = false;
+  bool revertable = false;
 };

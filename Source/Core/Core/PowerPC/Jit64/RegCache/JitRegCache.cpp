@@ -328,6 +328,7 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
   {
     ASSERT_MSG(DYNA_REC, !m_regs[i].IsLocked(), "Someone forgot to unlock PPC reg %u (X64 reg %i).",
                i, RX(i));
+    ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress!");
 
     switch (m_regs[i].GetLocationType())
     {
@@ -373,7 +374,7 @@ bool RegCache::SanityCheck() const
       break;
     case PPCCachedReg::LocationType::Bound:
     {
-      if (m_regs[i].IsLocked())
+      if (m_regs[i].IsLocked() || m_regs[i].IsRevertable())
         return false;
 
       Gen::X64Reg xr = m_regs[i].Location().GetSimpleReg();
@@ -413,6 +414,7 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsDirty(), "Xreg %i already dirty", xr);
     ASSERT_MSG(DYNA_REC, !m_xregs[xr].IsLocked(), "GetFreeXReg returned locked register");
+    ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Invalid transaction state");
 
     m_xregs[xr].SetBoundTo(i, makeDirty || m_regs[i].IsAway());
 
@@ -441,6 +443,9 @@ void RegCache::BindToRegister(preg_t i, bool doLoad, bool makeDirty)
 
 void RegCache::StoreFromRegister(preg_t i, FlushMode mode)
 {
+  // When a transaction is in progress, allowing the store would overwrite the old value.
+  ASSERT_MSG(DYNA_REC, !m_regs[i].IsRevertable(), "Register transaction is in progress!");
+
   bool doStore = false;
 
   switch (m_regs[i].GetLocationType())
@@ -611,6 +616,18 @@ RCX64Reg RegCache::Bind(preg_t preg, RCMode mode)
   return RCX64Reg{this, preg};
 }
 
+RCX64Reg RegCache::BindOrImm(preg_t preg, RCMode mode)
+{
+  m_constraints[preg].AddBindOrImm(mode);
+  return RCX64Reg{this, preg};
+}
+
+RCX64Reg RegCache::RevertableBind(preg_t preg, RCMode mode)
+{
+  m_constraints[preg].AddRevertableBind(mode);
+  return RCX64Reg{this, preg};
+}
+
 RCX64Reg RegCache::Scratch(X64Reg xr)
 {
   FlushX(xr);
@@ -620,6 +637,26 @@ RCX64Reg RegCache::Scratch(X64Reg xr)
 RCForkGuard RegCache::Fork()
 {
   return RCForkGuard{*this};
+}
+
+void RegCache::Revert()
+{
+  ASSERT(IsAllUnlocked());
+  for (auto& reg : m_regs)
+  {
+    if (reg.IsRevertable())
+      reg.SetRevert();
+  }
+}
+
+void RegCache::Commit()
+{
+  ASSERT(IsAllUnlocked());
+  for (auto& reg : m_regs)
+  {
+    if (reg.IsRevertable())
+      reg.SetCommit();
+  }
 }
 
 bool RegCache::IsAllUnlocked() const
@@ -672,6 +709,14 @@ void RegCache::Realize(preg_t preg)
     BindToRegister(preg, load, dirty);
     m_constraints[preg].RealizedBound();
   };
+
+  if (m_constraints[preg].ShouldBeRevertable())
+  {
+    StoreFromRegister(preg, FlushMode::MaintainState);
+    do_bind();
+    m_regs[preg].SetRevertable();
+    return;
+  }
 
   if (m_constraints[preg].ShouldBind())
   {
