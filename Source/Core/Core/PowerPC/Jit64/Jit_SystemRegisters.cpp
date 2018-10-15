@@ -432,10 +432,9 @@ void Jit64::mfmsr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   // Privileged?
-  gpr.Lock(inst.RD);
-  gpr.BindToRegister(inst.RD, false, true);
-  MOV(32, gpr.R(inst.RD), PPCSTATE(msr));
-  gpr.UnlockAll();
+  RCX64Reg Rd = gpr.Bind(inst.RD, RCMode::Write);
+  RegCache::Realize(Rd);
+  MOV(32, Rd, PPCSTATE(msr));
 }
 
 void Jit64::mftb(UGeckoInstruction inst)
