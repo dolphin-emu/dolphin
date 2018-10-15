@@ -1112,41 +1112,45 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
   bool sign = inst.SUBOP10 == 75;
 
-  if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+  if (gpr.IsImm(a, b))
   {
     if (sign)
-      gpr.SetImmediate32(d, (u32)((u64)(((s64)gpr.R(a).SImm32() * (s64)gpr.R(b).SImm32())) >> 32));
+      gpr.SetImmediate32(d, (u32)((u64)(((s64)gpr.SImm32(a) * (s64)gpr.SImm32(b))) >> 32));
     else
-      gpr.SetImmediate32(d, (u32)(((u64)gpr.R(a).Imm32() * (u64)gpr.R(b).Imm32()) >> 32));
+      gpr.SetImmediate32(d, (u32)(((u64)gpr.Imm32(a) * (u64)gpr.Imm32(b)) >> 32));
   }
   else if (sign)
   {
-    gpr.Lock(a, b, d);
-    // no register choice
-    gpr.FlushLockX(EDX, EAX);
-    gpr.BindToRegister(d, d == a || d == b, true);
-    MOV(32, R(EAX), gpr.R(a));
-    gpr.KillImmediate(b, true, false);
-    IMUL(32, gpr.R(b));
-    MOV(32, gpr.R(d), R(EDX));
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Rb = gpr.UseNoImm(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RCX64Reg eax = gpr.Scratch(EAX);
+    RCX64Reg edx = gpr.Scratch(EDX);
+    RegCache::Realize(Ra, Rb, Rd, eax, edx);
+
+    MOV(32, eax, Ra);
+    IMUL(32, Rb);
+    MOV(32, Rd, edx);
   }
   else
   {
     // Not faster for signed because we'd need two movsx.
-    gpr.Lock(a, b, d);
     // We need to bind everything to registers since the top 32 bits need to be zero.
     int src = d == b ? a : b;
-    gpr.BindToRegister(d, d == a || d == b, true);
-    gpr.BindToRegister(src, true, false);
-    if (d != a && d != b)
-      MOV(32, gpr.R(d), gpr.R(a));
-    IMUL(64, gpr.RX(d), gpr.R(src));
-    SHR(64, gpr.R(d), Imm8(32));
+    int other = src == b ? a : b;
+
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RCX64Reg Rsrc = gpr.Bind(src, RCMode::Read);
+    RCOpArg Rother = gpr.Use(other, RCMode::Read);
+    RegCache::Realize(Rd, Rsrc, Rother);
+
+    if (other != d)
+      MOV(32, Rd, Rother);
+    IMUL(64, Rd, Rsrc);
+    SHR(64, Rd, Imm8(32));
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    ComputeRC(d);
 }
 
 void Jit64::divwux(UGeckoInstruction inst)
