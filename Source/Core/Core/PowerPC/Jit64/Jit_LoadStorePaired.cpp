@@ -40,21 +40,22 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   bool gqrIsConstant = it != js.constantGqr.end();
   u32 gqrValue = gqrIsConstant ? it->second & 0xffff : 0;
 
-  gpr.Lock(a, b);
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  if (update)
-    gpr.BindToRegister(a, true, true);
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
+  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RegCache::Realize(scratch_guard, Ra, Rb, Rs);
 
-  MOV_sum(32, RSCRATCH_EXTRA, gpr.R(a), indexed ? gpr.R(b) : Imm32((u32)offset));
+  MOV_sum(32, RSCRATCH_EXTRA, Ra, Rb);
 
   // In memcheck mode, don't update the address until the exception check
   if (update && !jo.memcheck)
-    MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
+    MOV(32, Ra, R(RSCRATCH_EXTRA));
 
   if (w)
-    CVTSD2SS(XMM0, fpr.R(s));  // one
+    CVTSD2SS(XMM0, Rs);  // one
   else
-    CVTPD2PS(XMM0, fpr.R(s));  // pair
+    CVTPD2PS(XMM0, Rs);  // pair
 
   if (gqrIsConstant)
   {
@@ -104,13 +105,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 
   if (update && jo.memcheck)
   {
-    if (indexed)
-      ADD(32, gpr.R(a), gpr.R(b));
-    else
-      ADD(32, gpr.R(a), Imm32((u32)offset));
+    ADD(32, Ra, Rb);
   }
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
 }
 
 void Jit64::psq_lXX(UGeckoInstruction inst)
