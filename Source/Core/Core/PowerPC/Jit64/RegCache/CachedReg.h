@@ -154,45 +154,74 @@ private:
 class RCConstraint
 {
 public:
-  bool IsActive() const { return realized || bind || write || read || kill_imm; }
-  bool IsRealized() const { return realized; }
-
-  bool ShouldBind() const { return bind; }
-  bool ShouldLoad() const { return read; }
-  bool ShouldDirty() const { return write; }
-  bool ShouldKillImmediate() const { return kill_imm; }
-  bool ShouldBeRevertable() const { return revertable; }
-
-  void Realized() { realized = true; }
-  void RealizedBound()
+  bool IsRealized() const { return realized != RealizedLoc::Invalid; }
+  bool IsActive() const
   {
-    realized = true;
-    bind = true;
+    return IsRealized() || write || read || kill_imm || kill_mem || revertable;
   }
 
-  void AddUse(RCMode mode) { AddConstraint(false, mode, false, false); }
-  void AddUseNoImm(RCMode mode) { AddConstraint(false, mode, true, false); }
-  void AddBind(RCMode mode) { AddConstraint(true, mode, false, false); }
-  void AddRevertableBind(RCMode mode) { AddConstraint(true, mode, false, true); }
+  bool ShouldLoad() const { return read; }
+  bool ShouldDirty() const { return write; }
+  bool ShouldBeRevertable() const { return revertable; }
+  bool ShouldKillImmediate() const { return kill_imm; }
+  bool ShouldKillMemory() const { return kill_mem; }
+
+  enum class RealizedLoc
+  {
+    Invalid,
+    Bound,
+    Imm,
+    Mem,
+  };
+
+  void Realized(RealizedLoc loc)
+  {
+    realized = loc;
+    ASSERT(IsRealized());
+  }
+
+  enum class ConstraintLoc
+  {
+    Bound,
+    BoundOrImm,
+    BoundOrMem,
+    Any,
+  };
+
+  void AddUse(RCMode mode) { AddConstraint(mode, ConstraintLoc::Any, false); }
+  void AddUseNoImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrMem, false); }
+  void AddBindOrImm(RCMode mode) { AddConstraint(mode, ConstraintLoc::BoundOrImm, false); }
+  void AddBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, false); }
+  void AddRevertableBind(RCMode mode) { AddConstraint(mode, ConstraintLoc::Bound, true); }
 
 private:
-  void AddConstraint(bool should_bind, RCMode mode, bool should_kill_imm, bool should_revertable)
+  void AddConstraint(RCMode mode, ConstraintLoc loc, bool should_revertable)
   {
-    if (realized)
+    if (IsRealized())
     {
-      ASSERT(IsCompatible(should_bind, mode, should_kill_imm, should_revertable));
+      ASSERT(IsCompatible(mode, loc, should_revertable));
       return;
     }
-
-    if (should_bind)
-      bind = true;
-
-    if (should_kill_imm)
-      kill_imm = true;
 
     if (should_revertable)
       revertable = true;
 
+    switch (loc)
+    {
+    case ConstraintLoc::Bound:
+      kill_imm = true;
+      kill_mem = true;
+      break;
+    case ConstraintLoc::BoundOrImm:
+      kill_mem = true;
+      break;
+    case ConstraintLoc::BoundOrMem:
+      kill_imm = true;
+      break;
+    case ConstraintLoc::Any:
+      break;
+    }
+
     switch (mode)
     {
     case RCMode::Read:
@@ -208,30 +237,50 @@ private:
     }
   }
 
-  bool IsCompatible(bool should_bind, RCMode mode, bool should_kill_imm, bool should_revertable)
+  bool IsCompatible(RCMode mode, ConstraintLoc loc, bool should_revertable) const
   {
-    if (should_bind && !bind)
-      return false;
-    if (should_kill_imm && !kill_imm)
-      return false;
     if (should_revertable && !revertable)
-      return false;
-
-    switch (mode)
     {
-    case RCMode::Read:
-      return read;
-    case RCMode::Write:
-      return write;
-    case RCMode::ReadWrite:
-      return read && write;
+      return false;
     }
+
+    const bool is_loc_compatible = [&] {
+      switch (loc)
+      {
+      case ConstraintLoc::Bound:
+        return realized == RealizedLoc::Bound;
+      case ConstraintLoc::BoundOrImm:
+        return realized == RealizedLoc::Bound || realized == RealizedLoc::Imm;
+      case ConstraintLoc::BoundOrMem:
+        return realized == RealizedLoc::Bound || realized == RealizedLoc::Mem;
+      case ConstraintLoc::Any:
+        return true;
+      }
+      ASSERT(false);
+      return false;
+    }();
+
+    const bool is_mode_compatible = [&] {
+      switch (mode)
+      {
+      case RCMode::Read:
+        return read;
+      case RCMode::Write:
+        return write;
+      case RCMode::ReadWrite:
+        return read && write;
+      }
+      ASSERT(false);
+      return false;
+    }();
+
+    return is_loc_compatible && is_mode_compatible;
   }
 
-  bool realized = false;
-  bool bind = false;
+  RealizedLoc realized = RealizedLoc::Invalid;
   bool write = false;
   bool read = false;
   bool kill_imm = false;
+  bool kill_mem = false;
   bool revertable = false;
 };

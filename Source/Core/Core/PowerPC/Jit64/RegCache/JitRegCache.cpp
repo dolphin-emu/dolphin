@@ -610,15 +610,15 @@ RCOpArg RegCache::UseNoImm(preg_t preg, RCMode mode)
   return RCOpArg{this, preg};
 }
 
+RCOpArg RegCache::BindOrImm(preg_t preg, RCMode mode)
+{
+  m_constraints[preg].AddBindOrImm(mode);
+  return RCOpArg{this, preg};
+}
+
 RCX64Reg RegCache::Bind(preg_t preg, RCMode mode)
 {
   m_constraints[preg].AddBind(mode);
-  return RCX64Reg{this, preg};
-}
-
-RCX64Reg RegCache::BindOrImm(preg_t preg, RCMode mode)
-{
-  m_constraints[preg].AddBindOrImm(mode);
   return RCX64Reg{this, preg};
 }
 
@@ -704,10 +704,11 @@ void RegCache::Realize(preg_t preg)
   const bool load = m_constraints[preg].ShouldLoad();
   const bool dirty = m_constraints[preg].ShouldDirty();
   const bool kill_imm = m_constraints[preg].ShouldKillImmediate();
+  const bool kill_mem = m_constraints[preg].ShouldKillMemory();
 
   const auto do_bind = [&] {
     BindToRegister(preg, load, dirty);
-    m_constraints[preg].RealizedBound();
+    m_constraints[preg].Realized(RCConstraint::RealizedLoc::Bound);
   };
 
   if (m_constraints[preg].ShouldBeRevertable())
@@ -718,29 +719,29 @@ void RegCache::Realize(preg_t preg)
     return;
   }
 
-  if (m_constraints[preg].ShouldBind())
-  {
-    do_bind();
-    return;
-  }
-
   switch (m_regs[preg].GetLocationType())
   {
   case PPCCachedReg::LocationType::Default:
-    break;
+    if (kill_mem)
+    {
+      do_bind();
+      return;
+    }
+    m_constraints[preg].Realized(RCConstraint::RealizedLoc::Mem);
+    return;
   case PPCCachedReg::LocationType::Bound:
     do_bind();
-    break;
+    return;
   case PPCCachedReg::LocationType::Immediate:
   case PPCCachedReg::LocationType::SpeculativeImmediate:
     if (dirty || kill_imm)
     {
       do_bind();
+      return;
     }
+    m_constraints[preg].Realized(RCConstraint::RealizedLoc::Imm);
     break;
   }
-
-  m_constraints[preg].Realized();
 }
 
 bool RegCache::IsAnyConstraintActive() const
