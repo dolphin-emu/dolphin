@@ -944,38 +944,40 @@ void Jit64::subfx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+  if (gpr.IsImm(a) && gpr.IsImm(b))
   {
-    s32 i = gpr.R(b).SImm32(), j = gpr.R(a).SImm32();
+    s32 i = gpr.SImm32(b), j = gpr.SImm32(a);
     gpr.SetImmediate32(d, i - j);
     if (inst.OE)
       GenerateConstantOverflow((s64)i - (s64)j);
   }
   else
   {
-    gpr.Lock(a, b, d);
-    gpr.BindToRegister(d, (d == a || d == b), true);
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rd);
+
     if (d == b)
     {
-      SUB(32, gpr.R(d), gpr.R(a));
+      SUB(32, Rd, Ra);
     }
     else if (d == a)
     {
-      MOV(32, R(RSCRATCH), gpr.R(a));
-      MOV(32, gpr.R(d), gpr.R(b));
-      SUB(32, gpr.R(d), R(RSCRATCH));
+      MOV(32, R(RSCRATCH), Ra);
+      MOV(32, Rd, Rb);
+      SUB(32, Rd, R(RSCRATCH));
     }
     else
     {
-      MOV(32, gpr.R(d), gpr.R(b));
-      SUB(32, gpr.R(d), gpr.R(a));
+      MOV(32, Rd, Rb);
+      SUB(32, Rd, Ra);
     }
     if (inst.OE)
       GenerateOverflow();
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
+    ComputeRC(d);
 }
 
 void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
