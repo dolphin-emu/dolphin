@@ -533,26 +533,27 @@ void Jit64::stmw(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
+  int a = inst.RA, d = inst.RD;
+
   // TODO: This doesn't handle rollback on DSI correctly
-  for (int i = inst.RD; i < 32; i++)
+  for (int i = d; i < 32; i++)
   {
-    if (inst.RA)
-      MOV(32, R(RSCRATCH), gpr.R(inst.RA));
-    else
+    RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
+    RCOpArg Ri = gpr.Use(i, RCMode::Read);
+    RegCache::Realize(Ra, Ri);
+
+    if (Ra.IsZero())
       XOR(32, R(RSCRATCH), R(RSCRATCH));
-    if (gpr.R(i).IsImm())
-    {
-      SafeWriteRegToReg(gpr.R(i), RSCRATCH, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16,
-                        CallerSavedRegistersInUse());
-    }
     else
+      MOV(32, R(RSCRATCH), Ra);
+    if (!Ri.IsImm())
     {
-      MOV(32, R(RSCRATCH2), gpr.R(i));
-      SafeWriteRegToReg(RSCRATCH2, RSCRATCH, 32, (i - inst.RD) * 4 + (u32)(s32)inst.SIMM_16,
-                        CallerSavedRegistersInUse());
+      MOV(32, R(RSCRATCH2), Ri);
+      Ri = RCOpArg::R(RSCRATCH2);
     }
+    SafeWriteRegToReg(Ri, RSCRATCH, 32, (i - d) * 4 + (u32)(s32)inst.SIMM_16,
+                      CallerSavedRegistersInUse());
   }
-  gpr.UnlockAllX();
 }
 
 void Jit64::eieio(UGeckoInstruction inst)
