@@ -648,10 +648,10 @@ void Jit64::boolX(UGeckoInstruction inst)
   bool needs_test = false;
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 31, "Invalid boolX");
 
-  if (gpr.R(s).IsImm() && gpr.R(b).IsImm())
+  if (gpr.IsImm(s, b))
   {
-    const u32 rs_offset = gpr.R(s).Imm32();
-    const u32 rb_offset = gpr.R(b).Imm32();
+    const u32 rs_offset = gpr.Imm32(s);
+    const u32 rb_offset = gpr.Imm32(b);
 
     if (inst.SUBOP10 == 28)  // andx
       gpr.SetImmediate32(a, rs_offset & rb_offset);
@@ -676,33 +676,33 @@ void Jit64::boolX(UGeckoInstruction inst)
     {
       if (a != s)
       {
-        gpr.Lock(a, s);
-        gpr.BindToRegister(a, false, true);
-        MOV(32, gpr.R(a), gpr.R(s));
+        RCOpArg Rs = gpr.Use(s, RCMode::Read);
+        RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+        RegCache::Realize(Rs, Ra);
+        MOV(32, Ra, Rs);
       }
       else if (inst.Rc)
       {
-        gpr.BindToRegister(a, true, false);
+        gpr.Bind(a, RCMode::Read).Realize();
       }
       needs_test = true;
     }
     else if ((inst.SUBOP10 == 476 /* nandx */) || (inst.SUBOP10 == 124 /* norx */))
     {
-      if (a != s)
+      if (a == s && !inst.Rc)
       {
-        gpr.Lock(a, s);
-        gpr.BindToRegister(a, false, true);
-        MOV(32, gpr.R(a), gpr.R(s));
-      }
-      else if (inst.Rc)
-      {
-        gpr.BindToRegister(a, true, true);
+        RCOpArg Ra = gpr.UseNoImm(a, RCMode::ReadWrite);
+        RegCache::Realize(Ra);
+        NOT(32, Ra);
       }
       else
       {
-        gpr.KillImmediate(a, true, true);
+        RCOpArg Rs = gpr.Use(s, RCMode::Read);
+        RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+        RegCache::Realize(Rs, Ra);
+        MOV(32, Ra, Rs);
+        NOT(32, Ra);
       }
-      NOT(32, gpr.R(a));
       needs_test = true;
     }
     else if ((inst.SUBOP10 == 412 /* orcx */) || (inst.SUBOP10 == 284 /* eqvx */))
@@ -720,70 +720,72 @@ void Jit64::boolX(UGeckoInstruction inst)
   }
   else if ((a == s) || (a == b))
   {
-    gpr.Lock(a, ((a == s) ? b : s));
-    OpArg operand = ((a == s) ? gpr.R(b) : gpr.R(s));
-    gpr.BindToRegister(a, true, true);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RCOpArg operand = gpr.Use(a == s ? b : s, RCMode::Read);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+    RegCache::Realize(Rb, Rs, operand, Ra);
 
     if (inst.SUBOP10 == 28)  // andx
     {
-      AND(32, gpr.R(a), operand);
+      AND(32, Ra, operand);
     }
     else if (inst.SUBOP10 == 476)  // nandx
     {
-      AND(32, gpr.R(a), operand);
-      NOT(32, gpr.R(a));
+      AND(32, Ra, operand);
+      NOT(32, Ra);
       needs_test = true;
     }
     else if (inst.SUBOP10 == 60)  // andcx
     {
-      if (cpu_info.bBMI1 && gpr.R(b).IsSimpleReg() && !gpr.R(s).IsImm())
+      if (cpu_info.bBMI1 && Rb.IsSimpleReg() && !Rs.IsImm())
       {
-        ANDN(32, gpr.RX(a), gpr.RX(b), gpr.R(s));
+        ANDN(32, Ra, Rb.GetSimpleReg(), Rs);
       }
       else if (a == b)
       {
-        NOT(32, gpr.R(a));
-        AND(32, gpr.R(a), operand);
+        NOT(32, Ra);
+        AND(32, Ra, operand);
       }
       else
       {
         MOV(32, R(RSCRATCH), operand);
         NOT(32, R(RSCRATCH));
-        AND(32, gpr.R(a), R(RSCRATCH));
+        AND(32, Ra, R(RSCRATCH));
       }
     }
     else if (inst.SUBOP10 == 444)  // orx
     {
-      OR(32, gpr.R(a), operand);
+      OR(32, Ra, operand);
     }
     else if (inst.SUBOP10 == 124)  // norx
     {
-      OR(32, gpr.R(a), operand);
-      NOT(32, gpr.R(a));
+      OR(32, Ra, operand);
+      NOT(32, Ra);
       needs_test = true;
     }
     else if (inst.SUBOP10 == 412)  // orcx
     {
       if (a == b)
       {
-        NOT(32, gpr.R(a));
-        OR(32, gpr.R(a), operand);
+        NOT(32, Ra);
+        OR(32, Ra, operand);
       }
       else
       {
         MOV(32, R(RSCRATCH), operand);
         NOT(32, R(RSCRATCH));
-        OR(32, gpr.R(a), R(RSCRATCH));
+        OR(32, Ra, R(RSCRATCH));
       }
     }
     else if (inst.SUBOP10 == 316)  // xorx
     {
-      XOR(32, gpr.R(a), operand);
+      XOR(32, Ra, operand);
     }
     else if (inst.SUBOP10 == 284)  // eqvx
     {
-      NOT(32, gpr.R(a));
-      XOR(32, gpr.R(a), operand);
+      NOT(32, Ra);
+      XOR(32, Ra, operand);
     }
     else
     {
@@ -792,62 +794,64 @@ void Jit64::boolX(UGeckoInstruction inst)
   }
   else
   {
-    gpr.Lock(a, s, b);
-    gpr.BindToRegister(a, false, true);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RegCache::Realize(Rb, Rs, Ra);
 
     if (inst.SUBOP10 == 28)  // andx
     {
-      MOV(32, gpr.R(a), gpr.R(s));
-      AND(32, gpr.R(a), gpr.R(b));
+      MOV(32, Ra, Rs);
+      AND(32, Ra, Rb);
     }
     else if (inst.SUBOP10 == 476)  // nandx
     {
-      MOV(32, gpr.R(a), gpr.R(s));
-      AND(32, gpr.R(a), gpr.R(b));
-      NOT(32, gpr.R(a));
+      MOV(32, Ra, Rs);
+      AND(32, Ra, Rb);
+      NOT(32, Ra);
       needs_test = true;
     }
     else if (inst.SUBOP10 == 60)  // andcx
     {
-      if (cpu_info.bBMI1 && gpr.R(b).IsSimpleReg() && !gpr.R(s).IsImm())
+      if (cpu_info.bBMI1 && Rb.IsSimpleReg() && !Rs.IsImm())
       {
-        ANDN(32, gpr.RX(a), gpr.RX(b), gpr.R(s));
+        ANDN(32, Ra, Rb.GetSimpleReg(), Rs);
       }
       else
       {
-        MOV(32, gpr.R(a), gpr.R(b));
-        NOT(32, gpr.R(a));
-        AND(32, gpr.R(a), gpr.R(s));
+        MOV(32, Ra, Rb);
+        NOT(32, Ra);
+        AND(32, Ra, Rs);
       }
     }
     else if (inst.SUBOP10 == 444)  // orx
     {
-      MOV(32, gpr.R(a), gpr.R(s));
-      OR(32, gpr.R(a), gpr.R(b));
+      MOV(32, Ra, Rs);
+      OR(32, Ra, Rb);
     }
     else if (inst.SUBOP10 == 124)  // norx
     {
-      MOV(32, gpr.R(a), gpr.R(s));
-      OR(32, gpr.R(a), gpr.R(b));
-      NOT(32, gpr.R(a));
+      MOV(32, Ra, Rs);
+      OR(32, Ra, Rb);
+      NOT(32, Ra);
       needs_test = true;
     }
     else if (inst.SUBOP10 == 412)  // orcx
     {
-      MOV(32, gpr.R(a), gpr.R(b));
-      NOT(32, gpr.R(a));
-      OR(32, gpr.R(a), gpr.R(s));
+      MOV(32, Ra, Rb);
+      NOT(32, Ra);
+      OR(32, Ra, Rs);
     }
     else if (inst.SUBOP10 == 316)  // xorx
     {
-      MOV(32, gpr.R(a), gpr.R(s));
-      XOR(32, gpr.R(a), gpr.R(b));
+      MOV(32, Ra, Rs);
+      XOR(32, Ra, Rb);
     }
     else if (inst.SUBOP10 == 284)  // eqvx
     {
-      MOV(32, gpr.R(a), gpr.R(s));
-      NOT(32, gpr.R(a));
-      XOR(32, gpr.R(a), gpr.R(b));
+      MOV(32, Ra, Rs);
+      NOT(32, Ra);
+      XOR(32, Ra, Rb);
     }
     else
     {
@@ -855,8 +859,7 @@ void Jit64::boolX(UGeckoInstruction inst)
     }
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(a), needs_test);
-  gpr.UnlockAll();
+    ComputeRC(a, needs_test);
 }
 
 void Jit64::extsXx(UGeckoInstruction inst)
