@@ -160,9 +160,13 @@ void Jit64::bcx(UGeckoInstruction inst)
   else
     destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-  gpr.Flush(RegCache::FlushMode::MaintainState);
-  fpr.Flush(RegCache::FlushMode::MaintainState);
-  WriteExit(destination, inst.LK, js.compilerPC + 4);
+  {
+    RCForkGuard gpr_guard = gpr.Fork();
+    RCForkGuard fpr_guard = fpr.Fork();
+    gpr.Flush();
+    fpr.Flush();
+    WriteExit(destination, inst.LK, js.compilerPC + 4);
+  }
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
     SetJumpTarget(pConditionDontBranch);
