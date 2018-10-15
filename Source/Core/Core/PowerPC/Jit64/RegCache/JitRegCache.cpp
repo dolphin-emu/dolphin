@@ -622,6 +622,13 @@ RCForkGuard RegCache::Fork()
   return RCForkGuard{*this};
 }
 
+bool RegCache::IsAllUnlocked() const
+{
+  return std::none_of(m_regs.begin(), m_regs.end(), [](const auto& r){ return r.IsLocked(); }) &&
+         std::none_of(m_xregs.begin(), m_xregs.end(), [](const auto& x){ return x.IsLocked(); }) &&
+         !IsAnyConstraintActive();
+}
+
 void RegCache::NewLock(preg_t preg)
 {
   m_regs[preg].Lock();

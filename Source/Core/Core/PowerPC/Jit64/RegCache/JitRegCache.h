@@ -239,6 +239,8 @@ public:
 
   RCForkGuard Fork();
 
+  bool IsAllUnlocked() const;
+
 protected:
   friend class RCOpArg;
   friend class RCX64Reg;
