@@ -1690,32 +1690,32 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, s = inst.RS;
 
   const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-  if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
+  if (gpr.IsImm(b, s))
   {
-    gpr.SetImmediate32(a, Common::RotateLeft(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);
+    gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), gpr.Imm32(b) & 0x1F) & mask);
   }
   else
   {
-    // no register choice
-    gpr.FlushLockX(ECX);
-    gpr.Lock(a, b, s);
-    MOV(32, R(ECX), gpr.R(b));
-    gpr.BindToRegister(a, (a == s), true);
+    RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(ecx, Ra, Rb, Rs);
+
+    MOV(32, ecx, Rb);
     if (a != s)
     {
-      MOV(32, gpr.R(a), gpr.R(s));
+      MOV(32, Ra, Rs);
     }
-    ROL(32, gpr.R(a), R(ECX));
+    ROL(32, Ra, ecx);
     // we need flags if we're merging the branch
     if (inst.Rc && CheckMergedBranch(0))
-      AND(32, gpr.R(a), Imm32(mask));
+      AND(32, Ra, Imm32(mask));
     else
-      AndWithMask(gpr.RX(a), mask);
+      AndWithMask(Ra, mask);
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(a), false);
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    ComputeRC(a, false);
 }
 
 void Jit64::negx(UGeckoInstruction inst)
