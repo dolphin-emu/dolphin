@@ -232,19 +232,6 @@ void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
   }
 }
 
-OpArg Jit64::ExtractFromReg(int reg, int offset)
-{
-  OpArg src = gpr.R(reg);
-  // store to load forwarding should handle this case efficiently
-  if (offset)
-  {
-    gpr.StoreFromRegister(reg, RegCache::FlushMode::MaintainState);
-    src = gpr.GetDefaultLocation(reg);
-    src.AddMemOffset(offset);
-  }
-  return src;
-}
-
 // we can't do this optimization in the emitter because MOVZX and AND have different effects on
 // flags.
 void Jit64::AndWithMask(X64Reg reg, u32 mask)
@@ -1510,15 +1497,15 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
 
-  if (gpr.R(s).IsImm())
+  if (gpr.IsImm(s))
   {
-    u32 result = gpr.R(s).Imm32();
+    u32 result = gpr.Imm32(s);
     if (inst.SH != 0)
       result = Common::RotateLeft(result, inst.SH);
     result &= MakeRotationMask(inst.MB, inst.ME);
     gpr.SetImmediate32(a, result);
     if (inst.Rc)
-      ComputeRC(gpr.R(a));
+      ComputeRC(a);
   }
   else
   {
@@ -1533,59 +1520,64 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
     bool needs_sext = true;
     int mask_size = inst.ME - inst.MB + 1;
 
-    gpr.Lock(a, s);
-    gpr.BindToRegister(a, a == s);
-    if (a != s && left_shift && gpr.R(s).IsSimpleReg() && inst.SH <= 3)
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RegCache::Realize(Rs, Ra);
+
+    if (a != s && left_shift && Rs.IsSimpleReg() && inst.SH <= 3)
     {
-      LEA(32, gpr.RX(a), MScaled(gpr.RX(s), SCALE_1 << inst.SH, 0));
+      LEA(32, Ra, MScaled(Rs.GetSimpleReg(), SCALE_1 << inst.SH, 0));
     }
     // common optimized case: byte/word extract
     else if (simple_mask && !(inst.SH & (mask_size - 1)))
     {
-      MOVZX(32, mask_size, gpr.RX(a), ExtractFromReg(s, inst.SH ? (32 - inst.SH) >> 3 : 0));
+      MOVZX(32, mask_size, Ra, Rs.ExtractWithByteOffset(inst.SH ? (32 - inst.SH) >> 3 : 0));
       needs_sext = false;
     }
     // another optimized special case: byte/word extract plus shift
     else if (((mask >> inst.SH) << inst.SH) == mask && !left_shift &&
              ((mask >> inst.SH) == 0xff || (mask >> inst.SH) == 0xffff))
     {
-      MOVZX(32, mask_size, gpr.RX(a), gpr.R(s));
-      SHL(32, gpr.R(a), Imm8(inst.SH));
+      MOVZX(32, mask_size, Ra, Rs);
+      SHL(32, Ra, Imm8(inst.SH));
       needs_sext = inst.SH + mask_size >= 32;
     }
     else
     {
       if (a != s)
-        MOV(32, gpr.R(a), gpr.R(s));
+        MOV(32, Ra, Rs);
 
       if (left_shift)
       {
-        SHL(32, gpr.R(a), Imm8(inst.SH));
+        SHL(32, Ra, Imm8(inst.SH));
       }
       else if (right_shift)
       {
-        SHR(32, gpr.R(a), Imm8(inst.MB));
+        SHR(32, Ra, Imm8(inst.MB));
         needs_sext = false;
       }
       else
       {
         if (inst.SH != 0)
-          ROL(32, gpr.R(a), Imm8(inst.SH));
+          ROL(32, Ra, Imm8(inst.SH));
         if (!(inst.MB == 0 && inst.ME == 31))
         {
           // we need flags if we're merging the branch
           if (inst.Rc && CheckMergedBranch(0))
-            AND(32, gpr.R(a), Imm32(mask));
+            AND(32, Ra, Imm32(mask));
           else
-            AndWithMask(gpr.RX(a), mask);
+            AndWithMask(Ra, mask);
           needs_sext = inst.MB == 0;
           needs_test = false;
         }
       }
     }
+
+    Rs.Unlock();
+    Ra.Unlock();
+
     if (inst.Rc)
-      ComputeRC(gpr.R(a), needs_test, needs_sext);
-    gpr.UnlockAll();
+      ComputeRC(a, needs_test, needs_sext);
   }
 }
 

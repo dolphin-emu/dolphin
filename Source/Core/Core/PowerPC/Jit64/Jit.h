@@ -91,8 +91,6 @@ public:
   void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
   void ComputeRC(const Gen::OpArg& arg, bool needs_test = true, bool needs_sext = true);
 
-  // Use to extract bytes from a register using the regcache. offset is in bytes.
-  Gen::OpArg ExtractFromReg(int reg, int offset);
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   bool CheckMergedBranch(u32 crf) const;
   void DoMergedBranch();
