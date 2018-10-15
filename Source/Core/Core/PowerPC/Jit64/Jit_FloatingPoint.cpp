@@ -380,29 +380,28 @@ void Jit64::fsign(UGeckoInstruction inst)
   int b = inst.FB;
   bool packed = inst.OPCD == 4;
 
-  fpr.Lock(b, d);
-  OpArg src = fpr.R(b);
-  fpr.BindToRegister(d, false);
+  RCOpArg src = fpr.Use(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(src, Rd);
 
   switch (inst.SUBOP10)
   {
   case 40:  // neg
-    avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, fpr.RX(d), src,
-           MConst(packed ? psSignBits2 : psSignBits), packed);
+    avx_op(&XEmitter::VXORPD, &XEmitter::XORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
+           packed);
     break;
   case 136:  // nabs
-    avx_op(&XEmitter::VORPD, &XEmitter::ORPD, fpr.RX(d), src,
-           MConst(packed ? psSignBits2 : psSignBits), packed);
+    avx_op(&XEmitter::VORPD, &XEmitter::ORPD, Rd, src, MConst(packed ? psSignBits2 : psSignBits),
+           packed);
     break;
   case 264:  // abs
-    avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, fpr.RX(d), src,
-           MConst(packed ? psAbsMask2 : psAbsMask), packed);
+    avx_op(&XEmitter::VANDPD, &XEmitter::ANDPD, Rd, src, MConst(packed ? psAbsMask2 : psAbsMask),
+           packed);
     break;
   default:
     PanicAlert("fsign bleh");
     break;
   }
-  fpr.UnlockAll();
 }
 
 void Jit64::fselx(UGeckoInstruction inst)
