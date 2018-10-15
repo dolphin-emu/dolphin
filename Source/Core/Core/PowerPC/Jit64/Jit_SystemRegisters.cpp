@@ -655,11 +655,12 @@ void Jit64::mffsx(UGeckoInstruction inst)
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
 
   int d = inst.FD;
-  fpr.BindToRegister(d, false, true);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rd);
   MOV(64, R(RSCRATCH2), Imm64(0xFFF8000000000000));
   OR(64, R(RSCRATCH), R(RSCRATCH2));
   MOVQ_xmm(XMM0, R(RSCRATCH));
-  MOVSD(fpr.RX(d), R(XMM0));
+  MOVSD(Rd, R(XMM0));
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
