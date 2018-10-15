@@ -281,22 +281,23 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // redundant for the JIT.
     // no register choice
 
-    gpr.FlushLockX(RDX, RAX);
-    gpr.FlushLockX(RCX);
+    RCX64Reg rdx = gpr.Scratch(RDX);
+    RCX64Reg rax = gpr.Scratch(RAX);
+    RCX64Reg rcx = gpr.Scratch(RCX);
 
-    MOV(64, R(RCX), ImmPtr(&CoreTiming::g));
+    MOV(64, rcx, ImmPtr(&CoreTiming::g));
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
     // Scale downcount by the CPU overclocking factor.
     CVTSI2SS(XMM0, PPCSTATE(downcount));
-    MULSS(XMM0, MDisp(RCX, offsetof(CoreTiming::Globals, last_OC_factor_inverted)));
-    CVTSS2SI(RDX, R(XMM0));  // RDX is downcount scaled by the overclocking factor
-    MOV(32, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, slice_length)));
-    SUB(64, R(RAX), R(RDX));  // cycles since the last CoreTiming::Advance() event is (slicelength -
-                              // Scaled_downcount)
-    ADD(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, global_timer)));
-    SUB(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, fake_TB_start_ticks)));
+    MULSS(XMM0, MDisp(rcx, offsetof(CoreTiming::Globals, last_OC_factor_inverted)));
+    CVTSS2SI(rdx, R(XMM0));  // RDX is downcount scaled by the overclocking factor
+    MOV(32, rax, MDisp(rcx, offsetof(CoreTiming::Globals, slice_length)));
+    SUB(64, rax, rdx);  // cycles since the last CoreTiming::Advance() event is (slicelength -
+                        // Scaled_downcount)
+    ADD(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, global_timer)));
+    SUB(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, fake_TB_start_ticks)));
     // It might seem convenient to correct the timer for the block position here for even more
     // accurate
     // timing, but as of currently, this can break games. If we end up reading a time *after* the
@@ -307,15 +308,15 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // Revolution,
     // which won't get past the loading screen.
     // if (js.downcountAmount)
-    //	ADD(64, R(RAX), Imm32(js.downcountAmount));
+    //	ADD(64, rax, Imm32(js.downcountAmount));
 
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
-    MUL(64, R(RDX));
-    MOV(64, R(RAX), MDisp(RCX, offsetof(CoreTiming::Globals, fake_TB_start_value)));
-    SHR(64, R(RDX), Imm8(3));
-    ADD(64, R(RAX), R(RDX));
-    MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
+    MOV(64, rdx, Imm64(0xAAAAAAAAAAAAAAABULL));
+    MUL(64, rdx);
+    MOV(64, rax, MDisp(rcx, offsetof(CoreTiming::Globals, fake_TB_start_value)));
+    SHR(64, rdx, Imm8(3));
+    ADD(64, rax, rdx);
+    MOV(64, PPCSTATE(spr[SPR_TL]), rax);
 
     if (CanMergeNextInstructions(1))
     {
@@ -330,40 +331,42 @@ void Jit64::mfspr(UGeckoInstruction inst)
       {
         js.downcountAmount++;
         js.skipInstructions = 1;
-        gpr.Lock(d, n);
-        gpr.BindToRegister(d, false);
-        gpr.BindToRegister(n, false);
+        RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+        RCX64Reg Rn = gpr.Bind(n, RCMode::Write);
+        RegCache::Realize(Rd, Rn);
         if (iIndex == SPR_TL)
-          MOV(32, gpr.R(d), R(RAX));
+          MOV(32, Rd, rax);
         if (nextIndex == SPR_TL)
-          MOV(32, gpr.R(n), R(RAX));
-        SHR(64, R(RAX), Imm8(32));
+          MOV(32, Rn, rax);
+        SHR(64, rax, Imm8(32));
         if (iIndex == SPR_TU)
-          MOV(32, gpr.R(d), R(RAX));
+          MOV(32, Rd, rax);
         if (nextIndex == SPR_TU)
-          MOV(32, gpr.R(n), R(RAX));
+          MOV(32, Rn, rax);
         break;
       }
     }
-    gpr.Lock(d);
-    gpr.BindToRegister(d, false);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
     if (iIndex == SPR_TU)
-      SHR(64, R(RAX), Imm8(32));
-    MOV(32, gpr.R(d), R(RAX));
+      SHR(64, rax, Imm8(32));
+    MOV(32, Rd, rax);
     break;
   }
   case SPR_XER:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, false);
-    MOVZX(32, 16, gpr.RX(d), PPCSTATE(xer_stringctrl));
+  {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
+    MOVZX(32, 16, Rd, PPCSTATE(xer_stringctrl));
     MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
     SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-    OR(32, gpr.R(d), R(RSCRATCH));
+    OR(32, Rd, R(RSCRATCH));
 
     MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
     SHL(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-    OR(32, gpr.R(d), R(RSCRATCH));
+    OR(32, Rd, R(RSCRATCH));
     break;
+  }
   case SPR_WPAR:
   case SPR_DEC:
   case SPR_PMC1:
@@ -372,13 +375,13 @@ void Jit64::mfspr(UGeckoInstruction inst)
   case SPR_PMC4:
     FALLBACK_IF(true);
   default:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, false);
-    MOV(32, gpr.R(d), PPCSTATE(spr[iIndex]));
+  {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
+    MOV(32, Rd, PPCSTATE(spr[iIndex]));
     break;
   }
-  gpr.UnlockAllX();
-  gpr.UnlockAll();
+  }
 }
 
 void Jit64::mtmsr(UGeckoInstruction inst)
