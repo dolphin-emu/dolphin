@@ -141,6 +141,55 @@ void Jit64::FinalizeCarryOverflow(bool oe, bool inv)
 // branches, only EQ.
 // The flags from any instruction that may set OF (such as ADD/SUB) can not be used for
 // LT/GT either.
+void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
+{
+  RCOpArg arg = gpr.Use(preg, RCMode::Read);
+  RegCache::Realize(arg);
+
+  if (arg.IsImm())
+  {
+    MOV(64, PPCSTATE(cr_val[0]), Imm32(arg.SImm32()));
+  }
+  else if (needs_sext)
+  {
+    MOVSX(64, 32, RSCRATCH, arg);
+    MOV(64, PPCSTATE(cr_val[0]), R(RSCRATCH));
+  }
+  else
+  {
+    MOV(64, PPCSTATE(cr_val[0]), arg);
+  }
+
+  if (CheckMergedBranch(0))
+  {
+    if (arg.IsImm())
+    {
+      s32 offset = arg.SImm32();
+      arg.Unlock();
+      DoMergedBranchImmediate(offset);
+    }
+    else
+    {
+      if (needs_test)
+      {
+        TEST(32, arg, arg);
+      }
+      else
+      {
+        // If an operand to the cmp/rc op we're merging with the branch isn't used anymore, it'd be
+        // better to flush it here so that we don't have to flush it on both sides of the branch.
+        // We don't want to do this if a test is needed though, because it would interrupt macro-op
+        // fusion.
+        for (int j : ~js.op->gprInUse)
+          gpr.StoreFromRegister(j);
+      }
+
+      arg.Unlock();
+      DoMergedBranchCondition();
+    }
+  }
+}
+
 void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 {
   ASSERT_MSG(DYNA_REC, arg.IsSimpleReg() || arg.IsImm(), "Invalid ComputeRC operand");
