@@ -1594,17 +1594,16 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
 
-  if (gpr.R(a).IsImm() && gpr.R(s).IsImm())
+  if (gpr.IsImm(a, s))
   {
     const u32 mask = MakeRotationMask(inst.MB, inst.ME);
-    gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) |
-                              (Common::RotateLeft(gpr.R(s).Imm32(), inst.SH) & mask));
+    gpr.SetImmediate32(a,
+                       (gpr.Imm32(a) & ~mask) | (Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
     if (inst.Rc)
-      ComputeRC(gpr.R(a));
+      ComputeRC(a);
   }
   else
   {
-    gpr.Lock(a, s);
     const u32 mask = MakeRotationMask(inst.MB, inst.ME);
     bool needs_test = false;
     if (mask == 0 || (a == s && inst.SH == 0))
@@ -1613,79 +1612,90 @@ void Jit64::rlwimix(UGeckoInstruction inst)
     }
     else if (mask == 0xFFFFFFFF)
     {
-      gpr.BindToRegister(a, a == s, true);
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
+      RegCache::Realize(Rs, Ra);
       if (a != s)
-        MOV(32, gpr.R(a), gpr.R(s));
+        MOV(32, Ra, Rs);
       if (inst.SH)
-        ROL(32, gpr.R(a), Imm8(inst.SH));
+        ROL(32, Ra, Imm8(inst.SH));
       needs_test = true;
     }
-    else if (gpr.R(s).IsImm())
+    else if (gpr.IsImm(s))
     {
-      gpr.BindToRegister(a, true, true);
-      AndWithMask(gpr.RX(a), ~mask);
-      OR(32, gpr.R(a), Imm32(Common::RotateLeft(gpr.R(s).Imm32(), inst.SH) & mask));
+      RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+      RegCache::Realize(Ra);
+      AndWithMask(Ra, ~mask);
+      OR(32, Ra, Imm32(Common::RotateLeft(gpr.Imm32(s), inst.SH) & mask));
     }
     else if (inst.SH)
     {
       bool isLeftShift = mask == 0U - (1U << inst.SH);
       bool isRightShift = mask == (1U << inst.SH) - 1;
-      if (gpr.R(a).IsImm())
+      if (gpr.IsImm(a))
       {
-        u32 maskA = gpr.R(a).Imm32() & ~mask;
-        gpr.BindToRegister(a, false, true);
-        MOV(32, gpr.R(a), gpr.R(s));
+        u32 maskA = gpr.Imm32(a) & ~mask;
+
+        RCOpArg Rs = gpr.Use(s, RCMode::Read);
+        RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+        RegCache::Realize(Rs, Ra);
+
+        MOV(32, Ra, Rs);
         if (isLeftShift)
         {
-          SHL(32, gpr.R(a), Imm8(inst.SH));
+          SHL(32, Ra, Imm8(inst.SH));
         }
         else if (isRightShift)
         {
-          SHR(32, gpr.R(a), Imm8(32 - inst.SH));
+          SHR(32, Ra, Imm8(32 - inst.SH));
         }
         else
         {
-          ROL(32, gpr.R(a), Imm8(inst.SH));
-          AND(32, gpr.R(a), Imm32(mask));
+          ROL(32, Ra, Imm8(inst.SH));
+          AND(32, Ra, Imm32(mask));
         }
-        OR(32, gpr.R(a), Imm32(maskA));
+        OR(32, Ra, Imm32(maskA));
       }
       else
       {
         // TODO: common cases of this might be faster with pinsrb or abuse of AH
-        gpr.BindToRegister(a, true, true);
-        MOV(32, R(RSCRATCH), gpr.R(s));
+        RCOpArg Rs = gpr.Use(s, RCMode::Read);
+        RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+        RegCache::Realize(Rs, Ra);
+
+        MOV(32, R(RSCRATCH), Rs);
         if (isLeftShift)
         {
           SHL(32, R(RSCRATCH), Imm8(inst.SH));
-          AndWithMask(gpr.RX(a), ~mask);
-          OR(32, gpr.R(a), R(RSCRATCH));
+          AndWithMask(Ra, ~mask);
+          OR(32, Ra, R(RSCRATCH));
         }
         else if (isRightShift)
         {
           SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
-          AndWithMask(gpr.RX(a), ~mask);
-          OR(32, gpr.R(a), R(RSCRATCH));
+          AndWithMask(Ra, ~mask);
+          OR(32, Ra, R(RSCRATCH));
         }
         else
         {
           ROL(32, R(RSCRATCH), Imm8(inst.SH));
-          XOR(32, R(RSCRATCH), gpr.R(a));
+          XOR(32, R(RSCRATCH), Ra);
           AndWithMask(RSCRATCH, mask);
-          XOR(32, gpr.R(a), R(RSCRATCH));
+          XOR(32, Ra, R(RSCRATCH));
         }
       }
     }
     else
     {
-      gpr.BindToRegister(a, true, true);
-      XOR(32, gpr.R(a), gpr.R(s));
-      AndWithMask(gpr.RX(a), ~mask);
-      XOR(32, gpr.R(a), gpr.R(s));
+      RCX64Reg Rs = gpr.Bind(s, RCMode::Read);
+      RCX64Reg Ra = gpr.Bind(a, RCMode::ReadWrite);
+      RegCache::Realize(Rs, Ra);
+      XOR(32, Ra, Rs);
+      AndWithMask(Ra, ~mask);
+      XOR(32, Ra, Rs);
     }
     if (inst.Rc)
-      ComputeRC(gpr.R(a), needs_test);
-    gpr.UnlockAll();
+      ComputeRC(a, needs_test);
   }
 }
 
