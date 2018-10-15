@@ -73,7 +73,6 @@ protected:
     // If these are set, we've stored the old value of a register which will be loaded in
     // revertLoad,
     // which lets us revert it on the exception path.
-    int revertGprLoad;
     int revertFprLoad;
 
     bool assumeNoPairedQuantize;

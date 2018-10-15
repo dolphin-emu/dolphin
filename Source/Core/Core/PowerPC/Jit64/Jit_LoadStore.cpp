@@ -126,12 +126,14 @@ void Jit64::lXXx(UGeckoInstruction inst)
       js.op[2].inst.hex == 0x4182fff8)
   {
     s32 offset = (s32)(s16)inst.SIMM_16;
-    gpr.BindToRegister(a, true, false);
-    gpr.BindToRegister(d, false, true);
-    SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, CallerSavedRegistersInUse(), signExtend);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+
+    SafeLoadToReg(Rd, Ra, accessSize, offset, CallerSavedRegistersInUse(), signExtend);
 
     // if it's still 0, we can wait until the next event
-    TEST(32, gpr.R(d), gpr.R(d));
+    TEST(32, Rd, Rd);
     FixupBranch noIdle = J_CC(CC_NZ);
 
     BitSet32 registersInUse = CallerSavedRegistersInUse();
@@ -155,7 +157,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
   // Determine whether this instruction updates inst.RA
   bool update;
   if (inst.OPCD == 31)
-    update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.R(b).IsImm() || gpr.R(b).Imm32() != 0);
+    update = ((inst.SUBOP10 & 0x20) != 0) && (!gpr.IsImm(b) || gpr.Imm32(b) != 0);
   else
     update = ((inst.OPCD & 1) != 0) && inst.SIMM_16 != 0;
 
@@ -165,19 +167,20 @@ void Jit64::lXXx(UGeckoInstruction inst)
   bool storeAddress = false;
   s32 loadOffset = 0;
 
+  // Prepare result
+  RCX64Reg Rd = jo.memcheck ? gpr.RevertableBind(d, RCMode::Write) : gpr.Bind(d, RCMode::Write);
+
   // Prepare address operand
-  OpArg opAddress;
+  RCOpArg opAddress;
   if (!update && !a)
   {
     if (indexed)
     {
-      if (!gpr.R(b).IsImm())
-        gpr.BindToRegister(b, true, false);
-      opAddress = gpr.R(b);
+      opAddress = gpr.BindOrImm(b, RCMode::Read);
     }
     else
     {
-      opAddress = Imm32((u32)(s32)inst.SIMM_16);
+      opAddress = RCOpArg::Imm32((u32)(s32)inst.SIMM_16);
     }
   }
   else if (update && ((a == 0) || (d == a)))
@@ -186,36 +189,40 @@ void Jit64::lXXx(UGeckoInstruction inst)
   }
   else
   {
-    if (!indexed && gpr.R(a).IsImm() && !jo.memcheck)
+    if (!indexed && gpr.IsImm(a) && !jo.memcheck)
     {
-      u32 val = gpr.R(a).Imm32() + inst.SIMM_16;
-      opAddress = Imm32(val);
+      u32 val = gpr.Imm32(a) + inst.SIMM_16;
+      opAddress = RCOpArg::Imm32(val);
       if (update)
         gpr.SetImmediate32(a, val);
     }
-    else if (indexed && gpr.R(a).IsImm() && gpr.R(b).IsImm() && !jo.memcheck)
+    else if (indexed && gpr.IsImm(a) && gpr.IsImm(b) && !jo.memcheck)
     {
-      u32 val = gpr.R(a).Imm32() + gpr.R(b).Imm32();
-      opAddress = Imm32(val);
+      u32 val = gpr.Imm32(a) + gpr.Imm32(b);
+      opAddress = RCOpArg::Imm32(val);
       if (update)
         gpr.SetImmediate32(a, val);
     }
     else
     {
       // If we're using reg+reg mode and b is an immediate, pretend we're using constant offset mode
-      bool use_constant_offset = !indexed || gpr.R(b).IsImm();
+      const bool use_constant_offset = !indexed || gpr.IsImm(b);
 
       s32 offset = 0;
       if (use_constant_offset)
-        offset = indexed ? gpr.R(b).SImm32() : (s32)inst.SIMM_16;
+        offset = indexed ? gpr.SImm32(b) : (s32)inst.SIMM_16;
+
+      RCOpArg Rb = use_constant_offset ? RCOpArg{} : gpr.Use(b, RCMode::Read);
+
       // Depending on whether we have an immediate and/or update, find the optimum way to calculate
       // the load address.
       if ((update || use_constant_offset) && !jo.memcheck)
       {
-        gpr.BindToRegister(a, true, update);
-        opAddress = gpr.R(a);
+        opAddress = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+        RegCache::Realize(opAddress, Rb);
+
         if (!use_constant_offset)
-          ADD(32, opAddress, gpr.R(b));
+          ADD(32, opAddress, Rb);
         else if (update)
           ADD(32, opAddress, Imm32((u32)offset));
         else
@@ -223,51 +230,36 @@ void Jit64::lXXx(UGeckoInstruction inst)
       }
       else
       {
-        // In this case we need an extra temporary register.
-        opAddress = R(RSCRATCH2);
         storeAddress = true;
+        // In this case we need an extra temporary register.
+        opAddress = RCOpArg::R(RSCRATCH2);
+        RCOpArg Ra = gpr.Use(a, RCMode::Read);
+        RegCache::Realize(opAddress, Ra, Rb);
+
         if (use_constant_offset)
-          MOV_sum(32, RSCRATCH2, gpr.R(a), Imm32((u32)offset));
+          MOV_sum(32, RSCRATCH2, Ra, Imm32((u32)offset));
         else
-          MOV_sum(32, RSCRATCH2, gpr.R(a), gpr.R(b));
+          MOV_sum(32, RSCRATCH2, Ra, Rb);
       }
     }
   }
 
-  gpr.Lock(a, b, d);
-
-  if (update && storeAddress)
-    gpr.BindToRegister(a, true, true);
-
-  // A bit of an evil hack here. We need to retain the original value of this register for the
-  // exception path, but we'd rather not needlessly pass it around if we don't have to, since
-  // the exception path is very rare. So we store the value in the regcache, let the load path
-  // clobber it, then restore the value in the exception path.
-  // TODO: no other load has to do this at the moment, since no other loads go directly to the
-  // target registers, but if that ever changes, we need to do it there too.
-  if (jo.memcheck)
-  {
-    gpr.StoreFromRegister(d);
-    js.revertGprLoad = d;
-  }
-  gpr.BindToRegister(d, false, true);
+  RCX64Reg Ra = (update && storeAddress) ? gpr.Bind(a, RCMode::Write) : RCX64Reg{};
+  RegCache::Realize(opAddress, Ra, Rd);
 
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   // We need to save the (usually scratch) address register for the update.
   if (update && storeAddress)
     registersInUse[RSCRATCH2] = true;
 
-  SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
+  SafeLoadToReg(Rd, opAddress, accessSize, loadOffset, registersInUse, signExtend);
 
   if (update && storeAddress)
-    MOV(32, gpr.R(a), opAddress);
+    MOV(32, Ra, opAddress);
 
   // TODO: support no-swap in SafeLoadToReg instead
   if (byte_reversed)
-    BSWAP(accessSize, gpr.RX(d));
-
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    BSWAP(accessSize, Rd);
 }
 
 void Jit64::dcbx(UGeckoInstruction inst)

@@ -756,7 +756,6 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
     js.downcountAmount += opinfo->numCycles;
     js.fastmemLoadStore = nullptr;
     js.fixupExceptionHandler = false;
-    js.revertGprLoad = -1;
     js.revertFprLoad = -1;
 
     if (!SConfig::GetInstance().bEnableDebugging)
@@ -925,8 +924,6 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         BitSet32 gprToFlush = BitSet32::AllTrue(32);
         BitSet32 fprToFlush = BitSet32::AllTrue(32);
-        if (js.revertGprLoad >= 0)
-          gprToFlush[js.revertGprLoad] = false;
         if (js.revertFprLoad >= 0)
           fprToFlush[js.revertFprLoad] = false;
         gpr.Flush(RegCache::FlushMode::MaintainState, gprToFlush);
