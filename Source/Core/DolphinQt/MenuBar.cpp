@@ -1304,7 +1304,7 @@ void MenuBar::CreateSignatureFile()
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
 
   const QString file = QFileDialog::getSaveFileName(
-      this, tr("Save signature file"), QDir::homePath(), tr("Functions signature *.dsy(*.dsy)"));
+      this, tr("Save signature file"), QDir::homePath(), tr("Function signature file (*.dsy)"));
   if (file.isEmpty())
     return;
 
@@ -1328,7 +1328,7 @@ void MenuBar::AppendSignatureFile()
       this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"));
 
   const QString file = QFileDialog::getSaveFileName(
-      this, tr("Append signature to"), QDir::homePath(), tr("Functions signature *.dsy(*.dsy)"));
+      this, tr("Append signature to"), QDir::homePath(), tr("Function signature file (*.dsy)"));
   if (file.isEmpty())
     return;
 
@@ -1351,7 +1351,7 @@ void MenuBar::AppendSignatureFile()
 void MenuBar::ApplySignatureFile()
 {
   const QString file = QFileDialog::getOpenFileName(
-      this, tr("Apply signature file"), QDir::homePath(), tr("Functions signature *.dsy(*.dsy)"));
+      this, tr("Apply signature file"), QDir::homePath(), tr("Function signature file (*.dsy)"));
 
   if (file.isEmpty())
     return;
@@ -1369,19 +1369,19 @@ void MenuBar::CombineSignatureFiles()
 {
   const QString priorityFile =
       QFileDialog::getOpenFileName(this, tr("Choose priority input file"), QDir::homePath(),
-                                   tr("Functions signature *.dsy(*.dsy)"));
+                                   tr("Function signature file (*.dsy)"));
   if (priorityFile.isEmpty())
     return;
 
   const QString secondaryFile =
       QFileDialog::getOpenFileName(this, tr("Choose secondary input file"), QDir::homePath(),
-                                   tr("Functions signature *.dsy(*.dsy)"));
+                                   tr("Function signature file (*.dsy)"));
   if (secondaryFile.isEmpty())
     return;
 
   const QString saveFile =
       QFileDialog::getSaveFileName(this, tr("Save combined output file as"), QDir::homePath(),
-                                   tr("Functions signature *.dsy(*.dsy)"));
+                                   tr("Function signature file (*.dsy)"));
   if (saveFile.isEmpty())
     return;
 
