@@ -8,18 +8,251 @@
 #include <cinttypes>
 #include <cmath>
 #include <limits>
+#include <utility>
+#include <variant>
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/VariantUtil.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
+#include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
 using namespace PowerPC;
+
+RCOpArg RCOpArg::Imm32(u32 imm)
+{
+  return RCOpArg{imm};
+}
+
+RCOpArg RCOpArg::R(X64Reg xr)
+{
+  return RCOpArg{xr};
+}
+
+RCOpArg::RCOpArg() = default;
+
+RCOpArg::RCOpArg(u32 imm) : rc(nullptr), contents(imm)
+{
+}
+
+RCOpArg::RCOpArg(X64Reg xr) : rc(nullptr), contents(xr)
+{
+}
+
+RCOpArg::RCOpArg(RegCache* rc_, preg_t preg) : rc(rc_), contents(preg)
+{
+  rc->NewLock(preg);
+}
+
+RCOpArg::~RCOpArg()
+{
+  Unlock();
+}
+
+RCOpArg::RCOpArg(RCOpArg&& other) noexcept
+    : rc(std::exchange(other.rc, nullptr)),
+      contents(std::exchange(other.contents, std::monostate{}))
+{
+}
+
+RCOpArg& RCOpArg::operator=(RCOpArg&& other) noexcept
+{
+  Unlock();
+  rc = std::exchange(other.rc, nullptr);
+  contents = std::exchange(other.contents, std::monostate{});
+  return *this;
+}
+
+RCOpArg::RCOpArg(RCX64Reg&& other) noexcept
+    : rc(std::exchange(other.rc, nullptr)),
+      contents(VariantCast(std::exchange(other.contents, std::monostate{})))
+{
+}
+
+RCOpArg& RCOpArg::operator=(RCX64Reg&& other) noexcept
+{
+  Unlock();
+  rc = std::exchange(other.rc, nullptr);
+  contents = VariantCast(std::exchange(other.contents, std::monostate{}));
+  return *this;
+}
+
+void RCOpArg::Realize()
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    rc->Realize(*preg);
+  }
+}
+
+OpArg RCOpArg::Location() const
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    ASSERT(rc->IsRealized(*preg));
+    return rc->R(*preg);
+  }
+  else if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
+  {
+    return Gen::R(*xr);
+  }
+  else if (const u32* imm = std::get_if<u32>(&contents))
+  {
+    return Gen::Imm32(*imm);
+  }
+  ASSERT(false);
+  return {};
+}
+
+void RCOpArg::Unlock()
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    ASSERT(rc);
+    rc->NewUnlock(*preg);
+  }
+  else if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
+  {
+    // If rc, we got this from an RCX64Reg.
+    // If !rc, we got this from RCOpArg::R.
+    if (rc)
+      rc->NewUnlockX(*xr);
+  }
+  else
+  {
+    ASSERT(!rc);
+  }
+
+  rc = nullptr;
+  contents = std::monostate{};
+}
+
+bool RCOpArg::IsImm() const
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    return rc->R(*preg).IsImm();
+  }
+  else if (std::holds_alternative<u32>(contents))
+  {
+    return true;
+  }
+  return false;
+}
+
+s32 RCOpArg::SImm32() const
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    return rc->R(*preg).SImm32();
+  }
+  else if (const u32* imm = std::get_if<u32>(&contents))
+  {
+    return static_cast<s32>(*imm);
+  }
+  ASSERT(false);
+  return 0;
+}
+
+u32 RCOpArg::Imm32() const
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    return rc->R(*preg).Imm32();
+  }
+  else if (const u32* imm = std::get_if<u32>(&contents))
+  {
+    return *imm;
+  }
+  ASSERT(false);
+  return 0;
+}
+
+RCX64Reg::RCX64Reg() = default;
+
+RCX64Reg::RCX64Reg(RegCache* rc_, preg_t preg) : rc(rc_), contents(preg)
+{
+  rc->NewLock(preg);
+}
+
+RCX64Reg::RCX64Reg(RegCache* rc_, X64Reg xr) : rc(rc_), contents(xr)
+{
+  rc->NewLockX(xr);
+}
+
+RCX64Reg::~RCX64Reg()
+{
+  Unlock();
+}
+
+RCX64Reg::RCX64Reg(RCX64Reg&& other) noexcept
+    : rc(std::exchange(other.rc, nullptr)),
+      contents(std::exchange(other.contents, std::monostate{}))
+{
+}
+
+RCX64Reg& RCX64Reg::operator=(RCX64Reg&& other) noexcept
+{
+  Unlock();
+  rc = std::exchange(other.rc, nullptr);
+  contents = std::exchange(other.contents, std::monostate{});
+  return *this;
+}
+
+void RCX64Reg::Realize()
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    rc->Realize(*preg);
+  }
+}
+
+RCX64Reg::operator X64Reg() const &
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    ASSERT(rc->IsRealized(*preg));
+    return rc->RX(*preg);
+  }
+  else if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
+  {
+    return *xr;
+  }
+  ASSERT(false);
+  return {};
+}
+
+RCX64Reg::operator OpArg() const &
+{
+  return Gen::R(RCX64Reg::operator X64Reg());
+}
+
+void RCX64Reg::Unlock()
+{
+  if (const preg_t* preg = std::get_if<preg_t>(&contents))
+  {
+    ASSERT(rc);
+    rc->NewUnlock(*preg);
+  }
+  else if (const X64Reg* xr = std::get_if<X64Reg>(&contents))
+  {
+    ASSERT(rc);
+    rc->NewUnlockX(*xr);
+  }
+  else
+  {
+    ASSERT(!rc);
+  }
+
+  rc = nullptr;
+  contents = std::monostate{};
+}
 
 RegCache::RegCache(Jit64& jit) : m_jit{jit}
 {
@@ -214,6 +447,7 @@ void RegCache::UnlockAll()
 {
   for (auto& reg : m_regs)
     reg.UnlockAll();
+  m_constraints.fill({});
 }
 
 void RegCache::UnlockAllX()
@@ -322,4 +556,97 @@ float RegCache::ScoreRegister(X64Reg xreg) const
   }
 
   return score;
+}
+
+RCOpArg RegCache::Use(preg_t preg, RCMode mode)
+{
+  m_constraints[preg].AddUse(mode);
+  return RCOpArg{this, preg};
+}
+
+RCOpArg RegCache::UseNoImm(preg_t preg, RCMode mode)
+{
+  m_constraints[preg].AddUseNoImm(mode);
+  return RCOpArg{this, preg};
+}
+
+RCX64Reg RegCache::Bind(preg_t preg, RCMode mode)
+{
+  m_constraints[preg].AddBind(mode);
+  return RCX64Reg{this, preg};
+}
+
+RCX64Reg RegCache::Scratch(X64Reg xr)
+{
+  FlushX(xr);
+  return RCX64Reg{this, xr};
+}
+
+void RegCache::NewLock(preg_t preg)
+{
+  m_regs[preg].Lock();
+}
+
+void RegCache::NewUnlock(preg_t preg)
+{
+  m_regs[preg].Unlock();
+  if (!m_regs[preg].IsLocked())
+  {
+    // Fully unlocked, reset realization state.
+    m_constraints[preg] = {};
+  }
+}
+
+void RegCache::NewLockX(X64Reg xr)
+{
+  m_xregs[xr].Lock();
+}
+
+void RegCache::NewUnlockX(X64Reg xr)
+{
+  m_xregs[xr].Unlock();
+}
+
+bool RegCache::IsRealized(preg_t preg) const
+{
+  return m_constraints[preg].IsRealized();
+}
+
+void RegCache::Realize(preg_t preg)
+{
+  if (m_constraints[preg].IsRealized())
+    return;
+
+  const bool load = m_constraints[preg].ShouldLoad();
+  const bool dirty = m_constraints[preg].ShouldDirty();
+  const bool kill_imm = m_constraints[preg].ShouldKillImmediate();
+
+  const auto do_bind = [&] {
+    BindToRegister(preg, load, dirty);
+    m_constraints[preg].RealizedBound();
+  };
+
+  if (m_constraints[preg].ShouldBind())
+  {
+    do_bind();
+    return;
+  }
+
+  switch (m_regs[preg].GetLocationType())
+  {
+  case PPCCachedReg::LocationType::Default:
+    break;
+  case PPCCachedReg::LocationType::Bound:
+    do_bind();
+    break;
+  case PPCCachedReg::LocationType::Immediate:
+  case PPCCachedReg::LocationType::SpeculativeImmediate:
+    if (dirty || kill_imm)
+    {
+      do_bind();
+    }
+    break;
+  }
+
+  m_constraints[preg].Realized();
 }

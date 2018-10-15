@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <cstddef>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/RegCache/RCMode.h"
 
 using preg_t = size_t;
 
@@ -124,4 +127,80 @@ private:
   bool free = true;
   bool dirty = false;
   size_t locked = 0;
+};
+
+class RCConstraint
+{
+public:
+  bool IsRealized() const { return realized; }
+
+  bool ShouldBind() const { return bind; }
+  bool ShouldLoad() const { return read; }
+  bool ShouldDirty() const { return write; }
+  bool ShouldKillImmediate() const { return kill_imm; }
+
+  void Realized() { realized = true; }
+  void RealizedBound()
+  {
+    realized = true;
+    bind = true;
+  }
+
+  void AddUse(RCMode mode) { AddConstraint(false, mode, false); }
+  void AddUseNoImm(RCMode mode) { AddConstraint(false, mode, true); }
+  void AddBind(RCMode mode) { AddConstraint(true, mode, false); }
+
+private:
+  void AddConstraint(bool should_bind, RCMode mode, bool should_kill_imm)
+  {
+    if (realized)
+    {
+      ASSERT(IsCompatible(should_bind, mode, should_kill_imm));
+      return;
+    }
+
+    if (should_bind)
+      bind = true;
+
+    if (should_kill_imm)
+      kill_imm = true;
+
+    switch (mode)
+    {
+    case RCMode::Read:
+      read = true;
+      break;
+    case RCMode::Write:
+      write = true;
+      break;
+    case RCMode::ReadWrite:
+      read = true;
+      write = true;
+      break;
+    }
+  }
+
+  bool IsCompatible(bool should_bind, RCMode mode, bool should_kill_imm)
+  {
+    if (should_bind && !bind)
+      return false;
+    if (should_kill_imm && !kill_imm)
+      return false;
+
+    switch (mode)
+    {
+    case RCMode::Read:
+      return read;
+    case RCMode::Write:
+      return write;
+    case RCMode::ReadWrite:
+      return read && write;
+    }
+  }
+
+  bool realized = false;
+  bool bind = false;
+  bool write = false;
+  bool read = false;
+  bool kill_imm = false;
 };

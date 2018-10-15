@@ -7,14 +7,92 @@
 #include <array>
 #include <cinttypes>
 #include <cstddef>
+#include <type_traits>
+#include <variant>
 
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Jit64/RegCache/CachedReg.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64;
+enum class RCMode;
+
+class RCOpArg;
+class RCX64Reg;
+class RegCache;
 
 using preg_t = size_t;
+
+class RCOpArg
+{
+public:
+  static RCOpArg Imm32(u32 imm);
+  static RCOpArg R(Gen::X64Reg xr);
+  RCOpArg();
+  ~RCOpArg();
+  RCOpArg(RCOpArg&&) noexcept;
+  RCOpArg& operator=(RCOpArg&&) noexcept;
+
+  RCOpArg(RCX64Reg&&) noexcept;
+  RCOpArg& operator=(RCX64Reg&&) noexcept;
+
+  RCOpArg(const RCOpArg&) = delete;
+  RCOpArg& operator=(const RCOpArg&) = delete;
+
+  void Realize();
+  Gen::OpArg Location() const;
+  operator Gen::OpArg() const & { return Location(); }
+  operator Gen::OpArg() const && = delete;
+  bool IsSimpleReg() const { return Location().IsSimpleReg(); }
+  bool IsSimpleReg(Gen::X64Reg reg) const { return Location().IsSimpleReg(reg); }
+  Gen::X64Reg GetSimpleReg() const { return Location().GetSimpleReg(); }
+
+  void Unlock();
+
+  bool IsImm() const;
+  s32 SImm32() const;
+  u32 Imm32() const;
+
+private:
+  friend class RegCache;
+
+  explicit RCOpArg(u32 imm);
+  explicit RCOpArg(Gen::X64Reg xr);
+  RCOpArg(RegCache* rc_, preg_t preg);
+
+  RegCache* rc = nullptr;
+  std::variant<std::monostate, Gen::X64Reg, u32, preg_t> contents;
+};
+
+class RCX64Reg
+{
+public:
+  RCX64Reg();
+  ~RCX64Reg();
+  RCX64Reg(RCX64Reg&&) noexcept;
+  RCX64Reg& operator=(RCX64Reg&&) noexcept;
+
+  RCX64Reg(const RCX64Reg&) = delete;
+  RCX64Reg& operator=(const RCX64Reg&) = delete;
+
+  void Realize();
+  operator Gen::OpArg() const &;
+  operator Gen::X64Reg() const &;
+  operator Gen::OpArg() const && = delete;
+  operator Gen::X64Reg() const && = delete;
+
+  void Unlock();
+
+private:
+  friend class RegCache;
+  friend class RCOpArg;
+
+  RCX64Reg(RegCache* rc_, preg_t preg);
+  RCX64Reg(RegCache* rc_, Gen::X64Reg xr);
+
+  RegCache* rc = nullptr;
+  std::variant<std::monostate, Gen::X64Reg, preg_t> contents;
+};
 
 class RegCache
 {
@@ -57,7 +135,7 @@ public:
 
   // these are powerpc reg indices
   template <typename T>
-  void Lock(T p)
+  void Lock(T p)  // TODO: Make private
   {
     m_regs[p].Lock();
   }
@@ -105,7 +183,40 @@ public:
   Gen::X64Reg GetFreeXReg();
   int NumFreeRegisters() const;
 
+  // New interface
+
+  template <typename... Ts>
+  static void Realize(Ts&... rc)
+  {
+    static_assert(((std::is_same<Ts, RCOpArg>() || std::is_same<Ts, RCX64Reg>()) && ...));
+    (rc.Realize(), ...);
+  }
+
+  template <typename... Ts>
+  static void Unlock(Ts&... rc)
+  {
+    static_assert(((std::is_same<Ts, RCOpArg>() || std::is_same<Ts, RCX64Reg>()) && ...));
+    (rc.Unlock(), ...);
+  }
+
+  template <typename... Args>
+  bool IsImm(Args... pregs) const
+  {
+    static_assert(sizeof...(pregs) > 0);
+    return (R(pregs).IsImm() && ...);
+  }
+  u32 Imm32(preg_t preg) const { return R(preg).Imm32(); }
+  s32 SImm32(preg_t preg) const { return R(preg).SImm32(); }
+
+  RCOpArg Use(preg_t preg, RCMode mode);
+  RCOpArg UseNoImm(preg_t preg, RCMode mode);
+  RCX64Reg Bind(preg_t preg, RCMode mode);
+  RCX64Reg Scratch(Gen::X64Reg xr);
+
 protected:
+  friend class RCOpArg;
+  friend class RCX64Reg;
+
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
 
@@ -118,8 +229,17 @@ protected:
 
   float ScoreRegister(Gen::X64Reg xreg) const;
 
+  // New interface
+  void NewLock(preg_t preg);
+  void NewUnlock(preg_t preg);
+  void NewLockX(Gen::X64Reg xr);
+  void NewUnlockX(Gen::X64Reg xr);
+  bool IsRealized(preg_t preg) const;
+  void Realize(preg_t preg);
+
   Jit64& m_jit;
   std::array<PPCCachedReg, 32> m_regs;
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
+  std::array<RCConstraint, 32> m_constraints;
   Gen::XEmitter* m_emitter = nullptr;
 };
