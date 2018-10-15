@@ -173,6 +173,7 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
       if (needs_test)
       {
         TEST(32, arg, arg);
+        arg.Unlock();
       }
       else
       {
@@ -180,11 +181,9 @@ void Jit64::ComputeRC(preg_t preg, bool needs_test, bool needs_sext)
         // better to flush it here so that we don't have to flush it on both sides of the branch.
         // We don't want to do this if a test is needed though, because it would interrupt macro-op
         // fusion.
-        for (int j : ~js.op->gprInUse)
-          gpr.StoreFromRegister(j);
+        arg.Unlock();
+        gpr.Flush(~js.op->gprInUse);
       }
-
-      arg.Unlock();
       DoMergedBranchCondition();
     }
   }

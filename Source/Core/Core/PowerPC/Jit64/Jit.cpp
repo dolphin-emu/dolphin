@@ -920,10 +920,8 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       fpr.Commit();
 
       // If we have a register that will never be used again, flush it.
-      for (int j : ~op.gprInUse)
-        gpr.StoreFromRegister(j);
-      for (int j : ~op.fprInUse)
-        fpr.StoreFromRegister(j);
+      gpr.Flush(~op.gprInUse);
+      fpr.Flush(~op.fprInUse);
 
       if (opinfo->flags & FL_LOADSTORE)
         ++js.numLoadStoreInst;

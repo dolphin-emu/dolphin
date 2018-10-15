@@ -271,7 +271,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   X64Reg value = RSCRATCH2;
   RCOpArg Ra = inst.RA ? gpr.Use(inst.RA, RCMode::Read) : RCOpArg::Imm32(0);
   RCOpArg Rb = gpr.Use(inst.RB, RCMode::Read);
-  RCX64Reg tmp = gpr.Scratch(gpr.GetFreeXReg());
+  RCX64Reg tmp = gpr.Scratch();
   RegCache::Realize(Ra, Rb, tmp);
 
   MOV_sum(32, addr, Ra, Rb);

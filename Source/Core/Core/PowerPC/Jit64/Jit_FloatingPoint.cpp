@@ -116,7 +116,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
     else
     {
       // SSE2 fallback
-      RCX64Reg tmp = fpr.Scratch(fpr.GetFreeXReg());
+      RCX64Reg tmp = fpr.Scratch();
       RegCache::Realize(tmp);
       MOVAPD(clobber, R(xmm));
       CMPPD(clobber, R(clobber), CMP_UNORD);

@@ -101,7 +101,6 @@ public:
     ASSERT(IsLocked());
     locked--;
   }
-  void UnlockAll() { locked = 0; }  // TODO: Remove from final version
 
 private:
   Gen::OpArg default_location{};
@@ -142,7 +141,6 @@ public:
     ASSERT(IsLocked());
     locked--;
   }
-  void UnlockAll() { locked = 0; }  // TODO: Remove from final version
 
 private:
   preg_t ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
