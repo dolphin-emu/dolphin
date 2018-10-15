@@ -75,15 +75,20 @@ public:
     location = Gen::Imm32(imm32);
   }
 
-  bool IsLocked() const { return locked; }
-  void Lock() { locked = true; }
-  void Unlock() { locked = false; }
+  bool IsLocked() const { return locked > 0; }
+  void Lock() { locked++; }
+  void Unlock()
+  {
+    ASSERT(IsLocked());
+    locked--;
+  }
+  void UnlockAll() { locked = 0; }  // TODO: Remove from final version
 
 private:
   Gen::OpArg default_location{};
   Gen::OpArg location{};
   bool away = false;  // value not in source register
-  bool locked = false;
+  size_t locked = 0;
 };
 
 class X64CachedReg
@@ -110,15 +115,20 @@ public:
   bool IsDirty() const { return dirty; }
   void MakeDirty() { dirty = true; }
 
-  bool IsLocked() const { return locked; }
-  void Lock() { locked = true; }
-  void Unlock() { locked = false; }
+  bool IsLocked() const { return locked > 0; }
+  void Lock() { locked++; }
+  void Unlock()
+  {
+    ASSERT(IsLocked());
+    locked--;
+  }
+  void UnlockAll() { locked = 0; }  // TODO: Remove from final version
 
 private:
   preg_t ppcReg = static_cast<preg_t>(Gen::INVALID_REG);
   bool free = true;
   bool dirty = false;
-  bool locked = false;
+  size_t locked = 0;
 };
 
 class RegCache

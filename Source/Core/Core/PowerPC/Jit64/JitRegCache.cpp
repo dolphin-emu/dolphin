@@ -212,13 +212,13 @@ X64Reg RegCache::RX(preg_t preg) const
 void RegCache::UnlockAll()
 {
   for (auto& reg : m_regs)
-    reg.Unlock();
+    reg.UnlockAll();
 }
 
 void RegCache::UnlockAllX()
 {
   for (auto& xreg : m_xregs)
-    xreg.Unlock();
+    xreg.UnlockAll();
 }
 
 bool RegCache::IsFreeX(size_t xreg) const
