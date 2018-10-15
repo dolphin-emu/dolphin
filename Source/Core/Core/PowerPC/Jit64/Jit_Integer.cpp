@@ -1725,25 +1725,26 @@ void Jit64::negx(UGeckoInstruction inst)
   int a = inst.RA;
   int d = inst.RD;
 
-  if (gpr.R(a).IsImm())
+  if (gpr.IsImm(a))
   {
-    gpr.SetImmediate32(d, ~(gpr.R(a).Imm32()) + 1);
+    gpr.SetImmediate32(d, ~(gpr.Imm32(a)) + 1);
     if (inst.OE)
-      GenerateConstantOverflow(gpr.R(d).Imm32() == 0x80000000);
+      GenerateConstantOverflow(gpr.Imm32(d) == 0x80000000);
   }
   else
   {
-    gpr.Lock(a, d);
-    gpr.BindToRegister(d, a == d, true);
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rd);
+
     if (a != d)
-      MOV(32, gpr.R(d), gpr.R(a));
-    NEG(32, gpr.R(d));
+      MOV(32, Rd, Ra);
+    NEG(32, Rd);
     if (inst.OE)
       GenerateOverflow();
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d), false);
-  gpr.UnlockAll();
+    ComputeRC(d, false);
 }
 
 void Jit64::srwx(UGeckoInstruction inst)
