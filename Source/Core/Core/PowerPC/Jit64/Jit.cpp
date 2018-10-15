@@ -800,13 +800,17 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
                  ProcessorInterface::INT_CAUSE_PE_FINISH));
       FixupBranch noCPInt = J_CC(CC_Z, true);
 
-      gpr.Flush(RegCache::FlushMode::MaintainState);
-      fpr.Flush(RegCache::FlushMode::MaintainState);
+      {
+        RCForkGuard gpr_guard = gpr.Fork();
+        RCForkGuard fpr_guard = fpr.Fork();
 
-      MOV(32, PPCSTATE(pc), Imm32(op.address));
-      WriteExternalExceptionExit();
+        gpr.Flush();
+        fpr.Flush();
+
+        MOV(32, PPCSTATE(pc), Imm32(op.address));
+        WriteExternalExceptionExit();
+      }
       SwitchToNearCode();
-
       SetJumpTarget(noCPInt);
       SetJumpTarget(noExtIntEnable);
     }
@@ -824,14 +828,19 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
 
         SwitchToFarCode();
         SetJumpTarget(b1);
-        gpr.Flush(RegCache::FlushMode::MaintainState);
-        fpr.Flush(RegCache::FlushMode::MaintainState);
+        {
+          RCForkGuard gpr_guard = gpr.Fork();
+          RCForkGuard fpr_guard = fpr.Fork();
 
-        // If a FPU exception occurs, the exception handler will read
-        // from PC.  Update PC with the latest value in case that happens.
-        MOV(32, PPCSTATE(pc), Imm32(op.address));
-        OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-        WriteExceptionExit();
+          gpr.Flush();
+          fpr.Flush();
+
+          // If a FPU exception occurs, the exception handler will read
+          // from PC.  Update PC with the latest value in case that happens.
+          MOV(32, PPCSTATE(pc), Imm32(op.address));
+          OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
+          WriteExceptionExit();
+        }
         SwitchToNearCode();
 
         js.firstFPInstructionFound = true;
