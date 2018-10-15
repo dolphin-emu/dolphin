@@ -1352,40 +1352,39 @@ void Jit64::addx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+  if (gpr.IsImm(a, b))
   {
-    s32 i = gpr.R(a).SImm32(), j = gpr.R(b).SImm32();
+    s32 i = gpr.SImm32(a), j = gpr.SImm32(b);
     gpr.SetImmediate32(d, i + j);
     if (inst.OE)
       GenerateConstantOverflow((s64)i + (s64)j);
   }
-  else if ((d == a) || (d == b))
-  {
-    int operand = ((d == a) ? b : a);
-    gpr.Lock(a, b, d);
-    gpr.BindToRegister(d, true);
-    ADD(32, gpr.R(d), gpr.R(operand));
-    if (inst.OE)
-      GenerateOverflow();
-  }
-  else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && !inst.OE)
-  {
-    gpr.Lock(a, b, d);
-    gpr.BindToRegister(d, false);
-    LEA(32, gpr.RX(d), MRegSum(gpr.RX(a), gpr.RX(b)));
-  }
   else
   {
-    gpr.Lock(a, b, d);
-    gpr.BindToRegister(d, false);
-    MOV(32, gpr.R(d), gpr.R(a));
-    ADD(32, gpr.R(d), gpr.R(b));
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Ra, Rb, Rd);
+
+    if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
+    {
+      LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
+    }
+    else if (d == b)
+    {
+      ADD(32, Rd, Ra);
+    }
+    else
+    {
+      if (d != a)
+        MOV(32, Rd, Ra);
+      ADD(32, Rd, Rb);
+    }
     if (inst.OE)
       GenerateOverflow();
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
+    ComputeRC(d);
 }
 
 void Jit64::arithXex(UGeckoInstruction inst)
