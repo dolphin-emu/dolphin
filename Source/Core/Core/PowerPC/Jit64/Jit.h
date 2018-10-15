@@ -89,7 +89,6 @@ public:
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
   void ComputeRC(preg_t preg, bool needs_test = true, bool needs_sext = true);
-  void ComputeRC(const Gen::OpArg& arg, bool needs_test = true, bool needs_sext = true);
 
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   bool CheckMergedBranch(u32 crf) const;
