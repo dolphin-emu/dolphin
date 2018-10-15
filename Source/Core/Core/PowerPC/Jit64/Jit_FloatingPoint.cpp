@@ -508,22 +508,22 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     output[3 - (next.CRBB & 3)] |= 1 << dst;
   }
 
-  fpr.Lock(a, b);
-  fpr.BindToRegister(b, true, false);
+  RCOpArg Ra = upper ? fpr.Bind(a, RCMode::Read) : fpr.Use(a, RCMode::Read);
+  RCX64Reg Rb = fpr.Bind(b, RCMode::Read);
+  RegCache::Realize(Ra, Rb);
 
   if (fprf)
     AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
 
   if (upper)
   {
-    fpr.BindToRegister(a, true, false);
-    MOVHLPS(XMM0, fpr.RX(a));
-    MOVHLPS(XMM1, fpr.RX(b));
+    MOVHLPS(XMM0, Ra.GetSimpleReg());
+    MOVHLPS(XMM1, Rb);
     UCOMISD(XMM1, R(XMM0));
   }
   else
   {
-    UCOMISD(fpr.RX(b), fpr.R(a));
+    UCOMISD(Rb, Ra);
   }
 
   FixupBranch pNaN, pLesser, pGreater;
@@ -580,7 +580,6 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
   }
 
   MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
-  fpr.UnlockAll();
 }
 
 void Jit64::fcmpX(UGeckoInstruction inst)
