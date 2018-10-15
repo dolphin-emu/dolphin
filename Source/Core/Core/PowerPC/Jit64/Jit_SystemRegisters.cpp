@@ -449,13 +449,13 @@ void Jit64::mfcr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   int d = inst.RD;
-  gpr.FlushLockX(RSCRATCH_EXTRA);
+
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
   CALL(asm_routines.mfcr);
-  gpr.Lock(d);
-  gpr.BindToRegister(d, false, true);
-  MOV(32, gpr.R(d), R(RSCRATCH));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+
+  RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rd);
+  MOV(32, Rd, R(RSCRATCH));
 }
 
 void Jit64::mtcrf(UGeckoInstruction inst)
