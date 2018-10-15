@@ -1399,8 +1399,6 @@ void Jit64::arithXex(UGeckoInstruction inst)
   int d = inst.RD;
   bool same_input_sub = !add && regsource && a == b;
 
-  gpr.Lock(a, b, d);
-  gpr.BindToRegister(d, !same_input_sub && (d == a || d == b));
   if (!js.carryFlagSet)
     JitGetAndClearCAOV(inst.OE);
   else
@@ -1410,45 +1408,56 @@ void Jit64::arithXex(UGeckoInstruction inst)
   // Special case: subfe A, B, B is a common compiler idiom
   if (same_input_sub)
   {
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RegCache::Realize(Rd);
+
     // Convert carry to borrow
     if (!js.carryFlagInverted)
       CMC();
-    SBB(32, gpr.R(d), gpr.R(d));
+    SBB(32, Rd, Rd);
     invertedCarry = true;
   }
   else if (!add && regsource && d == b)
   {
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::ReadWrite);
+    RegCache::Realize(Ra, Rd);
+
     if (!js.carryFlagInverted)
       CMC();
-    SBB(32, gpr.R(d), gpr.R(a));
+    SBB(32, Rd, Ra);
     invertedCarry = true;
   }
   else
   {
-    OpArg source = regsource ? gpr.R(d == b ? a : b) : Imm32(mex ? 0xFFFFFFFF : 0);
+    RCOpArg Ra = gpr.Use(a, RCMode::Read);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
+    RCOpArg source =
+        regsource ? gpr.Use(d == b ? a : b, RCMode::Read) : RCOpArg::Imm32(mex ? 0xFFFFFFFF : 0);
+    RegCache::Realize(Ra, Rb, Rd, source);
+
     if (d != a && d != b)
-      MOV(32, gpr.R(d), gpr.R(a));
+      MOV(32, Rd, Ra);
     if (!add)
-      NOT(32, gpr.R(d));
+      NOT(32, Rd);
     // if the source is an immediate, we can invert carry by going from add -> sub and doing src =
     // -1 - src
     if (js.carryFlagInverted && source.IsImm())
     {
-      source = Imm32(-1 - source.SImm32());
-      SBB(32, gpr.R(d), source);
+      SBB(32, Rd, Imm32(-1 - source.SImm32()));
       invertedCarry = true;
     }
     else
     {
       if (js.carryFlagInverted)
         CMC();
-      ADC(32, gpr.R(d), source);
+      ADC(32, Rd, source);
     }
   }
   FinalizeCarryOverflow(inst.OE, invertedCarry);
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
+    ComputeRC(d);
 }
 
 void Jit64::arithcx(UGeckoInstruction inst)
