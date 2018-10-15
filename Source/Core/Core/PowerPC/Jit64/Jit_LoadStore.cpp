@@ -330,10 +330,14 @@ void Jit64::dcbz(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
-  MOV(32, R(RSCRATCH), gpr.R(b));
-  if (a)
-    ADD(32, R(RSCRATCH), gpr.R(a));
-  AND(32, R(RSCRATCH), Imm32(~31));
+  {
+    RCOpArg Ra = a ? gpr.Use(a, RCMode::Read) : RCOpArg::Imm32(0);
+    RCOpArg Rb = gpr.Use(b, RCMode::Read);
+    RegCache::Realize(Ra, Rb);
+
+    MOV_sum(32, RSCRATCH, Ra, Rb);
+    AND(32, R(RSCRATCH), Imm32(~31));
+  }
 
   if (MSR.DR)
   {
