@@ -1921,39 +1921,40 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
   int s = inst.RS;
   bool needs_test = false;
 
-  if (gpr.R(s).IsImm())
+  if (gpr.IsImm(s))
   {
     u32 mask = 0x80000000;
     u32 i = 0;
     for (; i < 32; i++, mask >>= 1)
     {
-      if (gpr.R(s).Imm32() & mask)
+      if (gpr.Imm32(s) & mask)
         break;
     }
     gpr.SetImmediate32(a, i);
   }
   else
   {
-    gpr.Lock(a, s);
-    gpr.BindToRegister(a, a == s, true);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
+
     if (cpu_info.bLZCNT)
     {
-      LZCNT(32, gpr.RX(a), gpr.R(s));
+      LZCNT(32, Ra, Rs);
       needs_test = true;
     }
     else
     {
-      BSR(32, gpr.RX(a), gpr.R(s));
+      BSR(32, Ra, Rs);
       FixupBranch gotone = J_CC(CC_NZ);
-      MOV(32, gpr.R(a), Imm32(63));
+      MOV(32, Ra, Imm32(63));
       SetJumpTarget(gotone);
-      XOR(32, gpr.R(a), Imm8(0x1f));  // flip order
+      XOR(32, Ra, Imm8(0x1f));  // flip order
     }
   }
 
   if (inst.Rc)
-    ComputeRC(gpr.R(a), needs_test, false);
-  gpr.UnlockAll();
+    ComputeRC(a, needs_test, false);
 }
 
 void Jit64::twX(UGeckoInstruction inst)
