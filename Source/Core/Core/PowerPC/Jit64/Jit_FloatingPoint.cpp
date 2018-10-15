@@ -598,8 +598,10 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 
   int d = inst.RD;
   int b = inst.RB;
-  fpr.Lock(d, b);
-  fpr.BindToRegister(d);
+
+  RCOpArg Rb = fpr.Use(b, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Rb, Rd);
 
   // Intel uses 0x80000000 as a generic error code while PowerPC uses clamping:
   //
@@ -613,7 +615,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   // except for -0.0 where they are set to 0xfff80001 (TODO).
 
   MOVAPD(XMM0, MConst(half_qnan_and_s32_max));
-  MINSD(XMM0, fpr.R(b));
+  MINSD(XMM0, Rb);
   switch (inst.SUBOP10)
   {
   // fctiwx
@@ -627,8 +629,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
     break;
   }
   // d[64+] must not be modified
-  MOVSD(fpr.R(d), XMM0);
-  fpr.UnlockAll();
+  MOVSD(Rd, XMM0);
 }
 
 void Jit64::frspx(UGeckoInstruction inst)
