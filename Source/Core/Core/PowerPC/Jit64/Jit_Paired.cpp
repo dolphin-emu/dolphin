@@ -90,26 +90,29 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   int a = inst.FA;
   int c = inst.FC;
   bool round_input = !js.op->fprIsSingle[c];
-  fpr.Lock(a, c, d);
+
+  RCOpArg Ra = fpr.Use(a, RCMode::Read);
+  RCOpArg Rc = fpr.Use(c, RCMode::Read);
+  RCX64Reg Rd = fpr.Bind(d, RCMode::Write);
+  RegCache::Realize(Ra, Rc, Rd);
+
   switch (inst.SUBOP5)
   {
   case 12:  // ps_muls0
-    MOVDDUP(XMM1, fpr.R(c));
+    MOVDDUP(XMM1, Rc);
     break;
   case 13:  // ps_muls1
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, fpr.R(c), fpr.R(c), 3);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, Rc, Rc, 3);
     break;
   default:
     PanicAlert("ps_muls WTF!!!");
   }
   if (round_input)
     Force25BitPrecision(XMM1, R(XMM1), XMM0);
-  MULPD(XMM1, fpr.R(a));
-  fpr.BindToRegister(d, false);
-  HandleNaNs(inst, fpr.RX(d), XMM1);
-  ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
+  MULPD(XMM1, Ra);
+  HandleNaNs(inst, Rd, XMM1);
+  ForceSinglePrecision(Rd, Rd);
+  SetFPRFIfNeeded(Rd);
 }
 
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
