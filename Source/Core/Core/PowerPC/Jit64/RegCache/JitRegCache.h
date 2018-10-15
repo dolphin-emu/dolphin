@@ -22,6 +22,7 @@ class RCX64Reg;
 class RegCache;
 
 using preg_t = size_t;
+static constexpr size_t NUM_XREGS = 16;
 
 class RCOpArg
 {
@@ -97,6 +98,28 @@ private:
   std::variant<std::monostate, Gen::X64Reg, preg_t> contents;
 };
 
+class RCForkGuard
+{
+public:
+  ~RCForkGuard() { EndFork(); }
+  RCForkGuard(RCForkGuard&&) noexcept;
+
+  RCForkGuard(const RCForkGuard&) = delete;
+  RCForkGuard& operator=(const RCForkGuard&) = delete;
+  RCForkGuard& operator=(RCForkGuard&&) = delete;
+
+  void EndFork();
+
+private:
+  friend class RegCache;
+
+  explicit RCForkGuard(RegCache& rc_);
+
+  RegCache* rc;
+  std::array<PPCCachedReg, 32> m_regs;
+  std::array<X64CachedReg, NUM_XREGS> m_xregs;
+};
+
 class RegCache
 {
 public:
@@ -105,8 +128,6 @@ public:
     All,
     MaintainState,
   };
-
-  static constexpr size_t NUM_XREGS = 16;
 
   explicit RegCache(Jit64& jit);
   virtual ~RegCache() = default;
@@ -216,9 +237,12 @@ public:
   RCX64Reg Bind(preg_t preg, RCMode mode);
   RCX64Reg Scratch(Gen::X64Reg xr);
 
+  RCForkGuard Fork();
+
 protected:
   friend class RCOpArg;
   friend class RCX64Reg;
+  friend class RCForkGuard;
 
   virtual void StoreRegister(preg_t preg, const Gen::OpArg& new_loc) = 0;
   virtual void LoadRegister(preg_t preg, Gen::X64Reg new_loc) = 0;
@@ -239,6 +263,8 @@ protected:
   void NewUnlockX(Gen::X64Reg xr);
   bool IsRealized(preg_t preg) const;
   void Realize(preg_t preg);
+
+  bool IsAnyConstraintActive() const;
 
   Jit64& m_jit;
   std::array<PPCCachedReg, 32> m_regs;

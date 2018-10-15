@@ -132,6 +132,7 @@ private:
 class RCConstraint
 {
 public:
+  bool IsActive() const { return realized || bind || write || read || kill_imm; }
   bool IsRealized() const { return realized; }
 
   bool ShouldBind() const { return bind; }

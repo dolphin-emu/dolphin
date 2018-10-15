@@ -267,6 +267,28 @@ void RCX64Reg::Unlock()
   contents = std::monostate{};
 }
 
+RCForkGuard::RCForkGuard(RegCache& rc_) : rc(&rc_), m_regs(rc_.m_regs), m_xregs(rc_.m_xregs)
+{
+  ASSERT(!rc->IsAnyConstraintActive());
+}
+
+RCForkGuard::RCForkGuard(RCForkGuard&& other) noexcept
+    : rc(other.rc), m_regs(std::move(other.m_regs)), m_xregs(std::move(other.m_xregs))
+{
+  other.rc = nullptr;
+}
+
+void RCForkGuard::EndFork()
+{
+  if (!rc)
+    return;
+
+  ASSERT(!rc->IsAnyConstraintActive());
+  rc->m_regs = m_regs;
+  rc->m_xregs = m_xregs;
+  rc = nullptr;
+}
+
 RegCache::RegCache(Jit64& jit) : m_jit{jit}
 {
 }
@@ -595,6 +617,11 @@ RCX64Reg RegCache::Scratch(X64Reg xr)
   return RCX64Reg{this, xr};
 }
 
+RCForkGuard RegCache::Fork()
+{
+  return RCForkGuard{*this};
+}
+
 void RegCache::NewLock(preg_t preg)
 {
   m_regs[preg].Lock();
@@ -662,4 +689,10 @@ void RegCache::Realize(preg_t preg)
   }
 
   m_constraints[preg].Realized();
+}
+
+bool RegCache::IsAnyConstraintActive() const
+{
+  return std::any_of(m_constraints.begin(), m_constraints.end(),
+                     [](const auto& c) { return c.IsActive(); });
 }
