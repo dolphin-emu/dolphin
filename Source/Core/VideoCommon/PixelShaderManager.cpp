@@ -171,6 +171,7 @@ void PixelShaderManager::SetConstants()
       s_dstalpha = dstalpha;
       dirty = true;
     }
+    s_bDestAlphaDirty = false;
   }
 }
 
