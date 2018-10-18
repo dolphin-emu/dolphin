@@ -272,7 +272,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
-			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP)
+			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP ||
+				(sControllerType == COCONTROLLER_CLASSIC && axisIDs[0] == ButtonType.CLASSIC_STICK_LEFT_UP))
 			{
 				if (sJoyStickSetting == JOYSTICK_EMULATE_IR)
 				{
@@ -523,10 +524,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					axises[3] = x; // right
 					break;
 				case SENSOR_WII_STICK:
-					axisIDs[0] = ButtonType.NUNCHUK_STICK + 1;
-					axisIDs[1] = ButtonType.NUNCHUK_STICK + 2;
-					axisIDs[2] = ButtonType.NUNCHUK_STICK + 3;
-					axisIDs[3] = ButtonType.NUNCHUK_STICK + 4;
+					if(sControllerType == COCONTROLLER_CLASSIC)
+					{
+						axisIDs[0] = ButtonType.CLASSIC_STICK_LEFT_UP;
+						axisIDs[1] = ButtonType.CLASSIC_STICK_LEFT_DOWN;
+						axisIDs[2] = ButtonType.CLASSIC_STICK_LEFT_LEFT;
+						axisIDs[3] = ButtonType.CLASSIC_STICK_LEFT_RIGHT;
+					}
+					else
+					{
+						axisIDs[0] = ButtonType.NUNCHUK_STICK + 1;
+						axisIDs[1] = ButtonType.NUNCHUK_STICK + 2;
+						axisIDs[2] = ButtonType.NUNCHUK_STICK + 3;
+						axisIDs[3] = ButtonType.NUNCHUK_STICK + 4;
+					}
 					axises[0] = y; // up
 					axises[1] = y; // down
 					axises[2] = x; // left
