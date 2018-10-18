@@ -10,6 +10,7 @@
 #include "Core/NetPlayClient.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
+class ChunkedProgressDialog;
 class MD5Dialog;
 class GameListModel;
 class PadMappingDialog;
@@ -67,6 +68,11 @@ public:
   void SetMD5Progress(int pid, int progress) override;
   void SetMD5Result(int pid, const std::string& result) override;
   void AbortMD5() override;
+
+  void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
+                                 const std::vector<int>& players) override;
+  void HideChunkedProgressDialog() override;
+  void SetChunkedProgress(int pid, u64 progress) override;
 signals:
   void Boot(const QString& filename);
   void Stop();
@@ -122,6 +128,7 @@ private:
 
   QGridLayout* m_main_layout;
   MD5Dialog* m_md5_dialog;
+  ChunkedProgressDialog* m_chunked_progress_dialog;
   PadMappingDialog* m_pad_mapping;
   std::string m_current_game;
   Common::Lazy<std::string> m_external_ip_address;

@@ -63,6 +63,8 @@ private:
   QPushButton* m_host_button;
   QCheckBox* m_host_force_port_check;
   QSpinBox* m_host_force_port_box;
+  QCheckBox* m_host_chunked_upload_limit_check;
+  QSpinBox* m_host_chunked_upload_limit_box;
 
 #ifdef USE_UPNP
   QCheckBox* m_host_upnp;

@@ -93,6 +93,7 @@ add_executable(dolphin-emu
   GameList/ListProxyModel.cpp
   GCMemcardManager.cpp
   QtUtils/BlockUserInputFilter.cpp
+  NetPlay/ChunkedProgressDialog.cpp
   NetPlay/GameListDialog.cpp
   NetPlay/MD5Dialog.cpp
   NetPlay/NetPlayDialog.cpp

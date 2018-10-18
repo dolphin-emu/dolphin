@@ -30,6 +30,9 @@ extern const ConfigInfo<bool> NETPLAY_USE_UPNP;
 
 extern const ConfigInfo<bool> NETPLAY_ENABLE_QOS;
 
+extern const ConfigInfo<bool> NETPLAY_ENABLE_CHUNKED_UPLOAD_LIMIT;
+extern const ConfigInfo<u32> NETPLAY_CHUNKED_UPLOAD_LIMIT;
+
 extern const ConfigInfo<u32> NETPLAY_BUFFER_SIZE;
 extern const ConfigInfo<u32> NETPLAY_CLIENT_BUFFER_SIZE;
 

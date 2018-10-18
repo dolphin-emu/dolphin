@@ -43,6 +43,7 @@
 #include "Core/NetPlayServer.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 #include "DolphinQt/NetPlay/GameListDialog.h"
 #include "DolphinQt/NetPlay/MD5Dialog.h"
 #include "DolphinQt/NetPlay/PadMappingDialog.h"
@@ -68,6 +69,7 @@ NetPlayDialog::NetPlayDialog(QWidget* parent)
 
   m_pad_mapping = new PadMappingDialog(this);
   m_md5_dialog = new MD5Dialog(this);
+  m_chunked_progress_dialog = new ChunkedProgressDialog(this);
 
   ResetExternalIP();
   CreateChatLayout();
@@ -1044,5 +1046,29 @@ void NetPlayDialog::AbortMD5()
   QueueOnObject(this, [this] {
     m_md5_dialog->close();
     m_md5_button->setEnabled(true);
+  });
+}
+
+void NetPlayDialog::ShowChunkedProgressDialog(const std::string& title, const u64 data_size,
+                                              const std::vector<int>& players)
+{
+  QueueOnObject(this, [this, title, data_size, players] {
+    if (m_chunked_progress_dialog->isVisible())
+      m_chunked_progress_dialog->close();
+
+    m_chunked_progress_dialog->show(QString::fromStdString(title), data_size, players);
+  });
+}
+
+void NetPlayDialog::HideChunkedProgressDialog()
+{
+  QueueOnObject(this, [this] { m_chunked_progress_dialog->close(); });
+}
+
+void NetPlayDialog::SetChunkedProgress(const int pid, const u64 progress)
+{
+  QueueOnObject(this, [this, pid, progress] {
+    if (m_chunked_progress_dialog->isVisible())
+      m_chunked_progress_dialog->SetProgress(pid, progress);
   });
 }

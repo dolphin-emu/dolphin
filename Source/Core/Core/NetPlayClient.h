@@ -13,6 +13,8 @@
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -60,6 +62,11 @@ public:
   virtual void SetMD5Progress(int pid, int progress) = 0;
   virtual void SetMD5Result(int pid, const std::string& result) = 0;
   virtual void AbortMD5() = 0;
+
+  virtual void ShowChunkedProgressDialog(const std::string& title, u64 data_size,
+                                         const std::vector<int>& players) = 0;
+  virtual void HideChunkedProgressDialog() = 0;
+  virtual void SetChunkedProgress(int pid, u64 progress) = 0;
 };
 
 enum class PlayerGameStatus
@@ -85,7 +92,7 @@ class NetPlayClient : public TraversalClientClient
 {
 public:
   void ThreadFunc();
-  void SendAsync(sf::Packet&& packet);
+  void SendAsync(sf::Packet&& packet, u8 channel_id = DEFAULT_CHANNEL);
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
                 const std::string& name, const NetTraversalConfig& traversal_config);
@@ -130,6 +137,12 @@ public:
   void AdjustPadBufferSize(unsigned int size);
 
 protected:
+  struct AsyncQueueEntry
+  {
+    sf::Packet packet;
+    u8 channel_id;
+  };
+
   void ClearBuffers();
 
   struct
@@ -140,7 +153,7 @@ protected:
     std::recursive_mutex async_queue_write;
   } m_crit;
 
-  Common::SPSCQueue<sf::Packet, false> m_async_queue;
+  Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
 
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::SPSCQueue<NetWiimote>, 4> m_wiimote_buffer;
@@ -203,7 +216,7 @@ private:
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
   void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
   unsigned int OnData(sf::Packet& packet);
-  void Send(const sf::Packet& packet);
+  void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();
   bool Connect();
   void ComputeMD5(const std::string& file_identifier);
@@ -233,6 +246,7 @@ private:
   u16 m_sync_ar_codes_count = 0;
   u16 m_sync_ar_codes_success_count = 0;
   bool m_sync_ar_codes_complete = false;
+  std::unordered_map<u32, sf::Packet> m_chunked_data_receive_queue;
 
   u64 m_initial_rtc = 0;
   u32 m_timebase_frame = 0;
