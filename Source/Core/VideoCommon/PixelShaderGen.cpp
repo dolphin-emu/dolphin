@@ -333,6 +333,7 @@ PixelShaderUid GetPixelShaderUid()
     if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
     {
       // hardware blend
+      uid_data->useDstAlpha = state.alphaupdate;
     }
     else if(g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
     {
