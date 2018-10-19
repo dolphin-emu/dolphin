@@ -141,9 +141,9 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   case OpcodeDecoder::GX_DRAW_TRIANGLES:
 	  return index_len;
   case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
-	  return index_len;
+	  return index_len / 3 + 2;
   case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
-	  return index_len;
+	  return index_len / 3 + 2;
 
   case OpcodeDecoder::GX_DRAW_LINES:
 	  return index_len;

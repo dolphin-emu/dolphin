@@ -332,7 +332,7 @@
     <string name="sysconf_speaker_volume">Speaker Volume</string>
     <string name="sysconf_wiimote_motor">Wiimote Motor</string>
 
-	<string name="nnf_new_folder">New folder</string>
+    <string name="nnf_new_folder">New folder</string>
     <string name="nnf_create_folder_error">Failed to create folder</string>
     <string name="nnf_name">Name</string>
     <string name="nnf_select_something_first">Please select something first</string>

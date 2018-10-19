@@ -1,10 +1,8 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.content.IntentFilter;
 import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 /**
  * Abstraction for the Activity that manages SettingsFragments.
@@ -118,19 +116,4 @@ public interface SettingsActivityView
 	 * Show a hint to the user that the app needs the external storage to be mounted
 	 */
 	void showExternalStorageNotMountedHint();
-
-	/**
-	 * Start the DirectoryInitialization and listen for the result.
-	 *
-	 * @param receiver the broadcast receiver for the DirectoryInitialization
-	 * @param filter   the Intent broadcasts to be received.
-	 */
-	void startDirectoryInitializationService(DirectoryStateReceiver receiver, IntentFilter filter);
-
-	/**
-	 * Stop listening to the DirectoryInitialization.
-	 *
-	 * @param receiver The broadcast receiver to unregister.
-	 */
-	void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver);
 }

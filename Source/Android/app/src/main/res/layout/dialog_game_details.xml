@@ -3,15 +3,14 @@
              xmlns:app="http://schemas.android.com/apk/res-auto"
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_height="wrap_content"
-             android:layout_width="match_parent"
-             android:transitionName="card_game">
+             android:layout_width="match_parent">
 
     <ImageView
         android:contentDescription="@string/game_platform_wii"
         android:scaleType="centerCrop"
         android:id="@+id/image_game_screen"
         android:layout_width="match_parent"
-        android:layout_height="155dp"
+        android:layout_height="160dp"
         android:layout_marginBottom="6dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"

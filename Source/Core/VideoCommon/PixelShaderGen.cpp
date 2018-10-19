@@ -166,9 +166,6 @@ PixelShaderUid GetPixelShaderUid()
   pixel_shader_uid_data* uid_data = out.GetUidData<pixel_shader_uid_data>();
   memset(uid_data, 0, sizeof(*uid_data));
 
-  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-                          bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
@@ -331,6 +328,9 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
+  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+	  bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   if (state.IsDualSourceBlend())
   {
     if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
@@ -339,6 +339,8 @@ PixelShaderUid GetPixelShaderUid()
     }
     else if(g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
     {
+      // shader blend
+      uid_data->useDstAlpha = state.alphaupdate;
       uid_data->blend_enable = state.blendenable;
       uid_data->blend_src_factor = state.srcfactor;
       uid_data->blend_src_factor_alpha = state.srcfactoralpha;
@@ -349,6 +351,7 @@ PixelShaderUid GetPixelShaderUid()
     }
     else
     {
+      // alpha pass
       uid_data->useDstAlpha = false;
     }
   }
@@ -543,19 +546,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   }
 
   // Only use dual-source blending when required on drivers that don't support it very well.
-  bool use_dual_source = false;
-  bool use_shader_blend = false;
-  if(uid_data->useDstAlpha)
-  {
-    if(host_config.backend_dual_source_blend)
-    {
-      use_dual_source = true;
-    }
-    else if(host_config.backend_shader_framebuffer_fetch)
-    {
-      use_shader_blend = true;
-    }
-  }
+  const bool use_dual_source = host_config.backend_dual_source_blend &&
+    (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || uid_data->useDstAlpha);
+  bool use_shader_blend = !use_dual_source && uid_data->useDstAlpha &&
+    host_config.backend_shader_framebuffer_fetch;
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {

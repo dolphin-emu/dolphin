@@ -40,7 +40,6 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  void ShowConfig(void* parent_handle);
   virtual void InitBackendInfo() = 0;
 
   void Video_ExitLoop();
@@ -54,6 +53,10 @@ public:
   static void PopulateList();
   static void ClearList();
   static void ActivateBackend(const std::string& name);
+
+  // Fills the backend_info fields with the capabilities of the selected backend/device.
+  // Called by the UI thread when the graphics config is opened.
+  static void PopulateBackendInfo();
 
   // the implementation needs not do synchronization logic, because calls to it are surrounded by
   // PauseAndLock now

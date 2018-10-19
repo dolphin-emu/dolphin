@@ -63,25 +63,25 @@ enum
 
 enum class OpType
 {
-  Invalid,
-  Subtable,
-  Integer,
-  CR,
-  SPR,
-  System,
-  SystemFP,
-  Load,
-  Store,
-  LoadFP,
-  StoreFP,
-  DoubleFP,
-  SingleFP,
-  LoadPS,
-  StorePS,
-  PS,
-  DataCache,
-  InstructionCache,
-  Branch,
+  Invalid, //0
+  Subtable, //1
+  Integer, //2
+  CR, //3, Control Register
+  SPR, //4, Special-Purpose Register
+  System, //5
+  SystemFP, //6
+  Load, //7
+  Store, //8
+  LoadFP, //9
+  StoreFP, //10
+  DoubleFP, //11
+  SingleFP, //12
+  LoadPS, //13
+  StorePS, //14
+  PS, //15
+  DataCache, //16
+  InstructionCache, //17
+  Branch, //18
   Unknown,
 };
 

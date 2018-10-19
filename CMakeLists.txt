@@ -608,6 +608,11 @@ else()
   set(PNG png)
 endif()
 
+# Using static FreeSurround from Externals
+# There is no system FreeSurround library.
+message(STATUS "Using static FreeSurround from Externals")
+add_subdirectory(Externals/FreeSurround)
+
 # Using static soundtouch from Externals
 # Unable to use system soundtouch library: We require shorts, not floats.
 add_subdirectory(Externals/soundtouch)

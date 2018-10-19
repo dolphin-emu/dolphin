@@ -70,11 +70,10 @@ public class CheatCodeDialog extends DialogFragment
 	private void setGameSettings(String gameId, EditText editCode)
 	{
 		String filename = DirectoryInitialization.getLocalSettingFile(gameId);
-		int index1 = -1;
-		int index2 = -1;
 		int count = 0;
-		String target1 = "ActionReplay";
-		String target2 = "Gecko";
+		String[] targets = {"[ActionReplay]", "[ActionReplay_Enabled]", "[Gecko]", "[Gecko_Enabled]"};
+		int[] indices = {-1, -1, -1, -1};
+
 		StringBuilder sb = new StringBuilder();
 		try
 		{
@@ -82,17 +81,13 @@ public class CheatCodeDialog extends DialogFragment
 			String line = reader.readLine();
 			while (line != null)
 			{
-				//
-				int index = line.indexOf(target1);
-				if (index > 0)
+				for(int i = 0; i < targets.length; ++i)
 				{
-					index1 += count + index;
-				}
-				//
-				index = line.indexOf(target2);
-				if (index > 0)
-				{
-					index2 += count + index;
+					int index = line.indexOf(targets[i]);
+					if(index != -1)
+					{
+						indices[i] = count + index;
+					}
 				}
 				//
 				count += line.length() + 1;
@@ -106,35 +101,27 @@ public class CheatCodeDialog extends DialogFragment
 			// ignore
 		}
 
-		if (index1 == -1 && index2 == -1)
-		{
-			sb.append(System.lineSeparator());
-			sb.append("[ActionReplay]");
-			sb.append(System.lineSeparator());
-			sb.append(System.lineSeparator());
-			sb.append("[ActionReplay_Enabled]");
-			sb.append(System.lineSeparator());
-			index1 += count + 2;
-
-			sb.append(System.lineSeparator());
-			sb.append("[Gecko]");
-			sb.append(System.lineSeparator());
-			sb.append(System.lineSeparator());
-			sb.append("[Gecko_Enabled]");
-			sb.append(System.lineSeparator());
-			index2 += count + 2;
-		}
-
 		int cursorPos = 0;
-		if (index1 != -1)
+		for(int i = 0; i < targets.length; ++i)
 		{
-			cursorPos = index1 + target1.length() + 3;
+			if(indices[i] < 0)
+			{
+				sb.append(System.lineSeparator());
+				sb.append(targets[i]);
+				sb.append(System.lineSeparator());
+				count += targets[i].length() + 2;
+				cursorPos = count;
+			}
+			else if(indices[i] > cursorPos)
+			{
+				cursorPos = indices[i] + targets[i].length() + 1;
+			}
 		}
-		else if (index2 != -1)
-		{
-			cursorPos = index2 + target2.length() + 3;
-		}
-		editCode.setText(sb.toString());
+
+		String content = sb.toString();
+		if(cursorPos > content.length())
+			cursorPos = content.length();
+		editCode.setText(content);
 		editCode.setSelection(cursorPos);
 	}
 

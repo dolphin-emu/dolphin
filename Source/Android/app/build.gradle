@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.2'
+    buildToolsVersion '28.0.3'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -78,7 +78,7 @@ android {
 }
 
 ext {
-    androidSupportVersion = '27.1.1'
+    androidSupportVersion = '27.1.0'
 }
 
 dependencies {
@@ -86,9 +86,9 @@ dependencies {
     implementation "com.android.support:recyclerview-v7:$androidSupportVersion"
     implementation "com.android.support:design:$androidSupportVersion"
     // For loading huge screenshots from the disk.
-    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.picasso:picasso:2.71828'
     // Allows FRP-style asynchronous operations in Android.
-    implementation 'io.reactivex:rxandroid:1.2.1'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
 }
 
 def getVersion() {

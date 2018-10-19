@@ -61,7 +61,7 @@ union BlendingState
   }
 
   bool IsPremultipliedAlpha() const {
-    return !dstalpha && (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA);
+    return false && !dstalpha && (srcfactor == BlendMode::SRCALPHA || srcfactor == BlendMode::INVSRCALPHA);
   }
 
   BlendingState& operator=(const BlendingState& rhs);

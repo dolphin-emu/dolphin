@@ -257,13 +257,18 @@
         <item>None</item>
     </string-array>
 
-    <string-array name="joystickSettings">
+    <string-array name="wiiJoystickSettings">
         <item>Joystick(Relative Center)</item>
         <item>Joystick(Fixed Center)</item>
         <item>Emulate IR</item>
         <item>Emulate Swing</item>
         <item>Emulate Tilt</item>
         <item>Emulate Shake</item>
+    </string-array>
+
+    <string-array name="gcJoystickSettings">
+        <item>Joystick(Relative Center)</item>
+        <item>Joystick(Fixed Center)</item>
     </string-array>
 
     <string-array name="wiiSensorSettings">

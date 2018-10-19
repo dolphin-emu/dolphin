@@ -21,14 +21,26 @@
 -dontskipnonpubliclibraryclassmembers
 -verbose
 
--dontwarn com.squareup.picasso.**
--keep class com.squareup.picasso.** { *; }
+# -dontwarn com.squareup.picasso.**
+# -keep class com.squareup.picasso.** { *; }
 
 -dontwarn sun.misc.Unsafe
 -keep class sun.misc.Unsafe { *; }
 
--dontwarn rx.functions.**
--keep class rx.functions.** { *; }
+-dontwarn javax.annotation.Nullable
+-keep class javax.annotation.Nullable { *; }
+
+-dontwarn org.conscrypt.OpenSSLProvider
+-keep class org.conscrypt.OpenSSLProvider { *; }
+
+-dontwarn org.conscrypt.Conscrypt
+-keep class org.conscrypt.Conscrypt { *; }
+
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+-keep class javax.annotation.ParametersAreNonnullByDefault { *; }
+
+# -dontwarn rx.functions.**
+# -keep class rx.functions.** { *; }
 
 -keep class org.dolphinemu.dolphinemu.NativeLibrary { *; }
 -keep class org.dolphinemu.dolphinemu.utils.Java_GCAdapter { *; }

@@ -29,6 +29,9 @@ import android.widget.TextView;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.RunningSettingDialog;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -361,18 +364,19 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void showJoystickSettings()
 	{
-		final int joystick = InputOverlay.JoyStickSetting;
+		final int joystick = InputOverlay.sJoyStickSetting;
+		final int itemsId = isGameCubeGame() ? R.array.gcJoystickSettings : R.array.wiiJoystickSettings;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_joystick_settings);
 
-		builder.setSingleChoiceItems(R.array.joystickSettings, joystick,
+		builder.setSingleChoiceItems(itemsId, joystick,
 			(dialog, indexSelected) ->
 			{
-				InputOverlay.JoyStickSetting = indexSelected;
+				InputOverlay.sJoyStickSetting = indexSelected;
 			});
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
-			if(InputOverlay.JoyStickSetting == joystick)
+			if(InputOverlay.sJoyStickSetting != joystick)
 			{
 				mEmulationFragment.refreshInputOverlay();
 			}
@@ -389,28 +393,28 @@ public final class EmulationActivity extends AppCompatActivity
 
 		if(sIsGameCubeGame)
 		{
-			int sensor = InputOverlay.SensorGCSetting;
+			int sensor = InputOverlay.sSensorGCSetting;
 			builder.setSingleChoiceItems(R.array.gcSensorSettings, sensor,
 				(dialog, indexSelected) ->
 				{
-					InputOverlay.SensorGCSetting = indexSelected;
+					InputOverlay.sSensorGCSetting = indexSelected;
 				});
 			builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 			{
-				setSensorState(InputOverlay.SensorGCSetting > 0);
+				setSensorState(InputOverlay.sSensorGCSetting > 0);
 			});
 		}
 		else
 		{
-			int sensor = InputOverlay.SensorWiiSetting;
+			int sensor = InputOverlay.sSensorWiiSetting;
 			builder.setSingleChoiceItems(R.array.wiiSensorSettings, sensor,
 				(dialog, indexSelected) ->
 				{
-					InputOverlay.SensorWiiSetting = indexSelected;
+					InputOverlay.sSensorWiiSetting = indexSelected;
 				});
 			builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 			{
-				setSensorState(InputOverlay.SensorWiiSetting > 0);
+				setSensorState(InputOverlay.sSensorWiiSetting > 0);
 			});
 		}
 
@@ -478,8 +482,9 @@ public final class EmulationActivity extends AppCompatActivity
 		super.onPause();
 
 		final SharedPreferences.Editor editor = mPreferences.edit();
-		editor.putInt(InputOverlay.JOYSTICK_PREF_KEY, InputOverlay.JoyStickSetting);
-		editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, InputOverlay.InputControllerType);
+		editor.putInt(InputOverlay.JOYSTICK_PREF_KEY, InputOverlay.sJoyStickSetting);
+		editor.putInt(InputOverlay.CONTROL_TYPE_PREF_KEY, InputOverlay.sControllerType);
+		editor.putInt(InputOverlay.CONTROL_SCALE_PREF_KEY, InputOverlay.sControllerScale);
 		editor.apply();
 
 		if(mSensorManager != null)
@@ -524,7 +529,7 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		final SharedPreferences.Editor editor = mPreferences.edit();
 		boolean[] enabledButtons = new boolean[14];
-		int controller = InputOverlay.InputControllerType;
+		int controller = InputOverlay.sControllerType;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_toggle_controls);
 
@@ -590,7 +595,7 @@ public final class EmulationActivity extends AppCompatActivity
 		final TextView units = (TextView) view.findViewById(R.id.text_units);
 
 		seekbar.setMax(150);
-		seekbar.setProgress(mPreferences.getInt(InputOverlay.CONTROL_SCALE_PREF_KEY, 50));
+		seekbar.setProgress(InputOverlay.sControllerScale);
 		seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
 		{
 			public void onStartTrackingTouch(SeekBar seekBar)
@@ -617,9 +622,7 @@ public final class EmulationActivity extends AppCompatActivity
 		builder.setView(view);
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
-			SharedPreferences.Editor editor = mPreferences.edit();
-			editor.putInt(InputOverlay.CONTROL_SCALE_PREF_KEY, seekbar.getProgress());
-			editor.apply();
+			InputOverlay.sControllerScale = seekbar.getProgress();
 			mEmulationFragment.refreshInputOverlay();
 		});
 
@@ -629,18 +632,18 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private void chooseController()
 	{
-		int controller = InputOverlay.InputControllerType;
+		int controller = InputOverlay.sControllerType;
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle(R.string.emulation_choose_controller);
 		builder.setSingleChoiceItems(R.array.controllersEntries, controller,
 			(dialog, indexSelected) ->
 			{
-				InputOverlay.InputControllerType = indexSelected;
+				InputOverlay.sControllerType = indexSelected;
 			});
 		builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
 		{
 			NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
-				getResources().getStringArray(R.array.controllersValues)[InputOverlay.InputControllerType]);
+				getResources().getStringArray(R.array.controllersValues)[InputOverlay.sControllerType]);
 			mEmulationFragment.refreshInputOverlay();
 		});
 

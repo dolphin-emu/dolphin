@@ -11,8 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
-
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -88,9 +86,7 @@ public final class GameDetailsDialog extends DialogFragment
 		});
 
 		ImageView imageGameScreen = contents.findViewById(R.id.image_game_screen);
-		Picasso.with(imageGameScreen.getContext())
-			.load("file://" + gameFile.getCoverPath())
-			.into(imageGameScreen);
+		gameFile.loadGameBanner(imageGameScreen);
 
 		builder.setView(contents);
 		return builder.create();

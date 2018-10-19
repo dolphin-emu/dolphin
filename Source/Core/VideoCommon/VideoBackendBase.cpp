@@ -14,6 +14,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
 
 // TODO: ugly
@@ -59,14 +61,6 @@ extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 }
 #endif
-
-void VideoBackendBase::ShowConfig(void* parent_handle)
-{
-  if (!m_initialized)
-    InitBackendInfo();
-
-  Host_ShowVideoConfig(parent_handle, GetDisplayName());
-}
 
 void VideoBackendBase::Video_ExitLoop()
 {
@@ -231,6 +225,20 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
   g_video_backend = iter->get();
 }
 
+void VideoBackendBase::PopulateBackendInfo()
+{
+  // If the core is running, the backend info will have been populated already.
+  // If we did it here, the UI thread can race with the with the GPU thread.
+  if (Core::IsRunning())
+    return;
+
+  // We refresh the config after initializing the backend info, as system-specific settings
+  // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
+  ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  g_video_backend->InitBackendInfo();
+  g_Config.Refresh();
+}
+
 // Run from the CPU thread
 void VideoBackendBase::DoState(PointerWrap& p)
 {
@@ -294,7 +302,6 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
-  g_Config.Refresh();
   UpdateActiveConfig();
 }
 

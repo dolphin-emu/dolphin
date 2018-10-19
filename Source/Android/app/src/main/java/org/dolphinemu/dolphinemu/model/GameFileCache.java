@@ -13,8 +13,10 @@ import java.util.Set;
 
 public class GameFileCache
 {
+	// Do not rename or move without editing the native code
+	private long mPointer;
+
 	private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
-	private long mPointer;  // Do not rename or move without editing the native code
 
 	public GameFileCache(String path)
 	{
@@ -82,7 +84,7 @@ public class GameFileCache
 		editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, folderPathsSet);
 		editor.apply();
 
-		String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
+		String[] folderPaths = folderPathsSet.toArray(new String[0]);
 		boolean cacheChanged = update(folderPaths);
 		cacheChanged |= updateAdditionalMetadata();
 		if (cacheChanged)

@@ -1294,7 +1294,7 @@ bool TextureCacheBase::LoadTextureFromOverlappingTextures(TCacheEntry* entry_to_
 
   u32 numBlocksX = entry_to_update->native_width / tex_info.block_width;
 
-  // It is possible that some of the overlapping textures overlap eachother.
+  // It is possible that some of the overlapping textures overlap each other.
   // This behavior has been seen with XFB copies in Rogue Leader.
   // To get the correct result, we apply the texture updates in the order the textures were
   // originally loaded. This ensures that the parts of the texture that would have been overwritten

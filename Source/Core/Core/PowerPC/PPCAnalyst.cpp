@@ -209,8 +209,8 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
 
   switch (b.inst.OPCD)
   {
-  case 16:
-  case 18:
+  case 16:  // bcx
+  case 18:  // bx
   // branches. Do not swap.
   case 17:  // sc
   case 46:  // lmw
@@ -684,6 +684,8 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
   // don't detect these at the moment.
   std::bitset<32> write_disallowed_regs;
   std::bitset<32> written_regs;
+  if (instructions > 24)
+	  instructions = 24;
   for (size_t i = 0; i <= instructions; ++i)
   {
     if (code[i].opinfo->type == OpType::Branch)
@@ -693,14 +695,7 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
       if (code[i].branchTo == block->m_address && i == instructions)
         return true;
     }
-    else if (code[i].opinfo->type != OpType::Integer && code[i].opinfo->type != OpType::Load)
-    {
-      // In the future, some subsets of other instruction types might get
-      // supported. Right now, only try loops that have this very
-      // restricted instruction set.
-      return false;
-    }
-    else
+    else if (code[i].opinfo->type == OpType::Integer || code[i].opinfo->type == OpType::Load)
     {
       for (int reg : code[i].regsIn)
       {
@@ -718,6 +713,13 @@ bool PPCAnalyzer::IsBusyWaitLoop(CodeBlock* block, CodeOp* code, size_t instruct
           return false;
         written_regs[reg] = true;
       }
+    }
+    else
+    {
+      // In the future, some subsets of other instruction types might get
+      // supported. Right now, only try loops that have this very
+      // restricted instruction set.
+      return false;
     }
   }
   return false;
