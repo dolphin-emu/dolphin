@@ -1252,7 +1252,8 @@ bool NetPlayServer::SyncSaveData()
     pac << static_cast<MessageId>(SYNC_SAVE_DATA_NOTIFY);
     pac << save_count;
 
-    SendAsyncToClients(std::move(pac));
+    // send this on the chunked data channel to ensure it's sequenced properly
+    SendAsyncToClients(std::move(pac), 0, CHUNKED_DATA_CHANNEL);
   }
 
   if (save_count == 0)
@@ -1295,7 +1296,9 @@ bool NetPlayServer::SyncSaveData()
         pac << sf::Uint64{0};
       }
 
-      SendAsyncToClients(std::move(pac));
+      SendChunkedToClients(
+          std::move(pac), 1,
+          StringFromFormat("Memory Card %c Synchronization", is_slot_a ? 'A' : 'B'));
     }
     else if (SConfig::GetInstance().m_EXIDevice[i] ==
              ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
@@ -1327,7 +1330,9 @@ bool NetPlayServer::SyncSaveData()
         pac << static_cast<u8>(0);
       }
 
-      SendAsyncToClients(std::move(pac));
+      SendChunkedToClients(
+          std::move(pac), 1,
+          StringFromFormat("GCI Folder %c Synchronization", is_slot_a ? 'A' : 'B'));
     }
   }
 
@@ -1387,7 +1392,7 @@ bool NetPlayServer::SyncSaveData()
       pac << false;  // save does not exist
     }
 
-    SendAsyncToClients(std::move(pac));
+    SendChunkedToClients(std::move(pac), 1, "Wii Save Synchronization");
   }
 
   return true;
