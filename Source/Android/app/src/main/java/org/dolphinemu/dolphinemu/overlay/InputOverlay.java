@@ -272,6 +272,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			int[] axisIDs = joystick.getAxisIDs();
 			float[] axises = joystick.getAxisValues();
 
+			// fx wii classic
+			if(axisIDs[0] == ButtonType.CLASSIC_STICK_LEFT_UP && axises[0] > 0)
+			{
+				axises[1] = 0;
+			}
+
 			if (axisIDs[0] == ButtonType.NUNCHUK_STICK_UP ||
 				(sControllerType == COCONTROLLER_CLASSIC && axisIDs[0] == ButtonType.CLASSIC_STICK_LEFT_UP))
 			{
