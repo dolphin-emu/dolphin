@@ -328,15 +328,18 @@ PixelShaderUid GetPixelShaderUid()
   BlendingState state = {};
   state.Generate(bpmem);
 
+  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+	  bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   if (state.IsDualSourceBlend())
   {
     if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
     {
       // hardware blend
-      uid_data->useDstAlpha = state.alphaupdate;
     }
     else if(g_ActiveConfig.backend_info.bSupportsFramebufferFetch)
     {
+      // shader blend
       uid_data->useDstAlpha = state.alphaupdate;
       uid_data->blend_enable = state.blendenable;
       uid_data->blend_src_factor = state.srcfactor;
@@ -345,6 +348,11 @@ PixelShaderUid GetPixelShaderUid()
       uid_data->blend_dst_factor_alpha = state.dstfactoralpha;
       uid_data->blend_subtract = state.subtract;
       uid_data->blend_subtract_alpha = state.subtractAlpha;
+    }
+    else
+    {
+      // alpha pass
+      uid_data->useDstAlpha = false;
     }
   }
   else if (state.IsPremultipliedAlpha())

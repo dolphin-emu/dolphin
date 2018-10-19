@@ -27,6 +27,18 @@
 -dontwarn sun.misc.Unsafe
 -keep class sun.misc.Unsafe { *; }
 
+-dontwarn javax.annotation.Nullable
+-keep class javax.annotation.Nullable { *; }
+
+-dontwarn org.conscrypt.OpenSSLProvider
+-keep class org.conscrypt.OpenSSLProvider { *; }
+
+-dontwarn org.conscrypt.Conscrypt
+-keep class org.conscrypt.Conscrypt { *; }
+
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+-keep class javax.annotation.ParametersAreNonnullByDefault { *; }
+
 # -dontwarn rx.functions.**
 # -keep class rx.functions.** { *; }
 
