@@ -50,6 +50,7 @@ public final class SettingsFile
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
   public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
+  public static final String KEY_LOCK_LANDSCAPE = "LockLandscape";
 
   public static final String KEY_ANALYTICS_ENABLED = "Enabled";
   public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";
