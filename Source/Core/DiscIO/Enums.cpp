@@ -266,6 +266,7 @@ Country CountryCodeToCountry(u8 country_code, Platform platform, Region region)
   case 'K':  // Games in Korean released in Korea
   case 'Q':  // NTSC-J games released on NTSC-K VC
   case 'T':  // NTSC-U games released on NTSC-K VC
+    return Country::Korea;
 
   default:
     if (country_code > 'A')  // Silently ignore IOS wads
