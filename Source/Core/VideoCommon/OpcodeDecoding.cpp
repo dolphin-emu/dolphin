@@ -248,8 +248,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     // Display lists get added directly into the FIFO stream
     if (!is_preprocess && g_bRecordFifoData && cmd_byte != GX_CMD_CALL_DL)
     {
-      u8* opcodeEnd;
-      opcodeEnd = src.GetPointer();
+      u8* opcodeEnd = src.GetPointer();
       FifoRecorder::GetInstance().WriteGPCommand(opcodeStart, u32(opcodeEnd - opcodeStart));
     }
   }

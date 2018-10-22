@@ -324,24 +324,24 @@ void Advance()
 
   s_is_global_timer_sane = true;
 
-  while (!s_event_queue.empty() && s_event_queue.front().time <= g.global_timer)
+  while (!s_event_queue.empty())
   {
-    Event evt = std::move(s_event_queue.front());
-    std::pop_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
-    s_event_queue.pop_back();
-    // NOTICE_LOG(POWERPC, "[Scheduler] %-20s (%lld, %lld)", evt.type->name->c_str(),
-    //            g.global_timer, evt.time);
-    evt.type->callback(evt.userdata, g.global_timer - evt.time);
+    Event evt = s_event_queue.front();
+    if (evt.time <= g.global_timer)
+    {
+      std::pop_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
+      s_event_queue.pop_back();
+      evt.type->callback(evt.userdata, g.global_timer - evt.time);
+    }
+    else
+    {
+      // Still events left (scheduled in the future)
+      g.slice_length = static_cast<int>(std::min<s64>(evt.time - g.global_timer, MAX_SLICE_LENGTH));
+      break;
+    }
   }
 
   s_is_global_timer_sane = false;
-
-  // Still events left (scheduled in the future)
-  if (!s_event_queue.empty())
-  {
-    g.slice_length = static_cast<int>(
-        std::min<s64>(s_event_queue.front().time - g.global_timer, MAX_SLICE_LENGTH));
-  }
 
   PowerPC::ppcState.downcount = CyclesToDowncount(g.slice_length);
 
