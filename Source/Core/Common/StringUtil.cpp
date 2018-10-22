@@ -150,22 +150,43 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
   }
 }
 
-
 std::string StringFromFormat(const char* format, ...)
 {
-  static char buf[4096];
   va_list args;
   va_start(args, format);
-  int size = vsnprintf(buf, ArraySize(buf), format, args);
+  std::string res = StringFromFormatV(format, args);
   va_end(args);
-  return std::string(buf, size);
+  return res;
 }
 
 std::string StringFromFormatV(const char* format, va_list args)
 {
-  static char buf[4096];
-	int size = vsnprintf(buf, ArraySize(buf), format, args);
-	return std::string(buf, size);
+  char* buf = nullptr;
+#ifdef _WIN32
+  int required = _vscprintf(format, args);
+  buf = new char[required + 1];
+  CharArrayFromFormatV(buf, required + 1, format, args);
+
+  std::string temp = buf;
+  delete[] buf;
+#else
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+  locale_t previousLocale = uselocale(GetCLocale());
+#endif
+  if (vasprintf(&buf, format, args) < 0)
+  {
+    ERROR_LOG(COMMON, "Unable to allocate memory for string");
+    buf = nullptr;
+  }
+
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+  uselocale(previousLocale);
+#endif
+
+  std::string temp = buf;
+  free(buf);
+#endif
+  return temp;
 }
 
 // For Debugging. Read out an u8 array.
