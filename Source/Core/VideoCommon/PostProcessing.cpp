@@ -55,14 +55,6 @@ std::vector<std::string> PostProcessingShaderImplementation::GetShaderList(APITy
   return {};
 }
 
-std::vector<std::string> PostProcessingShaderImplementation::GetAnaglyphShaderList(APIType api_type)
-{
-  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
-    return GetShaders(ANAGLYPH_DIR DIR_SEP);
-
-  return {};
-}
-
 PostProcessingShaderConfiguration::PostProcessingShaderConfiguration() = default;
 
 PostProcessingShaderConfiguration::~PostProcessingShaderConfiguration() = default;
