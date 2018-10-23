@@ -61,7 +61,6 @@
 #define RESOURCES_DIR "Resources"
 #define THEMES_DIR "Themes"
 #define STYLES_DIR "Styles"
-#define ANAGLYPH_DIR "Anaglyph"
 #define PIPES_DIR "Pipes"
 #define MEMORYWATCHER_DIR "MemoryWatcher"
 #define WFSROOT_DIR "WFS"
