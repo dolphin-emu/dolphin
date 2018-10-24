@@ -15,12 +15,18 @@ AsyncRequests AsyncRequests::s_singleton;
 
 AsyncRequests::AsyncRequests() = default;
 
-void AsyncRequests::PullEventsInternal()
+void AsyncRequests::DoFlush()
 {
   // This is only called if the queue isn't empty.
   // So just flush the pipeline to get accurate results.
-  g_vertex_manager->Flush();
+  if (!m_queue.empty())
+  {
+    g_vertex_manager->Flush();
+  }
+}
 
+void AsyncRequests::PullEventsInternal()
+{
   std::unique_lock<std::mutex> lock(m_mutex);
   m_empty.Set();
 
@@ -103,8 +109,7 @@ void AsyncRequests::SetEnable(bool enable)
   if (!enable)
   {
     // flush the queue on disabling
-    while (!m_queue.empty())
-      m_queue.pop();
+    std::queue<Event>().swap(m_queue);
     if (m_wake_me_up_again)
       m_cond.notify_all();
   }

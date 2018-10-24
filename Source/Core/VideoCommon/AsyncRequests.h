@@ -72,7 +72,10 @@ public:
   void PullEvents()
   {
     if (!m_empty.IsSet())
+    {
+      DoFlush();
       PullEventsInternal();
+    }
   }
   void PushEvent(const Event& event, bool blocking = false);
   void SetEnable(bool enable);
@@ -81,6 +84,7 @@ public:
   static AsyncRequests* GetInstance() { return &s_singleton; }
 
 private:
+  void DoFlush();
   void PullEventsInternal();
   void HandleEvent(const Event& e);
 
