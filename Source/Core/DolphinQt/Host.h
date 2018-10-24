@@ -20,7 +20,6 @@ class Host final : public QObject
 public:
   static Host* GetInstance();
 
-  void* GetRenderHandle();
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 

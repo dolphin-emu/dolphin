@@ -54,10 +54,12 @@
 #include "Common/GL/GLExtensions/gl_4_4.h"
 #include "Common/GL/GLExtensions/gl_4_5.h"
 
+class GLContext;
+
 namespace GLExtensions
 {
 // Initializes the interface
-bool Init();
+bool Init(GLContext* context);
 
 // Function for checking if the hardware supports an extension
 // example: if (GLExtensions::Supports("GL_ARB_multi_map"))
@@ -65,4 +67,4 @@ bool Supports(const std::string& name);
 
 // Returns OpenGL version in format 430
 u32 Version();
-}
+}  // namespace GLExtensions

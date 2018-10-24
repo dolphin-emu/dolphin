@@ -11,7 +11,7 @@ namespace Null
 {
 class VideoBackend : public VideoBackendBase
 {
-  bool Initialize(void* window_handle) override;
+  bool Initialize(const WindowSystemInfo& wsi) override;
   void Shutdown() override;
 
   std::string GetName() const override { return "Null"; }
@@ -22,4 +22,4 @@ class VideoBackend : public VideoBackendBase
   }
   void InitBackendInfo() override;
 };
-}
+}  // namespace Null

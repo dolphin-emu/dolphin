@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/GL/GLContext.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/HW/Memmap.h"
@@ -23,9 +24,15 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-SWRenderer::SWRenderer()
-    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT))
+SWRenderer::SWRenderer(std::unique_ptr<SWOGLWindow> window)
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT)),
+      m_window(std::move(window))
 {
+}
+
+bool SWRenderer::IsHeadless() const
+{
+  return m_window->IsHeadless();
 }
 
 std::unique_ptr<AbstractTexture> SWRenderer::CreateTexture(const TextureConfig& config)
@@ -49,7 +56,7 @@ SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
 
 void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
 {
-  SWOGLWindow::s_instance->PrintText(pstr, left, top, color);
+  m_window->PrintText(pstr, left, top, color);
 }
 
 class SWShader final : public AbstractShader
@@ -94,7 +101,7 @@ void SWRenderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_regi
   if (!IsHeadless())
   {
     DrawDebugText();
-    SWOGLWindow::s_instance->ShowImage(texture, xfb_region);
+    m_window->ShowImage(texture, xfb_region);
   }
 
   UpdateActiveConfig();
