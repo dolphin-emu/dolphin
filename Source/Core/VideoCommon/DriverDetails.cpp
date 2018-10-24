@@ -11,7 +11,7 @@ namespace DriverDetails
 {
 struct BugInfo
 {
-  API m_api;              // Which API has the issue
+  u32 m_api;              // Which API has the issue
   u32 m_os;               // Which OS has the issue
   Vendor m_vendor;        // Which vendor has the error
   Driver m_driver;        // Which driver has the error
@@ -96,8 +96,10 @@ static BugInfo m_known_bugs[] = {
      BUG_BROKEN_DUAL_SOURCE_BLENDING, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_IMGTEC, DRIVER_IMGTEC, Family::UNKNOWN,
      BUG_BROKEN_BITWISE_OP_NEGATION, -1.0, 108.4693462, true},
-    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
-     true},
+    {API_OPENGL | API_VULKAN, OS_ALL, VENDOR_MESA, DRIVER_R600, Family::UNKNOWN,
+     BUG_PRIMITIVE_RESTART, -1.0, -1.0, true},
+    {API_OPENGL | API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
+     BUG_PRIMITIVE_RESTART, -1.0, -1.0, true},
     {API_VULKAN, OS_ALL, VENDOR_ARM, DRIVER_ARM, Family::UNKNOWN, BUG_PRIMITIVE_RESTART, -1.0, -1.0,
      true},
     {API_OPENGL, OS_LINUX, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN,
@@ -168,4 +170,4 @@ bool HasBug(Bug bug)
     return false;
   return it->second.m_hasbug;
 }
-}
+}  // namespace DriverDetails
