@@ -1,7 +1,3 @@
-if(NOT((ENABLE_X11 AND X11_FOUND) OR ENABLE_HEADLESS))
-  return()
-endif()
-
 add_executable(dolphin-nogui
   Platform.cpp
   PlatformHeadless.cpp

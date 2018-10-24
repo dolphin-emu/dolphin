@@ -23,6 +23,7 @@ endif()
 
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
+option(ENABLE_NOGUI "Enable NoGUI frontend" ON)
 option(ENABLE_QT "Enable Qt (Default)" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
@@ -364,6 +365,10 @@ if(ANDROID)
   message(STATUS "Building for Android")
   if(NOT ENABLE_HEADLESS)
     add_definitions(-DANDROID)
+    if(ENABLE_NOGUI)
+      message(STATUS "Building Android app, disabling NoGUI frontend.")
+      set(ENABLE_NOGUI 0)
+    endif()
   else()
     # Lie to cmake a bit. We are cross compiling to Android
     # but not as a shared library. We want an executable.
@@ -384,7 +389,6 @@ if(ENABLE_HEADLESS)
   message(STATUS "Enabling Headless! Disabling GUI.")
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
-  add_definitions(-DUSE_HEADLESS)
 endif()
 
 # Set file offset size to 64 bits.
