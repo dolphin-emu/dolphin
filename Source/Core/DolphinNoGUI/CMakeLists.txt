@@ -3,8 +3,14 @@ if(NOT((ENABLE_X11 AND X11_FOUND) OR ENABLE_HEADLESS))
 endif()
 
 add_executable(dolphin-nogui
+  Platform.cpp
+  PlatformHeadless.cpp
   MainNoGUI.cpp
 )
+
+if(ENABLE_X11 AND X11_FOUND)
+  target_sources(dolphin-nogui PRIVATE PlatformX11.cpp)
+endif()
 
 set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
 
