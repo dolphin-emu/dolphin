@@ -54,7 +54,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   InitializeShared();
 
@@ -80,4 +80,4 @@ void VideoBackend::Shutdown()
 
   ShutdownShared();
 }
-}
+}  // namespace Null

@@ -39,9 +39,11 @@ Make AA apply instantly during gameplay if possible
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
+
+#include "Core/Config/GraphicsSettings.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/PerfQuery.h"
@@ -66,7 +68,7 @@ std::string VideoBackend::GetName() const
 
 std::string VideoBackend::GetDisplayName() const
 {
-  if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  if (g_renderer && static_cast<Renderer*>(g_renderer.get())->IsGLES())
     return _trans("OpenGL ES");
   else
     return _trans("OpenGL");
@@ -108,10 +110,10 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.AAModes = {1, 2, 4, 8};
 }
 
-bool VideoBackend::InitializeGLExtensions()
+bool VideoBackend::InitializeGLExtensions(GLContext* context)
 {
   // Init extension support.
-  if (!GLExtensions::Init())
+  if (!GLExtensions::Init(context))
   {
     // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
     // extensions
@@ -157,20 +159,20 @@ bool VideoBackend::FillBackendInfo()
   return true;
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   InitializeShared();
 
-  GLUtil::InitInterface();
-  GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-  if (!GLInterface->Create(window_handle, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer))
+  std::unique_ptr<GLContext> main_gl_context =
+      GLContext::Create(wsi, g_ActiveConfig.stereo_mode == StereoMode::QuadBuffer, true, false,
+                        Config::Get(Config::GFX_PREFER_GLES));
+  if (!main_gl_context)
     return false;
 
-  GLInterface->MakeCurrent();
-  if (!InitializeGLExtensions() || !FillBackendInfo())
+  if (!InitializeGLExtensions(main_gl_context.get()) || !FillBackendInfo())
     return false;
 
-  g_renderer = std::make_unique<Renderer>();
+  g_renderer = std::make_unique<Renderer>(std::move(main_gl_context));
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
   ProgramShaderCache::Init();
@@ -196,9 +198,6 @@ void VideoBackend::Shutdown()
   g_perf_query.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
-  GLInterface->ClearCurrent();
-  GLInterface->Shutdown();
-  GLInterface.reset();
   ShutdownShared();
 }
-}
+}  // namespace OGL

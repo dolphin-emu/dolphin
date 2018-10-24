@@ -70,6 +70,11 @@ Renderer* Renderer::GetInstance()
   return static_cast<Renderer*>(g_renderer.get());
 }
 
+bool Renderer::IsHeadless() const
+{
+  return m_swap_chain == nullptr;
+}
+
 bool Renderer::Initialize()
 {
   BindEFBToStateTracker();
@@ -860,11 +865,8 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!m_surface_changed.TestAndClear())
+  if (!m_surface_changed.TestAndClear() || !m_swap_chain)
     return;
-
-  m_surface_handle = m_new_surface_handle;
-  m_new_surface_handle = nullptr;
 
   // Submit the current draws up until rendering the XFB.
   g_command_buffer_mgr->ExecuteCommandBuffer(false, false);
@@ -873,37 +875,10 @@ void Renderer::CheckForSurfaceChange()
   // Clear the present failed flag, since we don't want to resize after recreating.
   g_command_buffer_mgr->CheckLastPresentFail();
 
-  // Did we previously have a swap chain?
-  if (m_swap_chain)
-  {
-    if (!m_surface_handle)
-    {
-      // If there is no surface now, destroy the swap chain.
-      m_swap_chain.reset();
-    }
-    else
-    {
-      // Recreate the surface. If this fails we're in trouble.
-      if (!m_swap_chain->RecreateSurface(m_surface_handle))
-        PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
-    }
-  }
-  else
-  {
-    // Previously had no swap chain. So create one.
-    VkSurfaceKHR surface =
-        SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(), m_surface_handle);
-    if (surface != VK_NULL_HANDLE)
-    {
-      m_swap_chain = SwapChain::Create(m_surface_handle, surface, g_ActiveConfig.IsVSync());
-      if (!m_swap_chain)
-        PanicAlert("Failed to create swap chain.");
-    }
-    else
-    {
-      PanicAlert("Failed to create surface.");
-    }
-  }
+  // Recreate the surface. If this fails we're in trouble.
+  if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
+    PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
+  m_new_surface_handle = nullptr;
 
   // Handle case where the dimensions are now different.
   OnSwapChainResized();
@@ -913,9 +888,6 @@ void Renderer::CheckForSurfaceResize()
 {
   if (!m_surface_resized.TestAndClear())
     return;
-
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
 
   // If we don't have a surface, how can we resize the swap chain?
   // CheckForSurfaceChange should handle this case.

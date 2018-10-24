@@ -77,6 +77,8 @@ public:
 
   using ClearColor = std::array<float, 4>;
 
+  virtual bool IsHeadless() const = 0;
+
   virtual void SetPipeline(const AbstractPipeline* pipeline) {}
   virtual void SetScissorRect(const MathUtil::Rectangle<int>& rc) {}
   virtual void SetTexture(u32 index, const AbstractTexture* texture) {}
@@ -134,7 +136,6 @@ public:
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
   float CalculateDrawAspectRatio() const;
-  bool IsHeadless() const;
 
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
@@ -182,7 +183,7 @@ public:
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface(int new_width, int new_height);
+  void ResizeSurface();
   bool UseVertexDepthRange() const;
 
   virtual std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler();
@@ -228,15 +229,12 @@ protected:
   // Backbuffer (window) size and render area
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
-  int m_new_backbuffer_width = 0;
-  int m_new_backbuffer_height = 0;
   TargetRectangle m_target_rectangle = {};
 
   FPSCounter m_fps_counter;
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
-  void* m_surface_handle = nullptr;
   void* m_new_surface_handle = nullptr;
   Common::Flag m_surface_changed;
   Common::Flag m_surface_resized;

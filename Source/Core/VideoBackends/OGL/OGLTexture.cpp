@@ -4,7 +4,6 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"

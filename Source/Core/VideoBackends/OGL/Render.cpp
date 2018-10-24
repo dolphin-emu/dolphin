@@ -16,7 +16,7 @@
 #include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
@@ -353,9 +353,10 @@ static void InitDriverInfo()
 }
 
 // Init functions
-Renderer::Renderer()
-    : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
-                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
+Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context)
+    : ::Renderer(static_cast<int>(std::max(main_gl_context->GetBackBufferWidth(), 1u)),
+                 static_cast<int>(std::max(main_gl_context->GetBackBufferHeight(), 1u))),
+      m_main_gl_context(std::move(main_gl_context))
 {
   bool bSuccess = true;
 
@@ -365,7 +366,7 @@ Renderer::Renderer()
 
   InitDriverInfo();
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+  if (!m_main_gl_context->IsGLES())
   {
     if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
     {
@@ -500,7 +501,7 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsBPTCTextures =
       GLExtensions::Supports("GL_ARB_texture_compression_bptc");
 
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  if (m_main_gl_context->IsGLES())
   {
     g_ogl_config.SupportedESPointSize =
         GLExtensions::Supports("GL_OES_geometry_point_size") ?
@@ -730,10 +731,9 @@ Renderer::Renderer()
 
   if (!g_ogl_config.bSupportsGLBufferStorage && !g_ogl_config.bSupportsGLPinnedMemory)
   {
-    OSD::AddMessage(
-        StringFromFormat("Your OpenGL driver does not support %s_buffer_storage.",
-                         GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 ? "EXT" : "ARB"),
-        60000);
+    OSD::AddMessage(StringFromFormat("Your OpenGL driver does not support %s_buffer_storage.",
+                                     m_main_gl_context->IsGLES() ? "EXT" : "ARB"),
+                    60000);
     OSD::AddMessage("This device's performance will be terrible.", 60000);
     OSD::AddMessage("Please ask your device vendor for an updated OpenGL driver.", 60000);
   }
@@ -761,7 +761,7 @@ Renderer::Renderer()
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-    GLInterface->SwapInterval(s_vsync);
+    m_main_gl_context->SwapInterval(s_vsync);
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
@@ -796,7 +796,7 @@ Renderer::Renderer()
   glClearDepthf(1.0f);
 
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+    GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
   IndexGenerator::Init();
 
   UpdateActiveConfig();
@@ -804,6 +804,11 @@ Renderer::Renderer()
 }
 
 Renderer::~Renderer() = default;
+
+bool Renderer::IsHeadless() const
+{
+  return m_main_gl_context->IsHeadless();
+}
 
 void Renderer::Shutdown()
 {
@@ -1044,7 +1049,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
       std::unique_ptr<u32[]> colorMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
 
-      if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+      if (IsGLES())
         // XXX: Swap colours
         glReadPixels(targetPixelRc.left, targetPixelRc.bottom, targetPixelRcWidth,
                      targetPixelRcHeight, GL_RGBA, GL_UNSIGNED_BYTE, colorMap.get());
@@ -1351,7 +1356,7 @@ void Renderer::ApplyBlendingState(const BlendingState state, bool force)
       GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
       GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
 
-  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+  if (IsGLES())
   {
     // Logic ops aren't available in GLES3
   }
@@ -1421,7 +1426,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
     OSD::DrawMessages();
 
     // Swap the back and front buffers, presenting the image.
-    GLInterface->Swap();
+    m_main_gl_context->Swap();
   }
   else
   {
@@ -1466,7 +1471,7 @@ void Renderer::SwapImpl(AbstractTexture* texture, const EFBRectangle& xfb_region
   {
     s_vsync = g_ActiveConfig.IsVSync();
     if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
-      GLInterface->SwapInterval(s_vsync);
+      m_main_gl_context->SwapInterval(s_vsync);
   }
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
@@ -1500,14 +1505,12 @@ void Renderer::CheckForSurfaceChange()
   if (!m_surface_changed.TestAndClear())
     return;
 
-  m_surface_handle = m_new_surface_handle;
+  m_main_gl_context->UpdateSurface(m_new_surface_handle);
   m_new_surface_handle = nullptr;
-  GLInterface->UpdateHandle(m_surface_handle);
-  GLInterface->UpdateSurface();
 
   // With a surface change, the window likely has new dimensions.
-  m_backbuffer_width = GLInterface->GetBackBufferWidth();
-  m_backbuffer_height = GLInterface->GetBackBufferHeight();
+  m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
+  m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
 }
 
 void Renderer::CheckForSurfaceResize()
@@ -1515,9 +1518,9 @@ void Renderer::CheckForSurfaceResize()
   if (!m_surface_resized.TestAndClear())
     return;
 
-  GLInterface->Update();
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
+  m_main_gl_context->Update();
+  m_backbuffer_width = m_main_gl_context->GetBackBufferWidth();
+  m_backbuffer_height = m_main_gl_context->GetBackBufferHeight();
 }
 
 void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
@@ -1538,7 +1541,7 @@ void Renderer::ResetAPIState()
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
   glDisable(GL_BLEND);
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
+  if (!IsGLES())
     glDisable(GL_COLOR_LOGIC_OP);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
@@ -1717,4 +1720,4 @@ std::unique_ptr<VideoCommon::AsyncShaderCompiler> Renderer::CreateAsyncShaderCom
 {
   return std::make_unique<SharedContextAsyncShaderCompiler>();
 }
-}
+}  // namespace OGL

@@ -225,6 +225,11 @@ void Renderer::Create3DVisionTexture(int width, int height)
                            DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sys_data);
 }
 
+bool Renderer::IsHeadless() const
+{
+  return D3D::swapchain == nullptr;
+}
+
 std::unique_ptr<AbstractTexture> Renderer::CreateTexture(const TextureConfig& config)
 {
   return std::make_unique<DXTexture>(config);
@@ -698,12 +703,12 @@ void Renderer::CheckForSurfaceChange()
   if (!m_surface_changed.TestAndClear())
     return;
 
-  m_surface_handle = m_new_surface_handle;
-  m_new_surface_handle = nullptr;
-
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);
+
   D3D::Reset(reinterpret_cast<HWND>(m_new_surface_handle));
+  m_new_surface_handle = nullptr;
+
   UpdateBackbufferSize();
 }
 
@@ -713,9 +718,6 @@ void Renderer::CheckForSurfaceResize()
   const bool exclusive_fullscreen_changed = fullscreen_state != m_last_fullscreen_state;
   if (!m_surface_resized.TestAndClear() && !exclusive_fullscreen_changed)
     return;
-
-  m_backbuffer_width = m_new_backbuffer_width;
-  m_backbuffer_height = m_new_backbuffer_height;
 
   SAFE_RELEASE(m_screenshot_texture);
   SAFE_RELEASE(m_3d_vision_texture);

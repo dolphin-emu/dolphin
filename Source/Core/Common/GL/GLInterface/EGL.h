@@ -9,44 +9,46 @@
 #include <string>
 #include <vector>
 
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 
-class cInterfaceEGL : public cInterfaceBase
+class GLContextEGL : public GLContext
 {
-private:
-  EGLConfig m_config;
-  bool m_has_handle;
-  EGLNativeWindowType m_host_window;
-  bool m_supports_surfaceless = false;
-  std::vector<int> m_attribs;
+public:
+  virtual ~GLContextEGL() override;
+
+  bool IsHeadless() const override;
+
+  std::unique_ptr<GLContext> CreateSharedContext() override;
+
+  bool MakeCurrent() override;
+  bool ClearCurrent() override;
+
+  void UpdateSurface(void* window_handle) override;
+
+  void Swap() override;
+  void SwapInterval(int interval) override;
+
+  void* GetFuncAddress(const std::string& name) override;
+
+protected:
+  virtual EGLDisplay OpenEGLDisplay();
+  virtual EGLNativeWindowType GetEGLNativeWindow(EGLConfig config);
+
+  bool Initialize(void* display_handle, void* window_handle, bool stereo, bool core) override;
 
   bool CreateWindowSurface();
   void DestroyWindowSurface();
+  void DetectMode(bool has_handle);
+  void DestroyContext();
 
-protected:
-  void DetectMode();
-  EGLSurface egl_surf;
-  EGLContext egl_ctx;
-  EGLDisplay egl_dpy;
+  void* m_host_display = nullptr;
+  void* m_host_window = nullptr;
 
-  virtual EGLDisplay OpenDisplay() { return eglGetDisplay(EGL_DEFAULT_DISPLAY); }
-  virtual EGLNativeWindowType InitializePlatform(EGLNativeWindowType host_window, EGLConfig config)
-  {
-    return (EGLNativeWindowType)EGL_DEFAULT_DISPLAY;
-  }
-  virtual void ShutdownPlatform() {}
+  EGLConfig m_config;
+  bool m_supports_surfaceless = false;
+  std::vector<int> m_attribs;
 
-public:
-  void Swap() override;
-  void SwapInterval(int interval) override;
-  void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
-  void* GetFuncAddress(const std::string& name) override;
-  bool Create(void* window_handle, bool stereo, bool core) override;
-  bool Create(cInterfaceBase* main_context) override;
-  bool MakeCurrent() override;
-  bool ClearCurrent() override;
-  void Shutdown() override;
-  void UpdateHandle(void* window_handle) override;
-  void UpdateSurface() override;
-  std::unique_ptr<cInterfaceBase> CreateSharedContext() override;
+  EGLSurface m_egl_surface = EGL_NO_SURFACE;
+  EGLContext m_egl_context = EGL_NO_CONTEXT;
+  EGLDisplay m_egl_display = EGL_NO_DISPLAY;
 };

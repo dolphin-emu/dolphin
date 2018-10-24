@@ -222,7 +222,7 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 }
 
 // Boot the ISO or file
-bool BootCore(std::unique_ptr<BootParameters> boot)
+bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 {
   if (!boot)
     return false;
@@ -403,12 +403,14 @@ bool BootCore(std::unique_ptr<BootParameters> boot)
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
   if (load_ipl)
   {
-    return Core::Init(std::make_unique<BootParameters>(
-        BootParameters::IPL{StartUp.m_region,
-                            std::move(std::get<BootParameters::Disc>(boot->parameters))},
-        boot->savestate_path));
+    return Core::Init(
+        std::make_unique<BootParameters>(
+            BootParameters::IPL{StartUp.m_region,
+                                std::move(std::get<BootParameters::Disc>(boot->parameters))},
+            boot->savestate_path),
+        wsi);
   }
-  return Core::Init(std::move(boot));
+  return Core::Init(std::move(boot), wsi);
 }
 
 // SYSCONF can be modified during emulation by the user and internally, which makes it

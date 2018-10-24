@@ -16,6 +16,7 @@
 #include <QProgressDialog>
 #include <QStackedWidget>
 #include <QVBoxLayout>
+#include <QWindow>
 
 #include <future>
 #include <optional>
@@ -26,7 +27,12 @@
 #include "QtUtils/SignalDaemon.h"
 #endif
 
+#ifndef WIN32
+#include <qpa/qplatformnativeinterface.h>
+#endif
+
 #include "Common/Version.h"
+#include "Common/WindowSystemInfo.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -98,7 +104,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include <qpa/qplatformnativeinterface.h>
 #include "UICommon/X11Utils.h"
 #endif
 
@@ -118,6 +123,45 @@ static void InstallSignalHandler()
   sigaction(SIGTERM, &sa, nullptr);
 }
 #endif
+
+static WindowSystemType GetWindowSystemType()
+{
+  // Determine WSI type based on Qt platform.
+  QString platform_name = QGuiApplication::platformName();
+  if (platform_name == QStringLiteral("windows"))
+    return WindowSystemType::Windows;
+  else if (platform_name == QStringLiteral("cocoa"))
+    return WindowSystemType::MacOS;
+  else if (platform_name == QStringLiteral("xcb"))
+    return WindowSystemType::X11;
+  else if (platform_name == QStringLiteral("wayland"))
+    return WindowSystemType::Wayland;
+
+  QMessageBox::critical(
+      nullptr, QStringLiteral("Error"),
+      QString::asprintf("Unknown Qt platform: %s", platform_name.toStdString().c_str()));
+  return WindowSystemType::Headless;
+}
+
+static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
+{
+  WindowSystemInfo wsi;
+  wsi.type = GetWindowSystemType();
+
+  // Our Win32 Qt external doesn't have the private API.
+#if defined(WIN32) || defined(__APPLE__)
+  wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+#else
+  QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
+  wsi.display_connection = pni->nativeResourceForWindow("display", window);
+  if (wsi.type == WindowSystemType::Wayland)
+    wsi.render_surface = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
+  else
+    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+#endif
+
+  return wsi;
+}
 
 MainWindow::MainWindow(std::unique_ptr<BootParameters> boot_parameters) : QMainWindow(nullptr)
 {
@@ -797,14 +841,19 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
     m_pending_boot = std::move(parameters);
     return;
   }
+
+  // We need the render widget before booting.
+  ShowRenderWidget();
+
   // Boot up, show an error if it fails to load the game.
-  if (!BootManager::BootCore(std::move(parameters)))
+  if (!BootManager::BootCore(std::move(parameters),
+                             GetWindowSystemInfo(m_render_widget->windowHandle())))
   {
     QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
+    HideRenderWidget();
     return;
   }
 
-  ShowRenderWidget();
 #ifdef USE_DISCORD_PRESENCE
   if (!NetPlay::IsNetPlayRunning())
     Discord::UpdateDiscordPresence();

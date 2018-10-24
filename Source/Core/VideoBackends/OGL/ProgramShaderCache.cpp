@@ -12,7 +12,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -805,7 +805,8 @@ void ProgramShaderCache::CreateHeader()
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 {
-  std::unique_ptr<cInterfaceBase> context = GLInterface->CreateSharedContext();
+  std::unique_ptr<GLContext> context =
+      static_cast<Renderer*>(g_renderer.get())->GetMainGLContext()->CreateSharedContext();
   if (!context)
   {
     PanicAlert("Failed to create shared context for shader compiling.");
@@ -818,20 +819,20 @@ bool SharedContextAsyncShaderCompiler::WorkerThreadInitMainThread(void** param)
 
 bool SharedContextAsyncShaderCompiler::WorkerThreadInitWorkerThread(void* param)
 {
-  cInterfaceBase* context = static_cast<cInterfaceBase*>(param);
+  GLContext* context = static_cast<GLContext*>(param);
   if (!context->MakeCurrent())
     return false;
 
   s_is_shared_context = true;
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
-    GLUtil::EnablePrimitiveRestart();
+    GLUtil::EnablePrimitiveRestart(context);
 
   return true;
 }
 
 void SharedContextAsyncShaderCompiler::WorkerThreadExit(void* param)
 {
-  cInterfaceBase* context = static_cast<cInterfaceBase*>(param);
+  GLContext* context = static_cast<GLContext*>(param);
   context->ClearCurrent();
   delete context;
 }

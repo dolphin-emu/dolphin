@@ -5,8 +5,8 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/Log.h"
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -2148,12 +2148,11 @@ const GLFunc gl_function_array[] = {
 namespace GLExtensions
 {
 // Private members and functions
-static bool _isES;
-static u32 _GLVersion;
-static std::unordered_map<std::string, bool> m_extension_list;
+static u32 s_gl_version;
+static std::unordered_map<std::string, bool> s_extension_list;
 
 // Private initialization functions
-bool InitFunctionPointers();
+bool InitFunctionPointers(GLContext* context);
 
 // Initializes the extension list the old way
 static void InitExtensionList21()
@@ -2163,28 +2162,28 @@ static void InitExtensionList21()
   std::istringstream buffer(tmp);
 
   while (buffer >> tmp)
-    m_extension_list[tmp] = true;
+    s_extension_list[tmp] = true;
 }
 
-static void InitExtensionList()
+static void InitExtensionList(GLContext* context)
 {
-  m_extension_list.clear();
-  if (_isES)
+  s_extension_list.clear();
+  if (context->IsGLES())
   {
-    switch (_GLVersion)
+    switch (s_gl_version)
     {
     default:
     case 320:
-      m_extension_list["VERSION_GLES_3_2"] = true;
+      s_extension_list["VERSION_GLES_3_2"] = true;
     case 310:
-      m_extension_list["VERSION_GLES_3_1"] = true;
+      s_extension_list["VERSION_GLES_3_1"] = true;
     case 300:
-      m_extension_list["VERSION_GLES_3"] = true;
+      s_extension_list["VERSION_GLES_3"] = true;
       break;
     }
 
     // We always have ES 2.0
-    m_extension_list["VERSION_GLES_2"] = true;
+    s_extension_list["VERSION_GLES_2"] = true;
   }
   else
   {
@@ -2194,7 +2193,7 @@ static void InitExtensionList()
     // When an extension got merged in to core, the naming may have changed
 
     // This has intentional fall through
-    switch (_GLVersion)
+    switch (s_gl_version)
     {
     default:
     case 450:
@@ -2213,7 +2212,7 @@ static void InitExtensionList()
           "VERSION_4_5",
       };
       for (auto it : gl450exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 440:
     {
@@ -2229,7 +2228,7 @@ static void InitExtensionList()
           "VERSION_4_4",
       };
       for (auto it : gl440exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 430:
     {
@@ -2257,7 +2256,7 @@ static void InitExtensionList()
           "VERSION_4_3",
       };
       for (auto it : gl430exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 420:
     {
@@ -2277,7 +2276,7 @@ static void InitExtensionList()
           "VERSION_4_2",
       };
       for (auto it : gl420exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 410:
     {
@@ -2291,7 +2290,7 @@ static void InitExtensionList()
           "VERSION_4_1",
       };
       for (auto it : gl410exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 400:
     {
@@ -2311,7 +2310,7 @@ static void InitExtensionList()
           "VERSION_4_0",
       };
       for (auto it : gl400exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 330:
     {
@@ -2329,7 +2328,7 @@ static void InitExtensionList()
           "VERSION_3_3",
       };
       for (auto it : gl330exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 320:
     {
@@ -2346,7 +2345,7 @@ static void InitExtensionList()
           "VERSION_3_2",
       };
       for (auto it : gl320exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 310:
     {
@@ -2361,7 +2360,7 @@ static void InitExtensionList()
           "VERSION_3_1",
       };
       for (auto it : gl310exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 300:
     {
@@ -2392,7 +2391,7 @@ static void InitExtensionList()
           "VERSION_3_0",
       };
       for (auto it : gl300exts)
-        m_extension_list[it] = true;
+        s_extension_list[it] = true;
     }
     case 210:
     case 200:
@@ -2406,10 +2405,10 @@ static void InitExtensionList()
       break;
     }
     // So we can easily determine if we are running dekstop GL
-    m_extension_list["VERSION_GL"] = true;
+    s_extension_list["VERSION_GL"] = true;
   }
 
-  if (_GLVersion < 300)
+  if (s_gl_version < 300)
   {
     InitExtensionList21();
     return;
@@ -2417,7 +2416,7 @@ static void InitExtensionList()
   GLint NumExtension = 0;
   glGetIntegerv(GL_NUM_EXTENSIONS, &NumExtension);
   for (GLint i = 0; i < NumExtension; ++i)
-    m_extension_list[std::string((const char*)glGetStringi(GL_EXTENSIONS, i))] = true;
+    s_extension_list[std::string((const char*)glGetStringi(GL_EXTENSIONS, i))] = true;
 }
 static void InitVersion()
 {
@@ -2425,14 +2424,14 @@ static void InitVersion()
   glGetIntegerv(GL_MAJOR_VERSION, &major);
   glGetIntegerv(GL_MINOR_VERSION, &minor);
   if (glGetError() == GL_NO_ERROR)
-    _GLVersion = major * 100 + minor * 10;
+    s_gl_version = major * 100 + minor * 10;
   else
-    _GLVersion = 210;
+    s_gl_version = 210;
 }
 
-static void* GetFuncAddress(const std::string& name, void** func)
+static void* GetFuncAddress(GLContext* context, const std::string& name, void** func)
 {
-  *func = GLInterface->GetFuncAddress(name);
+  *func = context->GetFuncAddress(name);
   if (*func == nullptr)
   {
 #if defined(__linux__) || defined(__APPLE__)
@@ -2448,37 +2447,36 @@ static void* GetFuncAddress(const std::string& name, void** func)
 // Public members
 u32 Version()
 {
-  return _GLVersion;
+  return s_gl_version;
 }
 bool Supports(const std::string& name)
 {
-  return m_extension_list[name];
+  return s_extension_list[name];
 }
 
-bool Init()
+bool Init(GLContext* context)
 {
-  _isES = GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL;
-
   // Grab a few functions for initial checking
   // We need them to grab the extension list
   // Also to check if there is an error grabbing the version
-  if (GetFuncAddress("glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
+  if (GetFuncAddress(context, "glGetIntegerv", (void**)&glGetIntegerv) == nullptr)
     return false;
-  if (GetFuncAddress("glGetString", (void**)&glGetString) == nullptr)
+  if (GetFuncAddress(context, "glGetString", (void**)&glGetString) == nullptr)
     return false;
-  if (GetFuncAddress("glGetError", (void**)&glGetError) == nullptr)
+  if (GetFuncAddress(context, "glGetError", (void**)&glGetError) == nullptr)
     return false;
 
   InitVersion();
 
   // We need to use glGetStringi to get the extension list
   // if we are using GLES3 or a GL version greater than 2.1
-  if (_GLVersion > 210 && GetFuncAddress("glGetStringi", (void**)&glGetStringi) == nullptr)
+  if (s_gl_version > 210 &&
+      GetFuncAddress(context, "glGetStringi", (void**)&glGetStringi) == nullptr)
     return false;
 
-  InitExtensionList();
+  InitExtensionList(context);
 
-  return InitFunctionPointers();
+  return InitFunctionPointers(context);
 }
 
 // Private initialization functions
@@ -2491,20 +2489,20 @@ static bool HasFeatures(const std::string& extensions)
   while (buffer >> tmp)
   {
     if (tmp[0] == '!')
-      result &= !m_extension_list[tmp.erase(0, 1)];
+      result &= !s_extension_list[tmp.erase(0, 1)];
     else if (tmp[0] == '|')
-      result |= m_extension_list[tmp.erase(0, 1)];
+      result |= s_extension_list[tmp.erase(0, 1)];
     else
-      result &= m_extension_list[tmp];
+      result &= s_extension_list[tmp];
   }
   return result;
 }
-bool InitFunctionPointers()
+bool InitFunctionPointers(GLContext* context)
 {
   bool result = true;
   for (const auto& it : gl_function_array)
     if (HasFeatures(it.requirements))
-      result &= !!GetFuncAddress(it.function_name, it.function_ptr);
+      result &= !!GetFuncAddress(context, it.function_name, it.function_ptr);
   return result;
 }
-}
+}  // namespace GLExtensions

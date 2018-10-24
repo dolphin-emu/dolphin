@@ -27,7 +27,6 @@ enum OS
   OS_ANDROID = (1 << 4),
   OS_FREEBSD = (1 << 5),
   OS_OPENBSD = (1 << 6),
-  OS_HAIKU = (1 << 7),
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences
