@@ -459,7 +459,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   bool init_controllers = false;
   if (!g_controller_interface.IsInit())
   {
-    g_controller_interface.Initialize(wsi.display_connection);
+    g_controller_interface.Initialize(wsi.render_surface);
     Pad::Initialize();
     Keyboard::Initialize();
     init_controllers = true;
