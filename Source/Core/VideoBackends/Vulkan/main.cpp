@@ -36,7 +36,8 @@ void VideoBackend::InitBackendInfo()
 
   if (LoadVulkanLibrary())
   {
-    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(false, false, false);
+    VkInstance temp_instance =
+        VulkanContext::CreateVulkanInstance(WindowSystemType::Headless, false, false);
     if (temp_instance)
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
@@ -111,10 +112,10 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 
   // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
   // We use this instance to fill in backend info, then re-use it for the actual device.
-  bool enable_surface = wsi.render_surface != nullptr;
+  bool enable_surface = wsi.type != WindowSystemType::Headless;
   bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
-  VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
-                                                            enable_validation_layer);
+  VkInstance instance =
+      VulkanContext::CreateVulkanInstance(wsi.type, enable_debug_reports, enable_validation_layer);
   if (instance == VK_NULL_HANDLE)
   {
     PanicAlert("Failed to create Vulkan instance.");
@@ -150,7 +151,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   if (enable_surface)
   {
-    surface = SwapChain::CreateVulkanSurface(instance, wsi.display_connection, wsi.render_surface);
+    surface = SwapChain::CreateVulkanSurface(instance, wsi);
     if (surface == VK_NULL_HANDLE)
     {
       PanicAlert("Failed to create Vulkan surface.");
@@ -213,8 +214,7 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   std::unique_ptr<SwapChain> swap_chain;
   if (surface != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(wsi.display_connection, wsi.render_surface, surface,
-                                   g_ActiveConfig.bVSyncActive);
+    swap_chain = SwapChain::Create(wsi, surface, g_ActiveConfig.bVSyncActive);
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");

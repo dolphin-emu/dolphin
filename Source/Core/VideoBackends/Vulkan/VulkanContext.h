@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -23,7 +24,7 @@ public:
   static bool CheckValidationLayerAvailablility();
 
   // Helper method to create a Vulkan instance.
-  static VkInstance CreateVulkanInstance(bool enable_surface, bool enable_debug_report,
+  static VkInstance CreateVulkanInstance(WindowSystemType wstype, bool enable_debug_report,
                                          bool enable_validation_layer);
 
   // Returns a list of Vulkan-compatible GPUs.
@@ -109,7 +110,7 @@ public:
 
 private:
   using ExtensionList = std::vector<const char*>;
-  static bool SelectInstanceExtensions(ExtensionList* extension_list, bool enable_surface,
+  static bool SelectInstanceExtensions(ExtensionList* extension_list, WindowSystemType wstype,
                                        bool enable_debug_report);
   bool SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface);
   bool SelectDeviceFeatures();
