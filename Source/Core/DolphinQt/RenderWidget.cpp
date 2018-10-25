@@ -55,8 +55,6 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   connect(this, &RenderWidget::FocusChanged, Host::GetInstance(), &Host::SetRenderFocus,
           Qt::DirectConnection);
 
-  emit HandleChanged((void*)winId());
-
   m_mouse_timer = new QTimer(this);
   connect(m_mouse_timer, &QTimer::timeout, this, &RenderWidget::HandleCursorTimer);
   m_mouse_timer->setSingleShot(true);
@@ -69,6 +67,9 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
           &RenderWidget::OnKeepOnTopChanged);
   OnKeepOnTopChanged(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_mouse_timer->start(MOUSE_HIDE_DELAY);
+
+  // We need a native window to render into.
+  setAttribute(Qt::WA_NativeWindow);
 
   SetFillBackground(true);
 }
@@ -144,7 +145,7 @@ bool RenderWidget::event(QEvent* event)
     }
     break;
   case QEvent::WinIdChange:
-    emit HandleChanged((void*)winId());
+    emit HandleChanged(reinterpret_cast<void*>(winId()));
     break;
   case QEvent::WindowActivate:
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)

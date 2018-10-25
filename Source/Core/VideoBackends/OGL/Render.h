@@ -7,7 +7,8 @@
 #include <array>
 #include <string>
 
-#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLContext.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 #include "VideoCommon/RenderBase.h"
 
 struct XFBSourceBase;
@@ -81,8 +82,10 @@ extern VideoConfig g_ogl_config;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer();
+  Renderer(std::unique_ptr<GLContext> main_gl_context);
   ~Renderer() override;
+
+  bool IsHeadless() const override;
 
   void Init();
   void Shutdown() override;
@@ -141,6 +144,10 @@ public:
 
   std::unique_ptr<VideoCommon::AsyncShaderCompiler> CreateAsyncShaderCompiler() override;
 
+  // Only call methods from this on the GPU thread.
+  GLContext* GetMainGLContext() const { return m_main_gl_context.get(); }
+  bool IsGLES() const { return m_main_gl_context->IsGLES(); }
+
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
@@ -159,10 +166,11 @@ private:
   void ApplyDepthState(const DepthState state, bool force = false);
   void UploadUtilityUniforms(const void* uniforms, u32 uniforms_size);
 
+  std::unique_ptr<GLContext> m_main_gl_context;
   std::array<const AbstractTexture*, 8> m_bound_textures{};
   const OGLPipeline* m_graphics_pipeline = nullptr;
   RasterizationState m_current_rasterization_state = {};
   DepthState m_current_depth_state = {};
   BlendingState m_current_blend_state = {};
 };
-}
+}  // namespace OGL

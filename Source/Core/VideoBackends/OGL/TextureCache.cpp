@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 

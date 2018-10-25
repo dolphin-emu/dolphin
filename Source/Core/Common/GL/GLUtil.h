@@ -8,10 +8,13 @@
 #include "VideoCommon/RenderState.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
+class GLContext;
+
 namespace GLUtil
 {
-void InitInterface();
 GLuint CompileProgram(const std::string& vertexShader, const std::string& fragmentShader);
-void EnablePrimitiveRestart();
+
 GLenum MapToGLPrimitive(PrimitiveType primitive_type);
-}
+
+void EnablePrimitiveRestart(const GLContext* context);
+}  // namespace GLUtil

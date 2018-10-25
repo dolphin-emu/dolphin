@@ -30,14 +30,10 @@ Host* Host::GetInstance()
   return s_instance;
 }
 
-void* Host::GetRenderHandle()
-{
-  return m_render_handle;
-}
-
 void Host::SetRenderHandle(void* handle)
 {
-  m_render_handle = handle;
+  if (g_renderer)
+    g_renderer->ChangeSurface(handle);
 }
 
 bool Host::GetRenderFocus()
@@ -72,7 +68,7 @@ void Host::SetRenderFullscreen(bool fullscreen)
 void Host::ResizeSurface(int new_width, int new_height)
 {
   if (g_renderer)
-    g_renderer->ResizeSurface(new_width, new_height);
+    g_renderer->ResizeSurface();
 }
 
 void Host_Message(HostMessageID id)
@@ -92,11 +88,6 @@ void Host_Message(HostMessageID id)
 void Host_UpdateTitle(const std::string& title)
 {
   emit Host::GetInstance()->RequestTitle(QString::fromStdString(title));
-}
-
-void* Host_GetRenderHandle()
-{
-  return Host::GetInstance()->GetRenderHandle();
 }
 
 bool Host_RendererHasFocus()

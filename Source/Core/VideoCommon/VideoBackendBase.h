@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO
@@ -35,7 +36,7 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(void* window_handle) = 0;
+  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
   virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
