@@ -18,7 +18,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA"/>
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA"/>
-    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission
+        android:name="android.permission.VIBRATE"
+        android:required="false"/>
 
     <application
         android:name=".DolphinApplication"
