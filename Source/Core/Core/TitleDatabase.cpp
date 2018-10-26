@@ -165,6 +165,41 @@ TitleDatabase::TitleDatabase()
     m_wii_title_map.emplace(id, "The Homebrew Channel");
 }
 
+TitleDatabase::TitleDatabase(const std::string& language)
+{
+  // Load the user databases.
+  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
+  if (!LoadMap(load_directory + "wiitdb.txt", m_gc_title_map, m_wii_title_map))
+    LoadMap(load_directory + "titles.txt", m_gc_title_map, m_wii_title_map);
+
+  if (!SConfig::GetInstance().m_use_builtin_title_database)
+    return;
+
+  // Load the database in the console language.
+  // Note: The GameCube language setting can't be set to Japanese,
+  // so instead, we use Japanese names iff the games are NTSC-J.
+  LoadMap(File::GetSysDirectory() + "wiitdb-ja.txt", m_gc_title_map, IsJapaneseGCTitle);
+  if (language != "en")
+  {
+    LoadMap(File::GetSysDirectory() + "wiitdb-" + language + ".txt", m_gc_title_map,
+            IsNonJapaneseGCTitle);
+
+    LoadMap(File::GetSysDirectory() + "wiitdb-" + language + ".txt", m_wii_title_map, IsWiiTitle);
+  }
+
+  // Load the English database as the base database.
+  LoadMap(File::GetSysDirectory() + "wiitdb-en.txt", m_gc_title_map, m_wii_title_map);
+
+  // Titles that cannot be part of the Wii TDB,
+  // but common enough to justify having entries for them.
+
+  // i18n: "Wii Menu" (or System Menu) refers to the Wii's main menu,
+  // which is (usually) the first thing users see when a Wii console starts.
+  m_wii_title_map.emplace("0000000100000002", GetStringT("Wii Menu"));
+  for (const auto& id : {"HAXX", "JODI", "00010001af1bf516", "LULZ", "OHBC"})
+    m_wii_title_map.emplace(id, "The Homebrew Channel");
+}
+
 TitleDatabase::~TitleDatabase() = default;
 
 const std::string& TitleDatabase::GetTitleName(const std::string& game_id, TitleType type) const

@@ -136,6 +136,7 @@ public class RunningSettingDialog extends DialogFragment
     {
       mTextSettingName = root.findViewById(R.id.text_setting_name);
       mCheckbox = root.findViewById(R.id.checkbox);
+			mCheckbox.setOnClickListener(this);
     }
 
     @Override
@@ -170,6 +171,7 @@ public class RunningSettingDialog extends DialogFragment
     {
       mTextSettingName = root.findViewById(R.id.text_setting_name);
       mRadioButton = root.findViewById(R.id.radiobutton);
+			mRadioButton.setOnClickListener(this);
     }
 
     @Override

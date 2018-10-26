@@ -384,6 +384,11 @@ public final class NativeLibrary
   /**
    * Begins emulation.
    */
+  public static native void setSystemLanguage(String language);
+
+  /**
+   * Begins emulation.
+   */
   public static native void Run(String path);
 
   /**

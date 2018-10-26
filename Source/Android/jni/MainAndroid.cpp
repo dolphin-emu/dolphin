@@ -44,6 +44,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/State.h"
+#include "Core/TitleDatabase.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
@@ -71,6 +72,7 @@ static ANativeWindow* s_surf;
 static std::mutex s_host_identity_lock;
 static Common::Event s_update_main_frame_event;
 static bool s_have_wm_user_stop = false;
+static std::unique_ptr<Core::TitleDatabase> s_title_database;
 }  // Anonymous namespace
 
 void Host_NotifyMapLoaded()
@@ -489,6 +491,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setRunningSe
   SConfig::GetInstance().bJITFollowBranch = settings[i++];
 
   env->ReleaseIntArrayElements(array, settings, 0);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSystemLanguage__Ljava_lang_String_2(
+  JNIEnv* env, jobject obj, jstring jFile)
+{
+  std::string language = GetJString(env, jFile);
+  s_title_database = std::make_unique<Core::TitleDatabase>(language);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,

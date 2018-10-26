@@ -16,6 +16,7 @@ class TitleDatabase final
 {
 public:
   TitleDatabase();
+  TitleDatabase(const std::string& language);
   ~TitleDatabase();
 
   enum class TitleType
