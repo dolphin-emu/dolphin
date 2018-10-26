@@ -412,7 +412,7 @@ public final class SettingsFragmentPresenter
     Setting disableCopyFilter = gfxSection.getSetting(SettingsFile.KEY_DISABLE_COPY_FILTER);
     Setting arbitraryMipmapDetection =
             gfxSection.getSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION);
-    Setting wideScreenHack = enhancementSection.getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
+    Setting wideScreenHack = gfxSection.getSetting(SettingsFile.KEY_WIDE_SCREEN_HACK);
     Setting force24BitColor = gfxSection.getSetting(SettingsFile.KEY_FORCE_24_BIT_COLOR);
 
     sl.add(new SingleChoiceSetting(SettingsFile.KEY_INTERNAL_RES, Settings.SECTION_GFX_SETTINGS,
@@ -458,7 +458,7 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ARBITRARY_MIPMAP_DETECTION,
             Settings.SECTION_GFX_SETTINGS, R.string.arbitrary_mipmap_detection,
             R.string.arbitrary_mipmap_detection_description, true, arbitraryMipmapDetection));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_ENHANCEMENTS,
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_WIDE_SCREEN_HACK, Settings.SECTION_GFX_SETTINGS,
             R.string.wide_screen_hack, R.string.wide_screen_hack_description, false,
             wideScreenHack));
 
