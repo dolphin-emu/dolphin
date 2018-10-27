@@ -32,6 +32,10 @@ Host* Host::GetInstance()
 
 void Host::SetRenderHandle(void* handle)
 {
+  if (m_render_handle == handle)
+    return;
+
+  m_render_handle = handle;
   if (g_renderer)
     g_renderer->ChangeSurface(handle);
 }
