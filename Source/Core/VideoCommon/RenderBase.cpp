@@ -34,10 +34,12 @@
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 
+#include "Core/Analytics.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
@@ -697,6 +699,12 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
       SetWindowSize(texture_config.width, texture_config.height);
 
       m_fps_counter.Update();
+
+      DolphinAnalytics::PerformanceSample perf_sample;
+      perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
+      perf_sample.num_prims = stats.thisFrame.numPrims + stats.thisFrame.numDLPrims;
+      perf_sample.num_draw_calls = stats.thisFrame.numDrawCalls;
+      DolphinAnalytics::Instance()->ReportPerformanceInfo(std::move(perf_sample));
 
       if (IsFrameDumping())
         DumpCurrentFrame();
