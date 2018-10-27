@@ -42,6 +42,7 @@ class ControllerInterface : public ciface::Core::DeviceContainer
 public:
   ControllerInterface() : m_is_init(false) {}
   void Initialize(const WindowSystemInfo& wsi);
+  void ChangeWindow(void* hwnd);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);

@@ -80,6 +80,15 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   RefreshDevices();
 }
 
+void ControllerInterface::ChangeWindow(void* hwnd)
+{
+  if (!m_is_init)
+    return;
+
+  m_wsi.render_surface = hwnd;
+  RefreshDevices();
+}
+
 void ControllerInterface::RefreshDevices()
 {
   if (!m_is_init)
