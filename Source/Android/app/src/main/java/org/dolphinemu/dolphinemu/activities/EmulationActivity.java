@@ -340,7 +340,10 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   protected void onSaveInstanceState(Bundle outState)
   {
-    mEmulationFragment.saveTemporaryState();
+    if (!isChangingConfigurations())
+    {
+      mEmulationFragment.saveTemporaryState();
+    }
     outState.putString(EXTRA_SELECTED_GAME, mPath);
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
