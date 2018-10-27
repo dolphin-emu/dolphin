@@ -53,4 +53,13 @@ void TimeBaseSet();
 u64 GetFakeTimeBase();
 // Custom RTC
 s64 GetLocalTimeRTCOffset();
-}
+
+// Returns an estimate of how fast/slow the emulation is running (excluding throttling induced sleep
+// time). The estimate is computed over the last 1s of emulated time. Example values:
+//
+// - 0.5: the emulator is running at 50% speed (falling behind).
+// - 1.0: the emulator is running at 100% speed.
+// - 2.0: the emulator is running at 200% speed (or 100% speed but sleeping half of the time).
+double GetEstimatedEmulationPerformance();
+
+}  // namespace SystemTimers
