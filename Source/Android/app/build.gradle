@@ -81,6 +81,7 @@ ext {
 
 dependencies {
     implementation "com.android.support:support-v13:$androidSupportVersion"
+    implementation "com.android.support:exifinterface:$androidSupportVersion"
     implementation "com.android.support:cardview-v7:$androidSupportVersion"
     implementation "com.android.support:recyclerview-v7:$androidSupportVersion"
     implementation "com.android.support:design:$androidSupportVersion"
