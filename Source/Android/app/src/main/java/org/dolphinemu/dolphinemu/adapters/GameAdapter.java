@@ -121,10 +121,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   {
     GameViewHolder holder = (GameViewHolder) view.getTag();
 
-    EmulationActivity.launch((FragmentActivity) view.getContext(),
-            holder.gameFile,
-            holder.getAdapterPosition(),
-            holder.imageScreenshot);
+    EmulationActivity.launch((FragmentActivity) view.getContext(), holder.gameFile);
   }
 
   /**

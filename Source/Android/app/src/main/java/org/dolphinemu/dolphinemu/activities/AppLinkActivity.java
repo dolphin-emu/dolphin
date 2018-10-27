@@ -132,6 +132,6 @@ public class AppLinkActivity extends FragmentActivity
       LocalBroadcastManager.getInstance(this).unregisterReceiver(directoryStateReceiver);
       directoryStateReceiver = null;
     }
-    EmulationActivity.launch(this, game, -1, null);
+    EmulationActivity.launch(this, game);
   }
 }
