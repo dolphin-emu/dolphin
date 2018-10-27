@@ -10,7 +10,7 @@
 
     <item
         android:id="@+id/menu_settings_core"
-        android:title="@string/grid_menu_config"
+        android:title="@string/preferences_settings"
         android:icon="@drawable/ic_settings_core"
         app:showAsAction="never"/>
 

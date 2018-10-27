@@ -320,6 +320,7 @@
     <string name="toast_save_code_ok">Code Saved!</string>
     <string name="toast_save_code_no">Save Failed!</string>
     <string name="interface_show_extended_fps">Show Extended FPS</string>
+    <string name="use_builtin_title_database">Use Built-In Database of Game Names</string>
     <string name="interface_show_extended_fps_description">Show extended fps information on screen.</string>
 
     <string name="sysconf_screensaver">Screensaver</string>

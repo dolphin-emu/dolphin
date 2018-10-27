@@ -11,11 +11,11 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -121,6 +121,7 @@ public class RunningSettingDialog extends DialogFragment
 
 
   public final class CheckBoxSettingViewHolder extends SettingViewHolder
+    implements CompoundButton.OnCheckedChangeListener
   {
     SettingsItem mItem;
     private TextView mTextSettingName;
@@ -136,7 +137,7 @@ public class RunningSettingDialog extends DialogFragment
     {
       mTextSettingName = root.findViewById(R.id.text_setting_name);
       mCheckbox = root.findViewById(R.id.checkbox);
-			mCheckbox.setOnClickListener(this);
+      mCheckbox.setOnCheckedChangeListener(this);
     }
 
     @Override
@@ -153,9 +154,16 @@ public class RunningSettingDialog extends DialogFragment
       mCheckbox.toggle();
       mItem.setValue(mCheckbox.isChecked() ? 1 : 0);
     }
+
+    @Override
+    public void onCheckedChanged(CompoundButton view, boolean isChecked)
+    {
+      mItem.setValue(isChecked ? 1 : 0);
+    }
   }
 
   public final class RadioButtonSettingViewHolder extends SettingViewHolder
+    implements CompoundButton.OnCheckedChangeListener
   {
     SettingsItem mItem;
     private TextView mTextSettingName;
@@ -171,7 +179,8 @@ public class RunningSettingDialog extends DialogFragment
     {
       mTextSettingName = root.findViewById(R.id.text_setting_name);
       mRadioButton = root.findViewById(R.id.radiobutton);
-			mRadioButton.setOnClickListener(this);
+      mRadioButton.setOnClickListener(this);
+      mRadioButton.setOnCheckedChangeListener(this);
     }
 
     @Override
@@ -186,6 +195,13 @@ public class RunningSettingDialog extends DialogFragment
     public void onClick(View clicked)
     {
       mRadioButton.toggle();
+      mItem.setValue(mRadioButton.isChecked() ? 1 : 0);
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton view, boolean isChecked)
+    {
+      mItem.setValue(isChecked ? 1 : 0);
     }
   }
 

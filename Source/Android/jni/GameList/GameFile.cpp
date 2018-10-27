@@ -21,6 +21,8 @@
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 
+const Core::TitleDatabase* Host_GetTitleDatabase();
+
 static std::shared_ptr<const UICommon::GameFile>* GetPointer(JNIEnv* env, jobject obj)
 {
   return reinterpret_cast<std::shared_ptr<const UICommon::GameFile>*>(
@@ -61,7 +63,11 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getPlatform
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getTitle(JNIEnv* env,
                                                                                  jobject obj)
 {
-  return ToJString(env, GetRef(env, obj)->GetName());
+  const Core::TitleDatabase* db = Host_GetTitleDatabase();
+  if(db)
+    return ToJString(env, GetRef(env, obj)->GetName(*db));
+  else
+    return ToJString(env, GetRef(env, obj)->GetName());
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDescription(JNIEnv* env,

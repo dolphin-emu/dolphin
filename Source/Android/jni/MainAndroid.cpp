@@ -75,6 +75,11 @@ static bool s_have_wm_user_stop = false;
 static std::unique_ptr<Core::TitleDatabase> s_title_database;
 }  // Anonymous namespace
 
+const Core::TitleDatabase* Host_GetTitleDatabase()
+{
+  return s_title_database.get();
+}
+
 void Host_NotifyMapLoaded()
 {
 }
@@ -233,8 +238,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InitGameIni(
   // Initialize an empty INI file
   IniFile ini;
   std::string gameid = GetJString(env, jGameID);
-
-  __android_log_print(ANDROID_LOG_DEBUG, "InitGameIni", "Initializing base game config file");
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + gameid + ".ini");
 }
 
@@ -496,8 +499,16 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setRunningSe
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_setSystemLanguage__Ljava_lang_String_2(
   JNIEnv* env, jobject obj, jstring jFile)
 {
-  std::string language = GetJString(env, jFile);
-  s_title_database = std::make_unique<Core::TitleDatabase>(language);
+  if(SConfig::GetInstance().m_use_builtin_title_database)
+  {
+    std::string language = GetJString(env, jFile);
+    __android_log_print(ANDROID_LOG_INFO, "zhangwei", "setSystemLanguage: %s", language.c_str());
+    s_title_database = std::make_unique<Core::TitleDatabase>(language);
+  }
+  else
+  {
+    s_title_database.reset();
+  }
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
@@ -623,7 +634,6 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(J
                                                                                jstring jFile)
 {
   const std::string path = GetJString(env, jFile);
-  __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Change Disc: %s", path.c_str());
   Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(path); });
 }
 

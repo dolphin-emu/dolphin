@@ -66,7 +66,10 @@ public final class DirectoryInitialization
         {
           initializeInternalStorage(context);
           initializeExternalStorage(context);
-          NativeLibrary.setSystemLanguage(Locale.getDefault().getLanguage());
+          String lan = Locale.getDefault().getLanguage();
+          if(lan.equals("zh"))
+            lan = lan + "_" + Locale.getDefault().getCountry();
+          NativeLibrary.setSystemLanguage(lan);
           directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
         }
         else
