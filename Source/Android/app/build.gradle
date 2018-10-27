@@ -96,7 +96,7 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:2.1.0'
 
     // For loading huge screenshots from the disk.
-    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.squareup.picasso:picasso:2.71828'
 
     // Allows FRP-style asynchronous operations in Android.
     implementation 'io.reactivex:rxandroid:1.2.1'
