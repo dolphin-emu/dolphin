@@ -92,9 +92,6 @@ dependencies {
     // For REST calls
     implementation 'com.android.volley:volley:1.1.0'
 
-    // For showing the banner as a circle a-la Material Design Guidelines
-    implementation 'de.hdodenhof:circleimageview:2.1.0'
-
     // For loading huge screenshots from the disk.
     implementation 'com.squareup.picasso:picasso:2.71828'
 
