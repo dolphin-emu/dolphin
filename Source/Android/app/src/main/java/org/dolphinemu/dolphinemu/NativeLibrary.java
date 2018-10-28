@@ -7,15 +7,11 @@
 package org.dolphinemu.dolphinemu;
 
 import android.app.AlertDialog;
-import android.content.Context;
-import android.os.Build;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
-import android.preference.PreferenceManager;
 import android.view.Surface;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.lang.ref.WeakReference;
 
@@ -245,22 +241,7 @@ public final class NativeLibrary
       return;
     }
 
-    if (PreferenceManager.getDefaultSharedPreferences(emulationActivity)
-            .getBoolean("phoneRumble", true))
-    {
-      Vibrator vibrator = (Vibrator) emulationActivity.getSystemService(Context.VIBRATOR_SERVICE);
-      if (vibrator != null && vibrator.hasVibrator())
-      {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
-          vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
-        }
-        else
-        {
-          vibrator.vibrate(100);
-        }
-      }
-    }
+    Rumble.checkRumble(padID, state);
   }
 
   public static native String GetUserSetting(String gameID, String Section, String Key);
