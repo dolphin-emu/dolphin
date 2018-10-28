@@ -178,6 +178,7 @@ void VertexManager::vFlush()
     // Execute the draw
     vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
                      m_current_draw_base_index, m_current_draw_base_vertex, 0);
+    INCSTAT(stats.thisFrame.numDrawCalls);
   }
 
   StateTracker::GetInstance()->OnDraw();
