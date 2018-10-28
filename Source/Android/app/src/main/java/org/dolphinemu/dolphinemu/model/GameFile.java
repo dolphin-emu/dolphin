@@ -32,6 +32,8 @@ public class GameFile
 
   public native int getPlatform();
 
+  public native int getDiscNumber();
+
   public native String getTitle();
 
   public native String getDescription();
@@ -168,8 +170,7 @@ public class GameFile
 
   private void loadFromNetwork(ImageView imageView, Callback callback)
   {
-    new Picasso.Builder(imageView.getContext())
-      .build()
+    Picasso.get()
       .load(CoverHelper.buildGameTDBUrl(this))
       .placeholder(R.drawable.no_banner)
       .error(R.drawable.no_banner)

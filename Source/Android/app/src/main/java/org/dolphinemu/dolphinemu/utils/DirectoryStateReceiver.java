@@ -6,13 +6,16 @@ import android.content.Intent;
 
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 
-import io.reactivex.functions.Consumer;
-
 public class DirectoryStateReceiver extends BroadcastReceiver
 {
-  Consumer<DirectoryInitializationState> callback;
+  public interface Action1<T>
+  {
+    void call(T t);
+  }
 
-  public DirectoryStateReceiver(Consumer<DirectoryInitializationState> callback)
+  Action1<DirectoryInitializationState> callback;
+
+  public DirectoryStateReceiver(Action1<DirectoryInitializationState> callback)
   {
     this.callback = callback;
   }
@@ -22,13 +25,6 @@ public class DirectoryStateReceiver extends BroadcastReceiver
   {
     DirectoryInitializationState state = (DirectoryInitializationState) intent
       .getSerializableExtra(DirectoryInitialization.EXTRA_STATE);
-    try
-    {
-      callback.accept(state);
-    }
-    catch (Exception e)
-    {
-      Log.error(e.getMessage());
-    }
+    callback.call(state);
   }
 }

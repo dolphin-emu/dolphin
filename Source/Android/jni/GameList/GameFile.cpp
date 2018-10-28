@@ -60,6 +60,12 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getPlatform
   return static_cast<jint>(GetRef(env, obj)->GetPlatform());
 }
 
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDiscNumber(JNIEnv* env,
+                                                                                 jobject obj)
+{
+  return static_cast<jint>(GetRef(env, obj)->GetDiscNumber());
+}
+
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getTitle(JNIEnv* env,
                                                                                  jobject obj)
 {
