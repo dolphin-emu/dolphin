@@ -24,13 +24,19 @@ std::vector<std::string> FindAllGamePaths(const std::vector<std::string>& direct
 class GameFileCache
 {
 public:
+  enum class DeleteOnDisk
+  {
+    No = 0,
+    Yes = 1,
+  };
+
   GameFileCache();  // Uses the default path
   explicit GameFileCache(std::string path);
 
   void ForEach(std::function<void(const std::shared_ptr<const GameFile>&)> f) const;
 
   size_t GetSize() const;
-  void Clear();
+  void Clear(DeleteOnDisk delete_on_disk);
 
   // Returns nullptr if the file is invalid.
   std::shared_ptr<const GameFile> AddOrGet(const std::string& path, bool* cache_changed);

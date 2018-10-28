@@ -75,6 +75,8 @@ public:
   void NewTag(const QString& name);
   void DeleteTag(const QString& name);
 
+  void PurgeCache();
+
 private:
   // Index in m_games, or -1 if it isn't found
   int FindGame(const std::string& path) const;
