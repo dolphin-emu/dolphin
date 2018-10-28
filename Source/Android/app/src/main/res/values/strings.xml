@@ -299,4 +299,6 @@
 
     <!-- Extra Leanback Homescreen Channels-->
     <string name="homescreen_favorites">Favorites</string>
+
+    <string name="select_dir">Select This Directory</string>
 </resources>
