@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
-import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -25,13 +24,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
@@ -45,7 +40,6 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
-import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
@@ -64,7 +58,6 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int REQUEST_CHANGE_DISC = 1;
 
   private View mDecorView;
-  private ImageView mImageView;
   private EmulationFragment mEmulationFragment;
 
   private SharedPreferences mPreferences;
@@ -72,16 +65,12 @@ public final class EmulationActivity extends AppCompatActivity
 
   private Settings mSettings;
 
-  // So that MainActivity knows which view to invalidate before the return animation.
-  private int mPosition;
-
   private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
 
   private static boolean sIsGameCubeGame;
 
   private boolean activityRecreated;
-  private String mScreenPath;
   private String mSelectedTitle;
   private int mPlatform;
   private String mPath;
@@ -90,8 +79,6 @@ public final class EmulationActivity extends AppCompatActivity
   public static final String EXTRA_SELECTED_GAME = "SelectedGame";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
   public static final String EXTRA_PLATFORM = "Platform";
-  public static final String EXTRA_SCREEN_PATH = "ScreenPath";
-  public static final String EXTRA_GRID_POSITION = "GridPosition";
 
   @Retention(SOURCE)
   @IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -178,27 +165,14 @@ public final class EmulationActivity extends AppCompatActivity
             .append(R.id.menu_emulation_reset_overlay, EmulationActivity.MENU_ACTION_RESET_OVERLAY);
   }
 
-  public static void launch(FragmentActivity activity, GameFile gameFile, int position,
-          View sharedView)
+  public static void launch(FragmentActivity activity, GameFile gameFile)
   {
     Intent launcher = new Intent(activity, EmulationActivity.class);
 
     launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    launcher.putExtra(EXTRA_SCREEN_PATH, gameFile.getScreenshotPath());
-    launcher.putExtra(EXTRA_GRID_POSITION, position);
     Bundle options = new Bundle();
-
-    // Will be null if launched from homescreen
-    if (sharedView != null)
-    {
-      ActivityOptionsCompat transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
-              activity,
-              sharedView,
-              "image_game_screenshot");
-      options = transition.toBundle();
-    }
 
     // I believe this warning is a bug. Activities are FragmentActivity from the support lib
     //noinspection RestrictedApi
@@ -217,8 +191,6 @@ public final class EmulationActivity extends AppCompatActivity
       mPath = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAME);
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
-      mScreenPath = gameToEmulate.getStringExtra(EXTRA_SCREEN_PATH);
-      mPosition = gameToEmulate.getIntExtra(EXTRA_GRID_POSITION, -1);
       activityRecreated = false;
     }
     else
@@ -280,8 +252,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     setContentView(R.layout.activity_emulation);
 
-    mImageView = (ImageView) findViewById(R.id.image_screenshot);
-
     // Find or create the EmulationFragment
     mEmulationFragment = (EmulationFragment) getSupportFragmentManager()
             .findFragmentById(R.id.frame_emulation_fragment);
@@ -291,41 +261,6 @@ public final class EmulationActivity extends AppCompatActivity
       getSupportFragmentManager().beginTransaction()
               .add(R.id.frame_emulation_fragment, mEmulationFragment)
               .commit();
-    }
-
-    if (savedInstanceState == null)
-    {
-      // Picasso will take a while to load these big-ass screenshots. So don't run
-      // the animation until we say so.
-      postponeEnterTransition();
-
-      Picasso.with(this)
-              .load(mScreenPath)
-              .noFade()
-              .noPlaceholder()
-              .into(mImageView, new Callback()
-              {
-                @Override
-                public void onSuccess()
-                {
-                  supportStartPostponedEnterTransition();
-                }
-
-                @Override
-                public void onError()
-                {
-                  // Still have to do this, or else the app will crash.
-                  supportStartPostponedEnterTransition();
-                }
-              });
-
-      Animations.fadeViewOut(mImageView)
-              .setStartDelay(2000)
-              .withEndAction(() -> mImageView.setVisibility(View.GONE));
-    }
-    else
-    {
-      mImageView.setVisibility(View.GONE);
     }
 
     if (mDeviceHasTouchScreen)
@@ -347,8 +282,6 @@ public final class EmulationActivity extends AppCompatActivity
     outState.putString(EXTRA_SELECTED_GAME, mPath);
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
-    outState.putString(EXTRA_SCREEN_PATH, mScreenPath);
-    outState.putInt(EXTRA_GRID_POSITION, mPosition);
     super.onSaveInstanceState(outState);
   }
 
@@ -357,8 +290,6 @@ public final class EmulationActivity extends AppCompatActivity
     mPath = savedInstanceState.getString(EXTRA_SELECTED_GAME);
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
-    mScreenPath = savedInstanceState.getString(EXTRA_SCREEN_PATH);
-    mPosition = savedInstanceState.getInt(EXTRA_GRID_POSITION);
   }
 
   @Override
@@ -378,7 +309,7 @@ public final class EmulationActivity extends AppCompatActivity
       if (backPressedOnce)
       {
         mEmulationFragment.stopEmulation();
-        exitWithAnimation();
+        finish();
       }
       else
       {
@@ -442,50 +373,6 @@ public final class EmulationActivity extends AppCompatActivity
       mMenuVisible = true;
     }
   }
-
-  public void exitWithAnimation()
-  {
-    runOnUiThread(() ->
-    {
-      Picasso.with(EmulationActivity.this)
-              .invalidate(mScreenPath);
-
-      Picasso.with(EmulationActivity.this)
-              .load(mScreenPath)
-              .noFade()
-              .noPlaceholder()
-              .into(mImageView, new Callback()
-              {
-                @Override
-                public void onSuccess()
-                {
-                  showScreenshot();
-                }
-
-                @Override
-                public void onError()
-                {
-                  finish();
-                }
-              });
-    });
-  }
-
-  private void showScreenshot()
-  {
-    Animations.fadeViewIn(mImageView)
-            .withEndAction(afterShowingScreenshot);
-  }
-
-  private Runnable afterShowingScreenshot = new Runnable()
-  {
-    @Override
-    public void run()
-    {
-      setResult(mPosition);
-      supportFinishAfterTransition();
-    }
-  };
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu)
@@ -676,7 +563,6 @@ public final class EmulationActivity extends AppCompatActivity
         if (TvUtil.isLeanback(getApplicationContext()))
           toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
         mEmulationFragment.stopEmulation();
-        exitWithAnimation();
         return;
     }
   }
