@@ -304,8 +304,6 @@ void MainWindow::CreateComponents()
   m_game_list = new GameList(this);
   m_render_widget = new RenderWidget;
   m_stack = new QStackedWidget(this);
-  m_controllers_window = new ControllersWindow(this);
-  m_settings_window = new SettingsWindow(this);
 
   for (int i = 0; i < 4; i++)
   {
@@ -325,11 +323,7 @@ void MainWindow::CreateComponents()
   m_jit_widget = new JITWidget(this);
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
-  m_fifo_window = new FIFOPlayerWindow(this);
   m_memory_widget = new MemoryWidget(this);
-
-  connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
-          [this](const QString& path) { StartGame(path); });
   m_register_widget = new RegisterWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
@@ -355,20 +349,6 @@ void MainWindow::CreateComponents()
     if (Core::GetState() == Core::State::Paused)
       m_code_widget->SetAddress(address, CodeViewWidget::SetAddressUpdate::WithUpdate);
   });
-
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-  m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
-      static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
-          "display", windowHandle())),
-      winId());
-  m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
-#else
-  m_graphics_window = new GraphicsWindow(nullptr, this);
-#endif
-
-  InstallHotkeyFilter(m_controllers_window);
-  InstallHotkeyFilter(m_settings_window);
-  InstallHotkeyFilter(m_graphics_window);
 }
 
 void MainWindow::ConnectMenuBar()
@@ -963,6 +943,12 @@ void MainWindow::HideRenderWidget(bool reinit)
 
 void MainWindow::ShowControllersWindow()
 {
+  if (!m_controllers_window)
+  {
+    m_controllers_window = new ControllersWindow(this);
+    InstallHotkeyFilter(m_controllers_window);
+  }
+
   m_controllers_window->show();
   m_controllers_window->raise();
   m_controllers_window->activateWindow();
@@ -970,6 +956,12 @@ void MainWindow::ShowControllersWindow()
 
 void MainWindow::ShowSettingsWindow()
 {
+  if (!m_settings_window)
+  {
+    m_settings_window = new SettingsWindow(this);
+    InstallHotkeyFilter(m_settings_window);
+  }
+
   m_settings_window->show();
   m_settings_window->raise();
   m_settings_window->activateWindow();
@@ -977,14 +969,14 @@ void MainWindow::ShowSettingsWindow()
 
 void MainWindow::ShowAudioWindow()
 {
-  m_settings_window->SelectAudioPane();
   ShowSettingsWindow();
+  m_settings_window->SelectAudioPane();
 }
 
 void MainWindow::ShowGeneralWindow()
 {
-  m_settings_window->SelectGeneralPane();
   ShowSettingsWindow();
+  m_settings_window->SelectGeneralPane();
 }
 
 void MainWindow::ShowAboutDialog()
@@ -995,18 +987,32 @@ void MainWindow::ShowAboutDialog()
 
 void MainWindow::ShowHotkeyDialog()
 {
-  auto* hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+  if (!m_hotkey_window)
+  {
+    m_hotkey_window = new MappingWindow(this, MappingWindow::Type::MAPPING_HOTKEYS, 0);
+    InstallHotkeyFilter(m_hotkey_window);
+  }
 
-  InstallHotkeyFilter(hotkey_window);
-
-  hotkey_window->show();
-  hotkey_window->raise();
-  hotkey_window->activateWindow();
+  m_hotkey_window->show();
+  m_hotkey_window->raise();
+  m_hotkey_window->activateWindow();
 }
 
 void MainWindow::ShowGraphicsWindow()
 {
-  m_graphics_window->Initialize();
+  if (!m_graphics_window)
+  {
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+    m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+        static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+            "display", windowHandle())),
+        winId());
+    m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
+#else
+    m_graphics_window = new GraphicsWindow(nullptr, this);
+#endif
+  }
+
   m_graphics_window->show();
   m_graphics_window->raise();
   m_graphics_window->activateWindow();
@@ -1021,6 +1027,13 @@ void MainWindow::ShowNetPlaySetupDialog()
 
 void MainWindow::ShowFIFOPlayer()
 {
+  if (!m_fifo_window)
+  {
+    m_fifo_window = new FIFOPlayerWindow(this);
+    connect(m_fifo_window, &FIFOPlayerWindow::LoadFIFORequested, this,
+            [this](const QString& path) { StartGame(path); });
+  }
+
   m_fifo_window->show();
   m_fifo_window->raise();
   m_fifo_window->activateWindow();
