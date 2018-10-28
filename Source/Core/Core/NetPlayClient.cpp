@@ -748,29 +748,29 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       {
         // Header
         WiiSave::Header header;
-        header.tid = Common::PacketReadU64(packet);
-        header.banner_size = Common::PacketReadU32(packet);
+        packet >> header.tid;
+        packet >> header.banner_size;
         packet >> header.permissions;
         packet >> header.unk1;
         for (size_t i = 0; i < header.md5.size(); i++)
           packet >> header.md5[i];
-        header.unk2 = Common::PacketReadU16(packet);
+        packet >> header.unk2;
         for (size_t i = 0; i < header.banner_size; i++)
           packet >> header.banner[i];
 
         // BkHeader
         WiiSave::BkHeader bk_header;
-        bk_header.size = Common::PacketReadU32(packet);
-        bk_header.magic = Common::PacketReadU32(packet);
-        bk_header.ngid = Common::PacketReadU32(packet);
-        bk_header.number_of_files = Common::PacketReadU32(packet);
-        bk_header.size_of_files = Common::PacketReadU32(packet);
-        bk_header.unk1 = Common::PacketReadU32(packet);
-        bk_header.unk2 = Common::PacketReadU32(packet);
-        bk_header.total_size = Common::PacketReadU32(packet);
+        packet >> bk_header.size;
+        packet >> bk_header.magic;
+        packet >> bk_header.ngid;
+        packet >> bk_header.number_of_files;
+        packet >> bk_header.size_of_files;
+        packet >> bk_header.unk1;
+        packet >> bk_header.unk2;
+        packet >> bk_header.total_size;
         for (size_t i = 0; i < bk_header.unk3.size(); i++)
           packet >> bk_header.unk3[i];
-        bk_header.tid = Common::PacketReadU64(packet);
+        packet >> bk_header.tid;
         for (size_t i = 0; i < bk_header.mac_address.size(); i++)
           packet >> bk_header.mac_address[i];
 
@@ -1196,7 +1196,6 @@ void NetPlayClient::SyncSaveDataResponse(const bool success)
 bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::string& file_path)
 {
   u64 file_size = Common::PacketReadU64(packet);
-  ;
 
   if (file_size == 0)
     return true;
@@ -1245,7 +1244,6 @@ bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::stri
 std::optional<std::vector<u8>> NetPlayClient::DecompressPacketIntoBuffer(sf::Packet& packet)
 {
   u64 size = Common::PacketReadU64(packet);
-  ;
 
   std::vector<u8> out_buffer(size);
 
