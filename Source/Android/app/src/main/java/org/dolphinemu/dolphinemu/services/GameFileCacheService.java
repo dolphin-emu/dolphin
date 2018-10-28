@@ -135,9 +135,9 @@ public final class GameFileCacheService extends IntentService
 
   private void updateGameFileArray()
   {
-    //GameFile[] gameFilesTemp = gameFileCache.getAllGames();
-    //Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getTitle().compareToIgnoreCase(rhs.getTitle()));
-    gameFiles.set(gameFileCache.getAllGames());
+    GameFile[] gameFilesTemp = gameFileCache.getAllGames();
+    Arrays.sort(gameFilesTemp, (lhs, rhs) -> lhs.getGameId().compareToIgnoreCase(rhs.getGameId()));
+    gameFiles.set(gameFilesTemp);
     LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(BROADCAST_ACTION));
   }
 }
