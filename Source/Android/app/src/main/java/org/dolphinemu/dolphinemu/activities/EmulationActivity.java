@@ -173,11 +173,7 @@ public final class EmulationActivity extends AppCompatActivity
     launcher.putExtra(EXTRA_SELECTED_GAME, gameFile.getPath());
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    Bundle options = new Bundle();
-
-    // I believe this warning is a bug. Activities are FragmentActivity from the support lib
-    //noinspection RestrictedApi
-    activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME, options);
+    activity.startActivityForResult(launcher, MainPresenter.REQUEST_EMULATE_GAME);
   }
 
   @Override
